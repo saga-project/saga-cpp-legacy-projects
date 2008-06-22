@@ -1,7 +1,22 @@
-%\documentclass[a4paper,12pt,footexclude,headerexclude]{scrartcl}
-%\documentclass{rspublic}  
-%\documentclass[conference,abstract,a4paper]{IEEEtran}
-\documentclass[a4paper,10pt]{article} 
+
+%
+%  $Description: Author guidelines and sample document in LaTeX 2.09$ 
+%
+%  $Author: ienne $
+%  $Date: 1995/09/15 15:20:59 $
+%  $Revision: 1.4 $
+%
+
+\documentclass[times, 10pt,twocolumn]{article} 
+\usepackage{latex8}
+\usepackage{times}
+
+%\documentstyle[times,art10,twocolumn,latex8]{article}
+
+%------------------------------------------------------------------------- 
+% take the % away on next line to produce the final camera-ready version 
+\pagestyle{empty}
+
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{url}
@@ -10,19 +25,33 @@
 \usepackage{multirow}    
 \usepackage{listings}   
 \usepackage{times}     
-\usepackage{paralist}
-      
-%\usepackage{typearea}
-%\areaset[0mm]{6.0in}{8.5in}
+\usepackage{paralist}    
 
-% \textwidth = 6.0in
-% \textheight = 9.0in
-% \oddsidemargin = 0.0in
-% \evensidemargin = 0.0in
-% \topmargin = 0.0 in
-% \headheight = 0.0 in
-% \headsep = 0.0 in    
+\usepackage{listings}
+\usepackage{keyval}  
+\usepackage{color}
+\definecolor{listinggray}{gray}{0.95}
+\definecolor{darkgray}{gray}{0.7}
+\definecolor{commentgreen}{rgb}{0, 0.4, 0}
+\definecolor{darkblue}{rgb}{0, 0, 0.4}
+\definecolor{middleblue}{rgb}{0, 0, 0.7}
+\definecolor{darkred}{rgb}{0.4, 0, 0}
+\definecolor{brown}{rgb}{0.5, 0.5, 0}
 
+
+\lstdefinestyle{myListing}{
+  frame=single,   
+  backgroundcolor=\color{listinggray},  
+  %float=t,
+  language=C,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  %numbers=left, 
+  %numberstyle=\tiny
+}
 
 \title{Reliable Replica Exchange Molecular Dynamics Simulation on
   Computational Grids using SAGA-CPR and Migol}
@@ -48,28 +77,41 @@
 
 \bibliographystyle{plain}
 
- \lstdefinestyle{myC}{
- 	language=C,
-	basicstyle=\ttfamily \footnotesize,
-	breakautoindent=true,
-	breaklines=true
-  	tabsize=2,
-  	captionpos=b
- }
 
 \begin{document} 
 
 
-\maketitle
+\maketitle    
+
+\begin{abstract}
+A major challenge in a dynamic Grid with thousands of machines connected to each 
+other is fault tolerance. The more resources and components involved, the more 
+complicated and error-prone becomes the system.   Migol is an adaptive Grid middleware,
+which addresses the fault tolerance of Grid applications and services 
+by providing the capability to recover applications from checkpoint files transparently.
+
+SAGA~\cite{SAGA_Goodale06a} provides a standardized, application-level API for 
+common Grid scenarios, e.\,g.\
+the management of files and jobs. The new SAGA Checkpoint Recovery (CPR) package addresses checkpointing 
+and the automatic recovery of Grid applications. In this paper, we describe the design of 
+the SAGA CPR package, the integration of the CPR adaptor with the Migol infrastructure, 
+and our experiences with running a large scale SAGA CPR based task farming application 
+in a real Grid environment.
+    
+The aim of this paper is, i) to couple the SAGA and Migol
+frameworks, ii) to provide a proof of concept implementation of the
+replica exchange method that uses the SAGA/Migol frameworks, iii) to show
+the validity, scalability and extensibility of this approach by
+attempting the simulation of a large model system.
+\end{abstract}
 
 
-% \section*{Introduction}
+
+\Section{Introduction}
                            
-% Grid computing envisions the sharing of compute, network, data and
-% software resources across multiinstitutional virtual organizations
-% (VOs). 
-
-Writing applications that are able to orchestrate heterogeneous
+Grid computing envisions the sharing of compute, network, data and
+software resources across multiinstitutional virtual organizations
+(VOs). Writing applications that are able to orchestrate heterogeneous
 resources across virtual organizations (VO) is a complex task.  Several 
 classes of applications, which are well suited for loosely
 coupled Grids, exist; arguably the best known and most commonly used ones are
@@ -114,57 +156,168 @@ render the entire computation worthless.
 middleware, which supports the discovery and allocation of resources
 as well as the transparent starting, monitoring and recovery of tasks in the Grid.          
 
-The aim of this paper is, i) to couple the SAGA and Migol
-frameworks, ii) to provide a proof of concept implementation of the
-replica exchange method that uses the SAGA/Migol frameworks, iii) to show
-the validity, scalability and extensibility of this approach by
-attempting the simulation of a large model system.
 
-% In the full paper, we will extensively  describe the design of the SAGA CPR API and the implementation 
-% of the Migol adaptor. Further, we will present our experiences with deploying  
-% the REMD application in a Grid environment.
-% This paper describes how using the Checkpoint\,\&\,Recovery package
-% (CPR) of the SAGA API, Migol's fault tolerance can be provided to the
-% class of Replica Exchange applications.   
+
+This paper describes In the full paper, we will extensively  describe the design of the SAGA CPR API and the implementation 
+of the Migol adaptor. Further, we will present our experiences with deploying  
+the REMD application in a Grid environment.
+This paper describes how using the Checkpoint\,\&\,Recovery package
+(CPR) of the SAGA API, Migol's fault tolerance can be provided to the
+class of Replica Exchange applications.   
  
-\section{REMD Simulation with NAMD}   
+\Section{REMD Simulation with NAMD}   
+
+REMD/NAMD background
+
+Task management framework  / Python Experience etc.
 
 ...                                  
 
 
-\section{Migol: A Fault Tolerant Service Framework}     
+\Section{Migol: A Fault Tolerant Service Framework}     
 \label{sec:migol}
 
-\begin{figure}[t]
+\begin{figure*}[t]
             \centering
-                \includegraphics[width=\textwidth]{migol_architecture}
+                \includegraphics[width=0.7\textwidth]{migol_architecture}
             \caption{Migol Service Architecture and Interactions}
             \label{fig:migol_architecture}
-\end{figure}           
+\end{figure*}           
 
 
 Migol guarantees the correct and reliable exe\-cution of applications or tasks even in
 the presence of  failures. The framework is based on the Globus Toolkit 4. 
 Figure~\ref{fig:migol_architecture} shows the current Migol architecture and 
-the interactions between the different services.    
-Fault tolerance of applications is achieved by periodically monitoring all applications 
-in the Grid using a keep-alive message. Inactive applications are detected via a configurable timeout. In case a failure 
-is discovered, a restart respectively a migration is initiated.  For recovery, Migol relies on application-level 
-checkpointing, i.\,e.\ applications have to be
-written to accommodate checkpointing and restart.
+the interactions between the different services.
 
-\section{SAGA Checkpoint Recovery API}
+The fundamental metadata model of Migol is the \emph{Grid Service Object (GSO)} schema,
+which defines a generic and extensible information model for
+describing Grid applications.  
+%When an application is
+%started, a Grid Service Object (GSO), which describedis created. 
+A GSO stores all relevant information about an application: resource requirements,
+the location of binaries and checkpoint files, global unique identifier (GUID),
+etc.
 
-% The framework has strong self-healing capabilities: critical services, 
-% such as the central registry service are replicated and support an automatic reconfiguration.    
-                                                                                                          
-The new SAGA CPR package provides a clean abstraction for starting,
+Grid Service Objects for all running applications are stored in 
+the {\em Application Information Service (AIS)}. 
+Applications can register and update service metadata, 
+such as files, machines etc.\ through Grid Services Objects. 
+To avoid a single point of failure, the AIS is replicated using a ring-based
+replication protocol, which ensures  the consistency of the stored data
+(see~\cite{Luckow:2008ys} for more details).
+%TODO plugin arch erläutern
+
+Figure~\ref{fig:migol_architecture} shows the current Migol architecture and
+the interactions between the different services.  Applications are
+started using the {\em Job Broker Service (JBS)} (message 1 in 
+Figure~\ref{fig:migol_architecture}). Before a job
+submission, the JBS must register the GSO of the application at the AIS (message 2).
+Resource discovery is performed through the WS MDS~\cite{schopf06},
+which aggregates data of different services, e.\,g.\ the Network
+Weather Service (NWS)~\cite{NWS99} (message 3).  Available resources are matched
+by the JBS according to the requirements of the application. To better plan the execution of 
+an application the JBS relies on advance reservation. The JBS tries to reserve a slot on all suitable
+resources. All reservations are ranked based on a shortest expected
+delay strategy~\cite{Jeske:2007wj}.  For conducting advance reservations and for job executions the
+\emph{Advance Reservation Service (ARS)} is used (message 4).
+             
+To ensure the availability of the application state even in case of a failure, 
+checkpoints can be replicated to another site  using the \emph{Checkpoint Replication Service
+(CRS)} (message 6).  The CRS offers features such as the automatic discovery and selection of storage resources, 
+the management of the data transfer and the detection of new file versions. 
+The CRS uses an adaptive strategy to determine replication  targets respectively to select a replica for a
+job restart.
+
+
+Fault tolerance requires at least two basic mechanisms: failure
+detection and recovery. To detect failures, the \emph{Monitoring and Restart Service (MRS)}
+periodically checks all services registered at the AIS using an
+application-level monitoring mechanism (message 8). In case the MRS discovers an inactive
+application due to a timeout, it initiates a restart respectively a migration using the
+Job Broker Service (message 9).  
+          
+For recovery, Migol relies on 
+application-level checkpointing, i.\,e.\ applications have to be
+written to accommodate checkpointing and restart. 
+Each time a checkpoint is witten, the application has to update
+its Grid Service Object at the AIS (message 5). 
+
+To support an automatic recovery, Grid applications must be able to interact with the Migol infrastructure:
+\begin{itemize}
+    \item The application must register checkpoint and job metadata with the infrastructure.
+    \item The infrastructure must be able to externally monitor the application.
+    \item The infrastructure must be able to externally notify the application and trigger the saving of a checkpoint.
+\end{itemize}  
+The Simple API for Grid Applications (SAGA) provides a feature rich programing abstractions. The described functions 
+can be  provided via the new SAGA Checkpoint Recovery API. In addition, SAGA provides  
+various other APIs for supporting file transfer, RPC communication etc., which Grid applications can benefit of.                           
+
+
+\Section{SAGA Checkpoint Recovery API}
+                                                                                                         
+The SAGA CPR package provides a clean abstraction for starting,
 monitoring and recovering of checkpoint-restartable jobs.
 % The package was inspired by the GridCPR~\cite{gridcpr} architecture and Migol.           
-Using SAGA CPR, applications can register checkpoint and job metadata with the infrastructure. Further, the API provides support for starting applications, triggering of checkpoints and recoveries.
+Using SAGA CPR, applications can register checkpoint and job metadata with the infrastructure. 
+Further, the API provides support for starting applications, triggering of checkpoints and recoveries.  
+
+For execution and management of CPR jobs, SAGA defines a CPR job. The management of 
+CPR jobs is similar to regular jobs: A job is defined by a job description. In contrast to normal jobs, 
+CPR jobs require  two job descriptions -- one for starting and another one for restarting the application.
+Jobs are started using the job service. In addition to the normal job controls, a CPR job can be queried for checkpoint metadata, and 
+it can be explicitly checkpointed or recovered. Listing~\ref{lst:saga_job_start} shows the starting of a CPR enabled job.
+
+\begin{lstlisting}[style=myListing, caption={SAGA CPR: Starting a Job with CPR Support},  label={lst:saga_job_start}]
+saga::cpr::service js; 
+saga::cpr::description jd_start;
+saga::cpr::description jd_restart;
+//file out job description
+...
+//submit job  
+saga::cpr::job job = js.create_job (jd_start, jd_restart);
+job.run();
+\end{lstlisting}
+    
+A major building block for fault tolerant system is failure detection. In general, fault detection is done by a monitor process, 
+which periodically sends keep-alive messages to applications. To monitor applications, the application must provide a communication endpoint.
+Listing~\ref{lst:saga_init_service} shows how a CPR application can connect to the CPR infrastructure. During instantiation of the \texttt{saga::cpr::service} object the adaptor is able to setup a monitoring thread (see section~\ref{sec:saga_cpr_migol_adaptor}). Using the \texttt{saga::cpr::self} object an application can obtain metadata about the current job from the application.                                                                               
+\begin{lstlisting}[style=myListing, caption={SAGA CPR: Initialize Migol Session}, label={lst:saga_init_service}]
+saga::cpr::service service (saga::url ("migol://gridhub.cct.lsu.edu:8443/wsrf/services/migol/AIS-JGroups"));
+saga::cpr::self = service.get_self ();
+\end{lstlisting}
+      
+After start of a CPR job, the job can be monitoring using the \texttt{job.get\_state()} method. Figure~\ref{fig:cpr-statemodel} shows the CPR state model. In the current implementation the \emph{recovering} state is introduced as detail substate of the state \emph{failed}.
+\begin{figure}[th]
+    \centering
+        \includegraphics[width=0.48\textwidth]{cpr-statemodel.pdf}
+    \caption{SAGA CPR State Model}
+    \label{fig:cpr-statemodel}
+\end{figure}
+                               
+
+For the management of checkpoint metadata the SAGA CPR API use the namespace paradigm to hierarchically 
+organize files and directories. Checkpoint directories are 
+used to group checkpoints. Parallel applications often write one checkpoint per 
+processor, i.\,e.\ in case of $n$ processors a CPR checkpoint
+would consists of $n$ files. Thus, a CPR checkpoint is designed as container 
+for multiple physical or logical files. Listing~\ref{lst:saga_chkpt_reg} demonstrates how an application task registers a single checkpoint file with the CPR implementations.     
+\begin{lstlisting}[style=myListing, caption={SAGA CPR: Register Checkpoint with Migol}, label={lst:saga_chkpt_reg}]
+saga::cpr::checkpoint remd_chkpt("remd_chkpt");
+remd_checkpoint.add_file(saga::url("gsiftp://queenbee.loni.org/work/remd/remd_chkpt.dat"));
+\end{lstlisting}
+
+In the following different implementation issues regarding the Migol SAGA adaptor are discussed.
+
+\Section{SAGA CPR Migol Adaptor}  
+\label{sec:saga_cpr_migol_adaptor}
+                  
+Naming: GUID - saga job id mapping
+
+gsoap embedded web server as monitoring endpoint
 
 
-\section{Experiences with REMD}
+\Section{Experiences with REMD}
 \label{sec:exp}       
 
         
@@ -178,23 +331,21 @@ To enable the monitoring of a tasks, each task must initialize a \texttt{saga::c
 before starting the computation.  Then, the Migol adaptor starts and registers the monitoring endpoint. 
 %TODO what is the task size/runtime of a single task
 The MRS can now monitor the application.  For error detection we use a timeout of 3 minutes.
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-        \includegraphics[width=\textwidth]{saga-taskfarming}
+        \includegraphics[width=0.6\textwidth]{saga-taskfarming}
     \caption{Fault Tolerant Task Farming Scenario}
     \label{fig:saga-taskfarming}
-\end{figure}
+\end{figure*}
 
-\section{Related Work}
+\Section{Related Work}
                                                                     
-Checkpointing and rollback recovery is widely used in Grids. 
-
-The Condor/PGRADE system~\cite{DBLP:conf/eagc/KovacsK04} consists 
+Checkpointing and rollback recovery is widely used in Grids. For example, the Condor/PGRADE system~\cite{DBLP:conf/eagc/KovacsK04} consists 
 of a checkpointing mechanism for PVM applications and uses Condor-G~\cite{citeulike:291860} for scheduling. 
 While PGRADE emphasises an integrated user-level checkpoint approach, we believe 
 that this approach is not suitable for a heterogeneous Grid landscape. Further, 
 the framework does not ensure the fault-tolerance of the
-service infrastructure.
+service infrastructure sufficiently.
                                  
 Several framework for high throughput computing and task farming exist:
 %Condor-G~\cite{citeulike:291860} allows the management of multi-site computations.                        
@@ -202,14 +353,14 @@ Nimrod-G~\cite{buyya00nimrodg} is a specialized framework for task farming. The 
 
 The Legion~\cite{689541} Grid middleware provides a object-oriented programing model, which allows the simple instantiation of distributed tasks. While the provided abstraction is useful for developing Grid applications, it relies on proprietary protocols and is not compatible with OGSA-based service-oriented Grids.
 
-Nimrod-G and Legion as also most Grid resource management systems, such as Condor-G~\cite{citeulike:291860} and GridWay~\cite{Montero05}, provide basic fault tolerance support by automatic re-scheduling of failed task. Advanced features such as the management of checkpoints are not supported. Further, these frameworks rely on a very simple failure detections mechanisms -- usually by simply polling the job state at the Globus gatekeeper. This allows the detection of some errors, but application-level failure detectors as used by the Migol/SAGA library can detects much more complex errors. For example, especially parallel applications can fail quite inconsistently: in the best case the application aborts, at worst the application hangs indefinitely. These kind of failures are not visible at Grid resource management system level. 
+Nimrod-G and Legion as also most Grid resource management systems, such as Condor-G~\cite{citeulike:291860} and GridWay~\cite{Montero05}, provide basic fault tolerance support by automatic re-scheduling of failed task. Advanced features such as the management of checkpoints are not supported. Further, these frameworks rely on a very simple failure detections mechanisms -- usually by simply polling the job state at the Globus gatekeeper. This allows the detection of some errors, but application-level failure detectors as used by the Migol/SAGA library can detects much more complex errors. For example, especially parallel applications can fail quite inconsistently: in the best case the application aborts, at worst the application hangs indefinitely. These kind of failures are not visible at Grid resource management system level. Further, these frameworks or scheduler focus on individual aspects, e.\,g.\ Nimrod-G focuses on task farming or GridWay on meta-scheduling. Migol aims to provide an overall autonomic, self-healing infrastructure, which addresses the fault tolerance of Grid applications and the infrastructure itself. 
 
-Further, these frameworks do not address the fault tolerance of the infrastructure services.
+In addition, SAGA provides many benefits for applications.  SAGA offers a feature rich programing abstractions, which can be used in conjunction with the fault tolerant Migol framework, but also with other Grid middleware platforms.
 
 
 
 %%------------------------------------------------------------------------------
-\section{Conclusion and Future Work}
+\Section{Conclusion and Future Work}
 
 Migol addresses the fault tolerance of Grid applications by handling common failures 
 in Grid applications transparently without user interactions.  In case of failures, 
