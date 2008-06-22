@@ -1,0 +1,167 @@
+#!/usr/bin/perl
+
+#$qtype = "PBS";
+#$subcmd = "/opt/torque/bin/qsub XXX";
+#$mach = "dante";
+#$queue = "dque";
+
+open(FH, "$ENV{PWD}/varq_reservation.conf");
+while(<FH>) {
+    chomp;
+    if (!$_) {
+	next;
+    }
+    ($k, @c) = split(/\s+/, $_);
+    $v = join(" ", @c);
+    $conf{$k} = $v;
+}
+close(FH);   
+
+$qtype = $conf{"qtype"};
+$subcmd = $conf{"subcmd"};
+$mach = $conf{"mach"};
+$queue = $conf{"queue"};
+
+$refresh = 2;
+$trytry = 0;
+$verbose = 1;
+
+$nodes = shift @ARGV;
+$walltime = shift @ARGV;
+$start_deadline = shift @ARGV;
+$minprob = shift @ARGV;
+$jobscript = shift @ARGV;
+
+if (!$mach || !$queue || $nodes <=0 || $walltime <=0 || $start_deadline <=0 || $minprob <= 0.0 || $minprob >= 1.0 || ! -f "$jobscript") {
+    print "USAGE: $0 <nodes> <walltime> <start_deadline> <min_success_prob> <jobscript>\n";
+    exit(1);
+}
+
+$vstr = runvarqreserve($mach, $queue, $nodes, $walltime, $start_deadline, $minprob);
+print "VS: $vstr\n";
+
+@output = split("\n", $vstr);
+if (@output == 0) {
+    print "ERROR: no output from varq_reserve command\n";
+    exit(1);
+}
+
+foreach $line (@output) {
+    chomp $line;
+    if (!$line || $line =~ /^#/) {
+	next;
+    }
+    my @tmp = split(/\s+/, $line);
+    if ($tmp[0] eq "BIND") {
+	$ret = 0;
+	$last_real_walltime = $tmp[5];
+	myprint ("Submitting job... $last_real_walltime $jobscript $qtype $subcmd\n---------------------\n");
+	$rc = submit_job($last_real_walltime, $jobscript, $qtype, $subcmd);
+#	$rc = 1;
+	myprint ("\n---------------------\n");
+	if ($rc <= 0) {
+	    print "ERROR: problem submitting job, reservation not submitted\n";
+	    $ret = 2;
+	}
+    } elsif ($tmp[0] eq "FAIL") {
+	myprint ("Cannot make virtual reservation with specified probability.  Adjust parameters and try again!\n");
+	$ret = 1;
+    }
+}
+exit($ret);
+
+
+sub runvarqreserve() {
+    my ($mach, $queue, $nodes, $walltime, $start_deadline, $minprob) = @_;
+
+    $cmd = $ENV{"PWD"} . "/varq_reserve -m $mach -q $queue -n $nodes -r $walltime -d $start_deadline -p $minprob 2>&1";
+    undef($retstr);
+    $retstr = `$cmd`;
+    if (!defined($retstr)) {
+	return("no such file or directory! COMMAND: $cmd");
+    }
+#    myprint ("$retstr\n");
+    my @tmp = split("\n", $retstr);
+    $retstr = $tmp[1];
+
+    if (!$retstr) {
+	print "ERROR: no output from cmd: $cmd\n";
+    }
+
+    return($retstr);
+}
+
+sub submit_job() {
+    my $real_walltime = shift @_;
+    my $real_jobscript = shift @_;
+    my $qtype = shift @_;
+    my $subcmd = shift @_;
+    my $hours, $mins, $secs, $wt_left, $ret=0;
+    
+    $wt_left = $real_walltime;
+    $hours = int($wt_left / 3600);
+
+    $wt_left -= ($hours * 3600);
+    $mins = int($wt_left / 60);
+
+    $wt_left -= ($mins * 60);
+    $secs = $wt_left;
+
+#    printf ("$real_walltime = %02d:%02d:%02d\n", $hours,$mins,$secs);
+    $rstr = sprintf("%02d:%02d:%02d", $hours,$mins,$secs);
+
+    if (!open(FH, "$real_jobscript")) {
+	myprint ("ERROR: cannot open job script '$real_jobscript' for read!\n");
+	return(-1);
+    }
+    
+    $new_jobscript = "$real_jobscript.varq";
+    if (!open(OFH, ">$new_jobscript")) {
+	print ("ERROR: cannot open job script '$new_jobscript' for write!\n");
+	return(-1);
+    }
+    
+    my $found=0;
+    while(<FH>) {
+	my $line = $_;
+	if ($qtype eq "PBS" && $line =~ /^#PBS.*walltime=.*/) {
+	    my $newstr = $line;
+	    $newstr =~ s/\d+:\d+:\d+/$rstr/g;
+	    $found=1;
+	    $line = $newstr;
+	} elsif ($qtype eq "LOADL" && $line =~ /.*wall_clock_limit.*/) {
+	    my $newstr = $line;
+	    $newstr =~ s/\d+:\d+:\d+/$rstr/g;
+	    $found=1;
+	    $line = $newstr;
+	}
+	print OFH "$line";
+    }
+    close(FH);
+    close(OFH);
+    
+    if ($found) {
+	$ret = 1;
+	$subcmd =~ s/XXX/$new_jobscript/g;
+#	    print "CMD: $subcmd\n";
+#	    $subcmd = "echo $real_jobscript";
+	$rc = system("$subcmd");
+	if ($rc << 255 != 0) {
+	    print ("ERROR: offending command \"$subcmd\"\n");
+	    $ret = -1;
+	}
+    } else {
+	$ret = 0;
+    }
+#	unlink($new_jobscript);
+
+return($ret);
+}
+
+sub myprint() {
+    $str = shift @_;
+    
+    if ($verbose) {
+	print "$str";
+    }
+}
