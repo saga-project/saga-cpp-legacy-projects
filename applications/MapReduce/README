@@ -1,0 +1,110 @@
+Basic Usage
+===========
+
+This framework is designed to make it easy to implement parallel computations on large datasets.  This README will describe how to set up and run this MapReduce implementation.
+
+The first thing you have to do is create binary executables for every type of machine you will be running your maps and reduces on. Ex:  x86_32, x86_64, OS = Linux, Mac, Windows
+After this you will have to create a simple XML file that describes your grid
+Finally, you call master/main --config /path/to/xml/config/file
+
+  1.  Creating executable
+      First you must include "MapReduceBase.hpp"
+      Then you implement MapReduce::MapReduceBase::map(std::string chunkName) and MapReduce::MapReduceBase::reduce(std::string key, std::vector<std::string> values)
+
+        a.  an MapReduce::MapReduceBase::emitIntermediate(std::string key, std::string value) function is provided that you must use to create a key/value pair
+
+        b.  A simple Word Count example is shown below
+
+            #include "MapReduceBase.hpp"
+
+            class MapReduceImp : public MapReduce::MapReduceBase{
+              public:
+               void map(std::string chunkName) {
+                  //boost::iostreams::stream is a way to create simple stream
+                  boost::iostreams::stream <saga_file_device> in (chunkName);
+                  std::string elem;
+                  while(in >> elem){
+                     emitIntermediate(elem,"1");
+                  }
+               }
+               void reduce(std::string key, std::vector<std::string> values) {
+                  int result = 0;
+                  std::vector<std::string>::const_iterator valuesIT = values.begin();
+                  while(valuesIT != values.end()) {
+                     result += boost::lexical_cast<int>(*valuesIT);
+                  }
+                  emit(key, boost::lexical_cast<std::string>(result));
+               }
+            };
+
+      Now, all you have to do is define a main class which calls MapReduce::MapReduceBase::init(int argc, char **argv) and link this executable against MapReduceBase.o
+
+        a.  A simple example is shown below
+
+            int main(int argc,char **argv) {
+               MapReduceImp mapReduce;
+                  mapReduce.init(argc,argv);
+                  return 0;
+               }
+
+  2.  Configuring XML file
+      The basic structure will look like this
+
+         <?xml version="1.0" encoding="ISO-8859-1"?>
+
+         <MRDL version="1.0" xmlns="http://cct.lsu.edu/MRL-1-0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema_instance" >
+
+           <MapReduceSession name="" version="" user="" 
+             priority="" experimentID="" eventLevel="">
+            <OrchestratorDB>
+              <Host></Host>
+            </OrchestratorDB>
+             <TargetHosts>
+               <Host queue="" arch="x86_32" OS="Linux"></Host>
+             </TargetHosts>
+             <ApplicationBinaries>
+               <BinaryImage arch="x86_32" OS="Linux" extraArgs="">
+              </BinaryImage>
+             </ApplicationBinaries>
+             <ApplicationFiles>
+                 <File></File>
+             </ApplicationFiles>
+           </MapReduceSession>
+         </MRDL>
+
+      a.  <MapReduceSession> - Describes all of the information needed for one MapReducing Section
+          i.  Attributes
+              *name - A name to identify the session by [not required]
+              *version - A version of your session [not required]
+              *user - The user creating the session [not required]
+              *priority - The level of importance the session is [not required]
+              *experimentID - Another ID to recognize the session [not required]
+              *eventLevel - A way to label it's stability ex: DEBUG/STABLE [not required]
+
+      b.  <OrchestratorDB> - List where the host is located (only one host is allowed)
+          i.  Children
+              <Host> - A URL to the path of the host directory
+
+      c.  <TargetHosts> - List where the machines are you want to run on
+          i.  Children
+              <Host> - Describes each individual host's type
+              i.  Attributes
+                  *arch - Architecture type ex:  x86_32 [required]
+                  *OS - Operating System ex:  Linux [required]
+
+      d.  <ApplicationBinaries> - A list executables for different platforms/architectures 
+          i.  Children
+              <BinaryImage> - A complete path to a executable
+              i.  Attributes
+                  *arch - Architecture type ex:  x86_32 [required]
+                  *OS - Operating System ex:  Linux [required]
+                  *extraArgs - **Not Implemented yet** [not required]
+
+      e.  <ApplicationFiles> - A list of files that you will map/reduce
+          i.  Children
+              <File> - A complete path to the location of the file
+              
+  3.  Running master/main
+      From command prompt in the $SAGA_ROOT/examples/applications/MapReduce/master directory type:
+         $./main --config /path/to/config/file
