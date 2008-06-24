@@ -1,0 +1,77 @@
+Migol CPR Adaptor:
+
+The Migol CPR implements parts of the CPR CPI interface to interface with the Migol infrastructure.
+
+0.) Requirements:
+
+* Java 5
+* Globus WS Core 4.0.5 or better
+* SAGA (tested with SVN: https://svn.cct.lsu.edu/repos/saga/trunk/adaptors, Revision: 2240)
+* Tested under Mac OS 10.5 and various Linux versions
+
+1.) Features
+
+Currently supported CPIs:
+
+checkpoint:
+- add_files
+- list_files
+
+TODO:
+job_service
+job
+job_self
+
+
+2.) Installation:
+
+- Check out adaptor source to $SAGA_ROOT/adaptors/migol/cpr
+- Adust Makefile (samples for Linux and Mac OS are provided)
+    * In particular, the Jave JRE header files must be included and the adaptor must be linked against the jvm library
+    SAGA_CXXFLAGS    += -I<your JAVA_HOME>/include -I<your JAVA_HOME>/include/linux
+    SAGA_LDFLAGS     += -lssl -lcrypto -L<your JAVA_HOME>/jre/lib/i386/client -ljvm
+    
+- Run make 
+
+3.) Konfiguration:
+
+# adaptor configuration
+# The AIS url is required for all calls to the
+ais_url = "http://flotta:20443/wsrf/services/migol/AIS-JGroups"
+
+# Globus Location
+# Adaptor will search $(globus_location)/lib for globus and migol jars
+globus_location = /usr/local/globus
+
+# External Monitoring host
+# In case your cluster nodes are in a private ip subnet you can specify a host which
+# is used as reverse proxy for monitoring.
+# To support monitoring the specified host must run an sshd daemon
+# with:
+#     GatewayPorts yes
+# activated in the
+#     /etc/ssh/sshd_config
+#external_monitoring_host=flotta.haiti.cs.uni-potsdam.de
+
+4.) Runtime:
+
+Make sure that GLOBUS_LOCATION is set correctly (The WS Core is sufficient). The following Migol jars must be present in $GLOBUS_LOCATON/lib
+
+ais.jar
+ais_stubs.jar                  
+jbs-ms.jar
+jbs-ms_stubs.jar
+go-monitorable_stubs.jar
+go-monitorable.jar 
+
+Make sure SAGA_LOCATION, JAVA_HOME and LD_LIBRARY_PATH (Mac OS: DYLD_LIBRARY_PATH)
+
+export SAGA_LOCATION=<path to SAGA>
+export JAVA_HOME=<path to JAVA>
+
+export LD_LIBRARY_PATH=${SAGA_LOCATION}/lib:${JAVA_HOME}/lib:${JAVA_HOME}/jre/lib/i386/:${JAVA_HOME}/jre/lib/i386/server/:${LD_LIBRARY_PATH}
+
+If debugging is desired:
+export SAGA_VERBOSE=6
+
+
