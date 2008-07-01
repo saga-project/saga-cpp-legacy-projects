@@ -1,10 +1,11 @@
-//  Copyright (c) 2005-2007 Hartmut Kaiser (hartmut.kaiser@gmail.com)
+//  Copyright (c) 2005-2008 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <iostream>
 #include <saga/saga.hpp>
+#include <boost/config.hpp>
 
 #include "dayinlife.hpp"
 #include "common_helpers.hpp"
@@ -41,21 +42,3 @@ int main(int argc, char *argv[])
     }
 }
 
-#if defined(BOOST_WINDOWS)
-///////////////////////////////////////////////////////////////////////////////
-//  initialize Winsock library
-struct init_winsocket
-{
-    init_winsocket()
-    {
-        WSADATA data_;
-        WSAStartup(MAKEWORD(2, 2), &data_);
-    }
-    ~init_winsocket()
-    {
-        WSACleanup();
-    }
-};
-init_winsocket init_winsock_lib;    // instantiate during startup
-#endif
-    

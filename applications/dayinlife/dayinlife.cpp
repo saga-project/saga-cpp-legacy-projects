@@ -1,9 +1,7 @@
-//  Copyright (c) 2005-2007 Hartmut Kaiser (hartmut.kaiser@gmail.com)
+//  Copyright (c) 2005-2008 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-
-#include <unistd.h>       // for sleep
 
 #include <algorithm>
 #include <string>
@@ -55,12 +53,14 @@ namespace dayinlife
 application::application(int argc, char *argv[], char const* name)
 :   migrating::application<application>(argc, argv, name),
     counter_(0), max_iterations_(DAYINLIFE_MAX_ITERATIONS), 
-    next_host_(common::next_host())
+    next_rm_(common::current_host()), next_host_(common::current_host())
 {
-    // if there was a parameter on the command line we interpret this as the
-    // host name where we should migrate to
+    // if there were parameters on the command line we interpret these as the
+    // resource manager and next host name where we should migrate to
     if (argc > 1) {
-    
+        next_rm_ = next_host_ = argv[1];
+        if (argc > 2)
+            next_host_ = argv[2];
     }
 }
 
@@ -94,9 +94,9 @@ void application::read_data()
     // try to locate data file, restart if not available
     try {
     // the data file is registered with the advert service
-      advert::entry adv (common::get_db_path(this->get_name(), "Counter"));
-      replica::logical_file lf (adv.retrieve_object());
-        
+        advert::entry adv (common::get_db_path(this->get_name(), "Counter"));
+        replica::logical_file lf (adv.retrieve_object());
+
         if (0 != lf.list_locations().size()) {
         // create the local input file name
             saga::url local_url("any:");
@@ -108,8 +108,8 @@ void application::read_data()
 
         // read counter from local file
             filesystem::file infile (local_url.get_url());
-            saga::uint8_t indata[255];
-            saga::ssize_t bytes = infile.read(buffer(indata, sizeof(indata)), sizeof(indata));
+            char indata[255];
+            saga::ssize_t bytes = infile.read(buffer(indata));
             
             indata[common::minval(bytes, sizeof(indata)-1)] = '\0';
             counter_ = boost::lexical_cast<int>(indata);
@@ -161,18 +161,17 @@ void application::write_data()
     saga::url local_url("any:");
     local_url.set_host(common::get_hostname());
     local_url.set_path(common::get_outfile_name());
-    
+
     // write counter to a the new output file
-    filesystem::file outfile(local_url.get_url(), filesystem::Create | 
-                             filesystem::Truncate | filesystem::ReadWrite);
-    std::string b = boost::lexical_cast<std::string>(counter_);
-    outfile.write(buffer(const_cast<saga::uint8_t*>((const saga::uint8_t*)b.c_str()), b.size()), b.size());
+    filesystem::file outfile(local_url.get_url(), 
+        filesystem::Create | filesystem::Truncate | filesystem::ReadWrite);
+    outfile.write(buffer(boost::lexical_cast<std::string>(counter_)));
     outfile.close();
     
     // create a new replica and add the output file 
     std::string lfn (common::get_db_path(this->get_name(), "Data"));
-    replica::logical_file lf (lfn, replica::CreateParents | 
-                                   replica::ReadWrite);
+    replica::logical_file lf (lfn, 
+        replica::CreateParents | replica::ReadWrite);
     lf.add_location(local_url.get_url());
     
     // store the replica into the advert service
@@ -189,10 +188,10 @@ void application::migrate()
         "application::migrate");
 
     // get our own job description
-    job::service     js   (common::current_rm());
-    job::self        self (js.get_self());
-    job::description jd   (self.get_description());
-    
+    job::service js(common::current_rm(next_rm_));
+    job::job self (js.get_self());
+    job::description jd (self.get_description());
+
     // modify job description to point to the next resource
     jd.set_attribute(job::attributes::description_candidatehosts, 
         next_host_);
@@ -200,10 +199,11 @@ void application::migrate()
     // set the current host as a command line argument for the new instance
     // this will make this application get migrated back to the current host
     std::vector<std::string> arguments;
-    arguments.push_back(common::current_host());
+    arguments.push_back(next_rm_);
+    arguments.push_back(next_host_);
     jd.set_vector_attribute(job::attributes::description_arguments,
         arguments);
-        
+
     // migrate this job to the new machine (given by next_host())
     self.migrate(jd);
 
@@ -230,7 +230,7 @@ int application::terminate(bool finished)
 bool application::must_stop()
 {
     try {
-      advert::entry advhost (common::get_db_path(this->get_name(), "Stop"));
+        advert::entry advhost (common::get_db_path(this->get_name(), "Stop"));
         std::string stop (advhost.retrieve_string());
         return boost::lexical_cast<int>(stop) != 0;
     }
@@ -238,7 +238,7 @@ bool application::must_stop()
         // no Stop key is available, run normal
     }
     return false;
-}   
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 }   // namespace dayinlife

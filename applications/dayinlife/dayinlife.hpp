@@ -23,8 +23,10 @@ namespace dayinlife
         
         int counter_;           // this is our state: the counter in all its glory
         int max_iterations_;    // this is the number of maximal iterations
+
+        std::string next_rm_;   // resource manager to use for migration
         std::string next_host_; // host name to migrate this application to
-        
+
     protected:        
         bool must_stop();
 

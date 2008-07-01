@@ -1,4 +1,4 @@
-//  Copyright (c) 2005-2007 Hartmut Kaiser (hartmut.kaiser@gmail.com)
+//  Copyright (c) 2005-2008 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -18,7 +18,7 @@
 #include <saga/saga.hpp>
 
 #ifndef   MAX_PATH
-# ifdef   SAGA_APPLE
+# ifdef   __APPLE__
 #  define MAX_PATH PATH_MAX
 # else
 #  define MAX_PATH _POSIX_PATH_MAX
@@ -51,7 +51,14 @@ namespace common
         host.set_host(get_hostname());
         return host.get_url();    // for now we just assume a local job 
     }
-    
+
+    inline std::string current_rm(std::string rm)
+    {
+        saga::url host("any:");   // we don't care which resource manager to use
+        host.set_host(rm);
+        return host.get_url();    // for now we just assume a local job 
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     //  return the current resource this job is running on
     inline std::string current_host()
@@ -95,7 +102,7 @@ namespace common
     inline std::string get_jobid()
     {
         using namespace saga;
-        
+
         job::service js(current_rm());
         job::self self = js.get_self();
         return self.get_job_id();
@@ -157,16 +164,14 @@ namespace common
                 << get_sequence_number() << ":"
                 << t1 << std::endl;
                 
-            int directory_mode = filesystem::Create | 
-                                 filesystem::CreateParents | 
-                                 filesystem::ReadWrite;
-            filesystem::directory  logdir (name, directory_mode);
+            int directory_mode = filesystem::Create | filesystem::CreateParents | 
+                filesystem::ReadWrite;
+            filesystem::directory logdir (name, directory_mode);
 
-            int mode = filesystem::ReadWrite | filesystem::Create 
-                                             | filesystem::Append;
+            int mode = filesystem::ReadWrite | filesystem::Create | filesystem::Append;
             filesystem::file logf = logdir.open (name + "Log", mode);
-            std::string b(SAGA_OSSTREAM_GETSTRING(log));
-            logf.write(const_buffer(const_cast<saga::uint8_t*>((const saga::uint8_t*)(b.c_str())), b.size()), b.size());
+
+            logf.write(buffer(SAGA_OSSTREAM_GETSTRING(log)));
 #endif
         }
         catch (saga::exception const& e) {
@@ -174,7 +179,7 @@ namespace common
                       << std::endl;
         }
     }
-    
+
     template <typename T1, typename T2>
     inline void 
     writelog(std::string const& name, T1 const& t1, T2 const& t2)
@@ -205,17 +210,14 @@ namespace common
                 << get_sequence_number() << ":"
                 << t1 << t2 << std::endl;
                 
-            int directory_mode = filesystem::Create | 
-                                 filesystem::CreateParents | 
-                                 filesystem::ReadWrite;
-            filesystem::directory  logdir (name, directory_mode);
+            int directory_mode = filesystem::Create | filesystem::CreateParents | 
+                filesystem::ReadWrite;
+            filesystem::directory logdir (name, directory_mode);
 
-            int mode = filesystem::ReadWrite | filesystem::Create 
-                                             | filesystem::Append;
+            int mode = filesystem::ReadWrite | filesystem::Create | filesystem::Append;
             filesystem::file logf = logdir.open (name + "Log", mode);
 
-            std::string b(SAGA_OSSTREAM_GETSTRING(log));
-            logf.write(buffer(const_cast<saga::uint8_t*>((const saga::uint8_t*)(b.c_str())), b.size()), b.size());
+            logf.write(buffer(SAGA_OSSTREAM_GETSTRING(log)));
 #endif
         }
         catch (saga::exception const& e) {
