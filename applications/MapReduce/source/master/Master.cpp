@@ -17,6 +17,11 @@
 
 using namespace MapReduce::Master;
 
+// constructor: initialize member variables
+Master::Master()
+  : log(NULL)
+{}
+
 Master::~Master() {
    delete log;
 }
@@ -66,7 +71,7 @@ void Master::run_() {
    // create all necessary directories
    createNewSession_();
 
-   // add binaries to the Orchestartor DB
+   // add binaries to the Orchestrator DB
    // Take binaries from config file and
    // advertise them
    populateBinariesList_();

@@ -8,11 +8,11 @@
  * ******************************************************/
 namespace MapReduce
 {
+ // fileCount is the total number of files possibly outputted by
+ // the map function (NUM_MAPS)
  HandleReduces::HandleReduces(int fileCount, std::vector<saga::url> workers)
+    : fileCount_(fileCount), workers_(workers)
  {
-    fileCount_ = fileCount; // the total number of files possibly outputted by
-                            // the map function (NUM_MAPS)
-    workers_   = workers;
     std::cerr << "start reduces with command of workers: " << std::endl;
     std::vector<saga::url>::iterator w =  workers_.begin();
     //Debug to follow
@@ -23,7 +23,7 @@ namespace MapReduce
        std::cerr << "state = " << state << std::endl;
        std::string command(possibleWorker.get_attribute("COMMAND"));
        std::cerr << "command = " << command << std::endl;
-       w++;
+       ++w;
     }
  }
 /*********************************************************

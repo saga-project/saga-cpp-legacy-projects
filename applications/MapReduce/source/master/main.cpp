@@ -18,6 +18,10 @@ int main(int argc, char* argv[]) {
       Master app;
       app.init(argc,argv);
    }
+   catch (std::exception const& e) {
+      std::cerr << "std:.exception caught: " << e.what() << std::endl;
+      std::cerr << "Exiting..." << std::endl;
+   }
    catch (...) {
       std::cerr << "FATAL Exception caught! Exiting..." << std::endl;
       return 255;

@@ -49,6 +49,8 @@ namespace MapReduce {
  
         public:
          int init(int argC,char **argV);
+         
+         Master();
          ~Master(void);
       }; 
    } // namespace Master

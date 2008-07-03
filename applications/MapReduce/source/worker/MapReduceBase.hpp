@@ -21,6 +21,7 @@ namespace MapReduce {
    class MapReduceBase {
      public:
       int init(int argCount,char **argList);
+      MapReduceBase() : logWriter_(NULL) {}
       virtual      ~MapReduceBase() {}
      protected:
       virtual void map(std::string chunkName) = 0;
