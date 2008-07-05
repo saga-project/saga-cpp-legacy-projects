@@ -3,8 +3,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MP_MERGER_HPP 
-#define MP_MERGER_HPP 
+#ifndef MR_MERGER_HPP 
+#define MR_MERGER_HPP 
 
 #include <saga/saga.hpp>
 #include "type.hpp"
@@ -27,5 +27,5 @@ namespace MapReduce {
    }
 } // namespace MapReduce
 
-#endif
+#endif // MR_MERGER_HPP
 

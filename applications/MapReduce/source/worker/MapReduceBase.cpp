@@ -43,7 +43,7 @@ int MapReduceBase::hash(std::string input,unsigned int limit) {
    int sum = 0;
    int retval;
    std::size_t length = input.length();
-   for(std::size_t count = 0; count < length; count++){
+   for(std::size_t count = 0; count < length; count++) {
       sum = sum + input[count];
    }
    retval = (sum % limit);
@@ -59,9 +59,9 @@ void MapReduceBase::emitIntermediate(std::string key, std::string value) {
    static std::map<std::string,std::vector<std::string> > intermediate;
    int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
    intermediate[key].push_back(value);
-   if(intermediate.size() >= MAX_INTERMEDIATE_SIZE){
+   if(intermediate.size() >= MAX_INTERMEDIATE_SIZE) {
       std::map<std::string, std::vector<std::string> >::iterator it = intermediate.begin();
-      while(it != intermediate.end()){
+      while(it != intermediate.end()) {
          std::string it_key = (*it).first;
          int mapFile = hash(it_key, NUM_MAPS);
          std::string filestring("/home/michael/mapFile-" + boost::lexical_cast<std::string>(mapFile));
@@ -69,7 +69,7 @@ void MapReduceBase::emitIntermediate(std::string key, std::string value) {
          it_key.append(" ");
          it_key.append((*it).second[0]);
          std::size_t size = (*it).second.size();
-         for(unsigned int x = 1; x < size; x++){
+         for(unsigned int x = 1; x < size; x++) {
             it_key.append(", ");
             it_key.append((*it).second[x]);
          }
@@ -101,7 +101,7 @@ void MapReduceBase::emit(std::string key, std::string value) {
  * starts the worker and begins all neccessary setup with*
  * the database.                                        *
  * ******************************************************/
-void MapReduceBase::run(void){
+void MapReduceBase::run(void) {
   registerWithDB(); //Connect and create directories in database
 
   mainLoop(5); //sleep interval of 5
@@ -112,7 +112,7 @@ void MapReduceBase::run(void){
  * creates all necessary directories and creates         *
  * attributes describing this session.                   *
  * ******************************************************/
-void MapReduceBase::registerWithDB(void){ 
+void MapReduceBase::registerWithDB(void) { 
    int mode = saga::advert::ReadWrite;
    std::cout << "Registering with OrchestratorDB: " << std::flush;
    //(1) connect to the orchestrator database

@@ -281,7 +281,7 @@ typedef struct XMLDLLENTRY XMLNode
     XMLNode(const XMLNode &A);
     XMLNode& operator=( const XMLNode& A );
 
-    XMLNode(): d(NULL){};
+    XMLNode(): d(NULL) {};
     static XMLNode emptyXMLNode;
     static XMLClear emptyXMLClear;
     static XMLAttribute emptyXMLAttribute;
@@ -496,7 +496,7 @@ XMLDLLENTRY XMLSTR stringDup(XMLCSTR source, int cbData=0);
 typedef struct XMLDLLENTRY ToXMLStringTool
 {
 public:
-    ToXMLStringTool(): buf(NULL),buflen(0){}
+    ToXMLStringTool(): buf(NULL),buflen(0) {}
     ~ToXMLStringTool();
     void freeBuffer();
 
@@ -524,7 +524,7 @@ private:
 typedef struct XMLDLLENTRY XMLParserBase64Tool
 {
 public:
-    XMLParserBase64Tool(): buf(NULL),buflen(0){}
+    XMLParserBase64Tool(): buf(NULL),buflen(0) {}
     ~XMLParserBase64Tool();
     void freeBuffer();
 

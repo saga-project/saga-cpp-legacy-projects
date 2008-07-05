@@ -70,7 +70,7 @@
 
 
 XMLCSTR XMLNode::getVersion() { return _X("v2.30"); }
-void freeXMLString(XMLSTR t){free(t);}
+void freeXMLString(XMLSTR t) {free(t);}
 
 static XMLNode::XMLCharEncoding characterEncoding=XMLNode::encoding_UTF8;
 static char guessWideCharChars=1, dropWhiteSpace=1;
@@ -250,7 +250,7 @@ char myIsTextWideChar(const void *b, int len) { return FALSE; }
         static inline XMLSTR xstrcpy(XMLSTR c1, XMLCSTR c2) { return (XMLSTR)strcpy(c1,c2); }
     #endif
     #ifdef __BORLANDC__
-    static inline int _strnicmp(char *c1, char *c2, int l){ return strnicmp(c1,c2,l);}
+    static inline int _strnicmp(char *c1, char *c2, int l) { return strnicmp(c1,c2,l);}
     #endif
 #else
 // for gcc and CC
@@ -598,8 +598,8 @@ out_of_loop1:
     return r;
 }
 
-ToXMLStringTool::~ToXMLStringTool(){ freeBuffer(); }
-void ToXMLStringTool::freeBuffer(){ if (buf) free(buf); buf=NULL; buflen=0; }
+ToXMLStringTool::~ToXMLStringTool() { freeBuffer(); }
+void ToXMLStringTool::freeBuffer() { if (buf) free(buf); buf=NULL; buflen=0; }
 XMLSTR ToXMLStringTool::toXML(XMLCSTR source)
 {
     int l=lengthXMLString(source)+1;
@@ -929,7 +929,7 @@ XMLCSTR XMLNode::updateName_WOSD(XMLSTR lpszName)
 }
 
 // private:
-XMLNode::XMLNode(struct XMLNodeDataTag *p){ d=p; (p->ref_count)++; }
+XMLNode::XMLNode(struct XMLNodeDataTag *p) { d=p; (p->ref_count)++; }
 XMLNode::XMLNode(XMLNodeData *pParent, XMLSTR lpszName, char isDeclaration)
 {
     d=(XMLNodeData*)malloc(sizeof(XMLNodeData));
@@ -2002,7 +2002,7 @@ int XMLNode::detachFromParent(XMLNodeData *d)
 }
 
 XMLNode::~XMLNode() { deleteNodeContent_priv(1,0); }
-void XMLNode::deleteNodeContent(){ deleteNodeContent_priv(0,1); }
+void XMLNode::deleteNodeContent() { deleteNodeContent_priv(0,1); }
 void XMLNode::deleteNodeContent_priv(char isInDestuctor, char force)
 {
     if (!d) return;
@@ -2110,7 +2110,7 @@ void XMLNode::deleteAttribute(int i)
     if (d->nAttribute) memmove(p,p+1,(d->nAttribute-i)*sizeof(XMLAttribute)); else { free(p); d->pAttribute=NULL; }
 }
 
-void XMLNode::deleteAttribute(XMLAttribute *a){ if (a) deleteAttribute(a->lpszName); }
+void XMLNode::deleteAttribute(XMLAttribute *a) { if (a) deleteAttribute(a->lpszName); }
 void XMLNode::deleteAttribute(XMLCSTR lpszName)
 {
     int j=0;
@@ -2554,9 +2554,9 @@ const unsigned char base64DecodeTable[] = {
     98,98,98,98,98,98,98,98,98,98,  98,98,98,98,98,98                                               //240 -255
 };
 
-XMLParserBase64Tool::~XMLParserBase64Tool(){ freeBuffer(); }
+XMLParserBase64Tool::~XMLParserBase64Tool() { freeBuffer(); }
 
-void XMLParserBase64Tool::freeBuffer(){ if (buf) free(buf); buf=NULL; buflen=0; }
+void XMLParserBase64Tool::freeBuffer() { if (buf) free(buf); buf=NULL; buflen=0; }
 
 int XMLParserBase64Tool::encodeLength(int inlen, char formatted)
 {
@@ -2633,14 +2633,14 @@ unsigned char XMLParserBase64Tool::decode(XMLCSTR data, unsigned char *buf, int 
 #ifdef _XMLWIDECHAR
 #define BASE64DECODE_READ_NEXT_CHAR(c)                                              \
         do {                                                                        \
-            if (data[i]>255){ c=98; break; }                                        \
+            if (data[i]>255) { c=98; break; }                                        \
             c=base64DecodeTable[(unsigned char)data[i++]];                       \
         }while (c==97);                                                             \
-        if(c==98){ if(xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
+        if(c==98) { if(xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
 #else
 #define BASE64DECODE_READ_NEXT_CHAR(c)                                           \
         do { c=base64DecodeTable[(unsigned char)data[i++]]; }while (c==97);   \
-        if(c==98){ if(xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
+        if(c==98) { if(xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
 #endif
 
         BASE64DECODE_READ_NEXT_CHAR(c)
@@ -2695,7 +2695,7 @@ unsigned char *XMLParserBase64Tool::decode(XMLCSTR data, int *outlen, XMLError *
     if (outlen) *outlen=len;
     if (!len) return NULL;
     alloc(len+1);
-    if(!decode(data,(unsigned char*)buf,len,xe)){ return NULL; }
+    if(!decode(data,(unsigned char*)buf,len,xe)) { return NULL; }
     return (unsigned char*)buf;
 }
 

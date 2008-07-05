@@ -16,13 +16,13 @@
 
 namespace MapReduce {
    template <typename T>
-   std::vector<std::string> chunker(std::vector<std::string> file_arg, std::size_t block_size = 16777216){
+   std::vector<std::string> chunker(std::vector<std::string> file_arg, std::size_t block_size = 16777216) {
       std::vector<std::string> chunk_filenames_list;
       typename std::vector<std::string>::const_iterator fileIterator;
-      for(fileIterator=file_arg.begin();fileIterator!=file_arg.end();fileIterator++){
+      for(fileIterator=file_arg.begin();fileIterator!=file_arg.end();fileIterator++) {
          int chunk_number=0;
          boost::iostreams::stream <saga_file_device> in (*fileIterator);
-         while(in.good()){
+         while(in.good()) {
             std::size_t size_total=0; T elem;
             in >> elem;
             if(in.fail()) break;
@@ -37,7 +37,7 @@ namespace MapReduce {
             try
             {
               size_total+=boost::lexical_cast<std::string>(elem).size() + 1;
-              while(size_total<block_size){
+              while(size_total<block_size) {
                  T elem;
                  in >> elem;
                  if(in.fail()) break;
