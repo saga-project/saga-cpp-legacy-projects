@@ -7,19 +7,14 @@
 #include <unistd.h>
 
 #include "Master.hpp"
-#include "HandleMaps.hpp"
-#include "HandleReduces.hpp"
 #include "version.hpp"
 #include "parseCommand.hpp"
+#include "HandleComparisons.hpp"
 #include "../utils/defines.hpp"
-#include "../utils/chunker.hpp"
 #include <unistd.h>
 
 using namespace AllPairs::Master;
 
-Master::~Master() {
-   delete log;
-}
 
 /***************************************
  * Init function starts the framework  *
@@ -28,36 +23,43 @@ Master::~Master() {
  * \param argC argc from main          *
  * \param argV argv from main          *
 ***************************************/
-int Master::init(int argC, char *argV[]) {
+Master::Master(int argC, char *argV[]) {
    //Parses the command line options passed from main
    //looking for --config to find config xml file
    boost::program_options::variables_map vm;
-   if (!parseCommand(argC, argV, vm))
-      return -2;
+   parseCommand(argC, argV, vm);
+/*   if (!parseCommand(argC, argV, vm))
+      return -2;*/
+
    std::string configFilePath (vm["config"].as<std::string>());
 
-   //create new LogWriter instance that writes to stdout
-   log = new AllPairs::LogWriter(std::string(AP_MASTER_EXE_NAME), std::cout);
-
    cfgFileParser_ = ConfigFileParser(configFilePath, *log);
+
    database_      = cfgFileParser_.getSessionDescription().orchestrator;
-   // generate a startup timestamp 
-   time(&startupTime_);
+
    // create a UUID for this agent
    //uuid_ = uuid().string();  //Temporarily disabled
    uuid_ = "DUMMY-UUID";
 
+   saga::url advertKey(std::string("advert://" + database_ + "//" + uuid_ + "/log"));
+   logURL_ = advertKey;
+   log = new AllPairs::LogWriter(std::string(AP_MASTER_EXE_NAME), advertKey);
+}
+
+Master::~Master() {
+   delete log;
+}
+
+void Master::run() {
+   // generate a startup timestamp 
+   time(&startupTime_);
+
    //Generate log information
    std::string message(std::string(AP_MASTER_EXE_NAME));
    message = message + " " + AP_MASTER_VERSION_FULL + " - creating new session.";
-   log->write(message,LOGLEVEL_INFO);
-   message = "Using session description: " + configFilePath;
-   log->write(message,LOGLEVEL_INFO);
-   run_();
-   return 0;
-}
+   log->write(message, LOGLEVEL_INFO);
 
-void Master::run_() {
+
    // register with the db
    // Just connect to see if it exists
    registerWithDB_();
@@ -66,28 +68,14 @@ void Master::run_() {
    // create all necessary directories
    createNewSession_();
 
-   // add binaries to the Orchestartor DB
+   // add binaries to the Orchestrator DB
    // Take binaries from config file and
    // advertise them
    populateBinariesList_();
 
-   // Take input files from xml and pass
-   // them to be chunked into smaller files,
-   // then advertise the chunk on the DB
-   populateFileList_();
-
    // Launch all worker command on all
    // host defined in config file
    spawnAgents_();
-
-   // Find workers that have registered back
-   // with db, and try to give them some work
-   runMaps_();
-
-   // After all maps are done, go through workers
-   // and try to reduce output from mappping by
-   // assigning tasks to some workers
-   runReduces_();
 
    log->write("All done - exiting normally", LOGLEVEL_INFO);
 }
@@ -127,17 +115,26 @@ void Master::createNewSession_() {
    int mode = saga::advert::ReadWrite | saga::advert::Create;  
    std::string advertKey("advert://");
    std::string message("Creating a new session (");
+   saga::task_container tc;
   
    message += (uuid_) + ")... ";
    advertKey += database_ + "//" + uuid_ + "/";
    try {
+      
+      std::string file(cfgFileParser_.getFile());
+
       sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-      sessionBaseDir_.set_attribute("name",    cfgFileParser_.getSessionDescription().name);
-      sessionBaseDir_.set_attribute("user",    cfgFileParser_.getSessionDescription().user);
-      sessionBaseDir_.set_attribute("version", cfgFileParser_.getSessionDescription().version);
-      workersDir_  = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_WORKERS),  mode);
-      binariesDir_ = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_BINARIES), mode);
-      chunksDir_   = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_CHUNKS),   mode);
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("file",    file));
+      saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
+      saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
+      tc.add_task(t0);
+      tc.add_task(t1);
+      tc.wait();
+      workersDir_  = t0.get_result<saga::advert::directory>();
+      binariesDir_ = t1.get_result<saga::advert::directory>();
    }
    catch(saga::exception const & e) {
       message += e.what();
@@ -165,8 +162,10 @@ void Master::populateBinariesList_(void) {
       try {
         saga::advert::entry adv = binariesDir_.open((*binaryListIT).targetOS+"_"+(*binaryListIT).targetArch, mode);
         //Now set some properties of the binaries
-        adv.set_attribute(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
-        adv.set_attribute(ATTR_EXE_LOCATION,(*binaryListIT).URL);
+        saga::task t0 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
+        saga::task t1 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_LOCATION,(*binaryListIT).URL);
+        t0.wait();
+        t1.wait();
         message += "SUCCESS";
         log->write(message, LOGLEVEL_INFO);
         successCounter++;
@@ -179,50 +178,6 @@ void Master::populateBinariesList_(void) {
    }
    if(successCounter == 0) {
       log->write("No binaries defined for this session. Aborting", LOGLEVEL_FATAL);
-      APPLICATION_ABORT;
-   }
-}
-
-/*********************************************************
- * populateFileList_ takes a list of input files from the*
- * config file and passes them to be broken up by the    *
- * chunker.  The output of chunker is a series of chunks *
- * that are then advertised in the ADVERT_DIR_CHUNKS dir *
- * of the database.                                      *
- ********************************************************/
-void Master::populateFileList_(void) {
-   std::vector<FileDescription> fileList                   = cfgFileParser_.getFileList();
-   std::vector<FileDescription>::const_iterator fileListIT = fileList.begin();
-   std::vector<std::string> fileNameList;
-   unsigned int successCounter = 0;
-   int mode = saga::advert::ReadWrite | saga::advert::Create;
-   
-   // Translate FileDescriptions returned by getFileList
-   // into names to be chunked by chunker
-   while(fileListIT != fileList.end()) {
-      fileNameList.push_back((*fileListIT).name);
-      fileListIT++;
-   }
-   fileChunks_ = chunker<std::string>(fileNameList); //Defaults to 64 M chunks, fix later
-   std::vector<std::string>::const_iterator fileChunks_IT = fileChunks_.begin();
-   // Advertise chunks
-   while(fileChunks_IT != fileChunks_.end()) {
-      std::string message("Adding new chunk " + (*fileChunks_IT) + "...");
-      try {
-         saga::advert::entry adv = chunksDir_.open(saga::url("chunk-" + boost::lexical_cast<std::string>(successCounter)), mode);
-         adv.store_string(*fileChunks_IT);
-         message += "SUCCESS";
-         log->write(message, LOGLEVEL_INFO);
-         successCounter++;
-      }
-      catch(saga::exception const & e) {
-         message += e.what();
-         log->write(message, LOGLEVEL_ERROR);
-       }
-       fileChunks_IT++;
-   }
-   if(successCounter == 0) {
-      log->write("No chunks made for this session. Aborting", LOGLEVEL_FATAL);
       APPLICATION_ABORT;
    }
 }
@@ -258,6 +213,8 @@ void Master::spawnAgents_(void) {
                args.push_back(uuid_);
                args.push_back("-d");
                args.push_back(database_);
+               args.push_back("-l");
+               args.push_back(logURL_.get_string());
                jd.set_attribute(saga::job::attributes::description_executable, command);
                jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
@@ -284,32 +241,12 @@ void Master::spawnAgents_(void) {
    }
 }
 
-/*********************************************************
- * runMaps_ uses the helper class HandleMaps to assign   *
- * chunks to a running worker and tell that worker to    *
- * begin working                                         *
- * ******************************************************/
-void Master::runMaps_(void) {
-   std::vector<saga::url> possibleWorkers(workersDir_.list("?"));
-   HandleMaps mapHandler(fileChunks_, possibleWorkers);
-   std::string message("Launching maps...");
+void Master::runComparisons_(void) {
+   HandleComparisons comparisonHandler(workersDir_);
+   std::string message("Launching comparisons...");
 
    log->write(message, LOGLEVEL_INFO);
    sleep(5); //In here temporarily to allow time for all jobs to create advert entries
-   mapHandler.assignMaps();
+   comparisonHandler.assignWork();
 }
 
-/*********************************************************
- * runReduces_ uses the helper class HandleReduces to    *
- * assign reduce jobs to running workers.  The class     *
- * handles grouping files and assigning them for the     *
- * master                                                *
- * ******************************************************/
-void Master::runReduces_(void) {
-   std::vector<saga::url> possibleWorkers(workersDir_.list("?"));
-   HandleReduces reduceHandler(NUM_MAPS, possibleWorkers);
-   std::string message("Beginning Reduces...");
-
-   log->write(message, LOGLEVEL_INFO);
-   reduceHandler.assignReduces();
-}

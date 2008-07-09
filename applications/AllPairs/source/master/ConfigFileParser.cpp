@@ -33,9 +33,9 @@ vector<BinaryDescription> ConfigFileParser::getExecutableList()
   return binDescList_;
 }
 
-vector<FileDescription> ConfigFileParser::getFileList()
+std::string ConfigFileParser::getFile()
 {
-  return fileDescList_;
+  return fileDescList_[0].name;
 }
 
 vector<HostDescription> ConfigFileParser::getTargetHostList()
@@ -119,7 +119,7 @@ void ConfigFileParser::parse_(void)
     }
     
     // parse the ApplicationFiles section
-    xNode = xMainNode.getChildNode("ApplicationFiles");
+    xNode = xMainNode.getChildNode("ApplicationFile");
     int k=xNode.nChildNode("File");
     for(int i=0; i<k; ++i) 
     {

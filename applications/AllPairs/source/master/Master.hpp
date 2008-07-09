@@ -22,33 +22,28 @@ namespace AllPairs {
          time_t startupTime_;
          std::string uuid_;
          std::string database_;
+         saga::url logURL_;
         
-         std::vector<std::string> fileChunks_;
-         
          saga::advert::directory sessionBaseDir_;
          saga::advert::directory workersDir_;
          saga::advert::directory binariesDir_;
-         saga::advert::directory chunksDir_;
          
          AllPairs::LogWriter * log;
          ConfigFileParser cfgFileParser_;
          
         protected:
-         void registerWithDB_  (void);
+         void registerWithDB_(void);
          void createNewSession_(void);
         
          void populateBinariesList_(void);
-         void populateFileList_    (void);
          
          void spawnAgents_(void);
  
-         void runMaps_   (void);
-         void sort_      (void);
-         void runReduces_(void);
-         void run_();
+         void runComparisons_(void);
  
         public:
-         int init(int argC,char **argV);
+         Master(int argC,char **argV);
+         void run();
          ~Master(void);
       }; 
    } // namespace Master

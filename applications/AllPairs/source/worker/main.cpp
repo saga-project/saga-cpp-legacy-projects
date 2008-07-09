@@ -6,32 +6,12 @@
 #include "AllPairsBase.hpp"
 #include "../utils/type.hpp"
 
-class AllPairsImp : public AllPairs::AllPairsBase {
+class AllPairsImpl : public AllPairs::AllPairsBase {
   public:
-/*********************************************************
- * The implemented map function that will get called when*
- * it becomes time to do some mapping.                   *
- * ******************************************************/
-   void map(std::string chunkName) {
-      boost::iostreams::stream <saga_file_device> in (chunkName);
-      std::string elem;
-      while(in >> elem) {
-         emitIntermediate(elem,"1");
-      }
-   }
-      
-/*********************************************************
- * The implemented reduce function that will get called  *
- * when it becomes time to do some reducing.             *
- * ******************************************************/
-   void reduce(std::string key, std::vector<std::string> values) {
-     int result = 0;
-     std::vector<std::string>::const_iterator valuesIT = values.begin();
-     while(valuesIT != values.end()) {
-        result += boost::lexical_cast<int>(*valuesIT);
-        valuesIT++;
-     }
-     emit(key, boost::lexical_cast<std::string>(result));
+   AllPairsImpl(int argCount, char **argList)
+     : AllPairsBase(argCount, argList) {}
+   void compare(std::string object1, std::string object2) {
+      emit(object1 == object2);
    }
 };
 
@@ -41,7 +21,17 @@ class AllPairsImp : public AllPairs::AllPairsBase {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
-   AllPairsImp allPairs;
-   allPairs.init(argc,argv);
+   try {
+      AllPairs::AllPairsBase *allPairs = new AllPairsImpl(argc, argv);
+      allPairs->run();
+   }
+   catch (saga::exception const & e)
+   {
+      std::cerr << "ERROR: " << e.get_message() << std::endl;
+   }
+   catch (std::exception const & e)
+   {
+      std::cerr << "ERROR: " << e.what() << std::endl;
+   }
    return 0;
 }

@@ -15,8 +15,8 @@ using namespace AllPairs::Master;
  * ******************************************/
 int main(int argc, char* argv[]) {
   try {
-      Master app;
-      app.init(argc,argv);
+      Master app(argc, argv);
+      app.run();
    }
    catch (...) {
       std::cerr << "FATAL Exception caught! Exiting..." << std::endl;

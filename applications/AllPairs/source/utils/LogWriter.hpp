@@ -16,13 +16,12 @@ namespace AllPairs
   private:
     
     std::string appName_;
-    std::ostream & out_;
+    saga::url   advURL_;
     
   public:
     
-    LogWriter();
-    LogWriter(std::string appName);
-    LogWriter(std::string appName, std::ostream& logStream);
+    LogWriter(std::string appName, saga::url advURL);
+    LogWriter(saga::url advURL);
     
     ~LogWriter();
     

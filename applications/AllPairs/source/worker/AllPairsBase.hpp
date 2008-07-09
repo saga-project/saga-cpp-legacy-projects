@@ -13,40 +13,35 @@
 #include <boost/lexical_cast.hpp>
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
-#include "RunMap.hpp"
-#include "RunReduce.hpp"
 #include "SystemInfo.hpp"
 
 namespace AllPairs {
    class AllPairsBase {
      public:
-      int init(int argCount,char **argList);
+      AllPairsBase(int argCount,char **argList);
+      int run(void);
       virtual      ~AllPairsBase() {}
-     protected:
-      virtual void map(std::string chunkName) = 0;
-      virtual void reduce(std::string key, std::vector<std::string> values) = 0;
-      virtual int  hash(std::string input,unsigned int limit);
-      void         emitIntermediate(std::string key, std::string value);
-      void         emit(std::string key, std::string value);
+      virtual void compare(std::string object1, std::string object2) = 0;
+//     protected:
+      void         emit(bool result);
      private:
       std::string uuid_;
+      saga::url file_;
       std::string sessionUUID_;
+      std::string logURL_;
       std::string database_;
    
       time_t startupTime_;
       SystemInfo systemInfo_;
    
       saga::advert::directory workerDir_;
-      saga::advert::directory intermediateDir_;
-      saga::advert::directory chunksDir_;
-      saga::advert::directory reduceInputDir_;
+      saga::advert::directory sessionBaseDir_;
       AllPairs::LogWriter * logWriter_;
    
       void updateStatus_(void);
       void cleanup_(void);
       void registerWithDB(void);
       void mainLoop(unsigned int updateInterval);
-      void run(void);
       std::string getFrontendCommand_(void);
    };
 }
