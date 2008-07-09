@@ -14,7 +14,7 @@
 namespace MapReduce {
    class HandleMaps {
      public:
-      HandleMaps(std::vector<std::string> chunks, std::vector<saga::url> workers);
+      HandleMaps(std::vector<std::string> &chunks, saga::advert::directory workerDir);
       bool assignMaps();
 
      private:
@@ -24,6 +24,7 @@ namespace MapReduce {
       std::vector<std::string>::iterator candidateIT_;
       std::vector<std::string> chunks_;
       std::vector<saga::url> workers_;
+      saga::advert::directory workerDir_;
    };
 } //Namespace MapReduce
 

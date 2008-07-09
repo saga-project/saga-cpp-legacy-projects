@@ -20,12 +20,12 @@
 namespace MapReduce {
    class MapReduceBase {
      public:
-      int init(int argCount,char **argList);
-      MapReduceBase() : logWriter_(NULL) {}
+      MapReduceBase(int argCount, char **argList);
+      int           run(void);
       virtual      ~MapReduceBase() {}
      protected:
       virtual void map(std::string chunkName) = 0;
-      virtual void reduce(std::string key, std::vector<std::string> values) = 0;
+      virtual void reduce(std::string key, std::vector<std::string> &values) = 0;
       virtual int  hash(std::string input,unsigned int limit);
       void         emitIntermediate(std::string key, std::string value);
       void         emit(std::string key, std::string value);
@@ -33,6 +33,7 @@ namespace MapReduce {
       std::string uuid_;
       std::string sessionUUID_;
       std::string database_;
+      saga::url   logURL_;
    
       time_t startupTime_;
       SystemInfo systemInfo_;
@@ -47,7 +48,6 @@ namespace MapReduce {
       void cleanup_(void);
       void registerWithDB(void);
       void mainLoop(unsigned int updateInterval);
-      void run(void);
       std::string getFrontendCommand_(void);
    };
 }

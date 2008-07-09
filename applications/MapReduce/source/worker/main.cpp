@@ -6,8 +6,11 @@
 #include "MapReduceBase.hpp"
 #include "../utils/type.hpp"
 
-class MapReduceImp : public MapReduce::MapReduceBase {
+class MapReduceImpl : public MapReduce::MapReduceBase {
   public:
+   MapReduceImpl(int argCount, char **argList)
+     : MapReduceBase(argCount, argList) {}
+
 /*********************************************************
  * The implemented map function that will get called when*
  * it becomes time to do some mapping.                   *
@@ -24,7 +27,7 @@ class MapReduceImp : public MapReduce::MapReduceBase {
  * The implemented reduce function that will get called  *
  * when it becomes time to do some reducing.             *
  * ******************************************************/
-   void reduce(std::string key, std::vector<std::string> values) {
+   void reduce(std::string key, std::vector<std::string> &values) {
      int result = 0;
      std::vector<std::string>::const_iterator valuesIT = values.begin();
      while(valuesIT != values.end()) {
@@ -41,7 +44,7 @@ class MapReduceImp : public MapReduce::MapReduceBase {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
-   MapReduceImp mapReduce;
-   mapReduce.init(argc,argv);
+   MapReduce::MapReduceBase *mapReduce = new MapReduceImpl(argc, argv);
+   mapReduce->run();
    return 0;
 }

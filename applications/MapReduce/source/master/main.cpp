@@ -15,8 +15,8 @@ using namespace MapReduce::Master;
  * ******************************************/
 int main(int argc, char* argv[]) {
   try {
-      Master app;
-      app.init(argc,argv);
+      Master app(argc, argv);
+      app.run();
    }
    catch (std::exception const& e) {
       std::cerr << "std:.exception caught: " << e.what() << std::endl;

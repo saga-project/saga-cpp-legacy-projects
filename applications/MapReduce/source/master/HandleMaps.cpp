@@ -11,8 +11,9 @@
  * assigning map tasks to running workers.               *
  ********************************************************/
 namespace MapReduce {
-   HandleMaps::HandleMaps(std::vector<std::string> chunks, std::vector<saga::url> workers) {
-      workers_ = workers;
+   HandleMaps::HandleMaps(std::vector<std::string> &chunks, saga::advert::directory workerDir) {
+      workerDir_ = workerDir;
+      workers_ = workerDir_.list("?");
       chunks_ = chunks;
       candidateIT_ = chunks_.begin();
    }
@@ -28,13 +29,6 @@ namespace MapReduce {
       while(chunks_.size() != finished_.size()) {
          std::string candidate(getCandidate_()); //Find a candidate chunk
          issue_command_(candidate);  // Try to assign the chunk to someone
-      }
-      std::vector<saga::url>::iterator w =  workers_.begin();
-      while(w != workers_.end()) {
-         saga::advert::directory possibleWorker(*w, saga::advert::ReadWrite);
-         std::string state(possibleWorker.get_attribute("STATE"));
-         std::string command(possibleWorker.get_attribute("COMMAND"));
-         w++;
       }
       return true;
    }
@@ -64,8 +58,10 @@ namespace MapReduce {
                saga::advert::entry adv(workerChunkDir.open(saga::url("./chunk"), mode ));
                std::string finished_file(adv.retrieve_string());
                finished_.push_back(finished_file);
-               possibleWorker.set_attribute("STATE",   WORKER_STATE_IDLE);
-               possibleWorker.set_attribute("COMMAND", "");
+               saga::task t0 = possibleWorker.set_attribute<saga::task_base::ASync>("STATE",   WORKER_STATE_IDLE);
+               saga::task t1 = possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND", "");
+               t0.wait();
+               t1.wait();
                //Now that we have results, put them to work
                if(file != finished_file) {  //Candidate did not just finish
                   adv.store_string(file);
@@ -84,6 +80,7 @@ namespace MapReduce {
          }
          workers_IT++;
          if(workers_IT == workers_.end()) {
+            workers_ = workerDir_.list("?");
             workers_IT = workers_.begin();
          }
       }

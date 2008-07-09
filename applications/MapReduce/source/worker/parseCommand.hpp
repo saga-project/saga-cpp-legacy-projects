@@ -16,6 +16,8 @@ bool parseCommand(int argc, char *argv[], po::variables_map& vm) {
       ("version,v", "Print version information and exit")
       ("session,s", po::value<std::string>(), 
        "Session UUID this agent should register with")
+      ("log,l", po::value<std::string>(), 
+       "Advert url to log all information to")
       ("database,d", po::value<std::string>(), 
        "Hostname of the orchestrator database")
       ;
@@ -36,6 +38,10 @@ bool parseCommand(int argc, char *argv[], po::variables_map& vm) {
     }
     else if (!vm.count("database")) {
        std::cerr << "Missing orchestrator database hostname: use --database" << std::endl;
+       return false;
+    }
+    else if (!vm.count("log")) {
+       std::cerr << "Missing log url: use --log" << std::endl;
        return false;
     }
   }

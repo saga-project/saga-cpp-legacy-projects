@@ -10,21 +10,11 @@ namespace MapReduce
 {
  // fileCount is the total number of files possibly outputted by
  // the map function (NUM_MAPS)
- HandleReduces::HandleReduces(int fileCount, std::vector<saga::url> workers)
-    : fileCount_(fileCount), workers_(workers)
+ HandleReduces::HandleReduces(int fileCount, saga::advert::directory workerDir)
+    : fileCount_(fileCount), workerDir_(workerDir)
  {
     std::cerr << "start reduces with command of workers: " << std::endl;
-    std::vector<saga::url>::iterator w =  workers_.begin();
-    //Debug to follow
-    while(w != workers_.end())
-    {
-       saga::advert::directory possibleWorker(*w, saga::advert::ReadWrite);
-       std::string state(possibleWorker.get_attribute("STATE"));
-       std::cerr << "state = " << state << std::endl;
-       std::string command(possibleWorker.get_attribute("COMMAND"));
-       std::cerr << "command = " << command << std::endl;
-       ++w;
-    }
+    workers_ = workerDir_.list("?");
  }
 /*********************************************************
  * assignReduces is the only public function that tries  *
@@ -50,7 +40,7 @@ namespace MapReduce
  * assign them to an idel worker.  If a worker is done,  *
  * the results are recorded                              *
  * ******************************************************/
- void HandleReduces::issue_command_(std::vector<std::string> inputs)
+ void HandleReduces::issue_command_(std::vector<std::string> &inputs)
  {
    int mode = saga::advert::ReadWrite;
    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
@@ -98,7 +88,10 @@ namespace MapReduce
       }
       workers_IT++;
       if(workers_IT == workers_.end())
+      {
+         workers_ = workerDir_.list("?");
          workers_IT = workers_.begin();
+      }
    }
  }
 /*********************************************************

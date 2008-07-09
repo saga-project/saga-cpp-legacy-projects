@@ -7,31 +7,21 @@
 #include "parseCommand.hpp"
 
 using namespace MapReduce;
- 
+
 /*********************************************************
- * init parses the arguments and pulls out the database  *
+ * Parses the arguments and pulls out the database       *
  * to use and the session to use.                        *
  * ******************************************************/
-int MapReduceBase::init(int argCount, char **argList) {
+MapReduceBase::MapReduceBase(int argCount, char **argList) {
    boost::program_options::variables_map vm;
 
    if(!parseCommand(argCount, argList, vm))
-      return -2;
+      throw new saga::exception("Error", saga::BadParameter);
    sessionUUID_ = (vm["session"].as<std::string>());
    database_    = (vm["database"].as<std::string>());
+   logURL_      = (vm["log"].as<std::string>());
    uuid_        = "MICHAELCHRIS";//saga::uuid().string();
-   try {
-      run();
-   }
-   catch (saga::exception const & e) {
-      std::cerr << "MapReduceBase::init : Exception caught : " << e.what() << std::endl;
-      return -1;
-   }   
-   catch (...) {
-      std::cerr << "MapReduceBase::init : Unknown exception occurred" << std::endl;
-      return -1;
-   }
-   return 0;
+   logWriter_ = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
 }
 
 /*********************************************************
@@ -101,10 +91,21 @@ void MapReduceBase::emit(std::string key, std::string value) {
  * starts the worker and begins all neccessary setup with*
  * the database.                                        *
  * ******************************************************/
-void MapReduceBase::run(void) {
-  registerWithDB(); //Connect and create directories in database
+int MapReduceBase::run(void){
+   try {
+     registerWithDB(); //Connect and create directories in database
+     mainLoop(5); //sleep interval of 5
+   }
+   catch (saga::exception const & e) {
+      std::cerr << "MapReduceBase::init : Exception caught : " << e.what() << std::endl;
+      return -1;
+   }   
+   catch (...) {
+      std::cerr << "MapReduceBase::init : Unknown exception occurred" << std::endl;
+      return -1;
+   }
+   return 0;
 
-  mainLoop(5); //sleep interval of 5
 }
 
 /*********************************************************

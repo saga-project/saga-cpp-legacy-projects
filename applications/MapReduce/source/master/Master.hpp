@@ -22,6 +22,7 @@ namespace MapReduce {
          time_t startupTime_;
          std::string uuid_;
          std::string database_;
+         saga::url   logURL_;
         
          std::vector<std::string> fileChunks_;
          
@@ -45,12 +46,10 @@ namespace MapReduce {
          void runMaps_   (void);
          void sort_      (void);
          void runReduces_(void);
-         void run_();
  
         public:
-         int init(int argC,char **argV);
-         
-         Master();
+         Master(int argC, char **argV);
+         void run();
          ~Master(void);
       }; 
    } // namespace Master

@@ -3,8 +3,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MR_HANDLE_REDUCES_HPP
-#define MR_HANDLE_REDUCES_HPP
+#ifndef AP_HANDLE_COMPARISONS_HPP
+#define AP_HANDLE_COMPARISONS_HPP
 
 #include <string>
 #include <vector>
@@ -12,21 +12,20 @@
 #include "../utils/defines.hpp"
 #include "version.hpp"
 
-namespace MapReduce {
-   class HandleReduces {
+namespace AllPairs {
+   class HandleComparisons {
      public:
-      HandleReduces(int fileCount, saga::advert::directory workerDir);
-      bool assignReduces();
+      HandleComparisons(saga::advert::directory workerDir);
+      bool assignWork();
      private:
-      void issue_command_(std::vector<std::string> &inputs);
-      std::vector<std::string> groupFiles_(int counter);
+      void issue_command_();
     
-      std::vector<std::string> finished_;
-      int fileCount_;
+      std::vector<saga::advert::directory> finished_;
       std::vector<saga::url> workers_;
       saga::advert::directory workerDir_;
+      unsigned long comparisons_;
    };
-} //Namespace MapReduce
+} //Namespace AllPairs
 
-#endif // MR_HANDLE_REDUCES_HPP
+#endif // AP_HANDLE_COMPARISONS_HPP
 

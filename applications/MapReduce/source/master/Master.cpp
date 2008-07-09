@@ -17,52 +17,53 @@
 
 using namespace MapReduce::Master;
 
-// constructor: initialize member variables
-Master::Master()
-  : log(NULL)
-{}
+//Parses the command line options passed from main
+//looking for --config to find config xml file
+Master::Master(int argC, char *argV[]) {
+   boost::program_options::variables_map vm;
+   parseCommand(argC, argV, vm);
+/*   if (!parseCommand(argC, argV, vm))
+      return -2;*/
+
+   std::string configFilePath (vm["config"].as<std::string>());
+
+   cfgFileParser_ = ConfigFileParser(configFilePath, *log);
+
+   database_      = cfgFileParser_.getSessionDescription().orchestrator;
+
+   // create a UUID for this agent
+   //uuid_ = uuid().string();  //Temporarily disabled
+   uuid_ = "DUMMY-UUID";
+
+   saga::url advertKey(std::string("advert://" + database_ + "//" + uuid_ + "/log"));
+   logURL_ = advertKey;
+   //create new LogWriter instance that writes to stdout
+
+   log = new MapReduce::LogWriter(std::string(MR_MASTER_EXE_NAME), logURL_);
+}
 
 Master::~Master() {
    delete log;
 }
 
+
 /***************************************
- * Init function starts the framework  *
+ * run starts the framework            *
  * by reading config and taking all    *
  * appropriate actions                 *
  * \param argC argc from main          *
  * \param argV argv from main          *
 ***************************************/
-int Master::init(int argC, char *argV[]) {
-   //Parses the command line options passed from main
-   //looking for --config to find config xml file
-   boost::program_options::variables_map vm;
-   if (!parseCommand(argC, argV, vm))
-      return -2;
-   std::string configFilePath (vm["config"].as<std::string>());
-
-   //create new LogWriter instance that writes to stdout
-   log = new MapReduce::LogWriter(std::string(MR_MASTER_EXE_NAME), std::cout);
-
-   cfgFileParser_ = ConfigFileParser(configFilePath, *log);
-   database_      = cfgFileParser_.getSessionDescription().orchestrator;
+void Master::run() {
    // generate a startup timestamp 
    time(&startupTime_);
-   // create a UUID for this agent
-   //uuid_ = uuid().string();  //Temporarily disabled
-   uuid_ = "DUMMY-UUID";
 
    //Generate log information
    std::string message(std::string(MR_MASTER_EXE_NAME));
    message = message + " " + MR_MASTER_VERSION_FULL + " - creating new session.";
-   log->write(message,LOGLEVEL_INFO);
-   message = "Using session description: " + configFilePath;
-   log->write(message,LOGLEVEL_INFO);
-   run_();
-   return 0;
-}
+   log->write(message, LOGLEVEL_INFO);
 
-void Master::run_() {
+
    // register with the db
    // Just connect to see if it exists
    registerWithDB_();
@@ -132,17 +133,25 @@ void Master::createNewSession_() {
    int mode = saga::advert::ReadWrite | saga::advert::Create;  
    std::string advertKey("advert://");
    std::string message("Creating a new session (");
+   saga::task_container tc;
   
    message += (uuid_) + ")... ";
    advertKey += database_ + "//" + uuid_ + "/";
    try {
       sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-      sessionBaseDir_.set_attribute("name",    cfgFileParser_.getSessionDescription().name);
-      sessionBaseDir_.set_attribute("user",    cfgFileParser_.getSessionDescription().user);
-      sessionBaseDir_.set_attribute("version", cfgFileParser_.getSessionDescription().version);
-      workersDir_  = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_WORKERS),  mode);
-      binariesDir_ = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_BINARIES), mode);
-      chunksDir_   = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_CHUNKS),   mode);
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
+      saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
+      saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
+      saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
+      tc.add_task(t0);
+      tc.add_task(t1);
+      tc.add_task(t2);
+      tc.wait();
+      workersDir_  = t0.get_result<saga::advert::directory>();
+      binariesDir_ = t1.get_result<saga::advert::directory>();
+      chunksDir_   = t2.get_result<saga::advert::directory>();
    }
    catch(saga::exception const & e) {
       message += e.what();
@@ -170,8 +179,10 @@ void Master::populateBinariesList_(void) {
       try {
         saga::advert::entry adv = binariesDir_.open((*binaryListIT).targetOS+"_"+(*binaryListIT).targetArch, mode);
         //Now set some properties of the binaries
-        adv.set_attribute(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
-        adv.set_attribute(ATTR_EXE_LOCATION,(*binaryListIT).URL);
+        saga::task t0 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
+        saga::task t1 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_LOCATION,(*binaryListIT).URL);
+        t0.wait();
+        t1.wait();
         message += "SUCCESS";
         log->write(message, LOGLEVEL_INFO);
         successCounter++;
@@ -263,6 +274,8 @@ void Master::spawnAgents_(void) {
                args.push_back(uuid_);
                args.push_back("-d");
                args.push_back(database_);
+               args.push_back("-l");
+               args.push_back(logURL_.get_string());
                jd.set_attribute(saga::job::attributes::description_executable, command);
                jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
@@ -295,8 +308,7 @@ void Master::spawnAgents_(void) {
  * begin working                                         *
  * ******************************************************/
 void Master::runMaps_(void) {
-   std::vector<saga::url> possibleWorkers(workersDir_.list("?"));
-   HandleMaps mapHandler(fileChunks_, possibleWorkers);
+   HandleMaps mapHandler(fileChunks_, workersDir_);
    std::string message("Launching maps...");
 
    log->write(message, LOGLEVEL_INFO);
@@ -311,8 +323,7 @@ void Master::runMaps_(void) {
  * master                                                *
  * ******************************************************/
 void Master::runReduces_(void) {
-   std::vector<saga::url> possibleWorkers(workersDir_.list("?"));
-   HandleReduces reduceHandler(NUM_MAPS, possibleWorkers);
+   HandleReduces reduceHandler(NUM_MAPS, workersDir_);
    std::string message("Beginning Reduces...");
 
    log->write(message, LOGLEVEL_INFO);
