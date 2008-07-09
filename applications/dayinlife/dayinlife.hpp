@@ -24,23 +24,14 @@ namespace dayinlife
         int counter_;           // this is our state: the counter in all its glory
         int max_iterations_;    // this is the number of maximal iterations
 
-        std::string next_rm_;   // resource manager to use for migration
-        std::string next_host_; // host name to migrate this application to
-
-    protected:        
-        bool must_stop();
-
     public:
         application(int argc, char *argv[], char const* name);
-        ~application();
-        
+
     // functions that are overloaded from the base class
-        bool startup();
         void read_data();
         bool compute();
         void write_data();
         void migrate();
-        int terminate(bool finished);
     };
 
 ///////////////////////////////////////////////////////////////////////////////
