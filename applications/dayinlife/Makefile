@@ -12,5 +12,5 @@ SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 distclean::
-	@$(RM) advert.db replica.db counter.out
+	@$(RM) saga_advert.db saga_replica.db counter.out
 
