@@ -282,8 +282,6 @@ namespace migrating
                 chosts.push_back (next_host_);
                 jd.set_vector_attribute(job::attributes::description_candidatehosts, 
                     chosts);
-                common::writelog(common::get_log_path(this->get_name()), 
-                    jd.get_attribute (job::attributes::description_executable));
 
                 // set the current host as a command line argument for the new 
                 // instance this will make this application get migrated back 
