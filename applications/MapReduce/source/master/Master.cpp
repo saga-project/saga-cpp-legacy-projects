@@ -21,10 +21,8 @@ using namespace MapReduce::Master;
 //looking for --config to find config xml file
 Master::Master(int argC, char *argV[]) {
    boost::program_options::variables_map vm;
-   parseCommand(argC, argV, vm);
-/*   if (!parseCommand(argC, argV, vm))
-      return -2;*/
-
+   if (!parseCommand(argC, argV, vm))
+      throw new saga::exception("incorrect command line arguments", saga::BadParameter);
    std::string configFilePath (vm["config"].as<std::string>());
 
    cfgFileParser_ = ConfigFileParser(configFilePath, *log);

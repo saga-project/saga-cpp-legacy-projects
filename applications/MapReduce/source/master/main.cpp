@@ -18,12 +18,16 @@ int main(int argc, char* argv[]) {
       Master app(argc, argv);
       app.run();
    }
+   catch (saga::exception const& e) {
+      std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
+      std::cerr << "Exiting..." << std::endl;
+   }
    catch (std::exception const& e) {
-      std::cerr << "std:.exception caught: " << e.what() << std::endl;
+      std::cerr << "std:  exception caught: " << e.what() << std::endl;
       std::cerr << "Exiting..." << std::endl;
    }
    catch (...) {
-      std::cerr << "FATAL Exception caught! Exiting..." << std::endl;
+      std::cerr << "FATAL Exception caught!" << std::endl << "Exiting..." << std::endl;
       return 255;
    }
    return 0;

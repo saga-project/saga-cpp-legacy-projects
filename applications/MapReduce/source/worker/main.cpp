@@ -6,15 +6,15 @@
 #include "MapReduceBase.hpp"
 #include "../utils/type.hpp"
 
-class MapReduceImpl : public MapReduce::MapReduceBase {
-  public:
-   MapReduceImpl(int argCount, char **argList)
-     : MapReduceBase(argCount, argList) {}
+using namespace MapReduce;
 
-/*********************************************************
- * The implemented map function that will get called when*
- * it becomes time to do some mapping.                   *
- * ******************************************************/
+class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
+  public:
+   MapReduceImpl(int argCount, char **argList) : MapReduceBase<MapReduceImpl>(argCount,argList) {}
+   /*********************************************************
+    * The implemented map function that will get called when*
+    * it becomes time to do some mapping.                   *
+    * ******************************************************/
    void map(std::string chunkName) {
       boost::iostreams::stream <saga_file_device> in (chunkName);
       std::string elem;
@@ -23,10 +23,10 @@ class MapReduceImpl : public MapReduce::MapReduceBase {
       }
    }
       
-/*********************************************************
- * The implemented reduce function that will get called  *
- * when it becomes time to do some reducing.             *
- * ******************************************************/
+   /*********************************************************
+    * The implemented reduce function that will get called  *
+    * when it becomes time to do some reducing.             *
+    * ******************************************************/
    void reduce(std::string key, std::vector<std::string> &values) {
      int result = 0;
      std::vector<std::string>::const_iterator valuesIT = values.begin();
@@ -44,7 +44,7 @@ class MapReduceImpl : public MapReduce::MapReduceBase {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
-   MapReduce::MapReduceBase *mapReduce = new MapReduceImpl(argc, argv);
-   mapReduce->run();
+   MapReduceImpl app(argc,argv);
+   app.run();
    return 0;
 }
