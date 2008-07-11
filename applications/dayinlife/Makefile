@@ -9,8 +9,22 @@ SAGA_BIN         = dayinlife
 
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 
+UID              = $(shell id -u)
+LOG              = /tmp/DayInLife$(UID)/Log
+
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
-distclean::
-	@$(RM) saga_advert.db saga_replica.db counter.out
+clean:: tmpclean
 
+.PHONY: tmpclean
+tmpclean::
+	@$(ECHO) "      clean tmps"
+	@$(RM)   saga_advert.db saga_replica.db counter.out
+
+run:: tmpclean $(SAGA_BIN)
+	@$(RM) $(LOG)
+	-$(SAGA_PWD)/$(SAGA_BIN)
+	@$(CAT)  counter.out 
+	@$(ECHO) ""
+	@$(CAT)  $(LOG)
+  
