@@ -12,7 +12,7 @@ SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 UID              = $(shell id -u)
 LOG              = /tmp/dayinlife.log
 
-ITER             = 5
+ITER             = 20
 NAME             = dayinlife
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk

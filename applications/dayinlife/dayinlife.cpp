@@ -17,7 +17,7 @@
 using namespace saga;
 
 ///////////////////////////////////////////////////////////////////////////////
-#define DAYINLIFE_MAX_ITERATIONS      10
+#define DAYINLIFE_MAX_ITERATIONS      3
 
 #define DAYINLIFE_DATA_INFILE         "counter.in"
 #define DAYINLIFE_DATA_OUTFILE        "counter.out"

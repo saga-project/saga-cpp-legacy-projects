@@ -9,6 +9,9 @@
 #include <ctime>
 #include <cstdlib>
 
+#include <iostream>
+#include <fstream>
+
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/exception.hpp>
@@ -63,7 +66,7 @@ namespace common
     //  return the current resource this job is running on
     inline std::string current_host()
     {
-        return get_hostname();
+        return "localhost";
     }
     
     ///////////////////////////////////////////////////////////////////////////
@@ -167,14 +170,19 @@ namespace common
             filesystem::directory logdir (name, directory_mode);
 
             int mode = filesystem::ReadWrite | filesystem::Create | filesystem::Append;
-            filesystem::file logf = logdir.open (name + "dayinlife.log", mode);
 
+            SAGA_OSSTREAM fname;
+            fname << name << "dayinlife.log";
+
+            filesystem::file logf = logdir.open (SAGA_OSSTREAM_GETSTRING(fname), mode);
             logf.write(buffer(SAGA_OSSTREAM_GETSTRING(log)));
 #endif
         }
         catch (saga::exception const& e) {
             std::cerr << "caught saga::exception while logging: " << e.what() 
                       << std::endl;
+            std::fstream filestr ("exception.log", std::fstream::out | std::fstream::app);
+            filestr << e.what ();
         }
     }
 
@@ -213,14 +221,19 @@ namespace common
             filesystem::directory logdir (name, directory_mode);
 
             int mode = filesystem::ReadWrite | filesystem::Create | filesystem::Append;
-            filesystem::file logf = logdir.open (name + "dayinlife.log", mode);
 
+            SAGA_OSSTREAM fname;
+            fname << name << "dayinlife.log";
+            
+            filesystem::file logf = logdir.open (SAGA_OSSTREAM_GETSTRING(fname), mode);
             logf.write(buffer(SAGA_OSSTREAM_GETSTRING(log)));
 #endif
         }
         catch (saga::exception const& e) {
             std::cerr << "caught saga::exception while logging: " << e.what() 
                       << std::endl;
+            std::fstream filestr ("exception.log", std::fstream::out | std::fstream::app);
+            filestr << e.what ();
         }
     }
     

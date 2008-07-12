@@ -19,12 +19,13 @@ clean:: tmpclean
 .PHONY: tmpclean
 tmpclean::
 	@$(ECHO) "      clean tmps"
-	@$(RM)   saga_advert.db saga_replica.db counter.out counter.in $(LOG)
+	@$(RM)   saga_advert.db saga_replica.db counter.out counter.in $(LOG) exception.log
 
 run:: tmpclean $(SAGA_BIN)
 	@$(RM) $(LOG)
-	-$(SAGA_PWD)/$(SAGA_BIN)
+	-$(SAGA_PWD)/$(SAGA_BIN) localhost localhost 3
+	-@tail -f $(LOG)
+	@$(ECHO) "counter: "
 	@$(CAT)  counter.out 
 	@$(ECHO) ""
-	@$(CAT)  $(LOG)
   

@@ -3,7 +3,7 @@
 
 #include "workload.hpp"
 
-#define DEFAULT_MAX  10
+#define DEFAULT_MAX  20
 #define BUFSIZE      100
 
 
