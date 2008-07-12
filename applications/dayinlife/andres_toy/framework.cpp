@@ -155,7 +155,7 @@ void framework::migrate (void)
   saga::job::self        self = js.get_self ();
   saga::job::description jd   = self.get_description ();
 
-  // et a new host as target host.  That's boring localhost for now (FIXME)
+  // add a new host as target host.  That's boring localhost for now (FIXME)
   std::vector <std::string> chosts;
   chosts.push_back ("localhost");
   jd.set_vector_attribute (saga::job::attributes::description_candidatehosts, chosts);

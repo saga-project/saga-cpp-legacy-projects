@@ -238,6 +238,9 @@ namespace migrating
 
         void end_write_data(saga::filesystem::file& outfile)
         {
+            common::writelog(common::get_log_path(this->get_name()), 
+                "application::end_write_data");
+
             using namespace saga;
             try {
                 outfile.close();    // close the file

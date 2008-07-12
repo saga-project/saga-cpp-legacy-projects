@@ -127,9 +127,7 @@ namespace common
     //  generate logfilename paths
     inline std::string get_log_path(std::string const& name)
     {
-        SAGA_OSSTREAM log;
-        log << "/tmp/" << name << get_username() << "/" ;
-        return SAGA_OSSTREAM_GETSTRING(log); 
+        return "./";
     }
     
     ///////////////////////////////////////////////////////////////////////////
@@ -169,7 +167,7 @@ namespace common
             filesystem::directory logdir (name, directory_mode);
 
             int mode = filesystem::ReadWrite | filesystem::Create | filesystem::Append;
-            filesystem::file logf = logdir.open (name + "Log", mode);
+            filesystem::file logf = logdir.open (name + "dayinlife.log", mode);
 
             logf.write(buffer(SAGA_OSSTREAM_GETSTRING(log)));
 #endif
@@ -215,7 +213,7 @@ namespace common
             filesystem::directory logdir (name, directory_mode);
 
             int mode = filesystem::ReadWrite | filesystem::Create | filesystem::Append;
-            filesystem::file logf = logdir.open (name + "Log", mode);
+            filesystem::file logf = logdir.open (name + "dayinlife.log", mode);
 
             logf.write(buffer(SAGA_OSSTREAM_GETSTRING(log)));
 #endif
