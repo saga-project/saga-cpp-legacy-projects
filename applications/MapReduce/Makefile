@@ -4,9 +4,11 @@
 #  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 #  http://www.boost.org/LICENSE_1_0.txt)
 
-SAGA_ROOT        = /home/michael/saga/trunk
-#my path is in the repository!
+
+# my path is in the repository!
+# NO! Just set SAGA_LOCATION=/home/michael/saga !!!
+
 SAGA_SUBDIRS     = source
 
-include $(SAGA_ROOT)/make/saga.mk
+include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
