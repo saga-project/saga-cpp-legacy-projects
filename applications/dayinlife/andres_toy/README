@@ -1,0 +1,58 @@
+
+Usage:
+
+  ./dayinlife <n>
+
+ n : giving the number of iterations.  NOTE that, due to
+     a resource leak in the underlying default job adaptor, 
+     n > 49 will cause an bus error at the moment.
+
+
+Details:
+
+  The application consists of three parts: the main routine, the
+  migration framework, and the workload.  For convenience,
+  a logging facility is provided, too.
+
+
+  The main routine is simple enough to show it here:
+
+    {
+      logger    l  ("dayinlife.log");
+      framework fw (l, argc, argv);
+      workload  wl (l, argc, argv);
+
+      fw.run (wl);
+    }
+
+  A logger utility is created and shared between the framework
+  and worker instance.  Both framework and worker evaluate
+  argc/argv (although only the worker picks anything useful from
+  it at the moment).
+
+  The framework does the following on run():
+
+    - fetching input data to the current working directory
+    - informing the worker about input and output data location
+    - invoking the workloads work() routine once
+    - invoking the workloads test() routine once
+    - if that test succeeds, 
+      - we are done, and finish
+    - else
+      - output data are collected
+      - the whole application is migrated to
+        a new host, and starts again.
+
+  Note that the output data are registered in a logical file,
+  which in turn is stored in the advert service.  That way, the
+  consecutive instances of the application can communicate the
+  data location to each other.  The output data are then used as
+  input data for the new instance.
+
+  The worker is in this case very simple: it reads an counter
+  from input data, increments it, and writes it back to output
+  data.  If the counter exceeds some maximum, nbothing is done,
+  and the test routine fails (nothing more to do).
+
+
+
