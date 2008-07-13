@@ -82,31 +82,43 @@ void framework::prepare_data (void)
   out_ = "output.dat";
 
   // try to open the advert and to get the logical file
-  try 
+  
+
+  // open the advert's parent directory
+  saga::advert::directory  ad      (std::string (ADVERT_DIR), saga::advert::ReadWrite | saga::advert::Create);
+
+  if ( ! ad.exists (name_) )
   {
-    // open the advert
-    saga::advert::directory  ad      (std::string (ADVERT_DIR), saga::advert::ReadWrite | saga::advert::Create);
-    saga::advert::entry ae = ad.open (name_,                    saga::advert::ReadWrite | saga::advert::Create);
+    // on the very first run, there is no advert, and no logical file.  Thus we
+    // initate the logical file name, for later creation of these entities.
+    lfn_ = std::string ("/") + name_;
+  }
+  else
+  {
+    saga::advert::entry ae = ad.open (name_, saga::advert::Read);
+    log_.log (" -- opened ae\n");
 
     // connect to the logical file
     saga::replica::logical_file lf (ae.retrieve_object ());
+    log_.log (" -- opened lf\n");
 
     // store logical file url for later use
     lfn_ = lf.get_url ();
+    log_.log (" -- got lfn: ");
+    log_.log (lfn_);
+    log_.log ("\n");
 
     // fetch to the input location, i.e. localhost
     lf.replicate (in_);
+    log_.log (" -- replicated: ");
+    log_.log (in_);
+    log_.log ("\n");
 
     // unregister input location: no idea what workload is doing with the file,
     // so we consider it invalid.  Control is now with the worker, which should
     // delete it after use.
     lf.remove_location (in_);
-  }
-  catch ( const saga::exception & e )
-  {
-    // on the very first run, there is no advert, and no logical file.  Thus we
-    // initate the logical file name, for later creation of these entities.
-    lfn_ = std::string ("/") + name_;
+    log_.log (" -- location removed ");
   }
 }
 

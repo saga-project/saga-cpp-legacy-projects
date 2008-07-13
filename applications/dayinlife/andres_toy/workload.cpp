@@ -3,7 +3,7 @@
 
 #include "workload.hpp"
 
-#define DEFAULT_MAX  10
+#define DEFAULT_MAX   25
 #define BUFSIZE      100
 
 
@@ -36,8 +36,12 @@ void workload::set_input (std::string in)
 
   if ( f_in_.is_open () )
   {
+    std::string tmp;
+
     // read data
+    f_in_ >> tmp;   // "max:"
     f_in_ >> max_;
+    f_in_ >> tmp;   // "cnt:"
     f_in_ >> cnt_;
 
     f_in_.close ();
@@ -48,6 +52,7 @@ void workload::set_input (std::string in)
   else
   {
     // default: start from zero
+    log_.log (" -- wl has no input - reset\n");
     cnt_ = 0;   
   }
 
@@ -102,8 +107,8 @@ void workload::work (void)
   //
   // we do that even if there is nothing to do, to recreate the state we had
   // before running
-  f_out_ << max_ << std::endl;
-  f_out_ << cnt_ << std::endl;
+  f_out_ << "max: " << max_ << std::endl;
+  f_out_ << "cnt: " << cnt_ << std::endl;
 
   f_out_.close ();
 }

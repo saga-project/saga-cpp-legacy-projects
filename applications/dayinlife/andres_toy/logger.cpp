@@ -14,7 +14,7 @@ logger::logger (const std::string & name)
 
   SAGA_OSSTREAM tmp;
 
-  tmp << " -- opening log -- " << std::endl;
+  tmp << "\n -- opening log ------------------------------ \n";
 
   f_.write (saga::buffer (SAGA_OSSTREAM_GETSTRING (tmp)));
 }
@@ -28,7 +28,7 @@ void logger::close (void)
 {
   SAGA_OSSTREAM tmp;
 
-  tmp << " -- closing log -- " << std::endl;
+  tmp << " -- closing log ------------------------------ \n\n";
 
   f_.write (saga::buffer (SAGA_OSSTREAM_GETSTRING (tmp)));
   f_.close ();
