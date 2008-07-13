@@ -9,10 +9,10 @@ namespace MapReduce {
    RunMap::RunMap(saga::advert::directory workerDir,
                  saga::advert::directory chunksDir,
                  saga::advert::directory intermediateDir) {
-      try {
          chunksDir_       = chunksDir;
          intermediateDir_ = intermediateDir;
          workerDir_       = workerDir;
+      try {
          workerDir_.set_attribute("COMMAND", "");
          workerDir_.set_attribute("STATE", WORKER_STATE_MAPPING);
       }
@@ -30,7 +30,7 @@ namespace MapReduce {
       try {
          for(int count = 0; count < NUM_MAPS; count++) {
             saga::advert::entry adv = intermediateDir_.open(saga::url("mapFile-"+boost::lexical_cast<std::string>(count)), mode);
-            std::string filestring("/home/michael/mapFile-" + boost::lexical_cast<std::string>(count));
+            std::string filestring("/tmp/mapFile-" + boost::lexical_cast<std::string>(count));
             saga::filesystem::file f(saga::url(filestring), saga::filesystem::ReadWrite);
             adv.store_string(f.get_url().get_string());
          }
@@ -48,8 +48,13 @@ namespace MapReduce {
  * worker to use from the advert database.               *
  * ******************************************************/
    std::string RunMap::getFile() {
-      saga::advert::entry adv(chunksDir_.open(saga::url("./chunk"), saga::advert::ReadWrite));
-      return adv.retrieve_string();
+      try {
+         saga::advert::entry adv(chunksDir_.open(saga::url("./chunk"), saga::advert::ReadWrite));
+         return adv.retrieve_string();
+      }
+      catch(saga::exception const & e) {
+         throw;
+      }
    }
 } // namespace MapReduce
 

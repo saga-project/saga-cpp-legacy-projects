@@ -128,7 +128,6 @@ void ConfigFileParser::parse_(void)
       XMLNode tmpNode = xNode.getChildNode("File", i);
       if( NULL != tmpNode.getText() ) {
          fd.name = tmpNode.getText();
-         std::cerr << "Added ApplicationFile:  " << fd.name << std::endl;
       }
       else complete = false;
       if(!complete) {

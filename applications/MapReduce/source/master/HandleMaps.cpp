@@ -13,6 +13,7 @@
 namespace MapReduce {
    HandleMaps::HandleMaps(std::vector<std::string> &chunks, saga::advert::directory workerDir) {
       workerDir_ = workerDir;
+      sleep(20);
       workers_ = workerDir_.list("?");
       chunks_ = chunks;
       candidateIT_ = chunks_.begin();
@@ -46,6 +47,7 @@ namespace MapReduce {
          try {
             saga::advert::directory possibleWorker(*workers_IT, mode);
             std::string state = possibleWorker.get_attribute("STATE");
+            std::cerr << "state = " << state << std::endl;
             if(state == WORKER_STATE_IDLE) {
                saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
                saga::advert::entry adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
@@ -82,6 +84,7 @@ namespace MapReduce {
          if(workers_IT == workers_.end()) {
             workers_ = workerDir_.list("?");
             workers_IT = workers_.begin();
+            return;
          }
       }
    }

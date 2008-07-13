@@ -87,7 +87,7 @@ namespace MapReduce {
             while(it != intermediate.end()) {
                std::string it_key = (*it).first;
                int mapFile = hash(it_key, NUM_MAPS);
-               std::string filestring("/home/michael/mapFile-" + boost::lexical_cast<std::string>(mapFile));
+               std::string filestring("/tmp/mapFile-" + boost::lexical_cast<std::string>(mapFile));
                saga::filesystem::file f(saga::url(filestring), mode);
                it_key.append(" ");
                it_key.append((*it).second[0]);
@@ -112,7 +112,7 @@ namespace MapReduce {
       void emit(std::string key, std::string value) {
          int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
          int mapFile = hash(key, NUM_MAPS);
-         std::string filestring("/home/michael/mapFile-reduced-" + boost::lexical_cast<std::string>(mapFile));
+         std::string filestring("/tmp/mapFile-reduced-" + boost::lexical_cast<std::string>(mapFile));
          saga::filesystem::file f(saga::url(filestring), mode);
          std::string message(key);
          message += " " + value + "\n";
@@ -141,7 +141,6 @@ namespace MapReduce {
        * to allow the master to know keepalive information.    *
        * ******************************************************/
       void updateStatus_(void) {
-         std::cout << std::endl << "Updating agent status: " << std::flush;
          //(1) update the last seen (keep alive) timestamp 
          time_t timestamp; time(&timestamp);
          try {
@@ -176,8 +175,10 @@ namespace MapReduce {
        * attributes describing this session.                   *
        * ******************************************************/
       void registerWithDB(void) {
+         putenv("SAGA_VERBOSE=100");
+         std::freopen("/tmp/worker-stderr.txt", "w", stderr);
+         std::freopen("/tmp/worker-stdout.txt", "w", stdout);
          int mode = saga::advert::ReadWrite;
-         std::cout << "Registering with OrchestratorDB: " << std::flush;
          //(1) connect to the orchestrator database
          std::string advertKey("advert://");
          advertKey += database_ + "//" + sessionUUID_ + "/";
@@ -229,8 +230,13 @@ namespace MapReduce {
             if(command == WORKER_COMMAND_MAP) {
                // Use the RunMap class to handle details of getting
                // and retrieving necessary information from the master.
-               RunMap mapHandler(workerDir_, chunksDir_, intermediateDir_);
-               d.map(mapHandler.getFile()); // Map the file given from the master
+               try {
+                  RunMap mapHandler(workerDir_, chunksDir_, intermediateDir_);
+                  d.map(mapHandler.getFile()); // Map the file given from the master
+               }
+               catch(saga::exception const& e) {
+                  workerDir_.set_attribute("STATE", WORKER_STATE_FAIL);
+               }
                //std::vector<std::string> output(mapHandler.getOutput());
             }
             else if(command == WORKER_COMMAND_REDUCE) {

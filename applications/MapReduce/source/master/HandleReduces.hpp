@@ -20,6 +20,7 @@ namespace MapReduce {
      private:
       void issue_command_(std::vector<std::string> &inputs);
       std::vector<std::string> groupFiles_(int counter);
+      void wait_for_results_();
     
       std::vector<std::string> finished_;
       int fileCount_;

@@ -43,6 +43,7 @@
 
 #define WORKER_STATE_IDLE       "IDLE"     // Ready to Map or Reduce
 #define WORKER_STATE_DONE       "DONE"     // Done with assigned task
+#define WORKER_STATE_FAIL       "FAIL"     // Assigned task failed 
 #define WORKER_STATE_MAPPING    "MAPPING"  // Currently Mapping
 #define WORKER_STATE_REDUCING   "REDUCING" // Currently Reducing
 

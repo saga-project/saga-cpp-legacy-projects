@@ -36,11 +36,16 @@ namespace MapReduce {
  * finished.                                             *
  * ******************************************************/
    RunReduce::~RunReduce() {
-      std::string filestring("/home/michael/mapFile-reduced");
-      saga::advert::entry adv(workerDir_.open(saga::url("./output"), saga::advert::ReadWrite | saga::advert::Create));
-      adv.store_string(filestring);
-      workerDir_.set_attribute("COMMAND", "");
-      workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
+      try {
+         std::string filestring("/tmp/mapFile-reduced");
+         saga::advert::entry adv(workerDir_.open(saga::url("./output"), saga::advert::ReadWrite | saga::advert::Create));
+         adv.store_string(filestring);
+         workerDir_.set_attribute("COMMAND", "");
+         workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
+      }
+      catch(saga::exception const& e) {
+         throw;
+      }
    }
 
 /*********************************************************

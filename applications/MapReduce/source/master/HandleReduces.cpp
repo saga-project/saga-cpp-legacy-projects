@@ -13,7 +13,6 @@ namespace MapReduce
  HandleReduces::HandleReduces(int fileCount, saga::advert::directory workerDir)
     : fileCount_(fileCount), workerDir_(workerDir)
  {
-    std::cerr << "start reduces with command of workers: " << std::endl;
     workers_ = workerDir_.list("?");
  }
 /*********************************************************
@@ -26,13 +25,13 @@ namespace MapReduce
     {
        // group all files that were mapped to this counter
        std::vector<std::string> reduceInput(groupFiles_(counter));
-       std::cerr << "List of reduceInputs for " << counter << std::endl;
-       for(std::vector<std::string>::iterator x = reduceInput.begin();x!=reduceInput.end();x++) {
-          std::cerr << *x << std::endl;
-       }
        issue_command_(reduceInput);
     }
-//       sleep(10);
+    //All were assigned, now wait for everyone to finish
+    while(finished_.size() != (unsigned)fileCount_)
+    {
+       wait_for_results_();
+    }
     return true;
  }
 /*********************************************************
@@ -51,7 +50,6 @@ namespace MapReduce
       {
          saga::advert::directory possibleWorker(*workers_IT, mode);
          std::string state = possibleWorker.get_attribute("STATE");
-         std::cerr << "State of worker " << *workers_IT << " is " << state << std::endl;
          if(state == WORKER_STATE_IDLE)
          {
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
@@ -61,6 +59,7 @@ namespace MapReduce
                adv.store_string(inputs[count]);
             }
             possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
+            possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
             assigned = true;
          }
          else if(state == WORKER_STATE_DONE)
@@ -68,23 +67,19 @@ namespace MapReduce
             saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
             std::string finishedFile = output.retrieve_string();
             finished_.push_back(finishedFile);
-            possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
-            //Now that we have results, put them to work
-/*            if(NUM_MAPS != finishedFile) //Didn't just finish this file
+            saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
+            for(unsigned int count = 0; count < inputs.size(); count++)
             {
-               .store_string(file);
-               possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_MAP);
-               assigned = true;
-            }*/
-            if(NUM_MAPS != finished_.size())
-            {
-               break;
+               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(count)), mode | saga::advert::Create));
+               adv.store_string(inputs[count]);
             }
+            possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
+            possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
+            assigned = true;
          }
       }
       catch(saga::exception const & e) {
- //        std::string message("Failure (" + e.what() + ")");
-//         log->write(message, LOGLEVEL_ERROR);
+         throw;
       }
       workers_IT++;
       if(workers_IT == workers_.end())
@@ -120,11 +115,43 @@ namespace MapReduce
           workers_IT++;
        }
        catch(saga::exception const & e) {
-          std::string message(e.what());
-          std::cerr << message << std::endl;
-//          log->write(message, LOGLEVEL_ERROR);
+          throw;
        }
     }
     return intermediateFiles;
  }
+ 
+ /*********************************************************
+ * wait_for_results waits for results :)
+ * ******************************************************/
+ void HandleReduces::wait_for_results_()
+ {
+   int mode = saga::advert::ReadWrite;
+   static std::vector<saga::url>::iterator workers_IT = workers_.begin();
+   while(workers_IT != workers_.end())
+   {
+      try
+      {
+         saga::advert::directory possibleWorker(*workers_IT, mode);
+         std::string state = possibleWorker.get_attribute("STATE");
+         if(state == WORKER_STATE_DONE)
+         {
+            saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
+            std::string finishedFile = output.retrieve_string();
+            finished_.push_back(finishedFile);
+            return;
+         }
+      }
+      catch(saga::exception const & e) {
+         throw;
+      }
+      workers_IT++;
+      if(workers_IT == workers_.end())
+      {
+         workers_ = workerDir_.list("?");
+         workers_IT = workers_.begin();
+      }
+   }
+ }
+
 }//Namespace MapReduce
