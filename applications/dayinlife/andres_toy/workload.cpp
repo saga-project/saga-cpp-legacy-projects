@@ -8,11 +8,20 @@
 
 
 // ctor
-workload::workload (logger & log)
+workload::workload (logger & log, int argc, char** argv)
   : max_ (DEFAULT_MAX)
   , log_ (log)
 {
   log_.log (" -- wl ctor\n");
+
+  if ( argc >= 2 )
+  {
+    max_ = atoi (argv[2]);
+
+    log_.log (" -- setting max to ");
+    log_.log (max_);
+    log_.log ("\n");
+  }
 }
 
 
@@ -119,7 +128,7 @@ void workload::work (void)
 // not, it returns true, indicating that we need to continue
 bool workload::test (void) 
 {
-  log_.log (" -- wl test: ");
+  log_.log (" -- wl test:   ");
   log_.log (cnt_);
   log_.log (" >= ");
   log_.log (max_);

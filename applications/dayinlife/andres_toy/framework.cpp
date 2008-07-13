@@ -96,29 +96,20 @@ void framework::prepare_data (void)
   else
   {
     saga::advert::entry ae = ad.open (name_, saga::advert::Read);
-    log_.log (" -- opened ae\n");
 
     // connect to the logical file
     saga::replica::logical_file lf (ae.retrieve_object ());
-    log_.log (" -- opened lf\n");
 
     // store logical file url for later use
     lfn_ = lf.get_url ();
-    log_.log (" -- got lfn: ");
-    log_.log (lfn_);
-    log_.log ("\n");
 
     // fetch to the input location, i.e. localhost
     lf.replicate (in_);
-    log_.log (" -- replicated: ");
-    log_.log (in_);
-    log_.log ("\n");
 
     // unregister input location: no idea what workload is doing with the file,
     // so we consider it invalid.  Control is now with the worker, which should
     // delete it after use.
     lf.remove_location (in_);
-    log_.log (" -- location removed ");
   }
 }
 

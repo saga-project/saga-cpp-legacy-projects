@@ -17,7 +17,7 @@ int main (int argc, char** argv)
   {
     logger    l  ("dayinlife.log");
     framework fw (l, argc, argv);
-    workload  wl (l);
+    workload  wl (l, argc, argv);
 
     fw.run (wl);
   }

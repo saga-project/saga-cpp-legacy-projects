@@ -34,7 +34,7 @@ class workload
     std::fstream f_out_; // output file
 
   public:
-    workload (logger & log);
+    workload (logger & log, int argc, char** argv);
    ~workload (void);
 
     void set_input  (std::string in);   // register input  data file with worker
