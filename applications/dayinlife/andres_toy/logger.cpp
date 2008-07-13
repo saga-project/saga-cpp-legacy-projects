@@ -1,7 +1,7 @@
 
 #include "logger.hpp"
 
-#define DIR "any://localhost//tmp"
+#define DIR "./"
 
 
 logger::logger (const std::string & name)

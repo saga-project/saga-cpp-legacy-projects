@@ -21,12 +21,10 @@ int main (int argc, char** argv)
     workload  wl (l);
 
     fw.run (wl);
-
-    l.log ("done\n");
   }
   catch ( const saga::exception & e )
   {
-    std::cerr << "Catched : " << e.what () << std::endl;
+    std::cerr << "catched : " << e.what () << std::endl;
   }
 
   return (0);

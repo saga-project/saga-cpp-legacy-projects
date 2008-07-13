@@ -27,13 +27,11 @@ class workload
   private:
     logger & log_;
 
-    int cnt_;            // data to work on
-    int max_;            // break condition
+    long cnt_;           // data to work on
+    long max_;           // break condition
 
     std::fstream f_in_;  // input  file
     std::fstream f_out_; // output file
-
-    std::fstream f_log_;   // log file
 
   public:
     workload (logger & log);

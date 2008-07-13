@@ -62,6 +62,7 @@ void framework::run (workload & w)
     migrate ();
 
     // after migration, this instance is done -- we should never reach this line
+    // throw "migrated away";
   }
 
   return;
@@ -165,13 +166,10 @@ void framework::migrate (void)
   log_.log (" -> ");
   log_.log (chosts[0]);
   log_.log ("\n");
-  log_.close ();
 
   // and off we go!
   self.migrate (jd);
 
-  // migrate should kill THIS application instance.  TO be sure, we do it
-  // ourself
-  ::exit (0);
+  // after migration, this instance is done - we should never reach this line
 }
 

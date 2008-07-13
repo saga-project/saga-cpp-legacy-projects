@@ -3,7 +3,7 @@
 
 #include "workload.hpp"
 
-#define DEFAULT_MAX  20
+#define DEFAULT_MAX  10
 #define BUFSIZE      100
 
 
@@ -74,10 +74,34 @@ void workload::set_output (std::string out)
 void workload::work (void)
 {
   log_.log (" -- wl work\n");
-  
-  cnt_++;
+
+  // check if there is something to do
+  if ( test () )
+  {
+
+    log_.log (" -- old count: ");
+    log_.log (cnt_);
+    log_.log ("\n");
+
+    cnt_++;
+
+    log_.log (" -- new count: ");
+    log_.log (cnt_);
+    log_.log ("\n");
+  }
+  else
+  {
+    log_.log (" -- wl has nothing to do\n");
+    log_.log (" -- count: ");
+    log_.log (cnt_);
+    log_.log ("\n");
+  }
+
 
   // write data
+  //
+  // we do that even if there is nothing to do, to recreate the state we had
+  // before running
   f_out_ << max_ << std::endl;
   f_out_ << cnt_ << std::endl;
 

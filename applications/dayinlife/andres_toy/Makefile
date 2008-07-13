@@ -10,7 +10,7 @@ SAGA_BIN         = dayinlife
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 
 UID              = $(shell id -u)
-LOG              = /tmp/dayinlife.log
+LOG              = ./dayinlife.log
 
 ITER             = 20
 NAME             = dayinlife
