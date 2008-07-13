@@ -296,9 +296,8 @@ namespace migrating
                 jd.set_vector_attribute(job::attributes::description_arguments,
                     arguments);
 
-                // migrate this job to the new machine (given by next_host())
-                self.migrate(jd);
-
+                // we do this before the migrate to avoid race conditions 
+                // with the new job accessing the same entry 
                 int mode = advert::CreateParents | advert::ReadWrite;
 
                 // store the next host name in the advert service
@@ -309,6 +308,9 @@ namespace migrating
                 // flags that there is no application running anymore.
                 advert::entry advjob (common::get_db_path(name_, "Job"), advert::ReadWrite);
                 advjob.remove();
+
+                // migrate this job to the new machine (given by next_host())
+                self.migrate(jd);
             }
             catch (saga::exception const& e) {
                 common::writelog(common::get_log_path(this->get_name()), 
