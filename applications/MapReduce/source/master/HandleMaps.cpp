@@ -60,8 +60,8 @@ namespace MapReduce {
                saga::advert::entry adv(workerChunkDir.open(saga::url("./chunk"), mode ));
                std::string finished_file(adv.retrieve_string());
                finished_.push_back(finished_file);
-               saga::task t0 = possibleWorker.set_attribute<saga::task_base::ASync>("STATE",   WORKER_STATE_IDLE);
-               saga::task t1 = possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND", "");
+               saga::task t0 = possibleWorker.set_attribute<saga::task_base::Sync>("STATE",   WORKER_STATE_IDLE);
+               saga::task t1 = possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND", "");
                t0.wait();
                t1.wait();
                //Now that we have results, put them to work

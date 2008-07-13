@@ -41,7 +41,7 @@ namespace MapReduce
  * ******************************************************/
  void HandleReduces::issue_command_(std::vector<std::string> &inputs)
  {
-   int mode = saga::advert::ReadWrite;
+   int mode = saga::advert::ReadWrite | saga::advert::Create;
    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
    bool assigned = false;
    while(assigned == false)
