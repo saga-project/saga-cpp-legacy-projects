@@ -30,9 +30,8 @@ Master::Master(int argC, char *argV[]) {
    database_      = cfgFileParser_.getSessionDescription().orchestrator;
 
    // create a UUID for this agent
-   //uuid_ = uuid().string();  //Temporarily disabled
-   uuid_ = "DUMMY-UUID";
-
+   uuid_  = "MapReduce-UUID";
+   
    saga::url advertKey(std::string("advert://" + database_ + "//" + uuid_ + "/log"));
    logURL_ = advertKey;
    //create new LogWriter instance that writes to stdout
@@ -132,17 +131,45 @@ void Master::createNewSession_() {
    std::string advertKey("advert://");
    std::string message("Creating a new session (");
    saga::task_container tc;
+
+   advertKey += database_ + "//" + uuid_ + "/";
+  
+   /* remove previous advert entry if it exists */
+   try 
+   {
+      std::string advert_dir("advert://");
+      advert_dir += database_ + "//" ;
+      
+      saga::advert::directory d(advertKey, saga::advert::ReadWrite);
+      
+      if(d.exists(advert_dir)) {
+        message = "Cleaning up old database entries (";
+        message += uuid_;
+        message += ")... ";
+        
+        /*d.remove(uuid_, saga::advert::Recursive);*/
+        
+        message += "SUCCESS";
+        log->write(message, LOGLEVEL_INFO);
+
+      }
+   }
+   catch(saga::exception const & e) {
+      message += e.what();
+      log->write(message, LOGLEVEL_FATAL);
+      APPLICATION_ABORT
+   }
   
    message += (uuid_) + ")... ";
-   advertKey += database_ + "//" + uuid_ + "/";
+   
    try {
       sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
-      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
-      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
-      saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
-      saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
-      saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("name",    cfgFileParser_.getSessionDescription().name));
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("user",    cfgFileParser_.getSessionDescription().user));
+      tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("version", cfgFileParser_.getSessionDescription().version));
+      saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
+      saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
+      saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
       tc.add_task(t0);
       tc.add_task(t1);
       tc.add_task(t2);
@@ -177,8 +204,8 @@ void Master::populateBinariesList_(void) {
       try {
         saga::advert::entry adv = binariesDir_.open((*binaryListIT).targetOS+"_"+(*binaryListIT).targetArch, mode);
         //Now set some properties of the binaries
-        saga::task t0 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
-        saga::task t1 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_LOCATION,(*binaryListIT).URL);
+        saga::task t0 = adv.set_attribute<saga::task_base::Sync>(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
+        saga::task t1 = adv.set_attribute<saga::task_base::Sync>(ATTR_EXE_LOCATION,(*binaryListIT).URL);
         t0.wait();
         t1.wait();
         message += "SUCCESS";
