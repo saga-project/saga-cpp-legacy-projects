@@ -12,6 +12,7 @@
 #include <saga/saga.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
+
 #include "parseCommand.hpp"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
@@ -29,9 +30,13 @@ namespace MapReduce {
        * ******************************************************/
       MapReduceBase(int argCount, char **argList) {
          boost::program_options::variables_map vm;
-  
-         if(!parseCommand(argCount, argList, vm))
-            throw new saga::exception("Error", saga::BadParameter);
+         try {
+            if(!parseCommand(argCount, argList, vm))
+               throw saga::exception("Incorrect command line arguments", saga::BadParameter);
+         }
+         catch(saga::exception const & e) {
+            throw;
+         }
          sessionUUID_ = (vm["session"].as<std::string>());
          database_    = (vm["database"].as<std::string>());
          logURL_      = (vm["log"].as<std::string>());
@@ -58,7 +63,6 @@ namespace MapReduce {
          }
          return 0;
       }
-     protected:
       /*********************************************************
        * The default hash function to split keys into different*
        * files after mapping.  No real reason to use this one, *
@@ -175,7 +179,7 @@ namespace MapReduce {
        * attributes describing this session.                   *
        * ******************************************************/
       void registerWithDB(void) {
-         putenv("SAGA_VERBOSE=100");
+         //putenv("SAGA_VERBOSE=100");
          std::freopen("/tmp/worker-stderr.txt", "w", stderr);
          std::freopen("/tmp/worker-stdout.txt", "w", stdout);
          int mode = saga::advert::ReadWrite;
@@ -246,7 +250,7 @@ namespace MapReduce {
          
                // Get a map of keys and a vector of the values
                std::map<std::string, std::vector<std::string> > keyValues(reduceHandler.getLines());
-               std::map<std::string, std::vector<std::string> >::iterator keyValuesIT = keyValues.begin();
+               std::map<std::string, std::vector<std::string> >::const_iterator keyValuesIT = keyValues.begin();
                // Iterate over these keys and their values and
                // reduce them by passing them to the user defined
                // reduce function

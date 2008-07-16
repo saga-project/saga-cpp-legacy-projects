@@ -27,7 +27,7 @@ class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
     * The implemented reduce function that will get called  *
     * when it becomes time to do some reducing.             *
     * ******************************************************/
-   void reduce(std::string key, std::vector<std::string> &values) {
+   void reduce(std::string key, const std::vector<std::string> &values) {
      int result = 0;
      std::vector<std::string>::const_iterator valuesIT = values.begin();
      while(valuesIT != values.end()) {
@@ -44,7 +44,21 @@ class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
-   MapReduceImpl app(argc,argv);
-   app.run();
+  try {
+      MapReduceImpl app(argc,argv);
+      app.run();
+   }
+   catch (saga::exception const& e) {
+      std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
+      std::cerr << "Exiting..." << std::endl;
+   }
+   catch (std::exception const& e) {
+      std::cerr << "std:  exception caught: " << e.what() << std::endl;
+      std::cerr << "Exiting..." << std::endl;
+   }
+   catch (...) {
+      std::cerr << "FATAL Exception caught!" << std::endl << "Exiting..." << std::endl;
+      return 255;
+   }
    return 0;
 }

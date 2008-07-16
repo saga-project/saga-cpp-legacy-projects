@@ -14,15 +14,15 @@
 namespace MapReduce {
    class HandleMaps {
      public:
-      HandleMaps(std::vector<std::string> &chunks, saga::advert::directory workerDir);
+      HandleMaps(std::vector<saga::url> &chunks, saga::advert::directory workerDir);
       bool assignMaps();
 
      private:
       void issue_command_(std::string file);
       std::string getCandidate_();
       std::vector<std::string> finished_;
-      std::vector<std::string>::iterator candidateIT_;
-      std::vector<std::string> chunks_;
+      std::vector<saga::url>::const_iterator candidateIT_;
+      std::vector<saga::url> chunks_;
       std::vector<saga::url> workers_;
       saga::advert::directory workerDir_;
    };

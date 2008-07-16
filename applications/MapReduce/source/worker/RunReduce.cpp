@@ -18,7 +18,7 @@ namespace MapReduce {
           workerDir_.set_attribute("COMMAND", "");
           workerDir_.set_attribute("STATE", WORKER_STATE_REDUCING);
           std::vector<saga::url> entries = reduceInputDir_.list("?");
-          std::vector<saga::url>::iterator entriesIT = entries.begin();
+          std::vector<saga::url>::const_iterator entriesIT = entries.begin();
           while(entriesIT != entries.end()) {
              saga::advert::entry adv(*entriesIT, mode);
              files_.push_back(adv.retrieve_string());

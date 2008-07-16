@@ -38,7 +38,6 @@ void LogWriter::write(std::string message, unsigned int logLevel)
   try
   {
     saga::advert::entry log(advURL_, mode);
-    
     time_t rawTime; struct tm * timeInfo;
     time(&rawTime); timeInfo = localtime(&rawTime);
  

@@ -7,6 +7,11 @@
 
 using namespace MapReduce::Master;
 
+class MasterImpl : public Master<MasterImpl> {
+  public:
+   MasterImpl(int argC, char **argV) : Master<MasterImpl>(argC,argV) {}
+};
+
 /*********************************************
  * This is the entry point for the MapReduce *
  * framework.  Just create an instance of    *
@@ -15,7 +20,7 @@ using namespace MapReduce::Master;
  * ******************************************/
 int main(int argc, char* argv[]) {
   try {
-      Master app(argc, argv);
+      MasterImpl app(argc, argv);
       app.run();
    }
    catch (saga::exception const& e) {

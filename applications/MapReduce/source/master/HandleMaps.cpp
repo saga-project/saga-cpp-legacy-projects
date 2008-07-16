@@ -11,7 +11,7 @@
  * assigning map tasks to running workers.               *
  ********************************************************/
 namespace MapReduce {
-   HandleMaps::HandleMaps(std::vector<std::string> &chunks, saga::advert::directory workerDir) {
+   HandleMaps::HandleMaps(std::vector<saga::url> &chunks, saga::advert::directory workerDir) {
       workerDir_ = workerDir;
       sleep(20);
       workers_ = workerDir_.list("?");
@@ -41,7 +41,7 @@ namespace MapReduce {
  * ******************************************************/
    void HandleMaps::issue_command_(std::string file) {
       int mode = saga::advert::ReadWrite;
-      static std::vector<saga::url>::iterator workers_IT = workers_.begin();
+      static std::vector<saga::url>::const_iterator workers_IT = workers_.begin();
       bool assigned = false; //Describes status of current chunk (file)
       while(assigned == false) {
          try {
@@ -99,7 +99,7 @@ namespace MapReduce {
       bool finished = false;
       //Loop guarantees we don't look at the same file twice as a candidate
       for(unsigned count = 0; count < chunks_.size(); count++) {
-         std::string candidate = *candidateIT_;
+         std::string candidate = candidateIT_->get_string();
          std::vector<std::string>::iterator finished_IT = finished_.begin();
          while(finished_IT != finished_.end()) {
             if(candidate == *finished_IT) {
@@ -108,7 +108,7 @@ namespace MapReduce {
             }
          }
          if(finished == false) {
-            return *candidateIT_;
+            return candidateIT_->get_string();
          }
          else {
             candidateIT_++;
