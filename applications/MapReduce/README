@@ -23,8 +23,9 @@ master/main --config /path/to/xml/config/file
 
             #include "MapReduceBase.hpp"
 
-            class MapReduceImp : public MapReduce::MapReduceBase{
+            class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
               public:
+               MapReduceImpl(int argCount, char **argList) : MapReduceBase<MapReduceImpl>(argCount,argList) {}
                void map(std::string chunkName) {
                   //boost::iostreams::stream is a way to create simple stream
                   boost::iostreams::stream <saga_file_device> in (chunkName);
@@ -48,10 +49,10 @@ master/main --config /path/to/xml/config/file
         a.  A simple example is shown below
 
             int main(int argc,char **argv) {
-               MapReduceImp mapReduce;
-                  mapReduce.init(argc,argv);
-                  return 0;
-               }
+               MapReduceImp app(argc,argv);
+               app.run();
+               return 0;
+            }
 
   2.  Configuring XML file
       The basic structure will look like this
@@ -112,5 +113,5 @@ master/main --config /path/to/xml/config/file
               <File> - A complete path to the location of the file
               
   3.  Running master/main
-      From command prompt in the $SAGA_ROOT/examples/applications/MapReduce/source/master directory type:
+      From command prompt in the $SAGA_LOCATION/saga-projects/applications/MapReduce/source/master directory type:
          $./main --config /path/to/config/file

@@ -6,10 +6,11 @@
 #include "AllPairsBase.hpp"
 #include "../utils/type.hpp"
 
-class AllPairsImpl : public AllPairs::AllPairsBase {
+using namespace AllPairs;
+class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
   public:
    AllPairsImpl(int argCount, char **argList)
-     : AllPairsBase(argCount, argList) {}
+     : AllPairsBase<AllPairsImpl>(argCount, argList) {}
    void compare(std::string object1, std::string object2) {
       emit(object1 == object2);
    }
@@ -22,16 +23,20 @@ class AllPairsImpl : public AllPairs::AllPairsBase {
  * ******************************************************/
 int main(int argc,char **argv) {
    try {
-      AllPairs::AllPairsBase *allPairs = new AllPairsImpl(argc, argv);
-      allPairs->run();
+      AllPairsImpl allPairs(argc, argv);
+      allPairs.run();
    }
-   catch (saga::exception const & e)
-   {
-      std::cerr << "ERROR: " << e.get_message() << std::endl;
+   catch (saga::exception const& e) {
+      std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
+      std::cerr << "Exiting..." << std::endl;
    }
-   catch (std::exception const & e)
-   {
-      std::cerr << "ERROR: " << e.what() << std::endl;
+   catch (std::exception const& e) {
+      std::cerr << "std:  exception caught: " << e.what() << std::endl;
+      std::cerr << "Exiting..." << std::endl;
+   }
+   catch (...) {
+      std::cerr << "FATAL Exception caught!" << std::endl << "Exiting..." << std::endl;
+      return 255;
    }
    return 0;
 }
