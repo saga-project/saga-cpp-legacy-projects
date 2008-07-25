@@ -9,13 +9,15 @@
 #include <string>
 #include <vector>
 #include <saga/saga.hpp>
-#include "../utils/defines.hpp"
+//#include "../utils/defines.hpp"
+#include "../utils/LogWriter.hpp"
 #include "version.hpp"
 
 namespace MapReduce {
    class HandleReduces {
      public:
-      HandleReduces(int fileCount, saga::advert::directory workerDir);
+      HandleReduces(int fileCount, saga::advert::directory workerDir,
+                    LogWriter *log);
       bool assignReduces();
      private:
       void issue_command_(std::vector<std::string> &inputs);
@@ -26,6 +28,7 @@ namespace MapReduce {
       int fileCount_;
       std::vector<saga::url> workers_;
       saga::advert::directory workerDir_;
+      LogWriter *log_;
    };
 } //Namespace MapReduce
 

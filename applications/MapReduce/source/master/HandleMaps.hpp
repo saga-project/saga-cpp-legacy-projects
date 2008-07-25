@@ -9,22 +9,26 @@
 #include <string>
 #include <vector>
 #include <saga/saga.hpp>
+#include "../utils/LogWriter.hpp"
 #include "version.hpp"
 
 namespace MapReduce {
    class HandleMaps {
      public:
-      HandleMaps(std::vector<saga::url> &chunks, saga::advert::directory workerDir);
+      HandleMaps(std::vector<saga::url> &chunks, saga::advert::directory workerDir,
+                 LogWriter *log);
       bool assignMaps();
 
      private:
       void issue_command_(std::string file);
       std::string getCandidate_();
+
       std::vector<std::string> finished_;
       std::vector<saga::url>::const_iterator candidateIT_;
       std::vector<saga::url> chunks_;
       std::vector<saga::url> workers_;
       saga::advert::directory workerDir_;
+      LogWriter *log_;
    };
 } //Namespace MapReduce
 

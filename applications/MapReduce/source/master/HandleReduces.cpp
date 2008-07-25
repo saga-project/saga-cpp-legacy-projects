@@ -10,10 +10,16 @@ namespace MapReduce
 {
  // fileCount is the total number of files possibly outputted by
  // the map function (NUM_MAPS)
- HandleReduces::HandleReduces(int fileCount, saga::advert::directory workerDir)
-    : fileCount_(fileCount), workerDir_(workerDir)
+ HandleReduces::HandleReduces(int fileCount, saga::advert::directory workerDir, 
+                              LogWriter *log)
+    : fileCount_(fileCount), workerDir_(workerDir), log_(log)
  {
     workers_ = workerDir_.list("?");
+    while(workers_.size() == 0)
+    {
+       sleep(1);
+       workers_ = workerDir_.list("?");
+    }
  }
 /*********************************************************
  * assignReduces is the only public function that tries  *
@@ -52,6 +58,11 @@ namespace MapReduce
          std::string state = possibleWorker.get_attribute("STATE");
          if(state == WORKER_STATE_IDLE)
          {
+            std::string message("Issuing worker ");
+            message += workers_IT->get_path();
+            message = message + " to reduce";
+            log_->write(message, LOGLEVEL_INFO);
+
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
             for(unsigned int count = 0; count < inputs.size(); count++)
             {
@@ -64,9 +75,19 @@ namespace MapReduce
          }
          else if(state == WORKER_STATE_DONE)
          {
+            std::string message("Worker ");
+            message += workers_IT->get_string();
+            message = message + " finished reducing with output ";
             saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
             std::string finishedFile = output.retrieve_string();
+            message += finishedFile;
+            log_->write(message, LOGLEVEL_INFO);
             finished_.push_back(finishedFile);
+            message.clear();
+            message = "Issuing worker ";
+            message += workers_IT->get_string();
+            message = message + " to reduce";
+            log_->write(message, LOGLEVEL_INFO);
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
             for(unsigned int count = 0; count < inputs.size(); count++)
             {
@@ -136,8 +157,13 @@ namespace MapReduce
          std::string state = possibleWorker.get_attribute("STATE");
          if(state == WORKER_STATE_DONE)
          {
+            std::string message("Worker ");
+            message += workers_IT->get_string();
+            message = message + " finished reducing with output ";
             saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
             std::string finishedFile = output.retrieve_string();
+            message += finishedFile;
+            log_->write(message, LOGLEVEL_INFO);
             finished_.push_back(finishedFile);
             return;
          }

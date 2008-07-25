@@ -327,7 +327,7 @@ namespace MapReduce {
           * begin working                                         *
           * ******************************************************/
          void runMaps_(void) {
-            HandleMaps mapHandler(fileChunks_, workersDir_);
+            HandleMaps mapHandler(fileChunks_, workersDir_, log);
             std::string message("Launching maps...");
    
             log->write(message, LOGLEVEL_INFO);
@@ -341,7 +341,7 @@ namespace MapReduce {
           * master                                                *
           * ******************************************************/
          void runReduces_(void) {
-            HandleReduces reduceHandler(NUM_MAPS, workersDir_);
+            HandleReduces reduceHandler(NUM_MAPS, workersDir_, log);
             std::string message("Beginning Reduces...");
    
             log->write(message, LOGLEVEL_INFO);
