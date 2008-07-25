@@ -56,6 +56,9 @@ namespace MapReduce {
             message += (" state is " + state);
             log_->write(message, LOGLEVEL_INFO);
             if(state == WORKER_STATE_IDLE) {
+               if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_MAP) {
+                  break;
+               }
                message.clear();
                message = "Issuing worker ";
                message += workers_IT->get_path();
@@ -65,6 +68,7 @@ namespace MapReduce {
                saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
                saga::advert::entry adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
                adv.store_string(file);
+               assigned_.push_back(file);
                possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_MAP);
                assigned = true;
             }
@@ -91,6 +95,7 @@ namespace MapReduce {
                   message = message + " to map " + file;
                   log_->write(message, LOGLEVEL_INFO);
                   adv.store_string(file);
+                  assigned_.push_back(file);
                   possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_MAP);
                   assigned = true;
                }
@@ -120,9 +125,10 @@ namespace MapReduce {
  * ******************************************************/
    std::string HandleMaps::getCandidate_() {
       //Check to see if current choice is in finished list
-      bool finished = false;
       //Loop guarantees we don't look at the same file twice as a candidate
       for(unsigned count = 0; count < chunks_.size(); count++) {
+         bool finished = false;
+         bool assigned = false;
          std::string candidate = candidateIT_->get_string();
          std::vector<std::string>::iterator finished_IT = finished_.begin();
          while(finished_IT != finished_.end()) {
@@ -130,18 +136,27 @@ namespace MapReduce {
                finished = true;
                break;
             }
+            finished_IT++;
          }
-         if(finished == false) {
+         std::vector<std::string>::iterator assigned_IT = assigned_.begin();
+         while(assigned_IT != assigned_.end()) {
+            if(candidate == *assigned_IT) {
+               assigned = true;
+               break;
+            }
+            assigned_IT++;
+         }
+         if(finished == false && assigned == false) {
             return candidateIT_->get_string();
          }
-         else {
+         if(finished == false && assigned == true) {
             candidateIT_++;
             if(candidateIT_ == chunks_.end()) {
                candidateIT_ = chunks_.begin();
             }
          }
       }
-      throw new std::exception;
+      return candidateIT_->get_string();
    }
 } //namespace MapReduce
 

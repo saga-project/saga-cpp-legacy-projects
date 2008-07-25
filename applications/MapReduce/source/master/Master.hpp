@@ -331,7 +331,6 @@ namespace MapReduce {
             std::string message("Launching maps...");
    
             log->write(message, LOGLEVEL_INFO);
-            sleep(5); //In here temporarily to allow time for all jobs to create advert entries
             mapHandler.assignMaps();
          }
          /*********************************************************

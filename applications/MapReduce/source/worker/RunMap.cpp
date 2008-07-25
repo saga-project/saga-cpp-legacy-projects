@@ -13,7 +13,6 @@ namespace MapReduce {
          intermediateDir_ = intermediateDir;
          workerDir_       = workerDir;
       try {
-         workerDir_.set_attribute("COMMAND", "");
          workerDir_.set_attribute("STATE", WORKER_STATE_MAPPING);
       }
       catch(saga::exception const & e) {

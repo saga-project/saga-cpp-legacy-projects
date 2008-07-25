@@ -24,6 +24,7 @@ namespace MapReduce {
       std::string getCandidate_();
 
       std::vector<std::string> finished_;
+      std::vector<std::string> assigned_;
       std::vector<saga::url>::const_iterator candidateIT_;
       std::vector<saga::url> chunks_;
       std::vector<saga::url> workers_;

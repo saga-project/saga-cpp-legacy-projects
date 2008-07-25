@@ -48,7 +48,7 @@
 #define WORKER_STATE_REDUCING   "REDUCING" // Currently Reducing
 
 #define NUM_MAPS 3
-#define MAX_INTERMEDIATE_SIZE 45
+#define MAX_INTERMEDIATE_SIZE 1000
 
 #define LOGLEVEL_FATAL     0x2   
 #define LOGLEVEL_ERROR     0x4  

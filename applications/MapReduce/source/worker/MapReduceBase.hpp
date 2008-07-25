@@ -42,6 +42,12 @@ namespace MapReduce {
          logURL_      = (vm["log"].as<std::string>());
          uuid_        = "MICHAELCHRIS";//saga::uuid().string();
          logWriter_ = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
+         int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
+         for(int x=0;x<NUM_MAPS;x++) {
+            std::string filestring("/tmp/mapFile-" + boost::lexical_cast<std::string>(x));
+            saga::filesystem::file f(saga::url(filestring), mode);
+            mapFiles_.push_back(f);
+         }
       }
       ~MapReduceBase() {}
       /*********************************************************
@@ -77,35 +83,33 @@ namespace MapReduce {
          retval = (sum % limit);
          return retval;
       }
+      void writeIntermediate(void) {
+         std::map<std::string, std::vector<std::string> >::iterator mapIt = intermediate_.begin();
+         while(mapIt != intermediate_.end()) {
+            std::string intermediateKey = mapIt->first;
+            int hash_value = hash(intermediateKey, NUM_MAPS);
+            intermediateKey.append(" ");
+            intermediateKey.append(mapIt->second[0]);
+            std::size_t size = mapIt->second.size();
+            for(unsigned int x = 1; x < size; x++) {
+               intermediateKey.append(", ");
+               intermediateKey.append(mapIt->second[x]);
+            }
+            mapIt++;
+            intermediateKey.append(";\n");
+            mapFiles_[hash_value].write(saga::buffer(intermediateKey, intermediateKey.length()));
+         }
+         intermediate_.clear();
+      }
       /*********************************************************
        * emitIntermediate is called inside the map function and*
        * handles writing the key value pairs to proper files   *
        * and advertising these files.                          *
        * ******************************************************/
       void emitIntermediate(std::string key, std::string value) {
-         static std::map<std::string,std::vector<std::string> > intermediate;
-         int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
-         intermediate[key].push_back(value);
-         if(intermediate.size() >= MAX_INTERMEDIATE_SIZE) {
-            std::map<std::string, std::vector<std::string> >::iterator it = intermediate.begin();
-            while(it != intermediate.end()) {
-               std::string it_key = (*it).first;
-               int mapFile = hash(it_key, NUM_MAPS);
-               std::string filestring("/tmp/mapFile-" + boost::lexical_cast<std::string>(mapFile));
-               saga::filesystem::file f(saga::url(filestring), mode);
-               it_key.append(" ");
-               it_key.append((*it).second[0]);
-               std::size_t size = (*it).second.size();
-               for(unsigned int x = 1; x < size; x++) {
-                  it_key.append(", ");
-                  it_key.append((*it).second[x]);
-               }
-               it++;
-               it_key.append(";\n");
-               f.write(saga::buffer(it_key, it_key.length()));
-               f.close();
-            }
-            intermediate.clear();
+         intermediate_[key].push_back(value);
+         if(intermediate_.size() >= MAX_INTERMEDIATE_SIZE) {
+            writeIntermediate();
          }
       }
       /*********************************************************
@@ -134,6 +138,8 @@ namespace MapReduce {
       time_t startupTime_;
       SystemInfo systemInfo_;
    
+      std::vector<saga::filesystem::file> mapFiles_;
+      std::map<std::string,std::vector<std::string> > intermediate_;
       saga::advert::directory workerDir_;
       saga::advert::directory intermediateDir_;
       saga::advert::directory chunksDir_;
@@ -237,6 +243,8 @@ namespace MapReduce {
                try {
                   RunMap mapHandler(workerDir_, chunksDir_, intermediateDir_);
                   d.map(mapHandler.getFile()); // Map the file given from the master
+                  writeIntermediate();
+                  closeMapFiles();
                }
                catch(saga::exception const& e) {
                   workerDir_.set_attribute("STATE", WORKER_STATE_FAIL);
@@ -289,7 +297,6 @@ namespace MapReduce {
          std::string commandString;
          try {
            commandString = workerDir_.get_attribute("COMMAND");
-           workerDir_.set_attribute("COMMAND", "");
          }
          catch(saga::exception const & e) {
            std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
@@ -297,6 +304,13 @@ namespace MapReduce {
          }
          // get command number & reset the attribute to "" 
          return commandString;
+      }
+      void closeMapFiles(void) {
+         std::vector<saga::filesystem::file>::iterator IT = mapFiles_.begin();
+         while(IT != mapFiles_.end()) {
+            IT->close();
+            IT++;
+         }
       }
    };
 }
