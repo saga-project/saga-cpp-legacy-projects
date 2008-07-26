@@ -24,30 +24,27 @@
 #include <saga/saga/adaptors/adaptor_data.hpp>
 
 // saga package includes
-#include <saga/impl/packages/job/job_service_cpi.hpp>
-#include <saga/impl/packages/job/job.hpp>
+#include <saga/impl/packages/cpr/cpr_job_service_cpi.hpp>
+#include <saga/impl/packages/cpr/cpr_job.hpp>
 
 // adaptor includes
 #include "migol_cpr_adaptor.hpp"
 
-// adaptor data
-typedef saga::adaptors::adaptor_data<cpr::adaptor> adaptor_data_t;
+namespace cpr { 
 
 class cpr_job_service_cpi_impl 
-  : public saga::adaptors::v1_0::job_service_cpi <cpr_job_service_cpi_impl>
+  : public saga::adaptors::v1_0::cpr_job_service_cpi <cpr_job_service_cpi_impl>
 {
   private:
 
-    typedef saga::adaptors::v1_0::job_service_cpi <cpr_job_service_cpi_impl> 
+    typedef saga::adaptors::v1_0::cpr_job_service_cpi <cpr_job_service_cpi_impl> 
             base_cpi;
 
-   
 
     // private instance data
-    saga::job::service js_;
+    saga::job::service * js_;
 
-    //std::string init_migol_context();
-    
+
   public:
     // constructor of the job_service cpi
     cpr_job_service_cpi_impl  (proxy                           * p, 
@@ -60,20 +57,21 @@ class cpr_job_service_cpi_impl
     ~cpr_job_service_cpi_impl (void);
 
     // CPI functions
-    void sync_create_job (saga::job::job            & ret, 
-                          saga::job::description      jd);
-    void sync_run_job    (saga::job::job            & ret, 
-                          std::string                 host, 
-                          std::string                 exe, 
-                          saga::job::ostream        & in, 
-                          saga::job::istream        & out, 
-                          saga::job::istream        & err);
-    void sync_list       (std::vector <std::string> & ret);
-    void sync_get_job    (saga::job::job            & ret,
-                          std::string                 jobid);
-    void sync_get_self   (saga::job::self           & ret);
+    void sync_create_job_cpr (saga::cpr::job            & ret, 
+                              saga::cpr::description      jd_run,
+                              saga::cpr::description      jd_restart);
+    void sync_run_job        (saga::job::job            & ret, 
+                              std::string                 host, 
+                              std::string                 exe, 
+                              saga::job::ostream        & in, 
+                              saga::job::istream        & out, 
+                              saga::job::istream        & err);
+    void sync_list           (std::vector <std::string> & ret);
+    void sync_get_job        (saga::job::job            & ret,
+                              std::string                 jobid);
+    void sync_get_self       (saga::job::self           & ret);
 
 };  // class cpr_job_service_cpi_impl
-
+}
 #endif // ADAPTORS_CPR_JOB_SERVICE_HPP
 

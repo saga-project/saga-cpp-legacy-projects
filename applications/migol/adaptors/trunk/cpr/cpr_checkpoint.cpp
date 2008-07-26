@@ -38,18 +38,15 @@ namespace cpr
   {
       //check whether Migol has been initialized 
     std::string guid("");
+    mutex_type::scoped_lock l(mtx_);
     {//scoped lock
           adaptor_data_t d(this);
           guid = d->migol_guid;
           if(guid==""){
-              guid=migol::init_migol_context(adap_ini);
-              if ( guid == "")
               {
-                  SAGA_ADAPTOR_THROW (std::string ("Migol infrastructure could not be initialized."), 
+                  SAGA_ADAPTOR_THROW (std::string ("Migol infrastructure not correctly initialized."), 
                                       saga::IncorrectState);
               }
-              d->migol_guid=guid;
-              
           }
           std::cout << "cpr_checkpoint_cpi_impl ctor: " << guid << std::endl;
     }
@@ -76,18 +73,7 @@ namespace cpr
   //  destructor
   cpr_checkpoint_cpi_impl::~cpr_checkpoint_cpi_impl (void)
   {
-      std::string guid("");
-      {//scoped lock
-          adaptor_data_t d(this);
-          guid = d->migol_guid;
-      }
-      
-      migol::instance()->change_service_state(guid, "done");  
-      
-    if ( lf_ != NULL )
-    {
-      //delete (lf_);
-    }
+
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -98,35 +84,40 @@ namespace cpr
   void cpr_checkpoint_cpi_impl::sync_attribute_exists (bool      & ret, 
                                                        std::string key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->attribute_exists (key);
   }
 
   void cpr_checkpoint_cpi_impl::sync_attribute_is_readonly (bool      & ret, 
                                                             std::string key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->attribute_is_readonly (key);
   }
 
   void cpr_checkpoint_cpi_impl::sync_attribute_is_writable (bool      & ret, 
                                                             std::string key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->attribute_is_writable (key);
   }
 
   void cpr_checkpoint_cpi_impl::sync_attribute_is_vector (bool      & ret, 
                                                           std::string key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->attribute_is_vector (key);
   }
 
   void cpr_checkpoint_cpi_impl::sync_attribute_is_extended (bool      & ret, 
                                                             std::string key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     // FIXME: that is a private method?!  Do we need in API?
     // ret = lf_->attribute_is_extended (key);
   }
@@ -135,7 +126,8 @@ namespace cpr
   void cpr_checkpoint_cpi_impl::sync_get_attribute (std::string & ret, 
                                                     std::string   key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->get_attribute (key);
   }
 
@@ -143,7 +135,8 @@ namespace cpr
   void cpr_checkpoint_cpi_impl::sync_get_vector_attribute (std::vector <std::string> & ret, 
                                                            std::string                 key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->get_vector_attribute (key);
   }
 
@@ -152,7 +145,8 @@ namespace cpr
                                                     std::string key, 
                                                     std::string val)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //lf_->set_attribute (key, val);
   }
 
@@ -161,7 +155,8 @@ namespace cpr
                                                            std::string              key, 
                                                            std::vector <std::string> val)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //lf_->set_vector_attribute (key, val);
   }
 
@@ -169,14 +164,16 @@ namespace cpr
   void cpr_checkpoint_cpi_impl::sync_remove_attribute (saga::impl::void_t &, 
                                                        std::string key)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //lf_->remove_attribute (key);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
   void cpr_checkpoint_cpi_impl::sync_list_attributes (std::vector <std::string> & keys)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
    // keys = lf_->list_attributes ();
   }
 
@@ -184,7 +181,8 @@ namespace cpr
   void cpr_checkpoint_cpi_impl::sync_find_attributes (std::vector <std::string> & keys, 
                                                       std::string                 pattern)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
    // keys = lf_->find_attributes (pattern);
   }
 
@@ -193,51 +191,59 @@ namespace cpr
   // namespace_entry functions
   void cpr_checkpoint_cpi_impl::sync_get_url (saga::url & url)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //url = lf_->get_url ();
   }
 
   void cpr_checkpoint_cpi_impl::sync_get_cwd (saga::url & url)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //url = lf_->get_cwd ();
   }
 
   void cpr_checkpoint_cpi_impl::sync_get_name (saga::url & url)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //url = lf_->get_name ();
   }
 
   void cpr_checkpoint_cpi_impl::sync_is_dir (bool & ret)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->is_dir ();
   }
 
   void cpr_checkpoint_cpi_impl::sync_is_entry (bool & ret)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->is_entry ();
   }
 
   void cpr_checkpoint_cpi_impl::sync_is_link (bool & ret)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //ret = lf_->is_link ();
   }
 
   void cpr_checkpoint_cpi_impl::sync_remove (saga::impl::void_t &, 
                                              int flags)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //lf_->remove (flags);
   }
 
   void cpr_checkpoint_cpi_impl::sync_close (saga::impl::void_t &,
                                             double timeout)
   {
-    check_lf ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
     //lf_->close (timeout);
   }
 
@@ -247,50 +253,22 @@ namespace cpr
   void cpr_checkpoint_cpi_impl::sync_get_parent (saga::url & ret,
                                                  int         idx)
   {
-    saga::url parent;
-
-    if ( idx > 1 )
-    {
-      // get parent
-      check_lf ();
-    //  parent = lf_->get_attribute ("SAGA_CPR_PARENT");
-      idx--;
-    }
-
-
-    while ( idx > 1 )
-    {
-      // get grand...-parent
-      saga::cpr::checkpoint cp (parent);
-      parent = cp.get_parent ();
-      idx--;
-    }
-
-    ret = parent;
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
   void cpr_checkpoint_cpi_impl::sync_get_file (saga::url & ret,
                                                int idx)
   {
-    check_lf ();
-    //std::vector <saga::url> listing = lf_->list_locations ();
-    
-    // FIXME: range check
-    
-   // ret = listing[idx];
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
   void cpr_checkpoint_cpi_impl::sync_open_file (saga::filesystem::file & ret,
                                                 int                      idx)
   {
-    check_lf ();
-    //std::vector <saga::url> listing = lf_->list_locations ();
-    
-    // FIXME: range check
-    
-   // saga::filesystem::file f (listing[idx]);
-
-    //ret = f;
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
     
   /**

@@ -96,7 +96,7 @@ namespace cpr
         void sync_open_dir        (saga::name_space::directory & out, saga::url name, int flags);
 
         // cpr_directory functions
-        void sync_is_checkpoint   (bool & test, saga::url name);
+        //void sync_is_checkpoint   (bool & test, saga::url name);
         void sync_open            (saga::cpr::checkpoint   & out,  saga::url name, int flags);
         void sync_open_dir        (saga::cpr::directory    & out,  saga::url name, int flags);
        void sync_find            (std::vector <saga::url> & urls, std::string name_pat, 

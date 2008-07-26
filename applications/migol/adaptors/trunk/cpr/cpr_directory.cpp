@@ -56,10 +56,6 @@ namespace cpr
   //  destructor
   cpr_directory_cpi_impl::~cpr_directory_cpi_impl (void)
   {
-    if ( ld_ != NULL )
-    {
-     // delete (ld_);
-    }
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -80,46 +76,53 @@ namespace cpr
   void cpr_directory_cpi_impl::sync_attribute_exists (bool     & ret, 
                                                       std::string key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented); 
     //ret = ld_->attribute_exists (key);
   }
 
   void cpr_directory_cpi_impl::sync_attribute_is_readonly (bool      & ret, 
                                                            std::string key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_attribute_is_writable (bool     & ret, 
                                                            std::string key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_attribute_is_vector (bool      & ret, 
                                                          std::string key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_attribute_is_extended (bool      & ret, 
                                                            std::string key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
   void cpr_directory_cpi_impl::sync_get_attribute (std::string & ret, 
                                                    std::string   key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
   void cpr_directory_cpi_impl::sync_get_vector_attribute (std::vector <std::string> & ret, 
                                                           std::string                 key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -127,7 +130,8 @@ namespace cpr
                                                    std::string key, 
                                                    std::string val)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -135,149 +139,174 @@ namespace cpr
                                                           std::string               key, 
                                                           std::vector <std::string> val)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
   void cpr_directory_cpi_impl::sync_remove_attribute (saga::impl::void_t &, 
                                                       std::string key)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
   void cpr_directory_cpi_impl::sync_list_attributes (std::vector <std::string> & keys)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
   void cpr_directory_cpi_impl::sync_find_attributes (std::vector <std::string> & keys, 
                                                      std::string                 pattern)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
   // namespace_entry functions
   void cpr_directory_cpi_impl::sync_get_url (saga::url & url)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_get_cwd (saga::url & url)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_get_name (saga::url & url)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_is_dir (bool & ret)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_is_entry (bool & ret)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_is_link (bool & ret)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_remove (saga::impl::void_t &, int flags)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_close (saga::impl::void_t &, double) {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_list (std::vector <saga::url> & ret, 
                                           std::string pattern, int flags)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_find (std::vector <saga::url> & ret, 
                                           std::string pattern, int flags)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_exists (bool    & ret, 
                                             saga::url entry)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_is_dir (bool    & ret, 
                                             saga::url entry)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_is_entry (bool    & ret, 
                                               saga::url entry)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_is_link (bool    & ret, 
                                              saga::url entry)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_get_num_entries (unsigned int & num_entries)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_get_entry (saga::url  & entry, 
                                                unsigned int num)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_remove (saga::impl::void_t &, 
                                             saga::url entry, 
                                             int       flags)
   {
-    check_ld ();
+        SAGA_ADAPTOR_THROW ("Not implemented.", 
+                            saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_open (saga::name_space::entry & ret, 
                                           saga::url entry, 
                                           int       flags)
   {
-    check_ld ();
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);                        saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_open_dir (saga::name_space::directory & ret, 
                                               saga::url entry, 
                                               int       flags)
   {
-    check_ld ();
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_change_dir (saga::impl::void_t &, 
                                                 saga::url dir)
   {
-    check_ld ();
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_make_dir (saga::impl::void_t &, 
                                               saga::url dir, 
                                               int       flags)
   {
-    check_ld ();
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -286,14 +315,16 @@ namespace cpr
                                           saga::url entry, 
                                           int       flags)
   {
-    check_ld ();
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_open_dir (saga::cpr::directory & ret, 
                                               saga::url entry, 
                                               int       flags)
   {
-    check_ld ();
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
   void cpr_directory_cpi_impl::sync_find (std::vector <saga::url> & ret, 
@@ -303,7 +334,8 @@ namespace cpr
                                           std::string)
   {
       
-      check_ld ();
+      SAGA_ADAPTOR_THROW ("Not implemented.", 
+                          saga::NotImplemented);
   }
 
 }   // namespace cpr

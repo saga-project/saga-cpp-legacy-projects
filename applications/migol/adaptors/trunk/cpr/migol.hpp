@@ -41,17 +41,36 @@ namespace cpr
         };
         ~migol();
         
+        /** AIS initialization, registration, update **/
         static std::string init_migol_context(saga::ini::ini ini);
         std::string register_service(std::string url, std::string service_name, std::string state) ;
         bool change_service_state(std::string guid, std::string newState);
         bool register_checkpoint(std::string guid, std::string fileName);
         std::vector<saga::url> get_files (std::string guid);
         std::map<saga::url, std::map<std::string, std::string> > get_files_map (std::string guid);
-        bool replicate(std::string guid, int automatic_replication);
         bool update_machine(std::string guid, std::string url);
         bool update_jobdescription(std::string guid, saga::job::description jd);
         static void init() {migol_instance.reset(new migol()); }
         std::string getUrl();
+        
+        /** Checkpoint Replication Service **/
+        bool replicate(std::string guid, int automatic_replication);
+                
+        /** Monitoring **/
+        void init_external_monitoring();
+        void finalize_external_monitoring();
+        
+        /** Job Submission **/
+        bool submit_job(std::string guid, 
+                        std::string contact,
+                        std::string executable_start,
+                        std::string execution_directory_start,
+                        std::string arguments_start,
+                        std::string stdin,
+                        std::string stdout,
+                        std::string stderr,
+                        std::string arguments_restart);
+        std::string migol::get_job_state(std::string guid);
         
         
             //int register_checkpoint_directory(char *guid, char *directory);
@@ -59,6 +78,8 @@ namespace cpr
         std::string ais_url;
         std::string globus_location;
         std::string guid;
+        
+        jobject ssh_proxy; 
         
         static boost::shared_ptr<migol> migol_instance; 
         //Singleton
@@ -96,7 +117,7 @@ namespace cpr
         
         
         std::string external_monitoring_host;
-        void init_external_monitoring();
+
         pid_t reverse_proxy_pid;
         
         boost::thread monitorable_thread;
@@ -106,7 +127,9 @@ namespace cpr
         
         std::string get_ip (); 
         
-       
+        void init_jstring(JNIEnv *env, std::string input_string, 
+                          jstring &output_string);
+
         /**
          * Add all jars in dirname to classpath
          */

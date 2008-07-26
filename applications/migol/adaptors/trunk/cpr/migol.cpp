@@ -52,19 +52,18 @@ extern "C" {
 
 namespace cpr {
 
-//singleton instance
-boost::shared_ptr<migol> migol::migol_instance; 
+    //singleton instance
+    boost::shared_ptr<migol> migol::migol_instance; 
     
-
     /** Constructor **/    
     migol::migol():
-     ais_url(""),
-     globus_location(""),
-     jvm(NULL),
-     ais_global_cls(NULL),
-     terminate(false),
-     initialized(false),
-     external_monitoring_host("") ,
+    ais_url(""),
+    globus_location(""),
+    jvm(NULL),
+    ais_global_cls(NULL),
+    terminate(false),
+    initialized(false),
+    external_monitoring_host("") ,
     monitorable_thread(TR1::bind(&migol::monitorable_server, this))
     {
         SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
@@ -159,7 +158,25 @@ migol::~migol(){
     }   
 }
     
-  
+void migol::finalize_external_monitoring(){
+    JNIEnv *env;
+    jclass ssh_proxy_jclass;
+    jmethodID mid;
+    env = initJVM();
+    if (jvm != NULL)   {  
+        ssh_proxy_jclass = env->FindClass("org/globus/ogsa/migol/SshReverseProxy");               
+        if(ssh_proxy_jclass !=0)    {                
+            mid = env->GetMethodID(ssh_proxy_jclass, "cancelMonitoring",  "()V");
+            env->CallVoidMethod(ssh_proxy, mid);
+        } else {
+            printFault(env, "Error finding AisJniClient\n");
+        }  
+    } else {
+        printFault(env, "Error finding AisJniClient\n");
+    }  
+
+}  
+    
 void migol::init_external_monitoring()
 {
     while(initialized==false){
@@ -170,36 +187,79 @@ void migol::init_external_monitoring()
             //boost::thread::yield();
     }
     std::cout<< "init reverse proxy on: " << external_monitoring_host <<std::endl;
+    std::cout<< "local web server port: " << soap_port <<std::endl;
     if(external_monitoring_host!=""){
-        std::string ip=get_ip();
-        //std::ostringstream command_stream;
-        //command_stream <<"-g -N -R " << soap_port << ":" << ip << ":" << soap_port << " "<< external_monitoring_host << " \n"; 
-        //std::string command = command_stream.str();
+        jmethodID mid;
+        //jstring jguid;    
+        jstring jexternal_monitoring_host; 
+        jclass ssh_proxy_jclass;
+        jint port;
+        JNIEnv *env;
+        SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
+        {
+            std::cout<<"init SshReverseProxy (JNI) " << std::endl;
+        }
+        std::map<saga::url, std::map<std::string, std::string> > result_map;
+        env = initJVM();
+        if (jvm != NULL)   {  
+            ssh_proxy_jclass = env->FindClass("org/globus/ogsa/migol/SshReverseProxy");               
+            if(ssh_proxy_jclass !=0)    {                
+                mid = env->GetMethodID(ssh_proxy_jclass, "<init>",  "(Ljava/lang/String;I)V");
+                if(mid !=0)   {
+                    jexternal_monitoring_host=env->NewStringUTF(external_monitoring_host.c_str());
+                    if (jexternal_monitoring_host == NULL) {
+                        printFault(env, "error creating string\n");
+                    }
+                    port = soap_port;                    
+                    jobject ssh_proxy_local = env->NewObject(ssh_proxy_jclass, mid, jexternal_monitoring_host, port);
+                    ssh_proxy = env->NewGlobalRef(ssh_proxy_local);                
+                    SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
+                    {
+                        std::cout<<"created SshReverseProxy\n";
+                    }
+                   
+                } else {
+                    printFault(env, "Error finding AisJniClient\n");
+                }  
+            } else {
+                printFault(env, "Error finding AisJniClient\n");
+            }  
+        }
         
-        std::ostringstream host_stream;
-        host_stream<< soap_port << ":" << ip << ":" << soap_port;
-        std::string host = host_stream.str();
         
-        reverse_proxy_pid = fork();
-        //std::cout<<"spawn monitoring process: " <<reverse_proxy_pid<<std::endl;
-        if (reverse_proxy_pid == -1) {
-            std::cerr<<"Error creating monitoring process"<<std::endl;
-        } else if (reverse_proxy_pid == 0) {//child process
-   
-            SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-            {
-                std::cout << "PID: " << reverse_proxy_pid << " - activated external monitoring on: " << external_monitoring_host <<std::endl;
-            }
-            
-            execl("/usr/bin/ssh", "migol_mon", "-g", "-N", "-R", host.c_str(), external_monitoring_host.c_str(), NULL);
-            //int rc = system(command.c_str());
-            //if (rc!=0){
-//                SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_ERROR)
-//                {    
-//                    std::cerr<< "Error executing: "<< command <<std::endl;
-//                }
+        
+        
+        
+        //old deprecated C++
+        //std::string ip=get_ip();
+//        //std::ostringstream command_stream;
+//        //command_stream <<"-g -N -R " << soap_port << ":" << ip << ":" << soap_port << " "<< external_monitoring_host << " \n"; 
+//        //std::string command = command_stream.str();
+//        
+//        std::ostringstream host_stream;
+//        host_stream<< soap_port << ":" << ip << ":" << soap_port;
+//        std::string host = host_stream.str();
+//        
+//        reverse_proxy_pid = fork();
+//        //std::cout<<"spawn monitoring process: " <<reverse_proxy_pid<<std::endl;
+//        if (reverse_proxy_pid == -1) {
+//            std::cerr<<"Error creating monitoring process"<<std::endl;
+//        } else if (reverse_proxy_pid == 0) {//child process
+//   
+//            SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
+//            {
+//                std::cout << "PID: " << reverse_proxy_pid << " - activated external monitoring on: " << external_monitoring_host <<std::endl;
 //            }
-        } 
+//            
+//            execl("/usr/bin/ssh", "migol_mon", "-g", "-N", "-R", host.c_str(), external_monitoring_host.c_str(), NULL);
+//            //int rc = system(command.c_str());
+//            //if (rc!=0){
+////                SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_ERROR)
+////                {    
+////                    std::cerr<< "Error executing: "<< command <<std::endl;
+////                }
+////            }
+//        } 
     }
 }
 
@@ -315,7 +375,7 @@ migol::register_service(std::string url, std::string service_name, std::string s
                     std::cout<<"[MIGOL_ADAPTER] Registered service at AIS with GUID: " << guid << std::endl;           
                 }
             }    else{
-                printFault(env, "Error finding AisJniClient method: getFileProfiles\n");
+                printFault(env, "Error finding AisJniClient method: registerService\n");
                 
             }
         } else {
@@ -822,18 +882,130 @@ bool migol::update_jobdescription(std::string guid, saga::job::description jd){
         return false;
     }
     return true;    
-
-
 }
 
 /******************************************************************************/
-void
+bool migol::submit_job(std::string guid, 
+                       std::string contact,
+                       std::string executable_start,
+                       std::string execution_directory_start,
+                       std::string arguments_start,
+                       std::string stdin,
+                       std::string stdout,
+                       std::string stderr,
+                       std::string arguments_restart){
+       
+        jstring jais_url, jguid, jcontact, jexecutable_start, jexecution_directory_start, jarguments_start,
+        jstdin, jstdout, jstderr, jarguments_restart;
+        jclass gram2client;
+        jmethodID jmid;
+        JNIEnv *env;
+        env = initJVM();        
+        if (jvm != NULL)   {
+            gram2client = env->FindClass("org/globus/ogsa/migol/GRAM2JniClient");  
+            if(gram2client !=0)    {
+                jmid = env->GetStaticMethodID(gram2client, "submitJob",
+                                             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+                if(jmid != 0)   {
+                    init_jstring(env, ais_url, jais_url);
+                    init_jstring(env, guid, jguid);
+                    init_jstring(env, contact, jcontact);
+                    init_jstring(env, executable_start, jexecutable_start);
+                    init_jstring(env, execution_directory_start, jexecution_directory_start);
+                    init_jstring(env, arguments_start, jarguments_start);
+                    init_jstring(env, stdin, jstdin);
+                    init_jstring(env, stdout, jstdout);
+                    init_jstring(env, stderr, jstderr);
+                    init_jstring(env, arguments_restart, jarguments_restart);                    
+                    env->CallStaticObjectMethod(gram2client, jmid, jais_url, jguid, jcontact, jexecutable_start, jexecution_directory_start, jarguments_start,
+                                                jstdin, jstdout, jstderr, jarguments_restart);
+                    env->ReleaseStringUTFChars(jguid, NULL);
+                    env->ReleaseStringUTFChars(jexecutable_start, NULL);
+                    env->ReleaseStringUTFChars(jexecution_directory_start, NULL);
+                    env->ReleaseStringUTFChars(jarguments_start, NULL);
+                    env->ReleaseStringUTFChars(jstdin, NULL);
+                    env->ReleaseStringUTFChars(jstdout, NULL);
+                    env->ReleaseStringUTFChars(jstderr, NULL);
+                    env->ReleaseStringUTFChars(jarguments_restart, NULL);
+                } else {
+                    printFault(env, "Error finding GRAM2JniClient\n");
+                    return false;
+                }   
+            } else {
+                printFault(env, "Error finding GRAM2JniClient\n");
+                return false;
+            }      
+        }
+        else {
+            printFault(env, "Error creating JVM\n");
+            return false;
+        }
+        return true;    
+    }
+
+    
+/******************************************************************************/
+    /** get job state from GRAM2/AIS **/
+    std::string migol::get_job_state(std::string guid){        
+        std::string state;
+        jstring jais_url, jguid, jstate;
+        jclass gram2client;
+        jmethodID jmid;
+        JNIEnv *env;
+        env = initJVM();        
+        if (jvm != NULL)   {
+            gram2client = env->FindClass("org/globus/ogsa/migol/GRAM2JniClient");  
+            if(gram2client !=0)    {
+                jmid = env->GetStaticMethodID(gram2client, "getState",
+                                              "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
+                if(jmid != 0)   {
+                    init_jstring(env, ais_url, jais_url);
+                    init_jstring(env, guid, jguid);
+                    
+                    //call java method
+                    jstate = (jstring)env->CallStaticObjectMethod(gram2client, jmid, jais_url, jguid);
+                    if(jstate!=NULL){
+                        state = std::string((env->GetStringUTFChars(jstate, NULL)));
+                    }
+                    env->ReleaseStringUTFChars(jstate, NULL);
+                    env->ReleaseStringUTFChars(jguid, NULL);
+                    env->ReleaseStringUTFChars(jais_url, NULL);  
+                    return state;
+                } else {
+                    printFault(env, "Error finding GRAM2JniClient\n");
+                    return NULL;
+                }   
+            } else {
+                printFault(env, "Error finding GRAM2JniClient\n");
+                return NULL;
+            }      
+        }
+        else {
+            printFault(env, "Error creating JVM\n");
+            return NULL;
+        }
+        return NULL;    
+    }
+    
+/******************************************************************************/
+
+    void migol::init_jstring(JNIEnv *env, std::string input_string, jstring &output_string){
+        //if (input_string.length()>0) {
+            output_string = env->NewStringUTF(input_string.c_str());        
+            if (output_string == NULL) {
+                printFault(env, "Error creating string\n");
+            }
+        //}        
+    }
+    
+/******************************************************************************/
+
+    void
     migol::printFault(JNIEnv* env, std::string message){
       std::cerr<< message; 
       env->ExceptionDescribe();
       env->ExceptionClear();
-}
-
+    }
 
 /******************************************************************************/
 /** Init JVM **/
@@ -876,7 +1048,7 @@ JNIEnv* migol::initJVM(){
         if (status != JNI_OK)   {
             std::cerr<< "Error creating Java VM with error code: " << status <<std::endl;
         }
-    }else{
+    } else {
 //        SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
 //        {  
 //            std::cout<<"Attach current thread to JVM\n";
@@ -932,19 +1104,18 @@ std::string migol::discoverClientConfig(){
         }
     }
     
-
+if (found==0){
     globus_env= (saga::safe_getenv("GLOBUS_LOCATION")!=NULL) ? (saga::safe_getenv("GLOBUS_LOCATION")) :"";    
     if (globus_env!=""){
         filename=globus_env+"/"+CLIENT_CONFIG;
 		if (fileExists(filename)==0){
             optionString.append(filename);
 			found=1;
-		}
-        
+		}        
     } else {
         std::cout<< "No globus location set. " << std::endl;
     }
-   
+}
 	if (found==0){
         SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
         {  
@@ -1177,9 +1348,9 @@ void migol::initIni (void)
     detail::handle_ini_file_env (ini, "SAGA_INI");
 }
 
-    //private functions
-    std::string  migol::init_migol_context(saga::ini::ini ini)
-    {
+//private functions
+std::string  migol::init_migol_context(saga::ini::ini ini)
+{
         SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
         {
             std::cout<<"init migol context" <<std::endl;
@@ -1209,7 +1380,7 @@ void migol::initIni (void)
         }
         mig->update_machine(migol_guid, mig->getUrl());
         return migol_guid;
-    } 
+} 
     
     
 } //end namespace

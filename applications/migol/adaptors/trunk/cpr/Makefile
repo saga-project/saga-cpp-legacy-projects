@@ -4,7 +4,7 @@
 #  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 #  http://www.boost.org/LICENSE_1_0.txt)
 
-SAGA_SRC              = $(wildcard *.cpp)
+SAGA_SRC              = $(wildcard *.cpp) 
 SAGA_OBJ              = $(SAGA_SRC:%.cpp=%.o)
 
 SAGA_ADAPTOR_NAME     = migol_cpr
@@ -18,7 +18,7 @@ SAGA_ADAPTOR_PACKAGES = cpr
 -include ../config/make.cfg
 -include $(SAGA_MAKE_INCLUDE_ROOT)/saga.adaptor.mk
 
-SAGA_CXXFLAGS    += -I/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Headers/ 
+SAGA_CXXFLAGS    += -I. -I/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Headers/ 
 #SAGA_CXXFLAGS    += -I/usr/lib/j2sdk1.5-sun/include -I/usr/lib/j2sdk1.5-sun/include/linux 
 SAGA_CXXFLAGS    += -DPTHREADS -DWITH_NONAMESPACES -DWITH_OPENSSL -DWITH_COOKIES
 
