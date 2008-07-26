@@ -73,15 +73,9 @@ namespace MapReduce {
                assigned = true;
             }
             else if(state == WORKER_STATE_DONE) {
-               std::string message("Worker ");
-               message += workers_IT->get_string();
-               message = message + " finished mapping with output ";
-
-               saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_INTERMEDIATE), mode));
-               saga::advert::entry adv(workerChunkDir.open(saga::url("./latest"), mode ));
+               saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
+               saga::advert::entry     adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
                std::string finished_file(adv.retrieve_string());
-               message += finished_file;
-               log_->write(message, LOGLEVEL_INFO);
                finished_.push_back(finished_file);
                saga::task t0 = possibleWorker.set_attribute<saga::task_base::Sync>("STATE",   WORKER_STATE_IDLE);
                saga::task t1 = possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND", "");
@@ -100,6 +94,8 @@ namespace MapReduce {
                   assigned = true;
                }
                else if(chunks_.size() == finished_.size()) {  //The last file just finished all
+                  saga::task t0 = possibleWorker.set_attribute<saga::task_base::Sync>("STATE",   WORKER_STATE_IDLE);
+                  saga::task t1 = possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND", "");
                   assigned = true;
                   break;
                }

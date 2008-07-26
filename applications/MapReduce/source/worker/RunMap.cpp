@@ -29,11 +29,9 @@ namespace MapReduce {
       try {
          for(int count = 0; count < NUM_MAPS; count++) {
             saga::advert::entry adv = intermediateDir_.open(saga::url("mapFile-"+boost::lexical_cast<std::string>(count)), mode);
-            saga::advert::entry latest = intermediateDir_.open(saga::url("./latest"), mode);
             std::string filestring("/tmp/mapFile-" + boost::lexical_cast<std::string>(count));
             saga::filesystem::file f(saga::url(filestring), saga::filesystem::ReadWrite);
             adv.store_string(f.get_url().get_string());
-            latest.store_string(f.get_url().get_string());
          }
          workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
          workerDir_.set_attribute("COMMAND", "");
