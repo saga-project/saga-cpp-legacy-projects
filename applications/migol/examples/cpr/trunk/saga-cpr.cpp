@@ -3,8 +3,6 @@
  *  saga_applications
  *
  *  Created by luckow on 18.06.08.
- *  Copyright 2008 __MyCompanyName__. All rights reserved.
- *
  */
 
 #include "saga-cpr.h"
@@ -13,10 +11,14 @@
 
 int main (int argc, char* argv[])
 {
+    //Init Monitoring
+    saga::cpr::service js(saga::url("gram://ubuntu2"));
+    
+    //Checkpoint Registration
     saga::url url("remd_checkpoint");
     saga::cpr::checkpoint chkpt(url);
     chkpt.add_file(saga::url("gsiftp://~/remd/chkpt_it1.dat"));
-     chkpt.add_file(saga::url("gsiftp://~/remd/chkpt_it2.dat"));
+    chkpt.add_file(saga::url("gsiftp://~/remd/chkpt_it2.dat"));
     
     std::vector<saga::url> files;
     files = chkpt.list_files();
@@ -25,8 +27,32 @@ int main (int argc, char* argv[])
     {
         std::cout << files[i] << std::endl;
     }
+        
+    //Job Submission via Migol/GRAM2
+    saga::cpr::description jd;
+ 
+    jd.set_attribute (saga::job::attributes::description_executable, "/bin/echo");
+    jd.set_attribute (saga::job::attributes::description_workingdirectory, "/tmp/");
+    jd.set_attribute (saga::job::attributes::description_output, "~/stdout");
+    jd.set_attribute (saga::job::attributes::description_error, "~/stderr");
     
+    std::vector<std::string> args;
+    args.push_back("ho");
+    args.push_back("ha");
+    if (!args.empty())
+        jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
     
-    //saga::cpr::service js(saga::url("https://migol.kicks-ass.org:8443/wsrf/services/migol/JobBrokerService"));
-
+    saga::cpr::job job = js.create_job(jd, jd);
+    std::string id = job.get_job_id();
+    
+    std::cout<<"Job ID: "<< id << std::endl;    
+    saga::job::state state  = job.get_state();
+    
+    std::cout<<"Job State: "<< state << " ... run job now."<<std::endl;    
+    job.run();    
+    
+    state  = job.get_state();
+    std::cout<<"Job State: "<< state << std::endl;
+    
+    std::cout<<"finished saga-cpr"<<std::endl;   
 }
