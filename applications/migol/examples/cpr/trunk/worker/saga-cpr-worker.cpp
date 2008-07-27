@@ -36,7 +36,14 @@ int main (int argc, char* argv[])
         std::cout << files[i] << std::endl;
     }
     
-    int sleeptime= 1000;
+    int sleeptime= 0;
+    if(argc==2){
+        int input = (int) strtol(argv[1], (char **)NULL, 10);  
+        if(input>0){
+            sleeptime=input; 
+        }
+    } 
+            
     std::cout<<"go to sleep for " << sleeptime <<" s"<<std::endl;   
     boost::xtime xt;
     boost::xtime_get(&xt, boost::TIME_UTC);
