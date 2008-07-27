@@ -148,7 +148,11 @@ migol::~migol(){
         std::cout<<"Terminate Migol ..." <<std::endl;
     }
     terminate=true;
-    destroyJVM();
+    //destroyJVM();
+    SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
+    {
+        std::cout<<"Wait for monitorable thread ..." <<std::endl;
+    }
     monitorable_thread.join();    
     kill(reverse_proxy_pid, SIGKILL);
     delete reverse_proxy_thread;
@@ -162,18 +166,21 @@ void migol::finalize_external_monitoring(){
     JNIEnv *env;
     jclass ssh_proxy_jclass;
     jmethodID mid;
-    env = initJVM();
-    if (jvm != NULL)   {  
-        ssh_proxy_jclass = env->FindClass("org/globus/ogsa/migol/SshReverseProxy");               
-        if(ssh_proxy_jclass !=0)    {                
-            mid = env->GetMethodID(ssh_proxy_jclass, "cancelMonitoring",  "()V");
-            env->CallVoidMethod(ssh_proxy, mid);
+    if(external_monitoring_host!=""){
+        env = initJVM();
+        if (jvm != NULL)   {  
+            ssh_proxy_jclass = env->FindClass("org/globus/ogsa/migol/SshReverseProxy");               
+            if(ssh_proxy_jclass !=0)    {                
+                mid = env->GetMethodID(ssh_proxy_jclass, "cancelMonitoring",  "()V");
+                env->CallVoidMethod(ssh_proxy, mid);
+                env->DeleteGlobalRef(ssh_proxy);
+            } else {
+                printFault(env, "Error finding AisJniClient\n");
+            }  
         } else {
             printFault(env, "Error finding AisJniClient\n");
         }  
-    } else {
-        printFault(env, "Error finding AisJniClient\n");
-    }  
+    }
 
 }  
     
@@ -212,7 +219,9 @@ void migol::init_external_monitoring()
                     }
                     port = soap_port;                    
                     jobject ssh_proxy_local = env->NewObject(ssh_proxy_jclass, mid, jexternal_monitoring_host, port);
-                    ssh_proxy = env->NewGlobalRef(ssh_proxy_local);                
+                    ssh_proxy = env->NewGlobalRef(ssh_proxy_local); 
+                    env->DeleteLocalRef(ssh_proxy_local);
+                    env->ReleaseStringUTFChars(jexternal_monitoring_host, NULL);
                     SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
                     {
                         std::cout<<"created SshReverseProxy\n";
@@ -1078,6 +1087,7 @@ JNIEnv* migol::initJVM(){
     }
     return env;    
 }
+        
 
 /**
  * discover client configuration file in globus home or lib directories

@@ -42,25 +42,6 @@ cpr_job_cpi_impl::cpr_job_cpi_impl (proxy                           * p,
     mutex_type::scoped_lock l(mtx_);
     {//scoped lock    
         instance_data idata (this);
-       // saga::url url_ = idata->rm_;
-//       
-//        // check if we have a rm url.  If yes, check if we are asked for.
-//        if ( ! idata->rm_.get_string ().empty () )
-//        {
-//            // initialize our service URL
-//            url_ = idata->rm_;        
-//            if ( ! url_.get_scheme ().empty ()      && 
-//                url_.get_scheme () != "gram"     && 
-//                url_.get_scheme () != "any"      )
-//            {
-//                SAGA_OSSTREAM strm;
-//                strm << "Could not initialize job for [" << idata->rm_ << "]. " 
-//                << "Only any:// and fork:// schemes are supported.";
-//                
-//                SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), 
-//                                   saga::BadParameter);
-//            }
-//        }
         boost::shared_ptr<cpr::migol> mig= cpr::migol::instance();
         SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
         {
@@ -207,8 +188,13 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
                     std::cout<<"exception: " << e.what() << std::endl;
                 } 
         }
-        
     }
+    if ( jd_.attribute_exists (saga::job::attributes::description_environment) ){
+        
+        SAGA_OSSTREAM strm;
+        strm << "Attribute " << saga::job::attributes::description_environment<< " not implemented.";
+        SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), saga::NotImplemented);
+    }   
     
     std::string exe, exe_dir, args_string, stdin, stderr, stdout;
     if ( jd_.attribute_exists (saga::job::attributes::description_executable) )

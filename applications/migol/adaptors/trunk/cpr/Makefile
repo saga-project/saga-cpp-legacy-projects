@@ -13,14 +13,16 @@ SAGA_ADAPTOR_OBJ      = $(SAGA_OBJ)
 
 SAGA_ADAPTOR_PACKAGES = cpr
 
+JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun/
+
 # SAGA_DEBUG_MAKE       = yes
 
 -include ../config/make.cfg
 -include $(SAGA_MAKE_INCLUDE_ROOT)/saga.adaptor.mk
 
 SAGA_CXXFLAGS    += -I. -I/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Headers/ 
-#SAGA_CXXFLAGS    += -I/usr/lib/j2sdk1.5-sun/include -I/usr/lib/j2sdk1.5-sun/include/linux 
+#SAGA_CXXFLAGS    += -I. -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux 
 SAGA_CXXFLAGS    += -DPTHREADS -DWITH_NONAMESPACES -DWITH_OPENSSL -DWITH_COOKIES
 
 SAGA_LDFLAGS     += -lssl -lcrypto -framework JavaVM
-#SAGA_LDFLAGS     += -lssl -lcrypto -L/usr/lib/j2sdk1.5-sun/jre/lib/i386/client -ljvm
+#SAGA_LDFLAGS     += -lssl -lcrypto -L${JAVA_HOME}/jre/lib/i386/client -ljvm

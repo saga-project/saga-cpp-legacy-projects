@@ -42,9 +42,9 @@ private:
     std::string               jobid_;
     
     std::string get_job_id();
-    saga::job::state cpr_job_cpi_impl::get_job_state (void);
+    saga::job::state get_job_state (void);
     void update_state(saga::job::state new_state);
-    saga::job::state cpr_job_cpi_impl::migol_to_saga_state(std::string migol_state);
+    saga::job::state migol_to_saga_state(std::string migol_state);
 
     
 public:

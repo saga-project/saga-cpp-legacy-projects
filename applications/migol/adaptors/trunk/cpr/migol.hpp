@@ -70,7 +70,7 @@ namespace cpr
                         std::string stdout,
                         std::string stderr,
                         std::string arguments_restart);
-        std::string migol::get_job_state(std::string guid);
+        std::string get_job_state(std::string guid);
         
         
             //int register_checkpoint_directory(char *guid, char *directory);
@@ -105,11 +105,11 @@ namespace cpr
         /* Pre-Declaration */
         std::string initJVMOptions();
         JNIEnv* initJVM();
+        void destroyJVM();
         void printFault(JNIEnv*, std::string);
         std::string discoverClientConfig();
         int fileExists(std::string);
-        void destroyJVM();
-        
+
         int soap_port;
         volatile bool terminate;
         volatile bool initialized;
