@@ -53,15 +53,12 @@
   %numberstyle=\tiny
 }
 
-\title{Reliable Replica Exchange Molecular Dynamics Simulation on
-  Computational Grids using SAGA-CPR and Migol}
+\title{Reliable Replica-Exchange Simulations of Biomolecular Systems
+  on Production Distributed Environments using SAGA-CPR and Migol}
+%  Computational Grids using SAGA-CPR and Migol}
 
 \author{
-  Andr\'e Luckow$^{1}$, 
-  Shantenu Jha$^{2,3}$, 
-  Andre Merzky$^{2}$, \\
-  Bettina Schnor$^{1}$ and 
-  Joohyun Kim$^{2}$\\
+  Andr\'e Luckow$^{1}$, Shantenu Jha$^{2,3}$, Joohyun Kim$^{2}$, Andre Merzky$^{2}$ and Bettina Schnor$^{1}$\\
   \small{\emph{$^{1}$Institute of Computer Science, Potsdam University, Germany}}\\
   \small{\emph{$^{2}$Center for Computation \& Technology, Louisiana State University, USA}}\\
   \small{\emph{$^{3}$Department of Computer Science, Louisiana State University, USA}}\\
@@ -77,6 +74,10 @@
 
 \bibliographystyle{plain}
 
+\newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 
 \begin{document} 
 
@@ -84,25 +85,52 @@
 \maketitle    
 
 \begin{abstract}
-A major challenge in a dynamic Grid with thousands of machines connected to each 
-other is fault tolerance. The more resources and components involved, the more 
-complicated and error-prone becomes the system.   Migol is an adaptive Grid middleware,
-which addresses the fault tolerance of Grid applications and services 
-by providing the capability to recover applications from checkpoint files transparently.
+  There exist a class of scientific applications for which utilizing
+  distributed resources is critical for a reduced time-to-solution for
+  the problem at hand. However, a major challenge in a dynamic
+  distributed enviroments with thousands of machines connected to each
+  other is fault tolerance. The more resources and components, i.e.,
+  degrees-of-freedom, that are involved, the more complicated and
+  error-prone the system becomes.  We discuss one specific example of
+  an application -- Replica Exchange simulations of biomolecular
+  systems -- where utilizing as many (often heterogenous) distributed
+  resources as possible, is critical for the effective solution of the
+  scientific problem.  Thus a mechanism to co-exist and handle the
+  fault-tolerance inherent in dynamic distributed systems is
+  required. In this paper, we discusss the design, development and
+  deployment of an unique framework to support fault-tolerant
+  distributed simulations; critically our framework is scalable,
+  general purpose and extensible. Our framework has two primary
+  components: SAGA and Migol.  SAGA is a high-level programmatic
+  abstration layer that provides an interface for the major
+  distributed functionality required for application development; we
+  provide details of a newly developed functionality in SAGA -- that
+  of Checkpoint and Recovery. Migol is an adaptive Grid middleware,
+  which addresses the fault tolerance of Grid applications and
+  services by providing the capability to recover applications from
+  checkpoint files transparently.  In addition to describing the
+  design of the SAGA CPR package, the integration of the CPR adaptor
+  with the Migol infrastructure, we outline our experiences with
+  running a large scale, general-purpose, SAGA-CPR based
+  Replica-Exchange application in a production distributed
+  environment.
 
-SAGA~\cite{SAGA_Goodale06a} provides a standardized, application-level API for 
-common Grid scenarios, e.\,g.\
-the management of files and jobs. The new SAGA Checkpoint Recovery (CPR) package addresses checkpointing 
-and the automatic recovery of Grid applications. In this paper, we describe the design of 
-the SAGA CPR package, the integration of the CPR adaptor with the Migol infrastructure, 
-and our experiences with running a large scale SAGA CPR based task farming application 
-in a real Grid environment.
+  % In addition to providing details of our implementation, we discuss
+  % why our approach is unique.  SAGA~\cite{SAGA_Goodale06a} provides
+  % a standardized, application-level API for common Grid scenarios,
+  % e.\,g.\ the management of files and jobs. The new SAGA Checkpoint
+  % Recovery (CPR) package addresses checkpointing and the automatic
+  % recovery of Grid applications. In this paper, we describe the
+  % design of the SAGA CPR package, the integration of the CPR adaptor
+  % with the Migol infrastructure, and our experiences with running a
+  % large scale SAGA CPR based task farming application in a real Grid
+  % environment.
     
-The aim of this paper is, i) to couple the SAGA and Migol
-frameworks, ii) to provide a proof of concept implementation of the
-replica exchange method that uses the SAGA/Migol frameworks, iii) to show
-the validity, scalability and extensibility of this approach by
-attempting the simulation of a large model system.
+  % The aim of this paper is, i) to couple the SAGA and Migol
+  % frameworks, ii) to provide a proof of concept implementation of
+  % the replica exchange method that uses the SAGA/Migol frameworks,
+  % iii) to show the validity, scalability and extensibility of this
+  % approach by attempting the simulation of a large model system.
 \end{abstract}
 
 
@@ -164,7 +192,22 @@ the REMD application in a Grid environment.
 This paper describes how using the Checkpoint\,\&\,Recovery package
 (CPR) of the SAGA API, Migol's fault tolerance can be provided to the
 class of Replica Exchange applications.   
- 
+
+\jhanote{We need to compare our approach with i) WISDOM and ii)
+  Folding@HOME}
+
+\jhanote{The important message, which we need to repeat and repeat yet
+  again: our approach is i) scalable over different distributed
+  environments of different size (not like folding@home); ii) general
+  -- usable over TG, DEISA, etc. unlike the WISDOM approach which is
+  tied to EGEE; iii) extensible -- we can do Replica Exchange but we
+  can also do other applications with this approach. We need to point
+  that the ability to do all of the above arises from the use of the
+  correct programmatic abstractions; let the systems/middleware do
+  what middleware/systems do best (Migol); let users do what users do
+  best!}
+
+
 \Section{REMD Simulation with NAMD}   
 
 REMD/NAMD background
