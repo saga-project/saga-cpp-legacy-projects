@@ -20,7 +20,7 @@ int main (int argc, char* argv[])
     //Job Submission via Migol/GRAM2
     saga::cpr::description jd;
  
-    jd.set_attribute (saga::job::attributes::description_executable, "/bin/echo");
+    jd.set_attribute (saga::job::attributes::description_executable, "~/saga-cpr-svn/examples/packages/cpr/worker/saga-cpr-worker");
     jd.set_attribute (saga::job::attributes::description_workingdirectory, "/tmp/");
     jd.set_attribute (saga::job::attributes::description_output, "~/stdout");
     jd.set_attribute (saga::job::attributes::description_error, "~/stderr");

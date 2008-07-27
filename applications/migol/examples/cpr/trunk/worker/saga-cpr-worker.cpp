@@ -7,6 +7,10 @@
 
 #include <saga/saga.hpp>
 #include <saga/saga/cpr.hpp>
+#include <boost/thread/xtime.hpp>
+#include <boost/thread.hpp>
+
+#define SLEEP_TIME 1000;
 
 int main (int argc, char* argv[])
 {
@@ -27,10 +31,16 @@ int main (int argc, char* argv[])
     std::vector<saga::url> files;
     files = chkpt.list_files();
     std::cout << "Received files: " <<std::endl;
-    for (int i = 0; i < files.size(); i++)
+    for (unsigned int i = 0; i < files.size(); i++)
     {
         std::cout << files[i] << std::endl;
     }
     
+    int sleeptime= 1000;
+    std::cout<<"go to sleep for " << sleeptime <<" s"<<std::endl;   
+    boost::xtime xt;
+    boost::xtime_get(&xt, boost::TIME_UTC);
+    xt.sec += sleeptime;
+    boost::thread::sleep(xt);     
     std::cout<<"finished saga-cpr-worker"<<std::endl;   
 }
