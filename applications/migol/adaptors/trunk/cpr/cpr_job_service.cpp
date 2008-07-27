@@ -83,13 +83,6 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
    saga::url rm;
   
     //checks urls
-   if ( data->rm_.get_url ().empty () )
-   {
-      SAGA_ADAPTOR_THROW ("Must specifiy GRAM url " 
-                          "for cpr job submission.", saga::IncorrectURL);
-   }
-   else
-   {
     rm = data->rm_;    
     std::string scheme (rm.get_scheme ());
 
@@ -99,8 +92,7 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
     {
       SAGA_ADAPTOR_THROW ("Must specifiy GRAM url " 
                           "for cpr job submission.", saga::IncorrectURL);
-    }
-  } 
+    }   
 }
 
 // destructor
@@ -136,7 +128,7 @@ void cpr_job_service_cpi_impl::sync_create_job_cpr (saga::cpr::job         & ret
         std::cout << "cpr_job_service_cpi_impl::sync_create_job_cpr: " << guid << std::endl;
         //get rm data
         instance_data data(this);
-        rm = ensure_resourcemanager(data->rm_);
+        rm =data->rm_.get_string();
     }
          
     //////////////////////////////////////////////////////////////////////////////

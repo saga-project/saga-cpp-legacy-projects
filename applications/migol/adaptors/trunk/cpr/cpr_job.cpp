@@ -42,29 +42,25 @@ cpr_job_cpi_impl::cpr_job_cpi_impl (proxy                           * p,
     mutex_type::scoped_lock l(mtx_);
     {//scoped lock    
         instance_data idata (this);
-        saga::url url_ = idata->rm_;
-       
-        // check if we have a rm url.  If yes, check if we are asked for.
-        if ( ! idata->rm_.get_string ().empty () )
-        {
-            // initialize our service URL
-            url_ = idata->rm_;        
-            if ( ! url_.get_scheme ().empty ()      && 
-                url_.get_scheme () != "gram"     && 
-                url_.get_scheme () != "any"      )
-            {
-                SAGA_OSSTREAM strm;
-                strm << "Could not initialize job for [" << idata->rm_ << "]. " 
-                << "Only any:// and fork:// schemes are supported.";
-                
-                SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), 
-                                   saga::BadParameter);
-            }
-        }
-        else
-        {
-            // if we don't have an URL at all, we accept
-        }
+       // saga::url url_ = idata->rm_;
+//       
+//        // check if we have a rm url.  If yes, check if we are asked for.
+//        if ( ! idata->rm_.get_string ().empty () )
+//        {
+//            // initialize our service URL
+//            url_ = idata->rm_;        
+//            if ( ! url_.get_scheme ().empty ()      && 
+//                url_.get_scheme () != "gram"     && 
+//                url_.get_scheme () != "any"      )
+//            {
+//                SAGA_OSSTREAM strm;
+//                strm << "Could not initialize job for [" << idata->rm_ << "]. " 
+//                << "Only any:// and fork:// schemes are supported.";
+//                
+//                SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), 
+//                                   saga::BadParameter);
+//            }
+//        }
         boost::shared_ptr<cpr::migol> mig= cpr::migol::instance();
         SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
         {
@@ -186,8 +182,8 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
     // retrieve and check saga job description for this host
     saga::cpr::description  jd_ = idata->jd_start_;
     saga::url rm_ = idata->rm_;
+
     // check if we can run on the candidate hosts
-    // FIXME: attrib should always exist
     std::vector <std::string> chosts;
    
     //where to run: job specified with rm url?
@@ -202,8 +198,16 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
                 std::cout<<"cpr_job_cpi_impl::sync_run: " << chosts[i] << std::endl;
             }   
         }
-        SAGA_ADAPTOR_THROW ("Cannot submit to CandidateHosts.", 
-                            saga::BadParameter);
+        try{
+            rm_ = saga::url(chosts[0]);
+        } catch ( saga::exception const & e ) 
+        {
+                SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
+                {
+                    std::cout<<"exception: " << e.what() << std::endl;
+                } 
+        }
+        
     }
     
     std::string exe, exe_dir, args_string, stdin, stderr, stdout;
@@ -212,7 +216,7 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         exe = jd_.get_attribute (saga::job::attributes::description_executable);
         exe_dir = jd_.get_attribute (saga::job::attributes::description_workingdirectory);
         std::vector<std::string> args = jd_.get_vector_attribute (saga::job::attributes::description_arguments);
-        try{
+        try {
             stdin = jd_.get_attribute (saga::job::attributes::description_input);
         }
         catch ( saga::exception const & e ) 

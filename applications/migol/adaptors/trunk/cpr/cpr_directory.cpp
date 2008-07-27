@@ -283,7 +283,7 @@ namespace cpr
                                           int       flags)
   {
       SAGA_ADAPTOR_THROW ("Not implemented.", 
-                          saga::NotImplemented);                        saga::NotImplemented);
+                          saga::NotImplemented);   
   }
 
   void cpr_directory_cpi_impl::sync_open_dir (saga::name_space::directory & ret, 
