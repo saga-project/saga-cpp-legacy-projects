@@ -44,8 +44,8 @@ namespace MapReduce {
          logWriter_ = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
          int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
          for(int x=0;x<NUM_MAPS;x++) {
-            std::string filestring("/tmp/mapFile-" + boost::lexical_cast<std::string>(x));
-            saga::filesystem::file f(saga::url(filestring), mode);
+            saga::url fileurl("file://localhost//tmp/mapFile-" + boost::lexical_cast<std::string>(x));
+            saga::filesystem::file f(fileurl, mode);
             mapFiles_.push_back(f);
          }
       }
@@ -120,8 +120,8 @@ namespace MapReduce {
       void emit(std::string key, std::string value) {
          int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
          int mapFile = hash(key, NUM_MAPS);
-         std::string filestring("/tmp/mapFile-reduced-" + boost::lexical_cast<std::string>(mapFile));
-         saga::filesystem::file f(saga::url(filestring), mode);
+         saga::url fileurl(std::string("file://localhost//tmp/mapFile-reduced-" + boost::lexical_cast<std::string>(mapFile)));
+         saga::filesystem::file f(fileurl, mode);
          std::string message(key);
          message += " " + value + "\n";
          f.write(saga::buffer(message, message.length()));
@@ -185,7 +185,7 @@ namespace MapReduce {
        * attributes describing this session.                   *
        * ******************************************************/
       void registerWithDB(void) {
-         //putenv("SAGA_VERBOSE=100");
+         putenv("SAGA_VERBOSE=100");
          std::freopen("/tmp/worker-stderr.txt", "w", stderr);
          std::freopen("/tmp/worker-stdout.txt", "w", stdout);
          int mode = saga::advert::ReadWrite;

@@ -15,8 +15,8 @@ class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
     * The implemented map function that will get called when*
     * it becomes time to do some mapping.                   *
     * ******************************************************/
-   void map(std::string chunkName) {
-      boost::iostreams::stream <saga_file_device> in (chunkName);
+   void map(saga::url chunkName) {
+      boost::iostreams::stream <saga_file_device> in (chunkName.get_string());
       std::string elem;
       while(in >> elem) {
          emitIntermediate(elem,"1");

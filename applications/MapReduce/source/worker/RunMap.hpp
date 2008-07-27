@@ -20,7 +20,7 @@ namespace MapReduce {
              saga::advert::directory chunksDir,
              saga::advert::directory intermediateDir);
       ~RunMap();
-      std::string getFile();
+      saga::url getFile();
      private:
       saga::advert::directory workerDir_;
       saga::advert::directory chunksDir_;

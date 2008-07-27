@@ -31,7 +31,7 @@ namespace MapReduce
     {
        // group all files that were mapped to this counter
        std::vector<std::string> reduceInput(groupFiles_(counter));
-       issue_command_(reduceInput);
+       issue_command_(reduceInput, counter);
     }
     //All were assigned, now wait for everyone to finish
     while(finished_.size() != (unsigned)fileCount_)
@@ -45,7 +45,7 @@ namespace MapReduce
  * assign them to an idel worker.  If a worker is done,  *
  * the results are recorded                              *
  * ******************************************************/
- void HandleReduces::issue_command_(std::vector<std::string> &inputs)
+ void HandleReduces::issue_command_(std::vector<std::string> &inputs, int count)
  {
    int mode = saga::advert::ReadWrite | saga::advert::Create;
    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
@@ -58,25 +58,29 @@ namespace MapReduce
          std::string state = possibleWorker.get_attribute("STATE");
          if(state == WORKER_STATE_IDLE)
          {
+            if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_REDUCE) {
+               //Assigned but never started working
+               break;
+            }
             std::string message("Issuing worker ");
             message += workers_IT->get_path();
-            message = message + " to reduce";
+            message = message + " to reduce hash number ";
+            message += boost::lexical_cast<std::string>(count);
             log_->write(message, LOGLEVEL_INFO);
 
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
-            for(unsigned int count = 0; count < inputs.size(); count++)
+            for(unsigned int counter = 0; counter < inputs.size(); counter++)
             {
-               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(count)), mode | saga::advert::Create));
+               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode | saga::advert::Create));
                adv.store_string(inputs[count]);
             }
             possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
-            possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
             assigned = true;
          }
          else if(state == WORKER_STATE_DONE)
          {
             std::string message("Worker ");
-            message += workers_IT->get_string();
+            message += workers_IT->get_path();
             message = message + " finished reducing with output ";
             saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
             std::string finishedFile = output.retrieve_string();
@@ -86,7 +90,8 @@ namespace MapReduce
             message.clear();
             message = "Issuing worker ";
             message += workers_IT->get_string();
-            message = message + " to reduce";
+            message = message + " to reduce hash number ";
+            message += boost::lexical_cast<std::string>(count);
             log_->write(message, LOGLEVEL_INFO);
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
             for(unsigned int count = 0; count < inputs.size(); count++)
@@ -131,6 +136,7 @@ namespace MapReduce
           {
              saga::advert::entry     adv(data.open(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)), mode));
              std::string path = adv.retrieve_string();
+             std::cerr << "added file " << path << " to input list" << std::endl;
              intermediateFiles.push_back(adv.retrieve_string());
           }
           workers_IT++;

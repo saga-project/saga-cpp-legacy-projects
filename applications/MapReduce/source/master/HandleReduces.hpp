@@ -20,7 +20,7 @@ namespace MapReduce {
                     LogWriter *log);
       bool assignReduces();
      private:
-      void issue_command_(std::vector<std::string> &inputs);
+      void issue_command_(std::vector<std::string> &inputs, int count);
       std::vector<std::string> groupFiles_(int counter);
       void wait_for_results_();
     
