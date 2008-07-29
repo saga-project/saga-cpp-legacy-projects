@@ -60,16 +60,12 @@ namespace AllPairs {
          return 0;
       }
       ~AllPairsBase() {}
-      void compare(std::string object1, std::string object2) {
+      double compare(std::string object1, std::string object2) {
          Derived& d = derived();
-         d.compare(object1, object2);
+         double value;
+         value = d.compare(object1, object2);
+         return value;
       };
-      /*********************************************************
-       * emit is called from inside the reduce function and    *
-       * handles taking the output from reduce and writing it  *
-       * to the proper file.                                   *
-       * ******************************************************/
-      void emit(bool result);
      private:
       std::string uuid_;
       saga::url file_;

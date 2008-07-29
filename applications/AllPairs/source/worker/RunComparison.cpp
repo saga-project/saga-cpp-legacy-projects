@@ -1,4 +1,5 @@
 #include "RunComparison.hpp"
+#include "../utils/getElements.hpp"
 #include "../utils/defines.hpp"
 
 namespace AllPairs {
@@ -14,7 +15,6 @@ namespace AllPairs {
       try {
          workerDir_.set_attribute("STATE", WORKER_STATE_COMPARING);
          saga::advert::entry adv(workerDir_.open(saga::url("./file"), saga::advert::ReadWrite));
-         file_ = saga::url(adv.retrieve_string());
       }
       catch(saga::exception const & e) {
          throw;
@@ -40,11 +40,14 @@ namespace AllPairs {
  * worker to use from the advert database.               *
  * ******************************************************/
    std::vector<std::string> RunComparison::getComparisons() {
+      std::vector<std::string> retVal;
       try {
+         retVal = getElements(file_);
       }
       catch(saga::exception const & e) {
          throw;
       }
+      return retVal;
    }
 } // namespace AllPairs 
 

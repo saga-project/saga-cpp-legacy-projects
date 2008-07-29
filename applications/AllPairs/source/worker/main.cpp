@@ -11,8 +11,8 @@ class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
   public:
    AllPairsImpl(int argCount, char **argList)
      : AllPairsBase<AllPairsImpl>(argCount, argList) {}
-   void compare(std::string object1, std::string object2) {
-      emit(object1 == object2);
+   double compare(std::string object1, std::string object2) {
+      return 0.2;
    }
 };
 
