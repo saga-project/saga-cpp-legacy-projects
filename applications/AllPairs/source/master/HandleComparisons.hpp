@@ -9,20 +9,26 @@
 #include <string>
 #include <vector>
 #include <saga/saga.hpp>
-#include "../utils/defines.hpp"
+#include "../utils/LogWriter.hpp"
 #include "version.hpp"
 
 namespace AllPairs {
    class HandleComparisons {
      public:
-      HandleComparisons(saga::advert::directory workerDir);
+      HandleComparisons(std::vector<saga::url> &files, saga::advert::directory workerDir,
+                        LogWriter *log);
       bool assignWork();
      private:
-      void issue_command_();
+      void issue_command_(saga::url file, unsigned int offset, unsigned int duration);
+      saga::url get_file_(unsigned int &offset, unsigned int &duration);
     
-      std::vector<saga::advert::directory> finished_;
+      std::vector<saga::url> finished_;
+      std::vector<saga::url> assigned_;
+      std::vector<saga::url> files_;
       std::vector<saga::url> workers_;
       saga::advert::directory workerDir_;
+      LogWriter *log_;
+      std::vector<saga::url>::iterator candidateIT_;
       unsigned long comparisons_;
    };
 } //Namespace AllPairs

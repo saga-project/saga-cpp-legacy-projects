@@ -13,6 +13,7 @@
 #include <boost/lexical_cast.hpp>
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
+#include "RunComparison.hpp"
 #include "SystemInfo.hpp"
 #include "parseCommand.hpp"
 
@@ -49,11 +50,11 @@ namespace AllPairs {
            mainLoop(5); //sleep interval of 5
          }
          catch (saga::exception const & e) {
-            std::cerr << "MapReduceBase::init : Exception caught : " << e.what() << std::endl;
+            std::cerr << "AllPairs::run : Exception caught : " << e.what() << std::endl;
             throw;
          }   
          catch (...) {
-            std::cerr << "MapReduceBase::init : Unknown exception occurred" << std::endl;
+            std::cerr << "AllPairs::run: Unknown exception occurred" << std::endl;
             throw;
          }
          return 0;
@@ -167,9 +168,17 @@ namespace AllPairs {
       void mainLoop(unsigned int updateInterval) {
          while(1) {
             std::string command(getFrontendCommand_());
-      /*      // read command from orchestrator
-            if(command == ...) {
-               cleanup_();
+            // read command from orchestrator
+            if(command == WORKER_COMMAND_COMPARE) {
+               RunComparison ComparisonHandler = RunComparison(workerDir_, logWriter_);
+               std::vector<std::string> items(ComparisonHandler.getComparisons());
+               unsigned int size = items.size();
+               for(unsigned int x = 0; x < size; x++) {
+                  for(unsigned int y = x; y < size; y++) {
+                     compare(items[x], items[y]);
+                  }
+               }
+//               cleanup_();
             }
             // write some statistics + ping signal 
             updateStatus_();

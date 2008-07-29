@@ -9,6 +9,7 @@
 #include <saga/saga.hpp>
 #include <boost/program_options.hpp>
 #include "ConfigFileParser.hpp"
+#include "../xmlParser/xmlParser.h"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
 #include "version.hpp"
@@ -77,6 +78,11 @@ namespace AllPairs {
             // advertise them
             populateBinariesList_();
             
+            // Take input files from xml and pass
+            // them to be chunked into smaller files,
+            // then advertise the chunk on the DB
+            populateFileList_();
+
             // Launch all worker command on all
             // host defined in config file
             spawnAgents_();
@@ -94,6 +100,8 @@ namespace AllPairs {
          saga::advert::directory sessionBaseDir_;
          saga::advert::directory workersDir_;
          saga::advert::directory binariesDir_;
+         saga::advert::directory filesDir_;
+         std::vector<saga::url> files_;
          
          AllPairs::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -138,19 +146,20 @@ namespace AllPairs {
             message += (uuid_) + ")... ";
             advertKey += database_ + "//" + uuid_ + "/";
             try {
-               std::string file(cfgFileParser_.getFile());
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("file",    file));
                saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
                saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
+               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_FILES), mode); //binariesDir_
                tc.add_task(t0);
                tc.add_task(t1);
+               tc.add_task(t2);
                tc.wait();
                workersDir_  = t0.get_result<saga::advert::directory>();
                binariesDir_ = t1.get_result<saga::advert::directory>();
+               filesDir_    = t2.get_result<saga::advert::directory>();
             }
             catch(saga::exception const & e) {
                message += e.what();
@@ -193,6 +202,48 @@ namespace AllPairs {
             }
             if(successCounter == 0) {
                log->write("No binaries defined for this session. Aborting", LOGLEVEL_FATAL);
+               APPLICATION_ABORT;
+            }
+         }
+         /*********************************************************
+          * populateFileList_ takes a list of input files from the*
+          * config file and passes them to be broken up by the    *
+          * chunker.  The output of chunker is a series of chunks *
+          * that are then advertised in the ADVERT_DIR_CHUNKS dir *
+          * of the database.                                      *
+          ********************************************************/
+         void populateFileList_(void) {
+            std::vector<FileDescription> fileList                   = cfgFileParser_.getFileList();
+            std::vector<FileDescription>::const_iterator fileListIT = fileList.begin();
+            unsigned int successCounter = 0;
+
+            int mode = saga::advert::ReadWrite | saga::advert::Create;
+            
+            // Translate FileDescriptions returned by getFileList
+            // into names to be chunked by chunker
+            while(fileListIT != fileList.end()) {
+               files_.push_back(saga::url(fileListIT->name));
+               fileListIT++;
+            }
+            std::vector<saga::url>::const_iterator files_IT = files_.begin();
+            // Advertise chunks
+            while(files_IT != files_.end()) {
+               std::string message("Adding new chunk " + (files_IT->get_string()) + "...");
+               try {
+                  saga::advert::entry adv = filesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
+                  adv.store_string(files_IT->get_string());
+                  message += "SUCCESS";
+                  log->write(message, LOGLEVEL_INFO);
+                  successCounter++;
+               }
+               catch(saga::exception const & e) {
+                  message += e.what();
+                  log->write(message, LOGLEVEL_ERROR);
+                }
+                files_IT++;
+            }
+            if(successCounter == 0) {
+               log->write("No chunks made for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
             }
          }
@@ -255,7 +306,7 @@ namespace AllPairs {
             }
          }
          void runComparisons_(void) {
-            HandleComparisons comparisonHandler(workersDir_);
+            HandleComparisons comparisonHandler(files_, workersDir_, log);
             std::string message("Launching comparisons...");
 
             log->write(message, LOGLEVEL_INFO);

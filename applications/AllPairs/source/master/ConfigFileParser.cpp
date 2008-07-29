@@ -33,9 +33,9 @@ vector<BinaryDescription> ConfigFileParser::getExecutableList()
   return binDescList_;
 }
 
-std::string ConfigFileParser::getFile()
+vector<FileDescription> ConfigFileParser::getFileList()
 {
-  return fileDescList_[0].name;
+  return fileDescList_;
 }
 
 vector<HostDescription> ConfigFileParser::getTargetHostList()
@@ -119,7 +119,7 @@ void ConfigFileParser::parse_(void)
     }
     
     // parse the ApplicationFiles section
-    xNode = xMainNode.getChildNode("ApplicationFile");
+    xNode = xMainNode.getChildNode("ApplicationFiles");
     int k=xNode.nChildNode("File");
     for(int i=0; i<k; ++i) 
     {
@@ -128,7 +128,6 @@ void ConfigFileParser::parse_(void)
       XMLNode tmpNode = xNode.getChildNode("File", i);
       if( NULL != tmpNode.getText() ) {
          fd.name = tmpNode.getText();
-         std::cerr << "Added ApplicationFile:  " << fd.name << std::endl;
       }
       else complete = false;
       if(!complete) {

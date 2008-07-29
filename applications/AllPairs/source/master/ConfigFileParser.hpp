@@ -63,7 +63,7 @@ namespace AllPairs {
          SessionDescription             getSessionDescription(void);
          std::vector<BinaryDescription> getExecutableList(void);
          std::vector<HostDescription>   getTargetHostList(void);
-         std::string                    getFile(void);
+         std::vector<FileDescription>   getFileList(void);
         
       };
    } //namespace Master
