@@ -196,43 +196,37 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), saga::NotImplemented);
     }   
     
-    std::string exe, exe_dir, args_string, stdin, stderr, stdout;
+    std::string exe, exe_dir, args_string, stdin, stderr, stdout, job_type, number_nodes, number_procs_per_node;
     if ( jd_.attribute_exists (saga::job::attributes::description_executable) )
     { 
         exe = jd_.get_attribute (saga::job::attributes::description_executable);
         exe_dir = jd_.get_attribute (saga::job::attributes::description_workingdirectory);
         std::vector<std::string> args = jd_.get_vector_attribute (saga::job::attributes::description_arguments);
-        try {
+        if(jd_.attribute_exists(saga::job::attributes::description_input)){
             stdin = jd_.get_attribute (saga::job::attributes::description_input);
         }
-        catch ( saga::exception const & e ) 
-        {
-            SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-            {
-                std::cout<<"exception: " << e.what() << std::endl;
-            } 
+        if(jd_.attribute_exists(saga::job::attributes::description_output)){  
+            stdout = jd_.get_attribute (saga::job::attributes::description_output);
         }
-        try{
-        stdout = jd_.get_attribute (saga::job::attributes::description_output);
-        }
-        catch ( saga::exception const & e ) 
-        {
-            SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-            {
-                std::cout<<"exception: " << e.what() << std::endl;
-            } 
-        }
-        try{    
+        if(jd_.attribute_exists(saga::job::attributes::description_error)){      
             stderr = jd_.get_attribute (saga::job::attributes::description_error);        
         }
-        catch ( saga::exception const & e ) 
-        {
-            SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-            {
-                std::cout<<"exception: " << e.what() << std::endl;
-            } 
+        if(jd_.attribute_exists(saga::job::attributes::description_spmdvariation)){   
+            job_type = jd_.get_attribute (saga::job::attributes::description_spmdvariation);        
         }
-        
+        if(jd_.attribute_exists(saga::job::attributes::description_totalcpucount)){   
+            number_nodes = jd_.get_attribute (saga::job::attributes::description_totalcpucount);        
+        }
+        if(jd_.attribute_exists(saga::job::attributes::description_processesperhost)){   
+            number_procs_per_node = jd_.get_attribute (saga::job::attributes::description_processesperhost);        
+        }        
+        if(jd_.attribute_exists(saga::job::attributes::description_totalcpucount)
+           ||jd_.attribute_exists(saga::job::attributes::description_threadsperprocess)){
+           SAGA_OSSTREAM strm;
+           strm << "Attribute " << saga::job::attributes::description_totalcpucount 
+           << " and " << saga::job::attributes::description_threadsperprocess << " not implemented.";
+           SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), saga::NotImplemented);
+           }
         for (unsigned int i = 0; i < args.size(); i++)
         {
             //std::cout << args[i] << std::endl;
@@ -256,21 +250,16 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         std::cout<<"Working Dir: " << args_string << std::endl;
         std::cout<<"Stdin: " << stdin << std::endl;
         std::cout<<"Stdout: " << stdout << std::endl;
-        std::cout<<"Stderr: " << stderr << std::endl;        
+        std::cout<<"Stderr: " << stderr << std::endl; 
+        std::cout<<"Job Type: " << job_type << std::endl;
+        std::cout<<"Number Nodes: " << number_nodes << std::endl;
+        std::cout<<"Number CPU per Nodes: " << number_procs_per_node << std::endl; 
     }
     
-    /**
-     submit_job(std::string guid, 
-     std::string contact,
-     std::string executable_start,
-     std::string execution_directory_start,
-     std::string arguments_start,
-     std::string stdin,
-     std::string stdout,
-     std::string stderr,
-     std::string arguments_restart)
-    **/
-    bool result = mig->submit_job(jobid_, rm_.get_host(), exe, exe_dir, args_string, stdin, stdout, stderr, args_string);   
+    /**  submit_job    **/
+    bool result = mig->submit_job(jobid_, rm_.get_host(), exe, exe_dir, args_string, 
+                                  stdin, stdout, stderr, args_string, job_type, 
+                                  number_nodes, number_procs_per_node);   
     SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
     {
         std::cout<<"Result of job submission: " << result << std::endl;

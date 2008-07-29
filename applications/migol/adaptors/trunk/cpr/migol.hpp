@@ -69,7 +69,10 @@ namespace cpr
                         std::string stdin,
                         std::string stdout,
                         std::string stderr,
-                        std::string arguments_restart);
+                        std::string arguments_restart,
+                        std::string job_type,
+                        std::string number_nodes,
+                        std::string number_procs_per_node);
         std::string get_job_state(std::string guid);
         
         
