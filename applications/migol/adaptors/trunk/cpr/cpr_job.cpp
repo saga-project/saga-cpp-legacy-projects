@@ -196,7 +196,7 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), saga::NotImplemented);
     }   
     
-    std::string exe, exe_dir, args_string, stdin, stderr, stdout, job_type, number_nodes, number_procs_per_node;
+    std::string exe, exe_dir, args_string, stdin, stderr, stdout, job_type, number_nodes, number_procs_per_node, queue;
     if ( jd_.attribute_exists (saga::job::attributes::description_executable) )
     { 
         exe = jd_.get_attribute (saga::job::attributes::description_executable);
@@ -219,7 +219,10 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         }
         if(jd_.attribute_exists(saga::job::attributes::description_processesperhost)){   
             number_procs_per_node = jd_.get_attribute (saga::job::attributes::description_processesperhost);        
-        }        
+        }  
+        if(jd_.attribute_exists(saga::job::attributes::description_queue)){   
+            queue = jd_.get_attribute (saga::job::attributes::description_queue);        
+        } 
         if(jd_.attribute_exists(saga::job::attributes::description_totalcpucount)
            ||jd_.attribute_exists(saga::job::attributes::description_threadsperprocess)){
            SAGA_OSSTREAM strm;
@@ -254,12 +257,14 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         std::cout<<"Job Type: " << job_type << std::endl;
         std::cout<<"Number Nodes: " << number_nodes << std::endl;
         std::cout<<"Number CPU per Nodes: " << number_procs_per_node << std::endl; 
+        std::cout<<"Queue: " << queue << std::endl; 
+
     }
     
     /**  submit_job    **/
     bool result = mig->submit_job(jobid_, rm_.get_host(), exe, exe_dir, args_string, 
                                   stdin, stdout, stderr, args_string, job_type, 
-                                  number_nodes, number_procs_per_node);   
+                                  number_nodes, number_procs_per_node, queue);   
     SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
     {
         std::cout<<"Result of job submission: " << result << std::endl;

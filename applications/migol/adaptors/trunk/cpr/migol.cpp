@@ -901,10 +901,12 @@ bool migol::submit_job(std::string guid,
                        std::string arguments_restart,
                        std::string job_type,
                        std::string number_nodes,
-                       std::string number_procs_per_node){
+                       std::string number_procs_per_node,
+                       std::string queue                     
+                       ){
        
         jstring jais_url, jguid, jcontact, jexecutable_start, jexecution_directory_start, jarguments_start,
-        jstdin, jstdout, jstderr, jarguments_restart, jjob_type, jnumber_nodes, jnumber_procs_per_node;
+        jstdin, jstdout, jstderr, jarguments_restart, jjob_type, jnumber_nodes, jnumber_procs_per_node, jqueue;
         jclass gram2client;
         jmethodID jmid;
         JNIEnv *env;
@@ -913,7 +915,7 @@ bool migol::submit_job(std::string guid,
             gram2client = env->FindClass("org/globus/ogsa/migol/GRAM2JniClient");  
             if(gram2client !=0)    {
                 jmid = env->GetStaticMethodID(gram2client, "submitJob",
-                                             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+                                             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
                 if(jmid != 0)   {
                     init_jstring(env, ais_url, jais_url);
                     init_jstring(env, guid, jguid);
@@ -928,8 +930,9 @@ bool migol::submit_job(std::string guid,
                     init_jstring(env, job_type, jjob_type);
                     init_jstring(env, number_nodes, jnumber_nodes);
                     init_jstring(env, number_procs_per_node, jnumber_procs_per_node);
+                    init_jstring(env, queue, jqueue);
                     env->CallStaticObjectMethod(gram2client, jmid, jais_url, jguid, jcontact, jexecutable_start, jexecution_directory_start, jarguments_start,
-                                                jstdin, jstdout, jstderr, jarguments_restart, jjob_type, jnumber_nodes, jnumber_procs_per_node);
+                                                jstdin, jstdout, jstderr, jarguments_restart, jjob_type, jnumber_nodes, jnumber_procs_per_node, jqueue);
                     env->ReleaseStringUTFChars(jguid, NULL);
                     env->ReleaseStringUTFChars(jexecutable_start, NULL);
                     env->ReleaseStringUTFChars(jexecution_directory_start, NULL);
@@ -941,6 +944,7 @@ bool migol::submit_job(std::string guid,
                     env->ReleaseStringUTFChars(jjob_type, NULL);
                     env->ReleaseStringUTFChars(jnumber_nodes, NULL);
                     env->ReleaseStringUTFChars(jnumber_procs_per_node, NULL);
+                    env->ReleaseStringUTFChars(jqueue, NULL);
                 } else {
                     printFault(env, "Error finding GRAM2JniClient\n");
                     return false;
