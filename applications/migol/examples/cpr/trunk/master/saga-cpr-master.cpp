@@ -25,6 +25,15 @@ int main (int argc, char* argv[])
     jd.set_attribute (saga::job::attributes::description_output, "~/stdout");
     jd.set_attribute (saga::job::attributes::description_error, "~/stderr");
     
+    //MPI configuration
+    jd.set_attribute (description_spmdvariation, "MPI");
+    jd.set_attribute (description_totalcpucount, "2");
+    jd.set_attribute (description_processesperhost, "8");
+    
+    //Allocation
+    jd.set_attribute (saga::job::attributes::description_queue, "loni_jha_big");
+    
+    
     std::vector<std::string> args;
     args.push_back("60");
     if (!args.empty())
