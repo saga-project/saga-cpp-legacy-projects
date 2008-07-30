@@ -1,0 +1,38 @@
+#!/bin/sh
+
+if [ -z "$SAGA_LOCATION" ] ; then
+    echo "please set SAGA_LOCATION to the location of your SAGA installation" 1>&2
+    exit 1
+fi
+
+# Jar-files from library.
+SAGA_CLASSPATH=""
+add_to_saga_classpath () {
+    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARFILES} ; do
+	if [ -z "$SAGA_CLASSPATH" ] ; then
+	    SAGA_CLASSPATH="$1/$i"
+	else
+	    SAGA_CLASSPATH="$SAGA_CLASSPATH:$1/$i"
+	fi
+    done
+}
+
+add_to_saga_classpath $SAGA_LOCATION/lib
+
+#if [ -z "$JYTHON_JAR" ] ; then
+#    echo "please set JYTHON_JAR to the location of your Jython jar file" 1>&2
+#    exit 1
+#fi
+#SAGA_CLASSPATH="$JYTHON_JAR:$SAGA_CLASSPATH"
+
+# the java.endorsed.dirs is needed for Java 6. If not present, the Gridsam
+# adaptor will not work.
+
+export CLASSPATH="../src:$SAGA_CLASSPATH"
+./runJython \
+    -Djava.endorsed.dirs=$SAGA_LOCATION/lib/adaptors/GridsamAdaptor/endorsed \
+    -Dlog4j.configuration="file:$SAGA_LOCATION/log4j.properties" \
+     "$@"
+#    -Dpython.home="." org.python.util.jython "$@"
+
