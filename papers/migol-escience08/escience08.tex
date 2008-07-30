@@ -1,12 +1,3 @@
-
-%
-%  $Description: Author guidelines and sample document in LaTeX 2.09$ 
-%
-%  $Author: ienne $
-%  $Date: 1995/09/15 15:20:59 $
-%  $Revision: 1.4 $
-%
-
 \documentclass[times, 10pt,twocolumn]{article} 
 \usepackage{latex8}
 \usepackage{times}
@@ -194,7 +185,21 @@ This paper describes how using the Checkpoint\,\&\,Recovery package
 class of Replica Exchange applications.   
 
 \jhanote{We need to compare our approach with i) WISDOM and ii)
-  Folding@HOME}
+  Folding@HOME}             
+
+\alnote{Several project, such as Folding@home~\cite{folding} and Wisdom~\cite{wisdom}, rely on distributed infrastructures for computational biology and chemistry. While Folding@home utilizes a similar replica exchange algorithm~\cite{PhysRevLett.86.4983} 
+to effectively parallelize simulations, it is based on BOINC~\cite{1033223}, a cycle scavenging infrastructure. 
+In contrast, multipurpose Grids as the TeraGrid, which provide a dedicated runtime environment for applications with different characteristic, e.\,g.\ loosely coupled, tightly coupled and data-intensive applications, desktop Grids rely on volunteers. This kind of environment is only suitable for loosely coupled applications. Multipurpose Grids have several advantages: Issues as trust and security are well researched. Further, it is possible to run larger application chunks. The REMD manager splits an scenario into multiple parts -- each part can be represented by a MPI application utilizing up to 32 nodes. \\  
+The Wisdom project utilizes the EGEE infrastructure for molecular docking simulations used e.\,g.\ for evaluation of drugs. While this application has a similar high throughput characteristic, the project is currently tied to the gLite~\cite{glite2008} Grid middleware.                      \\                             
+In contrast to Wisdom and Folding@home, our approach is not restricted to a specific Grid middleware -- by utilizing the SAGA standard the REMD manager can easily utilize resources managed by different Grid platforms. SAGA provides a well-defined abstraction, which is capable of handling both scenarios. Using this approach the application can easily used with different middleware platforms, e.\,g.\ Folding@home could then be deployed on a BOINC infrastructure as well as on a multipurpose Grid, such as TeraGrid.                                                                                                                                                         
+}
+
+\alnote{Should we add some  details regarding  the scientific results of WISDOM and Folding@home and how they differ from
+our REMD with NAMD? Or are we just comparing the Grid infrastructure?
+}  
+                       
+
+
 
 \jhanote{The important message, which we need to repeat and repeat yet
   again: our approach is i) scalable over different distributed
@@ -373,13 +378,42 @@ distributed using a script and Migol's Job Broker Service.
 To enable the monitoring of a tasks, each task must initialize a \texttt{saga::cpr::service} object 
 before starting the computation.  Then, the Migol adaptor starts and registers the monitoring endpoint. 
 %TODO what is the task size/runtime of a single task
-The MRS can now monitor the application.  For error detection we use a timeout of 3 minutes.
+The MRS can now monitor the application.  For error detection we use a timeout of \textbf{xx} minutes.
 \begin{figure*}[t]
     \centering
         \includegraphics[width=0.6\textwidth]{saga-taskfarming}
     \caption{Fault Tolerant Task Farming Scenario}
     \label{fig:saga-taskfarming}
-\end{figure*}
+\end{figure*} 
+
+The REMDgManager was functionally tested on the LONI Grid. The following aspects are from interest:
+\begin{itemize}
+    \item \textbf{Speedup}: This test determines how much faster the Grid-enabled replica exchange algorithm is in comparison  to a sequential and/or a not Grid-enabled version.
+    
+    \item \textbf{Migol Overhead}:  During this test the overhead imposed by the Migol framework in comparison to a traditional SAGA/Globus infrastructure is evaluated. This overhead is mainly caused by the application-level monitoring, but can also be attributed to the necessary interaction with the Migol backend, e.\,g.\ for the registration of checkpoints. The following  metrics are evaluated:
+    \begin{itemize}
+        \item percentage overhead in runtime dependent on the monitoring interval
+        \item runtime overhead of Migol job submission and meta-data registration. 
+    \end{itemize}                                                           
+    
+    \item \textbf{Fault Injection Test:}  During this test, the functionality of the Migol framework is assed by introduction of different faults during the application run, e.\,g.:
+    \begin{itemize}
+        \item the failure of one or more worker nodes, or
+        \item the failure of the master node.        
+    \end{itemize}                       
+    During the test the correctness of the Migol framework and application is verified. In addition, the following metrics are determined:
+    \begin{itemize}
+        \item failure detection and recovery time
+        \item application runtime in correlation to the number of faults
+        \item recovery time versus false failure detection rate dependent on the monitoring intervall.
+    \end{itemize}
+                                                                                 
+    \item \textbf{Scalability test}: This test determines up to how many worker nodes the infrastructure is able to scale.
+    \item \textbf{Extended statistical analysis}: This evaluation determines the failure rates during REMD simulation runs. Further, it will be assessed how many of these real life failures can be detected and recovered by Migol. 
+                                                
+    \alnote{The last two aspects should go due to timing reasons into the Phil Trans paper.}
+\end{itemize}
+                                             
 
 \Section{Related Work}
                                                                     
