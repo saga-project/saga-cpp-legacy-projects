@@ -8,6 +8,8 @@
 #include <saga/saga.hpp>
 #include <saga/saga/cpr.hpp>
 
+std::string print_state(saga::job::state state);
+
 int main (int argc, char* argv[])
 {
     // Init Monitoring
@@ -20,18 +22,18 @@ int main (int argc, char* argv[])
     //Job Submission via Migol/GRAM2
     saga::cpr::description jd;
  
-    jd.set_attribute (saga::job::attributes::description_executable, "~/saga-cpr-svn/examples/packages/cpr/worker/saga-cpr-worker-wrapper");
-    jd.set_attribute (saga::job::attributes::description_workingdirectory, "/tmp/");
-    jd.set_attribute (saga::job::attributes::description_output, "~/stdout");
-    jd.set_attribute (saga::job::attributes::description_error, "~/stderr");
+    jd.set_attribute (saga::job::attributes::description_executable, "/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2");
+    jd.set_attribute (saga::job::attributes::description_workingdirectory, "/work/luckow/NAMD");
+    jd.set_attribute (saga::job::attributes::description_output, "namd.log");
+    jd.set_attribute (saga::job::attributes::description_error, "namd.err");
     
     //MPI configuration
-    jd.set_attribute (description_spmdvariation, "MPI");
-    jd.set_attribute (description_totalcpucount, "2");
-    jd.set_attribute (description_processesperhost, "8");
+    jd.set_attribute (saga::job::attributes::description_spmdvariation, "MPI");
+    jd.set_attribute (saga::job::attributes::description_totalcpucount, "2");
+    jd.set_attribute (saga::job::attributes::description_processesperhost, "8");
     
     //Allocation
-    jd.set_attribute (saga::job::attributes::description_queue, "loni_jha_big");
+    jd.set_attribute (saga::job::attributes::description_queue, "loni_jha_big@workq");
     
     
     std::vector<std::string> args;
@@ -40,7 +42,7 @@ int main (int argc, char* argv[])
         jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
 
     std::vector<std::string> candidate_hosts;
-    candidate_hosts.push_back("gram://ubuntu2");
+    candidate_hosts.push_back("gram://qb1.loni.org/jobmanager-pbs");
     if (!candidate_hosts.empty())
         jd.set_vector_attribute (saga::job::attributes::description_candidatehosts, candidate_hosts);
 
@@ -57,11 +59,29 @@ int main (int argc, char* argv[])
     std::cout<<"Job ID: "<< id << std::endl;    
     saga::job::state state  = job.get_state();
     
-    std::cout<<"Job State: "<< state << " ... run job now."<<std::endl;    
+    std::cout<<"Job State: "<< print_state(state) << " ... run job now."<<std::endl;    
     job.run();    
     
     state  = job.get_state();
-    std::cout<<"Job State: "<< state << std::endl;
+    std::cout<<"Job State: "<< print_state(state) << std::endl;
     
     std::cout<<"finished saga-cpr"<<std::endl;   
+}
+
+std::string print_state(saga::job::state state){
+
+if(state==saga::job::New){
+   return "NEW";
+}else if (state==saga::job::Running){
+   return "RUNNING";
+} else if (state==saga::job::Done){
+   return "DONE";
+} else if(state==saga::job::Failed){
+   return "FAILED";
+}else if (state==saga::job::Suspended){
+    return "SUSPENDED";
+} else if (state==saga::job::Canceled){
+    return "CANCELED";
+}
+return "FAILED";
 }
