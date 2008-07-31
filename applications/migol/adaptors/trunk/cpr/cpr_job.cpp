@@ -223,7 +223,7 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         if(jd_.attribute_exists(saga::job::attributes::description_queue)){   
             queue = jd_.get_attribute (saga::job::attributes::description_queue);        
         } 
-        if(jd_.attribute_exists(saga::job::attributes::description_totalcpucount)
+        if(jd_.attribute_exists(saga::job::attributes::description_numberofprocesses)
            ||jd_.attribute_exists(saga::job::attributes::description_threadsperprocess)){
            SAGA_OSSTREAM strm;
            strm << "Attribute " << saga::job::attributes::description_totalcpucount 
@@ -243,11 +243,13 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         SAGA_ADAPTOR_THROW ("run can only be called on New jobs.", 
                             saga::IncorrectState);
     }
-        
+    SAGA_OSSTREAM strm;
+    strm << rm_.get_host()<<"/"<<rm_.get_path();
+    std::string contact = SAGA_OSSTREAM_GETSTRING(strm);
     boost::shared_ptr<cpr::migol> mig= cpr::migol::instance();
     SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
     {
-        std::cout<<"Start job at: " << rm_.get_host() << std::endl;
+        std::cout<<"Start job at: " << contact << std::endl;
         std::cout<<"Exe: " << exe << std::endl;
         std::cout<<"Args: " << exe_dir << std::endl;
         std::cout<<"Working Dir: " << args_string << std::endl;
@@ -262,7 +264,7 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
     }
     
     /**  submit_job    **/
-    bool result = mig->submit_job(jobid_, rm_.get_host(), exe, exe_dir, args_string, 
+    bool result = mig->submit_job(jobid_, contact, exe, exe_dir, args_string, 
                                   stdin, stdout, stderr, args_string, job_type, 
                                   number_nodes, number_procs_per_node, queue);   
     SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
