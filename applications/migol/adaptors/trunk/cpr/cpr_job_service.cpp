@@ -97,13 +97,18 @@ cpr_job_service_cpi_impl::~cpr_job_service_cpi_impl (void)
 {
     SAGA_LOG_BLURB ("~cpr_job_service_cpi_impl d'tor begin");
     std::string guid("");
+    std::string state("");
     {//scoped lock
         adaptor_data_t d(this);
         guid = d->migol_guid;
-    }
+        state = d->migol_state;
     
-    migol::instance()->change_service_state(guid, "done");  
-    migol::instance()->finalize_external_monitoring(); 
+        if(state!="done"){
+            migol::instance()->change_service_state(guid, "done");  
+            migol::instance()->finalize_external_monitoring(); 
+            d->migol_state="done";
+        }
+    }
     SAGA_LOG_BLURB ("~cpr_job_service_cpi_impl d'tor end");
 }
 

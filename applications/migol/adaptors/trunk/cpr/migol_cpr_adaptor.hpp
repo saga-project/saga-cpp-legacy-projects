@@ -31,13 +31,8 @@ namespace cpr
         
         //data
         std::string migol_guid;
-        //std::string migol_url;
-        //std::string migol_name;
-        //std::string migol_state;
-        
-        //methods
-        //std::string  init_migol_context();
-        
+        std::string migol_state;
+                
     };
 
 ///////////////////////////////////////////////////////////////////////////////
