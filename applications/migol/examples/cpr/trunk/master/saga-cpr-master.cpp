@@ -17,7 +17,7 @@ int main (int argc, char* argv[])
     // uses per default Application Information Service (AIS) configured in 
     // the $SAGA_LOCATON/share/saga/saga_adaptor_migol_cpr.ini
     // required for all subsequent CPR calls (otherwise exception is thrown)
-    saga::cpr::service js;
+    saga::cpr::service js(saga::url("gram://ubuntu2"));
     
     //Job Submission via Migol/GRAM2
     saga::cpr::description jd;
@@ -41,10 +41,10 @@ int main (int argc, char* argv[])
     if (!args.empty())
         jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
 
-    std::vector<std::string> candidate_hosts;
-    candidate_hosts.push_back("gram://qb1.loni.org/jobmanager-pbs");
-    if (!candidate_hosts.empty())
-        jd.set_vector_attribute (saga::job::attributes::description_candidatehosts, candidate_hosts);
+//    std::vector<std::string> candidate_hosts;
+//    candidate_hosts.push_back("gram://qb1.loni.org/jobmanager-pbs");
+//    if (!candidate_hosts.empty())
+//        jd.set_vector_attribute (saga::job::attributes::description_candidatehosts, candidate_hosts);
 
     //env mapping not supported by Migol backend yet (recommendation: use wrapper script)
 //    std::vector<std::string> env;
@@ -64,6 +64,11 @@ int main (int argc, char* argv[])
     
     state  = job.get_state();
     std::cout<<"Job State: "<< print_state(state) << std::endl;
+ 
+    
+    //create 2nd job service
+    saga::cpr::service js2(saga::url("gram://ubuntu2"));
+    //...
     
     std::cout<<"finished saga-cpr"<<std::endl;   
 }
