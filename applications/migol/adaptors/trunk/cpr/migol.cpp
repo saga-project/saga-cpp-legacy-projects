@@ -112,15 +112,9 @@ namespace cpr {
     external_monitoring_host(""),
     monitorable_thread(TR1::bind(&migol::monitorable_server, this))
 {
-    SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-    {
-        std::cout<<"Migol Constructor" <<std::endl;
-    }
+    SAGA_LOG_INFO("Migol Constructor");
     while(initialized==false){
-        SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-        {
-            std::cout<<"migol(): Wait for monitoring thread ..." <<std::endl;
-        }
+        SAGA_LOG_BLURB("migol(): Wait for monitoring thread ...");
         boost::thread::yield();
     }
     ini = adaptor_ini;
@@ -143,23 +137,14 @@ namespace cpr {
     
 /** Destructor **/
 migol::~migol(){
-    SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-    {
-        std::cout<<"Terminate Migol ..." <<std::endl;
-    }
+    SAGA_LOG_INFO("D'tor ~migol begin: Terminate Migol ...");
     terminate=true;
     //destroyJVM();
-    SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-    {
-        std::cout<<"Wait for monitorable thread ..." <<std::endl;
-    }
+    SAGA_LOG_BLURB("Wait for monitorable thread ...");
     monitorable_thread.join();    
     kill(reverse_proxy_pid, SIGKILL);
     delete reverse_proxy_thread;
-    SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
-    {
-        std::cout<<"Termination successfull." <<std::endl; 
-    }   
+    SAGA_LOG_INFO("D'tor ~migol end: Termination successfull.");        
 }
     
 void migol::finalize_external_monitoring(){

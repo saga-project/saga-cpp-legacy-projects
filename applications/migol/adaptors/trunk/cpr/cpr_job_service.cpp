@@ -75,18 +75,15 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
             d->migol_guid=guid;
             
         }
-        std::cout << "cpr_job_service_cpi_impl ctor: " << guid << std::endl;
+        SAGA_LOG_BLURB("cpr_job_service_cpi_impl ctor: end");
     }
    
    // check if we can handle this request
    instance_data data (this);
-   saga::url rm;
-  
-    //checks urls
-    rm = data->rm_;    
-    std::string scheme (rm.get_scheme ());
-
-    if ( ! ( scheme.empty () ) && 
+   saga::url rm = data->rm_;    
+   std::string scheme (rm.get_scheme ());
+   std::cout<<"Job Manager: " << rm.get_string () << std::endl;
+   if ( ! ( scheme.empty () ) && 
          ! ( scheme == "gram" ) && 
          ! ( scheme == "any" ) ) 
     {
@@ -117,7 +114,7 @@ void cpr_job_service_cpi_impl::sync_create_job_cpr (saga::cpr::job         & ret
                                                     saga::cpr::description   jd_restart)
 {
     std::string guid;
-    std::string rm;
+    saga::url rm;
     mutex_type::scoped_lock l(mtx_);
     {//scoped lock
         adaptor_data_t d(this);
@@ -130,13 +127,13 @@ void cpr_job_service_cpi_impl::sync_create_job_cpr (saga::cpr::job         & ret
         std::cout << "cpr_job_service_cpi_impl::sync_create_job_cpr: " << guid << std::endl;
         //get rm data
         instance_data data(this);
-        rm =data->rm_.get_string();
+        rm =data->rm_;
     }
          
     //////////////////////////////////////////////////////////////////////////////
     // create job cpi    
-    std::cout<<"Create Job at RM: "<< rm <<std::endl;
-    saga::cpr::job job = saga::adaptors::cpr_job(rm, jd_run, jd_restart);
+    std::cout<<"Create Job at RM: "<< rm.get_string() <<std::endl;
+    saga::cpr::job job = saga::adaptors::cpr_job(rm.get_url (), jd_run, jd_restart);
    
     // set the created attribute
     saga::adaptors::attribute jobattr (job);

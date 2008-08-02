@@ -244,7 +244,10 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
                             saga::IncorrectState);
     }
     SAGA_OSSTREAM strm;
-    strm << rm_.get_host()<<"/"<<rm_.get_path();
+    strm << rm_.get_host();
+    if (rm_.get_path()!=""){
+            strm<<"/"<<rm_.get_path();
+    }
     std::string contact = SAGA_OSSTREAM_GETSTRING(strm);
     boost::shared_ptr<cpr::migol> mig= cpr::migol::instance();
     SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
