@@ -73,6 +73,7 @@ namespace cpr
                         std::string job_type,
                         std::string number_nodes,
                         std::string number_procs_per_node,
+                        std::string number_procs,
                         std::string queue                     );
         std::string get_job_state(std::string guid);
         void cancel_job(std::string guid);

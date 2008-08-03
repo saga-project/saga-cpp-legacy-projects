@@ -196,7 +196,7 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), saga::NotImplemented);
     }   
     
-    std::string exe, exe_dir, args_string, stdin, stderr, stdout, job_type, number_nodes, number_procs_per_node, queue;
+    std::string exe, exe_dir, args_string, stdin, stderr, stdout, job_type, number_nodes, number_procs_per_node, number_procs, queue;
     if ( jd_.attribute_exists (saga::job::attributes::description_executable) )
     { 
         exe = jd_.get_attribute (saga::job::attributes::description_executable);
@@ -223,18 +223,24 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         if(jd_.attribute_exists(saga::job::attributes::description_queue)){   
             queue = jd_.get_attribute (saga::job::attributes::description_queue);        
         } 
-        if(jd_.attribute_exists(saga::job::attributes::description_numberofprocesses)
-           ||jd_.attribute_exists(saga::job::attributes::description_threadsperprocess)){
+        if(jd_.attribute_exists(saga::job::attributes::description_numberofprocesses)){
+            number_procs = jd_.get_attribute (saga::job::attributes::description_numberofprocesses);
+        }
+        if(jd_.attribute_exists(saga::job::attributes::description_threadsperprocess)){
            SAGA_OSSTREAM strm;
-           strm << "Attribute " << saga::job::attributes::description_totalcpucount 
-           << " and " << saga::job::attributes::description_threadsperprocess << " not implemented.";
+           strm << "Attribute " << saga::job::attributes::description_threadsperprocess << " not implemented.";
            SAGA_ADAPTOR_THROW(SAGA_OSSTREAM_GETSTRING(strm), saga::NotImplemented);
-           }
+        }
+        
         for (unsigned int i = 0; i < args.size(); i++)
         {
             //std::cout << args[i] << std::endl;
+            args_string.append("\"");
             args_string.append(args[i]);
-            args_string.append(" ");
+            args_string.append("\"");
+            if(i!=(args.size()-1)) {
+                args_string.append(" ");
+            }
         }
     }
     
@@ -254,13 +260,14 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
     {
         std::cout<<"Start job at: " << contact << std::endl;
         std::cout<<"Exe: " << exe << std::endl;
-        std::cout<<"Args: " << exe_dir << std::endl;
-        std::cout<<"Working Dir: " << args_string << std::endl;
+        std::cout<<"Args: " << args_string << std::endl;
+        std::cout<<"Working Dir: " << exe_dir << std::endl;
         std::cout<<"Stdin: " << stdin << std::endl;
         std::cout<<"Stdout: " << stdout << std::endl;
         std::cout<<"Stderr: " << stderr << std::endl; 
         std::cout<<"Job Type: " << job_type << std::endl;
-        std::cout<<"Number Nodes: " << number_nodes << std::endl;
+        std::cout<<"Total CPUs: " << number_nodes << std::endl;
+        std::cout<<"Number Processes (total requested CPUs): " << number_procs << std::endl;
         std::cout<<"Number CPU per Nodes: " << number_procs_per_node << std::endl; 
         std::cout<<"Queue: " << queue << std::endl; 
 
@@ -269,7 +276,7 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
     /**  submit_job    **/
     bool result = mig->submit_job(jobid_, contact, exe, exe_dir, args_string, 
                                   stdin, stdout, stderr, args_string, job_type, 
-                                  number_nodes, number_procs_per_node, queue);   
+                                  number_nodes, number_procs_per_node, number_procs, queue);   
     SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
     {
         std::cout<<"Result of job submission: " << result << std::endl;
