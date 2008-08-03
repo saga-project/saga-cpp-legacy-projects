@@ -47,9 +47,9 @@ cpr_job_cpi_impl::cpr_job_cpi_impl (proxy                           * p,
         {
             std::cout<<"Register job at AIS" <<std::endl;
         }
-        //jobid_==migol_guid
         jobid_ = idata->jobid_;
-        jobid_.assign(mig->register_service("http://qb", "SAGA App", "unsubmitted"));    
+        std::string rm_ = idata->rm_.get_string();
+        jobid_.assign(mig->register_service(rm_, "SAGA App", "unsubmitted"));    
         std::cout<<"Migol GUID: " << jobid_ << std::endl; 
         saga::adaptors::attribute attr (this);    
         attr.set_attribute (saga::job::attributes::jobid, jobid_);    
