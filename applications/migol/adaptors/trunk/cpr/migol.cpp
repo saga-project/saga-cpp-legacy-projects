@@ -132,7 +132,8 @@ namespace cpr {
         }  
     } 
     initJVM();
-    reverse_proxy_thread = new boost::thread(TR1::bind(&migol::init_external_monitoring, this));
+//    reverse_proxy_thread = new boost::thread(TR1::bind(&migol::init_external_monitoring, this));
+    init_external_monitoring();
 }
     
 /** Destructor **/
@@ -142,8 +143,8 @@ migol::~migol(){
     //destroyJVM();
     SAGA_LOG_BLURB("Wait for monitorable thread ...");
     monitorable_thread.join();    
-    kill(reverse_proxy_pid, SIGKILL);
-    delete reverse_proxy_thread;
+    //kill(reverse_proxy_pid, SIGKILL);
+    //delete reverse_proxy_thread;
     SAGA_LOG_INFO("D'tor ~migol end: Termination successfull.");        
 }
     
@@ -204,6 +205,9 @@ void migol::init_external_monitoring()
                     }
                     port = soap_port;                    
                     jobject ssh_proxy_local = env->NewObject(ssh_proxy_jclass, mid, jexternal_monitoring_host, port);
+                    jmethodID mid_get_remote_port = env->GetMethodID(ssh_proxy_jclass, "getRemotePort",  "()I");
+                    remote_port = (int) env->CallIntMethod(ssh_proxy_local, mid_get_remote_port);
+                    std::cout << "remote port: " << remote_port << std::endl;
                     ssh_proxy = env->NewGlobalRef(ssh_proxy_local); 
                     env->DeleteLocalRef(ssh_proxy_local);
                     env->ReleaseStringUTFChars(jexternal_monitoring_host, NULL);
@@ -1359,7 +1363,7 @@ migol::getUrl ()
         url.append(external_monitoring_host);
         url.append(":");
         std::ostringstream port;
-        port << soap_port;
+        port << remote_port;
         url.append(port.str());
     } else {
         url.assign("http://");

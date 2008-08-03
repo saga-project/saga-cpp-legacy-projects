@@ -117,6 +117,7 @@ namespace cpr
         int fileExists(std::string);
 
         int soap_port;
+        int remote_port;
         volatile bool terminate;
         volatile bool initialized;
         void monitorable_server();
