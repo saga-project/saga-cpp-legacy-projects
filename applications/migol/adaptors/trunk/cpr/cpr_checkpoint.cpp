@@ -264,8 +264,9 @@ namespace cpr
                           saga::NotImplemented);
   }
 
-  void cpr_checkpoint_cpi_impl::sync_open_file (saga::filesystem::file & ret,
-                                                int                      idx)
+  void cpr_checkpoint_cpi_impl::sync_open_file_idx (saga::filesystem::file & ret,
+                                                int                      idx, 
+                                                int flags)
   {
       SAGA_ADAPTOR_THROW ("Not implemented.", 
                           saga::NotImplemented);

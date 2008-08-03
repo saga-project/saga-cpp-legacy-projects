@@ -57,10 +57,14 @@ class cpr_job_service_cpi_impl
     ~cpr_job_service_cpi_impl (void);
 
     // CPI functions
+    void sync_create_job     (saga::cpr::job            & ret, 
+                              saga::cpr::description      jd_run);       
+    
     void sync_create_job_cpr (saga::cpr::job            & ret, 
                               saga::cpr::description      jd_run,
                               saga::cpr::description      jd_restart);
-    void sync_run_job        (saga::job::job            & ret, 
+    
+    void sync_run_job        (saga::cpr::job            & ret, 
                               std::string                 host, 
                               std::string                 exe, 
                               saga::job::ostream        & in, 
@@ -69,6 +73,8 @@ class cpr_job_service_cpi_impl
     void sync_list           (std::vector <std::string> & ret);
     void sync_get_job        (saga::job::job            & ret,
                               std::string                 jobid);
+//    void sync_get_job        (saga::job::job            & ret,
+//                              std::string                 jobid);
     void sync_get_self       (saga::job::self           & ret);
 
 };  // class cpr_job_service_cpi_impl

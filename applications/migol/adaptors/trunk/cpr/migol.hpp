@@ -75,6 +75,7 @@ namespace cpr
                         std::string number_procs_per_node,
                         std::string queue                     );
         std::string get_job_state(std::string guid);
+        void cancel_job(std::string guid);
         
         
             //int register_checkpoint_directory(char *guid, char *directory);

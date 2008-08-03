@@ -69,7 +69,7 @@ void cpr_job_cpi_impl::sync_get_state (saga::job::state & ret)
     //ret=state_;
 }
 
-void cpr_job_cpi_impl::sync_get_description (saga::cpr::description & ret)
+void cpr_job_cpi_impl::sync_get_description (saga::job::description & ret)
 {
     SAGA_ADAPTOR_THROW ("Not implemented.", 
                         saga::NotImplemented);
@@ -111,7 +111,7 @@ void cpr_job_cpi_impl::sync_checkpoint (saga::impl::void_t & ret)
 }
 
 void cpr_job_cpi_impl::sync_migrate (saga::impl::void_t     & ret, 
-                                     saga::cpr::description   jd)
+                                     saga::job::description   jd)
 {
     SAGA_ADAPTOR_THROW ("Not implemented.", 
                         saga::NotImplemented);
@@ -278,11 +278,12 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
         
 }
 
-void cpr_job_cpi_impl::sync_cancel (saga::impl::void_t & ret)
-{
-    SAGA_ADAPTOR_THROW ("Not Implemented.", 
-                        saga::NotImplemented);
-}
+   void cpr_job_cpi_impl::sync_cancel (saga::impl::void_t & ret, double timeout)
+   {
+       std::string guid = get_job_id();
+       boost::shared_ptr<cpr::migol> mig= cpr::migol::instance();
+       mig->cancel_job(guid);
+   }
 
 void cpr_job_cpi_impl::sync_wait (bool   & ret, 
                                   double   timeout)

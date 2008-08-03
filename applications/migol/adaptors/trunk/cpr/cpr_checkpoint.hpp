@@ -87,7 +87,7 @@ namespace cpr
         // cpr_checkpoint functions
         void sync_get_parent (saga::url & file,              int generation);
         void sync_get_file   (saga::url & file,              int idx);
-        void sync_open_file  (saga::filesystem::file & file, int idx);
+        void sync_open_file_idx  (saga::filesystem::file & file, int idx, int flags);
         void sync_add_file (int & ret, saga::url url);
         void sync_list_files (std::vector<saga::url>  &ret);
             

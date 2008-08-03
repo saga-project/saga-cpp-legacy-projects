@@ -60,7 +60,7 @@ public:
     
     // job functions
     void sync_get_state       (saga::job::state       & ret);
-    void sync_get_description (saga::cpr::description & ret);
+    void sync_get_description (saga::job::description & ret);
     void sync_get_job_id      (std::string            & ret);
     
     void sync_get_stdin       (saga::job::ostream     & ret);
@@ -69,13 +69,13 @@ public:
     
     void sync_checkpoint      (saga::impl::void_t     & ret);
     void sync_migrate         (saga::impl::void_t     & ret,
-                               saga::cpr::description   jd);
+                               saga::job::description   jd);
     void sync_signal          (saga::impl::void_t     & ret, 
                                int                      signal);
     
     // inherited from saga::task
     void sync_run     (saga::impl::void_t & ret);
-    void sync_cancel  (saga::impl::void_t & ret);
+    void sync_cancel  (saga::impl::void_t & ret, double timeout);
     void sync_suspend (saga::impl::void_t & ret);
     void sync_resume  (saga::impl::void_t & ret);
     void sync_wait    (bool               & ret, 

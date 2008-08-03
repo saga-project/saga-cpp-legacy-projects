@@ -946,6 +946,40 @@ bool migol::submit_job(std::string guid,
         return true;    
     }
 
+/******************************************************************************/
+    /** get job state from GRAM2/AIS **/
+    void migol::cancel_job(std::string guid){
+        jstring jais_url, jguid;
+        jclass gram2client;
+        jmethodID jmid;
+        JNIEnv *env;
+        env = initJVM();        
+        if (jvm != NULL)   {
+            gram2client = env->FindClass("org/globus/ogsa/migol/GRAM2JniClient");  
+            if(gram2client !=0)    {
+                jmid = env->GetStaticMethodID(gram2client, "cancelJob",
+                                              "(Ljava/lang/String;Ljava/lang/String;)V");
+                if(jmid != 0)   {
+                    init_jstring(env, ais_url, jais_url);
+                    init_jstring(env, guid, jguid);
+                    
+                    //call java method
+                    env->CallStaticVoidMethod(gram2client, jmid, jais_url, jguid);
+                    env->ReleaseStringUTFChars(jguid, NULL);
+                    env->ReleaseStringUTFChars(jais_url, NULL);  
+                } else {
+                    printFault(env, "Error finding GRAM2JniClient\n");
+                }   
+            } else {
+                printFault(env, "Error finding GRAM2JniClient\n");
+            }      
+        }
+        else {
+            printFault(env, "Error creating JVM\n");
+        }
+    }
+
+    
     
 /******************************************************************************/
     /** get job state from GRAM2/AIS **/

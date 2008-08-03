@@ -149,7 +149,18 @@ void cpr_job_service_cpi_impl::sync_create_job_cpr (saga::cpr::job         & ret
     ret = job;
 }
 
-void cpr_job_service_cpi_impl::sync_run_job (saga::job::job     & ret, 
+
+void cpr_job_service_cpi_impl::sync_create_job     (saga::cpr::job            & ret, 
+                          saga::cpr::description      jd_run){
+
+    SAGA_ADAPTOR_THROW ("Not implemented.", 
+                        saga::NotImplemented);
+    
+}
+    
+    
+    
+void cpr_job_service_cpi_impl::sync_run_job (saga::cpr::job     & ret, 
                                              std::string          host, 
                                              std::string          exe, 
                                              saga::job::ostream & in, 
@@ -168,8 +179,8 @@ void cpr_job_service_cpi_impl::sync_list (std::vector <std::string> & ret)
                         saga::NotImplemented);
 }
 
-void cpr_job_service_cpi_impl::sync_get_job (saga::job::job & ret, 
-                                             std::string      jobid)
+    void cpr_job_service_cpi_impl::sync_get_job        (saga::job::job            & ret,
+                              std::string                 jobid)
 {
     SAGA_ADAPTOR_THROW ("Not implemented.", 
                         saga::NotImplemented);
