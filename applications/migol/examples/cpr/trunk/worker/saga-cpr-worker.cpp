@@ -7,13 +7,15 @@
 
 #include <saga/saga.hpp>
 #include <saga/saga/cpr.hpp>
+#include <iostream>
+#include <fstream>
 #include <boost/thread/xtime.hpp>
 #include <boost/thread.hpp>
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
 
 #define CHECKPOINT_NAME "remd_checkpoint"
-#define CHECKPOINT_CHK_INTERVALL 60
+#define CHECKPOINT_CHK_INTERVALL 300
 #define MAX_URL 255
 
 namespace fs = boost::filesystem;
@@ -24,12 +26,12 @@ bool check_file(fs::path file, std::vector<saga::url> urls);
 std::string get_hostname(void);
 void update_checkpoints(std::string checkpoint_dir);
 void print_registered_checkpoints();
+int count_nodes(std::string filename);
 
 int main (int argc, char* argv[])
 {
     std::cout<<"start saga-cpr-worker"<<std::endl;  
-   
-    if (argc < 3 || argc > 4){
+    if (argc < 2 || argc > 4){
         std::cout << "Usage: " << argv[0] << "\"<executable parameter>\" <jobtype> <checkpoint dir>"<<std::endl;
         std::cout << "Example:\n " << argv[0] << "\"/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2 NPT.conf\" mpi /home/luckow/NAMD"<<std::endl;
         exit(1);
@@ -37,7 +39,7 @@ int main (int argc, char* argv[])
 
     std::string exe = std::string(argv[1]);
     std::string job_type, pbs_nodefile, checkpoint_dir(".");
-    if(argc==3){
+    if(argc>=3){
         job_type = std::string(argv[2]);
         if(job_type=="MPI"||job_type=="mpi"){
             pbs_nodefile.assign(saga::safe_getenv("PBS_NODEFILE"));
@@ -55,8 +57,14 @@ int main (int argc, char* argv[])
         
     std::ostringstream command_stream;
     if (pbs_nodefile!="" && (job_type=="MPI" || job_type=="mpi")){
+	//mpi
         command_stream <<"mpirun -machinefile "<<
-        pbs_nodefile << " " << argv[1];
+        pbs_nodefile << " " ;
+        //number nodes
+        int count = count_nodes(pbs_nodefile);
+        command_stream << " -np " << count << " ";
+        //arguments
+        command_stream << argv[1];
     } else {
         command_stream << argv[1];
         
@@ -87,7 +95,7 @@ void update_checkpoints(std::string checkpoint_dir){
     std::vector<saga::url> lfns;
     lfns = chkpt.list_files();
     std::cout << "Received files: " <<std::endl;
-    for (int i = 0; i < lfns.size(); i++)
+    for (unsigned int i = 0; i < lfns.size(); i++)
     {
         std::cout << lfns[i] << std::endl;
     }
@@ -156,12 +164,11 @@ void run_application(std::string launch_command){
     }
     system(launch_command.c_str());   
     SAGA_LOG_DEBUG("Finished application");
-    
 }
 
 /** check whether file exists **/
 bool check_file(fs::path file, std::vector<saga::url> urls){
-    for (int i = 0; i < urls.size(); i++)
+    for (unsigned int i = 0; i < urls.size(); i++)
     {
         fs::path local_file = urls[i].get_path();       
         //std::cout << "AIS URL: " + local_file.string() << " Local URL: " << file.string() << std::endl;
@@ -179,3 +186,19 @@ std::string get_hostname(void)
     gethostname(buffer, sizeof(buffer));
     return std::string(buffer);
 }
+
+/** check whether file exists **/
+int count_nodes(std::string filename){
+    std::ifstream datafile(filename.c_str());
+    if(!datafile){
+        std::cerr << "File not found: " << filename << std::endl;
+        return 1;
+    }
+    int count=0;
+    for (std::string line; std::getline(datafile, line);) {
+        count++;
+    }
+    std::cout << "found " << count << " lines."<<std::endl;
+    return count;
+}
+

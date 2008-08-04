@@ -17,27 +17,29 @@ int main (int argc, char* argv[])
     // uses per default Application Information Service (AIS) configured in 
     // the $SAGA_LOCATON/share/saga/saga_adaptor_migol_cpr.ini
     // required for all subsequent CPR calls (otherwise exception is thrown)
-    saga::cpr::service js(saga::url("gram://ubuntu2"));
+    saga::cpr::service js(saga::url("gram://qb1.loni.org/jobmanager-pbs"));
     
     //Job Submission via Migol/GRAM2
     saga::cpr::description jd;
  
-    jd.set_attribute (saga::job::attributes::description_executable, "/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2");
-    jd.set_attribute (saga::job::attributes::description_workingdirectory, "/work/luckow/NAMD");
+    jd.set_attribute (saga::job::attributes::description_executable, "/home/luckow/sw/saga-svn/bin/saga-cpr-worker");
+    jd.set_attribute (saga::job::attributes::description_workingdirectory, "/home/luckow/NAMD");
     jd.set_attribute (saga::job::attributes::description_output, "namd.log");
     jd.set_attribute (saga::job::attributes::description_error, "namd.err");
     
     //MPI configuration
-    jd.set_attribute (saga::job::attributes::description_spmdvariation, "MPI");
-    jd.set_attribute (saga::job::attributes::description_totalcpucount, "2");
-    jd.set_attribute (saga::job::attributes::description_processesperhost, "8");
+    jd.set_attribute (saga::job::attributes::description_spmdvariation, "single");
+    jd.set_attribute(saga::job::attributes::description_numberofprocesses, "16");
+    //jd.set_attribute (saga::job::attributes::description_totalcpucount, "2");
+    //jd.set_attribute (saga::job::attributes::description_processesperhost, "8");
     
     //Allocation
-    jd.set_attribute (saga::job::attributes::description_queue, "loni_jha_big@workq");
+    jd.set_attribute (saga::job::attributes::description_queue, "loni_jha_big@");
     
     
     std::vector<std::string> args;
-    args.push_back("60");
+    args.push_back("/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2 NPT.conf");
+    args.push_back("mpi");
     if (!args.empty())
         jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
 
