@@ -9,12 +9,12 @@ namespace AllPairs {
  * for the worker.                                       *
  * ******************************************************/
    RunComparison::RunComparison(saga::advert::directory workerDir,
-                  LogWriter *log) :
-      workerDir_(workerDir), log_(log)
+                  std::vector<saga::url> files, LogWriter *log) :
+      workerDir_(workerDir), files_(files), log_(log)
    {
       try {
+         filesIT_ = files_.begin();
          workerDir_.set_attribute("STATE", WORKER_STATE_COMPARING);
-         saga::advert::entry adv(workerDir_.open(saga::url("./file"), saga::advert::ReadWrite));
       }
       catch(saga::exception const & e) {
          throw;
@@ -32,22 +32,22 @@ namespace AllPairs {
       catch(saga::exception const & e) {
          throw;
       }
-      sleep(5);
    }
 
 /*********************************************************
  * getFile retreives the chunk that was posted for this  *
  * worker to use from the advert database.               *
  * ******************************************************/
-   std::vector<std::string> RunComparison::getComparisons() {
-      std::vector<std::string> retVal;
-      try {
-         retVal = getElements(file_);
-      }
-      catch(saga::exception const & e) {
-         throw;
-      }
-      return retVal;
+   bool RunComparison::hasComparisons()
+   {
+      if(filesIT_ != files_.end())
+         return true;
+      return false;
+   }
+   saga::url RunComparison::getComparisons() {
+      saga::url file(*filesIT_);
+      filesIT_++;
+      return file;
    }
 } // namespace AllPairs 
 

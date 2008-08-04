@@ -17,12 +17,17 @@ namespace AllPairs {
    class RunComparison {
      public:
       RunComparison(saga::advert::directory workerDir,
-             AllPairs::LogWriter *log);
+             std::vector<saga::url> files, AllPairs::LogWriter *log);
       ~RunComparison();
-      std::vector<std::string> getComparisons();
+      saga::url getComparisons();
+      bool hasComparisons();
      private:
+      saga::advert::directory sessionBaseDir_;
+
       saga::advert::directory workerDir_;
-      saga::url file_;
+      std::vector<saga::url> files_;
+      std::vector<saga::url>::iterator filesIT_;
+
       AllPairs::LogWriter *log_;
 
    }; // class RunComparison

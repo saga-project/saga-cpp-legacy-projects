@@ -11,7 +11,7 @@ class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
   public:
    AllPairsImpl(int argCount, char **argList)
      : AllPairsBase<AllPairsImpl>(argCount, argList) {}
-   double compare(std::string object1, std::string object2) {
+   double compare(saga::url object1, saga::url object2) {
       return 0.2;
    }
 };
@@ -22,6 +22,9 @@ class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
+   putenv("SAGA_VERBOSE=100");
+   std::freopen("/tmp/worker-stderr.txt", "w", stderr);
+   std::freopen("/tmp/worker-stdout.txt", "w", stdout);
    try {
       AllPairsImpl allPairs(argc, argv);
       allPairs.run();

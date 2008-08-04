@@ -9,13 +9,12 @@
 #include "type.hpp"
 
 namespace AllPairs {
-      std::vector<std::string> getElements(saga::url f) {
+      std::vector<std::string> getElements(saga::url f, unsigned int offset, unsigned int duration) {
       std::string elem;
       std::vector<std::string> elems;
-      unsigned int offset       = 0;
-      unsigned int duration     = 0; //Read all
       unsigned int elementsRead = 0;
       unsigned int pos          = 0;
+      std::cout << "abut to make a stream call you know what I mean" << std::endl;
       boost::iostreams::stream <saga_file_device> file_stream (f.get_string());
       while(pos < offset) { //Throw away unneeded data
          file_stream >> elem;
@@ -23,6 +22,7 @@ namespace AllPairs {
       if(duration == 0) {
          while(file_stream >> elem) {
             elems.push_back(elem);
+            std::cout << "pushing back: " << elem << std::endl;
          }
       }
       else { 

@@ -78,14 +78,15 @@ namespace AllPairs {
             // advertise them
             populateBinariesList_();
             
-            // Take input files from xml and pass
-            // them to be chunked into smaller files,
+            // Take input files from xml and 
             // then advertise the chunk on the DB
             populateFileList_();
 
             // Launch all worker command on all
             // host defined in config file
             spawnAgents_();
+
+            runComparisons_();
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
          ~Master(void) {
@@ -217,7 +218,7 @@ namespace AllPairs {
             std::vector<FileDescription>::const_iterator fileListIT = fileList.begin();
             unsigned int successCounter = 0;
 
-            int mode = saga::advert::ReadWrite | saga::advert::Create;
+            //int mode = saga::advert::ReadWrite | saga::advert::Create;
             
             // Translate FileDescriptions returned by getFileList
             // into names to be chunked by chunker
@@ -230,10 +231,10 @@ namespace AllPairs {
             while(files_IT != files_.end()) {
                std::string message("Adding new chunk " + (files_IT->get_string()) + "...");
                try {
-                  saga::advert::entry adv = filesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
-                  adv.store_string(files_IT->get_string());
+            //      saga::advert::entry adv = filesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
+            //      adv.store_string(files_IT->get_string());
                   message += "SUCCESS";
-                  log->write(message, LOGLEVEL_INFO);
+          //        log->write(message, LOGLEVEL_INFO);
                   successCounter++;
                }
                catch(saga::exception const & e) {
@@ -243,7 +244,7 @@ namespace AllPairs {
                 files_IT++;
             }
             if(successCounter == 0) {
-               log->write("No chunks made for this session. Aborting", LOGLEVEL_FATAL);
+               log->write("No files added for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
             }
          }

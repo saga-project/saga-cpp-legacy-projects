@@ -19,8 +19,8 @@ namespace AllPairs {
                         LogWriter *log);
       bool assignWork();
      private:
-      void issue_command_(saga::url file, unsigned int offset, unsigned int duration);
-      saga::url get_file_(unsigned int &offset, unsigned int &duration);
+      void issue_command_(saga::url file);
+      saga::url get_file_();
     
       std::vector<saga::url> finished_;
       std::vector<saga::url> assigned_;
@@ -29,7 +29,6 @@ namespace AllPairs {
       saga::advert::directory workerDir_;
       LogWriter *log_;
       std::vector<saga::url>::iterator candidateIT_;
-      unsigned long comparisons_;
    };
 } //Namespace AllPairs
 

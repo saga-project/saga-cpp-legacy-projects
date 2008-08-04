@@ -60,7 +60,7 @@ namespace AllPairs {
          return 0;
       }
       ~AllPairsBase() {}
-      double compare(std::string object1, std::string object2) {
+      double compare(saga::url object1, saga::url object2) {
          Derived& d = derived();
          double value;
          value = d.compare(object1, object2);
@@ -68,7 +68,6 @@ namespace AllPairs {
       };
      private:
       std::string uuid_;
-      saga::url file_;
       std::string sessionUUID_;
       std::string logURL_;
       std::string database_;
@@ -78,6 +77,8 @@ namespace AllPairs {
    
       saga::advert::directory workerDir_;
       saga::advert::directory sessionBaseDir_;
+      saga::advert::directory filesDir_;
+      std::vector<saga::url> files_;
       AllPairs::LogWriter * logWriter_;
       Derived& derived() {
          return static_cast<Derived&>(*this);
@@ -124,7 +125,6 @@ namespace AllPairs {
          advertKey += database_ + "//" + sessionUUID_ + "/";
          try {
             saga::advert::directory sessionBaseDir_(advertKey, mode);
-            file_ = saga::url(sessionBaseDir_.get_attribute("file"));
 
             //(2a) create a directory for this agent
             advertKey += ADVERT_DIR_WORKERS;
@@ -150,6 +150,20 @@ namespace AllPairs {
             time_t timestamp; time(&timestamp);
             workerDir_.set_attribute(ATTR_LAST_SEEN, 
             boost::lexical_cast<std::string>(timestamp));
+            saga::advert::directory filesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_FILES), saga::advert::ReadWrite));
+            std::vector<saga::url> filesAdv(filesDir_.list());
+            std::vector<saga::url>::iterator filesAdvIT = filesAdv.begin();
+        /*    while(filesAdvIT != filesAdv.end())
+            {
+               saga::advert::entry adv(*filesAdvIT, saga::advert::ReadWrite);
+               files_.push_back(saga::url(adv.retrieve_string()));
+            }*/
+            for(int counter = 0; counter < 100; counter++)
+            {
+               files_.push_back(saga::url("file://localhost//home/bane/saga-projects/applications/AllPairs/samples/files-"+
+                                           boost::lexical_cast<std::string>(counter) + ".txt"));
+               std::cerr << "Added file: " << files_[counter] << std::endl;
+            }
          }
          catch(saga::exception const & e) {
             std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
@@ -164,17 +178,22 @@ namespace AllPairs {
       void mainLoop(unsigned int updateInterval) {
          while(1) {
             std::string command(getFrontendCommand_());
+            saga::url file;
+            int counter = 0;;
             // read command from orchestrator
             if(command == WORKER_COMMAND_COMPARE) {
-               RunComparison ComparisonHandler = RunComparison(workerDir_, logWriter_);
-               std::vector<std::string> items(ComparisonHandler.getComparisons());
-               unsigned int size = items.size();
-               for(unsigned int x = 0; x < size; x++) {
-                  for(unsigned int y = x; y < size; y++) {
-                     compare(items[x], items[y]);
-                  }
+               saga::advert::entry adv(workerDir_.open(saga::url("./file"), saga::advert::ReadWrite));
+               file = adv.retrieve_string();
+               RunComparison ComparisonHandler = RunComparison(workerDir_, files_, logWriter_);
+               while(ComparisonHandler.hasComparisons())
+               {
+                  saga::url item(ComparisonHandler.getComparisons());
+                  std::cout << "temporary = " << item << std::endl;
+                  compare(file, item);
+                  std::cout << "Compared some" << std::endl;
+                  counter++;
+                  std::cout << "counter: " << counter << std::endl;
                }
-//               cleanup_();
             }
             // write some statistics + ping signal 
             updateStatus_();
@@ -193,7 +212,6 @@ namespace AllPairs {
          std::string commandString;
          try {
            commandString = workerDir_.get_attribute("COMMAND");
-           workerDir_.set_attribute("COMMAND", "");
          }
          catch(saga::exception const & e) {
            std::cout << "FAILED (" << e.get_error() << ")" << std::endl;

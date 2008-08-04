@@ -28,11 +28,9 @@ namespace AllPairs
  * ******************************************************/
  bool HandleComparisons::assignWork()
  {
-    unsigned int offset;
-    unsigned int duration;
-    saga::url file(get_file_(offset, duration));
-    while(finished_.size() != comparisons_) {
-       issue_command_(file, offset, duration);  // Try to assign the chunk to someone
+    while(finished_.size() < files_.size()) {
+       saga::url file(get_file_());
+       issue_command_(file);  // Try to assign the chunk to someone
     }
     return true;
  }
@@ -41,7 +39,7 @@ namespace AllPairs
  * assign them to an idel worker.  If a worker is done,  *
  * the results are recorded                              *
  * ******************************************************/
- void HandleComparisons::issue_command_(saga::url file, unsigned int offset, unsigned int duration)
+ void HandleComparisons::issue_command_(saga::url file)
  {
     int mode = saga::advert::ReadWrite;
     static std::vector<saga::url>::iterator workers_IT = workers_.begin();
@@ -51,24 +49,31 @@ namespace AllPairs
           saga::advert::directory possibleWorker(*workers_IT, mode);
           std::string state = possibleWorker.get_attribute("STATE");
           if(state == WORKER_STATE_IDLE) {
+             if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_COMPARE)
+             {
+                break;
+             }
              saga::task_container tc;
              tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("STATE",    WORKER_STATE_IDLE));
              tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("OFFSET",   boost::lexical_cast<std::string>(offset)));
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("DURATION", boost::lexical_cast<std::string>(duration)));
              saga::advert::entry adv(possibleWorker.open(saga::url("./file"), mode | saga::advert::Create));
              tc.add_task(adv.store_string<saga::task_base::ASync>(file.get_string()));
+             std::cerr << "Assigned worker " << possibleWorker.get_url().get_string() << " to compare all in " << file.get_string() << " to everything else" << std::endl;
+             assigned_.push_back(file);
              tc.wait();
+             assigned = true;
           }
           else if(state == WORKER_STATE_DONE) {
              saga::task_container tc;
              tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("STATE",    WORKER_STATE_IDLE));
              tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("OFFSET",   boost::lexical_cast<std::string>(offset)));
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("DURATION", boost::lexical_cast<std::string>(duration)));
              saga::advert::entry adv(possibleWorker.open(saga::url("./file"), mode | saga::advert::Create));
+             finished_.push_back(saga::url(adv.retrieve_string()));
              tc.add_task(adv.store_string<saga::task_base::ASync>(file.get_string()));
+             assigned_.push_back(file);
+             std::cerr << "Assigned worker " << possibleWorker.get_url().get_string() << " to compare all in " << file.get_string() << " to everything else" << std::endl;
              tc.wait();
+             assigned = true;
           }
        }
        catch(saga::exception const & e) {
@@ -83,10 +88,8 @@ namespace AllPairs
        }
     }
  }
- saga::url HandleComparisons::get_file_(unsigned int &offset, unsigned int &duration)
+ saga::url HandleComparisons::get_file_()
  {
-    offset = 0;
-    duration = 0;
     for(unsigned int count = 0; count < files_.size(); count++) {
        bool finished = false;
        bool assigned = false;
