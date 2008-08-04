@@ -13,6 +13,7 @@
 #include <boost/thread.hpp>
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
+#include <sys/time.h>  
 
 #define CHECKPOINT_NAME "remd_checkpoint"
 #define CHECKPOINT_CHK_INTERVALL 300
@@ -30,6 +31,10 @@ int count_nodes(std::string filename);
 
 int main (int argc, char* argv[])
 {
+    struct timeval startTime, endTime; 
+    double atime;     
+    gettimeofday(&startTime, NULL);
+    
     std::cout<<"start saga-cpr-worker"<<std::endl;  
     if (argc < 2 || argc > 4){
         std::cout << "Usage: " << argv[0] << "\"<executable parameter>\" <jobtype> <checkpoint dir>"<<std::endl;
@@ -80,7 +85,11 @@ int main (int argc, char* argv[])
         update_checkpoints(checkpoint_dir);        
     }        
     
-    std::cout<<"finished saga-cpr-worker"<<std::endl;   
+    gettimeofday(&endTime, NULL);
+    atime =  (double) (endTime.tv_sec + endTime.tv_usec / 1e6) 
+    - (startTime.tv_sec + startTime.tv_usec / 1e6 );           
+    
+    std::cout<<"finished saga-cpr-worker: " << atime << " s"<<std::endl;   
 }
 
 

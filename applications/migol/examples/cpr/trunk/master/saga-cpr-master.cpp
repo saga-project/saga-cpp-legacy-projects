@@ -7,11 +7,16 @@
 
 #include <saga/saga.hpp>
 #include <saga/saga/cpr.hpp>
+#include <sys/time.h>  
 
 std::string print_state(saga::job::state state);
 
 int main (int argc, char* argv[])
 {
+    struct timeval startTime, endTime; 
+    double atime;     
+    gettimeofday(&startTime, NULL);
+    
     // Init Monitoring
     // Init Migol/Monitoring
     // uses per default Application Information Service (AIS) configured in 
@@ -68,11 +73,15 @@ int main (int argc, char* argv[])
     std::cout<<"Job State: "<< print_state(state) << std::endl;
  
     
-    //create 2nd job service
-    saga::cpr::service js2(saga::url("gram://ubuntu2"));
-    //...
+   // //create 2nd job service
+//    saga::cpr::service js2(saga::url("gram://ubuntu2"));
+//    //...
     
-    std::cout<<"finished saga-cpr"<<std::endl;   
+    gettimeofday(&endTime, NULL);
+    atime =  (double) (endTime.tv_sec + endTime.tv_usec / 1e6) 
+    - (startTime.tv_sec + startTime.tv_usec / 1e6 );           
+    
+    std::cout<<"finished saga-cpr-master: " << atime << " s"<<std::endl;     
 }
 
 std::string print_state(saga::job::state state){

@@ -2,11 +2,15 @@
 #include <saga/saga/cpr.hpp>    
 #include <boost/thread/xtime.hpp>
 #include <boost/thread.hpp>
+#include <sys/time.h>  
 
 #define CHECKPOINT_NAME "remd_checkpoint"
 
 int main (int argc, char* argv[])
 {
+    struct timeval startTime, endTime; 
+    double atime;     
+    gettimeofday(&startTime, NULL);
     // Init Migol/Monitoring
     // uses per default Application Information Service (AIS) configured in 
     // the $SAGA_LOCATON/share/saga/saga_adaptor_migol_cpr.ini
@@ -41,4 +45,10 @@ int main (int argc, char* argv[])
     boost::xtime_get(&xt, boost::TIME_UTC);
     xt.sec += sleeptime;
     boost::thread::sleep(xt);  
+    
+    gettimeofday(&endTime, NULL);
+    atime =  (double) (endTime.tv_sec + endTime.tv_usec / 1e6) 
+    - (startTime.tv_sec + startTime.tv_usec / 1e6 );           
+    
+    std::cout<<"finished saga-cpr-checkpoint: " << atime << " s"<<std::endl;   
 }
