@@ -22,7 +22,7 @@ int main (int argc, char* argv[])
     // uses per default Application Information Service (AIS) configured in 
     // the $SAGA_LOCATON/share/saga/saga_adaptor_migol_cpr.ini
     // required for all subsequent CPR calls (otherwise exception is thrown)
-    saga::cpr::service js(saga::url("gram://qb1.loni.org/jobmanager-pbs"));
+    saga::cpr::service js(saga::url("migol://qb1.loni.org/jobmanager-pbs"));
     
     //Job Submission via Migol/GRAM2
     saga::cpr::description jd;
@@ -65,13 +65,12 @@ int main (int argc, char* argv[])
     
     std::cout<<"Job ID: "<< id << std::endl;    
     saga::job::state state  = job.get_state();
-    
-    std::cout<<"Job State: "<< print_state(state) << " ... run job now."<<std::endl;    
-    job.run();    
-    
-    state  = job.get_state();
-    std::cout<<"Job State: "<< print_state(state) << std::endl;
- 
+//    
+//    std::cout<<"Job State: "<< print_state(state) << " ... run job now."<<std::endl;    
+     job.run();    
+//    
+//    state  = job.get_state();
+//    std::cout<<"Job State: "<< print_state(state) << std::endl;
     
    // //create 2nd job service
 //    saga::cpr::service js2(saga::url("gram://ubuntu2"));

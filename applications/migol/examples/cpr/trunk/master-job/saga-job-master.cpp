@@ -17,27 +17,25 @@ int main (int argc, char* argv[])
     double atime;     
     gettimeofday(&startTime, NULL);
     
-    saga::job::service js(saga::url("gram://ubuntu2"));
+    saga::job::service js(saga::url("gram://qb1.loni.org/jobmanager-pbs"));
     
     saga::job::description jd;
  
-    jd.set_attribute (saga::job::attributes::description_executable, "/Users/luckow/main");
-    jd.set_attribute (saga::job::attributes::description_workingdirectory, "/home/luckow/");
+    jd.set_attribute (saga::job::attributes::description_executable, "/home/luckow/sw/saga-svn/bin/saga-cpr-worker");
+    jd.set_attribute (saga::job::attributes::description_workingdirectory, "/home/luckow/NAMD");
     jd.set_attribute (saga::job::attributes::description_output, "namd.log");
     jd.set_attribute (saga::job::attributes::description_error, "namd.err");
-    
+
     //MPI configuration
-    jd.set_attribute (saga::job::attributes::description_spmdvariation, "mpi");
-    
-    jd.set_attribute(saga::job::attributes::description_numberofprocesses, "2");
+    jd.set_attribute (saga::job::attributes::description_spmdvariation, "single");
+    jd.set_attribute(saga::job::attributes::description_numberofprocesses, "16");
 
     //Allocation
-    jd.set_attribute (saga::job::attributes::description_queue, "loni_jha_big@workq");
-    
-    
+    jd.set_attribute (saga::job::attributes::description_queue, "loni_jha_big@");
+
     std::vector<std::string> args;
-    args.push_back("120");
-    args.push_back("50 20");
+    args.push_back("/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2 NPT.conf");
+    args.push_back("mpi");
     if (!args.empty())
         jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
    
@@ -45,13 +43,13 @@ int main (int argc, char* argv[])
     std::string id = job.get_job_id();
     
     std::cout<<"Job ID: "<< id << std::endl;    
-    saga::job::state state  = job.get_state();
-    
-    std::cout<<"Job State: "<< print_state(state) << " ... run job now."<<std::endl;    
+    //saga::job::state state  = job.get_state();
+    //
+    //std::cout<<"Job State: "<< print_state(state) << " ... run job now."<<std::endl;    
     job.run();    
     
-    state  = job.get_state();
-    std::cout<<"Job State: "<< print_state(state) << std::endl;
+    //state  = job.get_state();
+    //std::cout<<"Job State: "<< print_state(state) << std::endl;
  
     
     //cancel job
