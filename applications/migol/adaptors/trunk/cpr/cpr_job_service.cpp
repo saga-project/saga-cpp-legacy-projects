@@ -59,8 +59,26 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
                                                     TR1::shared_ptr <saga::adaptor> adaptor)
 : base_cpi (p, info, adaptor, cpi::Noflags)
 {
+    instance_data data (this);
+    saga::url rm = data->rm_; 
+    if ( ! data->rm_.get_url ().empty () )
+    {
+        std::string scheme (data->rm_.get_scheme ());
+        if ( ! ( scheme.empty () ) && 
+            ! ( scheme == "cpr" ) && 
+            ! ( scheme == "migol" ) &&
+            ! ( scheme == "any" ) ) 
+        {
+            SAGA_LOG_BLURB ("saga default cpr adaptor: cpr_job_service c'tor refuse");
+            SAGA_ADAPTOR_THROW ("Can't use schemes others from 'any', 'migol', or 'cpr' " 
+                                "for cpr job submission.", saga::NotImplemented);
+        }
+        //get rm data        
+        rm =data->rm_;
+    }            
+    
     //check whether Migol has been initialized 
-    std::string guid("");
+    std::string guid("");    
     mutex_type::scoped_lock l(mtx_);
     {//scoped lock
         adaptor_data_t d(this);
@@ -79,8 +97,7 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
     }
    
    // check if we can handle this request
-   instance_data data (this);
-   saga::url rm = data->rm_;    
+     
    std::string scheme (rm.get_scheme ());
    std::cout<<"Job Manager: " << rm.get_string () << std::endl;
    if ( ! ( scheme.empty () ) && 
@@ -103,7 +120,7 @@ cpr_job_service_cpi_impl::~cpr_job_service_cpi_impl (void)
         guid = d->migol_guid;
         state = d->migol_state;
     
-        if(state!="done"){
+        if(guid!="" && state!="done"){
             migol::instance()->change_service_state(guid, "done");  
             migol::instance()->finalize_external_monitoring(); 
             d->migol_state="done";
@@ -118,8 +135,10 @@ void cpr_job_service_cpi_impl::sync_create_job_cpr (saga::cpr::job         & ret
                                                     saga::cpr::description   jd_run,
                                                     saga::cpr::description   jd_restart)
 {
-    std::string guid;
     saga::url rm;
+    std::string guid;
+
+    instance_data data(this);
     mutex_type::scoped_lock l(mtx_);
     {//scoped lock
         adaptor_data_t d(this);
@@ -130,9 +149,7 @@ void cpr_job_service_cpi_impl::sync_create_job_cpr (saga::cpr::job         & ret
                                 saga::IncorrectState);
         }
         std::cout << "cpr_job_service_cpi_impl::sync_create_job_cpr: " << guid << std::endl;
-        //get rm data
-        instance_data data(this);
-        rm =data->rm_;
+               
     }
          
     //////////////////////////////////////////////////////////////////////////////
