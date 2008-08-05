@@ -100,13 +100,6 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
      
    std::string scheme (rm.get_scheme ());
    std::cout<<"Job Manager: " << rm.get_string () << std::endl;
-   if ( ! ( scheme.empty () ) && 
-         ! ( scheme == "gram" ) && 
-         ! ( scheme == "any" ) ) 
-    {
-      SAGA_ADAPTOR_THROW ("Must specifiy GRAM url " 
-                          "for cpr job submission.", saga::IncorrectURL);
-    }   
 }
 
 // destructor
