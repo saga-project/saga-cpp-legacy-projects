@@ -28,6 +28,7 @@ extern "C" {
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 
 //#include <saga/types.hpp>
@@ -1440,7 +1441,8 @@ int __migol__checkPoint(struct soap*, char *migoldef__checkPoint, bool &migoldef
 }
 
 int __migol__checkService(struct soap*, char *migoldef__checkService, bool &migoldef__checkServiceResponse){
-    std::cout<<"checkService"<<std::endl;
+    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time(); 
+    std::cout<<"checkService"<<now<<std::endl;
     migoldef__checkServiceResponse=true;
     return SOAP_OK;
 }
