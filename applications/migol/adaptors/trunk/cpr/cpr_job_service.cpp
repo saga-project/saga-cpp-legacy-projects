@@ -73,8 +73,6 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
             SAGA_ADAPTOR_THROW ("Can't use schemes others from 'any', 'migol', or 'cpr' " 
                                 "for cpr job submission.", saga::NotImplemented);
         }
-        //get rm data        
-        rm =data->rm_;
     }            
     
     //check whether Migol has been initialized 
@@ -147,6 +145,7 @@ void cpr_job_service_cpi_impl::sync_create_job_cpr (saga::cpr::job         & ret
          
     //////////////////////////////////////////////////////////////////////////////
     // create job cpi    
+    rm = data->rm_;
     std::cout<<"Create Job at RM: "<< rm.get_string() <<std::endl;
     saga::cpr::job job = saga::adaptors::cpr_job(rm.get_url (), jd_run, jd_restart);
    

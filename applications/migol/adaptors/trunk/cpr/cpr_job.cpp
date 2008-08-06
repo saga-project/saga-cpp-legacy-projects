@@ -251,8 +251,12 @@ void cpr_job_cpi_impl::sync_run (saga::impl::void_t & ret)
     }
     SAGA_OSSTREAM strm;
     strm << rm_.get_host();
-    if (rm_.get_path()!=""){
-            strm<<"/"<<rm_.get_path();
+    std::string path = rm_.get_path();
+    if (path!=""){
+	if(path.at(0)=='/') {
+		path.erase(0,1);
+        }
+        strm<<"/"<<path;
     }
     std::string contact = SAGA_OSSTREAM_GETSTRING(strm);
     boost::shared_ptr<cpr::migol> mig= cpr::migol::instance();
