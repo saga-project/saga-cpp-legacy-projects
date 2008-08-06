@@ -1,119 +1,136 @@
-""" The main script for REMDgManager that are able to run fault-recovery via SAGA-CPR/Migol
+""" The main script for REMDgManager that are able to run fault-recovery REMD via SAGA-CPR/Migol
 
 Usage : (For Test_RE)   python main.py  
                      or python main.py --type=Test_RE
-        (For REMD) not yet
+        (For REMD) python main.py --type=REMD --configfile=remd.config
 
 jhkim at cct dot lsu dot edu
-"""
 
-import sys, os
+
+
+(Note on the current stage)
+1. Currently, the following simple scenario is assumed.
+a. each replica is submitted to each local scheduler via CPR/Migol  (will be changed with the major revision)
+b. There is a wrapper in HPC to register checkpoint files to migol (all file are registered as checkpoint files)
+
+"""
+import sys, os, random, time
 import optparse
 import logging
 import saga
 
-
 ########################################################
 #  Global variable 
 ########################################################
-class ApplicationManagerInfo (object):
+class RE_INFO (object):
     """ 
-    This calss holds information about application manager environment and jobs
+    This class holds information about the application and replicas remotely running via SAGA-CPR/MIGOL
     
     """
-    am_type = ""
-    am_package_name = ""
     
-    def __init__(self, am_type, am_package_name):
-        self.jobdescription = {'executable':"", \
-                      'arguments':[], \
-                      'environment':[],\
-                      'workingdirectory':"" ,\
-                      'interactive':"" ,\
-                      'input':"" , \
-                      'output':"" , \
-                      'error':"" , \
-                      'filetransfer':"" , \
-                      'cleanup':"" , \
-                      'jobstarttime':"" , \
-                      'totalcputime':"" , \
-                      'totalphysicalmemory':"" , \
-                      'cpuarchitecture':"" , \
-                      'operatingsystemtype':"" , \
-                      'candidaetehosts' : []  , \
-                      'queue':"" , \
-                      'jobcontact':"" , \
-                      'spmdvariation':"", \
-                      'totalcpucount':"" , \
-                      'numberofprocesses':"", \
-                      'processesperhost':"", \
-                      'threadsperprocess':""    # up to this line from python-binding
-                      }
+    def __init__(self):
+        # general info
+        self.app_name = "NAMD"
+        self.stage_in_files = []
+        self.numberofprocesses = '0'
+        self.exchange_count = 0
+        self.totalcputime = '40'
+        self.arguments = []
         
-        self.am_type = am_type                  
-        self.am_package_name = am_package_name
+        # lists for variables of each replica (Note that these variable should have n variables where n is self.replica_count
+        self.replica_count = 0
+        self.remote_hosts = []
+        self.remote_host_local_schedulers = []
+        self.projects = []
+        self.queues = []
+        self.workingdirectories = []
+        self.excutables = []
+        self.temperatures = []
+        
+        # instant variable for replica exchange
+        self.replica_saga_jobs = []   # saga jobs
+        self.istep = 0
+        self.iEX = 0
+        
+        
 #####################################
 #  Elementary Functions
 ########################################################
 
-
-def file_stagein(localfile_url_string, remotefile_url_string):
-    error_string = ""    
-
-    ifile = saga.file(saga.url(localfile_url_string))
+def set_saga_job_description(replica_ID, RE_info):
     
-    try:
-        ifile.copy(saga.url(remotefile_url_string))
-    except saga_exception, err :
-        error_string = "SAGA exception when " + localfile_url_string + " is sent to " + remotefile_url_string + " with " + str(err)
+    jd.saga.job.description()
     
-    return error_string
+    jd.numberofprocesses = RE_info.numberofprocesses
+    jd.spmdvariation = "mpi"
+    jd.totalcputime = RE_info.totalcputime
+    jd.arguments = RE_info.arguments   
+    
+    jd.executable = RE_info.executables[replica_ID]
+    jd.queue = RE_info.projects[replica_ID] + "@" + RE_info.queues[replica_ID]
+    jd.workingdirectory = RE_info.workingdirectories[replica_ID]
+    
+    return jd
 
-def file_stageout(remotefile_url_string, localfile_url_string):
+
+def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote_dir):
+
+    saga = check_and_import_saga()
+    
+    for ifile in input_file_list_with_path:
+        if remote_machine_ip.find('localhost') >= 0:
+            dest_url_str = 'file:///'
+        else:
+            dest_url_str = 'gridftp://'+remote_machine_ip + "/"
+        source_url_str = 'file:///'
+
+        ifile_basename = os.path.basename(ifile)
+        if not os.path.isfile(ifile):
+            error_msg = "Input file %s does not exist in %s"%(ifile_basename, os.path.dirname(ifile))
+            logging.error(error_msg)
+        else:
+                
+            try:
+                source_url_str = source_url_str+ifile
+                dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
+                source_url = saga.url(source_url_str)
+                dest_url = saga.url(dest_url_str)
+
+                sagafile = saga.file.file(source_url)
+                sagafile.copy(dest_url)
+                logging.info("Now Input file %s is staged into %s"%(ifile_basename,dest_url_str))
+            except saga.exception, e:
+                error_msg = "Input file %s stage in failed"%(ifile_basename)
+                logging.error(error_msg)
+                
+        return None
+    
+    
+def submit_job(dest_url_string, jd):
     error_string = ""
     
-    ofile = saga.file(saga.url(remotefile_url_string))
-    
-    try:
-        ifile.copy(saga.url(localfile_url_string))
-    except saga_exception, err :
-        error_string = "SAGA exception when " + remote_url_string + " is moved into " + localfile_url_string + " with " + str(err)
-    
-    return error_string   
+    js = saga.job.service(saga.url(target_url_string))
 
-def set_saga_job_description(saga_jd, am):
-    
-    
-    
-    
-    
-    return saga_jd
-    
-    
-def submit_job(target_url_string, AM):
-    error_string = ""
-    
-    js = saga.job.service(target_url_string)
-    jd = saga.job.description()
-    jd = set_sagajob_description(jd, AM)
     new_job = js.create_job(jd)
     
     new_job.run()
         
     return error_string, new_job
 
-def submit_job_cpr(target_url_string, AM):
+def submit_job_cpr(dest_url_string, jd, checkpt_files):
     error_string = ""
     
-    js = saga.job.service(target_url_string)
+    js = saga.cpr.service(saga.url(dest_url_string))
     jd_start = saga.job.description()
-    jd_start = set_sagajob_description(jd, AM)
+    jd_start = jd
     jd_restart = saga.job.description()
-    jd_restart = set_sagajob_description(jd, AM)
+    jd_restart = jd
     
     #here checkpoint files are registered
-    check_point = saga.cpr.checkpoint(target_url_string)
-    check_point = add_files_cpr(check_point. AM)
+    check_point = saga.cpr.checkpoint("REMD_MANAGER_CHECKPOINT")
+    
+    for ifile in checkpt_files:
+        check_point.add_files(ifile)
     
     new_cpr_job = js.create_job(jd_start, jd_restart)
     
@@ -121,43 +138,174 @@ def submit_job_cpr(target_url_string, AM):
         
     return error_string, new_cpr_job
 
-def get_job_state(launched_job):
-    
-    lj_state = str(launched_job.get_state())
-    
-    return lj_state
 
+def get_energy(replica_ID, RE_info):
+    # not implemented yet
+    
+    return en
 
 #########################################################
 #  Initialize
 #########################################################
-def initialize():
+def initialize(config_filename):
     
-    return error_string
-
-#########################################################
-#  proceed_nstep
-#########################################################
-def proceed_nstep():
+    RE_info = RE_INFO()
     
-    return error_string
-
-
-#########################################################
-#  gather_checkFault_replicaEx
-#########################################################
-def gather_checkFault_replicaEx():
+    conf_file = open(config_filename)
+    lines = conf_file.readlines()
+    conf_file.close()
+    # config file should have the following format. In brief, : is needed between the keyword and variable(s) where 
+    # multi variables are separated by spaces 
+    # exeutables :  /usr/local/namd  /usr/local/namd 
+    # arguments : NPT.conf 
     
-    return error_string
+    for line in lines:
+        items = line.split(':')
+        if len(items) == 2 and line.find(':'):
+            key = items[0].split()
+            value = items[1].split()
+            
+            # list of variables for each replica
+            if key == 'remote_host':
+                for ihost in value:
+                    RE_info.remote_hosts.append(ihost)
+            
+            elif key == 'remote_host_local_scheduler':
+                for isched in value:
+                    RE_info.remote_host_local_schedulers.append(isched)
+            
+            elif key == 'workingdirectory':   # this is the list of working directories for each replica in order with remote_hosts
+                for idir in value:
+                    RE_info.workingdirectories.append(idir)
+            
+            elif key == 'executable':
+                for ival in value:
+                    RE_info.executables.append(ival)
+                
+            elif key == 'queue':
+                for ival in value:
+                    RE_info.queues.append(ival)
+    
+            elif key == 'project':     
+                for ival in value:
+                    RE_info.projects.append(ival)      
+ 
+                    # variables common to all replicas
+            elif key == 'arguments':
+                for ival in value:
+                    RE_info.arguments.append(ival)      
+ 
+            elif key == 'totalcputime':
+                RE_info.totalcputime = value    
+                
+            elif key == 'numberofprocesses':
+                RE_info.numberofprocesses = value 
+            
 
-
+            elif key == 'replica_count':
+                RE_info.replica_count = eval(value)
+                
+            elif key == 'exchange_count' :
+                RE_info.exchange_count = eval(value)    
+                
+            elif key == "stage_in_file" :
+                for ifile in value:
+                    RE_info.stage_in_files.append(ifile)      
+            elif key == "temperature" :
+                for itemp in value:
+                    RE_info.temperatures.append(eval(itemp))        
+            
+            else :
+                logging.info("this line %s in %s does not have configure variables"%(line, config_filename))    
+            
+                
+        else :
+            logging.info("this line %s in %s does not have configure variables"%(line, config_filename))
+                         
+    random.seed(time.time()/10.)
+    
+    return RE_info
 
 #########################################################
 #  run_REMDg
 #########################################################
-def run_REMDg(arguments):
-    AM = ApplicationManagerInfo("REMD","NAMD")
-    intialize()    
+def run_REMDg(configfile_name):
+
+    # initialize of all replica and its related variables
+    RE_info = intialize()
+    
+    numEX = RE_info.exchange_count    
+    numReplica = RE_info.replica_count
+    
+    ofilenamestring = "replica-temp-%d.out"
+    ofilenamelist = [ofilenamestring%i for i in range (0,numReplica)]
+
+    iEX = 0
+    while 1:
+        # input file stage in
+        for irep in range(0, numReplica):
+           
+           remote_machine_ip = RE_info.remote_hosts[irep]
+           remote_dir = RE_info.workingdirectories[irep]
+           for ifile in RE_info.stage_in_files:
+               file_stage_in_with_saga(ifle, remote_machine_ip, remote_dir) 
+            
+        # job submit   
+        RE_info.replica = []
+        for irep in range(0,numReplica):
+
+            jd = set_saga_job_description(irep, RE_info)
+            dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-pbs"    # just for the time being
+            checkpt_files = []     # will be done by migol not here  (JK  08/05/08
+            new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+            RE_info.replica.append(new_job)
+
+            print "Replica " + "%d"%replicaListing[ireplica] + " started (Run = %d)"%(iEX+1)
+
+        # job monitoring step
+        energy = [0 for i in range(0, numReplica)]
+        flagJobDone = [ False for i in range(0, numReplica)]
+        numJobDone = 0
+        while 1:    
+            for irep in range(0, numReplica):
+                running_job = RE_info.replica[irep]
+                state = running_job.get_state()
+                if (str(state) == "Done") and (flagJobDone[irep] is False) :   
+                    print "Replica " + "%d"%(irep+1) + " done"
+                    
+                    energy[irep] = get_energy(irep, RE_info)
+                    flagJobDone[irep] = True
+                    numJobDone = numJobDone + 1
+                else :
+                    pass
+            
+            if numJobDone == numReplica:
+                break
+            
+        # replica exchange step        
+        for irep in range(0, numReplica-1):
+            en_a = energy[irep]
+            en_b = energy[irep+1]
+            if math.exp(-en_a/RE_info.temperature[irep] + en_b/RE_info.temperature[irep+1]) > random.random() :
+                tmpNum = RE_info.temperature[irep+1]
+                RE_info.temperature[irep+1] = RE_info.temperature[irep]
+                RE_info.temperature[irep] = tmpNum
+            else :
+                pass
+    
+        iEX = iEX +1
+        output_str = "%5d-th EX :"%iEX
+        for irep in range(0, numReplica):
+            output_str = output_str + "  %5d"%RE_info.temperature[irep]
+        
+        print "\n\nExchange result : "
+        print output_str + "\n\n"
+                    
+        if iEX == numEX:
+            break
+
+
+
 
 #########################################################
 #  run_test_RE
@@ -168,7 +316,7 @@ def run_test_RE(nReplica, nRand):
     app_name = "test_app.py"
     numReplica = nReplica
     numRand = nRand        
-    AM = ApplicationManagerInfo("TEST_RE",app_name)
+    
     curr_working_dir = os.getcwd()
     ofilenamestring = "test-%d.out"
     ofilenamelist = [ofilenamestring%i for i in range (0,numReplica)]
@@ -245,13 +393,14 @@ def run_test_RE(nReplica, nRand):
 if __name__ == "__main__" :
 
     op = optparse.OptionParser()
-    op.add_option('--name','-n')
     op.add_option('--type','-t')
+    op.add_option('--configfile','-cf')
+    op.add_option('--numreplica','-nr',default='2')
     options, arguments = op.parse_args()
     
-    if options.type in (None,"test_RE", 5, 50):
-        run_test_RE(5,20)   #sample test for Replica Exchange with localhost
+    if options.type in (None,"test_RE"):
+        run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
     elif options.type in ("REMD"):
-        run_REMDg(options.appname) 
+        run_REMDg(option.configfile) 
     
     
