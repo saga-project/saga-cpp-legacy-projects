@@ -14,7 +14,7 @@ a. each replica is submitted to each local scheduler via CPR/Migol  (will be cha
 b. There is a wrapper in HPC to register checkpoint files to migol (all file are registered as checkpoint files)
 
 """
-import sys, os, random, time
+import sys, os, os.path, random, time
 import optparse
 import logging
 import saga
@@ -44,7 +44,7 @@ class RE_INFO (object):
         self.projects = []
         self.queues = []
         self.workingdirectories = []
-        self.excutables = []
+        self.executables = []
         self.temperatures = []
         
         # instant variable for replica exchange
@@ -74,8 +74,6 @@ def set_saga_job_description(replica_ID, RE_info):
 
 
 def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote_dir):
-
-    saga = check_and_import_saga()
     
     for ifile in input_file_list_with_path:
         if remote_machine_ip.find('localhost') >= 0:
@@ -100,7 +98,7 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
                 sagafile.copy(dest_url)
                 logging.info("Now Input file %s is staged into %s"%(ifile_basename,dest_url_str))
             except saga.exception, e:
-                error_msg = "Input file %s stage in failed"%(ifile_basename)
+                error_msg = "Input file %s failed to be staged in"%(ifile_basename)
                 logging.error(error_msg)
                 
         return None
@@ -140,7 +138,9 @@ def submit_job_cpr(dest_url_string, jd, checkpt_files):
 
 
 def get_energy(replica_ID, RE_info):
-    # not implemented yet
+    # not implemented yet. it is dummy.
+    
+    en = 0.4
     
     return en
 
@@ -160,10 +160,10 @@ def initialize(config_filename):
     # arguments : NPT.conf 
     
     for line in lines:
-        items = line.split(':')
-        if len(items) == 2 and line.find(':'):
-            key = items[0].split()
-            value = items[1].split()
+        items = line.split()
+        if line.find(':'):
+            key = items[0]
+            value = items[2:]
             
             # list of variables for each replica
             if key == 'remote_host':
@@ -196,17 +196,17 @@ def initialize(config_filename):
                     RE_info.arguments.append(ival)      
  
             elif key == 'totalcputime':
-                RE_info.totalcputime = value    
+                RE_info.totalcputime = value[0]    
                 
             elif key == 'numberofprocesses':
-                RE_info.numberofprocesses = value 
+                RE_info.numberofprocesses = value[0] 
             
 
             elif key == 'replica_count':
-                RE_info.replica_count = eval(value)
+                RE_info.replica_count = eval(value[0])
                 
             elif key == 'exchange_count' :
-                RE_info.exchange_count = eval(value)    
+                RE_info.exchange_count = eval(value[0])    
                 
             elif key == "stage_in_file" :
                 for ifile in value:
@@ -247,8 +247,8 @@ def run_REMDg(configfile_name):
            
            remote_machine_ip = RE_info.remote_hosts[irep]
            remote_dir = RE_info.workingdirectories[irep]
-           for ifile in RE_info.stage_in_files:
-               file_stage_in_with_saga(ifle, remote_machine_ip, remote_dir) 
+           
+           file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
             
         # job submit   
         RE_info.replica = []
@@ -394,8 +394,8 @@ if __name__ == "__main__" :
 
     op = optparse.OptionParser()
     op.add_option('--type','-t')
-    op.add_option('--configfile','-cf')
-    op.add_option('--numreplica','-nr',default='2')
+    op.add_option('--configfile','-c')
+    op.add_option('--numreplica','-n',default='2')
     options, arguments = op.parse_args()
     
     if options.type in (None,"test_RE"):
