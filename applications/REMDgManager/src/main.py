@@ -209,8 +209,10 @@ def initialize(config_filename):
                 RE_info.exchange_count = eval(value[0])    
                 
             elif key == "stage_in_file" :
+                cwd = os.getcwd()
                 for ifile in value:
-                    RE_info.stage_in_files.append(ifile)      
+                    ifile_with_path = cwd + "/" + ifile    # of course unix machine
+                    RE_info.stage_in_files.append(ifile_with_path)      
             elif key == "temperature" :
                 for itemp in value:
                     RE_info.temperatures.append(eval(itemp))        
