@@ -477,9 +477,7 @@ while 1:
 
 \Section{Experiences with REMD}
 \label{sec:exp}       
-
         
-%do we use checkpoints or do we automatically restart the task
 Figure~\ref{fig:saga-taskfarming} gives an overview about the task farming scenario. All tasks are
 distributed using a script and Migol's Job Broker Service.
 %  Each worker will compute a certain 
@@ -488,13 +486,55 @@ distributed using a script and Migol's Job Broker Service.
 To enable the monitoring of a tasks, each task must initialize a \texttt{saga::cpr::service} object 
 before starting the computation.  Then, the Migol adaptor starts and registers the monitoring endpoint. 
 %TODO what is the task size/runtime of a single task
-The MRS can now monitor the application.  For error detection we use a timeout of \textbf{xx} minutes.
+The MRS can now monitor the application.  For error detection we use a timeout of 1\,minutes.
+
 \begin{figure*}[t]
     \centering
         \includegraphics[width=0.6\textwidth]{saga-taskfarming}
-    \caption{Fault Tolerant Task Farming Scenario \jhanote{Need more details in Caption} }
+    \caption{Fault Tolerant Molecular Dynamic Simulation: The REMDgManager orchestrates a set of distributed replica processes using the SAGA API. All processes synchronize important metadata with the Migol infrastructure. Migol then actively monitors all processes and ensures that, even in the presence of failures, all task are eventually completed.}
     \label{fig:saga-taskfarming}
 \end{figure*} 
+
+However, enhanced fault tolerance is usually associated with some overhead. To evaluate the performance of the REMDgManager several experiments have been conducted within the LONI Grid~\cite{Allen:2003xy}. The REMDgManager has been been deployed on the 4 Linux machines of the LONI Grids. The majority of the measurements have been conducted on QueenBee, a 50
+
+The main concern of this initial investigation is overhead caused by the necessary interactions with the Migol backend, in particular for job submission, registration of metadata and active monitoring.
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.47\textwidth]{performance/perf_submission.pdf}
+    \caption{SAGA/CPR Migol Adaptor Overhead}
+    \label{fig:performance_perf_submission}
+\end{figure}           
+Figure~\ref{fig:performance_perf_submission} shows the runtimes of important CPR API operations in comparison to their non fault tolerant counterparts. A particular critical operations for REMDgManager is the spawning of remote tasks. Depending on the number of replica processes, for each replica step n replica processes must be launched and monitored.  To evaluate the overhead, a single NAMD task was started using SAGA CPR/Migol.  The experiment showed that a CPU job submission is per average \textbf{1}\,second slower than a normal GRAM submission. This overhead is attributed mainly to the additional metadata registration operation conducted by the Migol adaptor. 
+
+In addition to the submission overhead, the Migol adaptor shows some additional initialization overhead. The overall runtime of this simple REMD submission task run with Migol is with 6.45\,sec about \textbf{3.5}\,sec slower than the GRAM launcher. In particular, the initialization of a Migol jobs requires the setup of the HTTP server as well as several metadata updates at the AIS which accounts to the additional costs.
+                                                                                                                      
+In addition to the job submission, it is in particular interesting how the runtime of the replica process is effected by the active monitoring and the replication of the checkpoints. To evaluate this, a NAMD job with 1000 steps was started with and without Migol support. During this run an monitoring intervall of 1 minute was used. Checkpoint metadata has been updated every five minutes - a single checkpoint update required per average  1.3\,seconds per average as shown in Figure~~\ref{fig:performance_perf_submission}.  During this 21\,minute NAMD run the overhead average to 20\,s and thus amounts to about 2\%.
+
+
+%% Work in Progress
+To test the restart mechanism selected NAMD processes have been killed using \texttt{kill -9}
+However, the restart process through the JBS requires about 42 seconds. However, it must be noted that there are some complex interactions going on:
+\begin{itemize}
+    \item Migration Service is called - the services verifies the state of the application and tries to trigger a checkpoint
+    \item Job Broker Service: verifies state of resource job was allocated before. This requires some interaction with the MDS. In addition bandwidth information etc. are acquired
+    \item restarts the job at the respective resource. Due to architectural reasons Migol jobs are restarted through the Advance Reservation Service. It's most noted feature in contrast to the GRAM is the support for advance reservation. In contrast to the GRAM, the ARS is not bound to a single Grid site, i.\,e.\ if allowed by the administrator it is able to conduct reservation respectively job starts at any resource in the Grid. Local resource management systems are detected during the runtime of the job. However, this feature is associated with some overhead in contrast to a simple GRAM submission.
+\end{itemize}
+
+Analysis of recovery time:
+\begin{itemize}
+	\item failure detection time per average 3.5 minutes
+	\item Restart of the job:
+\end{itemize}        
+
+While these results show that SAGA/CPR in conjunction with Migol incurs some 
+overhead, we think that this is acceptable compared to the benefits a fault tolerant, 
+self healing infrastructure offers.
+
+
+%Some comments with respect to solved REMD problem:    
+% about 17 MB data to transfer for a migration
+
+
 
 The REMDgManager was functionally tested on the LONI Grid. The following aspects are from interest:
 \begin{itemize}
@@ -523,6 +563,8 @@ The REMDgManager was functionally tested on the LONI Grid. The following aspects
                                                 
     \alnote{The last two aspects should go due to timing reasons into the Phil Trans paper.}
 \end{itemize}
+                                             
+     
                                              
 
 \Section{Related Work}
