@@ -96,7 +96,9 @@ int main (int argc, char* argv[])
 /** parse checkpoint directory for new files and register files with AIS **/
 void update_checkpoints(std::string checkpoint_dir){
     unsigned long file_count = 0;
-	unsigned long err_count = 0;
+    unsigned long err_count = 0;
+    struct timeval startCheckRegTime, endCheckRegTime; 
+    double atime;    
     
     //get current files from AIS
     saga::url url(CHECKPOINT_NAME);
@@ -129,7 +131,12 @@ void update_checkpoints(std::string checkpoint_dir){
                     if(!exists){
                         saga::url u = build_url(p);
                         std::cout<< "Create file: " << u <<std::endl;;
+			gettimeofday(&startCheckRegTime, NULL);
                         chkpt.add_file(u);
+			gettimeofday(&endCheckRegTime, NULL);
+			atime =  (double) (endCheckRegTime.tv_sec + endCheckRegTime.tv_usec / 1e6)
+				    - (startCheckRegTime.tv_sec + startCheckRegTime.tv_usec / 1e6 );
+			std::cout<<"Checkpoint Registration Time" << atime <<std::endl;
                     } else {
                         SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
                         {
