@@ -390,7 +390,7 @@ job.run ();
     
 A major building block for fault tolerant system is failure detection. In general, fault detection is done by a monitor process, 
 which periodically sends keep-alive messages to applications. To monitor applications, the application must provide a communication endpoint.
-Listing~\ref{lst:saga_init_service} shows how a CPR application can connect to the CPR infrastructure. During instantiation of the \texttt{saga::cpr::service} object the adaptor is able to setup a monitoring thread (see section~\ref{sec:saga_cpr_migol_adaptor}). Using the \texttt{saga::cpr::self} object an application can obtain metadata about the current job from the application.                                                                               
+Listing~\ref{lst:saga_init_service} shows how a CPR application can connect to the CPR infrastructure. During instantiation of the \texttt{saga::cpr::service} object the adaptor is able to setup a monitoring thread. Using the \texttt{saga::cpr::self} object an application can obtain metadata about the current job from the application.                                                                               
 \begin{lstlisting}[style=myListing, caption={SAGA CPR: Initialize Migol Session}, label={lst:saga_init_service}]
 saga::cpr::service service (saga::url 
     ("migol://gridhub.cct.lsu.edu:8443/wsrf/services/migol/AIS-JGroups"));
@@ -402,7 +402,7 @@ After start of a CPR job, the job can be monitoring using the \texttt{job.get\_s
     \centering
         \includegraphics[width=0.48\textwidth]{cpr-statemodel.pdf}
     \caption{SAGA CPR State Model \jhanote{Need more details in Caption} }
-    \label{fig:cpr-statemodel }
+    \label{fig:cpr-statemodel}
 \end{figure}
                                
 
@@ -417,15 +417,24 @@ saga::cpr::checkpoint remd_chkpt("remd_chkpt");
 remd_checkpoint.add_file (saga::url 
   ("gsiftp://qb.loni.org/work/remd/chkpt.dat"));
 \end{lstlisting}
+                        
 
-In the following different implementation issues regarding the Migol SAGA adaptor are discussed.
+The Migol adaptor provides a compliant SAGA CPR stack for the C++ reference implementation~\cite{Kaiser:2006qp}. The adaptor provides extensive application-level monitoring capabilities using a heartbeat protocol~\cite{Hanmer:2007kx}. The monitoring endpoint is implemented using the gSoap HTTP server~\cite{gsoap}. This monitoring server is transparently initialized with the creation of a CPR service object. 
 
-\Section{SAGA CPR Migol Adaptor}  
-\label{sec:saga_cpr_migol_adaptor}
-                  
-Naming: GUID - saga job id mapping
+% The URL of the endpoint is stored in the Application Information Service (AIS) where it can be obtained by the Monitoring Restart Service (MRS).
 
-gsoap embedded web server as monitoring endpoint
+Another critical aspects is the management of the application's metadata. To ensure the recoverability of an application, metadata, such as the job description and information about written checkpoint files must be available even if the application failed. The Migol adaptor relies on the Application Information Service (AIS) as metadata backend. Every job is associated with a global unique identifier (GUID), which is initially created when an application first registers. All metadata belonging to an application can be stored or queried with reference to the GUID. The following information are maintained in the AIS:
+\begin{itemize}
+    \item During the job start, the job description for starting and restarting of an application is mapped to the resource, service, and file profile of the Grid Service Object schema used by Migol. This GSO is then registered at the AIS.
+    \item The SAGA job state is mapped to the more comprehensive Migol state model, which introduces additional states such as \emph{migrating} or \emph{pending}. All state transitions are directly propagated to the AIS. 
+    \item After startup of the application, the monitoring endpoint, i.\,e.\ the URL of the embedded SOAP server, is updated.
+    \item During the runtime, metadata about checkpoint are periodically updated by the application.
+\end{itemize}
+To ensure the availability of these information in case of a failure, the AIS is actively replicated across multiple Grid nodes.
+
+                                                  
+% MPI monitoring cannot be done without touch NAMD application
+% In the following different implementation issues regarding the Migol SAGA adaptor are discussed.
 
 
 \Section{Implementing Replica Exchange Using SAGA}
