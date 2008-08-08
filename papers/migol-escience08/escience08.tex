@@ -480,14 +480,33 @@ To ensure the availability of these information in case of a failure, the AIS is
 \end{figure*}
 
                                   
-The REMDgManager provides a scalable infrastructure for running replica exchange simulations. The application utilizes the SAGA CPR API and the underlying Migol infrastructure to efficiently and reliable manage replica processes. Figure~\ref{fig:REMDgManager-architecture} illustrates the architecture of the REMDgManager. The replica manager is the main component of the framework -- it is responsible for orchestration of all replica processes, i.\,e.\ the parameterization of the tasks, the file stagein, the job spawning as well as the conduction of the replica exchange. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the application sequence of a REMD simulation.
-                                    
-Initially the REMDgManager determines the parameterization of all replica processes based on the user's configuration. Based on this information the REMDgManager transfers all files to the respective resource using the SAGA File API (arrow 1) and the GridFTP adaptor. The replica process is the started using the CPR API and Migol/GRAM (arrows 2a)-2c)). The job description of each task is stored within the Migol infrastructure to ensure a later recovery. The job start itself is done via the GRAM service. 
-    
+The REMDgManager provides a scalable infrastructure for running replica exchange simulations. 
+The application utilizes the SAGA CPR API and the underlying Migol infrastructure to 
+efficiently and reliable manage replica processes. Figure~\ref{fig:REMDgManager-architecture} 
+illustrates the architecture of the REMDgManager. The replica manager is the main component of 
+the framework -- it is responsible for orchestration of all replica processes, i.\,e.\ the 
+parameterization of replica tasks,  file staging, job spawning and the conduction of the 
+replica exchange itself. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the application sequence of a REMD simulation.
+ 
+At each replica exchange step, the REMDgManagers starts a defined number of replicas. The 
+current parameterization of each replica is stored within a list object and can be referenced 
+by the \texttt{replica\_id}. For each replica different metadata, such as the working directory, 
+the used configuration file, the temperature etc. is maintained.  Based on this information the 
+REMDgManager transfers all required files to the respective resource using the SAGA File API and 
+the GridFTP adaptor (step 1). The replica process is the started using the CPR API and Migol/GRAM (step 2a-2c). 
+The job description of each task is stored within the Migol infrastructure to ensure a later recovery. 
+The job start itself is done via the GRAM service. 
+  
 
-To integrate NAMD with the SAGA/Migol infrastructure a SAGA based wrapper application is used. This wrappers is responsible for updating the metadata of the application, i.\,e.\ the application state, monitoring endpoint and the URLs of newly written checkpoints at the Migol backend. The wrapper then launches the actual NAMD job using MPI. During the entire runtime the replica process is monitored by the Migol infrastructure using the monitoring endpoint of the NAMD launcher.
-
-The REMDgManagers start a defined number of replicas within a row. After all replicas have been successfully completed, the exchange step is conducted. After re-parameterization of all replicas all processes are relaunched.
+To integrate NAMD with the SAGA/Migol infrastructure a SAGA based wrapper application is used. 
+This wrappers is responsible for updating the metadata of the application, i.\,e.\ the state, 
+monitoring endpoint and the URLs of newly written checkpoints at the Migol backend. 
+The wrapper then launches the actual NAMD job using MPI. During the entire runtime the 
+replica process is monitored by the Migol infrastructure using the monitoring endpoint of the NAMD 
+launcher. This wrapper enables the flexible orchestration of multiple NAMD jobs through the
+ REMDgManager without modification of the NAMD source itself. After all replicas have 
+ been successfully completed, the exchange step is conducted, i.\,e.\ the REMDgManager 
+ determines new parameters for all replica tasks, stages the required files and relaunches all jobs.
 
 % SAGA APIs and SAGA CPR Migol infrastructure allow a user to build his/her own implementation of REMD adaptively considering the limitations of available resources.  That aspects comes from the high-level abstraction of SAGA and flexible implementation of Replica Exchange as well as fault-recovery with SAGA CPR Migol.  For example, one simple scenario is to assign a REMD manager in charge of a job submission/monitor/fault-recovery.  Each job corresponding one replica run with a assigned temperature is sent to HPC machine as a parallel MPI job by the manager and overall job execution and fault-recovery are monitored by the manager.  The following snippet shows the part of the code written with python for the REMD manager showing creation and submission of a job corresponding to each replica.  
                                              
@@ -538,15 +557,11 @@ for i in range(0, n):
 \Section{Experiences with REMD}
 \label{sec:exp}       
         
-Figure~\ref{fig:saga-taskfarming} gives an overview about the task farming scenario. All tasks are
-distributed using a script and Migol's Job Broker Service.
-%  Each worker will compute a certain 
-% variation of the graph network. Depending on the graph size, the runtime of a single task  can 
-% be as high as \textbf{TODO}  days. 
-To enable the monitoring of a tasks, each task must initialize a \texttt{saga::cpr::service} object 
-before starting the computation.  Then, the Migol adaptor starts and registers the monitoring endpoint. 
-%TODO what is the task size/runtime of a single task
-The MRS can now monitor the application.  For error detection we use a timeout of 1\,minutes.
+To evaluate the performance of the REMDgManager several experiments have been conducted 
+within the LONI Grid~\cite{Allen:2003xy}. The REMDgManager has been been deployed on the 
+three Linux clusters of the LONI Grid: QueenBee, Eric and Poseidon. 
+QueenBee is the largest LONI machine and has a peak performance of 50 TFlops.                         
+Figure~\ref{fig:saga-taskfarming} gives an overview about the REMDgManager scenario used for our experiments.  
 
 \begin{figure*}[t]
     \centering
@@ -555,12 +570,12 @@ The MRS can now monitor the application.  For error detection we use a timeout o
     \label{fig:saga-taskfarming}
 \end{figure*} 
 
-However, enhanced fault tolerance is usually associated with some overhead. To evaluate the performance of the REMDgManager several experiments have been conducted within the LONI Grid~\cite{Allen:2003xy}. The REMDgManager has been been deployed on the 4 Linux machines of the LONI Grids. The majority of the measurements have been conducted on QueenBee, a 50 TFlops Linux cluster.
-
-The main concern of this initial investigation is overhead caused by the necessary interactions with the Migol backend, in particular for job submission, registration of metadata and active monitoring.
-\begin{figure}[htbp]
+In particular interesting is the overhead caused by the fault tolerance mechanisms. This overhead 
+caused by the necessary interactions with the Migol backend, in particular for 
+job submission, registration of metadata and active monitoring.
+\begin{figure}[ht]
     \centering
-        \includegraphics[width=0.47\textwidth]{performance/perf_submission.pdf}
+        \includegraphics[width=0.45\textwidth]{performance/perf_submission.pdf}
     \caption{SAGA/CPR Migol Adaptor Overhead}
     \label{fig:performance_perf_submission}
 \end{figure}           
@@ -574,22 +589,21 @@ is attributed mainly to the additional metadata registration operation required 
 
 In addition to the submission overhead, the Migol adaptor shows some additional initialization 
 overhead. The overall runtime of this simple REMD submission task  including the initialization 
-is with 6.45\,sec about \textbf{3.5}\,sec slower than the GRAM launcher. In particular, 
+is with 6.45\,sec about 4.5\,sec slower than the GRAM launcher. In particular, 
 the initialization of a Migol jobs requires the setup of the HTTP server as well as several 
 metadata updates at the AIS, which accounts to the additional costs.
                                                                                                                      
 In addition to the job submission, it is in particular interesting how the runtime of the 
 replica process is effected by the active monitoring and the replication of the checkpoints. 
 To evaluate this, a NAMD job with 1000 steps was started with and without Migol support. 
-During this run an monitoring intervall of 1 minute was used. Checkpoint metadata has been 
+During this run a very eager monitoring intervall of 1 minute was used. Checkpoint metadata has been 
 updated every five minutes - a single checkpoint update required per average  1.3\,seconds 
 per average as shown in Figure~~\ref{fig:performance_perf_submission}.  During this 21\,minute 
 NAMD run the overhead average to 20\,s and thus only amounts to about 2\%. 
                                                                                    
 
 In the final scenario the REMDgManager has been setup to run a REMD simulation with 16 replica process 
-and 1000 replica exchange steps. Table~\ref{tab:app_stats} summarizes some application characteristics.
-
+and 100 replica exchange steps. Table~\ref{tab:app_stats} summarizes some application characteristics.
 \begin{table}        
     \centering
 	\begin{tabular}{|p{5cm}|l|}
@@ -605,58 +619,57 @@ and 1000 replica exchange steps. Table~\ref{tab:app_stats} summarizes some appli
 	\caption{REMD Application Characteristics\label{tab:app_stats}}
 \end{table}
 
-Further, the reliability capabilities of the proposed framework have been extensively research. 
-To test the restart mechanism selected NAMD processes have been killed using \texttt{kill -9}
-However, the restart process through the JBS requires about 42 seconds. However, it must be noted that there are some complex interactions going on:
-\begin{itemize}
-    \item Migration Service is called - the services verifies the state of the application and tries to trigger a checkpoint
-    \item Job Broker Service: verifies state of resource job was allocated before. This requires some interaction with the MDS. In addition bandwidth information etc. are acquired
-    \item restarts the job at the respective resource. Due to architectural reasons Migol jobs are restarted through the Advance Reservation Service. It's most noted feature in contrast to the GRAM is the support for advance reservation. In contrast to the GRAM, the ARS is not bound to a single Grid site, i.\,e.\ if allowed by the administrator it is able to conduct reservation respectively job starts at any resource in the Grid. Local resource management systems are detected during the runtime of the job. However, this feature is associated with some overhead in contrast to a simple GRAM submission.
-\end{itemize}
+Further, the reliability capabilities of the proposed framework have been extensively researched by inserting certain faults into 
+the systems. In our scenario, we killed selected replica processes and measured the time required by Migol to restarting the system.
+Due to the selected monitoring intervall of one minute and failure threshold of 2 tries, the failure detection time averages to 2.5\, minutes.
 
-Analysis of recovery time:
-\begin{itemize}
-	\item failure detection time per average 3.5 minutes
-	\item Restart of the job:
-\end{itemize}        
+As shown in Figure~\ref{fig:performance_perf_submission}  the recovery time required for the restart of the job amounts to 
+about 42 seconds. This is mainly caused by the complex interactions conducted with the Migol backend (cmp. section~\ref{sec:migol}):
+The monitoring service initializes the restart at the Migration Service, which again verifies the state of the application. A major performance
+penalty is the delegation-on-demand mechanism required to obtain the credential of the user from the AIS. For this purpose the creation of a public-private key 
+pair is necessary. The Job Broker Service then discovers and allocates resources. 
+The job start itself is conducted via the Advance Reservation Service. In contrast to the GRAM, the ARS is not bound to a single Grid site, i.\,e.\ if allowed by the administrator it is able to conduct reservation respectively job starts at any resource in the Grid. Local resource management systems are detected during the runtime of the job. However, this feature is associated with some overhead in contrast to a simple GRAM submission. 
+% \begin{itemize}
+%     \item The  Migration Service is called - the services verifies the state of the application and tries to trigger a checkpoint
+%     \item Job Broker Service: verifies state of resource job was allocated before. This requires some interaction with the MDS. In addition bandwidth information etc. are acquired
+%     \item restarts the job at the respective resource. Due to architectural reasons Migol jobs are restarted through the Advance Reservation Service. It's most noted feature in contrast to the GRAM is the support for advance reservation. In contrast to the GRAM, the ARS is not bound to a single Grid site, i.\,e.\ if allowed by the administrator it is able to conduct reservation respectively job starts at any resource in the Grid. Local resource management systems are detected during the runtime of the job. However, this feature is associated with some overhead in contrast to a simple GRAM submission.
+% \end{itemize}   
 
 While these results show that SAGA/CPR in conjunction with Migol incurs some 
 overhead, we think that this is acceptable compared to the benefits a fault tolerant, 
-self healing infrastructure offers.
+self healing infrastructure offers. In addition, it must be noted that further optimizations are possible.
 
 
 %Some comments with respect to solved REMD problem:    
 % about 17 MB data to transfer for a migration
 
-
-
-The REMDgManager was functionally tested on the LONI Grid. The following aspects are from interest:
-\begin{itemize}
-    \item \textbf{Speedup}: This test determines how much faster the Grid-enabled replica exchange algorithm is in comparison  to a sequential and/or a not Grid-enabled version.
-    
-    \item \textbf{Migol Overhead}:  During this test the overhead imposed by the Migol framework in comparison to a traditional SAGA/Globus infrastructure is evaluated. This overhead is mainly caused by the application-level monitoring, but can also be attributed to the necessary interaction with the Migol backend, e.\,g.\ for the registration of checkpoints. The following  metrics are evaluated:
-    \begin{itemize}
-        \item percentage overhead in runtime dependent on the monitoring interval
-        \item runtime overhead of Migol job submission and meta-data registration. 
-    \end{itemize}                                                           
-    
-    \item \textbf{Fault Injection Test:}  During this test, the functionality of the Migol framework is assed by introduction of different faults during the application run, e.\,g.:
-    \begin{itemize}
-        \item the failure of one or more worker nodes, or
-        \item the failure of the master node.        
-    \end{itemize}                       
-    During the test the correctness of the Migol framework and application is verified. In addition, the following metrics are determined:
-    \begin{itemize}
-        \item failure detection and recovery time
-        \item application runtime in correlation to the number of faults
-        \item recovery time versus false failure detection rate dependent on the monitoring intervall.
-    \end{itemize}
-                                                                                 
-    \item \textbf{Scalability test}: This test determines up to how many worker nodes the infrastructure is able to scale.
-    \item \textbf{Extended statistical analysis}: This evaluation determines the failure rates during REMD simulation runs. Further, it will be assessed how many of these real life failures can be detected and recovered by Migol. 
-                                                
-    \alnote{The last two aspects should go due to timing reasons into the Phil Trans paper.}
-\end{itemize}
+% The REMDgManager was functionally tested on the LONI Grid. The following aspects are from interest:
+% \begin{itemize}
+%     \item \textbf{Speedup}: This test determines how much faster the Grid-enabled replica exchange algorithm is in comparison  to a sequential and/or a not Grid-enabled version.
+%     
+%     \item \textbf{Migol Overhead}:  During this test the overhead imposed by the Migol framework in comparison to a traditional SAGA/Globus infrastructure is evaluated. This overhead is mainly caused by the application-level monitoring, but can also be attributed to the necessary interaction with the Migol backend, e.\,g.\ for the registration of checkpoints. The following  metrics are evaluated:
+%     \begin{itemize}
+%         \item percentage overhead in runtime dependent on the monitoring interval
+%         \item runtime overhead of Migol job submission and meta-data registration. 
+%     \end{itemize}                                                           
+%     
+%     \item \textbf{Fault Injection Test:}  During this test, the functionality of the Migol framework is assed by introduction of different faults during the application run, e.\,g.:
+%     \begin{itemize}
+%         \item the failure of one or more worker nodes, or
+%         \item the failure of the master node.        
+%     \end{itemize}                       
+%     During the test the correctness of the Migol framework and application is verified. In addition, the following metrics are determined:
+%     \begin{itemize}
+%         \item failure detection and recovery time
+%         \item application runtime in correlation to the number of faults
+%         \item recovery time versus false failure detection rate dependent on the monitoring intervall.
+%     \end{itemize}
+%                                                                                  
+%     \item \textbf{Scalability test}: This test determines up to how many worker nodes the infrastructure is able to scale.
+%     \item \textbf{Extended statistical analysis}: This evaluation determines the failure rates during REMD simulation runs. Further, it will be assessed how many of these real life failures can be detected and recovered by Migol. 
+%                                                 
+%     \alnote{The last two aspects should go due to timing reasons into the Phil Trans paper.}
+% \end{itemize}
                                              
      
                                              
