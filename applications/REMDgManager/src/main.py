@@ -2,18 +2,16 @@
 
 Usage : (For Test_RE)   python main.py  
                      or python main.py --type=Test_RE
-        (For REMD) python main.py --type=REMD --configfile=remd.config
+        (For REMD) python main.py --type=REMD --configfile=remd_manager.config
 
 jhkim at cct dot lsu dot edu
-
-
 
 (Note on the current stage)
 1. Currently, the following simple scenario is assumed.
 a. each replica is submitted to each local scheduler via CPR/Migol  (will be changed with the major revision)
 b. There is a wrapper in HPC to register checkpoint files to migol (all file are registered as checkpoint files)
-
 """
+
 import sys, os, os.path, random, time
 import optparse
 import logging
@@ -57,9 +55,12 @@ class RE_INFO (object):
 #  Elementary Functions
 ########################################################
 
-def set_saga_job_description(replica_ID, RE_info):
+def set_saga_job_description(replica_ID, RE_info, iflag):
     
-    jd.saga.job.description()
+    if iflag=="cpr":
+        jd = saga.cpr.description()
+    else :    
+        jd = saga.job.description()
     
     jd.numberofprocesses = RE_info.numberofprocesses
     jd.spmdvariation = "mpi"
@@ -70,6 +71,9 @@ def set_saga_job_description(replica_ID, RE_info):
     jd.queue = RE_info.projects[replica_ID] + "@" + RE_info.queues[replica_ID]
     jd.workingdirectory = RE_info.workingdirectories[replica_ID]
     
+    jd.output = "output.txt"    #this is requried for Migol
+    jd.error = "error.txt"
+    
     return jd
 
 
@@ -77,10 +81,10 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
     
     for ifile in input_file_list_with_path:
         if remote_machine_ip.find('localhost') >= 0:
-            dest_url_str = 'file:///'
+            dest_url_str = 'file://'
         else:
             dest_url_str = 'gridftp://'+remote_machine_ip + "/"
-        source_url_str = 'file:///'
+        source_url_str = 'file://'
 
         ifile_basename = os.path.basename(ifile)
         if not os.path.isfile(ifile):
@@ -119,20 +123,20 @@ def submit_job_cpr(dest_url_string, jd, checkpt_files):
     error_string = ""
     
     js = saga.cpr.service(saga.url(dest_url_string))
-    jd_start = saga.job.description()
     jd_start = jd
-    jd_restart = saga.job.description()
     jd_restart = jd
     
-    #here checkpoint files are registered
-    check_point = saga.cpr.checkpoint("REMD_MANAGER_CHECKPOINT")
+    #here checkpoint files are registered (not done yet)
+#    check_point = saga.cpr.checkpoint("REMD_MANAGER_CHECKPOINT")
     
-    for ifile in checkpt_files:
-        check_point.add_files(ifile)
+#    for ifile in checkpt_files:
+#        check_point.add_files(ifile)
     
     new_cpr_job = js.create_job(jd_start, jd_restart)
     
     new_cpr_job.run()
+    
+    print "job state: " + str(new_cpr_job.get_state());
         
     return error_string, new_cpr_job
 
@@ -234,7 +238,7 @@ def initialize(config_filename):
 def run_REMDg(configfile_name):
 
     # initialize of all replica and its related variables
-    RE_info = intialize()
+    RE_info = initialize(configfile_name)
     
     numEX = RE_info.exchange_count    
     numReplica = RE_info.replica_count
@@ -256,13 +260,13 @@ def run_REMDg(configfile_name):
         RE_info.replica = []
         for irep in range(0,numReplica):
 
-            jd = set_saga_job_description(irep, RE_info)
-            dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-pbs"    # just for the time being
-            checkpt_files = []     # will be done by migol not here  (JK  08/05/08
-            new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+            jd = set_saga_job_description(irep, RE_info, "cpr")
+            dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+            checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
+            error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
             RE_info.replica.append(new_job)
 
-            print "Replica " + "%d"%replicaListing[ireplica] + " started (Run = %d)"%(iEX+1)
+            print "Replica " + "%d"%irep + " started (Run = %d)"%(iEX+1)
 
         # job monitoring step
         energy = [0 for i in range(0, numReplica)]
@@ -399,10 +403,13 @@ if __name__ == "__main__" :
     op.add_option('--configfile','-c')
     op.add_option('--numreplica','-n',default='2')
     options, arguments = op.parse_args()
+
+    # enable monitoring through Migol
+    js = saga.cpr.service()
     
     if options.type in (None,"test_RE"):
         run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
     elif options.type in ("REMD"):
-        run_REMDg(option.configfile) 
+        run_REMDg(options.configfile) 
     
     
