@@ -16,7 +16,7 @@ import sys, os, os.path, random, time
 import optparse
 import logging
 import saga
-
+import re
 ########################################################
 #  Global variable 
 ########################################################
@@ -194,8 +194,16 @@ def initialize(config_filename):
  
                     # variables common to all replicas
             elif key == 'arguments':
-                for ival in value:
-                    RE_info.arguments.append(ival)      
+                # support quoted arguments like this:
+                # "/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2 NPT.conf" "mpi"
+                args = line.split(":")[1]
+                p = re.compile(r'\" \"|\"')
+                args_parts = p.split(args)
+                for ival in args_parts:
+                    if (ival.strip() !=""):
+                        RE_info.arguments.append(ival)  
+                #for ival in value:
+                #    RE_info.arguments.append(ival)      
  
             elif key == 'totalcputime':
                 RE_info.totalcputime = value[0]    
@@ -273,10 +281,12 @@ def run_REMDg(configfile_name):
         energy = [0 for i in range(0, numReplica)]
         flagJobDone = [ False for i in range(0, numReplica)]
         numJobDone = 0
+       
         while 1:    
             for irep in range(0, numReplica):
                 running_job = RE_info.replica[irep]
                 state = running_job.get_state()
+                print "received state: " + str(state)
                 if (str(state) == "Done") and (flagJobDone[irep] is False) :   
                     print "Replica " + "%d"%(irep+1) + " done"
                     
