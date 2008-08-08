@@ -105,7 +105,7 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
                 error_msg = "Input file %s failed to be staged in"%(ifile_basename)
                 logging.error(error_msg)
                 
-        return None
+    return None
     
     
 def submit_job(dest_url_string, jd):
