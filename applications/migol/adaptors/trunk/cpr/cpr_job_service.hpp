@@ -43,9 +43,13 @@ class cpr_job_service_cpi_impl
 
     // private instance data
     saga::job::service * js_;
-
+    
+   
+static int refcount_;
 
   public:
+    
+    
     // constructor of the job_service cpi
     cpr_job_service_cpi_impl  (proxy                           * p, 
                            cpi_info const                  & info,

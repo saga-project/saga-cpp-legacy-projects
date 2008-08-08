@@ -50,7 +50,9 @@ namespace cpr
             return rm_url.get_url();
         }
         
-       
+  
+int  cpr_job_service_cpi_impl::refcount_ = 0;    
+    
 // constructor
 cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p, 
                                                     cpi_info const       & info,
@@ -59,6 +61,8 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
                                                     TR1::shared_ptr <saga::adaptor> adaptor)
 : base_cpi (p, info, adaptor, cpi::Noflags)
 {
+   
+    
     instance_data data (this);
     saga::url rm = data->rm_; 
     if ( ! data->rm_.get_url ().empty () )
@@ -79,6 +83,11 @@ cpr_job_service_cpi_impl::cpr_job_service_cpi_impl (proxy                * p,
     std::string guid("");    
     mutex_type::scoped_lock l(mtx_);
     {//scoped lock
+        refcount_++;
+        SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
+        {
+            std::cout<<"Refcounter ~cpr_job_service_cpi_impl: " << refcount_ << std::endl;
+        }
         adaptor_data_t d(this);
         guid = d->migol_guid;
         if(guid==""){
@@ -106,12 +115,18 @@ cpr_job_service_cpi_impl::~cpr_job_service_cpi_impl (void)
     SAGA_LOG_BLURB ("~cpr_job_service_cpi_impl d'tor begin");
     std::string guid("");
     std::string state("");
+    mutex_type::scoped_lock l(mtx_);
     {//scoped lock
+        refcount_--;
         adaptor_data_t d(this);
         guid = d->migol_guid;
         state = d->migol_state;
-    
-        if(guid!="" && state!="done"){
+        
+        SAGA_VERBOSE (SAGA_VERBOSE_LEVEL_INFO)
+        {
+            std::cout<<"Refcounter ~cpr_job_service_cpi_impl: " << refcount_ << std::endl;
+        }
+        if(refcount_==0 && guid!="" && state!="done"){
             migol::instance()->change_service_state(guid, "done");  
             migol::instance()->finalize_external_monitoring(); 
             d->migol_state="done";
@@ -166,7 +181,6 @@ void cpr_job_service_cpi_impl::sync_create_job     (saga::cpr::job            & 
                         saga::NotImplemented);
     
 }
-    
     
     
 void cpr_job_service_cpi_impl::sync_run_job (saga::cpr::job     & ret, 
