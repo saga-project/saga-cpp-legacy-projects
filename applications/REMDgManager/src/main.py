@@ -121,7 +121,7 @@ def submit_job(dest_url_string, jd):
 
 def submit_job_cpr(dest_url_string, jd, checkpt_files):
     error_string = ""
-    
+    start = time.time()
     js = saga.cpr.service(saga.url(dest_url_string))
     jd_start = jd
     jd_restart = jd
@@ -133,11 +133,9 @@ def submit_job_cpr(dest_url_string, jd, checkpt_files):
 #        check_point.add_files(ifile)
     
     new_cpr_job = js.create_job(jd_start, jd_restart)
-    
     new_cpr_job.run()
-    
     print "job state: " + str(new_cpr_job.get_state());
-        
+    print "spawning time " + "%d"%(time.time()-start) +" s"    
     return error_string, new_cpr_job
 
 
@@ -258,6 +256,8 @@ def run_REMDg(configfile_name):
             
         # job submit   
         RE_info.replica = []
+        
+        start_time = time.time()
         for irep in range(0,numReplica):
 
             jd = set_saga_job_description(irep, RE_info, "cpr")
@@ -265,9 +265,10 @@ def run_REMDg(configfile_name):
             checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
             error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
             RE_info.replica.append(new_job)
-
             print "Replica " + "%d"%irep + " started (Run = %d)"%(iEX+1)
 
+        end_time = time.time()        
+        print "Time for spawning " + "%d"%(irep+1) + " replica: " + str(end_time-start_time) + " s"
         # job monitoring step
         energy = [0 for i in range(0, numReplica)]
         flagJobDone = [ False for i in range(0, numReplica)]
@@ -283,6 +284,7 @@ def run_REMDg(configfile_name):
                     flagJobDone[irep] = True
                     numJobDone = numJobDone + 1
                 else :
+                    time.sleep(10)
                     pass
             
             if numJobDone == numReplica:
@@ -397,7 +399,7 @@ def run_test_RE(nReplica, nRand):
 #########################################################
 
 if __name__ == "__main__" :
-
+    start = time.time()
     op = optparse.OptionParser()
     op.add_option('--type','-t')
     op.add_option('--configfile','-c')
@@ -411,5 +413,5 @@ if __name__ == "__main__" :
         run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
     elif options.type in ("REMD"):
         run_REMDg(options.configfile) 
-    
+    print "REMDgManager total runtime: " + str(time.time()-start) + " s"
     
