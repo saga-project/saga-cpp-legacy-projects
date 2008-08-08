@@ -71,7 +71,7 @@ namespace MapReduce
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
             for(unsigned int counter = 0; counter < inputs.size(); counter++)
             {
-               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode | saga::advert::Create));
+               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
                adv.store_string(inputs[count]);
             }
             possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);

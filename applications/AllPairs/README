@@ -1,0 +1,137 @@
+Basic Usage
+===========
+
+This framework is designed to make it easy to implement parallel
+computations on large datasets.  This README will describe how to set
+up and run this AllPairs implementation.
+
+The first thing you have to do is create binary executables for every
+type of machine you will be running your comparisons on. Ex:
+x86_32, x86_64, OS = Linux, Mac, Windows After this you will have to
+create a simple XML file that describes your grid. Finally, you call
+master/main --config /path/to/xml/config/file
+
+  1.  Creat a worker executable that is appropriate as a standalone job for comparing.
+      Ex:  $job-submit job file1 file2
+      First you must include "AllPairsBase.hpp"
+      Then use the Curiously Recurring Template Pattern to inherit from AllPairs::AllPairsBase
+       
+       Ex:  class AllPairsImpl : public AllPairs::AllPairsBase<AllPairsImpl> {
+
+        a.  The client must forward a constructor to the AllPairsBase
+            Ex:  AllPairsImpl(int argCount, char **argList) : AllPairsBase<AllPairsImpl>(argCount, argList) {}
+        b.  Finally the client must override the compare function
+            double compare(saga::url object1, saga::url object2) {
+               return personal_compare_function(object1,object2);
+            }
+
+            Here is a complete example
+
+               #include "AllPairsBase.hpp"
+
+               using namespace AllPairs;
+               class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
+                 public:
+                  AllPairsImpl(int argCount, char **argList)
+                    : AllPairsBase<AllPairsImpl>(argCount, argList) {}
+                  double compare(saga::url object1, saga::url object2) {
+                     return personal_compare_function(object1,object2);
+                  }
+               };
+
+        Now, all you have to do is define a main class which calls AllPairs::AllPairsImpl::init(int argc, char **argv) and link this executable against AllPairsBase.o
+        Then run AllPairs::AllPairsImpl::run();
+
+        a.  A simple example with exception handling is shown below
+
+           int main(int argc,char **argv) {
+              try {
+                 AllPairsImpl allPairs(argc, argv);
+                 allPairs.run();
+              }
+              catch (saga::exception const& e) {
+                 std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
+                 std::cerr << "Exiting..." << std::endl;
+              }
+              catch (std::exception const& e) {
+                 std::cerr << "std:  exception caught: " << e.what() << std::endl;
+                 std::cerr << "Exiting..." << std::endl;
+              }
+              catch (...) {
+                 std::cerr << "FATAL Exception caught!" << std::endl << "Exiting..." << std::endl;
+                 return 255;
+              }
+              return 0;
+           }
+
+  2.  Configuring XML file
+      The basic structure will look like this
+
+         <?xml version="1.0" encoding="ISO-8859-1"?>
+
+         <APDL version="1.0" xmlns="http://cct.lsu.edu/APL-1-0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema_instance" >
+         <AllPairsSession name="session_name" version="0.1" user="user_name" 
+           priority="1" experimentID="ID_number" eventLevel="DEBUG">
+            <OrchestratorDB>
+              <Host></Host>
+            </OrchestratorDB>
+             <TargetHosts>
+               <Host queue="" arch="x86_32" OS="Linux"></Host>
+             </TargetHosts>
+             <ApplicationBinaries>
+               <BinaryImage arch="x86_32" OS="Linux" extraArgs="">
+              </BinaryImage>
+             </ApplicationBinaries>
+             <ApplicationFiles>
+               <Bases>
+                 <File></File>
+               </Bases>
+               <Fragments>
+                 <File></File>
+               </Fragments>
+             </ApplicationFiles>
+           </AllPairsSession>
+         </APDL>
+
+      a.  <MapReduceSession> - Describes all of the information needed for one MapReducing Section
+          i.  Attributes
+              *name - A name to identify the session by [not required]
+              *version - A version of your session [not required]
+              *user - The user creating the session [not required]
+              *priority - The level of importance the session is [not required]
+              *experimentID - Another ID to recognize the session [not required]
+              *eventLevel - A way to label it's stability ex: DEBUG/STABLE [not required]
+
+      b.  <OrchestratorDB> - List where the host is located (only one host is allowed)
+          i.  Children
+              <Host> - A URL to the path of the host directory
+
+      c.  <TargetHosts> - List where the machines are you want to run on
+          i.  Children
+              <Host> - Describes each individual host's type
+              i.  Attributes
+                  *arch - Architecture type ex:  x86_32 [required]
+                  *OS - Operating System ex:  Linux [required]
+
+      d.  <ApplicationBinaries> - A list executables for different platforms/architectures 
+          i.  Children
+              <BinaryImage> - A complete path to a executable
+              i.  Attributes
+                  *arch - Architecture type ex:  x86_32 [required]
+                  *OS - Operating System ex:  Linux [required]
+                  *extraArgs - **Not Implemented yet** [not required]
+
+      e.  <ApplicationFiles> - A list of files that you will compared
+                             - Separated because sometimes not always the same
+          i.  Children
+              <Bases> - A list of files that will need to be compared to
+              i.  Children
+                <File> - A complete path to the location of the file
+              <Fragments> - A list of files that will need to be compared to
+              i.  Children
+                <File> - A complete path to the location of the file
+              
+  3.  Running master/main
+      From command prompt in the $SAGA_LOCATION/saga-projects/applications/AllPairs/source/master directory type:
+         $./main --config /path/to/config/file

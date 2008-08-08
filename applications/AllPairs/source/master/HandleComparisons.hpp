@@ -15,17 +15,19 @@
 namespace AllPairs {
    class HandleComparisons {
      public:
-      HandleComparisons(std::vector<saga::url> &files, saga::advert::directory workerDir,
+      HandleComparisons(std::vector<saga::url> &rowFiles, std::vector<saga::url> &columnFiles, saga::advert::directory workerDir,
                         LogWriter *log);
-      bool assignWork();
+      std::vector<std::string> assignWork();
      private:
       void issue_command_(saga::url file);
       saga::url get_file_();
     
       std::vector<saga::url> finished_;
       std::vector<saga::url> assigned_;
-      std::vector<saga::url> files_;
+      std::vector<saga::url> fragmentFiles_;
+      std::vector<saga::url> baseFiles_;
       std::vector<saga::url> workers_;
+      std::vector<std::string> data_;
       saga::advert::directory workerDir_;
       LogWriter *log_;
       std::vector<saga::url>::iterator candidateIT_;

@@ -185,7 +185,7 @@ namespace MapReduce {
        * attributes describing this session.                   *
        * ******************************************************/
       void registerWithDB(void) {
-         putenv("SAGA_VERBOSE=100");
+         //putenv("SAGA_VERBOSE=100");
          std::freopen("/tmp/worker-stderr.txt", "w", stderr);
          std::freopen("/tmp/worker-stdout.txt", "w", stdout);
          int mode = saga::advert::ReadWrite;

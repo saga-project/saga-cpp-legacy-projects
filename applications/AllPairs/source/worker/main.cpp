@@ -22,7 +22,7 @@ class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
-   putenv("SAGA_VERBOSE=100");
+   //putenv("SAGA_VERBOSE=100");
    std::freopen("/tmp/worker-stderr.txt", "w", stderr);
    std::freopen("/tmp/worker-stdout.txt", "w", stdout);
    try {

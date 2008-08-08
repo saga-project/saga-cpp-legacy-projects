@@ -85,7 +85,6 @@ namespace AllPairs {
             // Launch all worker command on all
             // host defined in config file
             spawnAgents_();
-
             runComparisons_();
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
@@ -101,8 +100,10 @@ namespace AllPairs {
          saga::advert::directory sessionBaseDir_;
          saga::advert::directory workersDir_;
          saga::advert::directory binariesDir_;
-         saga::advert::directory filesDir_;
-         std::vector<saga::url> files_;
+         saga::advert::directory baseFilesDir_;
+         saga::advert::directory fragmentFilesDir_;
+         std::vector<saga::url> fragmentFiles_;
+         std::vector<saga::url> baseFiles_;
          
          AllPairs::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -151,16 +152,19 @@ namespace AllPairs {
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
-               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
-               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
-               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_FILES), mode); //binariesDir_
+               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),   mode);      //workersDir_
+               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES),  mode);      //binariesDir_
+               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_BASE_DIR_FILES), mode);     //baseDir_
+               saga::task t3 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_FRAGMENT_DIR_FILES), mode); //fragmentDir_
                tc.add_task(t0);
                tc.add_task(t1);
                tc.add_task(t2);
+               tc.add_task(t3);
                tc.wait();
-               workersDir_  = t0.get_result<saga::advert::directory>();
-               binariesDir_ = t1.get_result<saga::advert::directory>();
-               filesDir_    = t2.get_result<saga::advert::directory>();
+               workersDir_       = t0.get_result<saga::advert::directory>();
+               binariesDir_      = t1.get_result<saga::advert::directory>();
+               baseFilesDir_     = t2.get_result<saga::advert::directory>();
+               fragmentFilesDir_ = t3.get_result<saga::advert::directory>();
             }
             catch(saga::exception const & e) {
                message += e.what();
@@ -182,13 +186,13 @@ namespace AllPairs {
             int mode = saga::advert::ReadWrite | saga::advert::Create;
 
             while(binaryListIT != binaryList.end()) {
-               std::string message("Adding new binary for "+ (*binaryListIT).targetOS + "/" 
-                                   + (*binaryListIT).targetArch + " to session... ");
+               std::string message("Adding new binary for "+ binaryListIT->targetOS + "/" 
+                                   + binaryListIT->targetArch + " to session... ");
                try {
-                 saga::advert::entry adv = binariesDir_.open((*binaryListIT).targetOS+"_"+(*binaryListIT).targetArch, mode);
+                 saga::advert::entry adv = binariesDir_.open(binaryListIT->targetOS+"_"+binaryListIT->targetArch, mode);
                  //Now set some properties of the binaries
-                 saga::task t0 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
-                 saga::task t1 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_LOCATION,(*binaryListIT).URL);
+                 saga::task t0 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_ARCH,    binaryListIT->targetArch);
+                 saga::task t1 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_LOCATION,binaryListIT->URL);
                  t0.wait();
                  t1.wait();
                  message += "SUCCESS";
@@ -214,37 +218,65 @@ namespace AllPairs {
           * of the database.                                      *
           ********************************************************/
          void populateFileList_(void) {
-            std::vector<FileDescription> fileList                   = cfgFileParser_.getFileList();
-            std::vector<FileDescription>::const_iterator fileListIT = fileList.begin();
+            std::vector<FileDescription> fileListFragment                   = cfgFileParser_.getFileListFragment();
+            std::vector<FileDescription> fileListBase                       = cfgFileParser_.getFileListBase();
+            std::vector<FileDescription>::const_iterator fileListBaseIT     = fileListBase.begin();
+            std::vector<FileDescription>::const_iterator fileListFragmentIT = fileListFragment.begin();
             unsigned int successCounter = 0;
 
             //int mode = saga::advert::ReadWrite | saga::advert::Create;
             
             // Translate FileDescriptions returned by getFileList
             // into names to be chunked by chunker
-            while(fileListIT != fileList.end()) {
-               files_.push_back(saga::url(fileListIT->name));
-               fileListIT++;
+            while(fileListBaseIT != fileListBase.end()) {
+               baseFiles_.push_back(saga::url(fileListBaseIT->name));
+               fileListBaseIT++;
             }
-            std::vector<saga::url>::const_iterator files_IT = files_.begin();
+            while(fileListFragmentIT != fileListFragment.end()) {
+               fragmentFiles_.push_back(saga::url(fileListFragmentIT->name));
+               fileListFragmentIT++;
+            }
+            std::vector<saga::url>::const_iterator fragmentFiles_IT = fragmentFiles_.begin();
+            std::vector<saga::url>::const_iterator baseFiles_IT     = baseFiles_.begin();
             // Advertise chunks
-            while(files_IT != files_.end()) {
-               std::string message("Adding new chunk " + (files_IT->get_string()) + "...");
+            while(baseFiles_IT != baseFiles_.end()) {
+               std::string message("Adding new chunk base " + (baseFiles_IT->get_string()) + "...");
                try {
-            //      saga::advert::entry adv = filesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
-            //      adv.store_string(files_IT->get_string());
+            //      saga::advert::entry adv = baseFilesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
+            //      adv.store_string(baseFiles_IT->get_string());
                   message += "SUCCESS";
-          //        log->write(message, LOGLEVEL_INFO);
+            //      log->write(message, LOGLEVEL_INFO);
                   successCounter++;
                }
                catch(saga::exception const & e) {
                   message += e.what();
                   log->write(message, LOGLEVEL_ERROR);
                 }
-                files_IT++;
+                baseFiles_IT++;
             }
             if(successCounter == 0) {
-               log->write("No files added for this session. Aborting", LOGLEVEL_FATAL);
+               log->write("No base files added for this session. Aborting", LOGLEVEL_FATAL);
+               APPLICATION_ABORT;
+            }
+            successCounter=0;
+            // Advertise chunks
+            while(fragmentFiles_IT != fragmentFiles_.end()) {
+               std::string message("Adding new chunk fragment " + (fragmentFiles_IT->get_string()) + "...");
+               try {
+            //      saga::advert::entry adv = fragmentFilesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
+            //      adv.store_string(fragmentFiles_IT->get_string());
+                  message += "SUCCESS";
+            //      log->write(message, LOGLEVEL_INFO);
+                  successCounter++;
+               }
+               catch(saga::exception const & e) {
+                  message += e.what();
+                  log->write(message, LOGLEVEL_ERROR);
+                }
+                fragmentFiles_IT++;
+            }
+            if(successCounter == 0) {
+               log->write("No fragment files added for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
             }
          }
@@ -264,16 +296,16 @@ namespace AllPairs {
             unsigned int successCounter = 0;
 
             while(hostListIT != hostList.end()) {
-               std::string message("Launching agent on host " + (*hostListIT).rmURL + "... ");
+               std::string message("Launching agent on host " + hostListIT->rmURL + "... ");
                saga::job::description jd;
                std::vector<BinaryDescription>::const_iterator binaryListIT = binaryList.begin();
                try {
                   while(binaryListIT != binaryList.end()) {
                      // Now try to find a matching binary for this host
-                     if((*hostListIT).hostArch == (*binaryListIT).targetArch
-                     && (*hostListIT).hostOS   == (*binaryListIT).targetOS) {
+                     if(hostListIT->hostArch == binaryListIT->targetArch
+                     && hostListIT->hostOS   == binaryListIT->targetOS) {
                         // Found one, now try to launch it with proper arguments
-                        std::string command((*binaryListIT).URL);
+                        std::string command(binaryListIT->URL);
                         std::vector<std::string> args;
                         args.push_back("-s");
                         args.push_back(uuid_);
@@ -282,9 +314,9 @@ namespace AllPairs {
                         args.push_back("-l");
                         args.push_back(logURL_.get_string());
                         jd.set_attribute(saga::job::attributes::description_executable, command);
-                        jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
+                        jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_false);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
-                        saga::job::service js("any://" + (*hostListIT).rmURL);
+                        saga::job::service js("any://" + hostListIT->rmURL);
                         saga::job::job agentJob= js.create_job(jd);
                         agentJob.run();
                         message += "SUCCESS";
@@ -293,12 +325,14 @@ namespace AllPairs {
                         break; //Found correct binary, move to next host
                      }
                      binaryListIT++;
+                     log->write("Going to next BinaryType", LOGLEVEL_INFO);
                   }
                }
                catch(saga::exception const & e) {
                   message += e.what();
                   log->write(message, LOGLEVEL_ERROR);
                }
+               log->write("Going to next Host", LOGLEVEL_INFO);
                hostListIT++;
             }
             if(successCounter == 0) {
@@ -307,14 +341,13 @@ namespace AllPairs {
             }
          }
          void runComparisons_(void) {
-            HandleComparisons comparisonHandler(files_, workersDir_, log);
-            std::string message("Launching comparisons...");
-
+            HandleComparisons comparisonHandler(baseFiles_, fragmentFiles_, workersDir_, log);
+            std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
             sleep(5); //In here temporarily to allow time for all jobs to create advert entries
-            comparisonHandler.assignWork();
+            std::vector<std::string> data = comparisonHandler.assignWork();
          }
-      }; 
+      };
    } // namespace Master
 } // namespace AllPairs
 

@@ -78,8 +78,8 @@ namespace AllPairs {
       saga::advert::directory workerDir_;
       saga::advert::directory sessionBaseDir_;
       saga::advert::directory filesDir_;
-      std::vector<saga::url> files_;
-      AllPairs::LogWriter * logWriter_;
+      std::vector<saga::url>  baseFiles_;
+      AllPairs::LogWriter*    logWriter_;
       Derived& derived() {
          return static_cast<Derived&>(*this);
       }
@@ -90,7 +90,8 @@ namespace AllPairs {
       void updateStatus_(void) {
          std::cout << std::endl << "Updating agent status: " << std::flush;
          //(1) update the last seen (keep alive) timestamp 
-         time_t timestamp; time(&timestamp);
+         time_t timestamp;
+         time(&timestamp);
          try {
            workerDir_.set_attribute(ATTR_LAST_SEEN, 
              boost::lexical_cast<std::string>(timestamp)); 
@@ -102,7 +103,7 @@ namespace AllPairs {
          //(2) update the current load average
          try {
            workerDir_.set_attribute(ATTR_HOST_LOAD_AVG, 
-                                           systemInfo_.hostLoadAverage());
+             systemInfo_.hostLoadAverage());
          }
          catch(saga::exception const & e) {
            std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
@@ -111,7 +112,8 @@ namespace AllPairs {
          //(3) update execution status
          std::cout << "SUCCESSFUL" << std::endl;
       }
-      void cleanup_(void) {}
+      void cleanup_(void) {
+      }
       /*********************************************************
        * registerWithDB connects to the advert database and    *
        * creates all necessary directories and creates         *
@@ -150,20 +152,23 @@ namespace AllPairs {
             time_t timestamp; time(&timestamp);
             workerDir_.set_attribute(ATTR_LAST_SEEN, 
             boost::lexical_cast<std::string>(timestamp));
-            saga::advert::directory filesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_FILES), saga::advert::ReadWrite));
+            saga::advert::directory filesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_BASE_DIR_FILES), saga::advert::ReadWrite));
             std::vector<saga::url> filesAdv(filesDir_.list());
             std::vector<saga::url>::iterator filesAdvIT = filesAdv.begin();
-        /*    while(filesAdvIT != filesAdv.end())
+            //Real code
+            /*while(filesAdvIT != filesAdv.end())
             {
                saga::advert::entry adv(*filesAdvIT, saga::advert::ReadWrite);
-               files_.push_back(saga::url(adv.retrieve_string()));
+               baseFiles_.push_back(saga::url(adv.retrieve_string()));
             }*/
+            //Fake Code
             for(int counter = 0; counter < 100; counter++)
             {
-               files_.push_back(saga::url("file://localhost//home/bane/saga-projects/applications/AllPairs/samples/files-"+
+               baseFiles_.push_back(saga::url("file://localhost//home/bane/saga-projects/applications/AllPairs/samples/base-"+
                                            boost::lexical_cast<std::string>(counter) + ".txt"));
-               std::cerr << "Added file: " << files_[counter] << std::endl;
+               std::cerr << "Added file: " << baseFiles_[counter] << std::endl;
             }
+            //End fake code
          }
          catch(saga::exception const & e) {
             std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
@@ -176,24 +181,36 @@ namespace AllPairs {
        * discovered.                                           *
        * ******************************************************/
       void mainLoop(unsigned int updateInterval) {
+         int mode = saga::advert::ReadWrite | saga::advert::Create;
          while(1) {
             std::string command(getFrontendCommand_());
             saga::url file;
-            int counter = 0;;
             // read command from orchestrator
             if(command == WORKER_COMMAND_COMPARE) {
                saga::advert::entry adv(workerDir_.open(saga::url("./file"), saga::advert::ReadWrite));
                file = adv.retrieve_string();
-               RunComparison ComparisonHandler = RunComparison(workerDir_, files_, logWriter_);
-               while(ComparisonHandler.hasComparisons())
-               {
+               RunComparison ComparisonHandler = RunComparison(workerDir_, baseFiles_, logWriter_);
+               std::vector<double> values;
+               std::string retval;
+               double val;
+               while(ComparisonHandler.hasComparisons()) {
                   saga::url item(ComparisonHandler.getComparisons());
                   std::cout << "temporary = " << item << std::endl;
-                  compare(file, item);
+                  val = compare(file, item);
+                  values.push_back(val);
                   std::cout << "Compared some" << std::endl;
-                  counter++;
-                  std::cout << "counter: " << counter << std::endl;
                }
+               retval += boost::lexical_cast<std::string>(values[0]);
+               for(std::vector<double>::size_type x=1;x<values.size();x++) {
+                  retval += ", ";
+                  retval += boost::lexical_cast<std::string>(values[x]);
+               }
+               retval += ";";
+               std::string string_file("./finished-");
+               string_file += file.get_string();
+               std::cout << string_file;
+               saga::advert::entry fin_adv(workerDir_.open(saga::url(string_file), mode));
+               fin_adv.store_string(retval);
             }
             // write some statistics + ping signal 
             updateStatus_();
