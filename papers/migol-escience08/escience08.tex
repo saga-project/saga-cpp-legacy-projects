@@ -81,7 +81,7 @@
 \bibliographystyle{plain}
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -547,13 +547,13 @@ To ensure the availability of these information in case of a failure, the AIS is
 \begin{figure*}[htbp]
       \centering
           \includegraphics[width=0.6\textwidth]{REMDgManager-architecture.pdf}
-          \caption{Components of REMDgManager: The main part of the
+          \caption{Components of REMD-Manager: The main part of the
             framework is the replica manager. The manager orchestrates
             a set of replica processes using the SAGA/CPR API. The
-            Migol infrastructure ensures that the REMDgManager and all
+            Migol infrastructure ensures that the REMD-Manager and all
             replica processes are monitored and recovered if
             necessary.}
-      \label{fig:REMDgManager-architecture}
+      \label{fig:REMD-Manager-architecture}
 \end{figure*}
 
 % This paper aims to demonstrate the efficient implementation armed with
@@ -574,19 +574,19 @@ various parts gluing different components are mostly written with
 python scripts since SAGA-Python binding transparently exposes SAGA
 and SAGA-CPR/MIGOL APIs to simple but versatile Python.
 
-The \emph{REMDgManager} provides a scalable infrastructure for running
+The \emph{REMD-Manager} provides a scalable infrastructure for running
 replica-exchange simulations.  The application utilizes the SAGA CPR
 API and the underlying Migol infrastructure to efficiently and
 reliable manage replica
-processes. Figure~\ref{fig:REMDgManager-architecture} illustrates the
-architecture of the REMDgManager. The replica manager is the main
+processes. Figure~\ref{fig:REMD-Manager-architecture} illustrates the
+architecture of the REMD-Manager. The replica manager is the main
 component of the framework -- it is responsible for orchestration of
 all replica processes, i.\,e.\ the parameterization of replica tasks,
 file staging, job spawning and the conduction of the replica-exchange
 itself. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the
 application sequence of a REMD simulation.
  
-At each replica-exchange step, the REMDgManager starts a defined
+At each replica-exchange step, the REMD-Manager starts a defined
 number of jobs. Each job corresponds to one replica run of NAMD 
 with an assigned temperature. 
 % The current parameterization of each replica is
@@ -594,9 +594,9 @@ with an assigned temperature.
 % \texttt{replica\_id}. 
 For each replica job different metadata, such as the
 working directory, the used configuration file, the temperature
-etc. is maintained by the REMDgManager.  This data is used by the REMDgManager to
+etc. is maintained by the REMD-Manager.  This data is used by the REMD-Manager to
 transfers all required files to the respective resource using the SAGA
-File API and the GridFTP adaptor (step 1 in Figure~\ref{fig:REMDgManager-architecture}). 
+File API and the GridFTP adaptor (step 1 in Figure~\ref{fig:REMD-Manager-architecture}). 
 The replica job is then submitted to the Grid resource using  
 the CPR API and Migol/GRAM (step 2a-2c). Migol ensures that the 
 the job description of each replica is stored within the Migol backend to
@@ -610,9 +610,9 @@ Migol backend.  The wrapper then launches the actual NAMD job using
 MPI. During the entire runtime the replica process is monitored by 
 Migol using the monitoring endpoint of the NAMD
 launcher. This wrapper enables the flexible orchestration of multiple
-NAMD jobs through the REMDgManager without modification of the NAMD
+NAMD jobs through the REMD-Manager without modification of the NAMD
 source itself. After all replicas have been successfully completed,
-the exchange step is conducted, i.\,e.\ the REMDgManager determines
+the exchange step is conducted, i.\,e.\ the REMD-Manager determines
 new parameters for all replica tasks, stages the required files and
 relaunches all jobs.
 
@@ -631,7 +631,7 @@ relaunches all jobs.
 % replica.
                                              
 % \jhanote{I say we put a few snippets of code here}
-\begin{lstlisting}[style=myPythonListing, float=t, caption={REMDgManager: Replica Orchestration}, 
+\begin{lstlisting}[style=myPythonListing, float=t, caption={REMD-Manager: Replica Orchestration}, 
 label={lst:python_saga_chkpt_reg}]
 
 # loop n replica-exchange steps  
@@ -681,18 +681,22 @@ infrastructures other than Migol.
 \Section{Experiences with REMD}
 \label{sec:exp}       
         
-To evaluate the performance of the REMDgManager several experiments
-have been conducted within the LONI Grid~\cite{Allen:2003xy}. The
-REMDgManager has been been deployed on the three LONI Linux clusters: 
-QueenBee, Eric and Poseidon.  QueenBee is the largest LONI
-machine and has a peak performance of 50 TFlops.
-Figure~\ref{fig:saga-taskfarming} gives an overview of the experiments setup.
+To evaluate the performance of the REMD-Manager several experiments
+have been conducted on LONI Grid~\cite{Allen:2003xy}. The REMD-Manager
+has been been deployed on the three LONI Linux clusters: QueenBee,
+Eric and Poseidon. \jhanote{I think we want to say REMD simulations
+  have been deployed on three LONI Linux Clusters? Not the managers
+  themselves -- which I think sits on users desktop...} QueenBee,
+which is both a LONI and a TeraGrid resource, is the largest LONI
+machine and has a peak performance of over 50 TFlops.
+Figure~\ref{fig:saga-taskfarming} gives an overview of the experiments
+setup.
 
 \begin{figure*}[t]
     \centering
         \includegraphics[width=0.8\textwidth]{saga-taskfarming}
         \caption{Fault Tolerant MD Simulations: The
-          REMDgManager orchestrates a set of distributed replica
+          REMD-Manager orchestrates a set of distributed replica
           processes using the SAGA API. All processes synchronize
           important metadata with the Migol infrastructure. Migol then
           actively monitors all processes and ensures that, even in
@@ -701,8 +705,11 @@ Figure~\ref{fig:saga-taskfarming} gives an overview of the experiments setup.
     \label{fig:saga-taskfarming}
   \end{figure*} 
 
-The main objective of the conducted experiments is the quantification of the overhead, which
-is required for operation of the REMDgManager within the fault tolerant Migol infrastructure. 
+  The main objective of the controlled experiments is the
+  quantification of the overhead, which is required for operation of
+  the REMD-Manager within the fault tolerant Migol infrastructure.
+  Scientfic results obtained from using this infrastructure will be 
+  reported elsewhere.
 % In particular, . This overhead is caused by the necessary
 % interactions with the Migol backend, in particular for job submission,
 % registration of metadata and active monitoring.
@@ -712,39 +719,44 @@ is required for operation of the REMDgManager within the fault tolerant Migol in
     \caption{SAGA/CPR Migol Adaptor Overhead}
     \label{fig:performance_perf_submission}
 \end{figure}           
-Figure~\ref{fig:performance_perf_submission} gives a response time analysis of
-important CPR API operations in comparison to their non fault tolerant
-counterparts. A particular critical operations for REMDgManager is the
-spawning of remote tasks. Depending on the number of replica
-processes, for each replica step n replica processes must be launched
-and monitored.  To evaluate the overhead, a single NAMD task was
-started using SAGA CPR/Migol.  The experiment showed that a CPU job
-submission is on average 2\,seconds slower than a normal GRAM
-submission. This overhead is mainly attributable to the additional
-metadata registration operation required by the Migol. Also, for jobs
-that run on the order of hours, a couple of seconds overhead is
-effectively negligible.
+Figure~\ref{fig:performance_perf_submission} gives a response time
+analysis of important CPR API operations in comparison to their
+non-fault tolerant counterparts. A critical operation for the
+REMD-Manager is the spawning of remote tasks. Depending on the number
+of replica processes, for each replica step {\bf n} replica processes
+must be launched and monitored \jhanote{I am not sure I understand the
+  previous sentence completely. Need to discuss} To evaluate the
+overhead, a single NAMD task was started using SAGA-CPR/Migol.  The
+experiment showed that a CPU job submission is on average 2\,seconds
+slower than a normal GRAM submission. This overhead is mainly
+attributable to the additional metadata registration operation
+required by the Migol. Also, for jobs that run on the order of hours,
+a couple of seconds overhead is effectively negligible.
 
-Further, the Migol adaptor showed some additional initialization overhead.
-The overall runtime of this simple NAMD submission task including the 
-initialization was with 6.45\,sec (bar 3 in Figure~\ref{fig:performance_perf_submission})
-about 4.5\,sec slower than the GRAM submission task. This overhead
-can be attributed to the initialization operations for setting 
-up the HTTP server as well as the conduction of 
-several metadata updates at the AIS.
+Further, the Migol adaptor showed some additional initialization
+overhead.  The overall runtime of this simple NAMD submission task
+including the initialization was 6.5\,sec (bar 3 in
+Fig~\ref{fig:performance_perf_submission}) about 4.5\,sec slower
+than the GRAM submission task. This overhead can be attributed to the
+initialization operations for setting up the HTTP server as well as
+the conduction of several metadata updates on the AIS.
                                                                                                                     
 In addition to the job submission, it is in particular interesting how
 the runtime of the replica process is effected by the active
 monitoring and the replication of the checkpoints.  To evaluate this,
 a NAMD job with 1000 steps was started with and without Migol support.
-Monitor intervalls between 20\,s and 2\,minutes have been chosen to asses the effect of active monitoring on the
-runtime of the NAMD job. At the same time, the checkpoint metadata is periodically updated
-at the AIS every five minutes - a single checkpoint update required per average 1.3\,seconds per average
-as shown in Figure~~\ref{fig:performance_perf_submission}. The runtime of the NAMD job on QueenBee
-without CPR/Migol was 21.3 minutes per average. At worst a 1 minute overhead was observable with a monitoring 
-intervall of 20\,s. With a less eager monitoring period almost no overhead was detectable -- the additional runtime
-measured with a 2\,minute monitoring intervall was 10\,s. This time is only slightly above  the variance of the 
-typical NAMD runtimes.
+Monitor intervalls between 20\,s and 2\,minutes have been chosen to
+asses the effect of active monitoring on the runtime of the NAMD
+job. At the same time, the checkpoint metadata is periodically updated
+at the AIS every five minutes - a single checkpoint update required
+per average 1.3\,seconds per average as shown in
+Figure~~\ref{fig:performance_perf_submission}. The runtime of the NAMD
+job on QueenBee without CPR/Migol was 21.3 minutes per average. At
+worst a 1 minute overhead was observable with a monitoring intervall
+of 20\,s. With a less eager monitoring period almost no overhead was
+detectable -- the additional runtime measured with a 2\,minute
+monitoring intervall was 10\,s. This time is only slightly above the
+variance of the typical NAMD runtimes.
 % During
 % this 21\,minute NAMD run the overhead average to 20\,s and thus only
 % amounts to about 2\%.
@@ -754,7 +766,7 @@ typical NAMD runtimes.
 %     \caption{Analysis of Monitoring Overhead}
 %     \label{fig:performance_perf_monitoring}
 % \end{figure}
-Further, we evaluated the performance of REMDgManager. The REMDgManager has been configured 
+Further, we evaluated the performance of REMD-Manager. The REMD-Manager has been configured 
 to run a REMD simulation with 2 to 16 replica processes and 100 replica-exchange
 steps. To stress test the Migol infrastructure very short NAMD tasks 
 with only 100 steps have been used. Table~\ref{tab:app_stats} summarizes the REMD configuration used.
@@ -777,9 +789,9 @@ with only 100 steps have been used. Table~\ref{tab:app_stats} summarizes the REM
           \alnote{Each replica process (NAMD simulation) will conduct 100 steps (referred to as NAMD steps in the table). This will be repeated 10 times (number exchange steps) with different temperatures.}
 \end{table}   
 
-Figure~\ref{fig:performance_perf_runtime} illustrate the results of the REMDgManager 
+Figure~\ref{fig:performance_perf_runtime} illustrate the results of the REMD-Manager 
 runtime measurements conducted on QueenBee. With the number of replicas, the simulation 
-time obviously increases.  The REMDgManager sequentially stages and starts all jobs. 
+time obviously increases.  The REMD-Manager sequentially stages and starts all jobs. 
 Especially for short-running NAMD tasks as used for this experiment this overhead amounts 
 to an over-proportional part of the runtime. This can be improved in the future by 
 supporting parallel launches and file staging activities.                
@@ -795,7 +807,7 @@ the regular replica-exchange schema, i.\,e.\
     \caption{REMD Runtime Analysis}
     \label{fig:performance_perf_runtime}
 \end{figure}     
-Further, the REMDgManager has been successfully deployed across multiple Grid nodes. 
+Further, the REMD-Manager has been successfully deployed across multiple Grid nodes. 
 However, especially the smaller machines showed long queuing times leading high variance
 in the overall response times. Especially for short-running tasks this overhead can be 
 significant. In the future, we will evaluate possibilities to decouple the dispatching
@@ -866,7 +878,7 @@ be avoided.  \jhanote{an example or two would make this claim more
 % Some comments with respect to solved REMD problem: about 17 MB data
 % to transfer for a migration
 
-% The REMDgManager was functionally tested on the LONI Grid. The following aspects are from interest:
+% The REMD-Manager was functionally tested on the LONI Grid. The following aspects are from interest:
 % \begin{itemize}
 %     \item \textbf{Speedup}: This test determines how much faster the Grid-enabled replica-exchange algorithm is in comparison  to a sequential and/or a not Grid-enabled version.
 %     
