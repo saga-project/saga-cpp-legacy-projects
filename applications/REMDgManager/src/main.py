@@ -325,8 +325,10 @@ def run_REMDg(configfile_name):
             state1 = job1.get_state()
             job2 = RE_info.replica[irep+1]
             state2 = job1.get_state()
+	    print "state replica job " + "%d"%irep + ": " + str(state1) +", replica job "+ "%d"%(irep+1)+": " + str(state2)
             # check whether both replicas are done
             if (str(state1) == "Done" and str(state2)=="Done"):
+		#pdb.set_trace()
                 print "Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + " are done."
                 # get energy from results of run and
                 # exchange parameter
@@ -337,8 +339,9 @@ def run_REMDg(configfile_name):
                 transfer_files(RE_info, irep+1)
                 start_job(RE_info, irep+1)
                 num_exchanges = num_exchanges + 2 # 2 processes exchanged their replicas
-                print "Restarted Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + "."                
+                print "Restarted Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + ", Number Exchanges: " + "%d"%num_exchanges                 
             irep = irep + 2
+        time.sleep(10)
  
 
 #########################################################
