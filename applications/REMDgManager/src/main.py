@@ -20,6 +20,14 @@ import re
 import pdb
 import math
 
+JOB_STATE_UNKNOWN = -1
+JOB_STATE_NEW=1
+JOB_STATE_RUNNING=2
+JOB_STATE_DONE=3
+JOB_STATE_CANCELED=4
+JOB_STATE_FAILED=5
+JOB_STATE_SUSPENDED=6
+
 ########################################################
 #  Global variable 
 ########################################################
@@ -67,7 +75,7 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
     
     jd.numberofprocesses = RE_info.numberofprocesses
     jd.spmdvariation = "single"
-    jd.totalcputime = RE_info.totalcputime
+    #jd.totalcputime = RE_info.totalcputime
     jd.arguments = RE_info.arguments   
     
     jd.executable = RE_info.executables[replica_ID]
@@ -205,7 +213,7 @@ def initialize(config_filename):
                 args_parts = p.split(args)
                 for ival in args_parts:
                     if (ival.strip() !=""):
-                        RE_info.arguments.append(ival)  
+                        RE_info.arguments.append(ival.strip())  
                 #for ival in value:
                 #    RE_info.arguments.append(ival)      
  
@@ -242,6 +250,38 @@ def initialize(config_filename):
     
     return RE_info
 
+
+# transfer files
+def transfer_files(RE_info, irep):
+    remote_machine_ip = RE_info.remote_hosts[irep]
+    remote_dir = RE_info.workingdirectories[irep]
+           #pdb.set_trace()
+    file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
+
+# start job
+def start_job(RE_info, irep):
+    jd = set_saga_job_description(irep, RE_info, "cpr")
+    #dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+    dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+    checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
+    #error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+    error, new_job = submit_job(dest_url_string, jd)
+    RE_info.replica.append(new_job)
+    print "Replica " + "%d"%irep + " started." 
+    
+# swap parameters for new runs
+# mockup at the moment    
+def exchange_replicas(RE_info, irep1, irep2):
+    en_a = get_energy(irep1, RE_info)
+    en_b = get_energy(irep2, RE_info)
+    print "Replica Exchange - Temperature of replica " + "%d"%irep1 + ": " + "%d"%RE_info.temperatures[irep1]
+    if math.exp(-en_a/RE_info.temperatures[irep1] + en_b/RE_info.temperatures[irep2]) > random.random() :
+                tmpNum = RE_info.temperatures[irep2]
+                RE_info.temperatures[irep2] = RE_info.temperatures[irep1]
+                RE_info.temperatures[irep1] = tmpNum
+    else :
+         pass    
+    
 #########################################################
 #  run_REMDg
 #########################################################
@@ -256,84 +296,50 @@ def run_REMDg(configfile_name):
     ofilenamestring = "replica-temp-%d.out"
     ofilenamelist = [ofilenamestring%i for i in range (0,numReplica)]
 
-    iEX = 0
-    while 1:
-        # input file stage in
-	start_file_transfer = time.time()
-        for irep in range(0, numReplica):
-           
-           remote_machine_ip = RE_info.remote_hosts[irep]
-           remote_dir = RE_info.workingdirectories[irep]
-           #pdb.set_trace()
-           file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
-            
-	print "Time for staging " + "%d"%(numReplica) + " files: " + str(time.time()-start_file_transfer) + " s"
+    #iEX = 0
 
-        # job submit   
-        RE_info.replica = []
-        
-        start_time = time.time()
-        for irep in range(0,numReplica):
+    #file transfer
+    start_file_transfer=time.time()
+    for irep in range(0, numReplica):
+       transfer_files(RE_info, irep)
+    print "Time for staging " + "%d"%len(RE_info.stage_in_files) + " files to " \
+     + "%d"%(numReplica) + " replicas: " + str(time.time()-start_file_transfer) + " s"
 
-            jd = set_saga_job_description(irep, RE_info, "cpr")
-            dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-            dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-            checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-            #error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
-            error, new_job = submit_job(dest_url_string, jd)
-            RE_info.replica.append(new_job)
-            print "Replica " + "%d"%irep + " started (Run = %d)"%(iEX+1)
-
-        end_time = time.time()        
-        print "Time for spawning " + "%d"%(irep+1) + " replica: " + str(end_time-start_time) + " s"
-        # job monitoring step
-        energy = [0 for i in range(0, numReplica)]
-        flagJobDone = [ False for i in range(0, numReplica)]
-        numJobDone = 0
-       
-        while 1:    
-            for irep in range(0, numReplica):
-                running_job = RE_info.replica[irep]
-                state = running_job.get_state()
-                print "received state: " + str(state)
-                if (str(state) == "Done") and (flagJobDone[irep] is False) :   
-                    print "Replica " + "%d"%(irep+1) + " done"
-                    
-                    energy[irep] = get_energy(irep, RE_info)
-                    flagJobDone[irep] = True
-                    numJobDone = numJobDone + 1
-                else :
-                    pass
-	    time.sleep(10)
-            
-            if numJobDone == numReplica:
-                break
-            
-        # replica exchange step        
-        for irep in range(0, numReplica-1):
-            en_a = energy[irep]
-            en_b = energy[irep+1]
-	    print "Replica Exchange - Temperature of replica " + "%d"%irep + ": " + "%d"%RE_info.temperatures[irep]
-            if math.exp(-en_a/RE_info.temperatures[irep] + en_b/RE_info.temperatures[irep+1]) > random.random() :
-                tmpNum = RE_info.temperatures[irep+1]
-                RE_info.temperatures[irep+1] = RE_info.temperatures[irep]
-                RE_info.temperatures[irep] = tmpNum
-            else :
-                pass
+    # job submit   
+    RE_info.replica = []
     
-        iEX = iEX +1
-        output_str = "%5d-th EX :"%iEX
-        for irep in range(0, numReplica):
-            output_str = output_str + "  %5d"%RE_info.temperatures[irep]
-        
-        print "\nExchange result : "
-        print output_str + "\n\n"
-                    
-        if iEX == numEX:
-            break
-
-
-
+    start_time = time.time()
+    for irep in range(0,numReplica):
+        start_job(RE_info, irep)
+    end_time = time.time()        
+    print "Time for spawning " + "%d"%(irep+1) + " replica: " + str(end_time-start_time) + " s"
+    
+    # determine the total number of required exchanges  
+    total_num_exchanges = numReplica * numEX
+    num_exchanges = 0
+    while num_exchanges < total_num_exchanges: 
+        #polling pairwise neighbors for their state
+        irep=0
+        while irep < numReplica-1:
+            job1 = RE_info.replica[irep]
+            state1 = job1.get_state()
+            job2 = RE_info.replica[irep+1]
+            state2 = job1.get_state()
+            # check whether both replicas are done
+            if (str(state1) == "Done" and str(state2)=="Done"):
+                print "Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + " are done."
+                # get energy from results of run and
+                # exchange parameter
+                exchange_replicas(RE_info, irep, irep+1)
+                # restart
+                transfer_files(RE_info, irep)
+                start_job(RE_info, irep)
+                transfer_files(RE_info, irep+1)
+                start_job(RE_info, irep+1)
+                num_exchanges = num_exchanges + 2 # 2 processes exchanged their replicas
+                print "Restarted Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + "."                
+            irep = irep + 2
+ 
 
 #########################################################
 #  run_test_RE
@@ -402,7 +408,7 @@ def run_test_RE(nReplica, nRand):
             else :
                 pass
     
-        iEX = iEX +1
+        iEX = iEX + 1
         output_str = "%5d-th EX :"%iEX
         for ireplica in range(0, numReplica):
             output_str = output_str + "  %3d"%replicaListing[ireplica]
