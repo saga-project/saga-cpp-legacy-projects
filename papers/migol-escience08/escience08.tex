@@ -1,4 +1,4 @@
-\documentclass[times, 10pt]{article} 
+\documentclass[times, 10pt, twocolumn]{article} 
 \usepackage{latex8}
 \usepackage{times}
 
@@ -81,7 +81,7 @@
 \bibliographystyle{plain}
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -270,35 +270,36 @@ application development, this paper describes the design of the
 Checkpoint\,\&\,Recovery package (CPR) of the SAGA API, and its
 implementation using the Migol adaptor. SAGA-CPR represents the first
 extension to the core SAGA specification, and is thus a validation of
-the extensibility of the specification.  It is critical that all
-aspects of the distributed application life-cycle be made easier:
-design, development and deployment. Thus we will also present our
-experiences developing and deploying an RE application in a production
-environment.
+the extensibility of the specification.  In particular, Migol as an
+element of the Grid middleware, can be regarded as a reference
+implementation of the GridCPR architecture, defined
+in~\cite{ogf_cpr_arch}.  The SAGA CPR package is a SAGA rendering of
+the GridCPR API, also defined in~\cite{ogf_cpr_arch}.  The pairing of
+Migol and SAGA CPR is thus both a natural, and also a very generic and
+portable approach to the presented problem space.  At the same time,
+we present a seamless integration of CPR concepts and abstractions
+into the SAGA framework -- our system is thus able to provide easy to
+use, high level programming abstractions for grid enabled, fault
+tolerant applications.  It is critical that all aspects of the
+distributed application life-cycle be made easier: design, development
+and deployment. Thus we will also present our experiences developing
+and deploying an RE application in a production environment.
 
 We will discuss the main advantages of our approach: i) scalable to
-resources of different sizes, as opposed to folding@home which is
-BOINC and thus size-limited; ii) as opposed to WISDOM that is confined
-to gLITE/EGEE and is usable over varied distributed environments such
-as the TeraGrid, DEISA, etc; iii) extensible -- we can implement
-Replica-Exchange simulations, but we can also do other applications
-with this approach. We need to point that the ability to do all of the
-above arises from the use of the correct programmatic and system-level
-abstractions: enable users do what users do best and must do i.e.,
-provide the simulation and orchestration logic, and let systems and
-middleware do what is best left to them, i.e., checkpoint management
-\jhanote{a stronger example would be welcome}.
+resources of different sizes, as opposed to say {\it folding@home}
+which is based upon BOINC and thus inherently limited in the size of
+physical problems that can be solved effectively; ii) as opposed to
+WISDOM that is confined to gLITE/EGEE and is usable over varied
+distributed environments such as the TeraGrid, DEISA, etc; iii)
+extensible -- we can implement Replica-Exchange simulations, but we
+can also do other applications with this approach. We need to point
+that the ability to do all of the above arises from the use of the
+correct programmatic and system-level abstractions: enable users do
+what users do best and must do i.e., provide the simulation and
+orchestration logic, and let systems and middleware do what is best
+left to them, i.e., checkpoint management \jhanote{a stronger example
+  would be welcome}.
 
-In particular, Migol as an element of the Grid middleware, can be
-regarded as a reference implementation of the GridCPR architecture,
-defined in~\cite{ogf_cpr_arch}.  The SAGA CPR package is a SAGA
-rendering of the GridCPR API, also defined in~\cite{ogf_cpr_arch}.
-The pairing of Migol and SAGA CPR is thus both a natural, and also a
-very generic and portable approach to the presented problem space.  At
-the same time, we present a seamless integration of CPR concepts and
-abstractions into the SAGA framework -- our system is thus able to
-provide easy to use, high level programming abstractions for grid
-enabled, fault tolerant applications.
 
 % \jhanote{The important message, which we need to repeat and repeat yet
 %   again: our approach is i) scalable over different distributed
@@ -817,20 +818,21 @@ the selected monitoring intervall of one minute and failure threshold
 of 2 tries, the failure detection time averages to 2.5\, minutes.
 
 As shown in Figure~\ref{fig:performance_perf_submission} the recovery
-time required for the restart of the job is to about 42
-seconds. This is mainly caused by the complex interactions conducted by
-the Migol backend (cmp. section~\ref{sec:migol}): The monitoring
-service initializes the restart at the Job Broker service. 
-A major performance penalty is the delegation-on-demand mechanism required to obtain the credential
-of the user from the AIS -- this procedure demands the creation of a
-public-private key pair, which is very costly. The Job Broker Service then
-discovers and allocates resources.  The job start itself is conducted
-via the Advance Reservation Service. In contrast to the GRAM, the ARS
-is not bound to a single Grid site, i.\,e.\ if allowed by the
-administrator it is able to conduct reservation respectively job
-starts at any resource in the Grid. Local resource management systems
-are detected during the runtime of the job. However, this feature is
-associated with some overhead in contrast to a simple GRAM submission.
+time required for the restart of the job is to about 42 seconds. This
+is mainly caused by the complex interactions conducted by the Migol
+backend (cmp. section~\ref{sec:migol}): The monitoring service
+initializes the restart at the Job Broker service.  A major
+performance penalty is the delegation-on-demand mechanism required to
+obtain the credential of the user from the AIS -- this procedure
+demands the creation of a public-private key pair, which is very
+costly. The Job Broker Service then discovers and allocates resources.
+The job start itself is conducted via the Advance Reservation Service
+(ARS). In contrast to the GRAM, the ARS is not bound to a single Grid
+site, i.\,e.\ if allowed by the administrator it is able to conduct
+reservation respectively job starts at any resource in the Grid. Local
+resource management systems are detected during the runtime of the
+job. However, this feature is associated with some overhead in
+contrast to a simple GRAM submission.
 
 
 % \begin{itemize}
@@ -850,17 +852,16 @@ associated with some overhead in contrast to a simple GRAM submission.
 %       is associated with some overhead in contrast to a simple GRAM
 %       submission.
 % \end{itemize}   
-REMOVE THIS SPACE.... Aaargghhh
 
 While these results show that SAGA/CPR in conjunction with Migol
 incurs some overhead, we think that this is acceptable compared to the
 benefits a fault tolerant, self-healing infrastructure offers. In
 addition, it must be noted that further simple yet effective
-optimizations are possible. For example, by directly restarting jobs via
-the GRAM service a lot of the overhead caused by the dynamic discovery mechanisms
-incorporated within the JBS and ARS services can be avoided.
-\jhanote{an example or two would make this
-  claim more substantiative}
+optimizations are possible. For example, by directly restarting jobs
+via the GRAM service a lot of the overhead caused by the dynamic
+discovery mechanisms incorporated within the JBS and ARS services can
+be avoided.  \jhanote{an example or two would make this claim more
+  substantiative}
 
 % Some comments with respect to solved REMD problem: about 17 MB data
 % to transfer for a migration
