@@ -115,7 +115,7 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
 def submit_job(dest_url_string, jd):
     error_string = ""
     
-    js = saga.job.service(saga.url(target_url_string))
+    js = saga.job.service(saga.url(dest_url_string))
 
     new_job = js.create_job(jd)
     
@@ -277,8 +277,10 @@ def run_REMDg(configfile_name):
 
             jd = set_saga_job_description(irep, RE_info, "cpr")
             dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+            dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
             checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-            error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+            #error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+            error, new_job = submit_job(dest_url_string, jd)
             RE_info.replica.append(new_job)
             print "Replica " + "%d"%irep + " started (Run = %d)"%(iEX+1)
 
@@ -425,7 +427,7 @@ if __name__ == "__main__" :
     options, arguments = op.parse_args()
 
     # enable monitoring through Migol
-    js = saga.cpr.service()
+    #js = saga.cpr.service()
     
     if options.type in (None,"test_RE"):
         run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
