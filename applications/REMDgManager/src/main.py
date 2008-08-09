@@ -17,6 +17,9 @@ import optparse
 import logging
 import saga
 import re
+import pdb
+import math
+
 ########################################################
 #  Global variable 
 ########################################################
@@ -63,7 +66,7 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
         jd = saga.job.description()
     
     jd.numberofprocesses = RE_info.numberofprocesses
-    jd.spmdvariation = "mpi"
+    jd.spmdvariation = "single"
     jd.totalcputime = RE_info.totalcputime
     jd.arguments = RE_info.arguments   
     
@@ -78,8 +81,9 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
 
 
 def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote_dir):
-    
+    #pdb.set_trace()    
     for ifile in input_file_list_with_path:
+	print "stage file: " + ifile
         if remote_machine_ip.find('localhost') >= 0:
             dest_url_str = 'file://'
         else:
@@ -255,13 +259,16 @@ def run_REMDg(configfile_name):
     iEX = 0
     while 1:
         # input file stage in
+	start_file_transfer = time.time()
         for irep in range(0, numReplica):
            
            remote_machine_ip = RE_info.remote_hosts[irep]
            remote_dir = RE_info.workingdirectories[irep]
-           
+           #pdb.set_trace()
            file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
             
+	print "Time for staging " + "%d"%(numReplica) + " files: " + str(time.time()-start_file_transfer) + " s"
+
         # job submit   
         RE_info.replica = []
         
@@ -294,8 +301,8 @@ def run_REMDg(configfile_name):
                     flagJobDone[irep] = True
                     numJobDone = numJobDone + 1
                 else :
-                    time.sleep(10)
                     pass
+	    time.sleep(10)
             
             if numJobDone == numReplica:
                 break
@@ -304,19 +311,20 @@ def run_REMDg(configfile_name):
         for irep in range(0, numReplica-1):
             en_a = energy[irep]
             en_b = energy[irep+1]
-            if math.exp(-en_a/RE_info.temperature[irep] + en_b/RE_info.temperature[irep+1]) > random.random() :
-                tmpNum = RE_info.temperature[irep+1]
-                RE_info.temperature[irep+1] = RE_info.temperature[irep]
-                RE_info.temperature[irep] = tmpNum
+	    print "Replica Exchange - Temperature of replica " + "%d"%irep + ": " + "%d"%RE_info.temperatures[irep]
+            if math.exp(-en_a/RE_info.temperatures[irep] + en_b/RE_info.temperatures[irep+1]) > random.random() :
+                tmpNum = RE_info.temperatures[irep+1]
+                RE_info.temperatures[irep+1] = RE_info.temperatures[irep]
+                RE_info.temperatures[irep] = tmpNum
             else :
                 pass
     
         iEX = iEX +1
         output_str = "%5d-th EX :"%iEX
         for irep in range(0, numReplica):
-            output_str = output_str + "  %5d"%RE_info.temperature[irep]
+            output_str = output_str + "  %5d"%RE_info.temperatures[irep]
         
-        print "\n\nExchange result : "
+        print "\nExchange result : "
         print output_str + "\n\n"
                     
         if iEX == numEX:
@@ -423,5 +431,5 @@ if __name__ == "__main__" :
         run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
     elif options.type in ("REMD"):
         run_REMDg(options.configfile) 
-    print "REMDgManager total runtime: " + str(time.time()-start) + " s"
+    print "REMDgManager Total Runtime: " + str(time.time()-start) + " s"
     
