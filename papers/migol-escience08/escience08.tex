@@ -403,11 +403,11 @@ Each time a checkpoint is witten, the application has to update
 its Grid Service Object at the AIS (message 5). 
 
 To support an automatic recovery, Grid applications must be able to interact with the Migol infrastructure:
-\begin{itemize}
+\begin{compactitem}
     \item The application must register checkpoint and job metadata with the infrastructure.
     \item The infrastructure must be able to externally monitor the application.
-    \item The infrastructure must be able to externally notify the application and trigger the saving of a checkpoint.
-\end{itemize}  
+    %\item The infrastructure must be able to externally notify the application and trigger the saving of a checkpoint.
+\end{compactitem}  
 The Simple API for Grid Applications (SAGA) provides a feature rich programing abstractions. The described functions 
 can be  provided via the new SAGA Checkpoint Recovery API. In addition, SAGA provides  
 various other APIs for supporting file transfer, RPC communication etc., which Grid applications can benefit of.
@@ -427,13 +427,13 @@ monitoring and recovering of checkpoint-restartable jobs.
 Using SAGA CPR, applications can register checkpoint and job metadata with the infrastructure. 
 Further, the API provides support for starting applications, triggering of checkpoints and recoveries.
 
-For execution and management of CPR jobs, SAGA defines a CPR job. The management of 
-CPR jobs is similar to regular jobs: A job is defined by a job description. In contrast to normal jobs, 
+For the management of checkpoint-able Grid jobs, SAGA defines the \texttt{cpr::job} and \texttt{cpr::service} class. The handling of 
+CPR jobs is similar to regular jobs: A job is defined using a job description. In contrast to normal jobs, 
 CPR jobs require  two job descriptions -- one for starting and another one for restarting the application.
 Jobs are started using the job service. In addition to the normal job controls, a CPR job can be queried for checkpoint metadata, and 
 it can be explicitly checkpointed or recovered. Listing~\ref{lst:saga_job_start} shows the starting of a CPR enabled job.
 
-\begin{lstlisting}[style=myListing, caption={SAGA CPR: Starting a Job with CPR Support},  label={lst:saga_job_start}]
+\begin{lstlisting}[style=myListing, caption={SAGA CPR: Starting a Job}, float=t, label={lst:saga_job_start}]
 saga::cpr::service js; 
 saga::cpr::description jd_start;
 saga::cpr::description jd_restart;
@@ -444,50 +444,73 @@ saga::cpr::job job = js.create_job (jd_start,
                                     jd_restart);
 job.run ();
 \end{lstlisting}
-    
-A major building block for fault tolerant system is failure detection. In general, fault detection is done by a monitor process, 
-which periodically sends keep-alive messages to applications. To monitor applications, the application must provide a communication endpoint.
-Listing~\ref{lst:saga_init_service} shows how a CPR application can connect to the CPR infrastructure. During instantiation of the \texttt{saga::cpr::service} object the adaptor is able to setup a monitoring thread. Using the \texttt{saga::cpr::self} object an application can obtain metadata about the current job from the application.                                                                               
-\begin{lstlisting}[style=myListing, caption={SAGA CPR: Initialize Migol Session}, label={lst:saga_init_service}]
+
+Listing~\ref{lst:saga_init_service} shows how the application itself can connect to the CPR infrastructure. During instantiation of the \texttt{saga::cpr::service} object the adaptor is able to register itself with the CPR backend. This step can e.\,g.\ be used to register a monitoring endpoint. Using the \texttt{saga::cpr::self} object an application can obtain metadata about the current job from the application.                                                                               
+\begin{lstlisting}[style=myListing, caption={SAGA CPR: Initialize Migol Session}, float=t, label={lst:saga_init_service}]
 saga::cpr::service service (saga::url 
     ("migol://gridhub.cct.lsu.edu:8443/wsrf/services/migol/AIS-JGroups"));
 saga::cpr::self = service.get_self ();
 \end{lstlisting}
-      
-After start of a CPR job, the job can be monitoring using the \texttt{job.get\_state()} method. Figure~\ref{fig:cpr-statemodel} shows the CPR state model. In the current implementation the \emph{recovering} state is introduced as detail substate of the state \emph{failed}.
-\begin{figure}[th]
-    \centering
-        \includegraphics[width=0.48\textwidth]{cpr-statemodel.pdf}
-    \caption{SAGA CPR State Model \jhanote{Need more details in Caption} }
-    \label{fig:cpr-statemodel}
-\end{figure}
-                               
 
-For the management of checkpoint metadata the SAGA CPR API use the namespace paradigm to hierarchically 
-organize files and directories. Checkpoint directories are 
-used to group checkpoints. Parallel applications often write one checkpoint per 
+Further, applications can use a checkpointing API to update checkpoint metadata at the backend. The SAGA CPR API allows the hierarchically 
+organization of checkpoint files and directories. Checkpoint directories are 
+used to group checkpoints. For example, parallel applications often write one checkpoint per 
 processor, i.\,e.\ in case of $n$ processors a CPR checkpoint
 would consists of $n$ files. Thus, a CPR checkpoint is designed as container 
-for multiple physical or logical files. Listing~\ref{lst:saga_chkpt_reg} demonstrates how an application task registers a single checkpoint file with the CPR implementations.     
-\begin{lstlisting}[style=myListing, caption={SAGA CPR: Register Checkpoint with Migol}, label={lst:saga_chkpt_reg}]
+for multiple physical or logical files. Listing~\ref{lst:saga_chkpt_reg} demonstrates 
+how an application task registers a single checkpoint file with the CPR implementations.     
+\begin{lstlisting}[style=myListing, caption={SAGA CPR: Register Checkpoint with Migol}, float=t, label={lst:saga_chkpt_reg}]
 saga::cpr::checkpoint remd_chkpt("remd_chkpt");
 remd_checkpoint.add_file (saga::url 
   ("gsiftp://qb.loni.org/work/remd/chkpt.dat"));
 \end{lstlisting}
-                        
 
-The Migol adaptor provides a compliant SAGA CPR stack for the C++ reference implementation~\cite{Kaiser:2006qp}. The adaptor provides extensive application-level monitoring capabilities using a heartbeat protocol~\cite{Hanmer:2007kx}. The monitoring endpoint is implemented using the gSoap HTTP server~\cite{gsoap}. This monitoring server is transparently initialized with the creation of a CPR service object. 
 
-% The URL of the endpoint is stored in the Application Information Service (AIS) where it can be obtained by the Monitoring Restart Service (MRS).
+CPR jobs are subject to an extended state model. An application can queries or subscribe to a job state via the \texttt{cpr::job} object.      
+Figure~\ref{fig:cpr-statemodel} summarizes the CPR state model. The CPR model extends the SAGA job state model by the new state \texttt{recovering}. This state
+is used to indicate to the application that the infrastructure is currently trying to restart a job. 
+If these recovery attempts fail, the state of the application is permanently set to \texttt{failed}. 
+The application must then deploy an application-level recovery schema in order to continue execution. 
 
-Another critical aspects is the management of the application's metadata. To ensure the recoverability of an application, metadata, such as the job description and information about written checkpoint files must be available even if the application failed. The Migol adaptor relies on the Application Information Service (AIS) as metadata backend. Every job is associated with a global unique identifier (GUID), which is initially created when an application first registers. All metadata belonging to an application can be stored or queried with reference to the GUID. The following information are maintained in the AIS:
-\begin{itemize}
-    \item During the job start, the job description for starting and restarting of an application is mapped to the resource, service, and file profile of the Grid Service Object schema used by Migol. This GSO is then registered at the AIS.
-    \item The SAGA job state is mapped to the more comprehensive Migol state model, which introduces additional states such as \emph{migrating} or \emph{pending}. All state transitions are directly propagated to the AIS. 
+\begin{figure}[th]
+    \centering
+        \includegraphics[width=0.48\textwidth]{cpr-statemodel.pdf}
+    \caption{SAGA CPR State Model: The CPR state model introduces the recovering state. If the CPR infrastructure attempts to recover an application, this state is used to indicate to the application that an automatic recovery procedure is conducted.}
+    \label{fig:cpr-statemodel}
+\end{figure}
+ 
+
+The Migol adaptor provides a compliant SAGA CPR stack for the C++ reference implementation~\cite{Kaiser:2006qp}. 
+A major building block is the application-level monitoring mechanism used to detect failures. 
+To support the monitoring arbitrary SAGA applications, a monitoring Web service is started 
+by the Migol adaptor with the initialization of a \texttt{cpr::service} object. This Web 
+service is implemented using the gSoap HTTP server~\cite{gsoap}.  This service is used by the Monitoring Restart Service,
+which periodically sends keep-alive messages to applications.                                                                             
+% The URL of the service is registered at the Application Information Service where it can be obtained 
+% by the monitoring service.
+
+% A major building block for fault tolerant system is failure detection. In general, fault detection is done by a monitor process, 
+% which periodically sends keep-alive messages to applications. To monitor applications, the application must provide a communication endpoint.
+
+
+Another critical aspects is the management of the application's metadata. To ensure the recoverability 
+of an application, metadata, such as the job description and information about written checkpoint files 
+must be available even if the application failed. The Migol adaptor relies on the Application 
+Information Service (AIS) as metadata backend. Every job is associated with a global unique identifier (GUID).
+%, which is initially created when an application first registers. 
+All metadata belonging to an application can be stored or queried with reference to the GUID. 
+The following information is propagated to the AIS by the Migol adaptor:
+\begin{compactitem}
+    \item The job description for starting and restarting of an application is mapped to the resource, service, and file profile of the Grid Service Object schema used by Migol. The registration of these information is done during the \texttt{create\_job()} operation.
+    \item The SAGA job state is mapped to the more comprehensive Migol model, which introduces additional states such as \emph{migrating} or \emph{pending}. All state transitions are directly propagated to the AIS. State queries, e.\,g.\ using the \texttt{get\_state()} operation,  are always conducted against the AIS. The Migol state is accessible via the \texttt{state\_detail} metric of the job object.
+    
     \item After startup of the application, the monitoring endpoint, i.\,e.\ the URL of the embedded SOAP server, is updated.
-    \item During the runtime, metadata about checkpoint are periodically updated by the application.
-\end{itemize}
+    \item During the runtime, metadata about checkpoint are periodically updated via the \texttt{cpr::checkpoint} object.
+\end{compactitem}
 To ensure the availability of these information in case of a failure, the AIS is actively replicated across multiple Grid nodes.
+                  
+
+
 
                                                   
 % MPI monitoring cannot be done without touch NAMD application
@@ -541,7 +564,7 @@ launcher. This wrapper enables the flexible orchestration of multiple NAMD jobs 
 % SAGA APIs and SAGA CPR Migol infrastructure allow a user to build his/her own implementation of REMD adaptively considering the limitations of available resources.  That aspects comes from the high-level abstraction of SAGA and flexible implementation of Replica Exchange as well as fault-recovery with SAGA CPR Migol.  For example, one simple scenario is to assign a REMD manager in charge of a job submission/monitor/fault-recovery.  Each job corresponding one replica run with a assigned temperature is sent to HPC machine as a parallel MPI job by the manager and overall job execution and fault-recovery are monitored by the manager.  The following snippet shows the part of the code written with python for the REMD manager showing creation and submission of a job corresponding to each replica.  
                                              
 % \jhanote{I say we put a few snippets of code here}
-\begin{lstlisting}[style=myPythonListing, caption={REMDgManager: Replica Orchestration}, 
+\begin{lstlisting}[style=myPythonListing, float=t, caption={REMDgManager: Replica Orchestration}, 
 label={lst:python_saga_chkpt_reg}]
 
 # loop n replica exchange steps  
