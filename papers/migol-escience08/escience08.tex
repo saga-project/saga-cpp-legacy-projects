@@ -334,9 +334,38 @@ multipurpose Grid, such as TeraGrid.
 
 \Section{REMD Simulation with NAMD}   
 
-% REMD/NAMD background
-
-In Molecular Dynamics approaches, a sufficient sampling of configurations constitutes the rudimentary requirement for connecting atomistic results to macroscopic or thermodynamic quantities available from experiments.   However,  with the most powerful computing resources at the moment, it is still formidable to carry out the long time simulations providing the desired conformational search.   There has been a great number of research efforts to accelerate sampling, and the generalized ensemble approaches have been proposed to overcome an inefficient conformational sampling presumably associated with kinetic trappings.  REMD was introduced by Sugita and Okamoto as one of the generalized ensemble approaches and they employed Molecular Dynamics as the name represents.  The REMD run is composed of many replicas running at different temperatures and at the given time interval, exchange of parameters such as temperature are determined by the metropolis scheme.  Various topics have been studied with this approach successfully, but the size of simulations, requiring many replicas, could be one obstacle for routine usages.  This paper aims to demonstrate the efficient implementation armed with grid-enabled SAGA framework as well as fault-recovery SAGA CPR Migol infrastructurure.  Our development comprises three components.  The first component is a task manager sitting on a user's desktop and providing a user interface to manage overall REMD run, the second component is Migol server that submits, monitor, and recover each replica simulation if exists, and the final one is task agents that resides on High Performance Machines where MD simulations are carried out.  The role of a task manager varies for achieving the best solution with different local environment at each HPC machine.  A highly scalable MD package, NAMD~\cite{Phillips:2005gd} is used for a parallel MD simulation corresponding each replica run.  A REMD task manager and various parts gluing different components are mostly written with python scripts since SAGA-Python binding transparently exposes SAGA and SAGA-CPR/MIGOL APIs to simple but versatile Python.
+In Molecular Dynamics approaches, a sufficient sampling of
+configurations constitutes the rudimentary requirement for connecting
+atomistic results to macroscopic or thermodynamic quantities available
+from experiments.  However, with the most powerful computing resources
+at the moment, it is still formidable to carry out the long time
+simulations providing the desired conformational search.  There has
+been a great number of research efforts to accelerate sampling, and
+the generalized ensemble approaches have been proposed to overcome an
+inefficient conformational sampling presumably associated with kinetic
+trappings.  REMD was introduced by Sugita and Okamoto as one of the
+generalized ensemble approaches and they employed Molecular Dynamics
+as the name represents.  The REMD run is composed of many replicas
+running at different temperatures and at the given time interval,
+exchange of parameters such as temperature are determined by the
+metropolis scheme.  Various topics have been studied with this
+approach successfully, but the size of simulations, requiring many
+replicas, could be one obstacle for routine usages.  This paper aims
+to demonstrate the efficient implementation armed with grid-enabled
+SAGA framework as well as fault-recovery SAGA CPR Migol
+infrastructurure.  Our development comprises three components.  The
+first component is a task manager sitting on a user's desktop and
+providing a user interface to manage overall REMD run, the second
+component is Migol server that submits, monitor, and recover each
+replica simulation if exists, and the final one is task agents that
+resides on High Performance Machines where MD simulations are carried
+out.  The role of a task manager varies for achieving the best
+solution with different local environment at each HPC machine.  A
+highly scalable MD package, NAMD~\cite{Phillips:2005gd} is used for a
+parallel MD simulation corresponding each replica run.  A REMD task
+manager and various parts gluing different components are mostly
+written with python scripts since SAGA-Python binding transparently
+exposes SAGA and SAGA-CPR/MIGOL APIs to simple but versatile Python.
 
 \Section{Migol: A Fault Tolerant Service Framework}     
 \label{sec:migol}
@@ -539,35 +568,59 @@ To ensure the availability of these information in case of a failure, the AIS is
 \end{figure*}
 
                                   
-The REMDgManager provides a scalable infrastructure for running replica exchange simulations. 
-The application utilizes the SAGA CPR API and the underlying Migol infrastructure to 
-efficiently and reliable manage replica processes. Figure~\ref{fig:REMDgManager-architecture} 
-illustrates the architecture of the REMDgManager. The replica manager is the main component of 
-the framework -- it is responsible for orchestration of all replica processes, i.\,e.\ the 
-parameterization of replica tasks,  file staging, job spawning and the conduction of the 
-replica exchange itself. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the application sequence of a REMD simulation.
+The REMDgManager provides a scalable infrastructure for running
+replica exchange simulations.  The application utilizes the SAGA CPR
+API and the underlying Migol infrastructure to efficiently and
+reliable manage replica
+processes. Figure~\ref{fig:REMDgManager-architecture} illustrates the
+architecture of the REMDgManager. The replica manager is the main
+component of the framework -- it is responsible for orchestration of
+all replica processes, i.\,e.\ the parameterization of replica tasks,
+file staging, job spawning and the conduction of the replica exchange
+itself. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the
+application sequence of a REMD simulation.
  
-At each replica exchange step, the REMDgManagers starts a defined number of replicas. The 
-current parameterization of each replica is stored within a list object and can be referenced 
-by the \texttt{replica\_id}. For each replica different metadata, such as the working directory, 
-the used configuration file, the temperature etc. is maintained.  Based on this information the 
-REMDgManager transfers all required files to the respective resource using the SAGA File API and 
-the GridFTP adaptor (step 1). The replica process is the started using the CPR API and Migol/GRAM (step 2a-2c). 
-The job description of each task is stored within the Migol infrastructure to ensure a later recovery. 
-The job start itself is done via the GRAM service. 
+At each replica exchange step, the REMDgManagers starts a defined
+number of replicas. The current parameterization of each replica is
+stored within a list object and can be referenced by the
+\texttt{replica\_id}. For each replica different metadata, such as the
+working directory, the used configuration file, the temperature
+etc. is maintained.  Based on this information the REMDgManager
+transfers all required files to the respective resource using the SAGA
+File API and the GridFTP adaptor (step 1). The replica process is the
+started using the CPR API and Migol/GRAM (step 2a-2c).  The job
+description of each task is stored within the Migol infrastructure to
+ensure a later recovery.  The job start itself is done via the GRAM
+service.
   
 
-To integrate NAMD with the SAGA/Migol infrastructure a SAGA based wrapper application is used. 
-This wrappers is responsible for updating the metadata of the application, i.\,e.\ the state, 
-monitoring endpoint and the URLs of newly written checkpoints at the Migol backend. 
-The wrapper then launches the actual NAMD job using MPI. During the entire runtime the 
-replica process is monitored by the Migol infrastructure using the monitoring endpoint of the NAMD 
-launcher. This wrapper enables the flexible orchestration of multiple NAMD jobs through the
- REMDgManager without modification of the NAMD source itself. After all replicas have 
- been successfully completed, the exchange step is conducted, i.\,e.\ the REMDgManager 
- determines new parameters for all replica tasks, stages the required files and relaunches all jobs.
+To integrate NAMD with the SAGA/Migol infrastructure a SAGA based
+wrapper application is used.  This wrappers is responsible for
+updating the metadata of the application, i.\,e.\ the state,
+monitoring endpoint and the URLs of newly written checkpoints at the
+Migol backend.  The wrapper then launches the actual NAMD job using
+MPI. During the entire runtime the replica process is monitored by the
+Migol infrastructure using the monitoring endpoint of the NAMD
+launcher. This wrapper enables the flexible orchestration of multiple
+NAMD jobs through the REMDgManager without modification of the NAMD
+source itself. After all replicas have been successfully completed,
+the exchange step is conducted, i.\,e.\ the REMDgManager determines
+new parameters for all replica tasks, stages the required files and
+relaunches all jobs.
 
-% SAGA APIs and SAGA CPR Migol infrastructure allow a user to build his/her own implementation of REMD adaptively considering the limitations of available resources.  That aspects comes from the high-level abstraction of SAGA and flexible implementation of Replica Exchange as well as fault-recovery with SAGA CPR Migol.  For example, one simple scenario is to assign a REMD manager in charge of a job submission/monitor/fault-recovery.  Each job corresponding one replica run with a assigned temperature is sent to HPC machine as a parallel MPI job by the manager and overall job execution and fault-recovery are monitored by the manager.  The following snippet shows the part of the code written with python for the REMD manager showing creation and submission of a job corresponding to each replica.  
+% SAGA APIs and SAGA CPR Migol infrastructure allow a user to build
+% his/her own implementation of REMD adaptively considering the
+% limitations of available resources.  That aspects comes from the
+% high-level abstraction of SAGA and flexible implementation of
+% Replica Exchange as well as fault-recovery with SAGA CPR Migol.  For
+% example, one simple scenario is to assign a REMD manager in charge
+% of a job submission/monitor/fault-recovery.  Each job corresponding
+% one replica run with a assigned temperature is sent to HPC machine
+% as a parallel MPI job by the manager and overall job execution and
+% fault-recovery are monitored by the manager.  The following snippet
+% shows the part of the code written with python for the REMD manager
+% showing creation and submission of a job corresponding to each
+% replica.
                                              
 % \jhanote{I say we put a few snippets of code here}
 \begin{lstlisting}[style=myPythonListing, float=t, caption={REMDgManager: Replica Orchestration}, 
@@ -610,59 +663,81 @@ for i in range(0, n):
 %     new_job.run()
 %     REMDjobs.append(new_job)
 
-\kimnote{However, this simple scenario faces high overhead since each job is submitted to the local scheduler in many cases. \it Shantenu, may be you can write here another scenario we discussed as an alternative to the simple scenario we are testing.  If I can, I will try, too } 
+ \kimnote{However, this simple scenario faces high overhead since each
+   job is submitted to the local scheduler in many cases. \it
+   Shantenu, may be you can write here another scenario we discussed
+   as an alternative to the simple scenario we are testing.  If I can,
+   I will try, too }
 
 
 \Section{Experiences with REMD}
 \label{sec:exp}       
         
-To evaluate the performance of the REMDgManager several experiments have been conducted 
-within the LONI Grid~\cite{Allen:2003xy}. The REMDgManager has been been deployed on the 
-three Linux clusters of the LONI Grid: QueenBee, Eric and Poseidon. 
-QueenBee is the largest LONI machine and has a peak performance of 50 TFlops.                         
-Figure~\ref{fig:saga-taskfarming} gives an overview about the REMDgManager scenario used for our experiments.  
+To evaluate the performance of the REMDgManager several experiments
+have been conducted within the LONI Grid~\cite{Allen:2003xy}. The
+REMDgManager has been been deployed on the three Linux clusters of the
+LONI Grid: QueenBee, Eric and Poseidon.  QueenBee is the largest LONI
+machine and has a peak performance of 50 TFlops.
+Figure~\ref{fig:saga-taskfarming} gives an overview about the
+REMDgManager scenario used for our experiments.
 
 \begin{figure*}[t]
     \centering
         \includegraphics[width=0.8\textwidth]{saga-taskfarming}
-    \caption{Fault Tolerant Molecular Dynamic Simulation: The REMDgManager orchestrates a set of distributed replica processes using the SAGA API. All processes synchronize important metadata with the Migol infrastructure. Migol then actively monitors all processes and ensures that, even in the presence of failures, all task are eventually completed.}
+        \caption{Fault Tolerant Molecular Dynamic Simulation: The
+          REMDgManager orchestrates a set of distributed replica
+          processes using the SAGA API. All processes synchronize
+          important metadata with the Migol infrastructure. Migol then
+          actively monitors all processes and ensures that, even in
+          the presence of failures, all task are eventually
+          completed.}
     \label{fig:saga-taskfarming}
 \end{figure*} 
 
-In particular interesting is the overhead caused by the fault tolerance mechanisms. This overhead 
-caused by the necessary interactions with the Migol backend, in particular for 
-job submission, registration of metadata and active monitoring.
+It is important to understand the overhead caused by the fault
+tolerance mechanisms. This overhead is caused by the necessary
+interactions with the Migol backend, in particular for job submission,
+registration of metadata and active monitoring.
 \begin{figure}[ht]
     \centering
         \includegraphics[width=0.45\textwidth]{performance/perf_submission.pdf}
     \caption{SAGA/CPR Migol Adaptor Overhead}
     \label{fig:performance_perf_submission}
 \end{figure}           
-Figure~\ref{fig:performance_perf_submission} shows the runtimes of important CPR API operations 
-in comparison to their non fault tolerant counterparts. A particular critical operations for 
-REMDgManager is the spawning of remote tasks. Depending on the number of replica processes, 
-for each replica step n replica processes must be launched and monitored.  To evaluate the 
-overhead, a single NAMD task was started using SAGA CPR/Migol.  The experiment showed that a 
-CPU job submission is per average 2\,second slower than a normal GRAM submission. This overhead 
-is attributed mainly to the additional metadata registration operation required by the Migol. 
+Figure~\ref{fig:performance_perf_submission} shows the runtimes of
+important CPR API operations in comparison to their non fault tolerant
+counterparts. A particular critical operations for REMDgManager is the
+spawning of remote tasks. Depending on the number of replica
+processes, for each replica step n replica processes must be launched
+and monitored.  To evaluate the overhead, a single NAMD task was
+started using SAGA CPR/Migol.  The experiment showed that a CPU job
+submission is per average 2\,second slower than a normal GRAM
+submission. This overhead is attributed mainly to the additional
+metadata registration operation required by the Migol.
 
-In addition to the submission overhead, the Migol adaptor shows some additional initialization 
-overhead. The overall runtime of this simple REMD submission task  including the initialization 
-is with 6.45\,sec about 4.5\,sec slower than the GRAM launcher. In particular, 
-the initialization of a Migol jobs requires the setup of the HTTP server as well as several 
-metadata updates at the AIS, which accounts to the additional costs.
+In addition to the submission overhead, the Migol adaptor shows some
+additional initialization overhead. The overall runtime of this simple
+REMD submission task including the initialization is with 6.45\,sec
+about 4.5\,sec slower than the GRAM launcher. In particular, the
+initialization of a Migol jobs requires the setup of the HTTP server
+as well as several metadata updates at the AIS, which accounts to the
+additional costs.
                                                                                                                      
-In addition to the job submission, it is in particular interesting how the runtime of the 
-replica process is effected by the active monitoring and the replication of the checkpoints. 
-To evaluate this, a NAMD job with 1000 steps was started with and without Migol support. 
-During this run a very eager monitoring intervall of 1 minute was used. Checkpoint metadata has been 
-updated every five minutes - a single checkpoint update required per average  1.3\,seconds 
-per average as shown in Figure~~\ref{fig:performance_perf_submission}.  During this 21\,minute 
-NAMD run the overhead average to 20\,s and thus only amounts to about 2\%. 
-                                                                                   
+In addition to the job submission, it is in particular interesting how
+the runtime of the replica process is effected by the active
+monitoring and the replication of the checkpoints.  To evaluate this,
+a NAMD job with 1000 steps was started with and without Migol support.
+During this run a very eager monitoring intervall of 1 minute was
+used. Checkpoint metadata has been updated every five minutes - a
+single checkpoint update required per average 1.3\,seconds per average
+as shown in Figure~~\ref{fig:performance_perf_submission}.  During
+this 21\,minute NAMD run the overhead average to 20\,s and thus only
+amounts to about 2\%.
 
-In the final scenario the REMDgManager has been setup to run a REMD simulation with 16 replica process 
-and 100 replica exchange steps. Table~\ref{tab:app_stats} summarizes some application characteristics.
+In the final scenario the REMDgManager has been setup to run a REMD
+simulation with 16 replica process and 100 replica exchange
+steps. Table~\ref{tab:app_stats} summarizes some application
+characteristics.
 \begin{table}        
     \centering
 	\begin{tabular}{|p{5cm}|l|}
@@ -679,26 +754,41 @@ and 100 replica exchange steps. Table~\ref{tab:app_stats} summarizes some applic
           \jhanote{Is 1000 the the total number of exchanges or the number of exchanges that a single replica will undergo?}}
 \end{table}
 
-Further, the reliability capabilities of the proposed framework have been extensively researched by inserting certain faults into 
-the systems. In our scenario, we killed selected replica processes and measured the time required by Migol to restarting the system.
-Due to the selected monitoring intervall of one minute and failure threshold of 2 tries, the failure detection time averages to 2.5\, minutes.
+Further, the reliability capabilities of the proposed framework have
+been extensively researched by inserting certain faults into the
+systems. In our scenario, we killed selected replica processes and
+measured the time required by Migol to restarting the system.  Due to
+the selected monitoring intervall of one minute and failure threshold
+of 2 tries, the failure detection time averages to 2.5\, minutes.
 
-As shown in Figure~\ref{fig:performance_perf_submission}  the recovery time required for the restart of the job amounts to 
-about 42 seconds. This is mainly caused by the complex interactions conducted with the Migol backend (cmp. section~\ref{sec:migol}):
-The monitoring service initializes the restart at the Migration Service, which again verifies the state of the application. A major performance
-penalty is the delegation-on-demand mechanism required to obtain the credential of the user from the AIS. For this purpose the creation of a public-private key 
-pair is necessary. The Job Broker Service then discovers and allocates resources. 
-The job start itself is conducted via the Advance Reservation Service. In contrast to the GRAM, the ARS is not bound to a single Grid site, i.\,e.\ if allowed by the administrator it is able to conduct reservation respectively job starts at any resource in the Grid. Local resource management systems are detected during the runtime of the job. However, this feature is associated with some overhead in contrast to a simple GRAM submission. 
+As shown in Figure~\ref{fig:performance_perf_submission} the recovery
+time required for the restart of the job amounts to about 42
+seconds. This is mainly caused by the complex interactions conducted
+with the Migol backend (cmp. section~\ref{sec:migol}): The monitoring
+service initializes the restart at the Migration Service, which again
+verifies the state of the application. A major performance penalty is
+the delegation-on-demand mechanism required to obtain the credential
+of the user from the AIS. For this purpose the creation of a
+public-private key pair is necessary. The Job Broker Service then
+discovers and allocates resources.  The job start itself is conducted
+via the Advance Reservation Service. In contrast to the GRAM, the ARS
+is not bound to a single Grid site, i.\,e.\ if allowed by the
+administrator it is able to conduct reservation respectively job
+starts at any resource in the Grid. Local resource management systems
+are detected during the runtime of the job. However, this feature is
+associated with some overhead in contrast to a simple GRAM submission.
 % \begin{itemize}
 %     \item The  Migration Service is called - the services verifies the state of the application and tries to trigger a checkpoint
 %     \item Job Broker Service: verifies state of resource job was allocated before. This requires some interaction with the MDS. In addition bandwidth information etc. are acquired
 %     \item restarts the job at the respective resource. Due to architectural reasons Migol jobs are restarted through the Advance Reservation Service. It's most noted feature in contrast to the GRAM is the support for advance reservation. In contrast to the GRAM, the ARS is not bound to a single Grid site, i.\,e.\ if allowed by the administrator it is able to conduct reservation respectively job starts at any resource in the Grid. Local resource management systems are detected during the runtime of the job. However, this feature is associated with some overhead in contrast to a simple GRAM submission.
 % \end{itemize}   
 
-While these results show that SAGA/CPR in conjunction with Migol incurs some 
-overhead, we think that this is acceptable compared to the benefits a fault tolerant, 
-self healing infrastructure offers. In addition, it must be noted that further optimizations are possible.
-
+While these results show that SAGA/CPR in conjunction with Migol
+incurs some overhead, we think that this is acceptable compared to the
+benefits a fault tolerant, self-healing infrastructure offers. In
+addition, it must be noted that further simple yet effective
+optimizations are possible. \jhanote{an example or two would make this
+  claim more substantiative}
 
 %Some comments with respect to solved REMD problem:    
 % about 17 MB data to transfer for a migration
@@ -732,48 +822,52 @@ self healing infrastructure offers. In addition, it must be noted that further o
 % \end{itemize}
                                              
      
-                                             
-
 \Section{Related Work}
 
 % TODO AM: add some SAGA-CPR background
 
-Checkpointing and rollback recovery is widely used in Grids. For example, the Condor/PGRADE system~\cite{DBLP:conf/eagc/KovacsK04} consists 
-of a checkpointing mechanism for PVM applications and uses Condor-G~\cite{citeulike:291860} for scheduling. 
-While PGRADE emphasises an integrated user-level checkpoint approach, we believe 
-that this approach is not suitable for a heterogeneous Grid landscape. Further, 
-the framework does not ensure the fault-tolerance of the
-service infrastructure sufficiently.
+Checkpointing and rollback recovery is widely used in Grids. For
+example, the Condor/PGRADE system~\cite{DBLP:conf/eagc/KovacsK04}
+consists of a checkpointing mechanism for PVM applications and uses
+Condor-G~\cite{citeulike:291860} for scheduling.  While PGRADE
+emphasises an integrated user-level checkpoint approach, we believe
+that this approach is not suitable for a heterogeneous Grid
+landscape. Further, the framework does not ensure the fault-tolerance
+of the service infrastructure sufficiently.
                                  
 Several framework for high throughput computing and task farming exist:
 %Condor-G~\cite{citeulike:291860} allows the management of multi-site computations.                        
-Nimrod-G~\cite{buyya00nimrodg} is a specialized framework for task farming. The framework provides a user interface for describing task farming applications. For remote execution of jobs Globus is used. While the user interface is very suitable for parameter studies, more demanding problems such as REMD simulations require a further application-level integration.
+Nimrod-G~\cite{buyya00nimrodg} is a specialized framework for task
+farming. The framework provides a user interface for describing task
+farming applications. For remote execution of jobs Globus is
+used. While the user interface is very suitable for parameter studies,
+more demanding problems such as REMD simulations require a further
+application-level integration.
 
 The Legion~\cite{689541} Grid middleware provides a object-oriented programing model, which allows the simple instantiation of distributed tasks. While the provided abstraction is useful for developing Grid applications, it relies on proprietary protocols and is not compatible with OGSA-based service-oriented Grids.
 
 Nimrod-G and Legion as also most Grid resource management systems, such as Condor-G~\cite{citeulike:291860} and GridWay~\cite{Montero05}, provide basic fault tolerance support by automatic re-scheduling of failed task. Advanced features such as the management of checkpoints are not supported. Further, these frameworks rely on a very simple failure detections mechanisms -- usually by simply polling the job state at the Globus gatekeeper. This allows the detection of some errors, but application-level failure detectors as used by the Migol/SAGA library can detects much more complex errors. For example, especially parallel applications can fail quite inconsistently: in the best case the application aborts, at worst the application hangs indefinitely. These kind of failures are not visible at Grid resource management system level. Further, these frameworks or scheduler focus on individual aspects, e.\,g.\ Nimrod-G focuses on task farming or GridWay on meta-scheduling. Migol aims to provide an overall autonomic, self-healing infrastructure, which addresses the fault tolerance of Grid applications and the infrastructure itself. 
 
-
-On the level of related application programming interfaces for
-checkpointing, proprietary interfaces are the clearly dominating
-ones, mostly because applications do often rely on application level
-checkpointing, and, related, perform also their own checkpoint
-management (checkpointing policies, frequencies, dependencies, staging
-etc).  The Open Grid Forum's\footnote{\texttt{http://www.ogf.org}}
-GridCPR group (Grid CheckPoint and Recovery) made an early attempt to
-describe a generic CPR architecture, and to define a generic CPR API,
-which would support applications to manage their complete
-checkpoint/recovery life cycle~\cite{ogf_cpr_arch}.  Based on that
-architecture, and on a set of CPR use cases~\cite{ogf_cpr_uc}, the
-SAGA group in OGF defined the CPR API package~\cite{ogf_cpr_draft}
-(work in progress), whose implementation is described in this paper.
-The rendering of the CPR API in the SAGA API framework allows (a) to
-seamlessly combine CPR operations and other high level Grid
-programming abstractions provided by SAGA, and (b) to abstract from
-the actual implementation of the CPR mechanism.  The CPR API which was
-here demonstrated with the Migol fault tolerance framework, can work
-just as well with, for example, the XtreemOS system level
-checkpointing capabilities~\cite{xtreemos_cpr}.
+At the level of related application programming interfaces for
+checkpointing, proprietary interfaces are dominant. This is because
+applications most often rely on application level checkpointing, and,
+related, perform also their own checkpoint management (checkpointing
+policies, frequencies, dependencies, staging etc).  The Open Grid
+Forum's\footnote{\texttt{http://www.ogf.org}} GridCPR group (Grid
+CheckPoint and Recovery) made an early attempt to describe a generic
+CPR architecture, and to define a generic CPR API, which would support
+applications to manage their complete checkpoint/recovery life
+cycle~\cite{ogf_cpr_arch}.  Based on that architecture, and on a set
+of CPR use cases~\cite{ogf_cpr_uc}, the SAGA group in OGF defined the
+CPR API package~\cite{ogf_cpr_draft} (work in progress), whose
+implementation is described in this paper.  The rendering of the CPR
+API in the SAGA API framework allows (a) to seamlessly combine CPR
+operations and other high level Grid programming abstractions provided
+by SAGA, and (b) to abstract from the actual implementation of the CPR
+mechanism.  The CPR API which has been demonstrated with the Migol
+fault tolerance framework, can work just as well with, for example,
+the XtreemOS system level checkpointing
+capabilities~\cite{xtreemos_cpr}.
 
 % In addition, SAGA provides many benefits for applications.  SAGA
 % offers a feature rich programing abstractions, which can be used in
@@ -781,31 +875,42 @@ checkpointing capabilities~\cite{xtreemos_cpr}.
 % other Grid middleware platforms.
 % 
 
-
 %%------------------------------------------------------------------------------
 \Section{Conclusion and Future Work}
 
-Migol addresses the fault tolerance of Grid applications by handling
-common failures in Grid applications transparently without user
-interactions.  In case of failures, e.\,g.\ a node-crash, applications
-are automatically restarted from the last saved checkpoint.  Migol is
-designed with focus on fault tolerance.  The framework has strong
-self-healing capabilities: critical services, such as the Application
-Information Service (AIS) are able to automatically detect failures
-and reconfigure themselves.
+We have developed a fault-tolerant framework that implements a
+commonly occuring application usage pattern -- a loose-coupling of
+multiple tightly-coupled applications -- whilst being general purpose
+and extensible to different usage patterns, deployment scenarios and
+specific simulation codes.
 
-SAGA provides a middleware-independent, programing abstraction for
-Grids. The new SAGA CPR API provides an ideal interface for Grid
-applications to interface with a checkpoint-recovery infrastructure,
-such as Migol. Using the newly developed SAGA adaptor for Migol, any
-SAGA application can re-use Migol's fault tolerant services for
-monitoring and recovery.  The application developer is not required to
-provide any special code, solely the Migol adaptor must be configured.
+The fault-tolerant framework used to implement RE simulations in a
+production environment is created using the distributed programming
+interfaces provided by SAGA and its coupling to Migol to provide the
+fault-tolerant features.  SAGA provides a middleware-independent,
+programing abstraction for distributed environments. RE simulations
+utilize the new SAGA-CPR API, which provides an ideal interface for
+Grid applications to interface with a checkpoint-recovery
+infrastructure, such as Migol. Using the newly developed SAGA adaptor
+for Migol, any SAGA application can re-use Migol's fault tolerant
+services for monitoring and recovery.  The application developer is
+not required to provide any special code, solely the Migol adaptor
+must be configured.  The framework has strong self-healing
+capabilities: critical services, such as the Application Information
+Service (AIS) are able to automatically detect failures and
+reconfigure themselves, and thus addresses common failure modes in
+distributed environments without user interactions.
+%fault tolerance of Grid applications by handling common
+%failures in Grid applications transparently without user interactions.
+In case of failures, e.\,g.\ a node-crash, applications are
+automatically restarted from the last saved
+checkpoint. % Migol is designed with focus on fault tolerance.
 
-\jhanote{Need to close with an emphasis on the general usability of
-  this approach -- across infrastructure, across scientific
-  applications, and usage patterns (ie minor pertubations around
-  ``replica exchange'' mode}
+In contrast to other replica-exchange implementations on distributed
+simulations it is critical to note and emphasis the general usability
+and extensibility of our approach -- across different infrastructure,
+across a range of scientific applications and usage patterns (such as
+the multiple variant of the replica-exchange).
 
 \jhanote{In future work, we need to mention that we are deploying this
   infrastructure on a real distributed system (LONI) and are using it
