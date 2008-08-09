@@ -212,22 +212,20 @@ pairs at fixed intervals.
 
 A distributed REMD simulation must be able to orchestrate different
 heterogeneous resources in a complex and dynamic environment.  Writing
-applications that need to orchestrate heterogeneous resources
-across distributed environments is a complex task -- for a myriad
-number of reasons, not least of which is that  large scale
-Grids are inherently prone to failures and thus unreliable.
-%due to many reasons: 
-Additionally, Grids are geographically distributed and involve many
-heterogeneous components as well as multiple organizations.  Several
-studies indicated severe failure rates of Grid nodes as well as of
-Grid
+applications that need to orchestrate heterogeneous resources across
+distributed environments is a complex task -- for a myriad number of
+reasons, not least of which is that large scale Grids are inherently
+prone to failures and thus unreliable.  Additionally, Grids are
+geographically distributed and involve many heterogeneous components
+as well as multiple organizations.  Several studies indicated severe
+failure rates of Grid nodes as well as of Grid
 jobs~\cite{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}.
 Although these analyses have been conducted in different environments
 with different hardware and software configurations and measurement
 methods, it is obvious that reliability is not an intrinsic property
 of Grid environments. Some applications can respond to such failures
 via redundant or speculative computing.  However, the redundant
-computing approach has its limitations; especially when there is a
+computing approach has its limitations, especially when there is a
 level of coupling between tasks.  Speculative computing is still
 possible, but its use to mitigate the consequence of distributed
 failures, leads to a whole host of load-balancing and scheduling
@@ -237,21 +235,8 @@ applications.  For example, in a regular exchange simulation the
 termination of all replica processes is required before the next
 iteration step can be started \jhanote{Jha needs to strengthen/refine
   previous sentence}. That means that a single failed process can halt
-the complete simulation.  Thus, it is essential to intrinsically
-provide support for application fault tolerance within the Grid
-middleware.
+the complete simulation.
 
-The \emph{Simple API for Grid Applications (SAGA)}~\cite{saga_gfd90}
-provides a straightforward API for developing loosely coupled data
-and/or task parallel applications.
-% The framework provides an standardized, easy-to-use 
-% API for applications to efficiently utilize Grid infrastructures. 
-SAGA offers a standardized, easy to use API for utilizing Grid
-infrastructures. The API supports e.\,g.\ the management of Grid jobs,
-file transfers and replicas. Thus, SAGA is ideally suited to provide
-the orchestration of the of replica exchange simulations across
-distributed infrastructure.
-                                                         
 In replica exchange simulations, there is a need to occasionally
 attempt an exchange between pairs of replicas; the pairing of replicas
 is also not a constant and is dynamically determined. However, once
@@ -261,85 +246,59 @@ failing task can render the entire computation worthless.
 \emph{Migol}~\cite{schnorLuckow08} provides a fault tolerant Grid
 middleware, which supports the discovery and allocation of resources
 as well as the transparent starting, monitoring and recovery of tasks
-in the Grid.
+in the Grid.  Thus, it is essential to intrinsically provide support
+for application fault tolerance within the Grid middleware.
+\jhanote{there is repetition here. need to refine}
 
-This paper describes the design of the SAGA CPR API and the
-implementation of the Migol adaptor. Further, we will present our
-experiences with deploying the REMD application in a Grid environment.
-This paper describes how using the Checkpoint\,\&\,Recovery package
-(CPR) of the SAGA API, Migol's fault tolerance can be provided to the
-class of Replica Exchange applications.
+The \emph{Simple API for Grid Applications (SAGA)}~\cite{saga_gfd90}
+provides a straightforward API for developing a broad range of
+applications, including but not limited to loosely-coupled data and/or
+task-parallel applications.
+% The framework provides an standardized, easy-to-use 
+% API for applications to efficiently utilize Grid infrastructures. 
+SAGA offers a standardized, easy to use API for utilizing Grid
+infrastructures. The API supports e.\,g.\ the management of Grid jobs,
+file transfers and replicas. Thus, SAGA is ideally suited to encode
+the logic of orchestration of the replica exchange simulations across
+distributed infrastructure.
 
-\jhanote{We need to compare our approach with i) WISDOM and ii)
-  Folding@HOME}             
+Having motivated the need for a fault-tolerant framework for
+application development, this paper describes the design of the
+Checkpoint\,\&\,Recovery package (CPR) of the SAGA API, and its
+implementation using the Migol adaptor. SAGA-CPR represents the first
+extension to the core SAGA specification, and is thus a validation of
+the extensibility of the specification.  It is critical that all
+aspects of the distributed application life-cycle be made easier:
+design, development and deployment. Thus we will also present our
+experiences developing and deploying an REMD application in a
+production environment.
 
-\alnote{Several project, such as Folding@home~\cite{folding} and
-  Wisdom~\cite{wisdom}, rely on distributed infrastructures for
-  computational biology and chemistry. While Folding@home utilizes a
-  similar replica exchange algorithm~\cite{PhysRevLett.86.4983}}
+We will discuss the main advantages of our approach: i) scalable to
+resources of different sizes, as opposed to folding@home which is
+BOINC and thus size-limited; ii) as opposed to WISDOM that is confined
+to gLITE/EGEE and is usable over varied distributed environments such
+as the TeraGrid, DEISA, etc; iii) extensible -- we can implement
+Replica-Exchange simulations, but we can also do other applications
+with this approach. We need to point that the ability to do all of the
+above arises from the use of the correct programmatic and system-level
+abstractions: enable users do what users do best and must do i.e.,
+provide the simulation and orchestration logic, and let systems and
+middleware do what is best left to them, i.e., checkpoint management
+\jhanote{a stronger example would be welcome}.
 
-%   \kimnote{Is this true? I know early attempts with Folding@home only
-%     focused on parallel replica dynamics that does not need exchange!
-%     They only get independent run results limited to the short time,
-%     and use those large number of simulations for predicting kinetics,
-%     I think}
+% \jhanote{The important message, which we need to repeat and repeat yet
+%   again: our approach is i) scalable over different distributed
+%   environments of different size (not like folding@home); ii) general
+%   -- usable over TG, DEISA, etc. unlike the WISDOM approach which is
+%   tied to EGEE; iii) extensible -- we can do Replica Exchange but we
+%   can also do other applications with this approach. We need to point
+%   that the ability to do all of the above arises from the use of the
+%   correct programmatic abstractions; let the systems/middleware do
+%   what middleware/systems do best (Migol); let users do what users do
+%   best!}
 
-\footnote{Folding@Home~\cite{PhysRevLett.86.4983} is parallel replica
-  dynamics but that is a special case of replica exchange; when a
-  certain event happens, there is a need for coordination amongst ALL
-  replicas. We should maybe point this out, but I think it is fair at
-  this level of detail, to consider folding@Home to be in the same
-  application class to effectively parallelize simulations; it is
-  based on BOINC~\cite{1033223}, a cycle scavenging infrastructure.}
-
-In contrast, general, multipurpose Grids as the TeraGrid, which
-provide a dedicated runtime environment for applications with
-different characteristic, e.\,g.\ loosely coupled, tightly coupled and
-data-intensive applications, desktop Grids rely on volunteers. This
-kind of environment is only suitable for loosely coupled
-applications. Multipurpose Grids have several advantages: Issues as
-trust and security are well researched. Further, it is possible to run
-larger application chunks. The REMD manager splits an scenario into
-multiple parts -- each part can be represented by a MPI application
-utilizing up to 32 nodes. \jhanote{needs refinement will do}
-\kimnote{Yes, this is MPI enables and there is no limitation on the
-  number of nodes!}
-
-The Wisdom project utilizes the EGEE infrastructure for molecular
-docking simulations used e.\,g.\ for evaluation of drugs. While this
-application has a similar high throughput characteristic, the project
-is currently tied to the gLite~\cite{glite2008} Grid middleware.
-
-In contrast to Wisdom and Folding@home, our approach is not restricted
-to a specific Grid middleware -- by utilizing the SAGA standard the
-REMD manager can easily utilize resources managed by different Grid
-platforms. SAGA provides a well-defined abstraction, which is capable
-of handling both scenarios. Using this approach the application can
-easily used with different middleware platforms, Folding@home could
-then be deployed on a BOINC infrastructure as well as on a
-multipurpose Grid, such as TeraGrid.
-
-\alnote{Should we add some details regarding the scientific results of
-  WISDOM and Folding@home and how they differ from our REMD with NAMD?
-  Or are we just comparing the Grid infrastructure?}  \jhanote{In
-  response to immediateley preceeding alnote, IMHO we don't need to
-  address scientific results, but will just say the ``size of the
-  problem'' that can be studied is limited}
-
-  \jhanote{The important message, which we need to repeat and repeat
-    yet again: our approach is i) scalable over different distributed
-    environments of different size (not like folding@home); ii)
-    general -- usable over TG, DEISA, etc. unlike the WISDOM approach
-    which is tied to EGEE; iii) extensible -- we can do Replica
-    Exchange but we can also do other applications with this
-    approach. We need to point that the ability to do all of the above
-    arises from the use of the correct programmatic abstractions; let
-    the systems/middleware do what middleware/systems do best (Migol);
-    let users do what users do best!}
-
-  \jhanote{We need to address: ``Why SAGA and Migol?'' here in the
-    opening section}
-
+\jhanote{We need to address: ``Why SAGA and Migol?'' here in the
+  opening section}
 
 \Section{REMD Simulation with NAMD}   
 
@@ -838,6 +797,8 @@ optimizations are possible. \jhanote{an example or two would make this
 
 % TODO AM: add some SAGA-CPR background
 
+\subsection*{Previous CPR Efforts for Distributed Environments}
+
 Checkpointing and rollback recovery is widely used in Grids. For
 example, the Condor/PGRADE system~\cite{DBLP:conf/eagc/KovacsK04}
 consists of a checkpointing mechanism for PVM applications and uses
@@ -901,6 +862,67 @@ mechanism.  The CPR API which has been demonstrated with the Migol
 fault tolerance framework, can work just as well with, for example,
 the XtreemOS system level checkpointing
 capabilities~\cite{xtreemos_cpr}.
+
+
+\subsection{Previous Attempts at RE simulations in Distributed
+  Environments}
+% \jhanote{We need to compare our approach with i) WISDOM and ii)
+%   Folding@HOME}             
+
+\alnote{Several project, such as Folding@home~\cite{folding} and
+  Wisdom~\cite{wisdom}, rely on distributed infrastructures for
+  computational biology and chemistry. While Folding@home utilizes a
+  similar replica exchange algorithm~\cite{PhysRevLett.86.4983} it is
+  based on BOINC~\cite{1033223}, a cycle scavenging infrastructure.}
+
+%   \kimnote{Is this true? I know early attempts with Folding@home only
+%     focused on parallel replica dynamics that does not need exchange!
+%     They only get independent run results limited to the short time,
+%     and use those large number of simulations for predicting kinetics,
+%     I think}
+
+\footnote{Folding@Home~\cite{PhysRevLett.86.4983} is parallel replica
+  dynamics but that is a special case of replica exchange; when a
+  certain event happens, there is a need for coordination amongst ALL
+  replicas. We should maybe point this out, but I think it is fair at
+  this level of detail, to consider folding@Home to be in the same
+  application class to effectively parallelize simulations}
+
+In contrast, general, multipurpose Grids as the TeraGrid, which
+provide a dedicated runtime environment for applications with
+different characteristic, e.\,g.\ loosely coupled, tightly coupled and
+data-intensive applications, desktop Grids rely on volunteers. This
+kind of environment is only suitable for loosely coupled
+applications. Multipurpose Grids have several advantages: Issues as
+trust and security are well researched. Further, it is possible to run
+larger application chunks. The REMD manager splits an scenario into
+multiple parts -- each part can be represented by a MPI application
+utilizing up to 32 nodes. \jhanote{needs refinement will do}
+\kimnote{Yes, this is MPI enables and there is no limitation on the
+  number of nodes!}
+
+The Wisdom project utilizes the EGEE infrastructure for molecular
+docking simulations used e.\,g.\ for evaluation of drugs. While this
+application has a similar high throughput characteristic, the project
+is currently tied to the gLite~\cite{glite2008} Grid middleware.
+
+In contrast to Wisdom and Folding@home, our approach is not restricted
+to a specific Grid middleware -- by utilizing the SAGA standard the
+REMD manager can easily utilize resources managed by different Grid
+platforms. SAGA provides a well-defined abstraction, which is capable
+of handling both scenarios. Using this approach the application can
+easily used with different middleware platforms, Folding@home could
+then be deployed on a BOINC infrastructure as well as on a
+multipurpose Grid, such as TeraGrid.
+
+\alnote{Should we add some details regarding the scientific results of
+  WISDOM and Folding@home and how they differ from our REMD with NAMD?
+  Or are we just comparing the Grid infrastructure?}  \jhanote{In
+  response to immediateley preceeding alnote, IMHO we don't need to
+  address scientific results, but will just say the ``size of the
+  problem'' that can be studied is limited}
+
+
 
 % In addition, SAGA provides many benefits for applications.  SAGA
 % offers a feature rich programing abstractions, which can be used in
