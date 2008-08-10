@@ -19,14 +19,7 @@ import saga
 import re
 import pdb
 import math
-
-JOB_STATE_UNKNOWN = -1
-JOB_STATE_NEW=1
-JOB_STATE_RUNNING=2
-JOB_STATE_DONE=3
-JOB_STATE_CANCELED=4
-JOB_STATE_FAILED=5
-JOB_STATE_SUSPENDED=6
+import threading
 
 ########################################################
 #  Global variable 
@@ -300,8 +293,15 @@ def run_REMDg(configfile_name):
 
     #file transfer
     start_file_transfer=time.time()
+    transfer_thread_list = []
     for irep in range(0, numReplica):
-       transfer_files(RE_info, irep)
+       transfer_thread=threading.Thread(target=transfer_files(RE_info, irep))
+       transfer_thread.start()
+       transfer_thread_list.append(transfer_thread)
+       
+    for ithread in range(0, len(transfer_thread_list)):
+       transfer_thread_list[ithread].join()
+                               
     print "Time for staging " + "%d"%len(RE_info.stage_in_files) + " files to " \
      + "%d"%(numReplica) + " replicas: " + str(time.time()-start_file_transfer) + " s"
 
