@@ -69,7 +69,7 @@ set output "perf_remd.eps"
 #set logscale x                                 
 set key
 set xtics autofreq
-set yrange [0:12] 
+set yrange [3:12] 
 set xrange [2:16]        
 set xtics (2,4,8,16)
 set logscale x
