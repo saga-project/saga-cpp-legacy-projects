@@ -19,7 +19,8 @@ set xlabel ""
 # Runtime w/ CPR
 # Runtime w CPR
 
-set xtics ("GRAM\nSubm." 1, "Migol\nSubm." 2.0, "Migol Subm.\n w/ ini." 3.0, "Migol\nChpt Reg." 4.0, "Migol\nRecovery" 5.0)
+#set xtics ("GRAM\nSubm." 1, "Migol\nSubm." 2.0, "Migol Subm.\n w/ init." 3.0, "Migol\nChpt Reg." 4.0, "Migol\nRecovery" 5.0)
+set xtics ("SAGA/GRAM\nSubmission" 1, "SAGA/Migol\nSubmission" 2.0, "SAGA/Migol\n Subm. w/ init." 3.0, "SAGA/Migol\nRecovery" 4.0)
 
 set size 0.8,0.8
 set lmargin 9
@@ -32,8 +33,8 @@ set nokey
 #set timefmt "%d.%m%y"
 #set format x "%d.%m."
 set format y "%.0f"
-set xrange [0.5:5.7] 
-set yrange [0:30] 
+set xrange [0.5:4.7] 
+set yrange [0:50] 
 set boxwidth 0.8 relative
 set style fill solid 0.9
 # set linestyle 1 lt 1 lw 50
@@ -68,11 +69,12 @@ set output "perf_remd.eps"
 #set logscale x                                 
 set key
 set xtics autofreq
-set yrange [0:50] 
+set yrange [0:20] 
 set xrange [2:16]        
 set xtics (2,4,8,16)
 set logscale x
 set ylabel "Runtime (in min)" #font "Helvetica, 20"
 set xlabel "Number Replica Processes" 
-plot "data-remd.txt" using 1:2 title "SAGA/Migol" with lp ,\
-     "data-remd.txt" using 1:3 title "SAGA/GRAM" with lp 
+plot "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp ,\
+     "data-remd.txt" using 1:4 title "SAGA/Migol (QB/Poseidon)" with lp, \
+     "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp   
