@@ -47,7 +47,7 @@
   tabsize=2,
   captionpos=b,  
   aboveskip=0em,
-  belowskip=0em,
+  belowskip=-2em,
   %numbers=left, 
   %numberstyle=\tiny
 }      
@@ -102,6 +102,7 @@
 \fi
 
 \newcommand{\up}{\vspace*{-1em}}
+\newcommand{\upp}{\vspace*{-0.5em}}
 
 \begin{document} 
 
@@ -230,9 +231,9 @@ a whole host of load-balancing and scheduling problems. Although,
 distributed RE simulations are loosely-coupled, failures can become a
 major problem for such applications. For example, for every replica
 that encounters a failure there is at least one replica that will wait
-on it. Thus over time, due to the fact that in principle, every
-replica will ultimately interact/exchange with another replica, in
-principle, the failure of a single replica, if left uncorrected can
+on it. Thus over time, due to the fact that in principle every
+replica will ultimately interact/exchange with another replica,
+a single failure, if left uncorrected can
 ultimately cause the simulation to encounter exponentially increasing
 slow-down.
 
@@ -261,15 +262,15 @@ the transparent starting, monitoring and recovery of tasks.
 
 Having motivated the need for a fault-tolerant framework for
 application development, this paper describes the design of the
-Checkpoint\,\&\,Recovery package (CPR) of the SAGA API, and its
+Checkpoint\,\&\,Recovery package (CPR) of SAGA, and its
 implementation using the Migol adaptor. SAGA-CPR represents the first
-extension to the core SAGA specification, and is thus a validation of
+extension to the core SAGA API specification, and is thus a validation of
 the extensibility of the specification.  In particular, Migol as an
 element of the Grid middleware, can be regarded as a reference
 implementation of the GridCPR architecture~\cite{ogf_cpr_arch}.  
 The SAGA-CPR package is a SAGA rendering of
 the GridCPR API.%, also defined in~\cite{ogf_cpr_arch}.  
-The pairing of Migol and SAGA-CPR is thus both a natural, and also a
+The pairing of Migol and SAGA-CPR is thus both a natural, and also
 very generic and portable approach to the presented problem space.  At
 the same time, we present the seamless integration of CPR concepts and
 abstractions into the SAGA framework -- our system is thus able to
@@ -411,7 +412,7 @@ general purpose RE framework for distributed environments.
 \begin{figure}[h]
  \centering
  \includegraphics[width=0.5\textwidth]{migol_architecture}
- \caption{\small \bf Migol Architecture: Migol provides services for
+ \caption{\footnotesize \bf Migol Architecture: Migol provides services for
  supporting the fault tolerance of Grid applications. Applications that are managed by
  Migol are transparently monitored and recovered in case of
  failures.\up\up
@@ -447,17 +448,17 @@ replication protocol, which ensures the data consistency
 
 % Figure~\ref{fig:migol_architecture} shows the current Migol architecture and
 % the interactions between the different services.  
-Applications are started using the {\em Job Broker Service (JBS)}
-(step 1 in Figure~\ref{fig:migol_architecture}). Before a job
+Applications are started via the {\em Job Broker Service (JBS)}
+(step 1, Figure~\ref{fig:migol_architecture}). Before job
 submission, the JBS must register the GSO of the application at the
-AIS (step 2).  Resource discovery is performed through the WS
+AIS (step 2).  Resource discovery is performed through WS
 MDS~\cite{schopf06}  (step 3), which aggregates data of different services,
 e.\,g.\ the Network Weather Service (NWS)~\cite{NWS99}.
 Available resources are matched by the JBS according to the
-requirements of the application. For execution of the application on
+application requirements. For execution of the application on
 Grid resources, the JBS relies on a custom module, the Advance
-Reservation Service, which is also capable of supporting reservation
-of resources on top of the GRAM.
+Reservation Service, which is also capable of supporting resource reservation
+on top of GRAM.
 
 %  To better plan the execution of an
 % application the JBS supports advance reservation. If the respective
@@ -524,18 +525,18 @@ To support these use cases, applications can register checkpoint and job metadat
 %Further, the API supports the starting of applications as well as the triggering of checkpoints and recoveries.
 
 For the management of CPR Grid jobs, SAGA defines the
-\texttt{cpr::job} and \texttt{cpr::service} class 
+\texttt{cpr::job} and \texttt{cpr::service} class.
 %(see Listing~\ref{lst:saga_job_start}). 
 The handling of CPR jobs is similar to regular jobs: A job is defined
-using a job description. In contrast to normal jobs, CPR jobs require
-two job descriptions -- one for starting and another one for
-restarting the application.
+by a job description. In contrast however, CPR jobs require
+two job descriptions -- one for starting and one for
+\textit{re}starting the application.
 %Jobs are started using the job service (see Listing~\ref{lst:saga_job_start}). 
 In addition to the normal job controls, CPR jobs can be queried for
 checkpoint metadata, and explicitly checkpointed or recovered.
 %Listing~\ref{lst:saga_job_start} shows the starting of a CPR enabled job.
 
-% \begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR:
+% \begin{lstlisting}[style=myListing, caption={\footnotesize \bf SAGA-CPR:
 % Starting a Job}, float=t, label={lst:saga_job_start}]
 % saga::cpr::service js; 
 % saga::cpr::description jd_start;
@@ -555,7 +556,7 @@ itself with the CPR backend. This step can e.\,g.\ be used to register
 a monitoring endpoint. Using the \texttt{saga::cpr::self} object an
 application can obtain metadata about the current job from the
 application.
-\begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR: Initialize Migol Session}, float=t, label={lst:saga_init_service}]
+\begin{lstlisting}[style=myListing, caption={\footnotesize \bf SAGA-CPR: Initialize Migol Session\newline\newline}, float=t, label={lst:saga_init_service}] 
 saga::cpr::service service (saga::url 
     ("migol://flotta.haiti.cs.uni-potsdam.de:8443/wsrf/services/migol/AIS-JGroups"));
 saga::cpr::self = service.get_self ();
@@ -570,7 +571,7 @@ organization of checkpoint files.
 % for multiple physical or logical files. 
 Listing~\ref{lst:saga_chkpt_reg} illustrates 
 the registration of a checkpoint file with the CPR framework.     
-\begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR: Checkpoint Registration}, float=t, label={lst:saga_chkpt_reg}]
+\begin{lstlisting}[style=myListing, caption={\footnotesize \bf SAGA-CPR: Checkpoint Registration}, float=t, label={lst:saga_chkpt_reg}]
 saga::cpr::checkpoint remd_chkpt("remd_chkpt");
 remd_checkpoint.add_file (saga::url 
   ("gsiftp://qb.loni.org/work/remd/chkpt.dat"));
@@ -579,7 +580,7 @@ remd_checkpoint.add_file (saga::url
 \begin{figure}[h!]
     \centering
         \includegraphics[width=0.43\textwidth]{cpr-statemodel.pdf}
-    \caption{\small \bf SAGA-CPR State Model: The CPR state model introduces the recovering state. This state indicates that an automatic recovery attempt is  occurring.\up\up}
+    \caption{\footnotesize \bf SAGA-CPR State Model: The CPR state model introduces the recovering state. This state indicates that an automatic recovery attempt is  occurring.\up\up}
     \label{fig:cpr-statemodel}
 \end{figure}
  
@@ -637,10 +638,10 @@ AIS by the Migol adaptor:
   accessible via the \texttt{state\_detail} metric of the job object.
 \item After startup of the application, the monitoring endpoint,
   i.\,e.\ the URL of the Web service, is updated.
-\item During the runtime, metadata about written checkpoint are 
+\item During runtime, metadata about written checkpoint are 
   updated via the \texttt{cpr::checkpoint} object.
 \end{compactitem}   
-To ensure the availability of these information in case of a failure,
+To ensure the availability of these information on failures,
 the AIS is actively replicated across multiple Grid nodes.
 
 % MPI monitoring cannot be done without touch NAMD application In the
@@ -677,19 +678,19 @@ encoding the orchestration logic of Replica-Exchange simulations.
       \centering
           \includegraphics[width=0.5\textwidth]{REMDgManager-architecture.pdf}
           \up\up
-          \caption{\small \bf Components of REMD-Manager: The main part of the
+          \caption{\footnotesize \bf Components of REMD-Manager: The main part of the
             framework is the replica manager. The manager orchestrates
             a set of replica processes using the SAGA/CPR API. The
             Migol infrastructure ensures that the REMD-Manager and all
             replica processes are monitored and recovered if
             necessary.}
-            \up\up
       \label{fig:REMD-Manager-architecture}
 \end{figure}
+
 As illustrated in Figure~\ref{fig:REMD-Manager-architecture}, the
 proposed framework comprises of three components: The task manager,
 also referred to as \emph{REMD-Manager}, is deployed on the user's
-desktop and provides the user interface for managing the overall REMD
+desktop and provides the user interface to the overall REMD
 run. The second component is Migol infrastructure that submits,
 monitors, and, if required, recovers replica simulations.  The last
 element is the task agent, the \emph{NAMD-Launcher}, that resides on
@@ -709,14 +710,13 @@ code could be used just as simply and effectively.
 % python scripts since SAGA-Python binding transparently exposes SAGA
 % and SAGA-CPR/MIGOL APIs to simple but versatile Python.   
 
-The \emph{REMD-Manager} is the core of the framework -- it is
-responsible for orchestration of all replica processes, i.\,e.\ the
+The \emph{REMD-Manager} is the framework's core -- it is
+orchestrates all replica processes, i.\,e.\ the
 parameterization of replica tasks, file staging, job spawning and the
 conduction of the replica-exchange itself. The component heavily
 relies on the SAGA File and CPR API as well as the Python bindings for
-implementation of the RE logic.  The complete code for the
-REMD-Manager can be found at address in footnote~\footnote{
- https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}
+implementation of the RE logic\footnote{The complete REMD-Manager code 
+can be found at https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}.
 %src/main.py}
 %Ref~\cite{remd-manager_url}.
 
@@ -731,7 +731,8 @@ REMD-Manager can be found at address in footnote~\footnote{
   handled equally simply. Can we i) use psuedo-code to highlight this?
   ii) mention where the reader can get the actually code?. We should
   definitely do point ii) and possibly point i)}
-% \begin{lstlisting}[style=myPythonListing, float=t, caption={\small \bf
+% \begin{lstlisting}[style=myPythonListing, float=t,
+% caption={\footnotesize \bf
 % REMD-Manager: Replica Orchestration},
 % label={lst:python_saga_chkpt_reg}]
 % # initial job launching       
@@ -788,7 +789,7 @@ recovery. Globus GRAM is used to start the application.
 To integrate NAMD with the SAGA/Migol infrastructure a SAGA based task
 agent -- {\it NAMD-Launcher}, is used.  This agent is responsible for
 updating the metadata of the application, i.\,e.\ the state,
-monitoring endpoint and the URLs of newly written checkpoints at the
+monitoring endpoint and new checkpoint URLs, at the
 Migol backend.  The agent then launches the actual NAMD job using
 MPI. During the entire runtime the replica process is monitored by
 Migol using the monitoring endpoint of the NAMD launcher. This
@@ -896,13 +897,13 @@ Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
 \begin{figure}[t]
     \centering
         \includegraphics[width=0.5\textwidth]{saga-taskfarming}
-        \caption{\small \bf Fault-Tolerant MD Simulations: The
+        \caption{\footnotesize \bf Fault-Tolerant MD Simulations: The
           REMD-Manager orchestrates a set of distributed replica
           processes using the SAGA API. All processes synchronize
           important metadata with the Migol infrastructure. Migol then
           actively monitors all processes and ensures that, even in
           the presence of failures, all task are eventually
-          completed.\up\up}
+          completed.\up}
     \label{fig:saga-taskfarming}
 \end{figure} 
 The main objective of the first set of experiments is the
@@ -917,7 +918,7 @@ obtained from using this infrastructure will be reported elsewhere.
     \centering
         \includegraphics[width=0.45\textwidth]{performance/perf_submission.pdf}
     \up
-    \caption{\small \bf SAGA/CPR Migol Adaptor Overhead}
+    \caption{\footnotesize \bf SAGA/CPR Migol Adaptor Overhead}
     
     \label{fig:performance_perf_submission}
 \end{figure}           
@@ -969,7 +970,7 @@ the variance of the typical NAMD runtimes.
 % \begin{figure}[htbp]
 %     \centering
 %         \includegraphics[width=0.5\textwidth]{performance/perf_monitoring.pdf}
-%     \caption{\small \bf Analysis of Monitoring Overhead}
+%     \caption{\footnotesize \bf Analysis of Monitoring Overhead}
 %     \label{fig:performance_perf_monitoring}
 % \end{figure}     
 
@@ -996,7 +997,7 @@ active right away; however, small queueing delays could not always be avoided.
           Number of Replica-Exchanges \jhanote{See caption for Q} &16\\ \hline
           %Total Runtime: &??   \\ \hline
 	\end{tabular}
-	\caption{\small \bf REMD Application Characteristics\label{tab:app_stats}
+	\caption{\footnotesize \bf REMD Application Characteristics\label{tab:app_stats}
           \jhanote{Is 1000 the the total number of exchanges or the
             number of exchanges that a single replica will undergo?}
           For completeness we should probably mention the temperature
@@ -1014,7 +1015,7 @@ active right away; however, small queueing delays could not always be avoided.
     \centering
     \hspace*{-20pt}
         \includegraphics[width=0.5\textwidth]{performance/perf_remd.pdf}
-        \caption{\small \bf REMD Runtime: The time that it
+        \caption{\footnotesize \bf REMD Runtime: The time that it
           takes to complete 16 replica exchanges; each replica runs for 100 steps, before attempting an exchange with a
           sister-replica. The deployment of replicas across multiple clusters (scenario QB/Poseidon) is associated 
           with a slight disadvantage compared to the usage of a single cluster (scenario QB).
@@ -1065,8 +1066,8 @@ allocated to the smaller Poseidon machine, while the remainder stayed on QueenBe
 With a large number of replicas even a slightly better performance than the QueenBee 
 is observable. However, especially smaller machines, such as Poseidon, showed long queuing times 
 leading to high variance in the overall response times. This overhead is significant in particular 
-for short-running tasks as used for this test. For example, in our scenario, 
-the response times rapidly increased when we tried to allocate 
+for short-running tasks. For example, in our test scenario, 
+the response times rapidly increased when we allocated
 more processes on Poseidon due to queuing delays. 
 
 \kimnote{However, this simple scenario faces high overhead since each
@@ -1083,8 +1084,8 @@ measured the time required by Migol to restart the system.  Due to
 the selected monitoring intervall of one minute and failure threshold
 of 2 tries, the failure detection time averages to 2.5\, minutes.
 
-As shown in Figure~\ref{fig:performance_perf_submission} the recovery
-time required for the restart of the job is about 42 seconds. This is
+As shown in Figure~\ref{fig:performance_perf_submission}, the recovery
+time required for the restart of the job is $\sim42$ seconds. This is
 mainly caused by the complex interactions conducted by the Migol
 backend (cmp. section~\ref{sec:migol}): The monitoring service
 initializes the restart at the JBS.  A major performance penalty is
@@ -1093,7 +1094,7 @@ of the user from the AIS -- this procedure demands the creation of a
 public-private key pair, which is very costly. Further, the resource
 discovery and selection mechanisms used by Migol's Job Broker Service are designed 
 with focus on long-running applications and currently show some substantial 
-overhead especially when used for short-running tasks.
+overhead, especially when used for short-running tasks.
 
 % The JBS then discovers
 % and allocates resources.  The job start itself is conducted via the
@@ -1138,7 +1139,7 @@ be avoided. Further, we will evaluate possibilities to decouple
 the dispatching of replica runs from allocation of cluster resources 
 to avoid long queuing delays. Systems, 
 such as Falkon~\cite{1362680} or the Condor Glide-In~\cite{citeulike:291860} 
-mechanism provide the possibility to acquire a chunk of resources 
+mechanism provide the possibility to acquire chunks of resources 
 from the resource management systems, which can
 then be used to dispatch short tasks.
 
@@ -1301,6 +1302,8 @@ is currently tied to the gLite~\cite{glite2008} Grid middleware.
 % \kimnote{Yes, this is MPI enables and there is no limitation on the
 %   number of nodes!}
 
+\amnote{the next paragraph is confising: sentence 2: what two
+scenarios?  sentence 1 and 3 are partly repetetetetive.}
 In contrast to Wisdom and Folding@home, our approach is not restricted
 to a specific Grid middleware -- by utilizing the SAGA standard the
 REMD manager can easily utilize resources managed by different
@@ -1358,7 +1361,7 @@ checkpoint. % Migol is designed with focus on fault tolerance.
 In contrast to other RE implementations on distributed
 simulations it is critical to note and emphasis the general usability
 and extensibility of our approach -- across different infrastructures,
-across a range of scientific applications and usage patterns (such as
+across a range of scientific applications and usage patterns (e.g.
 the multiple variants of the RE).
 
 \jhanote{In future work, we need to mention that we are deploying this
@@ -1534,7 +1537,7 @@ the multiple variants of the RE).
 % \begin{figure}[t]
 %   \centering
 %   \includegraphics[width=0.6\textwidth]{saga-migol-layered}
-%   \caption{\small \bf SAGA Adaptor for Migol infrastructure}
+%   \caption{\footnotesize \bf SAGA Adaptor for Migol infrastructure}
 %   \label{fig:saga-migol-layered}
 % \end{figure}  
 
@@ -1556,7 +1559,7 @@ the multiple variants of the RE).
 % \begin{figure}[t]
 %     \centering
 %         \includegraphics[width=\textwidth]{saga-taskfarming}
-%     \caption{\small \bf Fault-Tolerant Task Farming Scenario}
+%     \caption{\footnotesize \bf Fault-Tolerant Task Farming Scenario}
 %     \label{fig:saga-taskfarming}
 % \end{figure}
 % 
