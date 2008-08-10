@@ -80,7 +80,7 @@
 }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -387,16 +387,20 @@ replication protocol, which ensures  the consistency of the stored data
 
 % Figure~\ref{fig:migol_architecture} shows the current Migol architecture and
 % the interactions between the different services.  
-Applications are started using the {\em Job Broker Service (JBS)} (message 1 in 
-Figure~\ref{fig:migol_architecture}). Before a job
-submission, the JBS must register the GSO of the application at the AIS (message 2).
-Resource discovery is performed through the WS MDS~\cite{schopf06},
-which aggregates data of different services, e.\,g.\ the Network
-Weather Service (NWS)~\cite{NWS99} (message 3).  Available resources are matched
-by the JBS according to the requirements of the application. To better plan the execution of 
-an application the JBS supports advance reservation. If the respective Grid environment is capable of handling reservations, the JBS negotiates 
-a time slot with all suitable resources. All reservation offers are ranked based on a shortest expected
-delay strategy~\cite{Jeske:2007wj}.  For spawning of jobs on the selected resource, the Globus GRAM service is used (message 4).
+Applications are started using the {\em Job Broker Service (JBS)}
+(message 1 in Figure~\ref{fig:migol_architecture}). Before a job
+submission, the JBS must register the GSO of the application at the
+AIS (message 2).  Resource discovery is performed through the WS
+MDS~\cite{schopf06}, which aggregates data of different services,
+e.\,g.\ the Network Weather Service (NWS)~\cite{NWS99} (message 3).
+Available resources are matched by the JBS according to the
+requirements of the application. To better plan the execution of an
+application the JBS supports advance reservation. If the respective
+Grid environment is capable of handling reservations, the JBS
+negotiates a time slot with all suitable resources. All reservation
+offers are ranked based on a shortest expected delay
+strategy~\cite{Jeske:2007wj}.  For spawning of jobs on the selected
+resource, the Globus GRAM service is used (message 4).
 %For conducting advance reservations and for job executions the
 %\emph{Advance Reservation Service (ARS)} is used (message 4).
              
@@ -412,16 +416,17 @@ Migol provides several mechanisms for supporting the fault tolerance of Grid app
 % detection and recovery. 
 To detect failures, the \emph{Monitoring and Restart Service (MRS)}
 periodically checks all services registered at the AIS using an
-application-level monitoring mechanism (message 6). In case the MRS discovers an inactive
-application due to a timeout, it initiates a restart respectively a migration using the
-Job Broker Service (message 7).  
+application-level monitoring mechanism (message 6). In case the MRS
+discovers an inactive application due to a timeout, it initiates a
+restart respectively a migration using the JBS (message 7).
 
-For recovery, Migol relies on application-level checkpointing, i.\,e.\ applications have to be
-written to accommodate checkpointing and restart. 
-Each time a checkpoint is witten, the application has to update
-its Grid Service Object at the AIS (message 5). 
+For recovery, Migol relies on application-level checkpointing, i.\,e.\
+applications have to be written to accommodate checkpointing and
+restart.  Each time a checkpoint is witten, the application has to
+update its Grid Service Object at the AIS (message 5).
 
-To support an automatic recovery, Grid applications must be able to interact with the Migol infrastructure:
+To support an automatic recovery, Grid applications must be able to
+interact with the Migol infrastructure:
 \begin{compactitem}
     \item The application must register checkpoint and job metadata with the infrastructure.
     \item The infrastructure must be able to externally monitor the application.
@@ -513,28 +518,41 @@ which periodically sends keep-alive messages to applications.
 % which periodically sends keep-alive messages to applications. To monitor applications, the application must provide a communication endpoint.
 
 
-Another critical aspects is the management of the application's metadata. To ensure the recoverability 
-of an application, metadata, such as the job description and information about written checkpoint files 
-must be available even if the application failed. The Migol adaptor relies on the Application 
-Information Service (AIS) as metadata backend. Every job is associated with a global unique identifier (GUID).
+Another critical aspects is the management of the application's
+metadata. To ensure the recoverability of an application, metadata,
+such as the job description and information about written checkpoint
+files must be available even if the application failed. The Migol
+adaptor relies on the AIS as the metadata backend. Every job is
+associated with a global unique identifier (GUID).
 %, which is initially created when an application first registers. 
-All metadata belonging to an application can be stored or queried with reference to the GUID. 
-The following information is propagated to the AIS by the Migol adaptor:
+All metadata belonging to an application can be stored or queried with
+reference to the GUID.  The following information is propagated to the
+AIS by the Migol adaptor:
+
 \begin{compactitem}
-    \item The job description for starting and restarting of an application is mapped to the resource, service, and file profile of the Grid Service Object schema used by Migol. The registration of these information is done during the \texttt{create\_job()} operation.
-    \item The SAGA job state is mapped to the more comprehensive Migol model, which introduces additional states such as \emph{migrating} or \emph{pending}. All state transitions are directly propagated to the AIS. State queries, e.\,g.\ using the \texttt{get\_state()} operation,  are always conducted against the AIS. The Migol state is accessible via the \texttt{state\_detail} metric of the job object.
-    
-    \item After startup of the application, the monitoring endpoint, i.\,e.\ the URL of the embedded SOAP server, is updated.
-    \item During the runtime, metadata about checkpoint are periodically updated via the \texttt{cpr::checkpoint} object.
+\item The job description for starting and restarting of an
+  application is mapped to the resource, service, and file profile of
+  the Grid Service Object schema used by Migol. The registration of
+  these information is done during the \texttt{create\_job()}
+  operation.
+\item The SAGA job state is mapped to the more comprehensive Migol
+  model, which introduces additional states such as \emph{migrating}
+  or \emph{pending}. All state transitions are directly propagated to
+  the AIS. State queries, e.\,g.\ using the \texttt{get\_state()}
+  operation, are always conducted against the AIS. The Migol state is
+  accessible via the \texttt{state\_detail} metric of the job object.
+\item After startup of the application, the monitoring endpoint,
+  i.\,e.\ the URL of the embedded SOAP server, is updated.
+\item During the runtime, metadata about checkpoint are periodically
+  updated via the \texttt{cpr::checkpoint} object.
 \end{compactitem}
-To ensure the availability of these information in case of a failure, the AIS is actively replicated across multiple Grid nodes.
-                  
 
+To ensure the availability of these information in case of a failure,
+the AIS is actively replicated across multiple Grid nodes.
 
-
-                                                  
-% MPI monitoring cannot be done without touch NAMD application
-% In the following different implementation issues regarding the Migol SAGA adaptor are discussed.
+% MPI monitoring cannot be done without touch NAMD application In the
+% following different implementation issues regarding the Migol SAGA
+% adaptor are discussed.
 
 
 \Section{Implementing Replica-Exchange Using SAGA}
@@ -856,21 +874,20 @@ the selected monitoring intervall of one minute and failure threshold
 of 2 tries, the failure detection time averages to 2.5\, minutes.
 
 As shown in Figure~\ref{fig:performance_perf_submission} the recovery
-time required for the restart of the job is to about 42 seconds. This
-is mainly caused by the complex interactions conducted by the Migol
+time required for the restart of the job is about 42 seconds. This is
+mainly caused by the complex interactions conducted by the Migol
 backend (cmp. section~\ref{sec:migol}): The monitoring service
-initializes the restart at the Job Broker service.  A major
-performance penalty is the delegation-on-demand mechanism required to
-obtain the credential of the user from the AIS -- this procedure
-demands the creation of a public-private key pair, which is very
-costly. The Job Broker Service then discovers and allocates resources.
-The job start itself is conducted via the Advance Reservation Service
-(ARS). In contrast to the GRAM, the ARS is not bound to a single Grid
-site, i.\,e.\ if allowed by the administrator it is able to conduct
-reservation respectively job starts at any resource in the Grid. Local
-resource management systems are detected during the runtime of the
-job. However, this feature is associated with some overhead in
-contrast to a simple GRAM submission.
+initializes the restart at the JBS.  A major performance penalty is
+the delegation-on-demand mechanism required to obtain the credential
+of the user from the AIS -- this procedure demands the creation of a
+public-private key pair, which is very costly. The JBS then discovers
+and allocates resources.  The job start itself is conducted via the
+Advance Reservation Service (ARS). In contrast to the GRAM, the ARS is
+not bound to a single Grid site, i.\,e.\ if allowed by the
+administrator it is able to conduct reservation respectively job
+starts at any resource in the Grid. Local resource management systems
+are detected during the runtime of the job. However, this feature is
+associated with some overhead in contrast to a simple GRAM submission.
 
 
 % \begin{itemize}
@@ -898,8 +915,9 @@ addition, it must be noted that further simple yet effective
 optimizations are possible. For example, by directly restarting jobs
 via the GRAM service a lot of the overhead caused by the dynamic
 discovery mechanisms incorporated within the JBS and ARS services can
-be avoided.  \jhanote{an example or two would make this claim more
-  substantiative}
+be avoided. \jhanote{This might be right place to talk about
+  Condor-Glidein, or an agent that provides block queue reservation
+  over multiple processors}.
 
 % Some comments with respect to solved REMD problem: about 17 MB data
 % to transfer for a migration
@@ -1017,11 +1035,18 @@ capabilities~\cite{xtreemos_cpr}.
 % \jhanote{We need to compare our approach with i) WISDOM and ii)
 %   Folding@HOME}             
 
-\alnote{Several project, such as Folding@home~\cite{folding} and
-  Wisdom~\cite{wisdom}, rely on distributed infrastructures for
-  computational biology and chemistry. While Folding@home utilizes a
-  similar replica-exchange algorithm~\cite{PhysRevLett.86.4983} it is
-  based on BOINC~\cite{1033223}, a cycle scavenging infrastructure.}
+Several project, such as Folding@home~\cite{folding} and
+Wisdom~\cite{wisdom}, rely on distributed infrastructures for
+computational biology and chemistry. While
+Folding@home~\cite{PhysRevLett.86.4983} utilizes a somewhat similar RE
+algorithm\footnote{Folding@Home~\cite{PhysRevLett.86.4983} is parallel
+  replica dynamics but that is a special case of replica-exchange;
+  when a certain event happens, there is a need for coordination
+  amongst ALL replicas. We should maybe point this out, but I think it
+  is fair at this level of detail, to consider folding@Home to be in
+  the same application class to effectively parallelize simulations}
+it is based on BOINC~\cite{1033223}, a cycle scavenging
+infrastructure.
 
 %   \kimnote{Is this true? I know early attempts with Folding@home only
 %     focused on parallel replica dynamics that does not need exchange!
@@ -1029,39 +1054,32 @@ capabilities~\cite{xtreemos_cpr}.
 %     and use those large number of simulations for predicting kinetics,
 %     I think}
 
-\footnote{Folding@Home~\cite{PhysRevLett.86.4983} is parallel replica
-  dynamics but that is a special case of replica-exchange; when a
-  certain event happens, there is a need for coordination amongst ALL
-  replicas. We should maybe point this out, but I think it is fair at
-  this level of detail, to consider folding@Home to be in the same
-  application class to effectively parallelize simulations}
-
-In contrast, general, multipurpose Grids as the TeraGrid, which
-provide a dedicated runtime environment for applications with
-different characteristic, e.\,g.\ loosely coupled, tightly coupled and
-data-intensive applications, desktop Grids rely on volunteers. This
-kind of environment is only suitable for loosely coupled
-applications. Multipurpose Grids have several advantages: Issues as
-trust and security are well researched. Further, it is possible to run
-larger application chunks. The REMD manager splits an scenario into
-multiple parts -- each part can be represented by a MPI application
-utilizing up to 32 nodes. \jhanote{needs refinement will do}
-\kimnote{Yes, this is MPI enables and there is no limitation on the
-  number of nodes!}
-
 The Wisdom project utilizes the EGEE infrastructure for molecular
 docking simulations used e.\,g.\ for evaluation of drugs. While this
 application has a similar high throughput characteristic, the project
 is currently tied to the gLite~\cite{glite2008} Grid middleware.
 
+% In contrast, general, multipurpose Grids as the TeraGrid, which
+% provide a dedicated runtime environment for applications with
+% different characteristic, e.\,g.\ loosely coupled, tightly coupled and
+% data-intensive applications, desktop Grids rely on volunteers. This
+% kind of environment is only suitable for loosely coupled
+% applications. Multipurpose Grids have several advantages: Issues as
+% trust and security are well researched. Further, it is possible to run
+% larger application chunks. The REMD manager splits an scenario into
+% multiple parts -- each part can be represented by a MPI application
+% utilizing up to 32 nodes. \jhanote{needs refinement will do}
+% \kimnote{Yes, this is MPI enables and there is no limitation on the
+%   number of nodes!}
+
 In contrast to Wisdom and Folding@home, our approach is not restricted
 to a specific Grid middleware -- by utilizing the SAGA standard the
-REMD manager can easily utilize resources managed by different Grid
-platforms. SAGA provides a well-defined abstraction, which is capable
-of handling both scenarios. Using this approach the application can
-easily used with different middleware platforms, Folding@home could
-then be deployed on a BOINC infrastructure as well as on a
-multipurpose Grid, such as TeraGrid.
+REMD manager can easily utilize resources managed by different
+general-purpose Grids.  SAGA provides a well-defined abstraction,
+which is capable of handling both scenarios. Using this approach the
+application can easily used with different middleware platforms,
+Folding@home could then be deployed on a BOINC infrastructure as well
+as on a multipurpose Grid, such as TeraGrid.
 
 \alnote{Should we add some details regarding the scientific results of
   WISDOM and Folding@home and how they differ from our REMD with NAMD?
@@ -1069,8 +1087,6 @@ multipurpose Grid, such as TeraGrid.
   response to immediateley preceeding alnote, IMHO we don't need to
   address scientific results, but will just say the ``size of the
   problem'' that can be studied is limited}
-
-
 
 % In addition, SAGA provides many benefits for applications.  SAGA
 % offers a feature rich programing abstractions, which can be used in
