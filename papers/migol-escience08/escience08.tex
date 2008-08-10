@@ -154,38 +154,18 @@
                            
 Several classes of applications, which are well suited for loosely
 coupled Grids, exist; arguably the best known and most commonly used
-ones are task farminga pplications. Despite the simple nature, many
+ones are task farming applications. Despite the simple nature, many
 problems can be solved with such a model, e.\,g.\ parameter studies
-found in many sciences or Monte Carlo simulations. A slightly
-morecomplicated, but possibly more interesting than {\it pleasingly
-  distributed} applications, is the class of applications that are
-with a small level of coupling between the tasks.  
+found in many sciences or Monte Carlo simulations. A slightly more
+complicated, but possibly more interesting than {\it pleasingly
+  distributed} applications, is the class of applications that have a
+small level of coupling between the tasks.
 %still essentially loosely-coupled, but 
 A common and interesting example that belongs to this category are
 \emph{Replica-Exchange }~\cite{hansmann,Sugita:1999rm} simulations.
 Such simulations are used to understand important physical phenomena
 -- ranging from protein folding dynamics to binding affinity
-calculations in the computational drug discovery.  At one level,
-replica-exchange (RE) simulations can be thought of as characterised
-by two distinct components: the simulation types and the
-coupling-mechanism between the individual replicas. Given that there
-are not only different simulation strategies -- Monte Carlo or
-Molecular Dynamics (MD)-- but also multiple levels-of-coupling, it is
-important to note that RE is in fact a class of algorithms and not a
-specific algorithm~\cite{dpa_surveypaper}.  Based upon the degree
-(frequency) of coupling (exchange), we classify RE as either regular
-or irregular exchange. Well known examples of the former
-are~\cite{hansmann,Sugita:1999rm}; we classify parallel replica
-dynamics in the latter. Parallel Replica dynamics~\cite{SPdynamics,
-  pande_bj03} involves coordination amongst the replicas (implemented
-either using the master-worker or the peer-to-peer) at irregular
-intervals -- say everytime there is a folding event, whereas in the
-former category there is an attempt to exchange states between certain
-pairs at fixed intervals.
-
-% Grid computing envisions the sharing of compute, network, data and
-% software resources across multiinstitutional virtual organizations
-% (VOs).
+calculations required for computational drug discovery.
 
 % Replica-Exchange~\ref{repex1, repex2}
 % simulations %reference does not exist in bib
@@ -208,15 +188,14 @@ pairs at fixed intervals.
 %   then use that to phrase the specific requirements in the context of
 %   REMD} 
               
-
 Replica-Exchange simulations deployed over distributed resources must
 be able to orchestrate different heterogeneous resources in a complex
 and dynamic environment.  Writing applications that need to
 orchestrate heterogeneous resources across distributed environments is
 a complex task -- for a myriad number of reasons, not least of which
 is that large scale Grids are inherently prone to failures and thus
-unreliable.  Additionally, Grids are geographically distributed and
-involve many heterogeneous components as well as multiple
+unreliable.  Additionally, resources are geographically distributed
+and involve many heterogeneous components as well as multiple
 organizations.  Several studies indicated severe failure rates of Grid
 nodes as well as of Grid
 jobs~\cite{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}.
@@ -226,16 +205,16 @@ methods, it is obvious that reliability is not an intrinsic property
 of Grid environments. Some applications can respond to such failures
 via redundant or speculative computing.  However, the redundant
 computing approach has its limitations, especially when there is a
-level of coupling between tasks.  Speculative computing is still
-possible, but its use to mitigate the consequence of distributed
-failures, leads to a whole host of load-balancing and scheduling
-problems.  As established, distributed RE simulations are
+level of heterogenity and coupling between tasks.  Speculative
+computing is still possible, but its use to mitigate the consequence
+of distributed failures, leads to a whole host of load-balancing and
+scheduling problems.  As established, distributed RE simulations are
 loosely-coupled, hence failure can become a major problem for such
 applications.  For example, in a regular exchange simulation the
-successful termination of \textit{all} replica processes is required before the next
-iteration step can be started \jhanote{Jha needs to strengthen/refine
-  previous sentence}. That means that a single failed process can halt
-the complete simulation.
+successful termination of \textit{all} replica processes is required
+before the next iteration step can be started \jhanote{Jha needs to
+  strengthen/refine previous sentence}. That means that a single
+failed process can halt the complete simulation.
 
 In replica-exchange simulations, there is a need to occasionally
 attempt an exchange between pairs of replicas; the pairing of replicas
@@ -248,21 +227,9 @@ middleware, which supports the discovery and allocation of resources
 as well as the transparent starting, monitoring and recovery of tasks
 in the Grid.  Thus, it is essential to intrinsically provide support
 for application fault tolerance within the Grid middleware.
-\jhanote{there is repetition here. need to refine}
-\amnote{the last sentence reads strange to me.  What is the 'thus'
-refering to?  That migol provides fault tolerance?}
-
-The \emph{Simple API for Grid Applications (SAGA)}~\cite{saga_gfd90}
-provides a straightforward API for developing a broad range of
-applications, including but not limited to loosely-coupled data and/or
-task-parallel applications.
-% The framework provides an standardized, easy-to-use 
-% API for applications to efficiently utilize Grid infrastructures. 
-SAGA offers a standardized, easy to use API for utilizing Grid
-infrastructures. The API supports e.\,g.\ the management of Grid jobs,
-file transfers and replicas. Thus, SAGA is ideally suited to encode
-the logic of orchestration of the replica-exchange simulations across
-distributed infrastructure.
+\jhanote{there is repetition here. need to refine} \amnote{the last
+  sentence reads strange to me.  What is the 'thus' refering to?  That
+  migol provides fault tolerance?}
 
 Having motivated the need for a fault-tolerant framework for
 application development, this paper describes the design of the
@@ -284,13 +251,14 @@ distributed application life-cycle be made easier: design, development
 and deployment. Thus we will also present our experiences developing
 and deploying an RE application in a production environment.
 
-We will discuss the main advantages of our approach: i) scalable to
+Before outlining the structure of the paper, we highlight the main
+advantages of our approach: First and foremost it is scalable to
 resources of different sizes, as opposed to say {\it folding@home}
 which is based upon BOINC and thus inherently limited in the size of
-physical problems that can be solved effectively; ii) as opposed to
-WISDOM that is confined to gLITE/EGEE and is usable over varied
-distributed environments such as the TeraGrid, DEISA, etc; iii)
-extensible -- we can implement Replica-Exchange simulations, but we
+physical problems that can be solved effectively. Secondly, as opposed
+to WISDOM that is confined to gLITE/EGEE and is usable over varied
+distributed environments such as the TeraGrid, DEISA, etc. Thirdly, it
+is extensible -- we can implement Replica-Exchange simulations, but we
 can also do other applications with this approach. We need to point
 that the ability to do all of the above arises from the use of the
 correct programmatic and system-level abstractions: enable users do
@@ -299,6 +267,17 @@ orchestration logic, and let systems and middleware do what is best
 left to them, i.e., checkpoint management \jhanote{a stronger example
   would be welcome}.
 
+The remainder of the paper is structured as follows: In the next
+section we provide the basic ideas behind RE and specifically
+Replica-Exchange using Molecular Dynamics simulations.  We then
+discuss Migol -- a fault-tolerant framework. In section 4 we present
+the CPR package of SAGA and show its relation to Migol. In section 5,
+we discuss how SAGA-CPR and Migol are used to implement a
+fault-tolerant, distributed framework for RE. In subsequent sections
+we discuss our experience in implementing REMD and performance
+figures. We conclude by providing a detailed analysis of related work,
+which will go to highlight the truly unique features of our
+implementation.
 
 % \jhanote{The important message, which we need to repeat and repeat yet
 %   again: our approach is i) scalable over different distributed
@@ -315,6 +294,23 @@ left to them, i.e., checkpoint management \jhanote{a stronger example
 %  opening section}
 
 \Section{Replica-Exchange Molecular Dynamics Simulation}
+
+Replica-Exchange (RE) simulations can be thought of as consisting of
+two distinct components: the simulation type and the
+coupling-mechanism between the individual replicas.  It is important
+to note that RE is in fact a class of algorithms and not a specific
+algorithm~\cite{dpa_surveypaper}; for example, there can be not only
+different simulation strategies -- Monte Carlo or Molecular Dynamics
+(MD) -- but also multiple levels-of-coupling.  Based upon the degree
+(frequency) of coupling (exchange), we classify RE as either regular
+or irregular exchange. Well known examples of the former
+are~\cite{hansmann,Sugita:1999rm}; we classify parallel replica
+dynamics~\cite{SPdynamics, pande_bj03} in the latter. Parallel replica
+dynamics involves coordination amongst the replicas (implemented
+either using the master-worker or the peer-to-peer) at irregular
+intervals -- say everytime there is a folding event, whereas in the
+former category there is an attempt to exchange states between certain
+pairs at fixed intervals.
 
 In MD approaches, a sufficient sampling of configurations constitutes
 the rudimentary requirement for connecting atomistic results to
@@ -542,6 +538,18 @@ To ensure the availability of these information in case of a failure, the AIS is
 
 
 \Section{Implementing Replica-Exchange Using SAGA}
+
+The \emph{Simple API for Grid Applications (SAGA)}~\cite{saga_gfd90}
+provides a straightforward API for developing a broad range of
+applications, including but not limited to loosely-coupled data and/or
+task-parallel applications.
+% The framework provides an standardized, easy-to-use 
+% API for applications to efficiently utilize Grid infrastructures. 
+SAGA offers a standardized, easyy to use API for utilizing Grid
+infrastructures. The API supports e.\,g.\ the management of Grid jobs,
+file transfers and replicas. Thus, SAGA is ideally suited to encode
+the logic of orchestration of the replica-exchange simulations across
+distributed infrastructure.
 
 \jhanote{Joohyun: Put in a paragraph or two of the main points of the
   how it is done here; maybe even discussing the ideas related to
@@ -797,16 +805,19 @@ with only 100 steps have been used. Table~\ref{tab:app_stats} summarizes the REM
           \alnote{Each replica process (NAMD simulation) will conduct 100 steps (referred to as NAMD steps in the table). This will be repeated 10 times (number exchange steps) with different temperatures.}
 \end{table}   
 
-Figure~\ref{fig:performance_perf_runtime} illustrate the results of the REMD-Manager 
-runtime measurements conducted on QueenBee. With the number of replicas, the simulation 
-time obviously increases.  The REMD-Manager sequentially stages and starts all jobs. 
-Especially for short-running NAMD tasks as used for this experiment this overhead amounts 
-to an over-proportional part of the runtime. This can be improved in the future by 
-supporting parallel launches and file staging activities.                
-Further, all replica jobs are run through the the PBS queue of the cluster systems. 
-In general, jobs on QueenBee became active right away and thus, the queuing time can 
-be neglected in this scenario.  The overall overhead observed from CPR/Migol in contrast to a 
-SAGA/GRAM submission corresponds to the result depicted in Figur~\ref{fig:performance_perf_submission}.
+Figure~\ref{fig:performance_perf_runtime} illustrate the results of
+the REMD-Manager runtime measurements conducted on QueenBee. With the
+number of replicas, the simulation time obviously increases.  The
+REMD-Manager sequentially stages and starts all jobs.  Especially for
+short-running NAMD tasks as used for this experiment this overhead
+amounts to an over-proportional part of the runtime. This can be
+improved in the future by supporting parallel launches and file
+staging activities.  Further, all replica jobs are run through the the
+PBS queue of the cluster systems.  In general, jobs on QueenBee became
+active right away and thus, the queuing time can be neglected in this
+scenario.  The overall overhead observed from CPR/Migol in contrast to
+a SAGA/GRAM submission corresponds to the result depicted in
+Figur~\ref{fig:performance_perf_submission}.
 
 the regular replica-exchange schema, i.\,e.\ 
 \begin{figure}[htbp]
@@ -927,14 +938,15 @@ be avoided.  \jhanote{an example or two would make this claim more
 
 \SubSection{Previous CPR Efforts}
 
-Checkpointing and rollback recovery is widely used in Grids. For
-example, the Condor/PGRADE system~\cite{DBLP:conf/eagc/KovacsK04}
-consists of a checkpointing mechanism for PVM applications and uses
-Condor-G~\cite{citeulike:291860} for scheduling.  While PGRADE
-emphasises an integrated user-level checkpoint approach, we believe
-that this approach is not suitable for a heterogeneous Grid
-landscape. Further, the framework does not ensure the fault-tolerance
-of the service infrastructure sufficiently.
+\jhanote{This might have to be commented out: Checkpointing and
+  rollback recovery is widely used in Grids. For example, the
+  Condor/PGRADE system~\cite{DBLP:conf/eagc/KovacsK04} consists of a
+  checkpointing mechanism for PVM applications and uses
+  Condor-G~\cite{citeulike:291860} for scheduling.  While PGRADE
+  emphasises an integrated user-level checkpoint approach, we believe
+  that this approach is not suitable for a heterogeneous Grid
+  landscape. Further, the framework does not ensure the
+  fault-tolerance of the service infrastructure sufficiently.}
                                  
 % Condor-G~\cite{citeulike:291860} allows the management of multi-site
 % computations.
@@ -970,11 +982,14 @@ used by the Migol/SAGA library can detects much more complex
 errors. For example, especially parallel applications can fail quite
 inconsistently: in the best case the application aborts, at worst the
 application hangs indefinitely. These kind of failures are not visible
-at Grid resource management system level. Further, these frameworks or
-scheduler focus on individual aspects, e.\,g.\ Nimrod-G focuses on
-task farming or GridWay on meta-scheduling. Migol aims to provide an
-overall autonomic, self-healing infrastructure, which addresses the
-fault tolerance of Grid applications and the infrastructure itself.
+at Grid resource management system level.
+
+\jhanote{This will have to be commented out: Further, these frameworks
+  or scheduler focus on individual aspects, e.\,g.\ Nimrod-G focuses
+  on task farming or GridWay on meta-scheduling. Migol aims to provide
+  an overall autonomic, self-healing infrastructure, which addresses
+  the fault tolerance of Grid applications and the infrastructure
+  itself.}
 
 At the level of related application programming interfaces for
 checkpointing, proprietary interfaces are dominant. This is because
@@ -998,8 +1013,7 @@ the XtreemOS system level checkpointing
 capabilities~\cite{xtreemos_cpr}.
 
 
-\SubSection{Previous Attempts at RE simulations in Distributed
-  Environments}
+\SubSection{Other Distributed RE simulations}
 % \jhanote{We need to compare our approach with i) WISDOM and ii)
 %   Folding@HOME}             
 
@@ -1075,7 +1089,7 @@ specific simulation codes.
 
 The fault-tolerant framework used to implement RE simulations in a
 production environment is created using the distributed programming
-interfaces provided by SAGA and its coupling to Migol to provide the
+interfaces provided by SAGA and its coupling to Migol to provide
 fault-tolerant features.  SAGA provides a middleware-independent,
 programing abstraction for distributed environments. RE simulations
 utilize the new SAGA-CPR API, which provides an ideal interface for
@@ -1095,11 +1109,11 @@ In case of failures, e.\,g.\ a node-crash, applications are
 automatically restarted from the last saved
 checkpoint. % Migol is designed with focus on fault tolerance.
 
-In contrast to other replica-exchange implementations on distributed
+In contrast to other RE implementations on distributed
 simulations it is critical to note and emphasis the general usability
 and extensibility of our approach -- across different infrastructure,
 across a range of scientific applications and usage patterns (such as
-the multiple variant of the replica-exchange).
+the multiple variant of the RE).
 
 \jhanote{In future work, we need to mention that we are deploying this
   infrastructure on a real distributed system (LONI) and are using it
