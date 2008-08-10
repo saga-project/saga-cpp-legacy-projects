@@ -107,8 +107,8 @@
   distributed resources is critical for reducing the
   time-to-solution. However, the ability to orchestrate many
   distributed jobs in a dynamic and inherently unreliable distributed
-  environment is a major challenge. The more resources and components,
-  that are involved, %i.e., degrees-of-freedom,
+  environments is a major challenge. The more resources and components
+  involved, %i.e., degrees-of-freedom,
   the more complicated and error-prone the system becomes. We discuss
   a specific class of applications -- Replica-Exchange simulations
   % biomolecular systems
@@ -164,13 +164,13 @@ Several classes of applications, which are well suited for loosely
 coupled Grids, exist; arguably the best known and most commonly used
 ones are task farming applications. Despite the simple nature, many
 problems can be solved with such a model, e.\,g.\ parameter studies
-found in many sciences or Monte Carlo simulations. A slightly more
+found in many sciences or Monte Carlo simulations. Slightly more
 complicated, but possibly more interesting than {\it pleasingly
   distributed} applications, is the class of applications that have a
 small level of coupling between the tasks.
 %still essentially loosely-coupled, but 
 A common and interesting example that belongs to this category are
-\emph{Replica-Exchange }~\cite{hansmann,Sugita:1999rm} simulations.
+\emph{Replica-Exchange (RE)}~\cite{hansmann,Sugita:1999rm} simulations.
 Such simulations are used to understand important physical phenomena
 -- ranging from protein folding dynamics to binding affinity
 calculations required for computational drug discovery.
@@ -208,7 +208,7 @@ unreliable.
 % Additionally, resources are geographically distributed
 % and involve many heterogeneous components as well as multiple
 % organizations.  
-Several studies indicated severe failure rates of Grid
+Several studies indicate severe failure rates of Grid
 nodes and  
 jobs~\cite{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}.
 Although these analyses have been conducted in different environments,
@@ -231,7 +231,7 @@ failed process can halt the complete simulation.
 
 In replica-exchange simulations, there is a need to occasionally
 attempt an exchange between pairs of replicas; the pairing of replicas
-is also not a constant and is dynamically determined. However, once
+is also not a constant but is rather dynamically determined. However, once
 the pair of replicas has been established, a delay or loss of one
 replica will stall the other replica. In the worst case, a single
 failing task can render the entire computation worthless.    
@@ -277,12 +277,12 @@ to WISDOM, that is confined to gLITE/EGEE, it is usable over varied
 distributed environments such as the TeraGrid, DEISA, etc.
 \alnote{Should we add citations to folding@home and wisdom here?} 
 Thirdly, it is extensible -- it can be used to implement Replica-Exchange simulations, 
-but can also be applied to other applications
+but can also be applied to other applications.
 %we can also do other applications with this approach. 
 %We need to point that 
 The ability to do all of the above arises from the use of the
-correct programmatic and system-level abstractions: enable users do
-what users do best,% and must do
+correct programmatic and system-level abstractions: enable users to do
+what users do best, % and must do
 i.e. provide the simulation and orchestration logic, and 
 have the middleware provide generic services,
 such as checkpoint management, application monitoring and recovery.
@@ -299,7 +299,7 @@ discuss how SAGA-CPR and Migol are used to implement a fault-tolerant,
 distributed framework for RE. In the subsequent sections we discuss
 our experience in implementing REMD and performance figures. We
 conclude by providing a detailed analysis of related work, which will
-go to highlight the truly unique features of our implementation.
+highlight the truly unique features of our implementation.
 
 % \jhanote{The important message, which we need to repeat and repeat yet
 %   again: our approach is i) scalable over different distributed
@@ -436,8 +436,8 @@ Applications are started using the {\em Job Broker Service (JBS)}
 (step 1 in Figure~\ref{fig:migol_architecture}). Before a job
 submission, the JBS must register the GSO of the application at the
 AIS (step 2).  Resource discovery is performed through the WS
-MDS~\cite{schopf06}, which aggregates data of different services,
-e.\,g.\ the Network Weather Service (NWS)~\cite{NWS99} (step 3).
+MDS~\cite{schopf06}  (step 3), which aggregates data of different services,
+e.\,g.\ the Network Weather Service (NWS)~\cite{NWS99}.
 Available resources are matched by the JBS according to the
 requirements of the application. For execution of the application on
 Grid resources, the JBS relies on a custom module, the Advance
@@ -934,12 +934,16 @@ the variance of the typical NAMD runtimes.
 %     \label{fig:performance_perf_monitoring}
 % \end{figure}     
 
-Further, we evaluated the performance of the REMD-Manager in
-conjunction with Migol.  The REMD-Manager was configured to run a REMD
-simulation with 2 to 16 replica processes and 32 replica-exchange
+Further, we evaluated the performance of the REMD-Manager.  
+The REMD-Manager was configured to run a REMD simulation with 
+2 to 16 replica processes and 16 replica-exchange
 steps. To stress test the Migol infrastructure very short NAMD tasks
 with only 100 steps have been used. Table~\ref{tab:app_stats}
-summarizes the REMD configuration used.
+summarizes the REMD configuration used. The runtime of a REMD simulation depends 
+to a great extend on the queuing time at the local resource 
+management system. During the measurements it was ensured that jobs became 
+active right away; however, small queueing delays could not always be avoided.
+
 \begin{table}        
     \centering
 	\begin{tabular}{|p{5cm}|l|}
@@ -947,10 +951,10 @@ summarizes the REMD configuration used.
           %Molecular Dynamics Code &NAMD\\ \hline
           Number of NAMD steps &100\\ \hline 
           Number of NAMD processes &16\\ \hline 
-          Required staging files/size &5\,files/17\,MByte\\ \hline
+          Required staging files/size &6\,files/10\,MByte\\ \hline
           %Runtime of a single NAMD task (QueenBee) &2\,minutes\\ \hline   
           Number Replicas &2-16 \\ \hline
-          Number of Replica-Exchanges \jhanote{See caption for Q} &32\\ \hline
+          Number of Replica-Exchanges \jhanote{See caption for Q} &16\\ \hline
           %Total Runtime: &??   \\ \hline
 	\end{tabular}
 	\caption{\small \bf REMD Application Characteristics\label{tab:app_stats}
@@ -972,7 +976,7 @@ summarizes the REMD configuration used.
     \hspace*{-20pt}
         \includegraphics[width=0.5\textwidth]{performance/perf_remd.pdf}
         \caption{\small \bf REMD Runtime Analysis: The time (in minutes) that it
-          takes to complete 48 replica exchanges; each replica
+          takes to complete 16 replica exchanges; each replica
           runs for 100 steps, before attempting an exchange with a
           sister-replica. The overhead of the Migol is about 2\,minutes. \jhanote{need some further clarity}     
           \alnote{figure not correct yet - just found a bug in the REMD-Manager... starting over}
@@ -982,14 +986,21 @@ summarizes the REMD configuration used.
 
 \alnote{This must be reworked with the new results!}
 Figure~\ref{fig:performance_perf_runtime} illustrate the results of
-the REMD-Manager runtime measurements. With the number of replicas, the simulation 
-time slightly decreases up to 8 replicas. With more than
-8 replicas an increase in the runtime is detectable. This increase is mainly caused
-by the sequential overhead which proportional grows since e.\,g.\ files must staged to more machines. 
-At the same time the problem set computed by each replica remained fairly small with 100 NAMD steps. 
+this evaluation. Since the overall number of replica exchange steps remained constant,
+the runtime decreases the more replica processes are available. However, with more than 8 processes a slight increase 
+of the runtime is observable. 
+% This is a result of the sequential overhead which proportional 
+% grows with the number of replicas: 
+The more replica processes, the more exchanges the REMD-Manager must handle
+concurrently. Each exchange requires the re-staging of 6 files with the size of 12\,MB -- this transfer alone typically 
+requires 5-10\,s within LONI. Due to the small problem set computed by each 
+replica (only 100 NAMD steps, which require 35\,seconds computation time on QueenBee), 
+this bottleneck becomes very evident. However, in more realistic scenarios with larger problem chunks
+this issue will be avoided.  
 
 
-The Migol adaptor shows in average 2.15\, minutes runtime overhead, which correlates
+The results also show that an overhead caused by Migol is hardly measurable. Per average, the Migol adaptor showed 
+about 15\,seconds runtime overhead, which correlates
 to earlier findings depicted in Figure~\ref{fig:performance_perf_submission}.
 
 
@@ -1006,11 +1017,15 @@ to earlier findings depicted in Figure~\ref{fig:performance_perf_submission}.
 % the regular replica-exchange schema, i.\,e.\ 
 
 Further, the REMD-Manager has been successfully deployed across
-multiple Grid nodes.  
-However, especially the smaller machines showed
-long queuing times leading to high variance in the overall response
-times. Especially for short-running tasks as used for this test this 
-overhead is significant. 
+multiple Grid nodes. During this distributed run 1/4 of the processes have been 
+allocated to the smaller Poseidon machine, while the remainder stayed on QueenBee.
+Using this configuration, a slightly better performance than the QueenBee only run
+is noticeable. However, especially the smaller machines showed long queuing times 
+leading to high variance in the overall response
+times. In our scenario, the response time rapidly increases when we tried to allocate 
+more processes on Poseidon. 
+% Especially for short-running tasks as used for this test this 
+% overhead is significant. 
 
 \kimnote{However, this simple scenario faces high overhead since each
   job is submitted to the local scheduler in many cases. \it
@@ -1075,8 +1090,9 @@ discovery mechanisms incorporated within the JBS services can
 be avoided. Further, we will evaluate possibilities to decouple
 the dispatching of replica runs from allocation of cluster resources 
 to avoid long queuing delays. Systems, 
-such as Falkon~\cite{1362680} or the Condor Glide-In~\cite{citeulike:291860} mechanisms provide 
-the possibility to acquire a chunk of resources from the resource management systems, which can
+such as Falkon~\cite{1362680} or the Condor Glide-In~\cite{citeulike:291860} 
+mechanism provide the possibility to acquire a chunk of resources 
+from the resource management systems, which can
 then be used to dispatch short tasks.
 
 % \jhanote{This might be right place to talk about
@@ -1157,19 +1173,19 @@ Several frameworks for high-throughput computing and task farming
 exist, Condor-G~\cite{citeulike:291860},
 Nimrod-G~\cite{buyya00nimrodg}, and Legion~\cite{689541} to name a
 few. These provide basic fault tolerance support by automatic
-re-scheduling of failed task. Advanced features such as the management
+re-scheduling failed tasks. Advanced features such as the management
 of checkpoints however, are not supported. Further, these frameworks
-rely on a very simple failure detections mechanisms -- usually by
+rely on a very simple failure detection mechanisms -- usually by
 simply polling the job state at the Globus gatekeeper. This allows the
 detection of some errors, but application-level failure detectors as
-used by the Migol/SAGA library can detects much more complex
+used by the Migol/SAGA library can detect much more complex
 errors. For example, especially parallel applications can fail quite
 inconsistently: in the best case the application aborts, at worst the
 application hangs indefinitely. These kind of failures are not visible
 at Grid resource management system level.
 
 \jhanote{This will have to be commented out: Further, these frameworks
-  or scheduler focus on individual aspects, e.\,g.\ Nimrod-G focuses
+  or schedulers focus on individual aspects, e.\,g.\ Nimrod-G focuses
   on task farming or GridWay on meta-scheduling. Migol aims to provide
   an overall autonomic, self-healing infrastructure, which addresses
   the fault tolerance of Grid applications and the infrastructure
@@ -1179,8 +1195,10 @@ At the level of related application programming interfaces for
 checkpointing, proprietary interfaces are dominant. This is because
 applications most often rely on application level checkpointing, and,
 related, perform also their own checkpoint management (checkpointing
-policies, frequencies, dependencies, staging etc).  The Open Grid
-Forum's\footnote{\texttt{http://www.ogf.org}} GridCPR group (Grid
+policies, frequencies, dependencies, staging etc).  
+\alnote{Should we remove this from here - this is already mentioned now at the 
+beginning.}
+The Open Grid Forum's\footnote{\texttt{http://www.ogf.org}} GridCPR group (Grid
 CheckPoint and Recovery) made an early attempt to describe a generic
 CPR architecture, and to define a generic CPR API, which would support
 applications to manage their complete checkpoint/recovery life

@@ -69,12 +69,13 @@ set output "perf_remd.eps"
 #set logscale x                                 
 set key
 set xtics autofreq
-set yrange [0:20] 
+set yrange [0:12] 
 set xrange [2:16]        
 set xtics (2,4,8,16)
 set logscale x
 set ylabel "Runtime (in min)" #font "Helvetica, 20"
 set xlabel "Number Replica Processes" 
-plot "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp ,\
-     "data-remd.txt" using 1:4 title "SAGA/Migol (QB/Poseidon)" with lp, \
+plot "data-remd.txt" using 1:4 title "SAGA/Migol (QB/Poseidon)" with lp,\
+     "data-remd.txt" using 1:5 title "SAGA/GRAM  (QB/Poseidon)" with lp,\
+     "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp,\
      "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp   
