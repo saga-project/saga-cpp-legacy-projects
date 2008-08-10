@@ -126,7 +126,7 @@
   which addresses the fault tolerance of Grid applications and
   services by providing the capability to recover applications from
   checkpoint files transparently.  In addition to describing the
-  design of the SAGA CPR package, the integration of the CPR adaptor
+  design of the SAGA-CPR package, the integration of the CPR adaptor
   with the Migol infrastructure, we outline our experiences with
   running a large scale, general-purpose, SAGA-CPR based
   Replica-Exchange application in a production distributed
@@ -138,9 +138,9 @@
   % e.\,g.\ the management of files and jobs. The new SAGA Checkpoint
   % Recovery (CPR) package addresses checkpointing and the automatic
   % recovery of Grid applications. In this paper, we describe the
-  % design of the SAGA CPR package, the integration of the CPR adaptor
+  % design of the SAGA-CPR package, the integration of the CPR adaptor
   % with the Migol infrastructure, and our experiences with running a
-  % large scale SAGA CPR based task farming application in a real Grid
+  % large scale SAGA-CPR based task farming application in a real Grid
   % environment.
     
   % The aim of this paper is, i) to couple the SAGA and Migol
@@ -239,9 +239,9 @@ extension to the core SAGA specification, and is thus a validation of
 the extensibility of the specification.  In particular, Migol as an
 element of the Grid middleware, can be regarded as a reference
 implementation of the GridCPR architecture, defined
-in~\cite{ogf_cpr_arch}.  The SAGA CPR package is a SAGA rendering of
+in~\cite{ogf_cpr_arch}.  The SAGA-CPR package is a SAGA rendering of
 the GridCPR API, also defined in~\cite{ogf_cpr_arch}.  The pairing of
-Migol and SAGA CPR is thus both a natural, and also a very generic and
+Migol and SAGA-CPR is thus both a natural, and also a very generic and
 portable approach to the presented problem space.  At the same time,
 we present a seamless integration of CPR concepts and abstractions
 into the SAGA framework -- our system is thus able to provide easy to
@@ -331,7 +331,7 @@ approach successfully, but the size of simulations, requiring many
 replicas, could be one obstacle for routine usages.
 
 % This paper aims to demonstrate the efficient implementation armed with grid-enabled
-% SAGA framework as well as fault-recovery SAGA CPR Migol
+% SAGA framework as well as fault-recovery SAGA-CPR Migol
 % infrastructure.  Our development comprises three components.  The
 % first component is a task manager sitting on a user's desktop and
 % providing a user interface to manage overall REMD run, the second
@@ -441,14 +441,14 @@ various other APIs for supporting file transfer, RPC communication etc., which G
 
 The SAGA API specification in~\cite{saga_gfd90} defines not only the
 core of the SAGA API itself, but also the mechanism to extend that API
-by additional functional packages.  The SAGA CPR API
+by additional functional packages.  The SAGA-CPR API
 Package~\cite{saga_cpr_draft} is such an API package, and is at the
 moment an OGF working draft.
 
-The SAGA CPR package provides a clean abstraction for starting,
+The SAGA-CPR package provides a clean abstraction for starting,
 monitoring and recovering of checkpoint-restartable jobs.
 % The package was inspired by the GridCPR~\cite{gridcpr} architecture and Migol.
-Using SAGA CPR, applications can register checkpoint and job metadata with the infrastructure. 
+Using SAGA-CPR, applications can register checkpoint and job metadata with the infrastructure. 
 Further, the API provides support for starting applications, triggering of checkpoints and recoveries.
 
 For the management of checkpoint-able Grid jobs, SAGA defines the \texttt{cpr::job} and \texttt{cpr::service} class. The handling of 
@@ -458,7 +458,7 @@ Jobs are started using the job service. In addition to the normal job controls, 
 it can be explicitly checkpointed or recovered. Listing~\ref{lst:saga_job_start} shows the starting of a CPR enabled job.
 
 
-\begin{lstlisting}[style=myListing, caption={\small \bf SAGA CPR: Starting a Job}, float=t, label={lst:saga_job_start}]
+\begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR: Starting a Job}, float=t, label={lst:saga_job_start}]
 saga::cpr::service js; 
 saga::cpr::description jd_start;
 saga::cpr::description jd_restart;
@@ -471,20 +471,20 @@ job.run ();
 \end{lstlisting}
 
 Listing~\ref{lst:saga_init_service} shows how the application itself can connect to the CPR infrastructure. During instantiation of the \texttt{saga::cpr::service} object the adaptor is able to register itself with the CPR backend. This step can e.\,g.\ be used to register a monitoring endpoint. Using the \texttt{saga::cpr::self} object an application can obtain metadata about the current job from the application.                                                                               
-\begin{lstlisting}[style=myListing, caption={\small \bf SAGA CPR: Initialize Migol Session}, float=t, label={lst:saga_init_service}]
+\begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR: Initialize Migol Session}, float=t, label={lst:saga_init_service}]
 saga::cpr::service service (saga::url 
     ("migol://gridhub.cct.lsu.edu:8443/wsrf/services/migol/AIS-JGroups"));
 saga::cpr::self = service.get_self ();
 \end{lstlisting}
 
-Further, applications can use a checkpointing API to update checkpoint metadata at the backend. The SAGA CPR API allows the hierarchically 
+Further, applications can use a checkpointing API to update checkpoint metadata at the backend. The SAGA-CPR API allows the hierarchically 
 organization of checkpoint files and directories. Checkpoint directories are 
 used to group checkpoints. For example, parallel applications often write one checkpoint per 
 processor, i.\,e.\ in case of $n$ processors a CPR checkpoint
 would consists of $n$ files. Thus, a CPR checkpoint is designed as container 
 for multiple physical or logical files. Listing~\ref{lst:saga_chkpt_reg} demonstrates 
 how an application task registers a single checkpoint file with the CPR implementations.     
-\begin{lstlisting}[style=myListing, caption={\small \bf SAGA CPR: Register Checkpoint with Migol}, float=t, label={lst:saga_chkpt_reg}]
+\begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR: Register Checkpoint with Migol}, float=t, label={lst:saga_chkpt_reg}]
 saga::cpr::checkpoint remd_chkpt("remd_chkpt");
 remd_checkpoint.add_file (saga::url 
   ("gsiftp://qb.loni.org/work/remd/chkpt.dat"));
@@ -500,12 +500,12 @@ The application must then deploy an application-level recovery schema in order t
 \begin{figure}[th]
     \centering
         \includegraphics[width=0.48\textwidth]{cpr-statemodel.pdf}
-    \caption{\small \bf SAGA CPR State Model: The CPR state model introduces the recovering state. If the CPR infrastructure attempts to recover an application, this state is used to indicate to the application that an automatic recovery procedure is conducted.}
+    \caption{\small \bf SAGA-CPR State Model: The CPR state model introduces the recovering state. If the CPR infrastructure attempts to recover an application, this state is used to indicate to the application that an automatic recovery procedure is conducted.}
     \label{fig:cpr-statemodel}
 \end{figure}
  
 
-The Migol adaptor provides a compliant SAGA CPR stack for the C++ reference implementation~\cite{Kaiser:2006qp}. 
+The Migol adaptor provides a compliant SAGA-CPR stack for the C++ reference implementation~\cite{Kaiser:2006qp}. 
 A major building block is the application-level monitoring mechanism used to detect failures. 
 To support the monitoring arbitrary SAGA applications, a monitoring Web service is started 
 by the Migol adaptor with the initialization of a \texttt{cpr::service} object. This Web 
@@ -588,7 +588,7 @@ distributed infrastructure.
 \end{figure*}
 
 % This paper aims to demonstrate the efficient implementation armed with
-% grid-enabled SAGA framework as well as fault-recovery SAGA CPR Migol
+% grid-enabled SAGA framework as well as fault-recovery SAGA-CPR Migol
 % infrastructurure.
 
 Our development comprises three components. The first component is a
@@ -606,7 +606,7 @@ python scripts since SAGA-Python binding transparently exposes SAGA
 and SAGA-CPR/MIGOL APIs to simple but versatile Python.
 
 The \emph{REMD-Manager} provides a scalable infrastructure for running
-replica-exchange simulations.  The application utilizes the SAGA CPR
+replica-exchange simulations.  The application utilizes the SAGA-CPR
 API and the underlying Migol infrastructure to efficiently and
 reliable manage replica
 processes. Figure~\ref{fig:REMD-Manager-architecture} illustrates the
@@ -647,11 +647,11 @@ the exchange step is conducted, i.\,e.\ the REMD-Manager determines
 new parameters for all replica tasks, stages the required files and
 relaunches all jobs.
 
-% SAGA APIs and SAGA CPR Migol infrastructure allow a user to build
+% SAGA APIs and SAGA-CPR Migol infrastructure allow a user to build
 % his/her own implementation of REMD adaptively considering the
 % limitations of available resources.  That aspects comes from the
 % high-level abstraction of SAGA and flexible implementation of
-% Replica-Exchange as well as fault-recovery with SAGA CPR Migol.  For
+% Replica-Exchange as well as fault-recovery with SAGA-CPR Migol.  For
 % example, one simple scenario is to assign a REMD manager in charge
 % of a job submission/monitor/fault-recovery.  Each job corresponding
 % one replica run with a assigned temperature is sent to HPC machine
@@ -1189,8 +1189,8 @@ provided by LONI.
 % common Grid scenarios, e.\,g.\
 % the management of files and jobs. The new SAGA Checkpoint Recovery (CPR) package addresses checkpointing 
 % and the automatic recovery of Grid applications. In this paper, we describe the design of 
-% the SAGA CPR package, the integration of the CPR adaptor with the Migol infrastructure, 
-% and our experiences with running a large scale SAGA CPR based task farming application 
+% the SAGA-CPR package, the integration of the CPR adaptor with the Migol infrastructure, 
+% and our experiences with running a large scale SAGA-CPR based task farming application 
 % in a real Grid environment. 
 % \end{abstract}   
 
@@ -1241,14 +1241,14 @@ provided by LONI.
 
 %%------------------------------------------------------------------------------
 
-% The objective of SAGA CPR is to mostly hide the complexity of a
+% The objective of SAGA-CPR is to mostly hide the complexity of a
 % GridCPR infrastructure, such as making calls to different
 % infrastructure services for registering information etc., from the
 % application developer. Most interactions are handled transparently
-% within the adaptor.  The SAGA CPR package provides a generic,
+% within the adaptor.  The SAGA-CPR package provides a generic,
 % middleware-independent API to a GridCPR middleware.
     
-% For the management of checkpoint metadata the SAGA CPR API use the
+% For the management of checkpoint metadata the SAGA-CPR API use the
 % namespace paradigm to hierarchically organize files and directories.
 % Checkpoint directories are used to group checkpoints. Parallel
 % applications often write one checkpoint per processor, i.\,e.\ in
@@ -1278,12 +1278,12 @@ provided by LONI.
 % Remote steering of SAGA applications can be implemented using the
 % SAGA Monitorable API in conjunction with the job self object.
 
-% With the described functionality the SAGA CPR package is well suited to 
+% With the described functionality the SAGA-CPR package is well suited to 
 % provide a clean abstraction to the Migol middleware. 
 % Of course, the package can also be facilitated by another middleware adaptor. 
 % In the following the Migol SAGA adaptor is described.   
 
-% \subsection{SAGA CPR Migol Adaptor}
+% \subsection{SAGA-CPR Migol Adaptor}
 % 
 % Currently, a C++ and Java implementation for SAGA exists. Although the Migol backend mainly consists 
 % of web services Migol especially addresses the fault tolerance of long running e-Science applications written
