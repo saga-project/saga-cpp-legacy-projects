@@ -248,17 +248,17 @@ def initialize(config_filename):
 def transfer_files(RE_info, irep):
     remote_machine_ip = RE_info.remote_hosts[irep]
     remote_dir = RE_info.workingdirectories[irep]
-           #pdb.set_trace()
+    #pdb.set_trace()
     file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
 
 # start job
 def start_job(RE_info, irep):
     jd = set_saga_job_description(irep, RE_info, "cpr")
-    #dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-    dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+    dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+    #dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
     checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-    #error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
-    error, new_job = submit_job(dest_url_string, jd)
+    error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+    #error, new_job = submit_job(dest_url_string, jd)
     RE_info.replica.append(new_job)
     print "Replica " + "%d"%irep + " started." 
     
@@ -324,7 +324,7 @@ def run_REMDg(configfile_name):
             job1 = RE_info.replica[irep]
             state1 = job1.get_state()
             job2 = RE_info.replica[irep+1]
-            state2 = job1.get_state()
+            state2 = job2.get_state()
 	    print "state replica job " + "%d"%irep + ": " + str(state1) +", replica job "+ "%d"%(irep+1)+": " + str(state2)
             # check whether both replicas are done
             if (str(state1) == "Done" and str(state2)=="Done"):
@@ -436,7 +436,7 @@ if __name__ == "__main__" :
     options, arguments = op.parse_args()
 
     # enable monitoring through Migol
-    #js = saga.cpr.service()
+    js = saga.cpr.service()
     
     if options.type in (None,"test_RE"):
         run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
