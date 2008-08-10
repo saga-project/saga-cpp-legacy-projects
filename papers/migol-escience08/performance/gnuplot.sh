@@ -3,6 +3,9 @@
 # set term postscript eps enhanced linewidth 1.42
 set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
+set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+                                      
+
 set encoding iso_8859_1
 
 set output "perf.eps"
