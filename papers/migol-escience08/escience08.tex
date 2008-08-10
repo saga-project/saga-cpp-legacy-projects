@@ -80,7 +80,7 @@
 }
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -309,26 +309,13 @@ implementation.
 % \jhanote{We need to address: ``Why SAGA and Migol?'' here in the
 %  opening section}
 
-\Section{Replica-Exchange Molecular Dynamics Simulation}
+\Section{Replica-Exchange Molecular Dynamics Simulations}
 
-Replica-Exchange (RE) simulations can be thought of as consisting of
-two distinct components: the simulation type and the
-coupling-mechanism between the individual replicas.  It is important
-to note that RE is in fact a class of algorithms and not a specific
-algorithm~\cite{dpa_surveypaper}; for example, there can be not only
-different simulation strategies -- Monte Carlo or Molecular Dynamics
-(MD) -- but also multiple levels-of-coupling.  Based upon the degree
-(frequency) of coupling (exchange), we classify RE as either regular
-or irregular exchange. Well known examples of the former
-are~\cite{hansmann,Sugita:1999rm}; we classify parallel replica
-dynamics~\cite{SPdynamics, pande_bj03} in the latter. Parallel replica
-dynamics involves coordination amongst the replicas (implemented
-either using the master-worker or the peer-to-peer) at irregular
-intervals -- say everytime there is a folding event, whereas in the
-former category there is an attempt to exchange states between certain
-pairs at fixed intervals.
+\alnote{I restructured this section: 1) general introduction to MD problems 
+and further motivation for RE algorithm
+2) Structure/Classification of REMD algorithms} 
 
-In MD approaches, a sufficient sampling of configurations constitutes
+In  Molecular Dynamics (MD) approaches, a sufficient sampling of configurations constitutes
 the rudimentary requirement for connecting atomistic results to
 macroscopic or thermodynamic quantities available from experiments.
 However, with the most powerful computing resources at the moment, it
@@ -338,13 +325,45 @@ research efforts to accelerate sampling, and the generalized ensemble
 approaches have been proposed to overcome an inefficient
 conformational sampling presumably associated with kinetic trappings.
 Replica-Exchange Molecular Dynamics (REMD) was introduced by Sugita
-and Okamoto as one of the generalized ensemble approaches and they
-employed MD as the name represents.  The REMD run is composed of many
-replicas running at different temperatures and at the given time
-interval, exchange of parameters such as temperature are determined by
-the metropolis scheme.  Various topics have been studied with this
-approach successfully, but the size of simulations, requiring many
-replicas, could be one obstacle for routine usages.
+and Okamoto~\cite{Sugita:1999rm} as one of the generalized ensemble 
+approaches.
+% and they employed MD as the name represents.         
+
+% AL: moved to 5
+% The REMD run is composed of many
+% replicas running at different temperatures and at the given time
+% interval, exchange of parameters such as temperature are determined by
+% the metropolis scheme.  Various topics have been studied with this
+% approach successfully, but the size of simulations, requiring many
+% replicas, could be one obstacle for routine usages.
+
+
+Replica-Exchange (RE) simulations can be thought of as consisting of
+two distinct components: the simulation type and the
+coupling-mechanism between the individual replicas.  It is important
+to note that RE is in fact a class of algorithms and not a specific
+algorithm~\cite{dpa_surveypaper}; for example, there can be not only
+different simulation strategies -- such as the Monte Carlo and 
+the described MD approach
+%or Molecular Dynamics (MD) 
+-- but also multiple levels-of-coupling.  Based upon the degree
+(frequency) of coupling (exchange), we classify RE as either regular
+or irregular exchange. Well known examples of the former
+are~\cite{hansmann,Sugita:1999rm}; we classify parallel replica
+dynamics~\cite{SPdynamics,pande_bj03} in the latter. 
+\alnote{References still missing - I do not understand this sentence: 
+Is the thing we want to say that [SPdynamics/pandebj03] are examples for irregular exchanges?}
+Parallel replica
+dynamics involves coordination amongst the replicas (implemented
+either using the master-worker or the peer-to-peer) at irregular
+intervals, e.\,g.\ everytime a folding event occurs. In the regular case, 
+the RE application attempts to exchange states between certain
+pairs at fixed intervals. Various topics have been successfully studied with this
+approach. However, a major challenge remaining is the the deployment of RE schemas in
+distributed Grid environments. 
+          
+
+
 
 % This paper aims to demonstrate the efficient implementation armed with Grid-enabled
 % SAGA framework as well as fault-recovery SAGA-CPR Migol
@@ -365,9 +384,9 @@ replicas, could be one obstacle for routine usages.
 \Section{Migol: A Fault-Tolerant Service Framework}     
 \label{sec:migol}
 
-\begin{figure*}[t]
+\begin{figure}[t]
  \centering
- \includegraphics[width=0.6\textwidth]{migol_architecture}
+ \includegraphics[width=0.5\textwidth]{migol_architecture}
  \caption{\small \bf Migol Architecture: Migol provides several services for
  supporting the lifecycle of Grid applications. The infrastructure
  transparently handles issues, such as resource, metadata management
@@ -375,7 +394,7 @@ replicas, could be one obstacle for routine usages.
  Migol are transparently monitored and recovered in case of a
  failure.}
  \label{fig:migol_architecture} 
-\end{figure*}           
+\end{figure}           
 
 
 Migol guarantees the correct and reliable exe\-cution of applications or tasks even in
@@ -515,7 +534,7 @@ The application must then deploy an application-level recovery schema in order t
 
 \begin{figure}[th]
     \centering
-        \includegraphics[width=0.48\textwidth]{cpr-statemodel.pdf}
+        \includegraphics[width=0.43\textwidth]{cpr-statemodel.pdf}
     \caption{\small \bf SAGA-CPR State Model: The CPR state model introduces the recovering state. If the CPR infrastructure attempts to recover an application, this state is used to indicate to the application that an automatic recovery procedure is conducted.}
     \label{fig:cpr-statemodel}
 \end{figure}
@@ -579,7 +598,7 @@ applications, including but not limited to loosely-coupled data and/or
 task-parallel applications.
 % The framework provides an standardized, easy-to-use 
 % API for applications to efficiently utilize Grid infrastructures. 
-SAGA offers a standardized, easyy to use API for utilizing Grid
+SAGA offers a standardized, easy to use API for utilizing Grid
 infrastructures. The API supports e.\,g.\ the management of Grid jobs,
 file transfers and replicas. Thus, SAGA is ideally suited to encode
 the logic of orchestration of the replica-exchange simulations across
@@ -591,9 +610,9 @@ distributed infrastructure.
   establish what is specific to the SAGA way of doing things from what
   is a general distributed computing problem/issue}
 
-\begin{figure*}[htbp]
+\begin{figure}[t]
       \centering
-          \includegraphics[width=0.6\textwidth]{REMDgManager-architecture.pdf}
+          \includegraphics[width=0.5\textwidth]{REMDgManager-architecture.pdf}
           \caption{\small \bf Components of REMD-Manager: The main part of the
             framework is the replica manager. The manager orchestrates
             a set of replica processes using the SAGA/CPR API. The
@@ -601,7 +620,7 @@ distributed infrastructure.
             replica processes are monitored and recovered if
             necessary.}
       \label{fig:REMD-Manager-architecture}
-\end{figure*}
+\end{figure}
 
 % This paper aims to demonstrate the efficient implementation armed with
 % grid-enabled SAGA framework as well as fault-recovery SAGA-CPR Migol
@@ -632,10 +651,14 @@ all replica processes, i.\,e.\ the parameterization of replica tasks,
 file staging, job spawning and the conduction of the replica-exchange
 itself. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the
 application sequence of a REMD simulation.
- 
-At each replica-exchange step, the REMD-Manager starts a defined
-number of jobs. Each job corresponds to one replica run of NAMD 
-with an assigned temperature. 
+                                  
+Each replica-exchange step consists of many replica runs  at 
+different temperatures. 
+% Each job corresponds to one replica run of NAMD 
+% with an assigned temperature.  
+If a pair of replica jobs finishes, the new replica parameters 
+such as temperature are determined by
+the metropolis scheme.
 % The current parameterization of each replica is
 % stored within a list object and can be referenced by the
 % \texttt{replica\_id}. 
