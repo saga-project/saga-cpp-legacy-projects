@@ -248,10 +248,10 @@ implementation using the Migol adaptor. SAGA-CPR represents the first
 extension to the core SAGA specification, and is thus a validation of
 the extensibility of the specification.  In particular, Migol as an
 element of the Grid middleware, can be regarded as a reference
-implementation of the GridCPR architecture, defined
-in~\cite{ogf_cpr_arch}.  The SAGA-CPR package is a SAGA rendering of
-the GridCPR API, also defined in~\cite{ogf_cpr_arch}.  The pairing of
-Migol and SAGA-CPR is thus both a natural, and also a very generic and
+implementation of the GridCPR architecture~\cite{ogf_cpr_arch}.  
+The SAGA-CPR package is a SAGA rendering of
+the GridCPR API.%, also defined in~\cite{ogf_cpr_arch}.  
+The pairing of Migol and SAGA-CPR is thus both a natural, and also a very generic and
 portable approach to the presented problem space.  At the same time,
 we present the seamless integration of CPR concepts and abstractions
 into the SAGA framework -- our system is thus able to provide an easy to
@@ -387,12 +387,10 @@ distributed Grid environments.
 \begin{figure}[t]
  \centering
  \includegraphics[width=0.5\textwidth]{migol_architecture}
- \caption{\small \bf Migol Architecture: Migol provides several services for
- supporting the lifecycle of Grid applications. The infrastructure
- transparently handles issues, such as resource, metadata management
- and application fault tolerance.  Applications that are managed by
- Migol are transparently monitored and recovered in case of a
- failure.}
+ \caption{\small \bf Migol Architecture: Migol provides services for
+ supporting the fault tolerance of Grid applications. Applications that are managed by
+ Migol are transparently monitored and recovered in case of failures.
+ }
  \label{fig:migol_architecture} 
 \end{figure}           
 
@@ -411,31 +409,36 @@ A GSO stores all relevant information about an application: resource requirement
 the location of binaries and checkpoint files, global unique identifier (GUID),
 etc.
 
-Grid Service Objects for all running applications are stored in 
+Grid Service Objects containing the metadata of all running applications are stored in 
 the {\em Application Information Service (AIS)}. 
-Applications can register and update service metadata, 
-such as files, machines etc.\ through Grid Services Objects. 
+% Applications can register and update service metadata, 
+% such as files, machines etc.\ through Grid Services Objects. 
 To avoid a single point of failure, the AIS is replicated using a ring-based
-replication protocol, which ensures  the consistency of the stored data
-(see~\cite{Luckow:2008ys} for more details).
+replication protocol, which ensures the data consistency
+(see~\cite{Luckow:2008ys} for details).
 %TODO plugin arch erläutern
 
 % Figure~\ref{fig:migol_architecture} shows the current Migol architecture and
 % the interactions between the different services.  
 Applications are started using the {\em Job Broker Service (JBS)}
-(message 1 in Figure~\ref{fig:migol_architecture}). Before a job
+(step 1 in Figure~\ref{fig:migol_architecture}). Before a job
 submission, the JBS must register the GSO of the application at the
-AIS (message 2).  Resource discovery is performed through the WS
+AIS (step 2).  Resource discovery is performed through the WS
 MDS~\cite{schopf06}, which aggregates data of different services,
-e.\,g.\ the Network Weather Service (NWS)~\cite{NWS99} (message 3).
+e.\,g.\ the Network Weather Service (NWS)~\cite{NWS99} (step 3).
 Available resources are matched by the JBS according to the
-requirements of the application. To better plan the execution of an
-application the JBS supports advance reservation. If the respective
-Grid environment is capable of handling reservations, the JBS
-negotiates a time slot with all suitable resources. All reservation
-offers are ranked based on a shortest expected delay
-strategy~\cite{Jeske:2007wj}.  For spawning of jobs on the selected
-resource, the Globus GRAM service is used (message 4).
+requirements of the application. For execution of the application 
+on Grid resources, the JBS relies on a custom module, the 
+Advance Reservation Service, which is also capable of supporting 
+reservation of resources on top of the GRAM.
+
+%  To better plan the execution of an
+% application the JBS supports advance reservation. If the respective
+% Grid environment is capable of handling reservations, the JBS
+% negotiates a time slot with all suitable resources. All reservation
+% offers are ranked based on a shortest expected delay
+% strategy~\cite{Jeske:2007wj}.  For spawning of jobs on the selected
+% resource, the Globus GRAM service is used (step 4).
 %For conducting advance reservations and for job executions the
 %\emph{Advance Reservation Service (ARS)} is used (message 4).
              
@@ -446,40 +449,47 @@ resource, the Globus GRAM service is used (message 4).
 % The CRS uses an adaptive strategy to determine replication  targets respectively to select a replica for a
 % job restart.
 
-Migol provides several mechanisms for supporting the fault tolerance of Grid applications.
+Migol provides several mechanisms for supporting the fault tolerance of 
+distributed applications.
 % Fault tolerance requires at least two basic mechanisms: failure
 % detection and recovery. 
 To detect failures, the \emph{Monitoring and Restart Service (MRS)}
-periodically checks all services registered at the AIS using an
-application-level monitoring mechanism (message 6). In case the MRS
-discovers an inactive application due to a timeout, it initiates a
-restart respectively a migration using the JBS (message 7).
+periodically monitors all services registered at the AIS (step 6). 
+In case the MRS discovers an inactive application, 
+it initiates a restart respectively a migration using the JBS (step 7).
 
 For recovery, Migol relies on application-level checkpointing, i.\,e.\
 applications have to be written to accommodate checkpointing and
-restart.  Each time a checkpoint is witten, the application has to
-update its Grid Service Object at the AIS (message 5).
+restart.  The checkpoint metadata maintained by the AIS must be updated by the application
+each time a new checkpoint is witten  (step 5).
 
-To support an automatic recovery, Grid applications must be able to
-interact with the Migol infrastructure:
-\begin{compactitem}
-    \item The application must register checkpoint and job metadata with the infrastructure.
-    \item The infrastructure must be able to externally monitor the application.
-    %\item The infrastructure must be able to externally notify the application and trigger the saving of a checkpoint.
-\end{compactitem}  
-The Simple API for Grid Applications (SAGA) provides a feature rich programing abstractions. The described functions 
-can be  provided via the new SAGA Checkpoint Recovery API. In addition, SAGA provides  
-various other APIs for supporting file transfer, RPC communication etc., which Grid applications can benefit of.
+% To support an automatic recovery, Grid applications must be able to
+% interact with the Migol infrastructure:
+% \begin{compactitem}
+%     \item The application must register checkpoint and job metadata with the infrastructure.
+%     \item The infrastructure must be able to externally monitor the application.
+%     %\item The infrastructure must be able to externally notify the application and trigger the saving of a checkpoint.
+% \end{compactitem}  
+
+Migol can be considered as GridCPR reference implementation for which the SAGA CPR package 
+provides a well-defined, application-level interface.
+In addition, SAGA provides various other useful abstractions, such as the File and 
+RPC API, which ease the development of distributed 
+applications. The following sections describes how the functionality of Migol 
+can be seamlessly integrated with SAGA/CPR. 
+
+
+%  for which SAGA CPR aims, i.\,e.\
+% The Simple API for Grid Applications (SAGA) provides a feature rich programing abstractions. 
 
 
 \Section{SAGA Checkpoint Recovery API}
 
-The SAGA API specification in~\cite{saga_gfd90} defines not only the
+The SAGA API specification~\cite{saga_gfd90} defines not only the
 core of the SAGA API itself, but also the mechanism to extend that API
 by additional functional packages.  The SAGA-CPR API
 Package~\cite{saga_cpr_draft} is such an API package, and is at the
-moment an OGF working draft.
-
+moment an OGF working draft. 
 The SAGA-CPR package provides a clean abstraction for starting,
 monitoring and recovering of checkpoint-restartable jobs.
 % The package was inspired by the GridCPR~\cite{gridcpr} architecture and Migol.
