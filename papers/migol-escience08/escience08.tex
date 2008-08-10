@@ -510,29 +510,38 @@ checkpoint-restartable jobs.
 To support these use cases, applications can register checkpoint and job metadata with the infrastructure using this API. 
 %Further, the API supports the starting of applications as well as the triggering of checkpoints and recoveries.
 
-For the management of CPR Grid jobs, SAGA defines the \texttt{cpr::job} and \texttt{cpr::service} class (see 
-Listing~\ref{lst:saga_job_start}). The handling of 
-CPR jobs is similar to regular jobs: A job is defined using a job description. In contrast to normal jobs, 
-CPR jobs require  two job descriptions -- one for starting and another one for restarting the application.
+For the management of CPR Grid jobs, SAGA defines the
+\texttt{cpr::job} and \texttt{cpr::service} class 
+%(see Listing~\ref{lst:saga_job_start}). 
+The handling of CPR jobs is similar to regular jobs: A job is defined
+using a job description. In contrast to normal jobs, CPR jobs require
+two job descriptions -- one for starting and another one for
+restarting the application.
 %Jobs are started using the job service (see Listing~\ref{lst:saga_job_start}). 
-In addition to the normal job controls, CPR jobs can be queried for checkpoint metadata, 
-and explicitly checkpointed or recovered. 
+In addition to the normal job controls, CPR jobs can be queried for
+checkpoint metadata, and explicitly checkpointed or recovered.
 %Listing~\ref{lst:saga_job_start} shows the starting of a CPR enabled job.
 
+% \begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR:
+% Starting a Job}, float=t, label={lst:saga_job_start}]
+% saga::cpr::service js; 
+% saga::cpr::description jd_start;
+% saga::cpr::description jd_restart;
+% // fill out job description
+% ...
+% // submit job  
+% saga::cpr::job job = js.create_job (jd_start, 
+%                                     jd_restart);
+% job.run ();
+% \end{lstlisting}
 
-\begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR: Starting a Job}, float=t, label={lst:saga_job_start}]
-saga::cpr::service js; 
-saga::cpr::description jd_start;
-saga::cpr::description jd_restart;
-// fill out job description
-...
-// submit job  
-saga::cpr::job job = js.create_job (jd_start, 
-                                    jd_restart);
-job.run ();
-\end{lstlisting}
-
-Listing~\ref{lst:saga_init_service} shows how applications can connect to the CPR infrastructure. During instantiation of the \texttt{saga::cpr::service} object the adaptor is able to register itself with the CPR backend. This step can e.\,g.\ be used to register a monitoring endpoint. Using the \texttt{saga::cpr::self} object an application can obtain metadata about the current job from the application.                                                                               
+Listing~\ref{lst:saga_init_service} shows how applications can connect
+to the CPR infrastructure. During instantiation of the
+\texttt{saga::cpr::service} object the adaptor is able to register
+itself with the CPR backend. This step can e.\,g.\ be used to register
+a monitoring endpoint. Using the \texttt{saga::cpr::self} object an
+application can obtain metadata about the current job from the
+application.
 \begin{lstlisting}[style=myListing, caption={\small \bf SAGA-CPR: Initialize Migol Session}, float=t, label={lst:saga_init_service}]
 saga::cpr::service service (saga::url 
     ("migol://flotta.haiti.cs.uni-potsdam.de:8443/wsrf/services/migol/AIS-JGroups"));
@@ -562,19 +571,26 @@ remd_checkpoint.add_file (saga::url
 \end{figure}
  
 
-CPR jobs are subject to an extended state model. An application can query or subscribe to a job's state via the \texttt{cpr::job} object.      
-Figure~\ref{fig:cpr-statemodel} summarizes the CPR state model. The CPR model extends the SAGA job state model by the new state \texttt{recovering}. This state
-is used to indicate that the infrastructure is currently trying to restart a job. 
-If this recovery attempt fails, the state of the application is permanently set to \texttt{failed}. 
-The application must then deploy an application-level recovery schema in order to continue the execution. 
+CPR jobs are subject to an extended state model. An application can
+query or subscribe to a job's state via the \texttt{cpr::job} object.
+Figure~\ref{fig:cpr-statemodel} summarizes the CPR state model. The
+CPR model extends the SAGA job state model by the new state
+\texttt{recovering}. This state is used to indicate that the
+infrastructure is currently trying to restart a job.  If this recovery
+attempt fails, the state of the application is permanently set to
+\texttt{failed}.  The application must then deploy an
+application-level recovery schema in order to continue the execution.
 
 
-The Migol adaptor provides a compliant SAGA-CPR stack for the C++ reference implementation~\cite{Kaiser:2006qp}. 
-A major building block is the application-level monitoring mechanism used to detect failures. 
-To support the monitoring of arbitrary SAGA applications, a monitoring Web service is started 
-by the Migol adaptor with the initialization of a \texttt{cpr::service} object. This 
-service is implemented using the gSoap HTTP server~\cite{gsoap}.  The Monitoring Restart Service will 
-periodically send heartbeat messages to the application's monitoring service.
+The Migol adaptor provides a compliant SAGA-CPR stack for the C++
+reference implementation~\cite{Kaiser:2006qp}.  A major building block
+is the application-level monitoring mechanism used to detect failures.
+To support the monitoring of arbitrary SAGA applications, a monitoring
+Web service is started by the Migol adaptor with the initialization of
+a \texttt{cpr::service} object. This service is implemented using the
+gSoap HTTP server~\cite{gsoap}.  The Monitoring Restart Service will
+periodically send heartbeat messages to the application's monitoring
+service.
 % which periodically sends keep-alive messages to applications.                                                                             
 % The URL of the service is registered at the Application Information Service where it can be obtained 
 % by the monitoring service.
@@ -685,9 +701,11 @@ responsible for orchestration of all replica processes, i.\,e.\ the
 parameterization of replica tasks, file staging, job spawning and the
 conduction of the replica-exchange itself. The component heavily
 relies on the SAGA File and CPR API as well as the Python bindings for
-implementation of the RE
-logic. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the
-application sequence of a RE simulation.
+implementation of the RE logic.  The complete code for the
+REMD-Manager can be found in Ref~\cite{remd-manager_url}.
+
+%Listing~\ref{lst:python_saga_chkpt_reg} illustrates the
+%application sequence of a RE simulation.
                                   
 \alnote{I am really not sure about this code snippet. It somehow
   represents the logics - however I am not sure whether it is worth
@@ -697,36 +715,36 @@ application sequence of a RE simulation.
   handled equally simply. Can we i) use psuedo-code to highlight this?
   ii) mention where the reader can get the actually code?. We should
   definitely do point ii) and possibly point i)}
-\begin{lstlisting}[style=myPythonListing, float=t, caption={\small \bf
-REMD-Manager: Replica Orchestration},
-label={lst:python_saga_chkpt_reg}]
-# initial job launching       
-...
-# main replica exchange loop                    
-while num_exchanges < total_num_exchanges: 
-   irep=0
-   while rep_id < numReplica-1:
-     # pairwise monitoring of the job state
-     job1 = rep_list.jobs[rep_id]
-     state1 = job1.get_state()
-     job2 = rep_list.jobs[rep_id+1]
-     state2 = job2.get_state()
-     if (str(state1) == "Done" and str(state2)=="Done"):
-         # conduct exchange
-         ...
-         # restart both replicas  
-         for i in rep_id, rep_id+1:
-             # transfer files
-             ...
-             # restart replica
-             js = saga.cpr.service()
-             jd = create_job_description(i)    
-             job = js.create_job(jd, jd)
-             job.run()
-             rep_list.jobs.append(job)
-         num_exchanges = num_exchanges + 1
-     irep = irep + 2
-\end{lstlisting}
+% \begin{lstlisting}[style=myPythonListing, float=t, caption={\small \bf
+% REMD-Manager: Replica Orchestration},
+% label={lst:python_saga_chkpt_reg}]
+% # initial job launching       
+% ...
+% # main replica exchange loop                    
+% while num_exchanges < total_num_exchanges: 
+%    irep=0
+%    while rep_id < numReplica-1:
+%      # pairwise monitoring of the job state
+%      job1 = rep_list.jobs[rep_id]
+%      state1 = job1.get_state()
+%      job2 = rep_list.jobs[rep_id+1]
+%      state2 = job2.get_state()
+%      if (str(state1) == "Done" and str(state2)=="Done"):
+%          # conduct exchange
+%          ...
+%          # restart both replicas  
+%          for i in rep_id, rep_id+1:
+%              # transfer files
+%              ...
+%              # restart replica
+%              js = saga.cpr.service()
+%              jd = create_job_description(i)    
+%              job = js.create_job(jd, jd)
+%              job.run()
+%              rep_list.jobs.append(job)
+%          num_exchanges = num_exchanges + 1
+%      irep = irep + 2
+% \end{lstlisting}
 
 % The application utilizes the SAGA-CPR
 % API and the underlying Migol infrastructure to efficiently and
