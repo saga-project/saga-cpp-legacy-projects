@@ -24,8 +24,8 @@ namespace AllPairs {
     
       std::vector<saga::url> finished_;
       std::vector<saga::url> assigned_;
-      std::vector<saga::url> fragmentFiles_;
       std::vector<saga::url> baseFiles_;
+      std::vector<saga::url> fragmentFiles_;
       std::vector<saga::url> workers_;
       std::vector<std::string> data_;
       saga::advert::directory workerDir_;

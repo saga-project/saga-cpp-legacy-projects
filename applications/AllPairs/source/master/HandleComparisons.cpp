@@ -10,9 +10,9 @@ namespace AllPairs
 {
  // fileCount is the total number of files possibly outputted by
  // the map function (NUM_MAPS)
- HandleComparisons::HandleComparisons(std::vector<saga::url> &rowFiles, std::vector<saga::url> &columnFiles, saga::advert::directory workerDir,
+ HandleComparisons::HandleComparisons(std::vector<saga::url> &baseFiles, std::vector<saga::url> &fragmentFiles, saga::advert::directory workerDir,
                                       LogWriter *log)
-    : fragmentFiles_ (rowFiles), baseFiles_(columnFiles), workerDir_(workerDir), log_(log)
+    : baseFiles_ (baseFiles), fragmentFiles_(fragmentFiles), workerDir_(workerDir), log_(log)
  {
     candidateIT_ = fragmentFiles_.begin();
     workers_     = workerDir_.list("?");
@@ -55,7 +55,7 @@ namespace AllPairs
              saga::task_container tc;
              tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("STATE",    WORKER_STATE_IDLE));
              tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
-             saga::advert::entry adv(possibleWorker.open(saga::url("./file"), mode | saga::advert::Create));
+             saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode | saga::advert::Create));
              tc.add_task(adv.store_string<saga::task_base::ASync>(fragmentFile.get_string()));
              std::cerr << "Assigned worker " << possibleWorker.get_url().get_string() << " to compare all in " << fragmentFile.get_string() << " to everything else" << std::endl;
              assigned_.push_back(fragmentFile);
@@ -63,21 +63,26 @@ namespace AllPairs
              assigned = true;
           }
           else if(state == WORKER_STATE_DONE) {
-             saga::task_container tc;
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("STATE",    WORKER_STATE_IDLE));
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
-             std::string finished_work;
-             saga::advert::entry adv(possibleWorker.open(saga::url("./file"), mode | saga::advert::Create));
-             finished_work = adv.retrieve_string();
-             finished_.push_back(saga::url(finished_work));
-             std::string adv_file = "finished-" + finished_work;
-             saga::advert::entry adv_done(possibleWorker.open(saga::url(adv_file), mode));
-             data_.push_back((finished_work + ":  " + adv_done.retrieve_string()));
-             tc.add_task(adv.store_string<saga::task_base::ASync>(fragmentFile.get_string()));
-             assigned_.push_back(fragmentFile);
-             std::cerr << "Assigned worker " << possibleWorker.get_url().get_string() << " to compare all in " << fragmentFile.get_string() << " to everything else" << std::endl;
-             tc.wait();
-             assigned = true;
+             try{
+                saga::task_container tc;
+                tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("STATE",    WORKER_STATE_IDLE));
+                tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
+                //./fragmentFile is the fragmentFile the worker has just finished with
+                saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode));
+                std::string finished_work(adv.retrieve_string());
+                finished_.push_back(saga::url(finished_work));
+                //finishedFile is the data of the comparison
+                saga::advert::entry adv_done(possibleWorker.open(saga::url("./finishedFile"), mode));
+                data_.push_back((finished_work + ":  " + adv_done.retrieve_string()));
+                tc.add_task(adv.store_string<saga::task_base::ASync>(fragmentFile.get_string()));
+                assigned_.push_back(fragmentFile);
+                std::cerr << "Assigned worker " << possibleWorker.get_url().get_string() << " to compare all in " << fragmentFile.get_string() << " to everything else" << std::endl;
+                tc.wait();
+                assigned = true;
+             }
+             catch(saga::exception const &e) {
+                std::cerr << "SAGA EXCEPTION:  " << e.what() << std::endl;
+             }
           }
        }
        catch(saga::exception const & e) {
@@ -92,14 +97,13 @@ namespace AllPairs
        }
     }
  }
- saga::url HandleComparisons::get_file_()
- {
+ saga::url HandleComparisons::get_file_() {
     for(unsigned int count = 0; count < fragmentFiles_.size(); count++) {
        bool finished = false;
        bool assigned = false;
        std::string candidate = candidateIT_->get_string();
-       std::vector<saga::url>::iterator finished_IT = fragmentFiles_.begin();
-       while(finished_IT != fragmentFiles_.end()) {
+       std::vector<saga::url>::iterator finished_IT = finished_.begin();
+       while(finished_IT != finished_.end()) {
           if(candidate == *finished_IT) {
              finished = true;
              break;
@@ -117,7 +121,7 @@ namespace AllPairs
        if(finished == false && assigned == false) {
           return candidateIT_->get_string();
        }
-       if(finished == false && assigned == true) {
+       else if(finished == false && assigned == true) {
           candidateIT_++;
           if(candidateIT_ == fragmentFiles_.end()) {
              candidateIT_ = fragmentFiles_.begin();

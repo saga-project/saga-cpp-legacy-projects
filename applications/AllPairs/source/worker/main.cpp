@@ -7,11 +7,20 @@
 #include "../utils/type.hpp"
 
 using namespace AllPairs;
+
+double comp_matrix[4][4] = {
+{0.0, 1.0, 2.0, 2.5},
+{0.0, 0.0, 2.0, 1.5},
+{1.0, 1.0, 0.0, 1.0},
+{0.0, 1.5, 2.0, 0.0}};
+
 class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
   public:
    AllPairsImpl(int argCount, char **argList)
      : AllPairsBase<AllPairsImpl>(argCount, argList) {}
    double compare(saga::url object1, saga::url object2) {
+      saga::filesystem::file f(object1, saga::filesystem::ReadWrite);
+      saga::filesystem::file g(object2, saga::filesystem::ReadWrite);
       return 0.2;
    }
 };

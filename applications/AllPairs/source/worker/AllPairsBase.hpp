@@ -164,7 +164,7 @@ namespace AllPairs {
             //Fake Code
             for(int counter = 0; counter < 100; counter++)
             {
-               baseFiles_.push_back(saga::url("file://localhost//home/bane/saga-projects/applications/AllPairs/samples/base-"+
+               baseFiles_.push_back(saga::url("file://localhost//home/michael/saga/saga-projects/applications/AllPairs/samples/base-"+
                                            boost::lexical_cast<std::string>(counter) + ".txt"));
                std::cerr << "Added file: " << baseFiles_[counter] << std::endl;
             }
@@ -184,21 +184,21 @@ namespace AllPairs {
          int mode = saga::advert::ReadWrite | saga::advert::Create;
          while(1) {
             std::string command(getFrontendCommand_());
-            saga::url file;
+            saga::url currentFragmentFile;
             // read command from orchestrator
             if(command == WORKER_COMMAND_COMPARE) {
-               saga::advert::entry adv(workerDir_.open(saga::url("./file"), saga::advert::ReadWrite));
-               file = adv.retrieve_string();
+               workerDir_.set_attribute("STATE", WORKER_STATE_COMPARING);
+               saga::advert::entry adv(workerDir_.open(saga::url("./fragmentFile"), saga::advert::ReadWrite));
+               currentFragmentFile = adv.retrieve_string();
                RunComparison ComparisonHandler = RunComparison(workerDir_, baseFiles_, logWriter_);
                std::vector<double> values;
                std::string retval;
                double val;
                while(ComparisonHandler.hasComparisons()) {
-                  saga::url item(ComparisonHandler.getComparisons());
-                  std::cout << "temporary = " << item << std::endl;
-                  val = compare(file, item);
+                  saga::url temp_base(ComparisonHandler.getComparisons());
+                  val = compare(currentFragmentFile, temp_base);
                   values.push_back(val);
-                  std::cout << "Compared some" << std::endl;
+                  std::cout << "Compared " << std::endl << "   " << currentFragmentFile.get_string() << " to" <<  std::endl << "   " << temp_base << std::endl << std::endl;
                }
                retval += boost::lexical_cast<std::string>(values[0]);
                for(std::vector<double>::size_type x=1;x<values.size();x++) {
@@ -206,11 +206,12 @@ namespace AllPairs {
                   retval += boost::lexical_cast<std::string>(values[x]);
                }
                retval += ";";
-               std::string string_file("./finished-");
-               string_file += file.get_string();
-               std::cout << string_file;
-               saga::advert::entry fin_adv(workerDir_.open(saga::url(string_file), mode));
+               //finished, now write data to advert
+               saga::advert::entry fin_adv(workerDir_.open(saga::url("finishedFile"), mode));
                fin_adv.store_string(retval);
+               std::cout << workerDir_.get_attribute("STATE") << " is the worker state" << std::endl;
+               workerDir_.set_attribute("COMMAND","");
+               workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
             }
             // write some statistics + ping signal 
             updateStatus_();

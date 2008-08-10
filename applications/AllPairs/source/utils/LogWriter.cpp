@@ -41,7 +41,6 @@ void LogWriter::write(std::string message, unsigned int logLevel)
     
     time_t rawTime; struct tm * timeInfo;
     time(&rawTime); timeInfo = localtime(&rawTime);
- 
     adv << timeInfo->tm_mon << "/" << timeInfo->tm_mday << "/" 
          << timeInfo->tm_year << " ";
     adv << timeInfo->tm_hour << ":" << timeInfo->tm_min << ":" 
