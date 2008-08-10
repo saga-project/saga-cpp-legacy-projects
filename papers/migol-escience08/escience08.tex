@@ -605,8 +605,7 @@ AIS by the Migol adaptor:
   i.\,e.\ the URL of the Web service, is updated.
 \item During the runtime, metadata about written checkpoint are 
   updated via the \texttt{cpr::checkpoint} object.
-\end{compactitem}
-
+\end{compactitem}   
 To ensure the availability of these information in case of a failure,
 the AIS is actively replicated across multiple Grid nodes.
 
@@ -617,18 +616,19 @@ the AIS is actively replicated across multiple Grid nodes.
 
 \Section{Implementing Replica-Exchange Using SAGA}
 
-\up
-The \emph{Simple API for Grid Applications (SAGA)}~\cite{saga_gfd90}
-provides a straightforward API for developing a broad range of
-applications, including but not limited to loosely-coupled data and/or
-task-parallel applications.
+\up                 
+\alnote{I removed parts of the SAGA introduction due to space reasons.} 
+
+% The \emph{Simple API for Grid Applications (SAGA)}~\cite{saga_gfd90}
+% provides a straightforward API for developing a broad range of
+% applications, including but not limited to loosely-coupled data and/or
+% task-parallel applications.
 % The framework provides an standardized, easy-to-use 
 % API for applications to efficiently utilize Grid infrastructures. 
-SAGA offers a standardized, easy to use API for utilizing Grid
-infrastructures. The API supports e.\,g.\ the management of Grid jobs,
-file transfers and replicas. Thus, SAGA is ideally suited to encode
-the logic of orchestration of the replica-exchange simulations across
-distributed infrastructure.
+As emphasized before, SAGA offers a standardized, easy to use API for 
+the management of checkpoint-recoverable jobs and file transfers in distributed
+environment. Thus, SAGA is ideally suited for encoding the orchestration logic 
+of replica-exchange simulations. 
 
 \jhanote{Joohyun: Put in a paragraph or two of the main points of the
   how it is done here; maybe even discussing the ideas related to
@@ -639,34 +639,7 @@ distributed infrastructure.
 % This paper aims to demonstrate the efficient implementation armed with
 % grid-enabled SAGA framework as well as fault-recovery SAGA-CPR Migol
 % infrastructurure.
-
-Our development comprises three components. The first component is a
-task manager sitting on a user's desktop and providing a user
-interface to manage overall REMD run, the second component is Migol
-server that submits, monitor, and recover each replica simulation if
-exists, and the final one is task agents that resides on High
-Performance Machines where MD simulations are carried out.  The role
-of a task manager varies for achieving the best solution with
-different local environment at each HPC machine.  A highly scalable MD
-package, NAMD~\cite{Phillips:2005gd} is used for a parallel MD
-simulation corresponding each replica run.  A REMD task manager and
-various parts gluing different components are mostly written with
-python scripts since SAGA-Python binding transparently exposes SAGA
-and SAGA-CPR/MIGOL APIs to simple but versatile Python.
-
-The \emph{REMD-Manager} provides a scalable infrastructure for running
-replica-exchange simulations.  The application utilizes the SAGA-CPR
-API and the underlying Migol infrastructure to efficiently and
-reliable manage replica
-processes. Figure~\ref{fig:REMD-Manager-architecture} illustrates the
-architecture of the REMD-Manager. The replica manager is the main
-component of the framework -- it is responsible for orchestration of
-all replica processes, i.\,e.\ the parameterization of replica tasks,
-file staging, job spawning and the conduction of the replica-exchange
-itself. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the
-application sequence of a REMD simulation.
-                                  
-\begin{figure}[h]
+\begin{figure}[ht]
       \centering
           \includegraphics[width=0.5\textwidth]{REMDgManager-architecture.pdf}
           \up\up
@@ -679,40 +652,123 @@ application sequence of a REMD simulation.
             \up\up
       \label{fig:REMD-Manager-architecture}
 \end{figure}
+As illustrated in Figure~\ref{fig:REMD-Manager-architecture}, 
+the proposed framework comprises of three components: The task manager also referred to
+as \emph{REMD-Manager} is deployed on the user's desktop and provides the user
+interface for managing the overall REMD run. The second component is Migol
+infrastructure that submits, monitors, and, if required, recovers replica simulations. 
+The last element is the task agent, the \emph{NAMD-Launcher}, that resides on the High
+Performance Machines where MD simulations are carried out. The NAMD-Launcher is triggered by 
+the Grid job and is responsible for spawning and monitoring of the MD run. NAMD~\cite{Phillips:2005gd}, 
+a highly scalable, parallel MD code, is used for carrying out the MD simulation corresponding 
+to each replica run.
 
-Each replica-exchange step consists of many replica runs  at 
-different temperatures. 
+                       
+
+% The role
+% of a task manager varies for achieving the best solution with
+% different local environment at each HPC machine.  
+% A REMD task manager and
+% various parts gluing different components are mostly written with
+% python scripts since SAGA-Python binding transparently exposes SAGA
+% and SAGA-CPR/MIGOL APIs to simple but versatile Python.   
+
+The \emph{REMD-Manager} is the core of the framework -- it is responsible for orchestration of
+all replica processes, i.\,e.\ the parameterization of replica tasks,
+file staging, job spawning and the conduction of the replica-exchange
+itself. The component heavily relies on the SAGA File and CPR API as well as the 
+Python bindings for implementation of the RE logic. Listing~\ref{lst:python_saga_chkpt_reg} illustrates the
+application sequence of a REMD simulation.          
+                                  
+\alnote{I am really not sure about this code snippet. It somehow represents the logics - however I am not sure whether it is
+worth the space.}
+\begin{lstlisting}[style=myPythonListing, float=t, caption={\small \bf REMD-Manager: Replica Orchestration}, 
+label={lst:python_saga_chkpt_reg}]
+# initial job launching       
+...
+# main replica exchange loop                    
+while num_exchanges < total_num_exchanges: 
+   irep=0
+   while rep_id < numReplica-1:
+     # pairwise monitoring of the job state
+     job1 = rep_list.jobs[rep_id]
+     state1 = job1.get_state()
+     job2 = rep_list.jobs[rep_id+1]
+     state2 = job2.get_state()
+     if (str(state1) == "Done" and str(state2)=="Done"):
+         # conduct exchange
+         ...
+         # restart both replicas  
+         for i in rep_id, rep_id+1:
+             # transfer files
+             ...
+             # restart replica
+             js = saga.cpr.service()
+             jd = create_job_description(i)    
+             job = js.create_job(jd, jd)
+             job.run()
+             rep_list.jobs.append(job)
+         num_exchanges = num_exchanges + 1
+     irep = irep + 2
+\end{lstlisting}
+
+% The application utilizes the SAGA-CPR
+% API and the underlying Migol infrastructure to efficiently and
+% reliable manage replica
+% processes. Figure~\ref{fig:REMD-Manager-architecture} illustrates the
+% architecture of the REMD-Manager.  
+
+% Each replica-exchange step consists of many replica runs  at 
+% different temperatures. 
 % Each job corresponds to one replica run of NAMD 
 % with an assigned temperature.  
-If a pair of replica jobs finishes, the new replica parameters 
-such as temperature are determined by
-the metropolis scheme.
-% The current parameterization of each replica is
-% stored within a list object and can be referenced by the
-% \texttt{replica\_id}. 
-For each replica job different metadata, such as the
-working directory, the used configuration file, the temperature
-etc. is maintained by the REMD-Manager.  This data is used by the REMD-Manager to
-transfers all required files to the respective resource using the SAGA
-File API and the GridFTP adaptor (step 1 in Figure~\ref{fig:REMD-Manager-architecture}). 
+
+Depending on the number of configured processes $n$, the REMD-Manager starts 
+initially $\frac{n}{2}$ pairs of replicas. 
+Each replica process is assigned a different temperature. Before launching the job
+the REMD-Manager ensures that all required input files are transfered to the
+respective resource. For this purpose,
+the SAGA File API and the GridFTP adaptor 
+(step 1 in Figure~\ref{fig:REMD-Manager-architecture}) are used. 
 The replica job is then submitted to the Grid resource using  
 the CPR API and Migol/GRAM (step 2a-2c). Migol ensures that the 
 the job description of each replica is stored within the Migol backend to
-ensure a later recovery.  The Globus GRAM is used to start the application.
-
+ensure a later recovery.  The Globus GRAM is used to start the application.                    
+                                               
 To integrate NAMD with the SAGA/Migol infrastructure a SAGA based
-wrapper application the \emph{NAMDLauncher} is used.  This wrappers is responsible for
+task agent the NAMD-Launcher is used.  This agent is responsible for
 updating the metadata of the application, i.\,e.\ the state,
 monitoring endpoint and the URLs of newly written checkpoints at the
-Migol backend.  The wrapper then launches the actual NAMD job using
+Migol backend.  The agent then launches the actual NAMD job using
 MPI. During the entire runtime the replica process is monitored by 
 Migol using the monitoring endpoint of the NAMD
-launcher. This wrapper enables the flexible orchestration of multiple
+launcher. This NAMD-Launcher enables the flexible orchestration of multiple
 NAMD jobs through the REMD-Manager without modification of the NAMD
-source itself. After all replicas have been successfully completed,
-the exchange step is conducted, i.\,e.\ the REMD-Manager determines
-new parameters for all replica tasks, stages the required files and
-relaunches all jobs.
+source itself. 
+
+% After all replicas have been successfully completed,
+% the exchange step is conducted, i.\,e.\ the REMD-Manager determines
+% new parameters for all replica tasks, stages the required files and
+% relaunches all jobs.
+
+If a pair of replica jobs finishes, the new replica parameters 
+such as the new temperature are determined by the metropolis scheme.
+Both jobs are then relaunched using the mechanisms described above.
+
+SAGA allows the simple decoupling of the REMD application logic from the underlying Grid infrastructure. 
+Using the Migol adaptor, the application can benefit from features, such as the  automatic monitoring
+and the transparent recovery of failed tasks. At the same time, SAGA allows the application to easily utilize 
+other infrastructures in conjunction to or as replacement to Migol .
+
+
+% The current parameterization of each replica is
+% stored within a list object and can be referenced by the
+% \texttt{replica\_id}. 
+% For each replica job different metadata, such as the
+% working directory, the used configuration file, the temperature
+% etc., is maintained by the REMD-Manager.  This data is used by the REMD-Manager to
+% transfers all required files to the respective resource using the SAGA
+% File API and the GridFTP adaptor (step 1 in Figure~\ref{fig:REMD-Manager-architecture}). 
 
 % SAGA APIs and SAGA-CPR Migol infrastructure allow a user to build
 % his/her own implementation of REMD adaptively considering the
@@ -729,35 +785,6 @@ relaunches all jobs.
 % replica.
                                              
 % \jhanote{I say we put a few snippets of code here}
-\begin{lstlisting}[style=myPythonListing, float=t, caption={\small \bf REMD-Manager: Replica Orchestration}, 
-label={lst:python_saga_chkpt_reg}]
-
-# loop n replica-exchange steps  
-for i in range(0, n):     
-    # spawn jobs
-    for replica_id in range(0, num_replicas):
-      js = saga.cpr.service()
-      jd = create_job_description(replica_id, replica_info)    
-      replica_job = js.create_job(jd_start, jd_restart)
-      replica_job.run()
-      replica_list.append(replica_job)
-     
-    # wait for termination of jobs
-    for replica_id in range(0, num_replicas):     
-        replica_list[replica_id].get_state()
-        if (state=="Done"):                          
-            #obtain result of replica process
-            energy[replica_id] = get_energy(replica_id)
- 
-    # reparameterize jobs before spawning new tasks      
-      ...                    
-\end{lstlisting}     
-
-SAGA allows the simple decoupling of the REMD application logic from the underlying Grid infrastructure. 
-Using the underlying Migol adaptor, the application can benefit from features, such as the  automatic monitoring
-and the transparent recovery of failed tasks. At the same time, SAGA allows the application to easily utilize 
-infrastructures other than Migol.
-
 
 % Joohyun's old code
 % while 1:
@@ -773,8 +800,26 @@ infrastructures other than Migol.
 %    #job submit
 %     new_job = js.create_job(jd_start, jd_restart)
 %     new_job.run()
-%     REMDjobs.append(new_job)
+%     REMDjobs.append(new_job)     
 
+% old code's second version
+% # loop n replica-exchange steps  
+% for i in range(0, n):     
+%     # spawn jobs
+%     for replica_id in range(0, num_replicas):
+%       js = saga.cpr.service()
+%       jd = create_job_description(replica_id, replica_info)    
+%       replica_job = js.create_job(jd_start, jd_restart)
+%       replica_job.run()
+%       replica_list.append(replica_job)
+%      
+%     # wait for termination of jobs
+%     for replica_id in range(0, num_replicas):     
+%         replica_list[replica_id].get_state()
+%         if (state=="Done"):                          
+%             #obtain result of replica process
+%             energy[replica_id] = get_energy(replica_id)
+%  
 
 \Section{Experiences with REMD}
 \label{sec:exp}       
