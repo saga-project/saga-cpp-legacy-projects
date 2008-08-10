@@ -65,7 +65,8 @@ plot "data-monitoring.txt" using 1:2  with lp
      
 set output "perf_remd.eps"       
 #set logscale x 2
-#set logscale x
+#set logscale x                                 
+set key
 set xtics autofreq
 set yrange [0:50] 
 set xrange [2:16]        
@@ -73,4 +74,5 @@ set xtics (2,4,8,16)
 set logscale x
 set ylabel "Runtime (in min)" #font "Helvetica, 20"
 set xlabel "Number Replica Processes" 
-plot "data-remd.txt" using 1:2  with lp
+plot "data-remd.txt" using 1:2 title "SAGA/Migol" with lp ,\
+     "data-remd.txt" using 1:3 title "SAGA/GRAM" with lp 
