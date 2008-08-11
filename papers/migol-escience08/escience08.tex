@@ -534,15 +534,16 @@ functionality of Migol can be seamlessly integrated with SAGA-CPR.
 \up
 \Section{SAGA Checkpoint Recovery API}
 
-\up The SAGA API specification~\cite{saga_gfd90} defines not only the
-core of the SAGA API itself, but also the mechanism to extend that API
-by additional functional packages.  The SAGA-CPR API
+\up The SAGA API specification~\cite{saga_gfd90} defines the core of
+the SAGA API as well as the mechanisms to extend the core API via
+additional functional packages.  The SAGA-CPR API
 Package~\cite{saga_cpr_draft} is such an extension, which is currently
 an OGF working draft.  The SAGA-CPR package provides a clean
 abstraction for starting, monitoring and recovering of
-checkpoint-restartable jobs.
+checkpoint-restartable jobs.  To support these use cases, applications
+can register checkpoints and job metadata with the infrastructure
+using this API.
 % The package was inspired by the GridCPR~\cite{gridcpr} architecture and Migol.
-To support these use cases, applications can register checkpoint and job metadata with the infrastructure using this API. 
 %Further, the API supports the starting of applications as well as the triggering of checkpoints and recoveries.
 
 For the management of CPR Grid jobs, SAGA defines the
@@ -573,10 +574,10 @@ checkpoint metadata, and explicitly checkpointed or recovered.
 Listing~\ref{lst:saga_init_service} shows how applications can connect
 to the CPR infrastructure. During instantiation of the
 \texttt{saga::cpr::service} object the adaptor is able to register
-itself with the CPR backend. This step can e.\,g.\ be used to register
-a monitoring endpoint. Using the \texttt{saga::cpr::self} object an
-application can obtain metadata about the current job from the
-application.
+itself with the CPR backend. This step can be used for example, to
+register a monitoring endpoint. Using the \texttt{saga::cpr::self}
+object an application can obtain metadata about the current job from
+the application.
 \begin{lstlisting}[style=myListing, caption={\footnotesize \bf SAGA-CPR: Initialize Migol Session\newline\newline}, float=t, label={lst:saga_init_service}] 
 saga::cpr::service service (saga::url 
     ("migol://flotta.haiti.cs.uni-potsdam.de:8443/wsrf/services/migol/AIS-JGroups"));
@@ -592,8 +593,9 @@ saga::cpr::self = service.get_self ();
 \end{figure}
  
 
-Further, applications can use a checkpointing API to update checkpoint metadata at the backend. The SAGA-CPR API allows the hierarchically 
-organization of checkpoint files. 
+Further, applications can use a checkpointing API to update checkpoint
+metadata at the backend. The SAGA-CPR API allows the hierarchical
+organization of checkpoint files.
 %and directories. Checkpoint directories are used to group checkpoints. 
 % For example, parallel applications often write one checkpoint per 
 % processor, i.\,e.\ in case of $n$ processors a CPR checkpoint
@@ -610,8 +612,8 @@ remd_checkpoint.add_file (saga::url
 CPR jobs are subject to an extended state model. An application can
 query or subscribe to a job's state via the \texttt{cpr::job} object.
 Figure~\ref{fig:cpr-statemodel} summarizes the CPR state model. The
-CPR model extends the SAGA job state model by the new state
-\texttt{recovering}. This state is used to indicate that the
+CPR model extends the SAGA job state model~\cite{saga_gfd90} by the
+new state \texttt{recovering}. This state is used to indicate that the
 infrastructure is currently trying to restart a job.  If this recovery
 attempt fails, the state of the application is permanently set to
 \texttt{failed}.  The application must then deploy an
@@ -636,7 +638,7 @@ service.
 
 
 Another critical aspect is the management of the application's
-metadata. To ensure the recoverability of an application, metadata,
+metadata. To ensure the recoverability of an application, metadata
 such as the job description and information about written checkpoint
 files must be available even if the application failed. The Migol
 adaptor relies on the AIS as the metadata backend. Every job is
@@ -678,8 +680,9 @@ the AIS is actively replicated across multiple Grid nodes.
   emphasis the broad scope with SAGA} The \emph{Simple API for Grid
   Applications (SAGA)}~\cite{saga_gfd90} provides an easy-to-use
 standardised API for developing a broad range of distributed
-applications, including but not limited to loosely-coupled data and/or
-task-parallel applications.  %The framework provides an standardized,
+applications, including, but not limited to loosely-coupled data
+and/or task-parallel
+applications.  %The framework provides an standardized,
 % easy-to-use API for applications to efficiently utilize Grid
 % infrastructures.
 In particular, SAGA offers an API for the management of
@@ -713,17 +716,17 @@ encoding the orchestration logic of Replica-Exchange simulations.
 As illustrated in Figure~\ref{fig:REMD-Manager-architecture}, the
 proposed framework comprises of three components: The task manager,
 also referred to as \emph{REMD-Manager}, is deployed on the user's
-desktop and provides the user interface to the overall REMD
-run. The second component is the Migol infrastructure that submits,
-monitors, and, if required, recovers replica simulations.  The last
-element is the task agent, the \emph{NAMD-Launcher}, that resides on
-the High Performance Machines where MD simulations are carried
-out. The NAMD-Launcher is triggered by the Grid job and is responsible
-for spawning and monitoring the MD
-run. NAMD~\cite{Phillips:2005gd}, a highly scalable, parallel MD code,
-is used to carry out the MD simulation corresponding to each
-replica run. It is important to mention that any other MD 
-code could be used just as simply and effectively.
+desktop and provides the user interface to the overall REMD run. The
+second component is the Migol infrastructure that submits, monitors,
+and if required, recovers replica simulations.  The last element is
+the task agent, the \emph{NAMD-Launcher}, that resides on the High
+Performance Machines where MD simulations are carried out. The
+NAMD-Launcher is triggered by the Grid job and is responsible for
+spawning and monitoring the MD run. NAMD~\cite{Phillips:2005gd}, a
+highly scalable, parallel MD code, is used to carry out the MD
+simulation corresponding to each replica run. It is important to
+mention that any other MD code could be used just as simply and
+effectively.
 
 % The role
 % of a task manager varies for achieving the best solution with
