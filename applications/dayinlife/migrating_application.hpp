@@ -283,7 +283,7 @@ namespace migrating
                 // modify job description to point to the next resource
                 std::vector <std::string> chosts;
                 chosts.push_back (next_host_);
-                jd.set_vector_attribute(job::attributes::description_candidatehosts, 
+                jd.set_vector_attribute(job::attributes::description_candidate_hosts, 
                     chosts);
 
                 // set the current host as a command line argument for the new 
