@@ -135,21 +135,18 @@
   to handle the unreliability inherent in dynamic distributed systems.
   In this paper, we describe the design, development and deployment of
   a unique framework for constructing fault-tolerant distributed
-  simulations; %critically our
-  the proposed framework is scalable, general purpose and
-  extensible. It consists of two primary components: SAGA and Migol.
-  SAGA is a high-level programmatic abstraction layer that provides a
+  simulations.  The framework consists of two primary components --
+  SAGA and Migol, is scalable, general purpose and extensible.  SAGA
+  is a high-level programmatic abstraction layer that provides a
   standardised interface for the primary distributed functionality
   required for application development. We provide details of a newly
   developed functionality in SAGA -- the Checkpoint and Recovery
   API. Migol is an adaptive Grid middleware, which addresses the fault
   tolerance of Grid applications and services by providing the
   capability to recover applications from checkpoint files
-  transparently.  In addition to describing
-  %the  design of the SAGA-CPR package, 
-  the integration of SAGA-CPR with the Migol infrastructure, 
-  we outline our experiences with
-  running a large scale, general-purpose, SAGA-CPR based
+  transparently.  In addition to describing the integration of
+  SAGA-CPR with the Migol infrastructure, we outline our experiences
+  with running a large scale, general-purpose, SAGA-CPR based
   Replica-Exchange application in a production distributed
   environment.
 
@@ -177,7 +174,7 @@
 \up There exist several types of applications, which are well suited
 to distributed environments. Probably the best known and most powerful
 example are those that involve an ensemble of decoupled tasks, which
-we refer to as {\it pleasingly-distributed} applications. In spite of
+we refer to as {\it pleasingly-distributed} applications; in spite of
 its conceptual simplicity, many scientific problems based on parameter
 sweeps and/or Monte Carlo simulations, can be solved using
 infrastructure that supports this common application class. A slightly
@@ -248,21 +245,22 @@ a whole host of load-balancing and scheduling problems.
 % For example, for every replica that encounters a failure there is at
 % least one replica that will wait on it.
 
-Even though, distributed RE simulations are loosely-coupled, failures
-can become a major problem for such applications.  In RE simulations,
-there is a need to occasionally attempt an exchange between pairs of
-replicas; the pairing of replicas is not a constant but is dynamically
-evolving.  However, once the pair of replicas has been established, a
-delay or loss of one replica will stall the other replica.  Thus over
-time, due to the fact that in principle every replica will ultimately
+Partly due to some of these challenges, even though distributed RE
+simulations are loosely-coupled, failures can become a major problem
+for such applications.  In RE simulations, there is a need to
+occasionally attempt an exchange between pairs of replicas; the
+pairing of replicas is not a constant but is dynamically evolving.
+However, once a pair of replicas has been established, a delay or loss
+of one replica will stall the other replica.  Thus over time, due to
+the fact that in principle, every replica will ultimately
 interact/exchange with another replica, a single failure, if left
 uncorrected can ultimately cause the simulation to encounter an
 exponentially increasing slow-down.  In the worst case, a single
 failing task can render the entire computation worthless.  Thus, it is
-essential to intrinsically provide support for fault tolerance within
-the Grid middleware.  \emph{Migol}~\cite{schnorLuckow08} provides such
-a middleware and supports the transparent starting, monitoring and
-recovery of tasks.
+essential to provide support for fault tolerance at some level.
+\emph{Migol}~\cite{schnorLuckow08} provides fault-tolerance at the
+middleware level by supporting the transparent starting, monitoring
+and recovery of tasks.
 %, which supports the discovery and allocation of resources
 %as well as 
 \jhanote{there is repetition here. need to refine} \amnote{the last
@@ -281,16 +279,17 @@ can be regarded as a reference implementation of the GridCPR
 architecture~\cite{ogf_cpr_arch}. % The SAGA-CPR package is a SAGA
 % rendering of the GridCPR API.%, also defined in~\cite{ogf_cpr_arch}.
 % as an element of the Grid middleware,
-The pairing of Migol and SAGA-CPR thus provides a natural, portable
-and a very generic solution to the problem of a programmatic interface
-to designing fault-tolerant applications.  We demonstrate this by
-presenting the seamless integration of CPR concepts and abstractions
-into the SAGA framework; the resulting system is able to provide an
-easy to use, high-level programming abstractions for Grid enabled,
-fault tolerant applications. To highlight that is critical that all
-aspects of the distributed application life-cycle are made easier:
-design, development and deployment, we will discuss our experiences in
-developing and deploying a RE application in a production environment.
+We demonstrate this by presenting the seamless integration of CPR
+concepts and abstractions into the SAGA framework; the resulting
+system is able to provide an easy to use, high-level programming
+abstractions for Grid enabled, fault tolerant applications.  The
+pairing of Migol and SAGA-CPR thus provides a natural, portable and a
+very generic solution to the problem of a programmatic interface for
+designing fault-tolerant applications.  To highlight this and that it
+is critical that all aspects of the distributed application life-cycle
+-- design, development and deployment -- are made easier, we will
+discuss our experiences in developing and deploying a RE application
+in a production environment.
 
 
 Before outlining the structure of the paper, we highlight the main
@@ -1041,15 +1040,18 @@ however, small queueing delays could not always be avoided.
     \centering
     \hspace*{-20pt}
         \includegraphics[width=0.5\textwidth]{performance/perf_remd.pdf}
-        \caption{\footnotesize \bf REMD Runtime: The time that it
-          takes to complete 16 replica exchanges; each replica runs
-          for 100 steps, before attempting an exchange with a
-          sister-replica. The deployment of replicas across multiple
-          clusters (scenario QB/Poseidon) is associated with a slight
-          disadvantage compared to the usage of a single cluster
-          (scenario QB).  The overhead of the Migol is with
-          15\,seconds negligible compared to the overall
-          runtime. \jhanote{need some further clarity} \up}
+        \caption{\footnotesize \bf REMD Runtime: 
+         The time that it takes to complete 16 replica exchanges; 
+each replica runs for 100 steps, before attempting an exchange with
+the paired-replica. Although the simultaneous deployment of
+          replicas across multiple resources (labels with QB/Poseidon)
+          has scheduling challenges compared to the usage of a single
+          cluster (scenario QB), for scenarios studied here there is a
+          slight reduction in time-to-completion.
+%  The overhead of the Migol is with
+%         15\,seconds negligible compared to the overall
+%         runtime.
+          \jhanote{need some further clarity} \up}
     \label{fig:performance_perf_runtime}
 \end{figure}     
 \alnote{This must be reworked with the new results!}
@@ -1098,16 +1100,20 @@ Figure~\ref{fig:performance_perf_submission}.
 % Figur~\ref{fig:performance_perf_submission}.
 % the regular replica-exchange schema, i.\,e.\ 
 
-Further, the REMD-Manager has been successfully deployed across
-multiple Grid nodes. During this distributed run 1/4 of the processes
-have been allocated to the smaller Poseidon machine, while the
-remainder stayed on QB.  With a large number of replicas even a
-slightly better performance than the QB is observable. However,
-especially smaller machines, such as Poseidon, showed long queuing
-times leading to high variance in the overall response times. This
-overhead is significant in particular for short-running tasks. For
-example, in our test scenario, the response times rapidly increased
-when we allocated more processes on Poseidon due to queuing delays.
+Figure~\ref{fig:performance_perf_runtime} also shows that our approach
+can be employed to orchestrate multiple resources concurrently, as
+well as different resources (QB/Poseidon/Eric) individually.  During
+the coupled distributed run, 1/4 of the processes were allocated to
+the smaller machine (Poseidon), while the bulk stayed on QB.  As the
+number of replicas gets larger, the concurrent distributed runs have a
+lower time-to-completion than when QB was used in isolation was
+observed (all else being equal). However it is important to note, that
+smaller machines, such as Poseidon, showed long queuing times leading
+to high variance in the overall time-to-completion. This overhead is
+significant for short-running tasks and less so for longer running
+tasks. % For example, in our
+% test scenario, the response times rapidly increased when we allocated
+% more processes on Poseidon due to queuing delays.
 
 \kimnote{However, this simple scenario faces high overhead since each
   job is submitted to the local scheduler in many cases. \it
@@ -1280,32 +1286,31 @@ level.
 
 At the level of related application programming interfaces for
 checkpointing, proprietary interfaces are dominant. This is because
-applications most often rely on application level checkpointing, and,
-related, perform also their own checkpoint management (checkpointing
-policies, frequencies, dependencies, staging etc).  \alnote{Should we
-  remove this from here - this is already mentioned now at the
-  beginning.}  The Open Grid
-Forum's\footnote{\texttt{http://www.ogf.org}} GridCPR group (Grid
-CheckPoint and Recovery) made an early attempt to describe a generic
-CPR architecture, and to define a generic CPR API, which would support
-applications to manage their complete checkpoint/recovery life
-cycle~\cite{ogf_cpr_arch}.  Based on that architecture, and on a set
-of CPR use cases~\cite{ogf_cpr_uc}, the SAGA group in OGF defined the
-CPR API package~\cite{saga_cpr_draft} (work in progress), whose
-implementation is described in this paper.  The rendering of the CPR
-API in the SAGA API framework allows (a) to seamlessly combine CPR
-operations and other high level Grid programming abstractions provided
-by SAGA, and (b) to abstract from the actual implementation of the CPR
-mechanism.  The CPR API which has been demonstrated with the Migol
-framework, can work as well with other systems, e.\,g.\,
-the XtreemOS system level checkpointing
+applications most often rely on application level checkpointing, and
+perform also their own checkpoint management (checkpointing policies,
+frequencies, dependencies, staging etc).  \alnote{Should we remove
+  this from here - this is already mentioned now at the beginning.}
+The Open Grid Forum's\footnote{\texttt{http://www.ogf.org}} GridCPR
+group (Grid CheckPoint and Recovery) made an early attempt to describe
+a generic CPR architecture, and to define a generic CPR API, which
+would support applications to manage their complete
+checkpoint/recovery life cycle~\cite{ogf_cpr_arch}.  Based on that
+architecture, and on a set of CPR use cases~\cite{ogf_cpr_uc}, the
+SAGA group in OGF defined the CPR API package~\cite{saga_cpr_draft}
+(work in progress), whose implementation is described in this paper.
+The rendering of the CPR API in the SAGA API framework allows (a) to
+seamlessly combine CPR operations and other high level Grid
+programming abstractions provided by SAGA, and (b) to abstract from
+the actual implementation of the CPR mechanism.  The CPR API which has
+been demonstrated with the Migol framework, can work as well with
+other systems, e.\,g.\, the XtreemOS system level checkpointing
 capabilities~\cite{xtreemos_cpr}.
 
 
 \noindent{\it Other Distributed RE simulations:}
 % \jhanote{We need to compare our approach with i) WISDOM and ii)
 %   Folding@HOME}             
-Several projects, such as Folding@home and Wisdom, utilise distributed
+Several projects, such as Folding@home and WISDOM, utilise distributed
 infrastructures. While
 Folding@home~\cite{PhysRevLett.86.4983}\footnote{Folding@Home~\cite{PhysRevLett.86.4983}
   is parallel replica dynamics but that is a special case of
@@ -1314,15 +1319,15 @@ Folding@home~\cite{PhysRevLett.86.4983}\footnote{Folding@Home~\cite{PhysRevLett.
   but I think it is fair at this level of detail, to consider
   folding@Home to be in the same application class to effectively
   parallelize simulations} is based on BOINC~\cite{1033223}, the
-Wisdom project utilizes the EGEE infrastructure for molecular docking
-simulations (for the evaluation of drugs). While this application has
-a similar high-throughput characteristic, the project is currently
-tied to the gLite~\cite{glite} middleware.  In contrast to Wisdom
-and Folding@home, our approach is not restricted to a specific
-distributed environment. SAGA based job-launching and file-handling is
-supported on most general-purpose Grids via the appropriate adaptors,
-as SAGA is a community specification and soon to be
-standard~\cite{saga_url}
+WISDOM project utilizes the EGEE infrastructure. 
+%for molecular docking simulations (for the evaluation of drugs).
+Although WISDOM has similar application characteristics as discussed
+here, the project is currently tied to the gLite~\cite{glite}
+middleware.  In contrast to WISDOM and Folding@home, our approach is
+not restricted to a specific distributed environment. SAGA based
+job-launching and file-handling is supported on most general-purpose
+Grids via the appropriate adaptors, as SAGA is a community
+specification and is soon to be standard~\cite{saga_url}
 
 % In contrast, general, multipurpose Grids as the TeraGrid, which
 % provide a dedicated runtime environment for applications with
