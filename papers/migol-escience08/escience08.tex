@@ -72,8 +72,8 @@
 
 \title{
   ~\\[-3em]
-  Replica-Exchange Simulations on Production Distributed
-  Environments using SAGA and Migol}
+  Distributed Replica-Exchange Simulations on Production Environments
+  using SAGA and Migol}
 %\title{Reliable Replica-Exchange Simulations of Biomolecular Systems
 %  on Production Distributed Environments using SAGA-CPR and Migol}
 %  Computational Grids using SAGA-CPR and Migol}
@@ -81,10 +81,12 @@
 
 \author{
   ~\\[-2em]
-  Andr\'e Luckow$^{1}$, Shantenu Jha$^{2,3}$, Joohyun Kim$^{2}$, Andre Merzky$^{2}$ and Bettina Schnor$^{1}$\\
+  Andr\'e Luckow$^{1}$, Shantenu Jha$^{2,3,4}$, Joohyun Kim$^{2}$, Andre Merzky$^{2}$ and Bettina Schnor$^{1}$\\
   \small{\emph{$^{1}$Institute of Computer Science, Potsdam University, Germany}}\\
   \small{\emph{$^{2}$Center for Computation \& Technology, Louisiana State University, USA}}\\
-  \small{\emph{$^{3}$Department of Computer Science, Louisiana State University, USA}}\\
+  \small{\emph{$^{3}$Department of Computer Science, Louisiana State
+      University, USA}}\\
+  \small{\emph{$^{4}$e-Science Institute, Edinburgh, UK}}\\
 }
 
 %\date{}
@@ -169,24 +171,23 @@
   % approach by attempting the simulation of a large model system.
 \end{abstract}
 
-\up
+\up \up
 \Section{Introduction}
                            
 \up There exist several types of applications, which are well suited
 to distributed environments. Probably the best known and most powerful
-examples are those that involve an ensemble of decoupled tasks -- {\it
-  pleasingly-distributed} applications. In spite of its conceptual
-simplicity, many scientific problems based on parameter sweeps and/or
-Monte Carlo simulations, can be solved using infrastructure that
-supports this common application class. A slightly more complicated
-and challenging class of distributed applications are those that have
-a small level of coupling between the sub-tasks.  An important and
-interesting type of applications that belongs to this category are
-those based on \emph{Replica-Exchange
-  (RE)}~\cite{hansmann,Sugita:1999rm} simulations.  Such simulations
-are used to understand important physical phenomena -- ranging from
-protein folding dynamics to binding affinity calculations required for
-computational drug discovery.
+example are those that involve an ensemble of decoupled tasks, which
+we refer to as {\it pleasingly-distributed} applications. In spite of
+its conceptual simplicity, many scientific problems based on parameter
+sweeps and/or Monte Carlo simulations, can be solved using
+infrastructure that supports this common application class. A slightly
+more complicated and challenging class of distributed applications are
+those that have a small level of coupling between individual
+sub-tasks.  An interesting example of such applications are those
+based on \emph{Replica-Exchange (RE)}~\cite{hansmann,Sugita:1999rm}
+simulations.  Such applications can be used to understand important
+physical phenomena -- ranging from protein folding dynamics to binding
+affinity calculations required for computational drug discovery.
 
 % is the class of distributed applications 
 
@@ -233,34 +234,34 @@ not least of which is that distributed computing environments are
 inherently prone to failures and thus
 unreliable~\cite{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}.
 Some applications can respond to such failures via redundant or
-speculative computing.  However, the redundant computing approach has
-its limitations, especially when there is a level of heterogeneity and
+speculative computing.  However, redundant computing has its
+limitations, especially when there is a level of heterogeneity and
 coupling between tasks.  Speculative computing is still possible, but
 its use to mitigate the consequence of distributed failures, leads to
-a whole host of load-balancing and scheduling problems. Although,
-distributed RE simulations are loosely-coupled, failures can become a
-major problem for such applications. For example, for every replica
-that encounters a failure there is at least one replica that will wait
-on it. Thus over time, due to the fact that in principle every replica
-will ultimately interact/exchange with another replica, a single
-failure, if left uncorrected can ultimately cause the simulation to
-encounter exponentially increasing slow-down.
-
+a whole host of load-balancing and scheduling problems. 
 % in a regular exchange simulation the successful termination of
 % \textit{all} replica processes is required before the next iteration
 % step can be started \jhanote{Jha needs to strengthen/refine previous
 %   sentence}. That means that a single failed process can halt the
 % complete simulation.
 
-In RE simulations, there is a need to occasionally attempt an exchange
-between pairs of replicas; the pairing of replicas is also not a
-constant but is rather dynamically determined. However, once the pair
-of replicas has been established, a delay or loss of one replica will
-stall the other replica. In the worst case, a single failing task can
-render the entire computation worthless.  Thus, it is essential to
-intrinsically provide support for fault tolerance within the Grid
-middleware.  \emph{Migol}~\cite{schnorLuckow08} provides such a
-middleware and supports the transparent starting, monitoring and
+% For example, for every replica that encounters a failure there is at
+% least one replica that will wait on it.
+
+Even though, distributed RE simulations are loosely-coupled, failures
+can become a major problem for such applications.  In RE simulations,
+there is a need to occasionally attempt an exchange between pairs of
+replicas; the pairing of replicas is not a constant but is dynamically
+evolving.  However, once the pair of replicas has been established, a
+delay or loss of one replica will stall the other replica.  Thus over
+time, due to the fact that in principle every replica will ultimately
+interact/exchange with another replica, a single failure, if left
+uncorrected can ultimately cause the simulation to encounter an
+exponentially increasing slow-down.  In the worst case, a single
+failing task can render the entire computation worthless.  Thus, it is
+essential to intrinsically provide support for fault tolerance within
+the Grid middleware.  \emph{Migol}~\cite{schnorLuckow08} provides such
+a middleware and supports the transparent starting, monitoring and
 recovery of tasks.
 %, which supports the discovery and allocation of resources
 %as well as 
@@ -270,55 +271,60 @@ recovery of tasks.
 \alnote{I reordered the sentences - should be ok now.}
 
 Having motivated the need for a fault-tolerant framework for
-application development, this paper describes the design of the
-Checkpoint\,\&\,Recovery package (CPR) of SAGA, and its implementation
-using the Migol adaptor. SAGA-CPR represents the first extension to
-the core SAGA API specification, and is thus a validation of the
-extensibility of the specification.  In particular, Migol as an
-element of the Grid middleware, can be regarded as a reference
-implementation of the GridCPR architecture~\cite{ogf_cpr_arch}.  The
-SAGA-CPR package is a SAGA rendering of the GridCPR
-API.%, also defined in~\cite{ogf_cpr_arch}.
-The pairing of Migol and SAGA-CPR is thus both a natural, and also
-very generic and portable approach to the presented problem space.  At
-the same time, we present the seamless integration of CPR concepts and
-abstractions into the SAGA framework -- our system is thus able to
-provide an easy to use, high level programming abstractions for Grid
-enabled, fault tolerant applications.  It is critical that all aspects
-of the distributed application life-cycle are made easier: design,
-development and deployment. To prove this, we also present our
-experiences developing and deploying a RE application in a production
-environment.
+application development, in particular for distributed RE simulations,
+this paper describes the design of the SAGA~\cite{saga_gfd90}
+Checkpoint\,\&\,Recovery package (CPR), and its implementation using
+the Migol adaptor. SAGA-CPR~\cite{saga-cpr} represents the first
+extension to the core SAGA API specification, and is thus a validation
+of the extensibility of the specification.  Additionally Migol 
+can be regarded as a reference implementation of the GridCPR
+architecture~\cite{ogf_cpr_arch}. % The SAGA-CPR package is a SAGA
+% rendering of the GridCPR API.%, also defined in~\cite{ogf_cpr_arch}.
+% as an element of the Grid middleware,
+The pairing of Migol and SAGA-CPR thus provides a natural, portable
+and a very generic solution to the problem of a programmatic interface
+to designing fault-tolerant applications.  We demonstrate this by
+presenting the seamless integration of CPR concepts and abstractions
+into the SAGA framework; the resulting system is able to provide an
+easy to use, high-level programming abstractions for Grid enabled,
+fault tolerant applications. To highlight that is critical that all
+aspects of the distributed application life-cycle are made easier:
+design, development and deployment, we will discuss our experiences in
+developing and deploying a RE application in a production environment.
 
-\up Before outlining the structure of the paper, we highlight the main
-advantages of our approach: Firstly and foremost it is a general
-purpose framework that can is usable over varied distributed
-environments such as the TeraGrid, DEISA, etc., as opposed to
-WISDOM~\cite{wisdom}, that is confined to gLITE/EGEE. Secondly it is
-scalable to resources of different sizes, as opposed to {\it
-  Folding@home}~\cite{folding} which is based upon BOINC and is thus
-inherently limited in the size of physical problems that can be solved
-effectively.  \alnote{Should we add citations to Folding@home and
-  wisdom here?}  Thirdly, it is extensible -- it can be used to
-implement Replica-Exchange simulations, but also any other
-application.  The ability to do all of the above arises from the use
-of standard interfaces and the correct programmatic and system
-abstractions: enable users to do what they do best, i.e. provide the
-simulation and orchestration logic, and have the middleware provide
-generic services, such as checkpoint management, application
-monitoring and recovery.
+
+Before outlining the structure of the paper, we highlight the main
+advantages of our approach: First and foremost it is a general purpose
+framework that can be used over a wide-range of distributed production
+environments, such as the TeraGrid, UK's NGS, DEISA, etc., as opposed
+to WISDOM~\cite{wisdom}, that is essentially confined to
+gLITE/EGEE. Secondly, our approach can scale to use resources of
+different sizes, as opposed to {\it Folding@home}~\cite{folding} which
+is based upon BOINC, and is thus inherently limited in the size of
+physical problems that can be solved effectively.  \alnote{Should we
+  add citations to Folding@home and wisdom here?}  Thirdly, our
+framework is extensible: it can be used to implement many other
+application in addition to those based upon RE
+simulations~\cite{escience07}. The power to do so arises
+from simple design decisions: the use of standard interfaces on the
+one hand, and the use of appropriate programmatic and system
+abstractions that allow users to do what they can do best
+(i.e. provide the simulation and orchestration logic), whilst ensuring
+that middleware used provides required services (such as checkpoint
+management, application monitoring and recovery) seamlessly and
+effectively from the application developers perspective.
 
 % systems and middleware do what is best
 % left to them, i.e., checkpoint management \jhanote{a stronger example
 %   would be welcome}.
 
-\up The remainder of the paper is structured as follows: In the next
+The remainder of the paper is structured as follows: In the next
 section we provide the basic ideas behind RE and specifically
 Replica-Exchange using Molecular Dynamics simulations.  We then
 discuss the fault-tolerant Migol framework. In section 4 we present
 the SAGA-CPR package and show its relation to Migol. In section 5, we
 discuss how SAGA-CPR and Migol are used to implement a fault-tolerant,
-distributed framework for RE. In the subsequent sections we discuss
+distributed framework for RE.  In the subsequent sections we discuss
 our experience in implementing REMD and performance figures. We
 conclude by providing a detailed analysis of related work, which will
 highlight the truly unique features of our implementation.
@@ -1379,6 +1385,7 @@ simulations it is critical to note and emphasis the general usability
 and extensibility of our approach -- across different infrastructures,
 across a range of scientific applications and usage patterns (e.g.
 the multiple variants of the RE).
+
 
 \jhanote{In future work, we need to mention that we are deploying this
   infrastructure on a real distributed system (LONI) and are using it
