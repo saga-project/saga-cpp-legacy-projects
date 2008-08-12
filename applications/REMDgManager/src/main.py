@@ -54,8 +54,42 @@ class RE_INFO (object):
         self.replica_saga_jobs = []   # saga jobs
         self.istep = 0
         self.iEX = 0
-        
-        
+
+#####################################
+#  REMD specific functions
+########################################################
+def create_new_namd_conf_file(RE_info, irep):
+    # make new conf file here (JK) will be implemented
+    # assume namd conf file ending with ".conf"
+    
+    
+    
+    return None
+    
+def get_energy(replica_ID, RE_info):
+    # not implemented yet. it is dummy.
+    
+    en = 0.4
+    
+    return en
+
+
+# swap parameters for new runs
+# mockup at the moment    
+def exchange_replicas(RE_info, irep1, irep2):
+    en_a = get_energy(irep1, RE_info)
+    en_b = get_energy(irep2, RE_info)
+    print "Replica Exchange - Temperature of replica " + "%d"%irep1 + ": " + "%d"%RE_info.temperatures[irep1]
+    if math.exp(-en_a/RE_info.temperatures[irep1] + en_b/RE_info.temperatures[irep2]) > random.random() :
+                tmpNum = RE_info.temperatures[irep2]
+                RE_info.temperatures[irep2] = RE_info.temperatures[irep1]
+                RE_info.temperatures[irep1] = tmpNum
+    else :
+         pass    
+    
+    does_exchange = "YES"    # at the moment always
+    
+    return does_exchange
 #####################################
 #  Elementary Functions
 ########################################################
@@ -145,12 +179,6 @@ def submit_job_cpr(dest_url_string, jd, checkpt_files):
     return error_string, new_cpr_job
 
 
-def get_energy(replica_ID, RE_info):
-    # not implemented yet. it is dummy.
-    
-    en = 0.4
-    
-    return en
 
 #########################################################
 #  Initialize
@@ -162,7 +190,7 @@ def initialize(config_filename):
     conf_file = open(config_filename)
     lines = conf_file.readlines()
     conf_file.close()
-    # config file should have the following format. In brief, : is needed between the keyword and variable(s) where 
+    # REMD config file should have the following format. In brief, : is needed between the keyword and variable(s) where 
     # multi variables are separated by spaces 
     # exeutables :  /usr/local/namd  /usr/local/namd 
     # arguments : NPT.conf 
@@ -265,19 +293,7 @@ def start_job(RE_info, irep):
     RE_info.replica.insert(irep,new_job)
     print "Replica " + "%d"%irep + " started." 
     
-# swap parameters for new runs
-# mockup at the moment    
-def exchange_replicas(RE_info, irep1, irep2):
-    en_a = get_energy(irep1, RE_info)
-    en_b = get_energy(irep2, RE_info)
-    print "Replica Exchange - Temperature of replica " + "%d"%irep1 + ": " + "%d"%RE_info.temperatures[irep1]
-    if math.exp(-en_a/RE_info.temperatures[irep1] + en_b/RE_info.temperatures[irep2]) > random.random() :
-                tmpNum = RE_info.temperatures[irep2]
-                RE_info.temperatures[irep2] = RE_info.temperatures[irep1]
-                RE_info.temperatures[irep1] = tmpNum
-    else :
-         pass    
-    
+
 #########################################################
 #  run_REMDg
 #########################################################
@@ -317,6 +333,8 @@ def run_REMDg(configfile_name):
     end_time = time.time()        
     print "Time for spawning " + "%d"%(irep+1) + " replica: " + str(end_time-start_time) + " s"
     
+    namd_conf_filename = os.getcwd() + "/" + "NPT.conf"        # assumed this argument is the configuration file name
+
     # determine the total number of required exchanges  
     total_num_exchanges = numReplica * numEX
     num_exchanges = 0
@@ -339,14 +357,28 @@ def run_REMDg(configfile_name):
                 print "Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + " are done."
                 # get energy from results of run and
                 # exchange parameter
-                exchange_replicas(RE_info, irep, irep+1)
+                does_exchange = exchange_replicas(RE_info, irep, irep+1)
+                
+                if does_exchange in ("YES"):
                 # restart
-                transfer_files(RE_info, irep)
-                start_job(RE_info, irep)
-                transfer_files(RE_info, irep+1)
-                start_job(RE_info, irep+1)
-                num_exchanges = num_exchanges + 2 # 2 processes exchanged their replicas
-                print "Restarted Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + ", Number Exchanges: " + "%d"%num_exchanges                 
+     #           transfer_files(RE_info, irep)
+                    remote_machine_ip = RE_info.remote_hosts[irep]
+                    remote_dir = RE_info.workingdirectories[irep]
+                
+                    create_new_namd_conf_file(RE_info, irep)
+                    file_stage_in_with_saga([namd_conf_filename], remote_machine_ip, remote_dir)
+                    start_job(RE_info, irep)
+     #           transfer_files(RE_info, irep+1)
+                    remote_machine_ip = RE_info.remote_hosts[irep+1]
+                    remote_dir = RE_info.workingdirectories[irep+1]
+                
+                    create_new_namd_conf_file(RE_info, irep+1)
+                    file_stage_in_with_saga([namd_conf_filename], remote_machine_ip, remote_dir)
+                    start_job(RE_info, irep+1)
+                    num_exchanges = num_exchanges + 2 # 2 processes exchanged their replicas
+                    print "Restarted Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + ", Number Exchanges: " + "%d"%num_exchanges                 
+                else:
+                    print "Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + " are not changed, Number Exchanges: " + "%d"%num_exchanges
             irep = irep + 2
         time.sleep(10)
  
