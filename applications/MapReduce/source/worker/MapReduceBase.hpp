@@ -44,9 +44,12 @@ namespace MapReduce {
          logWriter_ = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
          int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
          for(int x=0;x<NUM_MAPS;x++) {
-            saga::url fileurl("file://localhost//tmp/mapFile-" + boost::lexical_cast<std::string>(x));
-            saga::filesystem::file f(fileurl, mode);
+            saga::url mapFile("file://localhost//tmp/mapFile-" + boost::lexical_cast<std::string>(x));
+            saga::filesystem::file f(mapFile, mode);
             mapFiles_.push_back(f);
+            saga::url reduceFile("file://localhost//tmp/mapFile-reduce" + boost::lexical_cast<std::string>(x));
+            saga::filesystem::file g(reduceFile, mode);
+            reduceFiles_.push_back(g);
          }
       }
       ~MapReduceBase() {}
@@ -118,13 +121,10 @@ namespace MapReduce {
        * to the proper file.                                   *
        * ******************************************************/
       void emit(std::string key, std::string value) {
-         int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
-         int mapFile = hash(key, NUM_MAPS);
-         saga::url fileurl(std::string("file://localhost//tmp/mapFile-reduced-" + boost::lexical_cast<std::string>(mapFile)));
-         saga::filesystem::file f(fileurl, mode);
+         int hash_value = hash(key, NUM_MAPS);
          std::string message(key);
          message += " " + value + "\n";
-         f.write(saga::buffer(message, message.length()));
+         reduceFiles_[hash_value].write(saga::buffer(message, message.length()));
       }
      private:
       Derived& derived() {
@@ -139,6 +139,7 @@ namespace MapReduce {
       SystemInfo systemInfo_;
    
       std::vector<saga::filesystem::file> mapFiles_;
+      std::vector<saga::filesystem::file> reduceFiles_;
       std::map<std::string,std::vector<std::string> > intermediate_;
       saga::advert::directory workerDir_;
       saga::advert::directory intermediateDir_;
@@ -262,11 +263,11 @@ namespace MapReduce {
                // Iterate over these keys and their values and
                // reduce them by passing them to the user defined
                // reduce function
-               while(keyValuesIT != keyValues.end())
-               {
+               while(keyValuesIT != keyValues.end()) {
                   d.reduce(keyValuesIT->first, keyValuesIT->second);
                   keyValuesIT++;
                }
+               closeReduceFiles();
             }
             else if(command == WORKER_COMMAND_DISCARD) {
                cleanup_();
@@ -308,6 +309,13 @@ namespace MapReduce {
       void closeMapFiles(void) {
          std::vector<saga::filesystem::file>::iterator IT = mapFiles_.begin();
          while(IT != mapFiles_.end()) {
+            IT->close();
+            IT++;
+         }
+      }
+      void closeReduceFiles(void) {
+         std::vector<saga::filesystem::file>::iterator IT = reduceFiles_.begin();
+         while(IT != reduceFiles_.end()) {
             IT->close();
             IT++;
          }
