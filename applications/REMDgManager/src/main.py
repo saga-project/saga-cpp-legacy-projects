@@ -22,6 +22,10 @@ import math
 import threading
 import traceback
 
+
+CPR = False
+SCP = False
+
 ########################################################
 #  Global variable 
 ########################################################
@@ -94,9 +98,9 @@ def exchange_replicas(RE_info, irep1, irep2):
 #  Elementary Functions
 ########################################################
 
-def set_saga_job_description(replica_ID, RE_info, iflag):
+def set_saga_job_description(replica_ID, RE_info):
     
-    if iflag=="cpr":
+    if CPR==True:
         jd = saga.cpr.description()
     else :    
         jd = saga.job.description()
@@ -146,8 +150,34 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
                 logging.error(error_msg)
                 
     return None
+
+def file_stage_in_with_scp(input_file_list_with_path, remote_machine_ip, remote_dir):
+    #pdb.set_trace()    
+    for ifile in input_file_list_with_path:
+        print "stage file: " + ifile
+        dest_url_str = remote_machine_ip + ":"
     
-    
+        ifile_basename = os.path.basename(ifile)
+        if not os.path.isfile(ifile):
+            error_msg = "Input file %s does not exist in %s"%(ifile_basename, os.path.dirname(ifile))
+            logging.error(error_msg)
+        else:
+            try:
+                source_url_str = ifile
+                dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
+                command = "scp " + source_url_str + " " + dest_url_str
+                print "Execute: " + command
+                os.popen(command)
+                logging.info("Now Input file %s is staged into %s"%(ifile_basename,dest_url_str))
+            except saga.exception, e:
+                error_msg = "Input file %s failed to be staged in"%(ifile_basename)
+                logging.error(error_msg)
+                
+    return None    
+
+#######################################
+# submit job via job api
+#####################################   
 def submit_job(dest_url_string, jd):
     error_string = ""
     
@@ -159,7 +189,10 @@ def submit_job(dest_url_string, jd):
         
     return error_string, new_job
 
-def submit_job_cpr(dest_url_string, jd, checkpt_files):
+#######################################
+# submit job via cpr api
+#####################################
+def submit_job_cpr(dest_url_string, jd):
     error_string = ""
     start = time.time()
     js = saga.cpr.service(saga.url(dest_url_string))
@@ -278,18 +311,24 @@ def transfer_files(RE_info, irep):
     remote_machine_ip = RE_info.remote_hosts[irep]
     remote_dir = RE_info.workingdirectories[irep]
     #pdb.set_trace()
+    if(SCP==True):
+        file_stage_in_with_scp(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+    else:
+        file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
+   
     start_file_transfer=time.time()
     file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
     print "Time for staging " + "%d"%len(RE_info.stage_in_files) + " files: " + str(time.time()-start_file_transfer) + " s"
 
 # start job
 def start_job(RE_info, irep):
-    jd = set_saga_job_description(irep, RE_info, "cpr")
-    #dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-    dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-    checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-    #error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
-    error, new_job = submit_job(dest_url_string, jd)
+    jd = set_saga_job_description(irep, RE_info)
+    if (CPR==True):
+        dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+        error, new_job = submit_job_cpr(dest_url_string, jd)
+    else:
+        dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+        error, new_job = submit_job(dest_url_string, jd)
     RE_info.replica.insert(irep,new_job)
     print "Replica " + "%d"%irep + " started." 
     
@@ -475,7 +514,9 @@ if __name__ == "__main__" :
     options, arguments = op.parse_args()
 
     # enable monitoring through Migol
-    #js = saga.cpr.service()
+    js=None
+    if(CPR==True):
+        js = saga.cpr.service()
     
     if options.type in (None,"test_RE"):
         run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
