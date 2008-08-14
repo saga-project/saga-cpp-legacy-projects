@@ -1,7 +1,7 @@
 #!/bin/sh
 # CUSTOMIZE
 # set term postscript eps enhanced linewidth 1.42
-set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
+#set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
 set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
                                       
@@ -73,12 +73,20 @@ set output "perf_remd.eps"
 set key
 set xtics autofreq
 set yrange [3:12] 
-set xrange [2:16]        
+#set xrange [2:16]
+set xrange [2:8]        
 set xtics (2,4,8,16)
 set logscale x
 set ylabel "Runtime (in min)" #font "Helvetica, 20"
-set xlabel "Number Replica Processes" 
-plot "data-remd.txt" using 1:4 title "SAGA/Migol (QB/Poseidon)" with lp,\
+set xlabel "Number Replica Processes"   
+plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\
+     "data-remd.txt" using 1:6 title "SAGA/GRAM (QB/Poseidon/Eric)" with lp,\
+     "data-remd.txt" using 1:4 title "SAGA/Migol (QB/Poseidon)" with lp,\
      "data-remd.txt" using 1:5 title "SAGA/GRAM  (QB/Poseidon)" with lp,\
-     "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp,\
-     "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp   
+     "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp 9,\
+     "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp 14  
+
+# plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\
+#      "data-remd.txt" using 1:6 title "SAGA/GRAM (QB/Poseidon/Eric)" with lp,\
+#      "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp,\
+#      "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp     

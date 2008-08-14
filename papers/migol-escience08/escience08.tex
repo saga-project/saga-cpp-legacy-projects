@@ -1002,24 +1002,24 @@ higher than the variance of typical NAMD runtimes.
 % \end{figure}     
 
 We also evaluated the performance of the REMD-Manager.  The
-REMD-Manager was configured to run a simulation with 2 to 16 replica
+REMD-Manager was configured to run a simulation with 2 to 8 replica
 processes and 16 replica-exchange steps. To stress test the Migol
 infrastructure very short NAMD tasks with only 100 steps have been
 used. Table~\ref{tab:app_stats} summarizes the REMD configuration
 used. The runtime of a REMD simulation depends to a great extend on
-the queuing time at the local resource management system. During the
-measurements it was ensured that jobs became active right away;
-however, small queueing delays could not always be avoided.
+the queuing time at the local resource management system. Thus, we attempted 
+to minimize the queueing times during our experiment. However, as the results 
+show, small queueing delays could not always be avoided.
 \begin{table}
     \centering
 	\begin{tabular}{|p{5cm}|l|}
           \hline
           %Molecular Dynamics Code &NAMD\\ \hline
           Number of NAMD steps &100\\ \hline 
-          Number of MPI processes for a single NAMD run &16\\ \hline 
+          Number of MPI processes per NAMD run &16\\ \hline 
           Required staging files/size &6\,files/10\,MByte\\ \hline
           %Runtime of a single NAMD task (QB) &2\,minutes\\ \hline   
-          Number replicas &2-16 \\ \hline
+          Number of replica processes &2-8 \\ \hline
           Total number of replica-exchange steps \jhanote{See caption for Q} &16\\ \hline
           %Total Runtime: &??   \\ \hline
 	\end{tabular}
@@ -1058,8 +1058,8 @@ the paired-replica. Although the simultaneous deployment of
 Figure~\ref{fig:performance_perf_runtime} illustrate the results of
 this evaluation. Since the total number of replica exchange steps
 remained constant, the runtime decreases the more replica processes
-are used.  With more than 4 replica processes a slight
-increase of the runtime is observed.
+are used.  With more than four replica processes a slight
+decrease of the efficiency can be observed.
 % This is a result of the sequential overhead which proportional 
 % grows with the number of replicas: 
 The more replica processes, the more dominant the sequential overhead
@@ -1103,15 +1103,17 @@ Figure~\ref{fig:performance_perf_submission}.
 Figure~\ref{fig:performance_perf_runtime} also shows that our approach
 can be employed to orchestrate multiple resources concurrently, as
 well as different resources (QB/Poseidon/Eric) individually.  During
-the coupled distributed run, 1/4 of the processes were allocated to
-the smaller machine (Poseidon), while the bulk stayed on QB.  As the
+the coupled distributed run, one half of the processes were allocated to
+the smaller machines Eric and Poseidon, while the bulk stayed on QB.  As the
 number of replicas gets larger, the concurrent distributed runs have a
 lower time-to-completion than when QB was used in isolation was
 observed (all else being equal). However it is important to note, that
 smaller machines, such as Poseidon, showed long queuing times leading
 to high variance in the overall time-to-completion. This overhead is
 significant for short-running tasks and less so for longer running
-tasks. % For example, in our
+tasks. 
+%The more resources involved, the more likely are negative effects caused by 
+%a single slow machine. % For example, in our
 % test scenario, the response times rapidly increased when we allocated
 % more processes on Poseidon due to queuing delays.
 
@@ -1187,7 +1189,9 @@ from allocation of cluster resources to avoid long queuing
 delays. Systems, such as Falkon~\cite{1362680} or the Condor
 Glide-In~\cite{citeulike:291860} mechanism provide the possibility to
 acquire chunks of resources from the resource management systems,
-which can then be used to dispatch short tasks.
+which can then be used to dispatch short tasks. 
+% This is an essential pre-requisite for running larger REMD runs with more replica processes
+% across more machines.
 
 % \jhanote{This might be right place to talk about
 %   Condor-Glidein, or an agent that provides block queue reservation
