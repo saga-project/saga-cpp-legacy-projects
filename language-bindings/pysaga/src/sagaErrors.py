@@ -1,19 +1,29 @@
 #Error Handling, specified from page 35 to 46 of the GFD.90 document
 
 class SagaException(Exception):
-	"optional documentation string"
+	message = ""
+	sagaObject = None
+	"""
+	This is the exception base class inherited by all exceptions thrown by a SAGA object implementation.
+	"""
 
 	def __init__(self, message, sagaObject=None):
+		"""
+		Init an Exception
+		
+		message: the exception message
+		sagaObject: a sagaObject associated with this exception.	
+		"""
+		super(SagaException,self).__init__()
 		self.sagaObject = sageObject
 		self.message = message
 
-	def __del__(self):
-		Exception.__del__(self);
-
 	def getMessage():
+		"""Returns the message associated with the exception """
 		return self.message
 
 	def getObject():
+		"""Returns the sagaObject associated with the exception """
 		return self.sagaObject
 
 class NotImplemented(SagaException):

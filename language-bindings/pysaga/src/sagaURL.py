@@ -1,9 +1,9 @@
-from sagaInterfaces import Object
+from sagaObject import Object
 #for URL
 import org.ogf.saga.url.URLFactory;
 import org.ogf.saga.url.URL;
 
-class URL(object, Object):
+class URL(Object):
     urlObject = None
 
     def __init__(self, url=""):

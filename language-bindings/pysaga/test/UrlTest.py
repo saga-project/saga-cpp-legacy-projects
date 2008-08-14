@@ -5,8 +5,10 @@ import saga
 
 def main():
     session = saga.Session()
-    urlOrgineel  = saga.URL("file:/home/paul/Saga/PySaga/sagaText.txt")
-    urlCopy      = saga.URL("file:/home/paul/Saga/PySaga/sagaCopy.txt")
+    urlOrgineel  = saga.URL("../sagaText.txt")
+    #urlOrgineel  = saga.URL("file:/home/paul/Saga/PySaga/sagaText.txt")
+    #urlCopy      = saga.URL("file:/home/paul/Saga/PySaga/sagaCopy.txt")
+    urlCopy      = saga.URL("sagaCopy.txt")
     
     file = saga.File(session, urlOrgineel, flags=saga.Flags.read)
     file.copy(urlCopy, flags=saga.Flags.overwrite);

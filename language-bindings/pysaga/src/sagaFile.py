@@ -1,12 +1,15 @@
 #For File
-import org.ogf.saga.file.File;
-import org.ogf.saga.file.FileFactory;
-from sagaInterfaces import Attributes, Object, NSEntry, NSDirectory, Async, Permissions, Buffer
 
+from sagaInterfaces import NSEntry, NSDirectory, Async, Permissions, Buffer
+from sagaObject import Object
+from sagaAttributes import Attributes
 
 import org.ogf.saga.url.URLFactory;
 import org.ogf.saga.url.URL;
 import org.ogf.saga.namespace.Flags;
+import org.ogf.saga.file.File;
+import org.ogf.saga.file.FileFactory;
+import java.lang.Exception;
 
 class Flags(object):
     none = 0 
@@ -54,15 +57,47 @@ class File(Object, NSEntry, Async, Permissions):
         self.fileObject = org.ogf.saga.file.FileFactory.createFile( url_name.urlObject, org.ogf.saga.namespace.Flags.READ.getValue() );
         #self.fileObject = org.ogf.saga.file.FileFactory.createFile(url2, Flags.read );
         print "sagaFile.File object created"
-    
+ 
+    def __convertException(self, e):
+        if isinstance(e, org.ogf.saga.error.AlreadyExistsException):
+            print "org.ogf.saga.error.AlreadyExistsException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.AuthenticationFailedException):
+            print "org.ogf.saga.error.AuthenticationFailedException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.AuthorizationFailedException):
+            print "org.ogf.saga.error.AuthorizationFailedException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.BadParameterException):
+            print "org.ogf.saga.error.BadParameterException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.DoesNotExistException):
+            print "org.ogf.saga.error.DoesNotExistException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.IncorrectStateException):
+            print "org.ogf.saga.error.IncorrectStateException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.IncorrectURLException):
+            print "org.ogf.saga.error.IncorrectURLException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.NoSuccessException):
+            print "org.ogf.saga.error.NoSuccessException: \n" + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.NotImplementedException):
+            print "org.ogf.saga.error.NotImplementedException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.PermissionDeniedException):
+            print "org.ogf.saga.error.PermissionDeniedException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.SagaIOException):
+            print "org.ogf.saga.error.SagaIOException: " + e.getMessage()
+        elif isinstance(e, org.ogf.saga.error.TimeoutException):
+            print "org.ogf.saga.error.TimeoutException: " + e.getMessage()
+        else:
+            print "Unknown other java.exception " + e.getMessage() 
+     
     def copy(self, url_target, flags=0):
         """override from NSEntry"""
         print type(url_target.urlObject) 
-        self.fileObject.copy(url_target.urlObject, flags);
+        try:
+            self.fileObject.copy(url_target.urlObject, flags);
+        except java.lang.Exception, exception:
+            self.__convertException(e=exception)
         print "file.copy finished"
         # org.ogf.saga.namespace.Flags.OVERWRITE.getValue());
-        
-        
+ 
+
+
     def get_size(self):
         pass
     

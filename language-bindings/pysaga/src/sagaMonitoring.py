@@ -1,19 +1,18 @@
-package saga.monitoring
-{
-  // callbacks are used for asynchronous notification of
-  // metric changes (events)
-  interface callback
-  {
-    cb               (in monitorable       mt,
-                      in metric            metric,
-                      in context           ctx,
-                      out bool             keep);
-  }
-  // a metric represents an entity / value to be monitored.
-  class metric : implements    saga::object
-                 implements   saga::attributes
-              // from object saga::error_handler
-  {
+#Page 114 of the GFD-R-P.90 document, Chapter 3.9, package saga.monitoring
+
+from sagaErrors import NotImplemented
+from sagaAttributes import Attributes
+
+class Callback(object):
+    """Callbacks are used for asynchronous notification of metric changes (events) """
+    
+    def cb(self, mt, metric, ctx):
+        #in monitorable mt, in metric metric, in context ctx, out bool keep
+        raise NotImplemented, "cb() is not implemented in this object"
+  
+class Metric(Object, Attributes):
+    """A metric represents an entity / value to be monitored."""
+
     CONSTRUCTOR        (in string            name,
                         in string            desc,
                         in string            mode,
@@ -61,36 +60,42 @@ package saga.monitoring
       //
       //   name: Value
       //   desc: value of the metric
-                                                              115
-saga-core-wg@ogf.org
-GFD-R-P.90            SAGA Monitoring Model         January 15, 2008
      //    mode:  depending on the mode attribute above
      //    type:  String
      //    value: -
      //    notes: see description of value formating below
    }
-   // SAGA objects which provide metrics and can thus be
-   // monitored implement the monitorable interface
-   interface monitorable
-   {
-     // introspection
-     list_metrics        (out array<string>   names);
-     get_metric          (in string           name,
-                          out metric          metric);
-     // callback handling
-     add_callback        (in  string          name,
-                          in  callback        cb,
-                          out int             cookie);
-     remove_callback     (in  int             cookie);
-   }
-   // SAGA objects which can be steered by changing their
-   // metrics implement the steerable interface
-   interface steerable : implements monitorable
-   {
-     // metric handling
-     add_metric          (in metric           metric,
-                          out bool            success);
-     remove_metric       (in string           name);
-     fire_metric         (in string           name);
-   }
- }
+
+class Monitorable(object):
+    """SAGA objects which provide metrics and can thus be monitored implement the monitorable interface"""
+
+    def list_metrics(self):
+        #return array<string> names
+        raise NotImplemented, "list_metrics() is not implemented in this object"
+     
+     def get_metric(self, name):
+         #in string name, return metric metric
+         raise NotImplemented, "get_metric() is not implemented in this object"
+     
+     def add_callback(self, name, cb):
+         #in string name, in callback cb, out int cookie
+         raise NotImplemented, "add_callback() is not implemented in this object"
+     
+     def remove_callback(self, cookie)
+         #in int cookie
+         raise NotImplemented, "remove_callback() is not implemented in this object"
+   
+class Steerable(Monitorable):
+    """SAGA objects which can be steered by changing their metrics implement the steerable interface"""
+
+    def add_metric(self, metric):
+        #in metric metric, out bool success
+        raise NotImplemented, "add_metric() is not implemented in this object"
+
+    def remove_metric(self, name):
+        #in string name
+        raise NotImplemented, "remove_metric() is not implemented in this object"
+
+    def fire_metric(self, name):
+        #in string name
+        raise NotImplemented, "fire_metric() is not implemented in this object"

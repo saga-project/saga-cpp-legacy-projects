@@ -1,23 +1,25 @@
+from sagaObject import Object, ObjectType
+
 from org.ogf.saga.session import Session, SessionFactory
 from org.ogf.saga.context import ContextFactory, Context
 
-class Session(object):
+class Session(Object):
     """Doc string"""
+    _session
         
-    def __init__(self, default=True, clone=False):
-        if default and not clone:
-            self.session = SessionFactory.createSession()
-        elif not default and not clone:
-            self.session = SessionFactory.createSession(False)
+    def __init__(self, default=True):
+        if default == True:
+            self._session = SessionFactory.createSession()
         else:
-            pass
-      
-    def add_context(self, c):
+            self._session = SessionFactory.createSession(False)
+        
+        
+    def add_context(self, context):
         #add checking of type
-        self.session.addContext(c.context)
+        self._session.addContext(c.context)
 
-    def remove_context(context):
-        self.session.removeContext(context)
+    def remove_context(self, context):
+        self._session.removeContext(context)
         
     def list_contexts(self):
         #check if it returns python objects and not java ones
@@ -26,13 +28,14 @@ class Session(object):
         for contexts in temp:
             results.append(contexts)
         return results
-      
+ 
+ 
+    # Methods inherited from Object
     def get_id(self):
-        return session.getID()
+        return self._session.getID();
     
     def get_type(self):
-        # 4 = 'session'
-        return 4
+        return ObjectType.session
     
     def get_session(self):
         return self
@@ -42,7 +45,7 @@ class Session(object):
         s.session = session.clone()
         return s
     
-    # Add the attributes interface
+    # Method inherited from Attributes
     
     
 
