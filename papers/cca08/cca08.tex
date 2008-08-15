@@ -1,0 +1,226 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{subfigure}
+\usepackage[hypertex]{hyperref}
+\usepackage{subfigure}  
+\usepackage{color}
+\usepackage{srcltx}
+
+\usepackage[small,it]{caption}
+
+\usepackage{ifpdf}
+
+\newcommand{\I}[1]{\textit{#1}}
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\BI}[1]{\textbf{\textit{#1}}}
+\newcommand{\T}[1]{\texttt{#1}}
+\newcommand{\NL}{\newline}
+
+\newif\ifdraft
+%\drafttrue
+\ifdraft
+ \newcommand{\jhanote}[1]{  {\textcolor{red}    { ***Shantenu: #1 }}}
+ \newcommand{\katznote}[1]{ {\textcolor{cyan}   { ***Dan:      #1 }}}
+ \newcommand{\amnote}[1]{   {\textcolor{magenta}{ ***Andre:    #1 }}}
+ \newcommand{\hknote}[1]{   {\textcolor{blue}   { ***Hartmut:  #1 }}}
+\else
+ \newcommand{\jhanote}[1]{}
+ \newcommand{\katznote}[1]{}
+ \newcommand{\amnote}[1]{}
+ \newcommand{\hknote}[1]{}
+\fi
+
+
+\ifpdf
+ \DeclareGraphicsExtensions{.pdf, .jpg}
+\else
+ \DeclareGraphicsExtensions{.eps, .ps}
+\fi
+
+% CFP:
+%
+%
+% October 22 and 23, 2008
+% 
+% Dramatic growth in data and equally rapid decline in the cost of
+% highly integrated clusters has spurred the emergence of the data
+% center as the platform of choice for a growing class of
+% data-intensive applications. To encourage conversations between
+% those developing applications, algorithms, software, and hardware
+% for such "cloud" platforms, we are convening the first workshop on
+% Cloud Computing and its Applications (CCA'08).
+% 
+% This workshop will include a mixture of invited and contributed
+% talks on cloud computing, data intensive scalable computing, and
+% related topics.
+% 
+% Topics of interest include:
+% 
+%   - compute and storage cloud architectures and implementations
+% * - map-reduce and its generalizations
+% * - programming models and tools
+%   - novel data-intensive computing applications
+%   - data intensive scalable computing
+%   - distributed data intensive computing
+%   - content distribution systems for large data
+%   - data management within and across data centers
+% 
+% If you would like to give a contributed talk, please submit a five
+% page extended abstract by August 15, 2008. These submissions will
+% also be used to select papers for a poster session. Extended
+% abstracts should be submitted to:
+% https://cmt.research.microsoft.com/CCA2008.
+
+
+\begin{document}
+
+\title{\large Programming Paradigms in Cloud Computing}
+
+\author{Shantenu Jha$^{12}$,
+        Andre Merzky$^1$\\[1em]
+        %
+        $^1$\small
+          Center for Computation and Technology, 
+          Louisiana State University\\
+        $^2$ \small
+          Department of Computer Science, 
+          Louisiana State University
+       }
+
+\maketitle
+
+\begin{abstract}
+
+  True, Clouds seem like 'Grids Done Right', including scalability,
+  transparency, and ease of management.  And the dominant application
+  environment for compute clouds (which are virtual machines) seems to
+  make a discussion about application programming void.  However, the
+  most successful cloud applications show clearly that explicitely
+  distributed programming paradigms, in the like of MapReduce,
+  AllPairs, and BigTable, are required by a large set of applications,
+  to make Cloud infrastructures a viable compute environment for a
+  large class or problems.  The existence of multiple implementations
+  of these programming paradigms also make clear, that application
+  portability is, even in clouds, and emerging problem which needs
+  addressing beyond the level of system virtualization.
+
+  This paper discusses these and other challenges a cloud application
+  programmer has to face, and demonstrate potential solutions by
+  several example applications.  We show that efficient and scalable
+  implementations of Cloud typical application frameworks, such as
+  MapReduce and Hadoop, are possible on a system independent level.
+  We further discuss that lessons learned from the programming of Grid
+  applications apply, to some extent, also in Cloud environments.
+
+\end{abstract}
+
+
+
+\newpage
+
+\begin{verbatim}
+
+-- intro
+
+  - dominant compute intensive cloud applications are, at the moment,
+    pleasingly distributed or very loosely coupled.  
+  - dominant data intensive cloud applications use novel programming
+    paradigms, e.g. MapReduce, BigTable, etc.
+  - what about other application classes?
+
+-- clouds
+
+  - Clouds seem to be designed to support the first two categories, by
+    their affinity
+  - explain affinity etc etc etc
+  - discuss how affinity allows high level programming abstractions,
+    such as map reduce (would be tough to implement on a not-data
+    affine grid, as performant/redundant GFS would be missing)
+
+-- programming models and affinity
+
+  - discuss what programming models are required for other apps
+    classes in table
+  - pick one or two, and details, and derive required affinities
+    - loosely coupled heterogeneous:
+      - long living applications
+      - fault tolerant
+      - compute intensive, CPU colocation within components
+    - tightly coupled, homogeneous
+      - if small tasks:
+        - need to avoid queueing delay (slide in, pools, ...)
+      - if large tasks
+        - need fault tolerance
+      - all need co-location, fast channels, reservation?
+
+-- conclusions 
+
+  - clouds are young, and one should anticipate clouds with other
+    affinities, and target application classes
+  - for academia, the reverse procedure may prove useful: define the
+    application classes, derive programming models, derive affinities,
+    design clouds supporting those.  implement on Grids for a good
+    measure ;)
+
+\end{verbatim}
+
+
+\section{Introduction}
+
+\begin{table}[h]
+ \begin{center}
+  \footnotesize
+  \begin{tabular}{|p{.25\textwidth}|p{.33\textwidth}|p{.33\textwidth}|}
+    \hline
+
+    \B{Application Class}                              &
+    \B{Data    Driven}                                 &
+    \B{Compute Driven}                                 \\\hline
+
+    \B{Pleasingly\NL Distributed}                      &
+       SETI$@$home                                     &
+       Monte Carlo Simulations of\newline
+       Viral Propagation                               \\\hline
+
+    \B{Loosely Coupled,\NL Homogenous}                 &
+       Image Analysis                                  &
+       Replica Exchange Molecular\newline
+       Dynamics of Proteins                            \\\hline
+
+    \B{Tightly Coupled,\NL Homogenous}                 &
+       Semantic Video Analysis                         &
+       Heme Lattice-Boltzmann\NL Fluid dynamics        \\\hline
+
+    \B{Loosely Coupled,\NL Heterogeneous}              &
+       Multi-Domain\NL Climate Predictions             &
+       Kalman-Filter Fluid Dynamics                    \\\hline
+
+    \B{Dynamic Event\NL Driven}                        &
+       Desaster support                                &
+       Visualization                                   \\\hline
+
+    \B{First Principle,\NL Distributed}                &
+       GridSAT                                         &
+       MapReduce-Based Motif\NL Distributed search     \\\hline
+
+  \end{tabular}
+  \caption{\small Classes and specific examples, 
+           covering most primary categories of
+           Distributed Applications~\cite{dpa-paper}.
+          }
+  \label{fig:classes}
+ \end{center}
+\end{table}
+
+
+\section{Conclusions}
+
+\section{Acknowledgements}
+
+ \bibliographystyle{IEEEtran}
+ \bibliography{cloud-grid-saga}
+
+\end{document}
+
