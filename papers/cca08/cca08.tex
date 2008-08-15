@@ -116,111 +116,308 @@
 
 \end{abstract}
 
+\tableofcontents
 
+% \newpage
+% 
+% -- intro
+% 
+%   - dominant compute intensive cloud applications are, at the moment,
+%     pleasingly distributed or very loosely coupled.  
+%   - dominant data intensive cloud applications use novel programming
+%     paradigms, e.g. MapReduce, BigTable, etc.
+%   - what about other application classes?
+% 
+% -- clouds
+% 
+%   - Clouds seem to be designed to support the first two categories, by
+%     their affinity
+%   - explain affinity etc etc etc
+%   - discuss how affinity allows high level programming abstractions,
+%     such as map reduce (would be tough to implement on a not-data
+%     affine grid, as performant/redundant GFS would be missing)
+% 
+% -- programming models and affinity
+% 
+%   - discuss what programming models are required for other apps
+%     classes in table
+%   - pick one or two, and details, and derive required affinities
+%     - loosely coupled heterogeneous:
+%       - long living applications
+%       - fault tolerant
+%       - compute intensive, CPU colocation within components
+%     - tightly coupled, homogeneous
+%       - if small tasks:
+%         - need to avoid queueing delay (slide in, pools, ...)
+%       - if large tasks
+%         - need fault tolerance
+%       - all need co-location, fast channels, reservation?
+% 
+%   - separation of concerns
+%   - focus on MapReduce (implemented), RepEx (discussing)
+% 
+% -- conclusions 
+% 
+%   - clouds are young, and one should anticipate clouds with other
+%     affinities, and target application classes
+%   - for academia, the reverse procedure may prove useful: define the
+%     application classes, derive programming models, derive affinities,
+%     design clouds supporting those.  implement on Grids for a good
+%     measure ;)
 
-\newpage
-
-\begin{verbatim}
-
--- intro
-
-  - dominant compute intensive cloud applications are, at the moment,
-    pleasingly distributed or very loosely coupled.  
-  - dominant data intensive cloud applications use novel programming
-    paradigms, e.g. MapReduce, BigTable, etc.
-  - what about other application classes?
-
--- clouds
-
-  - Clouds seem to be designed to support the first two categories, by
-    their affinity
-  - explain affinity etc etc etc
-  - discuss how affinity allows high level programming abstractions,
-    such as map reduce (would be tough to implement on a not-data
-    affine grid, as performant/redundant GFS would be missing)
-
--- programming models and affinity
-
-  - discuss what programming models are required for other apps
-    classes in table
-  - pick one or two, and details, and derive required affinities
-    - loosely coupled heterogeneous:
-      - long living applications
-      - fault tolerant
-      - compute intensive, CPU colocation within components
-    - tightly coupled, homogeneous
-      - if small tasks:
-        - need to avoid queueing delay (slide in, pools, ...)
-      - if large tasks
-        - need fault tolerance
-      - all need co-location, fast channels, reservation?
-
--- conclusions 
-
-  - clouds are young, and one should anticipate clouds with other
-    affinities, and target application classes
-  - for academia, the reverse procedure may prove useful: define the
-    application classes, derive programming models, derive affinities,
-    design clouds supporting those.  implement on Grids for a good
-    measure ;)
-
-\end{verbatim}
-
+\small
 
 \section{Introduction}
 
-\begin{table}[h]
- \begin{center}
-  \footnotesize
-  \begin{tabular}{|p{.25\textwidth}|p{.33\textwidth}|p{.33\textwidth}|}
-    \hline
+ Clouds seem to have emerged as a clear winner of the (perceived)
+ battle of distributed infrastructures, for the time being at least.
+ They allow to run loosely coupled, data intensive applications with
+ an unprecendented ease, and with absolutely competetive scalability
+ and throughput.  Interesting is, that the dominant cloud applications
+ are utilizing very novel and Cloud specific computing paradigms, such
+ as MapReduce, BigTable, or Hadoop.  These paradigms are supported by
+ the inherent system capabilities of todays clouds, which we call
+ \I{affinities}~\cite{cloud-saga-paper}.  Section~\ref{sec:affine}
+ discusses these in some more detail.
 
-    \B{Application Class}                              &
-    \B{Data    Driven}                                 &
-    \B{Compute Driven}                                 \\\hline
+ We wonder, however, how other application classes will fare when
+ migrating to clould like distributed systems.  Aat the moment it
+ seems unclear if the system properties, and affinities, offered by
+ todays clouds support, or even allow, for other application types to
+ perform equally well.  We will discuss several application classes,
+ which seem to be most relevant for the academic computing community,
+ in Section~\ref{sec:apps}.  Instead of just waiting for the 'right'
+ affinities to emerge with new Cloud incarnations, we rather attempt
+ to predict what these affinities are, by abstracting the relevant
+ programming patterns for these application classes, and deriving the
+ respective system properties required to support these programming
+ patterns (see Section~\ref{sec:patterns}).  
+ 
+ For two specific application class (a replica exchange based
+ applications, as an example for tightly coupled, homogenous
+ distributed applications; and a Map Reduce based application, as an
+ example for loosely coupled data driven applications), we
+ specifically derive the dominant programming pattern, and describe
+ exemplary Grid based implementations.  We will then discuss, how
+ these implementation change (i.e. simplify) for a Cloud system with
+ the appropriate system affinities.  
 
-    \B{Pleasingly\NL Distributed}                      &
-       SETI$@$home                                     &
-       Monte Carlo Simulations of\newline
-       Viral Propagation                               \\\hline
+ We will conclude our discussion with a proposed procedure for
+ defining academia oriented cloud properties.
 
-    \B{Loosely Coupled,\NL Homogenous}                 &
-       Image Analysis                                  &
-       Replica Exchange Molecular\newline
-       Dynamics of Proteins                            \\\hline
 
-    \B{Tightly Coupled,\NL Homogenous}                 &
-       Semantic Video Analysis                         &
-       Heme Lattice-Boltzmann\NL Fluid dynamics        \\\hline
+\section{Cloud Usage Modes and System Affinities}
+\label{sec:affine}
+ 
+ \amnote{section needs shortening, to about 1 page}
+ 
+ Grid system interfaces (in particular for general purpose Grids) tend
+ to be complete (i.e. they try to expose a complete set of available
+ system capabilities), whereas Cloud interfaces tend to be
+ minimalistic (i.e. they expose only a limited set of capabilities,
+ just enough to 'do the job')~\cite{cloud-saga-paper}.
+ 
+ \subsection{Usage Modes}
 
-    \B{Loosely Coupled,\NL Heterogeneous}              &
-       Multi-Domain\NL Climate Predictions             &
-       Kalman-Filter Fluid Dynamics                    \\\hline
+  It is important to understand the reason for this difference.  In
+  our experience, general purpose Grids are mostly designed bottom-up:
+  existing, often heterogenous resources are federated as VOs, and
+  their combined capabilities, plus additional capabilities of higher
+  level Grid services, are offered to the end-user.  This is not
+  applicable for Clouds: the design of Clouds seems to be, mostly, top
+  down. Clouds are designed to serve a limited, specific set of use
+  cases and usage modes, and the Cloud system interface is designed to
+  provide \I{that} functionality, and no other.  Furthermore, the
+  Cloud system itself, and in particular its high level services, may
+  be designed to implement specific target use cases, while not
+  supporting others (e.g., a Cloud could be homogenous by design).
+  These differences do not imply that Clouds are trivial to implement.
+  In practise the opposite is most likely true (due to issues of
+  scale, amongst other things). Clouds may very well build upon
+  general purpose Grids, or narrow Grids, and at least face the same
+  challenges; but their system interfaces do not expose those internal
+  capabilities.
 
-    \B{Dynamic Event\NL Driven}                        &
-       Desaster support                                &
-       Visualization                                   \\\hline
+  Specific users and user communities tend to create different
+  applications but with shared characteristics.  For example, the
+  particle data community tends to focus on very loosely coupled, data
+  intensive parameter sweeps involving Monte Carlo simulations and
+  statistical analyzes.  Systems used by these communities are thus
+  designed to support these application classes before others.
+  
+  The \I{Usage Mode} tries to catch the dominant
+  properties of the main application classes, insofar they are
+  relevant to the design of the system, and to the operational
+  properties of the system.  For example, the usage mode \I{'massively
+  distributed, loosely coupled'} implies that the system's design
+  prioritizes on compute resources (e.g. cycle scavanging, large
+  clusters), and to a lesser degree on communication (no need for fast
+  links between application instances), or on reservation and co
+  scheduling.
 
-    \B{First Principle,\NL Distributed}                &
-       GridSAT                                         &
-       MapReduce-Based Motif\NL Distributed search     \\\hline
+  In contrast, the usage mode \I{'massively distributed, tighly
+  coupled'} would imply a system's design to focus on compute
+  resources, but importantly also on fast communication between near
+  nodes, and on (physical) co-location of processes.
 
-  \end{tabular}
-  \caption{\small Classes and specific examples, 
-           covering most primary categories of
-           Distributed Applications~\cite{dpa-paper}.
-          }
-  \label{fig:classes}
- \end{center}
-\end{table}
+
+ \subsection{Affinities}
+
+  Currently Clouds seem to be designed to mostly support exactly one
+  usage mode, e.g.  data storage, \I{or} high throughput computing,
+  \I{or} databases, etc.  This does not preclude Clouds targeting more
+  than one domain or usage mode, however.  The overarching design
+  guideline to support the main target usage mode, of Cloud systems,
+  we defined as its \BI{affinity}.  In other words, affinity is the
+  term we use to indicate the type of computational characteristics
+  that a Cloud supports.  That property can very often be expressed as
+  the need to use different aspects or elements of a system
+  \I{together} (hence the term 'Affinity', in the sense of
+  'closeness').  
+
+  For example, the usage mode \I{'distributed, tightly coupled'}
+  implies that an application requires the use of multiple compute
+  resources, which need to be 'near' to each other, together with fast
+  communication links between these compute resources.  The system
+  needs to have a \I{'compute-communication affinity'}, and a
+  \I{'compute-compute affinity'}.
+
+  Affinities as used in this paper are, however, not always mappable
+  to 'closeness'.  For example, we say that a system that supports
+  'persistent storage, data replication, data intensive' usage mode,
+  may have 'bulk storage affinity' -- in the sense that it needs to be
+  designed to have bulk storage properties (availability guarantees,
+  long term consistency guarantees etc).  This example also shows that
+  affinities are, in some sense, related to Quality of Service (QoS)
+  properties exposed by the system, and thus to Service Level
+  Agreements (SLAs) about these qualities of service.
+
+
+ \subsection{Affinities and Programming Abstractions}
+
+  Affinity is thus a high level characterization of the kind of
+  application that could be beneficially executed on a particular
+  Cloud implementation, without revealing the specifics of the
+  underlying architecture. In some ways, this is the ``ideal
+  abstraction'' for the end-user who would like to use infrastructure
+  as a black-box.  Some classic examples of affinity are:
+  tightly-coupled/MPI affinity, high-throughput affinity (capacity),
+  fast-turnaround affinity (capability), or bulk storage affinity.
+  Our observation is that Clouds have at least one affinity, a
+  corollary to which is that Cloud system interfaces are, designed to
+  serve at least one specific set of users or usage modes
+
+  % One can argue that narrow Grids also expose affinity, e.g. that a
+  % Data Grid has data affinity.  That may well be true, and we think
+  % that the term affinity may be useful for the discussion of narrow
+  % Grids as well, but the main difference between Clouds and Grids
+  % remain that the interfaces of narrow Grids are still designed so as
+  % to expose the complete set of capabilities related to the affinity
+  % of narrow Grids, whereas Cloud system interfaces expose the minimal
+  % set of capabilities related to its affinities.  For the application
+  % developer, but more likely the application deployer, information
+  % about the affinity of Clouds should be complemented by SLA
+  % information, e.g. providing replicated data in case of loss,
+  % co-scheduling at the application level, or low latency
+  % communication.  Traditionally SLAs are, implicitly or explicitly,
+  % provided by the ``service provider'' based upon infrastructure,
+  % policy, usage modes, or negotiation.  For Clouds, SLAs are an
+  % implicit part of the system interface: the Cloud's affinities imply
+  % a certain QoS to be met, for every use of the system.
+
+  An affinity being the 'ideal system abstraction' has another
+  important consequence, as it allows to express suitable programming
+  abstractions easily, and natively.  For example, it is certainly
+  possible to implement MapReduce on a general purpose Grid, with no
+  affinity supporting data replication, or data-compute-colocation.
+  The implementation of that abstraction, i.e. the Map Reduce
+  application framework, must then however implement these
+  capabilities itself, \I{on top} of the system it uses.  OTOH, if an
+  data/compute affine cloud provides these capabilities natively, as
+  is the case for, for example, googles cloud with its google file
+  system~\cite{google}, then the MapReduce framework can focus on the
+  core logic of the programming abstraction, i.e. on the algorithmic
+  abstractions and frameworks, and is thus much easier to implement.
+  Note that for the application using the MapReduce framework, there
+  is no difference~\cite{saga-map-reduce}.
+
+  Clearly, we are arguing for a separation of concens:  we argue that
+  application frameworks should not have to deal with exposing,
+  expressing, or implementing capabilities which are required \I{by}
+  them, but are not part of their algorithmic core.  Those should be
+  provided on system level, which makes the application frameworks
+  \I{easily} implementable on any system providing these capabilities,
+  i.e. on any system, which has the appropriate affinity.
+
+
+\section{Distributed Applications Usage Modes}
+\label{sec:apps}
+
+ The no
+ 
+ 
+ \begin{table}[h]
+  \begin{center}
+   \footnotesize
+   \begin{tabular}{|p{.25\textwidth}|p{.33\textwidth}|p{.33\textwidth}|}
+     \hline
+ 
+     \B{Application Class}                              &
+     \B{Data    Driven}                                 &
+     \B{Compute Driven}                                 \\\hline
+ 
+     \B{Pleasingly\NL Distributed}                      &
+        SETI$@$home                                     &
+        Monte Carlo Simulations of\newline
+        Viral Propagation                               \\\hline
+ 
+     \B{Loosely Coupled,\NL Homogenous}                 &
+        Image Analysis                                  &
+        Replica Exchange Molecular\newline
+        Dynamics of Proteins                            \\\hline
+ 
+     \B{Tightly Coupled,\NL Homogenous}                 &
+        Semantic Video Analysis                         &
+        Heme Lattice-Boltzmann\NL Fluid dynamics        \\\hline
+ 
+     \B{Loosely Coupled,\NL Heterogeneous}              &
+        Multi-Domain\NL Climate Predictions             &
+        Kalman-Filter Fluid Dynamics                    \\\hline
+ 
+     \B{Dynamic Event\NL Driven}                        &
+        Desaster support                                &
+        Visualization                                   \\\hline
+ 
+     \B{First Principle,\NL Distributed}                &
+        GridSAT                                         &
+        MapReduce-Based Motif\NL Distributed search     \\\hline
+ 
+   \end{tabular}
+   \caption{\small Classes and specific examples, 
+            covering most primary categories of
+            Distributed Applications~\cite{dpa-paper}.
+           }
+   \label{fig:classes}
+  \end{center}
+ \end{table}
+
+
+
+\section{Programming Patterns for Distributed Applications}
+\label{sec:patterns}
+
+\section{Applications on Affine Systems}
+\label{sec:apps}
 
 
 \section{Conclusions}
+\label{sec:conclusion}
 
 \section{Acknowledgements}
+\label{sec:acks}
 
- \bibliographystyle{plain}
- \bibliography{cca08}
+\bibliographystyle{plain}
+\bibliography{cca08}
 
 \end{document}
 
