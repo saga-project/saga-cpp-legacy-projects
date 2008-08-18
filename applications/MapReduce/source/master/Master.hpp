@@ -299,7 +299,8 @@ namespace MapReduce {
                         jd.set_attribute(saga::job::attributes::description_executable, command);
                         jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
-                        saga::job::service js("any://" + (*hostListIT).rmURL);
+//                        saga::job::service js("any://" + (*hostListIT).rmURL);
+                        saga::job::service js((*hostListIT).rmURL);
                         saga::job::job agentJob= js.create_job(jd);
                         agentJob.run();
                         message += "SUCCESS";

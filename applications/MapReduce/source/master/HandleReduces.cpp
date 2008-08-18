@@ -55,11 +55,12 @@ namespace MapReduce
    while(assigned == false) {
       try {
          saga::advert::directory possibleWorker(*workers_IT, mode);
-         std::string state = possibleWorker.get_attribute("STATE");
+         std::string state =   possibleWorker.get_attribute("STATE");
+         std::string command = possibleWorker.get_attribute("COMMAND");
          std::string message(workers_IT->get_path());
          message += (" state is " + state);
          log_->write(message, LOGLEVEL_INFO);
-         if(state == WORKER_STATE_IDLE) {
+         if(state == WORKER_STATE_IDLE || command == WORKER_STATE_DONE_MAP) {
             if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_REDUCE) {
                //Assigned but never started working
                break;
@@ -77,7 +78,7 @@ namespace MapReduce
             possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
             assigned = true;
          }
-         else if(state == WORKER_STATE_DONE) {
+         else if(state == WORKER_STATE_DONE_REDUCE) {
             std::string message("Worker ");
             message += workers_IT->get_path();
             message = message + " finished reducing with output ";
@@ -158,7 +159,7 @@ namespace MapReduce
          std::string message(workers_IT->get_path());
          message += (" state is " + state);
          log_->write(message, LOGLEVEL_INFO);
-         if(state == WORKER_STATE_DONE) {
+         if(state == WORKER_STATE_DONE_REDUCE) {
             std::string message("Worker ");
             message += workers_IT->get_string();
             message = message + " finished reducing with output ";

@@ -40,7 +40,7 @@ namespace MapReduce {
          saga::advert::entry adv(workerDir_.open(saga::url("./output"), saga::advert::ReadWrite | saga::advert::Create));
          adv.store_string(fileurl.get_string());
          workerDir_.set_attribute("COMMAND", "");
-         workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
+         workerDir_.set_attribute("STATE", WORKER_STATE_DONE_REDUCE);
       }
       catch(saga::exception const& e) {
          throw;

@@ -33,7 +33,7 @@ namespace MapReduce {
             saga::filesystem::file f(fileurl, saga::filesystem::ReadWrite);
             adv.store_string(f.get_url().get_string());
          }
-         workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
+         workerDir_.set_attribute("STATE", WORKER_STATE_DONE_MAP);
          workerDir_.set_attribute("COMMAND", "");
       }
       catch(saga::exception const & e) {

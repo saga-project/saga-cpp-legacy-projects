@@ -72,7 +72,7 @@ namespace MapReduce {
                possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_MAP);
                assigned = true;
             }
-            else if(state == WORKER_STATE_DONE) {
+            else if(state == WORKER_STATE_DONE_MAP) {
                saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
                saga::advert::entry     adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
                std::string finished_file(adv.retrieve_string());

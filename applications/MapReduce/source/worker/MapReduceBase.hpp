@@ -40,7 +40,7 @@ namespace MapReduce {
          sessionUUID_ = (vm["session"].as<std::string>());
          database_    = (vm["database"].as<std::string>());
          logURL_      = (vm["log"].as<std::string>());
-         uuid_        = "MICHAELCHRIS";//saga::uuid().string();
+         uuid_        = saga::uuid().string();//"MICHAELCHRIS";
          logWriter_ = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
          int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
          for(int x=0;x<NUM_MAPS;x++) {

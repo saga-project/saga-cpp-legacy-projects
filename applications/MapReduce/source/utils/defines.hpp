@@ -41,11 +41,12 @@
 #define WORKER_COMMAND_MAP      "MAP"     // Run a map on file
 #define WORKER_COMMAND_REDUCE   "REDUCE"  // Run a reduce on files 
 
-#define WORKER_STATE_IDLE       "IDLE"     // Ready to Map or Reduce
-#define WORKER_STATE_DONE       "DONE"     // Done with assigned task
-#define WORKER_STATE_FAIL       "FAIL"     // Assigned task failed 
-#define WORKER_STATE_MAPPING    "MAPPING"  // Currently Mapping
-#define WORKER_STATE_REDUCING   "REDUCING" // Currently Reducing
+#define WORKER_STATE_IDLE          "IDLE"         // Ready to Map or Reduce
+#define WORKER_STATE_DONE_MAP      "DONE_MAP"     // Done with assigned task
+#define WORKER_STATE_DONE_REDUCE   "DONE_REDUCE"  // Done with assigned task
+#define WORKER_STATE_FAIL          "FAIL"         // Assigned task failed 
+#define WORKER_STATE_MAPPING       "MAPPING"      // Currently Mapping
+#define WORKER_STATE_REDUCING      "REDUCING"     // Currently Reducing
 
 #define NUM_MAPS 3
 #define MAX_INTERMEDIATE_SIZE 1000
