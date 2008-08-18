@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [ -z "$SAGA_LOCATION" ] ; then
+    echo "please set SAGA_LOCATION to the location of your SAGA installation" 1>&2
+    exit 1
+fi
+
+# Jar-files from library.
+SAGA_CLASSPATH=""
+add_to_saga_classpath () {
+    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARFILES} ; do
+	if [ -z "$SAGA_CLASSPATH" ] ; then
+	    SAGA_CLASSPATH="$1/$i"
+	else
+	    SAGA_CLASSPATH="$SAGA_CLASSPATH:$1/$i"
+	fi
+    done
+}
+
+add_to_saga_classpath $SAGA_LOCATION/lib
+
+java -cp "$SAGA_CLASSPATH:$CLASSPATH" -Dlog4j.configuration="file:$SAGA_LOCATION/log4j.properties" -Dsaga.properties="file:$SAGA_LOCATION/saga.properties" -Dcrypto.properties="file:$SAGA_LOCATION/crypto.properties" "$@"
