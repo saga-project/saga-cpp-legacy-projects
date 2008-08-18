@@ -39,7 +39,7 @@
 \newcommand{\NL}{\newline}
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
  \newcommand{\jhanote}[1]{  {\textcolor{red}    { ***Shantenu: #1 }}}
  \newcommand{\katznote}[1]{ {\textcolor{cyan}   { ***Dan:      #1 }}}
@@ -59,6 +59,8 @@
 \else
  \DeclareGraphicsExtensions{.eps, .ps}
 \fi
+
+\newcommand{\up}{\vspace*{-1em}}
 
 % CFP:
 %
@@ -142,10 +144,10 @@
   applications programming and development, and through a discussion
   of several applications, demonstrates potential solutions. We
   discuss how using the right abstractions -- programming interfaces,
-  frameworks that support commonly occuring programming and execution
+  frameworks that support commonly occurring programming and execution
   patterns -- enable efficient, extensible and importantly {\it
     system-independent} implementations of common programming patterns
-  such as MapReduce, ie same application is usable seamlessly on both
+  such as MapReduce, i.e. same application is usable seamlessly on both
   traditional Grids and Clouds systems. We further discuss that
   lessons learned from programming applications for Grid environment
   also apply, to some extent, to Cloud environments.
@@ -184,7 +186,7 @@
 %       - compute intensive, CPU colocation within components
 %     - tightly coupled, homogeneous
 %       - if small tasks:
-%         - need to avoid queueing delay (slide in, pools, ...)
+%         - need to avoid queuing delay (slide in, pools, ...)
 %       - if large tasks
 %         - need fault tolerance
 %       - all need co-location, fast channels, reservation?
@@ -202,14 +204,15 @@
 %     measure ;)
 
 
+\up
 \section{Introduction}
 
 Going by interest garnered, Clouds seem to have emerged as a clear
 winner of the (perceived) battle of distributed infrastructures for a
-susbet of applications, and for the time being at least.  They allow
+subset of applications, and for the time being at least.  They allow
 loosely-coupled, data-intensive applications to be run with an ease,
-and with absolutely competetive scalability and throughput.  Not
-suprisingly, dominant cloud applications utilize novel and hitherto,
+and with absolutely competitive scalability and throughput.  Not
+surprisingly, dominant cloud applications utilize novel and hitherto,
 Cloud specific computing paradigms, such as MapReduce, BigTable, or
 Hadoop.  These paradigms are supported by the inherent system
 capabilities of todays Clouds, which we call
@@ -219,15 +222,15 @@ discusses these in some more detail.
 %We wonder, however, how 
 
 For Clouds to be relevant to the wider scientific computing community
-and in general, beyond internet-backend computing, it is important to
-understand how application classes will fare when migrated to Clouds ,
-or Cloud-like distributed systems?  At the moment it seems unclear if
+and in general, beyond internet-backed computing, it is important to
+understand how other application classes will fare when migrated to Clouds,
+or Cloud-like distributed systems.  At the moment it seems unclear if
 the system properties and affinities as offered by todays Clouds
 support, or even allow, for other application types to perform equally
 well.  We will discuss several application classes, which seem to be
 most relevant for the academic computing community, in
 Section~\ref{sec:apps}.  Instead of just waiting for the 'right'
-affinities to emerge with new Cloud incarnations, we rather attempt to
+affinities to emerge with new Cloud incarnations, we propose to rather attempt to
 predict what these affinities are, by abstracting the relevant
 programming patterns for these application classes, and deriving the
 respective system properties required to support these programming
@@ -237,47 +240,68 @@ patterns (see Section~\ref{sec:apps}).
 We outline two specific applications, which to the best of our
 knowledge have not been used on Clouds: the first a replica-exchange
 based applications, which belongs to loosely-coupled ensemble of
-tightly-coupled, homogenous distributed applications. The second
+tightly-coupled, homogeneous distributed applications. The second
 example is MapReduce based application, as an example of
 loosely-coupled data driven applications. We specifically discuss
 dominant programming pattern, and describe exemplary Grid based
 implementations.  We will then discuss, how these implementation
 change (i.e. simplify) for a Cloud system with the appropriate system
-affinities.  The Simple API for Grid Applications (SAGA) can be used
-to programmatically develop a very wide-range of distributed
-applications.  In this paper we describe how SAGA has been used to
-develop two different applications from the following classes of
-distributed applications (i) applications based upon the loosely
-coupled of homogenous sub-tasks and, (ii) applications based upon
-loosely coupled simulations of heterogenous sub-tasks. The specific
-applications developed are Replica-Exchange simulations using
-Molecular Dynamics and Kalman-Filter based application for reservoir
-simulation.  We briefly discuss the specific applications developed
-and the typical science problems tackled using these applications.  We
-will describe the application characteristics of the two case-studies,
-with a focus on the distributed logic of these simulations, and not
-the core simulation logic of the applications.  The paper analyses and
-contrasts the application characteristics of the examples, and shows
-how they are supported using SAGA, often in conjunction with other
-programming frameworks such as Cactus.  The primary aim of this paper
-is to demonstrate how SAGA can be an effective tool for
-programmatically representing and implemeting the logic of
-coordination and orchestrating multiple, distributed tasks, while
-remaining agnostic to the actual mechanism, ie. details of the
-distributed environment. We will highlight the importance of
-programming abstractions and how frameworks that provide common
-programming patterns can be used to simplify the construction of
-distributed applications. We will conclude our discussion with a
-proposed procedure for defining scientific-computing oriented Cloud
-properties.
+affinities.  
+
+% \amnote{the text below seems a repetition from above?}
+% 
+% The Simple API for Grid Applications (SAGA) can be used to
+% pro grammatically develop a very wide-range of distributed
+% applications.  In this paper we describe how SAGA has been used to
+% develop two different applications from the following classes of
+% distributed applications (i) applications based upon the loosely
+% coupled of homogeneous sub-tasks and, (ii) applications based upon
+% loosely coupled simulations of heterogeneous sub-tasks. The specific
+% applications developed are Replica-Exchange simulations using
+% Molecular Dynamics and Kalman-Filter based application for reservoir
+% simulation.  We briefly discuss the specific applications developed
+% and the typical science problems tackled using these applications.
+% We will describe the application characteristics of the two
+% case-studies, with a focus on the distributed logic of these
+% simulations, and not the core simulation logic of the applications.  
+
+% \amnote{Shantenu, I don't think we should focus once again on how
+% SAGA manages to hide middleware details.  We made that the focus of
+% quite a number of papers already, and it like beating a dead horse
+% :-)  I would not be surprised if reviewers say: oh no, yet another
+% SAGA paper...  Instead, I'd vote for focusing on the
+% Application-in-a-cloud problem, and to only covert advertising for
+% SAGA...}
+% 
+% The paper analyses and
+% contrasts the application characteristics of the examples, and shows
+% how they are supported using SAGA, often in conjunction with other
+% programming frameworks such as Cactus.  The primary aim of this paper
+% is to demonstrate how SAGA can be an effective tool for
+% programmatically representing and implementing the logic of
+% coordination and orchestrating multiple, distributed tasks, while
+% remaining agnostic to the actual mechanism, i.e. details of the
+% distributed environment. 
+
+% \amnote{And here also: I think we should highlight the need of
+% exposing the right system affinities, not on using the right
+% frameworks.  Yes, frameworks can deliver that, but can never be as
+% efficient as system level features, IMHO.}
+% 
+% We will highlight the importance of programming abstractions and how
+% frameworks that provide common programming patterns can be used to
+% simplify the construction of distributed applications. 
+
+We will conclude our discussion with a proposed procedure for defining
+scientific-computing oriented Cloud properties, in
+Section~\ref{sec:conclusion}.
 
 
+\up
 \section{Cloud Usage Modes and System Affinities}
 \label{sec:affine}
  
-% \amnote{section needs shortening, to about 1 page}
- 
-In Ref~\cite{cloud-saga-paper} it was shown how Grid system interfaces
+In ~\cite{cloud-saga-paper} it was shown how Grid system interfaces
 (in particular for general purpose Grids) tend to be complete
 (i.e. they try to expose a complete set of available system
 capabilities), whereas Cloud interfaces tend to be minimalistic
@@ -285,11 +309,12 @@ capabilities), whereas Cloud interfaces tend to be minimalistic
 'do the job').
 %~\cite{cloud-saga-paper}.
  
+ \up
  \subsection{Usage Modes}
 
   It is important to understand the reason for this difference.  In
   our experience, general purpose Grids are mostly designed bottom-up:
-  existing, often heterogenous resources are federated as VOs, and
+  existing, often heterogeneous resources are federated as VOs, and
   their combined capabilities, plus additional capabilities of higher
   level Grid services, are offered to the end-user.  This is not
   applicable for Clouds: the design of Clouds seems to be, mostly, top
@@ -298,9 +323,9 @@ capabilities), whereas Cloud interfaces tend to be minimalistic
   provide \I{that} functionality, and no other.  Furthermore, the
   Cloud system itself, and in particular its high level services, may
   be designed to implement specific target use cases, while not
-  supporting others (e.g., a Cloud could be homogenous by design).
+  supporting others (e.g., a Cloud could be homogeneous by design).
   These differences do not imply that Clouds are trivial to implement.
-  In practise the opposite is most likely true (due to issues of
+  In practice the opposite is most likely true (due to issues of
   scale, amongst other things). Clouds may very well build upon
   general purpose Grids, or narrow Grids, and at least face the same
   challenges; but their system interfaces do not expose those internal
@@ -318,24 +343,25 @@ capabilities), whereas Cloud interfaces tend to be minimalistic
   relevant to the design of the system, and to the operational
   properties of the system.  For example, the usage mode \I{'massively
   distributed, loosely coupled'} implies that the system's design
-  prioritizes on compute resources (e.g. cycle scavanging, large
+  prioritizes on compute resources (e.g. cycle scavenging, large
   clusters), and to a lesser degree on communication (no need for fast
   links between application instances), or on reservation and co
   scheduling.
 
   In contrast, the usage mode \I{'massively distributed,
-    tighly-coupled'} would imply a system's design to focus on compute
+    tightly-coupled'} would imply a system's design to focus on compute
   resources, but importantly also on fast communication between near
   nodes, and on (physical) co-location of processes.
 
 
+ \up
  \subsection{Affinities}
 
   Currently Clouds seem to be designed to mostly support exactly one
   usage mode, e.g.  data storage, \I{or} high throughput computing,
   \I{or} databases, etc.  This does not preclude Clouds targeting more
   than one domain or usage mode, however.  The overarching design
-  guideline to support the main target usage mode, of Cloud systems,
+  guideline to support the main target usage modes of Cloud systems,
   we defined as its \BI{affinity}.  In other words, affinity is the
   term we use to indicate the type of computational characteristics
   that a Cloud supports.  That property can very often be expressed as
@@ -350,7 +376,7 @@ capabilities), whereas Cloud interfaces tend to be minimalistic
   needs to have a \I{compute-communication affinity}, and a
   \I{compute-compute affinity}.
 
-  Affinities as used in this paper are, however, not always mappable
+  Affinities are, however, not always mappable
   to 'closeness'.  For example, we say that a system that supports
   'persistent storage, data replication, data intensive' usage mode,
   may have 'bulk storage affinity' -- in the sense that it needs to be
@@ -361,6 +387,7 @@ capabilities), whereas Cloud interfaces tend to be minimalistic
   Agreements (SLAs) about these qualities of service.
 
 
+ \up
  \subsection{Affinities and Programming Abstractions}
 
   Affinity is thus a high level characterization of the kind of
@@ -400,12 +427,12 @@ capabilities), whereas Cloud interfaces tend to be minimalistic
   affinity supporting data replication, or data-compute-colocation.
   The implementation of that abstraction, i.e. the Map Reduce
   application framework, must then however implement these
-  capabilities itself, \I{on top} of the system it uses.  OTOH, if an
+  capabilities itself, \I{on top} of the system it uses.  On the other hand, if a
   data/compute affine cloud provides these capabilities natively, as
-  is the case for, for example, googles cloud with its google file
+  is the case for, for example, googles proprietary cloud with its google file
   system~\cite{gfs}, then the MapReduce framework can focus on the
   core logic of the programming abstraction, i.e. on the algorithmic
-  abstractions and frameworks, and is thus much easier to implement.
+  abstractions, and is thus much easier to implement.
   Note that for the application using the MapReduce framework, there
   is no difference~\cite{gsoc-saga}.
 
@@ -418,66 +445,63 @@ capabilities), whereas Cloud interfaces tend to be minimalistic
   i.e. on any system, which has the appropriate affinity.
 
 
+\up
 \section{Distributed Applications Usage Modes}
 \label{sec:apps}
 
-Table~\ref{tab:classes} shows an overview of a number of application
-classes~\cite{dpa_paper} which are widely used in scientific
-computing, and outside.  Often applications in the same class, have
-similar programming models or use programming patterns; for example,
-\I{'pleasingly distributed'} applications, such as the numberous
-\I{'XYZ@Home'} type applications, all share the Master-Worker model,
-in one incarnation or the other.  As compute affine Clouds (aka
-compute Clouds) support that programming paradigm, these applications
-can immediately utilize compute cloude resources with great success.
-For other application classes, such as \I{'tightly coupled,
-  heterogeneous'} applications, this is not so obvious, as a compute
-cloud without compute-communication affinity can not easily run a
-communication intensive application efficiently.
+ Table~\ref{tab:classes} shows an overview of a number of application
+ classes~\cite{dpa_paper} which are widely used in scientific
+ computing, and outside.  Often applications in the same class, have
+ similar programming models or use programming patterns; for example,
+ \I{'pleasingly distributed'} applications, such as the numerous
+ \I{'XYZ@Home'} type applications, all share the Master-Worker model,
+ in one incarnation or the other.  As compute affine Clouds (aka
+ compute Clouds) support that programming paradigm, these applications
+ can immediately utilize compute cloud resources with great success.
+ For other application classes, such as \I{'tightly coupled,
+ heterogeneous'} applications, this is not so obvious, as a compute
+ cloud without compute-communication affinity can not easily run a
+ communication intensive application efficiently.
  
  \begin{table}[h]
   \begin{center}
    \footnotesize
-   \begin{tabular}{|p{.25\textwidth}|p{.33\textwidth}|p{.33\textwidth}|}
+   \begin{tabular}{|p{.25\textwidth}|p{.27\textwidth}|p{.39\textwidth}|}
      \hline
  
-     \B{Application Class}                              &
-     \B{Data    Driven}                                 &
-     \B{Compute Driven}                                 \\\hline
+     \B{Application Class}                                 &
+     \B{Data    Driven}                                    &
+     \B{Compute Driven}                                    \\\hline
  
-     \B{Pleasingly\NL Distributed}                      &
-        SETI$@$home                                     &
-        Monte Carlo Simulations of\newline
-        Viral Propagation                               \\\hline
+     \B{Pleasingly Distributed}                            &
+        SETI$@$home                                        &
+        Monte Carlo Simulations of Viral Propagation       \\\hline
  
-     \B{Loosely Coupled,\NL Homogenous}                 &
-        Image Analysis                                  &
-        Replica Exchange Molecular\newline
-        Dynamics of Proteins                            \\\hline
+     \B{Loosely Coupled,\NL Homogeneous}                    &
+        Image Analysis                                     &
+        Replica Exchange Molecular Dynamics of Proteins    \\\hline
  
-     \B{Tightly Coupled,\NL Homogenous}                 &
-        Semantic Video Analysis                         &
-        Heme Lattice-Boltzmann\NL Fluid dynamics        \\\hline
+     \B{Tightly Coupled,\NL Homogeneous}                    &
+        Semantic Video Analysis                            &
+        Heme Lattice-Boltzmann Fluid dynamics              \\\hline
  
-     \B{Loosely Coupled,\NL Heterogeneous}              &
-        Multi-Domain\NL Climate Predictions             &
-        Kalman-Filter Fluid Dynamics                    \\\hline
+     \B{Loosely Coupled,\NL Heterogeneous}                 &
+        Multi-Domain Climate Predictions                   &
+        Kalman-Filter Fluid Dynamics                       \\\hline
  
-     \B{Dynamic Event\NL Driven}                        &
-        Disaster support                                &
-        Visualization                                   \\\hline
+     \B{Dynamic Event Driven}                              &
+        Disaster support                                   &
+        Visualization                                      \\\hline
  
-     \B{First Principle,\NL Distributed}                &
-        %GridSAT                                         &
-       --                                                &  
-        MapReduce-Based Motif\NL Distributed search     \\\hline
+     \B{First Principle, Distributed}                      &
+        MapReduce-Based Web indexing                       &
+        MapReduce-Based Motif Distributed search           \\\hline
  
    \end{tabular}
    \caption{\footnotesize \B{Examples of primary categories 
             of distributed applications\cite{dpa_paper}.}}
    \label{tab:classes}
   \end{center}
-  \vspace*{-2em}
  \end{table}
 
  We want to demonstrate using two examples, how the implementation of the
@@ -485,28 +509,33 @@ communication intensive application efficiently.
  be supported by the Cloud affinities\footnote{Both applications have
  been implemented using SAGA~\cite{saga-core}, but we do not, in this
  paper, intent to focus on SAGA as a solution to the discussed problem
- space, but merily use it as means to an end.}.
+ space, but merely use it as means to an end.}.
 
+ \up
  \subsection{Example 1: MapReduce}
 
-  MapReduce~\cite{mapreduce-paper} is a programming framework which supports
-  applications which operate on very large data sets on clusters of
-  computers.  MapReduce relies on a number of capabilities of the
-  underlying system, most related to file operations, but also related
-  to process/data colocation.  The Google file system, and other
-  global file systems, provide these capabilities, such as atomic file
-  renames.  Implementations of MapReduce on these file systems can
-  focus on implementing the the dataflow pipeline, which is the
-  algorithmic core of the MapReduce framework.
+  MapReduce~\cite{mapreduce-paper} is a programming framework which
+  supports applications which operate on very large data sets on
+  clusters of computers.  MapReduce relies on a number of capabilities
+  of the underlying system, most related to file operations, but also
+  related to process/data colocation.  The Google file system, and
+  other global file systems, provide the relevant capabilities, such
+  as atomic file renames.  Implementations of MapReduce on these file
+  systems can focus on implementing the the dataflow pipeline, which
+  is the algorithmic core of the MapReduce framework.
 
-  We have recently implemented MapReduce in SAGA, targeting
-  general purpose Grid systems, where the system capabilities required
-  by MapReduce are usually not natively supported.  Some semantics,
-  such as again the atomic file rename, is provided by the SAGA API
-  layer, others, such as data/compute colocation are not.  Our
-  implementation is thus required to interleave the core logic with
-  explicit instructions on where processes are to be scheduled when
-  operating on specific parts of the data set~\cite{gsoc-saga}.
+  We have recently implemented MapReduce in SAGA, targeting general
+  purpose Grid systems, where the system capabilities required by
+  MapReduce are usually not natively supported -- instead, a general
+  purpose grid provides a much larger set of lower level operations.
+  Some semantics, such as again the atomic file rename, is provided by
+  the SAGA API layer, others, such as data/compute colocation are not.
+  Our implementation is thus required to interleave the core logic
+  with explicit instructions on where processes are to be scheduled
+  when operating on specific parts of the data set~\cite{gsoc-saga}.
+  Note that some of the required capabilities can be provided by
+  higher level grid services -- those are, however, often not
+  standardized, and often not available in general purpose Grids.
 
   The advantage of this approach is obviously that our implementation
   is no longer bound to run on a system providing the appropriate
@@ -522,9 +551,10 @@ communication intensive application efficiently.
 
   \B{Summary:} A data affine, and compute/data affine environment with
   the capabilities listed above provides a clear separation of
-  concenrns for MapReduce implementations.
+  concerns for MapReduce implementations.
 
 
+ \up
  \subsection{Example 2: Replica Exchange}
 
  Replica Exchange~\cite{repex} is a simulation method which improves
@@ -532,11 +562,11 @@ communication intensive application efficiently.
  specific measure (here of temperature), two MC simulation instances
  exchange their configuration.  That procedure improves the mixing
  properties of set of MC
- simulations.%\footnote{\T{http://en.wikipedia.org/wiki/Replica\_exchange}}.
+ simulations.
 
-In our specific application case~\cite{saga-migol-paper}, the
-implemented replica-exchange framework relied on the following
-system capabilities: 
+ In our specific application case~\cite{saga-migol-paper}, the
+ implemented replica-exchange framework relied on the following system
+ capabilities: 
 
   \begin{shortlist}
    \item efficient execution of many jobs
@@ -557,66 +587,69 @@ system capabilities:
   SAGA CPR package.  Our implementation can thus operate on
   general purpose Grids, as it does not have strong requirements
   on system capabilities, but again the application development
-  process is unnecesarily complicated, and definitely not
+  process is unnecessarily complicated, and definitely not
   focused on the core method implementation.
 
-\section{Discussion}
-\label{sec:discussion}
 
-We have argued above that affinities guide, as well as support, the
-implementation of high level programming abstractions.
-Clouds\footnote{\url{http://cloudcomputing.qrimp.com}} currently
-however, offer a very finite list of affinities: They are either
-compute centric (eg EC2)
-%~\cite{EC2}, or 
-data centric (eg S3)
-%~\cite{S3}, 
-although some Clouds also offer data-compute colocation.  
-%But that is about all you can find -- 
-There are no Clouds which are communication affine, and would thus
-invite users of tightly-coupled applications, or offer event-driven
-application execution, or pipeline execution modes, etc.  If Clouds
-are to make a broader impact on Scientific Computing, this deficit
-will need to be addressed. 
-% The for that is, simple: the commercial cloud providers see, at the
-% moment, no market for other specialized Clouds.
+% \section{Discussion}
+% \label{sec:discussion}
 
 \section{Conclusions}
 \label{sec:conclusion}
 
-  Trying to migrate applications to a cloud environment which
-  does not offer the appropriate usage modes and affinities is
-  very like a painful and tedious endeavour, and will likely
-  show similar pain-points to the development of Grid
-  applications.  Also, performance and scalability may not be
-  what the user expects.
 
-  On the other hand, a Cloud environment which does offer the
-  suitable usage modes and affinities can significantly ease
-  the work of the application developer, and likely yield the
-  expected turnaround.
+ We have argued above that affinities guide, as well as support, the
+ implementation of high level programming abstractions.
+ Clouds\footnote{\url{http://cloudcomputing.qrimp.com/}} currently
+ however, offer a very finite list of affinities: They are either
+ compute centric (e.g. EC2)
+ % ~\cite{EC2}, or 
+ data centric (e.g. S3)
+ % ~\cite{S3}, 
+ although some Clouds also offer data-compute colocation.  
+ % But that is about all you can find -- 
+ There are no Clouds which are communication affine, and would thus
+ invite users of tightly-coupled applications, or offer event-driven
+ application execution, or pipeline execution modes, etc.  If Clouds
+ are to make a broader impact on Scientific Computing, this deficit
+ will need to be addressed. 
+ % The for that is, simple: the commercial cloud providers see, at the
+ % moment, no market for other specialized Clouds.
 
-  In many ways, that can be compared to the situation of application
-  development for Grids environments: where the higher level grid
-  services and abstraction layers are missing in Grid environments,
-  application development and deployment is painful, with often
-  limited returns.  Clouds can inherently offer these higher
-  abstraction layers -- but not always the ones required.
+ Trying to migrate applications to a cloud environment which does not
+ offer the appropriate usage modes and affinities is very like a
+ painful and tedious endeavor, and will likely show similar
+ pain-points to the development of Grid applications.  Also,
+ performance and scalability may not be what the user expects.
 
-  For scientific computing, the road to successfull Cloud deployment
-  seems clear: depending on the target application classes, one needs
-  to derive the required fundamental affinities the system needs to
-  expose -- which may, or may not, differ significantly from those
-  offered by commercial Cloud providers.
+ On the other hand, a Cloud environment which does offer the suitable
+ usage modes and affinities can significantly ease the work of the
+ application developer, and likely yield the expected turnaround.
 
-\section{Acknowledgements}
+ In many ways, that can be compared to the situation of application
+ development for Grids environments: where the higher level grid
+ services and abstraction layers are missing in Grid environments,
+ application development and deployment is painful, with often limited
+ returns.  Clouds can inherently offer these higher abstraction layers
+ -- but not always the ones required.
+
+ For scientific computing, the road to successful Cloud deployment
+ seems clear: depending on the target application classes, one needs
+ to derive the required fundamental affinities the system needs to
+ expose -- which may, or may not, differ significantly from those
+ offered by commercial Cloud providers.
+
+
+\up
+\section{Acknowledgments}
 \label{sec:acks}
 
-This work is based upon the insight gained from many SAGA projects,
-especially the SAGA-MapReduce and SAGA-Replica Exchange implementation
-projects. We would like to thank Chris and Michael Miceli, Andre
-Luckow, Joohyun Kim, and the wider SAGA team at CCT.
+ This work is based upon the insight gained from many SAGA projects,
+ especially the SAGA-MapReduce and SAGA-Replica Exchange
+ implementation projects. We would like to thank Chris and Michael
+ Miceli, Andre Luckow, Joohyun Kim, and the wider SAGA team at CCT.
 
+\footnotesize
 \bibliographystyle{plain}
 \bibliography{cca08}
 
