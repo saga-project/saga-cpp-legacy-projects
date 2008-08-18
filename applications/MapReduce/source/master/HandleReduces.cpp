@@ -15,27 +15,29 @@ namespace MapReduce
     : fileCount_(fileCount), workerDir_(workerDir), log_(log)
  {
     workers_ = workerDir_.list("?");
-    while(workers_.size() == 0)
-    {
+    while(workers_.size() == 0) {
        sleep(1);
        workers_ = workerDir_.list("?");
     }
+   std::vector<saga::url>::iterator it = workers_.begin();
+   while(it != workers_.end()) {
+      saga::advert::directory possibleWorker(*it, saga::advert::ReadWrite);
+      possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
+      it++;
+   }
  }
 /*********************************************************
  * assignReduces is the only public function that tries  *
  * to assign reduce files to idle workers                *
  * ******************************************************/
- bool HandleReduces::assignReduces()
- {
-    for(int counter = 0; counter < fileCount_; counter++)
-    {
+ bool HandleReduces::assignReduces() {
+    for(int counter = 0; counter < fileCount_; counter++) {
        // group all files that were mapped to this counter
        std::vector<std::string> reduceInput(groupFiles_(counter));
        issue_command_(reduceInput, counter);
     }
     //All were assigned, now wait for everyone to finish
-    while(finished_.size() != (unsigned)fileCount_)
-    {
+    while(finished_.size() != (unsigned)fileCount_) {
        wait_for_results_();
     }
     return true;
@@ -50,14 +52,14 @@ namespace MapReduce
    int mode = saga::advert::ReadWrite | saga::advert::Create;
    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
    bool assigned = false;
-   while(assigned == false)
-   {
-      try
-      {
+   while(assigned == false) {
+      try {
          saga::advert::directory possibleWorker(*workers_IT, mode);
          std::string state = possibleWorker.get_attribute("STATE");
-         if(state == WORKER_STATE_IDLE)
-         {
+         std::string message(workers_IT->get_path());
+         message += (" state is " + state);
+         log_->write(message, LOGLEVEL_INFO);
+         if(state == WORKER_STATE_IDLE) {
             if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_REDUCE) {
                //Assigned but never started working
                break;
@@ -67,18 +69,15 @@ namespace MapReduce
             message = message + " to reduce hash number ";
             message += boost::lexical_cast<std::string>(count);
             log_->write(message, LOGLEVEL_INFO);
-
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
-            for(unsigned int counter = 0; counter < inputs.size(); counter++)
-            {
+            for(unsigned int counter = 0; counter < inputs.size(); counter++) {
                saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
                adv.store_string(inputs[count]);
             }
             possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
             assigned = true;
          }
-         else if(state == WORKER_STATE_DONE)
-         {
+         else if(state == WORKER_STATE_DONE) {
             std::string message("Worker ");
             message += workers_IT->get_path();
             message = message + " finished reducing with output ";
@@ -94,8 +93,7 @@ namespace MapReduce
             message += boost::lexical_cast<std::string>(count);
             log_->write(message, LOGLEVEL_INFO);
             saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
-            for(unsigned int count = 0; count < inputs.size(); count++)
-            {
+            for(unsigned int count = 0; count < inputs.size(); count++) {
                saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(count)), mode | saga::advert::Create));
                adv.store_string(inputs[count]);
             }
@@ -108,8 +106,7 @@ namespace MapReduce
          throw;
       }
       workers_IT++;
-      if(workers_IT == workers_.end())
-      {
+      if(workers_IT == workers_.end()) {
          workers_ = workerDir_.list("?");
          workers_IT = workers_.begin();
       }
@@ -126,18 +123,17 @@ namespace MapReduce
     std::vector<std::string> intermediateFiles;
     std::vector<saga::url>::iterator workers_IT = workers_.begin();
     int mode = saga::advert::ReadWrite;
-    while(workers_IT != workers_.end())
-    {
-       try
-       {
+    while(workers_IT != workers_.end()) {
+       try {
           saga::advert::directory worker(*workers_IT, mode);
           saga::advert::directory data(worker.open_dir(saga::url(ADVERT_DIR_INTERMEDIATE), mode));
-          if(data.exists(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter))))
-          {
-             saga::advert::entry     adv(data.open(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)), mode));
+          if(data.exists(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)))) {
+             saga::advert::entry adv(data.open(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)), mode));
              std::string path = adv.retrieve_string();
-             std::cerr << "added file " << path << " to input list" << std::endl;
              intermediateFiles.push_back(adv.retrieve_string());
+             std::string message("Added file " + path + " to input list");
+             log_->write(message, LOGLEVEL_INFO);
+             message.clear();
           }
           workers_IT++;
        }
@@ -155,14 +151,14 @@ namespace MapReduce
  {
    int mode = saga::advert::ReadWrite;
    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
-   while(workers_IT != workers_.end())
-   {
-      try
-      {
+   while(workers_IT != workers_.end()) {
+      try {
          saga::advert::directory possibleWorker(*workers_IT, mode);
          std::string state = possibleWorker.get_attribute("STATE");
-         if(state == WORKER_STATE_DONE)
-         {
+         std::string message(workers_IT->get_path());
+         message += (" state is " + state);
+         log_->write(message, LOGLEVEL_INFO);
+         if(state == WORKER_STATE_DONE) {
             std::string message("Worker ");
             message += workers_IT->get_string();
             message = message + " finished reducing with output ";
@@ -178,8 +174,7 @@ namespace MapReduce
          throw;
       }
       workers_IT++;
-      if(workers_IT == workers_.end())
-      {
+      if(workers_IT == workers_.end()) {
          workers_ = workerDir_.list("?");
          workers_IT = workers_.begin();
       }

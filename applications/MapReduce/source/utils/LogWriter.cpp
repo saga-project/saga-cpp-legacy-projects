@@ -8,6 +8,7 @@
 
 #include "defines.hpp"
 #include "LogWriter.hpp"
+#include <boost/lexical_cast.hpp>
 
 using namespace saga;
 using namespace MapReduce;
@@ -40,11 +41,46 @@ void LogWriter::write(std::string message, unsigned int logLevel)
     saga::advert::entry log(advURL_, mode);
     time_t rawTime; struct tm * timeInfo;
     time(&rawTime); timeInfo = localtime(&rawTime);
- 
-    adv << timeInfo->tm_mon << "/" << timeInfo->tm_mday << "/" 
-         << timeInfo->tm_year << " ";
-    adv << timeInfo->tm_hour << ":" << timeInfo->tm_min << ":" 
-         << timeInfo->tm_sec << "\t ";
+    std::string tm_sec, tm_mon, tm_mday, tm_hour, tm_min;
+    if(timeInfo->tm_mon < 10) {
+       tm_mon = "0";
+       tm_mon += boost::lexical_cast<std::string>(timeInfo->tm_mon);
+    }
+    else {
+       tm_mon = boost::lexical_cast<std::string>(timeInfo->tm_mon);
+    }
+    if(timeInfo->tm_mday < 10) {
+       tm_mday= "0";
+       tm_mday += boost::lexical_cast<std::string>(timeInfo->tm_mday);
+    }
+    else {
+       tm_mday = boost::lexical_cast<std::string>(timeInfo->tm_mday);
+    }
+    if(timeInfo->tm_hour < 10) {
+       tm_hour = "0";
+       tm_hour += boost::lexical_cast<std::string>(timeInfo->tm_hour);
+    }
+    else {
+       tm_hour = boost::lexical_cast<std::string>(timeInfo->tm_hour);
+    }
+    if(timeInfo->tm_min< 10) {
+       tm_min= "0";
+       tm_min+= boost::lexical_cast<std::string>(timeInfo->tm_min);
+    }
+    else {
+       tm_min = boost::lexical_cast<std::string>(timeInfo->tm_min);
+    }
+    if(timeInfo->tm_sec < 10) {
+       tm_sec = "0";
+       tm_sec += boost::lexical_cast<std::string>(timeInfo->tm_sec);
+    }
+    else {
+       tm_sec = boost::lexical_cast<std::string>(timeInfo->tm_sec);
+    }
+    adv << tm_mon << "/" << tm_mday << "/" 
+         << (timeInfo->tm_year+1900) << " ";
+    adv << tm_hour << ":" << tm_min << ":" 
+         << tm_sec << "\t ";
     
     // append application name
     adv << appName_ << "\t ";

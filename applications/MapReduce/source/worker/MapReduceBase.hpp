@@ -52,7 +52,10 @@ namespace MapReduce {
             reduceFiles_.push_back(g);
          }
       }
-      ~MapReduceBase() {}
+      ~MapReduceBase() {
+          closeMapFiles();
+          closeReduceFiles();
+      }
       /*********************************************************
        * starts the worker and begins all neccessary setup with*
        * the database.                                        *
@@ -159,7 +162,7 @@ namespace MapReduce {
              boost::lexical_cast<std::string>(timestamp)); 
          }
          catch(saga::exception const & e) {
-           std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
+           std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
            throw;
          }
          //(2) update the current load average
@@ -168,11 +171,11 @@ namespace MapReduce {
                                            systemInfo_.hostLoadAverage());
          }
          catch(saga::exception const & e) {
-           std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
+           std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
            throw;
          }
          //(3) update execution status
-         std::cout << "SUCCESSFUL" << std::endl;
+         std::cerr << "SUCCESSFUL" << std::endl;
       }
       /*********************************************************
        * Removes all temporary advert entries                  *
@@ -224,7 +227,7 @@ namespace MapReduce {
             boost::lexical_cast<std::string>(timestamp));
          }
          catch(saga::exception const & e) {
-            std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
+            std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
             throw;
          }
       }
@@ -245,9 +248,9 @@ namespace MapReduce {
                   RunMap mapHandler(workerDir_, chunksDir_, intermediateDir_);
                   d.map(mapHandler.getFile()); // Map the file given from the master
                   writeIntermediate();
-                  closeMapFiles();
                }
                catch(saga::exception const& e) {
+                  std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
                   workerDir_.set_attribute("STATE", WORKER_STATE_FAIL);
                }
                //std::vector<std::string> output(mapHandler.getOutput());
@@ -267,7 +270,6 @@ namespace MapReduce {
                   d.reduce(keyValuesIT->first, keyValuesIT->second);
                   keyValuesIT++;
                }
-               closeReduceFiles();
             }
             else if(command == WORKER_COMMAND_DISCARD) {
                cleanup_();
@@ -300,7 +302,7 @@ namespace MapReduce {
            commandString = workerDir_.get_attribute("COMMAND");
          }
          catch(saga::exception const & e) {
-           std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
+           std::cerr << "FAILED (" << e.get_error() << ")" << std::endl;
            throw;
          }
          // get command number & reset the attribute to "" 

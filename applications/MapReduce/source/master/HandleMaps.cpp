@@ -62,7 +62,7 @@ namespace MapReduce {
                message.clear();
                message = "Issuing worker ";
                message += workers_IT->get_path();
-               message = message + " to map " + file;
+               message += " to map " + file;
                log_->write(message, LOGLEVEL_INFO);
 
                saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
@@ -82,11 +82,12 @@ namespace MapReduce {
                t0.wait();
                t1.wait();
                //Now that we have results, put them to work
-               if(file != finished_file) {  //Candidate did not just finish
-                  std::string("Issuing worker ");
+               //Candidate did not just finish
+               if(finished_.size() < chunks_.size() && file != finished_file) {
                   message.clear();
+                  message = "Issuing worker ";
                   message += workers_IT->get_path();
-                  message = message + " to map " + file;
+                  message += " to map " + file;
                   log_->write(message, LOGLEVEL_INFO);
                   adv.store_string(file);
                   assigned_.push_back(file);
