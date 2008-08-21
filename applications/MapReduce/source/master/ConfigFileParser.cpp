@@ -43,6 +43,11 @@ vector<HostDescription> ConfigFileParser::getTargetHostList()
   return targetHostList_;
 }
 
+string ConfigFileParser::getOutputPrefix()
+{
+  return outputPrefix_;
+}
+
 void ConfigFileParser::parse_(void)
 {
   std::string tmp("");
@@ -117,7 +122,16 @@ void ConfigFileParser::parse_(void)
         log_->write(message, LOGLEVEL_ERROR);
       }
     }
-    
+
+    xNode = xMainNode.getChildNode("OutputPrefix");
+    if( NULL != xNode.getText() ) {
+      outputPrefix_ = xNode.getText();
+    }
+    else {
+       std::string message("XML Parser: Incomplete OutputPrefix section found");
+       log_->write(message, LOGLEVEL_ERROR);
+    }
+
     // parse the ApplicationFiles section
     xNode = xMainNode.getChildNode("ApplicationFiles");
     int k=xNode.nChildNode("File");

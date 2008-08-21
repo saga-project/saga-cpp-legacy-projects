@@ -10,10 +10,12 @@ namespace MapReduce {
  * retreives input files from the advert database posted *
  * by the master.                                        *
  * ******************************************************/
-   RunReduce::RunReduce(saga::advert::directory workerDir, saga::advert::directory reduceInputDir) {
+   RunReduce::RunReduce(saga::advert::directory workerDir, saga::advert::directory reduceInputDir,
+                        std::string outputPrefix) {
       int mode = saga::advert::ReadWrite;
       workerDir_      = workerDir;
       reduceInputDir_ = reduceInputDir;
+      outputPrefix_   = outputPrefix;
       try {
           workerDir_.set_attribute("STATE", WORKER_STATE_REDUCING);
           std::vector<saga::url> entries = reduceInputDir_.list("?");
@@ -36,7 +38,7 @@ namespace MapReduce {
  * ******************************************************/
    RunReduce::~RunReduce() {
       try {
-         saga::url fileurl("file://localhost//tmp/mapFile-reduced");
+         saga::url fileurl(outputPrefix_ + "/mapFile-reduced");
          saga::advert::entry adv(workerDir_.open(saga::url("./output"), saga::advert::ReadWrite | saga::advert::Create));
          adv.store_string(fileurl.get_string());
          workerDir_.set_attribute("COMMAND", "");

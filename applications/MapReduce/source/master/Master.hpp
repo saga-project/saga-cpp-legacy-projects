@@ -44,6 +44,7 @@ namespace MapReduce {
             std::string configFilePath (vm["config"].as<std::string>());
             cfgFileParser_ = ConfigFileParser(configFilePath, *log);
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
+            outputPrefix_  =  cfgFileParser_.getOutputPrefix();
             // create a UUID for this agent
             //uuid_ = uuid().string();  //Temporarily disabled
             uuid_ = "DUMMY-UUID";
@@ -109,6 +110,7 @@ namespace MapReduce {
          saga::advert::directory workersDir_;
          saga::advert::directory binariesDir_;
          saga::advert::directory chunksDir_;
+         std::string outputPrefix_;
          
          MapReduce::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -296,6 +298,8 @@ namespace MapReduce {
                         args.push_back(database_);
                         args.push_back("-l");
                         args.push_back(logURL_.get_string());
+                        args.push_back("-o");
+                        args.push_back(outputPrefix_);
                         jd.set_attribute(saga::job::attributes::description_executable, command);
                         jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);

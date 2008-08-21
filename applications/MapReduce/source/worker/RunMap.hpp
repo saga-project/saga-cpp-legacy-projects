@@ -18,13 +18,17 @@ namespace MapReduce {
      public:
       RunMap(saga::advert::directory workerDir,
              saga::advert::directory chunksDir,
-             saga::advert::directory intermediateDir);
+             saga::advert::directory intermediateDir,
+             std::string outputPrefix,
+             std::string uuid);
       ~RunMap();
       saga::url getFile();
      private:
       saga::advert::directory workerDir_;
       saga::advert::directory chunksDir_;
       saga::advert::directory intermediateDir_;
+      std::string outputPrefix_;
+      std::string uuid_;
    }; // class RunMap
 } // namespace MapReduce
 

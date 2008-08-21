@@ -53,6 +53,7 @@ namespace MapReduce {
          std::vector<HostDescription>   targetHostList_;
          std::vector<BinaryDescription> binDescList_;
          std::vector<FileDescription>   fileDescList_;
+         std::string                    outputPrefix_;
         
          void parse_(void);
 
@@ -64,6 +65,7 @@ namespace MapReduce {
          std::vector<BinaryDescription> getExecutableList(void);
          std::vector<HostDescription>   getTargetHostList(void);
          std::vector<FileDescription>   getFileList(void);
+         std::string                    getOutputPrefix(void);
         
       };
    } //namespace Master

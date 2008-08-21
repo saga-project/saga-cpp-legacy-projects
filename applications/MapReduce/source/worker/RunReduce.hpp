@@ -14,13 +14,15 @@
 namespace MapReduce {
    class RunReduce {
      public:
-      RunReduce(saga::advert::directory workerDir, saga::advert::directory reduceInputDir);
+      RunReduce(saga::advert::directory workerDir, saga::advert::directory reduceInputDir,
+                std::string outputPrefix);
       ~RunReduce();
       std::map<std::string, std::vector<std::string> > getLines();
      private:
       std::vector<std::string> files_;
       saga::advert::directory workerDir_;
       saga::advert::directory reduceInputDir_;
+      std::string outputPrefix_;
    }; // class RunReduce
 } // namespace MapReduceBase
 

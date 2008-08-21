@@ -8,10 +8,14 @@ namespace MapReduce {
  * ******************************************************/
    RunMap::RunMap(saga::advert::directory workerDir,
                  saga::advert::directory chunksDir,
-                 saga::advert::directory intermediateDir) {
+                 saga::advert::directory intermediateDir,
+                 std::string outputPrefix,
+                 std::string uuid) {
          chunksDir_       = chunksDir;
          intermediateDir_ = intermediateDir;
          workerDir_       = workerDir;
+         outputPrefix_    = outputPrefix;
+         uuid_            = uuid;
       try {
          workerDir_.set_attribute("STATE", WORKER_STATE_MAPPING);
       }
@@ -29,7 +33,7 @@ namespace MapReduce {
       try {
          for(int count = 0; count < NUM_MAPS; count++) {
             saga::advert::entry adv = intermediateDir_.open(saga::url("mapFile-"+boost::lexical_cast<std::string>(count)), mode);
-            saga::url fileurl("file://localhost//tmp/mapFile-" + boost::lexical_cast<std::string>(count));
+            saga::url fileurl(outputPrefix_ + "mapFile-" + boost::lexical_cast<std::string>(count) + uuid_);
             saga::filesystem::file f(fileurl, saga::filesystem::ReadWrite);
             adv.store_string(f.get_url().get_string());
          }

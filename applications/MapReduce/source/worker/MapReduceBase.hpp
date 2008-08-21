@@ -37,17 +37,18 @@ namespace MapReduce {
          catch(saga::exception const & e) {
             throw;
          }
-         sessionUUID_ = (vm["session"].as<std::string>());
-         database_    = (vm["database"].as<std::string>());
-         logURL_      = (vm["log"].as<std::string>());
-         uuid_        = saga::uuid().string();//"MICHAELCHRIS";
-         logWriter_ = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
+         sessionUUID_  = (vm["session"].as<std::string>());
+         database_     = (vm["database"].as<std::string>());
+         logURL_       = (vm["log"].as<std::string>());
+         outputPrefix_ = (vm["output"].as<std::string>());
+         uuid_         = saga::uuid().string();//"MICHAELCHRIS";
+         logWriter_    = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
          int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
          for(int x=0;x<NUM_MAPS;x++) {
-            saga::url mapFile("file://localhost//tmp/mapFile-" + boost::lexical_cast<std::string>(x));
+            saga::url mapFile(outputPrefix_ + "/mapFile-" + boost::lexical_cast<std::string>(x) + uuid_);
             saga::filesystem::file f(mapFile, mode);
             mapFiles_.push_back(f);
-            saga::url reduceFile("file://localhost//tmp/mapFile-reduce" + boost::lexical_cast<std::string>(x));
+            saga::url reduceFile(outputPrefix_ + "/mapFile-reduce" + boost::lexical_cast<std::string>(x) + uuid_);
             saga::filesystem::file g(reduceFile, mode);
             reduceFiles_.push_back(g);
          }
@@ -136,6 +137,7 @@ namespace MapReduce {
       std::string uuid_;
       std::string sessionUUID_;
       std::string database_;
+      std::string outputPrefix_;
       saga::url   logURL_;
    
       time_t startupTime_;
@@ -245,7 +247,7 @@ namespace MapReduce {
                // Use the RunMap class to handle details of getting
                // and retrieving necessary information from the master.
                try {
-                  RunMap mapHandler(workerDir_, chunksDir_, intermediateDir_);
+                  RunMap mapHandler(workerDir_, chunksDir_, intermediateDir_, outputPrefix_, uuid_);
                   d.map(mapHandler.getFile()); // Map the file given from the master
                   writeIntermediate();
                }
@@ -258,7 +260,7 @@ namespace MapReduce {
             else if(command == WORKER_COMMAND_REDUCE) {
                // Use the RunReduce class to handle details of getting
                // and retrieving necessary information from the master.
-               RunReduce reduceHandler(workerDir_, reduceInputDir_);
+               RunReduce reduceHandler(workerDir_, reduceInputDir_, outputPrefix_);
          
                // Get a map of keys and a vector of the values
                std::map<std::string, std::vector<std::string> > keyValues(reduceHandler.getLines());
