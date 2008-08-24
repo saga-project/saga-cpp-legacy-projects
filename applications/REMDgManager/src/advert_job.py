@@ -41,20 +41,22 @@ class advert_glidin_job():
                  project,
                  working_directory):
         """ start advert_launcher on specified host """
+
+        #register advert entry
+        lrms_saga_url = saga.url(lrms_url)
+        self.glidin_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + lrms_saga_url.host
+        self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.ReadWrite)
+
         jd = saga.job.description()
         jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
-        jd.arguments = [self.database_host]
+        jd.arguments = [self.database_host, self.glidin_url]
         jd.executable = os.getcwd() + "/advert_launcher.py"
         jd.queue = project + "@" + queue
         jd.workingdirectory = working_directory
         jd.output = "advert-launcher-stdout.txt"
         jd.error = "advert-launcher-stderr.txt"
         
-        #register advert entry
-        lrms_saga_url = saga.url(lrms_url)
-        self.glidin_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + lrms_saga_url.host
-        self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.ReadWrite)
         
         js = saga.job.service(lrms_saga_url)
         self.job = js.create_job(jd)

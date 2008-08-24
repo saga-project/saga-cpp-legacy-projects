@@ -19,7 +19,7 @@ class advert_launcher:
        - monitors running jobs """
    
     """Constructor"""
-    def __init__(self, database_host):
+    def __init__(self, database_host, advert_url):
         
         self.database_host = database_host
         # objects to store running jobs and processes
@@ -28,7 +28,8 @@ class advert_launcher:
         
          # open advert service base url
         hostname = socket.gethostname()
-        self.base_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + hostname
+        self.base_url = advert_url
+	print "Open advert: " + self.base_url
         self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
         
         #start background thread for polling new jobs and monitoring current jobs
@@ -139,13 +140,10 @@ if __name__ == "__main__" :
     args = sys.argv
     
     num_args = len(args)
-    if (num_args<2):
-        print "Usage: \n " + args[0] + " <advert-host>"
+    if (num_args!=3):
+        print "Usage: \n " + args[0] + " <advert-host> <advert-director>"
         sys.exit(1)
     
-    for arg in args:
-        print arg
-    advert_launcher = advert_launcher(args[1])    
+    advert_launcher = advert_launcher(args[1], args[2])    
     #time.sleep(80)
     #advert_launcher.stop_background_thread()
-        

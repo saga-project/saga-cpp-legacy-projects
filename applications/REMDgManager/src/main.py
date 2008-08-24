@@ -29,7 +29,7 @@ import traceback
 import advert_job
 
 """ Config parameters (will be moved to config file in the future) """
-CPR = False
+CPR = False 
 SCP = False
 
 ########################################################
@@ -43,7 +43,7 @@ class RE_INFO (object):
         # general info
         self.app_name = "NAMD"
         self.stage_in_files = []
-        self.numberofprocesses = '8'
+        self.numberofprocesses = 8
         self.exchange_count = 0
         self.totalcputime = '40'
         self.arguments = []
@@ -118,7 +118,7 @@ def set_saga_job_description(replica_ID, RE_info):
         jd = saga.job.description()
     
     jd.numberofprocesses = RE_info.numberofprocesses
-    jd.spmdvariation = "single"
+    jd.spmdvariation = "MPI"
     #jd.totalcputime = RE_info.totalcputime
     jd.arguments = RE_info.arguments   
     
@@ -326,7 +326,7 @@ def transfer_files(RE_info, irep):
         file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
    
     start_file_transfer=time.time()
-    file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
+    #file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
     print "Time for staging " + "%d"%len(RE_info.stage_in_files) + " files: " + str(time.time()-start_file_transfer) + " s"
 
 def start_job(RE_info, irep):
@@ -357,7 +357,8 @@ def start_glidin_jobs(RE_info):
     """start glidin jobs (advert_job.py) at every unique machine specified in RE_info"""  
     unique_hosts = set(RE_info.remote_hosts)    
     for i in unique_hosts:
-        nodes = RE_info.remote_hosts.count(i)*RE_info.numberofprocesses 
+	print "Number hosts: " + str(RE_info.remote_hosts.count(i)) + "Number processes per job: " + str(RE_info.numberofprocesses)
+        nodes = int(RE_info.remote_hosts.count(i)) * int(RE_info.numberofprocesses) 
         lrms = RE_info.remote_host_local_schedulers[RE_info.remote_hosts.index(i)]
         project = RE_info.projects[RE_info.remote_hosts.index(i)]
         queue = RE_info.queues[RE_info.remote_hosts.index(i)]
@@ -368,7 +369,7 @@ def start_glidin_jobs(RE_info):
             lrms_url = "gram://"
         lrms_url = lrms_url + i + "/" + "jobmanager-" + lrms      
         print "Glidin URL: " + lrms_url    
-        print "hosts: " + i + " number of replica_processes: " + "%d"%nodes
+        print "hosts: " + str(i) + " number of replica_processes: " + str(nodes)
         print "Project: " + project + " Queue: " + queue + " Working Dir: " +workingdirectory
         
         # start job
@@ -450,19 +451,19 @@ def run_REMDg(configfile_name):
                 
                 if does_exchange in ("YES"):
                 # restart
-     #           transfer_files(RE_info, irep)
+                    transfer_files(RE_info, irep)
                     remote_machine_ip = RE_info.remote_hosts[irep]
                     remote_dir = RE_info.workingdirectories[irep]
                 
                     create_new_namd_conf_file(RE_info, irep)
-                    file_stage_in_with_saga([namd_conf_filename], remote_machine_ip, remote_dir)
+                   # file_stage_in_with_saga([namd_conf_filename], remote_machine_ip, remote_dir)
                     start_job(RE_info, irep)
-     #           transfer_files(RE_info, irep+1)
+		    transfer_files(RE_info, irep+1)
                     remote_machine_ip = RE_info.remote_hosts[irep+1]
                     remote_dir = RE_info.workingdirectories[irep+1]
                 
                     create_new_namd_conf_file(RE_info, irep+1)
-                    file_stage_in_with_saga([namd_conf_filename], remote_machine_ip, remote_dir)
+                   # file_stage_in_with_saga([namd_conf_filename], remote_machine_ip, remote_dir)
                     start_job(RE_info, irep+1)
                     num_exchanges = num_exchanges + 2 # 2 processes exchanged their replicas
                     print "Restarted Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + ", Number Exchanges: " + "%d"%num_exchanges                 
