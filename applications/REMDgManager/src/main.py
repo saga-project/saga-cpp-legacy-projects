@@ -43,7 +43,7 @@ class RE_INFO (object):
         # general info
         self.app_name = "NAMD"
         self.stage_in_files = []
-        self.numberofprocesses = '1'
+        self.numberofprocesses = '8'
         self.exchange_count = 0
         self.totalcputime = '40'
         self.arguments = []
@@ -357,7 +357,7 @@ def start_glidin_jobs(RE_info):
     """start glidin jobs (advert_job.py) at every unique machine specified in RE_info"""  
     unique_hosts = set(RE_info.remote_hosts)    
     for i in unique_hosts:
-        nodes = RE_info.remote_hosts.count(i) 
+        nodes = RE_info.remote_hosts.count(i)*RE_info.numberofprocesses 
         lrms = RE_info.remote_host_local_schedulers[RE_info.remote_hosts.index(i)]
         project = RE_info.projects[RE_info.remote_hosts.index(i)]
         queue = RE_info.queues[RE_info.remote_hosts.index(i)]
