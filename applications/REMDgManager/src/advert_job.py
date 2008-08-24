@@ -88,15 +88,19 @@ class advert_job():
         self.saga_glidin_url = saga.url(glidin_url)
         
         if(self.saga_glidin_url.scheme=="advert"): #
-            self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.ReadWrite)
+            self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         else: # any other url, try to guess glidin job url
-            host = saga_job_dest_url.host
+            host=""
+            try:
+                host = saga_job_dest_url.host
+            except:
+                pass
             if host =="":
                 host=socket.gethostname()
             # create dir for destination url
-            self.saga_glidin_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host
-            self.glidin_dir = saga.advert.directory(saga.url(self.saga_glidin_url), 
-                                                    saga.advert.Create | saga.advert.ReadWrite)
+            self.saga_glidin_url = saga.url("advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host)
+            self.glidin_dir = saga.advert.directory(self.saga_glidin_url, 
+                                                    saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
 
         # create dir for job
         self.uuid = uuid.uuid1()
@@ -137,13 +141,13 @@ if __name__ == "__main__":
     jd = saga.cpr.description()
     jd.executable = "/bin/date"
     jd.numberofprocesses = "2"
-    jd.spmdvariation = "single"
+    jd.spmdvariation = "MPI"
     jd.arguments = [""]  
     jd.workingdirectory = "/tmp/"
     jd.output = "output.txt"   
     jd.error = "error.txt"
     
-    error, job = a.submit_job("", jd)    
+    job = a.submit_job("", jd)    
     print "state: " + str(job.get_state())
     
     

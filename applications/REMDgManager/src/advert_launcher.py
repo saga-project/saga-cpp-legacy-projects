@@ -25,21 +25,37 @@ class advert_launcher:
         # objects to store running jobs and processes
         self.jobs = []
         self.processes = {}
+        self.freenodes = []
+        self.busynodes = []
+        
+        self.init_pbs()
         
          # open advert service base url
         hostname = socket.gethostname()
         self.base_url = advert_url
-	print "Open advert: " + self.base_url
-        self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
+        print "Open advert: " + self.base_url
+        try:
+            self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
+        except:
+            print "No advert entry found at specified url: " + advert_url
         
         #start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
         self.launcher_thread.start() 
+    
+    def init_pbs(self):
+        pbs_node_file = os.environ.get("PBS_NODEFILE")    
+        if pbs_node_file != None:
+            f = open(pbs_node_file)
+            self.freenodes = f.readlines()
+            f.close()
+        
         
     def print_attributes(self, advert_directory):
         """ for debugging purposes 
         print attributes of advert directory """
         
+        print "**** Attributes for: "+advert_directory.get_url().get_string()+ "**********"
         attributes = advert_directory.list_attributes()                
         for i in attributes:
             if (advert_directory.attribute_is_vector(i)==False):
@@ -54,7 +70,8 @@ class advert_launcher:
         """ obtain job attributes from advert and execute process """
         
         self.print_attributes(job_dir)        
-        if(job_dir.get_attribute("state")==str(saga.job.Unknown)):
+        if(job_dir.get_attribute("state")==str(saga.job.Unknown) or
+           job_dir.get_attribute("state")==str(saga.job.New)):
             job_dir.set_attribute("state", str(saga.job.New))
             numberofprocesses = "1"
             if (job_dir.attribute_exists("NumberOfProcesses") == True):
@@ -90,23 +107,65 @@ class advert_launcher:
             stdout = open(output, "w")
             stderr = open(error, "w")
             command = executable + " " + arguments
+            
             # special setup for MPI NAMD jobs
             if (spmdvariation.lower( )=="mpi"):
-                command = "mpirun -np " + numberofprocesses + " -machinefile $PBS_NODEFILE " + command
+                machinefile = self.allocate_nodes(job_dir)
+                if(machinefile==None):
+                    print "Not enough resources to run: " + job_dir.get_url().get_string() 
+                    return # job cannot be run at the moment
+                command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
                 
             print "execute: " + command 
             p = subprocess.Popen(args=command, executable="/bin/bash",stdout=stdout,cwd=workingdirectory,shell=True)
             print "started " + command
             self.processes[job_dir] = p
             job_dir.set_attribute("state", str(saga.job.Running))
-        
+            
+    def allocate_nodes(self, job_dir):
+        """ allocate nodes
+            allocated nodes will be written to machinefile advert-launcher-machines-<jobid>
+            this method is only call by background thread and thus not threadsafe"""
+        number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
+        if (len(self.freenodes)>=number_nodes):
+            machine_file_name = self.get_machine_file_name(job_dir)
+            machine_file = open(machine_file_name, "w")
+            machine_file.writelines(self.freenodes[:2])
+            machine_file.close() 
+            
+            # update node structures
+            self.busynodes.extend(self.freenodes[:2])
+            del(self.freenodes[:2])            
+            return machine_file_name
+        return None
     
+    def free_nodes(self, job_dir):
+        print "Free nodes ..."
+        number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
+        machine_file_name = self.get_machine_file_name(job_dir)
+        print "Machine file: " + machine_file_name
+        machine_file = open(machine_file_name, "r")
+        allocated_nodes = machine_file.readlines()
+        machine_file.close()
+        for i in allocated_nodes:
+            self.busynodes.remove(i)
+            self.freenodes.append(i)
+        os.remove(machine_file_name)
+               
+            
+    def get_machine_file_name(self, job_dir):
+        """create machinefile based on jobid"""
+        job_dir_url =job_dir.get_url().get_string()        
+        job_dir_url = job_dir_url[(job_dir_url.rindex("/", 0, len(job_dir_url)-1)+1)
+                                  :(len(job_dir_url)-1)]        
+        return "/tmp/advert-launcher-machines-"+ job_dir_url
+        
     def poll_jobs(self):
         """Poll jobs from advert service. """
         jobs = self.base_dir.list()
         print "Found " + "%d"%len(jobs) + " jobs"
         for i in jobs:  
-            print i.get_string()
+            #print i.get_string()
             job_dir = self.base_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
             self.execute_job(job_dir)
                 
@@ -114,20 +173,54 @@ class advert_launcher:
     def monitor_jobs(self):
         """Monitor running processes. """   
         for i in self.jobs:
-            p = self.processes[i]
-            p_state = p.poll()
-            if p_state != None and p_state==0:
-                print i.get_attribute("Executable") + " finished. "
-                i.set_attribute("state", str(saga.job.Done))
-                
+            if self.processes.has_key(i): # only if job has already been starteds
+                p = self.processes[i]
+                p_state = p.poll()
+                if p_state != None and p_state==0:
+                    print i.get_attribute("Executable") + " finished. "
+                    i.set_attribute("state", str(saga.job.Done))
+                    self.free_nodes(i)
+                    del self.processes[i]
+                else:
+                    i.set_attribute("state", str(saga.job.Failed))
+                    self.free_nodes(i)
+                    del self.processes[i]
+                                
     def monitor_checkpoints(self):
-        pass
-                    
+        """ parses all job working directories and registers files with Migol via SAGA/CPR """
+        #get current files from AIS
+        url = saga.url("advert_launcher_checkpoint");
+        checkpoint = saga.cpr.checkpoint(url);
+        files = checkpoint.list_files()
+        for i in files:
+            print i      
+        dir_listing = os.listdir(os.getcwd())
+        for i in dir_listing:
+            filename = dir+"/"+i
+            if (os.path.isfile(filename)):
+                if(check_file(files, filename==False)):
+                      url = self.build_url(filename)
+                      print str(self.build_url(filename))
+                        
+    def build_url(self, filename):
+        """ build gsiftp url from file path """
+        hostname = socket.gethostname()
+        file_url = saga.url("gsiftp://"+hostname+"/"+filename)
+        return file_url
+                
+    def check_file(self, files, filename):
+        """ check whether file has already been registered with CPR """
+        for i in files:
+            file_path = i.get_path()
+            if (filename == filepath):
+                return true
+        return false
+                        
     def start_background_thread(self):
         self.stop=False
         while True and self.stop==False:
             self.poll_jobs()
-            self.monitor_jobs()
+            self.monitor_jobs()            
             time.sleep(30)
             
     def stop_background_thread(self):        
@@ -144,6 +237,12 @@ if __name__ == "__main__" :
         print "Usage: \n " + args[0] + " <advert-host> <advert-director>"
         sys.exit(1)
     
+    # init cpr
+    jd=None
+    try:
+        js = saga.cpr.service()
+    except:
+        sys.exc_traceback
+    
     advert_launcher = advert_launcher(args[1], args[2])    
-    #time.sleep(80)
-    #advert_launcher.stop_background_thread()
+
