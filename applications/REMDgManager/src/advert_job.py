@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Module advert_job.
 
 This Module is used to launch jobs via the advert service. 
@@ -18,34 +20,41 @@ import saga
 import time
 import uuid
 import socket
+import os
 
+""" Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
         
 class advert_job():
     
-    """Constructor"""
     def __init__(self, database_host):
+        """Constructor"""
+        
         self.database_host = database_host
-        print "init advert service sesssion for Application: " + database_host
+        print "init advert service sesssion at host: " + database_host
         advert_dir = saga.url("advert://" + database_host + "/"+APPLICATION_NAME)
-        print "create advert directory for job: " + advert_dir.get_string()                
         self.advert = saga.advert.directory(advert_dir, saga.advert.Create | saga.advert.ReadWrite)
-        print "created advert directory for job: " + advert_dir.get_string()                
+        print "created advert directory for application: " + advert_dir.get_string()  
+        
+        # store reference to all glidin jobs
+        # <hostname, glidein_job
+        self.glidin_jobs = {}              
         
         
-    """ submit job via advert service to NAMD-Launcher """
     def submit_job(self, dest_url, jd):
-        
+        """ submit job via advert service to NAMD-Launcher """
         if dest_url=="":
             dest_url = socket.gethostname()
         
+        host = saga.url(dest_url).host
+        
         # create dir for destination url
-        base_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + dest_url
+        base_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host
         self.location_dir = saga.advert.directory(saga.url(base_url), saga.advert.Create | saga.advert.ReadWrite)
 
         # create dir for job
         self.uuid = uuid.uuid1()
-        self.job_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + dest_url + "/" + str(self.uuid)
+        self.job_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host + "/" + str(self.uuid)
         self.job_dir = saga.advert.directory(saga.url(self.job_url), saga.advert.Create | saga.advert.ReadWrite)
 
         print "initialized advert directory for job: " + self.job_url
@@ -62,9 +71,34 @@ class advert_job():
         self.job_dir.set_attribute("state", str(saga.job.Unknown))
         # return self object for get_state() query    
         return "", self    
-        
+      
     def get_state(self):        
+        """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
+
+
+    def start_glidin_job(self, 
+                         lrms_url, 
+                         number_nodes,
+                         queue,
+                         project,
+                         working_directory):
+            """ start advert_launcher on specified host """
+            jd = saga.job.description()
+            jd.numberofprocesses = str(number_nodes)
+            jd.spmdvariation = "single"
+            jd.arguments = [self.database_host]
+            jd.executable = os.getcwd() + "/advert_launcher.py"
+            jd.queue = project + "@" + queue
+            jd.workingdirectory = working_directory
+            jd.output = "advert-launcher-stdout.txt"
+            jd.error = "advert-launcher-stderr.txt"
+            
+            lrms_saga_url = saga.url(lrms_url)
+            js = saga.job.service(lrms_saga_url)
+            job = js.create_job(jd)
+            job.run()
+            self.glidin_jobs[lrms_saga_url.host]=job
 
 
 """ Test Job Submission via Advert """

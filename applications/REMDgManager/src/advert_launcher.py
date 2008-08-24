@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import sys
 import os
 import saga
@@ -7,14 +8,16 @@ import socket
 import threading
 import time
 
+""" Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
 
-"""NAMD-Launcher:
-   - reads new job information from advert service
-   - starts new jobs
-   - monitors running jobs """
 class advert_launcher:
     
+    """NAMD-Launcher:
+       - reads new job information from advert service
+       - starts new jobs
+       - monitors running jobs """
+   
     """Constructor"""
     def __init__(self, database_host):
         
@@ -32,10 +35,10 @@ class advert_launcher:
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
         self.launcher_thread.start() 
         
-
-    """ for debugging purposes 
-        print attributes of advert directory """
     def print_attributes(self, advert_directory):
+        """ for debugging purposes 
+        print attributes of advert directory """
+        
         attributes = advert_directory.list_attributes()                
         for i in attributes:
             if (advert_directory.attribute_is_vector(i)==False):
@@ -46,7 +49,8 @@ class advert_launcher:
                 for j in vector:
                     print j
      
-    def execute_replica_job(self, job_dir):
+    def execute_job(self, job_dir):
+        """ obtain job attributes from advert and execute process """
         
         self.print_attributes(job_dir)        
         if(job_dir.get_attribute("state")==str(saga.job.Unknown)):
@@ -95,24 +99,28 @@ class advert_launcher:
             self.processes[job_dir] = p
             job_dir.set_attribute("state", str(saga.job.Running))
         
-    """Poll jobs from advert service. """
+    
     def poll_jobs(self):
+        """Poll jobs from advert service. """
         jobs = self.base_dir.list()
         print "Found " + "%d"%len(jobs) + " jobs"
         for i in jobs:  
             print i.get_string()
             job_dir = self.base_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
-            self.execute_replica_job(job_dir)
+            self.execute_job(job_dir)
                 
-    """Monitor running processes. """   
+    
     def monitor_jobs(self):
-        #while True:
-            for i in self.jobs:
-                p = self.processes[i]
-                p_state = p.poll()
-                if p_state != None and p_state==0:
-                    print i.get_attribute("Executable") + " finished. "
-                    i.set_attribute("state", str(saga.job.Done))
+        """Monitor running processes. """   
+        for i in self.jobs:
+            p = self.processes[i]
+            p_state = p.poll()
+            if p_state != None and p_state==0:
+                print i.get_attribute("Executable") + " finished. "
+                i.set_attribute("state", str(saga.job.Done))
+                
+    def monitor_checkpoints(self):
+        pass
                     
     def start_background_thread(self):
         self.stop=False
@@ -138,6 +146,6 @@ if __name__ == "__main__" :
     for arg in args:
         print arg
     advert_launcher = advert_launcher(args[1])    
-    time.sleep(80)
-    advert_launcher.stop_background_thread()
+    #time.sleep(80)
+    #advert_launcher.stop_background_thread()
         

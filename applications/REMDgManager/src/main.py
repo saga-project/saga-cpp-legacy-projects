@@ -10,6 +10,11 @@ jhkim at cct dot lsu dot edu
 1. Currently, the following simple scenario is assumed.
 a. each replica is submitted to each local scheduler via CPR/Migol  (will be changed with the major revision)
 b. There is a wrapper in HPC to register checkpoint files to migol (all file are registered as checkpoint files)
+
+
+TODO:
+    - encapsulate data und method into 1 central REMD-Manager class 
+
 """
 
 import sys, os, os.path, random, time
@@ -21,8 +26,9 @@ import pdb
 import math
 import threading
 import traceback
+import advert_job
 
-
+""" Config parameters (will be moved to config file in the future) """
 CPR = False
 SCP = False
 
@@ -32,14 +38,12 @@ SCP = False
 class RE_INFO (object):
     """ 
     This class holds information about the application and replicas remotely running via SAGA-CPR/MIGOL
-    
-    """
-    
+    """    
     def __init__(self):
         # general info
         self.app_name = "NAMD"
         self.stage_in_files = []
-        self.numberofprocesses = '0'
+        self.numberofprocesses = '1'
         self.exchange_count = 0
         self.totalcputime = '40'
         self.arguments = []
@@ -58,6 +62,11 @@ class RE_INFO (object):
         self.replica_saga_jobs = []   # saga jobs
         self.istep = 0
         self.iEX = 0
+
+        # advert host
+        self.advert_host ="localhost"
+        # map <host, glidin-job>
+        self.advert_job = None
 
 #####################################
 #  REMD specific functions
@@ -94,10 +103,13 @@ def exchange_replicas(RE_info, irep1, irep2):
     does_exchange = "YES"    # at the moment always
     
     return does_exchange
+
+
 #####################################
 #  Elementary Functions
 ########################################################
 
+""" create job description for respective replica """
 def set_saga_job_description(replica_ID, RE_info):
     
     if CPR==True:
@@ -119,7 +131,7 @@ def set_saga_job_description(replica_ID, RE_info):
     
     return jd
 
-
+""" state files with SAGA/File & GridFTP """
 def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote_dir):
     #pdb.set_trace()    
     for ifile in input_file_list_with_path:
@@ -151,6 +163,8 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
                 
     return None
 
+""" state files with SCP
+    This function assumes that public/key authentication for SCP is enabled """
 def file_stage_in_with_scp(input_file_list_with_path, remote_machine_ip, remote_dir):
     #pdb.set_trace()    
     for ifile in input_file_list_with_path:
@@ -175,36 +189,21 @@ def file_stage_in_with_scp(input_file_list_with_path, remote_machine_ip, remote_
                 
     return None    
 
-#######################################
-# submit job via job api
-#####################################   
+""" submit job via job api"""
 def submit_job(dest_url_string, jd):
     error_string = ""
-    
     js = saga.job.service(saga.url(dest_url_string))
-
     new_job = js.create_job(jd)
-    
     new_job.run()
-        
     return error_string, new_job
 
-#######################################
-# submit job via cpr api
-#####################################
+""" submit job via cpr api"""
 def submit_job_cpr(dest_url_string, jd):
     error_string = ""
     start = time.time()
     js = saga.cpr.service(saga.url(dest_url_string))
     jd_start = jd
     jd_restart = jd
-    
-    #here checkpoint files are registered (not done yet)
-#    check_point = saga.cpr.checkpoint("REMD_MANAGER_CHECKPOINT")
-    
-#    for ifile in checkpt_files:
-#        check_point.add_files(ifile)
-    
     new_cpr_job = js.create_job(jd_start, jd_restart)
     new_cpr_job.run()
     print "job state: " + str(new_cpr_job.get_state());
@@ -293,7 +292,8 @@ def initialize(config_filename):
             elif key == "temperature" :
                 for itemp in value:
                     RE_info.temperatures.append(eval(itemp))        
-            
+            elif key == "advert_host" :
+                RE_info.advert_host = value[0] 
             else :
                 logging.info("this line %s in %s does not have configure variables"%(line, config_filename))    
             
@@ -302,8 +302,8 @@ def initialize(config_filename):
             logging.info("this line %s in %s does not have configure variables"%(line, config_filename))
                          
     random.seed(time.time()/10.)
-    
     return RE_info
+   
 
 
 # transfer files
@@ -320,19 +320,56 @@ def transfer_files(RE_info, irep):
     file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
     print "Time for staging " + "%d"%len(RE_info.stage_in_files) + " files: " + str(time.time()-start_file_transfer) + " s"
 
-# start job
 def start_job(RE_info, irep):
+    """ start job:
+        if glidin job has been started via advert job start protocol
+        otherwise with SAGA CPR/Job """
     jd = set_saga_job_description(irep, RE_info)
-    if (CPR==True):
-        dest_url_string = "migol://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-        error, new_job = submit_job_cpr(dest_url_string, jd)
-    else:
-        dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-        error, new_job = submit_job(dest_url_string, jd)
+    host = RE_info.remote_hosts[irep]
+    scheduler = RE_info.remote_host_local_schedulers[irep]
+    print "start job at: " + host   
+    
+    if (RE_info.advert_job.glidin_jobs.has_key(host)): # start via advert service
+        dest_url_string = "advert://" + host + "/" + "jobmanager-" + scheduler  
+        error, new_job =  RE_info.advert_job.submit_job(dest_url_string, jd)    
+    else: # normal SAGA CPR/Job start
+        if (CPR==True):
+            dest_url_string = "migol://" + host + "/" + "jobmanager-" + scheduler     # just for the time being
+            error, new_job = submit_job_cpr(dest_url_string, jd)
+        else:
+            dest_url_string = "gram://" + host + "/" + "jobmanager-" + scheduler    # just for the time being
+            error, new_job = submit_job(dest_url_string, jd)
     RE_info.replica.insert(irep,new_job)
     print "Replica " + "%d"%irep + " started." 
     
-
+      
+def start_glidin_jobs(RE_info):
+    """start glidin jobs (advert_job.py) at every unique machine specified in RE_info"""  
+    unique_hosts = set(RE_info.remote_hosts)    
+    if RE_info.advert_job == None:
+        RE_info.advert_job = advert_job.advert_job(RE_info.advert_host)
+    for i in unique_hosts:
+        nodes = RE_info.remote_hosts.count(i) 
+        lrms = RE_info.remote_host_local_schedulers[RE_info.remote_hosts.index(i)]
+        project = RE_info.projects[RE_info.remote_hosts.index(i)]
+        queue = RE_info.queues[RE_info.remote_hosts.index(i)]
+        workingdirectory = RE_info.workingdirectories[RE_info.remote_hosts.index(i)]
+        if(CPR==True):
+            lrms_url = "migol://"    
+        else:
+            lrms_url = "gram://"
+        lrms_url = lrms_url + i + "/" + "jobmanager-" + lrms      
+        print "Glidin URL: " + lrms_url    
+        print "hosts: " + i + " number of replica_processes: " + "%d"%nodes
+        print "Project: " + project + " Queue: " + queue + " Working Dir: " +workingdirectory
+        
+        # start job
+        RE_info.advert_job.start_glidin_job(lrms_url, 
+                                            nodes,
+                                            queue,
+                                            project,
+                                            workingdirectory)
+        
 #########################################################
 #  run_REMDg
 #########################################################
@@ -348,6 +385,8 @@ def run_REMDg(configfile_name):
     ofilenamelist = [ofilenamestring%i for i in range (0,numReplica)]
 
     #iEX = 0
+    start_glidin_jobs(RE_info)
+
 
     #file transfer
     start_file_transfer=time.time()
@@ -504,7 +543,6 @@ def run_test_RE(nReplica, nRand):
 #########################################################
 #  main
 #########################################################
-
 if __name__ == "__main__" :
     start = time.time()
     op = optparse.OptionParser()
@@ -512,15 +550,22 @@ if __name__ == "__main__" :
     op.add_option('--configfile','-c')
     op.add_option('--numreplica','-n',default='2')
     options, arguments = op.parse_args()
-
+    
     # enable monitoring through Migol
     js=None
     if(CPR==True):
         js = saga.cpr.service()
     
-    if options.type in (None,"test_RE"):
-        run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
-    elif options.type in ("REMD"):
+    # AL: I disabled this option temporarly since it is not working
+    #     I also added a usage message
+    #if options.type in (None,"test_RE"):
+        #run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
+    if options.type != None and options.type in ("REMD"):
         run_REMDg(options.configfile) 
+    else:
+        print "Usage : \n python " + sys.argv[0] + " --type=<REMD> --configfile=<configfile> \n"
+        print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=remd_manager.config"
+        sys.exit(1)      
+        
     print "REMDgManager Total Runtime: " + str(time.time()-start) + " s"
     
