@@ -25,37 +25,82 @@ import os
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
         
+class advert_glidin_job():
+    
+    def __init__(self, database_host):        
+        self.database_host = database_host
+        print "init advert service session at host: " + database_host
+        advert_dir = saga.url("advert://" + database_host + "/"+APPLICATION_NAME)
+        self.advert = saga.advert.directory(advert_dir, saga.advert.Create | saga.advert.ReadWrite)
+        print "created advert directory for application: " + advert_dir.get_string()  
+    
+    def start_glidin_job(self, 
+                 lrms_url, 
+                 number_nodes,
+                 queue,
+                 project,
+                 working_directory):
+        """ start advert_launcher on specified host """
+        jd = saga.job.description()
+        jd.numberofprocesses = str(number_nodes)
+        jd.spmdvariation = "single"
+        jd.arguments = [self.database_host]
+        jd.executable = os.getcwd() + "/advert_launcher.py"
+        jd.queue = project + "@" + queue
+        jd.workingdirectory = working_directory
+        jd.output = "advert-launcher-stdout.txt"
+        jd.error = "advert-launcher-stderr.txt"
+        
+        #register advert entry
+        lrms_saga_url = saga.url(lrms_url)
+        self.glidin_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + lrms_saga_url.host
+        self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.ReadWrite)
+        
+        js = saga.job.service(lrms_saga_url)
+        self.job = js.create_job(jd)
+        self.job.run()
+        return self.job
+     
+    def get_state(self):        
+        """ duck typing for get_state of saga.cpr.job and saga.job.job  """
+        return self.job.get_state()
+    
+    def cancel(self):        
+        """ duck typing for cancel of saga.cpr.job and saga.job.job  """
+        return self.job.cancel()
+    
+    def __repr__(self):
+         return self.glidin_url 
+                    
+                    
 class advert_job():
     
     def __init__(self, database_host):
         """Constructor"""
-        
         self.database_host = database_host
-        print "init advert service sesssion at host: " + database_host
-        advert_dir = saga.url("advert://" + database_host + "/"+APPLICATION_NAME)
-        self.advert = saga.advert.directory(advert_dir, saga.advert.Create | saga.advert.ReadWrite)
-        print "created advert directory for application: " + advert_dir.get_string()  
         
-        # store reference to all glidin jobs
-        # <hostname, glidein_job
-        self.glidin_jobs = {}              
+    def submit_job(self, glidin_url, jd):
+        """ submit job via advert service to NAMD-Launcher 
+            dest_url - url reference to advert job or host on which the advert job is going to run"""
         
+        self.saga_glidin_url = saga.url(glidin_url)
         
-    def submit_job(self, dest_url, jd):
-        """ submit job via advert service to NAMD-Launcher """
-        if dest_url=="":
-            dest_url = socket.gethostname()
-        
-        host = saga.url(dest_url).host
-        
-        # create dir for destination url
-        base_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host
-        self.location_dir = saga.advert.directory(saga.url(base_url), saga.advert.Create | saga.advert.ReadWrite)
+        if(self.saga_glidin_url.scheme=="advert"): #
+            self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.ReadWrite)
+        else: # any other url, try to guess glidin job url
+            host = saga_job_dest_url.host
+            if host =="":
+                host=socket.gethostname()
+            # create dir for destination url
+            self.saga_glidin_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host
+            self.glidin_dir = saga.advert.directory(saga.url(self.saga_glidin_url), 
+                                                    saga.advert.Create | saga.advert.ReadWrite)
 
         # create dir for job
         self.uuid = uuid.uuid1()
-        self.job_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host + "/" + str(self.uuid)
-        self.job_dir = saga.advert.directory(saga.url(self.job_url), saga.advert.Create | saga.advert.ReadWrite)
+        self.job_url = self.saga_glidin_url.get_string() + "/" + str(self.uuid)
+        self.job_dir = saga.advert.directory(saga.url(self.job_url), 
+                                             saga.advert.Create | saga.advert.ReadWrite)
 
         print "initialized advert directory for job: " + self.job_url
         
@@ -70,35 +115,14 @@ class advert_job():
        
         self.job_dir.set_attribute("state", str(saga.job.Unknown))
         # return self object for get_state() query    
-        return "", self    
+        return self    
       
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
 
-
-    def start_glidin_job(self, 
-                         lrms_url, 
-                         number_nodes,
-                         queue,
-                         project,
-                         working_directory):
-            """ start advert_launcher on specified host """
-            jd = saga.job.description()
-            jd.numberofprocesses = str(number_nodes)
-            jd.spmdvariation = "single"
-            jd.arguments = [self.database_host]
-            jd.executable = os.getcwd() + "/advert_launcher.py"
-            jd.queue = project + "@" + queue
-            jd.workingdirectory = working_directory
-            jd.output = "advert-launcher-stdout.txt"
-            jd.error = "advert-launcher-stderr.txt"
-            
-            lrms_saga_url = saga.url(lrms_url)
-            js = saga.job.service(lrms_saga_url)
-            job = js.create_job(jd)
-            job.run()
-            self.glidin_jobs[lrms_saga_url.host]=job
+    def __repr__(self):        
+        return self.job_url
 
 
 """ Test Job Submission via Advert """

@@ -66,7 +66,7 @@ class RE_INFO (object):
         # advert host
         self.advert_host ="localhost"
         # map <host, glidin-job>
-        self.advert_job = None
+        self.advert_glidin_jobs = {}
 
 #####################################
 #  REMD specific functions
@@ -189,16 +189,17 @@ def file_stage_in_with_scp(input_file_list_with_path, remote_machine_ip, remote_
                 
     return None    
 
-""" submit job via job api"""
 def submit_job(dest_url_string, jd):
+    """ submit job via job api"""
     error_string = ""
     js = saga.job.service(saga.url(dest_url_string))
     new_job = js.create_job(jd)
     new_job.run()
     return error_string, new_job
 
-""" submit job via cpr api"""
+
 def submit_job_cpr(dest_url_string, jd):
+    """ submit job via cpr api"""
     error_string = ""
     start = time.time()
     js = saga.cpr.service(saga.url(dest_url_string))
@@ -209,6 +210,14 @@ def submit_job_cpr(dest_url_string, jd):
     print "job state: " + str(new_cpr_job.get_state());
     print "spawning time " + "%d"%(time.time()-start) +" s"    
     return error_string, new_cpr_job
+
+
+def submit_job_advert(RE_info, dest_url_string, jd):
+    """ submit job via advert service and glidin job"""
+    error_string = ""
+    new_advert_job = advert_job.advert_job(RE_info.advert_host)
+    new_advert_job = new_advert_job.submit_job(dest_url_string, jd)
+    return error_string, new_advert_job
 
 
 
@@ -329,9 +338,10 @@ def start_job(RE_info, irep):
     scheduler = RE_info.remote_host_local_schedulers[irep]
     print "start job at: " + host   
     
-    if (RE_info.advert_job.glidin_jobs.has_key(host)): # start via advert service
-        dest_url_string = "advert://" + host + "/" + "jobmanager-" + scheduler  
-        error, new_job =  RE_info.advert_job.submit_job(dest_url_string, jd)    
+    new_job=None
+    if (RE_info.advert_glidin_jobs.has_key(host)): # start via advert service
+        glidin_url = RE_info.advert_glidin_jobs[host].glidin_url 
+        error, new_job =  submit_job_advert(RE_info, glidin_url, jd)    
     else: # normal SAGA CPR/Job start
         if (CPR==True):
             dest_url_string = "migol://" + host + "/" + "jobmanager-" + scheduler     # just for the time being
@@ -346,8 +356,6 @@ def start_job(RE_info, irep):
 def start_glidin_jobs(RE_info):
     """start glidin jobs (advert_job.py) at every unique machine specified in RE_info"""  
     unique_hosts = set(RE_info.remote_hosts)    
-    if RE_info.advert_job == None:
-        RE_info.advert_job = advert_job.advert_job(RE_info.advert_host)
     for i in unique_hosts:
         nodes = RE_info.remote_hosts.count(i) 
         lrms = RE_info.remote_host_local_schedulers[RE_info.remote_hosts.index(i)]
@@ -364,11 +372,14 @@ def start_glidin_jobs(RE_info):
         print "Project: " + project + " Queue: " + queue + " Working Dir: " +workingdirectory
         
         # start job
-        RE_info.advert_job.start_glidin_job(lrms_url, 
-                                            nodes,
-                                            queue,
-                                            project,
-                                            workingdirectory)
+        advert_glidin_job = advert_job.advert_glidin_job(RE_info.advert_host)
+        advert_glidin_job.start_glidin_job(lrms_url, 
+                                           nodes,
+                                           queue,
+                                           project,
+                                           workingdirectory)
+        RE_info.advert_glidin_jobs[i] = advert_glidin_job
+        print "Started: " + str(advert_glidin_job)
         
 #########################################################
 #  run_REMDg
