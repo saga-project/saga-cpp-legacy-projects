@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/luckow/sw/python-2.5.2/bin/python
 
 import sys
 import os
@@ -7,6 +7,7 @@ import subprocess
 import socket
 import threading
 import time
+import pdb
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
@@ -104,20 +105,21 @@ class advert_launcher:
             self.jobs.append(job_dir)
             
             # create stdout/stderr file descriptors
-            stdout = open(output, "w")
-            stderr = open(error, "w")
+            stdout = open(workingdirectory+"/"+output, "w")
+            stderr = open(workingdirectory+"/"+error, "w")
             command = executable + " " + arguments
             
             # special setup for MPI NAMD jobs
             if (spmdvariation.lower( )=="mpi"):
+		#pdb.set_trace()
                 machinefile = self.allocate_nodes(job_dir)
                 if(machinefile==None):
                     print "Not enough resources to run: " + job_dir.get_url().get_string() 
                     return # job cannot be run at the moment
                 command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
                 
-            print "execute: " + command 
-            p = subprocess.Popen(args=command, executable="/bin/bash",stdout=stdout,cwd=workingdirectory,shell=True)
+            print "execute: " + command + " in " + workingdirectory
+            p = subprocess.Popen(args=command, executable="/bin/bash",stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
             print "started " + command
             self.processes[job_dir] = p
             job_dir.set_attribute("state", str(saga.job.Running))
@@ -130,12 +132,12 @@ class advert_launcher:
         if (len(self.freenodes)>=number_nodes):
             machine_file_name = self.get_machine_file_name(job_dir)
             machine_file = open(machine_file_name, "w")
-            machine_file.writelines(self.freenodes[:2])
+            machine_file.writelines(self.freenodes[:number_nodes])
             machine_file.close() 
             
             # update node structures
-            self.busynodes.extend(self.freenodes[:2])
-            del(self.freenodes[:2])            
+            self.busynodes.extend(self.freenodes[:number_nodes])
+            del(self.freenodes[:number_nodes])            
             return machine_file_name
         return None
     
@@ -150,6 +152,7 @@ class advert_launcher:
         for i in allocated_nodes:
             self.busynodes.remove(i)
             self.freenodes.append(i)
+	print "Delete " + machine_file_name
         os.remove(machine_file_name)
                
             
@@ -158,7 +161,8 @@ class advert_launcher:
         job_dir_url =job_dir.get_url().get_string()        
         job_dir_url = job_dir_url[(job_dir_url.rindex("/", 0, len(job_dir_url)-1)+1)
                                   :(len(job_dir_url)-1)]        
-        return "/tmp/advert-launcher-machines-"+ job_dir_url
+	homedir = os.path.expanduser('~')
+        return homedir  + "/advert-launcher-machines-"+ job_dir_url
         
     def poll_jobs(self):
         """Poll jobs from advert service. """
@@ -181,10 +185,12 @@ class advert_launcher:
                     i.set_attribute("state", str(saga.job.Done))
                     self.free_nodes(i)
                     del self.processes[i]
-                else:
+                elif p_state!=0 and p_state != None:
                     i.set_attribute("state", str(saga.job.Failed))
                     self.free_nodes(i)
                     del self.processes[i]
+		else:
+		    print str(i) + "still running."
                                 
     def monitor_checkpoints(self):
         """ parses all job working directories and registers files with Migol via SAGA/CPR """
@@ -220,6 +226,7 @@ class advert_launcher:
         self.stop=False
         while True and self.stop==False:
             self.poll_jobs()
+	    #pdb.set_trace()
             self.monitor_jobs()            
             time.sleep(30)
             

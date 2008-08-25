@@ -51,12 +51,11 @@ class advert_glidin_job():
         jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
-        jd.executable = os.getcwd() + "/advert_launcher.py"
+        jd.executable = os.getcwd() + "/advert_launcher.sh"
         jd.queue = project + "@" + queue
-        jd.workingdirectory = working_directory
+        jd.workingdirectory = os.getcwd()
         jd.output = "advert-launcher-stdout.txt"
         jd.error = "advert-launcher-stderr.txt"
-        
         
         js = saga.job.service(lrms_saga_url)
         self.job = js.create_job(jd)
