@@ -43,19 +43,17 @@ namespace MapReduce {
          outputPrefix_ = (vm["output"].as<std::string>());
          uuid_         = saga::uuid().string();//"MICHAELCHRIS";
          logWriter_    = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
-         int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::Append;
+         int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::CreateParents | saga::filesystem::Append;
          for(int x=0;x<NUM_MAPS;x++) {
-            saga::url mapFile(outputPrefix_ + "/mapFile-" + boost::lexical_cast<std::string>(x) + uuid_);
+            saga::url mapFile(outputPrefix_ + "/mapFile_" + boost::lexical_cast<std::string>(x) + "_" + uuid_);
             saga::filesystem::file f(mapFile, mode);
             mapFiles_.push_back(f);
-            saga::url reduceFile(outputPrefix_ + "/mapFile-reduce" + boost::lexical_cast<std::string>(x) + uuid_);
+            saga::url reduceFile(outputPrefix_ + "/mapFile-reduce_" + boost::lexical_cast<std::string>(x) + "_" + uuid_);
             saga::filesystem::file g(reduceFile, mode);
             reduceFiles_.push_back(g);
          }
       }
       ~MapReduceBase() {
-          closeMapFiles();
-          closeReduceFiles();
       }
       /*********************************************************
        * starts the worker and begins all neccessary setup with*
@@ -92,19 +90,25 @@ namespace MapReduce {
       }
       void writeIntermediate(void) {
          std::map<std::string, std::vector<std::string> >::iterator mapIt = intermediate_.begin();
+         std::string intermediateData[NUM_MAPS];
          while(mapIt != intermediate_.end()) {
             std::string intermediateKey = mapIt->first;
             int hash_value = hash(intermediateKey, NUM_MAPS);
-            intermediateKey.append(" ");
-            intermediateKey.append(mapIt->second[0]);
+            intermediateData[hash_value].append(intermediateKey);
+            intermediateData[hash_value].append(" ");
+            intermediateData[hash_value].append(mapIt->second[0]);
             std::size_t size = mapIt->second.size();
             for(unsigned int x = 1; x < size; x++) {
-               intermediateKey.append(", ");
-               intermediateKey.append(mapIt->second[x]);
+               intermediateData[hash_value].append(", ");
+               intermediateData[hash_value].append(mapIt->second[x]);
             }
             mapIt++;
-            intermediateKey.append(";\n");
-            mapFiles_[hash_value].write(saga::buffer(intermediateKey, intermediateKey.length()));
+            intermediateData[hash_value].append(";\n");
+         }
+         for(int counter = 0; counter < NUM_MAPS; counter++)
+         {
+            std::cout << "Wrote: " << intermediateData[counter] << std::endl;
+            mapFiles_[counter].write(saga::buffer(intermediateData[counter], intermediateData[counter].length()));
          }
          intermediate_.clear();
       }
@@ -116,6 +120,7 @@ namespace MapReduce {
       void emitIntermediate(std::string key, std::string value) {
          intermediate_[key].push_back(value);
          if(intermediate_.size() >= MAX_INTERMEDIATE_SIZE) {
+            std::cout << "intermediate size = " << intermediate_.size() << std::endl;
             writeIntermediate();
          }
       }
@@ -126,9 +131,15 @@ namespace MapReduce {
        * ******************************************************/
       void emit(std::string key, std::string value) {
          int hash_value = hash(key, NUM_MAPS);
-         std::string message(key);
-         message += " " + value + "\n";
-         reduceFiles_[hash_value].write(saga::buffer(message, message.length()));
+         reduceValueMessages_[hash_value] += key;
+         reduceValueMessages_[hash_value] += " " + value + "\n";
+         for(int counter = 0; counter < NUM_MAPS; counter++) {
+            if(reduceValueMessages_[counter].length() > 20000)
+            {
+               reduceFiles_[hash_value].write(saga::buffer(reduceValueMessages_[counter], reduceValueMessages_[counter].length()));
+               reduceValueMessages_[counter].clear();
+            }
+         }
       }
      private:
       Derived& derived() {
@@ -138,6 +149,7 @@ namespace MapReduce {
       std::string sessionUUID_;
       std::string database_;
       std::string outputPrefix_;
+      std::string reduceValueMessages_[3];
       saga::url   logURL_;
    
       time_t startupTime_;
@@ -191,9 +203,6 @@ namespace MapReduce {
        * attributes describing this session.                   *
        * ******************************************************/
       void registerWithDB(void) {
-         //putenv("SAGA_VERBOSE=100");
-         std::freopen("/tmp/worker-stderr.txt", "w", stderr);
-         std::freopen("/tmp/worker-stdout.txt", "w", stdout);
          int mode = saga::advert::ReadWrite;
          //(1) connect to the orchestrator database
          std::string advertKey("advert://");
@@ -258,19 +267,29 @@ namespace MapReduce {
                //std::vector<std::string> output(mapHandler.getOutput());
             }
             else if(command == WORKER_COMMAND_REDUCE) {
-               // Use the RunReduce class to handle details of getting
-               // and retrieving necessary information from the master.
-               RunReduce reduceHandler(workerDir_, reduceInputDir_, outputPrefix_);
-         
-               // Get a map of keys and a vector of the values
-               std::map<std::string, std::vector<std::string> > keyValues(reduceHandler.getLines());
-               std::map<std::string, std::vector<std::string> >::const_iterator keyValuesIT = keyValues.begin();
-               // Iterate over these keys and their values and
-               // reduce them by passing them to the user defined
-               // reduce function
-               while(keyValuesIT != keyValues.end()) {
-                  d.reduce(keyValuesIT->first, keyValuesIT->second);
-                  keyValuesIT++;
+               try {
+                  // Use the RunReduce class to handle details of getting
+                  // and retrieving necessary information from the master.
+                  RunReduce reduceHandler(workerDir_, reduceInputDir_, outputPrefix_);
+                 
+                  // Get a map of keys and a vector of the values
+                  std::map<std::string, std::vector<std::string> > keyValues(reduceHandler.getLines());
+                  std::map<std::string, std::vector<std::string> >::const_iterator keyValuesIT = keyValues.begin();
+                  // Iterate over these keys and their values and
+                  // reduce them by passing them to the user defined
+                  // reduce function
+                  while(keyValuesIT != keyValues.end()) {
+                     d.reduce(keyValuesIT->first, keyValuesIT->second);
+                     keyValuesIT++;
+                  }
+                  for(int counter = 0; counter < NUM_MAPS; counter++) {
+                     reduceFiles_[counter].write(saga::buffer(reduceValueMessages_[counter], reduceValueMessages_[counter].length()));
+                     reduceValueMessages_[counter].clear();
+                  }
+               }
+               catch(saga::exception const& e) {
+                  std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
+                  workerDir_.set_attribute("STATE", WORKER_STATE_FAIL);
                }
             }
             else if(command == WORKER_COMMAND_DISCARD) {
@@ -282,6 +301,9 @@ namespace MapReduce {
             }
             else if(command == WORKER_COMMAND_QUIT)
             {
+               std::cout << "quitting and closing files" << std::endl;
+               closeMapFiles();
+               closeReduceFiles();
                cleanup_();
                return;
             }

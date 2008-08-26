@@ -23,6 +23,7 @@ namespace MapReduce {
           while(entriesIT != entries.end()) {
              saga::advert::entry adv(*entriesIT, mode);
              files_.push_back(adv.retrieve_string());
+             std::cout << "part of input for me = " << adv.retrieve_string() << std::endl;
              entriesIT++;
           }
       }

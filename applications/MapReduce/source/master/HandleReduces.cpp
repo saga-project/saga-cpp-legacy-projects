@@ -60,10 +60,15 @@ namespace MapReduce
          std::string message(workers_IT->get_path());
          message += (" state is " + state);
          log_->write(message, LOGLEVEL_INFO);
-         if(state == WORKER_STATE_IDLE || command == WORKER_STATE_DONE_MAP) {
+         if(state == WORKER_STATE_IDLE || state == WORKER_STATE_DONE_MAP) {
             if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_REDUCE) {
                //Assigned but never started working
-               break;
+               workers_IT++;
+               if(workers_IT == workers_.end()) {
+                  workers_ = workerDir_.list("?");
+                  workers_IT = workers_.begin();
+               }
+               continue;
             }
             std::string message("Issuing worker ");
             message += workers_IT->get_path();
@@ -75,6 +80,7 @@ namespace MapReduce
                saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
                adv.store_string(inputs[count]);
             }
+            possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
             possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
             assigned = true;
          }
@@ -98,12 +104,14 @@ namespace MapReduce
                saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(count)), mode | saga::advert::Create));
                adv.store_string(inputs[count]);
             }
-            possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
             possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
+            possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
             assigned = true;
          }
+         sleep(1);
       }
       catch(saga::exception const & e) {
+         std::cerr << "error in reduce stuf" << std::endl;
          throw;
       }
       workers_IT++;

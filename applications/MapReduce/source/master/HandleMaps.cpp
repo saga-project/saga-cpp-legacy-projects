@@ -57,6 +57,11 @@ namespace MapReduce {
             log_->write(message, LOGLEVEL_INFO);
             if(state == WORKER_STATE_IDLE) {
                if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_MAP) {
+                  workers_IT++;
+                  if(workers_IT == workers_.end()) {
+                     workers_ = workerDir_.list("?");
+                     workers_IT = workers_.begin();
+                  }
                   break;
                }
                message.clear();
@@ -76,7 +81,22 @@ namespace MapReduce {
                saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
                saga::advert::entry     adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
                std::string finished_file(adv.retrieve_string());
-               finished_.push_back(finished_file);
+               //Search to see if it was already finished
+               std::vector<std::string>::iterator finishedIT = finished_.begin();
+               bool found = false;
+               while(finishedIT != finished_.end())
+               {
+                  if(finished_file == *finishedIT)
+                  {
+                     found = true;
+                     break;
+                  }
+                  finishedIT++;
+               }
+               if(found == false)
+               {
+                  finished_.push_back(finished_file);
+               }
                saga::task t0 = possibleWorker.set_attribute<saga::task_base::Sync>("STATE",   WORKER_STATE_IDLE);
                saga::task t1 = possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND", "");
                t0.wait();

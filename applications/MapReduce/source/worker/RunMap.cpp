@@ -11,11 +11,11 @@ namespace MapReduce {
                  saga::advert::directory intermediateDir,
                  std::string outputPrefix,
                  std::string uuid) {
-         chunksDir_       = chunksDir;
-         intermediateDir_ = intermediateDir;
-         workerDir_       = workerDir;
-         outputPrefix_    = outputPrefix;
-         uuid_            = uuid;
+      chunksDir_       = chunksDir;
+      intermediateDir_ = intermediateDir;
+      workerDir_       = workerDir;
+      outputPrefix_    = outputPrefix;
+      uuid_            = uuid;
       try {
          workerDir_.set_attribute("STATE", WORKER_STATE_MAPPING);
       }
@@ -33,9 +33,9 @@ namespace MapReduce {
       try {
          for(int count = 0; count < NUM_MAPS; count++) {
             saga::advert::entry adv = intermediateDir_.open(saga::url("mapFile-"+boost::lexical_cast<std::string>(count)), mode);
-            saga::url fileurl(outputPrefix_ + "mapFile-" + boost::lexical_cast<std::string>(count) + uuid_);
-            saga::filesystem::file f(fileurl, saga::filesystem::ReadWrite);
-            adv.store_string(f.get_url().get_string());
+            saga::url fileurl(outputPrefix_ + "mapFile_" + boost::lexical_cast<std::string>(count) + "_" + uuid_);
+//            saga::filesystem::file f(fileurl, saga::filesystem::ReadWrite);
+            adv.store_string(fileurl.get_string());
          }
          workerDir_.set_attribute("STATE", WORKER_STATE_DONE_MAP);
          workerDir_.set_attribute("COMMAND", "");

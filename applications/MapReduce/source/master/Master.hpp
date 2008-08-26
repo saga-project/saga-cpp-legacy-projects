@@ -92,6 +92,8 @@ namespace MapReduce {
             // and try to reduce output from mappping by
             // assigning tasks to some workers
             runReduces_();
+
+            tellQuit_();
             
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
@@ -111,6 +113,7 @@ namespace MapReduce {
          saga::advert::directory binariesDir_;
          saga::advert::directory chunksDir_;
          std::string outputPrefix_;
+	 std::vector<saga::job::job> jobs_;
          
          MapReduce::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -303,10 +306,10 @@ namespace MapReduce {
                         jd.set_attribute(saga::job::attributes::description_executable, command);
                         jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
-//                        saga::job::service js("any://" + (*hostListIT).rmURL);
                         saga::job::service js((*hostListIT).rmURL);
-                        saga::job::job agentJob= js.create_job(jd);
+                        saga::job::job agentJob = js.create_job(jd);
                         agentJob.run();
+                        jobs_.push_back(agentJob);
                         message += "SUCCESS";
                         log->write(message, LOGLEVEL_INFO);
                         successCounter++;
@@ -332,8 +335,8 @@ namespace MapReduce {
           * begin working                                         *
           * ******************************************************/
          void runMaps_(void) {
-            HandleMaps mapHandler(fileChunks_, workersDir_, log);
             std::string message("Launching maps...");
+            HandleMaps mapHandler(fileChunks_, workersDir_, log);
    
             log->write(message, LOGLEVEL_INFO);
             mapHandler.assignMaps();
@@ -351,6 +354,16 @@ namespace MapReduce {
             log->write(message, LOGLEVEL_INFO);
             reduceHandler.assignReduces();
          }
+         void tellQuit_(void) {
+            std::vector<saga::url> workers(workersDir_.list("?"));
+            std::vector<saga::url>::iterator workersIT = workers.begin();
+            while(workersIT != workers.end())
+            {
+               saga::advert::directory individualWorker(*workersIT, saga::advert::ReadWrite);
+               individualWorker.set_attribute("COMMAND", WORKER_COMMAND_QUIT);
+               workersIT++;
+            }
+         }
          std::vector<saga::url> chunker(std::string fileArg) {
             int mode = saga::filesystem::ReadWrite;
             int x=0;
@@ -361,6 +374,9 @@ namespace MapReduce {
             char data[KB64+1];
             saga::filesystem::file f(urlFile, mode);
             while((bytesRead = f.read(saga::buffer(data,KB64)))!=0) {
+               // Only space left
+               if(bytesRead==2)
+                  break;
                saga::size_t pos;
                int gmode = saga::filesystem::ReadWrite | saga::filesystem::Append | saga::filesystem::Create;
                saga::filesystem::file g(saga::url(fileArg + "chunk" + boost::lexical_cast<std::string>(x)), gmode);
