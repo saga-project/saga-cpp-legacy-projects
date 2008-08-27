@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ The main script for REMDgManager that are able to run fault-recovery REMD via SAGA-CPR/Migol
 
 Usage : (For Test_RE)   python main.py  
@@ -381,6 +382,10 @@ def start_glidin_jobs(RE_info):
                                            workingdirectory)
         RE_info.advert_glidin_jobs[i] = advert_glidin_job
         print "Started: " + str(advert_glidin_job)
+
+def stop_glidin_jobs(RE_info):
+	for i in RE_info.advert_glidin_jobs:
+		RE_info.advert_glidin_jobs[i].cancel()
         
 #########################################################
 #  run_REMDg
@@ -471,6 +476,8 @@ def run_REMDg(configfile_name):
                     print "Replica " + "%d"%(irep) + " and " + "%d"%(irep + 1 ) + " are not changed, Number Exchanges: " + "%d"%num_exchanges
             irep = irep + 2
         time.sleep(10)
+    
+    stop_glidin_jobs(RE_info)
  
 
 #########################################################

@@ -30,9 +30,10 @@ class advert_glidin_job():
     def __init__(self, database_host):        
         self.database_host = database_host
         print "init advert service session at host: " + database_host
-        advert_dir = saga.url("advert://" + database_host + "/"+APPLICATION_NAME)
-        self.advert = saga.advert.directory(advert_dir, saga.advert.Create | saga.advert.ReadWrite)
-        print "created advert directory for application: " + advert_dir.get_string()  
+	self.uuid = uuid.uuid1()
+        self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid))
+        self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.ReadWrite)
+        print "created advert directory for application: " + self.app_url.get_string()
     
     def start_glidin_job(self, 
                  lrms_url, 
@@ -44,7 +45,7 @@ class advert_glidin_job():
 
         #register advert entry
         lrms_saga_url = saga.url(lrms_url)
-        self.glidin_url = "advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + lrms_saga_url.host
+        self.glidin_url = self.app_url.get_string() + "/" + lrms_saga_url.host
         self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.ReadWrite)
 
         jd = saga.job.description()
@@ -68,7 +69,8 @@ class advert_glidin_job():
     
     def cancel(self):        
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
-        return self.job.cancel()
+        self.job.cancel()
+        self.app_dir.remove(self.app_url, saga.name_space.Recursive)	
     
     def __repr__(self):
          return self.glidin_url 
