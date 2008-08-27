@@ -19,6 +19,7 @@ import getopt
 import saga
 import time
 import uuid
+import pdb
 import socket
 import os
 
@@ -85,15 +86,14 @@ class advert_job():
     def submit_job(self, glidin_url, jd):
         """ submit job via advert service to NAMD-Launcher 
             dest_url - url reference to advert job or host on which the advert job is going to run"""
-        
+        print "submit job: " + str(glidin_url)
         self.saga_glidin_url = saga.url(glidin_url)
-        
-        if(self.saga_glidin_url.scheme=="advert"): #
+	if(self.saga_glidin_url.scheme=="advert"): #
             self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         else: # any other url, try to guess glidin job url
             host=""
             try:
-                host = saga_job_dest_url.host
+                host = self.saga_glidin_url.host
             except:
                 pass
             if host =="":
