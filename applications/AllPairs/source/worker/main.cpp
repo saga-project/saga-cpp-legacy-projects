@@ -8,12 +8,6 @@
 
 using namespace AllPairs;
 
-double comp_matrix[4][4] = {
-{0.0, 1.0, 2.0, 2.5},
-{0.0, 0.0, 2.0, 1.5},
-{1.0, 1.0, 0.0, 1.0},
-{0.0, 1.5, 2.0, 0.0}};
-
 class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
   public:
    AllPairsImpl(int argCount, char **argList)
@@ -31,9 +25,9 @@ class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
-   //putenv("SAGA_VERBOSE=100");
-   std::freopen("/tmp/worker-stderr.txt", "w", stderr);
-   std::freopen("/tmp/worker-stdout.txt", "w", stdout);
+   putenv("SAGA_VERBOSE=100");
+   std::freopen("/home/mmicel2/worker-stderr.txt", "w", stderr);
+   std::freopen("/home/mmicel2/worker-stdout.txt", "w", stdout);
    try {
       AllPairsImpl allPairs(argc, argv);
       allPairs.run();

@@ -321,7 +321,7 @@ namespace AllPairs {
                         jd.set_attribute(saga::job::attributes::description_executable, command);
                         jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_false);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
-                        saga::job::service js("any://" + hostListIT->rmURL);
+                        saga::job::service js(hostListIT->rmURL);
                         saga::job::job agentJob= js.create_job(jd);
                         agentJob.run();
                         message += "SUCCESS";
@@ -348,7 +348,16 @@ namespace AllPairs {
             std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
             sleep(5); //In here temporarily to allow time for all jobs to create advert entries
-            std::vector<std::string> data = comparisonHandler.assignWork();
+            std::map<std::string, std::string> data = comparisonHandler.assignWork();
+            log->write("Success", LOGLEVEL_INFO);
+            std::map<std::string, std::string>::iterator it = data.begin();
+            std::cerr << "MATRIX:" << std::endl;
+            while(it != data.end())
+            {
+               std::cerr << it->first << ": " << it->second << std::endl;
+               it++;
+            }
+            
          }
       };
    } // namespace Master

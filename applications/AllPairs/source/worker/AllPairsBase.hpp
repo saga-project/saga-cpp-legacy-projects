@@ -37,7 +37,7 @@ namespace AllPairs {
          sessionUUID_ = (vm["session"].as<std::string>());
          database_    = (vm["database"].as<std::string>());
          logURL_      = (vm["log"].as<std::string>());
-         uuid_        = "MICHAELCHRIS";//saga::uuid().string();
+         uuid_        = saga::uuid().string();
          logWriter_ = new LogWriter(AP_WORKER_EXE_NAME, logURL_);
       }
       /*********************************************************
@@ -207,7 +207,7 @@ namespace AllPairs {
                }
                retval += ";";
                //finished, now write data to advert
-               saga::advert::entry fin_adv(workerDir_.open(saga::url("finishedFile"), mode));
+               saga::advert::entry fin_adv(workerDir_.open(saga::url("./finishedFile"), mode));
                fin_adv.store_string(retval);
                std::cout << workerDir_.get_attribute("STATE") << " is the worker state" << std::endl;
                workerDir_.set_attribute("COMMAND","");

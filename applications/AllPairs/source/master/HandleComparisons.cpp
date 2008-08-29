@@ -26,7 +26,7 @@ namespace AllPairs
  * assignReduces is the only public function that tries  *
  * to assign reduce files to idle workers                *
  * ******************************************************/
- std::vector<std::string> HandleComparisons::assignWork()
+ std::map<std::string, std::string> &HandleComparisons::assignWork()
  {
     while(finished_.size() < fragmentFiles_.size()) {
        saga::url fragmentFile(get_file_());
@@ -57,9 +57,11 @@ namespace AllPairs
              tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
              saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode | saga::advert::Create));
              tc.add_task(adv.store_string<saga::task_base::ASync>(fragmentFile.get_string()));
-             std::cerr << "Assigned worker " << possibleWorker.get_url().get_string() << " to compare all in " << fragmentFile.get_string() << " to everything else" << std::endl;
+             std::string message("Assigned worker");
+             message += possibleWorker.get_url().get_path() + " to compare fragment: " + fragmentFile.get_string();
              assigned_.push_back(fragmentFile);
              tc.wait();
+             log_->write(message, LOGLEVEL_INFO);
              assigned = true;
           }
           else if(state == WORKER_STATE_DONE) {
@@ -71,13 +73,19 @@ namespace AllPairs
                 saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode));
                 std::string finished_work(adv.retrieve_string());
                 finished_.push_back(saga::url(finished_work));
+                std::string message("Worker ");
+                message += possibleWorker.get_url().get_path() + " finished fragment " + finished_work;
+                log_->write(message, LOGLEVEL_INFO);
                 //finishedFile is the data of the comparison
                 saga::advert::entry adv_done(possibleWorker.open(saga::url("./finishedFile"), mode));
-                data_.push_back((finished_work + ":  " + adv_done.retrieve_string()));
+                data_[finished_work] = adv_done.retrieve_string();
                 tc.add_task(adv.store_string<saga::task_base::ASync>(fragmentFile.get_string()));
+                message = "Assigned worker";
+                message += possibleWorker.get_url().get_path() + " to compare fragment: " + fragmentFile.get_string();
                 assigned_.push_back(fragmentFile);
-                std::cerr << "Assigned worker " << possibleWorker.get_url().get_string() << " to compare all in " << fragmentFile.get_string() << " to everything else" << std::endl;
                 tc.wait();
+                log_->write(message, LOGLEVEL_INFO);
+                assigned_.push_back(fragmentFile);
                 assigned = true;
              }
              catch(saga::exception const &e) {
