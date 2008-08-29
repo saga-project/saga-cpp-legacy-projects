@@ -470,8 +470,10 @@ def run_REMDg(configfile_name):
             jd = set_saga_job_description(irep, RE_info, "")
             dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
             checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-#            error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
-            error_msg, new_job = submit_job(dest_url_string, jd)
+#           error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+            #error_msg, new_job = submit_job(dest_url_string, jd)
+	    glidin_url = RE_info.advert_glidin_jobs[RE_info.remote_hosts[irep]].glidin_url 
+            error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
             RE_info.replica.append(new_job)
             print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
 
@@ -487,7 +489,7 @@ def run_REMDg(configfile_name):
             for irep in range(0, numReplica):
                 running_job = RE_info.replica[irep]
                 state = running_job.get_state()
-#                print "received state: " + str(state)
+                print "received state: " + str(state)
                 if (str(state) == "Done") and (flagJobDone[irep] is False) :   
                     print "(INFO) Replica " + "%d"%irep + " done"
                     
