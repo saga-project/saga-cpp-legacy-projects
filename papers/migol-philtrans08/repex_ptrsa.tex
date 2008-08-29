@@ -253,10 +253,12 @@ effectively from the application developers perspective.
 The remainder of the paper is structured as follows: In the next
 section we provide the basic ideas behind RE and specifically
 Replica-Exchange using Molecular Dynamics simulations.  We then
-discuss the fault-tolerant Migol framework. In section 4 we present
-the SAGA-CPR package and show its relation to Migol. In section 5, we
-discuss how SAGA-CPR and Migol are used to implement a fault-tolerant,
-distributed framework for RE.  In the subsequent sections we discuss
+discuss the SAGA CPR package and its relation to the  fault-tolerant 
+Migol framework. In section 4 we present
+the challenges of developing developing a REMD application, which is runnable in 
+a heterogeneous and loosely coupled Grid environment.
+In section 5, we discuss how SAGA and Migol are used to implement 
+a fault-tolerant, distributed framework for RE. In the subsequent sections we discuss
 our experience in implementing REMD and performance figures. We
 conclude by providing a detailed analysis of related work, which will
 highlight the truly unique features of our implementation.
@@ -379,7 +381,20 @@ functionality of Migol can be seamlessly integrated with SAGA-CPR.
 \section{Challenges of implementing Replica Exchange in Distributed
   Environments}
 
-\jhanote{all the challengenes}
+\jhanote{all the challenges}
+
+Running REMD simulation across a distributed environment is a great challenge. Distributed environments 
+are inherently error-prone. Especially in a REMD simulation the loss of a single replica process due
+to a node or network failure usually causes the abort of the entire simulations.
+
+REMD involves the running of multiple replica jobs in parallel. At the end of each run the
+results must be obtained and exchange is attempted. The process of running the replica processes
+is then repeated. The implementation of such an application with running replicas across
+multiple resource without a well-defined programing abstraction and middleware can be very complex.
+                                                                
+Another challenge in a heterogeneous environments is the synchronization required after each round. In particular,
+when running REMD across multiple clusters the effects of queue wait times can be severe. To avoid this issue,
+a middleware must provide efficient mechanisms to allocate resources for multiple replica runs in a row.
 
 \section{Implementing Distributed Replica-Exchange Using SAGA}
 
@@ -391,8 +406,7 @@ functionality of Migol can be seamlessly integrated with SAGA-CPR.
 The \emph{Simple API for Grid Applications (SAGA)}~\citep{saga_gfd90}
 provides an easy-to-use standardised API for developing a broad range
 of distributed applications, including, but not limited to
-loosely-coupled data and/or pleasingly-distributed applications.
-
+loosely-coupled data and/or pleasingly-distributed applications.  
 In particular, SAGA offers an API for the management of
 checkpoint-recoverable jobs and file transfers that can be used over
 heterogenous distributed environment. Thus, SAGA is ideally suited for
@@ -403,7 +417,8 @@ encoding the orchestration logic of RE simulations.
   checkpointing, new jobs, MPI issues discussed etc. etc. Try to
   establish what is specific to the SAGA way of doing things from what
   is a general distributed computing problem/issue}
-
+          
+\subsection{REMD-Manager Architecture}
 \begin{figure}[t]
       \centering
           \includegraphics[width=0.7\textwidth]{REMDgManager-architecture.pdf}
@@ -422,7 +437,7 @@ also referred to as \emph{REMD-Manager}, is deployed on the user's
 desktop and provides the user interface to the overall REMD run. The
 second component is the Migol infrastructure that submits, monitors,
 and if required, recovers replica simulations.  The last element is
-the task agent, the \emph{NAMD-Launcher}, that resides on the High
+the task agent, the \emph{Replica-Launcher}, that resides on the High
 Performance machines where MD simulations are carried out. The
 NAMD-Launcher is triggered by the Grid job and is responsible for
 spawning and monitoring the MD run. NAMD~\citep{Phillips:2005gd}, a
@@ -437,8 +452,7 @@ tasks, file staging, job spawning and the conduction of the
 replica-exchange itself. This component heavily relies on the SAGA
 File and CPR API as well as the Python bindings for the implementation
 of the RE logic\footnote{The complete REMD-Manager code can be found
-  at
-  https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}.
+at https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}.
                                   
 \alnote{I am really not sure about this code snippet. It somehow
   represents the logics - however I am not sure whether it is worth
@@ -460,32 +474,99 @@ is then submitted to the Grid resource using the CPR API and
 Migol/GRAM (step 2a-2c). Migol ensures that the the job description of
 each replica is stored within the Migol backend to ensure a later
 recovery. Globus GRAM is used to start the application.
-                                               
-To integrate NAMD with the SAGA/Migol infrastructure a SAGA based task
-agent -- {\it NAMD-Launcher}, is used.  This agent is responsible for
-updating the metadata of the application, i.\,e.\ the state,
-monitoring endpoint and new checkpoint URLs, at the
-Migol backend.  The agent then launches the actual NAMD job using
-MPI. During the entire runtime the replica process is monitored by
-Migol using the monitoring endpoint of the NAMD launcher. This
-NAMD-Launcher enables the flexible orchestration of multiple NAMD jobs
-through the REMD-Manager without modification of the NAMD source
-itself.
 
-When paired replicas reach a pre-determined states (eg., after a fixed
-number of steps), the decision as to whether to exchange
+When all replicas reach a pre-determined states (e.\,g., the NAMD job finishes 
+after a fixed number of steps), the decision as to whether to exchange
 paired-replicas is determined by the Metropolis scheme. If successful,
 parameters such as the temperature, are swapped. Both jobs are then
 relaunched using the mechanisms described above. Often the Metropolis
 scheme returns a negative result, and an exchange is not carried out;
-thus it is difficult to respond to an possible exchange speculatively.
+thus it is difficult to respond to an possible exchange speculatively. 
+
+            
+\subsection{Efficiently Replica Job Scheduling}
+
+A particular problem that became evident in earlier experiments%~\citep{Luckow:2008la}
+is the effect of the queuing delay on the overall completion time. 
+Various systems, such as Falkon~\citep{1362680} or the Condor
+Glide-In~\citep{citeulike:291860} for avoiding this issue have been proposed.
+These frameworks provide mechanisms to acquire chunks of 
+resources from the resource management systems,
+which can then be used to dispatch short tasks.  However, there are different 
+limitations. For example, both system impose some different overheads: Condor Glidin starts
+a complete set of Condor daemons within the allocated set of resources. For Falcon, \citet{citeulike:3169002} noted
+a startup time of over 2 minutes on a Blue Gene/P machine. 
+
+
+However, such a glidin mechanism is a very attractive model for minimizing queuing times.
+For the REMD-Manager, we demonstrated the simplicity and extensible of the SAGA framework by
+providing a well-defined abstraction for glidin based applications based on the SAGA Job API.
+  
+\begin{figure}[th]
+    \centering
+        \includegraphics[width=0.9\textwidth]{remdmanager_v11}
+    \caption{\footnotesize \bf REMD Programing Abstractions and Resource Management: The Replica-Launcher is used as placeholder job for all 
+    replica processes running on a single cluster. The REMD-Manager can control both the placeholder job and the replica jobs
+    using an enhanced Job API. By using this efficient way to allocate resources, queuing times are minimized and the time
+    to completion can be dramatically reduced.}
+    \label{fig:remdmanager_v1.1}
+\end{figure}
+
+Figure~\ref{fig:remdmanager_v1.1} illustrates the architecture. For each cluster machine
+a {\it Replica-Launcher} process is started using the SAGA CPR API. This agent is assigned the resources required 
+for all replica processes on this machine. Using an enhanced Job API the REMD-Manager can submit
+different small replica tasks with reference to the Replica-Launcher job. In a sense the Replica-Launcher job represents a 
+resource reservation for all replica processes. It is then the responsibility of the 
+Replica-Launcher to assign resources to these ``small'' tasks, monitor the tasks and free the resources after the tasks 
+has been finished.
+
+The enhanced job API behaves similar to the SAGA Job API. The handling of such jobs is exactly the same as with the normal
+SAGA jobs. The API has been implemented entirely in application space using Python and the SAGA Advert API. Using the Python 
+duck typing mechanism such an enhanced job object can be used as replacement to a SAGA job object -- no further source modifications 
+needed. The implementation is based on a simple protocol using the Advert Service, a central key/value store. 
+For each new job an an advert entry is created. The Replica-Launcher periodically polls for new jobs. 
+If a new job is found and  resources are available, the job is launched otherwise it is queued. 
+
+                                                                
+In addition the Replica-Launcher servers as client for the Migol backend. It is responsible for
+updating the metadata of the application, i.\,e.\ the state, monitoring endpoint and new checkpoint URLs, at the
+Migol backend. During the entire runtime the replica process is monitored by
+Migol using the monitoring endpoint of the Replica-Launcher. 
+
+% To integrate NAMD with the SAGA/Migol infrastructure a SAGA based task
+% agent -- {\it Replica-Launcher}, is used.  This agent is responsible for
+% updating the metadata of the application, i.\,e.\ the state,
+% monitoring endpoint and new checkpoint URLs, at the
+% Migol backend.  The agent then launches the actual NAMD job using
+% MPI. During the entire runtime the replica process is monitored by
+% Migol using the monitoring endpoint of the Replica-Launcher. This
+% Replica-Launcher enables the flexible orchestration of multiple NAMD jobs
+% through the REMD-Manager without modification of the NAMD source
+% itself.    This
+% Replica-Launcher enables the flexible orchestration of multiple NAMD jobs
+% through the REMD-Manager without modification of the NAMD source
+% itself.
 
 In summary, SAGA allows the simple decoupling of the REMD application
 and orchestration logic from the underlying distributed
 infrastructure. All this whilst remaining general purpose and
 extensible, for example, using the Migol adaptor, the application can
 also benefit from additional features, such as the automatic
-monitoring and the transparent recovery of failed tasks.  \jhanote{May
+monitoring and the transparent recovery of failed tasks. By only slightly extending
+the Job abstraction defined by SAGA a powerful programing abstraction for glidin jobs
+has been defined and successfully deployed within the REMD application. While the current
+implementation used an custom protocol to implement this mechanisms, the approach can
+also be applied to other middleware platforms, such as Condor Glidin or Falcon. Currently,
+we are actively working on a Condor adaptor for SAGA.
+
+
+
+
+power of programatic interface
+working on condor adaptor
+we could easily map this to condor glidin 
+
+\jhanote{May
   want to replace or remove: At the same time, SAGA allows the
   application to easily utilize other infrastructures in conjunction
   to or as replacement to Migol.}
@@ -840,6 +921,8 @@ is critical to note and emphasise the general usability and
 extensibility -- across different infrastructures, across a range of
 scientific applications and usage patterns (e.g.  the multiple
 variants of the RE) -- of our approach.
+                  
+Gallicchio et al.: AREMD
 
 \jhanote{In future work, we need to mention that we are deploying this
   infrastructure on a real distributed system (LONI) and are using it

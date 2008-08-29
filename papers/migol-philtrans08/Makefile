@@ -8,7 +8,7 @@ DVIPS=dvips
 
 
 # main source files
-NAME = phil_trans_a
+NAME = repex_ptrsa
 TEXTS=$(NAME).tex
 
 #DVIS=draft.dvi bericht.dvi
