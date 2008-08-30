@@ -42,11 +42,14 @@ class advert_launcher:
 
         update_glidin_state()
         
-        #start background thread for polling new jobs and monitoring current jobs
+	# update state of glidin job to running
+        self.update_glidin_state()
+        # start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
         self.launcher_thread.start()
         
     def update_glidin_state(self):     
+	print "update state of glidin job to: " + str(saga.job.Running)
         return self.base_dir.set_attribute("state", str(saga.job.Running))
     
     def init_pbs(self):
