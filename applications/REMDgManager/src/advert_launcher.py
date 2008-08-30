@@ -40,7 +40,7 @@ class advert_launcher:
         except:
             print "No advert entry found at specified url: " + advert_url
 
-        update_glidin_state()
+        self.update_glidin_state()
         
 	# update state of glidin job to running
         self.update_glidin_state()
