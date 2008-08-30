@@ -47,9 +47,11 @@ class advert_glidin_job():
         #register advert entry
         lrms_saga_url = saga.url(lrms_url)
         self.glidin_url = self.app_url.get_string() + "/" + lrms_saga_url.host
-        self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.ReadWrite)
+	print "create advert entry: " + self.glidin_url
+        self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         # application level state since globus adaptor does not support state detail
         self.glidin_dir.set_attribute("state", str(saga.job.Unknown)) 
+	print "set glidin state to: " + self.glidin_dir.get_attribute("state")
         jd = saga.job.description()
         jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"

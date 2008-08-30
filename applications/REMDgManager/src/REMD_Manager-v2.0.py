@@ -402,7 +402,7 @@ def start_glidin_jobs(RE_info):
     """start glidin jobs (advert_job.py) at every unique machine specified in RE_info"""  
     unique_hosts = set(RE_info.remote_hosts)    
     for i in unique_hosts:
-	print "Number hosts: " + str(RE_info.remote_hosts.count(i)) + "Number processes per job: " + str(RE_info.numberofprocesses)
+	print "Number hosts: " + str(RE_info.remote_hosts.count(i)) + " Number processes per job: " + str(RE_info.numberofprocesses)
         nodes = int(RE_info.remote_hosts.count(i)) * int(RE_info.numberofprocesses) 
         lrms = RE_info.remote_host_local_schedulers[RE_info.remote_hosts.index(i)]
         project = RE_info.projects[RE_info.remote_hosts.index(i)]
@@ -440,7 +440,7 @@ def run_REMDg(configfile_name):
     RE_info = initialize(configfile_name)
     
     numEX = RE_info.exchange_count    
-    numReplica = RE_info.replica_count
+
     
     ofilename = "remd-temp.out"
     
@@ -448,13 +448,14 @@ def run_REMDg(configfile_name):
 
     iEX = 0
     while 1:
-        # input file stage in
         print "\n"
+        # reset replica number
+	numReplica = RE_info.replica_count
         # query glidin job states and cache them into a dict.
         glidin_job_states ={}
         for i in RE_info.advert_glidin_jobs.items():
             glidin_job_states[i[0]] = i[1].get_state_detail()
-	    print "Glidin host: " + str(i[0]) + " Job State: " + str(i[1]) + " State Detail: " + i[1].get_state_detail()
+	    print "Glidin host: " + str(i[0]) + " Job State: " + str(i[1].get_state()) + " State Detail: " + i[1].get_state_detail()
         
         ####################################### file staging ################################################
         for irep in range(0, numReplica):

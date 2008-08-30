@@ -37,9 +37,10 @@ class advert_launcher:
         print "Open advert: " + self.base_url
         try:
             self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
-            update_glidin_state()
         except:
             print "No advert entry found at specified url: " + advert_url
+
+        update_glidin_state()
         
         #start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
