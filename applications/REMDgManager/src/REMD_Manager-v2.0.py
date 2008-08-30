@@ -452,48 +452,55 @@ def run_REMDg(configfile_name):
         print "\n"
         # query glidin job states and cache them into a dict.
         glidin_job_states ={}
-        for i in RE_info.advert_glidin_jobs.item():
-            print "Glidin host: " + i[0] + " Job State: " + i[1]
-            glidin_job_states[i[0]] = i[1].get_state()
+        for i in RE_info.advert_glidin_jobs.items():
+            glidin_job_states[i[0]] = i[1].get_state_detail()
+	    print "Glidin host: " + str(i[0]) + " Job State: " + str(i[1]) + " State Detail: " + i[1].get_state_detail()
         
-        ####################################### file staging ##################################
+        ####################################### file staging ################################################
         for irep in range(0, numReplica):
            host = RE_info.remote_hosts[irep]
+	   #print "Glidin job on host: " + host + "state: " + str(glidin_job_states[host]).lower()
            # only start replicas if glidin job is running
-           if str(glidin_job_states[host].lower()) == "running": 
+           if str(glidin_job_states[host]).lower() == "running": 
                remote_machine_ip = RE_info.remote_hosts[irep]
                remote_dir = RE_info.workingdirectories[irep]
                
                prepare_NAMD_config(irep, RE_info) 
                file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
                print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip) 
+	   else:
+	       print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not stage filea"
                 
-        ####################################### replica job spawning ##################################        
+        ####################################### replica job spawning #######################################  
         # job submit   
         RE_info.replica = []
         start_time = time.time()
-        print "\n"
         for irep in range(0,numReplica):
             host = RE_info.remote_hosts[irep]
+	    # print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower()
             # only start replicas if glidin job is running
-            if str(glidin_job_states[host].lower()) == "running":
+            if str(glidin_job_states[host]).lower() == "running":
                 jd = set_saga_job_description(irep, RE_info, "")
                 dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
                 checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-    #           error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
-                #error_msg, new_job = submit_job(dest_url_string, jd)
                 glidin_url = RE_info.advert_glidin_jobs[host].glidin_url 
                 error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
                 RE_info.replica.append(new_job)
                 print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
+	    else:
+	    	print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not start replica"
 
         end_time = time.time()        
         # contains number of started replicas
         
         numReplica = len(RE_info.replica)
-        print "started " + numReplica + " of " + RE_info.replica_count + " in this round." 
+	if numReplica == 0: # no replica process started
+		time.sleep(10)
+		continue # next attempt to start replica processes
+
+        print "started " + "%d"%numReplica + " of " + "%d"%RE_info.replica_count + " in this round." 
         print "Time for spawning " + "%d"%numReplica + " replica: " + str(end_time-start_time) + " s"
-        ####################################### Wating for job termination ##################################
+        ####################################### Wating for job termination ###############################
         # job monitoring step
         energy = [0 for i in range(0, numReplica)]
         flagJobDone = [ False for i in range(0, numReplica)]
