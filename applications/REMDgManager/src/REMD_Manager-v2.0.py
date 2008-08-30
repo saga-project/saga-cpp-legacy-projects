@@ -450,35 +450,50 @@ def run_REMDg(configfile_name):
     while 1:
         # input file stage in
         print "\n"
+        # query glidin job states and cache them into a dict.
+        glidin_job_states ={}
+        for i in RE_info.advert_glidin_jobs.item():
+            print "Glidin host: " + i[0] + " Job State: " + i[1]
+            glidin_job_states[i[0]] = i[1].get_state()
+        
+        ####################################### file staging ##################################
         for irep in range(0, numReplica):
-           
-           remote_machine_ip = RE_info.remote_hosts[irep]
-           remote_dir = RE_info.workingdirectories[irep]
-           
-           
-           prepare_NAMD_config(irep, RE_info) 
-           file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
-           print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip) 
-
+           host = RE_info.remote_hosts[irep]
+           # only start replicas if glidin job is running
+           if str(glidin_job_states[host].lower()) == "running": 
+               remote_machine_ip = RE_info.remote_hosts[irep]
+               remote_dir = RE_info.workingdirectories[irep]
+               
+               prepare_NAMD_config(irep, RE_info) 
+               file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
+               print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip) 
+                
+        ####################################### replica job spawning ##################################        
         # job submit   
         RE_info.replica = []
-        
         start_time = time.time()
         print "\n"
         for irep in range(0,numReplica):
+            host = RE_info.remote_hosts[irep]
+            # only start replicas if glidin job is running
+            if str(glidin_job_states[host].lower()) == "running":
+                jd = set_saga_job_description(irep, RE_info, "")
+                dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+                checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
+    #           error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
+                #error_msg, new_job = submit_job(dest_url_string, jd)
+                glidin_url = RE_info.advert_glidin_jobs[host].glidin_url 
+                error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
+                RE_info.replica.append(new_job)
+                print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
 
-            jd = set_saga_job_description(irep, RE_info, "")
-            dest_url_string = "gram://" + RE_info.remote_hosts[irep] + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-            checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-#           error, new_job = submit_job_cpr(dest_url_string, jd, checkpt_files)
-            #error_msg, new_job = submit_job(dest_url_string, jd)
-	    glidin_url = RE_info.advert_glidin_jobs[RE_info.remote_hosts[irep]].glidin_url 
-            error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
-            RE_info.replica.append(new_job)
-            print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
-
-#        end_time = time.time()        
-#        print "Time for spawning " + "%d"%(irep+1) + " replica: " + str(end_time-start_time) + " s"
+        end_time = time.time()        
+        # contains number of started replicas
+        
+        numReplica = len(RE_info.replica)
+        print "started " + numReplica + " of " + RE_info.replica_count + " in this round." 
+        print "Time for spawning " + "%d"%numReplica + " replica: " + str(end_time-start_time) + " s"
+        ####################################### Wating for job termination ##################################
         # job monitoring step
         energy = [0 for i in range(0, numReplica)]
         flagJobDone = [ False for i in range(0, numReplica)]
@@ -502,7 +517,7 @@ def run_REMDg(configfile_name):
             
             if numJobDone == numReplica:
                 break
-            
+        ####################################### Replica Exchange ##################################    
         # replica exchange step        
         print "\n(INFO) Now exchange step...."
 
@@ -528,8 +543,9 @@ def run_REMDg(configfile_name):
 
         if iEX == numEX:
             break
-            
-        stop_glidin_jobs(RE_info)
+        
+    # stop gliding job        
+    stop_glidin_jobs(RE_info)
 
 
 

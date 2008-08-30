@@ -31,7 +31,7 @@ class advert_glidin_job():
     def __init__(self, database_host):        
         self.database_host = database_host
         print "init advert service session at host: " + database_host
-	self.uuid = uuid.uuid1()
+        self.uuid = uuid.uuid1()
         self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid))
         self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.ReadWrite)
         print "created advert directory for application: " + self.app_url.get_string()
@@ -61,6 +61,7 @@ class advert_glidin_job():
         
         js = saga.job.service(lrms_saga_url)
         self.job = js.create_job(jd)
+        print "Submit glidin job to: " + str(lrms_saga_url)
         self.job.run()
         return self.job
      
@@ -88,7 +89,7 @@ class advert_job():
             dest_url - url reference to advert job or host on which the advert job is going to run"""
         print "submit job: " + str(glidin_url)
         self.saga_glidin_url = saga.url(glidin_url)
-	if(self.saga_glidin_url.scheme=="advert"): #
+        if(self.saga_glidin_url.scheme=="advert"): #
             self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         else: # any other url, try to guess glidin job url
             host=""
