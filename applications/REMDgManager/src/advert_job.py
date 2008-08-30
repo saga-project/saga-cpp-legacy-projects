@@ -48,7 +48,8 @@ class advert_glidin_job():
         lrms_saga_url = saga.url(lrms_url)
         self.glidin_url = self.app_url.get_string() + "/" + lrms_saga_url.host
         self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.ReadWrite)
-
+        # application level state since globus adaptor does not support state detail
+        self.glidin_dir.set_attribute("state", str(saga.job.Unknown)) 
         jd = saga.job.description()
         jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
@@ -68,6 +69,9 @@ class advert_glidin_job():
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job.get_state()
+    
+    def get_state_detail(self): 
+        return self.glidin_dir.get_attribute("state")
     
     def cancel(self):        
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
@@ -128,7 +132,7 @@ class advert_job():
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
-
+    
     def __repr__(self):        
         return self.job_url
 

@@ -37,12 +37,16 @@ class advert_launcher:
         print "Open advert: " + self.base_url
         try:
             self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
+            update_glidin_state()
         except:
             print "No advert entry found at specified url: " + advert_url
         
         #start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
-        self.launcher_thread.start() 
+        self.launcher_thread.start()
+        
+    def update_glidin_state(self):     
+        return self.base_dir.set_attribute("state", str(saga.job.Running))
     
     def init_pbs(self):
         pbs_node_file = os.environ.get("PBS_NODEFILE")    
