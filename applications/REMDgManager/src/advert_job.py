@@ -22,6 +22,7 @@ import uuid
 import pdb
 import socket
 import os
+import traceback
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
@@ -96,7 +97,8 @@ class advert_job():
         print "submit job: " + str(glidin_url)
         self.saga_glidin_url = saga.url(glidin_url)
         if(self.saga_glidin_url.scheme=="advert"): #
-            self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+	    pass
+            #self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         else: # any other url, try to guess glidin job url
             host=""
             try:
@@ -107,33 +109,49 @@ class advert_job():
                 host=socket.gethostname()
             # create dir for destination url
             self.saga_glidin_url = saga.url("advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host)
-            self.glidin_dir = saga.advert.directory(self.saga_glidin_url, 
-                                                    saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+            #self.glidin_dir = saga.advert.directory(self.saga_glidin_url, 
+            #                                        saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
 
         # create dir for job
         self.uuid = uuid.uuid1()
         self.job_url = self.saga_glidin_url.get_string() + "/" + str(self.uuid)
-        self.job_dir = saga.advert.directory(saga.url(self.job_url), 
+	for i in range(0,3):
+		try:
+			print "create job entry - attempt: " + str(i)
+        		self.job_dir = saga.advert.directory(saga.url(self.job_url), 
                                              saga.advert.Create | saga.advert.ReadWrite)
 
-        print "initialized advert directory for job: " + self.job_url
+			print "initialized advert directory for job: " + self.job_url
         
-        # put job description attributes to advert
-        attributes = jd.list_attributes()                
-        for i in attributes:          
-            if jd.attribute_is_vector(i):
-                self.job_dir.set_vector_attribute(i, jd.get_vector_attribute(i))
-            else:
-                print "Add attribute: " + str(i) + " Value: " + jd.get_attribute(i)
-                self.job_dir.set_attribute(i, jd.get_attribute(i))
+        		# put job description attributes to advert
+        		attributes = jd.list_attributes()                
+        		for i in attributes:          
+            			if jd.attribute_is_vector(i):
+                			self.job_dir.set_vector_attribute(i, jd.get_vector_attribute(i))
+            			else:
+                			print "Add attribute: " + str(i) + " Value: " + jd.get_attribute(i)
+     		        		self.job_dir.set_attribute(i, jd.get_attribute(i))
        
-        self.job_dir.set_attribute("state", str(saga.job.Unknown))
-        # return self object for get_state() query    
-        return self    
-      
+        		self.job_dir.set_attribute("state", str(saga.job.Unknown))
+        		# return self object for get_state() query    
+        		return self    
+		except:
+			traceback.print_exc(file=sys.stdout)
+			time.sleep(2)
+	raise Exception("Unable to submit job")      
+
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
+	
+    def delete_job(self):
+	print "delete job and close dirs: " + self.job_url
+	self.job_dir.remove(saga.url(self.job_url), saga.name_space.Recursive)
+	self.job_dir.close()
+	#self.glidin_dir.close()
+
+    def __del__(self):
+	self.delete_job()
     
     def __repr__(self):        
         return self.job_url

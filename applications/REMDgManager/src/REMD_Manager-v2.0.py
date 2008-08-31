@@ -443,8 +443,18 @@ def run_REMDg(configfile_name):
 
     
     ofilename = "remd-temp.out"
-    
+    start_glidin = time.time() 
     start_glidin_jobs(RE_info)
+    glidin_job_states ={}
+
+    ####################################### file staging ################################################
+    for irep in range(0, RE_info.replica_count):
+           host = RE_info.remote_hosts[irep]
+           remote_machine_ip = RE_info.remote_hosts[irep]
+           remote_dir = RE_info.workingdirectories[irep]
+           prepare_NAMD_config(irep, RE_info)
+           file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+           print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip)
 
     iEX = 0
     while 1:
@@ -452,12 +462,19 @@ def run_REMDg(configfile_name):
         # reset replica number
 	numReplica = RE_info.replica_count
         # query glidin job states and cache them into a dict.
-        glidin_job_states ={}
+	all_glidins_running = True
+	new_glidin_job_states={}
         for i in RE_info.advert_glidin_jobs.items():
-            glidin_job_states[i[0]] = i[1].get_state_detail()
+            new_glidin_job_states[i[0]] = i[1].get_state_detail()
+	    try:
+	    	if (new_glidin_job_states[i[0]].lower() == "running" and new_glidin_job_states[i[0]].lower() != glidin_job_states[i[0]].lower()):
+			print "Glide-In: " + str(i[0]) + " changed to running after: " + "%d"%(time.time()-start_glidin) + " s"
+	    except:
+		pass
 	    print "Glidin host: " + str(i[0]) + " Job State: " + str(i[1].get_state()) + " State Detail: " + i[1].get_state_detail()
-        
-        ####################################### file staging ################################################
+	    glidin_job_states = new_glidin_job_states        
+
+        ####################################### NPT staging ################################################
         for irep in range(0, numReplica):
            host = RE_info.remote_hosts[irep]
 	   #print "Glidin job on host: " + host + "state: " + str(glidin_job_states[host]).lower()
@@ -467,10 +484,10 @@ def run_REMDg(configfile_name):
                remote_dir = RE_info.workingdirectories[irep]
                
                prepare_NAMD_config(irep, RE_info) 
-               file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir) 
+               file_stage_in_with_saga([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir) 
                print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip) 
 	   else:
-	       print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not stage filea"
+	       print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not stage files"
                 
         ####################################### replica job spawning #######################################  
         # job submit   
@@ -490,6 +507,7 @@ def run_REMDg(configfile_name):
                 print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
 	    else:
 	    	print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not start replica"
+	    time.sleep(1)
 
         end_time = time.time()        
         # contains number of started replicas
@@ -509,22 +527,25 @@ def run_REMDg(configfile_name):
       
         print "\n\n" 
         while 1:    
+	    print "\n##################### Replica State Check at: " + time.asctime(time.localtime(time.time())) + " ########################"
             for irep in range(0, numReplica):
                 running_job = RE_info.replica[irep]
                 state = running_job.get_state()
-                print "received state: " + str(state)
+                print "job: " + str(running_job) + " received state: " + str(state)
                 if (str(state) == "Done") and (flagJobDone[irep] is False) :   
                     print "(INFO) Replica " + "%d"%irep + " done"
-                    
                     energy[irep] = get_energy(irep, RE_info)
                     flagJobDone[irep] = True
                     numJobDone = numJobDone + 1
-                else :
-                    time.sleep(10)
-                    pass
+                elif(str(state)=="Failed"):
+		    stop_glidin_jobs(RE_info)
+		    sys.exit(1)
             
             if numJobDone == numReplica:
                 break
+	    time.sleep(30)
+
+
         ####################################### Replica Exchange ##################################    
         # replica exchange step        
         print "\n(INFO) Now exchange step...."
@@ -551,6 +572,10 @@ def run_REMDg(configfile_name):
 
         if iEX == numEX:
             break
+
+	########################## delete old jobs #####################
+	for i in RE_info.replica:
+		i.delete_job()
         
     # stop gliding job        
     stop_glidin_jobs(RE_info)

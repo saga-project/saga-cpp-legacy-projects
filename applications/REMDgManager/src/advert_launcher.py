@@ -8,6 +8,7 @@ import socket
 import threading
 import time
 import pdb
+import traceback
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
@@ -64,24 +65,25 @@ class advert_launcher:
         """ for debugging purposes 
         print attributes of advert directory """
         
-        print "**** Attributes for: "+advert_directory.get_url().get_string()+ "**********"
-        attributes = advert_directory.list_attributes()                
-        for i in attributes:
-            if (advert_directory.attribute_is_vector(i)==False):
-                print "attribute: " + str(i) +  " value: " + advert_directory.get_attribute(i)
-            else:
-                print "attribute: " + str(i)
-                vector = advert_directory.get_vector_attribute(i) 
-                for j in vector:
-                    print j
+        print "Job: "+advert_directory.get_url().get_string()+ " State: " + advert_directory.get_attribute("state")
+
+        #attributes = advert_directory.list_attributes()                
+        #for i in attributes:
+        #    if (advert_directory.attribute_is_vector(i)==False):
+        #        print "attribute: " + str(i) +  " value: " + advert_directory.get_attribute(i)
+        #    else:
+        #        print "attribute: " + str(i)
+        #        vector = advert_directory.get_vector_attribute(i) 
+        #        for j in vector:
+        #            print j
      
     def execute_job(self, job_dir):
         """ obtain job attributes from advert and execute process """
         
-        self.print_attributes(job_dir)        
         if(job_dir.get_attribute("state")==str(saga.job.Unknown) or
            job_dir.get_attribute("state")==str(saga.job.New)):
             job_dir.set_attribute("state", str(saga.job.New))
+            self.print_attributes(job_dir)        
             numberofprocesses = "1"
             if (job_dir.attribute_exists("NumberOfProcesses") == True):
                 numberofprocesses = job_dir.get_attribute("NumberOfProcesses")
@@ -232,12 +234,18 @@ class advert_launcher:
                         
     def start_background_thread(self):
         self.stop=False
+	print "\n"
+	print "##################################### New POLL/MONITOR cycle ##################################"
+	print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while True and self.stop==False:
-            self.poll_jobs()
-	    #pdb.set_trace()
-            self.monitor_jobs()            
-            time.sleep(30)
-            
+	    try:
+            	self.poll_jobs()
+	    	#pdb.set_trace()
+            	self.monitor_jobs()            
+            	time.sleep(20)
+	    except:
+		traceback.print_exc(file=sys.stdout)
+ 
     def stop_background_thread(self):        
         self.stop=True
 
