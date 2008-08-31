@@ -230,11 +230,12 @@ coupling between tasks.  Speculative computing is still possible, but
 its use to mitigate the consequence of distributed failures, leads to
 a whole host of load-balancing and scheduling problems.
 
-Partly due to some of these challenges, even though distributed RE
-simulations are loosely-coupled, failures can become a major problem
-for such applications.  In RE simulations, there is a need to
-occasionally attempt an exchange between pairs of replicas; the
-pairing of replicas is not a constant but is dynamically evolving.
+\jhanote{Need to consider this paragraph a bit more carefully. Could
+  go against us.} Partly due to some of these challenges, even though
+distributed RE simulations are loosely-coupled, failures can become a
+major problem for such applications.  In RE simulations, there is a
+need to occasionally attempt an exchange between pairs of replicas;
+the pairing of replicas is not a constant but is dynamically evolving.
 However, once a pair of replicas has been established, a delay or loss
 of one replica will stall the other replica.  Thus over time, due to
 the fact that in principle, every replica will ultimately
@@ -247,66 +248,69 @@ essential to provide support for fault tolerance at some level.
 middleware level by supporting the transparent starting, monitoring
 and recovery of tasks.
 
-\jhanote{there is repetition here. need to refine} \amnote{the last
-  sentence reads strange to me.  What is the 'thus' referring to?  That
-  migol provides fault tolerance?}      
-\alnote{I reordered the sentences - should be ok now.}
+% \jhanote{there is repetition here. need to refine} \amnote{the last
+%   sentence reads strange to me.  What is the 'thus' referring to?  That
+%   migol provides fault tolerance?}      
+% \alnote{I reordered the sentences - should be ok now.}
 
-Having motivated the need for a fault-tolerant framework for
-application development, in particular for distributed RE simulations,
-this paper describes the design of the SAGA~\citep{saga_gfd90}
-Checkpoint\,\&\,Recovery package (CPR), and its implementation using
-the Migol adaptor. SAGA-CPR~\citep{saga-cpr} represents the first
-extension to the core SAGA API specification, and is thus a validation
-of the extensibility of the specification.  Additionally Migol can be
-regarded as a reference implementation of the GridCPR
-architecture~\citep{ogf_cpr_arch}.  We demonstrate this by presenting
-the seamless integration of CPR concepts and abstractions into the
-SAGA framework; the resulting system is able to provide an easy to
-use, high-level programming abstractions for Grid enabled, fault
-tolerant applications.  The pairing of Migol and SAGA-CPR thus
-provides a natural, portable and a very generic solution to the
-problem of a programmatic interface for designing fault-tolerant
-applications.  To highlight this and that it is critical that all
-aspects of the distributed application life-cycle -- design,
-development and deployment -- are made easier, we will discuss our
-experiences in developing and deploying a RE application in a
-production environment.
+In Ref~\cite{saga-migol-eScience08}, we motivated the need for a
+fault-tolerant framework for application development, in particular
+for distributed RE simulations.  We described the design of the
+SAGA~\citep{saga_gfd90} Checkpoint\,\&\,Recovery package (CPR), and
+its implementation using the Migol adaptor. SAGA-CPR~\citep{saga-cpr}
+represents the first extension to the core SAGA API specification, and
+is thus a validation of the extensibility of the specification, and
+Migol can be regarded as a reference implementation of the GridCPR
+architecture~\citep{ogf_cpr_arch}. In general, in this paper, we
+utilize the infrastructual developments towards a natural, portable
+and a very generic solution to the problem of a programmatic interface
+for designing fault-tolerant applications outlined in
+Ref~\cite{saga-migol-eScience08}.
 
+% We demonstrate this by presenting the seamless integration of CPR
+% concepts and abstractions into the SAGA framework; the resulting
+% system is able to provide an easy to use, high-level programming
+% abstractions for Grid enabled, fault tolerant applications.  The
+% pairing of Migol and SAGA-CPR thus provides a natural, portable and a
+% very generic solution to the problem of a programmatic interface for
+% designing fault-tolerant applications.  To highlight this and that it
+% is critical that all aspects of the distributed application life-cycle
+% -- design, development and deployment -- are made easier, we will
+% discuss our experiences in developing and deploying a RE application
+% in a production environment.
 
-Before outlining the structure of the paper, we highlight the main
-advantages of our approach: First and foremost it is a general purpose
-framework that can be used over a wide-range of distributed production
-environments, such as the TeraGrid, UK's NGS, DEISA, etc., as opposed
-to WISDOM~\citep{wisdom}, that is essentially confined to
-gLITE/EGEE. Secondly, our approach can scale to use resources of
-different sizes, as opposed to {\it Folding@home}~\citep{folding} which
-is based upon BOINC, and is thus inherently limited in the size of
-physical problems that can be solved effectively.  \alnote{Should we
-  add citations to Folding@home and wisdom here?}  Thirdly, our
-framework is extensible: it can be used to implement many other
-application in addition to those based upon RE
-simulations~\citep{escience07}. The power to do so arises
-from simple design decisions: the use of standard interfaces on the
-one hand, and the use of appropriate programmatic and system
-abstractions that allow users to do what they can do best
-(i.e. provide the simulation and orchestration logic), whilst ensuring
-that middleware used provides required services (such as checkpoint
-management, application monitoring and recovery) seamlessly and
-effectively from the application developers perspective.
+We highlight the main advantages of our approach: First and foremost
+it is a general purpose framework that can be used over a wide-range
+of distributed production environments, such as the TeraGrid, UK's
+NGS, DEISA, etc., as opposed to WISDOM~\citep{wisdom}, that is
+essentially confined to gLITE/EGEE. Secondly, our approach can scale
+to use resources of different sizes, as opposed to {\it
+  Folding@home}~\citep{folding} which is based upon BOINC, and is thus
+inherently limited in the size of physical problems that can be solved
+effectively.  Thirdly, our framework is extensible: it can be used to
+implement many other application in addition to those based upon RE
+simulations~\citep{escience07}. The power to do so arises from simple
+design decisions: the use of standard interfaces on the one hand, and
+the use of appropriate programmatic and system abstractions that allow
+users to do what they can do best (i.e. provide the simulation and
+orchestration logic), whilst ensuring that middleware used provides
+required services (such as checkpoint management, application
+monitoring and recovery) seamlessly and effectively from the
+application developers perspective.
 
 The remainder of the paper is structured as follows: In the next
 section we provide the basic ideas behind RE and specifically
 Replica-Exchange using Molecular Dynamics simulations.  We then
-discuss the SAGA CPR package and its relation to the  fault-tolerant 
-Migol framework. In section 4 we present
-the challenges of developing developing a REMD application, which is runnable in 
-a heterogeneous and loosely coupled Grid environment.
-In section 5, we discuss how SAGA and Migol are used to implement 
-a fault-tolerant, distributed framework for RE. In the subsequent sections we discuss
-our experience in implementing REMD and performance figures. We
-conclude by providing a detailed analysis of related work, which will
-highlight the truly unique features of our implementation.
+briefly discuss the SAGA-Migol fault-tolerant framework. In section 4
+we present the challenges of developing developing a REMD application,
+which is runnable in a heterogeneous and loosely coupled Grid
+environment.  In section 5, we present the details of a REMD
+application implemented using SAGA-Migol fault-tolerant, distributed
+framework. In the subsequent sections we discuss our experience in
+implementing REMD and performance figures. We conclude by providing a
+detailed analysis of related work, which will highlight the truly
+unique features of our implementation.  \jhanote{mostly ok.. might
+  need some refining}
 
 \section{Replica-Exchange Molecular Dynamics}
 \alnote{I restructured this section: 1) general introduction to MD
