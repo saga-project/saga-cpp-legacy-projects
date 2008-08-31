@@ -454,34 +454,52 @@ orchestrate hundreds of tasks, while benefiting of an adaptive infrastructure su
                                                
 
 % Programming abstraction
-Implementing a REMD application that is capable of running in a heterogeneous and 
-raven distributed environment is a complex task. REMD involves the parallel orchestration of 
-many replica jobs. To master this complexity, a well-defined programing
-abstraction, that allows the scientist to focus on the application, while
-having a sophisticated middleware that provides critical services, such as reliable 
-job management and monitoring, is required.  
+Implementing a REMD application that is capable of running in a
+heterogeneous and raven~\footnote{How did Raven get here?!?!?}
+distributed environment is a complex task. REMD involves the parallel
+orchestration of many replica jobs. To master this complexity, a
+well-defined programing abstraction, that allows the scientist to
+focus on the application, while having a sophisticated middleware that
+provides critical services, such as reliable job management and
+monitoring, is required.
 
 % Synchronization
-Despite their mostly loosely coupled nature, REMD simulations require a small level of coupling. 
-The central master, the REMD-Manager, must periodically obtain the results, i.\,e.\ the energy levels,
-of all replicas to determine the new configuration of the next REMD step. 
-As result of this synchronization,  a single overloaded or slow machine can delay the overall
-progress. This significantly limits the  applicability of REMD 
-to heterogenous distributed environments, such as Grids.
-Even on a single machine the required synchronization leads to various load-balancing 
-and scheduling issues. In distributed environments additional unpredictable delays
-can occur, e.\,g.\  due to the required queueing of replica jobs at the local
-resource management system. Such delays can have a severe impact on the overall time to completion. 
+Despite their mostly loosely coupled nature, REMD simulations require
+a small level of coupling.  The central master, the REMD-Manager, must
+periodically obtain the results, i.\,e.\ the energy levels, of all
+replicas to determine the new configuration of the next REMD step.  As
+result of this synchronization, a single overloaded or slow machine
+can delay the overall progress. This significantly limits the
+applicability of REMD to heterogenous distributed environments, such
+as Grids.  Even on a single machine the required synchronization leads
+to various load-balancing and scheduling issues. In distributed
+environments additional unpredictable delays can occur, e.\,g.\ due to
+the required queueing of replica jobs at the local resource management
+system. Such delays can have a severe impact on the overall time to
+completion.
                  
 % Fault Tolerance
-Another important issue in error-prone distributed environment is fault tolerance. 
-Especially REMD simulations are very fragile: the loss of a single replica process due to a node 
-or network failure usually causes the abort of the entire simulations. Thus, 
-the middleware must detect and resolve failures accurately.
-                                                                
-% Another challenge in a heterogeneous environments is the synchronization required after each round. In particular,
-% when running REMD across multiple clusters the effects of queue wait times can be severe. To avoid this issue,
-% a middleware must provide efficient mechanisms to allocate resources for multiple replica runs in a row.
+Another important issue in error-prone distributed environment is
+fault tolerance.  Especially REMD simulations are very fragile: the
+loss of a single replica process due to a node or network failure
+usually causes the abort of the entire simulations. Thus, the
+middleware must detect and resolve failures accurately.
+                                  
+% not synthetic, real and meanginful physical models
+
+Implementing an approach that can scale upto very large systems and on
+production infrastrucutre is a far more challenging task than
+implementing a toy-model on a reserach environment. Our approach is
+aimed strictly at the former, to provide a basis for real-scientific
+problems. The scale-up and complexities of production environment make
+the extension non-trivial.
+
+% Another challenge in a heterogeneous environments is the
+% synchronization required after each round. In particular, when
+% running REMD across multiple clusters the effects of queue wait
+% times can be severe. To avoid this issue, a middleware must provide
+% efficient mechanisms to allocate resources for multiple replica runs
+% in a row.
 
 \section{Implementing Distributed Replica-Exchange Using SAGA}
 
@@ -514,7 +532,12 @@ encoding the orchestration logic of RE simulations.
             manager orchestrates a set of replica processes using the
             SAGA/CPR API. The Migol infrastructure ensures that the
             REMD-Manager and all replica processes are monitored and
-            recovered if necessary.}
+            recovered if necessary. \jhanote{The caption of this
+              figure need to changed to be in harmony with the opening
+              paragraph of ``REMD-Manager Architecture'', where this
+              figure is referenced and discussed. I.e., we talk about
+              three components in that paragraph, this caption should
+              be structured accordingly too.}}
       \label{fig:REMD-Manager-architecture}
 \end{figure}
 
@@ -524,21 +547,22 @@ also referred to as \emph{REMD-Manager}, is deployed on the user's
 desktop and provides the user interface to the overall REMD run. The
 second component is the Migol infrastructure that submits, monitors,
 and if required, recovers replica simulations.  The last element is
-the task agent, the \emph{Replica-Launcher}, that resides on the High
-Performance machines where MD simulations are carried out. The
-NAMD-Launcher is triggered by the Grid job and is responsible for
-spawning and monitoring the MD run. NAMD~\citep{Phillips:2005gd}, a
-highly scalable, parallel MD code, is used to carry out the MD
-simulation corresponding to each replica run. It is important to
-mention that any other MD code could be used just as simply and
-effectively.
+the task agent, the \replicaagent\ ,
+%\emph{Replica-Launcher}
+ that resides on the High Performance machines where MD simulations
+are carried out. The NAMD-Launcher is triggered by the Grid job and is
+responsible for spawning and monitoring the MD
+run. NAMD~\citep{Phillips:2005gd}, a highly scalable, parallel MD
+code, is used to carry out the MD simulation corresponding to each
+replica run. It is important to mention that any other MD code could
+be used just as simply and effectively.
 
 The \emph{REMD-Manager} is at the core of the framework; it
 orchestrates all replicas, i.\,e.\ the parameterization of replica
 tasks, file staging, job spawning and the conduction of the
 replica-exchange itself. This component heavily relies on the SAGA
 File and CPR API as well as the Python bindings for the implementation
-of the RE logic\footnote{The complete REMD-Manager code can be found
+of the RE logic~\footnote{The complete REMD-Manager code can be found
 at https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}.
                                   
 % \alnote{I am really not sure about this code snippet. It somehow
@@ -549,6 +573,8 @@ at https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}.
 %   handled equally simply. Can we i) use psuedo-code to highlight this?
 %   ii) mention where the reader can get the actually code?. We should
 %   definitely do point ii) and possibly point i)}
+
+\jhanote{This part currently conflates architecture and control-flow}
 
 Depending on the number of configured processes $n$, the REMD-Manager
 starts $\frac{n}{2}$ pairs of replicas.  Each replica process is
@@ -573,83 +599,128 @@ thus it is difficult to respond to a possible exchange speculatively.
            
 \subsection{Efficient Replica Job Scheduling}
 
-A particular problem that became evident in earlier
-experiments~\citep{Luckow:2008la} is the effect of the 
-queuing delay on the overall time to completion of a REMD run.
-As state in section~\ref{sec:challenges}, REMD requires some
-synchronizations after each replica round. Especially when running
-REMD across multiple resources, a single crowded resource is able to
-delay the completion of the simulation arbitrary. 
+From our earlier experiments~\citep{Luckow:2008la}, a problem that
+became evident was the effect of the queuing delay -- for individual
+replicas on a single machine, as well as heterogenous queue-response
+times on different resources -- on the overall time to completion of a
+REMD run.  As stated in section~\ref{sec:challenges}, REMD requires
+some synchronizations after each replica round. Especially when
+running REMD across multiple resources, a single crowded resource is
+able to delay the completion of the simulation arbitrary.
 
-A common pattern to solve this issue is the usage of a meta-job, which represents
-a placeholder for many small jobs. For the big meta-job a large chunk of resources 
-is requested from the local resource management system. The application can then rapidly 
-execute small jobs through this meta-job. By avoiding the high initial costs of queueing a job
-the completion times of loosely coupled applications consisting of
-many small jobs, such as the REMD-Manager, can be dramatically reduced. This principle is also known as \glidein.
+\jhanote{The above paragraph needs to actually be elaborated upon and
+  moved to the previous section ``Challenges of Implementing Replica
+  Exchange.. in Distributed Environments''}
 
-Different systems that use similar approaches have been developed. \citet{citeulike:291860} initially proposed
-this idea in their work on Condor Glide-In. Using Condor Glide-In a complete Condor pool can
-be initiated using the GRAM service. Falkon~\citet{1362680} is a newer system, which emphasize in particular
-the performance of its task dispatcher.   However, both systems have 
-limitations and impose e.\,g.\ different overheads:
-Condor \glidein requires the start of a complete set of Condor daemons within the
-allocated set of resources. For Falcon, \citet{citeulike:3169002}
-noted a startup time of over 2 minutes on a Blue Gene/P machine. Further, 
-firewall issues have been reported by both systems.
+A common approach to solve this issue is the use of a meta-job, which
+represents a placeholder for many small jobs. For the big meta-job a
+large chunk of resources is requested from the local resource
+management system. The application can then rapidly execute small jobs
+through this meta-job. By avoiding the high initial costs of queueing
+a job the completion times of loosely coupled applications consisting
+of many small jobs, such as the REMD-Manager, can be dramatically
+reduced.  This principle is also known as \glidein\ .  \jhanote{I
+  don't think the principle is known as glidein. The term glidein owes
+  its origin to Miron and his insistence on the bird/fly metaphor for
+  all things condor-ish, ie. the term is adapted from what was
+  probably the first implementation of this common pattern in the
+  Condor system.}
+% \jhanote{I can't seem to figure out why, but we are loosing the first
+%   letter of every word that follows the \glidein\ macro! Andre M, the
+%   latex man, any ideas?}
+
+\jhanote{This paragraph discussing differen Glide-In mechanisms and
+  implementations needs to be moved to another section. Maybe into
+  ``Related Work'', but definitely not here; it disrupts the flow.}
+Different systems that use similar approaches have been
+developed. \citet{citeulike:291860} initially proposed this idea in
+their work on Condor Glide-In. Using Condor Glide-In a complete Condor
+pool can be initiated using the GRAM service. Falkon~\citet{1362680}
+is a newer system, which emphasize in particular the performance of
+its task dispatcher.  However, both systems have limitations and
+impose e.\,g.\ different overheads: Condor \glidein\ requires the
+start of a complete set of Condor daemons within the allocated set of
+resources. For Falcon, \citet{citeulike:3169002} noted a startup time
+of over 2 minutes on a Blue Gene/P machine. Further, firewall issues
+have been reported by both systems.
   
 \begin{figure}[th]
     \centering
     \includegraphics[width=0.9\textwidth]{remdmanager_v11}
     \caption{\footnotesize \bf REMD Programing Abstractions and
-      Resource Management: The Replica-Agent is used as meta-job
-      for all replica sub-jobs running on a single cluster. The
-      REMD-Manager can control both the \replicaagent\ and the
-      replica jobs using a SAGA-based user-level job API. By using this efficient
-      way to allocate resources, queuing times are minimized and the
-      time to completion can be dramatically reduced.}
+      Resource Management: The Replica-Agent is used as meta-job for
+      all replica sub-jobs running on a single cluster. The
+      REMD-Manager can control both the \replicaagent\ and the replica
+      jobs using a SAGA-based user-level job API. By using this
+      efficient way to allocate resources, queuing times are minimized
+      and the time to completion can be dramatically reduced.}
     \label{fig:remdmanager_v1.1}
 \end{figure}
 
-In the following, we demonstrated the simplicity and extensibility of the SAGA framework by providing a
-well-defined abstraction for \glidein based applications. This abstraction is entirely implemented
+\jhanote{Andre L, here is a note, which will hopefully help: as you
+  know \glidein\ is a system level abstraction. So we should not say
+  \glidein\ based application, but applications that use \glidein\ ,
+  ie application is distinct from the system}
+
+\jhanote{Secondly, it is important to distinguish between the new
+  ``Job abstraction'' ie meta-job and simple-job as an extension of
+  the SAGA job-model, from the \glidein\ abstraction. I am sure we are
+  all aware of the differences, but in the writing the two seem to be
+  conflated, or at least will appear conflated for a person reading
+  this the first time. I would say the mata-job/simple-job is a usage
+  pattern, and the \glidein\ is an abstraction that supports this
+  pattern.}
+
+In the following, we demonstrate the simplicity and extensibility of
+the SAGA framework by providing a well-defined abstraction for
+\glidein\ based applications. This abstraction is entirely implemented
 on user-level using the SAGA primitives.
-Figure~\ref{fig:remdmanager_v1.1} illustrates the architecture. 
-The framework comprises of three components: the REMD application itself,
+Figure~\ref{fig:remdmanager_v1.1} illustrates the architecture.  The
+framework comprises of three components: the REMD application itself,
 the \glidein\ framework and the core SAGA system.
         
-The SAGA \glidein\ framework enhances the job model of SAGA by the capability to allocate
-larger chunks of resources prior to a loosely coupled run. The REMD-Manager uses
-this functionality to reserve resources for all replica processes on the respective machine.
-When an application requests such an allocation, the frameworks submits a meta-job,
-the \textit{\replicaagent} job to the respective resource  using
-the SAGA CPR API. This agent is assigned the resources required for
-all replica processes on this machine. 
+The SAGA \glidein\ framework enhances the job model of SAGA by the
+capability to allocate larger chunks of resources prior to a loosely
+coupled run. The REMD-Manager uses this functionality to reserve
+resources for all replica processes on the respective machine.  When
+an application requests such an allocation, the frameworks submits a
+meta-job, the \textit{\replicaagent} job to the respective resource
+using the SAGA CPR API. This agent is assigned the resources required
+for all replica processes on this machine.
 
-In the following, the REMD-Manager can rapidly execute small replica jobs using the 
-enhanced Job API. For every replica job the reference
-to the \replicaagent\  job id must be provided. In a sense the resources 
-managed by \replicaagent\ represents a resource reservation 
-and the agent represents a user-level resource manager: It is the 
-responsibility of the \replicaagent\  to assign resources to
-these ``small'' tasks and free these resources after completion. Further, 
-the \replicaagent\ monitors all sub-jobs and registers required information with the Migol backend.
+\jhanote{We could probably structure the subsection on ``Efficient
+  Replica Job Scheduling'' into two parts, an opening on ``Job
+  Patterns and Abstractions'' and secondly
+  ``Implementations''. Currently, we need more details describing
+  Figure 2 and the control flow between REMD-Manager and individual
+  replica-jobs within a meta-job. This location of this note, is a
+  good point to separate the two.}
 
+In the following, the REMD-Manager can rapidly execute small replica
+jobs using the enhanced Job API. For every replica job the reference
+to the \replicaagent\ job ID must be provided. In a sense the
+resources managed by \replicaagent\ represents a resource reservation
+and the agent represents a user-level resource manager: It is the
+responsibility of the \replicaagent\ to assign resources to these
+``small'' tasks and free these resources after completion. Further,
+the \replicaagent\ monitors all sub-jobs and registers required
+information with the Migol backend.
 
-\jhanote{Let us reach consistency on, BigJob/LittleJob vs MetaJob vs
-  Enhanced Job terminology}
+% \jhanote{Let us reach consistency on, BigJob/LittleJob vs MetaJob vs
+%   Enhanced Job terminology}
 
 % The enhanced job model behaves similar to the SAGA Job API. 
 % The handling of such jobs is exactly the same as with the normal SAGA jobs. 
 
-The implementation of this API is done entirely in application space using Python and
-the SAGA CPR and Advert API. Using the Python duck typing mechanism such an
-enhanced job object can be used as replacement to a SAGA job object --
-no further source modifications needed. The implementation is based on
-a simple protocol using the Advert Service, a central key/value store.
-For each new job an advert entry is created. The \replicaagent\
-periodically polls for new jobs.  If a new job is found and resources
-are available, the job is launched otherwise it is queued.
+The implementation of this API is done entirely in application space
+using Python and the SAGA CPR and Advert API. Using the Python duck
+typing mechanism such an enhanced job object can be used as
+replacement to a SAGA job object -- no further source modifications
+needed. The implementation is based on a simple protocol using the
+Advert Service, a central key/value store.  For each new job an advert
+entry is created. The \replicaagent\ periodically polls for new jobs.
+If a new job is found and resources are available, the job is launched
+otherwise it is queued.
 
 \subsection{Reliability}
                                                                 
@@ -682,16 +753,17 @@ infrastructure. All this whilst remaining general purpose and
 extensible, for example, using the Migol adaptor, the application can
 also benefit from additional features, such as the automatic
 monitoring and the transparent recovery of failed tasks. By only
-slightly extending the Job abstraction defined by SAGA a powerful
-system-level abstraction such as \glidein\ jobs has been defined and
-successfully deployed within the REMD application. While the current
-implementation used a custom protocol to implement this mechanism, the
-approach can also be applied to other middleware platforms, such as
-Condor Glidin or Falcon. Currently, we are actively working on a
-Condor adaptor for SAGA, which will also support native \glidein\
-functionality for Condor Jobs; our implementation of \glidein\ will
-then serve as a meta \glidein\, with condor level \glidein\ being usable
-where appropriate.
+slightly extending the Job Model defined by SAGA a powerful
+system-level abstraction such as \glidein\ jobs can be supported
+%has been defined 
+and successfully deployed in service of the REMD application. While
+the current implementation used a custom protocol to implement this
+mechanism, the approach can also be applied to other middleware
+platforms, such as Condor Glidin or Falcon. Currently, we are actively
+working on a Condor adaptor for SAGA, which will also support native
+\glidein\ functionality for Condor Jobs; our implementation of
+\glidein\ will then serve as a meta \glidein\, with condor level
+\glidein\ being usable where appropriate.
 % thus highlighting the power of programatic interface working on condor
 % adaptor we could easily map this to condor \glidein
 {\bf This is the first known instance of creating a system
