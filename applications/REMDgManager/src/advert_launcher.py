@@ -9,9 +9,13 @@ import threading
 import time
 import pdb
 import traceback
+import signal
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
+
+
+
 
 class advert_launcher:
     
@@ -41,24 +45,56 @@ class advert_launcher:
         except:
             print "No advert entry found at specified url: " + advert_url
 
-        self.update_glidin_state()
-        
 	# update state of glidin job to running
         self.update_glidin_state()
         # start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
         self.launcher_thread.start()
+    	signal.signal(signal.SIGHUP, advert_launcher.signal_handler)
+    	signal.signal(signal.SIGINT, advert_launcher.signal_handler)
         
+    def signal_handler(self, signum, frame):
+    	print 'Signal handler called with signal', signum
+    	self.stop=True
+	sys.exit(1)   
+    
     def update_glidin_state(self):     
 	print "update state of glidin job to: " + str(saga.job.Running)
         return self.base_dir.set_attribute("state", str(saga.job.Running))
     
     def init_pbs(self):
         pbs_node_file = os.environ.get("PBS_NODEFILE")    
-        if pbs_node_file != None:
-            f = open(pbs_node_file)
-            self.freenodes = f.readlines()
-            f.close()
+        if pbs_node_file == None:
+		return
+        f = open(pbs_node_file)
+        self.freenodes = f.readlines()
+        f.close()
+
+	# check whether pbs node file contains the correct number of nodes
+	num_cpus = self.get_num_cpus()
+	node_dict={}
+	for i in set(self.freenodes):
+           node_dict[i] = self.freenodes.count(i)
+    	   if node_dict[i] < num_cpus:
+		node_dict[i] = num_cpus
+	
+	self.freenodes=[]
+	for i in node_dict.keys():
+	  print "host: " + i + " nodes: " + str(node_dict[i])
+	  for j in range(0, node_dict[i]):
+		print "add host: " + i
+	  	self.freenodes.append(i)
+
+    def get_num_cpus(self):
+        cpuinfo = open("/proc/cpuinfo", "r")
+        cpus = cpuinfo.readlines()
+        cpuinfo.close()
+        num = 0
+        for i in cpus:
+                if i.startswith("processor"):
+                        num = num+1
+        return num
+
         
         
     def print_attributes(self, advert_directory):
@@ -120,13 +156,17 @@ class advert_launcher:
             command = executable + " " + arguments
             
             # special setup for MPI NAMD jobs
+            machinefile = self.allocate_nodes(job_dir)
             if (spmdvariation.lower( )=="mpi"):
-		#pdb.set_trace()
-                machinefile = self.allocate_nodes(job_dir)
                 if(machinefile==None):
                     print "Not enough resources to run: " + job_dir.get_url().get_string() 
                     return # job cannot be run at the moment
                 command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
+	    else:
+		machine_file_handler = open(machinefile, "r")
+		node= machine_file_handler.readlines()
+		machine_file_handler.close()
+		command ="ssh  " + node[0].strip() + " \"cd " + workingdirectory + "; " + command +"\"" 	
                 
             print "execute: " + command + " in " + workingdirectory
             p = subprocess.Popen(args=command, executable="/bin/bash",stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
@@ -243,7 +283,7 @@ class advert_launcher:
 	    	#pdb.set_trace()
             	self.monitor_jobs()            
             	time.sleep(20)
-	    except:
+	    except saga.exception:
 		traceback.print_exc(file=sys.stdout)
  
     def stop_background_thread(self):        
@@ -254,12 +294,12 @@ class advert_launcher:
 #########################################################
 if __name__ == "__main__" :
     args = sys.argv
-    
     num_args = len(args)
     if (num_args!=3):
         print "Usage: \n " + args[0] + " <advert-host> <advert-director>"
         sys.exit(1)
     
+
     # init cpr
     jd=None
     try:
