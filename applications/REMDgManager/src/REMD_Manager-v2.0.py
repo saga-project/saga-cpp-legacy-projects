@@ -75,7 +75,7 @@ class RE_INFO (object):
         self.advert_host ="localhost"
         # map <host, glidin-job>
         self.advert_glidin_jobs = {}
-        
+	self.userproxy = []        
         
 #####################################
 #  Elementary Functions
@@ -317,6 +317,12 @@ def initialize(config_filename):
                 for ihost in value:
                     RE_info.gridftp_hosts.append(ihost)
 
+            if key == 'userproxy':
+                for up in value:
+		    up = up.rstrip("\"")
+		    up = up.lstrip("\"")			
+                    RE_info.userproxy.append(up)
+	
             elif key == 'remote_host_local_scheduler':
                 for isched in value:
                     RE_info.remote_host_local_schedulers.append(isched)
@@ -418,6 +424,12 @@ def start_glidin_jobs(RE_info):
         project = RE_info.projects[RE_info.remote_hosts.index(i)]
         queue = RE_info.queues[RE_info.remote_hosts.index(i)]
         workingdirectory = RE_info.workingdirectories[RE_info.remote_hosts.index(i)]
+	
+	userproxy=None
+	try:
+		userproxy = RE_info.userproxy[RE_info.remote_hosts.index(i)]
+	except:
+		pass
         if(CPR==True):
             lrms_url = "migol://"    
         else:
@@ -433,7 +445,7 @@ def start_glidin_jobs(RE_info):
                                            nodes,
                                            queue,
                                            project,
-                                           workingdirectory)
+                                           workingdirectory, userproxy)
         RE_info.advert_glidin_jobs[i] = advert_glidin_job
         print "Started: " + str(advert_glidin_job)
 

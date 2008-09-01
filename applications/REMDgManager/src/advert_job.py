@@ -42,8 +42,16 @@ class advert_glidin_job():
                  number_nodes,
                  queue,
                  project,
-                 working_directory):
+                 working_directory,
+		 userproxy):
         """ start advert_launcher on specified host """
+	if userproxy != None or userproxy=="":
+		os.environ["X509_USER_PROXY"]=userproxy
+		print "use proxy: " + userproxy
+	else:
+		if os.environ.has_key("X509_USER_PROXY"):
+			del os.environ["X509_USER_PROXY"]
+		print "use standard proxy"
 
         #register advert entry
         lrms_saga_url = saga.url(lrms_url)
