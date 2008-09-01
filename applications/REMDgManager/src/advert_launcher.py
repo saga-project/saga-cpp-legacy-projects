@@ -14,9 +14,6 @@ import signal
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
 
-
-
-
 class advert_launcher:
     
     """NAMD-Launcher:
@@ -34,7 +31,7 @@ class advert_launcher:
         self.freenodes = []
         self.busynodes = []
         
-        self.init_pbs()
+        self.init_rms()
         
          # open advert service base url
         hostname = socket.gethostname()
@@ -50,19 +47,38 @@ class advert_launcher:
         # start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
         self.launcher_thread.start()
-    	signal.signal(signal.SIGHUP, advert_launcher.signal_handler)
-    	signal.signal(signal.SIGINT, advert_launcher.signal_handler)
         
-    def signal_handler(self, signum, frame):
-    	print 'Signal handler called with signal', signum
-    	self.stop=True
-	sys.exit(1)   
-    
     def update_glidin_state(self):     
 	print "update state of glidin job to: " + str(saga.job.Running)
         return self.base_dir.set_attribute("state", str(saga.job.Running))
     
+    def init_rms(self):
+	if(os.environ.get("PBS_NODEFILE")!=None):
+		return self.init_pbs()
+	elif(os.environ.get("PE_HOSTFILE")!=None):
+		return self.init_sge()
+	return None
+
+    def init_sge(self):
+	""" initialize free nodes list from SGE environment """
+  	sge_node_file = os.environ.get("PE_HOSTFILE")    
+        if sge_node_file == None:
+                return
+        f = open(sge_node_file)
+        sgenodes = f.readlines()
+        f.close()
+	for i in sgenodes:	
+		columns = i.split()				
+		try:
+			for j in range(0, int(columns[1])):
+				print "add host: " + columns[0]
+				self.freenodes.append(columns[1])
+		except:
+			pass
+	return self.freenodes			
+
     def init_pbs(self):
+	""" initialize free nodes list from PBS environment """
         pbs_node_file = os.environ.get("PBS_NODEFILE")    
         if pbs_node_file == None:
 		return
