@@ -57,9 +57,11 @@ class advert_glidin_job():
         jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
-        jd.executable = os.getcwd() + "/advert_launcher.sh"
+        #jd.executable = os.getcwd() + "/advert_launcher.sh"
+	jd.executable = "$(HOME) # /src/REMDgManager/src/advert_launcher.sh"
         jd.queue = project + "@" + queue
-        jd.workingdirectory = os.getcwd()
+        #jd.workingdirectory = os.getcwd()
+        jd.workingdirectory = "$(HOME)"
         jd.output = "advert-launcher-stdout.txt"
         jd.error = "advert-launcher-stderr.txt"
         
@@ -146,9 +148,11 @@ class advert_job():
 	
     def delete_job(self):
 	print "delete job and close dirs: " + self.job_url
-	self.job_dir.remove(saga.url(self.job_url), saga.name_space.Recursive)
-	self.job_dir.close()
-	#self.glidin_dir.close()
+	try:
+		self.job_dir.remove(saga.url(self.job_url), saga.name_space.Recursive)
+		self.job_dir.close()
+	except:
+		pass
 
     def __del__(self):
 	self.delete_job()

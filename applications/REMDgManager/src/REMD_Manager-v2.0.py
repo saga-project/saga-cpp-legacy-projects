@@ -31,6 +31,7 @@ import math
 import threading
 import traceback
 import advert_job
+import pdb
 
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
@@ -57,6 +58,7 @@ class RE_INFO (object):
         # lists for variables of each replica (Note that these variable should have n variables where n is self.replica_count
         self.replica_count = 0
         self.remote_hosts = []
+        self.gridftp_hosts = []
         self.remote_host_local_schedulers = []
         self.projects = []
         self.queues = []
@@ -89,7 +91,8 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
     jd = saga.job.description()
    
     jd.numberofprocesses = RE_info.numberofprocesses
-    jd.spmdvariation = "mpi"
+    #jd.spmdvariation = "mpi"
+    jd.spmdvariation = "single"
     jd.totalcputime = RE_info.totalcputime
 #    jd.arguments = RE_info.arguments   
     jd.arguments = ["NPT.conf"]
@@ -107,12 +110,13 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
 def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote_dir):
     
     for ifile in input_file_list_with_path:
-    	print "stage file: " + ifile
+
         if remote_machine_ip.find('localhost') >= 0:
             dest_url_str = 'file://'
         else:
             dest_url_str = 'gridftp://'+remote_machine_ip + "/"
         source_url_str = 'file://'
+    	print "stage file: " + ifile + " to " + dest_url_str
 
         ifile_basename = os.path.basename(ifile)
         if not os.path.isfile(ifile):
@@ -239,6 +243,8 @@ def get_energy(replica_ID, RE_info):
     file_list = ["output.txt"]  
     local_dir = os.getcwd()
     remote_machine_ip = RE_info.remote_hosts[replica_ID]
+    if len(RE_info.gridftp_hosts)>0:
+           	remote_machine_ip = RE_info.gridftp_hosts[replica_ID]
     remote_dir = RE_info.workingdirectories[replica_ID]
 
     file_stage_out_with_saga(file_list, local_dir, remote_machine_ip, remote_dir)
@@ -307,6 +313,10 @@ def initialize(config_filename):
                 for ihost in value:
                     RE_info.remote_hosts.append(ihost)
             
+            if key == 'gridftp_host':
+                for ihost in value:
+                    RE_info.gridftp_hosts.append(ihost)
+
             elif key == 'remote_host_local_scheduler':
                 for isched in value:
                     RE_info.remote_host_local_schedulers.append(isched)
@@ -440,7 +450,6 @@ def run_REMDg(configfile_name):
     RE_info = initialize(configfile_name)
     
     numEX = RE_info.exchange_count    
-
     
     ofilename = "remd-temp.out"
     start_glidin = time.time() 
@@ -451,6 +460,9 @@ def run_REMDg(configfile_name):
     for irep in range(0, RE_info.replica_count):
            host = RE_info.remote_hosts[irep]
            remote_machine_ip = RE_info.remote_hosts[irep]
+	   if len(RE_info.gridftp_hosts)>0:
+           	remote_machine_ip = RE_info.gridftp_hosts[irep]
+
            remote_dir = RE_info.workingdirectories[irep]
            prepare_NAMD_config(irep, RE_info)
            file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
@@ -481,6 +493,8 @@ def run_REMDg(configfile_name):
            # only start replicas if glidin job is running
            if str(glidin_job_states[host]).lower() == "running": 
                remote_machine_ip = RE_info.remote_hosts[irep]
+	       if len(RE_info.gridftp_hosts)>0:
+           		remote_machine_ip = RE_info.gridftp_hosts[irep]
                remote_dir = RE_info.workingdirectories[irep]
                
                prepare_NAMD_config(irep, RE_info) 
