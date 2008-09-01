@@ -6,375 +6,200 @@
 % Society articles using RSPUBLIC.CLS
 % Use this file as a test file
 
-%\documentclass{rspublic}
+\documentclass{rspublic}  
 
-\documentclass{article}
-
+\usepackage[utf8]{inputenc}
 \usepackage{graphicx}
-\usepackage{epsfig}
-\usepackage{subfigure}
-\usepackage[hypertex]{hyperref}
-\usepackage{subfigure}  
-\usepackage{color}
-\usepackage{srcltx}
 \usepackage{url}
+\usepackage{float}
+\usepackage{times}    
+\usepackage{multirow}    
+\usepackage{listings}   
+\usepackage{times}     
+\usepackage{paralist}    
+\usepackage{wrapfig}    
 \usepackage[small,it]{caption}
+\usepackage{multirow}
+\usepackage{ifpdf}    
+\usepackage{subfig} 
+                  
 
 
-\parskip   = 0.5em
-\parindent = 0.0em
+\title{Programming Abstractions for Data Intensive Computing}
 
-\textwidth      = 6.5315 in
-\textheight     = 9.0315 in
-\oddsidemargin  = 0.0 in
-\evensidemargin = 0.0 in
-\topmargin      = 0.0 in
-\headheight     = 0.0 in
-\headsep        = 0.0 in
-\textfloatsep   = 0.1in
-
-\newenvironment{shortlist}{
-  \vspace*{-0.5em}
-  \begin{itemize}
-  \setlength{\itemsep}{-0.3em}
-}{
-  \end{itemize}
-  \vspace*{-0.5em}
+\author{Michael Miceli$^{12}$,Shantenu Jha$^{12}$,Chris Miceli$^{12}$, 
+  Hartmut Kaiser$^{1}$, Andre Merzky$^{1}$ \\
+  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
+      State University, USA}}\\
+  \small{\emph{$^{2}$Department of Computer Science, Louisiana State
+      University, USA}}\\
+  \small{\emph{$^{3}$e-Science Institute, Edinburgh, UK}}\\
 }
 
-\newcommand{\I}[1]{\textit{#1}}
-\newcommand{\B}[1]{\textbf{#1}}
-\newcommand{\BI}[1]{\textbf{\textit{#1}}}
-\newcommand{\T}[1]{\texttt{#1}}
-\newcommand{\NL}{\newline}
-
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
- \newcommand{\jhanote}[1]{  {\textcolor{red}    { ***Shantenu: #1 }}}
- \newcommand{\katznote}[1]{ {\textcolor{cyan}   { ***Dan:      #1 }}}
- \newcommand{\amnote}[1]{   {\textcolor{magenta}{ ***Andre:    #1 }}}
- \newcommand{\hknote}[1]{   {\textcolor{blue}   { ***Hartmut:  #1 }}}
+\newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 \else
- \newcommand{\jhanote}[1]{}
- \newcommand{\katznote}[1]{}
- \newcommand{\amnote}[1]{}
- \newcommand{\hknote}[1]{}
+\newcommand{\kimnote}[1]{}
+\newcommand{\alnote}[1]{}
+\newcommand{\amnote}[1]{}
+\newcommand{\jhanote}[1]{}
 \fi
-
-
-\usepackage{ifpdf}
-\ifpdf
- \DeclareGraphicsExtensions{.pdf, .jpg}
-\else
- \DeclareGraphicsExtensions{.eps, .ps}
-\fi
-
-\newcommand{\up}{\vspace*{-1em}}
 
 \begin{document}
 
-\title{\large Programming Abstractions for Clouds}
-
-\author{Michael Miceli$^{12}$,Shantenu Jha$^{12}$,Chris
-  Miceli$^{12}$, \\  Hartmut Kaiser$^{1}$, Andre
-  Merzky$^{1}$, order-to-be-determined \\[1em]
-        %
-        $^1$ \small
-          Center for Computation and Technology, 
-          Louisiana State University\\[-0.3em]
-        $^2$ \small
-          Department of Computer Science, 
-          Louisiana State University\\[-0.3em]
-        }
 \maketitle
 
-\begin{abstract}
-
-  \noindent
-SAGA~\cite{saga_gfd90} is a high level API that provides a simple,
-standard and uniform interface to the most commonly required
-distributed functionality.  SAGA can be used to encode grid
-applications~\cite{saga_escience07, saga_tg08}, tool-kits to manage
-distributed applications as well as implement abstractions that
-support commonly occurring programming, access and usage patterns.
-The focus of this paper is on the latter set, i.e.  the use of SAGA in
-implementing well known abstractions for data intensive computing.
-
-In this paper, we will implement MapReduce and All-Pairs abstractions
-using SAGA and use them to solve commonly encountered genomic tasks.
-We will show how multiple sequence alignment can be orchestrated using
-the SAGA-Allpair implementation, and genome searching can be
-implemented using Map-reduce.  In addition, the aim of this paper is
-to show (validate) that SAGA is a sufficiently complete and high-level
-interface so as to support these programming abstractions.
-
-Figure~\ref{fig:data_intensive_app_saga} illustrates the software
-architecture of the implementation, highlighting the different
-abstraction levels that allow the reuse of most of the system for both
-algorithms and for different genomic applications.  We will highlight
-the sailent points of our implementations, and how we handle common
-considerations such as when to move the data to the machine or when to
-process it locally.  The implemention of these abstractions
-encapsulates details such as latency hiding, performance and other
-variables (such as cluster sizes, and queue sizes).  The user should
-be able to easily add a few function calls without worrying about many
-considerations required by most grid computing applications.
-
-We will discuss other performance issues that arise when implementing
-abstractions specific for data-intensive computing.  A grid
-application's design should not focus on the bandwidth of the network,
-the dispatch latency, the number of machines available, and data
-reliability.  Even something as simple as process size can be a tough
-challenge to optimize.  If a job is too small, then network traffic
-becomes a bottleneck and the design is inefficient.  If a job is too
-large, it is difficult to tell when it is hanging or still computing.
-Also, if another job with a higher priority takes a machine over, the
-application will be waiting on jobs longer.  The main point of this
-paper is to show how a flexible, extensible implementation of
-programming data-intensive abstractions using SAGA can shield the
-application developer many of these considerations.
+\begin{abstract}{SAGA, ..., search, sequencing.. data-intensive}
+  SAGA~\cite{saga_gfd90} is a high level API that provides a simple,
+  standard and uniform interface to the most commonly required
+  distributed functionality.  SAGA can be used to encode grid
+  applications~\cite{saga_escience07, saga_tg08}, tool-kits to manage
+  distributed applications as well as implement abstractions that
+  support commonly occurring programming, access and usage patterns.
+  The focus of this paper is on the latter set, i.e.  the use of SAGA
+  in implementing well known abstractions for data intensive
+  computing.  In this paper, we will implement MapReduce and All-Pairs
+  abstractions using SAGA and use them to solve commonly encountered
+  genomic tasks.  We will show how multiple sequence alignment can be
+  orchestrated using the SAGA-Allpair implementation, and genome
+  searching can be implemented using Map-reduce.  In addition, the aim
+  of this paper is to show (validate) that SAGA is a sufficiently
+  complete and high-level interface so as to support these programming
+  abstractions.  %Figure~\ref{fig:data_intensive_app_saga} illustrates
+  the software architecture of the implementation, highlighting the
+  different abstraction levels that allow the reuse of most of the
+  system for both algorithms and for different genomic applications.
+  We will highlight the sailent points of our implementations, and how
+  we handle common considerations such as when to move the data to the
+  machine or when to process it locally.  The implemention of these
+  abstractions encapsulates details such as latency hiding,
+  performance and other variables (such as cluster sizes, and queue
+  sizes).  The user should be able to easily add a few function calls
+  without worrying about many considerations required by most grid
+  computing applications.  We will discuss other performance issues
+  that arise when implementing abstractions specific for
+  data-intensive computing.  A grid application's design should not
+  focus on the bandwidth of the network, the dispatch latency, the
+  number of machines available, and data reliability.  Even something
+  as simple as process size can be a tough challenge to optimize.  If
+  a job is too small, then network traffic becomes a bottleneck and
+  the design is inefficient.  If a job is too large, it is difficult
+  to tell when it is hanging or still computing.  Also, if another job
+  with a higher priority takes a machine over, the application will be
+  waiting on jobs longer.  The main point of this paper is to show how
+  a flexible, extensible implementation of programming data-intensive
+  abstractions using SAGA can shield the application developer many of
+  these considerations.
 
 \end{abstract}
 
 \section{Introduction} {\bf Jha} 
 
 
-\section{Data Intensive Computing} 
+% \section{Data Intensive Computing} 
 
-In ~\cite{cloud-saga-paper} it was shown how Grid system interfaces
-(in particular for general purpose Grids) tend to be complete
-(i.e. they try to expose a complete set of available system
-capabilities), whereas Cloud interfaces tend to be minimalistic
-(i.e. they expose only a limited set of capabilities, just enough to
-'do the job').
- 
- \subsection{Usage Modes}
 
-  It is important to understand the reason for this difference.  In
-  our experience, general purpose Grids are mostly designed bottom-up:
-  existing, often heterogeneous resources are federated as VOs, and
-  their combined capabilities, plus additional capabilities of higher
-  level Grid services, are offered to the end-user.  This is not
-  applicable for Clouds: the design of Clouds seems to be, mostly, top
-  down. Clouds are designed to serve a limited, specific set of use
-  cases and usage modes, and the Cloud system interface is designed to
-  provide \I{that} functionality, and no other.  Furthermore, the
-  Cloud system itself, and in particular its high level services, may
-  be designed to implement specific target use cases, while not
-  supporting others (e.g., a Cloud could be homogeneous by design).
-  These differences do not imply that Clouds are trivial to implement.
-  In practice the opposite is most likely true (due to issues of
-  scale, amongst other things). Clouds may very well build upon
-  general purpose Grids, or narrow Grids, and at least face the same
-  challenges; but their system interfaces do not expose those internal
-  capabilities.
+\subsection{Example 1: MapReduce}
 
-  Specific users and user communities tend to create different
-  applications but with shared characteristics.  For example, the
-  particle data community tends to focus on very loosely coupled, data
-  intensive parameter sweeps involving Monte Carlo simulations and
-  statistical analyzes.  Systems used by these communities are thus
-  designed to support these application classes before others.
-  
-  The \I{Usage Mode} tries to catch the dominant
-  properties of the main application classes, insofar they are
-  relevant to the design of the system, and to the operational
-  properties of the system.  For example, the usage mode \I{'massively
-  distributed, loosely coupled'} implies that the system's design
-  prioritizes on compute resources (e.g. cycle scavenging, large
-  clusters), and to a lesser degree on communication (no need for fast
-  links between application instances), or on reservation and co
-  scheduling.
+MapReduce~\cite{mapreduce-paper} is a programming framework which
+supports applications which operate on very large data sets on
+clusters of computers.  MapReduce relies on a number of capabilities
+of the underlying system, most related to file operations, but also
+related to process/data colocation.  The Google file system, and other
+global file systems, provide the relevant capabilities, such as atomic
+file renames.  Implementations of MapReduce on these file systems can
+focus on implementing the the dataflow pipeline, which is the
+algorithmic core of the MapReduce framework.
 
-  In contrast, the usage mode \I{'massively distributed,
-    tightly-coupled'} would imply a system's design to focus on compute
-  resources, but importantly also on fast communication between near
-  nodes, and on (physical) co-location of processes.
+We have recently implemented MapReduce in SAGA, targeting general
+purpose Grid systems, where the system capabilities required by
+MapReduce are usually not natively supported -- instead, a general
+purpose grid provides a much larger set of lower level operations.
+Some semantics, such as again the atomic file rename, is provided by
+the SAGA API layer, others, such as data/compute colocation are not.
+Our implementation is thus required to interleave the core logic with
+explicit instructions on where processes are to be scheduled Note that
+some of the required capabilities can be provided by higher level grid
+services -- those are, however, often not standardized, and often not
+available in general purpose Grids.
 
- \subsection{Affinities}
+The advantage of this approach is obviously that our implementation is
+no longer bound to run on a system providing the appropriate semantics
+originally required by MapReduce, but is portable to other, more
+generic systems as well.  The drawback of the approach is obvious as
+well: our implementation is relatively more complex, as it needs to
+add semantic system capabilities at some level or the other, and it is
+inherently slower, as it is for these capabilities very difficult or
+near impossible to obtain system level performance on application
+level.  But many of these are due to the early-stages of the
+implementation of SAGA, and not a fundamental limitation of the design
+or concept.
 
-  Currently Clouds seem to be designed to mostly support exactly one
-  usage mode, e.g.  data storage, \I{or} high throughput computing,
-  \I{or} databases, etc.  This does not preclude Clouds targeting more
-  than one domain or usage mode, however.  The overarching design
-  guideline to support the main target usage modes of Cloud systems,
-  we defined as its \BI{affinity}.  In other words, affinity is the
-  term we use to indicate the type of computational characteristics
-  that a Cloud supports.  That property can very often be expressed as
-  the need to use different aspects or elements of a system
-  \I{together} (hence the term 'Affinity', in the sense of
-  'closeness').  
+%  when operating on specific parts of the data set~\cite{gsoc-saga}.
 
-  For example, the usage mode \I{distributed, tightly coupled}
-  implies that an application requires the use of multiple compute
-  resources, which need to be 'near' to each other, together with fast
-  communication links between these compute resources.  The system
-  needs to have a \I{compute-communication affinity}, and a
-  \I{compute-compute affinity}.
 
-  Affinities are, however, not always mappable
-  to 'closeness'.  For example, we say that a system that supports
-  'persistent storage, data replication, data intensive' usage mode,
-  may have 'bulk storage affinity' -- in the sense that it needs to be
-  designed to have bulk storage properties (availability guarantees,
-  long term consistency guarantees etc).  This example also shows that
-  affinities are, in some sense, related to Quality of Service (QoS)
-  properties exposed by the system, and thus to Service Level
-  Agreements (SLAs) about these qualities of service.
+\subsubsection{Details}
 
- \subsection{Affinities and Programming Abstractions}
+MapReduce is a programming framework developed by Google for running
+data-intensive processes over a large cluster of commodity machines.
+The main idea is to provide an easy interface for users to run a
+common type of jobs on grids without having the client worry about the
+semantics of the grid, for example, dispatch latency, machine failure,
+data distribution, and network bandwidth.  All of these are problems
+that could make a naïve implementation on a grid slower than a serial
+implementation.  When using a MapReduce implementation the programmer
+interacts with only two functions: map and reduce.  The map function
+will go through the datasets and create a map of data to some type of
+output.  A map is a datatype in computer science that relates one
+object to another, i.e. a name t o a phone number.  The reduce
+function will go through all of the maps and combine them to produce
+another output.  The de facto example is word count.  Say, you have a
+large set of documents and you want to find how many of each word is
+present in all the documents.  The map function would go through each
+document and for every word produce a map from the document to a list
+of 1’s.  An example for the word “cat” may look like this cat -> 1, 1,
+1, 1, 1.  Then, the reduce function will add up the 1’s to produce a
+final output, i.e. cat -> 5.  The programmer has to break the problem
+he or she wants to solve into two sections.  At first this framework
+may seem limiting, but there have been a large number of distinct
+applications written using it, and its popularity has been steadily
+increasing.  This shows that the framework is well suited for solving
+data-intensive problems.
 
-  Affinity is thus a high level characterization of the kind of
-  application that could be beneficially executed on a particular
-  Cloud implementation, without revealing the specifics of the
-  underlying architecture. In some ways, this is the ``ideal
-  abstraction'' for the end-user who would like to use infrastructure
-  as a black-box.  Some classic examples of affinity are:
-  tightly-coupled/MPI affinity, high-throughput affinity (capacity),
-  fast-turnaround affinity (capability), or bulk storage affinity.
-  Our observation is that Clouds have at least one affinity, a
-  corollary to which is that Cloud system interfaces are, designed to
-  serve at least one specific set of users or usage modes
 
-  An affinity being the 'ideal system abstraction' has another
-  important consequence, as it allows to express suitable programming
-  abstractions easily, and natively.  For example, it is certainly
-  possible to implement MapReduce on a general purpose Grid, with no
-  affinity supporting data replication, or data-compute-colocation.
-  The implementation of that abstraction, i.e. the Map Reduce
-  application framework, must then however implement these
-  capabilities itself, \I{on top} of the system it uses.  On the other
-  hand, if a data/compute affine cloud provides these capabilities
-  natively, as is the case for, for example, googles proprietary cloud
-  with its google file system~\cite{gfs}, then the MapReduce framework
-  can focus on the core logic of the programming abstraction, i.e. on
-  the algorithmic abstractions, and is thus much easier to implement.
-  Note that for the application using the MapReduce framework, there
-  is no difference~\cite{gsoc-saga}.
+\subsection{Our Implementation:} 
 
-  Clearly, we are arguing for a separation of concerns: we argue that
-  application frameworks should not have to deal with exposing,
-  expressing, or implementing capabilities which are required \I{by}
-  them, but are not part of their algorithmic core.  Those should be
-  provided at the system level, which makes the application frameworks
-  \I{easily} implementable on any system providing these capabilities,
-  i.e. on any system, which has the appropriate affinity.
+There are a few implementations, most notably Google and Hadoop and
+these are what our implementation is based on.  It is able to handle
+most of the problems associated with grid applications.  We use the
+idea of a master/slave type framework.  The programmer would compile
+different slave applications for every different type of machine he or
+she would expect to encounter in the grid.  The slave application is
+where the map and reduce functions are.  Then the master will handle
+submitting these jobs on other machines as well as keeping track of
+the state of the machines -- idle, done, or failed.  This allows for
+easy running of an application using large girds that have frequent
+machine failures.  Our MapReduce also handles data distribution in the
+same manner Google does, by creating partitions of data so the entire
+data set will never be on one machine, thus limited network bandwidth
+and data distribution.  These files could then recognized by a
+distributed filesystems such as HaDoop FileSystem.  Although, our
+current implementation is written to avoid excessive network
+bandwidth, it doesn’t change depending on current network
+availability.
 
-\section{Distributed Applications Usage Modes}
-\label{sec:apps}
 
- Table~\ref{tab:classes} shows an overview of a number of application
- classes~\cite{dpa_paper} which are widely used in scientific
- computing, and outside.  Often applications in the same class, have
- similar programming models or use programming patterns; for example,
- \I{'pleasingly distributed'} applications, such as the numerous
- \I{'XYZ@Home'} type applications, all share the Master-Worker model,
- in one incarnation or the other.  As compute affine Clouds (aka
- compute Clouds) support that programming paradigm, these applications
- can immediately utilize compute cloud resources with great success.
- For other application classes, such as \I{'tightly coupled,
- heterogeneous'} applications, this is not so obvious, as a compute
- cloud without compute-communication affinity can not easily run a
- communication intensive application efficiently.
- 
- \begin{table}[h]
-  \begin{center}
-   \footnotesize
-   \begin{tabular}{|p{.25\textwidth}|p{.27\textwidth}|p{.39\textwidth}|}
-     \hline
- 
-     \B{Application Class}                                 &
-     \B{Data    Driven}                                    &
-     \B{Compute Driven}                                    \\\hline
- 
-     \B{Pleasingly Distributed}                            &
-        SETI$@$home                                        &
-        Monte Carlo Simulations of Viral Propagation       \\\hline
- 
-     \B{Loosely Coupled,\NL Homogeneous}                    &
-        Image Analysis                                     &
-        Replica Exchange Molecular Dynamics of Proteins    \\\hline
- 
-     \B{Tightly Coupled,\NL Homogeneous}                    &
-        Semantic Video Analysis                            &
-        Heme Lattice-Boltzmann Fluid dynamics              \\\hline
- 
-     \B{Loosely Coupled,\NL Heterogeneous}                 &
-        Multi-Domain Climate Predictions                   &
-        Kalman-Filter Fluid Dynamics                       \\\hline
- 
-     \B{Dynamic Event Driven}                              &
-        Disaster support                                   &
-        Visualization                                      \\\hline
- 
-     \B{First Principle, Distributed}                      &
-        MapReduce-Based Web indexing                       &
-        MapReduce-Based Motif Distributed search           \\\hline
- 
-   \end{tabular}
-   \caption{\footnotesize \B{Examples of primary categories 
-            of distributed applications\cite{dpa_paper}.}}
-   \label{tab:classes}
-  \end{center}
- \end{table}
-
- We want to demonstrate using two examples, how the implementation of the
- respective programming patterns used by these application classes can
- be supported by the Cloud affinities\footnote{Both applications have
- been implemented using SAGA~\cite{saga-core}, but we do not, in this
- paper, intent to focus on SAGA as a solution to the discussed problem
- space, but merely use it as means to an end.}.
-
- \up
- \subsection{Example 1: MapReduce}
-
-  MapReduce~\cite{mapreduce-paper} is a programming framework which
-  supports applications which operate on very large data sets on
-  clusters of computers.  MapReduce relies on a number of capabilities
-  of the underlying system, most related to file operations, but also
-  related to process/data colocation.  The Google file system, and
-  other global file systems, provide the relevant capabilities, such
-  as atomic file renames.  Implementations of MapReduce on these file
-  systems can focus on implementing the the dataflow pipeline, which
-  is the algorithmic core of the MapReduce framework.
-
-  We have recently implemented MapReduce in SAGA, targeting general
-  purpose Grid systems, where the system capabilities required by
-  MapReduce are usually not natively supported -- instead, a general
-  purpose grid provides a much larger set of lower level operations.
-  Some semantics, such as again the atomic file rename, is provided by
-  the SAGA API layer, others, such as data/compute colocation are not.
-  Our implementation is thus required to interleave the core logic
-  with explicit instructions on where processes are to be scheduled
-  when operating on specific parts of the data set~\cite{gsoc-saga}.
-  Note that some of the required capabilities can be provided by
-  higher level grid services -- those are, however, often not
-  standardized, and often not available in general purpose Grids.
-
-  The advantage of this approach is obviously that our implementation
-  is no longer bound to run on a system providing the appropriate
-  semantics originally required by MapReduce, but is portable to
-  other, more generic systems as well.  The drawback of the approach
-  is obvious as well: our implementation is relatively more complex,
-  as it needs to add semantic system capabilities at some level or the
-  other, and it is inherently slower, as it is for these capabilities
-  very difficult or near impossible to obtain system level performance
-  on application level.  But many of these are due to the early-stages
-  of the implementation of SAGA, and not a fundamental limitation of
-  the design or concept.
-
- \subsection{Example 2: All-Pairs}
-
-\section{Conclusions}\label{sec:conclusion}
+\subsection{Example 2: All-Pairs}
 
 \section{Acknowledgments}
-\label{sec:acks}
 
-OMII-UK, Google, SAGA
-
-%\bibliographystyle{plain}
-%\bibliography{saga_data_intensive}
+\bibliographystyle{plain}
+\bibliography{saga_data_intensive}
 
 \end{document}
 
