@@ -101,7 +101,7 @@
 }
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -127,14 +127,17 @@
   There exists a class of scientific applications for which utilizing
   distributed resources is critical for reducing the
   time-to-solution. However, the ability to orchestrate many
-  distributed jobs in a distributed environments is a major challenge.
+  jobs in distributed environments is a major challenge.
   We discuss a specific class of applications -- Replica-Exchange
   simulations -- where utilizing as many (often heterogenous)
   distributed resources as possible, is critical for the effective
-  solution of the scientific problem.  SAGA is a high-level
+  solution of the scientific problem.  
+  SAGA is a high-level
   programmatic abstraction layer that provides a standardised
   interface for the primary distributed functionality required for
-  application development.
+  application development. Migol provides the underlying middleware
+  which ensure the reliable execution of applications even in
+  the presence of failures.
 
   \jhanote{In this paper, we describe the design, development and
     deployment of a unique framework for constructing fault-tolerant
@@ -151,6 +154,8 @@
     capability to recover applications from checkpoint files
     transparently.  In addition to describing the integration of
     SAGA-CPR with the Migol infrastructure,}
+  \alnote{I added a small note about Migol to the abstract (I tried to keep
+    it short.)}
 
   \jhanote{We also outline our experiences with running a large scale,
     general-purpose, SAGA-CPR based Replica-Exchange application in a
@@ -159,7 +164,9 @@
 \end{abstract}
 
 \section{Introduction}
-                 
+
+
+This paper addresses the following challenges:                 
 \begin{itemize}
 
 \item The move of traditional algorithms to distributed systems holds
@@ -177,21 +184,26 @@
   pathological cases, all systems can come to a grinding halt if a
   global synchronization of the different components is required
   between successive stages, and any one component has not even
-  started!
+  started!  
+  
+  \alnote{Do we really deliver the promise of a clever algorithm yet? Or are we
+  promising here to much? Maybe we should separate application algorithm and efficient
+  scheduling which is more a infrastructure capability?}
 
 \item There are different levels of abstractions  that are required
   in order to make distributed systems generally more usable for
-  production science. By one classification, the three levels of
-  classification are, i) application level, ii) deployment iii) system-level
-  level (usage) abstraction
+  production science. By one classification, the three levels are, 
+  i) application level, ii) deployment iii) system-level
+  level (usage) abstraction.
 
 \item A unique/novel contribution of this paper is the first
-  implementation of a system-level abstraction (analogous to Glide-In)
+  implementation of a system-level abstraction (inspired by the Condor 
+  Glide-In mechanism~\citep{citeulike:291860})
   using programmatic interfaces, and a novel implementation of the
   replica-exchange algorithm to exploit resources opportunistically.
   However it is critical to point out that the {\it novel} RE
   implementation is practical only because of {\bf the agile execution
-    model} that the programming model and system bestows! The
+  model} that the programming model and system bestows! The
   generalization of the RE algorithm is trivial, but ensuring its
   implementation and execution isn't and {\bf depends critically upon
     SAGA and its enhanced job model.}
@@ -205,7 +217,7 @@
           
 There exist several types of applications, which are well suited
 to distributed environments. Probably the best known and most powerful
-example are those that involve an ensemble of decoupled tasks, which
+examples are those that involve an ensemble of decoupled tasks, which
 we refer to as {\it pleasingly-distributed} applications; in spite of
 its conceptual simplicity, many scientific problems based on parameter
 sweeps and/or Monte Carlo simulations, can be solved using
@@ -305,10 +317,10 @@ The remainder of the paper is structured as follows: In the next
 section we provide the basic ideas behind RE and specifically
 Replica-Exchange using Molecular Dynamics simulations.  We then
 briefly discuss the SAGA-Migol fault-tolerant framework. In section 4
-we present the challenges of developing developing a REMD application,
+we present the challenges of developing a RE application,
 which is runnable in a heterogeneous and loosely coupled Grid
 environment.  In section 5, we describe the details of a REMD
-application implemented using SAGA-Migol fault-tolerant, distributed
+application implemented using the SAGA-Migol fault-tolerant, distributed
 framework. In the subsequent sections we discuss our experience in
 implementing REMD and performance figures. We conclude by providing a
 detailed analysis of related work, which will highlight the truly
@@ -325,7 +337,7 @@ macroscopic or thermodynamic quantities available from experiments.
 However, even with the most powerful computing resources at the
 moment, straight-forward MD simulations are unable to reach the
 relevant time-scales required to study conformational changes and
-searches. This is part due to the inherent limitations in the MD
+searches. This is partly due to the inherent limitations in the MD
 algorithm -- a global synchronization is required at the end of each
 time step.  This provides an important motivation for research into
 finding ways to accelerate sampling and enhance ``effective''
@@ -351,7 +363,7 @@ described MD approach -- but also multiple levels-of-coupling.
 The degree and frequency of coupling and exchange can be either
 regular~\citep{hansmann,Sugita:1999rm}, or
 irregular~\citep{SPdynamics,pande_bj03}. An example of the latter --
-parallel replica dynamics as implemented in Folding@home, involves
+parallel replica dynamics as implemented in Folding@home involves
 coordination between replicas only when an ``event'' occurs.  In
 contrast, for regular RE applications, attempts to exchange states
 between certain pairs occur at fixed intervals. A major challenge
@@ -379,7 +391,7 @@ of distributed applications. The framework can automatically detect and transpar
 such as node or application crashes. For recovery Migol relies on application-level checkpointing 
 to ensure that the amount of lost computation is minimized. The 
 application is solely responsible for registering job and checkpoint metadata with the central registry service
-of Migol. Once registered, Migol will take care of monitoring and, if necessary, recovering the application.
+of Migol. Once registered, Migol will handle the monitoring and, if necessary, the recovering of the application.
 
 % The framework is based on the Globus Toolkit 4.  
 The SAGA CPR API provides a high-level programming abstraction for starting, monitoring and recovering
@@ -390,7 +402,7 @@ using the provided adaptor mechanism. Details of the SAGA/Migol integration are 
 
 SAGA and Migol offer a scalable, general purpose and extensible environment for developing resilient Grid applications. 
 Using a powerful abstraction, such as SAGA CPR, applications can easily and reliable 
-orchestrate hundreds of tasks, while benefiting of an adaptive infrastructure such as Migol at the same time.
+orchestrate hundreds of tasks, while benefiting from an adaptive infrastructure such as Migol at the same time.
 
 
 % In a sense, Migol can be considered as GridCPR reference implementation for which
@@ -823,7 +835,7 @@ infrastructure. All this whilst remaining general purpose and
 extensible, for example, using the Migol adaptor, the application can
 also benefit from additional features, such as the automatic
 monitoring and the transparent recovery of failed tasks. By only
-slightly extending the Job Model defined by SAGA a powerful
+slightly extending the job model defined by SAGA a powerful
 system-level abstraction such as \glidein\ jobs can be supported
 %has been defined 
 and successfully deployed in service of the REMD application. While
