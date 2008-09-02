@@ -49,8 +49,8 @@ class advert_glidin_job():
 		os.environ["X509_USER_PROXY"]=userproxy
 		print "use proxy: " + userproxy
 	else:
-		if os.environ.has_key("X509_USER_PROXY"):
-			del os.environ["X509_USER_PROXY"]
+	#	if os.environ.has_key("X509_USER_PROXY"):
+	#		del os.environ["X509_USER_PROXY"]
 		print "use standard proxy"
 
         #register advert entry

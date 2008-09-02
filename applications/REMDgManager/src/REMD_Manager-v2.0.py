@@ -91,8 +91,8 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
     jd = saga.job.description()
    
     jd.numberofprocesses = RE_info.numberofprocesses
-    #jd.spmdvariation = "mpi"
-    jd.spmdvariation = "single"
+    jd.spmdvariation = "mpi"
+    #jd.spmdvariation = "single"
     jd.totalcputime = RE_info.totalcputime
 #    jd.arguments = RE_info.arguments   
     jd.arguments = ["NPT.conf"]
