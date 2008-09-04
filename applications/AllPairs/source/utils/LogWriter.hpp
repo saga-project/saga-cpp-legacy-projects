@@ -9,7 +9,7 @@
 #include <string>
 #include <saga/saga.hpp>
 
-namespace AllPairs
+namespace AllPairs 
 {
   class LogWriter {
 

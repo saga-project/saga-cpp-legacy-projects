@@ -1,22 +1,68 @@
-//  Copyright (c) 2008 Michael Miceli and Christopher Miceli
-// 
-//  Distributed under the Boost Software License, Version 1.0. (See accompanying 
-//  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-
-#include "AllPairsBase.hpp"
-#include "../utils/type.hpp"
-
-using namespace AllPairs;
-
-class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
-  public:
-   AllPairsImpl(int argCount, char **argList)
-     : AllPairsBase<AllPairsImpl>(argCount, argList) {}
-   double compare(saga::url object1, saga::url object2) {
-      saga::filesystem::file f(object1, saga::filesystem::ReadWrite);
-      saga::filesystem::file g(object2, saga::filesystem::ReadWrite);
-      return 0.2;
+ //  Copyright (c) 2008 Michael Miceli and Christopher Miceli
+ // 
+ //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
+ //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ 
+ #include "AllPairsBase.hpp"
+ #include "../utils/type.hpp"
+ 
+ using namespace AllPairs;
+ 
+ class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
+   public:
+    AllPairsImpl(int argCount, char **argList)
+      : AllPairsBase<AllPairsImpl>(argCount, argList) {
+      dna_distances.insert(std::pair<std::string,double>("aa", 0.0));
+      dna_distances.insert(std::pair<std::string,double>("at", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("ac", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("ag", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("ta", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("tt", 0.0));
+      dna_distances.insert(std::pair<std::string,double>("tc", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("tg", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("ca", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("ct", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("cc", 0.0));
+      dna_distances.insert(std::pair<std::string,double>("cg", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("ga", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("gt", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("gc", 2.0));
+      dna_distances.insert(std::pair<std::string,double>("gg", 0.0));
    }
+   double compare(saga::url fragmentUrl, saga::url baseUrl) {
+      saga::size_t const KB64 = 1024*64; //64KB
+      saga::size_t bytesRead;
+      saga::filesystem::file fragment(fragmentUrl, saga::filesystem::ReadWrite);
+      saga::filesystem::file base    (baseUrl    , saga::filesystem::ReadWrite);
+      std::string fragment_string;
+      std::string base_string;
+      char data[KB64+1];
+      double minimum = -1.0;
+      while((bytesRead = fragment.read(saga::buffer(data,KB64)))!=0) {
+         fragment_string += data;
+      }
+      while((bytesRead = base.read(saga::buffer(data,KB64)))!=0) {
+         base_string += data;
+      }
+      //go through every substring of base_string
+      for(std::string::size_type x = 0;x<base_string.size();x++) {
+        //get part of base to compare against
+        std::string compare_string = base_string.substr(x,fragment_string.size());
+        double distance;
+        //calculate the distance
+        for(std::string::size_type y = 0;y<compare_string.size();y++) {
+           std::string elements = compare_string.substr(y,1) + base_string.substr(x+y,1);
+           std::cout << elements << std::endl;
+           distance += dna_distances[elements];
+        }
+        if(minimum == -1.0 || minimum > distance) {
+           minimum = distance;
+        }
+      }
+      return minimum;
+   }
+  private:
+   std::map<std::string,double> dna_distances;
 };
 
 /*********************************************************
