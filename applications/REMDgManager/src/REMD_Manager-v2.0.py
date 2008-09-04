@@ -424,7 +424,7 @@ def start_glidin_jobs(RE_info):
         project = RE_info.projects[RE_info.remote_hosts.index(i)]
         queue = RE_info.queues[RE_info.remote_hosts.index(i)]
         workingdirectory = RE_info.workingdirectories[RE_info.remote_hosts.index(i)]
-	
+        #pdb.set_trace()	
 	userproxy=None
 	try:
 		userproxy = RE_info.userproxy[RE_info.remote_hosts.index(i)]
