@@ -246,6 +246,7 @@ class advert_launcher:
             if self.processes.has_key(i): # only if job has already been starteds
                 p = self.processes[i]
                 p_state = p.poll()
+		print (str(i)) + " state: " + str(p_state)
                 if p_state != None and p_state==0:
                     print i.get_attribute("Executable") + " finished. "
                     i.set_attribute("state", str(saga.job.Done))

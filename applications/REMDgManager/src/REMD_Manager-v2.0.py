@@ -35,7 +35,7 @@ import pdb
 
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
-SCP = False
+SCP = True
 
 ########################################################
 #  Global variable 
@@ -157,7 +157,7 @@ def file_stage_in_with_scp(input_file_list_with_path, remote_machine_ip, remote_
                 dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
                 command = "scp " + source_url_str + " " + dest_url_str
                 print "Execute: " + command
-                os.popen(command)
+                #os.popen(command)
                 logging.info("Now Input file %s is staged into %s"%(ifile_basename,dest_url_str))
             except saga.exception, e:
                 error_msg = "Input file %s failed to be staged in"%(ifile_basename)
@@ -477,7 +477,11 @@ def run_REMDg(configfile_name):
 
            remote_dir = RE_info.workingdirectories[irep]
            prepare_NAMD_config(irep, RE_info)
-           file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+	   if SCP == True:
+		pass
+		file_stage_in_with_scp(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+           else:
+           	file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
            print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip)
 
     iEX = 0
@@ -510,7 +514,10 @@ def run_REMDg(configfile_name):
                remote_dir = RE_info.workingdirectories[irep]
                
                prepare_NAMD_config(irep, RE_info) 
-               file_stage_in_with_saga([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir) 
+	       if SCP == True:
+			file_stage_in_with_scp([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir)
+	       else:
+               		file_stage_in_with_saga([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir) 
                print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip) 
 	   else:
 	       print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not stage files"
