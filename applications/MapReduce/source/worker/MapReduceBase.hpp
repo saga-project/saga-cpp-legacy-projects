@@ -204,8 +204,7 @@ namespace MapReduce {
       void registerWithDB(void) {
          int mode = saga::advert::ReadWrite;
          //(1) connect to the orchestrator database
-         std::string advertKey("advert://");
-         advertKey += database_ + "//" + sessionUUID_ + "/";
+         std::string advertKey(database_ + "//" + sessionUUID_ + "/");
          try {
             saga::advert::directory(advertKey, mode);
             //(2a) create a directory for this agent

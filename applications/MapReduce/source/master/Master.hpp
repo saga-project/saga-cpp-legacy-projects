@@ -48,7 +48,7 @@ namespace MapReduce {
             // create a UUID for this agent
             //uuid_ = uuid().string();  //Temporarily disabled
             uuid_ = "DUMMY-UUID";
-            saga::url advertKey(std::string("advert://" + database_ + "//" + uuid_ + "/log"));
+            saga::url advertKey(std::string(database_ + "//" + uuid_ + "/log"));
             logURL_ = advertKey;
             //create new LogWriter instance that writes to stdout
             log = new MapReduce::LogWriter(std::string(MR_MASTER_EXE_NAME), logURL_);
@@ -129,8 +129,7 @@ namespace MapReduce {
             std::string message("Connecting to Orchestrator Database (");
             message += (database_) + ")... ";
             
-            std::string advertKey("advert://");
-            advertKey += database_ + "//" ;
+            std::string advertKey(database_ + "//");
             try {
                //If this line succeeds, then there is a
                //connection to the database
@@ -152,11 +151,10 @@ namespace MapReduce {
           * ******************************************************/
          void createNewSession_(void) {
             int mode = saga::advert::ReadWrite | saga::advert::Create;
-            std::string advertKey("advert://");
             std::string message("Creating a new session (");
             saga::task_container tc;
            
-            message += (uuid_) + ")... ";
+            std::string advertKey(uuid_ + ")... ");
             advertKey += database_ + "//" + uuid_ + "/";
             try {
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
@@ -198,8 +196,7 @@ namespace MapReduce {
                std::string message("Adding new binary for "+ (*binaryListIT).targetOS + "/" 
                                    + (*binaryListIT).targetArch + " to session... ");
                try {
-                 std::string advertKey("advert://");
-                 advertKey += database_ + "//" + uuid_ + "/";
+                 std::string advertKey(database_ + "//" + uuid_ + "/");
                  saga::advert::entry adv(advertKey + ADVERT_DIR_BINARIES + "/" +
                      binaryListIT->targetOS + "_" + binaryListIT->targetArch, mode);
                  //Now set some properties of the binaries
@@ -253,8 +250,7 @@ namespace MapReduce {
             while(fileChunks_IT != fileChunks_.end()) {
                std::string message("Adding new chunk " + (fileChunks_IT->get_string()) + "...");
                try {
-                 std::string advertKey("advert://");
-                 advertKey += database_ + "//" + uuid_ + "/";
+                 std::string advertKey(database_ + "//" + uuid_ + "/");
                  saga::advert::entry adv(advertKey + ADVERT_DIR_CHUNKS + "/chunk-" +
                      boost::lexical_cast<std::string>(successCounter), mode);
                  adv.store_string(fileChunks_IT->get_string());
