@@ -120,7 +120,6 @@ namespace MapReduce {
       void emitIntermediate(std::string key, std::string value) {
          intermediate_[key].push_back(value);
          if(intermediate_.size() >= MAX_INTERMEDIATE_SIZE) {
-            std::cout << "intermediate size = " << intermediate_.size() << std::endl;
             writeIntermediate();
          }
       }

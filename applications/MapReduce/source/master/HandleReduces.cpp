@@ -75,9 +75,12 @@ namespace MapReduce
             message = message + " to reduce hash number ";
             message += boost::lexical_cast<std::string>(count);
             log_->write(message, LOGLEVEL_INFO);
-            saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
+            saga::url temp(workers_IT->get_string() + ADVERT_DIR_REDUCE_INPUT);
+            saga::advert::directory workerChunkDir(temp, mode);
             for(unsigned int counter = 0; counter < inputs.size(); counter++) {
-               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
+               saga::url temp(ADVERT_DIR_REDUCE_INPUT "/input-"
+                + boost::lexical_cast<std::string>(counter));
+               saga::advert::entry adv(temp, mode);
                adv.store_string(inputs[count]);
             }
             possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
@@ -88,7 +91,9 @@ namespace MapReduce
             std::string message("Worker ");
             message += workers_IT->get_path();
             message = message + " finished reducing with output ";
-            saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
+            saga::url temp(workers_IT->get_string() + "/output");
+            saga::advert::entry output(temp, mode);
+            //saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
             std::string finishedFile = output.retrieve_string();
             message += finishedFile;
             log_->write(message, LOGLEVEL_INFO);
@@ -99,9 +104,15 @@ namespace MapReduce
             message = message + " to reduce hash number ";
             message += boost::lexical_cast<std::string>(count);
             log_->write(message, LOGLEVEL_INFO);
-            saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
+            saga::url temp2(temp.get_string() + ADVERT_DIR_REDUCE_INPUT);
+            saga::advert::directory workerChunkDir(temp2, mode);
+            //saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
             for(unsigned int count = 0; count < inputs.size(); count++) {
-               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(count)), mode | saga::advert::Create));
+               /*saga::url temp3(temp2.get_string() + "./input-" + boost::lexical_cast<std::string>(count));
+               saga::advert::entry adv(temp3, mode | saga::advert::Create);*/
+               saga::advert::entry adv(saga::url(workerChunkDir.get_url().get_string() + 
+                  "/input" + boost::lexical_cast<std::string>(count)), mode | saga::advert::Create);
+               //saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(count)), mode | saga::advert::Create));
                adv.store_string(inputs[count]);
             }
             possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
@@ -137,7 +148,9 @@ namespace MapReduce
           saga::advert::directory worker(*workers_IT, mode);
           saga::advert::directory data(worker.open_dir(saga::url(ADVERT_DIR_INTERMEDIATE), mode));
           if(data.exists(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)))) {
-             saga::advert::entry adv(data.open(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)), mode));
+             saga::advert::entry adv(workers_IT->get_string() + ADVERT_DIR_INTERMEDIATE + "/" + "mapFile-" + 
+                boost::lexical_cast<std::string>(counter));
+             //saga::advert::entry adv(data.open(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)), mode));
              std::string path = adv.retrieve_string();
              intermediateFiles.push_back(adv.retrieve_string());
              std::string message("Added file " + path + " to input list");
@@ -171,7 +184,8 @@ namespace MapReduce
             std::string message("Worker ");
             message += workers_IT->get_string();
             message = message + " finished reducing with output ";
-            saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
+            saga::url temp(workers_IT->get_string() + "/output");
+            saga::advert::entry output(temp, mode);
             std::string finishedFile = output.retrieve_string();
             message += finishedFile;
             log_->write(message, LOGLEVEL_INFO);
