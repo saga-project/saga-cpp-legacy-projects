@@ -179,13 +179,20 @@ class advert_launcher:
                     return # job cannot be run at the moment
                 command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
 	    else:
-		machine_file_handler = open(machinefile, "r")
-		node= machine_file_handler.readlines()
-		machine_file_handler.close()
-		command ="ssh  " + node[0].strip() + " \"cd " + workingdirectory + "; " + command +"\"" 	
+		host = "localhost"
+		try:
+			machine_file_handler = open(machinefile, "r")
+			node= machine_file_handler.readlines()
+			machine_file_handler.close()
+			host = node[0].strip()
+		except:
+			pass
+		command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\"" 	
                 
             print "execute: " + command + " in " + workingdirectory
-            p = subprocess.Popen(args=command, executable="/bin/bash",stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
+	    # bash works fine for launching on QB but fails for Abe :-(
+            #p = subprocess.Popen(args=command, executable="/bin/bash",stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
+            p = subprocess.Popen(args=command, executable="/bin/tcsh", stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
             print "started " + command
             self.processes[job_dir] = p
             job_dir.set_attribute("state", str(saga.job.Running))
@@ -200,21 +207,34 @@ class advert_launcher:
             machine_file = open(machine_file_name, "w")
             machine_file.writelines(self.freenodes[:number_nodes])
             machine_file.close() 
+	    print "wrote machinefile: " + machine_file_name
             
             # update node structures
             self.busynodes.extend(self.freenodes[:number_nodes])
             del(self.freenodes[:number_nodes])            
             return machine_file_name
         return None
+	
+    def print_machine_file(self, filename):
+	fh = open(filename, "r")
+	lines = fh.readlines()
+	fh.close
+	print "Machinefile: " + filename
+	for i in lines:
+		print i
     
     def free_nodes(self, job_dir):
         print "Free nodes ..."
         number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
         machine_file_name = self.get_machine_file_name(job_dir)
         print "Machine file: " + machine_file_name
-        machine_file = open(machine_file_name, "r")
-        allocated_nodes = machine_file.readlines()
-        machine_file.close()
+	allocated_nodes = ["localhost"]
+	try:
+        	machine_file = open(machine_file_name, "r")
+        	allocated_nodes = machine_file.readlines()
+        	machine_file.close()
+	except:
+		pass
         for i in allocated_nodes:
             self.busynodes.remove(i)
             self.freenodes.append(i)
@@ -246,18 +266,22 @@ class advert_launcher:
             if self.processes.has_key(i): # only if job has already been starteds
                 p = self.processes[i]
                 p_state = p.poll()
-		print (str(i)) + " state: " + str(p_state)
-                if p_state != None and p_state==0:
-                    print i.get_attribute("Executable") + " finished. "
+		print self.print_job(i) + " state: " + str(p_state)
+                if (p_state != None and (p_state==0 or p_state==255)):
+                    print self.print_job(i)  + " finished. "
                     i.set_attribute("state", str(saga.job.Done))
                     self.free_nodes(i)
                     del self.processes[i]
-                elif p_state!=0 and p_state != None:
+                elif p_state!=0 and p_state!=255 and p_state != None:
+		    print self.print_job(i) + " failed.  "
                     i.set_attribute("state", str(saga.job.Failed))
                     self.free_nodes(i)
                     del self.processes[i]
 		else:
-		    print str(i) + "still running."
+	            pass
+	
+    def print_job(self, job_dir):
+	return  "Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
                                 
     def monitor_checkpoints(self):
         """ parses all job working directories and registers files with Migol via SAGA/CPR """
@@ -302,6 +326,7 @@ class advert_launcher:
             	time.sleep(20)
 	    except saga.exception:
 		traceback.print_exc(file=sys.stdout)
+		break
  
     def stop_background_thread(self):        
         self.stop=True
