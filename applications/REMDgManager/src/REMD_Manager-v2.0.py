@@ -35,7 +35,7 @@ import pdb
 
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
-SCP = True
+SCP = False
 
 ########################################################
 #  Global variable 
