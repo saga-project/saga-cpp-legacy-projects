@@ -70,8 +70,7 @@ namespace MapReduce {
                log_->write(message, LOGLEVEL_INFO);
 
                saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
-               saga::advert::entry adv(saga::url(workers_IT->get_string() + ADVERT_DIR_CHUNKS + "/chunk"), mode | saga::advert::Create);
-               //saga::advert::entry adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
+               saga::advert::entry adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
                adv.store_string(file);
                assigned_.push_back(file);
                possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_MAP);
@@ -79,8 +78,7 @@ namespace MapReduce {
             }
             else if(state == WORKER_STATE_DONE_MAP) {
                saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_CHUNKS), mode));
-               saga::advert::entry adv(saga::url(workers_IT->get_string() + ADVERT_DIR_CHUNKS + "/chunk"), mode | saga::advert::Create);
-               //saga::advert::entry     adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
+               saga::advert::entry     adv(workerChunkDir.open(saga::url("./chunk"), mode | saga::advert::Create));
                std::string finished_file(adv.retrieve_string());
                //Search to see if it was already finished
                std::vector<std::string>::iterator finishedIT = finished_.begin();
@@ -98,8 +96,10 @@ namespace MapReduce {
                {
                   finished_.push_back(finished_file);
                }
-               possibleWorker.set_attribute("STATE",   WORKER_STATE_IDLE);
-               possibleWorker.set_attribute("COMMAND", "");
+               saga::task t0 = possibleWorker.set_attribute<saga::task_base::Sync>("STATE",   WORKER_STATE_IDLE);
+               saga::task t1 = possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND", "");
+               t0.wait();
+               t1.wait();
                //Now that we have results, put them to work
                //Candidate did not just finish
                if(finished_.size() < chunks_.size() && file != finished_file) {
@@ -114,8 +114,8 @@ namespace MapReduce {
                   assigned = true;
                }
                else if(chunks_.size() == finished_.size()) {  //The last file just finished all
-                  possibleWorker.set_attribute("STATE",   WORKER_STATE_IDLE);
-                  possibleWorker.set_attribute("COMMAND", "");
+                  saga::task t0 = possibleWorker.set_attribute<saga::task_base::Sync>("STATE",   WORKER_STATE_IDLE);
+                  saga::task t1 = possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND", "");
                   assigned = true;
                   break;
                }
@@ -123,7 +123,7 @@ namespace MapReduce {
          }
          catch(saga::exception const & e) {
             std::string message(e.what());
-//            log->write(message, LOGLEVEL_ERROR);
+            log->write(message, LOGLEVEL_ERROR);
          }
          workers_IT++;
          if(workers_IT == workers_.end()) {
@@ -174,5 +174,5 @@ namespace MapReduce {
       }
       return candidateIT_->get_string();
    }
-} //namespace MapReduce
+} // namespace MapReduce
 

@@ -111,7 +111,7 @@ namespace MapReduce {
          saga::advert::directory binariesDir_;
          saga::advert::directory chunksDir_;
          std::string outputPrefix_;
-         std::vector<saga::job::job> successfulJobs_;
+         std::vector<saga::job::job> jobs_;
          
          MapReduce::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -151,20 +151,19 @@ namespace MapReduce {
           * ******************************************************/
          void createNewSession_(void) {
             int mode = saga::advert::ReadWrite | saga::advert::Create;
-            std::string message("Creating a new session (");
+            std::string message("Creating a new session (" + uuid_ + ")... ");
             saga::task_container tc;
            
-            std::string advertKey(uuid_ + ")... ");
-            advertKey += database_ + "//" + uuid_ + "/";
+            std::string advertKey(database_ + "//" + uuid_ + "/");
             try {
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
-               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
-               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
-               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("name",    cfgFileParser_.getSessionDescription().name));
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("user",    cfgFileParser_.getSessionDescription().user));
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("version", cfgFileParser_.getSessionDescription().version));
+               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
+               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
+               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
                tc.add_task(t0);
                tc.add_task(t1);
                tc.add_task(t2);
@@ -196,9 +195,7 @@ namespace MapReduce {
                std::string message("Adding new binary for "+ (*binaryListIT).targetOS + "/" 
                                    + (*binaryListIT).targetArch + " to session... ");
                try {
-                 std::string advertKey(database_ + "//" + uuid_ + "/");
-                 saga::advert::entry adv(advertKey + ADVERT_DIR_BINARIES + "/" +
-                     binaryListIT->targetOS + "_" + binaryListIT->targetArch, mode);
+                 saga::advert::entry adv = binariesDir_.open((*binaryListIT).targetOS+"_"+(*binaryListIT).targetArch, mode);
                  //Now set some properties of the binaries
                  saga::task t0 = adv.set_attribute<saga::task_base::Sync>(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
                  saga::task t1 = adv.set_attribute<saga::task_base::Sync>(ATTR_EXE_LOCATION,(*binaryListIT).URL);
@@ -229,7 +226,6 @@ namespace MapReduce {
          void populateFileList_(void) {
             std::vector<FileDescription> fileList                   = cfgFileParser_.getFileList();
             std::vector<FileDescription>::const_iterator fileListIT = fileList.begin();
-//            std::vector<std::string> fileNameList;
             unsigned int successCounter = 0;
             Derived& d = derived();
 
@@ -250,13 +246,11 @@ namespace MapReduce {
             while(fileChunks_IT != fileChunks_.end()) {
                std::string message("Adding new chunk " + (fileChunks_IT->get_string()) + "...");
                try {
-                 std::string advertKey(database_ + "//" + uuid_ + "/");
-                 saga::advert::entry adv(advertKey + ADVERT_DIR_CHUNKS + "/chunk-" +
-                     boost::lexical_cast<std::string>(successCounter), mode);
-                 adv.store_string(fileChunks_IT->get_string());
-                 message += "SUCCESS";
-                 log->write(message, LOGLEVEL_INFO);
-                 successCounter++;
+                  saga::advert::entry adv = chunksDir_.open(saga::url("chunk-" + boost::lexical_cast<std::string>(successCounter)), mode);
+                  adv.store_string(fileChunks_IT->get_string());
+                  message += "SUCCESS";
+                  log->write(message, LOGLEVEL_INFO);
+                  successCounter++;
                }
                catch(saga::exception const & e) {
                   message += e.what();
@@ -311,7 +305,7 @@ namespace MapReduce {
                         saga::job::service js((*hostListIT).rmURL);
                         saga::job::job agentJob= js.create_job(jd);
                         agentJob.run();
-                        successfulJobs_.push_back(agentJob);
+                        jobs_.push_back(agentJob);
                         message += "SUCCESS";
                         log->write(message, LOGLEVEL_INFO);
                         successCounter++;
