@@ -28,7 +28,7 @@
 \title{Programming Abstractions for Data Intensive Computing}
 
 \author{Michael Miceli$^{12}$,Shantenu Jha$^{12}$,Chris Miceli$^{12}$, 
-  Hartmut Kaiser$^{1}$, Andre Merzky$^{1}$ \\
+  Hartmut Kaiser$^{1}$, Andre Merzky$^{1}$, Ole Weidner$^{12}$ \\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
       State University, USA}}\\
   \small{\emph{$^{2}$Department of Computer Science, Louisiana State
@@ -56,7 +56,7 @@
 
 \begin{abstract}{SAGA, ..., search, sequencing.. data-intensive}
   SAGA~\cite{saga_gfd90} is a high level API that provides a simple,
-  standard and uniform interface to the most commonly required
+  standard and uniform interface for the most commonly required
   distributed functionality.  SAGA can be used to encode grid
   applications~\cite{saga_escience07, saga_tg08}, tool-kits to manage
   distributed applications as well as implement abstractions that
@@ -67,16 +67,16 @@
   abstractions using SAGA and use them to solve commonly encountered
   genomic tasks.  We will show how multiple sequence alignment can be
   orchestrated using the SAGA-Allpair implementation, and genome
-  searching can be implemented using Map-reduce.  In addition, the aim
-  of this paper is to show (validate) that SAGA is a sufficiently
-  complete and high-level interface so as to support these programming
-  abstractions.  %Figure~\ref{fig:data_intensive_app_saga} illustrates
+  searching can be implemented using MapReduce.  In addition, the aim
+  of this paper is to show (validate) that SAGA is sufficiently
+  complete and has a high-level interface to support these programming
+  abstractions.  Figure~\ref{fig:data_intensive_app_saga} illustrates
   the software architecture of the implementation, highlighting the
   different abstraction levels that allow the reuse of most of the
   system for both algorithms and for different genomic applications.
-  We will highlight the sailent points of our implementations, and how
+  We will highlight the salient points of our implementations, and how
   we handle common considerations such as when to move the data to the
-  machine or when to process it locally.  The implemention of these
+  machine or when to process it locally.  The implementation of these
   abstractions encapsulates details such as latency hiding,
   performance and other variables (such as cluster sizes, and queue
   sizes).  The user should be able to easily add a few function calls
@@ -111,11 +111,11 @@
 MapReduce~\cite{mapreduce-paper} is a programming framework which
 supports applications which operate on very large data sets on
 clusters of computers.  MapReduce relies on a number of capabilities
-of the underlying system, most related to file operations, but also
-related to process/data colocation.  The Google file system, and other
+of the underlying system, most related to file operations.  Others are 
+related to process/data allocation.  The Google File System, and other
 global file systems, provide the relevant capabilities, such as atomic
-file renames.  Implementations of MapReduce on these file systems can
-focus on implementing the the dataflow pipeline, which is the
+file renames.  Implementations of MapReduce on these global file systems
+are free to focus on implementing the the data-flow pipeline, which is the
 algorithmic core of the MapReduce framework.
 
 We have recently implemented MapReduce in SAGA, targeting general
@@ -123,9 +123,9 @@ purpose Grid systems, where the system capabilities required by
 MapReduce are usually not natively supported -- instead, a general
 purpose grid provides a much larger set of lower level operations.
 Some semantics, such as again the atomic file rename, is provided by
-the SAGA API layer, others, such as data/compute colocation are not.
+the SAGA API layer, others, such as data/compute allocation are not.
 Our implementation is thus required to interleave the core logic with
-explicit instructions on where processes are to be scheduled Note that
+explicit instructions on where processes are to be scheduled.  Note that
 some of the required capabilities can be provided by higher level grid
 services -- those are, however, often not standardized, and often not
 available in general purpose Grids.
@@ -149,50 +149,50 @@ or concept.
 
 MapReduce is a programming framework developed by Google for running
 data-intensive processes over a large cluster of commodity machines.
-The main idea is to provide an easy interface for users to run a
-common type of jobs on grids without having the client worry about the
-semantics of the grid, for example, dispatch latency, machine failure,
-data distribution, and network bandwidth.  All of these are problems
-that could make a naïve implementation on a grid slower than a serial
-implementation.  When using a MapReduce implementation the programmer
-interacts with only two functions: map and reduce.  The map function
-will go through the datasets and create a map of data to some type of
-output.  A map is a datatype in computer science that relates one
-object to another, i.e. a name t o a phone number.  The reduce
+The main idea is to provide an easy interface for users to solve a
+specific domain of problem with grids without having the client worry 
+about the semantics of the grid, for example, dispatch latency, machine
+failure, data distribution, and network bandwidth.  All of these are
+problems that could make some naïve implementations on a grid slower
+than serial implementations.  When using a MapReduce implementation,
+the programmer interacts with only two functions: map and reduce.  
+The map function will go through the datasets and create a map of data
+to some type of output.  A map is a datatype in computer science that
+relates one object to another, i.e. a name t o a phone number.  The reduce
 function will go through all of the maps and combine them to produce
-another output.  The de facto example is word count.  Say, you have a
-large set of documents and you want to find how many of each word is
+another output.  The de facto example is word count.  Say, one has a
+large set of documents and he wants to find how many of each word is
 present in all the documents.  The map function would go through each
 document and for every word produce a map from the document to a list
 of 1’s.  An example for the word “cat” may look like this cat -> 1, 1,
 1, 1, 1.  Then, the reduce function will add up the 1’s to produce a
-final output, i.e. cat -> 5.  The programmer has to break the problem
-he or she wants to solve into two sections.  At first this framework
-may seem limiting, but there have been a large number of distinct
-applications written using it, and its popularity has been steadily
-increasing.  This shows that the framework is well suited for solving
-data-intensive problems.
+final output, i.e. cat -> 5.  At first this framework may seem limiting,
+but this is in part what makes it so successful.  Its structure is 
+is very easily parallelized.   Also, there have been a large number
+of distinct applications written using it, and its popularity has been
+steadily increasing.  This shows that the framework is well suited for
+solving data-intensive problems.
 
 
 \subsection{Our Implementation:} 
 
-There are a few implementations, most notably Google and Hadoop and
-these are what our implementation is based on.  It is able to handle
-most of the problems associated with grid applications.  We use the
-idea of a master/slave type framework.  The programmer would compile
-different slave applications for every different type of machine he or
-she would expect to encounter in the grid.  The slave application is
+There are a few implementations of MapReduce, most notably Google's and
+Hadoop's.  These are what our implementation is based on.  It is able
+to handle most of the problems associated with grid applications.  We use
+the idea of a master/slave type framework.  The programmer would compile
+different slave applications for every different type of machine he 
+would expect to encounter in the grid.  The slave application is
 where the map and reduce functions are.  Then the master will handle
 submitting these jobs on other machines as well as keeping track of
 the state of the machines -- idle, done, or failed.  This allows for
 easy running of an application using large girds that have frequent
 machine failures.  Our MapReduce also handles data distribution in the
 same manner Google does, by creating partitions of data so the entire
-data set will never be on one machine, thus limited network bandwidth
+data set will never be on one machine, thus limiting network bandwidth
 and data distribution.  These files could then recognized by a
-distributed filesystems such as HaDoop FileSystem.  Although, our
+distributed file systems such as Hadoop File System.  Although, our
 current implementation is written to avoid excessive network
-bandwidth, it doesn’t change depending on current network
+bandwidth, it does not change depending on current network
 availability.
 
 
@@ -206,12 +206,27 @@ Provide 1 paragraph description of Hadoop
 
 Discuss the C interface to Hadoop
 
-\subsection*{BigTable, HBase}
+\subsection*{Bigtable, HBase}
 
-Provide 1 paragraph description of Bigtable and its specific
-implementation -- HBase
+Bigtable is a specific type of database system created by Google to 
+have better control over scalability and performance than other 
+databases.  It is very flexible and has many advantages over normal 
+databases.  The main difference is that it is meant to store extremely 
+large datasets, into the petabytes, over thousands of machines~\cite{bigtable}.  
+Another advantage is the ability to be accessed through MapReduce.  Since 
+MapReduce is inherently very well parallelized, accessing Bigtable is very 
+efficient.  Due to the success of Bigtable, HBase was developed by Hadoop as 
+an open source alternative for use with their MapReduce.  Both of them are 
+implemented in a similar way.  They split up large tables and replicate them 
+over many machines to avoid node failure.  Also, since the data is partitioned 
+accessing it does not create a large strain on the grid's network bandwidth.
 
-\subsection*{Interfacing SAGA to Hadoop and BigTable}
+%Provide 1 paragraph description of Bigtable and its specific
+%implementation -- HBase
+
+\subsection*{Interfacing SAGA to Hadoop and Bigtable}
+%We used hadoop as a metadata storage, work still needs to be done
+%to see how well SAGA-MapReduce is at accessing elements as part of mapping
 
 \section{Applications}
 
