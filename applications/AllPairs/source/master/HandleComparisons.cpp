@@ -26,13 +26,12 @@ namespace AllPairs
  * assignReduces is the only public function that tries  *
  * to assign reduce files to idle workers                *
  * ******************************************************/
- std::map<std::string, std::string> &HandleComparisons::assignWork()
+ void HandleComparisons::assignWork()
  {
     while(finished_.size() < fragmentFiles_.size()) {
        saga::url fragmentFile(get_file_());
        issue_command_(fragmentFile);  // Try to assign the chunk to someone
     }
-    return data_;
  }
 /*********************************************************
  * issue_command takes the grouped files and tries to    *
@@ -40,53 +39,42 @@ namespace AllPairs
  * the results are recorded                              *
  * ******************************************************/
  void HandleComparisons::issue_command_(saga::url fragmentFile) {
-    int mode = saga::advert::ReadWrite;
-    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
-    bool assigned = false; //Describes status of current file
-    while(assigned == false) {
-       try {
-          saga::advert::directory possibleWorker(*workers_IT, mode);
-          std::string state = possibleWorker.get_attribute("STATE");
-          if(state == WORKER_STATE_IDLE) {
-             if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_COMPARE)
-             {
-                break;
-             }
-             saga::task_container tc;
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("STATE",    WORKER_STATE_IDLE));
-             tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
-             saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode | saga::advert::Create));
-             tc.add_task(adv.store_string<saga::task_base::ASync>(fragmentFile.get_string()));
-             std::string message("Assigned worker");
-             message += possibleWorker.get_url().get_path() + " to compare fragment: " + fragmentFile.get_string();
-             assigned_.push_back(fragmentFile);
-             tc.wait();
-             log_->write(message, LOGLEVEL_INFO);
-             assigned = true;
-          }
-          else if(state == WORKER_STATE_DONE) {
-             try{
-                saga::task_container tc;
-                tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("STATE",    WORKER_STATE_IDLE));
-                tc.add_task(possibleWorker.set_attribute<saga::task_base::ASync>("COMMAND",  WORKER_COMMAND_COMPARE));
-                //./fragmentFile is the fragmentFile the worker has just finished with
-                saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode));
-                std::string finished_work(adv.retrieve_string());
-                finished_.push_back(saga::url(finished_work));
-                std::string message("Worker ");
-                message += possibleWorker.get_url().get_path() + " finished fragment " + finished_work;
-                log_->write(message, LOGLEVEL_INFO);
-                //finishedFile is the data of the comparison
-                saga::advert::entry adv_done(possibleWorker.open(saga::url("./finishedFile"), mode));
-                data_[finished_work] = adv_done.retrieve_string();
-                tc.add_task(adv.store_string<saga::task_base::ASync>(fragmentFile.get_string()));
-                message = "Assigned worker";
-                message += possibleWorker.get_url().get_path() + " to compare fragment: " + fragmentFile.get_string();
-                assigned_.push_back(fragmentFile);
-                tc.wait();
-                log_->write(message, LOGLEVEL_INFO);
-                assigned_.push_back(fragmentFile);
-                assigned = true;
+   int mode = saga::advert::ReadWrite;
+   static std::vector<saga::url>::iterator workers_IT = workers_.begin();
+   bool assigned = false; //Describes status of current file
+   while(assigned == false) {
+      try {
+         saga::advert::directory possibleWorker(*workers_IT, mode);
+         std::string state = possibleWorker.get_attribute("STATE");
+         std::cout << workers_IT->get_string() << " state is " << state << std::endl;
+         if(state == WORKER_STATE_IDLE) {
+            if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_COMPARE) {
+               break;
+            }
+            saga::task_container tc;
+            tc.add_task(possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND",  WORKER_COMMAND_COMPARE));
+            saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode | saga::advert::Create));
+            tc.add_task(adv.store_string<saga::task_base::Sync>(fragmentFile.get_string()));
+            std::string message("Assigned worker");
+            message += possibleWorker.get_url().get_path() + " to compare fragment: " + fragmentFile.get_string();
+            assigned_.push_back(fragmentFile);
+            tc.wait();
+            log_->write(message, LOGLEVEL_INFO);
+            assigned = true;
+         }
+         else if(state == WORKER_STATE_DONE) {
+            try{
+               saga::task_container tc;
+               tc.add_task(possibleWorker.set_attribute<saga::task_base::Sync>("STATE",    WORKER_STATE_IDLE));
+               tc.add_task(possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND",  ""));
+               // ./fragmentFile is the fragmentFile the worker has just finished with
+               saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode));
+               std::string finished_work(adv.retrieve_string());
+               finished_.push_back(saga::url(finished_work));
+               std::string message("Worker ");
+               message += possibleWorker.get_url().get_path() + " finished fragment " + finished_work;
+               log_->write(message, LOGLEVEL_INFO);
+               //finishedFile is the data of the comparison
              }
              catch(saga::exception const &e) {
                 std::cerr << "SAGA EXCEPTION:  " << e.what() << std::endl;
@@ -95,7 +83,7 @@ namespace AllPairs
        }
        catch(saga::exception const & e) {
           std::string message(e.what());
-//          log->write(message, LOGLEVEL_ERROR);
+          //log->write(message, LOGLEVEL_ERROR);
        }
        workers_IT++;
        if(workers_IT == workers_.end()) {
@@ -138,4 +126,4 @@ namespace AllPairs
     }
     return candidateIT_->get_string();
  }
-}//Namespace AllPairs
+} // namespace AllPairs

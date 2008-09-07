@@ -51,6 +51,11 @@ namespace AllPairs {
          }
          catch (saga::exception const & e) {
             std::cerr << "AllPairs::run : Exception caught : " << e.what() << std::endl;
+            std::string advertKey(database_ + "//" + sessionUUID_ + "/");
+            advertKey += ADVERT_DIR_WORKERS;
+            advertKey += "/" + uuid_ + "/";
+            workerDir_    = saga::advert::directory(advertKey, saga::advert::ReadWrite| saga::advert::Create);
+            workerDir_.set_attribute("STATE", WORKER_STATE_FAIL);
             throw;
          }   
          catch (...) {
@@ -88,7 +93,7 @@ namespace AllPairs {
        * to allow the master to know keepalive information.    *
        * ******************************************************/
       void updateStatus_(void) {
-         std::cout << std::endl << "Updating agent status: " << std::flush;
+         std::cout << "Updating agent status: " << std::endl;
          //(1) update the last seen (keep alive) timestamp 
          time_t timestamp;
          time(&timestamp);
@@ -123,10 +128,9 @@ namespace AllPairs {
          int mode = saga::advert::ReadWrite;
          std::cout << "Registering with OrchestratorDB: " << std::flush;
          //(1) connect to the orchestrator database
-         std::string advertKey("advert://");
-         advertKey += database_ + "//" + sessionUUID_ + "/";
+         std::string advertKey(database_ + "//" + sessionUUID_ + "/");
          try {
-            saga::advert::directory sessionBaseDir_(advertKey, mode);
+            sessionBaseDir_ = saga::advert::directory(advertKey, mode);
 
             //(2a) create a directory for this agent
             advertKey += ADVERT_DIR_WORKERS;
@@ -191,24 +195,25 @@ namespace AllPairs {
                saga::advert::entry adv(workerDir_.open(saga::url("./fragmentFile"), saga::advert::ReadWrite));
                currentFragmentFile = adv.retrieve_string();
                RunComparison ComparisonHandler = RunComparison(workerDir_, baseFiles_, logWriter_);
-               std::vector<double> values;
-               std::string retval;
+               saga::advert::directory resultsDir = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_RESULTS), mode);
                double val;
+               double min = -1;
                while(ComparisonHandler.hasComparisons()) {
                   saga::url temp_base(ComparisonHandler.getComparisons());
                   val = compare(currentFragmentFile, temp_base);
-                  values.push_back(val);
+                  if(val < min || min == -1) {
+                     min = val;
+                  }
                   std::cout << "Compared " << std::endl << "   " << currentFragmentFile.get_string() << " to" <<  std::endl << "   " << temp_base << std::endl << std::endl;
                }
-               retval += boost::lexical_cast<std::string>(values[0]);
-               for(std::vector<double>::size_type x=1;x<values.size();x++) {
-                  retval += ", ";
-                  retval += boost::lexical_cast<std::string>(values[x]);
+               std::string::size_type p = currentFragmentFile.get_string().find_last_of('/');
+               std::string result_entry(currentFragmentFile.get_string());
+               if (p != std::string::npos) {
+                  result_entry = currentFragmentFile.get_string().substr(p);
                }
-               retval += ";";
+               saga::advert::entry fin_adv(resultsDir.open(saga::url("./" + result_entry), mode));
                //finished, now write data to advert
-               saga::advert::entry fin_adv(workerDir_.open(saga::url("./finishedFile"), mode));
-               fin_adv.store_string(retval);
+               fin_adv.store_string(boost::lexical_cast<std::string>(min));
                std::cout << workerDir_.get_attribute("STATE") << " is the worker state" << std::endl;
                workerDir_.set_attribute("COMMAND","");
                workerDir_.set_attribute("STATE", WORKER_STATE_DONE);

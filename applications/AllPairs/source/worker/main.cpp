@@ -3,8 +3,8 @@
  //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
  //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  
- #include "AllPairsBase.hpp"
- #include "../utils/type.hpp"
+#include "AllPairsBase.hpp"
+#include "../utils/type.hpp"
  
  using namespace AllPairs;
  
@@ -30,7 +30,7 @@
       dna_distances.insert(std::pair<std::string,double>("gg", 0.0));
    }
    double compare(saga::url fragmentUrl, saga::url baseUrl) {
-      saga::size_t const KB64 = 1024*64; //64KB
+      /*saga::size_t const KB64 = 1024*64; //64KB
       saga::size_t bytesRead;
       saga::filesystem::file fragment(fragmentUrl, saga::filesystem::ReadWrite);
       saga::filesystem::file base    (baseUrl    , saga::filesystem::ReadWrite);
@@ -58,8 +58,8 @@
         if(minimum == -1.0 || minimum > distance) {
            minimum = distance;
         }
-      }
-      return minimum;
+      }*/
+      return 0.2;
    }
   private:
    std::map<std::string,double> dna_distances;
@@ -72,8 +72,8 @@
  * ******************************************************/
 int main(int argc,char **argv) {
    putenv("SAGA_VERBOSE=100");
-   std::freopen("/home/mmicel2/worker-stderr.txt", "w", stderr);
-   std::freopen("/home/mmicel2/worker-stdout.txt", "w", stdout);
+   std::freopen("/home/michael/worker-stderr.txt", "w", stderr);
+   std::freopen("/home/michael/worker-stdout.txt", "w", stdout);
    try {
       AllPairsImpl allPairs(argc, argv);
       allPairs.run();

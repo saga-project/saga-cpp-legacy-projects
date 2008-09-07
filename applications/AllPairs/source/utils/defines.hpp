@@ -26,6 +26,7 @@
 
 #define ADVERT_DIR_WORKERS        "WORKERS"
 #define ADVERT_DIR_BINARIES       "BINARIES"
+#define ADVERT_DIR_RESULTS        "RESULTS"
 #define ADVERT_BASE_DIR_FILES     "BASE-FILES"
 #define ADVERT_FRAGMENT_DIR_FILES "FRAGMENT-FILES"
 
@@ -33,6 +34,7 @@
 
 #define WORKER_STATE_IDLE       "IDLE"       // Ready to Map or Reduce
 #define WORKER_STATE_DONE       "DONE"       // Done with assigned task
+#define WORKER_STATE_FAIL       "FAIL"         // Assigned task failed 
 #define WORKER_STATE_COMPARING  "COMPARING"  // Done with assigned task
 
 #define LOGLEVEL_FATAL     0x2   

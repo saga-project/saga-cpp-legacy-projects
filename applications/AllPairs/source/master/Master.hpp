@@ -52,7 +52,7 @@ namespace AllPairs {
             //uuid_ = uuid().string();  //Temporarily disabled
             uuid_ = "DUMMY-UUID";
             
-            saga::url advertKey(std::string("advert://" + database_ + "//" + uuid_ + "/log"));
+            saga::url advertKey(std::string(database_ + "//" + uuid_ + "/log"));
             logURL_ = advertKey;
             log = new AllPairs::LogWriter(std::string(AP_MASTER_EXE_NAME), advertKey);
          }
@@ -89,7 +89,9 @@ namespace AllPairs {
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
          ~Master(void) {
+            std::cout << "destructor" << std::endl;
             delete log;
+            std::cout << "destructor" << std::endl;
          }
         private:
          time_t startupTime_;
@@ -104,6 +106,7 @@ namespace AllPairs {
          saga::advert::directory fragmentFilesDir_;
          std::vector<saga::url> fragmentFiles_;
          std::vector<saga::url> baseFiles_;
+         std::vector<saga::job::job> jobs_;
          
          AllPairs::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -118,8 +121,7 @@ namespace AllPairs {
             std::string message("Connecting to Orchestrator Database (");
             message += (database_) + ")... ";
             
-            std::string advertKey("advert://");
-            advertKey += database_ + "//" ;
+            std::string advertKey(database_ + "//");
             try {
                //If this line succeeds, then there is a
                //connection to the database
@@ -141,12 +143,11 @@ namespace AllPairs {
           * ******************************************************/
          void createNewSession_(void) {
             int mode = saga::advert::ReadWrite | saga::advert::Create;  
-            std::string advertKey("advert://");
             std::string message("Creating a new session (");
             saga::task_container tc;
            
             message += (uuid_) + ")... ";
-            advertKey += database_ + "//" + uuid_ + "/";
+            std::string advertKey(database_ + "//" + uuid_ + "/");
             try {
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
@@ -324,6 +325,7 @@ namespace AllPairs {
                         saga::job::service js(hostListIT->rmURL);
                         saga::job::job agentJob= js.create_job(jd);
                         agentJob.run();
+                        jobs_.push_back(agentJob);
                         message += "SUCCESS";
                         log->write(message, LOGLEVEL_INFO);
                         successCounter++;
@@ -348,16 +350,8 @@ namespace AllPairs {
             std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
             sleep(5); //In here temporarily to allow time for all jobs to create advert entries
-            std::map<std::string, std::string> data = comparisonHandler.assignWork();
+            comparisonHandler.assignWork();
             log->write("Success", LOGLEVEL_INFO);
-            std::map<std::string, std::string>::iterator it = data.begin();
-            std::cerr << "MATRIX:" << std::endl;
-            while(it != data.end())
-            {
-               std::cerr << it->first << ": " << it->second << std::endl;
-               it++;
-            }
-            
          }
       };
    } // namespace Master
