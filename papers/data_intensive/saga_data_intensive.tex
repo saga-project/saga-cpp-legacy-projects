@@ -22,6 +22,7 @@
 \usepackage{multirow}
 \usepackage{ifpdf}    
 \usepackage{subfig} 
+\usepackage{color}
                   
 
 
@@ -37,15 +38,11 @@
 }
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
-\newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
-\newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
 \newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 \else
-\newcommand{\kimnote}[1]{}
-\newcommand{\alnote}[1]{}
 \newcommand{\amnote}[1]{}
 \newcommand{\jhanote}[1]{}
 \fi
@@ -100,11 +97,51 @@
 
 \section{Introduction} {\bf Jha} 
 
-\jhanote{Outline the work in this paper}
+\jhanote{traditional algorithms are OK when data is limited.. but data
+  requirements can change in different ways.. not only will data be
+  greater, but also after a point will also be distributed. This is
+  indicative of the data-gathering process (multiple-resources,
+  replicated?) also indicative of the fact that often data-collection
+  is growing greater than data-analysis (for example exabyte data last
+  year).  Finally, with data-distributed, comes the following (at
+  least challenges): do we move data-to-compute, or compute-to-data,
+  is there a transition point, and can the same application be written
+  to support both modes?}
 
-\jhanote{Motivation for why this work is important}
+\jhanote{From above, we need to write what has been traditionally
+  non-distributed applications, in a distributed fashion. General
+  philosophy on how we write distributed applications... One approach
+  is to use infrastructure independent frameworks.}
 
-% \section{Data Intensive Computing} 
+\jhanote{Motivation for why this work is important. Applications
+  are developed with specific infrastructure in mind. So in a
+  way are limited by the infrastructure.. so whereas application
+  can be often be written to scale, infrastructure doesn't
+  always..}
+
+\jhanote{This is a new way of developing applications using high-level
+  abstractions. These high-level abstractions in turn ways to
+  encode/support certain patterns, in this case data-parallel/access
+  patterns. In turn the abstractions are infrastructure independent}.
+
+
+\jhanote{Outline the work in this paper. New concept. Thus one
+  important requirement is to determine how these
+  i) how these patterns work for real scientific applications, \\
+  ii) how well the general-implementations of these patterns work with
+  respect to native implementations of these patterns \\
+  iii) combination of i and ii, ie how well these applications
+  behave when encoded using these high-level abstractions
+  in comparision on general purpose infrastracture\\
+  The aim is not to report better or even equivalent performance of
+  these ``generalized applications compared to the native
+  implementation of these application..}
+
+\jhanote{it is important to compare gene-search using mapreduce and a
+  simple straighforward application; similarly a multiple
+  alignment excercise without using All-Pairs..}
+
+\section{Data-Intensive Patterns}
 
 \subsection{Example 1: MapReduce}
 
@@ -202,40 +239,50 @@ availability.
 
 \subsection*{Hadoop}
 
-Data intensive applications require large amounts of data to be available 
-at runtime in a reliable and efficient manner.  The Hadoop Distributed File System 
-(HDFS) is an application that handles the details of spreading data across multiple 
-machines in a traditional hierarchical file organization.  HDFS also handles replication 
-and striping of data for fault-tolerance.  Portably implemented in Java, HDFS is designed to 
-run on commodity hardware while providing scalability and optimizations for large files.  
-The filesystem works by having one or two namenodes and many rack-aware datanodes.  
-All data requests go through the namenode that uses block operations on each data 
-node to properly assemble the data for the requesting application.  The goal 
-of replication and rack-awareness is to improve reliability and data retrieval 
-time based on locality.  In data intensive applications, these qualities are essential. 
-Discuss the C interface to Hadoop
+Data intensive applications require large amounts of data to be
+available at runtime in a reliable and efficient manner.  The Hadoop
+Distributed File System (HDFS) is an application that handles the
+details of spreading data across multiple machines in a traditional
+hierarchical file organization.  HDFS also handles replication and
+striping of data for fault-tolerance.  Portably implemented in Java,
+HDFS is designed to run on commodity hardware while providing
+scalability and optimizations for large files.  The filesystem works
+by having one or two namenodes and many rack-aware datanodes.  All
+data requests go through the namenode that uses block operations on
+each data node to properly assemble the data for the requesting
+application.  The goal of replication and rack-awareness is to improve
+reliability and data retrieval time based on locality.  In data
+intensive applications, these qualities are essential.  Discuss the C
+interface to Hadoop
 
 \subsection*{Bigtable, HBase}
 
-Bigtable is a specific type of database system created by Google to 
-have better control over scalability and performance than other 
-databases.  It is very flexible and has many advantages over normal 
-databases.  The main difference is that it is meant to store extremely 
-large datasets, into the petabytes, over thousands of machines~\cite{bigtable}.  
-Another advantage is the ability to be accessed through MapReduce.  Since 
-MapReduce is inherently very well parallelized, accessing Bigtable is very 
-efficient.  Due to the success of Bigtable, HBase was developed by Hadoop as 
-an open source alternative for use with their MapReduce.  Both of them are 
-implemented in a similar way.  They split up large tables and replicate them 
-over many machines to avoid node failure.  Also, since the data is partitioned 
-accessing it does not create a large strain on the grid's network bandwidth.
+Bigtable is a specific type of database system created by Google to
+have better control over scalability and performance than other
+databases.  It is very flexible and has many advantages over normal
+databases.  The main difference is that it is meant to store extremely
+large datasets, into the petabytes, over thousands of
+machines~\cite{bigtable}.  Another advantage is the ability to be
+accessed through MapReduce.  Since MapReduce is inherently very well
+parallelized, accessing Bigtable is very efficient.  Due to the
+success of Bigtable, HBase was developed by Hadoop as an open source
+alternative for use with their MapReduce.  Both of them are
+implemented in a similar way.  They split up large tables and
+replicate them over many machines to avoid node failure.  Also, since
+the data is partitioned accessing it does not create a large strain on
+the grid's network bandwidth.
 
 %Provide 1 paragraph description of Bigtable and its specific
 %implementation -- HBase
 
+\jhanote{repeat the motivation for using both ``native'' and
+  non-native infrastructure dependence}
+
 \subsection*{Interfacing SAGA to Hadoop and Bigtable}
-%We used hadoop as a metadata storage, work still needs to be done
-%to see how well SAGA-MapReduce is at accessing elements as part of mapping
+
+% We used hadoop as a metadata storage, work still needs to be done to
+% see how well SAGA-MapReduce is at accessing elements as part of
+% mapping
 
 \section{Applications}
 
