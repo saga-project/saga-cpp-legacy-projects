@@ -22,8 +22,7 @@ class saga_file_device
     saga_file_device (std::string src)   //Default constructor creates a file from a string
       : src_  (src),
         file_ (saga::url (src_), 
-               saga::filesystem::ReadWrite |
-               saga::filesystem::Create   )
+               saga::filesystem::Read)
     {
     }
 
@@ -42,9 +41,10 @@ class saga_file_device
 
     std::streamsize write (char_type const * data, std::streamsize size) //required for boost::iostreams
     {
-      saga::ssize_t res = file_.write (saga::buffer (data, size), size);
+      /*saga::ssize_t res = file_.write (saga::buffer (data, size), size);
 
-      return static_cast <std::streamsize> (res);
+      return static_cast <std::streamsize> (res);*/
+      return 0;
     }
 
     boost::iostreams::stream_offset seek   //required for boost::iostreams

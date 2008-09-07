@@ -10,7 +10,6 @@
 #include "ConfigFileParser.hpp"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
-#include "../utils/type.hpp"
 #include "HandleMaps.hpp"
 #include "HandleReduces.hpp"
 #include "parseCommand.hpp"
@@ -104,14 +103,14 @@ namespace MapReduce {
          std::string database_;
          saga::url   logURL_;
         
-         std::vector<saga::url> fileChunks_;
+         std::vector<saga::url>      fileChunks_;
+         std::vector<saga::job::job> jobs_;
          
          saga::advert::directory sessionBaseDir_;
          saga::advert::directory workersDir_;
          saga::advert::directory binariesDir_;
          saga::advert::directory chunksDir_;
          std::string outputPrefix_;
-         std::vector<saga::job::job> jobs_;
          
          MapReduce::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -154,7 +153,8 @@ namespace MapReduce {
             std::string message("Creating a new session (" + uuid_ + ")... ");
             saga::task_container tc;
            
-            std::string advertKey(database_ + "//" + uuid_ + "/");
+            message += uuid_ + ")... ";
+            std::string advertKey(database_ + "//" + uuid_ + "//");
             try {
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
@@ -301,11 +301,10 @@ namespace MapReduce {
                         jd.set_attribute(saga::job::attributes::description_executable, command);
                         jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
-                        //saga::job::service js("any://" + (*hostListIT).rmURL);
-                        saga::job::service js((*hostListIT).rmURL);
+                        saga::job::service js(hostListIT->rmURL);
                         saga::job::job agentJob= js.create_job(jd);
                         agentJob.run();
-                        jobs_.push_back(agentJob);
+                        jobs_.push_back(agentJob); // Hack to prevent destructor of job object from being called
                         message += "SUCCESS";
                         log->write(message, LOGLEVEL_INFO);
                         successCounter++;
@@ -351,7 +350,7 @@ namespace MapReduce {
             reduceHandler.assignReduces();
          }
          std::vector<saga::url> chunker(std::string fileArg) {
-            int mode = saga::filesystem::ReadWrite;
+            int mode = saga::filesystem::Read;
             int x=0;
             saga::size_t const KB64 = 1024*64; //64KB
             saga::size_t bytesRead;
@@ -359,22 +358,30 @@ namespace MapReduce {
             saga::url urlFile(fileArg);
             char data[KB64+1];
             saga::filesystem::file f(urlFile, mode);
-            while((bytesRead = f.read(saga::buffer(data,KB64)))!=0) {
+            while((bytesRead = f.read(saga::buffer(data,KB64))) != 0) {
                saga::size_t pos;
-               int gmode = saga::filesystem::ReadWrite | saga::filesystem::Append | saga::filesystem::Create;
+               int gmode = saga::filesystem::Write | saga::filesystem::Create;
                saga::filesystem::file g(saga::url(fileArg + "chunk" + boost::lexical_cast<std::string>(x)), gmode);
-               for(int y=bytesRead; y >= 0;y--) {
-                  if(data[y]==' ') {
-                     pos=y;
-                     break;
-                  }
+               if(bytesRead < KB64)
+               {
+                  g.write(saga::buffer(data, bytesRead));
+                  retval.push_back(g.get_url());
                }
-               int dist = -(bytesRead-pos);
-               g.write(saga::buffer(data, pos));
-               f.seek(dist,saga::filesystem::Current);
-               retval.push_back(g.get_url());
-               x++;
-               for ( unsigned int i = 0; i <= KB64; ++i ) { data[i] = '\0'; }
+               else
+               {
+                  for(int y=bytesRead; y >= 0;y--) {
+                     if(data[y]==' ') {
+                        pos=y;
+                        break;
+                     }
+                  }
+                  int dist = -(bytesRead-pos);
+                  g.write(saga::buffer(data, pos));
+                  f.seek(dist,saga::filesystem::Current);
+                  retval.push_back(g.get_url());
+                  x++;
+                  for ( unsigned int i = 2; i <= KB64; ++i ) { data[i] = '\0'; }
+               }
             }
             return retval;
          }

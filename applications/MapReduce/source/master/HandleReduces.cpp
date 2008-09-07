@@ -14,10 +14,10 @@ namespace MapReduce
                               LogWriter *log)
     : fileCount_(fileCount), workerDir_(workerDir), log_(log)
  {
-    workers_ = workerDir_.list("?");
+    workers_ = workerDir_.list("*");
     while(workers_.size() == 0) {
        sleep(1);
-       workers_ = workerDir_.list("?");
+       workers_ = workerDir_.list("*");
     }
    std::vector<saga::url>::iterator it = workers_.begin();
    while(it != workers_.end()) {
@@ -53,6 +53,7 @@ namespace MapReduce
    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
    bool assigned = false;
    while(assigned == false) {
+      sleep(1);
       try {
          saga::advert::directory possibleWorker(*workers_IT, mode);
          std::string state =   possibleWorker.get_attribute("STATE");
@@ -65,7 +66,7 @@ namespace MapReduce
                //Assigned but never started working
                workers_IT++;
                if(workers_IT == workers_.end()) {
-                  workers_ = workerDir_.list("?");
+                  workers_ = workerDir_.list("*");
                   workers_IT = workers_.begin();
                }
                continue;
@@ -117,7 +118,7 @@ namespace MapReduce
       }
       workers_IT++;
       if(workers_IT == workers_.end()) {
-         workers_ = workerDir_.list("?");
+         workers_ = workerDir_.list("*");
          workers_IT = workers_.begin();
       }
    }
@@ -163,6 +164,7 @@ namespace MapReduce
    static std::vector<saga::url>::iterator workers_IT = workers_.begin();
    while(workers_IT != workers_.end()) {
       try {
+         sleep(1);
          saga::advert::directory possibleWorker(*workers_IT, mode);
          std::string state = possibleWorker.get_attribute("STATE");
          std::string message(workers_IT->get_path());
@@ -185,7 +187,7 @@ namespace MapReduce
       }
       workers_IT++;
       if(workers_IT == workers_.end()) {
-         workers_ = workerDir_.list("?");
+         workers_ = workerDir_.list("*");
          workers_IT = workers_.begin();
       }
    }

@@ -44,10 +44,10 @@ class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
+  putenv("SAGA_VERBOSE=100");
+  std::freopen("/tmp/worker-stderr.txt", "w", stderr);
+  std::freopen("/tmp/worker-stdout.txt", "w", stdout);
   try {
-      putenv("SAGA_VERBOSE=100");
-      std::freopen("/home/michael/worker-stderr.txt", "w", stderr);
-      std::freopen("/home/michael/worker-stdout.txt", "w", stdout);
       MapReduceImpl app(argc,argv);
       app.run();
    }

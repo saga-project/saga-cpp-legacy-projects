@@ -43,7 +43,7 @@ namespace MapReduce {
          outputPrefix_ = (vm["output"].as<std::string>());
          uuid_         = saga::uuid().string();//"MICHAELCHRIS";
          logWriter_    = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
-         int mode = saga::filesystem::ReadWrite | saga::filesystem::Create | saga::filesystem::CreateParents | saga::filesystem::Append;
+         int mode = saga::filesystem::Write | saga::filesystem::Create;
          for(int x=0;x<NUM_MAPS;x++) {
             saga::url mapFile(outputPrefix_ + "/mapFile_" + boost::lexical_cast<std::string>(x) + "_" + uuid_);
             saga::filesystem::file f(mapFile, mode);
@@ -107,7 +107,6 @@ namespace MapReduce {
          }
          for(int counter = 0; counter < NUM_MAPS; counter++)
          {
-            std::cout << "Wrote: " << intermediateData[counter] << std::endl;
             mapFiles_[counter].write(saga::buffer(intermediateData[counter], intermediateData[counter].length()));
          }
          intermediate_.clear();
@@ -268,6 +267,7 @@ namespace MapReduce {
                try {
                   // Use the RunReduce class to handle details of getting
                   // and retrieving necessary information from the master.
+                  closeMapFiles();
                   RunReduce reduceHandler(workerDir_, reduceInputDir_, outputPrefix_);
                  
                   // Get a map of keys and a vector of the values
@@ -299,8 +299,6 @@ namespace MapReduce {
             }
             else if(command == WORKER_COMMAND_QUIT)
             {
-               std::cout << "quitting and closing files" << std::endl;
-               closeMapFiles();
                closeReduceFiles();
                cleanup_();
                return;
@@ -331,11 +329,16 @@ namespace MapReduce {
          return commandString;
       }
       void closeMapFiles(void) {
-         std::vector<saga::filesystem::file>::iterator IT = mapFiles_.begin();
-         while(IT != mapFiles_.end()) {
-            IT->close();
-            IT++;
+         static bool closed = false;
+         if(closed == false)
+         {
+            std::vector<saga::filesystem::file>::iterator IT = mapFiles_.begin();
+            while(IT != mapFiles_.end()) {
+               IT->close();
+               IT++;
+            }
          }
+         closed = true;
       }
       void closeReduceFiles(void) {
          std::vector<saga::filesystem::file>::iterator IT = reduceFiles_.begin();

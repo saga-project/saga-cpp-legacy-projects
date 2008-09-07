@@ -18,7 +18,7 @@ namespace MapReduce {
       outputPrefix_   = outputPrefix;
       try {
           workerDir_.set_attribute("STATE", WORKER_STATE_REDUCING);
-          std::vector<saga::url> entries = reduceInputDir_.list("?");
+          std::vector<saga::url> entries = reduceInputDir_.list("*");
           std::vector<saga::url>::const_iterator entriesIT = entries.begin();
           while(entriesIT != entries.end()) {
              saga::advert::entry adv(*entriesIT, mode);
@@ -40,9 +40,7 @@ namespace MapReduce {
    RunReduce::~RunReduce() {
       try {
          saga::url fileurl(outputPrefix_ + "/mapFile-reduced");
-         std::cout << workerDir_.get_url() << std::endl;
-         saga::advert::entry adv(saga::url(workerDir_.get_url().get_string() + "/output"), saga::advert::ReadWrite | saga::advert::Create);
-         //saga::advert::entry adv(workerDir_.open(saga::url("./output"), saga::advert::ReadWrite | saga::advert::Create));
+         saga::advert::entry adv(workerDir_.open(saga::url("./output"), saga::advert::ReadWrite | saga::advert::Create));
          adv.store_string(fileurl.get_string());
          workerDir_.set_attribute("COMMAND", "");
          workerDir_.set_attribute("STATE", WORKER_STATE_DONE_REDUCE);

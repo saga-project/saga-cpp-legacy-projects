@@ -16,10 +16,10 @@ namespace MapReduce {
       : chunks_(chunks), workerDir_(workerDir), log_(log)
    {
       candidateIT_ = chunks_.begin();
-      workers_ = workerDir_.list("?");
+      workers_ = workerDir_.list("*");
       while(workers_.size() == 0) {
          sleep(1);
-         workers_ = workerDir_.list("?");
+         workers_ = workerDir_.list("*");
       }
    }
 
@@ -48,6 +48,7 @@ namespace MapReduce {
       static std::vector<saga::url>::const_iterator workers_IT = workers_.begin();
       bool assigned = false; //Describes status of current chunk (file)
       while(assigned == false) {
+         sleep(1);
          try {
             saga::advert::directory possibleWorker(*workers_IT, mode);
             std::string state = possibleWorker.get_attribute("STATE");
@@ -58,7 +59,7 @@ namespace MapReduce {
                if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_MAP) {
                   workers_IT++;
                   if(workers_IT == workers_.end()) {
-                     workers_ = workerDir_.list("?");
+                     workers_ = workerDir_.list("*");
                      workers_IT = workers_.begin();
                   }
                   break;
@@ -123,11 +124,11 @@ namespace MapReduce {
          }
          catch(saga::exception const & e) {
             std::string message(e.what());
-            log->write(message, LOGLEVEL_ERROR);
+            log_->write(message, LOGLEVEL_ERROR);
          }
          workers_IT++;
          if(workers_IT == workers_.end()) {
-            workers_ = workerDir_.list("?");
+            workers_ = workerDir_.list("*");
             workers_IT = workers_.begin();
             return;
          }
