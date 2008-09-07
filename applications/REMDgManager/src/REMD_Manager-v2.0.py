@@ -98,6 +98,7 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
     jd.arguments = ["NPT.conf"]
     
     jd.executable = RE_info.executables[replica_ID]
+    #jd.executable = "/u/ac/yye00/src/REMDgManager/src/mpi_test.sh"
     jd.queue = RE_info.projects[replica_ID] + "@" + RE_info.queues[replica_ID]
     jd.workingdirectory = RE_info.workingdirectories[replica_ID]
     

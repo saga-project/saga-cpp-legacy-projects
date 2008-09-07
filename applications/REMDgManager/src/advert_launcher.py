@@ -131,9 +131,13 @@ class advert_launcher:
      
     def execute_job(self, job_dir):
         """ obtain job attributes from advert and execute process """
-        
-        if(job_dir.get_attribute("state")==str(saga.job.Unknown) or
-           job_dir.get_attribute("state")==str(saga.job.New)):
+        state=None
+	try:
+		state = job_dir.get_attribute("state")
+	except:
+		print "Could not access job state... skip execution attempt"
+        if(state==str(saga.job.Unknown) or
+           state==str(saga.job.New)):
             job_dir.set_attribute("state", str(saga.job.New))
             self.print_attributes(job_dir)        
             numberofprocesses = "1"

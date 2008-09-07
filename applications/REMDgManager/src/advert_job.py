@@ -67,6 +67,7 @@ class advert_glidin_job():
         jd.arguments = [self.database_host, self.glidin_url]
         #jd.executable = os.getcwd() + "/advert_launcher.sh"
 	jd.executable = "$(HOME) # /src/REMDgManager/src/advert_launcher.sh"
+	#jd.executable = "$(HOME) # /src/REMDgManager/src/mpi_test.sh"
         jd.queue = project + "@" + queue
         #jd.workingdirectory = os.getcwd()
         jd.workingdirectory = "$(HOME)"
