@@ -4,7 +4,7 @@
  //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  
 #include "AllPairsBase.hpp"
-#include "../utils/type.hpp"
+//#include "../utils/type.hpp"
  
  using namespace AllPairs;
  
@@ -32,8 +32,8 @@
    double compare(saga::url fragmentUrl, saga::url baseUrl) {
       saga::size_t const KB64 = 1024*64; //64KB
       saga::size_t bytesRead;
-      saga::filesystem::file fragment(fragmentUrl, saga::filesystem::ReadWrite);
-      saga::filesystem::file base    (baseUrl    , saga::filesystem::ReadWrite);
+      saga::filesystem::file fragment(fragmentUrl, saga::filesystem::Read);
+      saga::filesystem::file base    (baseUrl    , saga::filesystem::Read);
       std::string fragment_string;
       std::string base_string;
       char data[KB64+1];

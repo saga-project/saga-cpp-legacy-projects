@@ -1,5 +1,4 @@
 #include "RunComparison.hpp"
-#include "../utils/getElements.hpp"
 #include "../utils/defines.hpp"
 
 namespace AllPairs {

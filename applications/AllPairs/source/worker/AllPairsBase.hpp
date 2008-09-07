@@ -219,6 +219,10 @@ namespace AllPairs {
                workerDir_.set_attribute("COMMAND","");
                workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
             }
+            else if(command == WORKER_COMMAND_QUIT) {
+               cleanup_();
+               return;
+            }
             // write some statistics + ping signal 
             updateStatus_();
             //(3) sleep for a while*/

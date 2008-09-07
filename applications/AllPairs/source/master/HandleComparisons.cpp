@@ -15,11 +15,11 @@ namespace AllPairs
     :  fragmentFiles_(fragmentFiles), workerDir_(workerDir), log_(log)
  {
     candidateIT_ = fragmentFiles_.begin();
-    workers_     = workerDir_.list("?");
+    workers_     = workerDir_.list("*");
     while(workers_.size() == 0)
     {
        sleep(1);
-       workers_ = workerDir_.list("?");
+       workers_ = workerDir_.list("*");
     }
  }
 /*********************************************************
@@ -87,7 +87,7 @@ namespace AllPairs
        workers_IT++;
        if(workers_IT == workers_.end()) {
           //Update list in case more workers joined in
-          workers_ = workerDir_.list("?");
+          workers_ = workerDir_.list("*");
           workers_IT = workers_.begin();
        }
     }

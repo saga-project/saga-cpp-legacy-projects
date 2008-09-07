@@ -85,7 +85,12 @@ namespace AllPairs {
             // Launch all worker command on all
             // host defined in config file
             spawnAgents_();
+
+            // Start comparing fragments to bases
             runComparisons_();
+
+            //Tell all workers to quit
+            sendQuit_();
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
          ~Master(void) {
@@ -346,6 +351,18 @@ namespace AllPairs {
             comparisonHandler.assignWork();
             log->write("Success", LOGLEVEL_INFO);
          }
+
+         void sendQuit_(void) {
+            std::vector<saga::url> workers = workersDir_.list("*");
+            std::vector<saga::url>::iterator workersIT = workers.begin();
+            while(workersIT != workers.end())
+            {
+               saga::advert::directory indWorker(*workersIT, saga::advert::ReadWrite);
+               indWorker.set_attribute("COMMAND", WORKER_COMMAND_QUIT);
+               workersIT++;
+            }
+         }
+
       };
    } // namespace Master
 } // namespace AllPairs
