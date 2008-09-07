@@ -82,7 +82,6 @@ namespace AllPairs {
    
       saga::advert::directory workerDir_;
       saga::advert::directory sessionBaseDir_;
-      saga::advert::directory filesDir_;
       std::vector<saga::url>  baseFiles_;
       AllPairs::LogWriter*    logWriter_;
       Derived& derived() {
@@ -156,22 +155,24 @@ namespace AllPairs {
             time_t timestamp; time(&timestamp);
             workerDir_.set_attribute(ATTR_LAST_SEEN, 
             boost::lexical_cast<std::string>(timestamp));
-            saga::advert::directory filesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_BASE_DIR_FILES), saga::advert::ReadWrite));
-            std::vector<saga::url> filesAdv(filesDir_.list());
-            std::vector<saga::url>::iterator filesAdvIT = filesAdv.begin();
+            saga::advert::directory baseFilesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_BASE_DIR_FILES), saga::advert::ReadWrite));
+            std::vector<saga::url> baseFilesAdv(baseFilesDir_.list());
+            std::vector<saga::url>::iterator baseFilesAdvIT = baseFilesAdv.begin();
             //Real code
-            /*while(filesAdvIT != filesAdv.end())
+            while(baseFilesAdvIT != baseFilesAdv.end())
             {
-               saga::advert::entry adv(*filesAdvIT, saga::advert::ReadWrite);
+               saga::advert::entry adv(*baseFilesAdvIT, saga::advert::ReadWrite);
+               std::cout << "Adding " << adv.retrieve_string() << std::endl;
                baseFiles_.push_back(saga::url(adv.retrieve_string()));
-            }*/
+               baseFilesAdvIT++;
+            }
             //Fake Code
-            for(int counter = 0; counter < 100; counter++)
+            /*for(int counter = 0; counter < 100; counter++)
             {
-               baseFiles_.push_back(saga::url("file://localhost//home/michael/saga/saga-projects/applications/AllPairs/samples/base-"+
+               baseFiles_.push_back(saga::url("file://localhost//home/michael/saga/saga-projects/applications/AllPairs/samples/bases/base-"+
                                            boost::lexical_cast<std::string>(counter) + ".txt"));
                std::cerr << "Added file: " << baseFiles_[counter] << std::endl;
-            }
+            }*/
             //End fake code
          }
          catch(saga::exception const & e) {

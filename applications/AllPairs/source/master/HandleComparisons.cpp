@@ -10,9 +10,9 @@ namespace AllPairs
 {
  // fileCount is the total number of files possibly outputted by
  // the map function (NUM_MAPS)
- HandleComparisons::HandleComparisons(std::vector<saga::url> &baseFiles, std::vector<saga::url> &fragmentFiles, saga::advert::directory workerDir,
+ HandleComparisons::HandleComparisons(std::vector<saga::url> &fragmentFiles, saga::advert::directory workerDir,
                                       LogWriter *log)
-    : baseFiles_ (baseFiles), fragmentFiles_(fragmentFiles), workerDir_(workerDir), log_(log)
+    :  fragmentFiles_(fragmentFiles), workerDir_(workerDir), log_(log)
  {
     candidateIT_ = fragmentFiles_.begin();
     workers_     = workerDir_.list("?");
@@ -46,7 +46,6 @@ namespace AllPairs
       try {
          saga::advert::directory possibleWorker(*workers_IT, mode);
          std::string state = possibleWorker.get_attribute("STATE");
-         std::cout << workers_IT->get_string() << " state is " << state << std::endl;
          if(state == WORKER_STATE_IDLE) {
             if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_COMPARE) {
                break;

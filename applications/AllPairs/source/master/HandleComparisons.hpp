@@ -15,7 +15,7 @@
 namespace AllPairs {
    class HandleComparisons {
      public:
-      HandleComparisons(std::vector<saga::url> &rowFiles, std::vector<saga::url> &columnFiles, saga::advert::directory workerDir,
+      HandleComparisons(std::vector<saga::url> &fragmentFiles, saga::advert::directory workerDir,
                         LogWriter *log);
       void assignWork();
      private:
@@ -24,7 +24,6 @@ namespace AllPairs {
     
       std::vector<saga::url> finished_;
       std::vector<saga::url> assigned_;
-      std::vector<saga::url> baseFiles_;
       std::vector<saga::url> fragmentFiles_;
       std::vector<saga::url> workers_;
       //std::map<std::string, std::string> data_;

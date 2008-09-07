@@ -30,7 +30,7 @@
       dna_distances.insert(std::pair<std::string,double>("gg", 0.0));
    }
    double compare(saga::url fragmentUrl, saga::url baseUrl) {
-      /*saga::size_t const KB64 = 1024*64; //64KB
+      saga::size_t const KB64 = 1024*64; //64KB
       saga::size_t bytesRead;
       saga::filesystem::file fragment(fragmentUrl, saga::filesystem::ReadWrite);
       saga::filesystem::file base    (baseUrl    , saga::filesystem::ReadWrite);
@@ -45,21 +45,21 @@
          base_string += data;
       }
       //go through every substring of base_string
-      for(std::string::size_type x = 0;x<base_string.size();x++) {
+      for(std::string::size_type x = 0;x<base_string.size()-fragment_string.size()+1;x++) {
         //get part of base to compare against
         std::string compare_string = base_string.substr(x,fragment_string.size());
-        double distance;
+        double distance = 0;
         //calculate the distance
         for(std::string::size_type y = 0;y<compare_string.size();y++) {
-           std::string elements = compare_string.substr(y,1) + base_string.substr(x+y,1);
-           std::cout << elements << std::endl;
+           std::string elements = compare_string.substr(y,1) + fragment_string.substr(y,1);
            distance += dna_distances[elements];
         }
+        std::cout << "new dist = " << distance << std::endl;
         if(minimum == -1.0 || minimum > distance) {
            minimum = distance;
         }
-      }*/
-      return 0.2;
+      }
+      return minimum;
    }
   private:
    std::map<std::string,double> dna_distances;
