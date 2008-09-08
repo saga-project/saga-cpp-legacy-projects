@@ -36,6 +36,7 @@ import pdb
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
 SCP = False
+GlideIn = False
 
 ########################################################
 #  Global variable 
@@ -454,11 +455,28 @@ def stop_glidin_jobs(RE_info):
 	for i in RE_info.advert_glidin_jobs:
 		RE_info.advert_glidin_jobs[i].cancel()
         
+def transfer_files(RE_info, irep):
+	host = RE_info.remote_hosts[irep]
+        remote_machine_ip = RE_info.remote_hosts[irep]
+        if len(RE_info.gridftp_hosts)>0:
+                remote_machine_ip = RE_info.gridftp_hosts[irep]
+    
+        remote_dir = RE_info.workingdirectories[irep]
+        prepare_NAMD_config(irep, RE_info)
+        if SCP == True:
+                pass
+                file_stage_in_with_scp(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+        else:
+                file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+        print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip)
+
+
 #########################################################
 #  run_REMDg
 #########################################################
 def run_REMDg(configfile_name):
 
+    start = time.time()
     # initialize of all replica and its related variables
     RE_info = initialize(configfile_name)
     
@@ -466,24 +484,36 @@ def run_REMDg(configfile_name):
     
     ofilename = "remd-temp.out"
     start_glidin = time.time() 
-    start_glidin_jobs(RE_info)
     glidin_job_states ={}
+    if GlideIn == True:
+	print "Start with glidein"
+    	start_glidin_jobs(RE_info)
+    else:
+	print "Start without glidein"
 
-    ####################################### file staging ################################################
+    ###################################### file staging ################################################
     for irep in range(0, RE_info.replica_count):
            host = RE_info.remote_hosts[irep]
            remote_machine_ip = RE_info.remote_hosts[irep]
-	   if len(RE_info.gridftp_hosts)>0:
+           if len(RE_info.gridftp_hosts)>0:
            	remote_machine_ip = RE_info.gridftp_hosts[irep]
 
            remote_dir = RE_info.workingdirectories[irep]
            prepare_NAMD_config(irep, RE_info)
-	   if SCP == True:
-		pass
-		file_stage_in_with_scp(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+           if SCP == True:
+        	pass
+        	file_stage_in_with_scp(RE_info.stage_in_files, remote_machine_ip, remote_dir)
            else:
            	file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
            print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip)
+    #transfer_thread_list = []
+    #for irep in range(0, RE_info.replica_count):
+    #   transfer_thread=threading.Thread(target=transfer_files(RE_info, irep))
+    #   transfer_thread.start()
+    #   transfer_thread_list.append(transfer_thread)
+    #        
+    #for ithread in range(0, len(transfer_thread_list)):
+    #   transfer_thread_list[ithread].join()
 
     iEX = 0
     while 1:
@@ -493,22 +523,23 @@ def run_REMDg(configfile_name):
         # query glidin job states and cache them into a dict.
 	all_glidins_running = True
 	new_glidin_job_states={}
-        for i in RE_info.advert_glidin_jobs.items():
-            new_glidin_job_states[i[0]] = i[1].get_state_detail()
-	    try:
-	    	if (new_glidin_job_states[i[0]].lower() == "running" and new_glidin_job_states[i[0]].lower() != glidin_job_states[i[0]].lower()):
-			print "Glide-In: " + str(i[0]) + " changed to running after: " + "%d"%(time.time()-start_glidin) + " s"
-	    except:
-		pass
-	    print "Glidin host: " + str(i[0]) + " Job State: " + str(i[1].get_state()) + " State Detail: " + i[1].get_state_detail()
-	    glidin_job_states = new_glidin_job_states        
+	if GlideIn == True:
+        	for i in RE_info.advert_glidin_jobs.items():
+            		new_glidin_job_states[i[0]] = i[1].get_state_detail()
+	    		try:
+	    			if (new_glidin_job_states[i[0]].lower() == "running" and new_glidin_job_states[i[0]].lower() != glidin_job_states[i[0]].lower()):
+					print "Glide-In: " + str(i[0]) + " changed to running after: " + "%d"%(time.time()-start_glidin) + " s"
+	    		except:
+				pass
+	    	print "Glidin host: " + str(i[0]) + " Job State: " + str(i[1].get_state()) + " State Detail: " + i[1].get_state_detail()
+	    	glidin_job_states = new_glidin_job_states        
 
         ####################################### NPT staging ################################################
         for irep in range(0, numReplica):
            host = RE_info.remote_hosts[irep]
 	   #print "Glidin job on host: " + host + "state: " + str(glidin_job_states[host]).lower()
            # only start replicas if glidin job is running
-           if str(glidin_job_states[host]).lower() == "running": 
+           if GlideIn == False or str(glidin_job_states[host]).lower() == "running": 
                remote_machine_ip = RE_info.remote_hosts[irep]
 	       if len(RE_info.gridftp_hosts)>0:
            		remote_machine_ip = RE_info.gridftp_hosts[irep]
@@ -531,7 +562,7 @@ def run_REMDg(configfile_name):
             host = RE_info.remote_hosts[irep]
 	    # print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower()
             # only start replicas if glidin job is running
-            if str(glidin_job_states[host]).lower() == "running":
+            if GlideIn==True and str(glidin_job_states[host]).lower() == "running":
                 jd = set_saga_job_description(irep, RE_info, "")
                 dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
                 checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
@@ -539,6 +570,11 @@ def run_REMDg(configfile_name):
                 error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
                 RE_info.replica.append(new_job)
                 print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
+	    elif GlideIn==False:
+		jd = set_saga_job_description(irep, RE_info, "")
+                dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+		error_msg, new_job = submit_job(dest_url_string, jd)
+		RE_info.replica.append(new_job)
 	    else:
 	    	print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not start replica"
 	    time.sleep(1)
@@ -608,9 +644,12 @@ def run_REMDg(configfile_name):
             break
 
 	########################## delete old jobs #####################
-	for i in RE_info.replica:
-		i.delete_job()
+        if GlideIn == True:	
+		for i in RE_info.replica:
+			i.delete_job()
         
+
+    print "REMD Runtime: " + str(time.time()-start) + " s"  
     # stop gliding job        
     stop_glidin_jobs(RE_info)
 
