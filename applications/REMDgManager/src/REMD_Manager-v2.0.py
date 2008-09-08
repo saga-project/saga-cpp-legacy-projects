@@ -527,7 +527,7 @@ def run_REMDg(configfile_name):
         	for i in RE_info.advert_glidin_jobs.items():
             		new_glidin_job_states[i[0]] = i[1].get_state_detail()
 	    		try:
-	    			if (new_glidin_job_states[i[0]].lower() == "running" and new_glidin_job_states[i[0]].lower() != glidin_job_states[i[0]].lower()):
+	    			if (new_glidin_job_states[i[0]].lower() == "running" and glidin_job_states.has_key(i[0]) == False):
 					print "Glide-In: " + str(i[0]) + " changed to running after: " + "%d"%(time.time()-start_glidin) + " s"
 	    		except:
 				pass

@@ -14,6 +14,9 @@ import signal
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
 
+""" Configuration: to be moved to config """
+shell = "/bin/bash"
+
 class advert_launcher:
     
     """NAMD-Launcher:
@@ -193,10 +196,9 @@ class advert_launcher:
 			pass
 		command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\"" 	
                 
-            print "execute: " + command + " in " + workingdirectory
+            print "execute: " + command + " in " + workingdirectory + " (Shell: " + shell +")"
 	    # bash works fine for launching on QB but fails for Abe :-(
-            #p = subprocess.Popen(args=command, executable="/bin/bash",stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
-            p = subprocess.Popen(args=command, executable="/bin/tcsh", stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
+            p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
             print "started " + command
             self.processes[job_dir] = p
             job_dir.set_attribute("state", str(saga.job.Running))
