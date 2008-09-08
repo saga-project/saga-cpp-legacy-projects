@@ -101,7 +101,7 @@
 }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -208,10 +208,10 @@ This paper addresses the following challenges:
   implementation and execution isn't and {\bf depends critically upon
     SAGA and its enhanced job model.}
 
-\item Algorithmic behaviour/constraints on a localized/single cluster
-  can be very different for distributed clusters. Interesting to
-  mention that it is trivial to port this framework onto a top-end
-  machine such as Ranger that is pushing the limits of petascalabilty.
+% \item Algorithmic behaviour/constraints on a localized/single cluster
+%   can be very different for distributed clusters. Interesting to
+%   mention that it is trivial to port this framework onto a top-end
+%   machine such as Ranger that is pushing the limits of petascalabilty.
 
 \end{itemize}
           
@@ -532,6 +532,41 @@ this extension non-trivial.
 % efficient mechanisms to allocate resources for multiple replica runs
 % in a row.
 
+
+\subsection{Scheduling Issues}
+
+Despite the availability of a suitable abstraction for allowing
+applications to manage Glide-Ins, several scheduling issues arise. A
+particular optimization problem is the size of the \glidein\
+job. Since our RE application relies on a fixed number of replica
+processes, the number of nodes to request per resource can be
+straightforwardly determined by aggregating all replica processes per
+Grid resource.
+
+Another issue results from possibly different start times of the
+\replicaagent\ job at different resources.  To avoid wasted cycles due
+to a waiting \glidein\ job, replica runs are carried out on all active
+resources with a lower quality of sampling. As soon as further
+resources become active, the number of replica processes and thus the
+sampling range is increased.
+
+\subsection{Reliability}
+   
+The RE framework is built to tolerate the different types of failures,
+e.\,g.\: crash failures of the Globus GRAM service or of the resource
+running the RE-Manager, a Replica-Agent and/or a replica process.
+        
+To achieve fault tolerance, the RE-Manager, the Replica-Agents and the
+replica processes periodically write persistent checkpoints to allow
+an automatic recovery via the Migol infrastructure. The \remanager\
+and Replica-Agents periodically update the application's metadata,
+i.\,e.\ the state, monitoring endpoint and new checkpoint URLs, at the
+Migol backend using the CPR API. During the entire runtime the
+\remanager\ and the Replica-Agents are monitored by Migol using the
+monitoring endpoint of the Replica-Agent. If a failure is discovered
+by Migol, an automatic restart of an agent or the RE-Manager is
+initiated.
+                         
 \section{Implementing Distributed Replica-Exchange Using SAGA}
 
 \jhanote{this is an important section. we need to put in details of
@@ -782,17 +817,6 @@ to assign resources to sub-jobs and free them after completion. Further,
 the \replicaagent\ monitors all sub-jobs and registers required
 information with the Migol backend.
 
-\subsection{Scheduling Issues}
-
-Despite the availability of a suitable abstraction for allowing applications to manage Glide-Ins, several scheduling issues
-arise. A particular optimization problem is the size of the \glidein\ job. Since our 
-RE application relies on a fixed number of replica processes, the number of nodes to request per resource can
-be straightforwardly determined by aggregating all replica processes per Grid resource.
-
-Another issue results from possibly different start times of the \replicaagent\ job at different resources.
-To avoid wasted cycles due to a waiting \glidein\ job, replica runs are carried out on all active resources
-with a lower quality of sampling. As soon as further resources become active, the number of replica processes
-and thus the sampling range is increased.
 
 
 % \jhanote{Let us reach consistency on, BigJob/LittleJob vs MetaJob vs
@@ -801,21 +825,7 @@ and thus the sampling range is increased.
                          
 
 % resource management: how large is the glidin job?
-\subsection{Reliability}
-   
-The RE framework is built to tolerate the different types of failures, e.\,g.\:
-crash failures of the Globus GRAM service or of the resource
-running the RE-Manager, a Replica-Agent and/or a replica process.   
-        
-To achieve fault tolerance, the RE-Manager, the Replica-Agents and the replica processes
-periodically write persistent checkpoints to allow an automatic recovery via the 
-Migol infrastructure. The \remanager\ and Replica-Agents periodically update 
-the application's metadata, i.\,e.\ the state, monitoring endpoint and new checkpoint
-URLs, at the Migol backend using the CPR API. During the entire runtime the  \remanager\ and the 
-Replica-Agents are monitored by Migol using the monitoring endpoint of the
-Replica-Agent. If a failure is discovered by Migol, an automatic restart
-of an agent or the RE-Manager is initiated.
-                         
+
 % Further, 
 % it is able to tolerate failures within the Grid infrastructure, e.\,g.\ 
 % the failure of the central registry service. 
@@ -835,35 +845,6 @@ of an agent or the RE-Manager is initiated.
 % through the REMD-Manager without modification of the NAMD source
 % itself.
                
-\subsection{Conclusion}
-In summary, SAGA allows the simple decoupling of the REMD application
-and orchestration logic from the underlying distributed
-infrastructure. All this whilst remaining general purpose and
-extensible, for example, using the Migol adaptor, the application can
-also benefit from additional features, such as the automatic
-monitoring and the transparent recovery of failed tasks. By only
-slightly extending the job model defined by SAGA a powerful
-system-level abstraction such as \glidein\ jobs can be supported
-%has been defined 
-and successfully deployed in service of the RE framework. 
-The SAGA \glidein\ framework represents the first known instance of creating a system
-(deployment) level abstraction for distributed systems from basic programming interfaces.
-\alnote{I am not sure about the last sentence: I mean I know many abstractions which
-are created based on programming interfaces: Any C/C++-library based on the POSIX interfaces,
-higher-level Grid services based on Globus WSRF framework, etc.}
-
-While the current implementation used a custom protocol to implement this
-mechanism, the approach can also be applied to other middleware
-platforms, such as Condor Glidin or Falcon. Currently, we are actively
-working on a Condor adaptor for SAGA, which will also support native
-\glidein\ functionality for Condor Jobs; our enhanced job model 
-will then serve as abstraction, while the Condor level 
-\glidein\ is used as implementation where appropriate.
-
-
-
-
-
 % our implementation of
 % \glidein\ will then serve as a meta \glidein\, with condor level
 % \glidein\ being usable where appropriate.
@@ -1276,9 +1257,36 @@ variants of the RE) -- of our approach.
                   
 \alnote{Gallicchio et al.: AREMD}
                                          
+\jhanote{needs smoothening} In summary, SAGA allows the simple
+decoupling of the REMD application and orchestration logic from the
+underlying distributed infrastructure. All this whilst remaining
+general purpose and extensible, for example, using the Migol adaptor,
+the application can also benefit from additional features, such as the
+automatic monitoring and the transparent recovery of failed tasks. By
+only slightly extending the job model defined by SAGA a powerful
+system-level abstraction such as \glidein\ jobs can be supported and
+successfully deployed in service of the RE framework.  The SAGA
+\glidein\ framework represents the first known instance of creating a
+system (deployment) level abstraction for distributed systems from
+basic programming interfaces.  \alnote{I am not sure about the last
+  sentence: I mean I know many abstractions which are created based on
+  programming interfaces: Any C/C++-library based on the POSIX
+  interfaces, higher-level Grid services based on Globus WSRF
+  framework, etc.}
+
+While the current implementation used a custom protocol to implement this
+mechanism, the approach can also be applied to other middleware
+platforms, such as Condor Glidin or Falcon. Currently, we are actively
+working on a Condor adaptor for SAGA, which will also support native
+\glidein\ functionality for Condor Jobs; our enhanced job model 
+will then serve as abstraction, while the Condor level 
+\glidein\ is used as implementation where appropriate.
+
 Future Work: 
 - prefetching of tasks
 - investigate different scheduling variant
+
+
 
 \jhanote{Still sensitive to varying load-factors ie queuing delays, 
   on different machines}
