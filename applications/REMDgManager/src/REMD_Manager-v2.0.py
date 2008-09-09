@@ -34,7 +34,7 @@ import advert_job
 import pdb
 
 """ Config parameters (will be moved to config file in the future) """
-CPR = False 
+CPR = True 
 SCP = False
 GlideIn = False
 
@@ -84,21 +84,18 @@ class RE_INFO (object):
 
 def set_saga_job_description(replica_ID, RE_info, iflag):
     
-#    if iflag=="cpr":
-#        jd = saga.cpr.description()
-#    else :    
-#        jd = saga.job.description()
+    if CPR == True:
+        jd = saga.cpr.description()
+    	#jd.spmdvariation == "single" # Launch via NAMD-Launcher
+    else:    
+        jd = saga.job.description()
+	jd.spmdvariation = "mpi" # launch MPI directly
  
-    jd = saga.job.description()
-   
     jd.numberofprocesses = RE_info.numberofprocesses
-    jd.spmdvariation = "mpi"
-    #jd.spmdvariation = "single"
     jd.totalcputime = RE_info.totalcputime
-#    jd.arguments = RE_info.arguments   
-    jd.arguments = ["NPT.conf"]
-    
+    jd.arguments = RE_info.arguments
     jd.executable = RE_info.executables[replica_ID]
+    #jd.arguments = ["NPT.conf"]
     #jd.executable = "/u/ac/yye00/src/REMDgManager/src/mpi_test.sh"
     jd.queue = RE_info.projects[replica_ID] + "@" + RE_info.queues[replica_ID]
     jd.workingdirectory = RE_info.workingdirectories[replica_ID]
@@ -335,6 +332,7 @@ def initialize(config_filename):
             
             elif key == 'executable':
                 for ival in value:
+		    print "Executable: " + ival
                     RE_info.executables.append(ival)
                 
             elif key == 'queue':
@@ -349,14 +347,18 @@ def initialize(config_filename):
             elif key == 'arguments':
                 # support quoted arguments like this:
                 # "/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2 NPT.conf" "mpi"
-#                args = line.split(":")[1]
-#                p = re.compile(r'\" \"|\"')
-#                args_parts = p.split(args)
-#                for ival in args_parts:
-#                    if (ival.strip() !=""):
-#                        RE_info.arguments.append(ival)  
-                for ival in value:
-                    RE_info.arguments.append(ival)      
+                args = line.split(":")[1]
+                p = re.compile(r'\" \"|\"')
+                args_parts = p.split(args)
+                for ival in args_parts:
+                    if (ival.strip() !=""):
+			print "add arg: " + ival
+                        RE_info.arguments.append(ival.strip())  
+
+		for i in RE_info.arguments:
+			print i
+                #for ival in value:
+                #    RE_info.arguments.append(ival)      
  
             elif key == 'totalcputime':
                 RE_info.totalcputime = value[0]    
@@ -408,7 +410,7 @@ def start_job(RE_info, irep):
     else: # normal SAGA CPR/Job start
         if (CPR==True):
             dest_url_string = "migol://" + host + "/" + "jobmanager-" + scheduler     # just for the time being
-            error, new_job = submit_job_cpr(dest_url_string, jd)
+            error, new_job = submit_job_cpr(dest_url_string, jd, None)
         else:
             dest_url_string = "gram://" + host + "/" + "jobmanager-" + scheduler    # just for the time being
             error, new_job = submit_job(dest_url_string, jd)
@@ -527,7 +529,7 @@ def run_REMDg(configfile_name):
         	for i in RE_info.advert_glidin_jobs.items():
             		new_glidin_job_states[i[0]] = i[1].get_state_detail()
 	    		try:
-	    			if (new_glidin_job_states[i[0]].lower() == "running" and glidin_job_states.has_key(i[0]) == False):
+	    			if (new_glidin_job_states[i[0]].lower() == "running" and (glidin_job_states.has_key(i[0]) == False or glidin_job_states[i[0]]!="running")):
 					print "Glide-In: " + str(i[0]) + " changed to running after: " + "%d"%(time.time()-start_glidin) + " s"
 	    		except:
 				pass
@@ -572,8 +574,12 @@ def run_REMDg(configfile_name):
                 print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
 	    elif GlideIn==False:
 		jd = set_saga_job_description(irep, RE_info, "")
-                dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-		error_msg, new_job = submit_job(dest_url_string, jd)
+		if CPR == True:
+                	dest_url_string = "migol://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+			error_msg, new_job = submit_job_cpr(dest_url_string, jd, None)
+		else:
+                	dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
+			error_msg, new_job = submit_job(dest_url_string, jd)
 		RE_info.replica.append(new_job)
 	    else:
 	    	print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not start replica"
