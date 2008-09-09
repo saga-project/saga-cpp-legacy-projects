@@ -91,6 +91,9 @@ namespace MapReduce {
             // and try to reduce output from mappping by
             // assigning tasks to some workers
             runReduces_();
+
+            //Send quit to all workers
+            sendQuit_();
             
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
@@ -348,6 +351,16 @@ namespace MapReduce {
    
             log->write(message, LOGLEVEL_INFO);
             reduceHandler.assignReduces();
+         }
+         void sendQuit_(void) {
+            std::vector<saga::url> workers = workersDir_.list("*");
+            std::vector<saga::url>::iterator workersIT = workers.begin();
+            while(workersIT != workers.end())
+            {
+               saga::advert::directory indWorker(*workersIT, saga::advert::ReadWrite);
+               indWorker.set_attribute("COMMAND", WORKER_COMMAND_QUIT);
+               workersIT++;
+            }
          }
          std::vector<saga::url> chunker(std::string fileArg) {
             int mode = saga::filesystem::Read;
