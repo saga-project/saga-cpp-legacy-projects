@@ -34,7 +34,7 @@ import advert_job
 import pdb
 
 """ Config parameters (will be moved to config file in the future) """
-CPR = True 
+CPR = False 
 SCP = False
 GlideIn = False
 
@@ -241,6 +241,7 @@ def get_energy(replica_ID, RE_info):
  
     file_list = ["output.txt"]  
     local_dir = os.getcwd()
+    #pdb.set_trace()
     remote_machine_ip = RE_info.remote_hosts[replica_ID]
     if len(RE_info.gridftp_hosts)>0:
            	remote_machine_ip = RE_info.gridftp_hosts[replica_ID]
@@ -606,7 +607,10 @@ def run_REMDg(configfile_name):
 	    print "\n##################### Replica State Check at: " + time.asctime(time.localtime(time.time())) + " ########################"
             for irep in range(0, numReplica):
                 running_job = RE_info.replica[irep]
-                state = running_job.get_state()
+	        try: 
+                	state = running_job.get_state()
+		except:
+			pass
                 print "job: " + str(running_job) + " received state: " + str(state)
                 if (str(state) == "Done") and (flagJobDone[irep] is False) :   
                     print "(INFO) Replica " + "%d"%irep + " done"
@@ -655,7 +659,7 @@ def run_REMDg(configfile_name):
 			i.delete_job()
         
 
-    print "REMD Runtime: " + str(time.time()-start) + " s"  
+    print "REMD Runtime: " + str(time.time()-start) + " s; Glide-In: " + str(GlideIn) + "; numReplica: " + str(RE_info.replica_count)
     # stop gliding job        
     stop_glidin_jobs(RE_info)
 
@@ -771,5 +775,5 @@ if __name__ == "__main__" :
         print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=remd_manager.config"
         sys.exit(1)      
         
-    print "REMDgManager Total Runtime: " + str(time.time()-start) + " s"
+    #print "REMDgManager Total Runtime: " + str(time.time()-start) + " s"
     
