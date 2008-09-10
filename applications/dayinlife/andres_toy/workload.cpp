@@ -98,6 +98,7 @@ void workload::work (void)
     log_.log ("\n");
 
     cnt_++;
+    // ::sleep (1);
 
     log_.log (" -- new count: ");
     log_.log (cnt_);

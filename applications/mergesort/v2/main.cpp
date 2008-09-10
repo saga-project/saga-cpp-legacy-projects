@@ -14,7 +14,7 @@ int main(int argc, char* argv[]){
       mergesort_job << "/home/michael/saga/trunk/examples/uses/mergesort/v2/chunker " << files_to_chunk[0];
       std::cout << mergesort_job.str() << std::endl;
       saga::job::job j0;//,j1;
-//      j0 = js.run_job("any:://localhost",mergesort_job.str(),in0,out0,err0);
+//      j0 = js.run_job(mergesort_job.str(),"any:://localhost",in0,out0,err0);
    }      
    catch (saga::exception const &e) {
      std::cerr << "Error: " << e.what() << std::endl;

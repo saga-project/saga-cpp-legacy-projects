@@ -162,7 +162,7 @@ void framework::migrate (void)
   // add a new host as target host.  That's boring localhost for now (FIXME)
   std::vector <std::string> chosts;
   chosts.push_back ("localhost");
-  jd.set_vector_attribute (saga::job::attributes::description_candidatehosts, chosts);
+  jd.set_vector_attribute (saga::job::attributes::description_candidate_hosts, chosts);
 
   log_.log (" -- fw migrate: ");
   log_.log (self.get_job_id ());
@@ -174,5 +174,7 @@ void framework::migrate (void)
   self.migrate (jd);
 
   // after migration, this instance is done - we should never reach this line
+  log_.log (" -- fw migrate done - exit\n");
+  exit (0);
 }
 

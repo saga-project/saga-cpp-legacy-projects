@@ -19,17 +19,22 @@ class logger
     logger (const std::string & name);
    ~logger (void);
 
+    void open  (void);
     void close (void);
 
 
     template <typename T1>
     void log (T1 const & t1)
     {
+      // open ();
       SAGA_OSSTREAM tmp;
 
-      tmp << t1;
+      tmp       << t1;
+   // std::cout << t1;
 
       f_.write (saga::buffer (SAGA_OSSTREAM_GETSTRING (tmp)));
+
+      // close ();
     }
 };
 

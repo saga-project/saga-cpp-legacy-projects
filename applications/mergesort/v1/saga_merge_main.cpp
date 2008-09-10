@@ -39,10 +39,10 @@ int main(int argc, char* argv[]){
       saga::job::service js(saga::url("any://localhost"));
       //job::job j0,j1;
       mergesort_job << "/home/michael/algo/mergesort/saga_merge/saga_mergesort " << list[0].get_url() << " " << 0 << " " << (file_size/2)+readbytes;
-      /*j0 =*/ js.run_job("any:://localhost",mergesort_job.str(),in0,out0,err0);
+      /*j0 =*/ js.run_job(mergesort_job.str(),"any:://localhost",in0,out0,err0);
       mergesort_job.str(std::string());
       mergesort_job << "/home/michael/algo/mergesort/saga_merge/saga_mergesort "<<  list[0].get_url() << " " << " " << (file_size/2)+readbytes << " " << (file_size/2)-readbytes;
-      /*j1 =*/ js.run_job("any://localhost",mergesort_job.str(),in1,out1,err1);
+      /*j1 =*/ js.run_job(mergesort_job.str(),"any://localhost",in1,out1,err1);
       std::vector<saga::job::istream> output;
       output.push_back(out0);
       output.push_back(out1);

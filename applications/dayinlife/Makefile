@@ -23,7 +23,7 @@ tmpclean::
 
 run:: tmpclean $(SAGA_BIN)
 	@$(RM) $(LOG)
-	-$(SAGA_PWD)/$(SAGA_BIN) localhost localhost 3
+	-$(SAGA_PWD)/$(SAGA_BIN) localhost localhost 11
 	-@tail -f $(LOG)
 	@$(ECHO) "counter: "
 	@$(CAT)  counter.out 

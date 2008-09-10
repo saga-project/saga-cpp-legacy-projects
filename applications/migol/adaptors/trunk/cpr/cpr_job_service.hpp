@@ -69,8 +69,8 @@ static int refcount_;
                               saga::cpr::description      jd_restart);
     
     void sync_run_job        (saga::cpr::job            & ret, 
-                              std::string                 host, 
                               std::string                 exe, 
+                              std::string                 host, 
                               saga::job::ostream        & in, 
                               saga::job::istream        & out, 
                               saga::job::istream        & err);

@@ -72,7 +72,7 @@ void SystemInfo::detectHostUname_() {
    if(pathToUname_.length() > 0) {
       try {
          job::service js(saga::url("localhost"));
-         job::job j1 = js.run_job ("localhost", pathToUname_, in, out, err);
+         job::job j1 = js.run_job (pathToUname_, "localhost", in, out, err);
          
          job::state state = j1.get_state ();
          if(state != job::Running && state != job::Done) {
@@ -107,7 +107,7 @@ void SystemInfo::detectHostLoadAverage_() {
    if(pathToUptime_.length() > 0) {
       try {
          job::service js(saga::url("localhost"));
-         job::job j1 = js.run_job ("localhost", pathToUptime_, in, out, err);
+         job::job j1 = js.run_job (pathToUptime_, "localhost", in, out, err);
         
          job::state state = j1.get_state ();
          if(state != job::Running && state != job::Done) {
@@ -143,7 +143,7 @@ std::string SystemInfo::findExecutable_(std::string name) {
    
    try {
       job::service js(saga::url("localhost"));
-      job::job j1 = js.run_job ("localhost", findCommand, in, out, err);
+      job::job j1 = js.run_job (findCommand, "localhost", in, out, err);
       
       job::state state = j1.get_state ();
       if(state != job::Running && state != job::Done) {

@@ -184,8 +184,8 @@ void cpr_job_service_cpi_impl::sync_create_job     (saga::cpr::job            & 
     
     
 void cpr_job_service_cpi_impl::sync_run_job (saga::cpr::job     & ret, 
-                                             std::string          host, 
                                              std::string          exe, 
+                                             std::string          host, 
                                              saga::job::ostream & in, 
                                              saga::job::istream & out, 
                                              saga::job::istream & err)
