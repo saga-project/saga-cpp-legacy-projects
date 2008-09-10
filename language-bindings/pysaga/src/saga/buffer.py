@@ -35,12 +35,12 @@ class Buffer(Object):
         @param size: size of data buffer to be used
         @type size: int
         @param data: buffer to be used
-        @type data: B{unknown buffer type X}
+        @type data: char array or a list
 
         @raise NotImplemented:
         @raise BadParameter: if the implementation cannot handle the given data pointer or the given size
         @raise NoSuccess:
-        @see: notes about memory management in GFD.90 document.
+        @see: notes about memory management in GFD-R-P.90 document.
         """
         super(Buffer,self).__init__()
         
@@ -65,12 +65,12 @@ class Buffer(Object):
         @rtype: int
         @Raise NotImplemented:
         @raise IncorrectState:
-        @Note: if the buffer was created with negative size with the second CONSTRUCTOR, or the size was
-                    set to a negative value with set_size(), this method returns '-1' if the buffer was not yet
-                    used for an I/O operation.
+        @Note: if the buffer was created with negative size with the second call format of the __init__(), 
+            or the size was set to a negative value with set_size(), this method 
+            returns '-1' if the buffer was not yet used for an I/O operation.
         @note: if the buffer was used for a successfull I/O operation where data have been read into the
-                    buffer, the call returns the size of the memory which has been allocated by the
-                    implementation during that read operation
+            buffer, the call returns the size of the memory which has been allocated by the
+            implementation during that read operation
         """
         size = 0;
         return size
@@ -81,7 +81,7 @@ class Buffer(Object):
         Set new buffer data
         @summary: Set new buffer data
         @param data: data to be used in buffer
-        @type data: B{unknown buffer type X}
+        @type data: char array or a list
         @param size: size of given data
         @type size: int
         @PostCondition: the buffer memory is managed by the application.
@@ -99,8 +99,8 @@ class Buffer(Object):
         """
         Retrieve the buffer data
         @summary: Retrieve the buffer data
-        @return: buffer data to retrieve
-        @rtype: B{unknown buffer type X}
+        @return: buffer data to retrieve. Type depends on what type was used to create the Buffer object
+        @rtype: char array or list
         @Raise NotImplemented:
         @raise DoesNotExist:
         @raise IncorrectState:
@@ -123,15 +123,11 @@ class Buffer(Object):
         @PostCondition: any operation on the object other than close() or the DESTRUCTOR will cause
                         an 'IncorrectState' exception.
         @raise NotImplemented:
-        @note: if the current data memory is managed by the
-               implementation, it is freed.
-        @note: if the current data memory is managed by the
-               application, it is not accessed anymore by the
+        @note: if the current data memory is managed by the implementation, it is freed.
+        @note: if the current data memory is managed by the application, it is not accessed anymore by the
                implementation after this method returns.
-        @note: if close() is implicitly called in the
-               DESTRUCTOR, it will never throw an exception.
-        @see: for resource deallocation semantics, see  Section 2.
-        @see: for timeout semantics, see Section 2.
+        @note: if close() is implicitly called in  __del__(), it will never throw an exception.
+        @see: for resource deallocation semantics and timeout semantics, see  Section 2 of the GFD-R-P.90 document
         """
 
         #Add Object Methods

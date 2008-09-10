@@ -2,6 +2,7 @@
 #  package saga.rpc
 from buffer import Buffer
 from object import Object, ObjectType
+from permissions import Permissions
 
 class IOMode(object):
     """
