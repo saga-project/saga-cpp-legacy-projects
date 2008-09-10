@@ -150,8 +150,8 @@ supports applications which operate on very large data sets on
 clusters of computers.  MapReduce relies on a number of capabilities
 of the underlying system, most related to file operations.  Others are 
 related to process/data allocation.  The Google File System, and other
-global file systems, provide the relevant capabilities, such as atomic
-file renames.  Implementations of MapReduce on these global file systems
+distributed file systems, provide the relevant capabilities, such as atomic
+file renames.  Implementations of MapReduce on these distributed file systems
 are free to focus on implementing the data-flow pipeline, which is the
 algorithmic core of the MapReduce framework.
 
@@ -213,10 +213,9 @@ solving data-intensive problems.
 One feature worth noting in MapReduce is that the ultimate dataset is not 
 on one machine, it is partitioned on multiple machines located throughout the 
 grid. Google uses their distributed file system (Google File System) to keep 
-track of where each file is located.  Alternatively, they use MapReduce for 
-data-intensive jobs, then store the results in Bigtable.  We will attempt to 
-imitate this using our implementation of MapReduce over HDFS.  Also, we will 
-use HBase for communication between jobs.
+track of where each file is located.  Alternatively, they store MapReduce 
+results in Bigtable.  We will attempt to imitate this using our implementation
+of MapReduce over HDFS.  Also, we will use HBase for communication between jobs.
 
 
 \subsection{Our Implementation:} 
@@ -263,17 +262,18 @@ of submitting a job for every comparison.
 
 Data intensive applications require large amounts of data to be
 available at runtime in a reliable and efficient manner.  The Hadoop
-Distributed File System (HDFS) is an application that handles the
-details of spreading data across multiple machines in a traditional
-hierarchical file organization.  HDFS also handles replication and
-striping of data for fault-tolerance.  Portably implemented in Java,
-HDFS is designed to run on commodity hardware while providing
-scalability and optimizations for large files.  The file system works
-by having one or two namenodes, masters, and many rack-aware datanodes, 
-slaves.  All data requests go through the namenode that uses block 
-operations on each data node to properly assemble the data for the requesting
-application.  The goal of replication and rack-awareness is to improve
-reliability and data retrieval time based on locality.  In data
+Distributed File System (HDFS) is an distributed parallel fault tolerant
+application that handles the details of spreading data across multiple
+machines in a traditional hierarchical file organization.  It has been 
+highly successful and is currently used by Yahoo!, Facebook, and the New York
+Times to name a few.  HDFS also handles replication and striping of data
+for fault-tolerance.  Portably implemented in Java, HDFS is designed to run
+on commodity hardware while providing scalability and optimizations for large
+files.  The file system works by having one or two namenodes, masters, and many
+rack-aware datanodes, slaves.  All data requests go through the namenode that
+uses block operations on each data node to properly assemble the data for
+the requesting application.  The goal of replication and rack-awareness is
+to improve reliability and data retrieval time based on locality.  In data
 intensive applications, these qualities are essential.
 %Discuss the C interface to Hadoop
 
@@ -288,7 +288,7 @@ machines~\cite{bigtable}.  Another advantage is the ability to be
 accessed through MapReduce.  Since MapReduce is inherently very well
 parallelized, accessing Bigtable is very efficient.  Due to the
 success of Bigtable, HBase was developed by Hadoop as an open source
-alternative for use with their MapReduce.  Both of them are
+alternative for use with Hadoop's MapReduce.  Both HBase and Bigtable are
 implemented in a similar way.  They split up large tables and
 replicate them over many machines to avoid node failure.  Also, since
 the data is partitioned accessing it does not create a large strain on
@@ -351,9 +351,8 @@ service, i.e. speed, and latency.
 We are going to mimic Google's MapReduce, which uses the Google File System (GFS)
 to store intermediate and final results.  They also store metadata about the grid 
 with Bigtable.  Since we do not have GFS or Bigtable available to use, we are going 
-to use the Hadoop File system (HDFS) and HBase to store the metadata.  Coincidentally, 
-this is similar to what Yahoo! uses.  We will call this the native implementation of 
-MapReduce.
+to use the Hadoop File system (HDFS) and HBase to store the metadata similar to 
+what Yahoo! uses.  We will call this the native implementation of MapReduce.
 
 \subsection*{SAGA Based MapReduce}
 
