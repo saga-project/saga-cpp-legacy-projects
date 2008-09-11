@@ -88,12 +88,12 @@ set xlabel "Number Replica Processes"
 #     "data-remd.txt" using 1:5 title "SAGA/GRAM  (QB/Poseidon)" with lp
 plot  "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp,\
       "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp         
-
-set yrange [0:55]  
-set ytics (10, 20, 30, 40, 50) 
+set xrange [1.75:17] 
+set yrange [0:65]  
+set ytics (10, 20, 30, 40, 50,60) 
 set output "perf_remd_glidin.eps"      
-plot  "data-remd-glidein.txt" using 1:2 title "Without Glide-In (QB)" with lp,\
-      "data-remd-glidein.txt" using 1:3 title "With  Glide-In (QB)" with lp      
+plot  "data-remd-glidein.txt" using 1:2:3 title "Without Glide-In (QB)" with errorlines,\
+      "data-remd-glidein.txt" using 1:4:5 title "With Glide-In (QB)" with errorlines      
       
 
 # plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\

@@ -712,6 +712,8 @@ By avoiding the high initial costs for queueing each individual
 replica job the completion times of the RE applications can be dramatically
 reduced. Since the first implementation of this principle was provided by Condor 
 Glide-In~\citep{citeulike:291860}, this pattern is also referred to as \glidein\ .
+ 
+\alnote{add further advantages: configurability of MPI versions, flexible clustering of tasks}
 
 \jhanote{I
 don't think the principle is known as glidein. The term glidein owes
@@ -897,18 +899,17 @@ quantification of the runtime overhead, which Migol-enabled
 applications, such as the REMD-Manager encounter.  Further, we investigate the 
 overall run-time reduction that can be obtained by the \replicaagent\ \glidein\
 mechanism. Scientific results obtained from using this infrastructure will be reported elsewhere.
-    
 
-\subsection{Infrastructure Performance}
+% \subsection{Infrastructure Performance}
 \begin{figure}[ht]
     \centering
-        \subfloat[Submission Overhead]{\includegraphics[width=0.48\textwidth]{performance/perf_submission.pdf} }
-        \subfloat[Runtime Overhead]{\includegraphics[width=0.49\textwidth]{performance/perf_remd.pdf} }          
-    \caption{\footnotesize \bf SAGA-CPR Migol Adaptor Overhead: While the submission of Migol jobs incurs some overhead, in a real REMD scenario this overhead is negligible.}       
+        \subfloat[Adaptor Overhead]{\includegraphics[width=0.48\textwidth]{performance/perf_submission.pdf} }
+        \subfloat[Glide-In Performance]{\includegraphics[width=0.49\textwidth]{performance/perf_remd_glidin.pdf} }          
+    \caption{\footnotesize \bf SAGA-CPR Migol Adaptor and SAGA Glide-In Performance: While the submission of Migol jobs incurs some overhead, in a real REMD scenario this overhead is negligible. The usage of the SAGA Glide-In provides a significant reduced time to solution even on a single machine in particular with more than 8 replica jobs.}       
     \label{fig:performance_perf_submission}
 \end{figure}           
 
-Figure~\ref{fig:performance_perf_submission} shows the response-times
+Figure~\ref{fig:performance_perf_submission}a) shows the response-times
 of SAGA-CPR submissions in comparison to their non fault-tolerant
 counterparts. Since each replica exchange step involves the
 relaunching of two replica jobs, the efficient spawning of remote
@@ -946,20 +947,17 @@ this overhead is acceptable.
 % 2\,minute monitoring interval was only 10\,s, which is only slightly
 % higher than the variance of typical NAMD runtimes. 
 
-\subsection{REMD-Manager Performance}        
+% \subsection{REMD-Manager Performance}        
 
 Further, we evaluated the runtime of the REMD-Manager with respect to the 
 used job scheduling mechanism. The REMD-Manager was configured to run 
-a simulation with 2 to 8 replica processes and 16 replica-exchange steps. 
+a simulation with 2 to 16 replica processes and 10 replica-exchange steps. 
 Table~\ref{tab:app_stats} summarizes the REMD configuration used. 
-
 % The runtime of a REMD simulation depends to a great extend on
 % the queuing time at the local resource management system. Thus, we attempted 
 % to minimize the queueing times during our experiment. However, as the results 
 % show, small queueing delays could not always be avoided.
-
 \jhanote{table will need updating}
-
 \begin{table}
     \centering
 	\begin{tabular}{|p{5cm}|l|}
@@ -988,29 +986,29 @@ Table~\ref{tab:app_stats} summarizes the REMD configuration used.
           
 \end{table}  
  
-\begin{figure}[ht]
-    \centering
-    \hspace*{-20pt}
-        \includegraphics[width=0.7\textwidth]{performance/perf_remd_glidin.pdf}
-        \caption{\footnotesize \bf REMD Runtime with and without \glidein: 
-         The time that it takes to complete 10 replica exchanges; 
-each replica runs for 500 steps, before attempting an exchange with
-the paired-replica. The usage of the SAGA Glide-In provides a significant reduced time to solution with more than 8 replica jobs. 
-% Although the simultaneous deployment of
-% replicas across multiple resources (labels with QB/Poseidon)
-% has scheduling challenges compared to the usage of a single
-% cluster (scenario QB), for scenarios studied here there is a
-% slight reduction in time-to-completion.
-%  The overhead of the Migol is with
-%         15\,seconds negligible compared to the overall
-%         runtime.
-          \jhanote{need some further clarity} 
-     }
-    \label{fig:performance_perf_runtime}
-\end{figure}     
+% \begin{figure}[ht]
+%     \centering
+%     \hspace*{-20pt}
+%         \includegraphics[width=0.7\textwidth]{performance/perf_remd_glidin.pdf}
+%         \caption{\footnotesize \bf REMD Runtime with and without \glidein: 
+%          The time that it takes to complete 10 replica exchanges; 
+% each replica runs for 500 steps, before attempting an exchange with
+% the paired-replica. The usage of the SAGA Glide-In provides a significant reduced time to solution with more than 8 replica jobs. 
+% % Although the simultaneous deployment of
+% % replicas across multiple resources (labels with QB/Poseidon)
+% % has scheduling challenges compared to the usage of a single
+% % cluster (scenario QB), for scenarios studied here there is a
+% % slight reduction in time-to-completion.
+% %  The overhead of the Migol is with
+% %         15\,seconds negligible compared to the overall
+% %         runtime.
+%           \jhanote{need some further clarity} 
+%      }
+%     \label{fig:performance_perf_runtime}
+% \end{figure}     
 
 \alnote{This must be reworked with the new results!}
-Figure~\ref{fig:performance_perf_runtime} illustrate the results of
+Figure~\ref{fig:performance_perf_submission}b) illustrate the results of
 this evaluation. Since the total number of replica exchange steps
 remained constant, the runtime decreases the more replica processes
 are used.  With more than four replica processes a slight decrease of
@@ -1031,15 +1029,16 @@ realistic scenarios with larger problem chunks this issue will be
 avoided.
 
 
-On average, with all factors considered, the SAGA/Migol adaptor added
-a total runtime overhead of about 15\,seconds to the
-time-to-completion.  It is important to note that this does not change
-significantly with either the number of replicas, number of
-replica-exchanges, nor the runtime of each replica.  Thus the results
-indicate that the SAGA/Migol overhead is acceptable, corroborating
-earlier findings shown in
-Figure~\ref{fig:performance_perf_submission}.
-
+% On average, with all factors considered, the SAGA/Migol adaptor added
+% a total runtime overhead of about 15\,seconds to the
+% time-to-completion.  It is important to note that this does not change
+% significantly with either the number of replicas, number of
+% replica-exchanges, nor the runtime of each replica.  Thus the results
+% indicate that the SAGA/Migol overhead is acceptable, corroborating
+% earlier findings shown in
+% Figure~\ref{fig:performance_perf_submission}.
+   
+\alnote{TODO: add multisite figure}
 Figure~\ref{fig:performance_perf_runtime} also shows that our approach
 can be employed to orchestrate multiple resources concurrently, as
 well as different resources (QB/Poseidon/Eric) individually.  During
