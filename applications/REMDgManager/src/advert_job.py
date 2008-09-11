@@ -26,6 +26,7 @@ import traceback
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="REMD"
+CPR = False
         
 class advert_glidin_job():
     
@@ -52,6 +53,11 @@ class advert_glidin_job():
 		#if os.environ.has_key("X509_USER_PROXY"):
 		#	del os.environ["X509_USER_PROXY"]
 		print "use standard proxy"
+	s = saga.session()
+	#ctx = saga.context("globus")
+	#ctx.set_attribute ("UserProxy", userproxy); 
+	#ctx.set_defaults (); 
+	#s.add_context(ctx)
 
         #register advert entry
         lrms_saga_url = saga.url(lrms_url)
@@ -61,23 +67,34 @@ class advert_glidin_job():
         # application level state since globus adaptor does not support state detail
         self.glidin_dir.set_attribute("state", str(saga.job.Unknown)) 
 	print "set glidin state to: " + self.glidin_dir.get_attribute("state")
-        jd = saga.job.description()
-        jd.numberofprocesses = str(number_nodes)
+	if CPR==True:
+        	jd = saga.cpr.description()
+        else:	
+        	jd = saga.job.description()
+
+
+	jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
         #jd.executable = os.getcwd() + "/advert_launcher.sh"
-	jd.executable = "$(HOME) # /src/REMDgManager/src/advert_launcher.sh"
+	jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh"
 	#jd.executable = "$(HOME) # /src/REMDgManager/src/mpi_test.sh"
         jd.queue = project + "@" + queue
         #jd.workingdirectory = os.getcwd()
         jd.workingdirectory = "$(HOME)"
         jd.output = "advert-launcher-stdout.txt"
         jd.error = "advert-launcher-stderr.txt"
-        
-        js = saga.job.service(lrms_saga_url)
-        self.job = js.create_job(jd)
-        print "Submit glidin job to: " + str(lrms_saga_url)
-        self.job.run()
+       
+	if CPR==True: 
+		js = saga.cpr.service(s, lrms_saga_url)
+        	self.job = js.create_job(jd, jd)
+        	print "Submit CPR Glide-In job to: " + str(lrms_saga_url)
+        	self.job.run()
+	else:
+		js = saga.job.service(s, lrms_saga_url)
+        	self.job = js.create_job(jd)
+        	print "Submit Non-CPR Glide-In job to: " + str(lrms_saga_url)
+        	self.job.run()
         return self.job
      
     def get_state(self):        

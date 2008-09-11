@@ -16,7 +16,7 @@ APPLICATION_NAME="REMD"
 
 """ Configuration: to be moved to config """
 shell = "/bin/bash"
-
+CPR = False
 class advert_launcher:
     
     """NAMD-Launcher:
@@ -349,11 +349,13 @@ if __name__ == "__main__" :
     
 
     # init cpr
-    jd=None
-    try:
-        js = saga.cpr.service()
-    except:
-        sys.exc_traceback
+    js=None
+    if CPR == True:
+   	 try:
+	     print "init CPR monitoring for Agent"
+   	     js = saga.cpr.service()
+   	 except:
+   	     sys.exc_traceback
     
     advert_launcher = advert_launcher(args[1], args[2])    
 

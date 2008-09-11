@@ -36,7 +36,7 @@ import pdb
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
 SCP = False
-GlideIn = False
+GlideIn = True
 
 ########################################################
 #  Global variable 
@@ -84,7 +84,7 @@ class RE_INFO (object):
 
 def set_saga_job_description(replica_ID, RE_info, iflag):
     
-    if CPR == True:
+    if CPR == True and GlideIn == False: #if glidein use normal jd
         jd = saga.cpr.description()
     	#jd.spmdvariation == "single" # Launch via NAMD-Launcher
     else:    
@@ -95,8 +95,6 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
     jd.totalcputime = RE_info.totalcputime
     jd.arguments = RE_info.arguments
     jd.executable = RE_info.executables[replica_ID]
-    #jd.arguments = ["NPT.conf"]
-    #jd.executable = "/u/ac/yye00/src/REMDgManager/src/mpi_test.sh"
     jd.queue = RE_info.projects[replica_ID] + "@" + RE_info.queues[replica_ID]
     jd.workingdirectory = RE_info.workingdirectories[replica_ID]
     
@@ -106,8 +104,20 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
     return jd
 
 
-def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote_dir):
-    
+def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote_dir, RE_info):
+    userproxy=None
+    try: 
+    	userproxy = RE_info.userproxy[RE_info.remote_hosts.index(remote_machine_ip)] 
+    except:
+	try:
+		userproxy = RE_info.userproxy[RE_info.gridftp_hosts.index(remote_machine_ip)]
+	except:
+		pass
+    if userproxy != None or userproxy=="":
+         os.environ["X509_USER_PROXY"]=userproxy
+         print "use proxy: " + userproxy
+    else:
+         print "use standard proxy"
     for ifile in input_file_list_with_path:
 
         if remote_machine_ip.find('localhost') >= 0:
@@ -303,6 +313,7 @@ def initialize(config_filename):
     # arguments : NPT.conf 
     
     for line in lines:
+	print line
         items = line.split()
         if line.find(':'):
             key = items[0]
@@ -470,7 +481,7 @@ def transfer_files(RE_info, irep):
                 pass
                 file_stage_in_with_scp(RE_info.stage_in_files, remote_machine_ip, remote_dir)
         else:
-                file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+                file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir, RE_info)
         print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip)
 
 
@@ -507,7 +518,7 @@ def run_REMDg(configfile_name):
         	pass
         	file_stage_in_with_scp(RE_info.stage_in_files, remote_machine_ip, remote_dir)
            else:
-           	file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir)
+           	file_stage_in_with_saga(RE_info.stage_in_files, remote_machine_ip, remote_dir, RE_info)
            print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip)
     #transfer_thread_list = []
     #for irep in range(0, RE_info.replica_count):
@@ -552,7 +563,7 @@ def run_REMDg(configfile_name):
 	       if SCP == True:
 			file_stage_in_with_scp([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir)
 	       else:
-               		file_stage_in_with_saga([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir) 
+               		file_stage_in_with_saga([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir, RE_info) 
                print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip) 
 	   else:
 	       print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower() + " ... not stage files"
@@ -659,7 +670,7 @@ def run_REMDg(configfile_name):
 			i.delete_job()
         
 
-    print "REMD Runtime: " + str(time.time()-start) + " s; Glide-In: " + str(GlideIn) + "; numReplica: " + str(RE_info.replica_count)
+    print "REMD Runtime: " + str(time.time()-start) + " s; Glide-In: " + str(GlideIn) + "; numReplica: " + str(RE_info.replica_count) + "; CPR: " + str(CPR)
     # stop gliding job        
     stop_glidin_jobs(RE_info)
 
