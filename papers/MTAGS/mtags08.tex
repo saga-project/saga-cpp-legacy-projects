@@ -76,7 +76,7 @@
     ~\\[-2em]
     % Unsure of Author List$^{1}$ \\
     Shantenu Jha$^{1,2,3}$, Joohyun Kim$^{1}$,
-    Yaakoub El-Khamra$^{1}$, Andre Lukow, \\ 
+    Yaakoub El-Khamra$^{1}$, Andre Luckow, \\ 
     Hartmut Kaiser$^{1}$ and Andre Merzky$^{1}$ \\
     \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
     \small{\emph{$^{2}$Department of Computer Science, Louisiana State
@@ -85,8 +85,6 @@
   }
 
 %\date{}
-
-
 
 \def\acknowledgementname{Acknowledgements}
 
@@ -134,7 +132,7 @@
   the examples, and shows how they are supported using SAGA, often in
   conjunction with other programming frameworks such as Cactus.  The
   primary aim of this paper is to demonstrate how SAGA can be an
-  effective tool for programmatically representing and implemeting the
+  effective tool for programmatically representing and implementing the
   logic of coordination and orchestrating multiple, distributed tasks,
   while remaining agnostic to the actual mechanism, ie. details of the
   distributed environment. We will highlight the importance of
@@ -212,7 +210,7 @@ mapping strategies.
     landscape.  Middleware specific adaptors applications developed
     using SAGA make applications developed using SAGA grid
     portable. Schematic showing the different ways in which SAGA can
-    be used to develop distributed applic ations}
+    be used to develop distributed applications}
  \label{sagalayer}
 \end{figure}
 
@@ -228,25 +226,143 @@ mapping strategies.
     landscape.  Middleware specific adaptors applications developed
     using SAGA make applications developed using SAGA grid
     portable. Schematic showing the different ways in which SAGA can
-    be used to develop distributed applic ations}
+    be used to develop distributed applications}
  \label{sagalayer}
 \end{figure}
 
 
-\section{Application With Multiple Loosely-Coupled Homogenous
-  Sub-Tasks}
+\section{Application With Multiple Loosely-Coupled Homogeneous
+  Sub-Tasks}  
+\alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just
+to keep this consistent with the other paper. We previously discussed that task
+has another meaning within SAGA, which could potentially lead to confusion.}
+  
+An example for a distributed application consisting of homogeneous sub-tasks
+are Replica-Exchange (RE) simulations~\cite{Sugita:1999rm}, \cite{hansmann}. Such applications can be used to understand important
+physical phenomena -- ranging from protein folding dynamics to binding
+affinity calculations required for computational drug discovery. 
+For Replica-Exchange simulations utilizing as many 
+distributed resources as possible, is critical for the effective solution of 
+the scientific problem.  
+
+Distributed RE simulations must be able to orchestrate different 
+resources in a complex and dynamic environment.  Writing
+such an applications is a complex task for a myriad number of reasons,
+not least of which is that distributed computing environments are
+inherently prone to failures. In the following the SAGA-based RE 
+framework developed for molecular dynamics simulations
+is described.  
 
 \subsection{Application Description}
 
+Replica Exchange simulations are used within Molecular Dynamics (MD) approaches,
+to allow a sufficient sampling of configurations. This is
+an important requirement for connecting atomistic results to
+macroscopic or thermodynamic quantities available from experiments.
+However, even with the most powerful computing resources at the
+moment, straight-forward MD simulations are unable to reach the
+relevant time-scales required to study conformational changes and
+searches. This is partly due to the inherent limitations in the MD
+algorithm -- a global synchronization is required at the end of each
+time step.  This provides an important motivation for research into
+finding ways to accelerate sampling and enhance ``effective''
+time-scales studied. Generalized ensemble approaches -- of which
+Replica-Exchange Molecular Dynamics (REMD)~\cite{Sugita:1999rm} are a
+prominent example -- represent an important and promising attempt to
+overcome the general limitations of insufficient time-scales, as well
+as specific limitations of inadequate conformational sampling arising
+from kinetic trappings.  The fact that one single long-running
+simulation can be substituted for an ensemble of shorter-running
+simulations, make these ideal candidates for distributed environments.
+
 \subsection{Application Architecture}
+\alnote{Should I mention CPR/Migol or should I rather keep it on the 
+``abstractions'' level?}
+Replica-Exchange (RE) simulations can be thought of as consisting of
+two distinct components: the  simulation engine/mechanism
+used for each replica process, and the coupling-mechanism between the
+individual replicas. The RE framework relies NAMD as MD code for 
+carrying out the simulation and a SAGA-based framework 
+for orchestration of the replica sub-tasks. 
+
+The developed RE framework~\cite{Luckow:2008la} comprises of the \emph{RE-Manager}, the central master 
+deployed on the user's desktop, and the  \textit{Replica-Agents}, 
+that reside on the High Performance machines where RE simulations
+are carried out. The RE-Manager orchestrates all replicas, i.\,e.\ 
+it is responsible for the parameterization of replica tasks, 
+file staging, job spawning and the conduction of the replica-exchange itself.
+The Replica-Agent is launched by a Grid job and is
+responsible for spawning and monitoring the replica processes. 
+
+Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used within the RE framework.
+For file management the RE-Manager utilizes the SAGA File API. More complex, 
+is the management of replica sub-jobs. To achieve an optimal time to solution
+an efficient dispatching of the RE sub-jobs is required.  
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.45\textwidth]{remdmanager_v11.pdf}
+    \caption{Replica Exchange Framework Abstractions:      
+          The Replica-Agent is used as placeholder job for
+          all replica sub-jobs running on a single cluster. The
+          RE-Manager can control both the Replica-Agents and the replica
+          jobs using a SAGA-based user-level job API. By using this
+          efficient way to allocate resources, queuing times are minimized
+          and the time to completion can be dramatically reduced.}
+    \label{fig:remdmanager_v11}
+\end{figure}  
+
+In particular, queueing delays can represent a major bottleneck: a single crowded 
+resource can delay the completion of the simulation arbitrary. A common principle 
+to prevent this is the usage of a Glide-In job, which represents a placeholder 
+for a set of sub-jobs. For this meta-job a sufficiently large chunk of resources 
+is requested. Smaller sub-jobs can then rapidly be executed through the meta-job.
+
+The RE-Manager relies on the SAGA Glide-In framework to efficiently manage both 
+Glide-In jobs and sub-jobs. With this capability the SAGA Glide-In framework
+provides a novel system-level abstraction for allocating larger chunks of resources 
+and for mapping this resources to a set of sub-jobs. The enhanced job model can 
+be used as drop-in replacement for a SAGA job objects. No code modification is required
+-- the application must solely map the sub-jobs to a larger Glide-In job.
+
+While the implementation of the enhanced job model is entirely based on SAGA 
+and in particular the SAGA Advert Service, a central key/value store, a utilization
+of other frameworks, such as the orignal Condor Glide-In~\cite{citeulike:291860} or 
+Falcon~\cite{1362680}, is possible. Currently, we are actively working on a Condor 
+adaptor for SAGA, which will also support native Glide-In functionality for Condor Jobs; 
+our enhanced job model 
+will then serve as abstraction, while the Condor level Glide-In is used as implementation 
+where appropriate. 
 
 \subsection{Deploying on Distributed Resources}
 
-\subsection{Deploying on Ranger}
+The deployment of the frameworks and application on heterogeneous resources belonging to 
+different organizations is a difficult task. In particular, different library 
+versions and broken Globus installations led to a high amount of complexity.
 
+\subsection{Deploying in LONI Grid}
+
+To evaluate the performance of the REMD-Manager several
+experiments have been conducted on the TeraGrid~\cite{teragrid} and LONI~\cite{loni}. 
+The RE-Manager has in particular been tested on QueenBee (QB). 
+
+In particular, the scalability of the Glide-In framework has been extensively tested.
+Figure~\ref{fig:perf_remd_glidin} shows that the Glide-In framework is in particular 
+beneficial if queueing delays occur. The more processes are spawned, the more likely are
+such delays. While with the SAGA Glide-In framework the runtime only modestly increase 
+with more than 8 replicas, the runtime rapidly rises when using regular Globus job
+for spawning NAMD tasks. The unpredictable nature of these queueing times becomes obvious
+by the high standard deviation found in the measurements.
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.5\textwidth]{perf_remd_glidin.pdf}
+    \caption{SAGA Glide-In Performance: The usage of the SAGA Glide-In provides a significant reduced time to solution even on a single machine in particular with more than 8 replica jobs.}
+    \label{fig:perf_remd_glidin}
+\end{figure}
 
 \section{Applications With Multiple Loosely-Coupled Heterogenous
-  Sub-Tasks}
+Sub-Tasks}
 
 \subsection{Application Description}
 
@@ -339,7 +455,7 @@ at Louisiana State University and computer resources provided by LONI.
 
 
 \bibliographystyle{IEEEtran}
-\bibliography{saga}
+\bibliography{saga,literatur}
 \end{document}
 
 
