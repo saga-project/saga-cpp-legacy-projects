@@ -180,23 +180,27 @@ class advert_launcher:
             
             # special setup for MPI NAMD jobs
             machinefile = self.allocate_nodes(job_dir)
+	    host = "localhost"
+	    try:
+		machine_file_handler = open(machinefile, "r")
+		node= machine_file_handler.readlines()
+		machine_file_handler.close()
+		host = node[0].strip()
+	    except:
+		pass
+
             if (spmdvariation.lower( )=="mpi"):
                 if(machinefile==None):
                     print "Not enough resources to run: " + job_dir.get_url().get_string() 
                     return # job cannot be run at the moment
                 command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
+		#if (host != socket.gethostname()):
+		#	command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\"" 	
 	    else:
-		host = "localhost"
-		try:
-			machine_file_handler = open(machinefile, "r")
-			node= machine_file_handler.readlines()
-			machine_file_handler.close()
-			host = node[0].strip()
-		except:
-			pass
 		command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\"" 	
+
                 
-            print "execute: " + command + " in " + workingdirectory + " (Shell: " + shell +")"
+            print "execute: " + command + " in " + workingdirectory + " from: " + str(socket.gethostname()) + " (Shell: " + shell +")"
 	    # bash works fine for launching on QB but fails for Abe :-(
             p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
             print "started " + command
@@ -244,8 +248,8 @@ class advert_launcher:
         for i in allocated_nodes:
             self.busynodes.remove(i)
             self.freenodes.append(i)
-	print "Delete " + machine_file_name
-        os.remove(machine_file_name)
+	#print "Delete " + machine_file_name
+        #os.remove(machine_file_name)
                
             
     def get_machine_file_name(self, job_dir):

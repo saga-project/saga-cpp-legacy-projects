@@ -53,7 +53,7 @@ class advert_glidin_job():
 		#if os.environ.has_key("X509_USER_PROXY"):
 		#	del os.environ["X509_USER_PROXY"]
 		print "use standard proxy"
-	s = saga.session()
+	#s = saga.session()
 	#ctx = saga.context("globus")
 	#ctx.set_attribute ("UserProxy", userproxy); 
 	#ctx.set_defaults (); 
@@ -86,12 +86,12 @@ class advert_glidin_job():
         jd.error = "advert-launcher-stderr.txt"
        
 	if CPR==True: 
-		js = saga.cpr.service(s, lrms_saga_url)
+		js = saga.cpr.service(lrms_saga_url)
         	self.job = js.create_job(jd, jd)
         	print "Submit CPR Glide-In job to: " + str(lrms_saga_url)
         	self.job.run()
 	else:
-		js = saga.job.service(s, lrms_saga_url)
+		js = saga.job.service(lrms_saga_url)
         	self.job = js.create_job(jd)
         	print "Submit Non-CPR Glide-In job to: " + str(lrms_saga_url)
         	self.job.run()
