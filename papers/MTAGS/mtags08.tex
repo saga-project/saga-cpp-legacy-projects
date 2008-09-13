@@ -75,14 +75,13 @@
   \author{
     ~\\[-2em]
     % Unsure of Author List$^{1}$ \\
-    Shantenu Jha$^{1,2,3}$, Joohyun Kim$^{1}$,
-    Yaakoub El-Khamra$^{1}$, Andre Luckow$^{4}$, \\ 
+    Shantenu Jha$^{1,2,3}$, Yaakoub El-Khamra$^{1}$,Joohyun Kim$^{1}$,
+    Andre Luckow$^{4}$, \\
     \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
     \small{\emph{$^{2}$Department of Computer Science, Louisiana State
         University, USA}}\\
     \small{\emph{$^{3}$e-Science Institute, Edinburgh, UK}}\\
-    \small{\emph{$^{4}$Institute of Computer Science, Potsdam University}}\\
-
+    \small{\emph{$^{4}$Institute of Computer Science, Potsdam University, Germany}}\\
   }
 
 %\date{}
@@ -142,7 +141,6 @@
   distributed applications.
 \end{abstract}
 
-
 The story is as follows. 
 
 We have two distinct applications -- REMD and a Kalman-Filter based
@@ -156,8 +154,7 @@ irregular).  We have demonstrated that these applications work
 perfectly well in distributed environments.
 
 The aim of this paper is to demonstrate that these applications can be
-deployed and executed on the high-end machine (actually highest-end
-machine available to the academic community) using exactly the same
+deployed and executed on high-end machines, using exactly the same
 framework, ie, there exists a standard, programmatic approach to
 codify these applications such that they can be seamlessly run on any
 underlying infrastructure. Critically this implies that the the
@@ -166,7 +163,13 @@ characteristics and not worrying about the details of the underlying
 infrastructure.
 
 Although both are classified as loosely-coupled, the nature of the
-coupling between the sub-tasks varies. In the former, the sub-tasks
+coupling between the sub-tasks varies. We posit that along with the
+size and number of sub-tasks, the coupling between the sub-tasks is an
+important determinant of the development and deployment mechanism.
+
+
+
+In the former, the sub-tasks
 progress independent of other sub-tasks with the exception of one
 (referred to as the paired replica). There is a pair-wise exchange of
 some parameters after a certain time-period (maybe fixed or not), and
@@ -227,6 +230,49 @@ mapping strategies.
  \label{sagalayer}
 \end{figure}
 
+The Simple API for Grid Applications (SAGA) is an API standardization
+effort within the Open Grid Forum (OGF)~\cite{ogf_web} an
+international standards development body concerned primarily with
+standards for distributed computing.  SAGA provides a simple,
+POSIX-style API to the most common Grid functions at a sufficiently
+high-level of abstraction so as to be able to be independent of the
+diverse and dynamic Grid environments.  The SAGA specification defines
+interfaces for the most common Grid-programming functions grouped as a
+set of functional packages.  Version 1.0~\cite{saga-core} of the
+specification has been submitted to the OGF editorial pipeline.  It
+defines the following packages:
+
+\begin{itemize}
+\item File package - provides methods for accessing local and remote
+  filesystems, browsing directories, moving, copying, and deleting
+  files, setting access permissions, as well as zero-copy reading and
+  writing
+\item Replica package - provides methods for replica management such
+  as browsing logical filesystems, moving, copying, deleting logical
+  entries, adding and removing physical files from a logical file
+  entry, and search logical files based on attribute sets.
+\item Job package - provides methods for describing, submitting,
+  monitoring, and controlling local and remote jobs. Many parts of
+  this package were derived from the largely adopted
+  DRMAA~\cite{drmaa_url} specification.
+\item Stream package - provides methods for authenticated local and
+  remote socket connections with hooks to support authorization and
+  encryption schemes.
+\item RPC package - is an implementation of the GGF GridRPC
+  API~\cite{gridrpc_url} definition and provides methods for unified
+  remote procedure calls.
+\end{itemize}
+
+The two critical aspects of SAGA are its {\it simplicity} of use and
+the fact that it is well on the road to becoming a community {\it
+  standard}.  It is important to note, that these two properties
+provide the added value of using SAGA for Grid application
+development.  Simplicity arises from being able to limit the scope to
+only the most common and important grid-functionality required by
+applications.  Standardization represents the fact that the interface
+is derived from a wide-range of applications using a collaborative
+approach and the output of which is endorsed by the broader community.
+
 
 \begin{figure}[!h]
   \begin{center}
@@ -244,32 +290,40 @@ mapping strategies.
 \end{figure}
 
 
-\section{Application With Multiple Loosely-Coupled Homogeneous
+\section{Applications With Multiple Loosely-Coupled Homogeneous
   Sub-Tasks}  
-\alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just
-to keep this consistent with the other paper. We previously discussed that task
-has another meaning within SAGA, which could potentially lead to confusion.}
+
+\alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just to
+  keep this consistent with the other paper. We previously discussed
+  that task has another meaning within SAGA, which could potentially
+  lead to confusion.}
   
-An example for a distributed application consisting of homogeneous sub-tasks
-are Replica-Exchange (RE) simulations~\cite{Sugita:1999rm}, \cite{hansmann}. Such applications can be used to understand important
+\jhanote{Andre, the word to avoid is ``tasks'', which is the term that
+  has a SAGA specific context. I think we can safely use sub-tasks for
+  sub-jobs if we like to. Especially given that the workshop is using
+  a generic term -- ``multi-tasks''.}
+
+An example for a distributed application consisting of homogeneous
+sub-tasks are Replica-Exchange (RE) simulations~\cite{Sugita:1999rm},
+\cite{hansmann}. Such applications can be used to understand important
 physical phenomena -- ranging from protein folding dynamics to binding
-affinity calculations required for computational drug discovery. 
-For Replica-Exchange simulations utilizing as many 
-distributed resources as possible, is critical for the effective solution of 
-the scientific problem.  
+affinity calculations required for computational drug discovery.  For
+Replica-Exchange simulations utilizing as many distributed resources
+as possible, is critical for the effective solution of the scientific
+problem.
 
-Distributed RE simulations must be able to orchestrate different 
-resources in a complex and dynamic environment.  Writing
-such an applications is a complex task for a myriad number of reasons,
-not least of which is that distributed computing environments are
-inherently prone to failures. In the following a SAGA-based RE 
-framework developed for molecular dynamics simulations
-is described.  
+Distributed RE simulations must be able to orchestrate different
+resources in a complex and dynamic environment.  Writing such an
+applications is a complex task for a myriad number of reasons, not
+least of which is that distributed computing environments are
+inherently prone to failures. In the following the SAGA-based RE
+framework developed for molecular dynamics simulations is described.
 
+\section{Replica Exchange Simulations}
 \subsection{Application Description}
 
-Replica Exchange simulations are used within Molecular Dynamics (MD) approaches,
-to allow a sufficient sampling of configurations. This is
+Replica Exchange simulations are used within Molecular Dynamics (MD)
+approaches, to allow a sufficient sampling of configurations. This is
 an important requirement for connecting atomistic results to
 macroscopic or thermodynamic quantities available from experiments.
 However, even with the most powerful computing resources at the
@@ -298,19 +352,21 @@ individual replicas. The RE framework relies NAMD as MD code for
 carrying out the simulation and a SAGA-based framework 
 for orchestration of the replica sub-tasks. 
 
-The developed RE framework~\cite{Luckow:2008la} comprises of the \emph{RE-Manager}, the central master 
-deployed on the user's desktop, and the  \textit{Replica-Agents}, 
-that reside on the High Performance machines where RE simulations
-are carried out. The RE-Manager orchestrates all replicas, i.\,e.\ 
-it is responsible for the parameterization of replica tasks, 
-file staging, job spawning and the conduction of the replica-exchange itself.
-The Replica-Agent is launched by a Grid job and is
-responsible for spawning and monitoring the replica processes. 
+The developed RE framework~\cite{Luckow:2008la} comprises of the
+\emph{RE-Manager}, the central master deployed on the user's desktop,
+and the \textit{Replica-Agents}, that reside on the High Performance
+machines where RE simulations are carried out. The RE-Manager
+orchestrates all replicas, i.\,e.\ it is responsible for the
+parameterization of replica tasks, file staging, job spawning and the
+conduction of the replica-exchange itself.  The Replica-Agent is
+launched by a Grid job and is responsible for spawning and monitoring
+the replica processes.
 
-Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used within the RE framework.
-For file management the RE-Manager utilizes the SAGA File API. More complex, 
-is the management of replica jobs. To achieve an optimal time to solution
-an efficient dispatching of these jobs is required.  
+Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used
+within the RE framework.  For file management the RE-Manager utilizes
+the SAGA File API. More complex, is the management of replica
+sub-jobs. To achieve an optimal time to solution an efficient
+dispatching of the RE sub-jobs is required.
 
 \begin{figure}[htbp]
     \centering
@@ -357,7 +413,43 @@ SAGA, which will also support native Glide-In functionality for Condor
 Jobs; our enhanced job model will then serve as abstraction, while the
 Condor level Glide-In is used as implementation where appropriate.
 
-\subsection{Deploying on Distributed Resources}
+\section{Kalman-Filter Based Simulations}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\textwidth]{kalmanfilterlayer.pdf}
+    \caption{}
+    \label{fig:remdmanager_v11}
+\end{figure}  
+
+\jhanote{Yaakoub: What you need to here is to put in a few sentences
+  connect EnKF to multiple sub-tasks}
+
+Ensemble Kalman filters (EnKF) are widely used in science and
+engineering~\cite{DataAssim, KalmanPaper, LiEnKF07, DO2007, DO2006}.
+EnKF are recursive filters that can be used to handle large, noisy
+data. The data can be the set of results and parameters of ensembles
+of different models of a particular physical system. The ensembles are
+run through the Kalman filter to obtain the true physical state of the
+data ~\cite{DataAssim,KalmanPaper}.
+
+The variation in model parameters often has a direct and sizable
+influence on the complexity of solving the underlying equations, thus
+varying the required runtime of different models. Since we need both
+parameters and results for the EnKF,a mechanism to assign models to
+available resources based on their expected time to completion and
+resource requirement is useful.  Such a mechanism would estimate the
+time a model will spend in the queue of a resource, the time it needs
+to run, and the time required to migrate the data it requires/produces
+back and forth, and based on that attempt to minimize the time
+required to perform each Kalman filter iteration.  In fact, with
+changing resource simulation requirements (as is the case with models
+that find themselves lagging behind the rest of the model pack), a
+mechanism which can take advantage of of faster, cheaper or more
+powerful machines is even more advantageous~\cite{escience07}.
+
+
+\section{Deploying on Distributed Resources}
 
 \jhanote{Yaakoub/Andre: We need a paragraph about the problems that we
   faced in getting SAGA working on Ranger and why ultimately we 
