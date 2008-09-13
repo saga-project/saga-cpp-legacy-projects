@@ -76,12 +76,12 @@
     ~\\[-2em]
     % Unsure of Author List$^{1}$ \\
     Shantenu Jha$^{1,2,3}$, Joohyun Kim$^{1}$,
-    Yaakoub El-Khamra$^{1}$, Andre Luckow, \\ 
+    Yaakoub El-Khamra$^{1}$, Andre Luckow$^{4}$, \\ 
     \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
     \small{\emph{$^{2}$Department of Computer Science, Louisiana State
         University, USA}}\\
     \small{\emph{$^{3}$e-Science Institute, Edinburgh, UK}}\\
-    \small{\emph{$^{3}$Institute of Computing, Potsdam}}\\
+    \small{\emph{$^{4}$Institute of Computer Science, Potsdam University}}\\
 
   }
 
@@ -262,7 +262,7 @@ Distributed RE simulations must be able to orchestrate different
 resources in a complex and dynamic environment.  Writing
 such an applications is a complex task for a myriad number of reasons,
 not least of which is that distributed computing environments are
-inherently prone to failures. In the following the SAGA-based RE 
+inherently prone to failures. In the following a SAGA-based RE 
 framework developed for molecular dynamics simulations
 is described.  
 
@@ -309,8 +309,8 @@ responsible for spawning and monitoring the replica processes.
 
 Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used within the RE framework.
 For file management the RE-Manager utilizes the SAGA File API. More complex, 
-is the management of replica sub-jobs. To achieve an optimal time to solution
-an efficient dispatching of the RE sub-jobs is required.  
+is the management of replica jobs. To achieve an optimal time to solution
+an efficient dispatching of these jobs is required.  
 
 \begin{figure}[htbp]
     \centering
@@ -325,22 +325,28 @@ an efficient dispatching of the RE sub-jobs is required.
     \label{fig:remdmanager_v11}
 \end{figure}  
 
-In particular, queueing delays can represent a major bottleneck: a
-single crowded resource can delay the completion of the simulation
-arbitrary. A common principle to prevent this is the usage of a
-Glide-In job, which represents a placeholder for a set of
-sub-jobs. For this meta-job a sufficiently large chunk of resources is
-requested. Smaller sub-jobs can then rapidly be executed through the
-meta-job.
+In particular, queueing delays can represent a major bottleneck: a single crowded 
+resource can slowdown the simulation arbitrary. A common principle 
+to prevent this is the usage of Glide-In jobs, which represent a placeholder 
+for a set of sub-jobs (see Frey et.\,al.~\cite{citeulike:291860}). 
+For this Glide-In job a sufficiently large chunk of resources 
+is requested. Smaller sub-jobs can then rapidly be executed through 
+the Glide-In job.
 
-The RE-Manager relies on the SAGA Glide-In framework to efficiently
-manage both Glide-In jobs and sub-jobs. With this capability the SAGA
-Glide-In framework provides a novel system-level abstraction for
-allocating larger chunks of resources and for mapping this resources
-to a set of sub-jobs. The enhanced job model can be used as drop-in
-replacement for a SAGA job objects. No code modification is required
--- the application must solely map the sub-jobs to a larger Glide-In
-job.
+The SAGA Glide-In framework comprises of two components: 1) The Glide-In manager provides 
+the enhance job model API and allows the management of both Glide-In jobs and sub-jobs. 
+2) The Replica-Agents represent the Glide-In jobs. The agents manage their allocated resources and 
+dispatch sub-jobs on request. In this sense the Replica-Agents implement the functionality of 
+an application-level scheduler. Communication between the Replica-Agent and Glide-In manager 
+is carried out using the SAGA advert service, a central key/value store.
+
+With this capability the SAGA Glide-In framework provides a novel system-level 
+abstraction for allocating larger chunks of resources 
+and for mapping these resources to a set of sub-jobs. The enhanced job model can 
+be used as drop-in replacement for a SAGA job objects. No code modification is required
+-- the application must solely map the sub-jobs to a suitable Glide-In job.
+The RE-Manager relies on the SAGA Glide-In framework to reserve resources on a cluster
+and to efficiently dispatch RE processes to these nodes.
 
 While the implementation of the enhanced job model is entirely based
 on SAGA and in particular the SAGA Advert Service, a central key/value
@@ -355,13 +361,29 @@ Condor level Glide-In is used as implementation where appropriate.
 
 \jhanote{Yaakoub/Andre: We need a paragraph about the problems that we
   faced in getting SAGA working on Ranger and why ultimately we 
-  were unable to get through}
+  were unable to get through}             
+
+\alnote{Added some remarks regarding the Globus problems.}
 
 The deployment of the frameworks and application on heterogeneous
 resources belonging to different organizations is a difficult task. In
 particular, different library versions and broken Globus installations
-led to a high amount of complexity.
+led to a high amount of complexity. 
 
+Especially, the Globus installations on these machines proofed to be quite different. 
+For example, the Globus GRAM2 versions on Abe and QueenBee map the RSL count element
+different: While on QB the count element is mapped to the number of cores, on Abe this
+element describes the number of nodes. Further standardization of this aspect 
+is required in the future. The GRAM2 on Ranger (in particular
+the Sun GridEngine adaptor) was completely unusable due
+to the lack of support for MPI jobs. 
+
+To evaluate the performance of the REMD-Manager several
+experiments have been conducted on the TeraGrid~\cite{teragrid} 
+and LONI~\cite{loni}. The RE-Manager has been extensively tested 
+on QueenBee (QB) using 16 replica processes, a total of 256 cores. 
+The RE processes have been distributed to a variable number of Glide-In
+jobs.  
 
 \subsection{Deploying on LONI Grid}
 
@@ -381,22 +403,60 @@ unpredictable nature of these queueing times becomes obvious by the
 high standard deviation found in the measurements.
 
 \begin{figure}[htbp]
-    \centering
-        \includegraphics[width=0.5\textwidth]{perf_remd_glidin.pdf}
-        \caption{SAGA Glide-In Performance: The usage of the SAGA
-          Glide-In provides a significant reduced time to solution
-          even on a single machine in particular with more than 8
-          replica jobs.}
+        \includegraphics[width=0.5\textwidth]{perf_glidein.pdf}
+        \caption{SAGA Glide-In Performance: The figure shows the average runtime of a 
+        RE simulation with 16 RE processes running on 16 cores each on QueenBee. 
+        The Glide-In framework provides the possibility to effectively cluster
+        RE jobs to receive a significant reduced time to solution (upto 80\,\%) 
+        even on a single machine.}
+
+        % \includegraphics[width=0.5\textwidth]{perf_remd_glidin.pdf}
+        % \caption{SAGA Glide-In Performance: The usage of the SAGA
+        %   Glide-In provides a significant reduced time to solution
+        %   even on a single machine in particular with more than 8
+        %   replica jobs.}
     \label{fig:perf_remd_glidin}
 \end{figure}
 
+Figure~\ref{fig:perf_remd_glidin} shows that the SAGA Glide-In framework can provide
+a reduced time to solution even on a single machine by avoiding queuing times for 
+every sub-job and allowing the efficient dispatching of RE tasks solely through the 
+Replica-Agent. During our experiments we were able to measure speedups of up to 80\,\%.
 
-By avoiding long queuing time for big jobs, a distribution of the
-replica processes to a set of less crowded resources provides a lot of
-benefits.
+The unpredictable nature of these queueing times is reflected in the high standard deviation 
+observed in the runtimes. While queueing times also have an impact on Glide-Ins, these are in general less
+severe.  Further, for the Glide-In scenario, the queueing times become negligible, 
+the longer the RE simulation is (the runtimes have been
+kept short for this simple scenario). In contrast, when no Glide-Ins are used every sub-jobs 
+is subject to the queuing delay at the local scheduler.
 
-TODO: describe high variation in runtime
+% old revision
+% By avoiding long queuing time for big jobs, a distribution of the
+% replica processes to a set of less crowded resources provides a lot of
+% benefits.
 
+In certain situation the usage of smaller jobs can have an advantage, 
+e.\,g.\ when the local scheduler backfills such jobs. However, usually not all replica processes can be
+backfilled -- the more processes are spawned the more likely are delays. 
+
+The framework has also been deployed on multiple resources concurrently. This is in particular useful
+for smaller resources, such as Oliver, where it is only possible to request 64 cores at a
+time. In contrast to the QB only run, the runtime only slightly increases by about 1.5 minutes, which is 
+acceptable compared to a possible delay due to insufficient resources on Poseidon.
+
+The results can be summarized as follows: 1) The SAGA Glide-In framework can 
+efficiently dispatches RE sub-jobs providing an enhanced time to solution even 
+when deployed on a single machines. 2) By using a clever assignment of 
+Glide-Ins to hosts and jobs, the runtime can 
+be further optimized. In future, we plan to utilize this by deploying 
+adaptive optimization strategies at runtime.
+
+% The more processes are spawned, the more likely are
+% such delays. While with the SAGA Glide-In framework the runtime only modestly increase 
+% with more than 8 replicas, the runtime rapidly rises when using regular Globus job
+% for spawning NAMD tasks. 
+% By avoiding long queuing time for big jobs, a distribution of the replica processes to a set 
+% of less crowded resources provides a lot of benefits.
 
 
 \section{Applications With Multiple Loosely-Coupled Heterogenous
