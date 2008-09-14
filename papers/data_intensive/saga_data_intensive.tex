@@ -42,6 +42,7 @@
 \ifdraft
 \newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
+\newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
 \else
 \newcommand{\amnote}[1]{}
 \newcommand{\jhanote}[1]{}
@@ -97,7 +98,7 @@
 
 \section{Introduction} {\bf Jha} 
 
-\jhanote{traditional algorithms are OK when data is limited.. but data
+\jhanote{traditional algorithms are OK when data are limited.. but data
   requirements can change in different ways.. not only will data be
   greater, but also after a point will also be distributed. This is
   indicative of the data-gathering process (multiple-resources,
@@ -219,7 +220,7 @@ results in Bigtable.  We will attempt to imitate this using our implementation
 of MapReduce over HDFS.  Also, we will use HBase for communication between jobs.
 
 
-\subsection{Our Implementation:} 
+\subsection{Our Implementation} 
 
 There are a few implementations of MapReduce, most notably Google's and
 Hadoop's.  These are what our implementation is based on.  It is able
@@ -240,10 +241,22 @@ current implementation is written to avoid excessive network
 bandwidth, it does not change depending on current network
 availability.
 
+\subsection{Gene Searching}
+
+Gene searching is an important part of biology.
+\michaelnote{I'm sure Shantenu knows more about why gene searching is 
+an important part of biology than I do!}
+
+MapReduce can easily be used to find certain gene fragments in a large gene 
+file.  The mapping function looks through its input and if it finds the 
+sequence - or something close - it will then produce a map of a file to a 
+position in the file where the fragment started.  The reduce will then take 
+every map and append the results.  The is good for searching large datasets, 
+because it is easily done through MapReduce, ensuring network reliability, and 
+parallelization.  
 
 \subsection{Example 2: All-Pairs}
 
-\section*{Infrastructure}
 All-pairs is used for combinatorial testing.  It involved comparing 
 every element in a set to every element in another set.  This is used 
 for many things, including testing the validity of an algorithm, or 
@@ -259,16 +272,51 @@ allows for many different configurations, but also to see how these different
 configurations behave.  Also, we will compare this to a naïve implementation 
 of submitting a job for every comparison.  
 
+\subsection{Details}
+
+All-pairs testing is a useful tool in testing the reliability of a produce - an 
+algorithm, software, hardware, \ldots.  This is because many times one small difference 
+in a configuration can show incompatibilities.  However, testing is not the only field 
+in which All-pairs is useful.  Anywhere every element from one set has to be compared to 
+every element from another set, All-pairs can help.  This is the main goal of All-pairs 
+to ensure that every combination of pairings from two sets is tested.
+
+\subsection{Our Implementation}
+
+Our All-pairs implementation is very similar to our MapReduce implementation.  The 
+main difference is in the way jobs are ran and how the data are stored.  In MapReduce 
+the final data is stored on many machines - if there is a distributed filesystem available - 
+whereas All-pairs uses the database to store information about the job.  We decided to 
+do this because all data must be available to be useful.  We could have used a distributed 
+file system such as HDFS, but we felt that the output was not large enough to constitute this.  
+This is due to the fact that - although the data is relatively large - the result should 
+usually be a real number representing the distance of two genes.
+
+\subsection{Multiple Sequence Alignment}
+
+Multiple Sequence Alignment is an important part of biology.
+\michaelnote{AGAIN:  I'm sure Shantenu knows more about why this is 
+more important part of biology than I do!}
+
+Multiple sequence alignment uses a comparison matrix as a reference to compare 
+many fragment genes to many base genes.  Each fragment is compared to every base 
+gene to find the smallest distance.  The result of the smallest distance is then 
+stored for that fragment using a database management system - Hbase, Bigtable, Postgresql, 
+\ldots.  Distance is computed by summing up the amount of similarity between each 
+nucleotide of the fragment to each one in the base.  This is done starting at every point 
+possible on the base.
+
+
 \subsection*{Hadoop}
 
 Data intensive applications require large amounts of data to be
-available at runtime in a reliable and efficient manner.  The Hadoop
+available at run-time in a reliable and efficient manner.  The Hadoop
 Distributed File System (HDFS) is an distributed parallel fault tolerant
 application that handles the details of spreading data across multiple
 machines in a traditional hierarchical file organization.  It has been 
 highly successful and is currently used by Yahoo!, Facebook, and the New York
 Times to name a few.  HDFS also handles replication and striping of data
-for fault-tolerance.  Portably implemented in Java, HDFS is designed to run
+for fault-tolerance.  Implemented in Java, HDFS is designed to run
 on commodity hardware while providing scalability and optimizations for large
 files.  The file system works by having one or two namenodes, masters, and many
 rack-aware datanodes, slaves.  All data requests go through the namenode that
@@ -292,7 +340,7 @@ success of Bigtable, HBase was developed by Hadoop as an open source
 alternative for use with Hadoop's MapReduce.  Both HBase and Bigtable are
 implemented in a similar way.  They split up large tables and
 replicate them over many machines to avoid node failure.  Also, since
-the data is partitioned accessing it does not create a large strain on
+the data are partitioned accessing it does not create a large strain on
 the grid's network bandwidth.
 
 %Provide 1 paragraph description of Bigtable and its specific
