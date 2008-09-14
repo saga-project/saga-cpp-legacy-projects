@@ -481,10 +481,11 @@ Sub-Tasks: Kalman-Filter Based Simulations}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.45\textwidth]{kalmanfilterlayer.png}
+    \includegraphics[width=0.44\textwidth]{kalmanfilterlayer.png}
     \caption{}
     \label{fig:remdmanager_v11}
 \end{figure}  
+
 
 Ensemble Kalman filters (EnKF) are widely used in science and
 engineering~\cite{DataAssim, KalmanPaper, LiEnKF07, DO2007, DO2006}.
@@ -506,20 +507,28 @@ and the ensemble of models.
 
 The variation in model parameters often has a direct and sizable
 influence on the complexity of solving the underlying equations, thus
-varying the required runtime of different models. This is the
-fundamental reason behind the fact that the individual sub-tasks are
-heterogenous with varying run-times and resource requirements (if not
-very hard-to-predict).  Since we need both parameters and results for
-the EnKF, a mechanism to assign models to available resources based on
-their expected time to completion and resource requirement is useful.
-Such a mechanism estimates the time a model will spend in the queue of
-a resource, the time it needs to run, and the time required to migrate
-the data it requires/produces back and forth, and based on that
-attempt to minimize the time required to perform each Kalman filter
-iteration.  In fact, with changing resource simulation requirements
-(as is the case with models that find themselves lagging behind the
-rest of the model pack), a mechanism which can take advantage of of
-faster, cheaper or more powerful machines is even more
+varying the required runtime of different models.  The end-to-end
+application consists of several stages; in general at each stage the
+number of models generated varies (each model is solved via a
+sub-task). The size and granularity of the models also varied within a
+stage; cnsequently for any given stage, the resource requirements of
+each sub-task varied (from 4 processors to 64 processors). The
+run-time of each model was unpredictable and uncorrelated with the
+run-time of models running on the same number of processors – a truly
+independent variable.  This is the fundamental reason behind the fact
+that the individual sub-tasks are heterogenous with varying run-times
+and resource requirements (if not very hard-to-predict).  Since we
+need both parameters and results for the EnKF, a mechanism to assign
+models to available resources based on their expected time to
+completion and resource requirement is useful.  Such a mechanism
+estimates the time a model will spend in the queue of a resource, the
+time it needs to run, and the time required to migrate the data it
+requires/produces back and forth, and based on that attempt to
+minimize the time required to perform each Kalman filter iteration.
+In fact, with changing resource simulation requirements (as is the
+case with models that find themselves lagging behind the rest of the
+model pack), a mechanism which can take advantage of of faster,
+cheaper or more powerful machines is even more
 advantageous~\cite{escience07}.
 
 We have developed a mechanism whereby Ensemble Kalman Filters can be
@@ -646,37 +655,44 @@ high standard deviation found in the measurements.
     \label{fig:perf_remd_glidin}
 \end{figure}
 
-Figure~\ref{fig:perf_remd_glidin} shows that the SAGA Glide-In framework can provide
-a reduced time to solution even on a single machine by avoiding queuing times for 
-every sub-job and allowing the efficient dispatching of RE tasks solely through the 
-Replica-Agent. During our experiments we were able to measure speedups of up to 80\,\%.
+Figure~\ref{fig:perf_remd_glidin} shows that the SAGA Glide-In
+framework can provide a reduced time to solution even on a single
+machine by avoiding queuing times for every sub-job and allowing the
+efficient dispatching of RE tasks solely through the
+Replica-Agent. During our experiments we were able to measure speedups
+of up to 80\,\%.
 
-The unpredictable nature of these queueing times is reflected in the high standard deviation 
-observed in the runtimes. While queueing times also have an impact on Glide-Ins, these are in general less
-severe.  Further, for the Glide-In scenario, the queueing times become negligible, 
-the longer the RE simulation is (the runtimes have been
-kept short for this simple scenario). In contrast, when no Glide-Ins are used every sub-jobs 
-is subject to the queuing delay at the local scheduler.
+The unpredictable nature of these queueing times is reflected in the
+high standard deviation observed in the runtimes. While queueing times
+also have an impact on Glide-Ins, these are in general less severe.
+Further, for the Glide-In scenario, the queueing times become
+negligible, the longer the RE simulation is (the runtimes have been
+kept short for this simple scenario). In contrast, when no Glide-Ins
+are used every sub-jobs is subject to the queuing delay at the local
+scheduler.
 
 % old revision
 % By avoiding long queuing time for big jobs, a distribution of the
 % replica processes to a set of less crowded resources provides a lot of
 % benefits.
 
-In certain situation the usage of smaller jobs can have an advantage, 
-e.\,g.\ when the local scheduler backfills such jobs. However, usually not all replica processes can be
-backfilled -- the more processes are spawned the more likely are delays. 
+In certain situation the usage of smaller jobs can have an advantage,
+e.\,g.\ when the local scheduler backfills such jobs. However, usually
+not all replica processes can be backfilled -- the more processes are
+spawned the more likely are delays.
 
-The framework has also been deployed on multiple resources concurrently. This is in particular useful
-for smaller resources, such as Oliver, where it is only possible to request 64 cores at a
-time. In contrast to the QB only run, the runtime only slightly increases by about 1.5 minutes, which is 
-acceptable compared to a possible delay due to insufficient resources on Poseidon.
+The framework has also been deployed on multiple resources
+concurrently. This is in particular useful for smaller resources, such
+as Oliver, where it is only possible to request 64 cores at a time. In
+contrast to the QB only run, the runtime only slightly increases by
+about 1.5 minutes, which is acceptable compared to a possible delay
+due to insufficient resources on Poseidon.
 
-The results can be summarized as follows: 1) The SAGA Glide-In framework can 
-efficiently dispatches RE sub-jobs providing an enhanced time to solution even 
-when deployed on a single machines. 2) By using a clever assignment of 
-Glide-Ins to hosts and jobs, the runtime can 
-be further optimized. In future, we plan to utilize this by deploying 
+The results can be summarized as follows: 1) The SAGA Glide-In
+framework can efficiently dispatches RE sub-jobs providing an enhanced
+time to solution even when deployed on a single machines. 2) By using
+a clever assignment of Glide-Ins to hosts and jobs, the runtime can be
+further optimized. In future, we plan to utilize this by deploying
 adaptive optimization strategies at runtime.
 
 % The more processes are spawned, the more likely are
@@ -687,44 +703,48 @@ adaptive optimization strategies at runtime.
 % of less crowded resources provides a lot of benefits.
 
 
+\section{Conculsions and Discussions}
 
-\section{Any Other Applications}
-
- -- Data parallel applications
-
-\section{Take Home Message}
-
-\begin{itemize}
-
-\item SAGA provides the abstractions and the ability to create
-  multi-tasks applications that can exploit multiple and different
-  infrastructure types.  We have demonstrated this via the
-  implementation of two distinct, specific applications but both
-  representative of a broader class of applications and running them
-  in two different execution environments without changing the
-  application in any way!The specific applications differed not only
-  in the types of sub-tasks (homogenous versus heterogenous) but also
-  in the nature of the coupling between the sub-tasks.
+SAGA provides the abstractions and the ability to create multi-tasks
+applications that can exploit multiple and different infrastructure
+types.  We have demonstrated this via the implementation of two
+distinct, specific applications but both representative of a broader
+class of applications and running them in two different execution
+environments without changing the application in any way!The specific
+applications differed not only in the types of sub-tasks (homogenous
+versus heterogenous) but also in the nature of the coupling between
+the sub-tasks.
   
-\item Not only do we need support for different programming models,
-  this is also proof of support for agile execution models.
+\jhanote{not sure what to do with this: Not only do we need support
+  for different programming models, this is also proof of support for
+  agile execution models.}
 
-\item It is interesting to note that ``simple, naive'' implementations
-  of these applications are possible; these would have these
-  applications being developed as ``grid-unaware'' applications.
-  Although we don't provide details here, the power of these
-  applications arise from their ability to have an agile execution
-  model, i.e., by being adaptive to dynamics resource requirements or
-  availabiliy. In order to develop these applications such that they
-  have agile execution models, these applications need to be
-  grid-aware, ie explicitly control the distributed aspects. We
-  believe explicit control is a critical for adaptive applications and
-  posit that SAGA provides an important mechanism to implement the
-  distributed features explicitly.
+It is interesting to note that ``simple, naive'' implementations of
+these applications are possible; these would have these applications
+being developed as ``grid-unaware'' applications.  Although we don't
+provide details here, the power of these applications arise from their
+ability to have an agile execution model, i.e., by being adaptive to
+dynamics resource requirements or availabiliy. In order to develop
+these applications such that they have agile execution models, these
+applications need to be grid-aware, ie explicitly control the
+distributed aspects. We believe explicit control is a critical for
+adaptive applications and posit that SAGA provides an important
+mechanism to implement the distributed features explicitly.
 
-\end{itemize}
+\section*{Acknowledgement}
+This work would not have been possible without the efforts and support
+of the wider SAGA team. Important funding for SAGA specification and
+development has been provided by the UK EPSRC grant number
+GR/D0766171/1.  SJ acknowledges the e-Science Institute, Edinburgh for
+supporting the research theme, ``Distributed Programming
+Abstractions''.  This work has also been made possible thanks to the
+internal resources of the Center for Computation \& Technology (CCT)
+at Louisiana State University and computer resources provided by LONI.
 
 
+\bibliographystyle{IEEEtran}
+\bibliography{saga,literatur}
+\end{document}
 
 
 
@@ -771,20 +791,5 @@ adaptive optimization strategies at runtime.
 %   of heterogenity between stages. GridSAT is an interesting example.
          
 %\newpage
-                  
-\section*{Acknowledgement}
-This work would not have been possible without the efforts and support
-of the wider SAGA team. Important funding for SAGA specification and
-development has been provided by the UK EPSRC grant number
-GR/D0766171/1.  SJ acknowledges the e-Science Institute, Edinburgh for
-supporting the research theme, ``Distributed Programming
-Abstractions''.  This work has also been made possible thanks to the
-internal resources of the Center for Computation \& Technology (CCT)
-at Louisiana State University and computer resources provided by LONI.
-
-
-\bibliographystyle{IEEEtran}
-\bibliography{saga,literatur}
-\end{document}
 
 
