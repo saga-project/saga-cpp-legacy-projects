@@ -463,190 +463,31 @@ SAGA, which will also support native Glide-In functionality for Condor
 Jobs; our enhanced job model will then serve as abstraction, while the
 Condor level Glide-In is used as implementation where appropriate.
 
-\section{Applications With Loosely-Coupled Heterogenous
-Sub-Tasks: Kalman-Filter Based Simulations}
+\subsection{Application Deployment}
 
-\subsection{Application Description}
+To evaluate the feasibility and performance of the RE-Manager several
+experiments have been conducted on the TeraGrid~\cite{teragrid} and
+LONI~\cite{loni}.  The RE-Manager has in particular been tested on
+QueenBee (QB).  In particular, the scalability of the Glide-In
+framework has been extensively tested.
 
-% \subsection{SAGA and Cactus: A Powerful Application Development
-%   Framework}
-
-% \subsection{Deploying on Distributed Resources}
-
-% \subsection{Deploying on Abe}
-
-% BQP used for the first time to dynamically determine queue and model
-% size within a given system to submit sub-task to...
-%\section{}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.44\textwidth]{kalmanfilterlayer.png}
-    \caption{}
-    \label{fig:remdmanager_v11}
-\end{figure}  
-
-
-Ensemble Kalman filters (EnKF) are widely used in science and
-engineering~\cite{DataAssim, KalmanPaper, LiEnKF07, DO2007, DO2006}.
-EnKF are recursive filters that can be used to handle large, noisy
-data. The data can be the set of results and parameters of ensembles
-of different models of a particular physical system. The ensembles are
-run through the Kalman filter to obtain the true physical state of the
-data ~\cite{DataAssim,KalmanPaper}, to effectively solve the inverse
-problem.
-
-In Ensemble Kalman filters, an ensemble of forward models are run with
-different parameters. The data they produce is assimilated back at
-defined time steps, the parameters are corrected, and the models are
-run again. This process is repeated several times until there are no
-more observations. The ensemble of forward models are run as sub-tasks
-on possibly different machines, launched by a master filter task using
-SAGA. SAGA is also used to control the flow of data between the filter
-and the ensemble of models.
-
-The variation in model parameters often has a direct and sizable
-influence on the complexity of solving the underlying equations, thus
-varying the required runtime of different models.  The end-to-end
-application consists of several stages; in general at each stage the
-number of models generated varies (each model is solved via a
-sub-task). The size and granularity of the models also varied within a
-stage; cnsequently for any given stage, the resource requirements of
-each sub-task varied (from 4 processors to 64 processors). The
-run-time of each model was unpredictable and uncorrelated with the
-run-time of models running on the same number of processors – a truly
-independent variable.  This is the fundamental reason behind the fact
-that the individual sub-tasks are heterogenous with varying run-times
-and resource requirements (if not very hard-to-predict).  Since we
-need both parameters and results for the EnKF, a mechanism to assign
-models to available resources based on their expected time to
-completion and resource requirement is useful.  Such a mechanism
-estimates the time a model will spend in the queue of a resource, the
-time it needs to run, and the time required to migrate the data it
-requires/produces back and forth, and based on that attempt to
-minimize the time required to perform each Kalman filter iteration.
-In fact, with changing resource simulation requirements (as is the
-case with models that find themselves lagging behind the rest of the
-model pack), a mechanism which can take advantage of of faster,
-cheaper or more powerful machines is even more
-advantageous~\cite{escience07}.
-
-We have developed a mechanism whereby Ensemble Kalman Filters can be
-solved using multiple-resources, using application-level scheduling
-applied dynamically~\cite{saga_tg08}, ie mapping the sub-taks
-requirement to the resources available at the instant the sub-tasks
-become available and ready to run, as opposed to {\it a priori} static
-method of job submission. For the problem size studied, the sub-tasks
-required mostly less than 32 processors. For this paper we used the
-earlier developed frameworks and deployed it on a single large machine
--- NCSA's Abe.~\footnote{We wanted to use Ranger, but BQP was not
-  available on Ranger, and would not have been before the submission
-  of this paper} For small physical models where sub-tasks are
-typically small -- both spatially and temporally, overheads in using
-multiple, distributed machines most often result in total
-time-to-solution being higher than if a large monolithic
-single-machine were used. But as shown in
-Ref~\cite{novelsubmissionmode}, as the number of processors requested
-for a sub-task increases, the total wait time in the queueing system,
-often goes up (disproportionately). Thus a mechanism (multiple,
-distributed versus single machine) that is more efficient for physical
-models with sub-tasks that have typically low processor counts, will
-not necessarily be the more efficient as the typical sub-task size
-increases. Thus it is crucial that any general-purpose solution be
-usable on both single large machines to multiple machines.
-\jhanote{Yaakoub, do you have measure of time-to-completion for the
-  two-cases of the toy-problem?}. Ideally we can enhance throughput
-further by applying the Glide-In mechanisms developed to the dynamic
-tasks to aggregate similar sub-tasks. We will report on the results of
-this in future work.
-
-%that to determine the best resource to use at
-
-While concurrently running on various machines is advantageous by
-simple virtue of the fact that more resources would be available for
-running the forward models, it is also more technically challenging
-than running on a single machine.  Authentication, job launching,
-multiple executables in correct paths for different architectures and
-file systems, and of course file transfer across the different
-machines are all possible points of failure. Rigorous fault tolerance
-can be built into application framework using SAGA and the advert
-service; however can be argued that running all the models on a single
-large machine would be a simpler solution as all of the
-afore-mentioned technical difficulties are eliminated.
-
-\section{Deploying on Distributed Resources}
-
-\jhanote{Yaakoub/Andre: We need a paragraph about the problems that we
-  faced in getting SAGA working on Ranger and why ultimately we were
-  unable to get through}
-
-\alnote{Added some remarks regarding the Globus problems.}
-
-To highlight just some of the challenges of deploying advanced
-application on general-purposes 
-
-The deployment of the frameworks and application on heterogeneous
-resources belonging to different organizations is a difficult task. In
-particular, different library versions and broken Globus installations
-led to a high amount of complexity.
-
-Especially, the Globus installations on these machines prooved to be
-quite different.  For example, the Globus GRAM2 versions on Abe and
-QueenBee map the RSL count element different: While on QB the count
-element is mapped to the number of cores, on Abe this element
-describes the number of nodes. Further standardization of this aspect
-is required in the future. The GRAM2 on Ranger (in particular the Sun
-GridEngine adaptor) was completely unusable due to the lack of support
-for MPI jobs.
-
-To evaluate the performance of the REMD-Manager several experiments
-have been conducted on the TeraGrid~\cite{teragrid} and
-LONI~\cite{loni}. The RE-Manager has been extensively tested on
-QueenBee (QB) using 16 replica processes, a total of 256 cores.  The
-RE processes have been distributed to a variable number of Glide-In
-jobs.
-
-Deploying our applications on ranger was not a straightforward task.
-SAGA requires a recent installation of the BOOST library which we had
-to compile oursevles. When we were finished compiling our
-applications, we ran into a job submission problem on a particular
-login node. After the node was rebooted, we discovered there was an an
-issue with the globus installation. Moving past the firewall and GRAM2
-issues, getting the right certificates that are recognized on the
-machine, we discovered there were even more issues that need to be
-resolved: GridFTP was not working, the Globus/SGE script had a small
-error in it that had to be corrected. These issues are outlined in
-tickets 4957, 5111, 5130, 5145, 5172 and 5174. It is important to note
-that we encountered excellent response time and expert system
-administrators who resolved all of these issues promptly.
-
-\jhanote{Will need to shorten this paragraph}
-
-\subsection{Deploying on LONI Grid}
-
-To evaluate the feasibility and performance of the REMD-Manager
-several experiments have been conducted on the
-TeraGrid~\cite{teragrid} and LONI~\cite{loni}.  The RE-Manager has in
-particular been tested on QueenBee (QB).
-
-In particular, the scalability of the Glide-In framework has been
-extensively tested.  Figure~\ref{fig:perf_remd_glidin} shows that the
-Glide-In framework is especially beneficial if queueing delays
-occur. The more processes are spawned, the more likely are such
-delays. While with the SAGA Glide-In framework the runtime only
-modestly increase with more than 8 replicas, the runtime rapidly rises
-when using regular Globus job for spawning NAMD tasks. The
-unpredictable nature of these queueing times becomes obvious by the
-high standard deviation found in the measurements.
+Figure~\ref{fig:perf_remd_glidin} shows that the Glide-In framework is
+especially beneficial if queueing delays occur. The more processes are
+spawned, the more likely are such delays. While with the SAGA Glide-In
+framework the runtime only modestly increase with more than 8
+replicas, the runtime rapidly rises when using regular Globus job for
+spawning NAMD tasks. The unpredictable nature of these queueing times
+becomes obvious by the high standard deviation found in the
+measurements.
 
 \begin{figure}[htbp]
         \includegraphics[width=0.5\textwidth]{perf_glidein.pdf}
-        \caption{SAGA Glide-In Performance: The figure shows the average runtime of a 
-        RE simulation with 16 RE processes running on 16 cores each on QueenBee. 
-        The Glide-In framework provides the possibility to effectively cluster
-        RE jobs to receive a significant reduced time to solution (upto 80\,\%) 
-        even on a single machine.}
-
+        \caption{SAGA Glide-In Performance: The figure shows the
+          average runtime of a RE simulation with 16 RE processes
+          running on 16 cores each on QueenBee.  The Glide-In
+          framework provides the possibility to effectively cluster RE
+          jobs to receive a significant reduced time to solution (upto
+          80\,\%) even on a single machine.}
         % \includegraphics[width=0.5\textwidth]{perf_remd_glidin.pdf}
         % \caption{SAGA Glide-In Performance: The usage of the SAGA
         %   Glide-In provides a significant reduced time to solution
@@ -695,12 +536,185 @@ a clever assignment of Glide-Ins to hosts and jobs, the runtime can be
 further optimized. In future, we plan to utilize this by deploying
 adaptive optimization strategies at runtime.
 
-% The more processes are spawned, the more likely are
-% such delays. While with the SAGA Glide-In framework the runtime only modestly increase 
-% with more than 8 replicas, the runtime rapidly rises when using regular Globus job
-% for spawning NAMD tasks. 
-% By avoiding long queuing time for big jobs, a distribution of the replica processes to a set 
-% of less crowded resources provides a lot of benefits.
+\section{Applications With Loosely-Coupled Heterogenous
+Sub-Tasks: Kalman-Filter Based Simulations}
+
+Ensemble Kalman filters (EnKF) are widely used in science and
+engineering~\cite{DataAssim, KalmanPaper, LiEnKF07, DO2007, DO2006}.
+EnKF are recursive filters that can be used to handle large, noisy
+data. The data can be the set of results and parameters of ensembles
+of different models of a particular physical system. The ensembles are
+run through the Kalman filter to obtain the true physical state of the
+data ~\cite{DataAssim,KalmanPaper}, to effectively solve the inverse
+problem.
+
+
+\subsection{Application Description}
+
+% \subsection{SAGA and Cactus: A Powerful Application Development
+%   Framework}
+% \subsection{Deploying on Distributed Resources}
+% \subsection{Deploying on Abe}
+% BQP used for the first time to dynamically determine queue and model
+% size within a given system to submit sub-task to...
+%\section{}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.44\textwidth]{kalmanfilterlayer.png}
+    \caption{Layered Diagram of the various components of the EnKF
+      application. Each sub-task is a malleable application --
+      checkpoint and restart ready on different number of processor;
+      many of these capabilities are provided by Cactus.  SAGA is used
+      to provide control of the required distributed functionality --
+      identifying best resource for sub-taks, submitting these
+      sub-tasks etc. See Ref~\cite{saga_tg08} for more details.}
+    \label{fig:kalmanfilter}
+\end{figure}  
+
+In EnKF, an ensemble of forward models are run with
+different parameters. The data they produce is assimilated at the end
+of each stage, the parameters are corrected, and the models are run
+again. This process is repeated several times until a pre-determined
+criteria has been met. The ensemble of forward models are run as
+sub-tasks on possibly different machines, launched by a master filter
+task using SAGA. SAGA is also used to control the flow of data between
+the filter and the ensemble of models.
+
+The variation in model parameters often has a direct and sizable
+influence on the complexity of solving the underlying equations, thus
+varying the required runtime of different models.  The end-to-end
+application consists of several stages; in general at each stage the
+number of models generated varies (each model is solved via a
+sub-task). The size and granularity of the models also varied within a
+stage; cnsequently for any given stage, the resource requirements of
+each sub-task varied (from 4 processors to 64 processors). The
+run-time of each model was unpredictable and uncorrelated with the
+run-time of models running on the same number of processors – a truly
+independent variable.  This is the fundamental reason behind the fact
+that the individual sub-tasks are heterogenous with varying run-times
+and resource requirements (if not very hard-to-predict).  Since we
+need both parameters and results for the EnKF, a mechanism to assign
+models to available resources based on their expected time to
+completion and resource requirement is useful.  Such a mechanism
+estimates the time a model will spend in the queue of a resource, the
+time it needs to run, and the time required to migrate the data it
+requires/produces back and forth, and based on that attempt to
+minimize the time required to perform each Kalman filter iteration.
+In fact, with changing resource simulation requirements (as is the
+case with models that find themselves lagging behind the rest of the
+model pack), a mechanism which can take advantage of of faster,
+cheaper or more powerful machines is even more
+advantageous~\cite{escience07}.
+
+We have developed a mechanism whereby EnKF can be
+solved using multiple-resources, using application-level scheduling
+applied dynamically~\cite{saga_tg08}, ie mapping the sub-taks
+requirement to the resources available at the instant the sub-tasks
+become available and ready to run, as opposed to {\it a priori} static
+method of job submission. For the problem size studied, the sub-tasks
+required mostly less than 32 processors. For this paper we used the
+earlier developed frameworks and deployed it on a single large machine
+-- NCSA's Abe~\footnote{We wanted to use Ranger, but BQP was not
+  available on Ranger, and would not have been before the submission
+  of this paper}. For small physical models where sub-tasks are
+typically small -- both spatially and temporally, overheads in using
+multiple, distributed machines most often result in total
+time-to-solution being higher than if a large monolithic
+single-machine were used. But as shown in
+Ref~\cite{novelsubmissionmode}, as the number of processors requested
+for a sub-task increases, the total wait time in the queueing system,
+often goes up (disproportionately). Thus a mechanism (multiple,
+distributed versus single machine) that is more efficient for physical
+models with sub-tasks that have typically low processor counts, will
+not necessarily be the more efficient as the typical sub-task size
+increases. Thus it is crucial that any general-purpose solution be
+usable on both single large machines to multiple machines.
+\jhanote{Yaakoub, do you have measure of time-to-completion for the
+  two-cases of the toy-problem?}. Ideally we can enhance throughput
+further by applying the Glide-In mechanisms developed to the dynamic
+tasks to aggregate similar sub-tasks. We will report on the results of
+this in future work.
+
+%that to determine the best resource to use at
+
+While concurrently running on various machines is advantageous by
+simple virtue of the fact that more resources would be available for
+running the forward models, it is also more technically challenging
+than running on a single machine.  Authentication, job launching,
+multiple executables in correct paths for different architectures and
+file systems, and of course file transfer across the different
+machines are all possible points of failure. Rigorous fault tolerance
+can be built into application framework using SAGA and the advert
+service; however can be argued that running all the models on a single
+large machine would be a simpler solution as all of the
+afore-mentioned technical difficulties are eliminated.
+
+\section{Deploying on Distributed Resources}
+
+\jhanote{Yaakoub/Andre: We need a paragraph about the problems that we
+  faced in getting SAGA working on Ranger and why ultimately we were
+  unable to get through} \alnote{Added some remarks regarding the
+  Globus problems.}
+
+As mentioned in the opening section, using SAGA we have developed
+programming and execution models, whereby applications are independent
+of the underlying infrastructure, i.e., either use a single-monolithic
+mammoth machine, or multiple-distributed machine, depending upon the
+physical problem being investigated, without any modification at the
+application-level code. In spite of these theoretical advances, in
+practise end-users often find it more convenient to use single
+resources, even if not optimally-efficient.  The deployment of
+distributed applications heterogeneous resources belonging to
+different organizations is a difficult task.  To highlight just some
+of the challenges of deploying advanced application on general-purpose
+distributed infrastructure, we mention the fact that at best 33\% (ie
+one in three) of the resources we tried were usable.  We mention two
+problems that we encountered and led to a high amount of
+complexity: different library versions and broken Globus
+installations.
+Specifically, the Globus installations on TeraGrid machines prooved to be
+quite different.  For example, the Globus GRAM2 versions on Abe and
+QueenBee map the RSL count element different: While on QB the count
+element is mapped to the number of cores, on Abe this element
+describes the number of nodes. Further standardization of this aspect
+is required in the future. The GRAM2 on Ranger (in particular the Sun
+GridEngine adaptor) was completely unusable due to the lack of support
+for MPI jobs.
+
+% To evaluate the performance of the REMD-Manager several experiments
+% have been conducted on the TeraGrid~\cite{teragrid} and
+% LONI~\cite{loni}. The RE-Manager has been extensively tested on
+% QueenBee (QB) using 16 replica processes, a total of 256 cores.  The
+% RE processes have been distributed to a variable number of Glide-In
+% jobs.
+
+Deploying our applications on ranger was not a straightforward task.
+SAGA requires a recent installation of the BOOST library which we had
+to compile oursevles. When we were finished compiling our
+applications, we ran into a job submission problem on a particular
+login node. %After the node was rebooted, we discovered there was an an
+%issue with the globus installation. 
+Moving past the firewall and GRAM2 issues, getting the right
+certificates that are recognized on the machine, we discovered there
+were even more issues that need to be resolved: GridFTP was not
+working, the Globus/SGE script had a small error in it that had to be
+corrected. These issues are outlined in tickets 4957, 5111, 5130,
+5145, 5172 and 5174. It is important to note that we encountered
+excellent response time and expert system administrators who resolved
+all of these issues promptly, but reiterates the complexity of
+utilising multiple resources from general-purpose grids.
+
+%\jhanote{Will need to shorten this paragraph}
+
+
+% The more processes are spawned, the more likely are such
+% delays. While with the SAGA Glide-In framework the runtime only
+% modestly increase with more than 8 replicas, the runtime rapidly
+% rises when using regular Globus job for spawning NAMD tasks.  By
+% avoiding long queuing time for big jobs, a distribution of the
+% replica processes to a set of less crowded resources provides a lot
+% of benefits.
 
 
 \section{Conculsions and Discussions}
