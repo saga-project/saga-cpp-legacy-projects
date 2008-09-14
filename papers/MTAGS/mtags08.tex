@@ -309,7 +309,7 @@ approach and the output of which is endorsed by the broader community.
 
 
 \section{Applications With Multiple Loosely-Coupled Homogeneous
-  Sub-Tasks}  
+  Sub-Tasks: Replica-Exchange Simulations}  
 
 \alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just to
   keep this consistent with the other paper. We previously discussed
@@ -328,7 +328,7 @@ physical phenomena -- ranging from protein folding dynamics to binding
 affinity calculations required for computational drug discovery.  For
 Replica-Exchange simulations utilizing as many distributed resources
 as possible, is critical for the effective solution of the scientific
-problem.
+problem~\cite{repex_ptrsa}.
 
 Distributed RE simulations must be able to orchestrate different
 resources in a complex and dynamic environment.  Writing such an
@@ -337,38 +337,45 @@ least of which is that distributed computing environments are
 inherently prone to failures. In the following the SAGA-based RE
 framework developed for molecular dynamics simulations is described.
 
-\section{Replica Exchange Simulations}
 \subsection{Application Description}
 
-Replica Exchange simulations are used within Molecular Dynamics (MD)
-approaches, to allow a sufficient sampling of configurations. This is
-an important requirement for connecting atomistic results to
-macroscopic or thermodynamic quantities available from experiments.
-However, even with the most powerful computing resources at the
-moment, straight-forward MD simulations are unable to reach the
-relevant time-scales required to study conformational changes and
-searches. This is partly due to the inherent limitations in the MD
-algorithm -- a global synchronization is required at the end of each
-time step.  This provides an important motivation for research into
-finding ways to accelerate sampling and enhance ``effective''
-time-scales studied. Generalized ensemble approaches -- of which
-Replica-Exchange Molecular Dynamics (REMD)~\cite{Sugita:1999rm} are a
-prominent example -- represent an important and promising attempt to
-overcome the general limitations of insufficient time-scales, as well
-as specific limitations of inadequate conformational sampling arising
-from kinetic trappings.  The fact that one single long-running
-simulation can be substituted for an ensemble of shorter-running
-simulations, make these ideal candidates for distributed environments.
+Replica-exchange simulations are also used to allow a sufficient
+sampling of configurations. This is an important requirement for
+connecting atomistic results to macroscopic or thermodynamic
+quantities available from experiments.  However, even with the most
+powerful computing resources at the moment, straight-forward MD
+simulations are unable to reach the relevant time-scales required to
+study conformational changes and searches. This is partly due to the
+inherent limitations in the MD algorithm -- a global synchronization
+is required at the end of each time step.  This provides an important
+motivation for research into finding ways to accelerate sampling and
+enhance ``effective'' time-scales studied. Generalized ensemble
+approaches -- of which Replica-Exchange Molecular Dynamics
+(REMD)~\cite{Sugita:1999rm} are a prominent example -- represent an
+important and promising attempt to overcome the general limitations of
+insufficient time-scales, as well as specific limitations of
+inadequate conformational sampling arising from kinetic trappings.  In
+the simplest formulation, Replica-exchange is an algoirthm whereby one
+single long-running simulation is be substituted for an ensemble of
+shorter-running similar simulations, but which are very
+loosely-coupled, ie, the interval between exchange attempts is much
+larger than the interval over which the simulations run; this also
+make the replica-exchange formulation of physical problems excellent
+candidates for distributed environments.
+
+%\section{Replica Exchange Simulations}
+% Replica Exchange simulations used within Molecular Dynamics (MD)
+% approaches,
 
 \subsection{Application Architecture}
-\alnote{Should I mention CPR/Migol or should I rather keep it on the 
-``abstractions'' level?}
-Replica-Exchange (RE) simulations can be thought of as consisting of
-two distinct components: the  simulation engine/mechanism
-used for each replica process, and the coupling-mechanism between the
-individual replicas. The RE framework relies NAMD as MD code for 
-carrying out the simulation and a SAGA-based framework 
-for orchestration of the replica sub-tasks. 
+
+\alnote{Should I mention CPR/Migol or should I rather keep it on the
+  ``abstractions'' level?}  Replica-Exchange (RE) simulations can be
+thought of as consisting of two distinct components: the simulation
+engine/mechanism used for each replica process, and the
+coupling-mechanism between the individual replicas. The RE framework
+relies NAMD as MD code for carrying out the simulation and a
+SAGA-based framework for orchestration of the replica sub-tasks.
 
 The developed RE framework~\cite{Luckow:2008la} comprises of the
 \emph{RE-Manager}, the central master deployed on the user's desktop,
@@ -435,7 +442,21 @@ SAGA, which will also support native Glide-In functionality for Condor
 Jobs; our enhanced job model will then serve as abstraction, while the
 Condor level Glide-In is used as implementation where appropriate.
 
-\section{Kalman-Filter Based Simulations}
+\section{Applications With Multiple Loosely-Coupled Heterogenous
+Sub-Tasks: Kalman-Filter Based Simulations}
+
+\subsection{Application Description}
+
+% \subsection{SAGA and Cactus: A Powerful Application Development
+%   Framework}
+
+% \subsection{Deploying on Distributed Resources}
+
+% \subsection{Deploying on Abe}
+
+% BQP used for the first time to dynamically determine queue and model
+% size within a given system to submit sub-task to...
+%\section{}
 
 \begin{figure}[htbp]
     \centering
@@ -453,44 +474,48 @@ run through the Kalman filter to obtain the true physical state of the
 data ~\cite{DataAssim,KalmanPaper}, to effectively solve the inverse
 problem.
 
-In Ensemble Kalman filters, an ensemble of forward models are run
-with different parameters. The data they produce is assimilated
-back at defined time steps, the parameters are corrected, and the 
-models are run again. This process is repeated several times until
-there are no more observations. The ensemble of forward models are
-run as subtasks on possibly different machines, launched by a master
-filter task using SAGA. SAGA is also used to control the flow of
-data between the filter and the ensemble of models.
+In Ensemble Kalman filters, an ensemble of forward models are run with
+different parameters. The data they produce is assimilated back at
+defined time steps, the parameters are corrected, and the models are
+run again. This process is repeated several times until there are no
+more observations. The ensemble of forward models are run as sub-tasks
+on possibly different machines, launched by a master filter task using
+SAGA. SAGA is also used to control the flow of data between the filter
+and the ensemble of models.
 
 The variation in model parameters often has a direct and sizable
 influence on the complexity of solving the underlying equations, thus
-varying the required runtime of different models. Since we need both
-parameters and results for the EnKF,a mechanism to assign models to
-available resources based on their expected time to completion and
-resource requirement is useful.  Such a mechanism would estimate the
-time a model will spend in the queue of a resource, the time it needs
-to run, and the time required to migrate the data it requires/produces
-back and forth, and based on that attempt to minimize the time
-required to perform each Kalman filter iteration.  In fact, with
-changing resource simulation requirements (as is the case with models
-that find themselves lagging behind the rest of the model pack), a
-mechanism which can take advantage of of faster, cheaper or more
-powerful machines is even more advantageous~\cite{escience07}.
+varying the required runtime of different models. This is the
+fundamental reason behind the fact that the individual sub-tasks are
+heterogenous with varying run-times and resource requirements (if not
+very hard-to-predict).  Since we need both parameters and results for
+the EnKF, a mechanism to assign models to available resources based on
+their expected time to completion and resource requirement is useful.
+Such a mechanism estimates the time a model will spend in the queue of
+a resource, the time it needs to run, and the time required to migrate
+the data it requires/produces back and forth, and based on that
+attempt to minimize the time required to perform each Kalman filter
+iteration.  In fact, with changing resource simulation requirements
+(as is the case with models that find themselves lagging behind the
+rest of the model pack), a mechanism which can take advantage of of
+faster, cheaper or more powerful machines is even more
+advantageous~\cite{escience07}.
 
 We have developed a mechanism whereby Ensemble Kalman Filters can be
 solved using multiple-resources, using application-level scheduling
-applied dynamically, ie mapping the sub-taks requirement to the
-resources available at the instant the sub-tasks become available and
-ready to run, as opposed to {\it a priori} static method of job
-submission. For the problem size studied, the sub-tasks were mostly
-less than 32 processors. For this paper we used the earlier developed
-frameworks and deployed it on a single large machine -- NCSA's
-Abe.~\footnote{We wanted to use Ranger, but BQP was not available on
-  Ranger, and would not have been before the submission of this paper}
-For small physical models where sub-tasks are typically -- both
-spatially and temporally, overheads in using multiple, distributed
-machines most often result in total time-to-solution being higher than
-if a single-machine were used. But as shown in
+applied dynamically~\cite{saga_tg08}, ie mapping the sub-taks
+requirement to the resources available at the instant the sub-tasks
+become available and ready to run, as opposed to {\it a priori} static
+method of job submission. For the problem size studied, the sub-tasks
+required mostly less than 32 processors. For this paper we used the
+earlier developed frameworks and deployed it on a single large machine
+-- NCSA's Abe.~\footnote{We wanted to use Ranger, but BQP was not
+  available on Ranger, and would not have been before the submission
+  of this paper} For small physical models where sub-tasks are
+typically small -- both spatially and temporally, overheads in using
+multiple, distributed machines most often result in total
+time-to-solution being higher than if a large monolithic
+single-machine were used. But as shown in
 Ref~\cite{novelsubmissionmode}, as the number of processors requested
 for a sub-task increases, the total wait time in the queueing system,
 often goes up (disproportionately). Thus a mechanism (multiple,
@@ -502,7 +527,8 @@ usable on both single large machines to multiple machines.
 \jhanote{Yaakoub, do you have measure of time-to-completion for the
   two-cases of the toy-problem?}. Ideally we can enhance throughput
 further by applying the Glide-In mechanisms developed to the dynamic
-tasks..
+tasks to aggregate similar sub-tasks. We will report on the results of
+this in future work.
 
 %that to determine the best resource to use at
 
@@ -640,21 +666,6 @@ adaptive optimization strategies at runtime.
 % of less crowded resources provides a lot of benefits.
 
 
-\section{Applications With Multiple Loosely-Coupled Heterogenous
-Sub-Tasks}
-
-\subsection{Application Description}
-
-\subsection{SAGA and Cactus: A Powerful Application Development
-  Framework}
-
-\subsection{Deploying on Distributed Resources}
-
-\subsection{Deploying on Abe}
-
-BQP used for the first time to dynamically determine queue and model
-size within a given system to submit sub-task to...
-
 
 \section{Any Other Applications}
 
@@ -720,14 +731,14 @@ this is also proof of support for agile execution models.
 %   as the learning-based algorithms, there are elements of both kinds
 %   of heterogenity between stages. GridSAT is an interesting example.
          
-\newpage
+%\newpage
                   
 \section*{Acknowledgement}
 This work would not have been possible without the efforts and support
 of the wider SAGA team. Important funding for SAGA specification and
 development has been provided by the UK EPSRC grant number
-GR/D0766171/1 (via OMII).  SJ acknowledges the e-Science Institute,
-Edinburgh for supporting the research theme, ``Distributed Programming
+GR/D0766171/1.  SJ acknowledges the e-Science Institute, Edinburgh for
+supporting the research theme, ``Distributed Programming
 Abstractions''.  This work has also been made possible thanks to the
 internal resources of the Center for Computation \& Technology (CCT)
 at Louisiana State University and computer resources provided by LONI.
