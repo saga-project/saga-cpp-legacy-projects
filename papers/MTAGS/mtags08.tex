@@ -174,8 +174,6 @@ coupling between the sub-tasks varies. We posit that along with the
 size and number of sub-tasks, the coupling between the sub-tasks is an
 important determinant of the development and deployment mechanism.
 
-
-
 In the former, the sub-tasks
 progress independent of other sub-tasks with the exception of one
 (referred to as the paired replica). There is a pair-wise exchange of
@@ -401,28 +399,32 @@ dispatching of the RE sub-jobs is required.
     \label{fig:remdmanager_v11}
 \end{figure}  
 
-In particular, queueing delays can represent a major bottleneck: a single crowded 
-resource can slowdown the simulation arbitrary. A common principle 
-to prevent this is the usage of Glide-In jobs, which represent a placeholder 
-for a set of sub-jobs (see Frey et.\,al.~\cite{citeulike:291860}). 
-For this Glide-In job a sufficiently large chunk of resources 
-is requested. Smaller sub-jobs can then rapidly be executed through 
-the Glide-In job.
+In particular, queueing delays can represent a major bottleneck: a
+single crowded resource can slowdown the simulation arbitrary. A
+common principle to prevent this is the usage of Glide-In jobs, which
+represent a placeholder for a set of sub-jobs (see Frey
+et.\,al.~\cite{citeulike:291860}).  For this Glide-In job a
+sufficiently large chunk of resources is requested. Smaller sub-jobs
+can then rapidly be executed through the Glide-In job.
 
-The SAGA Glide-In framework comprises of two components: 1) The Glide-In manager provides 
-the enhance job model API and allows the management of both Glide-In jobs and sub-jobs. 
-2) The Replica-Agents represent the Glide-In jobs. The agents manage their allocated resources and 
-dispatch sub-jobs on request. In this sense the Replica-Agents implement the functionality of 
-an application-level scheduler. Communication between the Replica-Agent and Glide-In manager 
-is carried out using the SAGA advert service, a central key/value store.
+The SAGA Glide-In framework comprises of two components: 1) The
+Glide-In manager provides the enhance job model API and allows the
+management of both Glide-In jobs and sub-jobs.  2) The Replica-Agents
+represent the Glide-In jobs. The agents manage their allocated
+resources and dispatch sub-jobs on request. In this sense the
+Replica-Agents implement the functionality of an application-level
+scheduler. Communication between the Replica-Agent and Glide-In
+manager is carried out using the SAGA advert service, a central
+key/value store.
 
-With this capability the SAGA Glide-In framework provides a novel system-level 
-abstraction for allocating larger chunks of resources 
-and for mapping these resources to a set of sub-jobs. The enhanced job model can 
-be used as drop-in replacement for a SAGA job objects. No code modification is required
--- the application must solely map the sub-jobs to a suitable Glide-In job.
-The RE-Manager relies on the SAGA Glide-In framework to reserve resources on a cluster
-and to efficiently dispatch RE processes to these nodes.
+With this capability the SAGA Glide-In framework provides a novel
+system-level abstraction for allocating larger chunks of resources and
+for mapping these resources to a set of sub-jobs. The enhanced job
+model can be used as drop-in replacement for a SAGA job objects. No
+code modification is required -- the application must solely map the
+sub-jobs to a suitable Glide-In job.  The RE-Manager relies on the
+SAGA Glide-In framework to reserve resources on a cluster and to
+efficiently dispatch RE processes to these nodes.
 
 While the implementation of the enhanced job model is entirely based
 on SAGA and in particular the SAGA Advert Service, a central key/value
@@ -475,16 +477,42 @@ that find themselves lagging behind the rest of the model pack), a
 mechanism which can take advantage of of faster, cheaper or more
 powerful machines is even more advantageous~\cite{escience07}.
 
-While concurrently running on various machines is advantageous in the fact that
-more resources would be available for running the forward models,
-it is also more technically challenging than running on a single machine.
-Authentication, job launching, multiple executables in correct paths for
-different architectures and file systems, and of course file transfer
-across the different machines are all possible points of failure. Rigorous
-fault tolerance can be built into application framework
-using SAGA and the advert service; however can be argued that running
-all the models on a single large machine would be a simpler solution as all
-of the afore-mentioned technical difficulties are eliminated.
+We have developed a mechanism whereby Ensemble Kalman Filters can be
+solved using multiple-resources, using application-level scheduling
+applied dynamically, ie mapping the sub-taks requirement to the
+resources available at the instant the sub-tasks become available and
+ready to run, as opposed to {\it a priori} static method of job
+submission. For the problem size studied, the sub-tasks were mostly
+less than 32 processors. For this paper we used the earlier developed
+frameworks and deployed it on a single large machine -- NCSA's
+Abe.~\footnote{We wanted to use Ranger, but BQP was not available on
+  Ranger, and would not have been before the submission of this paper}
+The total time to solution maybe lower on a single-machine(?), but as
+shown in Ref~\cite{novelsubmissionmode}, as the number of processors
+requested increases on a queueing system, the total wait time often
+goes up (disproportionately). Thus a mechanism that is more efficient
+for multiple sub-tasks that typically have lower processor counts,
+will not necessarily be the more efficient as the typical sub-task
+size increases. Thus it is crucial that any general-purpose solution
+be usable on both single large machines to multiple machines.
+\jhanote{Yaakoub, do you have measure of time-to-completion for the
+  two-cases of the toy-problem?}. Ideally we can enhance throughput
+further by applying the Glide-In mechanisms developed to the dynamic
+tasks..
+
+%that to determine the best resource to use at
+
+While concurrently running on various machines is advantageous in the
+fact that more resources would be available for running the forward
+models, it is also more technically challenging than running on a
+single machine.  Authentication, job launching, multiple executables
+in correct paths for different architectures and file systems, and of
+course file transfer across the different machines are all possible
+points of failure. Rigorous fault tolerance can be built into
+application framework using SAGA and the advert service; however can
+be argued that running all the models on a single large machine would
+be a simpler solution as all of the afore-mentioned technical
+difficulties are eliminated.
 
 \section{Deploying on Distributed Resources}
 
