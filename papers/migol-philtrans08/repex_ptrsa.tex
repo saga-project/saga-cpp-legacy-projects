@@ -481,7 +481,7 @@ should allow scientists to focus on the application logic, while the
 middleware provides critical services, such as reliable 
 job management and monitoring.
 
-% Synchronization
+% Synchronization & Scheduling issues
 Despite their mostly loosely coupled nature, RE simulations require
 a small level of coupling.  The central master, the RE-Manager, must
 periodically obtain the results, i.\,e.\ the energy levels, of all
@@ -499,25 +499,22 @@ In our earlier experiments~\citep{Luckow:2008la} this obstacle
 became evident -- for individual RE runs on a single machine, 
 as well as for runs across different heterogeneous resources.
 Especially when running replicas across multiple resources, 
-a single crowded resource can delay the completion of the simulation arbitrary. 
-Thus, an efficient
-mechanism for dispatching sub-jobs across multiple distributed resources
+a single crowded resource can delay the completion of the 
+simulation arbitrary. Thus, an efficient mechanism for dispatching 
+sub-jobs across multiple distributed resources
 is required.
-
-\jhanote{The above paragraph needs to actually be elaborated upon and
-  moved to the previous section ``Challenges of Implementing Replica
-  Exchange.. in Distributed Environments''}
-\alnote{moved.}
-
                  
 % Fault Tolerance
 Another important issue in error-prone distributed environments is
 fault tolerance.  Especially RE simulations are very fragile: the
 loss of a single replica process due to a node or network failure
 usually causes the abort of the entire simulations. Thus, the
-middleware must detect and resolve failures accurately.
+middleware must detect and resolve failures, such as the crash of the 
+Globus GRAM or of a resource running parts of the RE application, accurately.
                                   
-% not synthetic, real and meanginful physical models
+% not synthetic, real and meanginful physical models 
+\alnote{I am not sure whether we keep this claim... - maybe we should not promise
+too much...}
 Implementing an approach that can scale up to very large 
 production infrastructures is a far more challenging task than
 implementing a toy-model on a research environment. Our approach is
@@ -532,40 +529,9 @@ this extension non-trivial.
 % efficient mechanisms to allocate resources for multiple replica runs
 % in a row.
 
-
-\subsection{Scheduling Issues}
-
-Despite the availability of a suitable abstraction for allowing
-applications to manage Glide-Ins, several scheduling issues arise. A
-particular optimization problem is the size of the \glidein\
-job. Since our RE application relies on a fixed number of replica
-processes, the number of nodes to request per resource can be
-straightforwardly determined by aggregating all replica processes per
-Grid resource.
-
-Another issue results from possibly different start times of the
-\replicaagent\ job at different resources.  To avoid wasted cycles due
-to a waiting \glidein\ job, replica runs are carried out on all active
-resources with a lower quality of sampling. As soon as further
-resources become active, the number of replica processes and thus the
-sampling range is increased.
-
-\subsection{Reliability}
-   
-The RE framework is built to tolerate the different types of failures,
-e.\,g.\: crash failures of the Globus GRAM service or of the resource
-running the RE-Manager, a Replica-Agent and/or a replica process.
-        
-To achieve fault tolerance, the RE-Manager, the Replica-Agents and the
-replica processes periodically write persistent checkpoints to allow
-an automatic recovery via the Migol infrastructure. The \remanager\
-and Replica-Agents periodically update the application's metadata,
-i.\,e.\ the state, monitoring endpoint and new checkpoint URLs, at the
-Migol backend using the CPR API. During the entire runtime the
-\remanager\ and the Replica-Agents are monitored by Migol using the
-monitoring endpoint of the Replica-Agent. If a failure is discovered
-by Migol, an automatic restart of an agent or the RE-Manager is
-initiated.
+\alnote{The scheduling and reliability sections partially already described the solution. 
+I added the important points to challenges. The description of our approach have been 
+moved back to the Implementation and Scheduling section.}
                          
 \section{Implementing Distributed Replica-Exchange Using SAGA}
 
@@ -615,30 +581,36 @@ encoding the orchestration logic of RE simulations.
 \end{figure}
 
 As illustrated in Figure~\ref{fig:REMD-Manager-architecture}, the
-proposed framework comprises of three components: The task manager,
-also referred to as \emph{\remanager}, is deployed on the user's
-desktop and provides the user interface to the overall RE run. The
-second component is the Migol infrastructure that submits, monitors,
-and if required, recovers replica simulations.  The last element is
-the task agent, the \textit{\replicaagent},
-that resides on the High Performance machines where RE simulations
-are carried out. The \replicaagent\ is launched by a Grid job and is
-responsible for spawning and monitoring the replica processes. 
+proposed framework comprises of three components, the RE-Manager,
+the Replica-Agent and the Migol infrastructure. 
 
+The  \emph{RE-Manager}, also referred to as task manager,
+is deployed on the user's desktop and provides the user interface 
+to the overall RE run. It orchestrates all replicas, i.\,e.\ the 
+parameterization of replica  tasks, file staging, job spawning 
+and the conduction of the replica-exchange itself using the SAGA CPR
+and File API.                                                                
+
+The second element is the task agent, the \textit{Replica-Agent},
+that resides on the high performance machines where RE simulations
+are carried out. The \replicaagent\ is launched using SAGA CPR and Migol.
+It is responsible for spawning and monitoring of the replica processes. 
 NAMD~\citep{Phillips:2005gd}, a highly scalable, parallel MD
 code, is used to carry out the MD simulation corresponding to each
 replica run. It is important to mention that any other MD or MC code 
 could be used just as simply and effectively.
 
-The \emph{\remanager}~\footnote{The complete \remanager\ code can be found
-at https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/} 
-is the core of the framework; it orchestrates all replicas, i.\,e.\ 
-the parameterization of replica tasks, file staging, job spawning and 
-the conduction of the replica-exchange itself. For the implementation 
-of the RE logic, this component heavily relies on the SAGA Python bindings 
-for accessing the File and CPR API as well as the enhanced job management 
-framework for efficient clustering of jobs.
+The last component is Migol and the underlying Globus middleware. 
+Migol handles the reliable execution of replica processes, i.\,e.\ the submission,
+the monitoring and, if required, the recovery of replicas or the application itself.
 
+% The \emph{RE-Manager}~\footnote{The complete \remanager\ code can be found
+% at https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}
+
+% For the implementation 
+% of the RE logic, this component heavily relies on the SAGA Python bindings 
+% for accessing the File and CPR API as well as the enhanced job management 
+% framework for efficient clustering of jobs. 
                                   
 % \alnote{I am really not sure about this code snippet. It somehow
 %   represents the logics - however I am not sure whether it is worth
@@ -673,7 +645,21 @@ parameters such as the temperature, are swapped. Both jobs are then
 relaunched using the mechanisms described above. Often the Metropolis
 scheme returns a negative result, and an exchange is not carried out;
 thus it is difficult to respond to a possible exchange speculatively. 
-                      
+
+    
+
+\subsection{Reliability}
+To achieve fault tolerance, the RE-Manager, the Replica-Agents and the
+replica processes periodically write persistent checkpoints to allow
+an automatic recovery via the Migol infrastructure. The \remanager\
+and Replica-Agents periodically update the application's metadata,
+i.\,e.\ the state, monitoring endpoint and new checkpoint URLs, at the
+Migol backend using the CPR API. During the entire runtime the
+\remanager\ and the Replica-Agents are monitored by Migol using the
+monitoring endpoint of the Replica-Agent. If a failure is discovered
+by Migol, an automatic restart of an agent or the RE-Manager is
+initiated.
+             
            
 \alnote{Should we make this a subsection or a section? In my opinion,
 the GlideIn stuff is a major contribution of this paper -- thus I decided to
@@ -681,13 +667,14 @@ give it a separate section. I also think it is more readable than going to the
 subsubsection level.}           
 \section{SAGA Glide-In: Efficient Job Scheduling for RE Jobs}
 
-While SAGA provides useful abstractions to implement a RE framework, there
-are some severe limitations. Most of all, each job submitted via the
-SAGA Job and/or CPR API to a Grid resource is required to queue at the local 
+While SAGA provides a well-defined abstraction to implement the RE framework, there
+is a severe limitation: all jobs are required to queue at the  
 resource management system potentially causing a slowdown of the overall application. 
-In the following, we describe a novel system-level abstraction, which allows 
-applications to avoid this issue. We further demonstrate the simplicity and 
-extensibility of SAGA by implementing this abstraction on top of SAGA.
+To avoid this issue an efficient dispatching schema for RE tasks is required.
+% In the following, we describe SAGA Glide-In, a novel system-level abstraction, which allows 
+% applications to avoid this issue.   
+% We further demonstrate the simplicity and 
+% extensibility of SAGA by implementing this abstraction on top of SAGA.
 
 
 % In the following, we demonstrate the simplicity and extensibility of
@@ -702,18 +689,17 @@ extensibility of SAGA by implementing this abstraction on top of SAGA.
 %   letter of every word that follows the \glidein\ macro! Andre M, the
 %   latex man, any ideas?}
 
-Loosely coupled application such as RE applications require the efficient
-dispatching of many small to medium sized jobs on heterogeneous distributed resources.
-A common principle to prevent queueing delays is the usage of a meta-job, which
-represents a placeholder for many small to medium sized sub-jobs. For this meta-job a
-sufficiently large chunk of resources is requested. Smaller sub-jobs can then rapidly 
-be executed through the meta-job.
-By avoiding the high initial costs for queueing each individual 
+A common principle to prevent queuing delays is the usage of Glide-In jobs  
+(see~\cite{citeulike:291860}). This job represents a placeholder 
+for a set of sub-jobs. For this Glide-In job a sufficiently large chunk of resources 
+is requested. Smaller sub-jobs can then rapidly be executed through 
+the Glide-In job. By avoiding the high initial costs for queueing each individual 
 replica job the completion times of the RE applications can be dramatically
-reduced. Since the first implementation of this principle was provided by Condor 
-Glide-In~\citep{citeulike:291860}, this pattern is also referred to as \glidein\ .
- 
-\alnote{add further advantages: configurability of MPI versions, flexible clustering of tasks}
+reduced. 
+
+% Since the first implementation of this principle was provided by Condor 
+% Glide-In~\citep{citeulike:291860}, this pattern is also referred to as Glide-In.
+% \alnote{add further advantages: configurability of MPI versions, flexible clustering of tasks}
 
 \jhanote{I
 don't think the principle is known as glidein. The term glidein owes
@@ -727,32 +713,60 @@ Condor system.}
 be to describe this pattern as 
 placeholder job pattern}
 
-As described, the job model defined by the CPR and Job API provides an ideal 
-system abstraction, which allows the efficient expression of RE simulations on
-top of heterogeneous loosely coupled Grids. At the same time it has been well motivated
-that a \glidein\ mechanism can dramatically decrease the time to solution. Thus, we
-propose an enhanced job abstraction on top of a SAGA based \glidein\ implementation.
-
-The enhanced job model extends SAGA jobs by the
+As described, the job model defined by SAGA provides an ideal 
+system abstraction to efficiently express the RE logic on
+top of heterogeneous loosely coupled Grids. The enhanced job model extends SAGA jobs by the
 capability to allocate larger chunks of resources prior to a loosely
 coupled application run. For this purpose the \texttt{glidein\_job} object is defined, which
-can be populated with a job description specifying the number of resources to be acquired.
-Further, a \texttt{glidin\_sub\_job} is provided, which can be mapped
-to the larger \texttt{glidein\_job} job using the job id of the \glidein\ job as reference.
+is used to initialize a Glide-In job with desired number of resources.
+Further, the \texttt{glidin\_sub\_job} object is specified. This sub-job is mapped
+to a larger \texttt{glidein\_job} job using the job id.
+                      
 
-Figure~\ref{fig:remdmanager_v1.1} illustrates how the enhanced job model abstraction is integrated
-into the RE framework. The \remanager\  uses the enhanced job model as replacement to the Job API
-to  cluster replica jobs into larger meta-jobs. Since the enhanced job object provides the same methods
-as a regular SAGA job  no code modifications, except the logic for clustering of replica jobs, 
-is necessary. The developed \glidein\ framework transparently handles the management of the placeholder jobs
-(the \textit{Replica-Agents}) and the sub-jobs (the replica processes). 
+As illustrated in Figure~\ref{fig:remdmanager_v1.1}, the SAGA Glide-In framework 
+comprises of two components: 1) The Glide-In manager provides 
+the enhance job model API and allows the management of both Glide-In jobs and sub-jobs. 
+2) The Replica-Agents have been extended to function as Glide-In, i.\,e.\ they are able 
+to manage a set of allocated resources and 
+dispatch sub-jobs on request. In this sense the Replica-Agents implement the functionality of 
+an application-level scheduler. Communication between the Replica-Agent and Glide-In manager 
+is carried out using the SAGA advert service, a central key/value store.
 
+With this capability the SAGA Glide-In framework provides a novel system-level 
+abstraction for allocating larger chunks of resources 
+and for mapping these resources to a set of sub-jobs. The enhanced job model can 
+be used as drop-in replacement for a SAGA job objects. No code modification is required
+-- the application must solely map the sub-jobs to a suitable Glide-In job.
+The RE-Manager relies on the SAGA Glide-In framework to reserve resources on a cluster
+and to efficiently dispatch RE processes to these nodes.
+
+While the implementation of the enhanced job model is entirely based
+on SAGA and in particular the SAGA Advert Service, a central key/value
+store, a utilization of other frameworks, such as the orignal Condor
+Glide-In~\cite{citeulike:291860} or Falcon~\cite{1362680}, is
+possible. Currently, we are actively working on a Condor adaptor for
+SAGA, which will also support native Glide-In functionality for Condor
+Jobs; our enhanced job model will then serve as abstraction, while the
+Condor level Glide-In is used as implementation where appropriate.
+
+
+% At the same time it has been well motivated
+% that a \glidein\ mechanism can dramatically decrease the time to solution. Thus, we
+% propose an enhanced job abstraction, which allows the efficient clustering of RE jobs 
+% into larger Glide-In jobs.
+
+% Figure~\ref{fig:remdmanager_v1.1} illustrates how the enhanced job model abstraction is integrated
+% into the RE framework. The \remanager\  uses the enhanced job model as replacement to the Job API
+% to  cluster replica jobs into larger Glide-In jobs. Since the enhanced job object provides the same methods
+% as a regular SAGA job  no code modifications, except the logic for clustering of replica jobs, 
+% is necessary. The developed \glidein\ framework transparently handles the management of the placeholder jobs
+% (the \textit{Replica-Agents}) and the sub-jobs (the replica processes). 
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.9\textwidth]{remdmanager_v11}
-    \caption{\footnotesize \bf RE Programing Abstractions and
-      Resource Management: The Replica-Agent is used as meta-job for
+    \caption{\footnotesize \bf RE Programing Abstractions: 
+      The Replica-Agent is used as placeholder job for
       all replica sub-jobs running on a single cluster. The
       \remanager\ can control both the \replicaagent\ and the replica
       jobs using a SAGA-based user-level job API. By using this
@@ -781,43 +795,62 @@ is necessary. The developed \glidein\ framework transparently handles the manage
   ``Implementations''. Currently, we need more details describing
   Figure 2 and the control flow between \remanager\ and individual
   replica-jobs within a meta-job. This location of this note, is a
-  good point to separate the two.}   
+  good point to separate the two.}    
+
+\subsection{Adaptive Replica Sampling}
+
+Despite the availability of a suitable abstraction for managing 
+Glide-Ins, several scheduling issues arise. A
+particular optimization problem is the size of the \glidein\
+job. Since our RE application relies on a fixed number of replica
+processes, the number of nodes to request per resource can be
+straightforwardly determined by aggregating all replica processes per
+Grid resource.
+
+Another issue results from possibly different start times of the
+\replicaagent\ job at different resources.  To avoid wasted cycles due
+to a waiting \glidein\ job, replica runs are carried out on all active
+resources with a lower quality of sampling. As soon as further
+resources become active, the number of replica processes and thus the
+sampling range is increased.
+
+% \alnote{TODO: Add adaptive sampling description}     
   
 % The \remanager\ can rapidly execute small replica
 % jobs using the enhanced Job API.
 % This agent is assigned the resources required
 % for all replica processes on this machine.
   
-\subsection{Implementation}         
- 
-This enhanced job abstraction is entirely implemented on user-level 
-using SAGA and Python. Using the Python duck typing mechanism the 
-\glidein\ job and sub-job object can 
-be used as drop in replacement for regular SAGA Job and CPR objects.
-                                                          
-The implementation comprises of the \glidein\ orchestrar providing the 
-enhanced job API and the Replica-Agents
-representing the placeholder jobs. When an application requests an 
-allocation of a resource chunk on a certain machine, the framework submits a
-placeholder job, the \replicaagent\ , to the respective resource
-using the SAGA CPR API. 
-
-For every further sub-job the reference to the \replicaagent\ job id 
-is used by the \glidein\ framework to map
-the sub-job to a Replica-Agent.  For communication between the \glidein\ framework
-and the \replicaagent\ a simple protocol based on the SAGA
-Advert Service, a central key/value store, is used.  For each new job an advert
-entry is created. The \replicaagent\ periodically polls for new jobs.
-If a new job is found and resources are available, the job is launched,
-otherwise it is queued.
-           
-In a sense the resources managed by Replica-Agents can be compared to 
-a resource reservation. In principal, the Replica-Agent represents 
-a user-level resource manager for these resources. It is the responsibility 
-of the \replicaagent\ 
-to assign resources to sub-jobs and free them after completion. Further,
-the \replicaagent\ monitors all sub-jobs and registers required
-information with the Migol backend.
+% \subsection{Implementation}         
+%  
+% This enhanced job abstraction is entirely implemented on user-level 
+% using SAGA and Python. Using the Python duck typing mechanism the 
+% \glidein\ job and sub-job object can 
+% be used as drop in replacement for regular SAGA Job and CPR objects.
+%                                                           
+% The implementation comprises of the \glidein\ orchestrar providing the 
+% enhanced job API and the Replica-Agents
+% representing the placeholder jobs. When an application requests an 
+% allocation of a resource chunk on a certain machine, the framework submits a
+% placeholder job, the \replicaagent\ , to the respective resource
+% using the SAGA CPR API. 
+% 
+% For every further sub-job the reference to the \replicaagent\ job id 
+% is used by the \glidein\ framework to map
+% the sub-job to a Replica-Agent.  For communication between the \glidein\ framework
+% and the \replicaagent\ a simple protocol based on the SAGA
+% Advert Service, a central key/value store, is used.  For each new job an advert
+% entry is created. The \replicaagent\ periodically polls for new jobs.
+% If a new job is found and resources are available, the job is launched,
+% otherwise it is queued.
+%            
+% In a sense the resources managed by Replica-Agents can be compared to 
+% a resource reservation. In principal, the Replica-Agent represents 
+% a user-level resource manager for these resources. It is the responsibility 
+% of the \replicaagent\ 
+% to assign resources to sub-jobs and free them after completion. Further,
+% the \replicaagent\ monitors all sub-jobs and registers required
+% information with the Migol backend.  
 
 
 
@@ -872,119 +905,189 @@ information with the Migol backend.
 To evaluate the performance of the REMD-Manager several
 experiments have been conducted on the LONI
 Grid~\citep{loni}. The REMD-Manager is used to deploy tasks to
-the LONI clusters: QueenBee (QB), Poseidon and Eric.  \jhanote{I think
-  we want to say REMD simulations have been deployed on three LONI
-  Linux Clusters? Not the managers themselves -- which I think sits on
-  users desktop...}  \alnote{adjusted that - should i change figure 4
-  too, although for the measurements all jobs have been launched from
-  QB. There are some firewalls which limit the desktop experience.}
-QB, which is both a LONI and a TeraGrid resource, is the largest LONI
-machine and has a peak performance of over 50 TFlops.
-Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
+the TeraGrid and LONI clusters: QueenBee (QB), Poseidon and Eric.  
+% QB, which is both a LONI and a TeraGrid resource, is the largest LONI
+% machine and has a peak performance of over 50 TFlops.  
+% Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
+The objective of the experiments is the evaluation of the Glide-In schema on
+the performance of the RE-Manager. Scientific results obtained from using 
+this infrastructure will be reported elsewhere.
 
-\begin{figure}[t]
-    \centering
-        \includegraphics[width=0.7\textwidth]{saga-taskfarming}
-        \caption{\footnotesize \bf Fault-Tolerant MD Simulations: The
-          REMD-Manager orchestrates a set of distributed replica
-          processes using the SAGA API. All processes synchronize
-          important metadata with the Migol infrastructure. Migol then
-          actively monitors all processes and ensures that, even in
-          the presence of failures, all task are eventually
-          completed.}
-    \label{fig:saga-taskfarming}
-\end{figure} 
-The objective of the first set of experiments is the
-quantification of the runtime overhead, which Migol-enabled
-applications, such as the REMD-Manager encounter.  Further, we investigate the 
-overall run-time reduction that can be obtained by the \replicaagent\ \glidein\
-mechanism. Scientific results obtained from using this infrastructure will be reported elsewhere.
+\alnote{I removed this figure since it has too much focus on Migol and not
+on the Glide-In stuff}
+% \begin{figure}[t]
+%     \centering
+%         \includegraphics[width=0.7\textwidth]{saga-taskfarming}
+%         \caption{\footnotesize \bf Fault-Tolerant MD Simulations: The
+%           REMD-Manager orchestrates a set of distributed replica
+%           processes using the SAGA API. All processes synchronize
+%           important metadata with the Migol infrastructure. Migol then
+%           actively monitors all processes and ensures that, even in
+%           the presence of failures, all task are eventually
+%           completed.}
+%     \label{fig:saga-taskfarming}
+% \end{figure} 
 
 % \subsection{Infrastructure Performance}
-\begin{figure}[ht]
+
+
+Further, we evaluated the runtime of the RE-Manager with respect to the 
+used job scheduling mechanism. The RE-Manager was configured to run 
+a simulation with 2 to 16 replica processes and 5 attempted exchange 
+steps sampling a temperature range between 300 and 450\,K. Each replica 
+process comprises of a NAMD simulation running on 16 cores 
+for 500 time steps.      
+
+\begin{figure}[th]
     \centering
-        \subfloat[Adaptor Overhead]{\includegraphics[width=0.48\textwidth]{performance/perf_submission.pdf} }
-        \subfloat[Glide-In Performance]{\includegraphics[width=0.49\textwidth]{performance/perf_remd_glidin.pdf} }          
-    \caption{\footnotesize \bf SAGA-CPR Migol Adaptor and SAGA Glide-In Performance: While the submission of Migol jobs incurs some overhead, in a real REMD scenario this overhead is negligible. The usage of the SAGA Glide-In provides a significant reduced time to solution even on a single machine in particular with more than 8 replica jobs.}       
-    \label{fig:performance_perf_submission}
-\end{figure}           
+        \subfloat[RE-Manager Scaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf} }    
+        \subfloat[Glide-In Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf} }
+    \caption{\footnotesize \bf SAGA Glide-In and REMD Performance: 
+    Obviously, the increase in the number of resources allows sampling of a wider 
+    parameter range. Especially beneficial in particular for runs with many replica processes 
+    is the clustering of processes using the SAGA Glide-Ins.}       
+    \label{fig:perf_remd_glidin}
+\end{figure}
 
-Figure~\ref{fig:performance_perf_submission}a) shows the response-times
-of SAGA-CPR submissions in comparison to their non fault-tolerant
-counterparts. Since each replica exchange step involves the
-relaunching of two replica jobs, the efficient spawning of remote
-tasks is a critical operation for the REMD-Manager.
+Figure~\ref{fig:perf_remd_glidin}a) illustrates that the increase in the 
+number of resources in general allows the computation of a greater problem set,
+i.\,e.\ the sampling of a wider parameter range. However, 
+the figure also shows the limitations of the regular job submission mechanism:
+The more processes are spawned, the more likely are queueing 
+delays. While with the SAGA Glide-In framework the number of NAMD steps
+almost scales linearly, the computed problem set rapidly drops when using
+more than eight replica proceses. 
+                          
+Figure~\ref{fig:perf_remd_glidin}b) shows that the SAGA Glide-In framework can provide
+a reduced time to solution even on a single machine by avoiding queuing times for 
+every sub-job and allowing the efficient dispatching of RE tasks solely through the 
+Replica-Agent. During our experiments we were able to measure speedups of up to 80\,\%.
 
-Initially, the submission time of a single NAMD task using
-SAGA-CPR/Migol is assessed. The experiment showed that a CPR/Migol job
-submission is on average 2\,seconds slower than a GRAM
-submission. This overhead is mainly attributable to the additional
-metadata registration operation at Migol's AIS. For jobs that run for 
-hours, this overhead is negligible.
+The unpredictable nature of these queueing times is reflected in the high standard deviation 
+observed in the runtimes. While queueing times also have an impact on Glide-Ins, these are in general less
+severe.  Further, for the Glide-In scenario, the queueing times become negligible, 
+the longer the RE simulation is (the runtimes have been
+kept short for this simple scenario). In contrast, when no Glide-Ins are used every sub-jobs 
+is subject to the queuing delay at the local scheduler.
+                                                           
+In certain situation the usage of smaller jobs can have an advantage, 
+e.\,g.\ when the local scheduler backfills such jobs. However, usually not all replica processes can be
+backfilled. Also some resources impose a restriction on the number of active jobs per user. 
+In general, the more processes are spawned the more likely are delays. 
 
-Further, the Migol adaptor showed some additional initialization
-overhead. The overall runtime of the NAMD submission task including
-the initialization was 6.5\,sec (bar 3 in
-Fig.~\ref{fig:performance_perf_submission}), about 4.5\,sec slower
-than the GRAM submission task. This overhead can be attributed to the
-initialization operations for setting up the HTTP server as well as
-the conduction of several metadata updates on the AIS. Since this
-initialization only occurs once after the startup of the REMD-Manager,
-this overhead is acceptable.
-                                                                                                                    
-% In addition, we investigated how the runtime of a single replica run
-% is effected by Migol's active monitoring mechanism and the required
-% checkpoint registration. For this purpose, a medium-size NAMD job was
-% started with and without Migol support.  Monitoring intervals between
-% 20\,s and 2\,minutes were chosen to study the effect of monitoring
-% frequency on runtimes. The update interval for checkpoint metadata was
-% set to five minutes.  Since the time measured for a checkpoint update
-% operation was on average 1.3\,seconds, we do not expect this to be a
-% critical factor.  The runtime of the NAMD job on QB without CPR/Migol
-% amounted to 21.3 minutes.  At worst a 1 minute overhead was observable
-% with a monitoring interval of 20\,s. With lower monitoring intervals,
-% overheads were reduced further, e.g., the runtime overhead with a
-% 2\,minute monitoring interval was only 10\,s, which is only slightly
-% higher than the variance of typical NAMD runtimes. 
+The framework has also been deployed on multiple resources within LONI concurrently. 
+This is in particular useful for smaller resources, such as Oliver, where it 
+is only possible to request 64 cores at a time. In contrast to the QB only run, 
+the runtime only slightly increases by about 1.5 minutes, which is 
+acceptable compared to a possible delay due to insufficient resources on Poseidon.
+
+The results can be summarized as follows: 1) The SAGA Glide-In framework can 
+efficiently dispatches RE sub-jobs providing an enhanced time to solution even 
+when deployed on a single machines. 2) By using a clever assignment of 
+Glide-Ins to hosts and jobs, the runtime can 
+be further optimized. In future, we plan to utilize this by deploying 
+adaptive optimization strategies at runtime.
+
+
+% The more replica processes, the more dominant the sequential overhead
+% at the RE-Manager becomes. To emulate the most general case, 
+% where each exchange step requires the 
+% staging of a new NAMD input files with the size of 5\,KB. 
+% While this is only a small file, the initialization overhead of GridFTP
+% Due to the small problem set computed by each replica (only 500 NAMD steps, 
+% which require 1:23 minutes computation time on 16 processors on QB), 
+% this bottleneck becomes very evident. However, in more
+% realistic scenarios with larger problem chunks this issue will be
+% avoided.
+         
+% \alnote{TODO: add multisite figure}
+% Figure~\ref{fig:performance_perf_runtime} also shows that our approach
+% can be employed to orchestrate multiple resources concurrently, as
+% well as different resources (QB/Poseidon/Eric) individually.  
+% 
+% 
+% In particular on smaller resources, such as Poseidon and Eric, which each only
+% have 512 cores, the distribution of the replica processes. In our scenario the 
+% RE-Manager with 16 replica processes requires 256 cores.
+% 
+% On Eric and Poseidon it is only possible to request 128 cores at a time. Thus, the usage of
+% multiple Glide-In jobs can rapidly enhance.    
+% only 12 out of 16 replicas could been started on QB
+% 
+% 
+% During the coupled distributed run, one half of the processes were allocated to
+% the smaller machines Eric and Poseidon, while the bulk stayed on QB.  As the
+% number of replicas gets larger, the concurrent distributed runs have a
+% lower time-to-completion than when QB was used in isolation 
+% (all else being equal). However it is important to note, that
+% smaller machines, such as Poseidon, showed long queuing times leading
+% to high variance in the overall time-to-completion. This overhead is
+% significant for short-running tasks and less so for longer running
+% tasks.          
+
+% old MIGOL stuff from escience08
+
+% Figure~\ref{fig:performance_perf_submission}a) shows the response-times
+% of SAGA-CPR submissions in comparison to their non fault-tolerant
+% counterparts. Since each replica exchange step involves the
+% relaunching of two replica jobs, the efficient spawning of remote
+% tasks is a critical operation for the REMD-Manager.
+% 
+% Initially, the submission time of a single NAMD task using
+% SAGA-CPR/Migol is assessed. The experiment showed that a CPR/Migol job
+% submission is on average 2\,seconds slower than a GRAM
+% submission. This overhead is mainly attributable to the additional
+% metadata registration operation at Migol's AIS. For jobs that run for 
+% hours, this overhead is negligible.  
+% Further, some additional initialization
+% overhead was observed. The overall runtime of a NAMD submission with CPR 
+% was 6.5\,sec (bar 3 in Fig.~\ref{fig:performance_perf_submission}), 
+% about 4.5\,sec slower than the GRAM submission task. 
+% This overhead can be attributed to the
+% initialization operations for setting up the HTTP server as well as
+% the conduction of several metadata updates on the AIS. Since this
+% initialization only occurs once after the startup of the REMD-Manager,
+% this overhead is acceptable.       
+
 
 % \subsection{REMD-Manager Performance}        
 
-Further, we evaluated the runtime of the REMD-Manager with respect to the 
-used job scheduling mechanism. The REMD-Manager was configured to run 
-a simulation with 2 to 16 replica processes and 10 replica-exchange steps. 
-Table~\ref{tab:app_stats} summarizes the REMD configuration used. 
-% The runtime of a REMD simulation depends to a great extend on
-% the queuing time at the local resource management system. Thus, we attempted 
-% to minimize the queueing times during our experiment. However, as the results 
-% show, small queueing delays could not always be avoided.
-\jhanote{table will need updating}
-\begin{table}
-    \centering
-	\begin{tabular}{|p{5cm}|l|}
-          \hline
-          %Molecular Dynamics Code &NAMD\\ \hline
-          Number of NAMD steps &500\\ \hline 
-          Number of MPI processes per NAMD run &16\\ \hline 
-          Required staging files/size &6\,files/10\,MByte\\ \hline
-          %Runtime of a single NAMD task (QB) &2\,minutes\\ \hline   
-          Number of replica processes &2-64 \\ \hline   
-          Temperature range (w/ 64 processes) &300 - 930 K \alnote{Joohyun: does this make sense?} \\ \hline
-          Number of attempted replica-exchanges \jhanote{See caption for Q} &100\\ \hline
-          %Total Runtime: &??   \\ \hline
-	\end{tabular}
-	\caption{\footnotesize \bf REMD Application Characteristics\label{tab:app_stats}
-          \jhanote{Is 1000 the the total number of exchanges or the
-            number of exchanges that a single replica will undergo?}
-          For completeness we should probably mention the temperature
-          range over which simulations were performed}
-          \alnote{Each replica process (NAMD simulation) will conduct 
-          100 steps (referred to as NAMD steps in the table). This 
-          will be repeated 10 times (number exchange steps) with 
-          different temperatures.}         
-          \alnote{Maybe we should remove this table and put the not mentioned information 
-          into the text}
-          
-\end{table}  
+
+
+
+% Table~\ref{tab:app_stats} summarizes the RE configuration used. 
+% % The runtime of a REMD simulation depends to a great extend on
+% % the queuing time at the local resource management system. Thus, we attempted 
+% % to minimize the queueing times during our experiment. However, as the results 
+% % show, small queueing delays could not always be avoided.
+% \jhanote{table will need updating}
+% \begin{table}
+%     \centering
+%   \begin{tabular}{|p{5cm}|l|}
+%           \hline
+%           %Molecular Dynamics Code &NAMD\\ \hline
+%           Number of NAMD steps &500\\ \hline 
+%           Number of MPI processes per NAMD run &16\\ \hline 
+%           Required staging files/size &6\,files/10\,MByte\\ \hline
+%           %Runtime of a single NAMD task (QB) &2\,minutes\\ \hline   
+%           Number of replica processes &2-16 \\ \hline   
+%           Temperature range (w/ 64 processes) &300 - 930 K \alnote{Joohyun: does this make sense?} \\ \hline
+%           Number of attempted replica-exchanges \jhanote{See caption for Q} &100\\ \hline
+%           %Total Runtime: &??   \\ \hline
+%   \end{tabular}
+%   \caption{\footnotesize \bf REMD Application Characteristics\label{tab:app_stats}
+%           \jhanote{Is 1000 the the total number of exchanges or the
+%             number of exchanges that a single replica will undergo?}
+%           For completeness we should probably mention the temperature
+%           range over which simulations were performed}
+%           \alnote{Each replica process (NAMD simulation) will conduct 
+%           100 steps (referred to as NAMD steps in the table). This 
+%           will be repeated 10 times (number exchange steps) with 
+%           different temperatures.}         
+%           \alnote{Maybe we should remove this table and put the not mentioned information 
+%           into the text}
+%           
+% \end{table}  
  
 % \begin{figure}[ht]
 %     \centering
@@ -1007,27 +1110,14 @@ Table~\ref{tab:app_stats} summarizes the REMD configuration used.
 %     \label{fig:performance_perf_runtime}
 % \end{figure}     
 
-\alnote{This must be reworked with the new results!}
-Figure~\ref{fig:performance_perf_submission}b) illustrate the results of
-this evaluation. Since the total number of replica exchange steps
-remained constant, the runtime decreases the more replica processes
-are used.  With more than four replica processes a slight decrease of
-the efficiency can be observed.
+% \alnote{This must be reworked with the new results!}
+% Figure~\ref{fig:performance_perf_submission}b) illustrate the results of
+% this evaluation. Since the total number of replica exchange steps
+% remained constant, the runtime decreases the more replica processes
+% are used.  With more than four replica processes a slight decrease of
+% the efficiency can be observed.
 % This is a result of the sequential overhead which proportional 
 % grows with the number of replicas: 
-The more replica processes, the more dominant the sequential overhead
-at the REMD-Manager becomes. 
-\alnote{TODO: adjust to final setup: although currently only NPT.conf is
-stages, this overhead is still an issue}
-To emulate the most general case, where each exchange step requires the staging of
-different files. In our setup, we staged six files with the total size
-of about 10\,MB. This transfer requires approximately 5-10\,s
-on the LONI network.  Due to the small problem set computed by each
-replica (only 500 NAMD steps, which require 1:23 minutes computation
-time on 16 processors on QB), this bottleneck becomes very evident. However, in more
-realistic scenarios with larger problem chunks this issue will be
-avoided.
-
 
 % On average, with all factors considered, the SAGA/Migol adaptor added
 % a total runtime overhead of about 15\,seconds to the
@@ -1037,42 +1127,27 @@ avoided.
 % indicate that the SAGA/Migol overhead is acceptable, corroborating
 % earlier findings shown in
 % Figure~\ref{fig:performance_perf_submission}.
-   
-\alnote{TODO: add multisite figure}
-Figure~\ref{fig:performance_perf_runtime} also shows that our approach
-can be employed to orchestrate multiple resources concurrently, as
-well as different resources (QB/Poseidon/Eric) individually.  During
-the coupled distributed run, one half of the processes were allocated to
-the smaller machines Eric and Poseidon, while the bulk stayed on QB.  As the
-number of replicas gets larger, the concurrent distributed runs have a
-lower time-to-completion than when QB was used in isolation 
-(all else being equal). However it is important to note, that
-smaller machines, such as Poseidon, showed long queuing times leading
-to high variance in the overall time-to-completion. This overhead is
-significant for short-running tasks and less so for longer running
-tasks. 
 
-\kimnote{However, this simple scenario faces high overhead since each
-  job is submitted to the local scheduler in many cases. \it Shantenu,
-  may be you can write here another scenario we discussed as an
-  alternative to the simple scenario we are testing.  If I can, I will
-  try, too } \alnote{I added some remarks towards a enhanced scenario
-  as result of the measurements}
-  
+% Since the probability of a failure during a 10 minute run on a few
+% resources is rather low, the reliability of the proposed framework was
+% validated by introducing faults into the systems. We killed selected
+% replica processes and measured the time required by Migol to restart
+% the system.  Due to the selected monitoring interval of one minute and
+% failure threshold of 2 tries, the failure detection time averages to
+% 2.5\, minutes.
+% 
+% The recovery time measured is about $\sim42$ seconds. This is
+% mainly caused by the complex interactions conducted by the Migol
+% backend. While these results show that fault tolerance
+% incurs some overhead, we believe that this is acceptable compared to
+% the benefits a fault-tolerant, self-healing infrastructure offers. In
+% addition, it must be noted that further simple yet effective
+% optimizations are possible. For example, by directly restarting jobs
+% via the GRAM service a lot of the overhead caused by the dynamic
+% discovery mechanisms of the JBS can be avoided. 
+      
 
-Since the probability of a failure during a 10 minute run on a few
-resources is rather low, the reliability of the proposed framework was
-validated by introducing faults into the systems. We killed selected
-replica processes and measured the time required by Migol to restart
-the system.  Due to the selected monitoring interval of one minute and
-failure threshold of 2 tries, the failure detection time averages to
-2.5\, minutes.
-
-As shown in Figure~\ref{fig:performance_perf_submission}, the recovery
-time required for the restart of the job is $\sim42$ seconds. This is
-mainly caused by the complex interactions conducted by the Migol
-backend.
-% : The monitoring service
+% The monitoring service
 % initializes the restart at the JBS.  A major performance penalty is
 % the delegation-on-demand mechanism required to obtain the credential
 % of the user from the AIS -- this procedure demands the creation of a
@@ -1080,23 +1155,6 @@ backend.
 % discovery and selection mechanisms used by Migol's JBS are designed
 % with a focus on long-running applications, and currently show some
 % substantial overhead, especially when used for short-running tasks.
-
-
-While these results show that SAGA-CPR in conjunction with Migol
-incurs some overhead, we believe that this is acceptable compared to
-the benefits a fault-tolerant, self-healing infrastructure offers. In
-addition, it must be noted that further simple yet effective
-optimizations are possible. For example, by directly restarting jobs
-via the GRAM service a lot of the overhead caused by the dynamic
-discovery mechanisms of the JBS can be avoided. 
-
-% Further, we will
-% evaluate possibilities to decouple the dispatching of replica runs
-% from allocation of cluster resources to avoid long queuing
-% delays. Systems, such as Falkon~\citep{1362680} or the Condor
-% Glide-In~\citep{citeulike:291860} mechanism provide the possibility to
-% acquire chunks of resources from the resource management systems,
-% which can then be used to dispatch short tasks. 
 
 
 \section{Related Work}
@@ -1222,23 +1280,27 @@ have been reported for both systems.
 
 \jhanote{Mention BQP and co-scheduling as opposed to opportunistic
   approach. Reference Kalman-filter work. Reference Promita's work
-  using BQP for tightly-coupled applications}.
+  using BQP for tightly-coupled applications.} 
 
 Using standard programmatic abstractions we have developed a general
 purpose, fault-tolerant framework that implements a commonly occurring
-application usage pattern: loose-coupling of multiple tightly-coupled
-applications The framework is general purpose and extensible to
+application usage pattern: the loose coupling of multiple tightly-coupled
+applications. The framework is general purpose and extensible to
 different usage patterns, deployment scenarios and specific simulation
-codes.
+codes. We demonstrated the successful usage of the framework to implement 
+RE simulations and to deploy these in a production Grid environment.
 
-The fault-tolerant framework used to implement RE simulations in a
-production environment is created using the distributed programming
-interfaces provided by SAGA and its coupling to Migol.  SAGA provides
-a middleware-independent, programming abstraction for distributed
-environments. RE simulations utilize the new SAGA-CPR API to interface
-with a checkpoint-recovery infrastructure, such as Migol. Using the
-newly developed SAGA adaptor for Migol, any SAGA application can
-re-use Migol's fault-tolerant services for monitoring and recovery.
+The RE framework uses the distributed programming
+interfaces provided by SAGA as well as the Migol middleware.  
+SAGA provides a middleware-independent, programming abstraction for distributed
+environments. With the new SAGA-CPR API RE simulations can interface
+with a checkpoint-recovery infrastructure, such as Migol. Using Migol, 
+the RE framework is able to transparently handle the failure of a Globus 
+GRAM service, a Replica-Agent or the Replica-Manager.
+
+% Using the
+% newly developed SAGA adaptor for Migol, any SAGA application can
+% re-use Migol's fault-tolerant services for monitoring and recovery.
 
 % The application developer is not required to provide any special code,
 % just the Migol adaptor must be configured.  % The Migol framework has
@@ -1255,12 +1317,6 @@ is critical to note and emphasise the general usability and
 extensibility -- across different infrastructures, across a range of
 scientific applications and usage patterns (e.g.  the multiple
 variants of the RE) -- of our approach.
-  
-In the future, we will refine both the infrastructure and the RE algorithm
-used.
-
-\citep{Gallicchio:2007yq}  
-                  
                                          
 \jhanote{needs smoothening} In summary, SAGA allows the simple
 decoupling of the REMD application and orchestration logic from the
@@ -1286,10 +1342,12 @@ working on a Condor adaptor for SAGA, which will also support native
 \glidein\ functionality for Condor Jobs; our enhanced job model 
 will then serve as abstraction, while the Condor level 
 \glidein\ is used as implementation where appropriate.
-
-Future Work: 
-- prefetching of tasks
-- investigate different scheduling variant
+    
+In the future, we will refine both the infrastructure and the RE algorithm
+used. Various optimization, such as the prefetching of tasks or the 
+adaptive allocation of Glide-In jobs, can further reduce the time
+to solution. Further, we will investigate more asynchronous solutions
+for RE simulation, as e.\,g.\ described by \citet{Gallicchio:2007yq}.
 
 
 

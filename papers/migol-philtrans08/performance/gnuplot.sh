@@ -47,6 +47,12 @@ set output "perf_submission.eps"
 plot "data.txt" using 1:2:3  title "Submission Time" with boxes linetype 1  fs solid 0.5
     #"data.txt" using 1:4:6 title "Resource Creation" with boxes linetype 1  fs solid 0.5
     # "data.txt" using 1:5:6 title "Delegation on Demand" with boxes fs pattern
+ 
+set output "perf_glidein.eps"
+set xtics ("No Glide-In" 1, "1 Glide-In" 2.0, "2 Glide-Ins" 3.0, "4 Glide-Ins" 4.0)
+set yrange [0:120]    
+set style fill solid 0.9    
+plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5       
 
 # set output "perf_runtime.eps" 
 # set xtics ("NAMD runtime\n (w/o SAGA/Migol) "  1, "NAMD runtime\n (with SAGA/Migol)" 2)  
@@ -91,12 +97,26 @@ plot  "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp,\
 set xrange [1.75:17] 
 set yrange [0:65]  
 set ytics (10, 20, 30, 40, 50,60) 
-set output "perf_remd_glidin.eps"      
-plot  "data-remd-glidein.txt" using 1:2:3 title "Without Glide-In (QB)" with errorlines,\
-      "data-remd-glidein.txt" using 1:4:5 title "With Glide-In (QB)" with errorlines      
+set output "perf_remd_glidin.eps"                              
+
+plot  "data-remd-glidein.txt" using 1:2 title "Without Glide-In" with lp,\
+      "data-remd-glidein.txt" using 1:3 title "With Glide-In" with lp
+      #errorlines      
       
 
 # plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\
 #      "data-remd.txt" using 1:6 title "SAGA/GRAM (QB/Poseidon/Eric)" with lp,\
 #      "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp,\
 #      "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp     
+
+
+set output "perf_remd_timesteps.eps"
+set ylabel "NAMD Timesteps/Second" #font "Helvetica, 20"
+set xlabel "Number Replica Processes"
+set yrange [0:45]  
+set ytics (10, 20, 30, 40)   
+set xrange [0.9:9.25]  
+set xtics (1,2,4,8)
+plot  "data_remd_timesteps.txt" using 1:3 title "With Glide-In" with lp,\
+      "data_remd_timesteps.txt" using 1:2 title "Without Glide-In" with lp
+
