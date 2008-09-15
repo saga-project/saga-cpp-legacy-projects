@@ -371,7 +371,7 @@ common to both types however, is the design, development and
 deployment of a general purpose RE framework for distributed
 environments.
 
-\section{SAGA Migol: Providing A Checkpoint and Fault-Tolerant
+\section{SAGA \& Migol: Providing A Checkpoint and Fault-Tolerant
   Framework}\label{sec:sagamigol}
 
 \jhanote{I think we need just a paragraph or two at most, outlining
@@ -382,8 +382,8 @@ environments.
 
 The framework used for implementing REMD consists of two  primary components: SAGA and Migol.     
 While SAGA represents a well-defined, standardized abstraction for writing Grid applications,
-Migol provides the underlying middleware services to guarantees the correct and reliable exe\-cution of applications
-even in the presence of failures.
+Migol provides the underlying middleware services to guarantee the correct and reliable 
+exe\-cution of applications even in the presence of failures.
     
 
 Migol is an  adaptive Grid middleware and provides several mechanisms for supporting the fault tolerance
@@ -396,8 +396,9 @@ of Migol. Once registered, Migol will handle the monitoring and, if necessary, t
 % The framework is based on the Globus Toolkit 4.  
 The SAGA CPR API provides a high-level programming abstraction for starting, monitoring and recovering
 of checkpoint-restartable jobs. To support these use cases, applications can register
-checkpoint and job metadata using this API. Migol represents the natural counterpart
-for the SAGA CPR API. Migol has been seamlessly integrated into the SAGA C++ reference implementation
+checkpoint and job metadata with a Grid middleware, such as Migol, using this API. 
+% Migol represents the natural counterpart for the SAGA CPR API. 
+Migol has been seamlessly integrated into the SAGA C++ reference implementation
 using the provided adaptor mechanism. Details of the SAGA/Migol integration are described in~\citet{Luckow:2008la}.
 
 SAGA and Migol offer a scalable, general purpose and extensible environment for developing resilient Grid applications. 
@@ -485,11 +486,10 @@ job management and monitoring.
 Despite their mostly loosely coupled nature, RE simulations require
 a small level of coupling.  The central master, the RE-Manager, must
 periodically obtain the results, i.\,e.\ the energy levels, of all
-replicas to determine the new configuration of the next RE step.  As
-result of this synchronization, a single overloaded or slow machine
-can delay the overall progress. This significantly limits the
-applicability of RE to heterogenous distributed environments, such
-as Grids.  Even on a single machine the required synchronization leads
+replicas to determine the new configuration of the next RE step.  
+This significantly limits the applicability of RE to heterogenous 
+distributed environments, such as Grids.  Even on a single machine 
+the required synchronization leads
 to various load-balancing and scheduling issues. In distributed
 environments jobs often experience large slowdowns due to
 long queueing times in particular when using production resources. 
@@ -508,7 +508,7 @@ is required.
 Another important issue in error-prone distributed environments is
 fault tolerance.  Especially RE simulations are very fragile: the
 loss of a single replica process due to a node or network failure
-usually causes the abort of the entire simulations. Thus, the
+usually causes the abort of the entire simulation. Thus, the
 middleware must detect and resolve failures, such as the crash of the 
 Globus GRAM or of a resource running parts of the RE application, accurately.
                                   
@@ -519,7 +519,7 @@ Implementing an approach that can scale up to very large
 production infrastructures is a far more challenging task than
 implementing a toy-model on a research environment. Our approach is
 aimed strictly at the former, to provide a basis for real scientific
-problems. The scale-up and complexities of production environment makes
+problems. The scale-up and complexity of production environment makes
 this extension non-trivial.
 
 % Another challenge in a heterogeneous environments is the
@@ -533,7 +533,7 @@ this extension non-trivial.
 I added the important points to challenges. The description of our approach have been 
 moved back to the Implementation and Scheduling section.}
                          
-\section{Implementing Distributed Replica-Exchange Using SAGA}
+\section{Implementing Distributed Replica-Exchange Using SAGA \& Migol}
 
 \jhanote{this is an important section. we need to put in details of
   how our implementation addresses issues of bigjob/smalljob to
@@ -541,13 +541,12 @@ moved back to the Implementation and Scheduling section.}
   to different scheduler loads on different machines..}
 
 The \emph{Simple API for Grid Applications (SAGA)}~\citep{saga_gfd90}
-provides an easy-to-use standardised API for developing a broad range
+provides an easy-to-use, standardised API for developing a broad range
 of distributed applications, including, but not limited to
-loosely-coupled data and/or pleasingly-distributed applications.  
-In particular, SAGA offers an API for the management of
-checkpoint-recoverable jobs and file transfers that can be used over
-heterogenous distributed environment. Thus, SAGA is ideally suited for
-encoding the orchestration logic of RE simulations.
+loosely-coupled applications.  In particular, SAGA CPR and Migol allows 
+the efficient management of checkpoint-recoverable jobs. 
+% Thus, SAGA is ideally suited for
+% encoding the orchestration logic of RE simulations.
 
 \jhanote{Joohyun: Put in a paragraph or two of the main points of the
   how it is done here; maybe even discussing the ideas related to
@@ -561,8 +560,8 @@ encoding the orchestration logic of RE simulations.
           \includegraphics[width=0.8\textwidth]{REMDgManager-architecture.pdf}
           \caption{\footnotesize \bf Components of RE-Manager: The
             core of the framework, the RE-manager, orchestrates 
-            a set of distributed replica processes using the abstractions provided
-            by SAGA. The Replica-Agent is responsible for managing and monitoring 
+            a set of distributed replica processes using SAGA \& Migol. 
+            The Replica-Agent is responsible for managing and monitoring 
             replica processes on a single machine. Finally, the Migol 
             infrastructure ensures that the RE-Manager and the Replica-Agent 
             are monitored and recovered if necessary.            
@@ -597,8 +596,8 @@ are carried out. The \replicaagent\ is launched using SAGA CPR and Migol.
 It is responsible for spawning and monitoring of the replica processes. 
 NAMD~\citep{Phillips:2005gd}, a highly scalable, parallel MD
 code, is used to carry out the MD simulation corresponding to each
-replica run. It is important to mention that any other MD or MC code 
-could be used just as simply and effectively.
+replica run. It is important to mention that any other Molecular Dynamics 
+or Monte Carlo code could be used just as simply and effectively.
 
 The last component is Migol and the underlying Globus middleware. 
 Migol handles the reliable execution of replica processes, i.\,e.\ the submission,
@@ -667,7 +666,7 @@ give it a separate section. I also think it is more readable than going to the
 subsubsection level.}           
 \section{SAGA Glide-In: Efficient Job Scheduling for RE Jobs}
 
-While SAGA provides a well-defined abstraction to implement the RE framework, there
+As described in section~\ref{sec:challenges}, there
 is a severe limitation: all jobs are required to queue at the  
 resource management system potentially causing a slowdown of the overall application. 
 To avoid this issue an efficient dispatching schema for RE tasks is required.
@@ -681,7 +680,8 @@ To avoid this issue an efficient dispatching schema for RE tasks is required.
 % the SAGA framework by providing a well-defined abstraction for
 % applications that require the use of a glidin mechanism.
 
-\subsection{Job Patterns and Abstractions} 
+
+\subsection{Patterns and Abstractions} 
 
 % This principle is also known as \glidein\ .  
 
@@ -689,8 +689,15 @@ To avoid this issue an efficient dispatching schema for RE tasks is required.
 %   letter of every word that follows the \glidein\ macro! Andre M, the
 %   latex man, any ideas?}
 
-A common principle to prevent queuing delays is the usage of Glide-In jobs  
-(see~\cite{citeulike:291860}). This job represents a placeholder 
+% A common principle to enhance the predictability of application runs and to prevent 
+% queuing delays are advance reservation.  An advance reservation commits a particular
+% resource over a defined time interval from the service provide to the consumer. Advance 
+% reservations allow the efficient co-allocation of resources without wasting compute cycles.
+% Migol's Advance Reservation Service (ARS)~\cite{Jeske:2007wj} e.\,g.\ allows the usage of
+% advance reservations on top of Globus.
+
+
+Glide-In jobs (see~\cite{citeulike:291860}). This job represents a placeholder 
 for a set of sub-jobs. For this Glide-In job a sufficiently large chunk of resources 
 is requested. Smaller sub-jobs can then rapidly be executed through 
 the Glide-In job. By avoiding the high initial costs for queueing each individual 
@@ -1253,7 +1260,7 @@ middleware.  In contrast to WISDOM and Folding@home, our approach is
 not restricted to a specific distributed environment. SAGA based
 job-launching and file-handling is supported on most general-purpose
 Grids via the appropriate adaptors, as SAGA is a community
-specification and is soon to be standard~\citep{saga_url}
+specification and is soon to be standard~\citep{saga_url}.
  
 \noindent{\it Other Glide-In Frameworks:}   
 Different systems that use similar Glide-In approaches have been
