@@ -291,7 +291,7 @@ class advert_launcher:
 	            pass
 	
     def print_job(self, job_dir):
-	return  "Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
+	return  "Job: " + job_dir.get_url().get_string() + " Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
                                 
     def monitor_checkpoints(self):
         """ parses all job working directories and registers files with Migol via SAGA/CPR """

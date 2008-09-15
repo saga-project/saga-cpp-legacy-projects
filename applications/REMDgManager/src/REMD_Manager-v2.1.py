@@ -36,7 +36,8 @@ import pdb
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
 SCP = False
-GlideIn = False
+GlideIn = True
+AdaptiveSampling = True
 
 ########################################################
 #  Global variable 
@@ -582,8 +583,8 @@ def run_REMDg(configfile_name):
            host = RE_info.remote_hosts[irep]
 	       # print "Glidin job on host: " + host + "state: " + str(glidin_job_states[host]).lower()
            # only start replicas if glidin job is running
-           #if GlideIn == False or replica_id_glidein_dict.has_key(irep): 
-           if GlideIn == False or all_glideins_ready == True: 
+           if GlideIn == False or (replica_id_glidein_dict.has_key(irep) and AdaptiveSampling==True) or all_glideins_ready == True:
+           #if GlideIn == False or all_glideins_ready == True: 
                remote_machine_ip = RE_info.remote_hosts[irep]
                if len(RE_info.gridftp_hosts)>0:
                    remote_machine_ip = RE_info.gridftp_hosts[irep]
@@ -607,7 +608,8 @@ def run_REMDg(configfile_name):
 	        # print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower()
             # only start replicas if glidin job is running
             #if GlideIn==True and  replica_id_glidein_dict.has_key(irep):
-            if GlideIn==True and  all_glideins_ready == True:
+            #if GlideIn==True and  all_glideins_ready == True:
+            if GlideIn == False or (replica_id_glidein_dict.has_key(irep) and AdaptiveSampling==True) or all_glideins_ready == True:
                 jd = set_saga_job_description(irep, RE_info, "")
                 dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
                 checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
