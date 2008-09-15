@@ -153,9 +153,9 @@
 \begin{abstract}
   The aim of this paper is to demonstrate how the Simple API for Grid
   Applications (SAGA) can be used to develop a very wide-range of
-  distributed applications. In particular it is an effective tool for
-  implementing the coordination and orchestration of dynamic
-  applications, with possibly distributed many-tasks, whilst keeping
+  distributed applications with agile execution models. In particular
+  SAGA is an effective tool for coordinating and orchestrating dynamic
+  applications with many-tasks, possibly distributed, whilst keeping
   the application agnostic to the details of the infrastructure used.
   Specifically, in this paper we describe how SAGA has been used to
   develop applications from the following classes of distributed
@@ -175,7 +175,7 @@
 
 There exist many scientific problems that are solved by the collective
 analysis of many independent tasks, e.g., Monte-Carlo simulations, or
-simple parameter sweeps. However, there exist a large class of
+parameter sweeps. However, there exist a large class of
 scientific problems that involve applications that can either be
 decomposed into smaller coupled sub-tasks via the of choice an
 algoirthm, or are naturally composed of coupled sub-tasks.  In this
@@ -227,7 +227,7 @@ loosely-coupled, the nature of the coupling between their sub-tasks
 varies. It is important to appreciate the nature of the coupling of
 the sub-tasks, as it imposes constraints on scheduling and resource
 mapping strategies as well as any speculative computing.  Thus, along
-with the size and the number of sub-tasks, the nature of coupling
+with the size and number of sub-tasks, the nature of coupling
 determines the overall development and deployment strategy.
 
 % In the former, the sub-tasks progress independent of other sub-tasks
@@ -443,7 +443,7 @@ of which Replica-Exchange Molecular Dynamics
 important and promising attempt to overcome the general limitations of
 insufficient time-scales, as well as specific limitations of
 inadequate conformational sampling arising from kinetic trappings.  In
-the simplest formulation, Replica-exchange (RE) is an algorithm whereby one
+the simplest formulation, RE is an algorithm whereby one
 single long-running simulation is be substituted for an ensemble of
 shorter-running similar simulations, but which are very
 loosely-coupled, ie, the interval between exchange attempts is much
@@ -462,7 +462,12 @@ candidates for distributed environments.
 \up
 
 \alnote{Should I mention CPR/Migol or should I rather keep it on the
-  ``abstractions'' level?} RE simulations can be thought of as
+  ``abstractions'' level?}
+
+There are many architectural aspects of the framework used to
+implement RE simulations. However, we will focus on the abstractions
+that we create using SAGA that enable efficient job-submission on any
+underlying infrastructure.  RE simulations can be thought of as
 consisting of two distinct components: the simulation engine/mechanism
 used for each replica process, and the orchestration-coupling
 mechanism between the individual replicas. Our current RE framework
@@ -470,48 +475,47 @@ uses NAMD for the former and a SAGA-based framework for orchestration
 and coordination of the replica sub-tasks.
 
 The developed RE framework~\cite{Luckow:2008la} comprises of the
-\emph{RE-Manager}, the central master deployed on the user's desktop,
-and the \textit{Replica-Agents}, that reside on the High Performance
-machines where RE simulations are carried out. The RE-Manager
-orchestrates all replicas, i.\,e.\ it is responsible for the
-parameterization of replica tasks, file staging, job spawning and the
-conduction of the replica-exchange itself.  The Replica-Agent is
-launched by a Grid job and is responsible for spawning and monitoring
-the replica processes.
+\emph{RE-Manager} -- the central master deployed on the user's
+desktop, and the \textit{Replica-Agents}, that reside on the machines
+where RE simulations are carried out. The RE-Manager orchestrates all
+replicas, i.\,e.\ it is responsible for the parameterization of
+replica tasks, file staging, job spawning and the conduction of the
+replica-exchange itself.  The Replica-Agent %is launched by a Grid job
+%and 
+is responsible for spawning and monitoring the replicas (sub-tasks).
 
+In particular, queueing delays can represent a major bottleneck: a
+single crowded resource can slowdown the simulation arbitrary. Thus,
+to achieve an optimal time to solution, RE sub-tasks need to be
+dispatched efficiently.  A common principle to prevent this is the
+usage of Glide-In jobs, which represent a placeholder for a set of
+sub-tasks (see Frey et.\,al.~\cite{citeulike:291860}).  For a Glide-In
+job, a sufficiently large chunk of resources is requested. Smaller
+sub-tasks can then rapidly be executed through the Glide-In job.
 Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used
-within the RE framework.  For file management the RE-Manager utilizes
-the SAGA File API. More complex, is the management of replica
-sub-jobs. To achieve an optimal time to solution an efficient
-dispatching of the RE sub-jobs is required.
+within the RE framework.
 
 \up
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{remdmanager_v11.pdf}
-    \caption{Replica Exchange Framework Abstractions:      
-          The Replica-Agent is used as placeholder job for
-          all replica sub-jobs running on a single cluster. The
-          RE-Manager can control both the Replica-Agents and the replica
-          jobs using a SAGA-based user-level job API. By using this
-          efficient way to allocate resources, queuing times are minimized
-          and the time to completion can be dramatically reduced. \up}
+        \caption{Replica Exchange Framework Abstractions: The
+          Replica-Agent is used as placeholder job for all sub-tasks
+          running on a single cluster. The RE-Manager can control both
+          the Replica-Agents and the replica jobs using a SAGA-based
+          user-level job API. By using this efficient way to allocate
+          resources, queuing times are minimized and the time to
+          completion can be dramatically reduced when using multiple
+          and single resources. \up}
     \label{fig:remdmanager_v11}
 \end{figure}  
 
-In particular, queueing delays can represent a major bottleneck: a
-single crowded resource can slowdown the simulation arbitrary. A
-common principle to prevent this is the usage of Glide-In jobs, which
-represent a placeholder for a set of sub-jobs (see Frey
-et.\,al.~\cite{citeulike:291860}).  For this Glide-In job a
-sufficiently large chunk of resources is requested. Smaller sub-jobs
-can then rapidly be executed through the Glide-In job.
 
 The SAGA Glide-In framework comprises of two components: 1) The
 Glide-In manager provides the enhance job model API and allows the
-management of both Glide-In jobs and sub-jobs.  2) The Replica-Agents
+management of both Glide-In jobs and sub-tasks.  2) The Replica-Agents
 represent the Glide-In jobs. The agents manage their allocated
-resources and dispatch sub-jobs on request. In this sense the
+resources and dispatch sub-tasks on request. In this sense the
 Replica-Agents implement the functionality of an application-level
 scheduler. Communication between the Replica-Agent and Glide-In
 manager is carried out using the SAGA advert service, a central
@@ -519,28 +523,30 @@ key/value store.
 
 With this capability the SAGA Glide-In framework provides a novel
 system-level abstraction for allocating larger chunks of resources and
-for mapping these resources to a set of sub-jobs. The enhanced job
-model can be used as drop-in replacement for a SAGA job objects. No
-code modification is required -- the application only maps the
-sub-jobs to a suitable Glide-In job.  The RE-Manager relies on the
+for mapping these resources to a set of sub-jobs.%  The enhanced job
+% model can be used as drop-in replacement for SAGA job objects.
+No code modification is required -- the application only maps the
+sub-tasks to a suitable Glide-In job.  The RE-Manager relies on the
 SAGA Glide-In framework to reserve resources on a cluster and to
 efficiently dispatch RE processes to these nodes.
 
 While the implementation of the enhanced job model is entirely based
-on SAGA and in particular the SAGA Advert Service, a central key/value
-store, a utilization of other frameworks, such as the original Condor
-Glide-In~\cite{citeulike:291860} or Falcon~\cite{1362680}, is
-possible. Currently, we are actively working on a Condor adaptor for
-SAGA, which will also support native Glide-In functionality for Condor
-Jobs; our enhanced job model will then serve as abstraction, while the
-Condor level Glide-In is used as implementation where appropriate.
-However, the strengths of our approach are the following: A general
-purpose Glide-in mechanism that does not require either Condor, or
-Globus and which sub-tasks are part of a Glide-In meta-job, can be
-controlled at the application-level. Secondly, the same mechanisms can
-be used to exploit distributed resources on the
-TeraGrid~\cite{repex_ptrsa}, as well as top-end single resources,
-without any changes in application code.
+on SAGA %and in particular the SAGA Advert Service,
+we can utilise other frameworks, such as the original Condor
+Glide-In~\cite{citeulike:291860} or Falcon~\cite{1362680}. Currently,
+we are actively working on a Condor adaptor for
+SAGA~\cite{saga_condor}, which will also support native Glide-In
+functionality for Condor Jobs; our enhanced job model will then serve
+as abstraction, while the Condor level Glide-In will be used where
+appropriate.  Irrespective of that, however, the strengths of our
+approach are the following: A general purpose Glide-in mechanism that
+does not require either Condor, or Globus and in which sub-tasks are
+part of a Glide-In meta-job, can be controlled at the
+application-level using simple {\it ssh} if needed. Secondly, the same
+mechanisms can be used to exploit distributed
+resources~\cite{repex_ptrsa}, as well as single high-end resources,
+without any changes in application code.  This represents the basis of
+our claim of independence from underlying-infrastructure.
 
 \up
 
@@ -552,20 +558,22 @@ without any changes in application code.
 % experiments have been conducted on the TeraGrid~\cite{teragrid} and
 % LONI~\cite{loni}.  
 
-We have shown how using multiple TeraGrid/LONI resources, the
-time-to-solution can be reduced; here we focus on using the same
-infrastructure to reduce the time-to-solution on a single machine.  In
-particular, the scalability of the Glide-In framework has been
-extensively tested on QueenBee (QB).
+We have shown how using the SAGA Glide-In infrastructure on multiple
+TeraGrid/LONI resources, the time-to-solution can be
+reduced~\cite{Luckow:2008la}; here we focus on using the same
+infrastructure to reduce the time-to-solution on a single machine.
+This is also a test of the scalability of the SAGA-based Glide-In
+framework on a single machines. % (QueenBee (QB)).
 
 Figure~\ref{fig:perf_remd_glidin} shows that the Glide-In framework is
-especially beneficial if queueing delays occur. The more processes are
-spawned, the more likely are such delays. While with the SAGA Glide-In
-framework the runtime only modestly increase with more than 8
-replicas, the runtime rapidly rises when using regular Globus job for
-spawning NAMD tasks. The unpredictable nature of these queueing times
-becomes obvious by the high standard deviation found in the
-measurements.
+especially beneficial if there are fluctuations in the queue-time for
+the sub-tasks (which is almost always!). The more sub-tasks are
+spawned, the more likely such fluctuations/delays become. While with
+the SAGA Glide-In framework the runtime only modestly increase with
+more than 8 replicas, the runtime rapidly rises when using regular
+Globus job for spawning NAMD tasks. The unpredictable nature of these
+queueing times becomes obvious by the high standard deviation found in
+the measurements.
 
 
 \begin{figure}[htbp]
@@ -586,22 +594,23 @@ measurements.
 
 Figure~\ref{fig:perf_remd_glidin} shows that the SAGA Glide-In
 framework can provide a reduced time to solution even on a single
-machine by avoiding queuing times for every sub-task and allowing the
-efficient dispatching of RE tasks solely through the
-Replica-Agent. During our experiments we were able to measure speedups
-of up to 80\,\%.
+machine by avoiding queuing time delays and fluctuations for every
+sub-task and allowing the efficient dispatching of RE tasks solely
+through the Replica-Agent. During our experiments we were able to
+measure speedups of up to 80\,\% compared to the non Glide-In
+approach.
 
-The unpredictable nature of these queueing times is reflected in the
-high standard deviation observed in the runtimes. While queueing times
-also have an impact on Glide-Ins, these are in general less severe.
-Further, for the Glide-In scenario, the queueing times become
-negligible, the longer the RE simulation is (the runtimes have been
-kept short for this simple scenario). In contrast, when no Glide-Ins
-are used every sub-jobs is subject to the queuing delay at the local
-scheduler.
+% The unpredictable nature of these queueing times is reflected in the
+% high standard deviation observed in the runtimes. While queueing times
+% also have an impact on Glide-Ins, these are in general less severe.
+% Further, for the Glide-In scenario, the queueing times become
+% negligible, the longer the RE simulation is (the runtimes have been
+% kept short for this simple scenario). In contrast, when no Glide-Ins
+% are used every sub-jobs is subject to the queuing delay at the local
+% scheduler.
 
 The results can be summarized as follows: 1) The SAGA Glide-In
-framework can efficiently dispatch RE sub-jobs providing an enhanced
+framework can efficiently dispatch RE sub-tasks providing an enhanced
 time to solution even when deployed on a single machines. 2) By using
 a clever assignment of Glide-Ins to hosts and jobs, the runtime can be
 further optimized. In future, we plan to utilize this by deploying
@@ -662,7 +671,7 @@ problem.
       checkpoint and restart ready on different number of processor;
       many of these capabilities are provided by Cactus.  SAGA is used
       to provide control of the required distributed functionality --
-      identifying best resource for sub-taks, submitting these
+      identifying best resource for sub-tasks, submitting these
       sub-tasks etc. See Ref~\cite{saga_tg08} for more details.\up\up}
     \label{fig:kalmanfilter}
 \end{figure}  
@@ -704,7 +713,7 @@ advantageous~\cite{escience07}.
 
 We have developed a mechanism whereby EnKF can be
 solved using multiple-resources, using application-level scheduling
-applied dynamically~\cite{saga_tg08}, ie mapping the sub-taks
+applied dynamically~\cite{saga_tg08}, ie mapping the sub-tasks
 requirement to the resources available at the instant the sub-tasks
 become available and ready to run, as opposed to {\it a priori} static
 method of job submission. For the problem size studied, the sub-tasks
@@ -723,10 +732,10 @@ often goes up (disproportionately). Thus a mechanism (multiple,
 distributed versus single machine) that is more efficient for physical
 models with sub-tasks that have typically low processor counts, will
 not necessarily be the more efficient as the typical sub-task size
-increases. Thus it is crucial that any general-purpose solution be
+increases. Therefore it is crucial that any general-purpose solution be
 usable on both single large machines to multiple machines.
 \jhanote{Yaakoub, do you have measure of time-to-completion for the
-  two-cases of the toy-problem?}. Ideally we can enhance throughput
+  two-cases of the toy-problem?} Ideally we can enhance throughput
 further by applying the Glide-In mechanisms developed to the dynamic
 tasks to aggregate similar sub-tasks. We will report on the results of
 this in future work.
@@ -740,10 +749,10 @@ than running on a single machine.  Authentication, job launching,
 multiple executables in correct paths for different architectures and
 file systems, and of course file transfer across the different
 machines are all possible points of failure. Rigorous fault tolerance
-can be built into application framework using SAGA and the advert
-service; however can be argued that running all the models on a single
-large machine would be a simpler solution as all of the
-afore-mentioned technical difficulties are eliminated.
+can be built into application framework using
+SAGA~\cite{Luckow:2008la}; however it can be argued that running all
+the models on a single large machine would be a simpler solution as
+all of the afore-mentioned technical difficulties are eliminated.
 
 \up
 
@@ -758,24 +767,23 @@ afore-mentioned technical difficulties are eliminated.
 
 As mentioned in the opening section, using SAGA we have developed
 programming and execution models, whereby applications are independent
-of the underlying infrastructure, i.e., either use a single-monolithic
-mammoth machine, or multiple-distributed machine, depending upon the
+of the underlying infrastructure, i.e., either use a monolithic
+mammoth machine, or multiple-distributed machines, depending upon the
 physical problem being investigated, without any modification at the
 application-level code. In spite of these theoretical advances, in
 practise end-users often find it more convenient to use single
-resources, even if not optimally-efficient.  The deployment of
-distributed applications heterogeneous resources belonging to
-different organizations is a difficult task.  To highlight just some
-of the challenges of deploying advanced application on general-purpose
-distributed infrastructure, we mention the fact that at best 33\% (ie
-one in three) of the resources we tried were usable.  We mention two
-problems that we encountered and led to a high amount of
+resources, even if not optimally-efficient.  The smooth and effective
+deployment of distributed applications on heterogeneous resources
+remains is a difficult task.  To highlight just some of the challenges
+of deploying advanced application on general-purpose distributed
+infrastructure, we mention the fact that at best 33\% of the resources
+we tried were usable (ie two in three were not usable) .  We mention
+two problems that we encountered and led to a high amount of
 complexity: different library versions and broken Globus
-installations.
-Specifically, the Globus installations on TeraGrid machines proved to be
-quite different.  For example, the Globus GRAM2 versions on Abe and
-QueenBee map the RSL count element different: While on QB the count
-element is mapped to the number of cores, on Abe this element
+installations.  Also, Globus installations on TeraGrid machines proved
+to be quite different.  For example, the Globus GRAM2 versions on Abe
+and QueenBee map the RSL count element different: While on QB the
+count element is mapped to the number of cores, on Abe this element
 describes the number of nodes. Further standardization of this aspect
 is required in the future. The GRAM2 on Ranger (in particular the Sun
 GridEngine adaptor) was completely unusable due to the lack of support
@@ -798,11 +806,14 @@ Moving past the firewall and GRAM2 issues, getting the right
 certificates that are recognized on the machine, we discovered there
 were even more issues that need to be resolved: GridFTP was not
 working, the Globus/SGE script had a small error in it that had to be
-corrected. These issues are outlined in tickets 4957, 5111, 5130,
+corrected.  These issues are outlined in tickets 4957, 5111, 5130,
 5145, 5172 and 5174. It is important to note that we encountered
 excellent response time and expert system administrators who resolved
 all of these issues promptly, but reiterates the complexity of
-utilising multiple resources from general-purpose grids.
+utilising multiple resources from general-purpose grids.  The aim here
+is not to criticise any provider -- resource or software product, but
+to simply highlight the practical challenges of deploying distributed
+applications.
 
 %\jhanote{Will need to shorten this paragraph}
 
@@ -821,12 +832,12 @@ utilising multiple resources from general-purpose grids.
 
 \up\upp
 
-SAGA provides the abstractions and the ability to create multi-tasks
+SAGA provides the abstractions and the ability to create many-task
 applications that can exploit multiple and different infrastructure
 types.  We have demonstrated this via the implementation of two
 distinct, specific applications but both representative of a broader
 class of applications and running them in two different execution
-environments without changing the application in any way!The specific
+environments without changing the application in any way! The specific
 applications differed not only in the types of sub-tasks (homogeneous
 versus heterogeneous) but also in the nature of the coupling between
 the sub-tasks.
@@ -835,17 +846,33 @@ the sub-tasks.
   for different programming models, this is also proof of support for
   agile execution models.}
 
-It is interesting to note that ``simple, naive'' implementations of
-these applications are possible; these would have these applications
-being developed as ``grid-unaware'' applications.  Although we don't
-provide details here, the power of these applications arise from their
-ability to have an agile execution model, i.e., by being adaptive to
-dynamics resource requirements or availability. In order to develop
-these applications such that they have agile execution models, these
-applications need to be grid-aware, ie explicitly control the
-distributed aspects. We believe explicit control is a critical for
-adaptive applications and posit that SAGA provides an important
-mechanism to implement the distributed features explicitly.
+It is interesting to note that {\it simple, naive} implementations of
+these applications are possible; these would require these
+applications to be ``grid-unaware'' (or implicitly distributed).
+Although we don't provide details here, the real power of these
+applications arise from their ability to have an agile execution
+model, i.e., by being adaptive to dynamic resource requirements or
+availability. In other words, in order to develop applications that
+have agile execution models, more often than not, applications need to
+explicitly control the distributed aspects, i.e., be {\it grid-aware}
+We posit that SAGA provides an important mechanism to develop
+explicitly distributed applications.
+
+% We believe explicit control is a critical for adaptive applications
+% and posit that SAGA provides an important mechanism to implement the
+% distributed features explicitly.
+
+% Finally, somewhat related to the concept of explicitly distributed
+% applications, is the challenge of optimally scheduling sub-tasks.
+Optimally scheduling sub-tasks remains a challenge of ``many tasks''
+distributed computing; however as demonstrated, for adaptive
+applications, scheduling can often be done effectively at the
+application level.  This is possible because, as shown, adaptive
+applications don't necessarily need tight co-scheduling, but often
+just lightweight-coupling between resources. This is yet another
+advantage of an agile-execution model.
+
+%when running concurrent sub-tasks of 
 
 \jhanote{Need to talk about algorithms that can be decomposed
   spatially, but retain a level of synchronisation, between stages,
@@ -874,6 +901,7 @@ at Louisiana State University and computer resources provided by LONI.
 
 \bibliographystyle{IEEEtran}
 \bibliography{saga,literatur}
+
 \end{document}
 
 
