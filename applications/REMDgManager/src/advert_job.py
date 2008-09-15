@@ -72,15 +72,11 @@ class advert_glidin_job():
         else:	
         	jd = saga.job.description()
 
-
 	jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
-        #jd.executable = os.getcwd() + "/advert_launcher.sh"
 	jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh"
-	#jd.executable = "$(HOME) # /src/REMDgManager/src/mpi_test.sh"
         jd.queue = project + "@" + queue
-        #jd.workingdirectory = os.getcwd()
         jd.workingdirectory = "$(HOME)"
         jd.output = "advert-launcher-stdout.txt"
         jd.error = "advert-launcher-stderr.txt"

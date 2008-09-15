@@ -152,7 +152,6 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
 """ state files with SCP
     This function assumes that public/key authentication for SCP is enabled """
 def file_stage_in_with_scp(input_file_list_with_path, remote_machine_ip, remote_dir):
-    #pdb.set_trace()    
     for ifile in input_file_list_with_path:
         print "stage file: " + ifile
         dest_url_str = remote_machine_ip + ":"
@@ -252,7 +251,6 @@ def get_energy(replica_ID, RE_info):
  
     file_list = ["output.txt"]  
     local_dir = os.getcwd()
-    #pdb.set_trace()
     remote_machine_ip = RE_info.remote_hosts[replica_ID]
     if len(RE_info.gridftp_hosts)>0:
            	remote_machine_ip = RE_info.gridftp_hosts[replica_ID]
@@ -444,7 +442,6 @@ def start_glidin_jobs(RE_info):
         project = RE_info.projects[RE_info.remote_hosts.index(i)]
         queue = RE_info.queues[RE_info.remote_hosts.index(i)]
         workingdirectory = RE_info.workingdirectories[RE_info.remote_hosts.index(i)]
-        #pdb.set_trace()	
         userproxy=None
         try:
             userproxy = RE_info.userproxy[RE_info.remote_hosts.index(i)]
@@ -506,7 +503,6 @@ def run_REMDg(configfile_name):
     start = time.time()
     # initialize of all replica and its related variables
     RE_info = initialize(configfile_name)
-    
     numEX = RE_info.exchange_count    
     
     ofilename = "remd-temp.out"
@@ -541,17 +537,16 @@ def run_REMDg(configfile_name):
         print "\n"
         # reset replica number
         numReplica = RE_info.replica_count
-        # query glidin job states and cache them into a dict.
-        #all_glidins_running = True
-        #new_glidin_job_states={}
         
         ####################################### check for Glide-In states ################################################
+        # query glidin job states and cache them into a dict.
         replica_id_glidein_dict = {}
 	all_glideins_ready = False
         if GlideIn == True:
             # divide replica chunks
             unique_hosts = list(set(RE_info.remote_hosts))
             print "Number unique hosts: " + str(len(unique_hosts))
+            replica_id = 0
             for i in range(0, len(unique_hosts)):
                 host = unique_hosts[i]
                 num_rep_per_host = int(RE_info.remote_hosts.count(host)) 
@@ -560,36 +555,42 @@ def run_REMDg(configfile_name):
                     num_replica_per_glidein = num_rep_per_host/RE_info.number_glideins_per_host
                 
                 glidin_jobs = RE_info.advert_glidin_jobs[host]      
-                print "Host: " + host + " Number Glide-Ins: " + str(len(glidin_jobs))
+                print "Host: " + host + " Number Glide-Ins: " + str(len(glidin_jobs)) + " Number Replicas: " + str(num_rep_per_host)
                 for j in range(0, len(glidin_jobs)):
                     state = glidin_jobs[j].get_state_detail()
                     glidin_url = glidin_jobs[j].glidin_url 
                     print "glidein: " + glidin_url + " state: " + state
                     if state.lower()== "running":
-
                         # distribute replicas to glideins by setting glideinurl to replicaid
                         for r in range(0, num_replica_per_glidein):
-                            replica_id = (i*num_rep_per_host) + (j*num_replica_per_glidein) + r
+                            #replica_id = (i*num_rep_per_host) + (j*num_replica_per_glidein) + r
 			    if current_replica_id_glidein_dict.has_key(replica_id)==False:
                             	print "Glide-In: " + glidin_url + " got active after: " + str(time.time()-start_glidin) + " s"
 			    print "set replica id: " + str(replica_id) + " glidein: " + glidin_url + " state: running"
                             replica_id_glidein_dict[replica_id]=glidin_url
+			    replica_id = replica_id + 1
+		    else:
+		            replica_id = replica_id + num_replica_per_glidein
+		    	
 	current_replica_id_glidein_dict = replica_id_glidein_dict
 	if len(current_replica_id_glidein_dict.keys())==numReplica:
 		all_glideins_ready = True
                 print "All Glide-Ins got active after: " + str(time.time()-start_glidin) + " s"
         ####################################### NPT staging ################################################
-        for irep in range(0, numReplica):
+        for irep in range(0,numReplica):
            host = RE_info.remote_hosts[irep]
-	       # print "Glidin job on host: " + host + "state: " + str(glidin_job_states[host]).lower()
+	   if replica_id_glidein_dict.has_key(irep):
+	   	print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: " + str(replica_id_glidein_dict[irep]).lower()
+	   else:
+	   	print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: not running. "
            # only start replicas if glidin job is running
            if GlideIn == False or (replica_id_glidein_dict.has_key(irep) and AdaptiveSampling==True) or all_glideins_ready == True:
-           #if GlideIn == False or all_glideins_ready == True: 
                remote_machine_ip = RE_info.remote_hosts[irep]
                if len(RE_info.gridftp_hosts)>0:
                    remote_machine_ip = RE_info.gridftp_hosts[irep]
-                   remote_dir = RE_info.workingdirectories[irep]
-               
+
+               remote_dir = RE_info.workingdirectories[irep]
+               # prepare parameter 
                prepare_NAMD_config(irep, RE_info) 
                if SCP == True:
                    file_stage_in_with_scp([os.getcwd()+"/NPT.conf"], remote_machine_ip, remote_dir)
@@ -605,15 +606,11 @@ def run_REMDg(configfile_name):
         start_time = time.time()
         for irep in range(0,numReplica):
             host = RE_info.remote_hosts[irep]
-	        # print "Glidin job on host: " + host + " state: " + str(glidin_job_states[host]).lower()
-            # only start replicas if glidin job is running
-            #if GlideIn==True and  replica_id_glidein_dict.has_key(irep):
-            #if GlideIn==True and  all_glideins_ready == True:
+	    print "check host: " + str(host)
             if GlideIn == False or (replica_id_glidein_dict.has_key(irep) and AdaptiveSampling==True) or all_glideins_ready == True:
                 jd = set_saga_job_description(irep, RE_info, "")
                 dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
                 checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-                #glidin_url = RE_info.advert_glidin_jobs[host].glidin_url 
                 glidin_url = replica_id_glidein_dict[irep] 
                 error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
                 RE_info.replica.append(new_job)
@@ -636,8 +633,8 @@ def run_REMDg(configfile_name):
         
         numReplica = len(RE_info.replica)
         if numReplica == 0: # no replica process started
-		          time.sleep(10)
-		          continue # next attempt to start replica processes
+	        time.sleep(10)
+	        continue # next attempt to start replica processes
 
         print "started " + "%d"%numReplica + " of " + "%d"%RE_info.replica_count + " in this round." 
         print "Time for spawning " + "%d"%numReplica + " replica: " + str(end_time-start_time) + " s"
@@ -699,7 +696,7 @@ def run_REMDg(configfile_name):
         if iEX == numEX:
             break
 
-	    ########################## delete old jobs #####################
+	########################## delete old jobs #####################
         if GlideIn == True:	
 		for i in RE_info.replica:
 			i.delete_job()
