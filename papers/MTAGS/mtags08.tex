@@ -70,7 +70,7 @@
 \title{
   ~\\[-3em]
   Developing Applications With Loosely-Coupled Sub-Tasks Using a
-  Standard Programmatic Interface}
+  Simple and Standard Programmatic Interface}
 
   \author{
     ~\\[-2em]
@@ -151,20 +151,20 @@
 
 
 \begin{abstract}
-  The primary aim of this paper is to demonstrate how the Simple API
-  for Grid Applications (SAGA) can be used to develop a very
-  wide-range of distributed applications by being an effective tool
-  for programmatically representing and implementing the logic of
-  coordination and orchestrating multiple, possibly distributed tasks,
-  while keeping the application agnostic to the details of the
-  environment.  Specifically, in this paper we describe how SAGA has
-  been used to develop applications from the following classes of
-  distributed applications: (i) applications with loosely-coupled
-  homogeneous sub-tasks and, (ii) applications with loosely-coupled
-  heterogeneous sub-tasks. We also analyse and contrast the application
+  The aim of this paper is to demonstrate how the Simple API for Grid
+  Applications (SAGA) can be used to develop a very wide-range of
+  distributed applications. In particular it is an effective tool for
+  implementing the coordination and orchestration of dynamic
+  applications, with possibly distributed many-tasks, whilst keeping
+  the application agnostic to the details of the infrastructure used.
+  Specifically, in this paper we describe how SAGA has been used to
+  develop applications from the following classes of distributed
+  applications: (i) applications with loosely-coupled homogeneous
+  sub-tasks and, (ii) applications with loosely-coupled heterogeneous
+  sub-tasks. We also analyse and contrast the application
   characteristics and coupling of the sub-tasks.  As we will show,
-  often many-task applications have dynamic characteristics, and thus
-  require support for both infrastructure-independent programming
+  applications with many-task often have dynamic characteristics, and
+  thus require support for both infrastructure-independent programming
   models and agile execution models. Hence attention must be paid to
   the practical deployment challenges along with the theoretical
   advances in the development of infrastructure-independent
@@ -173,18 +173,19 @@
 
 \up
 
-There exist many scientific problems that are solved by either the
-collective analysis of many indpendent tasks (e.g., Monte-Carlo
-simulations), or involve applications that can either be decomposed
-into smaller sub-tasks via the of choice an algoirthm or are naturally
-composed of coupled sub-tasks.  In this paper, we will discuss
-Replica-Exchange (RE) and an Ensemble Kalman-Filter (EnKF) based
-applications, as representative prototypes of the latter two types of
-application respectively. In addition to the similarity of the
-application characteristics, what binds the two together, is our
-adopted approach of developing distributed applications.  Although
-these two applications are quite similar, they possses important
-differences. For RE based simulations, the sub-tasks are identical
+There exist many scientific problems that are solved by the collective
+analysis of many independent tasks, e.g., Monte-Carlo simulations, or
+simple parameter sweeps. However, there exist a large class of
+scientific problems that involve applications that can either be
+decomposed into smaller coupled sub-tasks via the of choice an
+algoirthm, or are naturally composed of coupled sub-tasks.  In this
+paper, we will discuss Replica-Exchange (RE) and Ensemble
+Kalman-Filter (EnKF) based applications, as representative prototypes
+of of applications with coupled sub-tasks. In addition to a level of
+similarity between application characteristics, what binds the two
+together, is our adopted approach of developing distributed
+applications.  Although similar at some levels, they possses important
+differences too. For RE based simulations, the sub-tasks are identical
 (ie. replicas), whereas for the EnKF the sub-tasks are
 heterogenous. Additionally the nature of coupling between the
 sub-tasks in the former (regular intervals and pair-wise) is very
@@ -198,60 +199,83 @@ point).
 % loosely-coupled identical sub-tasks (ie replicas) and loosely-coupled
 % but heterogenous sub-tasks.
 
-The aim of this paper is to demonstrate that these applications can be
-deployed and executed on high-end machines, using exactly the same
-framework, ie, there exists a standard, programmatic approach to
-codify these applications such that they can be seamlessly run on any
-underlying infrastructure. Critically this implies that the the
-application developer focuses on supporting the application
-characteristics and not worrying about the details of the underlying
-infrastructure.
+The Simple API for Grid Applications (SAGA)~\cite{saga-core, saga_url}
+provides a simple, standard, programmatic approach to codify
+distributed applications such that they can be seamlessly run on any
+underlying infrastructure. Critically this allows the application
+developer to focus on supporting the application characteristics and
+exploiting the relative strengths of different infrastructure whilst
+not worrying about adapting to the details of the underlying
+infrastructure. Not being coupled to the details of the underlying
+infrastructure is a necessary condition for applications whose
+resource requirement might increase or those that might want to make
+opportunistic use of newly available resources. In other words
+independence from specific infrastructure, is a necessary condition
+for dynamic applications in order to achieve the desired
+agile-execution models and thus be adaptive.  The aim of this paper is
+to discuss how SAGA has been used to develop two applications with
+multiple sub-tasks in a way such that these applications can be
+deployed and executed on both distributed as well high-end machines,
+with a minimal, if not no-changes.
 
-Although both are classified as loosely-coupled, the nature of the
-coupling between the sub-tasks varies. We posit that along with the
-size and number of sub-tasks, the coupling between the sub-tasks is an
-important determinant of the development and deployment mechanism.
+% We posit that along with the size and number of sub-tasks,
+% the coupling between the sub-tasks is an important determinant of the
+% development and deployment mechanism.
 
-In the former, the sub-tasks progress independent of other sub-tasks
-with the exception of one (referred to as the paired replica). There
-is a pair-wise exchange of some parameters after a certain time-period
-(maybe fixed or not), and it is possible that the paired-replicas
-differ, i.e., a replica is paired with a different replica as time
-progresses. If the sub-task that a replica is paired with is not is
-not ready for exchange, the sub-tasks goes into a wait state, i.e.,
-the consequence of load-balancing is typically localized to the paired
-replica. If there are multiple replicas in a wait state, sophisticated
-scheduling can be invoked to progress waiting
-tasks. \jhanote{elaborate a bit}
+Although both applications we investigate are classified as
+loosely-coupled, the nature of the coupling between their sub-tasks
+varies. It is important to appreciate the nature of the coupling of
+the sub-tasks, as it imposes constraints on scheduling and resource
+mapping strategies as well as any speculative computing.  Thus, along
+with the size and the number of sub-tasks, the nature of coupling
+determines the overall development and deployment strategy.
 
-It is important to contrast this ``coupling'' with the coupling in the
-latter application's (EnKF) case. For the EnKF application, the
-multiple sub-tasks need to {\it all} complete as there is a global
-synchronization point, and the output of all sub-tasks are required to
-generate the input for the next stage.
+% In the former, the sub-tasks progress independent of other sub-tasks
+% with the exception of one (referred to as the paired replica). There
+% is a pair-wise exchange of some parameters after a certain time-period
+% (maybe fixed or not), and it is possible that the paired-replicas
+% differ, i.e., a replica is paired with a different replica as time
+% progresses. If the sub-task that a replica is paired with is not is
+% not ready for exchange, the sub-tasks goes into a wait state, i.e.,
+% the consequence of load-balancing is typically localized to the paired
+% replica. If there are multiple replicas in a wait state, sophisticated
+% scheduling can be invoked to progress waiting
+% tasks. \jhanote{elaborate a bit}
 
-It is important to appreciate the nature of the coupling of the
-sub-tasks, as it imposes constraints on the (i) scheduling strategies,
-(ii) speculative computing (iii) resource mapping strategies, and thus
-the deployment strategy.
+% It is important to contrast this ``coupling'' with the coupling in the
+% latter application's (EnKF) case. For the EnKF application, the
+% multiple sub-tasks need to {\it all} complete as there is a global
+% synchronization point, and the output of all sub-tasks are required to
+% generate the input for the next stage.
 
-As we will go onto discuss, it is often the problems associated with
-deployment on production general-purpose Grids (ie broad-Grids) using
-general purpose grid infrastructure that makes the uptake of grids
-challenging and often unattractive to the end-scientists. In a
-nutshell, deployment is more difficult as Grids systems are comprised
-of many ``isolated'' components and we believe that this contributes
-to currently unmanageable number degrees-of-freedom and failure modes.
-Thus, although programming models and conceptual frameworks exists to
-unify the uptake of ``grids or supercomputers'' as required, practical
-considerations make this currently unrealistic and motivate the
-end-scientist to settle for the the solution that is often simpler to
-deploy.
+% As we will go onto discuss,
 
-\jhanote{The bulk of the next three sections should be pretty much a
-  cut and paste job. What is really required is i. run the multi-tasks
-  of the Kalman filter application entirely on Abe ii. run the
-  multi-tasks of the replica exchange entirely on Abe}
+% using general purpose grid infrastructure 
+
+% Our experiences are consistent with the fact that it is 
+%~\cite{TeraGyroid}
+
+However, lingering problems associated with deployment on production
+general-purpose Grids (ie broad-Grids) has made the uptake of Grids
+challenging and often unattractive to the end-scientist. In a
+nutshell, our experience is conistent with and indicates that one of
+the reasons deployment on general-purpose Grids is difficult, because
+Grids are comprised of many ``isolated'' components, and we believe
+that this contributes to a currently unmanageable number
+degrees-of-freedom and failure modes.  Thus, although programming
+models and conceptual frameworks exists to unify the uptake of ``grids
+or supercomputers'' as required, practical considerations make this
+currently unrealistic and motivate the end-scientist to settle for the
+the solution that is often simpler to deploy. Whereas this has
+consequences for all distributed applications, it influences the
+development and uptake of {\it dynamic} distributed applications
+particularly, of which there are a large number of many-task
+applications.
+
+% \jhanote{The bulk of the next three sections should be pretty much a
+%   cut and paste job. What is really required is i. run the multi-tasks
+%   of the Kalman filter application entirely on Abe ii. run the
+%   multi-tasks of the replica exchange entirely on Abe}
 
 \jhanote{Although they belong to different classes, we show here that
   they can be deployed effectively on i) Range of systems and scales,
@@ -259,33 +283,11 @@ deploy.
   larger top-end system. ii) Explicitly versus Implicitly: dynamic
   applications profit from being able to have.....}
 
-\jhanote{Need to talk about algorithms that can be decomposed
-  spatially, but retain a level of synchronisation, between stages,
-  There is a challenge in the scheduling of the sub-tasks.  This is
-  probably a general challenge/problem of ``many tasks'' computing;
-  there isn't always a need for tight co-scheduling, but a need for
-  some level of loose coupled scheduling.  Some level of best effort
-  resource allocation is acceptable.}
-
 \up
 
 \section{SAGA: A Standard Programming Interface}
 
 \up
-
-\begin{figure}[!h]
-  \begin{center}
-    \subfigure{\label{sagalayer1}
-      \includegraphics[width=3.55in]{saga_layered_landscape}}     
-  \end{center}
-  \caption{Layered schematic of the different components of the SAGA
-    landscape.  Middleware specific adaptors applications developed
-    using SAGA make applications developed using SAGA grid
-    portable. Schematic showing the different ways in which SAGA can
-    be used to develop distributed applications.\up}
- \label{sagalayer}
-\end{figure}
-
 
 The Simple API for Grid Applications (SAGA) is an API standardization
 effort within the Open Grid Forum (OGF)~\cite{ogf_web} an
@@ -295,11 +297,24 @@ POSIX-style API to the most common Grid functions at a sufficiently
 high-level of abstraction so as to be able to be independent of the
 diverse and dynamic Grid environments.  The SAGA specification defines
 interfaces for the most common Grid-programming functions grouped as a
-set of functional packages.  Version 1.0~\cite{saga-core} of the
-specification has been submitted to the OGF editorial pipeline.  It
-defines the following packages:
+set of functional packages.  
+\up
+\begin{figure}[!h]
+  \begin{center}
+    \subfigure{\label{sagalayer1}
+      \includegraphics[width=3.33in]{saga_layered_landscape}}     
+  \end{center}
+  \caption{Layered schematic of the different components of the SAGA
+    landscape. The core API supports the main functionality required
+    by distributed applications.  Middleware specific adaptors make
+    applications developed using SAGA grid portable. \up}
+ \label{sagalayer}
+\end{figure}
 
 %\begin{itemize}
+
+\noindent Version 1.0~\cite{saga-core} of the specification has been submitted
+to the OGF editorial pipeline.  It defines the following packages:
 \begin{compactitem}
 \item File package - provides methods for accessing local and remote
   filesystems, browsing directories, moving, copying, and deleting
@@ -323,14 +338,15 @@ defines the following packages:
 %\end{itemize}
 
 The two critical aspects of SAGA are its {\it simplicity} of use and
-the fact that it is well on the road to becoming a community {\it
-  standard}.  It is important to note, that these two properties
-provide the added value of using SAGA for Grid application
-development.  Simplicity arises from being able to limit the scope to
-only the most common and important grid-functionality required by
-applications.  Standardization represents the fact that the interface
-is derived from a wide-range of applications using a collaborative
-approach and the output of which is endorsed by the broader community.
+the fact that it is a recommended standard (and soon on the road to
+becoming a community {\it standard}).  It is important to note, that
+these two properties provide the added value of using SAGA for Grid
+application development.  Simplicity arises from being able to limit
+the scope to only the most common and important grid-functionality
+required by applications.  Standardization represents the fact that
+the interface is derived from a wide-range of applications using a
+collaborative approach and the output of which is endorsed by the
+broader community.
 
 \up
 
@@ -342,29 +358,29 @@ SAGA can be used to develop and support distributed applications in
 many different ways; the exact way in which it is used, in addition to
 the application characteristics, depends upon factors such as how the
 application needs to be used. For simplicity, in this paper, we will
-discuss only three different mechanisms for distributed application
+discuss only three different approaches for distributed application
 development.  First, applications can use SAGA directly for
 standardised and simple distributed function calls that work on nearly
 all middleware systems. Typically, applications developed using direct
-SAGA calls are ``explicitly distributed''.  Secondly, SAGA can be used
-to create infrastructure independent frameworks (that support patterns
-such as MapReduce), which provide distributed capability and which can
-be used by applications to be ``implicitly distributed''. Thirdly, SAGA
-can be used to support usage modes that provide access to distributed
-infrastructure, such as bulk job-submission or hierarchical
-job-submission over different machines. For this case too,
-applications are typically ``implicitly distributed'' and the
-knowledge/control of utilizing distributed infrastructure is left to
-the SAGA-based framework that supports the usage-mode. The replica
--exchange application that we will discuss in the paper belongs to the
-third category, whilst the kalman-filter based application is of the
-first type.
+SAGA calls are {\it explicitly} distributed.  Secondly, SAGA can be
+used to create infrastructure independent frameworks (that support
+patterns such as MapReduce), which provide distributed capability and
+which can be used by applications to be {\it implicitly}
+distributed. Thirdly, SAGA can be used to support usage modes that
+provide access to distributed infrastructure, such as bulk
+job-submission or hierarchical job-submission over different
+machines. For this case too, applications are typically implicitly
+distributed, and the knowledge/control of utilizing distributed
+infrastructure is left to the SAGA-based framework that supports the
+usage-mode. The RE application that we will discuss in the paper
+belongs to the third category, whilst the EnKF based application is of
+the first type.
 
 \up
 \begin{figure}[!h]
   \begin{center}
     \subfigure{\label{sagalayer2}
-      \includegraphics[width=3.55in]{saga_layered_application}}
+      \includegraphics[width=3.33in]{saga_layered_application}}
   \end{center}
   \caption{Schematic diagram showing how SAGA supports the development
     of three simple, but important ways of developing distributed
@@ -386,12 +402,12 @@ first type.
   sub-jobs if we like to. Especially given that the workshop is using
   a generic term -- ``multi-tasks''.}
 
-An example for a distributed application consisting of homogeneous
-sub-tasks are Replica-Exchange (RE) simulations~\cite{Sugita:1999rm},
-\cite{hansmann}. Such applications can be used to understand important
-physical phenomena -- ranging from protein folding dynamics to binding
-affinity calculations required for computational drug discovery.  For
-Replica-Exchange simulations utilizing as many distributed resources
+Replica-Exchange (RE) simulations~\cite{Sugita:1999rm},
+\cite{hansmann} are an example of distributed applications consisting
+of homogeneous sub-tasks. RE simulations can be used to understand
+important physical phenomena -- ranging from protein folding dynamics
+to binding affinity calculations required for computational drug
+discovery.  For RE simulations utilizing as many distributed resources
 as possible, is critical for the effective solution of the scientific
 problem~\cite{repex_ptrsa}.
 
@@ -399,8 +415,9 @@ Distributed RE simulations must be able to orchestrate different
 resources in a complex and dynamic environment.  Writing such an
 applications is a complex task for a myriad number of reasons, not
 least of which is that distributed computing environments are
-inherently prone to failures. In the following the SAGA-based RE
-framework developed for molecular dynamics simulations is described.
+inherently prone to failures~\cite{Luckow:2008la}. In the following a
+SAGA-based RE framework developed for molecular dynamics simulations
+is described.
 
 \up
 
@@ -627,7 +644,7 @@ problem.
 
 \subsection{Application Description}
 
-\up
+\upp
 % \subsection{SAGA and Cactus: A Powerful Application Development
 %   Framework}
 % \subsection{Deploying on Distributed Resources}
@@ -829,6 +846,14 @@ applications need to be grid-aware, ie explicitly control the
 distributed aspects. We believe explicit control is a critical for
 adaptive applications and posit that SAGA provides an important
 mechanism to implement the distributed features explicitly.
+
+\jhanote{Need to talk about algorithms that can be decomposed
+  spatially, but retain a level of synchronisation, between stages,
+  There is a challenge in the scheduling of the sub-tasks.  This is
+  probably a general challenge/problem of ``many tasks'' computing;
+  there isn't always a need for tight co-scheduling, but a need for
+  some level of loose coupled scheduling.  Some level of best effort
+  resource allocation is acceptable.}
 
 \up\upp
 
