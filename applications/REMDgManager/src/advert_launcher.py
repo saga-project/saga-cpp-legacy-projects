@@ -333,7 +333,7 @@ class advert_launcher:
             	self.poll_jobs()
 	    	#pdb.set_trace()
             	self.monitor_jobs()            
-            	time.sleep(20)
+            	time.sleep(5)
 	    except saga.exception:
 		traceback.print_exc(file=sys.stdout)
 		break

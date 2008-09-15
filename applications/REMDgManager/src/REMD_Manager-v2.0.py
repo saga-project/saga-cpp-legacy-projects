@@ -36,7 +36,7 @@ import pdb
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
 SCP = False
-GlideIn = True
+GlideIn = False
 
 ########################################################
 #  Global variable 
