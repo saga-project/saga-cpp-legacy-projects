@@ -185,6 +185,10 @@ This paper addresses the following challenges:
   global synchronization of the different components is required
   between successive stages, and any one component has not even
   started!  
+                   
+  \alnote{What is category RE simulations fall into according to the DPA categorization:
+  pleasingly distributed, loosely coupled with homogeneous sub-tasks, loosely coupling of tightly-coupled
+  applications? All?}
   
   \alnote{Do we really deliver the promise of a clever algorithm yet? Or are we
   promising here to much? Maybe we should separate application algorithm and efficient
@@ -194,7 +198,10 @@ This paper addresses the following challenges:
   in order to make distributed systems generally more usable for
   production science. By one classification, the three levels are, 
   i) application level, ii) deployment iii) system-level
-  level (usage) abstraction.
+  level (usage) abstraction.  
+
+\alnote{Mostly relevant for this paper should be only system-level abstractions. Thus,
+I am not sure whether we should address all types of abstraction}
 
 \item A unique/novel contribution of this paper is the first
   implementation of a system-level abstraction (inspired by the Condor 
@@ -207,6 +214,9 @@ This paper addresses the following challenges:
   generalization of the RE algorithm is trivial, but ensuring its
   implementation and execution isn't and {\bf depends critically upon
     SAGA and its enhanced job model.}
+
+\item The developed application framework is able to dynamically adjust the scope of the simulation according
+to the currently available resources.
 
 % \item Algorithmic behaviour/constraints on a localized/single cluster
 %   can be very different for distributed clusters. Interesting to
@@ -750,12 +760,11 @@ and to efficiently dispatch RE processes to these nodes.
 While the implementation of the enhanced job model is entirely based
 on SAGA and in particular the SAGA Advert Service, a central key/value
 store, a utilization of other frameworks, such as the orignal Condor
-Glide-In~\cite{citeulike:291860} or Falcon~\cite{1362680}, is
+Glide-In~\cite{citeulike:291860} or Falkon~\cite{1362680}, is
 possible. Currently, we are actively working on a Condor adaptor for
 SAGA, which will also support native Glide-In functionality for Condor
 Jobs; our enhanced job model will then serve as abstraction, while the
 Condor level Glide-In is used as implementation where appropriate.
-
 
 % At the same time it has been well motivated
 % that a \glidein\ mechanism can dramatically decrease the time to solution. Thus, we
@@ -1172,9 +1181,6 @@ adaptive optimization strategies at runtime.
   implementations needs to be moved to another section. Maybe into
   ``Related Work'', but definitely not here; it disrupts the flow.}
 \alnote{ok, moved this to related work added comment why our approach is unique}
-  
-
-
 
 \jhanote{This section should focus on both just the ``algorithmic''
   advances/modification around Replica Exchange. But also
@@ -1282,9 +1288,13 @@ is a newer system, which emphasize in particular the performance of
 its task dispatcher.  However, both systems have limitations and
 impose e.\,g.\ different overheads: Condor \glidein\ requires the
 start of a complete set of Condor daemons within the allocated set of
-resources. For Falcon, \citet{citeulike:3169002} noted a startup time
-of over 2 minutes on a Blue Gene/P machine. Further, firewall issues
-have been reported for both systems.
+resources. For Falkon, \citet{citeulike:3169002}  startup time
+of over 2 minutes on a Blue Gene/P machine have been reported. Further, Falkon 
+does not support MPI applications, i.\,e.\ it is not usable for our
+application scenario.  
+
+% Further, firewall issues
+% have been reported for both systems.
 
 % \alnote{Should we add some details regarding the scientific results of
 %   WISDOM and Folding@home and how they differ from our REMD with NAMD?
@@ -1299,29 +1309,29 @@ have been reported for both systems.
 \jhanote{Mention BQP and co-scheduling as opposed to opportunistic
   approach. Reference Kalman-filter work. Reference Promita's work
   using BQP for tightly-coupled applications.} 
-
-The RE framework uses the distributed programming
-interfaces provided by SAGA as well as the Migol middleware.  
-SAGA provides a middleware-independent, programming abstraction for distributed
-environments. With the new SAGA-CPR API RE simulations can interface
-with a checkpoint-recovery infrastructure, such as Migol. Using Migol, 
-the RE framework is able to transparently handle the failure of a Globus 
-GRAM service, a Replica-Agent or the Replica-Manager.
-
-
-Using standard programmatic abstractions we have developed a general
-purpose, fault-tolerant framework that implements a commonly occurring
-application usage pattern: the loose coupling of multiple tightly-coupled
-applications. The framework is general purpose and extensible to
-different usage patterns, deployment scenarios and specific simulation
-codes. We demonstrated the successful usage of the framework to implement 
-RE simulations and to deploy these in a production Grid environment.
-
-In contrast to other RE implementations on distributed simulations, it
-is critical to note and emphasise the general usability and
-extensibility -- across different infrastructures, across a range of
-scientific applications and usage patterns (e.g.  the multiple
-variants of the RE) -- of our approach.
+                
+\alnote{I removed some parts due to redundancy}
+% The RE framework uses the distributed programming
+% interfaces provided by SAGA as well as the Migol middleware.  
+% SAGA provides a middleware-independent, programming abstraction for distributed
+% environments. With the new SAGA-CPR API RE simulations can interface
+% with a checkpoint-recovery infrastructure, such as Migol. Using Migol, 
+% the RE framework is able to transparently handle the failure of a Globus 
+% GRAM service, a Replica-Agent or the Replica-Manager.
+% 
+% Using standard programmatic abstractions we have developed a general
+% purpose, fault-tolerant framework that implements a commonly occurring
+% application usage pattern: the loose coupling of multiple tightly-coupled
+% applications. The framework is general purpose and extensible to
+% different usage patterns, deployment scenarios and specific simulation
+% codes. We demonstrated the successful usage of the framework to implement 
+% RE simulations and to deploy these in a production Grid environment.
+% 
+% In contrast to other RE implementations on distributed simulations, it
+% is critical to note and emphasise the general usability and
+% extensibility -- across different infrastructures, across a range of
+% scientific applications and usage patterns (e.g.  the multiple
+% variants of the RE) -- of our approach. 
 
 
 % Using the
@@ -1338,55 +1348,79 @@ variants of the RE) -- of our approach.
 % automatically restarted from the last saved
 % checkpoint.
 
+                    
+\alnote{Attempt to structure conclusion:
+1) SAGA/Migol 2.) Glide-In 3.) Adaptive Sampling 4.) Future Work: Glide-In, REMD, Reservation, BQP}
                                          
 \jhanote{needs smoothening} In summary, SAGA allows the simple
-decoupling of the REMD application and orchestration logic from the
+decoupling of the Replica-Exchange orchestration logic from the
 underlying distributed infrastructure. All this whilst remaining
-general purpose and extensible, for example, using the Migol adaptor,
-the application can also benefit from additional features, such as the
-automatic monitoring and the transparent recovery of failed tasks. By
-only slightly extending the job model defined by SAGA a powerful
-system-level abstraction such as \glidein\ jobs can be supported and
-successfully deployed in service of the RE framework.  The SAGA
-\glidein\ framework represents the first known instance of creating a
+general purpose and extensible. Using SAGA CPR, the framework is able
+to utilize the Migol infrastructure, i.\,e., the application can 
+also benefit from features, such as the automatic monitoring and the transparent 
+recovery of failed tasks.  
+
+By only slightly extending the job model defined by SAGA, the Glide-In
+abstraction could be supported and deployed within the RE framework.  
+The SAGA \glidein\ framework represents the first known instance of creating a
 system (deployment) level abstraction for distributed systems from
-basic programming interfaces.  \alnote{I am not sure about the last
-  sentence: I mean I know many abstractions which are created based on
+basic programming interfaces. While the current implementation used 
+a custom protocol to implement this abstraction, it can also be applied 
+to other middleware platforms, such as Condor Glide-In. The RE and 
+Glide-In framework has been successfully deployed within 
+the LONI and TeraGrid. With our Glide-In implementation we observed 
+a reduction of the time to solution of up to 80\,\%.  
+\alnote{I would not call it deployment abstraction... If I think about
+deployment I am always thinking of the pain with boost.}
+\alnote{I am also not sure about the ``abstraction created from 
+  programming interfaces'': 
+  I mean I know many abstractions which are created based on
   programming interfaces: Any C/C++-library based on the POSIX
   interfaces, higher-level Grid services based on Globus WSRF
-  framework, etc.}
+  framework, etc.}   
 
-While the current implementation used a custom protocol to implement this
-mechanism, the approach can also be applied to other middleware
-platforms, such as Condor Glidin or Falcon. Currently, we are actively
-working on a Condor adaptor for SAGA, which will also support native
-\glidein\ functionality for Condor Jobs; our enhanced job model 
-will then serve as abstraction, while the Condor level 
-\glidein\ is used as implementation where appropriate.
-    
+Using an application-level scheduling schema based on the Glide-In abstraction,
+the application can agilely make use of available resources adjusting
+the simulation space dynamically. Using this approach expensive idle 
+time due to a rigid co-allocation schema can be avoided.
+
+% Currently, we are actively
+% working on a Condor adaptor for SAGA, which will also support native
+% \glidein\ functionality for Condor Jobs; our enhanced job model 
+% will then serve as abstraction, while the Condor level 
+% \glidein\ is used as implementation where appropriate.
+% \alnote{This is kind of }
+   
 In the future, we will refine both the infrastructure and the RE algorithm
 used. Various optimization, such as the prefetching of tasks or the 
-adaptive allocation of Glide-In jobs, can reduce the time
-to solution. Another important issue to reduce the time to solution is a 
-mechanism for dynamic  resource discovery and selection. While replicas are 
-currently statically assigned to resources, a good selection algorithm can 
-avoid crowded resources and thus slowdowns. Various approaches for 
+adaptive allocation of Glide-In jobs, could further reduce the time
+to solution. In addition, we will refine our RE algorithm toward 
+a more asynchronous solutions, as e.\,g.\ described by \citet{Gallicchio:2007yq}, 
+to support a better scaling across heterogeneous resources.
+
+While it has been shown, that scheduling of tasks can efficiently done on 
+application-level, a mechanism for dynamic resource discovery and selection 
+could be beneficial to further decrease the time to solution. Currently, replicas are 
+statically assigned to resources; a good selection algorithm that favours
+less crowded resources enhances the number of resources that the RE-Manager
+can acquire for spawning replica processes. Various approaches for 
 scheduling of resources  e.\,g.\ batch queue 
 prediction~\citep{1254939} and advance reservation-based 
-schemas~\citep{Jeske:2007wj} have been proposed. However, these approaches 
-have been designed for long-running applications. In general, the scheduling 
-overhead for short-running tasks must be kept to a minimum. However, in 
-particular for Glide-In tasks such schemas could allow a further reduction of
-the queueing time and thus the time to solution. 
+schemas~\citep{Jeske:2007wj} have been proposed. We will evaluate these systems
+to decrease the queuing time for Glide-In jobs in the future.
+
+% However, these approaches have been designed for long-running applications. 
+% In general, the scheduling 
+% overhead for short-running tasks must be kept to a minimum. However, in 
+% particular for Glide-In tasks such schemas could allow a further reduction of
+% the queueing time and thus the time to solution.  
+
+\alnote{I did not mention it yet, but the SD API could be a good option to control
+the resource discovery.}
 
 % queuing delays are advance reservation.  An advance reservation commits a particular
 % resource over a defined time interval from the service provide to the consumer. Advance 
 % reservations allow the efficient co-allocation of resources without wasting compute cycles.
-
-
-Further, we will refine our RE algorithm toward a more asynchronous solutions, 
-as e.\,g.\ described by \citet{Gallicchio:2007yq}, to support a better scaling 
-across heterogeneous resources.
 
 
 \jhanote{Still sensitive to varying load-factors ie queuing delays, 
