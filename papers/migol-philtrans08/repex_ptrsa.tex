@@ -819,7 +819,9 @@ Another issue results from possibly different start times of the
 to a waiting \glidein\ job, replica runs are carried out on all active
 resources with a lower quality of sampling. As soon as further
 resources become active, the number of replica processes and thus the
-sampling range is increased.
+sampling range is increased. This adaptive sampling schema allows the sufficient utilization of all available resource. In contrast, other co-allocation schemas, as deployed e.\,g.\ by MPICH-G2, are not application aware and waste resources by requiring nodes to remain idle until all resources became available.
+
+\alnote{we should add some more application background (the physics behind our approach) to this paragraph}
 
 % \alnote{TODO: Add adaptive sampling description}     
   
@@ -1298,6 +1300,15 @@ have been reported for both systems.
   approach. Reference Kalman-filter work. Reference Promita's work
   using BQP for tightly-coupled applications.} 
 
+The RE framework uses the distributed programming
+interfaces provided by SAGA as well as the Migol middleware.  
+SAGA provides a middleware-independent, programming abstraction for distributed
+environments. With the new SAGA-CPR API RE simulations can interface
+with a checkpoint-recovery infrastructure, such as Migol. Using Migol, 
+the RE framework is able to transparently handle the failure of a Globus 
+GRAM service, a Replica-Agent or the Replica-Manager.
+
+
 Using standard programmatic abstractions we have developed a general
 purpose, fault-tolerant framework that implements a commonly occurring
 application usage pattern: the loose coupling of multiple tightly-coupled
@@ -1306,13 +1317,12 @@ different usage patterns, deployment scenarios and specific simulation
 codes. We demonstrated the successful usage of the framework to implement 
 RE simulations and to deploy these in a production Grid environment.
 
-The RE framework uses the distributed programming
-interfaces provided by SAGA as well as the Migol middleware.  
-SAGA provides a middleware-independent, programming abstraction for distributed
-environments. With the new SAGA-CPR API RE simulations can interface
-with a checkpoint-recovery infrastructure, such as Migol. Using Migol, 
-the RE framework is able to transparently handle the failure of a Globus 
-GRAM service, a Replica-Agent or the Replica-Manager.
+In contrast to other RE implementations on distributed simulations, it
+is critical to note and emphasise the general usability and
+extensibility -- across different infrastructures, across a range of
+scientific applications and usage patterns (e.g.  the multiple
+variants of the RE) -- of our approach.
+
 
 % Using the
 % newly developed SAGA adaptor for Migol, any SAGA application can
@@ -1328,11 +1338,6 @@ GRAM service, a Replica-Agent or the Replica-Manager.
 % automatically restarted from the last saved
 % checkpoint.
 
-In contrast to other RE implementations on distributed simulations, it
-is critical to note and emphasise the general usability and
-extensibility -- across different infrastructures, across a range of
-scientific applications and usage patterns (e.g.  the multiple
-variants of the RE) -- of our approach.
                                          
 \jhanote{needs smoothening} In summary, SAGA allows the simple
 decoupling of the REMD application and orchestration logic from the
@@ -1361,10 +1366,27 @@ will then serve as abstraction, while the Condor level
     
 In the future, we will refine both the infrastructure and the RE algorithm
 used. Various optimization, such as the prefetching of tasks or the 
-adaptive allocation of Glide-In jobs, can further reduce the time
-to solution. Further, we will investigate more asynchronous solutions
-for RE simulation, as e.\,g.\ described by \citet{Gallicchio:2007yq}.
+adaptive allocation of Glide-In jobs, can reduce the time
+to solution. Another important issue to reduce the time to solution is a 
+mechanism for dynamic  resource discovery and selection. While replicas are 
+currently statically assigned to resources, a good selection algorithm can 
+avoid crowded resources and thus slowdowns. Various approaches for 
+scheduling of resources  e.\,g.\ batch queue 
+prediction~\citep{1254939} and advance reservation-based 
+schemas~\citep{Jeske:2007wj} have been proposed. However, these approaches 
+have been designed for long-running applications. In general, the scheduling 
+overhead for short-running tasks must be kept to a minimum. However, in 
+particular for Glide-In tasks such schemas could allow a further reduction of
+the queueing time and thus the time to solution. 
 
+% queuing delays are advance reservation.  An advance reservation commits a particular
+% resource over a defined time interval from the service provide to the consumer. Advance 
+% reservations allow the efficient co-allocation of resources without wasting compute cycles.
+
+
+Further, we will refine our RE algorithm toward a more asynchronous solutions, 
+as e.\,g.\ described by \citet{Gallicchio:2007yq}, to support a better scaling 
+across heterogeneous resources.
 
 
 \jhanote{Still sensitive to varying load-factors ie queuing delays, 
@@ -1400,14 +1422,6 @@ for RE simulation, as e.\,g.\ described by \citet{Gallicchio:2007yq}.
   resources provided by LONI.
 \end{acknowledgement}
 
-% \begin{thebibliography}  {10}
-% \bibitem{dpa-paper}
-% S. Jha et al., {\em Programming Abstractions for Large-scale Distributed
-%   Applications}, to be submitted to ACM Computing Surveys; draft at
-%   \url{http://www.cct.lsu.edu/~sjha/publications/dpa_surveypaper.pdf}.
-% \end{thebibliography}
-
-%\bibliographystyle{IEEEtran}
 \bibliographystyle{kluwer}
 \bibliography{saga,literatur}    
 \end{document}
