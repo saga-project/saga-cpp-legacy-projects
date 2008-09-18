@@ -44,53 +44,54 @@ class advert_glidin_job():
                  queue,
                  project,
                  working_directory,
-		 userproxy):
+                userproxy):
         """ start advert_launcher on specified host """
-	if userproxy != None or userproxy=="":
-		os.environ["X509_USER_PROXY"]=userproxy
-		print "use proxy: " + userproxy
-	else:
-		#if os.environ.has_key("X509_USER_PROXY"):
-		#	del os.environ["X509_USER_PROXY"]
-		print "use standard proxy"
-	#s = saga.session()
-	#ctx = saga.context("globus")
-	#ctx.set_attribute ("UserProxy", userproxy); 
-	#ctx.set_defaults (); 
-	#s.add_context(ctx)
+        if userproxy != None or userproxy=="":
+            os.environ["X509_USER_PROXY"]=userproxy
+            print "use proxy: " + userproxy
+        else:
+            #if os.environ.has_key("X509_USER_PROXY"):
+            #    del os.environ["X509_USER_PROXY"]
+            print "use standard proxy"
+        # SAGA Context is broken at this point
+        #s = saga.session()
+        #ctx = saga.context("globus")
+        #ctx.set_attribute ("UserProxy", userproxy); 
+        #ctx.set_defaults (); 
+        #s.add_context(ctx)
 
         #register advert entry
         lrms_saga_url = saga.url(lrms_url)
         self.glidin_url = self.app_url.get_string() + "/" + lrms_saga_url.host
-	print "create advert entry: " + self.glidin_url
+        print "create advert entry: " + self.glidin_url
         self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         # application level state since globus adaptor does not support state detail
         self.glidin_dir.set_attribute("state", str(saga.job.Unknown)) 
-	print "set glidin state to: " + self.glidin_dir.get_attribute("state")
-	if CPR==True:
-        	jd = saga.cpr.description()
-        else:	
-        	jd = saga.job.description()
+        print "set glidin state to: " + self.glidin_dir.get_attribute("state")
+        if CPR==True:
+                jd = saga.cpr.description()
+        else:    
+                jd = saga.job.description()
 
-	jd.numberofprocesses = str(number_nodes)
+        jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
-	jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh"
+        jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh"
         jd.queue = project + "@" + queue
         jd.workingdirectory = "$(HOME)"
         jd.output = "advert-launcher-stdout.txt"
         jd.error = "advert-launcher-stderr.txt"
-       
-	if CPR==True: 
-		js = saga.cpr.service(lrms_saga_url)
-        	self.job = js.create_job(jd, jd)
-        	print "Submit CPR Glide-In job to: " + str(lrms_saga_url)
-        	self.job.run()
-	else:
-		js = saga.job.service(lrms_saga_url)
-        	self.job = js.create_job(jd)
-        	print "Submit Non-CPR Glide-In job to: " + str(lrms_saga_url)
-        	self.job.run()
+           
+        if CPR==True: 
+            js = saga.cpr.service(lrms_saga_url)
+            self.job = js.create_job(jd, jd)
+            print "Submit CPR Glide-In job to: " + str(lrms_saga_url)
+            self.job.run()
+        else:
+            js = saga.job.service(lrms_saga_url)
+            self.job = js.create_job(jd)
+            print "Submit Non-CPR Glide-In job to: " + str(lrms_saga_url)
+            self.job.run()
         return self.job
      
     def get_state(self):        
@@ -102,9 +103,9 @@ class advert_glidin_job():
     
     def cancel(self):        
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
-	print "Cancel Glidin Job"
+        print "Cancel Glidin Job"
         self.job.cancel()
-        self.app_dir.remove(self.app_url, saga.name_space.Recursive)	
+        self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
     
     def __repr__(self):
          return self.glidin_url 
@@ -122,7 +123,7 @@ class advert_job():
         print "submit job: " + str(glidin_url)
         self.saga_glidin_url = saga.url(glidin_url)
         if(self.saga_glidin_url.scheme=="advert"): #
-	    pass
+            pass
             #self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         else: # any other url, try to guess glidin job url
             host=""
@@ -136,49 +137,46 @@ class advert_job():
             self.saga_glidin_url = saga.url("advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host)
             #self.glidin_dir = saga.advert.directory(self.saga_glidin_url, 
             #                                        saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
-
         # create dir for job
         self.uuid = uuid.uuid1()
         self.job_url = self.saga_glidin_url.get_string() + "/" + str(self.uuid)
-	for i in range(0,3):
-		try:
-			print "create job entry - attempt: " + str(i)
-        		self.job_dir = saga.advert.directory(saga.url(self.job_url), 
+        for i in range(0,3):
+            try:
+                print "create job entry - attempt: " + str(i)
+                self.job_dir = saga.advert.directory(saga.url(self.job_url), 
                                              saga.advert.Create | saga.advert.ReadWrite)
+                print "initialized advert directory for job: " + self.job_url
+                # put job description attributes to advert
+                attributes = jd.list_attributes()                
+                for i in attributes:          
+                        if jd.attribute_is_vector(i):
+                            self.job_dir.set_vector_attribute(i, jd.get_vector_attribute(i))
+                        else:
+                            print "Add attribute: " + str(i) + " Value: " + jd.get_attribute(i)
+                            self.job_dir.set_attribute(i, jd.get_attribute(i))
 
-			print "initialized advert directory for job: " + self.job_url
-        
-        		# put job description attributes to advert
-        		attributes = jd.list_attributes()                
-        		for i in attributes:          
-            			if jd.attribute_is_vector(i):
-                			self.job_dir.set_vector_attribute(i, jd.get_vector_attribute(i))
-            			else:
-                			print "Add attribute: " + str(i) + " Value: " + jd.get_attribute(i)
-     		        		self.job_dir.set_attribute(i, jd.get_attribute(i))
-       
-        		self.job_dir.set_attribute("state", str(saga.job.Unknown))
-        		# return self object for get_state() query    
-        		return self    
-		except:
-			traceback.print_exc(file=sys.stdout)
-			time.sleep(2)
-	raise Exception("Unable to submit job")      
+                self.job_dir.set_attribute("state", str(saga.job.Unknown))
+                # return self object for get_state() query    
+                return self    
+            except:
+                traceback.print_exc(file=sys.stdout)
+                time.sleep(2)
+                raise Exception("Unable to submit job")      
 
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
-	
+    
     def delete_job(self):
-	print "delete job and close dirs: " + self.job_url
-	try:
-		self.job_dir.remove(saga.url(self.job_url), saga.name_space.Recursive)
-		self.job_dir.close()
-	except:
-		pass
+        print "delete job and close dirs: " + self.job_url
+        try:
+            self.job_dir.remove(saga.url(self.job_url), saga.name_space.Recursive)
+            self.job_dir.close()
+        except:
+            pass
 
     def __del__(self):
-	self.delete_job()
+        self.delete_job()
     
     def __repr__(self):        
         return self.job_url
@@ -202,5 +200,4 @@ if __name__ == "__main__":
     
     job = a.submit_job("", jd)    
     print "state: " + str(job.get_state())
-    
     

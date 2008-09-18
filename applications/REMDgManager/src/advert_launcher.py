@@ -45,64 +45,64 @@ class advert_launcher:
         except:
             print "No advert entry found at specified url: " + advert_url
 
-	# update state of glidin job to running
+    # update state of glidin job to running
         self.update_glidin_state()
         # start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
         self.launcher_thread.start()
         
     def update_glidin_state(self):     
-	print "update state of glidin job to: " + str(saga.job.Running)
+        print "update state of glidin job to: " + str(saga.job.Running)
         return self.base_dir.set_attribute("state", str(saga.job.Running))
     
     def init_rms(self):
-	if(os.environ.get("PBS_NODEFILE")!=None):
-		return self.init_pbs()
-	elif(os.environ.get("PE_HOSTFILE")!=None):
-		return self.init_sge()
-	return None
+        if(os.environ.get("PBS_NODEFILE")!=None):
+            return self.init_pbs()
+        elif(os.environ.get("PE_HOSTFILE")!=None):
+            return self.init_sge()
+        return None
 
     def init_sge(self):
-	""" initialize free nodes list from SGE environment """
-  	sge_node_file = os.environ.get("PE_HOSTFILE")    
+        """ initialize free nodes list from SGE environment """
+        sge_node_file = os.environ.get("PE_HOSTFILE")    
         if sge_node_file == None:
                 return
         f = open(sge_node_file)
         sgenodes = f.readlines()
         f.close()
-	for i in sgenodes:	
-		columns = i.split()				
-		try:
-			for j in range(0, int(columns[1])):
-				print "add host: " + columns[0]
-				self.freenodes.append(columns[1])
-		except:
-			pass
-	return self.freenodes			
+        for i in sgenodes:    
+            columns = i.split()                
+            try:
+                for j in range(0, int(columns[1])):
+                    print "add host: " + columns[0]
+                    self.freenodes.append(columns[1])
+            except:
+                    pass
+        return self.freenodes            
 
     def init_pbs(self):
-	""" initialize free nodes list from PBS environment """
+        """ initialize free nodes list from PBS environment """
         pbs_node_file = os.environ.get("PBS_NODEFILE")    
         if pbs_node_file == None:
-		return
+            return
         f = open(pbs_node_file)
         self.freenodes = f.readlines()
         f.close()
 
-	# check whether pbs node file contains the correct number of nodes
-	num_cpus = self.get_num_cpus()
-	node_dict={}
-	for i in set(self.freenodes):
+        # check whether pbs node file contains the correct number of nodes
+        num_cpus = self.get_num_cpus()
+        node_dict={}
+        for i in set(self.freenodes):
            node_dict[i] = self.freenodes.count(i)
-    	   if node_dict[i] < num_cpus:
-		node_dict[i] = num_cpus
-	
-	self.freenodes=[]
-	for i in node_dict.keys():
-	  print "host: " + i + " nodes: " + str(node_dict[i])
-	  for j in range(0, node_dict[i]):
-		print "add host: " + i
-	  	self.freenodes.append(i)
+           if node_dict[i] < num_cpus:
+                node_dict[i] = num_cpus
+    
+        self.freenodes=[]
+        for i in node_dict.keys():
+            print "host: " + i + " nodes: " + str(node_dict[i])
+            for j in range(0, node_dict[i]):
+                print "add host: " + i
+                self.freenodes.append(i)
 
     def get_num_cpus(self):
         cpuinfo = open("/proc/cpuinfo", "r")
@@ -113,7 +113,6 @@ class advert_launcher:
                 if i.startswith("processor"):
                         num = num+1
         return num
-
         
         
     def print_attributes(self, advert_directory):
@@ -135,12 +134,12 @@ class advert_launcher:
     def execute_job(self, job_dir):
         """ obtain job attributes from advert and execute process """
         state=None
-	try:
-		state = job_dir.get_attribute("state")
-	except:
-		print "Could not access job state... skip execution attempt"
+        try:
+            state = job_dir.get_attribute("state")
+        except:
+            print "Could not access job state... skip execution attempt"
         if(state==str(saga.job.Unknown) or
-           state==str(saga.job.New)):
+            state==str(saga.job.New)):
             job_dir.set_attribute("state", str(saga.job.New))
             self.print_attributes(job_dir)        
             numberofprocesses = "1"
@@ -180,28 +179,27 @@ class advert_launcher:
             
             # special setup for MPI NAMD jobs
             machinefile = self.allocate_nodes(job_dir)
-	    host = "localhost"
-	    try:
-		machine_file_handler = open(machinefile, "r")
-		node= machine_file_handler.readlines()
-		machine_file_handler.close()
-		host = node[0].strip()
-	    except:
-		pass
-
+            host = "localhost"
+            try:
+                machine_file_handler = open(machinefile, "r")
+                node= machine_file_handler.readlines()
+                machine_file_handler.close()
+                host = node[0].strip()
+            except:
+                pass
+            # start application process
             if (spmdvariation.lower( )=="mpi"):
-                if(machinefile==None):
-                    print "Not enough resources to run: " + job_dir.get_url().get_string() 
-                    return # job cannot be run at the moment
-                command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
-		#if (host != socket.gethostname()):
-		#	command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\"" 	
-	    else:
-		command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\"" 	
-
-                
+                 if(machinefile==None):
+                     print "Not enough resources to run: " + job_dir.get_url().get_string() 
+                     return # job cannot be run at the moment
+                 command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
+                 #if (host != socket.gethostname()):
+                 #    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
+            else:
+                command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
+            
             print "execute: " + command + " in " + workingdirectory + " from: " + str(socket.gethostname()) + " (Shell: " + shell +")"
-	    # bash works fine for launching on QB but fails for Abe :-(
+            # bash works fine for launching on QB but fails for Abe :-(
             p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
             print "started " + command
             self.processes[job_dir] = p
@@ -217,39 +215,36 @@ class advert_launcher:
             machine_file = open(machine_file_name, "w")
             machine_file.writelines(self.freenodes[:number_nodes])
             machine_file.close() 
-	    print "wrote machinefile: " + machine_file_name
-            
+            print "wrote machinefile: " + machine_file_name
             # update node structures
             self.busynodes.extend(self.freenodes[:number_nodes])
             del(self.freenodes[:number_nodes])            
             return machine_file_name
         return None
-	
-    def print_machine_file(self, filename):
-	fh = open(filename, "r")
-	lines = fh.readlines()
-	fh.close
-	print "Machinefile: " + filename
-	for i in lines:
-		print i
     
+    def print_machine_file(self, filename):
+         fh = open(filename, "r")
+         lines = fh.readlines()
+         fh.close
+         print "Machinefile: " + filename + " Hosts: " + str(lines)
+         
     def free_nodes(self, job_dir):
-        print "Free nodes ..."
-        number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
-        machine_file_name = self.get_machine_file_name(job_dir)
-        print "Machine file: " + machine_file_name
-	allocated_nodes = ["localhost"]
-	try:
-        	machine_file = open(machine_file_name, "r")
-        	allocated_nodes = machine_file.readlines()
-        	machine_file.close()
-	except:
-		pass
-        for i in allocated_nodes:
-            self.busynodes.remove(i)
-            self.freenodes.append(i)
-	#print "Delete " + machine_file_name
-        #os.remove(machine_file_name)
+         print "Free nodes ..."
+         number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
+         machine_file_name = self.get_machine_file_name(job_dir)
+         print "Machine file: " + machine_file_name
+         allocated_nodes = ["localhost"]
+         try:
+                 machine_file = open(machine_file_name, "r")
+                 allocated_nodes = machine_file.readlines()
+                 machine_file.close()
+         except:
+             pass
+         for i in allocated_nodes:
+             self.busynodes.remove(i)
+             self.freenodes.append(i)
+         #print "Delete " + machine_file_name
+         #os.remove(machine_file_name)
                
             
     def get_machine_file_name(self, job_dir):
@@ -257,7 +252,7 @@ class advert_launcher:
         job_dir_url =job_dir.get_url().get_string()        
         job_dir_url = job_dir_url[(job_dir_url.rindex("/", 0, len(job_dir_url)-1)+1)
                                   :(len(job_dir_url)-1)]        
-	homedir = os.path.expanduser('~')
+        homedir = os.path.expanduser('~')
         return homedir  + "/advert-launcher-machines-"+ job_dir_url
         
     def poll_jobs(self):
@@ -276,22 +271,20 @@ class advert_launcher:
             if self.processes.has_key(i): # only if job has already been starteds
                 p = self.processes[i]
                 p_state = p.poll()
-		print self.print_job(i) + " state: " + str(p_state)
+                print self.print_job(i) + " state: " + str(p_state)
                 if (p_state != None and (p_state==0 or p_state==255)):
                     print self.print_job(i)  + " finished. "
                     i.set_attribute("state", str(saga.job.Done))
                     self.free_nodes(i)
                     del self.processes[i]
                 elif p_state!=0 and p_state!=255 and p_state != None:
-		    print self.print_job(i) + " failed.  "
+                    print self.print_job(i) + " failed.  "
                     i.set_attribute("state", str(saga.job.Failed))
                     self.free_nodes(i)
                     del self.processes[i]
-		else:
-	            pass
-	
+    
     def print_job(self, job_dir):
-	return  "Job: " + job_dir.get_url().get_string() + " Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
+        return  "Job: " + job_dir.get_url().get_string() + " Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
                                 
     def monitor_checkpoints(self):
         """ parses all job working directories and registers files with Migol via SAGA/CPR """
@@ -325,19 +318,18 @@ class advert_launcher:
                         
     def start_background_thread(self):
         self.stop=False
-	print "\n"
-	print "##################################### New POLL/MONITOR cycle ##################################"
-	print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
+        print "\n"
+        print "##################################### New POLL/MONITOR cycle ##################################"
+        print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while True and self.stop==False:
-	    try:
-            	self.poll_jobs()
-	    	#pdb.set_trace()
-            	self.monitor_jobs()            
-            	time.sleep(5)
-	    except saga.exception:
-		traceback.print_exc(file=sys.stdout)
-		break
- 
+            try:
+                self.poll_jobs()
+                self.monitor_jobs()            
+                time.sleep(5)
+            except saga.exception:
+                traceback.print_exc(file=sys.stdout)
+                break
+
     def stop_background_thread(self):        
         self.stop=True
 
@@ -350,16 +342,15 @@ if __name__ == "__main__" :
     if (num_args!=3):
         print "Usage: \n " + args[0] + " <advert-host> <advert-director>"
         sys.exit(1)
-    
 
     # init cpr
     js=None
     if CPR == True:
-   	 try:
-	     print "init CPR monitoring for Agent"
-   	     js = saga.cpr.service()
-   	 except:
-   	     sys.exc_traceback
+        try:
+            print "init CPR monitoring for Agent"
+            js = saga.cpr.service()
+        except:
+            sys.exc_traceback
     
     advert_launcher = advert_launcher(args[1], args[2])    
 
