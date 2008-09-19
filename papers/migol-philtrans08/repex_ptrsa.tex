@@ -101,7 +101,7 @@
 }
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -190,33 +190,36 @@ This paper addresses the following challenges:
   pleasingly distributed, loosely coupled with homogeneous sub-tasks, loosely coupling of tightly-coupled
   applications? All?}
   
-  \alnote{Do we really deliver the promise of a clever algorithm yet? Or are we
-  promising here to much? Maybe we should separate application algorithm and efficient
-  scheduling which is more a infrastructure capability?}
+\alnote{Do we really deliver the promise of a clever algorithm yet? Or
+  are we promising here to much? Maybe we should separate application
+  algorithm and efficient scheduling which is more a infrastructure
+  capability?}
 
-\item There are different levels of abstractions  that are required
-  in order to make distributed systems generally more usable for
-  production science. By one classification, the three levels are, 
-  i) application level, ii) deployment iii) system-level
-  level (usage) abstraction.  
+\item There are different levels of abstractions that are required in
+  order to make distributed systems generally more usable for
+  production science. By one classification, the three levels are, i)
+  application level, ii) deployment iii) system-level level (usage)
+  abstraction.
 
 \alnote{Mostly relevant for this paper should be only system-level abstractions. Thus,
 I am not sure whether we should address all types of abstraction}
 
 \item A unique/novel contribution of this paper is the first
-  implementation of a system-level abstraction (inspired by the Condor 
-  Glide-In mechanism~\citep{citeulike:291860})
-  using programmatic interfaces, and a novel implementation of the
-  replica-exchange algorithm to exploit resources opportunistically.
-  However it is critical to point out that the {\it novel} RE
-  implementation is practical only because of {\bf the agile execution
-  model} that the programming model and system bestows! The
-  generalization of the RE algorithm is trivial, but ensuring its
-  implementation and execution isn't and {\bf depends critically upon
-    SAGA and its enhanced job model.}
+  implementation of a system-level abstraction (inspired by the Condor
+  Glide-In mechanism~\citep{citeulike:291860}) using programmatic
+  interfaces, and a novel implementation of the replica-exchange
+  algorithm to exploit resources opportunistically.  However it is
+  critical to point out that the {\it novel} RE implementation is
+  practical only because of {\bf the agile execution model} that the
+  programming model and system bestows! The generalization of the RE
+  algorithm is conceptually simple, but ensuring its implementation
+  and deployment is not, and {\bf depends critically upon support for
+    the nimble execution provided by SAGA's enhanced job model and the
+    system-level abstractions}
 
-\item The developed application framework is able to dynamically adjust the scope of the simulation according
-to the currently available resources.
+\item The developed application framework is able to dynamically
+  adjust the scope of the simulation according to the currently
+  available resources.
 
 % \item Algorithmic behaviour/constraints on a localized/single cluster
 %   can be very different for distributed clusters. Interesting to
@@ -225,8 +228,8 @@ to the currently available resources.
 
 \end{itemize}
           
-There exist several types of applications, which are well suited
-to distributed environments. Probably the best known and most powerful
+There exist several types of applications, which are well suited to
+distributed environments. Probably the best known and most powerful
 examples are those that involve an ensemble of decoupled tasks, which
 we refer to as {\it pleasingly-distributed} applications; in spite of
 its conceptual simplicity, many scientific problems based on parameter
@@ -240,6 +243,7 @@ simulations.  Such applications can be used to understand important
 physical phenomena -- ranging from protein folding dynamics to binding
 affinity calculations required for computational drug discovery.
 
+ 
 Distributed RE simulations must be able to orchestrate different
 heterogeneous resources in a complex and dynamic environment.  Writing
 such applications is a complex task for a myriad number of reasons,
@@ -253,75 +257,67 @@ coupling between tasks.  Speculative computing is still possible, but
 its use to mitigate the consequence of distributed failures, leads to
 a whole host of load-balancing and scheduling problems.
 
+Additional, heterogenity and dynamism of resources are important
+factors making the execise more challengeing, ie if heterogenity leads
+to difficulty/complexity in developing applications, the lack of a
+perfect understanding of resource availability and the lack of a
+simple model for determining optimal usage leads to deployment
+challenges.
+
 \jhanote{Need to consider this paragraph a bit more carefully. Could
   go against us.} 
-\alnote{I think we should in particular decide what kind of RE simulation we want to 
-describe AREMD or our approach with more synchronization.}  
-Partly due to some of these challenges, even though
-distributed RE simulations are loosely-coupled, failures can become a
-major problem for such applications.  In RE simulations, there is a
-need to occasionally attempt an exchange between pairs of replicas;
-the pairing of replicas is not a constant but is dynamically evolving.
-However, once a pair of replicas has been established, a delay or loss
-of one replica will stall the other replica.  Thus over time, due to
-the fact that in principle, every replica will ultimately
-interact/exchange with another replica, a single failure, if left
-uncorrected can ultimately cause the simulation to encounter an
-exponentially increasing slow-down.  In the worst case, a single
-failing task can render the entire computation worthless.  Thus, it is
-essential to provide support for fault tolerance at some level.
-\emph{Migol}~\citep{schnorLuckow08} provides fault-tolerance at the
-middleware level by supporting the transparent starting, monitoring
-and recovery of tasks.
 
-% \jhanote{there is repetition here. need to refine} \amnote{the last
-%   sentence reads strange to me.  What is the 'thus' referring to?  That
-%   migol provides fault tolerance?}      
-% \alnote{I reordered the sentences - should be ok now.}
+This paper arises from practical considerations related to the
+deployment of a distributed, loosely-coupled application such as the
+one studied in Ref.~\citet{Luckow:2008la}, wherein we used distributed
+RE as a motivating example for a fault-tolerant framework for
+effective application development and deployment.  We described the
+design of the SAGA~\citep{saga_gfd90} Checkpoint\,\&\,Recovery package
+(CPR), and its implementation using the Migol adaptor. The motivation
+here is address some of the challenges and performance bottle-necks
+that we encountered when deploying the framework to solve real
+scientific problems. In particular, we refer to the overall slow-down
+due to the lack of co-scheduled resources to support the concurrent
+completion of multiple sub-jobs whehter on the same machine or on
+distinct distributed resources. The slowdown is particular to the RE
+algorithm, and not a generic feature of the all loosely-coupled
+many-task jobs; for RE although loosely-coupled there is apparently a
+synchronisation point, whereby all replicas must exchange
+(\jhanote{with replicas of the same generation?}).  We propose an
+adaptive variation of the RE algorithm that permits a change in in the
+number of replicas that are employed and thus can be opportunistic in
+the resources that it can employ.
 
-In~\citet{Luckow:2008la}, we motivated the need for a
-fault-tolerant framework for application development, in particular
-for distributed RE simulations.  We described the design of the
-SAGA~\citep{saga_gfd90} Checkpoint\,\&\,Recovery package (CPR), and
-its implementation using the Migol adaptor. SAGA-CPR~\citep{saga-cpr}
-represents the first extension to the core SAGA API specification, and
-is thus a validation of the extensibility of the specification, and
-Migol can be regarded as a reference implementation of the GridCPR
-architecture~\citep{ogf_cpr_arch}. In general, in this paper, we
-utilize the infrastructural developments towards a natural, portable
-and a very generic solution to the problem of a programmatic interface
-for designing fault-tolerant applications outlined by~\citet{Luckow:2008la}.
+Additionally, we implement a general and extensible ``Glide-In''
+framework using SAGA, which overcomes the need to co-schedule
+resources for the many sub-jobs, and so although the adaptive
+algorithm does not (and cannot) remove the need for synchronisation
+amongst the replicas at the exchange step, it makes it very simple for
+replicas on either the same resource or different resource.  The
+implementation on the one hand supports the prevention of a slowdown
+due to synchronisation on the one hand, whilst making it easy to
+add/remove resources {\it dynamically} while respectinng the
+underlying physics of the problem.
 
-% We demonstrate this by presenting the seamless integration of CPR
-% concepts and abstractions into the SAGA framework; the resulting
-% system is able to provide an easy to use, high-level programming
-% abstractions for Grid enabled, fault tolerant applications.  The
-% pairing of Migol and SAGA-CPR thus provides a natural, portable and a
-% very generic solution to the problem of a programmatic interface for
-% designing fault-tolerant applications.  To highlight this and that it
-% is critical that all aspects of the distributed application life-cycle
-% -- design, development and deployment -- are made easier, we will
-% discuss our experiences in developing and deploying a RE application
-% in a production environment.
-
-We highlight the main advantages of our approach: First and foremost
-it is a general purpose framework that can be used over a wide-range
-of distributed production environments, such as the TeraGrid, UK's
-NGS, DEISA, etc., as opposed to WISDOM~\citep{wisdom}, that is
-essentially confined to gLITE/EGEE. Secondly, our approach can scale
-to use resources of different sizes, as opposed to {\it
+In addition to overcoming the performance bottleneck outlined earlier,
+the main advantages of our approach: First and foremost it is a
+general purpose framework that can be used over a wide-range of
+distributed production environments, such as the TeraGrid, UK's NGS,
+DEISA, etc., as opposed to WISDOM~\citep{wisdom}, that is essentially
+confined to gLITE/EGEE. Secondly, our approach can scale to use
+resources of different sizes, as opposed to {\it
   Folding@home}~\citep{folding} which is based upon BOINC, and is thus
 inherently limited in the size of physical problems that can be solved
 effectively.  Thirdly, our framework is extensible: it can be used to
 implement many other applications in addition to those based upon RE
-simulations~\citep{escience07}. The power to do so arises from simple
-design decisions: the use of standard interfaces on the one hand, and
-the use of appropriate programmatic and system abstractions that allow
-users to do what they can do best (i.e. provide the simulation and
-orchestration logic), whilst ensuring that middleware used provides
-required services (such as checkpoint management, application
-monitoring and recovery) seamlessly and effectively from the
-application developers perspective.
+simulations~\citep{escience07}. % The power to do so arises from simple
+% design decisions: the use of standard interfaces on the one hand, and
+% the use of appropriate programmatic and system abstractions that allow
+% users to do what they can do best (i.e. provide the simulation and
+% orchestration logic), whilst ensuring that middleware used provides
+% required services (such as checkpoint management, application
+% monitoring and recovery) seamlessly and effectively from the
+% application developers perspective.
 
 The remainder of the paper is structured as follows: In the next
 section we provide the basic ideas behind RE and specifically
