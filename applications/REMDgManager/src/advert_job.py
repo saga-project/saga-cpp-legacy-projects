@@ -106,8 +106,11 @@ class advert_glidin_job():
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
         print "Cancel Glidin Job"
         self.job.cancel()
-        self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
-    
+        try:
+            self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
+        except:
+            pass
+
     def __repr__(self):
          return self.glidin_url 
                     
