@@ -76,6 +76,7 @@ class advert_glidin_job():
         jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
+        # TODO: make configurable
         jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh"
         jd.queue = project + "@" + queue
         jd.workingdirectory = "$(HOME)"

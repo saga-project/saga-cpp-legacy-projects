@@ -19,7 +19,6 @@ g. "output.txt" is the output file name with which energy is pulled out for the 
 h. get_energy(), do_exchange(), prepare_NAMD_config() might be changed later since implementaion is not optimized yet
 : energy search in output.txt is not efficient as the size of output.txt grows, prepare_NAMD_config() needs more for assigning other initial files 
 
-
 """
 
 import sys, os, os.path, random, time
@@ -603,6 +602,7 @@ def run_REMDg(configfile_name):
         for irep in range(0,numReplica):
             host = RE_info.remote_hosts[irep]
             print "check host: " + str(host)
+            # TODO remove
             if GlideIn == False or (replica_id_glidein_dict.has_key(irep) and AdaptiveSampling==True) or all_glideins_ready == True:
                 jd = set_saga_job_description(irep, RE_info, "")
                 dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
@@ -626,7 +626,6 @@ def run_REMDg(configfile_name):
 
         end_time = time.time()        
         # contains number of started replicas
-        
         numReplica = len(RE_info.replica)
         if numReplica == 0: # no replica process started
             time.sleep(10)
