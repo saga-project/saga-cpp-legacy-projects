@@ -203,7 +203,7 @@ class advert_launcher:
                  if(machinefile==None):
                      print "Not enough resources to run: " + job_dir.get_url().get_string() 
                      return # job cannot be run at the moment
-                 command = self.mpirun + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
+                 command = self.MPIRUN + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
                  #if (host != socket.gethostname()):
                  #    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
             else:
