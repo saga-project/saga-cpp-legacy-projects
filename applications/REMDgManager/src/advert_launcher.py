@@ -82,11 +82,12 @@ class advert_launcher:
         sgenodes = f.readlines()
         f.close()
         for i in sgenodes:    
+		
             columns = i.split()                
             try:
                 for j in range(0, int(columns[1])):
                     print "add host: " + columns[0]
-                    self.freenodes.append(columns[1])
+                    self.freenodes.append(columns[0]+"\n")
             except:
                     pass
         return self.freenodes            
