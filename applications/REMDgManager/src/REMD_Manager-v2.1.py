@@ -491,7 +491,7 @@ def transfer_files(RE_info, irep):
     print "(INFO) Replica %d : Input files are staged into %s  "%(irep, remote_machine_ip)
 
 
-def check_glidein_states(RE_info):
+def check_glidein_states(RE_info, current_replica_id_glidein_dict, start_glidin):
     """ check for Glide-In states
         returns dictionary: <replica_id, glidein_url> 
         only keys from replicas with active glidein job are set."""
@@ -528,13 +528,19 @@ def check_glidein_states(RE_info):
                     replica_id = replica_id + num_replica_per_glidein
     return replica_id_glidein_dict
 
-def check_glidein_for_replica(current_replica_id_glidein_dict, irep):
+def check_glidein_for_replica(RE_info, current_replica_id_glidein_dict, irep):
     """ tests whether glidein for replica irep has been started 
         returns true if started
         otherwise false """
     all_glideins_ready = False
-    if len(current_replica_id_glidein_dict.keys())==numReplica:
+    if len(current_replica_id_glidein_dict.keys())==int(RE_info.replica_count):
                 all_glideins_ready = True
+    host = RE_info.remote_hosts[irep]
+    if current_replica_id_glidein_dict.has_key(irep):
+        print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: " + str(current_replica_id_glidein_dict[irep]).lower()
+    else:
+        print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: not running. "
+
     """ checks whether glidein for replica has started """
     replica_is_ready =  ((GlideIn == True) and 
                         ((current_replica_id_glidein_dict.has_key(irep) and AdaptiveSampling==True) or all_glideins_ready == True))
@@ -544,15 +550,12 @@ def check_glidein_for_replica(current_replica_id_glidein_dict, irep):
 #  run_REMDg
 #########################################################
 def run_REMDg(configfile_name):
-
+    """ Main loop running replica-exchange """
     start = time.time()
     # initialize of all replica and its related variables
     RE_info = initialize(configfile_name)
     numEX = RE_info.exchange_count    
-    
     ofilename = "remd-temp.out"
-    start_glidin = time.time() 
-    glidin_job_states ={}
     if GlideIn == True:
         print "Start with glidein"
         start_glidin_jobs(RE_info)
@@ -581,19 +584,19 @@ def run_REMDg(configfile_name):
         print "\n"
         # reset replica number
         numReplica = RE_info.replica_count
-        current_replica_id_glidein_dict = check_glidein_states(RE_info)
+        current_replica_id_glidein_dict = check_glidein_states(RE_info, current_replica_id_glidein_dict, start)
         if len(current_replica_id_glidein_dict.keys())==numReplica:
                 all_glideins_ready = True
-                print "All Glide-Ins got active after: " + str(time.time()-start_glidin) + " s"
+                print "All Glide-Ins got active after: " + str(time.time()-start) + " s"
         ####################################### NPT staging ################################################
         for irep in range(0,numReplica):
             host = RE_info.remote_hosts[irep]
-            if replica_id_glidein_dict.has_key(irep):
-                print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: " + str(replica_id_glidein_dict[irep]).lower()
-            else:
-                print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: not running. "
+            #if replica_id_glidein_dict.has_key(irep):
+            #    print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: " + str(replica_id_glidein_dict[irep]).lower()
+            #else:
+            #    print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: not running. "
             # only start replicas if glidin job is running
-            if check_glidein_for_replica(current_replica_id_glidein_dict, irep)==True:
+            if check_glidein_for_replica(RE_info, current_replica_id_glidein_dict, irep)==True:
                remote_machine_ip = RE_info.remote_hosts[irep]
                if len(RE_info.gridftp_hosts)>0:
                    remote_machine_ip = RE_info.gridftp_hosts[irep]
@@ -615,11 +618,11 @@ def run_REMDg(configfile_name):
         for irep in range(0,numReplica):
             host = RE_info.remote_hosts[irep]
             print "check host: " + str(host)
-            if check_glidein_for_replica(current_replica_id_glidein_dict, irep)==True:
+            if check_glidein_for_replica(RE_info, current_replica_id_glidein_dict, irep)==True:
                 jd = set_saga_job_description(irep, RE_info, "")
                 dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
                 checkpt_files = []     # will be done by migol not here  (JK  08/05/08)
-                glidin_url = replica_id_glidein_dict[irep] 
+                glidin_url = current_replica_id_glidein_dict[irep] 
                 error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
                 RE_info.replica.append(new_job)
                 print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)

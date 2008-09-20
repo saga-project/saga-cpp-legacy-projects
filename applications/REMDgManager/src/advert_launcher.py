@@ -280,7 +280,6 @@ class advert_launcher:
                     del self.processes[i]
                 elif p_state!=0 and p_state!=255 and p_state != None:
                     print self.print_job(i) + " failed.  "
-                    i.set_attribute("state", str(saga.job.Failed))
                     # do not free nodes => very likely the job will fail on these nodes
                     # self.free_nodes(i)
                     del self.processes[i]
@@ -290,6 +289,7 @@ class advert_launcher:
                         self.execute_job(i)
                     else:
                         print "do not restart job " + self.print_job(i)
+                        i.set_attribute("state", str(saga.job.Failed))
     
     def print_job(self, job_dir):
         return  "Job: " + job_dir.get_url().get_string() + " Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
