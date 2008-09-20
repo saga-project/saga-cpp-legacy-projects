@@ -10,13 +10,9 @@ import time
 import pdb
 import traceback
 import signal
+import ConfigParser
 
-""" Config parameters (will move to config file in future) """
-APPLICATION_NAME="REMD"
-
-""" Configuration: to be moved to config """
-shell = "/bin/bash"
-CPR = False
+CONFIG_FILE="advert_launcher.conf"
 class advert_launcher:
     
     """NAMD-Launcher:
@@ -25,26 +21,40 @@ class advert_launcher:
        - monitors running jobs """
    
     """Constructor"""
-    def __init__(self, database_host, advert_url):
+    def __init__(self, args):
         
-        self.database_host = database_host
+        self.database_host = args[1]
         # objects to store running jobs and processes
         self.jobs = []
         self.processes = {}
         self.freenodes = []
         self.busynodes = []
         self.restarted = {}
+
+        # read config file
+        conf_file = os.path.dirname(args[0]) + "/" + CONFIG_FILE
+        config = ConfigParser.ConfigParser()
+        print ("read configfile: " + conf_file)
+        config.read(conf_file)
+        default_dict = config.defaults()
+        self.CPR = default_dict["cpr"]
+        self.SHELL=default_dict["shell"]
+        self.MPIRUN=default_dict["mpirun"]
+        print "cpr: " + self.CPR + " mpi: " + self.MPIRUN + " shell: " + self.SHELL
         
+        # init cpr monitoring
+        self.init_cpr()
+        # init rms (SGE/PBS)
         self.init_rms()
-        
+
          # open advert service base url
         hostname = socket.gethostname()
-        self.base_url = advert_url
+        self.base_url = args[2]
         print "Open advert: " + self.base_url
         try:
             self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
         except:
-            print "No advert entry found at specified url: " + advert_url
+            print "No advert entry found at specified url: " + self.base_url
 
     # update state of glidin job to running
         self.update_glidin_state()
@@ -193,12 +203,12 @@ class advert_launcher:
                  if(machinefile==None):
                      print "Not enough resources to run: " + job_dir.get_url().get_string() 
                      return # job cannot be run at the moment
-                 command = "mpirun -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
+                 command = self.mpirun + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
                  #if (host != socket.gethostname()):
                  #    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
             else:
                 command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
-            
+            shell = self.SHELL 
             print "execute: " + command + " in " + workingdirectory + " from: " + str(socket.gethostname()) + " (Shell: " + shell +")"
             # bash works fine for launching on QB but fails for Abe :-(
             p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
@@ -340,6 +350,16 @@ class advert_launcher:
 
     def stop_background_thread(self):        
         self.stop=True
+    
+    def init_cpr(self):
+        # init cpr
+        self.js=None
+        if self.CPR == True:
+            try:
+                print "init CPR monitoring for Agent"
+                js = saga.cpr.service()
+            except:
+                sys.exc_traceback
 
 #########################################################
 #  main                                                 #
@@ -351,14 +371,7 @@ if __name__ == "__main__" :
         print "Usage: \n " + args[0] + " <advert-host> <advert-director>"
         sys.exit(1)
 
-    # init cpr
-    js=None
-    if CPR == True:
-        try:
-            print "init CPR monitoring for Agent"
-            js = saga.cpr.service()
-        except:
-            sys.exc_traceback
-    
-    advert_launcher = advert_launcher(args[1], args[2])    
 
+    
+    advert_launcher = advert_launcher(args)    
+    
