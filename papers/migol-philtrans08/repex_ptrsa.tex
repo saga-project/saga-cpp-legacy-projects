@@ -30,6 +30,7 @@
 %Bibliography                     
 \usepackage{natbib}   
 
+
 \usepackage{listings}
 \usepackage{keyval}  
 \usepackage{color}
@@ -101,7 +102,7 @@
 }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -165,139 +166,90 @@
 
 \section{Introduction}
 
-
-This paper addresses the following challenges:                 
-\begin{itemize}
-
-\item The move of traditional algorithms to distributed systems holds
-  the promise of reduced time-to-solution and other advantages, but
-  comes with its own set of challenges. For example, there is a
-  trading of control and comfort of a single environment, for the
-  coordination hassles of distributed systems. In particular, the need
-  to schedule multiple resources is challenging. The stringency of the
-  requirement of scheduling resources changes with the level of
-  application-level coupling. For example, for tightly-coupled
-  MPICH-G2 style jobs, complete synchrony is required; for
-  loosely-coupled applications/replicas there is still a need to
-  co-schedule resources, but the choice of clever
-  algorithms/implementations can relax this requirement. In
-  pathological cases, all systems can come to a grinding halt if a
-  global synchronization of the different components is required
-  between successive stages, and any one component has not even
-  started!  
-                   
-  \alnote{What is category RE simulations fall into according to the DPA categorization:
-  pleasingly distributed, loosely coupled with homogeneous sub-tasks, loosely coupling of tightly-coupled
-  applications? All?}
-  
-\alnote{Do we really deliver the promise of a clever algorithm yet? Or
-  are we promising here to much? Maybe we should separate application
-  algorithm and efficient scheduling which is more a infrastructure
-  capability?}
-
-\item There are different levels of abstractions that are required in
-  order to make distributed systems generally more usable for
-  production science. By one classification, the three levels are, i)
-  application level, ii) deployment iii) system-level level (usage)
-  abstraction.
-
-\alnote{Mostly relevant for this paper should be only system-level abstractions. Thus,
-I am not sure whether we should address all types of abstraction}
-
-\item A unique/novel contribution of this paper is the first
-  implementation of a system-level abstraction (inspired by the Condor
-  Glide-In mechanism~\citep{citeulike:291860}) using programmatic
-  interfaces, and a novel implementation of the replica-exchange
-  algorithm to exploit resources opportunistically.  However it is
-  critical to point out that the {\it novel} RE implementation is
-  practical only because of {\bf the agile execution model} that the
-  programming model and system bestows! The generalization of the RE
-  algorithm is conceptually simple, but ensuring its implementation
-  and deployment is not, and {\bf depends critically upon support for
-    the nimble execution provided by SAGA's enhanced job model and the
-    system-level abstractions}
-
-\item The developed application framework is able to dynamically
-  adjust the scope of the simulation according to the currently
-  available resources.
-
-% \item Algorithmic behaviour/constraints on a localized/single cluster
-%   can be very different for distributed clusters. Interesting to
-%   mention that it is trivial to port this framework onto a top-end
-%   machine such as Ranger that is pushing the limits of petascalabilty.
-
-\end{itemize}
-          
+% Introduction RE application class 
 There exist several types of applications, which are well suited to
 distributed environments. Probably the best known and most powerful
-examples are those that involve an ensemble of decoupled tasks, which
-we refer to as {\it pleasingly-distributed} applications; in spite of
-its conceptual simplicity, many scientific problems based on parameter
-sweeps and/or Monte Carlo simulations, can be solved using
-infrastructure that supports this common application class. A slightly
+examples are those that involve an ensemble of decoupled tasks. 
+These applications are referred to as loosely coupled. Despite
+the conceptual simplicity, many scientific problems, e.\,g.\ 
+parameter sweeps and/or Monte Carlo simulations, can be solved using
+infrastructure that supports this application class. A slightly
 more complicated and challenging class of distributed applications are
 those that have a small level of coupling between individual
-sub-tasks.  An interesting example of such applications are those
-based on \emph{Replica-Exchange (RE)}~\citep{hansmann,Sugita:1999rm}
+sub-tasks. We refer to these applications as {\it pleasingly-distributed}. 
+An interesting example of such applications are  
+\emph{Replica-Exchange (RE)}~\citep{hansmann,Sugita:1999rm}
 simulations.  Such applications can be used to understand important
 physical phenomena -- ranging from protein folding dynamics to binding
-affinity calculations required for computational drug discovery.
+affinity calculations required for computational drug discovery. 
 
- 
-Distributed RE simulations must be able to orchestrate different
-heterogeneous resources in a complex and dynamic environment.  Writing
-such applications is a complex task for a myriad number of reasons,
-not least of which is that distributed computing environments are
-inherently prone to failures and thus
+% challenges  
+Developing RE simulations and running them in distributed environments 
+is a complex task for a myriad number of reasons. Distributed computing environments 
+are inherently prone to failures and thus 
 unreliable~\citep{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}.
-Some applications can respond to such failures via redundant or
-speculative computing.  However, redundant computing has its
-limitations, especially when there is a level of heterogeneity and
-coupling between tasks.  Speculative computing is still possible, but
-its use to mitigate the consequence of distributed failures, leads to
-a whole host of load-balancing and scheduling problems.
+The more resources involved, the greater the probability of a failure.
+Additional, heterogeneity and dynamism of resources are important
+factors making the exercise more challenging: heterogeneity leads
+to an increased difficulty and complexity in developing adaptive 
+applications and deploying these in the Grid. The uncertainty about
+the availability of resources and the lack of a simple 
+model for determining optimal usage lead to various scheduling and 
+load balancing issues even on few resources. 
 
-Additional, heterogenity and dynamism of resources are important
-factors making the execise more challengeing, ie if heterogenity leads
-to difficulty/complexity in developing applications, the lack of a
-perfect understanding of resource availability and the lack of a
-simple model for determining optimal usage leads to deployment
-challenges.
-
+% Some applications can respond to such failures via redundant or
+% speculative computing.  However, redundant computing has its
+% limitations, especially when there is a level of heterogeneity and
+% coupling between tasks.  Speculative computing is still possible, but
+% its use to mitigate the consequence of distributed failures, leads to
+% a whole host of load-balancing and scheduling problems.  
+        
 \jhanote{Need to consider this paragraph a bit more carefully. Could
-  go against us.} 
+  go against us.}
 
-This paper arises from practical considerations related to the
-deployment of a distributed, loosely-coupled application such as the
-one studied in Ref.~\citet{Luckow:2008la}, wherein we used distributed
-RE as a motivating example for a fault-tolerant framework for
-effective application development and deployment.  We described the
-design of the SAGA~\citep{saga_gfd90} Checkpoint\,\&\,Recovery package
-(CPR), and its implementation using the Migol adaptor. The motivation
-here is address some of the challenges and performance bottle-necks
-that we encountered when deploying the framework to solve real
-scientific problems. In particular, we refer to the overall slow-down
+SAGA~\citep{saga_gfd90} and Migol~\citep{schnorLuckow08} provide 
+a scalable, general-purpose environment for developing reliable 
+loosely coupled applications. In~\citet{Luckow:2008la}, we demonstrated 
+the use of the SAGA Checkpoint Recovery (CPR) abstraction to build a reliable
+Replica-Exchange application on top of Migol.
+% This paper arises from practical considerations related to the
+% deployment of a distributed, loosely-coupled application such as the
+% one studied in, wherein we used distributed
+% RE as a motivating example for a fault-tolerant framework for
+% effective application development and deployment.  We described the
+% design of the SAGA Checkpoint\,\&\,Recovery package
+% (CPR), and its implementation using the Migol adaptor. 
+The motivation of this paper is to address some of the challenges and 
+performance bottlenecks that we encountered when deploying the 
+framework to solve real scientific problems. 
+In particular, we refer to the overall slow-down
 due to the lack of co-scheduled resources to support the concurrent
-completion of multiple sub-jobs whehter on the same machine or on
+completion of multiple sub-jobs whether on the same machine or on
 distinct distributed resources. The slowdown is particular to the RE
 algorithm, and not a generic feature of the all loosely-coupled
 many-task jobs; for RE although loosely-coupled there is apparently a
-synchronisation point, whereby all replicas must exchange
-(\jhanote{with replicas of the same generation?}).  We propose an
+synchronisation point, whereby all replicas must exchange.
+\jhanote{(with replicas of the same generation?)}  We propose an
 adaptive variation of the RE algorithm that permits a change in in the
 number of replicas that are employed and thus can be opportunistic in
 the resources that it can employ.
 
-Additionally, we implement a general and extensible ``Glide-In''
-framework using SAGA, which overcomes the need to co-schedule
-resources for the many sub-jobs, and so although the adaptive
-algorithm does not (and cannot) remove the need for synchronisation
-amongst the replicas at the exchange step, it makes it very simple for
-replicas on either the same resource or different resource.  The
-implementation on the one hand supports the prevention of a slowdown
-due to synchronisation on the one hand, whilst making it easy to
-add/remove resources {\it dynamically} while respectinng the
-underlying physics of the problem.
+To reduce the time to solution, we further propose 
+a general and extensible ``Glide-In''
+framework based on SAGA, which overcomes the need to co-schedule
+resources for the many sub-jobs. The enhanced job abstraction allows
+the RE application to efficiently cluster sub-tasks, which are
+executed on the same machine. 
+The adaptive RE algorithm is build on top of this abstractions.
+Although the adaptive algorithm does not (and cannot) remove the 
+need for synchronisation amongst the replicas at the exchange step, 
+it ensures that a synchronization is only conducted between replica
+processes on available resources.
+% makes it very simple for
+% replicas on either the same resource or different resource.  
+The implementation of adaptive RE prevents slowdowns due to synchronisation, 
+whilst making it easy to add/remove resources {\it dynamically} respecting the
+underlying physics of the problem at the same time.
 
 In addition to overcoming the performance bottleneck outlined earlier,
 the main advantages of our approach: First and foremost it is a
@@ -305,8 +257,8 @@ general purpose framework that can be used over a wide-range of
 distributed production environments, such as the TeraGrid, UK's NGS,
 DEISA, etc., as opposed to WISDOM~\citep{wisdom}, that is essentially
 confined to gLITE/EGEE. Secondly, our approach can scale to use
-resources of different sizes, as opposed to {\it
-  Folding@home}~\citep{folding} which is based upon BOINC, and is thus
+resources of different sizes, as opposed to {\it  Folding@home}~\citep{folding} 
+which is based upon BOINC, and is thus
 inherently limited in the size of physical problems that can be solved
 effectively.  Thirdly, our framework is extensible: it can be used to
 implement many other applications in addition to those based upon RE
@@ -327,11 +279,75 @@ we present the challenges of developing a RE application,
 which is runnable in a heterogeneous and loosely coupled Grid
 environment.  In section 5, we describe the details of a REMD
 application implemented using the SAGA-Migol fault-tolerant, distributed
-framework. In the subsequent sections we discuss our experience in
+framework. Section 6 discusses the enhanced job model abstraction and 
+the SAGA Glide-In framework. In the subsequent section we discuss our experience in
 implementing REMD and performance figures. We conclude by providing a
 detailed analysis of related work, which will highlight the truly
 unique features of our implementation.  \jhanote{mostly ok.. might
-  need some refining}
+need some refining}   
+
+\ifdraft 
+\alnote{I moved the itemize to the draft mode. We probably still need to add some of these
+points to the text above.}
+\begin{itemize}
+  \item The move of traditional algorithms to distributed systems holds
+    the promise of reduced time-to-solution and other advantages, but
+    comes with its own set of challenges. For example, there is a
+    trading of control and comfort of a single environment, for the
+    coordination hassles of distributed systems. In particular, the need
+    to schedule multiple resources is challenging. The stringency of the
+    requirement of scheduling resources changes with the level of
+    application-level coupling. For example, for tightly-coupled
+    MPICH-G2 style jobs, complete synchrony is required; for
+    loosely-coupled applications/replicas there is still a need to
+    co-schedule resources, but the choice of clever
+    algorithms/implementations can relax this requirement. In
+    pathological cases, all systems can come to a grinding halt if a
+    global synchronization of the different components is required
+    between successive stages, and any one component has not even
+    started!  
+
+    \alnote{What is category RE simulations fall into according to the DPA categorization:
+    pleasingly distributed, loosely coupled with homogeneous sub-tasks, loosely coupling of tightly-coupled
+    applications? All?}
+
+  \alnote{Do we really deliver the promise of a clever algorithm yet? Or
+    are we promising here to much? Maybe we should separate application
+    algorithm and efficient scheduling which is more a infrastructure
+    capability?}
+
+  \item There are different levels of abstractions that are required in
+    order to make distributed systems generally more usable for
+    production science. By one classification, the three levels are, i)
+    application level, ii) deployment iii) system-level level (usage)
+    abstraction.
+
+  \alnote{Mostly relevant for this paper should be only system-level abstractions. Thus,
+  I am not sure whether we should address all types of abstraction}
+
+  \item A unique/novel contribution of this paper is the first
+    implementation of a system-level abstraction (inspired by the Condor
+    Glide-In mechanism~\citep{citeulike:291860}) using programmatic
+    interfaces, and a novel implementation of the replica-exchange
+    algorithm to exploit resources opportunistically.  However it is
+    critical to point out that the {\it novel} RE implementation is
+    practical only because of {\bf the agile execution model} that the
+    programming model and system bestows! The generalization of the RE
+    algorithm is conceptually simple, but ensuring its implementation
+    and deployment is not, and {\bf depends critically upon support for
+      the nimble execution provided by SAGA's enhanced job model and the
+      system-level abstractions}
+
+  \item The developed application framework is able to dynamically
+    adjust the scope of the simulation according to the currently
+    available resources.
+
+  % \item Algorithmic behaviour/constraints on a localized/single cluster
+  %   can be very different for distributed clusters. Interesting to
+  %   mention that it is trivial to port this framework onto a top-end
+  %   machine such as Ranger that is pushing the limits of petascalabilty.
+\end{itemize}
+\fi
 
 \section{Replica-Exchange Molecular Dynamics}
 \alnote{I restructured this section: 1) general introduction to MD
