@@ -450,7 +450,6 @@ def start_glidin_jobs(RE_info):
         lrms_url = lrms_url + i + "/" + "jobmanager-" + lrms      
         nodes_per_glidein = nodes
         num_glidein = RE_info.number_glideins_per_host
-        pdb.set_trace()
         if (num_glidein != None and num_glidein != 0):
             nodes_per_glidein = nodes/num_glidein # must be divisible 
             print "Glidin URL: " + lrms_url    
