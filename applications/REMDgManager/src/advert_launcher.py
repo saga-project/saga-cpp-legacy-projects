@@ -33,6 +33,7 @@ class advert_launcher:
         self.processes = {}
         self.freenodes = []
         self.busynodes = []
+        self.restarted = {}
         
         self.init_rms()
         
@@ -280,8 +281,15 @@ class advert_launcher:
                 elif p_state!=0 and p_state!=255 and p_state != None:
                     print self.print_job(i) + " failed.  "
                     i.set_attribute("state", str(saga.job.Failed))
-                    self.free_nodes(i)
+                    # do not free nodes => very likely the job will fail on these nodes
+                    # self.free_nodes(i)
                     del self.processes[i]
+                    if self.restarted.has_key(i)==False:
+                        print "Try to restart job " + self.print_job(i)
+                        self.restarted[i]=True
+                        self.execute_job(i)
+                    else:
+                        print "do not restart job " + self.print_job(i)
     
     def print_job(self, job_dir):
         return  "Job: " + job_dir.get_url().get_string() + " Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
