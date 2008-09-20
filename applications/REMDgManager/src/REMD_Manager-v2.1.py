@@ -448,27 +448,28 @@ def start_glidin_jobs(RE_info):
         else:
             lrms_url = "gram://"
         lrms_url = lrms_url + i + "/" + "jobmanager-" + lrms      
-    nodes_per_glidein = nodes
-    num_glidein = RE_info.number_glideins_per_host
-    if (num_glidein != None and num_glidein != 0):
-        nodes_per_glidein = nodes/num_glidein # must be divisible 
-        print "Glidin URL: " + lrms_url    
-        print "hosts: " + str(i) + " number of replica_processes (total): " + str(nodes)
-        print "number glide-ins: " + str(num_glidein) + " node per glidein: " + str(nodes_per_glidein)
-        print "Project: " + project + " Queue: " + queue + " Working Dir: " +workingdirectory
+        nodes_per_glidein = nodes
+        num_glidein = RE_info.number_glideins_per_host
+        pdb.set_trace()
+        if (num_glidein != None and num_glidein != 0):
+            nodes_per_glidein = nodes/num_glidein # must be divisible 
+            print "Glidin URL: " + lrms_url    
+            print "hosts: " + str(i) + " number of replica_processes (total): " + str(nodes)
+            print "number glide-ins: " + str(num_glidein) + " node per glidein: " + str(nodes_per_glidein)
+            print "Project: " + project + " Queue: " + queue + " Working Dir: " +workingdirectory
         
-        # start job
-        for ng in range(0, RE_info.number_glideins_per_host):
-            advert_glidin_job = advert_job.advert_glidin_job(RE_info.advert_host)
-            advert_glidin_job.start_glidin_job(lrms_url, 
+            # start job
+            for ng in range(0, RE_info.number_glideins_per_host):
+                advert_glidin_job = advert_job.advert_glidin_job(RE_info.advert_host)
+                advert_glidin_job.start_glidin_job(lrms_url, 
                                                nodes_per_glidein,
                                                queue,
                                                project,
                                                workingdirectory, userproxy)
-            if RE_info.advert_glidin_jobs.has_key(i) == False:
-                RE_info.advert_glidin_jobs[i] = []
-            RE_info.advert_glidin_jobs[i].append(advert_glidin_job);
-            print "Started: " + str(advert_glidin_job)  + " Glide-In Job Number: " + str(ng)
+                if RE_info.advert_glidin_jobs.has_key(i) == False:
+                    RE_info.advert_glidin_jobs[i] = []
+                RE_info.advert_glidin_jobs[i].append(advert_glidin_job);
+                print "Started: " + str(advert_glidin_job)  + " Glide-In Job Number: " + str(ng)
 
 def stop_glidin_jobs(RE_info):
     for i in RE_info.advert_glidin_jobs.items():        
