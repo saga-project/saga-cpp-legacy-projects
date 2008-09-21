@@ -82,7 +82,7 @@ class advert_launcher:
         sgenodes = f.readlines()
         f.close()
         for i in sgenodes:    
-		
+        
             columns = i.split()                
             try:
                 for j in range(0, int(columns[1])):
@@ -152,73 +152,73 @@ class advert_launcher:
             print "Could not access job state... skip execution attempt"
         if(state==str(saga.job.Unknown) or
             state==str(saga.job.New)):
-	    try: 
-           	 job_dir.set_attribute("state", str(saga.job.New))
-           	 self.print_attributes(job_dir)        
-           	 numberofprocesses = "1"
-           	 if (job_dir.attribute_exists("NumberOfProcesses") == True):
-           	     numberofprocesses = job_dir.get_attribute("NumberOfProcesses")
-           	 
-           	 spmdvariation="single"
-           	 if (job_dir.attribute_exists("SPMDVariation") == True):
-           	     spmdvariation = job_dir.get_attribute("SPMDVariation")
-           	 
-           	 arguments = ""
-           	 if (job_dir.attribute_exists("Arguments") == True):
-           	     for i in job_dir.get_vector_attribute("Arguments"):
-           	         arguments = arguments + " " + i
-           	  
-           	 executable = job_dir.get_attribute("Executable")
-           	 
-           	 workingdirectory = os.getcwd() 
-           	 if (job_dir.attribute_exists("WorkingDirectory") == True):
-           	         workingdirectory =  job_dir.get_attribute("WorkingDirectory")
-           	 
-           	 output="stdout"
-           	 if (job_dir.attribute_exists("Output") == True):
-           	         output = job_dir.get_attribute("Output")
-           	         
-           	 error="stderr"
-           	 if (job_dir.attribute_exists("Error") == True):
-           	        error = job_dir.get_attribute("Error")
-           	
-           	 # append job to job list
-           	 self.jobs.append(job_dir)
-           	 
-           	 # create stdout/stderr file descriptors
-           	 stdout = open(workingdirectory+"/"+output, "w")
-           	 stderr = open(workingdirectory+"/"+error, "w")
-           	 command = executable + " " + arguments
-           	 
-           	 # special setup for MPI NAMD jobs
-           	 machinefile = self.allocate_nodes(job_dir)
-           	 host = "localhost"
-           	 try:
-           	     machine_file_handler = open(machinefile, "r")
-           	     node= machine_file_handler.readlines()
-           	     machine_file_handler.close()
-           	     host = node[0].strip()
-           	 except:
-           	     pass
-           	 # start application process
-           	 if (spmdvariation.lower( )=="mpi"):
-           	      if(machinefile==None):
-           	          print "Not enough resources to run: " + job_dir.get_url().get_string() 
-           	          return # job cannot be run at the moment
-           	      command = self.MPIRUN + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
-           	      #if (host != socket.gethostname()):
-           	      #    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
-           	 else:
-           	     command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
-           	 shell = self.SHELL 
-           	 print "execute: " + command + " in " + workingdirectory + " from: " + str(socket.gethostname()) + " (Shell: " + shell +")"
-           	 # bash works fine for launching on QB but fails for Abe :-(
-           	 p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
-           	 print "started " + command
-           	 self.processes[job_dir] = p
-           	 job_dir.set_attribute("state", str(saga.job.Running))
-	    except:
-		pass
+            try: 
+                job_dir.set_attribute("state", str(saga.job.New))
+                self.print_attributes(job_dir)        
+                numberofprocesses = "1"
+                if (job_dir.attribute_exists("NumberOfProcesses") == True):
+                    numberofprocesses = job_dir.get_attribute("NumberOfProcesses")
+                
+                spmdvariation="single"
+                if (job_dir.attribute_exists("SPMDVariation") == True):
+                    spmdvariation = job_dir.get_attribute("SPMDVariation")
+                
+                arguments = ""
+                if (job_dir.attribute_exists("Arguments") == True):
+                    for i in job_dir.get_vector_attribute("Arguments"):
+                        arguments = arguments + " " + i
+                 
+                executable = job_dir.get_attribute("Executable")
+                
+                workingdirectory = os.getcwd() 
+                if (job_dir.attribute_exists("WorkingDirectory") == True):
+                        workingdirectory =  job_dir.get_attribute("WorkingDirectory")
+                
+                output="stdout"
+                if (job_dir.attribute_exists("Output") == True):
+                        output = job_dir.get_attribute("Output")
+                        
+                error="stderr"
+                if (job_dir.attribute_exists("Error") == True):
+                       error = job_dir.get_attribute("Error")
+               
+                # append job to job list
+                self.jobs.append(job_dir)
+                
+                # create stdout/stderr file descriptors
+                stdout = open(workingdirectory+"/"+output, "w")
+                stderr = open(workingdirectory+"/"+error, "w")
+                command = executable + " " + arguments
+                
+                # special setup for MPI NAMD jobs
+                machinefile = self.allocate_nodes(job_dir)
+                host = "localhost"
+                try:
+                    machine_file_handler = open(machinefile, "r")
+                    node= machine_file_handler.readlines()
+                    machine_file_handler.close()
+                    host = node[0].strip()
+                except:
+                    pass
+                # start application process
+                if (spmdvariation.lower( )=="mpi"):
+                     if(machinefile==None):
+                         print "Not enough resources to run: " + job_dir.get_url().get_string() 
+                         return # job cannot be run at the moment
+                     command = self.MPIRUN + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
+                     #if (host != socket.gethostname()):
+                     #    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
+                else:
+                    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
+                shell = self.SHELL 
+                print "execute: " + command + " in " + workingdirectory + " from: " + str(socket.gethostname()) + " (Shell: " + shell +")"
+                # bash works fine for launching on QB but fails for Abe :-(
+                p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
+                print "started " + command
+                self.processes[job_dir] = p
+                job_dir.set_attribute("state", str(saga.job.Running))
+            except:
+                traceback.print_exc(file=sys.stdout)
             
     def allocate_nodes(self, job_dir):
         """ allocate nodes
@@ -272,20 +272,21 @@ class advert_launcher:
         
     def poll_jobs(self):
         """Poll jobs from advert service. """
-	try:
-        	jobs = self.base_dir.list()
-        	print "Found " + "%d"%len(jobs) + " jobs"
-	except:
-		pass
+        jobs = []
+        try:
+            jobs = self.base_dir.list()
+            print "Found " + "%d"%len(jobs) + " jobs"
+        except:
+            pass
         for i in jobs:  
             #print i.get_string()
-	    job_dir = None
-	    try: #potentially racing condition (dir could be already deleted by RE-Manager
-            	job_dir = self.base_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
+            job_dir = None
+            try: #potentially racing condition (dir could be already deleted by RE-Manager
+                job_dir = self.base_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
             except:
-		pass
-	    if job_dir != None:
-		self.execute_job(job_dir)
+                pass
+            if job_dir != None:
+                self.execute_job(job_dir)
                 
     
     def monitor_jobs(self):
