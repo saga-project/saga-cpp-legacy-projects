@@ -52,7 +52,16 @@ set output "perf_glidein.eps"
 set xtics ("No Glide-In" 1, "1 Glide-In" 2.0, "2 Glide-Ins" 3.0, "4 Glide-Ins" 4.0)
 set yrange [0:120]    
 set style fill solid 0.9    
-plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5       
+plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
+
+
+set output "perf_distributed.eps"
+set xtics ("Abe" 1, "Abe/Ranger" 2.0, "Abe/Ranger/QB" 3.0)
+set yrange [0:200]    
+set style fill solid 0.9 
+set xrange [0.5:4.0]    
+plot "data_remd_distributed.txt" using 2:3:4:(0.75)  title "Runtime 40 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
+       
 
 # set output "perf_runtime.eps" 
 # set xtics ("NAMD runtime\n (w/o SAGA/Migol) "  1, "NAMD runtime\n (with SAGA/Migol)" 2)  
@@ -104,6 +113,15 @@ plot  "data-remd-glidein.txt" using 1:2 title "Without Glide-In" with lp,\
       #errorlines      
       
 
+set output "perf_distributed_line.eps"  
+set xlabel "Number Grid Resources"
+set xrange [1:4]        
+set xtics (1,2,4)
+set yrange [10:130]    
+set ytics (20, 40, 60, 80, 100, 120) 
+plot  "data_remd_distributed.txt" using 1:3 title "Runtime (normalized)" with lp,\
+      "data_remd_distributed.txt" using 1:5 title "Runtime (abolute)" with lp
+
 # plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\
 #      "data-remd.txt" using 1:6 title "SAGA/GRAM (QB/Poseidon/Eric)" with lp,\
 #      "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp,\
@@ -119,4 +137,7 @@ set xrange [0.9:9.25]
 set xtics (1,2,4,8)
 plot  "data_remd_timesteps.txt" using 1:3 title "With Glide-In" with lp,\
       "data_remd_timesteps.txt" using 1:2 title "Without Glide-In" with lp
+
+
+
 
