@@ -167,15 +167,15 @@
 \section{Introduction}
 
 % Introduction RE application class 
-There exist several types of applications, which are well suited to
+Several classes of applications are well suited for
 distributed environments. Probably the best known and most powerful
 examples are those that involve an ensemble of decoupled tasks. 
-These applications are referred to as loosely coupled. Despite
-the conceptual simplicity, many scientific problems, e.\,g.\ 
-parameter sweeps and/or Monte Carlo simulations, can be solved using
-infrastructure that supports this application class. A slightly
-more complicated and challenging class of distributed applications are
-those that have a small level of coupling between individual
+These applications are referred to as loosely coupled. 
+% Despite the conceptual simplicity, many scientific problems, e.\,g.\ 
+% parameter sweeps and/or Monte Carlo simulations, can be solved using
+% infrastructure that supports this application class. 
+A slightly more complicated and challenging class of distributed 
+applications are those that have a small level of coupling between individual
 sub-tasks. We refer to these applications as {\it pleasingly-distributed}. 
 An interesting example of such applications are  
 \emph{Replica-Exchange (RE)}~\citep{hansmann,Sugita:1999rm}
@@ -195,7 +195,7 @@ to an increased difficulty and complexity in developing adaptive
 applications and deploying these in the Grid. The uncertainty about
 the availability of resources and the lack of a simple 
 model for determining optimal usage lead to various scheduling and 
-load balancing issues even on few resources. 
+load balancing issues even when using only few resources. 
 
 % Some applications can respond to such failures via redundant or
 % speculative computing.  However, redundant computing has its
@@ -209,7 +209,7 @@ load balancing issues even on few resources.
 
 SAGA~\citep{saga_gfd90} and Migol~\citep{schnorLuckow08} provide 
 a scalable, general-purpose environment for developing reliable 
-loosely coupled applications. In~\citet{Luckow:2008la}, we demonstrated 
+loosely coupled applications. In~\citet{Luckow:2008la} we demonstrated 
 the use of the SAGA Checkpoint Recovery (CPR) abstraction to build a reliable
 Replica-Exchange application on top of Migol.
 % This paper arises from practical considerations related to the
@@ -222,34 +222,43 @@ Replica-Exchange application on top of Migol.
 The motivation of this paper is to address some of the challenges and 
 performance bottlenecks that we encountered when deploying the 
 framework to solve real scientific problems. 
-In particular, we refer to the overall slow-down
+In particular, we refer to the overall slowdown
 due to the lack of co-scheduled resources to support the concurrent
 completion of multiple sub-jobs whether on the same machine or on
-distinct distributed resources. The slowdown is particular to the RE
-algorithm, and not a generic feature of the all loosely-coupled
-many-task jobs; for RE although loosely-coupled there is apparently a
-synchronisation point, whereby all replicas must exchange.
-\jhanote{(with replicas of the same generation?)}  We propose an
-adaptive variation of the RE algorithm that permits a change in in the
-number of replicas that are employed and thus can be opportunistic in
-the resources that it can employ.
+distinct distributed resources. 
 
-To reduce the time to solution, we further propose 
-a general and extensible ``Glide-In''
-framework based on SAGA, which overcomes the need to co-schedule
-resources for the many sub-jobs. The enhanced job abstraction allows
-the RE application to efficiently cluster sub-tasks, which are
-executed on the same machine. 
-The adaptive RE algorithm is build on top of this abstractions.
+This slowdown is particularly caused by the synchronization required by 
+the Replica-Exchange algorithm after each generation.
+\jhanote{(with replicas of the same generation?)}  
+%it is not a generic feature of the all loosely-coupled
+%many-task jobs; for RE although loosely-coupled there is apparently a
+%synchronisation point, whereby all replicas must exchange.    
+This significantly limits the applicability of this algorithm to heterogeneous
+Grids. In pathological cases, the complete system can come to a halt 
+caused by a single slow resource. We propose a novel, adaptive RE algorithm to 
+relax this constraint. The adaptive RE algorithm permits a change in the
+number of replicas that are employed by adjusting the sampling range. 
+With this capability adaptive RE is able to opportunistically employ 
+resources as they become available.
+
+A further cause for slowdowns are queueing delays, which particularly occur when 
+using production resources. To address this issue, we propose 
+a ``Glide-In'' framework based on SAGA, which  allows the direct dispatching
+of replica jobs and overcomes the need to co-schedule resources. 
+The enhanced job abstraction allows RE applications to efficiently 
+cluster sub-tasks, which are executed on the same machine. 
+The adaptive RE algorithm is build on top of this abstraction.
 Although the adaptive algorithm does not (and cannot) remove the 
 need for synchronisation amongst the replicas at the exchange step, 
 it ensures that a synchronization is only conducted between replica
-processes on available resources.
+processes on available resources, i.\,e.\ resources with an active Glide-In job.
 % makes it very simple for
 % replicas on either the same resource or different resource.  
-The implementation of adaptive RE prevents slowdowns due to synchronisation, 
+The implementation of adaptive RE minimizes slowdowns due to synchronisation, 
 whilst making it easy to add/remove resources {\it dynamically} respecting the
-underlying physics of the problem at the same time.
+underlying physics of the problem at the same time. Using adaptive RE, 
+we were able to improve the performance by up to 80\,\% during 
+REMD runs in the TeraGrid.
 
 In addition to overcoming the performance bottleneck outlined earlier,
 the main advantages of our approach: First and foremost it is a
@@ -280,11 +289,11 @@ which is runnable in a heterogeneous and loosely coupled Grid
 environment.  In section 5, we describe the details of a REMD
 application implemented using the SAGA-Migol fault-tolerant, distributed
 framework. Section 6 discusses the enhanced job model abstraction and 
-the SAGA Glide-In framework. In the subsequent section we discuss our experience in
-implementing REMD and performance figures. We conclude by providing a
-detailed analysis of related work, which will highlight the truly
-unique features of our implementation.  \jhanote{mostly ok.. might
-need some refining}   
+the SAGA Glide-In framework. In the subsequent section we discuss 
+our experiences with running REMD in the TeraGrid.
+We conclude by providing a detailed analysis of related work, 
+which will highlight the truly unique features of our implementation.  
+\jhanote{mostly ok.. might need some refining}   
 
 \ifdraft 
 \alnote{I moved the itemize to the draft mode. We probably still need to add some of these
@@ -887,14 +896,11 @@ sampling range is increased. This adaptive sampling schema allows the sufficient
 % \jhanote{Let us reach consistency on, BigJob/LittleJob vs MetaJob vs
 %   Enhanced Job terminology}
 
-                         
-
 % resource management: how large is the glidin job?
 
 % Further, 
 % it is able to tolerate failures within the Grid infrastructure, e.\,g.\ 
 % the failure of the central registry service. 
-                           
 
 % To integrate NAMD with the SAGA/Migol infrastructure a SAGA based task
 % agent -- {\it Replica-Launcher}, is used.  This agent is responsible for
