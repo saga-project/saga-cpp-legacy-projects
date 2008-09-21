@@ -284,7 +284,7 @@ class advert_launcher:
             	job_dir = self.base_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
             except:
 		pass
-	    if job_dir == None:
+	    if job_dir != None:
 		self.execute_job(job_dir)
                 
     
