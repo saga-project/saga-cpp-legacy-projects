@@ -124,7 +124,7 @@
 
 \maketitle    
 
-\begin{abstract}{REMD, SAGA, Migol, Fault Tolerance}  
+\begin{abstract}{Replica-Exchange, SAGA, Migol, Fault Tolerance}  
 %  There exists a class of scientific applications for which utilizing
 %  distributed resources is critical for reducing the
 %  time-to-solution. However, 
@@ -714,13 +714,12 @@ application.
 
 When all replicas reach a pre-determined state (e.\,g., the NAMD job finishes 
 after a fixed number of steps), the decision as to whether to exchange
-paired-replicas is determined by the Metropolis scheme. If successful,
-parameters such as the temperature, are swapped. Both jobs are then
+paired-replicas is determined by the Metropolis scheme~\cite{metropolis:1087}. 
+If successful,parameters such as the temperature, are swapped. Both jobs are then
 relaunched using the mechanisms described above. Often the Metropolis
 scheme returns a negative result, and an exchange is not carried out;
 thus it is difficult to respond to a possible exchange speculatively. 
 
-    
 
 \subsection{Reliability}
 To achieve fault tolerance, the RE-Manager, the Replica-Agents and the
@@ -1036,7 +1035,7 @@ used job scheduling mechanism.
     \centering      
         \subfloat[RE-Manager Scaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf}}    
         \subfloat[Glide-In Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf}} 
-    \caption{\footnotesize \bf SAGA Glide-In and REMD Performance: 
+    \caption{\footnotesize \bf SAGA Glide-In and RE Performance (QueenBee): 
     Obviously, the increase in the number of resources allows sampling of a wider 
     parameter range. Especially beneficial in particular for runs with many replica processes 
     is the clustering of processes using the SAGA Glide-Ins.}       
@@ -1070,13 +1069,28 @@ backfilled. Also some resources impose a restriction on the number of active job
 In general, the more processes are spawned the more likely are delays. 
 
 The framework has also been deployed on multiple resources within TeraGrid concurrently. 
-Figure~\ref{fig:performance_perf_distributed} shows the results of this evaluation. \textbf{TODO...}
-\begin{figure}[htbp]
+Figure~\ref{fig:performance_perf_distributed} shows the results of this evaluation. For this evaluation,
+the RE-Manager is configured to run with 16 replica processes a 16 cores each. The figure shows
+the runtime for 40 attempted pair-wise exchanges with respect to the number 
+of TeraGrid resources utilized. The RE-Manager was configured to run with 4 Glide-Ins, i.\,e.\ every
+Glide-In manages 4 RE processes and a total of 64 cores.  This is the optimal Glide-In size determined
+in earlier experiments (see Figure~\ref{fig:perf_remd_glidin}b)).
+
+The time to solution obviously decreases with the number of the machines used. The main 
+reason for this behaviour is that with the distribution of the simulation to multiple resources
+the likelihood that a single crowded resources delays the simulation decreases. This is also reflected in
+the standard deviation, which clearly decreases with the degree of distribution. The results show the benefits
+of the adaptive RE schema: Even if only a few resources are available, it is better to opportunistically 
+use these resources instead of waiting for the complete set of nodes to become available. 
+
+\begin{figure}[t]
     \centering
-       \includegraphics[width=0.7\textwidth]{performance/perf_distributed_line.pdf}
-    \caption{Performance of RE-Manager on Distributed Resource: The more machines used the more 
-    the absolute runtime of the RE run decreases. TODO: gather some more data, to get a better normalized 
-    runtime. }
+       \includegraphics[width=0.7\textwidth]{performance/perf_distributed.pdf}
+    \caption{\footnotesize \bf Performance of the RE-Manager in the TeraGrid: The figure 
+    shows the runtime of the RE-Manager  
+    for 40 pair-wise exchanges using 16 replica processes with 16 cores each. 
+    The utilization of more machines leads to a shorter time to solution.
+    }
     \label{fig:performance_perf_distributed}
 \end{figure}
 
@@ -1091,10 +1105,14 @@ to various reasons: MPI/Globus not correctly configured on Ranger}
 
 The results can be summarized as follows: 1) The SAGA Glide-In framework can 
 efficiently dispatches RE sub-jobs providing an enhanced time to solution even 
-when deployed on a single machines. 2) By using a clever assignment of 
-Glide-Ins to hosts and jobs, the runtime can 
-be further optimized. In future, we plan to utilize this by deploying 
-adaptive optimization strategies at runtime.
+when deployed on a single machines. 
+2) The distribution of the replica processes across multiple resources can further reduce
+the time to solution -- the effect of single crowded resources on the overall runtime
+could be significantly reduced.
+
+% By using a clever assignment of Glide-Ins to hosts and jobs, the runtime can 
+% be further optimized. In future, we plan to utilize this by deploying 
+% adaptive optimization strategies at runtime.
 
 
 % The more replica processes, the more dominant the sequential overhead
@@ -1478,17 +1496,16 @@ deployment I am always thinking of the pain with boost.}
 
 The implementation of adaptive RE minimizes slowdowns due to synchronisation, 
 whilst making it easy to add/remove resources {\it dynamically} respecting the
-underlying physics of the problem at the same time. 
+underlying phys\-ics of the problem at the same time. 
 % Using adaptive RE, we were able to improve the performance by up to 80\,\% during 
 % REMD runs in the TeraGrid.
-
-Using an application-level scheduling schema based on the Glide-In abstraction,
+Using this application-level scheduling schema based on the Glide-In abstraction,
 the application can agilely make use of available resources adjusting
 the simulation space dynamically. With this approach expensive idle 
 time due to a rigid co-allocation schema can be avoided. 
 While the implementation of the enhanced job model is entirely based
 on SAGA, a utilization of other frameworks, such as the orignal Condor
-Glide-In~\cite{citeulike:291860} or Falkon~\cite{1362680}, is
+Glide-In~\citep{citeulike:291860} or Falkon~\citep{1362680}, is
 possible. Currently, we are actively working on a Condor adaptor for
 SAGA, which will also support native Glide-In functionality for Condor
 Jobs; our enhanced job model will then serve as abstraction, while the

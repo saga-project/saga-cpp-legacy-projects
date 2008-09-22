@@ -56,10 +56,10 @@ plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxer
 
 
 set output "perf_distributed.eps"
-set xtics ("Abe" 1, "Abe/Ranger" 2.0, "Abe/Ranger/QB" 3.0)
-set yrange [0:200]    
+set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB/QB" 3.2)
+set yrange [0:180]    
 set style fill solid 0.9 
-set xrange [0.5:4.0]    
+set xrange [0.5:3.8]    
 plot "data_remd_distributed.txt" using 2:3:4:(0.75)  title "Runtime 40 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
        
 
@@ -115,7 +115,7 @@ plot  "data-remd-glidein.txt" using 1:2 title "Without Glide-In" with lp,\
 
 set output "perf_distributed_line.eps"  
 set xlabel "Number Grid Resources"
-set xrange [1:4]        
+set xrange [0.9:4.1]        
 set xtics (1,2,4)
 set yrange [10:130]    
 set ytics (20, 40, 60, 80, 100, 120) 
