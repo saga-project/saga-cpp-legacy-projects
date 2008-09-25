@@ -968,14 +968,19 @@ sufficient utilization of all available resource.
         
 To evaluate the performance of the RE-Manager several experiments have
 been conducted on the LONI Grid~\citep{loni} and TeraGrid
-resources.The RE-Manager is used to deploy replia tasks to the
-TeraGrid clusters: Ranger, Abe and QueenBee (QB).
-% QB, which is both a LONI and a TeraGrid resource, is the largest LONI
-% machine and has a peak performance of over 50 TFlops.  
+resources. The RE-Manager is used to deploy replia tasks on the
+TeraGrid resources: Ranger, Abe and QueenBee (QB).
+
+\jhanote{the use of the term cluster should be consistent with the
+  resource description :)}
+
+% QB, which is both a LONI and a TeraGrid resource, is the largest
+% LONI machine and has a peak performance of over 50 TFlops.
 % Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
-The objective of the experiments is the evaluation of the Glide-In mechanism and of
-the performance of the RE-Manager. Scientific results obtained from using 
-this infrastructure will be reported elsewhere.
+
+The objective of the experiments is the evaluation of the Glide-In
+mechanism and of the performance of the RE-Manager. Scientific results
+obtained from using this infrastructure will be reported elsewhere.
 
 \alnote{I removed this figure since it has too much focus on Migol and not
 on the Glide-In stuff}
@@ -994,12 +999,15 @@ on the Glide-In stuff}
 
 % \subsection{Infrastructure Performance}
 
+\jhanote{define Generation?}
+\jhanote{distinguish  between replica, replica processes; or at least
+ keep usage consistent}
+\jhanote{describe how exchange partner is chosen? remains the same?}
 
 The RE-Manager was configured to run a simulation with 16 replica processes 
 running for 5 generations sampling a temperature range between 300 and 450\,K. 
 Each replica process comprises of a NAMD simulation running on 16 cores 
-for 500 time steps.      
-             
+for 500 time steps.   
 Further, we evaluated the runtime of the RE-Manager with respect to the 
 used job scheduling mechanism.
 
@@ -1007,46 +1015,61 @@ used job scheduling mechanism.
     \centering      
         \subfloat[RE-Manager Scaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf}}    
         \subfloat[Glide-In Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf}} 
-    \caption{\footnotesize \bf SAGA Glide-In and RE Performance (QueenBee): 
-    Obviously, the increase in the number of resources allows sampling of a wider 
-    parameter range. Especially beneficial in particular for runs with many replica processes 
-    is the clustering of processes using the SAGA Glide-Ins.}       
+        \caption{\footnotesize \bf SAGA Glide-In and RE Performance
+          (QueenBee): Obviously, the increase in the number of
+          resources allows sampling of a wider parameter
+          range. Especially beneficial in particular for runs with
+          many replica processes is the clustering of processes using
+          the SAGA Glide-Ins.}
     \label{fig:perf_remd_glidin}
 \end{figure} 
 
-Figure~\ref{fig:perf_remd_glidin}a) illustrates that the increase in the 
-number of resources in general allows the computation of a greater problem set,
-i.\,e.\ the sampling of a wider parameter range. However, 
-the figure also shows the limitations of the regular job submission mechanism:
-The more processes are spawned, the more likely are queueing 
-delays. While with the SAGA Glide-In framework the number of NAMD steps
-almost scales linearly, the computed problem set rapidly drops when using
-more than eight replica proceses.
+Figure~\ref{fig:perf_remd_glidin}a) illustrates that the increase in
+the number of resources in general allows the computation of a greater
+problem set, i.\,e.\ the sampling of a wider parameter range. However,
+the figure also shows the limitations of the regular job submission
+mechanism: The more processes are spawned, the more likely are
+queueing delays. While with the SAGA Glide-In framework the number of
+NAMD steps almost scales linearly, the computed problem set rapidly
+drops when using more than eight replica proceses.
 
-Figure~\ref{fig:perf_remd_glidin}b) shows that the SAGA Glide-In framework can 
-reduced the time to solution even on a single machine by avoiding queuing times for 
-every sub-job and allowing the efficient dispatching of RE tasks solely through the 
-Replica-Agent. During our experiments we were able to measure speedups of up to 80\,\%.
+\jhanote{unfortunately this paragraph and the one before are unclear}
 
-The unpredictable nature of these queueing times is reflected in the high standard deviation 
-observed in the runtimes. While queueing times also have an impact on Glide-Ins, these are in general less
-severe.  Further, for the Glide-In scenario, the queueing times become negligible, 
-the longer the RE simulation is (the runtimes have been
-kept short for this simple scenario). In contrast, when no Glide-Ins are used every sub-jobs 
-is subject to the queuing delay at the local scheduler.
+\jhanote{I would recommend using time-to-completion over
+  time-to-solution; also maybe use shorthand T\_c?}
+Figure~\ref{fig:perf_remd_glidin}b) shows that the SAGA Glide-In
+framework can reduce the time to solution even on a single machine by
+avoiding queuing times for every sub-job and allowing the efficient
+dispatching of RE tasks solely through the Replica-Agent. During our
+experiments we were able to measure speedups of up to 80\,\%.
+
+\jhanote{need to clarify what the 80\% means/implies?}
+
+The unpredictable nature of these queueing times is reflected in the
+high standard deviation observed in the runtimes. While queueing times
+also have an impact on Glide-Ins, these are in general less severe.
+Further, for the Glide-In scenario, the queueing times become
+negligible, the longer the RE simulation is (the runtimes have been
+kept short for this simple scenario). In contrast, when no Glide-Ins
+are used every sub-jobs is subject to the queuing delay at the local
+scheduler.
                                                            
-In certain situation the usage of smaller jobs can have an advantage, 
-e.\,g.\ when the local scheduler backfills such jobs. However, usually not all replica processes can be
-backfilled. Also some resources impose a restriction on the number of active jobs per user. 
-In general, the more processes are spawned the more likely are delays. 
+In certain situation the usage of smaller jobs can have an advantage,
+e.\,g.\ when the local scheduler backfills such jobs. However, usually
+not all replica processes can be backfilled. Also some resources
+impose a restriction on the number of active jobs per user.  In
+general, the more processes are spawned the more likely are delays.
 
-The framework has also been deployed on multiple resources within the TeraGrid. 
-For this evaluation, the RE-Manager was configured to run with 16 replica processes each one using 16 cores. 
-The RE-Manager was executed with 4 Glide-Ins, i.\,e.\ every
-Glide-In managed 4 RE processes and a total of 64 cores.  This was the optimal Glide-In size determined
-in earlier experiments (see Figure~\ref{fig:perf_remd_glidin}b)).
-We measured the runtime for 40 attempted pair-wise exchanges with respect to the number 
-of TeraGrid resources utilized. Figure~\ref{fig:performance_perf_distributed} shows the results of this evaluation.  
+The framework has also been deployed on multiple resources within the
+TeraGrid.  For this evaluation, the RE-Manager was configured to run
+with 16 replica processes each one using 16 cores.  The RE-Manager was
+executed with 4 Glide-Ins, i.\,e.\ every Glide-In managed 4 RE
+processes and a total of 64 cores.  This was the optimal Glide-In size
+determined in earlier experiments (see
+Figure~\ref{fig:perf_remd_glidin}b)).  We measured the runtime for 40
+attempted pair-wise exchanges with respect to the number of TeraGrid
+resources utilized. Figure~\ref{fig:performance_perf_distributed}
+shows the results of this evaluation.
 
 The time to solution obviously decreases with the number of machines used. The main 
 reason for this behaviour is that with the distribution of the simulation to multiple resources
