@@ -441,113 +441,15 @@ described MD approach -- but also multiple levels-of-coupling.
 The degree and frequency of coupling and exchange can be either
 regular~\citep{hansmann,Sugita:1999rm}, or
 irregular~\citep{SPdynamics,pande_bj03}. An example of the latter --
-parallel replica dynamics as implemented in Folding@home (\citep{folding}) involves
-coordination between replicas only when an ``event'' occurs.  In
-contrast, for regular RE applications, attempts to exchange states
-between certain pairs occur at fixed intervals. A major challenge
-common to both types however, is the design, development and
-deployment of a general purpose RE framework for distributed
-environments.
+parallel replica dynamics as implemented in Folding@home
+(\citep{folding}) involves coordination between replicas only when an
+``event'' occurs.  In contrast, for regular RE applications, attempts
+to exchange states between certain pairs occur at fixed intervals. A
+major challenge common to both types however, is the design,
+development and deployment of a general purpose RE framework for
+distributed environments.
 
 
-\section{Musings on Dynamic Resources, Adaptive applications, and
-  Replica-Exchange simulations}
-
-
-There are two levels of adaptivity we are concerned with: 
-
-\begin{compactitem}
-\item  The ability to utilise expanded and reduced set of resources
-    (Effective Resource Utilisation, {\bf U})
-  \item Determine the best resource to use for (Effective Resource
-    Determination {\bf D})
-\end{compactitem}
-
-We are going to show that as the number of resources available (pool)
-gets larger, the greater the advantages to point U even though point D
-becomes harder. A truly scalable agile-execution model requires
-support/strategies both U and D, for at some stage the inability to do
-D effectively will limit the returns on U. In this paper, we will
-focus on point U, and will discuss point D (in conjunction with U) in
-a later publication.
-
-A relevant question is: Do BigJobs (using Glide-Ins mechanism) make it
-easier to do any of these directly?  At some level the answer is yes
-as it makes both tasks easier.  Instead of a single task, we are now
-looking at a higher-level task -- an aggregation, and in some ways it
-reduces the complexity.  In both cases, the sub-tasks are immune from
-the fluctuations of the scheduling system.  But the BigJobs that
-support Glide-In mechanims help with requirement U directly, and not
-directly with requirement D, thus a necessary but not a sufficient
-mechanism to respond to the dynamic nature of replica-exchange
-applications.
-
-There is a need to distinguish between BigJob and Glide-In. One can
-have BigJob ie aggregated jobs, without supporting flexible
-scheduling/allocation within the BigJob ie the unit is now just a
-BigJob. But BigJob with Glide-In allows the aggregation of sub-jobs
-and provides the advantages of the aggregation without losing the unit
-to be a sub-job ie. scheduling/allocation is supported for individual
-sub-jobs.
-
-Replica-Exchange in addition to being a good candidate for
-embarassingly-distributed applications, are also very good candiates
-for using dynamic resource pools; Glide-Ins are a very useful
-abstraction for dynamic resources aggregation and utilisation.
-
-There are different ways in which our simulation can respond
-to a change in the number of resources required/available:
-
-\begin{enumerate}
-\item The number of BigJobs can adapt, and everything else remains the
-  same i.e, this leads to an increase in the net number of replicas
-\item The size of a BigJob can adapt, keeping the number of BigJobs a
-  constant. Thus either the number of processes per replica will
-  change or the number of replicas per BigJob will change
-\item Within a BigJob (of fixed size), the number of processes
-  assigned to a replica can adapt (possibly keeping the number of
-  replicas the same, or determining some replicas to put into sleep
-  state)
-\item Again for a fixed BigJob size, assume the number of replicas
-  assigned to a BigJob can adapt, (possibly varying the number of
-  replicas in a BigJob)
-\end{enumerate}
-
-Motivations for having an implementation of Replica-Exchange
-simulations that are adaptive (ie can respond to dynamic changes in
-resource requirements and availability).
-
-{\it Scenario A:} Vary the number of processes assigned to each
-replica (?) by speeding up a job that is slowing down others
-
-{\it Scenario B:} Vary the Number of replicas, (i) reassign Temp
-(refined/adaptive sampling) and, (ii) replicas at new (extended T)
-(enhanced dynamics)
-
-{\it Scenario C:} Parallel replica dynamics: Just use the additional
-resources to be assigned to speed up the calculation.
-
-Scenario (A) in turn could be met, when either changing the number of
-replicas (Approach 4) or changing the number of processors associated
-with each replica (Approch 3) or just use Approach 2 Scenario (B)
-could be met with Approach 4 or Approach 1.
-
-Resource Determination (D): Interestingly the qualitative nature of
-the problem remains the same, just the number-of-degrees of freedom
-that need managing changes. For example, the strategy that needs to be
-determined to find optimal size and location of a BigJob is the same
-as that for non-aggregated jobs, ie. for example BQP enables both.
-(The determined optimal size of BigJob in turn influences the number
-of replicas in a BigJob or the size of individual replicas).
-
-It is useful to contrast our approach to approach where a single image
-of the application is used (eg MPIg model). The MPIg approach has the
-advantage of being able to continue without checkpoint/restart after
-an exchange, but it is not agile, for example it needs co-scheduling
-of resources. This might be acceptable for very very large simulations
-or very long runnning simulations, but in general and on average, it
-is more likely that an implementation that is adaptive will have a
-lower time-to-completion.
 
 \section{SAGA/Migol: Providing A Checkpoint and Fault-Tolerant
   Framework}\label{sec:sagamigol}
@@ -1070,6 +972,128 @@ sufficient utilization of all available resource.
 
 \jhanote{We need to reference the challenges outlined in the previous
   section explicitly and mention how we have addressed them}
+
+\section{Musings on Dynamic Resources, Adaptive Applications, and
+  Replica-Exchange Simulations}
+
+Applications with many component (eg replicas) or stages (concurrent
+or sequential) may have time-varying resource requirements, e.g., in
+the number of processes, or the need to have lower queue waiting time,
+or enhanced time-to-solution of a sub-component. Such applications are
+referred to as dynamic application. Adaptivity is a mechanism to
+respond to dynamic changes as opposed to just ignoring the dynamic
+attributes. A single dynamic application may have possibly different
+adaptive strategies that can be used. There is a qualitative scale of
+``dynamism''. At the one end of easiness, where the dynamism is very
+simple to predict, almost effectively make it static.  At the other
+end of the spectrum, there is the very difficult to predict dynamic
+requirements -- difficult either due to strong fluctuations, or just
+very different phases (irregular). Either way a static resource
+mapping strategy will not 
+
+On a slightly different note, it is important to distinguish between
+multiple``heterogenous parameters'' versus dynamical attributes; we
+prefer to call an application dynamic when the resource requirement
+changes or the availability changes. In contrast, a static number of
+parameters have different values or for that matter even dynamic
+values (I would call that computational steering -- either manual or
+automated). In a nutshell, resources variabilty makes an application
+dynamic; a mechanism to respond to the change makes it adaptive.
+
+There are two levels of adaptivity we are concerned with:
+
+\begin{compactitem}
+\item  The ability to utilise expanded and reduced set of resources
+    (Effective Resource Utilisation, {\bf U})
+  \item Determine the best resource to use for (Effective Resource
+    Determination {\bf D})
+\end{compactitem}
+
+We are going to show that as the number of resources available (pool)
+gets larger, the greater the advantages to point U even though point D
+becomes harder. A truly scalable agile-execution model requires
+support/strategies both U and D, for at some stage the inability to do
+D effectively will limit the returns on U. In this paper, we will
+focus on point U, and will discuss point D (in conjunction with U) in
+a later publication.
+
+A relevant question is: Do BigJobs (using Glide-Ins mechanism) make it
+easier to do any of these directly?  At some level the answer is yes
+as it makes both tasks easier.  Instead of a single task, we are now
+looking at a higher-level task -- an aggregation, and in some ways it
+reduces the complexity.  In both cases, the sub-tasks are immune from
+the fluctuations of the scheduling system.  But the BigJobs that
+support Glide-In mechanims help with requirement U directly, and not
+directly with requirement D, thus a necessary but not a sufficient
+mechanism to respond to the dynamic nature of replica-exchange
+applications.
+
+There is a need to distinguish between BigJob and Glide-In. One can
+have BigJob ie aggregated jobs, without supporting flexible
+scheduling/allocation within the BigJob ie the unit is now just a
+BigJob. But BigJob with Glide-In allows the aggregation of sub-jobs
+and provides the advantages of the aggregation without losing the unit
+to be a sub-job ie. scheduling/allocation is supported for individual
+sub-jobs.
+
+Replica-Exchange in addition to being a good candidate for
+embarassingly-distributed applications, are also very good candiates
+for using dynamic resource pools; Glide-Ins are a very useful
+abstraction for dynamic resources aggregation and utilisation.
+
+There are different ways in which our simulation can respond
+to a change in the number of resources required/available:
+
+\begin{enumerate}
+\item The number of BigJobs can adapt, and everything else remains the
+  same i.e, this leads to an increase in the net number of replicas
+\item The size of a BigJob can adapt, keeping the number of BigJobs a
+  constant. Thus either the number of processes per replica will
+  change or the number of replicas per BigJob will change
+\item Within a BigJob (of fixed size), the number of processes
+  assigned to a replica can adapt (possibly keeping the number of
+  replicas the same, or determining some replicas to put into sleep
+  state)
+\item Again for a fixed BigJob size, assume the number of replicas
+  assigned to a BigJob can adapt, (possibly varying the number of
+  replicas in a BigJob)
+\end{enumerate}
+
+Motivations for having an implementation of Replica-Exchange
+simulations that are adaptive (ie can respond to dynamic changes in
+resource requirements and availability).
+
+{\it Scenario A:} Vary the number of processes assigned to each
+replica (?) by speeding up a job that is slowing down others
+
+{\it Scenario B:} Vary the Number of replicas, (i) reassign Temp
+(refined/adaptive sampling) and, (ii) replicas at new (extended T)
+(enhanced dynamics)
+
+{\it Scenario C:} Parallel replica dynamics: Just use the additional
+resources to be assigned to speed up the calculation.
+
+Scenario (A) in turn could be met, when either changing the number of
+replicas (Approach 4) or changing the number of processors associated
+with each replica (Approch 3) or just use Approach 2 Scenario (B)
+could be met with Approach 4 or Approach 1.
+
+Resource Determination (D): Interestingly the qualitative nature of
+the problem remains the same, just the number-of-degrees of freedom
+that need managing changes. For example, the strategy that needs to be
+determined to find optimal size and location of a BigJob is the same
+as that for non-aggregated jobs, ie. for example BQP enables both.
+(The determined optimal size of BigJob in turn influences the number
+of replicas in a BigJob or the size of individual replicas).
+
+It is useful to contrast our approach to approach where a single image
+of the application is used (eg MPIg model). The MPIg approach has the
+advantage of being able to continue without checkpoint/restart after
+an exchange, but it is not agile, for example it needs co-scheduling
+of resources. This might be acceptable for very very large simulations
+or very long runnning simulations, but in general and on average, it
+is more likely that an implementation that is adaptive will have a
+lower time-to-completion.
 
 \section{Experiences with RE in the Grid}
 \label{sec:exp}       
