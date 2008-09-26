@@ -1,11 +1,19 @@
 \subsection{Some Musings on adaptive applications, replica exchange,
-  Glide-in and all-that-jazz}
+  Glide-in}
+
+Need to distinguish between BigJob and Glide-In. One can have BigJob
+ie aggregated jobs, without supporting flexible scheduling/allocation
+within the BigJob ie the unit is now just a BigJob. But BigJob with
+Glide-In allows the aggregation of sub-jobs and provides the
+advantages of the aggregation without losing the unit to be a sub-job
+ie. scheduling/allocation is supported for individual sub-jobs.
+
 
 There are two levels of adaptivity we are concerned with: 
 
 i.  The ability to utilise expanded and reduced set of resources
     (Effective Resource Utilisation)
-ii. Determine the best resource to utilise 
+ii. Determine the best resource to use for 
     (Effective Resource Determination)
 
 We are going to show that as the number of resources available (pool)
@@ -13,53 +21,61 @@ gets larger, the greater the advantages to point (i) even though point
 (ii) becomes harder. A truly scalable agile-execution model requires
 both (i) and (ii), for at some stage the inability to do (ii)
 effectively will limit the returns on (i). In this paper, we will
-focus on point (i) discuss point (ii) later.
+focus on point (i), and will discuss point (ii) in a later
+publication.
 
+A relevant question is: Do BigJobs (using Glide-Ins mechanism) make it
+easier to do any of these directly?  At some level the answer is yes
+as it makes both tasks easier.  Instead of a single task, we are now
+looking at a higher-level task -- an aggregation, and in some ways it
+reduces the complexity.  In both cases, the sub-tasks are immune from
+the fluctuations of the scheduling system.  But the BigJobs that
+support Glide-In mechanims help with requirement (i) directly, and not
+directly with requirement (ii), thus a necessary but not a sufficient
+mechanism to respond to the dynamic nature of replica-exchange
+applications.
 
+Replica-Exchange in addition to being a good candidate for
+embarassingly-distributed applications, are also very good candiates
+for using dynamic resource pools; Glide-Ins are a very useful
+abstraction for dynamic resources aggregation and utilisation.
 
-The question is: Does Glide-In make it easier to do any of these
-directly?  At some level yes, it makes both tasks easier.  Instead of
-a single task, we are now looking at a higher-level task -- an
-aggregation, and in some ways it reduces the complexity.  In both
-cases, the sub-tasks are immune from the fluctuations of the
-scheduling system.
+There are different ways in which our simulation can respond
+to a change in the number of resources required/available:
 
-[side note: Also, muse about ``heterogenous parameters'' versus
-dynamical attributes (I prefer to call it dynamic when the r/s
-requirement changes or the availability changes)]
+1. The number of BigJobs can adapt, and everything else remains the
+       same i.e, this leads to an increase in the net number of
+       replicas
 
-Remember Glide-In maybe at best a necessary but not a sufficient
-mechanism to respond to the dynamic nature of an application, ie
-Glide-In maybe an important component of any adaptive process.
+2. The size of a BigJob can adapt, keeping the number of BigJobs a
+   constant. Thus either the number of processes per replica will
+   change or the number of replicas per BigJob will change
 
-{\it Four Ways in which dynamic pools are used by replica-exchange style
-processes: Glide-In a necessary abstraction}
+3. Within a BigJob (of fixed size), the number of processes assigned
+      to a replica can adapt (possibly keeping the number of replicas
+      the same, or determining some replicas to put into sleep state)
+      
+4. Again for a fixed BigJob size, assume the number of replicas
+      assigned to a BigJob can adapt, (possibly varying the number of
+      replicas in a BigJob)
 
-1. Assume the number of Glide-In jobs can adapt, and everything
-       else remains the same
-2. Assume the size of a Glide-In job can adapt, and thus 
-       either the number of processes per replica has to change or
-       the number of replicas per glide-in has to change
-3. Assume the number of processes assigned to a replica can adapt, keeping the 
-      size of each replia the same
-4. Assume the number of replicas assigned to a Glide-in can adapt, keeping the
-      number of replicas the same
+Motivations for replica-exchange simulations to be dynamic
 
-Motivations to be dynamic
-
-A.  Vary the number of processes assigned to each replica (?)
+Scenario A:  Vary the number of processes assigned to each replica (?)
       -- speed up a job that is slowing down others
 
-B.  Vary the Number of replicas
+Scenario B:  Vary the Number of replicas
       --  reassign Temp (refined/adaptive sampling)
       --  add replicas at new (extended T) (enhanced dynamics)
 
-C. Parallel replica dynamics: Just use the additional resources to be
-     assigned to speed up the calculation.
+Scenario C: Parallel replica dynamics: Just use the additional
+     resources to be assigned to speed up the calculation.
 
-Approach (A) in turn could arise, when either changing the number of
-replicas or changing the number of processors associated with each
-replica.
+Scenario (A) in turn could be met, when either changing the number of
+replicas (Approach 4) or changing the number of processors associated
+with each replica (Approch 3) or just use Approach 2
+
+Scenario (B) could be met with Approach 4 or Approach 1.
 
 Resource Determination:
 
@@ -67,11 +83,11 @@ Glide-In: (a) location of glide-in
           (b) and size of a glide-in
 	     
 which in turn either influences the number of replicas in a glide-in
-or the size of individual replicas.
+or the size of individual replicas. BQP enables both.
 
 Contrast this to the MPIg model. MPIg approach has the advantage of
-being able to continue without chkpoint/restart after an exchange, but
-it is not agile, ie needs co-scheduling of resources.
+being able to continue without checkpoint/restart after an exchange,
+but it is not agile, ie needs co-scheduling of resources.
 
 
 \begin{verbatim}
@@ -86,3 +102,7 @@ Tier 3. Adaptivity is a mechanism to respond to dynamic changes as
 opposed to just ignoring the dynamic attributes
 
 \end{verbatim} 
+
+[side note: Also, muse about ``heterogenous parameters'' versus
+dynamical attributes (I prefer to call it dynamic when the r/s
+requirement changes or the availability changes)]
