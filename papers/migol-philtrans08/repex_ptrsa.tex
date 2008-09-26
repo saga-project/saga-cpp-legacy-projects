@@ -1045,8 +1045,9 @@ There are different ways in which our simulation can respond
 to a change in the number of resources required/available:
 
 \begin{enumerate}
-\item The number of BigJobs can adapt, and everything else remains the
-  same i.e, this leads to an increase in the net number of replicas
+\item The {\bf number} and {\bf location} of BigJobs can adapt, and
+  everything else remains the same i.e, this leads to an increase in
+  the net number of replicas
 \item The size of a BigJob can adapt, keeping the number of BigJobs a
   constant. Thus either the number of processes per replica will
   change or the number of replicas per BigJob will change
@@ -1095,13 +1096,12 @@ or very long runnning simulations, but in general and on average, it
 is more likely that an implementation that is adaptive will have a
 lower time-to-completion.
 
-\section{Experiences with RE in the Grid}
-\label{sec:exp}       
+\section{Distributed Replica Exchange on the TeraGrid}
+\label{sec:exp}
         
 To evaluate the performance of the RE-Manager several experiments have
-been conducted on the LONI Grid~\citep{loni} and TeraGrid
-resources. The RE-Manager is used to deploy replia tasks on the
-TeraGrid resources: Ranger, Abe and QueenBee (QB).
+been conducted on TeraGrid and LONI Grid~\citep{loni} resources. The
+TeraGrid resources used are: Ranger, Abe and QueenBee (QB).
 
 \jhanote{the use of the term cluster should be consistent with the
   resource description :)}
@@ -1110,9 +1110,10 @@ TeraGrid resources: Ranger, Abe and QueenBee (QB).
 % LONI machine and has a peak performance of over 50 TFlops.
 % Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
 
-The objective of the experiments is the evaluation of the Glide-In
-mechanism and of the performance of the RE-Manager. Scientific results
-obtained from using this infrastructure will be reported elsewhere.
+The objective of the experiments is the evaluation of the SAGA
+Glide-In mechanism and of the performance of the
+RE-Manager. Scientific results obtained from using this infrastructure
+will be reported elsewhere.
 
 \alnote{I removed this figure since it has too much focus on Migol and not
 on the Glide-In stuff}
@@ -1158,22 +1159,26 @@ used job scheduling mechanism.
 
 Figure~\ref{fig:perf_remd_glidin}a) illustrates that the increase in
 the number of resources in general allows the computation of a greater
-problem set, i.\,e.\ the sampling of a wider parameter range. However,
-the figure also shows the limitations of the regular job submission
-mechanism: The more processes are spawned, the more likely are
-queueing delays. While with the SAGA Glide-In framework the number of
-NAMD steps almost scales linearly, the computed problem set rapidly
-drops when using more than eight replica proceses.
+problem set, i.\,e.\ the sampling of a wider parameter range.
+\jhanote{Once again, it is not obvious if the number of Glide-Ins is
+  being increased on one machine?}  However, the figure also shows the
+limitations of the regular job submission mechanism: The more
+processes are spawned, the more likely are queueing delays. While with
+the SAGA Glide-In framework the number of NAMD steps almost scales
+linearly, the computed problem set rapidly drops when using more than
+eight replica proceses.
 
 \jhanote{unfortunately this paragraph and the one before are unclear}
 
 \jhanote{I would recommend using time-to-completion over
   time-to-solution; also maybe use shorthand T\_c?}
 Figure~\ref{fig:perf_remd_glidin}b) shows that the SAGA Glide-In
-framework can reduce the time to solution even on a single machine by
-avoiding queuing times for every sub-job and allowing the efficient
-dispatching of RE tasks solely through the Replica-Agent. During our
-experiments we were able to measure speedups of up to 80\,\%.
+framework can reduce the time to solution even on a single machine
+\jhanote{Ah, OK single-machine is mentioned here now. Need to mention
+  explicitly upfront} by avoiding queuing times for every sub-job and
+allowing the efficient dispatching of RE tasks solely through the
+Replica-Agent. During our experiments we were able to measure speedups
+of up to 80\,\%.
 
 \jhanote{need to clarify what the 80\% means/implies?}
 
@@ -1203,22 +1208,33 @@ attempted pair-wise exchanges with respect to the number of TeraGrid
 resources utilized. Figure~\ref{fig:performance_perf_distributed}
 shows the results of this evaluation.
 
-The time to solution obviously decreases with the number of machines used. The main 
-reason for this behaviour is that with the distribution of the simulation to multiple resources
-the likelihood that a single crowded resources delays the simulation is reduced. This is also reflected in
-the standard deviation, which clearly decreases with the degree of distribution. The results clearly 
-demonstrate the benefits of the adaptive RE schema -- 
-it is favorable to opportunistically use resources 
-instead of waiting for the complete set of nodes to become available. 
+\jhanote{This is going to sound bizarre... but in future we should
+  probably use a power-of-two number of exchanges and not nice numbers
+  like 40 or 42 :)}
+
+
+The time to solution obviously decreases with the number of machines
+used. The main reason for this behaviour is that with the distribution
+of the simulation onto multiple resources decreases the likelihood
+that a single heavily-utilised resource delays the overall progress of
+the simulation. This is also reflected in the standard deviation,
+which clearly decreases as the number of distributed resources used
+increases. The results clearly demonstrate the benefits of the
+adaptive RE schema -- it is favorable to opportunistically use
+resources instead of waiting for the complete set of nodes to become
+available.
 
 \begin{figure}[t]
     \centering
        \includegraphics[width=0.7\textwidth]{performance/perf_distributed.pdf}
-    \caption{\footnotesize \bf Performance of the RE-Manager in the TeraGrid: The figure 
-    shows the runtime of the RE-Manager  
-    for 40 pair-wise exchanges using 16 replica processes with 16 cores each. 
-    The utilization of more machines leads to a shorter time to solution.
-    }
+       \caption{\footnotesize \bf Performance of the RE-Manager in the
+         TeraGrid: The figure shows the runtime of the RE-Manager for
+         40 pair-wise exchanges using 16 replica processes with 16
+         cores each.  The utilization of more machines leads to a
+         shorter time to solution. \jhanote{It is not clear to me from
+           the caption whether the number of BigJobs remains the same
+           for the three scenarios presented, i.e., the difference is
+           location. Needs clarification} }
     \label{fig:performance_perf_distributed}
 \end{figure}
 
@@ -1227,16 +1243,16 @@ instead of waiting for the complete set of nodes to become available.
 % the runtime only slightly increases by about 1.5 minutes, which is 
 % acceptable compared to a possible delay due to insufficient resources on Poseidon.
                                               
-\alnote{Unfortunately, we have not been able to replica the experiments without the Glide-In mechanism due 
-to various reasons: MPI/Globus not correctly configured on Ranger}
+\alnote{Unfortunately, we have not been able to replica the
+  experiments without the Glide-In mechanism due to various reasons:
+  MPI/Globus not correctly configured on Ranger}
 
-
-The results can be summarized as follows: 1) The SAGA Glide-In framework can 
-efficiently dispatches RE sub-jobs providing an enhanced time to solution even 
-when deployed on a single machines. 
-2) The distribution of the replica processes across multiple resources can further reduce
-the time to solution -- the effect of single crowded resources on the overall runtime
-can be significantly reduced.
+The results can be summarized as follows: 1) The SAGA Glide-In
+framework can efficiently dispatch RE sub-jobs providing an reduced
+time-to-solution even when deployed on a single machines.  2) The
+distribution of replica processes across multiple resources can
+further reduce the time to solution -- the effect of single crowded
+resources on the overall runtime can be significantly reduced.
 
 % By using a clever assignment of Glide-Ins to hosts and jobs, the runtime can 
 % be further optimized. In future, we plan to utilize this by deploying 
