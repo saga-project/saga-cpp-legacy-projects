@@ -178,6 +178,9 @@
 % Introduction RE application class 
 Several classes of applications are well suited for distributed
 environments. Probably the best known and most powerful examples are
+
+
+
 those that involve an ensemble of decoupled tasks.
 % These applications are referred to as loosely coupled. 
 % Despite the conceptual simplicity, many scientific problems, e.\,g.\ 
@@ -446,6 +449,106 @@ common to both types however, is the design, development and
 deployment of a general purpose RE framework for distributed
 environments.
 
+
+\section{Musings on Dynamic Resources, Adaptive applications, and
+  Replica-Exchange simulations}
+
+
+There are two levels of adaptivity we are concerned with: 
+
+\begin{compactitem}
+\item  The ability to utilise expanded and reduced set of resources
+    (Effective Resource Utilisation, {\bf U})
+  \item Determine the best resource to use for (Effective Resource
+    Determination {\bf D})
+\end{compactitem}
+
+We are going to show that as the number of resources available (pool)
+gets larger, the greater the advantages to point U even though point D
+becomes harder. A truly scalable agile-execution model requires
+support/strategies both U and D, for at some stage the inability to do
+D effectively will limit the returns on U. In this paper, we will
+focus on point U, and will discuss point D (in conjunction with U) in
+a later publication.
+
+A relevant question is: Do BigJobs (using Glide-Ins mechanism) make it
+easier to do any of these directly?  At some level the answer is yes
+as it makes both tasks easier.  Instead of a single task, we are now
+looking at a higher-level task -- an aggregation, and in some ways it
+reduces the complexity.  In both cases, the sub-tasks are immune from
+the fluctuations of the scheduling system.  But the BigJobs that
+support Glide-In mechanims help with requirement U directly, and not
+directly with requirement D, thus a necessary but not a sufficient
+mechanism to respond to the dynamic nature of replica-exchange
+applications.
+
+There is a need to distinguish between BigJob and Glide-In. One can
+have BigJob ie aggregated jobs, without supporting flexible
+scheduling/allocation within the BigJob ie the unit is now just a
+BigJob. But BigJob with Glide-In allows the aggregation of sub-jobs
+and provides the advantages of the aggregation without losing the unit
+to be a sub-job ie. scheduling/allocation is supported for individual
+sub-jobs.
+
+Replica-Exchange in addition to being a good candidate for
+embarassingly-distributed applications, are also very good candiates
+for using dynamic resource pools; Glide-Ins are a very useful
+abstraction for dynamic resources aggregation and utilisation.
+
+There are different ways in which our simulation can respond
+to a change in the number of resources required/available:
+
+\begin{enumerate}
+\item The number of BigJobs can adapt, and everything else remains the
+  same i.e, this leads to an increase in the net number of replicas
+\item The size of a BigJob can adapt, keeping the number of BigJobs a
+  constant. Thus either the number of processes per replica will
+  change or the number of replicas per BigJob will change
+\item Within a BigJob (of fixed size), the number of processes
+  assigned to a replica can adapt (possibly keeping the number of
+  replicas the same, or determining some replicas to put into sleep
+  state)
+\item Again for a fixed BigJob size, assume the number of replicas
+  assigned to a BigJob can adapt, (possibly varying the number of
+  replicas in a BigJob)
+\end{enumerate}
+
+Motivations for having an implementation of Replica-Exchange
+simulations that are adaptive (ie can respond to dynamic changes in
+resource requirements and availability).
+
+{\it Scenario A:} Vary the number of processes assigned to each
+replica (?) by speeding up a job that is slowing down others
+
+{\it Scenario B:} Vary the Number of replicas, (i) reassign Temp
+(refined/adaptive sampling) and, (ii) replicas at new (extended T)
+(enhanced dynamics)
+
+{\it Scenario C:} Parallel replica dynamics: Just use the additional
+resources to be assigned to speed up the calculation.
+
+Scenario (A) in turn could be met, when either changing the number of
+replicas (Approach 4) or changing the number of processors associated
+with each replica (Approch 3) or just use Approach 2 Scenario (B)
+could be met with Approach 4 or Approach 1.
+
+Resource Determination (D): Interestingly the qualitative nature of
+the problem remains the same, just the number-of-degrees of freedom
+that need managing changes. For example, the strategy that needs to be
+determined to find optimal size and location of a BigJob is the same
+as that for non-aggregated jobs, ie. for example BQP enables both.
+(The determined optimal size of BigJob in turn influences the number
+of replicas in a BigJob or the size of individual replicas).
+
+It is useful to contrast our approach to approach where a single image
+of the application is used (eg MPIg model). The MPIg approach has the
+advantage of being able to continue without checkpoint/restart after
+an exchange, but it is not agile, for example it needs co-scheduling
+of resources. This might be acceptable for very very large simulations
+or very long runnning simulations, but in general and on average, it
+is more likely that an implementation that is adaptive will have a
+lower time-to-completion.
+
 \section{SAGA/Migol: Providing A Checkpoint and Fault-Tolerant
   Framework}\label{sec:sagamigol}
 
@@ -455,19 +558,23 @@ environments.
   and say that details of the integration of SAGA-Migol are presented
   there.}
 
-The framework used for implementing REMD consists of two  primary components: the 
-\textit{Simple API for Grid Applications (SAGA)}~\citep{saga_gfd90} and Migol~\citep{schnorLuckow08}.     
-While SAGA represents a well-defined, standardized abstraction for writing Grid applications,
-Migol provides the underlying middleware services to guarantee the correct and reliable 
-exe\-cution of applications even in the presence of failures.
+The framework used for implementing REMD consists of two primary
+components: the \textit{Simple API for Grid Applications
+  (SAGA)}~\citep{saga_gfd90} and Migol~\citep{schnorLuckow08}.  While
+SAGA represents a well-defined, standardized abstraction for writing
+Grid applications, Migol provides the underlying middleware services
+to guarantee the correct and reliable exe\-cution of applications even
+in the presence of failures.
     
-
-Migol is an  adaptive Grid middleware and provides several mechanisms for supporting the fault tolerance
-of distributed applications. The framework can automatically detect and transparently handle common failures, 
-such as node or application crashes. For recovery Migol relies on application-level checkpointing 
-to ensure that the amount of lost computation is minimized. The 
-application is solely responsible for registering job and checkpoint metadata with the central registry service
-of Migol. Once registered, Migol will handle the monitoring and, if necessary, the recovering of the application.
+Migol is an adaptive Grid middleware and provides several mechanisms
+for supporting the fault tolerance of distributed applications. The
+framework can automatically detect and transparently handle common
+failures, such as node or application crashes. For recovery Migol
+relies on application-level checkpointing to ensure that the amount of
+lost computation is minimized. The application is solely responsible
+for registering job and checkpoint metadata with the central registry
+service of Migol. Once registered, Migol will handle the monitoring
+and, if necessary, the recovering of the application.
 
 % The framework is based on the Globus Toolkit 4.  
 
