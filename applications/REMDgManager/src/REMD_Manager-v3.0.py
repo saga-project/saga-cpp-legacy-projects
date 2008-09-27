@@ -55,9 +55,12 @@ class ReManager():
         
         # advert host
         self.advert_host ="localhost"
-        # map <host, glidin-job>
-        self.advert_glidin_jobs = {}
-        self.number_glideins_per_host = 1
+        
+        # file staging
+        # contains ids of staged files
+        # <glidein_url, [replica_id1, ...]
+        self.glidein_file_dict = {}
+
         self.read_config(config_filename)
         # init random seed
         random.seed(time.time()/10.)
@@ -81,7 +84,7 @@ class ReManager():
             self.number_of_mpi_processes = config.getint("DEFAULT", "number_of_mpi_processes") 
         except:
             pass
-        self.exchange_count = default_dict["exchange_count"]
+        self.exchange_count = config.getint("DEFAULT", "exchange_count")
         self.advert_host = default_dict["advert_host"]
         self.total_number_replica = config.getint("DEFAULT", "total_number_replica")
         
@@ -203,8 +206,6 @@ class ReManager():
                     logging.error(error_msg)
         
         return None
-                
-                    
 
     def file_stage_out_with_saga(self, file_list, local_dir, remote_machine_ip, remote_dir):
         for ifile in file_list:
@@ -418,9 +419,6 @@ class ReManager():
     
         iEX = 0
         total_number_of_namd_jobs = 0
-
-        init_staging = True # initially stage all files to resources
-        old_states = {}
         while 1:
             print "\n"
             # reset replica number
@@ -441,28 +439,25 @@ class ReManager():
                      for j in range(0, len(glidin_jobs)):
                          state = glidin_jobs[j].get_state_detail()
                          glidin_url = glidin_jobs[j].glidin_url
-
-                         # new glidein => redistribute tasks
-                         if old_states.has_key(glidin_url):
-                            if old_states[glidin_url]!=state:
-                                init_staging = True
-                         elif old_states.has_key(glidin_url) == False:
-                                init_staging = True
                          print "glidein: " + glidin_url + " state: " + state
-                         old_states[glidin_url] = state
                          if state.lower()== "running":
                             num_active_glidein = num_active_glidein + 1 
+                 if num_active_glidein > 0:
+                     num_active_cores = num_active_glidein * self.min_number_cores_in_glidein            
+                     self.number_of_mpi_processes = num_active_cores/self.total_number_replica
+                     number_startable_processes = self.min_number_cores_in_glidein/self.number_of_mpi_processes * num_active_glidein
+                     if number_startable_processes < self.total_number_replica:
+                        target_number_glidein_processes = self.total_number_replica/num_active_glidein
+                        self.number_of_mpi_processes = self.min_number_cores_in_glidein/target_number_glidein_processes
 
-                 num_active_cores = num_active_glidein * self.min_number_cores_in_glidein            
-                 self.number_of_mpi_processes = num_active_cores/self.total_number_replica
-                 print "Number active glidein: " + str(num_active_glidein) + " active cores: " + str(num_active_cores) \
-                        + " Number MPI procs per RE process: " + str(self.number_of_mpi_processes)
-
-            if self.number_of_mpi_processes == 0: # insufficient number of resources active
-                time.sleep(10)
-                continue # next attempt to start replica processes
+                     print "Number active glidein: " + str(num_active_glidein) + " active cores: " + str(num_active_cores) \
+                            + " Number MPI procs per RE process: " + str(self.number_of_mpi_processes)
+                 else:
+                    print "No Glide In ready"
+                    continue
 
             # Job spawning
+            print "############# spawn jobs ################"
             start_time = time.time()
             replica_id = 0
             for resource in self.resourceMap.keys():
@@ -475,6 +470,9 @@ class ReManager():
                 for j in range(0, len(glidin_jobs)):
                     state = glidin_jobs[j].get_state_detail()  
                     glidin_url = glidin_jobs[j].glidin_url 
+                    # init glidein_file_dict if necessary
+                    if self.glidein_file_dict.has_key(glidin_url)==False:
+                        self.glidein_file_dict[glidin_url]=[]
                     print "glidein: " + glidin_url + " state: " + state
                     if state.lower()== "running":
                         num_jobs = num_nodes_per_glidein/self.number_of_mpi_processes
@@ -482,8 +480,10 @@ class ReManager():
                         for c in range(0, num_jobs):
                             if replica_id < self.total_number_replica:
                                 ############## NPT staging ######################################
-                                if init_staging == True: # stage all file
+                                files_staged_replica_id = self.glidein_file_dict[glidin_url]
+                                if files_staged_replica_id.count(replica_id) == 0 : # stage all file
                                     self.stage_files(self.stage_in_file, machine, replica_id)
+                                    self.glidein_file_dict[glidin_url].append(replica_id)
                                 else: # stage only configuration
                                     self.stage_files([os.getcwd() + "/NPT.conf"], machine, replica_id)
                                 ################ replica job spawning ###########################  
@@ -497,7 +497,6 @@ class ReManager():
                                 replica_id = replica_id + 1
                                 print "(INFO) Replica " + "%d"%replica_id + " started (Num of Exchange Done = %d)"%(iEX)
 
-            init_staging=False
             end_time = time.time()        
             # contains number of started replicas
             numReplica = len(self.replica_jobs)
@@ -520,7 +519,7 @@ class ReManager():
                         state = running_job.get_state()
                     except:
                         pass
-                    print "job: " + str(running_job) + " received state: " + str(state)
+                    print "replica_id: " + str(irep) + " job: " + str(running_job) + " received state: " + str(state)
                     if (str(state) == "Done") and (flagJobDone[irep] is False) :   
                         print "(INFO) Replica " + "%d"%irep + " done"
                         machine = self.replica_job_machine_dic[irep]
@@ -534,7 +533,7 @@ class ReManager():
                 
                 if numJobDone == numReplica:
                         break
-                time.sleep(30)
+                time.sleep(15)
     
             ####################################### Replica Exchange ##################################    
             # replica exchange step        
@@ -574,9 +573,10 @@ class ReManager():
         self.stop_glidin_jobs()
         
     def print_config(self):
-        for section in resourceMap.keys():
+        for section in self.resourceMap.keys():
             print section
-            for option in section.items():
+            optionMap = self.resourceMap[section]
+            for option in optionMap.items():
                 print " ", option[0] , "=", option[1]
     
 #########################################################

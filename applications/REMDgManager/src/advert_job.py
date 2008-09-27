@@ -10,8 +10,6 @@ machine
 
 Background: This approach avoids queueing delays since the advert-launcher.py must be just started via saga.job or saga.cpr
 once. All shortrunning task will be started using the protocol implemented by advert_job() and advert_launcher.py
-
-
 """
 
 import sys
@@ -80,8 +78,8 @@ class advert_glidin_job():
         jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh"
         jd.queue = project + "@" + queue
         jd.workingdirectory = "$(HOME)"
-        jd.output = "advert-launcher-stdout.txt"
-        jd.error = "advert-launcher-stderr.txt"
+        jd.output = "advert-launcher-" + str(self.uuid) + "-stdout.txt"
+        jd.error = "advert-launcher-" + str(self.uuid) + "-stderr.txt"
            
         if CPR==True: 
             js = saga.cpr.service(lrms_saga_url)

@@ -225,15 +225,30 @@ class advert_launcher:
             allocated nodes will be written to machinefile advert-launcher-machines-<jobid>
             this method is only call by background thread and thus not threadsafe"""
         number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
+        nodes = []
         if (len(self.freenodes)>=number_nodes):
+            unique_nodes=set(self.freenodes)
+            for i in unique_nodes:
+                number = self.freenodes.count(i)
+                print "allocate: " + i + " number nodes: " + number
+                for j in range(0, number):
+                    if(number_nodes > 0):
+                        nodes.append(i)
+                        self.freenodes.remove(i)                
+                        self.busynodes.append(i)
+                        number_nodes = number_nodes - 1
+                    else:
+                        break
+
             machine_file_name = self.get_machine_file_name(job_dir)
             machine_file = open(machine_file_name, "w")
-            machine_file.writelines(self.freenodes[:number_nodes])
+            #machine_file.writelines(self.freenodes[:number_nodes])
+            machine_file.writelines(nodes)
             machine_file.close() 
-            print "wrote machinefile: " + machine_file_name
+            print "wrote machinefile: " + machine_file_name + " Nodes: " + str(nodes)
             # update node structures
-            self.busynodes.extend(self.freenodes[:number_nodes])
-            del(self.freenodes[:number_nodes])            
+            #self.busynodes.extend(self.freenodes[:number_nodes])
+            #del(self.freenodes[:number_nodes])            
             return machine_file_name
         return None
     
@@ -383,8 +398,6 @@ if __name__ == "__main__" :
     if (num_args!=3):
         print "Usage: \n " + args[0] + " <advert-host> <advert-director>"
         sys.exit(1)
-
-
     
     advert_launcher = advert_launcher(args)    
     
