@@ -230,7 +230,7 @@ class advert_launcher:
             unique_nodes=set(self.freenodes)
             for i in unique_nodes:
                 number = self.freenodes.count(i)
-                print "allocate: " + i + " number nodes: " + number
+                print "allocate: " + i + " number nodes: " + str(number)
                 for j in range(0, number):
                     if(number_nodes > 0):
                         nodes.append(i)
