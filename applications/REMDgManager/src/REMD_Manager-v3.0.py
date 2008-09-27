@@ -43,7 +43,6 @@ class ReManager():
     def __init__(self, config_filename):
         self.stage_in_files = []
         self.exchange_count = 0
-        self.totalcputime = '40'
         self.arguments = []
         
         # lists for variables of each replica (Note that these variable should have n variables where n is self.replica_count
@@ -51,15 +50,13 @@ class ReManager():
         self.temperatures = []
         
         # instant variable for replica exchange
-        self.replica_saga_jobs = []   # saga jobs
-        self.istep = 0
-        self.iEX = 0
+        self.replica_jobs = []   # saga jobs
+        self.replica_job_machine_dic ={}
         
         # advert host
         self.advert_host ="localhost"
         # map <host, glidin-job>
         self.advert_glidin_jobs = {}
-        self.userproxy = []        
         self.number_glideins_per_host = 1
         self.read_config(config_filename)
         # init random seed
@@ -78,23 +75,29 @@ class ReManager():
         # RE configuration
         default_dict = config.defaults()
         self.re_agent = default_dict["re_agent"]
-        self.arguments = default_dict["arguments"]
-        self.number_of_mpi_processes = config.getint("DEFAULT", "number_of_mpi_processes") 
+        self.arguments = default_dict["arguments"].split()
+        self.number_of_mpi_processes = 1
+        try:
+            self.number_of_mpi_processes = config.getint("DEFAULT", "number_of_mpi_processes") 
+        except:
+            pass
         self.exchange_count = default_dict["exchange_count"]
         self.advert_host = default_dict["advert_host"]
-        self.total_number_replica = default_dict["total_number_replica"]
+        self.total_number_replica = config.getint("DEFAULT", "total_number_replica")
         
         """ Config parameters (will be moved to config file in the future) """
-        self.cpr  = self.re_agent = config.getboolean("DEFAULT", "cpr")
-        self.scp  = self.re_agent = config.getboolean("DEFAULT", "scp")
-        self.glide_in  = self.re_agent = config.getboolean("DEFAULT", "glide_in")
-        self.adaptive_sampling  = self.re_agent = config.getboolean("DEFAULT", "adaptive_sampling") 
+        self.cpr  = config.getboolean("DEFAULT", "cpr")
+        self.scp  = config.getboolean("DEFAULT", "scp")
+        self.glide_in  = config.getboolean("DEFAULT", "glide_in")
+        self.adaptive_sampling  =  config.getboolean("DEFAULT", "adaptive_sampling") 
+        self.adaptive_replica_size  = config.getboolean("DEFAULT", "adaptive_replica_size") 
         
         self.temperatures = default_dict["temperature"].split()
         self.stage_in_file = default_dict["stage_in_file"].split()
 
         # Resources       
         self.resourceMap = {}
+        self.min_number_cores_in_glidein=None
         for section in config.sections():
             print section
             optionMap = {}
@@ -102,7 +105,13 @@ class ReManager():
                 print " ", option, "=", config.get(section, option)
                 optionMap[option] = config.get(section, option)            
             self.resourceMap[section] = optionMap
-        
+            # determine minimal number of nodes for later partitioning 
+            # (ok for constant glidein size => more refinement for different glidein sizes necessary)
+            nodes_per_glidein = int(optionMap["number_nodes"])/int(optionMap["number_glide_in"])
+            if(self.min_number_cores_in_glidein==None or self.min_number_cores_in_glidein > nodes_per_glidein):
+                self.min_number_cores_in_glidein = nodes_per_glidein
+
+        print "minimal number of nodes per Glidein: " + str(self.min_number_cores_in_glidein)
         print str(self.resourceMap)
     
   
@@ -117,11 +126,11 @@ class ReManager():
             jd = saga.job.description()
             
         jd.spmdvariation = "mpi" # launch MPI directly
-        jd.numberofprocesses = self.number_of_mpi_processes
+        jd.numberofprocesses = str(self.number_of_mpi_processes)
         jd.arguments = self.arguments
         jd.executable = machine["executable"]
         jd.queue = machine["queue"] + "@" + machine["allocation"]
-        jd.workingdirectory = machine["working_dir_root"] + "/" + replica_id
+        jd.workingdirectory = machine["working_dir_root"] + "/" + str(replica_id)
         jd.output = "output.txt"    #this is requried for Migol
         jd.error = "error.txt"
         return jd
@@ -141,27 +150,26 @@ class ReManager():
 #             print "use proxy: " + userproxy
 #        else:
 #             print "use standard proxy"
+        cwd = os.getcwd()
         for ifile in input_file_list_with_path:
-    
+            # destination url
             if remote_machine_ip.find('localhost') >= 0:
                 dest_url_str = 'file://'
             else:
                 dest_url_str = 'gridftp://'+remote_machine_ip + "/"
-            source_url_str = 'file://'
-            print "stage file: " + ifile + " to " + dest_url_str
-    
             ifile_basename = os.path.basename(ifile)
+            dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
+            # source url
+            source_url_str = 'file://' + os.path.join(cwd, ifile)
+
             if not os.path.isfile(ifile):
                 error_msg = "Input file %s does not exist in %s"%(ifile_basename, os.path.dirname(ifile))
                 logging.error(error_msg)
             else:
-                    
                 try:
-                    source_url_str = source_url_str+ifile
-                    dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
                     source_url = saga.url(source_url_str)
                     dest_url = saga.url(dest_url_str)
-    
+                    print "stage file: " + source_url_str + " to " + dest_url_str
                     sagafile = saga.file.file(source_url)
                     sagafile.copy(dest_url)
                     logging.info("Now Input file %s is staged into %s"%(ifile_basename,dest_url_str))
@@ -238,7 +246,7 @@ class ReManager():
         return error_string, new_cpr_job
 
 
-    def prepare_NAMD_config(self, irep):
+    def prepare_NAMD_config(self, replica_id):
         # The idea behind this is that we can simply modify NPT.conf before submit a job to set temp and other variables
         ifile = open("NPT.conf")   # should be changed if a different name is going to be used
         lines = ifile.readlines()
@@ -246,9 +254,9 @@ class ReManager():
             if line.find("desired_temp") >= 0 and line.find("set") >= 0:
                 items = line.split()
                 temp = items[2]
-                if eval(temp) != self.temperatures[irep]:
-                    print "\n (DEBUG) temperature is changing to " + str(self.temperatures[irep]) + " from " + temp + " for rep" + str(irep)
-                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(self.temperatures[irep]))
+                if eval(temp) != self.temperatures[replica_id]:
+                    print "\n (DEBUG) temperature is changing to " + str(self.temperatures[replica_id]) + " from " + temp + " for rep" + str(replica_id)
+                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(self.temperatures[replica_id]))
         ifile.close() 
         ofile = open("NPT.conf","w")
         for line in lines:    
@@ -258,14 +266,13 @@ class ReManager():
 
 
     def get_energy(self, machine, replica_id):
-    #I know This is not the best one!  namd output is staged out and take the energy out from the file
-     
+        #I know This is not the best one!  namd output is staged out and take the energy out from the file
         file_list = ["output.txt"]  
         local_dir = os.getcwd()
         remote_machine_ip = machine["host"]
         if machine.has_key("gridftp_url"):
            remote_machine_ip = machine["gridftp_url"]
-        remote_dir = machine["working_dir_root"] + "/" + replica_id
+        remote_dir = machine["working_dir_root"] + "/" + str(replica_id)
     
         self.file_stage_out_with_saga(file_list, local_dir, remote_machine_ip, remote_dir)
        
@@ -277,7 +284,6 @@ class ReManager():
                 if items[0] in ("ENERGY:"):
                     en = items[11]  
         print "(DEBUG) energy : " + str(en) + " from replica " + str(replica_id) 
-        
         return eval(en)
 
     def do_exchange(self, energy, irep, jrep):
@@ -286,7 +292,7 @@ class ReManager():
         en_b = energy[jrep]
         
         factor = 0.0019872  # from R = 1.9872 cal/mol
-        delta = (1./self.temperatures[irep]/factor - 1./self.temperatures[irep+1]/factor)*(en_b-en_a)
+        delta = (1./int(self.temperatures[irep])/factor - 1./int(self.temperatures[irep+1])/factor)*(en_b-en_a)
         if delta < 0:
             iflag = True
         else :
@@ -313,11 +319,11 @@ class ReManager():
             i = self.resourceMap[resource]
             host = i["host"]
             num_glidein = int(i["number_glide_in"])
-            nodes = int(i["total_number_nodes"])
+            nodes = int(i["number_nodes"])
             lrms = i["scheduler"]
             project = i["allocation"]
             queue = i["queue"]
-            workingdirectory = i["working_dirs"].split()[0]
+            workingdirectory = i["working_dir_root"]
             userproxy=None
             try:
                 userproxy = i["userproxy"]
@@ -363,44 +369,20 @@ class ReManager():
     
     def get_machine_info(self, machine):
         host = machine["host"]
-        nodes = int(machine["total_number_nodes"])
-        num_nodes_per_glidein = nodes
+        nodes = int(machine["number_nodes"])
         num_glidein = int(machine["number_glide_in"])
+        num_nodes_per_glidein = nodes/num_glidein
         return host, nodes, num_nodes_per_glidein, num_glidein
     
-    def check_glidein_states(self, current_replica_id_glidein_dict, start_glidin):
-        """ check for Glide-In states
-            returns dictionary: <replica_id, glidein_url> 
-            only keys from replicas with active glidein job are set."""
-        # query glidin job states and cache them into a dict.
-        replica_id_glidein_dict = {}
-        if self.glide_in == True:
-            print "Number unique hosts: " + str(len(self.resourceMap.keys()))
-            replica_id = 0
-            for resource in self.resourceMap.keys():
-                machine = self.resourceMap[resource]
-                host, nodes, num_nodes_per_glidein, num_glidein = get_machine_info(machine)
-                if num_glidein > 1:
-                    num_nodes_per_glidein = num_rep_per_host/num_glidein
-                glidin_jobs = machine["glide_in_jobs"]     
-                print "Host: " + host + " Number Glide-Ins: " + str(len(glidin_jobs)) \
-                        + " Number Nodes per GlideIn: " + str(num_nodes_per_glidein)
-                for j in range(0, len(glidin_jobs)):
-                    state = glidin_jobs[j].get_state_detail()
-                    glidin_url = glidin_jobs[j].glidin_url 
-                    print "glidein: " + glidin_url + " state: " + state
-                    if state.lower()== "running":
-                        # distribute replicas to glideins by setting glideinurl to replicaid
-                        for r in range(0, num_nodes_per_glidein):
-                            #replica_id = (i*num_rep_per_host) + (j*num_nodes_per_glidein) + r
-                            if current_replica_id_glidein_dict.has_key(replica_id)==False:
-                                print "Glide-In: " + glidin_url + " got active after: " + str(time.time()-start_glidin) + " s"
-                            print "set replica id: " + str(replica_id) + " glidein: " + glidin_url + " state: running"
-                            replica_id_glidein_dict[replica_id]=glidin_url
-                            replica_id = replica_id + 1
-                    else:
-                        replica_id = replica_id + num_nodes_per_glidein
-        return replica_id_glidein_dict
+    def gcd(a, b):
+
+        '''Returns the Greatest Common Divisor,
+           implementing Euclid's algorithm.
+           Input arguments must be integers;
+           return value is an integer.'''
+        while a:
+            a, b = b%a, a
+        return b
 
     def stage_files(self, file_list, machine, replica_id):
         """ stage passed file list to specified remote machine
@@ -408,15 +390,15 @@ class ReManager():
         remote_machine_ip = machine["host"]
         if machine.has_key("gridftp_url"):
            remote_machine_ip = machine["gridftp_url"]
-        remote_dir = machine["working_dir_root"] + "/" + replica_id
+        remote_dir = machine["working_dir_root"] + "/" + str(replica_id)
         # prepare parameter 
-        self.prepare_NAMD_config(irep) 
+        self.prepare_NAMD_config(replica_id) 
         if self.scp == True:
            self.file_stage_in_with_scp(file_list, remote_machine_ip, remote_dir)
         else:
            self.file_stage_in_with_saga(file_list, remote_machine_ip, remote_dir) 
-        
-        print "(INFO) Replica %d : Input files are staged into %s  "%(replic_id, remote_machine_ip)
+
+        print "(INFO) Replica %d : Input files are staged into %s  "%(replica_id, remote_machine_ip)
 
     #########################################################
     #  run_REMDg
@@ -436,22 +418,56 @@ class ReManager():
     
         iEX = 0
         total_number_of_namd_jobs = 0
-        current_replica_id_glidein_dict={}
-        replica_id = 0
+
+        init_staging = True # initially stage all files to resources
+        old_states = {}
         while 1:
             print "\n"
             # reset replica number
             numReplica = self.total_number_replica
-            current_replica_id_glidein_dict = check_glidein_states(current_replica_id_glidein_dict, start)
-            if len(current_replica_id_glidein_dict.keys())==numReplica:
-                    all_glideins_ready = True
-                    print "All Glide-Ins got active after: " + str(time.time()-start) + " s"
-            # iterate through all resources
+            self.replica_jobs = []
+            
+            ################# obtain number of available resources for partitioning ###############
+            num_active_glidein=0
+            num_active_cores=0
+            if self.adaptive_replica_size == True:
+                 for resource in self.resourceMap.keys():
+                     machine = self.resourceMap[resource]
+                     host, nodes, num_nodes_per_glidein, num_glidein = self.get_machine_info(machine)
+                     glidin_jobs = machine["glide_in_jobs"]     
+                     print "Host: " + host + " Number Glide-Ins: " + str(len(glidin_jobs)) \
+                             + " Number Nodes per GlideIn: " + str(num_nodes_per_glidein)
+                     # interate through all Glide-In jobs
+                     for j in range(0, len(glidin_jobs)):
+                         state = glidin_jobs[j].get_state_detail()
+                         glidin_url = glidin_jobs[j].glidin_url
+
+                         # new glidein => redistribute tasks
+                         if old_states.has_key(glidin_url):
+                            if old_states[glidin_url]!=state:
+                                init_staging = True
+                         elif old_states.has_key(glidin_url) == False:
+                                init_staging = True
+                         print "glidein: " + glidin_url + " state: " + state
+                         old_states[glidin_url] = state
+                         if state.lower()== "running":
+                            num_active_glidein = num_active_glidein + 1 
+
+                 num_active_cores = num_active_glidein * self.min_number_cores_in_glidein            
+                 self.number_of_mpi_processes = num_active_cores/self.total_number_replica
+                 print "Number active glidein: " + str(num_active_glidein) + " active cores: " + str(num_active_cores) \
+                        + " Number MPI procs per RE process: " + str(self.number_of_mpi_processes)
+
+            if self.number_of_mpi_processes == 0: # insufficient number of resources active
+                time.sleep(10)
+                continue # next attempt to start replica processes
+
+            # Job spawning
+            start_time = time.time()
+            replica_id = 0
             for resource in self.resourceMap.keys():
                 machine = self.resourceMap[resource]
-                host, nodes, num_nodes_per_glidein, num_glidein = get_machine_info(machine)
-                if num_glidein > 1:
-                    num_nodes_per_glidein = num_rep_per_host/num_glidein
+                host, nodes, num_nodes_per_glidein, num_glidein = self.get_machine_info(machine)
                 glidin_jobs = machine["glide_in_jobs"]     
                 print "Host: " + host + " Number Glide-Ins: " + str(len(glidin_jobs)) \
                         + " Number Nodes per GlideIn: " + str(num_nodes_per_glidein)
@@ -461,33 +477,34 @@ class ReManager():
                     glidin_url = glidin_jobs[j].glidin_url 
                     print "glidein: " + glidin_url + " state: " + state
                     if state.lower()== "running":
-                        ############## NPT staging ######################################
-                        if init == True:
-                            self.stage_files(self.stage_in_file, machine, replica_id)
-                        else:
-                            self.stage_files([os.getcwd() + "/NPT.conf"], machine, replica_id)
-                        ################ replica job spawning ###########################  
-                        # job submit   
-                        self.replica = []
-                        start_time = time.time()
-                        print "check host: " + str(host)
-                        jd = self.set_saga_job_description(machine, replica_id)
-                        dest_url_string = "gram://" + host + "/" + "jobmanager-" + RE_info.remote_host_local_schedulers[irep]     # just for the time being
-                        error_msg, new_job = self.submit_job_advert(glidin_url, jd)
-                        self.replica.append(new_job)
-                        replica_id = replica_id + 1
-                        print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
-               
-    
+                        num_jobs = num_nodes_per_glidein/self.number_of_mpi_processes
+                        print "glidein running - start " + str(num_jobs) + " jobs."
+                        for c in range(0, num_jobs):
+                            if replica_id < self.total_number_replica:
+                                ############## NPT staging ######################################
+                                if init_staging == True: # stage all file
+                                    self.stage_files(self.stage_in_file, machine, replica_id)
+                                else: # stage only configuration
+                                    self.stage_files([os.getcwd() + "/NPT.conf"], machine, replica_id)
+                                ################ replica job spawning ###########################  
+                                print "check host: " + str(host)
+                                jd = self.set_saga_job_description(machine, replica_id)
+                                dest_url_string = "gram://" + host + "/" + "jobmanager-" + machine["scheduler"]     # just for the time being
+                                error_msg, new_job = self.submit_job_advert(glidin_url, jd)
+                                #pdb.set_trace()
+                                self.replica_jobs.insert(replica_id, new_job)
+                                self.replica_job_machine_dic[replica_id] = machine
+                                replica_id = replica_id + 1
+                                print "(INFO) Replica " + "%d"%replica_id + " started (Num of Exchange Done = %d)"%(iEX)
+
+            init_staging=False
             end_time = time.time()        
             # contains number of started replicas
-            numReplica = len(RE_info.replica)
-            if numReplica == 0: # no replica process started
-                time.sleep(10)
-                continue # next attempt to start replica processes
+            numReplica = len(self.replica_jobs)
     
-            print "started " + "%d"%numReplica + " of " + "%d"%RE_info.replica_count + " in this round." 
+            print "started " + "%d"%numReplica + " of " + str(self.total_number_replica) + " in this round." 
             print "Time for spawning " + "%d"%numReplica + " replica: " + str(end_time-start_time) + " s"
+
             ####################################### Wating for job termination ###############################
             # job monitoring step
             energy = [0 for i in range(0, numReplica)]
@@ -498,7 +515,7 @@ class ReManager():
             while 1:    
                 print "\n##################### Replica State Check at: " + time.asctime(time.localtime(time.time())) + " ########################"
                 for irep in range(0, numReplica):
-                    running_job = self.replica[irep]
+                    running_job = self.replica_jobs[irep]
                     try: 
                         state = running_job.get_state()
                     except:
@@ -506,7 +523,8 @@ class ReManager():
                     print "job: " + str(running_job) + " received state: " + str(state)
                     if (str(state) == "Done") and (flagJobDone[irep] is False) :   
                         print "(INFO) Replica " + "%d"%irep + " done"
-                        energy[irep] = self.get_energy(irep)##todo get energy from right host
+                        machine = self.replica_job_machine_dic[irep]
+                        energy[irep] = self.get_energy(machine, irep)##todo get energy from right host
                         flagJobDone[irep] = True
                         numJobDone = numJobDone + 1
                         total_number_of_namd_jobs = total_number_of_namd_jobs + 1
@@ -529,14 +547,14 @@ class ReManager():
             iEX = iEX +1
             output_str = "%5d-th EX :"%iEX
             for irep in range(0, numReplica):
-                output_str = output_str + "  %5d"%self.temperatures[irep]
+                output_str = output_str + "  %s"%self.temperatures[irep]
             
             print "\n\nExchange result : "
             print output_str + "\n\n"
             
             ofile = open(ofilename,'a')
             for irep in range(0, numReplica):
-                ofile.write(" %d"%(self.temperatures[irep]))
+                ofile.write(" %s"%(self.temperatures[irep]))
             ofile.write(" \n")            
             ofile.close()
     
@@ -544,8 +562,8 @@ class ReManager():
                 break
     
             ########################## delete old jobs #####################
-            if GlideIn == True:    
-                for i in self.replica:
+            if self.glide_in == True:    
+                for i in self.replica_jobs:
                     i.delete_job()
                     
         self.print_config()
@@ -572,10 +590,6 @@ if __name__ == "__main__" :
     op.add_option('--numreplica','-n',default='2')
     options, arguments = op.parse_args()
     
-    # AL: I disabled this option temporarly since it is not working
-    #     I also added a usage message
-    #if options.type in (None,"test_RE"):
-        #run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
     if options.type != None and options.type in ("REMD"):
         re_manager = ReManager(options.configfile)
         re_manager.run_REMDg() 

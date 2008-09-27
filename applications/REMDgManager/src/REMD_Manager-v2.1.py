@@ -138,6 +138,7 @@ def file_stage_in_with_saga(input_file_list_with_path, remote_machine_ip, remote
                 dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
                 source_url = saga.url(source_url_str)
                 dest_url = saga.url(dest_url_str)
+                print "stage file: " + source_url_str + " to " + dest_url_str
 
                 sagafile = saga.file.file(source_url)
                 sagafile.copy(dest_url)
@@ -432,7 +433,7 @@ def start_glidin_jobs(RE_info):
     """start glidin jobs (advert_job.py) at every unique machine specified in RE_info"""  
     unique_hosts = set(RE_info.remote_hosts)    
     for i in unique_hosts:
-        print "Number hosts: " + str(RE_info.remote_hosts.count(i)) + " Number processes per job: " + str(RE_info.numberofprocesses) + " Number GlideIns per Host: " + str(RE_info.number_glideins_per_host)
+        print "Number hosts: " + str(RE_info.remote_hosts.count(i)) + " Number processes per job: " + str(RE_info.numberofprocesses) + " Number GlideIns per Host: " + str(RE_info.number_glideins_per_host) + " Index: " + str(RE_info.remote_hosts.index(i))
         nodes = int(RE_info.remote_hosts.count(i)) * int(RE_info.numberofprocesses) 
         lrms = RE_info.remote_host_local_schedulers[RE_info.remote_hosts.index(i)]
         project = RE_info.projects[RE_info.remote_hosts.index(i)]
@@ -501,7 +502,6 @@ def check_glidein_states(RE_info, current_replica_id_glidein_dict, start_glidin)
         # divide replica chunks
         unique_hosts = list(set(RE_info.remote_hosts))
         print "Number unique hosts: " + str(len(unique_hosts))
-        replica_id = 0
         for i in range(0, len(unique_hosts)):
             host = unique_hosts[i]
             num_rep_per_host = int(RE_info.remote_hosts.count(host)) 
@@ -511,6 +511,7 @@ def check_glidein_states(RE_info, current_replica_id_glidein_dict, start_glidin)
             
             glidin_jobs = RE_info.advert_glidin_jobs[host]      
             print "Host: " + host + " Number Glide-Ins: " + str(len(glidin_jobs)) + " Number Replicas: " + str(num_rep_per_host)
+            replica_id = RE_info.remote_hosts.index(host)
             for j in range(0, len(glidin_jobs)):
                 state = glidin_jobs[j].get_state_detail()
                 glidin_url = glidin_jobs[j].glidin_url 
@@ -615,6 +616,7 @@ def run_REMDg(configfile_name):
         # job submit   
         RE_info.replica = []
         start_time = time.time()
+        job_url_irep_map = {}
         for irep in range(0,numReplica):
             host = RE_info.remote_hosts[irep]
             print "check host: " + str(host)
@@ -625,6 +627,7 @@ def run_REMDg(configfile_name):
                 glidin_url = current_replica_id_glidein_dict[irep] 
                 error_msg, new_job = submit_job_advert(RE_info, glidin_url, jd)
                 RE_info.replica.append(new_job)
+                job_url_irep_map[new_job]=irep
                 print "(INFO) Replica " + "%d"%irep + " started (Num of Exchange Done = %d)"%(iEX)
             elif GlideIn==False:
                 jd = set_saga_job_description(irep, RE_info, "")
@@ -657,17 +660,21 @@ def run_REMDg(configfile_name):
         print "\n\n" 
         while 1:    
             print "\n##################### Replica State Check at: " + time.asctime(time.localtime(time.time())) + " ########################"
-            for irep in range(0, numReplica):
-                running_job = RE_info.replica[irep]
+            for i in range(0, numReplica):
+                running_job = RE_info.replica[i]
+                irep = i 
+                if job_url_irep_map.has_key(running_job):
+                    irep = job_url_irep_map[running_job]
+                print "Job index: " + str(irep)
                 try: 
                     state = running_job.get_state()
                 except:
                     pass
                 print "job: " + str(running_job) + " received state: " + str(state)
-                if (str(state) == "Done") and (flagJobDone[irep] is False) :   
+                if (str(state) == "Done") and (flagJobDone[i] is False) :   
                     print "(INFO) Replica " + "%d"%irep + " done"
-                    energy[irep] = get_energy(irep, RE_info)
-                    flagJobDone[irep] = True
+                    energy[i] = get_energy(irep, RE_info)
+                    flagJobDone[i] = True
                     numJobDone = numJobDone + 1
                     total_number_of_namd_jobs = total_number_of_namd_jobs + 1
                 elif(str(state)=="Failed"):

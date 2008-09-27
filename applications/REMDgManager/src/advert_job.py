@@ -46,7 +46,7 @@ class advert_glidin_job():
                  working_directory,
                 userproxy):
         """ start advert_launcher on specified host """
-        if userproxy != None or userproxy=="":
+        if userproxy != None and userproxy != '':
             os.environ["X509_USER_PROXY"]=userproxy
             print "use proxy: " + userproxy
         else:
