@@ -102,7 +102,7 @@
 }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -974,7 +974,10 @@ sufficient utilization of all available resource.
   section explicitly and mention how we have addressed them}
 
 \section{Musings on Dynamic Resources, Adaptive Applications, and
-  Replica-Exchange Simulations}
+  Replica-Exchange Simulations}          
+\alnote{Is this a worth a new section or does it rather belong to 5b). We
+should probably join both sections.}   
+\alnote{What vocabulary should we use: BigJob or Glide-In or shall we use both?}
 
 Applications with many component (eg replicas) or stages (concurrent
 or sequential) may have time-varying resource requirements, e.g., in
@@ -992,15 +995,15 @@ very different phases (irregular). Either way a static resource
 mapping strategy will not 
 
 On a slightly different note, it is important to distinguish between
-multiple``heterogenous parameters'' versus dynamical attributes; we
+multiple ``heterogenous parameters'' versus dynamical attributes; we
 prefer to call an application dynamic when the resource requirement
 changes or the availability changes. In contrast, a static number of
 parameters have different values or for that matter even dynamic
 values (I would call that computational steering -- either manual or
-automated). In a nutshell, resources variabilty makes an application
+automated). In a nutshell, resources variability makes an application
 dynamic; a mechanism to respond to the change makes it adaptive.
 
-There are two levels of adaptivity we are concerned with:
+There are two levels of adaptively we are concerned with:
 
 \begin{compactitem}
 \item  The ability to utilise expanded and reduced set of resources
@@ -1023,7 +1026,7 @@ as it makes both tasks easier.  Instead of a single task, we are now
 looking at a higher-level task -- an aggregation, and in some ways it
 reduces the complexity.  In both cases, the sub-tasks are immune from
 the fluctuations of the scheduling system.  But the BigJobs that
-support Glide-In mechanims help with requirement U directly, and not
+support Glide-In mechanism help with requirement U directly, and not
 directly with requirement D, thus a necessary but not a sufficient
 mechanism to respond to the dynamic nature of replica-exchange
 applications.
@@ -1037,7 +1040,7 @@ to be a sub-job ie. scheduling/allocation is supported for individual
 sub-jobs.
 
 Replica-Exchange in addition to being a good candidate for
-embarassingly-distributed applications, are also very good candiates
+embarrassingly-distributed applications, are also very good candidates
 for using dynamic resource pools; Glide-Ins are a very useful
 abstraction for dynamic resources aggregation and utilisation.
 
@@ -1076,7 +1079,7 @@ resources to be assigned to speed up the calculation.
 
 Scenario (A) in turn could be met, when either changing the number of
 replicas (Approach 4) or changing the number of processors associated
-with each replica (Approch 3) or just use Approach 2 Scenario (B)
+with each replica (Approach 3) or just use Approach 2 Scenario (B)
 could be met with Approach 4 or Approach 1.
 
 Resource Determination (D): Interestingly the qualitative nature of
@@ -1092,7 +1095,7 @@ of the application is used (eg MPIg model). The MPIg approach has the
 advantage of being able to continue without checkpoint/restart after
 an exchange, but it is not agile, for example it needs co-scheduling
 of resources. This might be acceptable for very very large simulations
-or very long runnning simulations, but in general and on average, it
+or very long running simulations, but in general and on average, it
 is more likely that an implementation that is adaptive will have a
 lower time-to-completion.
 
@@ -1100,8 +1103,10 @@ lower time-to-completion.
 \label{sec:exp}
         
 To evaluate the performance of the RE-Manager several experiments have
-been conducted on TeraGrid and LONI Grid~\citep{loni} resources. The
-TeraGrid resources used are: Ranger, Abe and QueenBee (QB).
+been conducted in the TeraGrid. The TeraGrid resources used are: 
+Ranger, Abe and QueenBee (QB). 
+The objective of the experiments is the evaluation of the performance 
+of the SAGA Glide-In mechanism and of the different adaptivity models.
 
 \jhanote{the use of the term cluster should be consistent with the
   resource description :)}
@@ -1110,39 +1115,25 @@ TeraGrid resources used are: Ranger, Abe and QueenBee (QB).
 % LONI machine and has a peak performance of over 50 TFlops.
 % Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
 
-The objective of the experiments is the evaluation of the SAGA
-Glide-In mechanism and of the performance of the
-RE-Manager. Scientific results obtained from using this infrastructure
-will be reported elsewhere.
 
-\alnote{I removed this figure since it has too much focus on Migol and not
-on the Glide-In stuff}
-% \begin{figure}[t]
-%     \centering
-%         \includegraphics[width=0.7\textwidth]{saga-taskfarming}
-%         \caption{\footnotesize \bf Fault-Tolerant MD Simulations: The
-%           REMD-Manager orchestrates a set of distributed replica
-%           processes using the SAGA API. All processes synchronize
-%           important metadata with the Migol infrastructure. Migol then
-%           actively monitors all processes and ensures that, even in
-%           the presence of failures, all task are eventually
-%           completed.}
-%     \label{fig:saga-taskfarming}
-% \end{figure} 
-
-% \subsection{Infrastructure Performance}
+% Scientific results obtained from using this infrastructure
+% will be reported elsewhere.
 
 \jhanote{define Generation?}
 \jhanote{distinguish  between replica, replica processes; or at least
- keep usage consistent}
+ keep usage consistent}       
+\alnote{Should we either use replica or replica processes? Right now they
+are pretty much used as synonym?}
 \jhanote{describe how exchange partner is chosen? remains the same?}
 
-The RE-Manager was configured to run a simulation with 16 replica processes 
-running for 5 generations sampling a temperature range between 300 and 450\,K. 
-Each replica process comprises of a NAMD simulation running on 16 cores 
-for 500 time steps.   
-Further, we evaluated the runtime of the RE-Manager with respect to the 
-used job scheduling mechanism.
+The RE-Manager was configured to run a scenario with up to 16 replica processes 
+sampling a temperature range between 300 and 450\,K. Each run comprises of
+five generations -- a generation is defined as a single exchange round, i.\,e.\ the
+run of an ensamble of replica processes in parallel and the subsequent attempt 
+to pairwise exchange temperatures between neighbouring replica processes. 
+Each replica process consists of a NAMD simulation running
+for 500 time steps. Different numbers of MPI processes are used for carrying out
+the NAMD run.
 
 \begin{figure}[th]
     \centering      
@@ -1151,38 +1142,63 @@ used job scheduling mechanism.
         \caption{\footnotesize \bf SAGA Glide-In and RE Performance
           (QueenBee): \jhanote{For the redline, is there just one
             glide-in that is being used, or multipled? I think the
-            answer is one, but need explicit mentioning.} Obviously,
+            answer is one, but need explicit mentioning.} 
+          Obviously,
           the increase in the number of resources allows sampling of a
           wider parameter range. Especially beneficial in particular
           for runs with many replica processes is the clustering of
-          processes using the SAGA Glide-Ins. \jhanote{How many
+          processes using the SAGA Glide-Ins. Using a single Glide-In
+          job for all replicas we observed significant performance 
+          improvements of up to 80\,\%.
+          \jhanote{How many
             replicas in each glide-in? In the case where there are is
-            no Glide-in?}}
+            no Glide-in?}}     
+           \alnote{All Replicas are within the single Glide-In, i.e. 2, 4, 8 resp. 16 replicas.
+           With 0 Glide-Ins each job is separately started - no glidein is used.}
     \label{fig:perf_remd_glidin}
 \end{figure} 
 
-Figure~\ref{fig:perf_remd_glidin}a) illustrates that the increase in
-the number of resources in general allows the computation of a greater
-problem set, i.\,e.\ the sampling of a wider parameter range.
+\subsection{SAGA Glide-In Performance}
+
+In the following scenario, the performance of the Glide-In framework on a single
+machine is investigated. We compare the performance, i.\,e.\ the simulated
+problem set and the runtime, of different REMD runs with and without 
+SAGA Glide-In on QueenBee. Figure~\ref{fig:perf_remd_glidin} illustrates the results.
+
+Obviously, the increase in the number of replica processes allows 
+the computation of a greater problem set, i.\,e.\ the sampling of a wider parameter range (Figure~\ref{fig:perf_remd_glidin}a).
 \jhanote{Once again, it is not obvious if the number of Glide-Ins is
-  being increased on one machine?}  However, the figure also shows the
-limitations of the regular job submission mechanism: The more
-processes are spawned, the more likely are queueing delays. While with
-the SAGA Glide-In framework the number of NAMD steps almost scales
+  being increased on one machine?} 
+\alnote{I hope this becomes clear now with the new introduction section.} 
+However, the figure also shows the limitations of the regular job submission 
+mechanism: The more processes are spawned, the more likely are queueing delays. 
+While with the SAGA Glide-In framework the number of NAMD steps almost scales
 linearly, the computed problem set rapidly drops when using more than
-eight replica proceses.
+eight replica processes. This slowdown is caused by delay of some replica processes respectively
+of the Grid job representing the replica process. In this scenario, 
+we were only able to run 12 jobs in parallel on QB likely due
+to local policies. The remaining four replica processes had to wait in the queue and
+produced a significant slowdown during the synchronization after each generation.
+Even worse slowdowns can be caused by heavily-utilised queues.
 
 \jhanote{unfortunately this paragraph and the one before are unclear}
 
 \jhanote{I would recommend using time-to-completion over
   time-to-solution; also maybe use shorthand T\_c?}
-Figure~\ref{fig:perf_remd_glidin}b) shows that the SAGA Glide-In
-framework can reduce the time to solution even on a single machine
+ 
 \jhanote{Ah, OK single-machine is mentioned here now. Need to mention
-  explicitly upfront} by avoiding queuing times for every sub-job and
-allowing the efficient dispatching of RE tasks solely through the
-Replica-Agent. During our experiments we were able to measure speedups
-of up to 80\,\%.
+    explicitly upfront}
+\alnote{hopefully mentioned sufficiently often now}      
+
+Figure~\ref{fig:perf_remd_glidin}b shows the effect of the SAGA Glide-In framework
+on the time to completion ($T_{c}$) using 16 replica processes on QB. 
+With the Glide-In framework, we were able to reduce $T_{c}$ from 70\,minutes
+to about 17 minutes, which corresponds to a decrease of about 70\,\% runtime. 
+In single scenarios even greater improvements of up to 80\,\% have been 
+observed. As described, this effect is mainly attributed to elimination of 
+queuing times for every sub-job. Once the Replica-Agent become active, 
+replica processes can be efficiently 
+dispatched without requiring interactions with the local scheduler. 
 
 \jhanote{need to clarify what the 80\% means/implies?}
 
@@ -1191,33 +1207,37 @@ high standard deviation observed in the runtimes. While queueing times
 also have an impact on Glide-Ins, these are in general less severe.
 Further, for the Glide-In scenario, the queueing times become
 negligible, the longer the RE simulation is (the runtimes have been
-kept short for this simple scenario). In contrast, when no Glide-Ins
-are used every sub-jobs is subject to the queuing delay at the local
-scheduler.
+kept short for this simple scenario). 
+% In contrast, when no Glide-Ins
+% are used every sub-jobs is subject to the queuing delay at the local
+% scheduler.
                                                            
-In certain situation the usage of smaller jobs can have an advantage,
+In certain situations the usage of smaller jobs can have an advantage,
 e.\,g.\ when the local scheduler backfills such jobs. However, usually
 not all replica processes can be backfilled. Also some resources
 impose a restriction on the number of active jobs per user.  In
-general, the more processes are spawned the more likely are delays.
+general, the more processes are spawned the more likely are delays.   
+
+\subsection{Adaptivity Modes}
 
 The framework has also been deployed on multiple resources within the
 TeraGrid.  For this evaluation, the RE-Manager was configured to run
 with 16 replica processes each one using 16 cores.  The RE-Manager was
 executed with 4 Glide-Ins, i.\,e.\ every Glide-In managed 4 RE
 processes and a total of 64 cores.  This was the optimal Glide-In size
-determined in earlier experiments (see
-Figure~\ref{fig:perf_remd_glidin}b)).  We measured the runtime for 40
-attempted pair-wise exchanges with respect to the number of TeraGrid
+determined in earlier experiments.  
+We measured the runtime for 64 attempted pair-wise exchanges 
+with respect to the number of TeraGrid
 resources utilized. Figure~\ref{fig:performance_perf_distributed}
 shows the results of this evaluation.
 
 \jhanote{This is going to sound bizarre... but in future we should
   probably use a power-of-two number of exchanges and not nice numbers
-  like 40 or 42 :)}
+  like 40 or 42 :)}           
+\alnote{updated it to 64... will attempt more once I have this stuff working}
 
 
-The time to solution obviously decreases with the number of machines
+$T_{c}$ decreases with the number of machines
 used. The main reason for this behaviour is that with the distribution
 of the simulation onto multiple resources decreases the likelihood
 that a single heavily-utilised resource delays the overall progress of
@@ -1230,15 +1250,21 @@ available.
 
 \begin{figure}[t]
     \centering
-       \includegraphics[width=0.7\textwidth]{performance/perf_distributed.pdf}
+      \subfloat[Replica Processes Adaptivity]{\includegraphics[width=0.48\textwidth]{performance/perf_distributed.pdf}}    
+      \subfloat[Replica Process Size Adaptivity]{\includegraphics[width=0.48\textwidth]{performance/perf_distributed.pdf}
+      } 
        \caption{\footnotesize \bf Performance of the RE-Manager in the
          TeraGrid: The figure shows the runtime of the RE-Manager for
-         40 pair-wise exchanges using 16 replica processes with 16
-         cores each. The utilization of more machines leads to a
-         shorter time to solution. \jhanote{It is not clear to me from
+         64 pair-wise exchanges using 16 replica processes with 16
+         cores each. For all three scenarios 4 Glide-Ins with the size
+         of 64 cores are used. The utilization of more machines leads to a
+         shorter time to completion ($T_{c}$). 
+         
+         \jhanote{It is not clear to me from
            the caption whether the number of BigJobs remains the same
            for the three scenarios presented, i.e., the difference is
            location. Needs clarification} }
+           \alnote{second graph will hopefully be updated soon. However, I need some promising results}
     \label{fig:performance_perf_distributed}
 \end{figure}
 
@@ -1610,12 +1636,15 @@ application scenario.
 \alnote{Attempt to structure conclusion:
 1) SAGA/Migol 2.) Glide-In 3.) Adaptive Sampling 4.) Future Work: Glide-In, REMD, Reservation, BQP}
                                          
-\jhanote{needs smoothening} In summary, SAGA/Migol provide an extensible and
-general purpose environment for developing our Replica-Exchange framework.
+\jhanote{needs smoothening} In summary, SAGA provides a well-defined abstraction 
+and Migol the underlying Grid middleware for developing and running
+RE applications.
 SAGA allows the simple decoupling of the Replica-Exchange orchestration 
 logic from the underlying distributed infrastructure. All this whilst remaining
-general purpose and extensible. Using SAGA CPR, the framework is able
-to utilize the Migol infrastructure, i.\,e., the application can 
+general purpose and extensible. 
+
+Using SAGA CPR, the framework is able to utilize the Migol infrastructure, 
+i.\,e. the application can 
 also benefit from features, such as the automatic monitoring and the transparent 
 recovery of failed tasks.  
 
@@ -1673,7 +1702,6 @@ to solution. In addition, we will improve our RE algorithm by making it
 more adaptive towards dynamic and heterogeneous environment, 
 e.\,g.\ by deploying  a more asynchronous schema
 as described by \citet{Gallicchio:2007yq}.
-
 
 While it has been shown, that scheduling of tasks can efficiently be done on 
 application-level, a mechanism for dynamic resource discovery and selection 

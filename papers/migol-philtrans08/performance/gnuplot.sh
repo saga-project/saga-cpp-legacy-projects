@@ -1,9 +1,9 @@
 #!/bin/sh
 # CUSTOMIZE
 # set term postscript eps enhanced linewidth 1.42
-#set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
+set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
-set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+#set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
                                       
 
 set encoding iso_8859_1
@@ -50,17 +50,19 @@ plot "data.txt" using 1:2:3  title "Submission Time" with boxes linetype 1  fs s
  
 set output "perf_glidein.eps"
 set xtics ("No Glide-In" 1, "1 Glide-In" 2.0, "2 Glide-Ins" 3.0, "4 Glide-Ins" 4.0)
-set yrange [0:120]    
-set style fill solid 0.9    
+set yrange [0:120]  
+set xrange [0.5:2.5]    
+set style fill solid 0.9   
+set ylabel "Runtime (in min)" 
 plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
 
 
 set output "perf_distributed.eps"
-set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB/QB" 3.2)
-set yrange [0:180]    
+set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB" 3.2)
+set yrange [0:300]    
 set style fill solid 0.9 
 set xrange [0.5:3.8]    
-plot "data_remd_distributed.txt" using 2:3:4:(0.75)  title "Runtime 40 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
+plot "data_remd_distributed.txt" using 2:3:4:(0.75)  title "Runtime 64 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
        
 
 # set output "perf_runtime.eps" 
@@ -133,10 +135,12 @@ set ylabel "NAMD Timesteps/Second" #font "Helvetica, 20"
 set xlabel "Number Replica Processes"
 set yrange [0:45]  
 set ytics (10, 20, 30, 40)   
-set xrange [0.9:9.25]  
-set xtics (1,2,4,8)
-plot  "data_remd_timesteps.txt" using 1:3 title "With Glide-In" with lp,\
-      "data_remd_timesteps.txt" using 1:2 title "Without Glide-In" with lp
+#set xrange [0.9:9.25]  
+set xrange [1.95:16.5]
+set xtics (1,2,4,8,16)
+
+plot  "data_remd_timesteps.txt" using 4:3 title "With Glide-In" with lp linewidth 3,\
+      "data_remd_timesteps.txt" using 4:2 title "Without Glide-In" with lp linewidth 3
 
 
 
