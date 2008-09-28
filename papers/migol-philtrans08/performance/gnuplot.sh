@@ -53,20 +53,22 @@ set xtics ("No Glide-In" 1, "1 Glide-In" 2.0, "2 Glide-Ins" 3.0, "4 Glide-Ins" 4
 set yrange [0:120]  
 set xrange [0.5:2.5]    
 set style fill solid 0.9   
-set ylabel "Runtime (in min)" 
+set ylabel "Runtime (in min)"  
+set ylabel "Time to Completion (in min)"     
 plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
 
 
 set output "perf_distributed_number_replica.eps"
-set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB" 3.2)
+set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/QB/Ranger" 3.2)
 set yrange [0:300]    
 set style fill solid 0.9 
-set xrange [0.5:3.8]    
+set xrange [0.5:3.8]      
+
 plot "data_remd_distributed_numberre.txt" using 2:3:4:(0.75)  title "Runtime 64 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
   
 set output "perf_distributed_size_replica.eps"
-set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB" 3.2)
-set yrange [0:160]    
+set xtics ("QB" 1, "Abe/QB" 2.1, "Abe/QB/Ranger" 3.2)
+set yrange [0:100]    
 set style fill solid 0.9 
 set xrange [0.5:3.8]    
 plot "data_remd_distributed_sizere.txt" using 2:3:4:(0.75)  title "Runtime 64 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
