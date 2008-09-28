@@ -57,12 +57,21 @@ set ylabel "Runtime (in min)"
 plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
 
 
-set output "perf_distributed.eps"
+set output "perf_distributed_number_replica.eps"
 set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB" 3.2)
 set yrange [0:300]    
 set style fill solid 0.9 
 set xrange [0.5:3.8]    
-plot "data_remd_distributed.txt" using 2:3:4:(0.75)  title "Runtime 64 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
+plot "data_remd_distributed_numberre.txt" using 2:3:4:(0.75)  title "Runtime 64 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
+  
+set output "perf_distributed_size_replica.eps"
+set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB" 3.2)
+set yrange [0:300]    
+set style fill solid 0.9 
+set xrange [0.5:3.8]    
+plot "data_remd_distributed_sizere.txt" using 2:3:4:(0.75)  title "Runtime 64 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
+
+ 
        
 
 # set output "perf_runtime.eps" 
@@ -121,8 +130,8 @@ set xrange [0.9:4.1]
 set xtics (1,2,4)
 set yrange [10:130]    
 set ytics (20, 40, 60, 80, 100, 120) 
-plot  "data_remd_distributed.txt" using 1:3 title "Runtime (normalized)" with lp,\
-      "data_remd_distributed.txt" using 1:5 title "Runtime (abolute)" with lp
+plot  "data_remd_distributed_numberre.txt" using 1:3 title "Runtime (normalized)" with lp,\
+      "data_remd_distributed_numberre.txt" using 1:5 title "Runtime (abolute)" with lp
 
 # plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\
 #      "data-remd.txt" using 1:6 title "SAGA/GRAM (QB/Poseidon/Eric)" with lp,\
