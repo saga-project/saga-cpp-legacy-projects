@@ -66,7 +66,7 @@ plot "data_remd_distributed_numberre.txt" using 2:3:4:(0.75)  title "Runtime 64 
   
 set output "perf_distributed_size_replica.eps"
 set xtics ("Abe" 1, "Abe/Ranger" 2.1, "Abe/Ranger/QB" 3.2)
-set yrange [0:300]    
+set yrange [0:160]    
 set style fill solid 0.9 
 set xrange [0.5:3.8]    
 plot "data_remd_distributed_sizere.txt" using 2:3:4:(0.75)  title "Runtime 64 Exchanges" with boxerrorbars linetype 1  fs solid 0.5
