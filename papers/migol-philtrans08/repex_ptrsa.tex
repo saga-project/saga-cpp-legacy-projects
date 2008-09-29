@@ -207,14 +207,28 @@ can be used to understand important physical phenomena -- ranging from
 protein folding dynamics to binding affinity calculations required for
 computational drug discovery.
 
+Despite their essentially loosely-coupled nature, RE simulations
+require a level of coupling: the coupling is in the form of exchanges
+that occurs infrequently compared to the run-time between exchanges,
+and it is small in that the communication bandwidth requirement is
+small.  Thus RE is {\it prima facie} a perfect algorithm to exploit
+heterogenous loosely-coupled distributed resources.
 
-Despite their essentially loosely-coupled nature, Replica-Exchange
-simulations require a level of coupling: the coupling is in the form
-of exchanges that occurs infrequently compared to the run-time between
-exchanges, and it is small in that the communication bandwidth
-requirement is small.  Thus Replica-Exchange is {\it prima facie} a
-perfect algorithm to exploit heterogenous distributed resources.
-
+Most RE implementation are either infrastructure
+specific~\cite{catchup}, or require prior scheduling of distributed
+resources~\cite{owain}. However, the real power of distributed systems
+will arise from an agile, adaptive execution model as opposed to a
+static execution model inhereted from parallel and cluster
+computing. However the barrier to the development of applications with
+such run-time agility is high and not surprisingly there does not
+exist an implementation of the RE algorithm that is both able to
+effectively utilise multiple distributed resources without prior
+scheduling as well as being independent of the any specific
+computational platform or infrastructure.  This paper discusses a
+framework for such an implementation and presents preliminary data
+that validates the claim that as more resources become available our
+framework can opportunisitically employ these resources to lead to a
+reduction in the time-to-completion of the scientific problem.
 
 % Begin challenges
 % Abstractions  
@@ -232,8 +246,8 @@ services, such as reliable job management and monitoring.
 % Fault Tolerance
 Distributed computing environments are inherently prone to failures
 and thus
-unreliable~\citep{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}.
-The more resources involved, the greater the probability of a failure.
+unreliable~\citep{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}. The
+more resources involved, the greater the probability of a failure.
 Replica-Exchange simulations are very fragile: the loss of a single
 replica process due to a node or network failure usually causes the
 abort of the entire simulation. Thus, the middleware must detect and
@@ -275,12 +289,11 @@ This slowdown is particularly caused by the synchronization required
 by the Replica-Exchange algorithm after each generation.  A generation
 refers to a single exchange round, i.\,e.\ the run of an ensemble of
 replica processes in parallel and the subsequent attempt to pairwise
-exchange temperatures between neighbouring replica processes. 
-
-between the replicas at large intervals The central master, the
-RE-Manager, must periodically obtain the results of all replicas to
-determine the new configuration of the next RE step.  In pathological
-cases, the complete system can come to a halt caused by a single slow
+exchange temperatures between neighbouring replica processes.  between
+the replicas at large intervals The central master, the RE-Manager,
+must periodically obtain the results of all replicas to determine the
+new configuration of the next RE step.  In pathological cases, the
+complete system can come to a halt caused by a single slow
 resource. We propose a novel, adaptive RE algorithm to relax this
 constraint. The adaptive RE algorithm permits a change in the number
 of replicas that are employed by adjusting the sampling range.  With
