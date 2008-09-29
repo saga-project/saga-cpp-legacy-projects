@@ -150,10 +150,10 @@
   independent way. By analysing the requirements of the RE algorithm
   and the challenges in implementation on real production system, we
   propose a new abstraction (BigJob) which forms the basis of
-  effective scheduling of the multiple sub-tasks. Our implementation
-  is extensible from a cluster supporting single-processor simulations
-  all the way to resources that support tightly-coupled
-  multi-processor simulations.
+  effective scheduling of the multiple sub-tasks. The implementation
+  of our framework can be used on clusters supporting single-processor
+  simulations and is extensible to multi-processor simulations that
+  require tightly-coupled resources.
 
   % SAGA is a high-level programmatic abstraction layer that provides
   % a standardised interface for the distributed functionality
@@ -194,49 +194,51 @@
   it extends earlier work and forms the basis of future work.. (maybe
   this goes into the conclusion section)}
 
-% Introduction RE application class 
 Several classes of applications are well suited for distributed
 environments. Probably the best known and most powerful examples are
-those that involve an ensemble of decoupled tasks.
-% These applications are referred to as loosely coupled. 
-% Despite the conceptual simplicity, many scientific problems, e.\,g.\ 
-% parameter sweeps and/or Monte Carlo simulations, can be solved using
-% infrastructure that supports this application class. 
-A slightly more complicated and challenging class of distributed
-applications are those that have a small level of coupling between
-individual sub-tasks. We refer to these applications as {\it
-  pleasingly-distributed}.  An interesting example of such
-applications are \emph{Replica-Exchange
+those that involve an ensemble of decoupled tasks, such as simple
+parameter sweep applications. We refer to these applications as {\it
+  pleasingly-distributed}.  A slightly more complicated and
+challenging class of distributed applications are those that have a
+level of coupling between individual sub-tasks.  An interesting
+example of such applications are \emph{Replica-Exchange
   (RE)}~\citep{hansmann,Sugita:1999rm} simulations.  Such applications
 can be used to understand important physical phenomena -- ranging from
 protein folding dynamics to binding affinity calculations required for
 computational drug discovery.
+
+
+Despite their essentially loosely-coupled nature, Replica-Exchange
+simulations require a level of coupling: the coupling is in the form
+of exchanges that occurs infrequently compared to the run-time between
+exchanges, and it is small in that the communication bandwidth
+requirement is small.  Thus Replica-Exchange is {\it prima facie} a
+perfect algorithm to exploit heterogenous distributed resources.
+
 
 % Begin challenges
 % Abstractions  
 % Developing RE simulations and running them in distributed environments 
 % is a complex task for a myriad number of reasons.  RE simulations 
 % involve the parallel orchestration of many replica jobs. 
-The heterogeneity and dynamism of a Grid lead to an increased
-difficulty and complexity in developing and deploying adaptive,
-distributed applications.  To master this complexity, a well-defined
-programming abstraction as well as a sophisticated middleware is
-required. The abstraction should allow scientists to focus on the
-application logic, while the middleware provides critical services,
-such as reliable job management and monitoring.
-
+The heterogeneity and dynamism of a computational Grid lead to an
+increased difficulty and complexity in developing and deploying
+adaptive, distributed applications.  To master this complexity, a
+well-defined programming abstraction as well as a sophisticated
+middleware is required. The abstraction should allow scientists to
+focus on the application logic, while the middleware provides critical
+services, such as reliable job management and monitoring.
 
 % Fault Tolerance
-Distributed computing environments 
-are inherently prone to failures and thus 
+Distributed computing environments are inherently prone to failures
+and thus
 unreliable~\citep{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}.
-The more resources involved, the greater the probability of a failure. 
-Replica-Exchange simulations are very fragile: the
-loss of a single replica process due to a node or network failure
-usually causes the abort of the entire simulation. Thus, the
-middleware must detect and resolve failures, such as the crash of the 
-Globus GRAM or of a resource running parts of the RE application, 
-accurately.
+The more resources involved, the greater the probability of a failure.
+Replica-Exchange simulations are very fragile: the loss of a single
+replica process due to a node or network failure usually causes the
+abort of the entire simulation. Thus, the middleware must detect and
+resolve failures, such as the crash of the Globus GRAM or of a
+resource running parts of the RE application, accurately.
 
 % Some applications can respond to such failures via redundant or
 % speculative computing.  However, redundant computing has its
@@ -270,15 +272,15 @@ distinct distributed resources.
 % Synchronization & Scheduling issues
 \jhanote{(with replicas of the same generation?)} \alnote{ok, added}
 This slowdown is particularly caused by the synchronization required
-by the Replica-Exchange algorithm after each generation. 
-A generation refers to a single exchange round, i.\,e.\ the
-run of an ensemble of replica processes in parallel and the subsequent attempt 
-to pairwise exchange temperatures between neighbouring replica processes.
-Despite their mostly loosely coupled nature, Replica-Exchange simulations require a
-small level of coupling.  The central master, the RE-Manager, must
-periodically obtain the results of all replicas to determine the new
-configuration of the next RE step.  In pathological cases, the
-complete system can come to a halt caused by a single slow
+by the Replica-Exchange algorithm after each generation.  A generation
+refers to a single exchange round, i.\,e.\ the run of an ensemble of
+replica processes in parallel and the subsequent attempt to pairwise
+exchange temperatures between neighbouring replica processes. 
+
+between the replicas at large intervals The central master, the
+RE-Manager, must periodically obtain the results of all replicas to
+determine the new configuration of the next RE step.  In pathological
+cases, the complete system can come to a halt caused by a single slow
 resource. We propose a novel, adaptive RE algorithm to relax this
 constraint. The adaptive RE algorithm permits a change in the number
 of replicas that are employed by adjusting the sampling range.  With
