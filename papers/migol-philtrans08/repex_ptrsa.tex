@@ -715,25 +715,15 @@ active Glide-In job.
 \section{SAGA Glide-In: Efficient Job Scheduling for RE Jobs}
 \label{sec:glidein}
 
-
-As motivated the before, the usage of simple Grid jobs as abstraction
-for executing replica processes is associated with a severe
-limitation: all jobs are required to queue at the resource management
-system potentially causing a slowdown of the overall application.  To
-avoid this issue an efficient dispatching schema for RE tasks is
-required.
-
-\begin{verbatim}
-  i. What is the pattern?
-  ii. What is the abstraction?
-
-  Pattern here is i) hierarchical and clustered job submission 
-  which is supported by a Glide-In Abstraction
-  of which our SAGA-Glide-In is a specific implementation
-
-  Abstractions support pattern
-
-\end{verbatim}
+As motivated the before, the use of multiple {\it simple} Grid jobs to
+execute many replicas has a severe limitation: all {\it simple} jobs
+will queue at the resource management system potentially causing a
+slowdown of the overall application.  As alluded to in the previous
+section, we overcome the slow-down associated with multiple simple job
+submission using an efficient dispatching schema for submitting RE
+tasks; in this section we provide details of our implementation, but
+before that we will discuss some simple formalism so as to understand
+the terms and establish connections to other work better.
 
 \jhanote{AFAIK, First demonstrated use of GlideIn for loosely coupled
   jobs}
@@ -743,28 +733,6 @@ required.
 % further demonstrate the simplicity and extensibility of SAGA by
 % implementing this abstraction on top of SAGA.
 
-
-% In the following, we demonstrate the simplicity and extensibility of
-% the SAGA framework by providing a well-defined abstraction for
-% applications that require the use of a glidin mechanism.
-
-
-\subsection{Patterns and Abstractions} 
-
-% This principle is also known as \glidein\ .  
-
-% \jhanote{I can't seem to figure out why, but we are loosing the first
-%   letter of every word that follows the \glidein\ macro! Andre M, the
-%   latex man, any ideas?}
-
-% A common principle to enhance the predictability of application runs and to prevent 
-% queuing delays are advance reservation.  An advance reservation commits a particular
-% resource over a defined time interval from the service provide to the consumer. Advance 
-% reservations allow the efficient co-allocation of resources without wasting compute cycles.
-% Migol's Advance Reservation Service (ARS)~\cite{Jeske:2007wj} e.\,g.\ allows the usage of
-% advance reservations on top of Globus.
-
-
 A common principle to avoid queuing delays is the usage of so called
 Glide-In jobs (see~\cite{citeulike:291860}). This job represents a
 placeholder for a set of sub-jobs. For this Glide-In job a
@@ -773,9 +741,10 @@ can then rapidly be executed through the Glide-In job. By avoiding the
 high initial costs for queueing each individual replica job the
 completion times of the RE applications can be dramatically reduced.
 
-% Since the first implementation of this principle was provided by Condor 
-% Glide-In~\citep{citeulike:291860}, this pattern is also referred to as Glide-In.
-% \alnote{add further advantages: configurability of MPI versions, flexible clustering of tasks}
+% Since the first implementation of this principle was provided by
+% Condor Glide-In~\citep{citeulike:291860}, this pattern is also
+% referred to as Glide-In.  \alnote{add further advantages:
+%   configurability of MPI versions, flexible clustering of tasks}
 
 \jhanote{I don't think the principle is known as glidein. The term
   glidein owes its origin to Miron and his insistence on the bird/fly
@@ -787,10 +756,7 @@ completion times of the RE applications can be dramatically reduced.
   language ;-). Now I understand this. Another option would be to
   describe this pattern as placeholder job pattern}
 
-%redundant - BS
-% As described, the job model defined by SAGA provides an ideal 
-% system abstraction to efficiently express the RE logic on
-% top of heterogeneous loosely coupled Grids. 
+\jhanote{Can we change Glidein in the next paragraph with BigJob?}
 
 The enhanced job model extends SAGA jobs by the capability to allocate
 larger chunks of resources prior to a loosely coupled application
@@ -824,6 +790,28 @@ sub-jobs to a suitable Glide-In job.  The RE-Manager relies on the
 SAGA Glide-In framework to reserve resources on a cluster and to
 efficiently dispatch RE processes to these nodes.
                                          
+\subsection{Abstractions, Patterns and Implementation}
+
+To understand the relation between clustered job-submissions, BigJobs
+and GlideIn, it is useful to review some basic concepts.
+A computational pattern is a references to a commonly occuring mode --
+whether in programming an application, in the way an application is
+used or executed. Patterns are the formalization of the frequently
+reoccuring computation, often across a range of different specific
+contexts. For example, the need to submit multiple jobs together is a
+commonly occuring requirement and practise, and thus provides a simple
+example of an execution pattern.  A mechanism that supports a pattern
+is referred to as an abstraction; just as patterns can be programmatic
+or execution, so can abstractions.
+
+For the purposes of our work here, the pattern (commonly occuring
+mode) is a clustered (multiple) job-submission which is supported
+using the BigJob abstraction. The BigJob abstraction in turn utilises
+another abstraction -- that of Glide-In, which supports the commonly
+occuring requirement to schedule multiple sub-tasks relative to each
+other and not in competition with other jobs submitted to the
+batch-system.
+
 
 \alnote{moved discussion abstraction for Condor Glide-In/Falkon to future work}
 % While the implementation of the enhanced job model is entirely based
