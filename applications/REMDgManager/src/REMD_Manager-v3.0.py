@@ -447,13 +447,18 @@ class ReManager():
                      self.number_of_mpi_processes = num_active_cores/self.total_number_replica
                      number_startable_processes = self.min_number_cores_in_glidein/self.number_of_mpi_processes * num_active_glidein
                      if number_startable_processes < self.total_number_replica:
-                        target_number_glidein_processes = self.total_number_replica/num_active_glidein
+                        target_number_glidein_processes, remainder = divmod(self.total_number_replica, num_active_glidein)
+                        if remainder > 0:
+                            target_number_glidein_processes = target_number_glidein_processes + 1
+                        print "Number MPI procs (target): " + str(target_number_glidein_processes) \
+                                + " Minim. cores per Glide-In: " + str(self.min_number_cores_in_glidein)
                         self.number_of_mpi_processes = self.min_number_cores_in_glidein/target_number_glidein_processes
 
                      print "Number active glidein: " + str(num_active_glidein) + " active cores: " + str(num_active_cores) \
                             + " Number MPI procs per RE process: " + str(self.number_of_mpi_processes)
                  else:
                     print "No Glide In ready"
+                    time.sleep(10)
                     continue
 
             # Job spawning
