@@ -1,53 +1,56 @@
-#Error Handling, specified from page 35 to 46 of the GFD-R-P.90 document
-#package saga.error
+# Package: saga
+# Module: error 
+# Description: The module which specifies all the error classes
+# Specification and documentation can be found in section 3.1, page 35-46 of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 class SagaException(Exception):
+	"""
+	This is the exception base class inherited by all exceptions raised by a SAGA object implementation.
+	@version: 1.0
+	"""
 	message = ""
 	sagaObject = None
-	"""
-	This is the exception base class inherited by all exceptions thrown by a SAGA object implementation.
-	"""
+	
 
 	def __init__(self, message, sagaObject=None):
 		"""
-		Initialize an Exception object
-		@summary: initialize an Exception object
+		Initialize an Exception object.
+		@summary: initialize an Exception object.
 		@param message: the message to be associated with the new exception
 		@type message: string
 		@param sagaObject: a sagaObject associated with this exception I{(optional)}.	
-		@type sagaObject: Object
+		@type sagaObject: L{Object}
 		"""
-		super(SagaException,self).__init__()
-		self.sagaObject = sageObject
-		self.message = message
+		pass
 
 	def getMessage():
 		"""
-		Returns the message associated with the exception
-		@summary: Returns the message associated with the exception
+		Returns the message associated with the exception.
+		@summary: Returns the message associated with the exception.
 		@return: the message
 		@rtype: string
 		"""
-		return self.message
+		pass
 
 	def getObject():
 		"""
-		Returns the sagaObject associated with the exception.
-		@summary: Returns the sagaObject associated with the exception
+		Returns the L{Object} associated with the exception.
+		@summary: Returns the sagaObject associated with the exception.
 		@return: the saga Object
-		@rtype: L{Object<saga.object.Object>}
+		@rtype: L{Object}
 		"""
-		return self.sagaObject
+		pass
 
 class NotImplemented(SagaException):
 	"""
 	If a method is specified in the SAGA API, but cannot be provided by a specific SAGA implementation, 
-	this exception is thrown.
+	this exception is raised.
 	"""
 	pass
 
 class IncorrectURL(SagaException):
 	"""
-	This exception is thrown if a method is invoked with a URL argument that could not be handled.
+	This exception is raised if a method is invoked with a URL argument that could not be handled.
 	"""
 	pass
 

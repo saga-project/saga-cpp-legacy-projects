@@ -1,4 +1,8 @@
-#Page 114 of the GFD-R-P.90 document, Chapter 3.9, package saga.monitoring
+# Package: saga
+# Module: monitoring
+# Description: The module which specifies the classes concerning Callbacks, Metrics, Monitorable and Steerable in saga
+# Specification and documentation can be found in section 3.9, page 114-139 of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from error import NotImplemented
 from attributes import Attributes
@@ -8,10 +12,9 @@ class Callback(object):
     """Callbacks are used for asynchronous notification of metric changes (events) """
     
     def cb(self, monitorable, metric, context):
-        #in monitorable mt, in metric metric, in context ctx, out bool keep
         """
-        Asynchronous handler for metric changes
-        @summary: Asynchronous handler for metric changes
+        Asynchronous handler for metric changes.
+        @summary: Asynchronous handler for metric changes.
         @param monitorable: the saga monitorable object which causes the callback invocation
         @type monitorable: L{Monitorable<saga.monitoring.Monitorable>}
         @param metric: the metric causing the callback invocation
@@ -19,7 +22,7 @@ class Callback(object):
         @param context: the context associated with the entity causing the callback
         @type context: L{Context<saga.context.Context>}
         @return: indicator if callback stays registered
-        @rtype: boolean
+        @rtype: bool
         @PreCondition: the passed context is authenticated.
         @PostCondition: if cb returns True, the callback stays registered, and will be invoked again on the next metric update.
         @PostCondition: if cb returns False, the callback gets unregistered, and will not be invoked again on metric updates, unless it gets re-added by the user.
@@ -31,7 +34,7 @@ class Callback(object):
                invocations of the callback.
         @note: "monitorable" is the Monitorable object the metric "metric" belonges to.
         @note: "context" is the Context which allows the callback to authorize the metric change.
-               If the cb method decides not to authorize this particular invocation, it throws an "AuthorizationFailed" exception.
+               If the cb method decides not to authorize this particular invocation, it raises an "AuthorizationFailed" exception.
         @note: if no context is available, a context of type "Unknown" is passed, with no attributes
                attached. Note that this can also indicate that a non-authenticated party connected.
         @note: a callback can be added to a metric multiple times. A "False" return value (no keep) will
@@ -44,17 +47,14 @@ class Callback(object):
                until a callback invocation is finished.
 
         """
-        raise NotImplemented, "cb() is not implemented in this object"
   
 class Metric(Object, Attributes):
-    """A metric represents an entity / value to be monitored."""
+    """A metric represents an entity or value to be monitored."""
 
     def __init__(self, name, desc, mode, unit, type, value):
-    #in string name, in string desc, in string mode, in string unit, in string type, in string value, out metric          obj);
         """
-        Initializes the Metric object
-        @summary: Initializes the Metric object
-        
+        Initializes the Metric object.
+        @summary: Initializes the Metric object.
         @param name: name of the metric
         @type name: string
         @param desc: description of the metric
@@ -67,7 +67,6 @@ class Metric(Object, Attributes):
         @type type: string
         @param value: initial value of the metric
         @type value: string
-
         @PostCondition: callbacks can be registered on the metric.
         @Raise  NotImplemented:
         @raise BadParameter:
@@ -81,15 +80,11 @@ class Metric(Object, Attributes):
          required parameter (all but "unit") will cause a BadParameter exception.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend could not create that specific metric.
         """
-        super(Metric, self).__init__()
-    
       
-    #callback handling
     def add_callback(self, cb): 
-        #in callback cb, out int cookie);
         """
-        Add asynchronous notifier callback to watch metric changes
-        @summary: add asynchronous notifier callback to watch metric changes
+        Add asynchronous notifier callback to watch metric changes.
+        @summary: Add asynchronous notifier callback to watch metric changes.
         @param cb: Callback to be added
         @type cb: L{Callback<saga.monitoring.Callback>}
         @return: handle for this callback, called a cookie, to be used for removal
@@ -104,29 +99,23 @@ class Metric(Object, Attributes):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: "IncorrectState" is thrown if the metric is "Final".
+        @Note: "IncorrectState" is raised if the metric is "Final".
         @note: the "callback" method on cb will be invoked on any change of the metric (not only when its value changes)
         @note: if the "callback" method returns true, the callback is kept registered; if it returns
                  false, the callback is called, and is un-registered after completion. If the
-                 callback throws an exception, it stays registered.
+                 callback raises an exception, it stays registered.
         @note: the returned cookie uniquely identifies the callback, and can be used to remove it.
-        @note: A "Timeout" or "NoSuccess" exception is thrown if the implementation cannot invoke the
+        @note: A "Timeout" or "NoSuccess" exception is raised if the implementation cannot invoke the
                  callback on metric changes.
         @note: a backend MAY limit the ability to add callbacks - the method may hence cause an
-                 "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied" exception to be thrown.
+                 "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied" exception to be raised.
 
         """
-        #@note: the cb is passed by reference.
-        cookie = 0
-        return cookie
-     
-      
       
     def remove_callback(self, cookie):
-        #in int cookie
         """
-        Remove a callback from a metric
-        @summary: remove a callback from a metric
+        Remove a callback from a metric.
+        @summary: Remove a callback from a metric.
         @param cookie: handle identifying the callback to be removed
         @type cookie: int
         @PreCondition: the callback identified by "cookie" is registered for that metric.
@@ -144,19 +133,17 @@ class Metric(Object, Attributes):
         @note: if the callback was removed earlier, or was unregistered by returning false, this call does nothing.
         @note: the removal only affects the cb identified by "cookie", even if the same callback was
                registered multiple times.
-        @note: if the cookie was not created by adding a callback to this object instance, a BadParameter is thrown.
-        @note: a "Timeout" or "NoSuccess" exception is thrown if the backend cannot guarantee that the callback gets successfully removed.
+        @note: if the cookie was not created by adding a callback to this object instance, a BadParameter is raised.
+        @note: a "Timeout" or "NoSuccess" exception is raised if the backend cannot guarantee that the callback gets successfully removed.
         @note: note that the backend allows the removal of the callback, if it did allow its addition -
                hence, no authentication, autorization or permission faults are to be expected.
 
         """
               
-              
-    #actively signal an event
     def fire(self):
         """
-        Push a new metric value to the backend
-        @summary: push a new metric value to the backend
+        Push a new metric value to the backend.
+        @summary: Push a new metric value to the backend.
         @PreCondition: the metric is not "Final"
         @PreCondition: the metric is "ReadWrite"
         @PostCondition: callbacks registered on the metric are invoked.
@@ -168,15 +155,15 @@ class Metric(Object, Attributes):
         @Raise AuthenticationFailed:
         @Raise Timeout:
         @Raise NoSuccess:
-        @Note: "IncorrectState" is thrown if the metric is "Final".
-        @note: "PermissionDenied" is thrown if the metric is not "ReadWrite". That also holds for a once
+        @Note: "IncorrectState" is raised if the metric is "Final".
+        @note: "PermissionDenied" is raised if the metric is not "ReadWrite". That also holds for a once
                  writable metric which was flagged "Final". To catch race conditions on this exceptions,
                  the application should try/raise the fire().
         @note: it is not necessary to change the value of a metric in order to fire it.
         @note: "set_attribute ("value", "...") on a metric does NOT imply a fire. Hence the value can be
               changed multiple times, but unless fire() is explicitly called, no consumer will notice.
         @note: if the application invoking fire() has callbacks registered on the metric, these callbacks are invoked.
-        @note: "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied" may get thrown if the
+        @note: "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied" may get raised if the
               current session is not allowed to fire this metric.
         @note: a "Timeout" or "NoSuccess" exception signals that the implementation could not communicate
               the new metric state to the backend.
@@ -187,10 +174,9 @@ class Monitorable(object):
     """SAGA objects which provide metrics and can thus be monitored extend the Monitorable class"""
 
     def list_metrics(self):
-        #return array<string> names
         """
-        List all metrics associated with the object
-        @summary: list all metrics associated with the object
+        List all metrics associated with the object.
+        @summary: List all metrics associated with the object.
         @return: names identifying the metrics associated with the object instance
         @rtype: tuple
         @Permission: Query
@@ -209,13 +195,11 @@ class Monitorable(object):
                  exception indicates that the current session is not allowed to list the available metrics.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to list the available metrics.
         """
-        raise NotImplemented, "list_metrics() is not implemented in this object"
      
     def get_metric(self, name):
-         #in string name, return metric metric
         """
-        Returns a metric instance, identified by name
-        @summary: returns a metric instance, identified by name
+        Returns a metric instance, identified by name.
+        @summary: Returns a metric instance, identified by name.
         @param name: name of the metric to be returned
         @type name: string
         @return: metric instance identified by name
@@ -236,13 +220,11 @@ class Monitorable(object):
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to return the named metric.
 
         """
-        raise NotImplemented, "get_metric() is not implemented in this object"
      
     def add_callback(self, name, cb):
-        #in string name, in callback cb, out int cookie
         """
-        Add a callback to the specified metric
-        @summary: add a callback to the specified metric
+        Add a callback to the specified metric.
+        @summary: Add a callback to the specified metric.
         @param name: identifies the metric to which cb is to be added
         @type name: string
         @param cb: the Callback object to be registered
@@ -261,13 +243,11 @@ class Monitorable(object):
         @Note: notes to the add_callback method of the metric class apply.
 
         """
-        raise NotImplemented, "add_callback() is not implemented in this object"
      
     def remove_callback(self, name, cookie):
-        #in string name, in int cookie
         """
         Remove a callback from the specified metric
-        @summary: remove a callback from the specified metric
+        @summary: Remove a callback from the specified metric.
         @param name: identifies the metric for which cb is to be removed
         @type name: string
         @param cookie: identifies the callback to be removed
@@ -284,20 +264,19 @@ class Monitorable(object):
         @raise NoSuccess:
         @Note: notes to the remove_callback method of the metric class apply
         """
-        raise NotImplemented, "remove_callback() is not implemented in this object"
+
    
 class Steerable(Monitorable):
     """SAGA objects which can be steered by changing their metrics implement the steerable interface"""
 
     def add_metric(self, metric):
-        #in metric metric, out bool success
         """
-        Add a metric instance to the application instance
-        @summary: add a metric instance to the application instance
+        Add a metric instance to the application instance.
+        @summary: Add a metric instance to the application instance.
         @param metric: metric to be added
         @type metric: L{Metric}
         @return: indicator if the metric was added successfully 
-        @rtype: boolean
+        @rtype: bool
         @PostCondition: the metric can be accessed from this application, and possibly from other applications.
         @Permission: Write
         @Raise NotImplemented:
@@ -311,21 +290,19 @@ class Steerable(Monitorable):
         @Note: a metric is uniquely identified by its name attribute - no two metrics with the same name can be added.
         @Note: any callbacks already registered on the metric stay registered (the state of metric is not changed)
         @Note: an object being steerable does not guarantee that a metric can in fact be added -- the
-                 returned boolean indicates if that particular metric could be added.
+                 returned bool indicates if that particular metric could be added.
         @Note: an "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied"
                  exception indicates that the current session is not allowed to add metrics to the steerable.
         @Note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to add the  metric.
-        @Note: if a metric with the same name is already known for the object, an "AlreadyExists" exception is thrown.
+        @Note: if a metric with the same name is already known for the object, an "AlreadyExists" exception is raised.
         @Note: if the steerable instance does not support the addition of new metrics, i.e. if only the
-                 default metrics can be steered, an "IncorrectState" exception is thrown.
+                 default metrics can be steered, an "IncorrectState" exception is raised.
         """
-        raise NotImplemented, "add_metric() is not implemented in this object"
 
     def remove_metric(self, name):
-        #in string name
         """
-        Remove a metric instance
-        @summary: remove a metric instance
+        Remove a metric instance.
+        @summary: Remove a metric instance.
         @param name: identifies the metric to be removed
         @type name: string
         @PostCondition: all callbacks registered on that metric are unregistered.
@@ -344,19 +321,17 @@ class Steerable(Monitorable):
         @Note: an "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied"
                  exception indicates that the current session is not allowed to remove the metrics from the steerable.
         @Note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to remove the metric.
-        @Note: if a metric with that name is not known for the object, a "DoesNotExist" exception is thrown.
+        @Note: if a metric with that name is not known for the object, a "DoesNotExist" exception is raised.
         @Note: if a steerable instance does not support the removal of some metric, e.g. if a metric
-                 needs to be always present, an "IncorrectState" exception is thrown.
+                 needs to be always present, an "IncorrectState" exception is raised.
                  For example, the "state" metric on a steerable job cannot be removed.
 
         """
-        raise NotImplemented, "remove_metric() is not implemented in this object"
 
     def fire_metric(self, name):
-        #in string name
         """
-        Push a new metric value to the backend
-        @summary: push a new metric value to the backend
+        Push a new metric value to the backend.
+        @summary: Push a new metric value to the backend.
         @param name: identifies the metric to be fired
         @type name: string
         @Permission: Write
@@ -373,9 +348,8 @@ class Steerable(Monitorable):
         @Note: an "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied" exception indicates that the current session
                  is not allowed to fire the metric.
         @Note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to fire the metric.
-        @Note: if a metric with that name is not known for the object, a "DoesNotExist" exception is thrown.
+        @Note: if a metric with that name is not known for the object, a "DoesNotExist" exception is raised.
         @Note: an attempt to fire a metric which is "ReadOnly" results in an "IncorrectState" exception.
         @Note: an attempt to fire a "Final" metric results in an "IncorrectState" exception.
 
         """
-        raise NotImplemented, "fire_metric() is not implemented in this object"

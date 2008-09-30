@@ -28,9 +28,10 @@ class Flags(object):
     #                   2048  #   reserved for Binary
 
 class LogicalFile(NSEntry, Attributes):
-      """
-      B{To Be Added!}
+    """
+    B{To Be Added!}::
       
+      Check Indentation!
       CONSTRUCTOR     (in session                 s,
                        in saga::url               name,
                        in int                     flags = Read,
@@ -48,7 +49,7 @@ class LogicalFile(NSEntry, Attributes):
       // Attributes (extensible):
       //
       // no attributes pre-defined
-      """
+    """
     
 class LogicalDirectory(NSDirectory, Attributes):
     """
@@ -57,7 +58,7 @@ class LogicalDirectory(NSDirectory, Attributes):
     DESTRUCTOR      (in   logical_directory     obj);
  
     // inspection methods
-    is_file (in saga::url name, out boolean test);
+    is_file (in saga::url name, out bool test);
     // open methods
     open_dir (in saga::url name, in int flags = Read, out logical_directory   dir);
     open (in saga::url name, in int flags = Read, out logical_file file);

@@ -1,4 +1,4 @@
-Last update: aug 14 2008
+Last update: sep 30 2008
 
 PySAGA is the project concerning the specification of the Python-SAGA 
 language binding. The result will be a Python specification which is 

@@ -3,6 +3,7 @@
 from buffer import Buffer
 from object import Object, ObjectType
 from permissions import Permissions
+from task import Async
 
 class IOMode(object):
     """
@@ -62,7 +63,7 @@ class Parameter(Buffer):
         """
    
    
-class RPC(Object, Permissions):
+class RPC(Object, Permissions, Async ):
     """
     This class represents a remote function handle, which can be called (repeatedly),
     and returns the result of the respective remote procedure invocation.
@@ -137,7 +138,7 @@ class RPC(Object, Permissions):
             invoking call(). For this reason, all notes to the object constructor apply to the call()
             method as well.
         @note: if an implementation finds inconsistent information in the parameter vector, a
-            BadParameter exception is thrown.
+            BadParameter exception is raised.
         @note: arbitrary backend failures (e.g. semantic  failures in the provided parameter stack, or
                  any errors occuring during the execution of  the remote procedure) MUST be mapped to a
                  "NoSuccess" exception, with a descriptive error message. That way, error semantics of
@@ -160,7 +161,7 @@ class RPC(Object, Permissions):
         @raise IncorrectState:
         @raise NoSuccess:
         @Note: any subsequent method call on the object MUST raise an "IncorrectState" exception (apart from DESTRUCTOR and close()).
-        @note: if close() is implicitely called in the DESTRUCTOR, it will never throw an exception.
+        @note: if close() is implicitely called in the DESTRUCTOR, it will never raise an exception.
         @note: close() can be called multiple times, with no side effects.
         @see: for resource deallocation semantics, see Section 2 of the GFD-R-P.90 document
         @see: for timeout semantics, see Section 2 of the GFD-R-P.90 document

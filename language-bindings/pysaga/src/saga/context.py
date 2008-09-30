@@ -1,11 +1,14 @@
-#GFD-R-P.90 section 3.6, page 81,  package saga.context
+# Package: saga
+# Module: context 
+# Description: The module which specifies the context classes used in saga
+# Specification and documentation can be found in section 3.6, page 81-86 of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+
 from object import Object, ObjectType
 from attributes import Attributes
 from error import NotImplemented
-#from org.ogf.saga.context import ContextFactory, Context
 
 class Context(Object, Attributes):
-    #_context = None
     """
     The saga.context.Context class provides the functionality of a security information container.
 
@@ -105,8 +108,8 @@ class Context(Object, Attributes):
 
     def __init__(self, type=""):
         """
-        Create a security context
-        @summary: create a security context
+        Initialize a security context.
+        @summary: Initialize a security context.
         @param type: initial type of context
         @type type: string
         @raise NotImplemented:
@@ -116,19 +119,14 @@ class Context(Object, Attributes):
         @note: if type is given (i.e. non-empty), then the __init__ internally calls set_defaults().
             The notes to set_defaults apply.
         @see: the notes about lifetime management in Section 2 of the GFD-R-P.90 document
+
         """
-        if type=="":
-            #self._context = org.ogf.saga.context.ContextFactory.createContext();
-            pass
-        else:
-            #self._context = org.ogf.saga.context.ContextFactory.createContext(type);
-            pass
+        pass
         
     def set_defaults(self):
-        #_context.setDefaults();
         """
-        Set default values for specified context type
-        @summary: set default values for specified context type
+        Set default values for specified context type.
+        @summary: Set default values for specified context type.
         @PostCondition: the context is valid, and can be used for authorization.
         @raise NotImplemented:
         @raise IncorrectState:
@@ -137,14 +135,11 @@ class Context(Object, Attributes):
         @note: the method avaluates the value of the 'Type' attribute, and of all other non-empty
               attributes, and, based on that information, tries to set sensible default values for all
               previously empty attributes.
-        @note: if the 'Type' attribute has an empty value, an 'IncorrectState' exception is thrown.
+        @note: if the 'Type' attribute has an empty value, an 'IncorrectState' exception is raised.
         @note: this method can be called more than once on a context instance.
         @note: if the implementation cannot create valid default values based on the available
-              information, an 'NoSuccess' exception is thrown, and a detailed error message is given,
+              information, an 'NoSuccess' exception is raised, and a detailed error message is given,
               describing why no default values could be set.
 
         """
         pass
-
-# add everything from Object
-# add everything form Attributes

@@ -1,5 +1,9 @@
-# GFD-R-P.90
-#package saga.Task
+# Package: saga
+# Module: task 
+# Description: The module which specifies the classes concerning the Task model in saga
+# Specification and documentation can be found in section 3.10, page 140-162 of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+
 from object import Object, ObjectType
 from monitoring import Monitorable
 from error import NotImplemented
@@ -12,8 +16,7 @@ class State(object):
     NEW      = 1
     """
     @summary: this state identifies a newly constructed Task instance which has not yet
-        run. This state corresponds to the BES state 'Pending'. This state is
-        initial.
+        run. This state corresponds to the BES state 'Pending'. This state is initial.
     """
     
     RUNNING  = 2
@@ -55,9 +58,25 @@ class WaitMode(object):
 class Async(object):
     """
     This interface is empty on purpose, and is used only for tagging of SAGA 
-    classes which implement the SAGA Task model.
+    classes which implement the SAGA Task model. All methods of subclasses of Async
+    will be able to return Task objects.
     """
-    pass
+
+class TaskType(object):
+    """
+    The variables in this class are used in classes which support the Task model
+    to specify which version of the method they want to use. Classes supporting the
+    Task model subclass L{Async}.
+    """
+    
+    NORMAL = 0
+    """@summary: let the method return its specified return values """
+    SYNC   = 1
+    """@summary: let the method return a Task object in a final state. """
+    ASYNC  = 2
+    """@summary: let the method return a Task object in the RUNNING state """
+    TASK   = 3
+    """@summary: let the method return a Task object in the NEW state """
 
 class Task(Object, Monitorable):
     """
@@ -76,27 +95,20 @@ class Task(Object, Monitorable):
             - value: 0
 
     """
-#    def __init__(self):
-#        #no constructor
-#        super(Task,self).__init__()
-#        pass
     
     def __del__(self):
         """
-        Destroy the object
+        Destroy the object.
         @PostCondition: state is no longer shared with the object the Task was created from.
         @PostCondition: the Task instance is 'CANCELED' prior to resource deallocation.
         @Note: if the instance was not in a final state before, the destructor performs a cancel()
             on the instance, and all notes to cancel() apply.
         """
-        Object.__del__(self)
-        Monitorable.__del__(self)
-        pass
     
     def run(self):
         """
-        Start the asynchronous operation
-        @summary:  start the asynchronous operation
+        Start the asynchronous operation.
+        @summary:  Start the asynchronous operation.
         @precondition: Task is in 'NEW' state
         @postcondition: Task is in 'RUNNING' state
         @permission: appropriate permissions for the method represented by the Task
@@ -105,17 +117,15 @@ class Task(Object, Monitorable):
         @raise Timeout:
         @raise NoSuccess:
         @note: run can only be called on a Task in 'NEW' state. All other states will cause the
-               'IncorrectState' exception to be thrown.
+               'IncorrectState' exception to be raised.
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to start the Task.
 
         """
-        raise NotImplemented, "run() is not implemented in this object"
     
     def cancel(self, timeout=0.0):
-        #in float timeout = 0.0
         """
-        Cancel the asynchronous operation
-        @summary:  cancel the asynchronous operation
+        Cancel the asynchronous operation.
+        @summary:  Cancel the asynchronous operation.
         @param   timeout:              time for freeing resources
         @type timeout: float
         @precondition: Task is in 'RUNNING' state.
@@ -130,18 +140,16 @@ class Task(Object, Monitorable):
             succeeded. The state then changes to 'CANCELED'.
         @note: if the Task is in a final state, the call has no effect, and, in particular, does NOT change
             the state from 'DONE' to 'CANCELED', or from 'FAILED' to 'CANCLED'. This is to avoid race conditions.
-        @note: if the Task is in 'NEW' state, an 'IncorrectState' exception is thrown.
+        @note: if the Task is in 'NEW' state, an 'IncorrectState' exception is raised.
         @note: a 'NoSuccess' exception indicates that the backend was not able to initiate the cancelation for the Task.
           
 
         """
-        raise NotImplemented, "cancel() is not implemented in this object"
     
     def wait(self, timeout=-1.0):
-        #in float timeout = -1.0, out boolean finished
         """
-        Wait for the Task to finish
-        @summary:  wait for the Task to finish
+        Wait for the Task to finish.
+        @summary:  Wait for the Task to finish.
         @param timeout: seconds to wait
         @type timeout: float
         @return: indicator if the Task is done running
@@ -154,7 +162,7 @@ class Task(Object, Monitorable):
         @raise NoSuccess:
         @note: wait returns success (True) as soon as the Task enters a final state
         @note: if the Task is already in a final state, the call returns success (True) immediately.
-        @note: if the Task is in 'NEW' state, an 'IncorrectState' exception is thrown.
+        @note: if the Task is in 'NEW' state, an 'IncorrectState' exception is raised.
         @note: wait returns no success (False) if the Task is, even after timeout, not in a final state.
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to wait for the
             Task. Note that a 'Timeout' exception does not indicate that the Task is not in a final
@@ -162,13 +170,12 @@ class Task(Object, Monitorable):
         @note: for timeout semantics, see Section 2 of the GFD-R-P.90 document
 
         """        
-        raise NotImplemented, "wait() is not implemented in this object"
       
     def get_state(self):
         #out state state
         """
-        Get the state of the Task
-        @summary:  get the state of the Task
+        Get the state of the Task.
+        @summary:  Get the state of the Task.
         @return: state of the Task
         @rtype: int
         @raise NotImplemented:
@@ -176,12 +183,11 @@ class Task(Object, Monitorable):
         @raise NoSuccess:
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to retrieve the Task state.
         """
-        raise NotImplemented, "get_state() is not implemented in this object"
       
     def get_result(self):
         """
-        Get the result of the async operation
-        @summary: get the result of the async operation
+        Get the result of the async operation.
+        @summary: Get the result of the async operation.
         @return: return value of the async method
         @rtype: I{<return value>}
         @precondition: Task is not in NEW, FAILED or CANCELED state.
@@ -197,21 +203,20 @@ class Task(Object, Monitorable):
         
     def get_object(self):
         """
-        Get the object from which this Task was created 
-        @summary: get the object from which this Task was created
+        Get the object from which this Task was created.
+        @summary: Get the object from which this Task was created.
         @return: object this Task was created from
-        @rtype I{<object>}
+        @rtype: I{<object>}
         @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
         @note: the method returns a shallow copy of the object this Task was created from.
         """
       
-      # error handling
     def rethrow(self):
         """
-        Re-throw any exception a failed Task caught
-        @summary:  re-throw any exception a failed Task caught
+        Re-raise any exception a failed Task caught.
+        @summary:  Re-raise any exception a failed Task caught.
         @raise NotImplemented:
         @raise IncorrectURL:
         @raise BadParameter:
@@ -223,12 +228,12 @@ class Task(Object, Monitorable):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: this method does nothing unless the Task is in 'FAILED' state, and also throws
+        @note: this method does nothing unless the Task is in 'FAILED' state, and also raises
                  'IncorrectState' if the Task is in any other state.
         @note: if in 'FAILED' state, the method raises an exception which indicates the reason why that
-                 Task entered the 'FAILED' state (i.e. it throws the exception which caused it to enter the
+                 Task entered the 'FAILED' state (i.e. it raises the exception which caused it to enter the
                  'FAILED' state.
-        @note: rethrow() can be called multiple times, always throwing the same exception.
+        @note: rethrow() can be called multiple times, always raising the same exception.
         """
     
     
@@ -253,8 +258,8 @@ class TaskContainer(Object, Monitorable):
     
     def __init__(self):
         """
-        Initialize the TaskContainer
-        @summary: initialize the TaskContainer
+        Initialize the TaskContainer.
+        @summary: Initialize the TaskContainer.
         @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
@@ -264,8 +269,8 @@ class TaskContainer(Object, Monitorable):
         
     def __del__(self):
         """
-        Destroy the TaskContainer
-        @summary: destroy the TaskContainer
+        Destroy the TaskContainer.
+        @summary: Destroy the TaskContainer.
         @note: Tasks in the TaskContainer during its destruction are not affected by its
                        destruction, and, in particular, are not canceled.
         """
@@ -273,12 +278,12 @@ class TaskContainer(Object, Monitorable):
 
     def add(self, task):
         """
-        Add a Task to a TaskContainer
-        @summary: add a Task to a TaskContainer
+        Add a Task to a TaskContainer.
+        @summary: Add a Task to a TaskContainer.
         @param task: Task to add to the TaskContainer
         @type task: L{Task}
         @return: cookie identifying the added Task
-        @rtype int
+        @rtype: int
         @postcondition: the Task is managed by the Task container.
         @raise NotImplemented:
         @raise Timeout:
@@ -293,8 +298,8 @@ class TaskContainer(Object, Monitorable):
         
     def remove(self, cookie):
         """
-        Remove a Task from a TaskContainer
-        @summary:  remove a Task from a TaskContainer
+        Remove a Task from a TaskContainer.
+        @summary:  Remove a Task from a TaskContainer.
         @param cookie: cookie identifying the Task to be removed
         @type cookie: int
         @return: the removed Task
@@ -306,7 +311,7 @@ class TaskContainer(Object, Monitorable):
         @raise Timeout:
         @raise NoSuccess:
         @note: if a Task was added more than once, it can be removed only once - see notes to add().
-        @note: if the Task identified by the cookie is not in the TaskContainer, a 'DoesNotExist' exception is thrown.
+        @note: if the Task identified by the cookie is not in the TaskContainer, a 'DoesNotExist' exception is raised.
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to remove the
                   Task from the TaskContainer.
                   
@@ -314,8 +319,8 @@ class TaskContainer(Object, Monitorable):
 
     def run(self):
         """
-        Start all asynchronous operations in the TaskContainer
-        @summary:  start all asynchronous operations in the TaskContainer.
+        Start all asynchronous operations in the TaskContainer.
+        @summary:  Start all asynchronous operations in the TaskContainer.
         @precondition: all Tasks in the container are in 'NEW' state.
         @postcondition: all Tasks in the comtainer are in 'RUNNING' state.
         @permission: see permissions on Task.run()
@@ -328,15 +333,15 @@ class TaskContainer(Object, Monitorable):
                   that exception on run().
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to run one or
                   more Tasks in the container.
-        @note: if the TaskContainer is empty, an 'DoesNotExist' exception is thrown.
+        @note: if the TaskContainer is empty, an 'DoesNotExist' exception is raised.
         @note: As the order of execution of the Tasks is undefined, no assumption on the individual
-                  Task states can be made after any exception gets thrown.
+                  Task states can be made after any exception gets raised.
         """
         
     def wait(self, mode, timeout):
         """
-        Wait for one or more of the Tasks to finish
-        @summary:  wait for one or more of the Tasks to finish
+        Wait for one or more of the Tasks to finish.
+        @summary:  Wait for one or more of the Tasks to finish.
         @param mode: wait for All or Any Task
         @param timeout: seconds to wait
         @type mode: int
@@ -361,18 +366,18 @@ class TaskContainer(Object, Monitorable):
                     
         @note: wait() MAY cause an 'IncorrectState' exception if any of the Tasks in the container causes
                   that exception on wait().
-        @note: if the TaskContainer is empty, an 'DoesNotExist' exception is thrown.
+        @note: if the TaskContainer is empty, an 'DoesNotExist' exception is raised.
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to wait for one
                   or more Tasks in the container.
         @note: As the order of execution of the Tasks is undefined, no assumption on the individual
-                  Task states can be made after any exception gets thrown.
+                  Task states can be made after any exception gets raised.
         @note: for timeout semantics, see Section 2 of the GFD-R-P.90 document
         """
         
     def cancel(self, timeout):
         """
-        Cancel all the asynchronous operations in the container
-        @summary:  cancel all the asynchronous operations in the container
+        Cancel all the asynchronous operations in the container.
+        @summary:  Cancel all the asynchronous operations in the container.
         @param timeout:              time for freeing resources
         @type timeout: float
         @postcondition: if no timeout occurs, all Tasks in the container are in 'CANCELED' state.
@@ -386,15 +391,15 @@ class TaskContainer(Object, Monitorable):
                   causes that exception on cancel().
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to run one or
                   more Tasks in the container.
-        @note: if the TaskContainer is empty, a 'DoesNotExist' exception is thrown.
+        @note: if the TaskContainer is empty, a 'DoesNotExist' exception is raised.
         @note: As the order of execution of the Tasks is undefined, no assumption on the individual
-                  Task states can be made after any exception gets thrown.
+                  Task states can be made after any exception gets raised.
         """
 
     def size(self):
         """
-        Return the number of Tasks in the TaskContainer
-        @summary:  return the number of Tasks in the TaskContainer
+        Return the number of Tasks in the TaskContainer.
+        @summary:  Return the number of Tasks in the TaskContainer.
         @return: number of Tasks in TaskContainer
         @rtype: int
         @raise NotImplemented:
@@ -406,6 +411,7 @@ class TaskContainer(Object, Monitorable):
         
     def list_tasks(self):
         """
+        List the Tasks in the TaskContainer.
         @summary: List the Tasks in the TaskContainer.
         @return: tuple of cookies for all Tasks in TaskContainer
         @rtype: tuple
@@ -418,8 +424,8 @@ class TaskContainer(Object, Monitorable):
         
     def get_task(self, cookie):
         """
-        Get a single Task from the TaskContainer
-        @summary:  get a single Task from the TaskContainer
+        Get a single Task from the TaskContainer.
+        @summary:  Get a single Task from the TaskContainer.
         @param cookie: the cookie identifying the Task to return
         @type cookie: int
         @return: the Task identified by cookie
@@ -429,15 +435,15 @@ class TaskContainer(Object, Monitorable):
         @raise Timeout:
         @raise NoSuccess:
         @note: the returned Task is NOT removed from the TaskContainer.
-        @note: if cookie specifies a Task which is not in the  container, a 'DoesNotExist' exception is thrown.
+        @note: if cookie specifies a Task which is not in the  container, a 'DoesNotExist' exception is raised.
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to list the
                   Tasks in the container.
         """
     
     def get_tasks(self):
         """
-        Get the Tasks in the TaskContainer 
-        @summary: get the Tasks in the TaskContainer
+        Get the Tasks in the TaskContainer.
+        @summary: Get the Tasks in the TaskContainer.
         @return: list of Tasks in TaskContainer
         @rtype: list
         @raise NotImplemented:
@@ -451,8 +457,8 @@ class TaskContainer(Object, Monitorable):
         
     def get_states(self):
         """
-        Get the states of all Tasks in the TaskContainer
-        @summary: get the states of all Tasks in the TaskContainer.
+        Get the states of all Tasks in the TaskContainer.
+        @summary: Get the states of all Tasks in the TaskContainer.
         @return: list of states for Tasks in TaskContainer
         @raise NotImplemented:
         @raise Timeout:
