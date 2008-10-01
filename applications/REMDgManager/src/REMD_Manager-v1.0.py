@@ -527,5 +527,10 @@ if __name__ == "__main__" :
         run_test_RE(options.numreplica,20)   #sample test for Replica Exchange with localhost
     elif options.type in ("REMD"):
         run_REMDg(options.configfile) 
+    else:
+        print "Usage : \n python " + sys.argv[0] + " --type=<REMD> --configfile=<configfile> \n"
+        print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=remd_manager.config"
+        sys.exit(1)      
+       
     print "REMDgManager total runtime: " + str(time.time()-start) + " s"
     
