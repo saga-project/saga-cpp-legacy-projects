@@ -35,8 +35,8 @@ import pdb
 """ Config parameters (will be moved to config file in the future) """
 CPR = False 
 SCP = False
-GlideIn = True
-AdaptiveSampling = True
+GlideIn = False
+AdaptiveSampling = False
 
 ########################################################
 #  Global variable 
@@ -89,14 +89,17 @@ def set_saga_job_description(replica_ID, RE_info, iflag):
         #jd.spmdvariation == "single" # Launch via NAMD-Launcher
     else:    
         jd = saga.job.description()
-    jd.spmdvariation = "mpi" # launch MPI directly
- 
-    jd.numberofprocesses = RE_info.numberofprocesses
-    jd.totalcputime = RE_info.totalcputime
+    jd.spmd_variation = "mpi" # launch MPI directly
+    jd.number_of_processes = RE_info.numberofprocesses
+    jd.total_cpu_time = RE_info.totalcputime
     jd.arguments = RE_info.arguments
     jd.executable = RE_info.executables[replica_ID]
-    jd.queue = RE_info.projects[replica_ID] + "@" + RE_info.queues[replica_ID]
-    jd.workingdirectory = RE_info.workingdirectories[replica_ID]
+    #jd.queue = RE_info.projects[replica_ID] + "@" + RE_info.queues[replica_ID]
+    jd.queue = RE_info.queues[replica_ID]
+    jd.working_directory = RE_info.workingdirectories[replica_ID]
+    project = []
+    project.append(RE_info.projects[replica_ID])
+    jd.job_project = project
     
     jd.output = "output.txt"    #this is requried for Migol
     jd.error = "error.txt"
