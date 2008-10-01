@@ -4,6 +4,7 @@
 # Specification and documentation can be found in section 3.3, page 53-58 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
+#DOCUMENT: second constructor urlObject see IMPL
 
 from object import Object, ObjectType
 from error import NotImplemented, BadParameter, IncorrectURL, AlreadyExists, DoesNotExist, IncorrectState, \
@@ -44,7 +45,7 @@ class URL(Object):
                 self.urlObject = URLFactory.createURL(url)
             except java.lang.Exception, e:
                 raise self.convertException(e)
-        #DOCUMENT: second constructor urlObject see IMPL             
+             
         
     def set_string (self, url = ""):
         """
@@ -371,3 +372,60 @@ class URL(Object):
             return URL(tempObject.getString)
         except java.lang.Exception, e:
             raise self.convertException(e)    
+        
+###################################
+#    Inherited from Object        #
+###################################
+
+#TODO: Object methodes in URL
+
+#    def get_id(self):
+#        """
+#        Query the object ID.
+#        @summary: Query the object ID.
+#        @return: uuid for the object
+#        @rtype: string 
+#        """
+#        try:
+#            return self.urlObject.getUserInfo()
+#        except java.lang.Exception, e:
+#            raise self.convertException(e)        
+#      
+#    def get_type(self):
+#        """
+#        Query the object type.
+#        @summary: Query the object type.
+#        @return: type of the object as an int from ObjectType
+#        @rtype: int
+#        """
+#      
+#    def get_session(self):
+#        """
+#        Query the objects session.
+#        @summary: Query the objects session.
+#        @return: session of the object
+#        @rtype: L{Session}
+#        @PreCondition: the object was created in a session, either
+#            explicitly or implicitly.
+#        @PostCondition: the returned session is shallow copied.
+#        @raise DoesNotExist:
+#        @Note: if no specific session was attached to the object at creation time, 
+#            the default SAGA session is returned.
+#        @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
+#            Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
+#        """
+#        
+#    
+#    def clone(self):
+#        """
+#        @summary: Deep copy the object
+#        @return: the deep copied object
+#        @rtype: L{Object}
+#        @PostCondition: apart from session and callbacks, no other state is shared
+#            between the original object and it's copy.
+#        @raise NoSuccess:
+#        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+#                 a deep copy of the respective class type.
+#        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+#
+#        """

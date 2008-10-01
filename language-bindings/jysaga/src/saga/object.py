@@ -1,4 +1,4 @@
-# Package: saga
+# Package: saga 
 # Module: object 
 # Description: The module which specifies the base SAGA object class and ObjectType class
 # Specification and documentation can be found in section 3.2, page 47-52 of the GFD-R-P.90 document
@@ -49,15 +49,53 @@ class Object(object):
     """
         
     def get_id(self):
+        """
+        Query the object ID.
+        @summary: Query the object ID.
+        @return: uuid for the object
+        @rtype: string 
+        """
         raise NotImplemented, "get_id() is not implemented in this object"
       
     def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
         raise NotImplemented, "get_type() is not implemented in this object"
         
     def get_session(self):
+        """
+        Query the objects session.
+        @summary: Query the objects session.
+        @return: session of the object
+        @rtype: L{Session}
+        @PreCondition: the object was created in a session, either
+            explicitly or implicitly.
+        @PostCondition: the returned session is shallow copied.
+        @raise DoesNotExist:
+        @Note: if no specific session was attached to the object at creation time, 
+            the default SAGA session is returned.
+        @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
+            Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
+        """
         raise NotImplemented, "get_session() is not implemented in this object"
     
     def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
         raise NotImplemented, "clone() is not implemented in this object"
     
     def convertException(self, e):
@@ -93,11 +131,11 @@ class Object(object):
         elif isinstance(e, org.ogf.saga.error.PermissionDeniedException):
             error = PermissionDenied(message, object)
         elif isinstance(e, org.ogf.saga.error.SagaIOException):
-            error = NoSuccess(message, object)
-            #DOCUMENT: Document SagaIOException -> NoSucces IOError, multiple inheritence
+            error = sagIO(message, object)
         elif isinstance(e, org.ogf.saga.error.TimeoutException):
             error = Timeout(message, object)
         else:
             error = NoSuccess(message, object)
         return error
- 
+    
+        #DOCUMENT: Document SagaIOException -> NoSucces IOError, multiple inheritence 

@@ -132,5 +132,9 @@ class NoSuccess(SagaException):
 	"""
 	pass
 
-class 
+class sagaIO(SagaException, IOError):
+	"""
+	This exception indicates that something went wrong in a IO related method,
+	and raises this exception instead of returning POSIX error code. 
+	"""
 

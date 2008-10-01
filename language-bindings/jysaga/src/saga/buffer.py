@@ -6,6 +6,10 @@
 
 from object import ObjectType, Object
 from error import NotImplemented
+import jarray
+
+from org.ogf.saga.buffer import BufferFactory, Buffer
+
 
 #use jython's JArray to create a byte[]. but needs to 
 #update the application buffer then after each mutation....
@@ -16,7 +20,13 @@ class Buffer(Object):
     I/O operations, that allows for uniform I/O syntax and semantics over the various SAGA API packages.
 
     """
+    bufferObject = None
+    managedByImp = None
+    array = None
+    applicationBuf = None
 
+#DOCUMENT: Tweak for java specific arrays.
+#DOCUMENT: get data only through get_data with application managed buffer
     def __init__(self, size = -1, data = None):
         # in array<byte> data, in int size,      out buffer obj or in int size = -1, out buffer obj
 
@@ -47,6 +57,55 @@ class Buffer(Object):
         @see: notes about memory management in GFD-R-P.90 document.
         """
         super(Buffer,self).__init__()
+        if size is not None and data is None:
+            if type(size) is not int:
+                raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
+            if size == 0 or size < -1:
+                raise BadParameter, "Parameter size is <= 0"
+            try:
+                if size == -1:
+                    self.bufferObject = BufferFactory.createBuffer()
+                    self.managedByImp = True
+                else:
+                    self.bufferObject = BufferFactory.createBuffer(size)
+                    self.managedByImp = True
+            except java.lang.Exception, e:
+                raise self.convertException(e)
+
+        elif size is not None and data is not None: 
+            if type(size) is not int:
+                raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
+            if type(data) is not array or type(data) is not list:
+                raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
+            if size < 1:
+                raise BadParameter, "Parameter size is < 1"
+            try:
+                self.array = jarray.array(size, 'b')
+                self.bufferObject =  BufferFactory.createBuffer(self.array)
+                self.managedByImp = False
+                self.applicationBuf = data
+            except java.lang.Exception, e:
+                raise self.convertException(e)
+        
+        elif size is None and data is None:
+            try:
+                self.bufferObject = BufferFactory.createBuffer()
+                self.managedByImp = True
+            except java.lang.Exception, e:
+                raise self.convertException(e)
+            
+        elif size is None and data is not None:
+            size = len(data)
+            try:
+                self.array = jarray.array(size, 'b')
+                self.bufferObject =  BufferFactory.createBuffer(self.array)
+                self.managedByImp = False
+                self.applicationBuf = data
+            except java.lang.Exception, e:
+                raise self.convertException(e)
+        else:
+            raise BadParameter, "Parameters can not be processed. size:" + size + " " + str(type(size)) + " " + data + " " + str(type(data))          
+        
         
     def __del__(self):
         """
@@ -54,6 +113,7 @@ class Buffer(Object):
         @note: if the instance was not closed before, __del__ performs a close() on
             the instance, and all notes to close() apply.
         """
+        #TODO: custom __del__ method
         
     def set_size( size = -1):
        """
@@ -63,6 +123,17 @@ class Buffer(Object):
        @type size: int
        @PostCondition: the buffer memory is managed by the implementation.
        """ 
+       if type(size) is not int:
+           raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
+       try:
+           #TODO: Add close()
+           self.bufferObject.setSize()
+           self.managedByImp = True
+           array = None
+           applicationBuf = None
+       except java.lang.Exception, e:
+           raise self.convertException(e)
+
 
     def get_size(self):
         """
@@ -79,8 +150,11 @@ class Buffer(Object):
             buffer, the call returns the size of the memory which has been allocated by the
             implementation during that read operation
         """
-        size = 0;
-        return size
+        try:
+           return self.bufferObject.getSize()
+        except java.lang.Exception, e:
+           raise self.convertException(e)
+        
     
     def set_data(self, data, size=-1):
         #in array<byte>  data, in int size
@@ -100,6 +174,19 @@ class Buffer(Object):
                the first __init__ call format with the given size.
         @note: the notes for __del__ and the first __init__ call format apply.
         """
+        if type(data) is not array or type(data) is not list:
+            raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
+        if size < 1 and size is not -1:
+            raise BadParameter, "Parameter size is < 1"       
+        if size is -1:
+            size is len(data)
+        try:
+            self.array = jarray.array(size, 'b')            
+            self.bufferObject.setData(self.array)
+            self.managedByImp = False
+            self.applicationBuf = data
+        except java.lang.Exception, e:
+           raise self.convertException(e)
     
     def get_data(self):
         #out array<byte> data
@@ -117,8 +204,19 @@ class Buffer(Object):
                     yet been successfully performed on the buffer,
                     a 'DoesNotExist' exception is raised.
         """
+        try:
+            self.array = jarray.array(size, 'b')            
+            byteArray = self.bufferObject.getData()
+
+        except java.lang.Exception, e:
+           raise self.convertException(e)
         data = ""
         return data
+
+#type data:<type 'array'>
+#file.read( van file (abcdefghijklmnopqrstuvwxyz)
+#array('b',[97, 98, 99, 100, 101, 102, 103, 104, 105, 106]) 
+# b = signed char http://docs.python.org/lib/module-array.html
         
     def close(self, timeout = -0.0):
         #in  float timeout = -0.0
@@ -136,5 +234,5 @@ class Buffer(Object):
         @note: if close() is implicitly called in  __del__(), it will never raise an exception.
         @see: for resource deallocation semantics and timeout semantics, see  Section 2 of the GFD-R-P.90 document
         """
-
-        #Add Object Methods
+        #TODO: Add check for closed -> raise IncorrectState
+        #TODO: Add Object Methods
