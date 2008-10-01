@@ -1,26 +1,75 @@
 Prerequisites:
-- SAGA with CPR, File, and Job package
-- SAGA python bindings (PYTHONPATH must be set accordingly)
-- Migol adaptor
+- SAGA with File and Job package
+- Optional:
+       * SAGA CPR for Migol
+       * SAGA
+- SAGA Python bindings (PYTHONPATH must be set accordingly)
 - NAMD installation
 
-The REMDgManager can be run as follows:
+There are currently three version of the REMD-Manager: 
 
-python main.py --type=REMD --configfile=remd_manager.config
-
-
-
-
-TODO:
-- relative paths for file staging
-- automatic directory creation 
-- replica exchange: determination of new temperature currently fails
-- optimization of transfer: do not transfer initial conditions again after each exchange step
-
-Description on REMDManager-v1.0.py
+REMDManager-v1.0.py:
 - The purpose of this version is to keep the logics of REMD only
 - This assumes the simplest scenario (no migol adaptor and thus no CPR/Migol and using globus gram adpator)
 - prepare_MAMD_config() : NPT.conf is changed if necessary (means after exchange step, new temperatures are assigned)
 - get_energy() : energy is pulled from "output.txt" and this file name should be set when initialized
 - do_exchange() : exchange is attempted here
 
+1.) Create a RE configuration:
+
+- Configure NAMD installation. On QB the following softenv entries can be added to the .soft file:
++mvapich-1.0-intel10.1
++namd-2.6-mvapich
++nwchem-5.1-mpich
++mpich-1.2.7p1-Intel-fc-9.1+gcc-3.4.6
+
+- create input file for NAMD. For the first run simply use the template from the svn:
+
+cp NPT.conf.template NPT.conf
+
+- Adjust configuration file (remd_manager.config):
+* adjust working directories (must exists on file system!)
+* adjust allocation
+
+remote_host :  qb1.loni.org qb1.loni.org
+replica_count :  2
+remote_host_local_scheduler :  pbs   pbs
+workingdirectory : /work/luckow/replica/1  /work/luckow/replica/2
+executable :  /usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2 /usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2
+queue :  workq  workq
+project : loni_jha_big loni_jha_big
+arguments :  NPT.conf
+totalcputime : 1
+numberofprocesses : 16
+exchange_count  : 10
+stage_in_file : 310K-init.coor  310K-init.xsc  NPT.conf  parm99bs0_all.prm  sbox_init.pdb  sbox_init.psf
+temperature :  300 310
+advert_host : fortytwo.cct.lsu.edu
+
+2.) The REMDgManager can be run as follows:
+
+$ grid-proxy-init
+$ python REMDManager-v1.0.py --type=REMD --configfile=remd_manager.config
+
+
+REMDManager-v2.1.py:
+- Support for CPR/Migol
+- SAGA Glide-In/BigJob abstraction (requires Advert Service)
+- Adaptive temperature sampling (supports a variable number of replicas) 
+
+Instructions to follow...
+
+REMDManager-v3.0.py:
+- Refactoring of version 2.1 
+- Improved configuration mechanism
+- Glide-In is currently mandatory
+- Adaptive replica size (variable number of MPI processes per replica) 
+
+Instructions to follow...
+
+
+TODO:
+- relative paths for file staging
+- automatic directory creation 
+
+Last updated: 10/01/2008
