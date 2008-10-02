@@ -54,7 +54,7 @@ set yrange [0:120]
 set xrange [0.5:2.5]    
 set style fill solid 0.9   
 set ylabel "Runtime (in min)"  
-set ylabel "Time to Completion (in min)"     
+set ylabel "Time-to-Completion (in min)"     
 plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
 
 
