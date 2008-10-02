@@ -24,6 +24,7 @@ class Buffer(Object):
     managedByImp = None
     array = None
     applicationBuf = None
+    closed = False
 
 #DOCUMENT: Tweak for java specific arrays.
 #DOCUMENT: get data only through get_data with application managed buffer
@@ -113,7 +114,9 @@ class Buffer(Object):
         @note: if the instance was not closed before, __del__ performs a close() on
             the instance, and all notes to close() apply.
         """
-        #TODO: custom __del__ method
+        if self.closed is False:
+            self.close(0)
+        Object.__del__(self)
         
     def set_size( size = -1):
        """
@@ -205,8 +208,9 @@ class Buffer(Object):
                     a 'DoesNotExist' exception is raised.
         """
         try:
-            self.array = jarray.array(size, 'b')            
             byteArray = self.bufferObject.getData()
+            self.array = jarray.array(size, 'b')            
+            
 
         except java.lang.Exception, e:
            raise self.convertException(e)
@@ -217,7 +221,9 @@ class Buffer(Object):
 #file.read( van file (abcdefghijklmnopqrstuvwxyz)
 #array('b',[97, 98, 99, 100, 101, 102, 103, 104, 105, 106]) 
 # b = signed char http://docs.python.org/lib/module-array.html
-        
+ 
+#TODO: Use java-byte/C++-signed char, or unsigned char??
+       
     def close(self, timeout = -0.0):
         #in  float timeout = -0.0
         """

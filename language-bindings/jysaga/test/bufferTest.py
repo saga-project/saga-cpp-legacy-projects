@@ -5,6 +5,7 @@ import sys
 from org.ogf.saga.buffer import BufferFactory, Buffer
 from org.ogf.saga.url import URLFactory, URL
 from org.ogf.saga.file import FileFactory, File
+import array
 
 def main():
     #session = saga.Session()
@@ -15,16 +16,28 @@ def main():
     #file = saga.File(session, urlOrgineel, flags=saga.Flags.read)
     #file.copy(urlCopy, flags=saga.Flags.overwrite);
 
-    urlOrgineel  = URLFactory.createURL("sagaText.txt")
+    urlOrgineel  = URLFactory.createURL("testBestand")
     file = FileFactory.createFile(urlOrgineel) 
     
-    b = BufferFactory.createBuffer(10)
+    b = BufferFactory.createBuffer(255)
     print "type b:" + str(type(b))
     
     file.read(b)
     data =  b.getData()
+    print "=============================================================="
     print "type data:" + str(type(data))
     print data
+    print data.tostring()
+    uData = array.array('c')
+    for i in range(255):
+        if data[i] < 0:
+            uData.append(chr(data[i]+256))
+        else:
+            uData.append(chr(data[i]))
+    print "=============================================================="            
+    print "type uData:" + str(type(uData))
+    print uData   
+    print uData.tostring()
 
 if __name__ == "__main__":
     main()
