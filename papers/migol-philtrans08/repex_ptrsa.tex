@@ -137,24 +137,30 @@
 %   scientific problem.
 
   The ability to effectively utilise multiple distributed resources to
-  reduce the time-to-completion remains a challenge at many levels.  We
-  discuss the Replica-Exchange (RE) class of applications -- which in
-  principle, due to the loose-coupling of the sub-tasks (replicas), can
-  benefit greatly from utilising as many distributed resources as
-  available.  However, such an opportunistic implementation of a
-  canonical embarrassingly-distributed algorithm like Replica-Exchange
-  that is independent of infrastructural details does not exist.  This
+  reduce the time-to-completion remains a challenge at many levels.
+  We discuss the Replica-Exchange (RE) class of applications -- which
+  in principle, due to the loose-coupling of the sub-tasks (replicas),
+  can benefit greatly from utilising as many resources -- distributed
+  or otherwise, as available.  An implementation of a {\it
+    pleasingly-distributed} algorithm like Replica-Exchange that is
+  independent of infrastructural details however does not exist.  This
   paper proposes an extensible and scalable framework based on SAGA
   and Migol that provides a general-purpose, opportunistic mechanism
   to effectively utilise multiple resources in an infrastructure
   independent way. By analysing the requirements of the RE algorithm
-  and the implementation challenges in real production systems, we
-  propose a new abstraction (BigJob) which forms the basis of
-  effective scheduling of the multiple sub-tasks. 
-% Looks like buzzword parade to the reader - I prefer to skip it
-%  The implementation
-%  of our framework can be used in clusters and Grid supporting single-processor
-%  as well as multi-processor simulations that require tightly-coupled resources.
+  and the challenges of implementing it on real production systems, we
+  propose a new abstraction (BigJob), which forms the basis of the
+  adaptive redistribution of resources and the effective scheduling of
+  the multiple sub-tasks.
+
+  \jhanote{Just as a general remark, if we have adaptive in the title,
+    it is only proper that we also have the word ``Adaptive'' in the
+    abstract}
+
+  % Looks like buzzword parade to the reader - I prefer to skip it The
+  % implementation of our framework can be used in clusters and Grid
+  % supporting single-processor as well as multi-processor simulations
+  % that require tightly-coupled resources.
 
   % SAGA is a high-level programmatic abstraction layer that provides
   % a standardised interface for the distributed functionality
@@ -178,9 +184,8 @@
     fault tolerance of Grid applications and services by providing the
     capability to recover applications from checkpoint files
     transparently.  In addition to describing the integration of
-    SAGA-CPR with the Migol infrastructure,}
-  \alnote{I added a small note about Migol to the abstract (I tried to keep
-    it short.)}
+    SAGA-CPR with the Migol infrastructure,} \alnote{I added a small
+    note about Migol to the abstract (I tried to keep it short.)}
 
   \jhanote{We also outline our experiences with running a large scale,
     general-purpose, SAGA-CPR based Replica-Exchange application in a
@@ -202,20 +207,20 @@ parameter sweep applications.  A slightly more complicated and
 challenging class of distributed applications are those that have a
 level of coupling between individual sub-tasks.  An interesting
 example of such an application are \emph{Replica-Exchange
-  (RE)}~\citep{hansmann,Sugita:1999rm} simulations.
-We refer to these applications as {\it pleasingly-distributed}. RE simulations
-are e.\,g.\ used to understand important physical phenomena -- ranging from
-protein folding dynamics to binding affinity calculations required for
-computational drug discovery.
+  (RE)}~\citep{hansmann,Sugita:1999rm} simulations.  RE simulations
+are e.\,g.\ used to understand important physical phenomena -- ranging
+from protein folding dynamics to binding affinity calculations
+required for computational drug discovery.
   
 %%%%% RE nature of the problem
-Replica-Exchange simulations involve the execution of multiple simulations, the so called
-\emph{replicas}, in parallel. The coupling occurs in the form of periodic exchange 
-attempts between neighbouring replicas. Since the coupling
-happens infrequently compared to the run-time of each replica
-and is small in terms of communication bandwidth requirements,
+Replica-Exchange simulations involve the concurrent execution of
+multiple simulations -- the \emph{replicas}. The coupling occurs in
+the form of periodic exchange attempts between paired replicas. Since
+the coupling happens infrequently compared to the run-time of each
+replica and is small in terms of communication bandwidth requirements,
 RE is {\it prima facie} a perfect algorithm to exploit heterogenous,
-distributed resources.
+distributed resources. We label such a class of algorithms as {\it
+  pleasingly-distributed}.
 
 % Despite their essentially loosely-coupled nature, RE simulations
 % require a level of coupling: the coupling is in the form of exchanges
@@ -225,75 +230,78 @@ distributed resources.
 % heterogenous, loosely-coupled distributed resources.
 
 %%%%% related work
-Most RE implementations are either infrastructure 
-specific~\citep{Woods:2005nx}, or require prior co-scheduling of 
-distributed resources~\citep{1383459}. 
-% Work reported in the latter paper in
-% particular, is an important example of first-generation Grid
-% applications, wherein the effectiveness of coupling multiple
-% distributed resources for scientific problems has been
-% demonstrated. 
-However, the real power of distributed systems arises from 
-adaptive algorithms and implementations that provide
-applications with an agile execution model and thus the ability to
-utilise resources adaptively, as opposed to a static execution model
-inherited from parallel and cluster computing. 
-% such applications will
-% form the the second-generation of distributed applications.  
-Unfortunately, the barrier to the development of agile applications 
-is high, and thus there exists no implementation of an 
-adaptive RE algorithm that is both able to effectively 
-and reliably utilise multiple distributed resources without prior scheduling as
-well as being independent of any specific computational platform or
-infrastructure.  
+Most RE implementations are either infrastructure
+specific~\citep{Woods:2005nx}, or require prior co-scheduling of
+distributed resources~\citep{repex_mpig}.  Work reported in
+Ref[~\citep{repex_mpig}] in particular, is an important example of
+first-generation Grid applications, wherein the effectiveness of
+coupling multiple distributed resources for scientific problems has
+been demonstrated.  \jhanote{AndreL, I know we are short on space, but
+  the above line is politically important and will help smoothen the
+  passage of this paper!} The real power of distributed systems
+however, arises from adaptive algorithms and implementations that
+provide applications with an agile execution model and thus the
+ability to utilise resources dynamically, as opposed to a static
+execution model inherited from parallel and cluster computing.
+Unfortunately, the barrier to the development of adaptive applications
+is high and the infrastructure support for applications with dynamic
+resource requirements poor.  Thus it is not surprisingly, there are no
+implementations of an adaptive RE algorithm, that is both able to
+effectively and reliably utilise multiple distributed resources
+without prior scheduling as well as being independent of any specific
+computational platform or infrastructure.
                       
 %%%%% reference to contribution of escience paper
-To address the heterogeneity and failures, which are both inherent
-characteristics of distributed systems, we demonstrated the use of 
-SAGA~\citep{saga_gfd90}, in particular its Checkpoint Recovery (CPR) 
-package, and of the Migol middleware~\citep{schnorLuckow08} to build 
-a reliable Replica-Exchange application~\citep{Luckow:2008la}. 
+To address heterogeneity and failures, which are both inherent
+characteristics of distributed systems, we demonstrated the use of
+SAGA~\citep{saga_gfd90}, in particular its Checkpoint Recovery (CPR)
+package, and of the Migol middleware~\citep{schnorLuckow08} to build a
+reliable Replica-Exchange application~\citep{Luckow:2008la}.
 % Further, we showed its usability on several different resources.
 In general, SAGA and Migol provide abstractions for developing a
 broad range of reliable applications, of which RE is a specific example. 
 % of a loosely-coupled application. 
-Implementing a framework with the ability to handle
-faults and heterogeneity, was an important first-step on the
-critical-path towards developing a framework that can support RE
-simulations on production-level infrastructures. This paper arises from
-practical considerations related to the deployment of a distributed,
-loosely-coupled application.  We address some of the challenges and
-performance bottlenecks encountered when using the framework 
-in a production environment. 
+Implementing a framework with the ability to handle faults and
+heterogeneity, was an important first-step on the critical-path
+towards developing a framework that can support RE simulations on
+production-level infrastructures.
 
 %%%%% contributions of this paper  
 %%%%% SJ original below
-A major concern is the overall slowdown due to the required coupling 
-and the lack of co-scheduled resources. Production distributed 
-environments are in their current incarnation solely an aggregation
-of multiple single-resources; there are no explicit attempts to
-support a collective, distributed mode of operations.  For
-example, current infrastructures do not provide efficient mechanisms for
-co-ordinated resource sharing. One approach to rectify this deficit are
-system-level abstractions that allow applications to 
-effectively utilise distributed resources.
+This paper arises from practical considerations related to the
+deployment of a distributed, loosely-coupled application.  We address
+some of the challenges and performance bottlenecks encountered when
+using the framework in a production environment.  A major concern that
+remains however, is the overall slowdown due to synchronisation
+arising from the loose-coupling and the lack of co-scheduled
+resources. Production distributed environments in their current
+incarnation are manifest as an aggregation of multiple
+single-resources. Although there are some initial attempts at
+supporting co-scheduled resources for tightly-coupled
+simulations~\cite{repex_mpig}, there are insufficient attempts at
+supporting a broader range of collective distributed modes of
+operations, such as required for loosely-coupled applications.
+Additionally, current infrastructure does not provide efficient {\it
+  application-level} mechanisms for co-ordinated resource sharing. One
+approach to rectify these deficits are system-level abstractions that
+allow applications to effectively utilise distributed resources
+concurrently.
 
-The unique contribution of this paper is the implementation of an adaptive RE
-framework that overcomes the described limitations. The novel \emph{BigJob}
-abstraction allows the utilisation of distributed resources
-without prior co-scheduling by grouping smaller sub-jobs into a larger job. 
-The BigJob abstraction serves as basis for supporting adaptive Replica-Exchange
-simulations. The RE framework relies on this abstraction not only
-for dispatching replica jobs, but also adds higher-level functionality by allowing
-the dynamic utilisation of additional resources as they become available. 
-Our implementation is both independent of the platform and 
-infrastructure details, and can respond gracefully
-to failures.  We present preliminary data that validates the
-claim that as more resources become available our framework can
-opportunistically employ these resources to lead to a reduction in
-the time-to-completion of the scientific problem.
-
-
+The unique contribution of this paper is the implementation of an
+adaptive RE framework that overcomes the described limitations. The
+novel \emph{BigJob} abstraction allows the utilisation of distributed
+resources without prior co-scheduling by grouping smaller sub-jobs
+into a larger job.  % The BigJob abstraction also serves as basis for
+% supporting adaptive Replica-Exchange simulations.
+The RE framework relies on the \emph{BigJob} abstraction not only for
+dispatching replica jobs, but also adds higher-level functionality by
+allowing the dynamic utilisation of additional resources as they
+become available.  Our implementation is both independent of the
+platform and infrastructure details, and can respond gracefully to
+failures.  We present preliminary data that validates the claim that
+as more resources become available our framework can opportunistically
+employ these resources to lead to a reduction in the
+time-to-completion of the scientific problem.
 
 %%%%%%%%%%%%%  Shantenu original %%%%%%%%%%%%%                                                  
 % The heterogeneity and dynamism of a computational Grid results in
@@ -343,20 +351,34 @@ Replica-Exchange using Molecular Dynamics (REMD) simulations.  We then
 briefly discuss the SAGA/Migol fault-tolerant framework in
 section~\ref{sec:sagamigol}.  In section~\ref{sec:remd_impl}, we
 describe the details of a REMD application implemented using the
-SAGA/Migol framework. Section~\ref{sec:glidein} discusses the new 
-BigJob abstraction and the SAGA Glide-In framework. 
-We highlight different adaptivity
-strategies for supporting dynamic applications in
+SAGA/Migol framework. Section~\ref{sec:glidein} discusses the new
+BigJob abstraction and the SAGA Glide-In framework.  We highlight
+different adaptivity strategies for supporting dynamic applications in
 section~\ref{sec:adaptivitiy}.  In the subsequent section we discuss
-our experiences with running a Replica-Exchange application in the
-TeraGrid.  We conclude by providing an analysis of related
-work, which will highlight the unique features of our implementation.
-\jhanote{mostly ok.. might need some refining}
+the deployment and results of experiments using the SAGA based
+Replica-Exchange framework on the TeraGrid.  We conclude by discussing
+related work -- which will highlight the unique features
+of our implementation, and provide a glimpse of future work
+in this direction.
 
-
+\jhanote{AndreL: if we don't provide a mention of future work at the
+  end, please hightlight: i) the use of intelligent placement ii)
+  using this to solve real Riboswitch problem. Use this citation
+  please: Huang, Wei; Aboul-ela, Fareed; Jha, Shantenu; Boyapati,
+  Vamsi. Computational study of conformational switching of s-box
+  riboswitch. Poster at 235th ACS National Meeting, New Orleans, LA,
+  United States, April 6-10, 2008 (2008), BIOL-182. at
+  http://www.cct.lsu.edu/~whuang/}
 
 \ifdraft \alnote{I moved the itemize to the draft mode. We probably
   still need to add some of these points to the text above.}
+
+\jhanote{I would like to put this into the document here, but the
+  introduction is already long ~2pages, plus I don't want to have this
+  be an indirect criticism of tightly-coupled applications on Grids,
+  which I'm no fan of, but this is not the place/journal to make that
+  argument!}
+
 \begin{itemize}
   \item The move of traditional algorithms to distributed systems holds
     the promise of reduced time-to-solution and other advantages, but
@@ -388,6 +410,12 @@ work, which will highlight the unique features of our implementation.
       yet? Or are we promising here to much? Maybe we should separate
       application algorithm and efficient scheduling which is more a
       infrastructure capability?}
+
+    \jhanote{There are multiple physical algorithms that can be
+      used to solve the same physics problem (more-or-less).
+      However, the choice of which one of those to use can be
+      clever (decomposable, loosley-coupled) or foolish (monolithic
+      and long running). Make sense?}
 
   \item There are different levels of abstractions that are required
     in order to make distributed systems generally more usable for
@@ -2000,13 +2028,9 @@ the resource discovery.}
   grant number GR/D0766171/1 (via OMII).  Shantenu Jha acknowledges
   the e-Science Institute, Edinburgh for supporting the research
   theme, ``Distributed Programming Abstractions''.  We would also like
-  to thank Yaakoub el-Khamra
-  %(aka Enrico Camran the Cigar-pedlar) 
-  for useful discussions. This work has also been made possible thanks
-  to
-%the internal resources of the Center for Computation \&
-%  Technology (CCT) at Louisiana State University and 
-  computer resources provided by the TeraGrid.
+  to thank Yaakoub el-Khamra for useful discussions. This work has
+  also been made possible thanks to computer resources provided by the
+  TeraGrid and LONI.
 \end{acknowledgement}
 
 \bibliographystyle{kluwer}
