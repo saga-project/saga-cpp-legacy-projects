@@ -1138,10 +1138,18 @@ Replica-Exchange simulations.
  
 \section{Adaptive Replica Scheduling}
 \label{sec:adaptivitiy}    
-\alnote{Is this a worth a new section or does it rather belong to 5b). We
-should probably join both sections.}  
-\alnote{I shrinked this section pretty much... Maybe the some more aspects from
-the original section could be added. The complete section is commented out below.} 
+\alnote{Is this a worth a new section or does it rather belong to
+  5b). We should probably join both sections.}  
+
+\jhanote{Sorry, if I missed answering this Q earlier, but yes, I think
+  if there is a way of merging the two sections, then that will be
+  good. Something along the lines of, ``Abstractions to Support
+  Adaptive Replica Exchange'' or ``Abstractions to Support Adaptive
+  Replica Exchange: BigJob and SAGA Glide-In''}
+
+\alnote{I shrinked this section pretty much... Maybe the some more
+    aspects from the original section could be added. The complete
+    section is commented out below.}
 
 Many applications including Replica-Exchange simulations have
 time-varying resource
@@ -1150,14 +1158,14 @@ An application is referred to as \emph{dynamic} when either the
 resource requirements of the application or the availability and
 utilisation of resources by the application changes during its
 runtime.  \emph{Adaptivity} is a mechanism to respond to dynamic
-changes as opposed to just ignoring the dynamism of a distributed
-environment. A dynamic application may deploy multiple adaptive
-strategies or choose between competing adaptive strategies.
+changes; % as opposed to just ignoring the dynamism of a distributedenvironment.
+a dynamic application may deploy multiple adaptive strategies or
+choose between competing adaptive strategies.
 
 There are two components of adaptivity that need mention: (i) the
-effective selection of the best resources to use (Resource
-Determination (D)), and (ii) the effective utilisation of an expanded or
-reduced set of resources (Resource Utilisation (U)).
+optimal selection of the best resources to use (Resource Determination
+(D)), and (ii) the effective utilisation of an expanded or reduced set
+of resources (Resource Utilisation (U)).
 % Mapping - BS
 %Despite the availability of a suitable abstraction for managing 
 %Glide-Ins, several scheduling issues arise. A
@@ -1177,32 +1185,49 @@ abstractions for implementing such a model.
 There are different ways a RE simulation can respond to a change in
 the number of resources required/available:
 \begin{compactitem}         
-    \item {\it Scenario A:} Vary the number of processes assigned to each
-    replica to speed up the overall progress. By adding resources
-    to slow replicas processes heterogeneous resources 
-    can efficiently be supported.
-    
+\item {\it Scenario A:} Vary the number of processes assigned to each
+  replica to speed up the overall progress. By adding resources to
+  slow replicas processes heterogeneous resources can efficiently be
+  supported. \jhanote{AndreL: The last sentence needs more elaboration
+    before it makes sense. Plus slowdown maybe due to heterogenous
+    resources, but in some cases, it could be due to late start,
+    especially if exchange takes place between replicas on different
+    machines}
+   
     \item {\it Scenario B:} As further resources become available, 
     the number of replicas is adjusted. Depending on the 
     underlying physics model, the additional replicas can be used
     to refine the temperature range (adaptive sampling) or to extend the
     temperature range (enhanced dynamics).
 \end{compactitem}           
-Both adaptivity strategies have been implemented within the RE-Manager 
-p. 
-In section~\ref{sec:exp} we demonstrate that as the number of available
-resources increases, a significant reduction of the time-to-completion 
-is possible using the adaptive schemas described above. 
 
-It is useful to contrast our approach to the single application
-approach used by MPIg. The MPIg model has the advantage of being able
-to continue without checkpoint/restart after an exchange; however, it
-is not agile, for example it requires the co-scheduling of
-resources. This might be acceptable for very large or long-running
-simulations. In particular for loosely coupled applications, an
-adaptive schema can perform better than a rigid co-allocation schema.
+%Both adaptive strategies have been implemented within the RE-Manager. 
+Our framework supports and implements both strategies.  In
+section~\ref{sec:exp} we demonstrate that as the number of available
+resources increases, a significant reduction of the time-to-completion
+is possible using the adaptive schemas described above.
+
+\jhanote{We need a better place for this paragraph. It is an important
+  paragraph, but probably not well suited here -- where the discussion
+  is all about adaptivity. The paragrpah below is about
+  agile-exeuction supporting adaptivity while there is no mention of
+  adaptivity and MPIg jobs..}  It is useful to contrast our approach
+to the single application approach used by MPIg. The MPIg model has
+the advantage of being able to continue without checkpoint/restart
+after an exchange; however, as mentioned it requires the co-scheduling
+of resources, which may not be an option on many resources. Also,
+co-scheduling might be required for very large or long-running
+simulations, and possibly for tightly-coupled simulations; for
+loosely-coupled applications which support adaptivity via
+agile-execution, performance may be just as good as a rigid
+co-allocation scheme without any of the constraints.
+
+% agile-execution that supports adaptivity, perform better than a rigid
+% co-allocation scheme.
 % In general, an implementation that is adaptive will have
 % a lower time-to-completion. 
+
+\jhanote{Difference between schema and scheme!}
 
 \jhanote{This is a dangerous remark to
   make. Not sure if I wrote it in the first place, or AndreL did, but
@@ -1210,9 +1235,11 @@ adaptive schema can perform better than a rigid co-allocation schema.
   argue qualitatively that we maybe be better, but the last sentence
   is a Quantitative remark and that is unacceptable without data to
   back it up. Thoughts?}
+
 \jhanote{We could caveat it by saying, short-running or remind the
   reader that is the only way for systems that do not provide
   co-scheduling of resources}
+
 \alnote{I tried to rephrase this sentence a little. I think for loosely coupled
 apps, co-scheduling is less relevant than for coupled apps. However,
 we did not do a performance study... Thus no data.}
@@ -1401,11 +1428,11 @@ carrying out the NAMD run.
 
 \subsection{SAGA Glide-In Performance}
 
-Initially, the performance of the Glide-In framework, which is the 
-fundament for the advanced adaptivity features of the RE-Manager, is investigated. 
-We compare the performance, i.\,e.\ the simulated
-problem set and the runtime, of different REMD runs with and without 
-SAGA Glide-In on a single machine (QueenBee). 
+Initially, we investigate the performance of the Glide-In framework,
+which is important to support the the advanced adaptivity features of
+the RE-Manager.  We compare the performance, i.\,e.\ the simulated
+problem set and the runtime, of different REMD runs with and without
+SAGA Glide-In on a single machine (QueenBee).
 Figure~\ref{fig:perf_remd_glidin} illustrates the results.
 
 Obviously, the increase in the number of replicas allows the
@@ -1415,16 +1442,17 @@ parameter range (Figure~\ref{fig:perf_remd_glidin}a).  \jhanote{Once
   increased on one machine?}  \alnote{I hope this becomes clear now
   with the new introduction section.}  However, the figure also shows
 the limitations of the regular job submission mechanism: The more
-processes are spawned, the more likely queueing delays will be.  While
-with the SAGA Glide-In framework the number of NAMD steps almost
-scales linearly, the computed problem set rapidly drops when using
-more than eight replicas. This slowdown is caused by the delay of some
-replicas.  On QB we were e.\,g.\ only able to run 12 of the 16 jobs in
-parallel.  The remaining four replicas had to wait in the queue and
-produced a significant slowdown during the synchronization after each
-generation.  This behaviour particularly occurs on crowded resources
-or if policies at the local resource manager restrict the number of
-resources that are concurrently allocated to a user.
+processes are spawned, the more likely queueing delays will be.  With
+the SAGA Glide-In framework the number of NAMD steps almost scales
+linearly, the computed problem set \jhanote{not sure what computed
+  problem set is...?} rapidly drops when using more than eight
+replicas. This slowdown is caused by the delay of some replicas.  For
+example, on QB we were only able to run 12 of the 16 jobs in parallel.
+The remaining four replicas had to wait in the queue and produced a
+significant slowdown during the synchronization after each generation.
+This behaviour particularly occurs on crowded resources or if policies
+at the local resource manager restrict the number of resources that
+are concurrently allocated to a user.
 
 \jhanote{unfortunately this paragraph and the one before are unclear}
 \jhanote{I would recommend using time-to-completion over
@@ -1471,7 +1499,7 @@ implemented on top of SAGA Glide-In, are evaluated.
 \subsection{Adaptive Resource Utilization}
 
 To evaluate the different adaptive strategies, the RE-Manager
-has been deployed on multiple resources within the
+has been deployed on multiple resources  on the
 TeraGrid. In particular, we investigate the effect of 
 the dynamic adaptation of the \emph{replica size} (scenario A), i.\,e.\ 
 the number of MPI processes assigned to each replica,  
@@ -1539,54 +1567,51 @@ size of 32 cores each are used, i.\,e.\ if all resources (Abe, QB and Ranger) ar
 available a total of 384 cores can be consumed.  During the run the
 number of MPI processes for each replica is dynamically adjusted as
 additional resources become available. Depending on the number of
-available resources between 8 and 24 cores are used for each replica.
+available resources, between 8 and 24 cores are used for each replica.
+
 \jhanote{AndreL: We need to mention explicitly that i) the size of a
   glide-in job was kept constant at 32 cores, and ii) this number of 32
   is a seat-of-the-pants/empirically derived number.}
-\alnote{It is rather an intuitive number to force a lower number of 
-    cores per replica for the 1 resource case. Otherwise, there would probably
-    no speedup for this scenario with only 500 NAMD steps. There is some
-    overhead for moving replicas from one machine to another one (file staging).}  
+
+\alnote{It is rather an intuitive number to force a lower number of
+  cores per replica for the 1 resource case. Otherwise, there would
+  probably no speedup for this scenario with only 500 NAMD
+  steps. There is some overhead for moving replicas from one machine
+  to another one (file staging).}
 Figure~\ref{fig:performance_perf_distributed_A} shows the results of
-the distributed run. Despite the overhead for migrating the replica to
+the distributed run. Despite the overhead for migrating replicas to
 newly available resources, a notable speedup of up to 15\,minutes can
-be observed with the increase of the number of resources. However, 
-the measured efficiency is only about 0.5. But, this is rather a limitation 
-of the used setup than a general scalability barrier. 
-The setup comprises of rather short NAMD jobs; in particular
-during the initial phase jobs are often migrated to other 
-resources, which mainly causes this overhead. During longer runs 
-resources fluctuate less making this overhead negligible.
-\jhanote{I
-  think we need to address the following else we will get dinged by
-  the referees: We increase our resource pool by a factor of 3, but
-  get only a 33\% improvement at best}
-\alnote{I tried to explain this number a little better using the calculated 
-efficiency: (t(1)/t(n))/n: 
-E(2) = 0.58;
-E(3) = 0.47;
-There are still some
-issues with scenario A (in particular I am referring to the heterogeneous speeds 
-of these three machines making this increasing number of MPI processes less
-efficient!)}
+be observed with the increase of the number of resources. However, the
+measured efficiency is only about 0.5. But, this is rather a
+limitation of the used setup than a general scalability barrier.  The
+setup comprises of rather short NAMD jobs; in particular during the
+initial phase jobs are often migrated to other resources, which mainly
+causes this overhead. During longer runs resources fluctuate less
+making this overhead negligible.  \jhanote{I think we need to address
+  the following else we will get dinged by the referees: We increase
+  our resource pool by a factor of 3, but get only a 33\% improvement
+  at best} \alnote{I tried to explain this number a little better
+  using the calculated efficiency: (t(1)/t(n))/n: E(2) = 0.58; E(3) =
+  0.47; There are still some issues with scenario A (in particular I
+  am referring to the heterogeneous speeds of these three machines
+  making this increasing number of MPI processes less efficient!)}
 
 The capability of the RE-Manager to adaptively adjust the number of
 replicas simulated -- in effect adjusting the either the range of
 temperature or the specific temperatures simulated, is demonstrated in
 scenario B. For this purpose, 4 Glide-Ins with 64 cores each are
-distributed across 1, 2 and 3 different distributed
-resources. That means that the total of 256 cores is allocated on 
-(i) Abe only, (ii) Abe and Ranger respectively (iii) Abe, Ranger and QB.
-\jhanote{AndreL: Make it easy for the ready to grasp the
-  number of cores used when just Abe; when Abe/Ranger and finally when
+distributed across 1, 2 and 3 different distributed resources. That
+means that the total of 256 cores is allocated on (i) Abe only, (ii)
+Abe and Ranger respectively (iii) Abe, Ranger and QB.
+\jhanote{AndreL: Make it easy for the ready to grasp the number of
+  cores used when just Abe; when Abe/Ranger and finally when
   Abe/Ranger/QB. (i) Is it 4 glide-ins in each of the three scenarios?
   4 glide-ins on Abe, then 4 glides-in on Abe/Ranger and then 4
-  glide-ins on Abe/QB/Ranger??} 
-\alnote{Added sentence. Answer to your question: yes}
-Each replica is started with a constant number of 16 MPI processes. 
-Using adaptive temperature sampling, the number of replicas is 
-dynamically increased (up to 16) as the number of 
-available resources increases. 
+  glide-ins on Abe/QB/Ranger??}  \alnote{Added sentence. Answer to
+  your question: yes} Each replica is started with a constant number
+of 16 MPI processes.  Using adaptive temperature sampling, the number
+of replicas is dynamically increased (up to 16) as the number of
+available resources increases.
 % A maximum of 16 replicas and 256 cores are used.
 
 As shown in Figure~\ref{fig:performance_perf_distributed_B}, $T_{c}$
