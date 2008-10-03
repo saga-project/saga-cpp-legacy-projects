@@ -20,9 +20,18 @@ REMDManager-v2.1.py:
 - install SAGA/Globus (Migol optional)
 - Optional for Glide-In: 
     Make sure the advert service is configured to use PostgreSQL by checking $SAGA_LOCATION/share/saga/saga_adaptor_default_advert.ini:
-
-        dbtype    = postgresql
-        dbconnect = dbname=advertdb;host=fortytwo.cct.lsu.edu;port=5432;user=SAGA;password=SAGA_client
+        [saga.adaptors.default_advert]
+          name      = default_advert
+        
+        [saga.adaptors.default_advert.preferences]
+          dbtype    = postgresql
+        
+        [saga.adaptors.default_advert.preferences.postgresql]
+          # The set of parameters used in the dbconnect string 
+          # for PostgreSQL is the same as accepted by the PQconnectdb 
+          # function from the libpq library (see here: 
+          # http://www.postgresql.org/docs/8.1/interactive/libpq.html#LIBPQ-CONNECT)
+          dbconnect = dbname=advertdb;host=fortytwo.cct.lsu.edu;port=5432;user=SAGA;password=SAGA_client
 
 1.) Setup NAMD and RE:
 
@@ -54,6 +63,12 @@ exchange_count  : 10
 stage_in_file : 310K-init.coor  310K-init.xsc  NPT.conf  parm99bs0_all.prm  sbox_init.pdb  sbox_init.psf
 temperature :  300 310
 advert_host : fortytwo.cct.lsu.edu
+
+Ensure that the working directories specified exists. You can create the directories like this:
+
+mkdir /work/luckow/replica/1
+mkdir /work/luckow/replica/2
+...
 
 2.) Check configuration in REMDManager-v2.1.py. For a simple scenario use:
 
@@ -129,6 +144,13 @@ allocation: loni_jha_big
 queue: workq
 userproxy:
 
+Ensure that the working directories specified exist on all machines. You can create the directories like this:
+
+mkdir /work/luckow/replica/1
+mkdir /work/luckow/replica/2
+...
+
+
 3.) Run RE simulation:
 $ grid-proxy-init
 $ python REMDManager-v3.0.py --type=REMD --configfile=re_manager_v3.conf
@@ -136,5 +158,6 @@ $ python REMDManager-v3.0.py --type=REMD --configfile=re_manager_v3.conf
 TODO:
 - relative paths for file staging
 - automatic directory creation 
+- cancelation of jobs via Globus adaptor does not work correctly
 
 Last updated: 10/01/2008

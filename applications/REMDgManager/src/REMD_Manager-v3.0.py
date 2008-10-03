@@ -128,12 +128,13 @@ class ReManager():
         else:    
             jd = saga.job.description()
             
-        jd.spmdvariation = "mpi" # launch MPI directly
-        jd.numberofprocesses = str(self.number_of_mpi_processes)
+        jd.spmd_variation = "mpi" # launch MPI directly
+        jd.number_of_processes = str(self.number_of_mpi_processes)
         jd.arguments = self.arguments
         jd.executable = machine["executable"]
-        jd.queue = machine["queue"] + "@" + machine["allocation"]
-        jd.workingdirectory = machine["working_dir_root"] + "/" + str(replica_id)
+        jd.queue = machine["queue"]
+        jd.job_project = [machine["allocation"]] 
+        jd.working_directory = machine["working_dir_root"] + "/" + str(replica_id)
         jd.output = "output.txt"    #this is requried for Migol
         jd.error = "error.txt"
         return jd

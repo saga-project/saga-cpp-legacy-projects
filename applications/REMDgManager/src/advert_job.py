@@ -72,15 +72,17 @@ class advert_glidin_job():
         else:    
                 jd = saga.job.description()
 
-        jd.numberofprocesses = str(number_nodes)
-        jd.spmdvariation = "single"
+        jd.number_of_processes = str(number_nodes)
+        jd.spmd_variation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
         if (replica_agent_executable == None or replica_agent_executable == ""):
             jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh" # backward compatibility to be removed
         else:
             jd.executable = replica_agent_executable
-        jd.queue = project + "@" + queue
-        jd.workingdirectory = "$(HOME)"
+        jd.queue = queue
+        jd.job_project = [project]
+
+        jd.working_directory = "$(HOME)"
         jd.output = "advert-launcher-" + str(self.uuid) + "-stdout.txt"
         jd.error = "advert-launcher-" + str(self.uuid) + "-stderr.txt"
            
