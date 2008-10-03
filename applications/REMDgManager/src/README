@@ -8,14 +8,23 @@ Prerequisites:
 
 There are currently three version of the REMD-Manager: 
 
-REMDManager-v1.0.py:
-- The purpose of this version is to keep the logics of REMD only
-- This assumes the simplest scenario (no migol adaptor and thus no CPR/Migol and using globus gram adpator)
+REMDManager-v2.1.py:
+- Support for CPR/Migol
+- Optional: SAGA Glide-In/BigJob abstraction (requires Advert Service)
+- Optional: Adaptive temperature sampling (supports a variable number of replicas) - for configuration of Glide-In refer to v3.0
 - prepare_MAMD_config() : NPT.conf is changed if necessary (means after exchange step, new temperatures are assigned)
 - get_energy() : energy is pulled from "output.txt" and this file name should be set when initialized
 - do_exchange() : exchange is attempted here
 
-1.) Create a RE configuration:
+0.) Setup SAGA
+- install SAGA/Globus (Migol optional)
+- Optional for Glide-In: 
+    Make sure the advert service is configured to use PostgreSQL by checking $SAGA_LOCATION/share/saga/saga_adaptor_default_advert.ini:
+
+        dbtype    = postgresql
+        dbconnect = dbname=advertdb;host=fortytwo.cct.lsu.edu;port=5432;user=SAGA;password=SAGA_client
+
+1.) Setup NAMD and RE:
 
 - Configure NAMD installation. On QB the following softenv entries can be added to the .soft file:
 +mvapich-1.0-intel10.1
@@ -46,35 +55,83 @@ stage_in_file : 310K-init.coor  310K-init.xsc  NPT.conf  parm99bs0_all.prm  sbox
 temperature :  300 310
 advert_host : fortytwo.cct.lsu.edu
 
-2.) The REMDgManager can be run as follows:
+2.) Check configuration in REMDManager-v2.1.py. For a simple scenario use:
+
+""" Config parameters (will be moved to config file in the future) """
+CPR = False
+SCP = False
+GlideIn = False
+AdaptiveSampling = False
+
+3.) The REMDgManager can be run as follows:
 
 $ grid-proxy-init
-$ python REMDManager-v1.0.py --type=REMD --configfile=re_manager_v1.conf
+$ python REMDManager-v2.1.py --type=REMD --configfile=re_manager_v1.conf
 
-
-REMDManager-v2.1.py:
-- Support for CPR/Migol
-- SAGA Glide-In/BigJob abstraction (requires Advert Service)
-- Adaptive temperature sampling (supports a variable number of replicas) 
-
-1.) Make sure the advert service is configured to use PostgreSQL by checking $SAGA_LOCATION/share/saga/saga_adaptor_default_advert.ini:
-
-  dbtype    = postgresql
-  dbconnect = dbname=advertdb;host=fortytwo.cct.lsu.edu;port=5432;user=SAGA;password=SAGA_client
-
-
-
-
-Instructions to follow...
-
+******************************************************************************************************************************
 REMDManager-v3.0.py:
 - Refactoring of version 2.1 
 - Improved configuration mechanism
-- Glide-In is currently mandatory
+- Support for CPR/Migol
+- Mandatory: SAGA Glide-In/BigJob abstraction (requires Advert Service)
 - Adaptive replica size (variable number of MPI processes per replica) 
 
-Instructions to follow...
+0.) Setup SAGA
 
+1.) RE configuration
+
+1a) Replica-Agent:
+- replica_launcher.py
+- poll advert service for jobs
+- executes and monitors jobs
+
+* Launch Wrapper:
+    $ cp advert_launcher.sh.template advert_launcher.sh
+    
+    This is a wrapper script for the Replica-Agent. It ensures that the environemnt is correctly set (MPI version, NAMD version etc.)
+    If necessary adjust enviornmental settings in this file. 
+
+* Launch Configuration:
+    $cp advert_launcher.conf.template advert_launcher.conf
+
+    Adjust shell, mpi version, if necessary
+
+1b.) Replica-Manager:
+- REMDManager-v3.0.py
+- spawns Replica-Agents (Glide-Ins) and executes replica jobs through Glide-Ins
+
+[DEFAULT]
+# RE Manager settings
+re_agent: $HOME/tmp/REMDgManager/src/replica_launcher.sh
+arguments: NPT.conf
+total_number_replica: 16
+number_of_mpi_processes : 16
+exchange_count  : 5
+stage_in_file : 310K-init.coor  310K-init.xsc  NPT.conf  parm99bs0_all.prm  sbox_init.pdb  sbox_init.psf
+temperature :  300 310 320 330 340 350 360 370 380 390 400 410 420 430 440 450
+advert_host : fortytwo.cct.lsu.edu
+cpr: False
+scp: False
+glide_in: True
+adaptive_sampling: False
+adaptive_replica_size: True
+
+[QB]
+host: qb1.loni.org
+gridftp_url: qb1.loni.org
+scheduler: pbs
+number_glide_in: 2
+number_nodes: 128
+executable: /usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2
+jobtype: mpi
+working_dir_root: /work/luckow/replica/
+allocation: loni_jha_big
+queue: workq
+userproxy:
+
+3.) Run RE simulation:
+$ grid-proxy-init
+$ python REMDManager-v3.0.py --type=REMD --configfile=re_manager_v3.conf
 
 TODO:
 - relative paths for file staging

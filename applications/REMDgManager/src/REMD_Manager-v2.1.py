@@ -466,6 +466,7 @@ def start_glidin_jobs(RE_info):
             for ng in range(0, RE_info.number_glideins_per_host):
                 advert_glidin_job = advert_job.advert_glidin_job(RE_info.advert_host)
                 advert_glidin_job.start_glidin_job(lrms_url, 
+                                               None,
                                                nodes_per_glidein,
                                                queue,
                                                project,

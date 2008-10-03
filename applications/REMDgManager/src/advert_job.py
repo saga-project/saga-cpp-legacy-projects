@@ -32,17 +32,18 @@ class advert_glidin_job():
         self.database_host = database_host
         print "init advert service session at host: " + database_host
         self.uuid = uuid.uuid1()
-        self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid))
+        self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
         self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.ReadWrite)
         print "created advert directory for application: " + self.app_url.get_string()
     
     def start_glidin_job(self, 
                  lrms_url, 
+                 replica_agent_executable,
                  number_nodes,
                  queue,
                  project,
                  working_directory,
-                userproxy):
+                 userproxy):
         """ start advert_launcher on specified host """
         if userproxy != None and userproxy != '':
             os.environ["X509_USER_PROXY"]=userproxy
@@ -74,8 +75,10 @@ class advert_glidin_job():
         jd.numberofprocesses = str(number_nodes)
         jd.spmdvariation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
-        # TODO: make configurable
-        jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh"
+        if (replica_agent_executable == None or replica_agent_executable == ""):
+            jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh" # backward compatibility to be removed
+        else:
+            jd.executable = replica_agent_executable
         jd.queue = project + "@" + queue
         jd.workingdirectory = "$(HOME)"
         jd.output = "advert-launcher-" + str(self.uuid) + "-stdout.txt"

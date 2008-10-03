@@ -351,6 +351,7 @@ class ReManager():
                 for ng in range(0, num_glidein):
                     advert_glidin_job = advert_job.advert_glidin_job(self.advert_host)
                     advert_glidin_job.start_glidin_job(lrms_url, 
+                                                   self.re_agent,
                                                    nodes_per_glidein,
                                                    queue,
                                                    project,
