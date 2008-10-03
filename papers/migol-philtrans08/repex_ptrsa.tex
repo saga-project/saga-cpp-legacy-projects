@@ -138,10 +138,10 @@
 
   The ability to effectively utilise multiple distributed resources to
   reduce the time-to-completion remains a challenge at many levels.
-  We discuss the Replica-Exchange (RE) class of applications -- which
-  in principle, due to the loose-coupling of the sub-tasks (replicas),
-  can benefit greatly from utilising as many resources -- distributed
-  or otherwise, as available.  An implementation of a {\it
+  We discuss the Replica-Exchange (RE) class of applications, which in
+  principle, due to the loose-coupling of the sub-tasks (replicas),
+  can benefit greatly from utilising as many resources as available --
+  distributed or otherwise.  An implementation of a {\it
     pleasingly-distributed} algorithm like Replica-Exchange that is
   independent of infrastructural details however does not exist.  This
   paper proposes an extensible and scalable framework based on SAGA
@@ -195,6 +195,11 @@
 
 \section{Introduction}
 
+\jhanote{General Remark: We are using RE and Replica-Exchange interchangably?
+  In principle, once we've defined RE (I think in Section 1 itself), we 
+  should just use RE and not Replica-Exchange. AndreL: Can you make this
+  consistent please?}
+
 \jhanote{Need to add what is the unique contribution of this work? How
   it extends earlier work and forms the basis of future work.. (maybe
   this goes into the conclusion section)}
@@ -234,23 +239,24 @@ Most RE implementations are either infrastructure
 specific~\citep{Woods:2005nx}, or require prior co-scheduling of
 distributed resources~\citep{repex_mpig}.  
 % Work reported in Ref[~\citep{repex_mpig}] 
-In particular, the work reported by~\citet{repex_mpig} is an important example of
-first-generation Grid applications, wherein the effectiveness of
-coupling multiple distributed resources for scientific problems has
-been demonstrated.  \jhanote{AndreL, I know we are short on space, but
-  the above line is politically important and will help smoothen the
-  passage of this paper} The real power of distributed systems
-however, arises from adaptive algorithms and implementations that
-provide applications with an agile execution model and thus the
-ability to utilise resources dynamically, as opposed to a static
-execution model inherited from parallel and cluster computing.
-Unfortunately, the barrier to the development of adaptive applications
-is high and the infrastructure support for applications with dynamic
-resource requirements poor.  Thus, it is not surprisingly that there is no
-implementation of an adaptive RE algorithm, which is both able to
-effectively and reliably utilise multiple distributed resources
-without prior scheduling as well as being independent of any specific
-computational platform or infrastructure.
+In particular, the work reported by~\citet{repex_mpig} is an important
+example of first-generation Grid applications, wherein the
+effectiveness of coupling multiple distributed resources for
+scientific problems has been demonstrated.  \jhanote{AndreL, I know we
+  are short on space, but the above line is politically important and
+  will help smoothen the passage of this paper} The real power of
+distributed systems however, arises from adaptive algorithms and
+implementations that provide applications with an agile execution
+model and thus the ability to utilise resources dynamically, as
+opposed to a static execution model inherited from parallel and
+cluster computing.  Unfortunately, the barrier to the development of
+adaptive applications is high and the infrastructure support for
+applications with dynamic resource requirements poor.  Thus, it is not
+surprisingly that there does not exist an implementation of an
+adaptive RE algorithm, which is both able to effectively and reliably
+utilise multiple distributed resources without prior scheduling as
+well as being independent of any specific computational platform or
+infrastructure.
                       
 %%%%% reference to contribution of escience paper
 To address heterogeneity and failures, which are both inherent
@@ -290,19 +296,33 @@ concurrently.
 
 The unique contribution of this paper is the implementation of an
 adaptive RE framework that overcomes the described limitations. The
-novel \emph{BigJob} abstraction allows the utilisation of distributed
+framework utilises the \emph{BigJob} abstraction, \jhanote{Andre L
+  please let me know if you agree with this addition? -- ``in
+  combination with the Glide-In mechanism''} which in combination
+with the Glide-in mechanism, allows the utilisation of distributed
 resources without prior co-scheduling by grouping smaller sub-jobs
-into a larger job.  % The BigJob abstraction also serves as basis for
+into a larger job. \jhanote{I'm wondering if we should call BigJob
+  novel or is the framework that is
+  novel?}  % The BigJob abstraction also serves as basis for
 % supporting adaptive Replica-Exchange simulations.
-The RE framework relies on the \emph{BigJob} abstraction not only for
-dispatching replica jobs, but also adds higher-level functionality by
-allowing the dynamic utilisation of additional resources as they
-become available.  Our implementation is both independent of the
-platform and infrastructure details, and can respond gracefully to
-failures.  We present preliminary data that validates the claim that
-as more resources become available our framework can opportunistically
-employ these resources to lead to a reduction in the
-time-to-completion of the scientific problem.
+\jhanote{Also in the previous sentence, I agree with the first part --
+  ``bigjob allows the utilisation of distributed resources without
+  prior scheduling'', but dont agree with the latter part of the
+  sentence, ie this is achieved by grouping smaller-jobs into a larger
+  job. this bit allows the individual jobs to be efficiently
+  scheduled, not distributed utilisation. Does this make sense?}
+\jhanote{Remember this is a paragraph in the opening/introduction
+  section, hence will be scrutinised more carefully} The RE framework
+relies on the \emph{BigJob} abstraction not only for dispatching
+replica jobs, but also adds higher-level functionality by allowing the
+dynamic utilisation of additional resources as they become available.
+Our implementation is both independent of the platform and
+infrastructure details, and can respond gracefully to failures.  We
+present preliminary data that validates the claim that as more
+resources become available our framework can opportunistically employ
+these resources to lead to a reduction in the time-to-completion of
+the scientific problem.
+
 
 %%%%%%%%%%%%%  Shantenu original %%%%%%%%%%%%%                                                  
 % The heterogeneity and dynamism of a computational Grid results in
@@ -789,17 +809,17 @@ subsubsection level.}
 \subsection{Deploying on Production Environments: Scheduling}
 
 The Replica-Exchange framework has been successfully deployed on
-production Grid environment~\citep{Luckow:2008la}. However, in
-particular with larger numbers of replicas slowdowns occur. These
-slowdowns are particularly caused by the synchronization required by
-the Replica-Exchange algorithm after each generation.  The central
-master, the RE-Manager, must periodically obtain the results of all
-replicas to determine the new configuration of the next RE step. The
-replicas are then re-started, i.\,e.\ they are required to queue again
-at the local scheduler. In pathological cases, the complete system can
-come to a halt caused by a single crowded or slow resource.  To
-address this issue, we propose the SAGA Glide-In framework, which
-allows the effective scheduling of clustered of tasks.
+production Grid environment~\citep{Luckow:2008la}. However, as the
+number of replicas increase, the probability of an overall slowdown
+caused by the synchronization required by the Replica-Exchange
+algorithm after each generation increases.  The central master, the
+RE-Manager, must periodically obtain the results of all replicas to
+determine the new configuration of the next RE step. The replicas are
+then re-started, i.\,e.\ they are required to queue again at the local
+scheduler. In pathological cases, the complete system can come to a
+halt caused by a single crowded or slow resource.  To address this
+issue, we propose the SAGA Glide-In framework, which allows the
+effective scheduling of clustered of tasks.
 % which allows the simple clustering of tasks
 \jhanote{Do you see the important difference: BigJob is the clustering
   of tasks; Glide-in is the scheduling mechanism that utilises it to
@@ -841,7 +861,7 @@ execute many replicas has a severe limitation: all simple jobs must
 queue at the resource management system. In this scenario, a single 
 delayed job can cause the slowdown of the overall application. 
 We overcome this slowdown using an efficient dispatching scheme, 
-which builds upon the ability to clustering replicas (using BigJob) 
+which builds upon the ability to cluster replicas (using BigJob) 
 before submission.
 
 \jhanote{AndreL: Check the above. OK}
@@ -872,8 +892,8 @@ before submission.
   abstractions, it what is an abstraction and what is a model is a
   matter of perspective/origin too}
   
-A common principle to avoid queuing delays is the usage of a
-place-holder job, which is able to dispatch several sub-jobs without
+An approach commonly employed to avoid queuing delays is the usage of
+a place-holder job, which is able to dispatch several sub-jobs without
 each sub-job needing to queue at the local scheduler. This principle
 is also referred to as \emph{Glide-In}, a reference to the Condor
 Glide-In system~\citep{citeulike:291860}, which pioneered this idea. A
@@ -994,12 +1014,15 @@ Replica-Exchange simulations.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.9\textwidth]{remdmanager_v11}
-    \caption{\footnotesize \bf The Replica-Agent is used as placeholder
-      job for all replica sub-jobs running on a single cluster. The
-      \remanager\ can control both the \replicaagent\ and the replica
-      jobs using a SAGA-based user-level job API. By using this
-      efficient way to allocate resources, queuing times are minimized
-      and the time-to-completion can be dramatically reduced.}
+    \caption{\footnotesize \bf The Replica-Agent is used as
+      placeholder job for all replica sub-jobs running on a single
+      cluster. The \remanager\ can control both the \replicaagent\ and
+      the replica jobs using a SAGA-based user-level job API. By using
+      this efficient way to allocate resources, queuing times are
+      minimized and the time-to-completion can be dramatically
+      reduced. \jhanote{AndreL: This would be a good place to
+        illustrate clearly, what is a \texttt{big\_job} and 
+        what is \texttt{sub\-job}}}
     \label{fig:remdmanager_v1.1}
 \end{figure}
 
@@ -1176,8 +1199,8 @@ approach used by MPIg. The MPIg model has the advantage of being able
 to continue without checkpoint/restart after an exchange; however, it
 is not agile, for example it requires the co-scheduling of
 resources. This might be acceptable for very large or long-running
-simulations. In particular for loosely coupled applications, an adaptive
-schema can perform better than a rigid co-allocation schema.
+simulations. In particular for loosely coupled applications, an
+adaptive schema can perform better than a rigid co-allocation schema.
 % In general, an implementation that is adaptive will have
 % a lower time-to-completion. 
 
