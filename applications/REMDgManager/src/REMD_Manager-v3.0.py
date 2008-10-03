@@ -300,6 +300,7 @@ class ReManager():
             if math.exp(-delta) > random.random() :
                 iflag = True
     
+        if iflag is True:
             tmpNum = self.temperatures[jrep]
             self.temperatures[jrep] = self.temperatures[irep]
             self.temperatures[irep] = tmpNum

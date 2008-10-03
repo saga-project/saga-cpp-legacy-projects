@@ -285,6 +285,7 @@ def do_exchange(energy, irep, jrep, RE_info):
         if math.exp(-delta) > random.random() :
             iflag = True
 
+    if iflag is True:
         tmpNum = RE_info.temperatures[jrep]
         RE_info.temperatures[jrep] = RE_info.temperatures[irep]
         RE_info.temperatures[irep] = tmpNum
