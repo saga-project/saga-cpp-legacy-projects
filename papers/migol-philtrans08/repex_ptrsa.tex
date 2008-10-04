@@ -803,18 +803,20 @@ job description of each replica is stored within the Migol backend
 to ensure a later recovery. Globus GRAM is used to start the
 application.
 
-When all replicas reach a pre-determined state (e.\,g., the NAMD job finishes 
-after a fixed number of steps), the decision as to whether to pairwise 
-exchange temperatures between neighbouring replicas
-is determined by the Metropolis scheme~\citep{metropolis:1087}.    
-A single exchange round, i.\,e.\ the run of an ensemble of
-replicas in parallel and the subsequent attempt to pairwise
-exchange, is referred to as generation.                                                         
+When all replicas reach a pre-determined state (e.\,g., the NAMD job
+finishes after a fixed number of steps), the decision as to whether to
+pairwise exchange temperatures between neighbouring replicas is
+determined by the Metropolis scheme~\citep{metropolis:1087}.  A single
+exchange round, i.\,e.\ the run of an ensemble of replicas in parallel
+and the subsequent attempt to pairwise exchange all the replicas, is
+referred to as generation. No two replicas can belong to different
+generations.
 
-If successful, parameters such as the temperature, are swapped. Both jobs are then
-relaunched using the mechanisms described above. Often the Metropolis
-scheme returns a negative result, and an exchange is not carried out;
-thus it is difficult to respond to a possible exchange speculatively. 
+If successful, parameters such as the temperature, are swapped. Both
+jobs are then relaunched using the mechanisms described above. Often
+the Metropolis scheme returns a negative result, and an exchange is
+not carried out; thus it is difficult to respond to a possible
+exchange speculatively.
 
 \subsection{Reliability}
 To achieve fault tolerance, the RE-Manager, the Replica-Agents and the
@@ -1458,7 +1460,7 @@ that the underlying physical model is respected.
 To evaluate the performance of the RE-Manager several experiments have
 been conducted on the TeraGrid and LONI resources. The TeraGrid
 resources used are: Ranger, Abe and QueenBee (QB).  We investigated
-the performance of the SAGA Glide-In mechanism and of the different
+the performance of the SAGA Glide-In mechanism under different
 adaptivity modes.
 
 \jhanote{the use of the term cluster should be consistent with the
@@ -1467,8 +1469,6 @@ adaptivity modes.
 % QB, which is both a LONI and a TeraGrid resource, is the largest
 % LONI machine and has a peak performance of over 50 TFlops.
 % Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
-
-
 % Scientific results obtained from using this infrastructure
 % will be reported elsewhere.
 
@@ -1479,45 +1479,58 @@ adaptivity modes.
   exchange partner is chosen? remains the same?}\alnote{yes, the pairs
   remain the same. Added a sentence.}
 
+
+% Our tests are aimed at first determing the when of the SAGA Glide-In
+% framework,
+
 The RE-Manager was configured to run a MD simulation with up to 16
-replicas sampling a temperature range between 300 and
-450\,K. Replica exchanges are carried out between pairs of replica
-processes. Each run comprises of five generations respectively of 64
-attempted exchanges.  A replica consists of a NAMD simulation
-running for 500 time steps. Up to 24 MPI processes are used for
-carrying out the NAMD run.
+replicas sampling a temperature range between 300 and 450\,K. Replica
+exchanges are carried out between pairs of replica processes, thus
+there are upto 8 exchange in each generation; each test run comprises
+of five generations and thus upto 64 attempted
+exchanges\jhanote{AndreL: I don't think the numbers add up here!}
+Each replica is a parallel NAMD simulation, can use up to 24 MPI
+processes and runs for 500 time steps between exchange attemtps. The
+metric of performance used in our tests, is the wall-clock
+time-to-completion for the 5 generation of exchanges.
 
 \begin{figure}[th]
-    \centering      
-        \subfloat[RE-Manager Scaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf}}    
-        \subfloat[Glide-In Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf}} 
-        \caption{\footnotesize \bf SAGA Glide-In and RE Performance
-          (QueenBee): \jhanote{For the redline, is there just one
-            glide-in that is being used, or multipled? I think the
-            answer is one, but need explicit mentioning.} 
-          Obviously,
-          the increase in the number of resources allows sampling of a
-          wider parameter range. Especially beneficial in particular
-          for runs with many replicas is the clustering of
-          processes using the SAGA Glide-Ins. Using a single Glide-In
-          job for all replicas we observed significant performance 
-          improvements of up to 80\,\%.
-          \jhanote{How many
-            replicas in each glide-in? In the case where there are is
-            no Glide-In?}}     
-           \alnote{All Replicas are within the single Glide-In, i.e. 2, 4, 8 resp. 16 replicas.
-           With 0 Glide-Ins each job is separately started - no glidein is used.}
+  \centering
+\subfloat[RE-ManagerScaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf}}
+  \subfloat[Glide-In
+  Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf}}
+  \caption{\footnotesize \bf SAGA Glide-In and RE Performance
+    (QueenBee): \jhanote{For the redline, is there just one glide-in
+      that is being used, or multipled? I think the answer is one, but
+      need explicit mentioning.}  Obviously, the increase in the
+    number of resources allows sampling of a wider parameter
+    range. Especially beneficial in particular for runs with many
+    replicas is the clustering of processes using the SAGA
+    Glide-Ins. Using a single Glide-In job for all replicas we
+    observed significant performance improvements of up to 80\,\%.}
+  \jhanote{AndreL: Why don't we use the same metric as elsewhere, ie
+    time-to-completion?}
+  \jhanote{How many replicas in each glide-in? In the case where there
+    are is no Glide-In?}  \alnote{All Replicas are within the single
+    Glide-In, i.e. 2, 4, 8 resp. 16 replicas.  With 0 Glide-Ins each
+    job is separately started - no glidein is used.}
     \label{fig:perf_remd_glidin}
 \end{figure} 
 
 \subsection{SAGA Glide-In Performance}
 
-Initially, we investigate the performance of the Glide-In framework,
-which is important to support the the advanced adaptivity features of
-the RE-Manager.  We compare the performance, i.\,e.\ the simulated
-problem set and the runtime, of different REMD runs with and without
+Initially, we investigate the advantages of using a SAGA based
+Glide-In framework. We vary the number of replicas simulated, and
+compare the performance of the different REMD runs with and without
 SAGA Glide-In on a single machine (QueenBee).
 Figure~\ref{fig:perf_remd_glidin} illustrates the results.
+%which is important to support the the advanced adaptivity features of
+%the RE-Manager. 
+\jhanote{The above is not required here; this is performance/results
+  section, plus it is already mentioned in an earlier section, thus is
+  repetitive}
+%i.\,e.\ the simulated problem set and the runtime, 
+\jhanote{AndreL: I can't understand what simulated problem set means?}
 
 Obviously, the increase in the number of replicas allows the
 computation of a greater problem set, i.\,e.\ the sampling of a wider
@@ -1529,16 +1542,24 @@ the limitations of the regular job submission mechanism: The more
 processes are spawned, the more likely queueing delays will be.  With
 the SAGA Glide-In framework the number of NAMD steps almost scales
 linearly; in contrast, without SAGA Glide-In the NAMD steps metric
-\jhanote{not sure what computed  problem set is...?} 
-\alnote{should refer to NAMD step/s. replaced it.}
-rapidly drops when using more than eight
-replicas. This slowdown is caused by the delay of some replicas.  For
-example, on QB we were only able to run 12 of the 16 jobs in parallel.
-The remaining four replicas had to wait in the queue and produced a
-significant slowdown during the synchronization after each generation.
-This behaviour particularly occurs on crowded resources or if policies
-at the local resource manager restrict the number of resources that
-are concurrently allocated to a user.
+rapidly drops when using more than eight replicas.
+
+\jhanote{not sure what computed problem set is...?}  \alnote{should
+  refer to NAMD step/s. replaced it.}  \jhanote{We need to change the
+  metric I think. Why aren't we just using time-to-completion as
+  defined earlier?}. This slowdown is caused by the delay of some
+replicas.  For example, on QB we were only able to run 12 of the 16
+jobs in parallel \jhanote{AndreL: Do you mean ``at the same time'', ie
+  concurrently? If so, let us use concurrently please.}  The remaining
+four replicas had to wait in the queue and produced a significant
+slowdown during the synchronization after each generation.  This
+behaviour particularly occurs on crowded resources or if policies at
+the local resource manager restrict the number of resources that are
+concurrently allocated to a user.  In certain situations the usage of
+smaller jobs can have an advantage, e.\,g.\ when the local scheduler
+backfills such jobs. However, usually not all replicas can be
+backfilled. Also, some resources impose a restriction on the number of
+active jobs per user.
 
 \jhanote{unfortunately this paragraph and the one before are unclear}
 \jhanote{I would recommend using time-to-completion over
@@ -1550,15 +1571,16 @@ Figure~\ref{fig:perf_remd_glidin}b shows the effect of the SAGA
 Glide-In framework on the time-to-completion ($T_{c}$) using 16
 replicas on QB.  With the Glide-In framework, we were able to reduce
 $T_{c}$ from 70\,minutes to about 17 minutes, which corresponds to a
-decrease of about 70\,\% runtime.  In single scenarios even greater
-improvements of up to 80\,\% have been observed. As described, this
-effect is mainly attributed to the elimination of queuing times for
-every sub-job. Once the Replica-Agent become active, replicas can be
-efficiently dispatched without requiring interactions with the local
-scheduler.
+decrease of about 70\,\% runtime.  In single scenarios \jhanote{Do you
+  mean single machine scenarios?} even greater improvements of up to
+80\,\% have been observed. As described, this effect is mainly
+attributed to the elimination of queuing times for every sub-job. Once
+the Replica-Agent become active, replicas can be efficiently
+dispatched without requiring interactions with the local scheduler.
 
-\jhanote{need to clarify what the 80\% means/implies?} \alnote{I refined the above
-paragraph. Are there any particular implications you refer to?}
+\jhanote{need to clarify what the 80\% means/implies?} \alnote{I
+  refined the above paragraph. Are there any particular implications
+  you refer to?}
 
 The unpredictable nature of these queueing times is reflected in the
 high standard deviation observed. While long queueing times also apply
@@ -1567,13 +1589,21 @@ scenario, the queueing times become negligible, the longer the RE
 simulation is (the runtimes have been kept short for this simple
 scenario).
 
+\jhanote{We need to say something about the location of the kink when
+  glide-in is not used. This is another way of addressing the erratic
+  behaviour. Do we have insight as to whether the kink often occurs
+  sooner than at 8replicas? If so, how often.  This would help us
+  reiterate that the use of glide-in gives a constant/static
+  performance estimate, whereas the lack of a GlideIn makes it
+  erratic.}
+
 % In contrast, when no Glide-Ins are used every sub-jobs is subject to
 % the queuing delay at the local scheduler.
-In certain situations the usage of smaller jobs can have an advantage,
-e.\,g.\ when the local scheduler backfills such jobs. However, usually
-not all replicas can be backfilled. Also, some resources
-impose a restriction on the number of active jobs per user. 
-
+% In certain situations the usage of smaller jobs can have an advantage,
+% e.\,g.\ when the local scheduler backfills such jobs. However, usually
+% not all replicas can be backfilled. Also, some resources
+% impose a restriction on the number of active jobs per user. 
+\jhanote{I moved the paragraph upwards...}
 % In general, the more processes are spawned the more likely are
 % delays.
 
