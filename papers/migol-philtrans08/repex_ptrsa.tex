@@ -150,8 +150,11 @@
   independent way. By analysing the requirements of the RE algorithm
   and the challenges of implementing it on real production systems, we
   propose a new abstraction (BigJob), which forms the basis of the
-  adaptive redistribution of resources and the effective scheduling of
+  adaptive redistribution of replicas and the effective scheduling of
   the multiple sub-tasks.
+  
+  \jhanote{AndreL: I changed resources in the last sentence to
+    replicas. Let me know if you agree?}
 
   \jhanote{Just as a general remark, if we have adaptive in the title,
     it is only proper that we also have the word ``Adaptive'' in the
@@ -195,6 +198,11 @@
 
 \section{Introduction}
 
+\jhanote{General Remark: Replica-Exchange is used as i) application
+  class, ii) algorithm, and iii) simulations. We'll need to be
+  careful. Fundamentally it is a class-of-algorithms, one which
+  applications are based and simulations of which are carried out!}
+
 \jhanote{General Remark: We are using RE and Replica-Exchange interchangeably?
   In principle, once we've defined RE (I think in Section 1 itself), we 
   should just use RE and not Replica-Exchange. AndreL: Can you make this
@@ -209,24 +217,29 @@
 Several classes of applications are well suited for distributed
 environments. Probably the best known and most powerful examples are
 those that involve an ensemble of decoupled tasks, such as simple
-parameter sweep applications.  A slightly more complicated and
-challenging class of distributed applications are those that have a
-level of coupling between individual sub-tasks.  An interesting
-example of such an application are \emph{Replica-Exchange
-  (RE)}~\citep{hansmann,Sugita:1999rm} simulations.  RE simulations
-are e.\,g.\ used to understand important physical phenomena -- ranging
-from protein folding dynamics to binding affinity calculations
-required for computational drug discovery.
+parameter sweep applications. \jhanote{Can we put a simple reference
+  here? Either to a famous parameter sweep study, or to a system such
+  as APST that supports parameter studies} A slightly more complicated
+and challenging class of distributed applications are those that have
+a degree of coupling between individual sub-tasks.  An interesting
+example of such applications are those based upon the
+\emph{Replica-Exchange (RE)}~\citep{hansmann,Sugita:1999rm}
+algorithm. \jhanote{Was simulation before algorithm... We were making
+  sloppy errors here.. for example equating applications and
+  simulations!} RE simulations are e.\,g.\ used to understand
+important physical phenomena -- ranging from protein folding dynamics
+to binding affinity calculations required for computational drug
+discovery.
   
 %%%%% RE nature of the problem
-RE simulations involve the concurrent execution of
-multiple simulations -- the \emph{replicas}. The coupling occurs in
-the form of periodic exchange attempts between paired replicas. Since
-the coupling happens infrequently compared to the run-time of each
-replica and is small in terms of communication bandwidth requirements,
-RE is {\it prima facie} a perfect algorithm to exploit heterogenous,
-distributed resources. We label such a class of algorithms as {\it
-  pleasingly-distributed}.
+RE simulations involve the concurrent execution of multiple
+simulations -- the \emph{replicas}. The coupling between replicas
+takes place in the form of periodic exchange attempts between paired
+replicas. Typically coupling occurs infrequently compared to the
+run-time of each replica and is small in terms of communication
+bandwidth requirements; thus RE is {\it prima facie} a perfect
+algorithm to exploit distributed resources. We label such a class of
+algorithms as {\it pleasingly-distributed}.
 
 % Despite their essentially loosely-coupled nature, RE simulations
 % require a level of coupling: the coupling is in the form of exchanges
@@ -248,16 +261,17 @@ scientific problems has been demonstrated.  \jhanote{AndreL, I know we
   will help smoothen the passage of this paper} The real power of
 distributed systems however, arises from adaptive algorithms and
 implementations that provide applications with an agile execution
-model and thus the ability to utilise resources dynamically, as
+model, and thus the ability to utilise resources dynamically, as
 opposed to a static execution model inherited from parallel and
 cluster computing.  Unfortunately, the barrier to the development of
-adaptive applications is high and the infrastructure support for
-applications with dynamic resource requirements poor.  Thus, it is not
-surprisingly that there does not exist an implementation of an
-adaptive RE algorithm, which is both able to effectively and reliably
-utilise multiple distributed resources without prior scheduling as
-well as being independent of any specific computational platform or
-infrastructure.
+such adaptive applications is high and the infrastructure support for
+applications with dynamic resource utilisation requirements poor.
+Therefore, it is not surprisingly that there do not exist more
+adaptive applications in general, but specifically there does not
+exist an implementation of an adaptive RE algorithm, which is both
+able to effectively and reliably utilise multiple distributed
+resources without prior scheduling as well as being independent of any
+specific computational platform or infrastructure.
                       
 %%%%% reference to contribution of escience paper
 To address heterogeneity and failures, which are both inherent
@@ -279,29 +293,31 @@ production-level infrastructures.
 This paper arises from practical considerations related to the
 deployment of a distributed, loosely-coupled application.  We address
 some of the challenges and performance bottlenecks encountered when
-using the framework in a production environment.  A major concern that
-remains however, is the overall slowdown due to synchronisation
-arising from the light coupling and the lack of co-scheduled
-resources. Production distributed environments in their current
-incarnation are manifest as an aggregation of multiple
-single-resources. Although there are some initial attempts at
-supporting co-scheduled resources for tightly-coupled
-simulations~\citep{repex_mpig}, there are insufficient attempts at
-supporting a broader range of collective distributed modes of
-operations, such as required for loosely-coupled applications.
-Additionally, current infrastructure does not provide efficient {\it
-application-level} mechanisms for co-ordinated resource sharing. One
-approach to rectify these deficits are system-level abstractions that
-allow applications to effectively utilise distributed resources
-concurrently.
+using the framework \jhanote{I'm not convinced the reader knows what
+  ``the framework'' at this stage means. Are you?} in a production
+environment %A major concern that arises for example, is the overall
+such as the overall slowdown due to synchronisation arising from the
+light-coupling and the lack of co-scheduled resources. Production
+distributed environments in their current incarnation are manifest as
+an aggregation of multiple single-resources. Although there are some
+initial attempts at supporting co-scheduled resources for
+tightly-coupled simulations~\citep{repex_mpig}, there are insufficient
+attempts at supporting a broader range of distributed and collective
+modes of operations, such as required for loosely-coupled
+applications.  For example, current infrastructure does not provide
+efficient {\it application-level} mechanisms for co-ordinated resource
+sharing. One approach to rectify these deficits are system-level
+abstractions that allow applications to effectively utilise
+distributed resources concurrently.
 
-The unique contribution of this paper is the implementation of an
-adaptive RE framework that overcomes the described limitations. The
-framework utilises the \emph{BigJob} abstraction, \jhanote{Andre L
-  please let me know if you agree with this addition? -- ``in
-  combination with the Glide-In mechanism''} which in combination
-with the Glide-In mechanism, allows the efficient dispatching
-of jobs by grouping smaller sub-jobs
+The unique contribution of this paper is the implementation of RE
+framework that overcomes the described limitations, by being able to
+adapt at runtime to a change in the resource availability and
+application resource requirements. The framework utilises the
+\emph{BigJob} abstraction, \jhanote{Andre L please let me know if you
+  agree with this addition? -- ``in combination with the Glide-In
+  mechanism''} which in combination with the Glide-In mechanism,
+allows the efficient dispatching of jobs by grouping smaller sub-jobs
 % utilisation of distributed resources without prior co-scheduling 
 into a larger job. \jhanote{I'm wondering if we should call BigJob
   novel or is the framework that is
@@ -315,20 +331,25 @@ are a couple of Glide-In frameworks out there.}
   prior scheduling'', but dont agree with the latter part of the
   sentence, ie this is achieved by grouping smaller-jobs into a larger
   job. this bit allows the individual jobs to be efficiently
-  scheduled, not distributed utilisation. Does this make sense?}  
+  scheduled, not distributed utilisation. Does this make sense?}
 \jhanote{Remember this is a paragraph in the opening/introduction
-  section, hence will be scrutinised more carefully} 
-\alnote{Agree, I dropped the co-scheduling stuff from the sentence before,
-since the remainder of the paragraph focuses on adaptiveness.}  
-The RE framework relies on the \emph{BigJob} abstraction not only for dispatching
-replica jobs, but also adds higher-level functionality by allowing the
-dynamic utilisation of additional resources as they become available.
-Our implementation is both independent of the platform and
-infrastructure details, and can respond gracefully to failures.  We
-present preliminary data that validates the claim that as more
+  section, hence will be scrutinised more carefully} \alnote{Agree, I
+  dropped the co-scheduling stuff from the sentence before, since the
+  remainder of the paragraph focuses on adaptiveness.}  The RE
+framework relies on the \emph{BigJob} abstraction not only for
+dispatching replica jobs, but also adds higher-level functionality by
+allowing the dynamic utilisation of additional resources as they
+become available.  Our implementation is both independent of the
+platform and infrastructure details, and can respond gracefully to
+failures.  We present data that validates the claim that as more
 resources become available our framework can opportunistically employ
 these resources to lead to a reduction in the time-to-completion of
-the scientific problem.
+the scientific problem.  Although the tests we report here are still
+experiments (i.e., we are not reporting science results in this
+paper), it is critical to note, that these are done on production
+infrastructure such as the TeraGrid under exact conditions encountered
+by application-scientists and not on research infrastructure such as
+Grid5000\jhanote{suitable reference here please}.
 
 
 %%%%%%%%%%%%%  Shantenu original %%%%%%%%%%%%%                                                  
