@@ -30,7 +30,6 @@
 %Bibliography                     
 \usepackage{natbib}   
 
-
 \usepackage{listings}
 \usepackage{keyval}  
 \usepackage{color}
@@ -947,7 +946,7 @@ avoiding the high initial costs for queueing each individual replica
 job, the time-to-completion can be dramatically reduced.
 
 The capability to cluster jobs is provided via the \emph{BigJob}
-abstraction. This abstraction enhances the SAGA job model by the
+abstraction. This abstraction enhances the SAGA job model with the
 capability to allocate larger chunks of resources prior to the
 application run. For this purpose the \texttt{big\_job} object is
 defined, which is used to initialize a Glide-In job with the desired
@@ -963,11 +962,12 @@ concepts.  \alnote{I commented this out (liked the second definition
 of frequently reoccurring modes, either in programming an
 application or in the way an application is used or executed.
 % They often apply across a range of different specific contexts. 
-For example, the need to submit multiple jobs together is a
-common requirement and practise, and thus provides a simple
-example of an execution pattern.  A mechanism that supports a pattern
-is referred to as an abstraction; just as patterns can be programmatic
-or execution, so can abstractions.
+For example, the need to submit multiple jobs together is a common
+requirement and practise, and thus provides a simple example of an
+execution pattern.  A mechanism that supports a pattern is referred to
+as an abstraction; just as patterns can be programmatic or execution,
+so can abstractions. \jhanote{Should we give another example, rather
+  than the clustered-job pattern? AndreL, AndreM: any suggestions?}
 
 For the purposes of our work, the pattern is the clustering of
 multiple job to be submitted, which is supported using the BigJob
@@ -1019,57 +1019,68 @@ system.
 Distributed applications including RE simulations must be able to 
 deal with time-varying resource availabilities.
 An application is referred to as \emph{dynamic} when either the
-resource requirements of the application or the availability and
+resource requirements of the application, or the availability and
 utilisation of resources by the application changes during its
 runtime.  \emph{Adaptivity} is a mechanism to respond to dynamic
 changes; % as opposed to just ignoring the dynamism of a distributedenvironment.
 a dynamic application may deploy multiple adaptive strategies or
 choose between competing adaptive strategies.
 
-There are two levels of adaptivity: (i) the optimal selection of 
-the best resources to use (Resource Determination (D)), and 
-(ii) the effective utilisation of an expanded or reduced set
-of resources (Resource Utilisation (U)).
-% Mapping - BS
-%Despite the availability of a suitable abstraction for managing 
-%Glide-Ins, several scheduling issues arise. A
-%particular optimization problem is the size of the \glidein\
-%job.         
-A scalable application requires the support for both
-resource determination and selection. 
 
-For resource determination, our framework currently relies on 
-a static, user-defined mapping of replicas and resources. Especially 
-important for long-running applications is the support
-for an agile execution model allowing the effective utilisation of
-resources as they become available. BigJob and Glide-In are useful
-abstractions for implementing such a model.
+For an application to be adaptive, it is necessary for it to be able
+to effectively utilise an expanded or reduced set of resources;
+additionally for an adaptive application to be scalable it must also
+be able to select which resources to utilise efficiently, if not
+optimally.  For resource determination, our framework currently relies
+on a static, user-defined mapping of replicas and resources.  In the
+remainder of this paper, we will focus on dynamic resource utilisation
+and not on dynamic resource optimisation -- either determination or
+applicaiton partitioning.
 
-There are different ways a RE simulation can respond to a change in
-the number of resources required/available:
+
+% he optimal selection of the best resources to use (Resource
+% Determination (D)), and (ii) the effective utilisation of an
+% expanded or reduced set of resources (Resource Utilisation (U)).
+
+% Mapping - BS Despite the availability of a suitable abstraction for
+% managing Glide-Ins, several scheduling issues arise. A particular
+% optimization problem is the size of the \glidein\ job.  A scalable
+% application requires the support for both resource determination and
+% selection.
+
+There are different ways
+a RE simulation can respond to a change in the number of resources
+required/available:
 \begin{compactitem}         
-\item {\it Scenario A:} By increasing the number of processes assigned to each
-  replica the time-to-completion can be reduced. In addition, resources
-  can partitioned in a way that balances the different speeds of resources.
-  For example, by adding resources to
-  a slow or delayed replica, bottlenecks due to the light-coupling
-  between all replicas can be avoided.  
-  \jhanote{AndreL: The last sentence needs more elaboration
-    before it makes sense. Plus slowdown maybe due to heterogenous
-    resources, but in some cases, it could be due to late start,
-    especially if exchange takes place between replicas on different
-    machines}   
-   \alnote{Ok, I elaborated the last sentence a little more. One more remark:
-    when using SAGA Glide-In the late start effect should not exist.}
+\item {\it Scenario A:} By increasing the number of processes assigned
+  to each replica the time-to-completion can be reduced. In addition,
+  resources can be partitioned ain a way that balances the different
+  speeds of resources.  For example, by adding resources to a slow or
+  delayed replica, bottlenecks due to synchronisation of replicas can
+  be avoided
+  %light-coupling between all replicas can be avoided.
+  \jhanote{AndreL: The last sentence needs more elaboration before it
+    makes sense. Plus slowdown maybe due to heterogenous resources,
+    but in some cases, it could be due to late start, especially if
+    exchange takes place between replicas on different machines}
+  \alnote{Ok, I elaborated the last sentence a little more. One more
+    remark: when using SAGA Glide-In the late start effect should not
+    exist.}
 
-    \item {\it Scenario B:} As further resources become available, 
-    the number of replicas is adjusted. Depending on the 
-    underlying physics model, the additional replicas can be used
-    to refine the temperature range (adaptive sampling) or to extend the
-    temperature range (enhanced dynamics).
+\item {\it Scenario B:} As resources become dynamically available, the
+  number of replicas can be adjusted. Depending on the underlying
+  physics model, the additional replicas can be used to refine the
+  temperature range (adaptive sampling) or to extend the temperature
+  range (enhanced dynamics).
 \end{compactitem}           
-Both adaptive strategies have been realized within the RE-Manager. We
-describe selected implementation details in the following section.
+Both adaptive strategies have been realized within the RE-Manager.
+
+Especially important for long-running applications is the support for
+an agile execution model allowing the effective utilisation of
+resources as they become available. BigJob and Glide-In are useful
+abstractions for implementing such a model.  We describe selected
+implementation details in the following section.
+
 % Our framework supports and implements both strategies.  
 
 \jhanote{We need a better place for this paragraph. It is an important
@@ -1943,15 +1954,16 @@ abstraction could be supported and deployed within the RE framework.
 % While the current implementation of the framework uses 
 % a custom protocol to implement this abstraction, it can also be applied 
 % to other middleware platforms, such as Condor Glide-In.     
-Based on the BigJob abstraction different adaptivity strategies for supporting
-the agile execution of RE simulations in dynamic environments have been
-developed. Using these strategies, the application can agilely make use 
-of available resources adjusting the simulation space, i.\,e.\ the number 
-of replicas respectively the number of MPI processes per replica, dynamically. 
-With this approach expensive idle time due to a rigid co-allocation 
-scheme can be avoided, which significantly reduced the time-to-completion. 
-While the implementation of this abstraction is entirely based
-on SAGA, a utilization of other frameworks, such as the orignal Condor
+Based on the BigJob abstraction different adaptivity strategies for
+supporting the agile execution of RE simulations in dynamic
+environments have been developed. Using these strategies, the
+application can agilely make use of available resources adjusting the
+simulation space, i.\,e.\ the number of replicas respectively the
+number of MPI processes per replica, dynamically.  With this approach
+expensive idle time due to a rigid co-allocation scheme can be
+avoided, which significantly reduced the time-to-completion.  While
+the implementation of this abstraction is entirely based on SAGA, a
+utilization of other frameworks, such as the orignal Condor
 Glide-In~\citep{citeulike:291860} or Falkon~\citep{1362680}, is
 possible. Currently, we are actively working on a Condor adaptor for
 SAGA, which will also support native Glide-In functionality for Condor
