@@ -1614,41 +1614,45 @@ implemented on top of SAGA Glide-In, are evaluated.
 
 \subsection{Adaptive Resource Utilization}
 
-To evaluate the different adaptive strategies, the RE-Manager
-has been deployed on multiple resources  on the
-TeraGrid. In particular, we investigate the effect of 
-the dynamic adaptation of the \emph{replica size} (scenario A), i.\,e.\ 
-the number of MPI processes assigned to each replica,  
-and of the \emph{replica number} (scenario B), i.\,e.\
-the number of replicas participating in a generation.  
-We compare the runtime of a REMD simulation with 64 attempted 
-exchanges on different sets of distributed resources and Glide-In 
-configurations.  
+To evaluate the performance of our framework for different adaptive
+strategies, the RE-Manager has been deployed on multiple
+resources %on the TeraGrid
+and tests performed for two different adatpive scenarios.  In the
+first, the \emph{replica size} was varied (scenario A; the number of
+MPI processes assigned to each replica), whilst in the second, the
+\emph{replica number} (scenario B; the number of replicas
+participating in a generation) was varied. We compare the runtime of
+the REMD simulation for 64 attempted exchanges on different sets of
+distributed resources and Glide-In configurations.
                     
 \begin{figure}[h]
   \begin{minipage}[t]{.48\textwidth}
     \begin{center}  
       \includegraphics[width=\textwidth]{performance/perf_distributed_size_replica.pdf}
       \caption{\footnotesize \bf Replica Size Adaptivity (Scenario A):
-        The number of MPI processes per NAMD tasks is dynamically
-        adjusted to the number of available resources. On every
-        resource 4~Glide-Ins with 32 cores each are started. A
-        constant number of 16 replicas is used.  The more resources
-        that are available, the more cores can be assigned to each
-        NAMD task, which leads to a reduction of $T_{c}$.  }
+        As the number of resources available increases, the number of
+        cores assigned to a replica (a NAMD job) is dynamically
+        adjusted, while keeping the number of replicas constant at
+        sixteen.  There are 4~Glide-Ins, and each has 32 core assigned
+        to it.  As more resources become available, more cores can be
+        assigned to each replica (NAMD job) which leads to a reduction
+        of $T_{c}$.  }
       \label{fig:performance_perf_distributed_A}
     \end{center}
   \end{minipage}
   \hfill
   \begin{minipage}[t]{.485\textwidth}
     \begin{center}  
-      \includegraphics[width=\textwidth]{performance/perf_distributed_number_replica.pdf}
-      \caption{\footnotesize \bf Replica Number Adaptivity (Scenario
-        B): This scenario utilises the capability of the underlying
-        physics model to dynamically adjust the number of replicas.  A
-        constant number of 4 Glide-Ins with 64 cores each distributed
-        across 1, 2 and 3 machines is used.  The more distributed
-        resources that can be utilised, the smaller $T_{c}$.}
+     
+%      This scenario utilises the capability of the underlying physics
+%      model to
+ \includegraphics[width=\textwidth]{performance/perf_distributed_number_replica.pdf}
+ \caption{\footnotesize \bf Replica Number Adaptivity (Scenario B): In
+   this scenario, the framework dynamically adjusts the number of
+   replicas.  A constant number of 4 Glide-Ins with 64 cores each are
+   distributed across 1, 2 and 3 machines; the size of each replica is
+   kept fixed at 16 cores. Once again, the greater the number of
+   distributed resources that can be utilised, the smaller $T_{c}$.}
       \label{fig:performance_perf_distributed_B}
     \end{center}
   \end{minipage}
@@ -1678,12 +1682,26 @@ configurations.
 %     \label{fig:performance_perf_distributed}
 % \end{figure}   
                      
-In scenario A, up to 3 resources running 4 Glide-Ins with a constant
-size of 32 cores each are used, i.\,e.\ if all resources (Abe, QB and Ranger) are
-available a total of 384 cores can be consumed.  During the run the
-number of MPI processes for each replica is dynamically adjusted as
+In scenario A, up to 3 resources, each running 4 Glide-Ins with a
+constant size of 32 cores each are used, i.\,e.\ if all resources
+(Abe, QB and Ranger) are available a total of 384 cores (12 Glide-Ins
+with 32 cores each) will be utilised.  During the execution the number
+of MPI processes assigned to each replica is dynamically adjusted as
 additional resources become available. Depending on the number of
-available resources, between 8 and 24 cores are used for each replica.
+available resources, between 8 (for 4 Glide-Ins) and 24 cores (for 12
+Glide-Ins) are used for each replica. We mention explicitly that for
+our experiments, the number of Glide-In jobs on a resource is fixed at
+4; this is done for simplicity and our results hold for general values
+of this parameter.
+
+\jhanote{AndreL: We need to mention how the experiments were
+  conducted: I guess the static configuration set both the number and
+  the specific resources to use. Then when first glide-in job started,
+  other glide-in jobs were in queue. then at some stage the other
+  glide-in job changed state (Q) and started running. Need to mention
+  this is what we mean by ``when additional resources became
+  available''.. as opposed to discovering resources. Plus it will help
+  the reader understand the results too.}
 
 \jhanote{AndreL: We need to mention explicitly that i) the size of a
   glide-in job was kept constant at 32 cores, and ii) this number of 32
@@ -1695,9 +1713,11 @@ available resources, between 8 and 24 cores are used for each replica.
   steps. There is some overhead for moving replicas from one machine
   to another one (file staging).}
 Figure~\ref{fig:performance_perf_distributed_A} shows the results of
-the distributed run. Despite the overhead for migrating replicas to
-newly available resources, a notable speedup of up to 15\,minutes can
-be observed with the increase of the number of resources. However, the
+the distributed run. In spite of the overhead for migrating replicas
+to newly available resources, a notable speedup of up to 15\,minutes
+can be observed as the number of resources increases from one to two;
+there is a further reduction in the mean by a further minute or two as
+the number of resources increases from two to three.  However, the
 measured efficiency is only about 0.5. But, this is rather a
 limitation of the used setup than a general scalability barrier.  The
 setup comprises of rather short NAMD jobs; in particular during the
@@ -1711,6 +1731,8 @@ making this overhead negligible.  \jhanote{I think we need to address
   0.47; There are still some issues with scenario A (in particular I
   am referring to the heterogeneous speeds of these three machines
   making this increasing number of MPI processes less efficient!)}
+\jhanote{I think we should talk about the above remark. Also we should
+  define efficiency in the text, else we will get dinged.}  
 
 The capability of the RE-Manager to adaptively adjust the number of
 replicas simulated -- in effect adjusting the either the range of
@@ -1727,30 +1749,37 @@ Abe and Ranger respectively (iii) Abe, Ranger and QB.
   your question: yes} Each replica is started with a constant number
 of 16 MPI processes.  Using adaptive temperature sampling, the number
 of replicas is dynamically increased (up to 16) as the number of
-available resources increases.
+available resources increases. 
+
+\jhanote{I don't understand how the number of replicas can be
+  increased if (a) the size of each replica is kept a constant and (b)
+  the number of processors assigned remains at 256 in all cases? What
+  was the starting value of the number of replicas?}  
+
+\jhanote{Once again, I think we need to put in a few sentences of how
+  the experiments were performed. It will help the reader and clear up
+  a few things that are difficult to understand.}
 % A maximum of 16 replicas and 256 cores are used.
 
 As shown in Figure~\ref{fig:performance_perf_distributed_B}, $T_{c}$
 decreases with the number of TeraGrid resources used.  With the
-distribution of the simulation onto multiple resources the probability
-that a single heavily-utilised resource delays the overall progress of
-the simulation is reduced.
+distribution of the simulation onto greater number of multiple
+resources the probability that a single heavily-utilised resource
+delays the overall progress of the simulation is reduced.
 % This is also reflected in the standard deviation,
 % which clearly decreases as the number of distributed resources used
 % increases. 
 The results clearly demonstrate the benefits of the adaptive replica
 scheme -- it is favourable to instantly use resources as they become
 active instead of waiting for the complete set of nodes to become
-available.
-
-
-\jhanote{Once again, we will need to provide efficiency numbers as
-  people are accustomed to seeing in parallel computing: ie
+available.  \jhanote{Once again, we will need to provide efficiency
+  numbers as people are accustomed to seeing in parallel computing: ie
   Time-to-completion for net number of processors employed.  The point
   here is not to be defensive compared to a 100\% scaling, but the
   point is to remind that we are solving a very different problem!}
-\alnote{since the number of used resources remains the same (they are just differently distributed),
-the efficiency for scenario B is 1:1 reflection in the time-to-completion.}  
+\alnote{since the number of used resources remains the same (they are
+  just differently distributed), the efficiency for scenario B is 1:1
+  reflection in the time-to-completion.}
 
 % This was the optimal Glide-In size
 % determined in earlier experiments.  
