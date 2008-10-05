@@ -1623,7 +1623,8 @@ Glide-In framework on the time-to-completion ($T_{c}$) using 16
 replicas on QB.  With the Glide-In framework, we were able to reduce
 $T_{c}$ from 50\,minutes to about 26 minutes per average, which corresponds to a
 decrease of about 50\,\% runtime.  In the best case \jhanote{Do you
-  mean single machine scenarios?} \alnote{I was referring to the best case not the average case} 
+  mean single machine scenarios?} \alnote{I was referring to the best case 
+  in contrast to the average case} 
 improvements of upto 70\,\% could be observed. As described, this effect is mainly
 attributed to the elimination of queuing times for every sub-job. Once
 the Replica-Agent become active, replicas can be efficiently
@@ -1653,7 +1654,9 @@ but also the stdev for the without Glide-In case was reduced. Unfortunately, I d
 data points for the 2, 4, 8 replica processes to really say whether there are earlier kinks. 
 The position of the kink really depends on the length of the PBS queue. In this scenario the 
 cluster was not too crowded, so that many jobs could be backfilled (but not all jobs could be 
-backfilled.)}
+backfilled.)} 
+\alnote{I describe the slowdown with more than 12 replicas above when referring to Fig. 4a. Is this
+sufficient? or should I describe it again down here?}
 
 
 
@@ -1741,18 +1744,31 @@ distributed resources and Glide-In configurations.
 %            on a single machine. }
 %     \label{fig:performance_perf_distributed}
 % \end{figure}   
-                     
+
+% general setup                     
 In scenario A, upto 3 resources, each running 4 Glide-Ins with a
-constant size of 32 cores each are used, i.\,e.\ if all resources
+constant size of 32 cores each are used. If all resources 
 (Abe, QB and Ranger) are available a total of 384 cores (12 Glide-Ins
-with 32 cores each) will be utilised.  During the execution the number
-of MPI processes assigned to each replica is dynamically adjusted as
-additional resources become available. Depending on the number of
-available resources, between 8 (for 4 Glide-Ins) and 24 cores (for 12
-Glide-Ins) are used for each replica. We mention explicitly that for
+with 32 cores each) will be utilised. A constant number
+of 16 replicas is used. The number of Glide-In jobs
+on a resource is fixed at 4 for simplicity reasons; our results 
+will hold for general values of this parameter.
+               
+% experiment procedure
+Initially, all Glide-Ins are submitted to the different, 
+statically configured resources. Usually, these Glide-Ins are subject
+to different queueing delays at the local scheduler. To reflect these
+different resource loads, the number of MPI processes assigned 
+to each of the replicas is dynamically increased when new resources
+become available. Depending on the number of available resources, 
+between 8 (for 4 Glide-Ins) and 24 cores (for 12 Glide-Ins) are 
+used for each replica.           
+
+\alnote{moved up:
+We mention explicitly that for
 our experiments, the number of Glide-In jobs on a resource is fixed at
 4; this is done for simplicity and our results hold for general values
-of this parameter.
+of this parameter.}
 
 \jhanote{AndreL: We need to mention how the experiments were
   conducted: I guess the static configuration set both the number and
@@ -1762,6 +1778,10 @@ of this parameter.
   this is what we mean by ``when additional resources became
   available''.. as opposed to discovering resources. Plus it will help
   the reader understand the results too.}
+\alnote{ok refined the two paragraphs above: 1) general setup 
+2) experiment procedure. The points you mention in your comment should be reflected
+in 2)}  
+  
 
 \jhanote{AndreL: We need to mention explicitly that i) the size of a
   glide-in job was kept constant at 32 cores, and ii) this number of 32
@@ -1778,12 +1798,15 @@ to newly available resources, a notable speedup of upto 15\,minutes
 can be observed as the number of resources increases from one to two;
 there is a further reduction in the mean by a further minute or two as
 the number of resources increases from two to three.  However, the
-measured efficiency is only about 0.5. But, this is rather a
+measured efficiency, defined as ratio of the actual performance to the 
+best possible performance, is only about 0.5. But, this is rather a
 limitation of the used setup than a general scalability barrier.  The
 setup comprises of rather short NAMD jobs; in particular during the
 initial phase jobs are often migrated to other resources, which mainly
 causes this overhead. During longer runs resources fluctuate less
-making this overhead negligible.  \jhanote{I think we need to address
+making this overhead negligible.  
+
+\jhanote{I think we need to address
   the following else we will get dinged by the referees: We increase
   our resource pool by a factor of 3, but get only a 33\% improvement
   at best} \alnote{I tried to explain this number a little better
@@ -1793,11 +1816,13 @@ making this overhead negligible.  \jhanote{I think we need to address
   making this increasing number of MPI processes less efficient!)}
 \jhanote{I think we should talk about the above remark. Also we should
   define efficiency in the text, else we will get dinged.}  
+\alnote{efficiency defined.}
 
-The capability of the RE-Manager to adaptively adjust the number of
-replicas simulated -- in effect adjusting the either the range of
-temperature or the specific temperatures simulated, is demonstrated in
-scenario B. For this purpose, 4 Glide-Ins with 64 cores each are
+% general setup
+In scenario B, the capability of the RE-Manager to adaptively 
+adjust the number of replicas simulated -- in effect adjusting
+the either the range of temperature or the specific temperatures 
+simulated -- is evaluated. For this purpose, 4 Glide-Ins with 64 cores each are
 distributed across 1, 2 and 3 different distributed resources. That
 means that the total of 256 cores is allocated on (i) Abe only, (ii)
 Abe and Ranger respectively (iii) Abe, Ranger and QB.
@@ -1806,8 +1831,13 @@ Abe and Ranger respectively (iii) Abe, Ranger and QB.
   Abe/Ranger/QB. (i) Is it 4 glide-ins in each of the three scenarios?
   4 glide-ins on Abe, then 4 glides-in on Abe/Ranger and then 4
   glide-ins on Abe/QB/Ranger??}  \alnote{Added sentence. Answer to
-  your question: yes} Each replica is started with a constant number
-of 16 MPI processes.  Using adaptive temperature sampling, the number
+  your question: yes} 
+Each replica is started with a constant number of 16 MPI processes.  
+              
+%  
+Initially the 4 Glide-Ins are submitted to the different
+resources. Similarly to scenario A, different queueing delays
+occur on different resources. Using adaptive temperature sampling, the number
 of replicas is dynamically increased (upto 16) as the number of
 available resources increases. 
 
