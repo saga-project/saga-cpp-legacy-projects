@@ -106,17 +106,17 @@ class Context(Object, Attributes):
                 -     value: -
     """
 
-    def __init__(self, type=""):
+    def __init__(self, name=""):
         """
         Initialize a security context.
         @summary: Initialize a security context.
-        @param type: initial type of context
-        @type type: string
+        @param name: initial type of context
+        @type name: string
         @raise NotImplemented:
         @raise IncorrectState:
         @raise Timeout:
         @raise NoSuccess:
-        @note: if type is given (i.e. non-empty), then the __init__ internally calls set_defaults().
+        @note: if name is given (i.e. non-empty), then the __init__ internally calls set_defaults().
             The notes to set_defaults apply.
         @see: the notes about lifetime management in Section 2 of the GFD-R-P.90 document
 

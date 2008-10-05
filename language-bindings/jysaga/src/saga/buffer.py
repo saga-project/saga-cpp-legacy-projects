@@ -5,7 +5,7 @@
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from object import ObjectType, Object
-from error import NotImplemented
+from error import NotImplemented, BadParameter,IncorrectState
 import jarray
 
 from org.ogf.saga.buffer import BufferFactory, Buffer
@@ -28,7 +28,7 @@ class Buffer(Object):
 
 #DOCUMENT: Tweak for java specific arrays.
 #DOCUMENT: get data only through get_data with application managed buffer
-    def __init__(self, size = -1, data = None):
+    def __init__(self, size = -1, data = None, **impl):
         # in array<byte> data, in int size,      out buffer obj or in int size = -1, out buffer obj
 
         """
@@ -78,7 +78,9 @@ class Buffer(Object):
                 raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
             if type(data) is not array or type(data) is not list:
                 raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
-            if size < 1:
+            if type(data) is array and data.typecode is not 'c':
+                raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode   
+            if size < 1 and size is not -1:
                 raise BadParameter, "Parameter size is < 1"
             try:
                 self.array = jarray.array(size, 'b')
@@ -96,6 +98,10 @@ class Buffer(Object):
                 raise self.convertException(e)
             
         elif size is None and data is not None:
+            if type(data) is not array or type(data) is not list:
+                raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
+            if type(data) is array and data.typecode is not 'c':
+                raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
             size = len(data)
             try:
                 self.array = jarray.array(size, 'b')
@@ -126,10 +132,11 @@ class Buffer(Object):
        @type size: int
        @PostCondition: the buffer memory is managed by the implementation.
        """ 
+       if self.closed is True :
+           raise IncorrectState, "Buffer object is already closed()"
        if type(size) is not int:
            raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
        try:
-           #TODO: Add close()
            self.bufferObject.setSize()
            self.managedByImp = True
            array = None
@@ -153,6 +160,8 @@ class Buffer(Object):
             buffer, the call returns the size of the memory which has been allocated by the
             implementation during that read operation
         """
+        if self.closed is True :
+           raise IncorrectState, "Buffer object is already closed()"
         try:
            return self.bufferObject.getSize()
         except java.lang.Exception, e:
@@ -177,8 +186,12 @@ class Buffer(Object):
                the first __init__ call format with the given size.
         @note: the notes for __del__ and the first __init__ call format apply.
         """
+        if self.closed is True :
+           raise IncorrectState, "Buffer object is already closed()"
         if type(data) is not array or type(data) is not list:
             raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
+        if type(data) is array and data.typecode is not 'c':
+            raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
         if size < 1 and size is not -1:
             raise BadParameter, "Parameter size is < 1"       
         if size is -1:
@@ -207,18 +220,38 @@ class Buffer(Object):
                     yet been successfully performed on the buffer,
                     a 'DoesNotExist' exception is raised.
         """
+        if self.closed is True :
+           raise IncorrectState, "Buffer object is already closed()"
         try:
-            byteArray = self.bufferObject.getData()
-            self.array = jarray.array(size, 'b')            
-            
-
+            if self.managedByImp is True:
+                return self.bufferObject.getData().tostring()
+            else:
+                if type(self.data) is list or type(self.data) is array:
+                    if len(self.array) <= len(self.data):
+                        for i in range(len(self.array)):
+                            if self.array[i] < 0:
+                                self.data[i] = chr(self.data[i]+256)
+                            else:
+                                self.data[i] = chr(self.data[i])
+                    else:  #self.array > self.data
+                        for i in range(len(self.data)):
+                            if self.array[i] < 0:                           
+                                self.data[i] = chr(self.data[i]+256)
+                            else:
+                                self.data[i] = chr(self.data[i]) 
+                        for i in range(len(self.data), len(self.array) ):
+                            if self.array[i] < 0:                           
+                                self.data.append(chr(self.data[i]+256))
+                            else:
+                                self.data.append(chr(self.data[i]))                            
+                    return self.data
+                else:
+                    raise NoSuccess, "self.data is not a array or a list. Internal inconsistincy."
         except java.lang.Exception, e:
            raise self.convertException(e)
-        data = ""
-        return data
 
 #type data:<type 'array'>
-#file.read( van file (abcdefghijklmnopqrstuvwxyz)
+#file.read(10) van file (abcdefghijklmnopqrstuvwxyz)
 #array('b',[97, 98, 99, 100, 101, 102, 103, 104, 105, 106]) 
 # b = signed char http://docs.python.org/lib/module-array.html
  
@@ -240,5 +273,68 @@ class Buffer(Object):
         @note: if close() is implicitly called in  __del__(), it will never raise an exception.
         @see: for resource deallocation semantics and timeout semantics, see  Section 2 of the GFD-R-P.90 document
         """
-        #TODO: Add check for closed -> raise IncorrectState
-        #TODO: Add Object Methods
+        if type(timeout) is not float or type(timeout) is not int:
+            raise BadParameter, "Parameter timout is wrong type. Type: " + str(type(timeout))
+        try:
+            if timeout > 0:
+                self.bufferObject.close()
+                self.closed = True
+            else:
+                self.bufferObject.close(timeout)
+                self.closed = True 
+        except java.lang.Exception, e:
+           raise self.convertException(e)
+       
+        
+    def get_id(self):
+        """
+        Query the object ID.
+        @summary: Query the object ID.
+        @return: uuid for the object
+        @rtype: string 
+        """
+        try:
+            return bufferObject.getId()
+        except java.lang.Exception, e:
+           raise self.convertException(e)
+        
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.BUFFER
+        
+    def get_session(self):
+        """
+        Query the objects session.
+        @summary: Query the objects session.
+        @return: session of the object
+        @rtype: L{Session}
+        @PreCondition: the object was created in a session, either
+            explicitly or implicitly.
+        @PostCondition: the returned session is shallow copied.
+        @raise DoesNotExist:
+        @Note: if no specific session was attached to the object at creation time, 
+            the default SAGA session is returned.
+        @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
+            Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
+        """
+        raise NotImplemented, "get_session() is not implemented in this object"
+    
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        raise NotImplemented, "clone() is not implemented in this object"

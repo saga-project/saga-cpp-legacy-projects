@@ -8,8 +8,8 @@ from object import Object, ObjectType
 from attributes import Attributes
 from error import NotImplemented
 
-#from org.ogf.saga.session import Session, SessionFactory
-#from org.ogf.saga.context import ContextFactory, Context
+from org.ogf.saga.session import Session, SessionFactory
+from org.ogf.saga.context import ContextFactory, Context
 
 class Session(Object):
     """
@@ -17,9 +17,9 @@ class Session(Object):
     dependent sets of SAGA objects from each other. Sessions also support the
     management of security information
     """
-    _session = None
+    sessionObject = None
         
-    def __init__(self, default=True):
+    def __init__(self, default=True, **impl):
         """
         Initialize the object.
         @summary: Initialize the object.
@@ -33,12 +33,16 @@ class Session(Object):
              change the properties of the default session, which is continued to be implicetly used on
              the creation of all saga objects, unless specified otherwise.
         """
-        if default == True:
-            #self._session = SessionFactory.createSession()
-            pass
+        if sessionObject in impl:
+            if type(impl["sessionObject"]) is not org.ogf.saga.session.Session:
+                raise BadParameter, "Parameter impl[\"sessionObject\"] is not a org.ogf.saga.session.Session. Type: " + str(type(impl["sessionObject"]))
+            self.sessionObject = impl["sessionObject"]
         else:
-            #self._session = SessionFactory.createSession(False)
-            pass
+            if default == True:
+                self.sessionObject = SessionFactory.createSession()
+            else:
+                self.sessionObject = SessionFactory.createSession(False)
+            
         
     def add_context(self, context):
         """

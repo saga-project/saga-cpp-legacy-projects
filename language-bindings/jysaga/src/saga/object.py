@@ -131,7 +131,7 @@ class Object(object):
         elif isinstance(e, org.ogf.saga.error.PermissionDeniedException):
             error = PermissionDenied(message, object)
         elif isinstance(e, org.ogf.saga.error.SagaIOException):
-            error = sagIO(message, object)
+            error = sagaIO(message, object)
         elif isinstance(e, org.ogf.saga.error.TimeoutException):
             error = Timeout(message, object)
         else:
