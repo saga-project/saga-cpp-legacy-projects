@@ -376,7 +376,7 @@ Grid5000~\citep{iosup07}.
 % are not sufficient.  Distributed applications need to operate 
 % and execute in real production environments; 
 % however, production distributed environments are in
-% their current implementation and incarnation up to now, the aggregation
+% their current implementation and incarnation upto now, the aggregation
 % of multiple single-resources and there are no explicit attempts at
 % supporting the collective, distributed mode of operations.  For
 % example, production infrastructure does not provide a mechanism for
@@ -678,7 +678,7 @@ time.
 % % not synthetic, real and meanginful physical models 
 % \alnote{I am not sure whether we keep this claim... - maybe we should not promise
 % too much...}
-% Implementing an approach that can scale up to very large 
+% Implementing an approach that can scale upto very large 
 % production infrastructures is a far more challenging task than
 % implementing a toy-model on a research environment. Our approach is
 % aimed strictly at the former, to provide a basis for real scientific
@@ -1525,34 +1525,36 @@ adaptivity modes.
 
 % Our tests are aimed at first determing the when of the SAGA Glide-In
 % framework,
-
-The RE-Manager was configured to run a MD simulation with up to 16
+The RE-Manager was configured to run a MD simulation with upto 16
 replicas sampling a temperature range between 300 and 450\,K. Replica
 exchanges are carried out between pairs of replica processes, thus
-there are upto 8 exchange in each generation; each test run comprises
-of five generations and thus upto 64 attempted
-exchanges\jhanote{AndreL: I don't think the numbers add up here!}
-Each replica is a parallel NAMD simulation, can use up to 24 MPI
-processes and runs for 500 time steps between exchange attemtps. The
-metric of performance used in our tests, is the wall-clock
-time-to-completion for the 5 generation of exchanges.
+there are upto 8 exchanges in each generation; each test run comprises
+of upto 64 attempted exchanges\jhanote{AndreL: I don't think the numbers add up here!} 
+\alnote{Yes, they do not add up. I standardized all figures to T\_c for 64 attempted exchanges}
+Each replica is a parallel NAMD simulation, can use upto 24 MPI
+processes and runs for 500 time steps between exchange attempts. The
+metric of performance used in our tests, is the 
+time-to-completion for 64 attempted exchanges.
 
 \begin{figure}[th]
   \centering
-\subfloat[RE-ManagerScaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf}}
-  \subfloat[Glide-In
-  Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf}}
+  % \subfloat[RE-ManagerScaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf}}
+  % \subfloat[Glide-In
+  % Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf}}
+  \subfloat[RE-ManagerScaling]{\includegraphics[width=0.48\textwidth]{performance/perf_re_numberresource_tc_64ex}}
+    \subfloat[Glide-In
+    Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein_tc_64ex}}
   \caption{\footnotesize \bf SAGA Glide-In and RE Performance
     (QueenBee): \jhanote{For the redline, is there just one glide-in
-      that is being used, or multipled? I think the answer is one, but
+      that is being used, or multiplied? I think the answer is one, but
       need explicit mentioning.}  Obviously, the increase in the
-    number of resources allows sampling of a wider parameter
-    range. Especially beneficial in particular for runs with many
+    number of resources allows a faster completion of 64 replica exchange
+    attempts. Especially beneficial in particular for runs with many
     replicas is the clustering of processes using the SAGA
     Glide-Ins. Using a single Glide-In job for all replicas we
-    observed significant performance improvements of up to 80\,\%.}
+    observed significant performance improvements of upto 50\,\%.}
   \jhanote{AndreL: Why don't we use the same metric as elsewhere, ie
-    time-to-completion?}
+    time-to-completion?}\alnote{ok, done.}
   \jhanote{How many replicas in each glide-in? In the case where there
     are is no Glide-In?}  \alnote{All Replicas are within the single
     Glide-In, i.e. 2, 4, 8 resp. 16 replicas.  With 0 Glide-Ins each
@@ -1575,26 +1577,32 @@ Figure~\ref{fig:perf_remd_glidin} illustrates the results.
 %i.\,e.\ the simulated problem set and the runtime, 
 \jhanote{AndreL: I can't understand what simulated problem set means?}
 
-Obviously, the increase in the number of replicas allows the
-computation of a greater problem set, i.\,e.\ the sampling of a wider
-parameter range (Figure~\ref{fig:perf_remd_glidin}a).  \jhanote{Once
+Obviously, with the increase in the number of replicas the time required
+for 64 exchange attempts decreases (Figure~\ref{fig:perf_remd_glidin}a). 
+% allows the
+% computation of a greater problem set, i.\,e.\ the sampling of a wider
+% parameter range (Figure~\ref{fig:perf_remd_glidin}a).  
+\jhanote{Once
   again, it is not obvious if the number of Glide-Ins is being
   increased on one machine?}  \alnote{I hope this becomes clear now
-  with the new introduction section.}  However, the figure also shows
-the limitations of the regular job submission mechanism: The more
+  with the new introduction section.}  
+However, the figure also shows the limitations of the regular job 
+submission mechanism: The more
 processes are spawned, the more likely queueing delays will be.  With
-the SAGA Glide-In framework the number of NAMD steps almost scales
-linearly; in contrast, without SAGA Glide-In the NAMD steps metric
-rapidly drops when using more than eight replicas.
-
+the SAGA Glide-In framework the time-to-completion almost scales
+linearly; in contrast, without SAGA Glide-In the time-to-completion
+increases again when using more than eight replicas.
 \jhanote{not sure what computed problem set is...?}  \alnote{should
   refer to NAMD step/s. replaced it.}  \jhanote{We need to change the
   metric I think. Why aren't we just using time-to-completion as
-  defined earlier?}. This slowdown is caused by the delay of some
-replicas.  For example, on QB we were only able to run 12 of the 16
-jobs in parallel \jhanote{AndreL: Do you mean ``at the same time'', ie
-  concurrently? If so, let us use concurrently please.}  The remaining
-four replicas had to wait in the queue and produced a significant
+  defined earlier?}\alnote{ok changed.}
+This slowdown was caused by the delay of some replicas.  
+In particular on QB, usually only 12 replicas became active concurrently,
+while the remaining 4 replicas were queued at the local scheduler 
+causing this slowdown. 
+\jhanote{AndreL: Do you mean ``at the same time'', ie
+  concurrently? If so, let us use concurrently please.}\alnote{rephrased this sentence}  
+The remaining four replicas had to wait in the queue and produced a significant
 slowdown during the synchronization after each generation.  This
 behaviour particularly occurs on crowded resources or if policies at
 the local resource manager restrict the number of resources that are
@@ -1613,10 +1621,10 @@ active jobs per user.
 Figure~\ref{fig:perf_remd_glidin}b shows the effect of the SAGA
 Glide-In framework on the time-to-completion ($T_{c}$) using 16
 replicas on QB.  With the Glide-In framework, we were able to reduce
-$T_{c}$ from 70\,minutes to about 17 minutes, which corresponds to a
-decrease of about 70\,\% runtime.  In single scenarios \jhanote{Do you
-  mean single machine scenarios?} even greater improvements of up to
-80\,\% have been observed. As described, this effect is mainly
+$T_{c}$ from 50\,minutes to about 26 minutes per average, which corresponds to a
+decrease of about 50\,\% runtime.  In the best case \jhanote{Do you
+  mean single machine scenarios?} \alnote{I was referring to the best case not the average case} 
+improvements of upto 70\,\% could be observed. As described, this effect is mainly
 attributed to the elimination of queuing times for every sub-job. Once
 the Replica-Agent become active, replicas can be efficiently
 dispatched without requiring interactions with the local scheduler.
@@ -1635,10 +1643,19 @@ scenario).
 \jhanote{We need to say something about the location of the kink when
   glide-in is not used. This is another way of addressing the erratic
   behaviour. Do we have insight as to whether the kink often occurs
-  sooner than at 8replicas? If so, how often.  This would help us
+  sooner than at 8 replicas? If so, how often.  This would help us
   reiterate that the use of glide-in gives a constant/static
   performance estimate, whereas the lack of a GlideIn makes it
-  erratic.}
+  erratic.}        
+\alnote{I updated the data. This were still the old graph from MTAGS. I 
+added data from some additional runs, which reduced the benefit of Glide-In a little, 
+but also the stdev for the without Glide-In case was reduced. Unfortunately, I do not have too many
+data points for the 2, 4, 8 replica processes to really say whether there are earlier kinks. 
+The position of the kink really depends on the length of the PBS queue. In this scenario the 
+cluster was not too crowded, so that many jobs could be backfilled (but not all jobs could be 
+backfilled.)}
+
+
 
 % In contrast, when no Glide-Ins are used every sub-jobs is subject to
 % the queuing delay at the local scheduler.
@@ -1660,7 +1677,7 @@ implemented on top of SAGA Glide-In, are evaluated.
 To evaluate the performance of our framework for different adaptive
 strategies, the RE-Manager has been deployed on multiple
 resources %on the TeraGrid
-and tests performed for two different adatpive scenarios.  In the
+and tests performed for two different adaptive scenarios.  In the
 first, the \emph{replica size} was varied (scenario A; the number of
 MPI processes assigned to each replica), whilst in the second, the
 \emph{replica number} (scenario B; the number of replicas
@@ -1725,7 +1742,7 @@ distributed resources and Glide-In configurations.
 %     \label{fig:performance_perf_distributed}
 % \end{figure}   
                      
-In scenario A, up to 3 resources, each running 4 Glide-Ins with a
+In scenario A, upto 3 resources, each running 4 Glide-Ins with a
 constant size of 32 cores each are used, i.\,e.\ if all resources
 (Abe, QB and Ranger) are available a total of 384 cores (12 Glide-Ins
 with 32 cores each) will be utilised.  During the execution the number
@@ -1757,7 +1774,7 @@ of this parameter.
   to another one (file staging).}
 Figure~\ref{fig:performance_perf_distributed_A} shows the results of
 the distributed run. In spite of the overhead for migrating replicas
-to newly available resources, a notable speedup of up to 15\,minutes
+to newly available resources, a notable speedup of upto 15\,minutes
 can be observed as the number of resources increases from one to two;
 there is a further reduction in the mean by a further minute or two as
 the number of resources increases from two to three.  However, the
@@ -1791,7 +1808,7 @@ Abe and Ranger respectively (iii) Abe, Ranger and QB.
   glide-ins on Abe/QB/Ranger??}  \alnote{Added sentence. Answer to
   your question: yes} Each replica is started with a constant number
 of 16 MPI processes.  Using adaptive temperature sampling, the number
-of replicas is dynamically increased (up to 16) as the number of
+of replicas is dynamically increased (upto 16) as the number of
 available resources increases. 
 
 \jhanote{I don't understand how the number of replicas can be
@@ -2088,9 +2105,9 @@ The adaptive RE framework has been successfully deployed on
 the TeraGrid. 
 % The SAGA Glide-In framework allows the efficient
 % dispatching of replicas. Using this framework the time  
-% to complete could be reduced by up to 80\,\%.                                      
+% to complete could be reduced by upto 80\,\%.                                      
 Using the BigJob abstraction, RE sub-jobs could efficiently be dispatched 
-reducing the time-to-completion up to 80\,\%. The use of different 
+reducing the time-to-completion upto 80\,\%. The use of different 
 adaptivity strategies to dynamically utilise additional resources lead 
 to a further reduction of the time-to-completion.
 

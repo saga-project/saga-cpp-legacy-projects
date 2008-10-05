@@ -1,9 +1,9 @@
 #!/bin/sh
 # CUSTOMIZE
 # set term postscript eps enhanced linewidth 1.42
-set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
+#set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
-#set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
                                       
 
 set encoding iso_8859_1
@@ -154,5 +154,26 @@ plot  "data_remd_timesteps.txt" using 4:3 title "With Glide-In" with lp linewidt
       "data_remd_timesteps.txt" using 4:2 title "Without Glide-In" with lp linewidth 3
 
 
+set output "perf_re_numberresource_tc_64ex.eps"
+set ylabel "Time-to-Completion (in min)" 
+set xlabel "Number Replica Processes"
+set yrange [0:140]  
+set ytics (10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140)   
+#set xrange [0.9:9.25]  
+set xrange [1.95:16.5]
+set xtics (1,2,4,8,16)
 
+plot  "data_re_numberresources_tc.txt" using 4:3 title "With Glide-In" with lp linewidth 3,\
+      "data_re_numberresources_tc.txt" using 4:2 title "Without Glide-In" with lp linewidth 3
+
+set output "perf_glidein_tc_64ex.eps"
+set xtics ("No Glide-In" 1, "With Glide-In" 2.0, "2 Glide-Ins" 3.0, "4 Glide-Ins" 4.0)
+set yrange [0:80]  
+set xrange [0.5:2.5]    
+set style fill solid 0.9   
+set nokey
+set nologscale
+set ylabel "Time-to-Completion (in min)"   
+set noxlabel  
+plot "data-remd-glidein_tc_64ex.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
 
