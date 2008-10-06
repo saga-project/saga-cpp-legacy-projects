@@ -141,20 +141,20 @@
 
   The ability to effectively utilise multiple distributed resources to
   reduce the time-to-completion remains a challenge at many levels.
-  We discuss the Replica-Exchange  class of applications, which in
+  We discuss the Replica-Exchange class of applications, which in
   principle, due to the loose-coupling of the sub-tasks (replicas),
   can benefit greatly from utilising as many resources as available --
   distributed or otherwise.  An implementation of a {\it
-    pleasingly-distributed} algorithm like RE that is independent of
-  infrastructural details however does not exist.  This paper proposes
-  an extensible and scalable framework based on SAGA and Migol that
-  provides a general-purpose, opportunistic mechanism to effectively
-  utilise multiple resources in an infrastructure independent way. By
-  analysing the requirements of the Replica-Exchange algorithm and the
-  challenges of implementing it on real production systems, we propose
-  a new abstraction (BigJob), which forms the basis of the adaptive
-  redistribution of replicas and the effective scheduling of the
-  multiple sub-tasks.
+    pleasingly-distributed} algorithm such as Replica-Exchange, that
+  is independent of infrastructural details, however, does not exist.
+  This paper proposes an extensible and scalable framework based on
+  SAGA and Migol that provides a general-purpose, opportunistic
+  mechanism to effectively utilise multiple resources in an
+  infrastructure independent way. By analysing the requirements of the
+  Replica-Exchange algorithm and the challenges of implementing it on
+  real production systems, we propose a new abstraction (BigJob),
+  which forms the basis of the adaptive redistribution of replicas and
+  the effective scheduling of the multiple sub-tasks.
   
   \jhanote{AndreL: I changed resources in the last sentence to
     replicas. Let me know if you agree?}
@@ -242,8 +242,8 @@ required for computational drug discovery.
 RE simulations involve the concurrent execution of multiple
 simulations -- the \emph{replicas}. The coupling between replicas
 takes place in the form of periodic exchange attempts between paired
-replicas. Typically coupling occurs infrequently compared to the
-run-time of each replica and is small in terms of communication
+replicas. Typically, coupling occurs infrequently compared to the
+run-time of each replica, and is small in terms of communication
 bandwidth requirements; thus RE is {\it prima facie} a perfect
 algorithm to exploit distributed resources. We label such a class of
 algorithms as {\it pleasingly-distributed}.
@@ -258,7 +258,7 @@ algorithms as {\it pleasingly-distributed}.
 %%%%% related work
 Most RE implementations are either infrastructure
 specific~\citep{Woods:2005nx}, or if using multiple distributed
-resources require prior co-scheduling~\citep{repex_mpig}. 
+resources, require prior co-scheduling~\citep{repex_mpig}. 
 %of distributed resources
 % Work reported in Ref[~\citep{repex_mpig}] 
 The work reported by~\citet{repex_mpig} is an important example of
@@ -780,7 +780,7 @@ code, is used to carry out the MD simulation corresponding to each
 replica run. It is important to mention that any other Molecular Dynamics 
 or Monte Carlo code could be used just as simply and effectively.
 
-The last component is Migol and the underlying Globus middleware. 
+The last component is Migol and the underlying middleware. 
 Migol handles the reliable execution of replicas, i.\,e.\ the submission,
 the monitoring and, if required, the recovery of replicas or the application itself. 
 
@@ -833,8 +833,9 @@ negative result, and an exchange is not carried out; thus it is
 difficult to respond to a possible exchange speculatively.
 
 In summary, SAGA allows the simple decoupling of the RE application
-logic from the underlying Grid middleware. It provides well-defined
-abstractions for implementing the RE logic.%  At the same time
+logic from the underlying Grid middleware. It provides a well-defined
+and sufficiently rich interface for implementing the RE
+logic.% At the same time
 % applications can benefit from Migol by simply configuring the
 % corresponding adaptor.
 
@@ -859,16 +860,15 @@ subsubsection level.}
 \subsection{Deploying on Production Environments: Scheduling}
 
 The RE framework has been successfully deployed on production
-environments, such as LONI and the
-TeraGrid~\citep{Luckow:2008la}. However, as the number of replicas
-increase, the probability of an overall slowdown caused by the
-synchronization required by the RE algorithm after each generation
-increases.  The RE-Manager, must periodically obtain the results of
-all replicas to determine the new configurations of the next RE
-step. The replicas are then re-started, i.\,e.\ they are required to
-queue again at the local scheduler. In pathological cases, the
-complete system can come to a halt caused by a single crowded or slow
-resource. 
+environments, such as LONI and the TeraGrid~\citep{Luckow:2008la}.
+The RE-Manager, must periodically obtain the results of all replicas
+to determine the new configurations of the next RE step.  As the
+number of replicas increase, the probability of an overall slowdown
+caused by the synchronization required by the RE algorithm after each
+generation increases.  This is because as the replicas are re-started
+with new configurations, i.\,e.\ they are required to queue again at
+the local scheduler.  In pathological cases, the complete system can
+come to a halt caused by a single crowded or slow resource.
 
 To avoid such bottlenecks, the multiple sub-tasks that comprise
 distributed applications need to avoid re-queuing at the system
@@ -876,13 +876,12 @@ batch-queue level.  Additionally, distributed applications that are
 decomposable into sub-tasks should be able to respond to the dynamic
 availability of resources.  Unfortunately, current infrastructure does
 not support such dynamic scheduling directly, thus in order to provide
-this capability to applications we need (i) system-level abstractions
-that enable agile execution models via application-level allocation of
-resources, and (ii) different adaptivity strategies that determine how
-resources are efficiently utilised.
-{\it The following section describes the extensions to the simple RE
-  framework that enables efficient scheduling of sub-tasks and
-  supports adaptive applications.}
+this capability to applications we need (i) abstractions that enable
+agile execution models via application-level allocation of resources,
+and (ii) different adaptivity strategies that determine how resources
+are efficiently utilised.  {\it The following section describes the
+  extensions to the simple RE framework that enables efficient
+  scheduling of sub-tasks and supports adaptive applications.}
 
 
 
