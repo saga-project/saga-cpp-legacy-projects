@@ -10,6 +10,8 @@ from attributes import Attributes
 from error import NotImplemented
 from session import Session
 from org.ogf.saga.context import ContextFactory, Context
+from java.lang import String
+import org.ogf.saga.error.DoesNotExistException
 
 class Context(Object, Attributes):
     contextObject = None
@@ -169,7 +171,7 @@ class Context(Object, Attributes):
         @rtype: string 
         """
         try:
-            return contextObject.getId()
+            return self.contextObject.getId()
         except java.lang.Exception, e:
            raise self.convertException(e)
       
@@ -275,7 +277,7 @@ class Context(Object, Attributes):
         if type(key) is not str or type(value) is not str:
             raise BadParameter, "Parameter key (" + str(type(key)) +") or value (" + str(type(value)) + ") is not a string."
         try:
-            contextObject.setAttribute(key, value)
+            self.contextObject.setAttribute(key, value)
         except java.lang.Exception, e:
            raise self.convertException(e)
           
@@ -312,7 +314,7 @@ class Context(Object, Attributes):
         if type(key) is not str:
             raise BadParameter, "Parameter key (" + str(type(key)) + ") is not a string."
         try:
-            return contextObject.getAttribute(key)
+            return self.contextObject.getAttribute(key)
         except java.lang.Exception, e:
            raise self.convertException(e)
            
@@ -338,14 +340,15 @@ class Context(Object, Attributes):
         @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
 
         """
-#TODO add other methods
-        if type(key) is not str or type(value) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") or value (" + str(type(value)) + ") is not a string."
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        if type(values) is not list and type(values) is not tuple:
+            raise BadParameter, "Parameter values (" + str(type(key)) +") is not a list."        
         try:
-            contextObject.setAttribute(key, value)
+            jythonArray = array(values, String)
+            self.contextObject.setVectorAttribute( key, jythonArray)
         except java.lang.Exception, e:
            raise self.convertException(e)        
-        raise NotImplemented, "set_vector_attribute() is not implemented in this object"
     
     def get_vector_attribute(self, key):
         #return a list of values
@@ -369,8 +372,14 @@ class Context(Object, Attributes):
         @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
 
         """
-        raise NotImplemented, "get_vector_attribute() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            javaArray = self.contextObject.getVectorAttribute(key)
+            return javaArray.tolist()
+        except java.lang.Exception, e:
+           raise self.convertException(e)        
+          
     def remove_attribute(self, key):
         """
         Removes an attribute.
@@ -392,8 +401,12 @@ class Context(Object, Attributes):
         @note: if a non-existing attribute is removed, a 'DoesNotExist' exception is raised.
         @note: exceptions have the same semantics as defined for the set_attribute() method description.
         """
-
-        raise NotImplemented, "remove_attribute() is not implemented in this object"
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."        
+        try:
+            self.contextObject.removeAttribute(key)
+        except java.lang.Exception, e:
+            raise self.convertException(e)          
     
     def list_attributes(self):
         #return list of keys out
@@ -414,8 +427,12 @@ class Context(Object, Attributes):
         @note: if no attributes are defined for the object, an empty tuple is returned.
 
         """
-        raise NotImplemented, "list_attributes() is not implemented in this object"
-    
+        try:
+            javaArray = self.contextObject.listAttributes()
+            return tuple(javaArray)
+        except java.lang.Exception, e:
+            raise self.convertException(e)           
+        
     def find_attributes(self,  pattern):
         #return keys_list
         """
@@ -437,7 +454,26 @@ class Context(Object, Attributes):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "find_attributes() is not implemented in this object"
+        if type(pattern) is not list and type(pattern) is not tuple:
+            raise BadParameter, "Parameter pattern (" + str(type(pattern)) +") is not a list."        
+        tempString = None
+        javaArray = None
+        try:
+            if len(pattern) is 0:
+                javaArray = contextObject.findAttributes("")
+            elif len(pattern) is 1:
+                javaArray = contextObject.findAttributes(pattern[0])
+            else:
+                tempString = str(pattern[0])
+                for i in range(1, len(pattern)):
+                    tempString = tempString + "," + str(pattern[i]) 
+                execstring = "javaArray = contextObject.findAttributes(" + tempString + ")"
+                exec execstring
+        except java.lang.Exception, e:
+            raise self.convertException(e)    
+        return tuple(javaArray)   
+    
+#TODO: Check if varargs work in jython
     
     def attribute_exists(self, key):
         """
@@ -459,8 +495,23 @@ class Context(Object, Attributes):
             apart from the fact that a 'DoesNotExist' exception is never raised.
 
         """
-        raise NotImplemented, "attribute_exists() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."       
+        try:
+            retvalue = self.contextObject.getAttribute(key)
+            if len(retvalue) > 0:
+                return True
+            else:
+                return False
+        except org.ogf.saga.error.DoesNotExistException, d:
+            return False
+        except java.lang.Exception, e:
+           raise self.convertException(e)     
+
+
+#TODO: No attributeExists() in java 
+#TODO: check workaround 
+ 
     def attribute_is_readonly(self, key):
         """
         Check if the attribute is read only.
@@ -483,8 +534,17 @@ class Context(Object, Attributes):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_readonly() is not implemented in this object"
-        
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.contextObject.isReadOnlyAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e) 
+       
     def attribute_is_writable(self, key):
         """
         Check if the attribute is writable.
@@ -506,8 +566,17 @@ class Context(Object, Attributes):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_writeable() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.contextObject.isWritableAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e) 
+       
     def attribute_is_removable (self, key):
         """
         Check if the attribute is removable.
@@ -518,7 +587,7 @@ class Context(Object, Attributes):
         @rtype: bool
         @permission:    Query
         @raise NotImplemented:
-        @raise  DoesNotExist:
+        @raise DoesNotExist:
         @raise PermissionDenied:
         @raise AuthorizationFailed:
         @raise AuthenticationFailed:
@@ -529,8 +598,17 @@ class Context(Object, Attributes):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_removeable() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.contextObject.isRemovableAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e) 
+       
     def attribute_is_vector(self, key):
         """
         Check whether the attribute is a vector or a scalar.
@@ -551,4 +629,14 @@ class Context(Object, Attributes):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_vector() is not implemented in this object"
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.contextObject.isVectorAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e) 
+       
