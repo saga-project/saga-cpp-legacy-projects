@@ -1014,8 +1014,13 @@ specific capability to cluster sub-jobs, is provided to the
 application via the \emph{BigJob} abstraction. This abstraction
 enhances the SAGA job model \jhanote{Need a sentence or two about what
   ``enhancing the SAGA job model'' means, ie in turn outlining what
-  the SAGA Job Model is?}  with the capability to allocate larger
-chunks of resources prior to an application run.  Another abstraction
+  the SAGA Job Model is?}  with the capability to allocate
+larger chunks of resource for a single job.
+% allocate larger chunks of resources prior to an application run.
+\jhanote{AndreL: Not sure what the commented out line was about.. if
+  you'd like to reinstate, please clarify/elaborate}
+
+Another abstraction
 -- the SAGA Glide-In abstraction is used to support the commonly
 occurring requirement to schedule multiple sub-tasks relative to each
 other and not in competition with other jobs submitted to the batch
@@ -1024,8 +1029,8 @@ are defined; for each \texttt{big\_job} object, a Glide-In job with
 the desired number of resources is started, and \texttt{sub\_job}
 objects -- which correspond to individual replicas, are mapped to a
 \texttt{big\_job} using the jobid as reference. It is helpful to
-reiterate that although there is a big\_job object, this is submitted
-as a Glide-In job and that BigJob abstraction in turn utilises the
+reiterate that although there is a big\_job object, it is submitted
+as a Glide-In job, and that BigJob abstraction in turn utilises the
 Glide-In abstraction to map the individual big-job and sub-jobs to
 physical resources.
 
@@ -1106,12 +1111,12 @@ provide a mapping from a \texttt{sub\_job} to a suitable
 % BigJob
 The SAGA Glide-In implementation comprises of three components: 1) The
 \emph{Glide-In Manager}, which as the name suggests manages the
-orchestration and management and scheduling of Glide-In jobs (which in
-turn allows the management of both big-job objects and sub-jobs) and
-2) The \emph{Replica-Agent}, which represents the Glide-In job and
-thus, the application-level resource manager on the respective
-resource, and 3) the \emph{Advert Service}, which is used for
-communication between the Glide-In Manager and Replica Agent.
+orchestration and scheduling of Glide-In jobs (which in turn allows
+the management of both big-job objects and sub-jobs) and 2) The
+\emph{Replica-Agent}, which represents the Glide-In job and thus, the
+application-level resource manager on the respective resource, and 3)
+the \emph{Advert Service}, which is used for communication between the
+Glide-In Manager and Replica Agent.
 
 % In particular, the Replica Agent has been extended
 % to function as Glide-In, i.\,e.\ they are able to manage a set of
@@ -1150,10 +1155,10 @@ executable is used.
   implementation section; remember it is a SAGA specific thing}
 
 As shown in Figure~\ref{fig:remdmanager_v1.1}, a big-job object is
-submitted to the SAGA Glide-In Manager, which queues a Glide-In job on
-a specific resource. Then when sub-jobs with submitted by the
-RE-Manager, based upon the job id, they are launched onto the correct
-resource with the right number of processors.
+submitted to the SAGA Glide-In Manager, which queues a Glide-In job
+onto a specific resource. Then when sub-jobs are submitted by the
+RE-Manager, they are launched onto the correct resource based upon the
+job id, and with the right number of processors.
 
 % The BigJob abstraction is used as basis for the application-aware scheduler
 % of the RE-Manager. 
@@ -1612,7 +1617,7 @@ strategies, the RE-Manager has been deployed on multiple
 resources %on the TeraGrid
 and tests performed for two different adaptive scenarios.  In the
 first, the \emph{replica size} -- the number of MPI processes assigned
-to each replica, was varied (scenario A), whilst in the second, the
+to each replica, was varied (scenario A). In the second, the
 \emph{replica number} -- the number of replicas participating in a
 generation was varied (scenario B). We compare the runtime of the REMD
 simulation for 64 attempted exchanges on different sets of distributed
@@ -1677,23 +1682,25 @@ resources and Glide-In configurations.
 % \end{figure}   
 
 % general setup                     
-In scenario A, upto 3 different resources are used. When a resource is being
-used, it ran 4 Glide-Ins and each Glide-In job had a constant size of
-32 cores each.  Although, the number of Glide-In jobs on a resource is
-fixed at 4 for reasons of simplicity, our results will hold for
-general values of this parameter. If all resources (Abe, QB and
-Ranger) were being used, there would be 12 Glide-In jobs with 32 cores
-each, for a total of 384 cores. A constant number of 16 replicas is
-used.
-               
+In scenario A, upto 3 different resources are used, the number of
+Glide-Ins vaires from 4 to 12, whilst the number of replicas used is
+fixed at 16. Thus the size of the individual replicas is varied.  When
+a resource is being used, it runs 4 Glide-Ins and each Glide-In job
+has a constant size of 32 cores each.  Although, the number of
+Glide-In jobs on a resource is fixed at 4 for reasons of simplicity,
+our results will hold for general values of this parameter. If all
+resources (Abe, QB and Ranger) were being used, there would be 12
+Glide-In jobs with 32 cores each, for a total of 384 cores.
+
+%A constant number of 16 replicas is used.
 % experiment procedure
 In three different cases (shown in Figure 5), Glide-Ins are submitted
-to one, then 2 and finally 3 statically configured resources. Usually,
-these Glide-Ins are subject to different queueing delays at the local
+to one, 2 or 3 statically configured resources. Usually, these
+Glide-Ins are subject to different queueing delays at the local
 scheduler. To reflect these different resource loads, the number of
 MPI processes assigned to each of the replicas is dynamically
-increased as new resources become available and therefore the number
-of Glide-Ins can be increased. Depending on the number of available
+increased as new resources become available (and therefore the number
+of Glide-Ins can be increased). Depending on the number of available
 resources, between 8 (for 4 Glide-Ins) and 24 cores (for 12 Glide-Ins)
 are used for each replica.
 
@@ -1728,19 +1735,19 @@ are used for each replica.
 Figure~\ref{fig:performance_perf_distributed_A} shows the results of
 the distributed run. In spite of the overhead for migrating replicas
 to newly available resources, a notable speedup of upto 15\,minutes
-can be observed as the number of resources increases from one to two;
-there is a further reduction in the mean $T_c$ by a minute or two as
-the number of resources increases from two to three.  Although, the
-efficiency, defined as runtime on 1 resource divided by the runtime on
-multiple resources scaled by the number of resources, is only about
-0.5, this is rather a limitation of the used setup than a general
-scalability barrier.  The setup comprises of rather short NAMD jobs;
-in particular during the initial phase jobs are often migrated to
-other resources, which mainly causes this overhead. During longer runs
-this overhead is essentially negligible. What is also very important
-to note is the reduced fluctuation in the $T_c$ when multiple
-resources are used. This is indicative of the fact that there is a
-reduction in the sensitivity to queue-loads -- something that
+can be observed as the number of resources increases from one to three;
+% there is a further reduction in the mean $T_c$ by a minute or two as
+% the number of resources increases from two to three.
+Although, the efficiency, defined as runtime on 1 resource divided by
+the runtime on multiple resources scaled by the number of resources,
+is only about 0.5, this is a limitation of the used setup rather than
+a general scalability barrier.  The setup comprises of rather short
+NAMD jobs; in particular during the initial phase jobs are often
+migrated to other resources, which mainly causes this overhead. During
+longer runs this overhead is essentially negligible. What is also very
+important to note is the reduced fluctuation in the $T_c$ when
+multiple resources are used. This is indicative of the fact that there
+is a reduction in the sensitivity to queue-loads -- something that
 applications on real production environments have to battle with.
 \jhanote{AndreL: Mention how many times these experiments were
   repeated? were the three cases repeated the same number of times? or
@@ -1935,21 +1942,23 @@ Grids via the appropriate adaptors, as SAGA is a community
 specification and is soon to be standard~\citep{saga_url}.       
 
 LAMMPS~\citep{Plimpton:1995nx,repex_mpig} supports replica-exchange
-natively, and has been extended~\cite{repex_mpig} to support
+natively, and has been extended~\citep{repex_mpig} to support
 distributed RE based on MPIg~\citep{Toonen:2008ao}, which allows the
 development of topology aware applications. However, this approach is
 different to ours; firstly, it represents a specific solution and is
-less general than our RE framework in that it requires changes to the
-source code; our implementation does not require any changes to the
-source code and NAMD can be easily replaced with another MD code for
-example.  Also, the use of MPIg require the rigid co-allocation of all
-resources, i.\,e.\ in the absence of co-scheduler such as HARC, they
-may waste resources by requiring nodes to remain idle until all
-resources became available.  In contrast, our RE framework is able to
-adaptively use resources as they become available. However, we believe
-that where resources can be co-scheduled and where very long or large
-systems are being simulated the approach outlined in
-Ref.~\citep{repex_mpig} is the probably the preferred approach.
+arguably less general than our RE framework in that it requires
+changes to the source code; our implementation does not require any
+changes to the source code and NAMD can be easily replaced with
+another MD code for example.  Also, the use of MPIg, or any
+distributed computing generalization of MPI, requires the rigid
+co-allocation of all resources, i.\,e.\ in the absence of co-scheduler
+such as HARC, there is a under utilization of resources by requiring
+nodes to remain idle until all resources became available.  In
+contrast, our RE framework is able to adaptively use resources as they
+become available. However, we believe that where resources can be
+co-scheduled and where very long or large systems are being simulated
+the approach outlined in Ref.~\citep{repex_mpig} is the probably the
+preferred approach.
 
 \cite{Woods:2005nx} deployed a RE framework on top of Condor.  To
 address adaptivity the framework proposes so called catchup clusters,
@@ -2043,16 +2052,16 @@ application scenario.
                                          
 \jhanote{needs smoothening} 
 
-In summary, SAGA provides a well-defined abstraction and Migol the
-underlying Grid middleware for developing and running RE applications.
-SAGA allows the simple decoupling of the RE orchestration logic from
-the underlying distributed infrastructure. All this whilst remaining
-general purpose and extensible.  Using SAGA-CPR, the framework is able
-to utilise the Migol infrastructure, i.\,e. the application can
-benefit from features, such as the automatic monitoring and the
-transparent recovery of failed tasks.
+In summary, SAGA provides a well-defined and sufficiently powerful
+interface to develop the required abstraction to support adaptive
+distributed RE applications.  SAGA also allows the simple decoupling
+of the RE orchestration logic from the underlying distributed
+infrastructure. All this whilst remaining general purpose and
+extensible.  Using SAGA-CPR, the framework is able to utilise the
+Migol infrastructure, i.\,e. the application can benefit from
+features, such as the automatic monitoring and the transparent
+recovery of failed tasks.
 
-                 
 \alnote{I used BigJob now as abstraction name...}  
 
 By only slightly extending the job model defined by SAGA, the BigJob
@@ -2061,14 +2070,17 @@ framework.
 % While the current implementation of the framework uses 
 % a custom protocol to implement this abstraction, it can also be applied 
 % to other middleware platforms, such as Condor Glide-In.     
-Based on the BigJob abstraction, support for the Glide-In mechanism
-and different adaptivity strategies that our framework support, the
-agile execution of RE simulations in dynamic environments have been
-developed. Using the SAGA-based framework the application can
-dynamically make use of available resources by adjusting either the
-number of replicas, or the number of MPI processes per replica, in a
-light-weight, scalable and extensible manner.
- % With this approach
+% and different adaptivity strategies that our framework support, the
+% agile execution of RE simulations in dynamic environments has been
+% developed. 
+The RE framework is based on the BigJob abstraction, with support for
+the Glide-In mechanism. Using the SAGA-based RE framework the
+application can dynamically use available resources by adjusting
+either the number of replicas, or the number of MPI processes per
+replica, in a light-weight, scalable and extensible manner.  Thus our
+framework supports the agile-execution of RE simulations in a
+distributed environment.
+% With this approach
 % expensive idle time due to a rigid co-allocation scheme can be
 % avoided, which significantly reduced the time-to-completion.
 While the implementation of this abstraction is entirely based on
@@ -2080,7 +2092,7 @@ Jobs; our BigJob abstraction will then serve as abstraction, while the
 Condor level Glide-In is used as implementation where appropriate.
 
 The adaptive RE framework has been successfully deployed on
-the TeraGrid. 
+the TG and LONI resources.
 % The SAGA Glide-In framework allows the efficient
 % dispatching of replicas. Using this framework the time  
 % to complete could be reduced by upto 80\,\%.                                      
