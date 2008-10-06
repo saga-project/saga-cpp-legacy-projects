@@ -921,7 +921,7 @@ resources are efficiently utilised.
 
 
 % \section{SAGA Glide-In: Efficient Job Scheduling for Replica Jobs}
-\section{Adaptive Replica-Exchange: Abstractions and Algorithms}
+\section{Adaptive Replica-Exchange: Abstractions and Implementation}
 \label{sec:glidein}
 
 As motivated before, the use of multiple {\it simple} Grid jobs to
@@ -1056,6 +1056,111 @@ using the jobid as reference.
 %   language ;-). Now I understand this. Another option would be to
 %   describe this pattern as place-holder job pattern}
    
+         
+\subsection{Implementation}
+
+In this section, we describe the extensions made to the RE framework
+to support the BigJob and the Glide-In abstractions as well as adaptive
+RE.
+
+\subsubsection{Components}     
+
+\begin{figure}[t]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{remdmanager_v11}   
+    \includegraphics[width=0.9\textwidth]{re_bigjob_interactions}   
+    \caption{\footnotesize \bf RE-Manager and SAGA Glide-In Framework:
+      The Replica-Agent is used as place-holder job for all replica
+      sub-jobs running on a single cluster. The \remanager\ can
+      control both the \replicaagent\ and the replica jobs using a
+      SAGA-based user-level job API, the BigJob abstraction. By using
+      this efficient way to allocate resources, queuing times are
+      minimized and the time-to-completion can be dramatically
+      reduced. \jhanote{AndreL: This would be a good place to
+        illustrate clearly, what is a \texttt{big\_job} and what is
+        \texttt{sub\-job}}} \alnote{done.} \alnote{After doing the
+      interaction figure i am really not sure whether the abstraction
+      figure adds any value. I think it is sufficient to mention that
+      the Glide-In job is started via the CPR API, the rest is
+      identical.}
+    \label{fig:remdmanager_v1.1}
+\end{figure}
+    
+% RE-Manager overall
+The RE framework presented in section~\ref{sec:remd_impl} has been
+extended to support the management and scheduling of replica jobs.
+BigJob provides the ability to cluster sub-jobs; Glide-In provides the
+ability to effectively schedule the sub-jobs.  As illustrated in
+Figure~\ref{fig:remdmanager_v1.1}, the RE-Manager relies on the
+\texttt{big\_job} and \texttt{sub\_job} objects as replacement for the
+\texttt{job} object defined by SAGA CPR.  The \texttt{big\_job} and
+\texttt{sub\_job} objects behave similarly to regular SAGA CPR job
+objects. Thus the RE-Manager, which is the application in this case,
+did not require any extensive modification to accomodate this
+replacement; all that the RE-Manager has to do additionally, is
+provide a mapping from a \texttt{sub\_job} to a suitable
+\texttt{big\_job}.
+
+% BigJob
+The SAGA Glide-In implementation comprises of three components: 1) The
+\emph{Glide-In Manager}, which as the name suggests manages the
+orchestration and management of Glide-In jobs (which in turn allows
+the management of both big-job objects and sub-jobs) and 2) The
+\emph{Replica-Agent}, which represents the Glide-In job and thus, the
+application-level resource manager on the respective resource, and 3)
+the \emph{Advert Service}, which is used for communication between the
+Glide-In Manager and Replica Agent.
+
+% In particular, the Replica Agent has been extended
+% to function as Glide-In, i.\,e.\ they are able to manage a set of
+% allocated resources and dispatch sub-jobs on request. 
+% In principal, the Replica-Agent represents an application-level
+% scheduler for the allocated resources.      
+  
+\subsubsection{Interactions}            
+% The implementation of the BigJob abstraction relies on the SAGA 
+% Glide-In framework to reserve resources on a cluster.
+When an application, in this case the RE-Manager, initializes a
+\texttt{big\_job} object, the Glide-In Manager submits a Glide-In job,
+which actually runs a Replica-Agent on the respective resource using
+the SAGA-CPR API.  For this \texttt{big\_job} instance the specified
+number of resources is requested. In the following, \texttt{sub\_job}
+objects can be submitted using the jobid of the \texttt{big\_job} as
+reference.
+
+Communication between the Replica-Agent and Glide-In Manager is
+carried out using the SAGA Advert Service, a central key/value
+store. For each new job an advert entry is created by the
+RE-Manager. The \replicaagent\ periodically polls for new jobs.  If a
+new job is found and resources are available, the job is directly
+dispatched, otherwise it is queued. Further, the agent encapsulates
+local machine-specific settings. During the launch the \replicaagent\
+ensures, that the right combination of compiler, MPI library and NAMD
+executable is used.
+
+% The SAGA Glide-In framework provides the BigJob abstraction, which
+% allows applications to allocate larger chunks of resources and to
+% map these resources to a set of sub-jobs.
+\jhanote{``The enhanced job used by the BigJob abstraction can be used
+  as drop-in replacement for a SAGA job object.'' The previous line in
+  quotes, is confusing. BigJob is an abstraction, and big-job is
+  implementation. Let us not address enhanced job model in the
+  implementation section; remember it is a SAGA specific thing}
+
+As shown in Figure~\ref{fig:remdmanager_v1.1}, a big-job object is
+submitted to the SAGA Glide-In Manager, which queues a Glide-In job on
+a specific resource. Then when sub-jobs with submitted by the
+RE-Manager, based upon the job id, they are launched onto the correct
+resource with the right number of processors.
+
+% The BigJob abstraction is used as basis for the application-aware scheduler
+% of the RE-Manager. 
+% The scheduler determines the number and size of all replicas and
+% maps each replica to a resource, i.\,e.\ a \texttt{big\_job}. Depending on the used adaptivity mode,
+% it dynamically adjusts the number of replicas respectively the replica 
+% size to the available resources. The application-level approach ensures 
+% that the underlying physical model is respected.
+
 \subsection{Adaptive Replica Scheduling}
 \label{sec:adaptivitiy}    
 \alnote{Is this a worth a new section or does it rather belong to
@@ -1177,142 +1282,11 @@ scheduling scheme}
 \alnote{I tried to rephrase this sentence a little. I think for loosely coupled
 apps, co-scheduling is less relevant than for coupled apps. However,
 we did not do a performance study... Thus no data.}   
-         
-\subsection{Implementation}
-% \jhanote{Can we change Glidein in the next paragraph with BigJob?}
-% \alnote{done, i used the python coding convention}    
-
-In this section, we describe the extensions made to the RE framework
-to support the BigJob and the Glide-In abstractions as well as adaptive
-RE.
-
-
-
-\subsubsection{Components}     
-
-\begin{figure}[t]
-    \centering
-    % \includegraphics[width=0.9\textwidth]{remdmanager_v11}   
-    \includegraphics[width=0.9\textwidth]{re_bigjob_interactions}   
-    
-    \caption{\footnotesize \bf RE-Manager and SAGA Glide-In Framework:
-      The Replica-Agent is used as place-holder job for all replica
-      sub-jobs running on a single cluster. The \remanager\ can
-      control both the \replicaagent\ and the replica jobs using a
-      SAGA-based user-level job API, the BigJob abstraction. By using
-      this efficient way to allocate resources, queuing times are
-      minimized and the time-to-completion can be dramatically
-      reduced. \jhanote{AndreL: This would be a good place to
-        illustrate clearly, what is a \texttt{big\_job} and what is
-        \texttt{sub\-job}}} \alnote{done.} \alnote{After doing the
-      interaction figure i am really not sure whether the abstraction
-      figure adds any value. I think it is sufficient to mention that
-      the Glide-In job is started via the CPR API, the rest is
-      identical.}
-    \label{fig:remdmanager_v1.1}
-\end{figure}
-    
-% RE-Manager overall
-The RE framework presented in section~\ref{sec:remd_impl} has been 
-extended to support the management of replica jobs via the BigJob abstraction. 
-As illustrated in Figure~\ref{fig:remdmanager_v1.1}, the RE-Manager relies on
-the \texttt{big\_job} and \texttt{sub\_job} objects as replacement for 
-the \texttt{job} object defined by SAGA CPR. For the integration 
-no major code modification of the RE-Manager was required. The \texttt{big\_job}
-and \texttt{sub\_job} objects behave similarly to regular SAGA CPR job objects.
-The application must solely provide the mapping from a \texttt{sub\_job} to 
-a suitable \texttt{big\_job}.
-
-% BigJob
-The implementation of the BigJob abstraction -- the SAGA Glide-In Framework --
-comprises of three components: 1) The \emph{Glide-In Manager}, which
-allows the management of both big-jobs and sub-jobs, and
-2) The \emph{Replica-Agent}, which represents the Glide-In job and thus, 
-the application-level resource manager 
-on the respective resource, and 3) the \emph{Advert Service}, which is 
-used for communication between the Glide-In Manager and Replica Agent.
-
-% In particular, the Replica Agent has been extended
-% to function as Glide-In, i.\,e.\ they are able to manage a set of
-% allocated resources and dispatch sub-jobs on request. 
-% In principal, the Replica-Agent represents an application-level
-% scheduler for the allocated resources.      
-  
-\subsubsection{Interactions}            
-% The implementation of the BigJob abstraction relies on the SAGA 
-% Glide-In framework to reserve resources on a cluster.
-When an application, e.\,g.\ the RE-Manager, initializes a \texttt{big\_job} 
-the Glide-In Manager submits a job, which runs a Replica-Agent, 
-to the respective resource using the SAGA-CPR API.  For this 
-\texttt{big\_job} instance the specified number of resources 
-is requested. In the following, \texttt{sub\_job} objects can 
-be submitted using the jobid of the \texttt{big\_job} as reference.
-
-Communication between the Replica-Agent and Glide-In
-Manager is carried out using the SAGA Advert Service, a central
-key/value store. For each new job an advert entry is created by the
-RE-Manager. The \replicaagent\ periodically polls for new jobs.  If a
-new job is found and resources are available, the job is directly dispatched,
-otherwise it is queued. Further, the agent encapsulates local machine-specific
-settings. During the launch the \replicaagent\ ensures, e.\,g.\ 
-that the right combination of compiler, MPI library and NAMD 
-executable is used.                
-
-% The SAGA Glide-In framework provides the BigJob abstraction, which allows
-% applications to allocate larger chunks of resources and to map
-% these resources to a set of sub-jobs.  
-\jhanote{``The enhanced job
-  used by the BigJob abstraction can be used as drop-in replacement
-  for a SAGA job object.'' The previous line in quotes, is
-  confusing. BigJob is an abstraction, and big-job is
-  implementation. Let us not address enhanced job model in the
-  implementation section; remember it is a SAGA specific thing}
-
-The BigJob abstraction is used as basis for the application-aware scheduler
-of the RE-Manager. The scheduler determines the number and size of all replicas and
-maps each replica to a resource, i.\,e.\ a \texttt{big\_job}. Depending on the used adaptivity mode,
-it dynamically adjusts the number of replicas respectively the replica 
-size to the available resources. The application-level approach ensures 
-that the underlying physical model is respected.
-
-
-% In the following we use the BigJob abstraction to support adaptive
-% RE simulations.            
-
-% In the following section we demonstrate that as the number of available
-% resources increases, a significant reduction of the time-to-completion
-% is possible using the abstraction and adaptivity strategies described above. 
-
-                                         
-% \alnote{moved discussion abstraction for Condor Glide-In/Falkon to related work}
-% While the implementation of the enhanced job model is entirely based
-% on SAGA, a utilization of other frameworks, such as the orignal Condor
-% Glide-In~\cite{citeulike:291860} or Falkon~\cite{1362680}, is
-% possible. Currently, we are actively working on a Condor adaptor for
-% SAGA, which will also support native Glide-In functionality for Condor
-% Jobs; our enhanced job model will then serve as abstraction, while the
-% Condor level Glide-In is used as implementation where appropriate.  
-
-% At the same time it has been well motivated
-% that a \glidein\ mechanism can dramatically decrease the time to solution. Thus, we
-% propose an enhanced job abstraction, which allows the efficient clustering of RE jobs 
-% into larger Glide-In jobs.
-
-% Figure~\ref{fig:remdmanager_v1.1} illustrates how the enhanced job model abstraction is integrated
-% into the RE framework. The \remanager\  uses the enhanced job model as replacement to the Job API
-% to  cluster replica jobs into larger Glide-In jobs. Since the enhanced job object provides the same methods
-% as a regular SAGA job  no code modifications, except the logic for clustering of replica jobs, 
-% is necessary. The developed \glidein\ framework transparently handles the management of the place-holder jobs
-% (the \textit{Replica-Agents}) and the sub-jobs (the replicas). 
-
-
-
-\jhanote{removed reference to programming abstraction}
 
 % \jhanote{Andre L, here is a note, which will hopefully help: as you
 %   know \glidein\ is a system level abstraction. So we should not say
 %   \glidein\ based application, but applications that use \glidein\ ,
-%   ie application is distinct from the system}   
+%   ie application is distinct from the system}
 
 \jhanote{Secondly, it is important to distinguish between the new
   ``Job abstraction'' ie meta-job and simple-job as an extension of
@@ -1331,98 +1305,6 @@ that the underlying physical model is respected.
   replica-jobs within a meta-job. This location of this note, is a
   good point to separate the two.}    
 
-
-%\alnote{we should add some more application background (the physics behind our approach) to this paragraph}
-
-% \alnote{TODO: Add adaptive sampling description}     
-  
-% The \remanager\ can rapidly execute small replica
-% jobs using the enhanced Job API.
-% This agent is assigned the resources required
-% for all replica processes on this machine.
-  
-% \subsection{Implementation}         
-%  
-% This enhanced job abstraction is entirely implemented on user-level 
-% using SAGA and Python. Using the Python duck typing mechanism the 
-% \glidein\ job and sub-job object can 
-% be used as drop in replacement for regular SAGA Job and CPR objects.
-%                                                           
-% The implementation comprises of the \glidein\ orchestrar providing the 
-% enhanced job API and the Replica-Agents
-% representing the place-holder jobs. When an application requests an 
-% allocation of a resource chunk on a certain machine, the framework submits a
-% place-holder job, the \replicaagent\ , to the respective resource
-% using the SAGA CPR API. 
-% 
-% For every further sub-job the reference to the \replicaagent\ job id 
-% is used by the \glidein\ framework to map
-% the sub-job to a Replica-Agent.  For communication between the \glidein\ framework
-% and the \replicaagent\ a simple protocol based on the SAGA
-% Advert Service, a central key/value store, is used.  For each new job an advert
-% entry is created. The \replicaagent\ periodically polls for new jobs.
-% If a new job is found and resources are available, the job is launched,
-% otherwise it is queued.
-%            
-% In a sense the resources managed by Replica-Agents can be compared to 
-% a resource reservation. In principal, the Replica-Agent represents 
-% a user-level resource manager for these resources. It is the responsibility 
-% of the \replicaagent\ 
-% to assign resources to sub-jobs and free them after completion. Further,
-% the \replicaagent\ monitors all sub-jobs and registers required
-% information with the Migol backend.  
-
-
-
-% \jhanote{Let us reach consistency on, BigJob/LittleJob vs MetaJob vs
-%   Enhanced Job terminology}
-
-% resource management: how large is the glidin job?
-
-% Further, 
-% it is able to tolerate failures within the Grid infrastructure, e.\,g.\ 
-% the failure of the central registry service. 
-
-% To integrate NAMD with the SAGA/Migol infrastructure a SAGA based task
-% agent -- {\it Replica-Launcher}, is used.  This agent is responsible for
-% updating the metadata of the application, i.\,e.\ the state,
-% monitoring endpoint and new checkpoint URLs, at the
-% Migol backend.  The agent then launches the actual NAMD job using
-% MPI. During the entire runtime the replica process is monitored by
-% Migol using the monitoring endpoint of the Replica-Launcher. This
-% Replica-Launcher enables the flexible orchestration of multiple NAMD jobs
-% through the REMD-Manager without modification of the NAMD source
-% itself.    This
-% Replica-Launcher enables the flexible orchestration of multiple NAMD jobs
-% through the REMD-Manager without modification of the NAMD source
-% itself.
-               
-% our implementation of
-% \glidein\ will then serve as a meta \glidein\, with condor level
-% \glidein\ being usable where appropriate.
-
-% thus highlighting the power of programmatic interface working on condor
-% adaptor we could easily map this to condor \glidein
-% {\bf This is the first known instance of creating a system
-% (deployment) level abstraction from basic programming interfaces.}
- 
-
-% \jhanote{May want to replace or remove: At the same time, SAGA allows
-%   the application to easily utilise other infrastructures in
-%   conjunction to or as replacement to Migol.}
-
-% \jhanote{We need to reference the challenges outlined in the previous
-%   section explicitly and mention how we have addressed them}
-
-
-% agile-execution that supports adaptivity, perform better than a rigid
-% co-allocation scheme.
-% In general, an implementation that is adaptive will have
-% a lower time-to-completion. 
-
-% Since the number of replica processes is fixed, the RE-Manager can
-% simply determine the size of the Glide-In job by aggregating 
-% the resources for all replica processes on a certain Grid machine.
 
 % \section{Musings on Dynamic Resources, Adaptive Applications, and
 %   RE Simulations}                                                                  
@@ -1542,7 +1424,6 @@ that the underlying physical model is respected.
 % Scheduling - BS
 % Another issue results from possibly different start times of the
 % \replicaagent\ job at different resources.  
-
 
 \section{Distributed Replica-Exchange on the TeraGrid}
 \label{sec:exp}
