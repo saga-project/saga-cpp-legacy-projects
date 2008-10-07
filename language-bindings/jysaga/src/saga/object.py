@@ -5,6 +5,7 @@
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from error import NotImplemented
+from session import Session
 
 class ObjectType(object):
     """
@@ -47,6 +48,7 @@ class Object(object):
     @version: 1.0
     
     """
+    delegateObject = None
         
     def get_id(self):
         """
@@ -55,7 +57,10 @@ class Object(object):
         @return: uuid for the object
         @rtype: string 
         """
-        raise NotImplemented, "get_id() is not implemented in this object"
+        try:
+            return self.delegateObject.getId()
+        except java.lang.Exception, e:
+           raise self.convertException(e)
       
     def get_type(self):
         """
@@ -64,7 +69,7 @@ class Object(object):
         @return: type of the object as an int from ObjectType
         @rtype: int
         """
-        raise NotImplemented, "get_type() is not implemented in this object"
+        raise NotImplemented, "get_type() is not yet implemented in this object"
         
     def get_session(self):
         """
@@ -81,7 +86,12 @@ class Object(object):
         @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
             Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
         """
-        raise NotImplemented, "get_session() is not implemented in this object"
+        try:
+            javaSession = self.delegateObject.getSession()
+            session = Session(sessionObject=javaSession)
+            return session
+        except java.lang.Exception, e:
+            raise self.convertException(e)
     
     def clone(self):
         """
@@ -96,8 +106,13 @@ class Object(object):
         @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
         """
-        raise NotImplemented, "clone() is not implemented in this object"
-    
+        try:
+            javaClone = self.delegateObject.clone()
+            context = Context(delegateObject=javaClone)
+            return context
+        except java.lang.Exception, e:
+            raise self.convertException(e)
+        
     def convertException(self, e):
         object = None
         message = ""

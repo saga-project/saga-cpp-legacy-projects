@@ -7,9 +7,10 @@
 from object import Object, ObjectType
 from attributes import Attributes
 from error import NotImplemented
+from context import Context
 
 from org.ogf.saga.session import Session, SessionFactory
-from org.ogf.saga.context import ContextFactory, Context
+from org.ogf.saga.context import ContextFactory
 
 class Session(Object):
     """
@@ -17,7 +18,7 @@ class Session(Object):
     dependent sets of SAGA objects from each other. Sessions also support the
     management of security information
     """
-    sessionObject = None
+    delegateObject = None
         
     def __init__(self, default=True, **impl):
         """
@@ -33,15 +34,15 @@ class Session(Object):
              change the properties of the default session, which is continued to be implicetly used on
              the creation of all saga objects, unless specified otherwise.
         """
-        if sessionObject in impl:
-            if type(impl["sessionObject"]) is not org.ogf.saga.session.Session:
-                raise BadParameter, "Parameter impl[\"sessionObject\"] is not a org.ogf.saga.session.Session. Type: " + str(type(impl["sessionObject"]))
-            self.sessionObject = impl["sessionObject"]
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.session.Session:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.session.Session. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
         else:
             if default == True:
-                self.sessionObject = SessionFactory.createSession()
+                self.delegateObject = SessionFactory.createSession()
             else:
-                self.sessionObject = SessionFactory.createSession(False)
+                self.delegateObject = SessionFactory.createSession(False)
             
         
     def add_context(self, context):
@@ -58,9 +59,12 @@ class Session(Object):
             values as the parameter context, no action is taken.
 
         """
-        #add checking of type
-        #self._session.addContext(c.context)
-        pass
+        if type(context) is not Context:
+            raise BadParameter, "Parameter context is not of type Context but " + str(type(context))
+        try:
+            self.delegateObject.addContext(context.delegateObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
     def remove_context(self, context):
         """
@@ -79,7 +83,12 @@ class Session(Object):
               same attributes as the parameter context.
 
         """
-        #self._session.removeContext(context)
+        if type(context) is not Context:
+            raise BadParameter, "Parameter context is not of type Context but " + str(type(context))
+        try:
+            self.delegateObject.removeContext(context.delegateObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
         pass
         
     def list_contexts(self):
@@ -95,34 +104,33 @@ class Session(Object):
         @note: a context might still be in use even if not included in the returned list. See notes
               about context life time in the GFD-R-P.90 document.
         """
-        
-        #check if it returns python objects and not java ones
-        results = ()
-        #temp = self.session.listContexts()
-        #for contexts in temp:
-        #    results.append(contexts)
-        return results
+        javaArray = None
+        retval = []
+        try:
+            self.delegateObject.listContexts()
+        except java.lang.Exception, e:
+            raise convertException(e)
+        if (len(javaArray)) is 0:
+            return retval
+        else:
+            for i in range(len(javaArray)):
+                retval.append( Context(delegateObject=javaArray[i]))
+            return retval
+
+#    def get_id(self): Inherited from Object
+#    def get_session(self): Inherited from Object
+#    def clone(self): Inherited from Object
  
- 
-    # Methods inherited from Object
-#    def get_id(self):
-#        #return self._session.getID();
-#        pass
-#    
-#    def get_type(self):
-#        return ObjectType.session
-#        pass
-#    
-#    def get_session(self):
-#        return self
-#    
-#    def clone(self):
-#        #s = Session(default=False, clone=True)
-#        #s.session = session.clone()
-#        #return s
-#        pass
-    
-    # Method inherited from Attributes
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.SESSION
+
+# Attributes methods inherited from Attributes
     
     
 

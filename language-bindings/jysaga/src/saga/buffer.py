@@ -20,7 +20,7 @@ class Buffer(Object):
     I/O operations, that allows for uniform I/O syntax and semantics over the various SAGA API packages.
 
     """
-    bufferObject = None
+    delegateObject = None
     managedByImp = None
     array = None
     applicationBuf = None
@@ -57,6 +57,10 @@ class Buffer(Object):
         @raise NoSuccess:
         @see: notes about memory management in GFD-R-P.90 document.
         """
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.buffer.Buffer:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.context.Context. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
         super(Buffer,self).__init__()
         if size is not None and data is None:
             if type(size) is not int:
@@ -65,10 +69,10 @@ class Buffer(Object):
                 raise BadParameter, "Parameter size is <= 0"
             try:
                 if size == -1:
-                    self.bufferObject = BufferFactory.createBuffer()
+                    self.delegateObject = BufferFactory.createBuffer()
                     self.managedByImp = True
                 else:
-                    self.bufferObject = BufferFactory.createBuffer(size)
+                    self.delegateObject = BufferFactory.createBuffer(size)
                     self.managedByImp = True
             except java.lang.Exception, e:
                 raise self.convertException(e)
@@ -84,7 +88,7 @@ class Buffer(Object):
                 raise BadParameter, "Parameter size is < 1"
             try:
                 self.array = jarray.array(size, 'b')
-                self.bufferObject =  BufferFactory.createBuffer(self.array)
+                self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
             except java.lang.Exception, e:
@@ -92,7 +96,7 @@ class Buffer(Object):
         
         elif size is None and data is None:
             try:
-                self.bufferObject = BufferFactory.createBuffer()
+                self.delegateObject = BufferFactory.createBuffer()
                 self.managedByImp = True
             except java.lang.Exception, e:
                 raise self.convertException(e)
@@ -105,7 +109,7 @@ class Buffer(Object):
             size = len(data)
             try:
                 self.array = jarray.array(size, 'b')
-                self.bufferObject =  BufferFactory.createBuffer(self.array)
+                self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
             except java.lang.Exception, e:
@@ -137,7 +141,7 @@ class Buffer(Object):
        if type(size) is not int:
            raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
        try:
-           self.bufferObject.setSize()
+           self.delegateObject.setSize()
            self.managedByImp = True
            array = None
            applicationBuf = None
@@ -163,7 +167,7 @@ class Buffer(Object):
         if self.closed is True :
            raise IncorrectState, "Buffer object is already closed()"
         try:
-           return self.bufferObject.getSize()
+           return self.delegateObject.getSize()
         except java.lang.Exception, e:
            raise self.convertException(e)
         
@@ -198,7 +202,7 @@ class Buffer(Object):
             size is len(data)
         try:
             self.array = jarray.array(size, 'b')            
-            self.bufferObject.setData(self.array)
+            self.delegateObject.setData(self.array)
             self.managedByImp = False
             self.applicationBuf = data
         except java.lang.Exception, e:
@@ -224,7 +228,7 @@ class Buffer(Object):
            raise IncorrectState, "Buffer object is already closed()"
         try:
             if self.managedByImp is True:
-                return self.bufferObject.getData().tostring()
+                return self.delegateObject.getData().tostring()
             else:
                 if type(self.data) is list or type(self.data) is array:
                     if len(self.array) <= len(self.data):
@@ -277,27 +281,14 @@ class Buffer(Object):
             raise BadParameter, "Parameter timout is wrong type. Type: " + str(type(timeout))
         try:
             if timeout > 0:
-                self.bufferObject.close()
+                self.delegateObject.close()
                 self.closed = True
             else:
-                self.bufferObject.close(timeout)
+                self.delegateObject.close(timeout)
                 self.closed = True 
         except java.lang.Exception, e:
            raise self.convertException(e)
        
-        
-    def get_id(self):
-        """
-        Query the object ID.
-        @summary: Query the object ID.
-        @return: uuid for the object
-        @rtype: string 
-        """
-        try:
-            return bufferObject.getId()
-        except java.lang.Exception, e:
-           raise self.convertException(e)
-        
     def get_type(self):
         """
         Query the object type.
@@ -307,22 +298,6 @@ class Buffer(Object):
         """
         return ObjectType.BUFFER
         
-    def get_session(self):
-        """
-        Query the objects session.
-        @summary: Query the objects session.
-        @return: session of the object
-        @rtype: L{Session}
-        @PreCondition: the object was created in a session, either
-            explicitly or implicitly.
-        @PostCondition: the returned session is shallow copied.
-        @raise DoesNotExist:
-        @Note: if no specific session was attached to the object at creation time, 
-            the default SAGA session is returned.
-        @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
-            Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
-        """
-        raise NotImplemented, "get_session() is not implemented in this object"
     
     def clone(self):
         """

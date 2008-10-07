@@ -12,6 +12,7 @@ class Attributes(object):
     for instance for job descriptions and metrics. The Attributes
     class provides a common interface for storing and retrieving attributes.
     """
+    delegateObject = None
     
     def set_attribute(self, key, value):
         """
@@ -61,7 +62,12 @@ class Attributes(object):
              'NoSuccess' exception, respectively.
 
         """
-        raise NotImplemented, "set_attribute() is not implemented in this object"
+        if type(key) is not str or type(value) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") or value (" + str(type(value)) + ") is not a string."
+        try:
+            self.delegateObject.setAttribute(key, value)
+        except java.lang.Exception, e:
+           raise self.convertException(e)
     
     def get_attribute(self, key):
         #return value
@@ -93,7 +99,12 @@ class Attributes(object):
               'Timeout' or 'NoSuccess' exception, respectively.
 
         """
-        raise NotImplemented, "get_attribute() is not implemented in this object"
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) + ") is not a string."
+        try:
+            return self.delegateObject.getAttribute(key)
+        except java.lang.Exception, e:
+           raise self.convertException(e)
             
     def set_vector_attribute(self, key, values):
         """
@@ -117,8 +128,16 @@ class Attributes(object):
         @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
 
         """
-        raise NotImplemented, "set_vector_attribute() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        if type(values) is not list and type(values) is not tuple:
+            raise BadParameter, "Parameter values (" + str(type(key)) +") is not a list."        
+        try:
+            jythonArray = array(values, String)
+            self.delegateObject.setVectorAttribute( key, jythonArray)
+        except java.lang.Exception, e:
+           raise self.convertException(e)        
+       
     def get_vector_attribute(self, key):
         #return a list of values
         """
@@ -141,8 +160,14 @@ class Attributes(object):
         @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
 
         """
-        raise NotImplemented, "get_vector_attribute() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            javaArray = self.delegateObject.getVectorAttribute(key)
+            return tuple(javaArray)
+        except java.lang.Exception, e:
+           raise self.convertException(e)
+       
     def remove_attribute(self, key):
         """
         Removes an attribute.
@@ -164,8 +189,12 @@ class Attributes(object):
         @note: if a non-existing attribute is removed, a 'DoesNotExist' exception is raised.
         @note: exceptions have the same semantics as defined for the set_attribute() method description.
         """
-
-        raise NotImplemented, "remove_attribute() is not implemented in this object"
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."        
+        try:
+            self.delegateObject.removeAttribute(key)
+        except java.lang.Exception, e:
+            raise self.convertException(e)   
     
     def list_attributes(self):
         #return list of keys out
@@ -186,8 +215,12 @@ class Attributes(object):
         @note: if no attributes are defined for the object, an empty tuple is returned.
 
         """
-        raise NotImplemented, "list_attributes() is not implemented in this object"
-    
+        try:
+            javaArray = self.delegateObject.listAttributes()
+            return tuple(javaArray)
+        except java.lang.Exception, e:
+            raise self.convertException(e) 
+        
     def find_attributes(self,  pattern):
         #return keys_list
         """
@@ -209,7 +242,25 @@ class Attributes(object):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "find_attributes() is not implemented in this object"
+        if type(pattern) is not list and type(pattern) is not tuple:
+            raise BadParameter, "Parameter pattern (" + str(type(pattern)) +") is not a list."        
+        tempString = None
+        javaArray = None
+        try:
+            if len(pattern) is 0:
+                javaArray = self.delegateObject.findAttributes("")
+            elif len(pattern) is 1:
+                javaArray = self.delegateObject.findAttributes(pattern[0])
+            else:
+                tempString = str(pattern[0])
+                for i in range(1, len(pattern)):
+                    tempString = tempString + "," + str(pattern[i]) 
+                execstring = "javaArray = contextObject.findAttributes(" + tempString + ")"
+                exec execstring
+        except java.lang.Exception, e:
+            raise self.convertException(e)    
+        return tuple(javaArray)   
+#TODO: String[] instead of ... 
     
     def attribute_exists(self, key):
         """
@@ -231,8 +282,22 @@ class Attributes(object):
             apart from the fact that a 'DoesNotExist' exception is never raised.
 
         """
-        raise NotImplemented, "attribute_exists() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."       
+        try:
+            retvalue = self.delegateObject.getAttribute(key)
+            if len(retvalue) > 0:
+                return True
+            else:
+                return False
+        except org.ogf.saga.error.DoesNotExistException, d:
+            return False
+        except java.lang.Exception, e:
+           raise self.convertException(e)   
+
+#TODO: No attributeExists() in java 
+#TODO: check workaround 
+       
     def attribute_is_readonly(self, key):
         """
         Check if the attribute is read only.
@@ -255,7 +320,16 @@ class Attributes(object):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_readonly() is not implemented in this object"
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.delegateObject.isReadOnlyAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e)  
         
     def attribute_is_writable(self, key):
         """
@@ -278,7 +352,16 @@ class Attributes(object):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_writeable() is not implemented in this object"
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.delegateObject.isWritableAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e) 
     
     def attribute_is_removable (self, key):
         """
@@ -301,8 +384,17 @@ class Attributes(object):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_removeable() is not implemented in this object"
-    
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.delegateObject.isRemovableAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e) 
+       
     def attribute_is_vector(self, key):
         """
         Check whether the attribute is a vector or a scalar.
@@ -323,4 +415,14 @@ class Attributes(object):
         @note: exceptions have the same semantics as defined for the get_attribute() method description.
 
         """
-        raise NotImplemented, "attribute_is_vector() is not implemented in this object"
+        if type(key) is not str:
+            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+        try:
+            retvalue = self.delegateObject.isVectorAttribute(key)
+            if retvalue is 1:
+                return True
+            else:
+                return False
+        except java.lang.Exception, e:
+           raise self.convertException(e) 
+       
