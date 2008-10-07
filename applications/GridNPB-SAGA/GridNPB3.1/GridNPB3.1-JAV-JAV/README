@@ -1,2 +1,197 @@
-There has not been any change to the JAV-JAV NGB version since GridNPB3.0. 
-Please download or use that version.
+!-------------------------------------------------------------------------!
+!                                                                         !
+!                   N A S   G R I D   B E N C H M A R K S                 !  
+!                                                                         !
+!			 J A V A	 V E R S I O N  		  !
+!                                                                         !
+!                               R E A D M E                               !
+!                                                                         !
+!-------------------------------------------------------------------------!
+!                                                                         !
+!    Permission to use, copy, distribute and modify this software         !
+!    for any purpose with or without fee is hereby granted.               !
+!    We request, however, that all derived work reference the             !
+!    NAS Grid Benchmarks 3.0 or GridNPB3.0. This software is provided     !
+!    "as is" without expressed or implied warranty.                       ! 
+!                                                                         !
+!    Information on GridNPB3.0, including the concept of                  !
+!    the NAS Grid Benchmarks, the specifications, source code,            !
+!    results and information on how to submit new results,                !
+!    is available at:                                                     !
+!                                                                         !
+!         http://www.nas.nasa.gov/Software/NPB                            !
+!                                                                         !
+!    Send comments or suggestions to  ngb@nas.nasa.gov                    !
+!    Send bug reports to              ngb@nas.nasa.gov                    !
+!                                                                         !
+!          email:  ngb@nas.nasa.gov                                       !
+!          fax:     (650) 604-3957                                        !
+!                                                                         !
+!-------------------------------------------------------------------------!
+! GridNPB3.0 Java version                   				  !
+!	   M. Frumkin							  !
+!-------------------------------------------------------------------------!
+
+-------------------------------------------------------------- Publications
+
+The directory GridNPB3.0 contains a Java implementation of the NAS Grid 
+Benchmarks. The concept of the benchmarks is described in:
+  M. Frumkin, Rob. F. van der Wijngaart. NAS Grid Benchmarks: A Tool for
+  Grid Space Exploration. Journal of Cluster Computing n. 5, 247-255, 2002
+The pencil and paper specification see:
+  Rob. F. van der Wijngaart, M. Frumkin
+  NAS Grid Benchmarks Version 1.0, NAS Technical report NAS-02-005, 
+  http://www.nas.nasa.gov/Research/Reports
+The concept of NAS Parallel Benchmarks see: 
+  D.H.Bailey, J.Barton, T.A.Lasinski and H.Simon 
+  The NAS Parallel Benchmarks, 
+  NAS Technical report RNR-91-002.
+  http://www.nas.nasa.gov/Research/Reports
+Java implementation of the NPB (NPB_JAV) see:
+  Michael Frumkin, Matthew Schultz, Haoqiang Jin, and Jerry Yan 
+  Implementation of the NAS Parallel Benchmarks in Java,
+  NAS Technical report NAS-02-009.
+  http://www.nas.nasa.gov/Research/Reports
+  
+------------------------------------------------------- Setting environment
+
+The GridNPB3.0 are built on NPB_JAV by adding an infrastructure for:
+- organizing jobs as sets of communicating tasks (tasks package)
+- installation of benchmark servers (brmi package)
+- launching the benchmarks (brun package)
+
+The GridNPB3.0 should be installed in a directory GridNPB3.0 and current 
+working directory should be GridNPB3.0. The installation of the GridNPB3.0 
+depends on a number environment variables listed in env.csh file.
+
+On a local machine these include 
+- location of java compiler                     - JROOT
+- location of GridNPB3.0 class files		- CLASSPATH
+- name of the local host			- HOST
+- a port to listen for http connections         - MACH_PORT
+- location of the Java security policy file     - SEC_POLICY
+- maximum heap size used by server's JVM	- SERV_HEAP
+
+These variables should be edited by the installer to reflect the local 
+environment. An example of the values is given in env.csh.template.
+
+------------------------------------- The installation on the local machine
+
+- set environment variables:		source env.csh
+- compile:                      	make all
+- install server on local machine:     	scr/restartserv.sh (see below **)
+
+---------------------------------------- The execution on the local machine
+
+- edit machine names in dfg/ED.S.vcg file to reflect the local machine
+  here ED is the benchmark name, S is the class, and vcg is the file
+  format
+- run benchmarks on local machine:		scr/ngbrun ED S
+
+As a result, ED.S will be executed on the local machine. 
+To execute benchmark XX of the class Y repeat these two steps by 
+changing ED.S to XX.Y.
+
+---------------------------------------------- The installation on the grid
+
+The installation of the GridNPB3.0 package on remote machines depends 
+on environment variables:
+
+- remote host names                             REMHOST*
+- remote working directories			REMDIR*
+
+To install and run benchmarks on a grid consisting of N UNIX hosts 
+remhost1,...,remhostN:
+
+- list the remote hosts and remote directories in scr/remserv:
+  setenv REMHOST1 remhost1
+  setenv REMDIR1  remdir1
+   ... 
+  setenv REMHOSTN remhostN
+  setenv REMDIRN  remdirN
+
+- install remote servers:        	scr/remserv
+- scp and rsh commands will ask 
+  for your passwords on each host
+- wait until messages: 			"BenchmarkServer bound in registry 
+					 on REMHOSTI" will be displayed
+					 for all remote hosts
+
+Note1: tar, scp and rsh commands used in remserv script are system specific. 
+       If your system does not support these you have to copy the source 
+       code to the remote machines by hand and install the service on each
+       of theses machines locally as explained above.
+Note2: REMHOST* and REMDIR* are not used for running the benchmarks
+	 
+------------------------------------------------- The execution on the grid
+
+- modify the dfg/ED.S by appending the names of the nodes by host names. 
+  (By default the names of the nodes not appended by a host name will be 
+  appended by the local host name)
+- run benchmark using:			scr/ngbrun ED S
+
+------------------------------- To install benchmark server on a Windows PC
+
+- copy the GridNPB3.0.tar on the PC
+- untar the file using Aladdin StuffIt
+- edit scr\restartserv.bat by changing pathes to
+    - rmiregistry and java
+    - location of the benchmark package
+    - and local machine name
+- run batch file scr\restartserv.bat
+
+----------------------------------------- To run benchmarks on a Windows PC
+
+- change the grid machines in 	dfg\ED.S.vcg file
+- from a DOS prompt: 		cd to the directory GridNPB3.0
+				scr\ngbrun.bat
+
+--------------------------------------------------------------------- Tests
+
+All GridNPB3.0, CLASSES S and W, serial and 2-threaded were tested on a 
+grid comprised of the following platforms:
+
+  MACHINE              	   OS       	JAVA       
+|------------------------------------------------|
+| SGI Octane              IRIX 6.5        1.3.1  |
+| SGI Origin2000          IRIX64 6.5      1.1.8  |
+| SUN Ultra-60            SunOS 5.6       1.1.3  |
+| SUN Ultra-60            SunOS 5.6       1.4.0  |
+| SUN Enterprise-10000    SunOS 5.7       1.1.8  |
+| IBM A20p Laptop         WINDOWS-2000    1.1.8  |
+| IBM POWER4              AIX 5.1         1.3.0  |
+| PC                      Linux 2.4.18-6  1.1.8  |
+|------------------------------------------------|
+
+--------------------------------------------------------- Possible problems
+
+- ** scr/restartserv.sh first tries to kill rmiregistry. If rmiregistry is
+  not running you can get an error message "kill: bad argument count". 
+  This error message will not effect the script results.
+  On the other hand, if you will get message "permission denied" it
+  means that you are not able to kill the rmiregistry. In this case 
+  depending on the system settings you may not be able to bind the
+  server to the rmiregistry and run NGB.
+   
+- "BenchmarkServer bound in registry on REMHOST*" did not displayed for 
+  all hosts. The most likely this happened because on this machine java is 
+  located in a directory not on the path nor on the suggested pathes to java
+  in the scr/restartserv.sh. Add path to java on this machine to the PATH
+  variable in scr/restartserv.sh and reexecute it. 
+  
+- Run time errors about unexpected or incompatible class file versions.
+  This means either that java on the machine where the benchmark runs does not
+  understand provided class files or that versions of BenchServer_Stub.class on
+  two grid machine are differ. 
+  To avoid this problems, compile the code with the oldest available java
+  compiler. The version of the Java runtime environment should not be older 
+  than 1.1.8, which was used for testing GridNPB3.0.
+  
+- Errors about Security.
+  Make sure that all copies of java are launched with the correct location of
+  the policy file, see GridNPB3.0/brmi/policy.
+
+-------------------------------------------------------- Report problems to
+NPB Working Team: ngb@nas.nasa.gov
+
+
