@@ -9,6 +9,7 @@
 from object import Object, ObjectType
 from monitoring import Monitorable
 from error import NotImplemented
+from org.ogf.saga.task import TaskMode
 
 class State(object):
     """ 
@@ -71,6 +72,12 @@ class TaskType(object):
     to specify which version of the method they want to use. Classes supporting the
     Task model subclass L{Async}.
     """
+
+# Java way is
+# ASYNC(1),
+# TASK(2),
+# SYNC(3);
+
     
     NORMAL = 0
     """@summary: let the method return its specified return values """
@@ -98,10 +105,16 @@ class Task(Object, Monitorable):
             - value: 0
 
     """
-#    def __init__(self):
-#        #no constructor
-#        super(Task,self).__init__()
-#        pass
+    delegateObject = None
+    
+    def __init__(self, **impl):
+        #no constructor
+        super(Task,self).__init__()
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.task.Task:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.Task. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+
     
     def __del__(self):
         """

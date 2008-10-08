@@ -6,6 +6,7 @@
 
 from error import NotImplemented
 from task import Async, TaskType
+from org.ogf.saga.task import TaskMode
 
 
 class Permission(object):
@@ -40,8 +41,9 @@ class Permissions(Async):
     specific operations on SAGA objects or grid entities, such as files, streams, or
     monitorables, and to query and set such permissions
     """   
+    delegateObject = None
 
-    def permissions_allow(self, id, perm, type=TaskType.NORMAL):
+    def permissions_allow(self, id, perm, tasktype=TaskType.NORMAL):
         """
         Enable permission flags.
         @summary: Enable permission flags.
@@ -65,16 +67,37 @@ class Permissions(Async):
         @note: if the given id is unknown or not supported, a 'BadParameter' exception is raised.
 
         """
- 
-    def permissions_deny(self, id, perm, type=TaskType.NORMAL):
+        if type(id) is not str:
+            raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
+        if type(perm) is not int:
+            raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = delegateObject.permissionsAllow(TaskMode.ASYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = delegateObject.permissionsAllow(TaskMode.SYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = delegateObject.permissionsAllow(TaskMode.TASK, id, perm)
+                return Task(delegateObject=javaObject)                
+            else:
+                delegateObject.permissionsAllow(id, perm)
+        except java.lang.Exception, e:
+            raise convertException(e)
+            
+    def permissions_deny(self, id, perm, tasktype=TaskType.NORMAL):
         """
         Disable permission flags.
         @summary: Disable permission flags.
         @param id: id to set permissions for
         @type id: string
         @param perm: permissions to disable
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int 
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int 
         @PostCondition: the permissions are disabled.
         @permission: Owner
         @raise NotImplemented:
@@ -89,8 +112,29 @@ class Permissions(Async):
         @note: if the given id is unknown or not supported, a 'BadParameter' exception is raised.
 
         """
-    
-    def permissions_check(self, id, perm, type=TaskType.NORMAL):
+        if type(id) is not str:
+            raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
+        if type(perm) is not int:
+            raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = delegateObject.permissionsDeny(TaskMode.ASYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = delegateObject.permissionsDeny(TaskMode.SYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = delegateObject.permissionsDeny(TaskMode.TASK, id, perm)
+                return Task(delegateObject=javaObject)                
+            else:
+                delegateObject.permissionsDeny(id, perm)
+        except java.lang.Exception, e:
+            raise convertException(e)
+
+    def permissions_check(self, id, perm, tasktype=TaskType.NORMAL):
         """
         Check permissions flags.
         @summary: Check permission flags.
@@ -98,8 +142,8 @@ class Permissions(Async):
         @type id: string
         @param perm: permissions to check
         @type perm: int
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int        
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int        
         @return: indicates if, for that id, the permissions are granted (True) or not (False).
         @rtype: bool
         @permission:    Query
@@ -115,6 +159,31 @@ class Permissions(Async):
         @note: if the given id is unknown or not supported, a 'BadParameter' exception is raised.
 
         """
+        if type(id) is not str:
+            raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
+        if type(perm) is not int:
+            raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = delegateObject.permissionsCheck(TaskMode.ASYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = delegateObject.permissionsCheck(TaskMode.SYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = delegateObject.permissionsCheck(TaskMode.TASK, id, perm)
+                return Task(delegateObject=javaObject)                
+            else:
+                retval = delegateObject.permissionsCheck(id, perm)
+                if retval is 1:
+                    return True
+                else:
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)       
     
     def get_owner(self,type=TaskType.NORMAL):
         """
@@ -122,8 +191,8 @@ class Permissions(Async):
         @summary: Get the owner of the entity.
         @return: id of the owner
         @rtype: string
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int        
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int        
         @permission: Query
         @raise NotImplemented:
         @raise PermissionDenied:
@@ -136,15 +205,42 @@ class Permissions(Async):
              method does not return an empty string, '*' (all), or a group id.
 
         """
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = delegateObject.permissionsCheck(TaskMode.ASYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = delegateObject.permissionsCheck(TaskMode.SYNC, id, perm)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = delegateObject.permissionsCheck(TaskMode.TASK, id, perm)
+                return Task(delegateObject=javaObject)                
+            else:
+                return delegateObject.getOwner()
+                if retval is 1:
+                    return True
+                else:
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)     
 
+ String     getOwner()
+          Gets the owner id of the entity.
+ Task<T,String>     getOwner(TaskMode mode)
+          Creates a task that obtains the owner id of the entity.
+        
+        
         raise NotImplemented, "get_owner() is not implemented in this object"
     
-    def get_group(self, type=TaskType.NORMAL):
+    def get_group(self, tasktype=TaskType.NORMAL):
         """
         Get the group owning the entity.
         @summary:  Get the group owning the entity.
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: id of the group
         @rtype: string
         @permission: Query
@@ -157,3 +253,10 @@ class Permissions(Async):
         @note: returns the id of the group owning the entity
         @note: if the implementation does not support groups, the method returns an empty string.
         """
+
+
+
+ String     getGroup()
+          Gets the group id of the entity.
+ Task<T,String>     getGroup(TaskMode mode)
+          Creates a task that obtains the group id of the entity.

@@ -87,7 +87,7 @@ class Buffer(Object):
             if size < 1 and size is not -1:
                 raise BadParameter, "Parameter size is < 1"
             try:
-                self.array = jarray.array(size, 'b')
+                self.array = jarray.zeros(size, 'b')
                 self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
@@ -108,7 +108,7 @@ class Buffer(Object):
                 raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
             size = len(data)
             try:
-                self.array = jarray.array(size, 'b')
+                self.array = jarray.zeros(size, 'b')
                 self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
@@ -201,7 +201,7 @@ class Buffer(Object):
         if size is -1:
             size is len(data)
         try:
-            self.array = jarray.array(size, 'b')            
+            self.array = jarray.zeros(size, 'b')            
             self.delegateObject.setData(self.array)
             self.managedByImp = False
             self.applicationBuf = data
@@ -312,4 +312,11 @@ class Buffer(Object):
         @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
         """
-        raise NotImplemented, "clone() is not implemented in this object"
+        javaClone = delegateObject.clone()
+        temp = Buffer(delegateObject = javaClone)
+        temp.managedByImp = self.managedByImp
+        temp.array = jarray.array(self.array, 'b')
+        #TODO: check clone and buffer behaviour -> Java Data copying? Set data?
+        temp.applicationBuf = self.applicationBuf
+        temp.closed = self.closed
+
