@@ -72,12 +72,10 @@ class TaskType(object):
     to specify which version of the method they want to use. Classes supporting the
     Task model subclass L{Async}.
     """
-
-# Java way is
-# ASYNC(1),
-# TASK(2),
-# SYNC(3);
-
+    # Java way is
+    # ASYNC(1),
+    # TASK(2),
+    # SYNC(3);
     
     NORMAL = 0
     """@summary: let the method return its specified return values """

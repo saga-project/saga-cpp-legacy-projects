@@ -51,7 +51,7 @@ class Callback(object):
 class Metric(Object, Attributes):
     """A metric represents an entity or value to be monitored."""
 
-    def __init__(self, name, desc, mode, unit, type, value):
+    def __init__(self, name, desc, mode, unit, mtype, value):
         """
         Initializes the Metric object.
         @summary: Initializes the Metric object.
@@ -63,12 +63,12 @@ class Metric(Object, Attributes):
         @type mode: string
         @param unit: unit of the metric value
         @type unit: string
-        @param type: type of the metric
-        @type type: string
+        @param mtype: type of the metric
+        @type mtype: string
         @param value: initial value of the metric
         @type value: string
         @PostCondition: callbacks can be registered on the metric.
-        @Raise  NotImplemented:
+        @Raise NotImplemented:
         @raise BadParameter:
         @raise Timeout:
         @raise NoSuccess:

@@ -7,6 +7,8 @@
 from error import NotImplemented
 from attributes import Attributes
 from object import Object, ObjectType
+from org.ogf.saga.monitoring import MonitoringFactory
+
 
 class Callback(object):
     """Callbacks are used for asynchronous notification of metric changes (events) """
@@ -52,8 +54,9 @@ class Callback(object):
   
 class Metric(Object, Attributes):
     """A metric represents an entity / value to be monitored."""
+    delegateObject = None
 
-    def __init__(self, name, desc, mode, unit, type, value):
+    def __init__(self, name, desc, mode, unit, mtype, value):
     #in string name, in string desc, in string mode, in string unit, in string type, in string value, out metric          obj);
         """
         Initializes the Metric object.
@@ -67,8 +70,8 @@ class Metric(Object, Attributes):
         @type mode: string
         @param unit: unit of the metric value
         @type unit: string
-        @param type: type of the metric
-        @type type: string
+        @param mtype: type of the metric
+        @type mtype: string
         @param value: initial value of the metric
         @type value: string
 
@@ -86,7 +89,22 @@ class Metric(Object, Attributes):
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend could not create that specific metric.
         """
         super(Metric, self).__init__()
-    
+        if type(name) is not str:
+            raise BadParameter, "Parameter name is not a string. Type: " + str(type(name))
+        if type(desc) is not str:
+            raise BadParameter, "Parameter desc is not a string. Type: " + str(type(desc))
+        if type(mode) is not str:
+            raise BadParameter, "Parameter mode is not a string. Type: " + str(type(mode))
+        if type(unit) is not str:
+            raise BadParameter, "Parameter unit is not a string. Type: " + str(type(unit))
+        if type(mtype) is not str:
+            raise BadParameter, "Parameter mtype is not a string. Type: " + str(type(mtype))
+        if type(value) is not str:
+            raise BadParameter, "Parameter value is not a string. Type: " + str(type(value))        
+        try:
+            self.delegateObject = MonitoringFactory.createMetric(name, desc, mode, unit, type, value) 
+        except java.lang.Exception, e:
+            raise convertException(e)
       
     #callback handling
     def add_callback(self, cb): 
@@ -189,6 +207,7 @@ class Metric(Object, Attributes):
         
 class Monitorable(object):
     """SAGA objects which provide metrics and can thus be monitored extend the Monitorable class"""
+    delegateObject = None
 
     def list_metrics(self):
         #return array<string> names
@@ -213,6 +232,11 @@ class Monitorable(object):
                  exception indicates that the current session is not allowed to list the available metrics.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to list the available metrics.
         """
+
+# String[]     listMetrics()
+#         Lists all metrics associated with the object.
+
+ 
         raise NotImplemented, "list_metrics() is not implemented in this object"
      
     def get_metric(self, name):
@@ -241,6 +265,9 @@ class Monitorable(object):
 
         """
         raise NotImplemented, "get_metric() is not implemented in this object"
+ 
+# Metric     getMetric(String name)
+#          Returns a metric instance, identified by name.
      
     def add_callback(self, name, cb):
         #in string name, in callback cb, out int cookie
@@ -265,6 +292,8 @@ class Monitorable(object):
         @Note: notes to the add_callback method of the metric class apply.
 
         """
+# int     addCallback(String name, Callback cb)
+#          Adds a callback to the specified metric. 
         raise NotImplemented, "add_callback() is not implemented in this object"
      
     def remove_callback(self, name, cookie):
@@ -288,6 +317,8 @@ class Monitorable(object):
         @raise NoSuccess:
         @Note: notes to the remove_callback method of the metric class apply
         """
+# void     removeCallback(String name, int cookie)
+#          Removes the specified callback.
         raise NotImplemented, "remove_callback() is not implemented in this object"
    
 class Steerable(Monitorable):
@@ -323,6 +354,8 @@ class Steerable(Monitorable):
         @Note: if the steerable instance does not support the addition of new metrics, i.e. if only the
                  default metrics can be steered, an "IncorrectState" exception is raised.
         """
+# boolean     addMetric(Metric metric)
+#         Adds a metric instance to the application instance.
         raise NotImplemented, "add_metric() is not implemented in this object"
 
     def remove_metric(self, name):
@@ -354,6 +387,8 @@ class Steerable(Monitorable):
                  For example, the "state" metric on a steerable job cannot be removed.
 
         """
+# void     removeMetric(String name)
+#          Removes a metric instance.
         raise NotImplemented, "remove_metric() is not implemented in this object"
 
     def fire_metric(self, name):
@@ -382,4 +417,6 @@ class Steerable(Monitorable):
         @Note: an attempt to fire a "Final" metric results in an "IncorrectState" exception.
 
         """
+# void     fireMetric(String name)
+#          Pushes a new metric value to the backend.
         raise NotImplemented, "fire_metric() is not implemented in this object"

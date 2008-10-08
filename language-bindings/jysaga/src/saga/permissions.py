@@ -210,30 +210,18 @@ class Permissions(Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = delegateObject.permissionsCheck(TaskMode.ASYNC, id, perm)
+                javaObject = delegateObject.getOwner(TaskMode.ASYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = delegateObject.permissionsCheck(TaskMode.SYNC, id, perm)
+                javaObject = delegateObject.getOwner(TaskMode.SYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = delegateObject.permissionsCheck(TaskMode.TASK, id, perm)
+                javaObject = delegateObject.getOwner(TaskMode.TASK)
                 return Task(delegateObject=javaObject)                
             else:
                 return delegateObject.getOwner()
-                if retval is 1:
-                    return True
-                else:
-                    return False
         except java.lang.Exception, e:
             raise convertException(e)     
-
- String     getOwner()
-          Gets the owner id of the entity.
- Task<T,String>     getOwner(TaskMode mode)
-          Creates a task that obtains the owner id of the entity.
-        
-        
-        raise NotImplemented, "get_owner() is not implemented in this object"
     
     def get_group(self, tasktype=TaskType.NORMAL):
         """
@@ -253,10 +241,21 @@ class Permissions(Async):
         @note: returns the id of the group owning the entity
         @note: if the implementation does not support groups, the method returns an empty string.
         """
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = delegateObject.getGroup(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = delegateObject.getGroup(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = delegateObject.getGroup(TaskMode.TASK)
+                return Task(delegateObject=javaObject)                
+            else:
+                return delegateObject.getGroup()
+        except java.lang.Exception, e:
+            raise convertException(e)     
 
-
-
- String     getGroup()
-          Gets the group id of the entity.
- Task<T,String>     getGroup(TaskMode mode)
-          Creates a task that obtains the group id of the entity.
