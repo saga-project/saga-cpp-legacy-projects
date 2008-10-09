@@ -15,9 +15,13 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
-#include <saga/saga.hpp>
+#include "TaskController.hpp"
 
 int main (int argc, char * const argv[]) 
 {
+    saga::url rm_url("any://oliver1.loni.org/jobmanager-pbs");
+    GridNPB::TaskController t(rm_url, "/work/oweidner/", 8);
+    t.launch();
+    
     return EXIT_SUCCESS;
 }
