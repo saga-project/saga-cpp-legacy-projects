@@ -8,7 +8,13 @@ from error import NotImplemented
 from attributes import Attributes
 from object import Object, ObjectType
 from org.ogf.saga.monitoring import MonitoringFactory
-
+import org.ogf.monitoring.Callback
+import org.ogf.saga.task.Task
+import org.ogf.saga.task.TaskContainer
+import org.ogf.saga.stream.Stream
+import org.ogf.saga.stream.StreamService
+import org.ogf.saga.job.Job
+import org.ogf.saga.job.JobSelf
 
 class Callback(object):
     """Callbacks are used for asynchronous notification of metric changes (events) """
@@ -50,8 +56,47 @@ class Callback(object):
                until a callback invocation is finished.
 
         """
-        raise NotImplemented, "cb() is not implemented in this object"
-  
+        raise NotImplemented, "cb() is not implemented in this object. Classes extending Callback must implement their own cb()"
+
+class CallbackProxy(org.ogf.monitoring.Callback):
+    pythonCallbackObject = None
+    
+    def __init__(self, **impl):
+        if pythonCallbackObject in impl:
+            if not isinstance(impl["pythonCallbackObject"], Callback):
+                raise BadParameter, "Parameter impl[\"pythonCallbackObject\"] is not a subclass of Callback. Type: " + str(type(impl["pythonCallbackObject"]))
+            self.pythonCallbackObject = impl["pythonCallbackObject"]
+
+    def cb(self, monitorable, metric, context):  
+        tempMetric = Metric(delegateObject = metric)
+        tempContext = Context(delegateObject = context)
+        tempMonitorable = None
+        if  isinstance (monitorable, org.ogf.saga.task.Task):
+            tempMonitorable = Task(delegateObject = monitorable)
+        
+        elif isinstance(monitorable, org.ogf.saga.task.TaskContainer):
+            tempMonitorable = TaskContainer(delegateObject = monitorable)
+        
+        elif isinstance(monitorable, org.ogf.saga.stream.StreamService):
+            tempMonitorable = StreamService(delegateObject = monitorable)
+        
+        elif isinstance(monitorable, org.ogf.saga.stream.Stream):
+            tempMonitorable = Stream(delegateObject = monitorable)
+        
+        elif isinstance(monitorable, org.ogf.saga.job.Job):
+            tempMonitorable = Job(delegateObject = monitorable)
+        
+        elif isinstance(monitorable, org.ogf.saga.job.JobSelf):
+            tempMonitorable = Jobself(delegateObject = monitorable)
+        else:
+            #TODO: Check if CallbackProxy fallback is needed
+            message = "CallbackProxy: unknown monitorable object was passed from Java Implementation. Type: "
+            message = message + str(monitorable.__class__) + " Not passed to pythonObject.cb() " 
+            print message
+        if tempMonitorable is not None:
+            self.pythonCallbackObject.cb(tempMonitorable, tempMetric, tempContext)
+        
+      
 class Metric(Object, Attributes):
     """A metric represents an entity / value to be monitored."""
     delegateObject = None
@@ -139,6 +184,8 @@ class Metric(Object, Attributes):
 
         """
         #@note: the cb is passed by reference.
+        # save callback
+               
         cookie = 0
         return cookie
      
@@ -232,12 +279,11 @@ class Monitorable(object):
                  exception indicates that the current session is not allowed to list the available metrics.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to list the available metrics.
         """
-
-# String[]     listMetrics()
-#         Lists all metrics associated with the object.
-
- 
-        raise NotImplemented, "list_metrics() is not implemented in this object"
+        try:
+            retval = self.delegateObject.listMetrics()
+            return(tuple(retval))
+        except java.lang.Exception, e:
+            raise convertException(e)
      
     def get_metric(self, name):
          #in string name, return metric metric
@@ -264,10 +310,13 @@ class Monitorable(object):
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend was not able to return the named metric.
 
         """
-        raise NotImplemented, "get_metric() is not implemented in this object"
- 
-# Metric     getMetric(String name)
-#          Returns a metric instance, identified by name.
+        if type(name) is not str:
+            raise BadParameter, "Parameter name is not a string. Type: " +str(type(name))
+        try:
+            javaObject = self.delegateObject.getMetric(name)
+            return Metric(delegateObject=javaObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
      
     def add_callback(self, name, cb):
         #in string name, in callback cb, out int cookie
@@ -292,6 +341,20 @@ class Monitorable(object):
         @Note: notes to the add_callback method of the metric class apply.
 
         """
+        if type(name) is not str:
+            raise BadParameter, "Parameter name is not a string. Type: " +str(type(name))
+        if isinstance(cb, Callback) is False:
+            raise BadParameter, "Parameter cb is not a subclass of Callback. Type: " + str(type(cb))
+        try:
+            cookie = self.delegateObject.addCallback(name, delegateCallback )
+            return Metric(delegateObject=javaObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
+
+
+
+
+
 # int     addCallback(String name, Callback cb)
 #          Adds a callback to the specified metric. 
         raise NotImplemented, "add_callback() is not implemented in this object"
@@ -323,6 +386,7 @@ class Monitorable(object):
    
 class Steerable(Monitorable):
     """SAGA objects which can be steered by changing their metrics implement the steerable interface"""
+    delegateObject = None
 
     def add_metric(self, metric):
         #in metric metric, out bool success
@@ -354,9 +418,16 @@ class Steerable(Monitorable):
         @Note: if the steerable instance does not support the addition of new metrics, i.e. if only the
                  default metrics can be steered, an "IncorrectState" exception is raised.
         """
-# boolean     addMetric(Metric metric)
-#         Adds a metric instance to the application instance.
-        raise NotImplemented, "add_metric() is not implemented in this object"
+        if type(metric) is not Metric:
+            raise BadParameter, "Parameter metric is not a Metric. Type: " + str(type(metric))
+        try:
+            retval =  self.delgateObject.addMetric(metric.delegateObject)
+            if retval is 1:
+                return True
+            else: 
+                return False
+        except java.lang.Exception:
+            raise convertException(e)
 
     def remove_metric(self, name):
         #in string name
@@ -387,9 +458,12 @@ class Steerable(Monitorable):
                  For example, the "state" metric on a steerable job cannot be removed.
 
         """
-# void     removeMetric(String name)
-#          Removes a metric instance.
-        raise NotImplemented, "remove_metric() is not implemented in this object"
+        if type(name) is not str:
+            raise BadParameter, "Parameter name is not a string. Type: " + str(type(name))
+        try:
+            self.delgateObject.removeMetric(name)
+        except java.lang.Exception:
+            raise convertException(e)
 
     def fire_metric(self, name):
         #in string name
@@ -417,6 +491,10 @@ class Steerable(Monitorable):
         @Note: an attempt to fire a "Final" metric results in an "IncorrectState" exception.
 
         """
-# void     fireMetric(String name)
-#          Pushes a new metric value to the backend.
+        if type(name) is not str:
+            raise BadParameter, "Parameter name is not a string. Type: " + str(type(name))
+        try:
+            self.delgateObject.fireMetric(name)
+        except java.lang.Exception:
+            raise convertException(e)
         raise NotImplemented, "fire_metric() is not implemented in this object"

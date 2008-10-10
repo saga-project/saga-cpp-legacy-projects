@@ -41,7 +41,7 @@ class Permissions(Async):
     monitorables, and to query and set such permissions
     """   
 
-    def permissions_allow(self, id, perm, type=TaskType.NORMAL):
+    def permissions_allow(self, id, perm, tasktype=TaskType.NORMAL):
         """
         Enable permission flags.
         @summary: Enable permission flags.
@@ -49,8 +49,8 @@ class Permissions(Async):
         @type id: string
         @param perm: permissions to enable
         @type perm: int
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int
         @PostCondition: the permissions are enabled.
         @Permission: Owner
         @raise NotImplemented:
@@ -66,15 +66,15 @@ class Permissions(Async):
 
         """
  
-    def permissions_deny(self, id, perm, type=TaskType.NORMAL):
+    def permissions_deny(self, id, perm, tasktype=TaskType.NORMAL):
         """
         Disable permission flags.
         @summary: Disable permission flags.
         @param id: id to set permissions for
         @type id: string
         @param perm: permissions to disable
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int 
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int 
         @PostCondition: the permissions are disabled.
         @permission: Owner
         @raise NotImplemented:
@@ -90,7 +90,7 @@ class Permissions(Async):
 
         """
     
-    def permissions_check(self, id, perm, type=TaskType.NORMAL):
+    def permissions_check(self, id, perm, tasktype=TaskType.NORMAL):
         """
         Check permissions flags.
         @summary: Check permission flags.
@@ -98,8 +98,8 @@ class Permissions(Async):
         @type id: string
         @param perm: permissions to check
         @type perm: int
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int        
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int        
         @return: indicates if, for that id, the permissions are granted (True) or not (False).
         @rtype: bool
         @permission:    Query
@@ -116,14 +116,14 @@ class Permissions(Async):
 
         """
     
-    def get_owner(self,type=TaskType.NORMAL):
+    def get_owner(self,tasktype=TaskType.NORMAL):
         """
         Get the owner of the entity.
         @summary: Get the owner of the entity.
         @return: id of the owner
         @rtype: string
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int        
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int        
         @permission: Query
         @raise NotImplemented:
         @raise PermissionDenied:
@@ -139,12 +139,12 @@ class Permissions(Async):
 
         raise NotImplemented, "get_owner() is not implemented in this object"
     
-    def get_group(self, type=TaskType.NORMAL):
+    def get_group(self, tasktype=TaskType.NORMAL):
         """
         Get the group owning the entity.
         @summary:  Get the group owning the entity.
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: id of the group
         @rtype: string
         @permission: Query
