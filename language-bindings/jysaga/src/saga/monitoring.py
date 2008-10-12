@@ -8,6 +8,7 @@ from error import NotImplemented
 from attributes import Attributes
 from object import Object, ObjectType
 from org.ogf.saga.monitoring import MonitoringFactory
+import ort.ogf.monitoring.Metric
 import org.ogf.monitoring.Callback
 import org.ogf.saga.task.Task
 import org.ogf.saga.task.TaskContainer
@@ -100,8 +101,9 @@ class CallbackProxy(org.ogf.monitoring.Callback):
 class Metric(Object, Attributes):
     """A metric represents an entity / value to be monitored."""
     delegateObject = None
+    callbacks = {}
 
-    def __init__(self, name, desc, mode, unit, mtype, value):
+    def __init__(self, name, desc, mode, unit, mtype, value, **impl):
     #in string name, in string desc, in string mode, in string unit, in string type, in string value, out metric          obj);
         """
         Initializes the Metric object.
@@ -133,6 +135,11 @@ class Metric(Object, Attributes):
          required parameter (all but "unit") will cause a BadParameter exception.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend could not create that specific metric.
         """
+        if delegateObject in impl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.monitoring.Metric):
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.monitoring.Metric. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+            return
         super(Metric, self).__init__()
         if type(name) is not str:
             raise BadParameter, "Parameter name is not a string. Type: " + str(type(name))
@@ -183,13 +190,15 @@ class Metric(Object, Attributes):
                  "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied" exception to be raised.
 
         """
-        #@note: the cb is passed by reference.
-        # save callback
-               
-        cookie = 0
-        return cookie
-     
-      
+        if isinstance(cb, Callback) is False:
+            raise BadParameter, "Parameter cb is not a subclass of Callback. Type: " + str(type(cb))
+        try:
+            delegateCallback = CallbackProxy(pythonCallbackObject=cb)
+            cookie = self.delegateObject.addCallback(delegateCallback)
+            self.callbacks[cookie] = delegateCallback
+        except java.lang.Exception, e:
+            raise convertException(e) 
+        return cookie              
       
     def remove_callback(self, cookie):
         #in int cookie
@@ -219,6 +228,14 @@ class Metric(Object, Attributes):
                hence, no authentication, autorization or permission faults are to be expected.
 
         """
+        if type(cookie) is not int:
+            raise BadParameter, "Parameter cookie is not an int. Type: " + str(type(cookie))
+        try:
+            self.delegateObject.removeCallback(name, cookie)
+        except java.lang.Exception, e:
+            raise convertException(e)
+        del self.callbacks[cookie]
+        #TODO: check if multiple names can exist with same cookie! Remove old proxies!
               
               
     #actively signal an event
@@ -251,10 +268,15 @@ class Metric(Object, Attributes):
               the new metric state to the backend.
 
         """
+        try:
+            self.delegateObject.fire()
+        except java.lang.Exception, e:
+            raise convertException(e)
         
 class Monitorable(object):
     """SAGA objects which provide metrics and can thus be monitored extend the Monitorable class"""
     delegateObject = None
+    callbacks = {}
 
     def list_metrics(self):
         #return array<string> names
@@ -346,18 +368,12 @@ class Monitorable(object):
         if isinstance(cb, Callback) is False:
             raise BadParameter, "Parameter cb is not a subclass of Callback. Type: " + str(type(cb))
         try:
+            delegateCallback = CallbackProxy(pythonCallbackObject=cb)
             cookie = self.delegateObject.addCallback(name, delegateCallback )
-            return Metric(delegateObject=javaObject)
+            self.callbacks[cookie] = delegateCallback
         except java.lang.Exception, e:
             raise convertException(e)
-
-
-
-
-
-# int     addCallback(String name, Callback cb)
-#          Adds a callback to the specified metric. 
-        raise NotImplemented, "add_callback() is not implemented in this object"
+        return cookie
      
     def remove_callback(self, name, cookie):
         #in string name, in int cookie
@@ -380,9 +396,16 @@ class Monitorable(object):
         @raise NoSuccess:
         @Note: notes to the remove_callback method of the metric class apply
         """
-# void     removeCallback(String name, int cookie)
-#          Removes the specified callback.
-        raise NotImplemented, "remove_callback() is not implemented in this object"
+        if type(name) is not str:
+            raise BadParameter, "Parameter name is not a string. Type: " +str(type(name))
+        if type(cookie) is not int:
+            raise BadParameter, "Parameter cookie is not an int. Type: " + str(type(cookie))
+        try:
+            self.delegateObject.removeCallback(name, cookie)
+        except java.lang.Exception, e:
+            raise convertException(e)
+        # del self.callbacks[cookie]
+        #TODO: check if multiple names can exist with same cookie! Remove old proxies!
    
 class Steerable(Monitorable):
     """SAGA objects which can be steered by changing their metrics implement the steerable interface"""
