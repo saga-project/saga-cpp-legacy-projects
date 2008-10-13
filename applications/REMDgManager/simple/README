@@ -1,0 +1,63 @@
+Prerequisites:
+- SAGA 1.0 or later with File and Job package
+- SAGA Python bindings (PYTHONPATH must be set accordingly)
+- NAMD installation
+
+There are currently three version of the REMD-Manager: 
+
+REMD-simple.py:
+- prepare_MAMD_config() : NPT.conf is changed if necessary (means after exchange step, new temperatures are assigned)
+- get_energy() : energy is pulled from "output.txt" and this file name should be set when initialized
+- do_exchange() : exchange is attempted here
+
+0.) Setup SAGA
+- install SAGA/Globus 
+
+1.) Setup NAMD and RE:
+
+- Configure NAMD installation. On QB the following softenv entries can be added to the .soft file:
++mvapich-1.0-intel10.1
++namd-2.6-mvapich
++nwchem-5.1-mpich
++mpich-1.2.7p1-Intel-fc-9.1+gcc-3.4.6
+
+- create input file for NAMD. For the first run simply use the template from the svn:
+
+cp NPT.conf.template NPT.conf
+
+- Adjust configuration file (re_manager_simple.conf):
+* adjust working directories (must exists on file system!)
+* adjust allocation
+
+[DEFAULT]
+# RE Manager settings
+arguments: NPT.conf
+total_number_replica: 4
+number_of_mpi_processes : 16
+exchange_count  : 5
+stage_in_file : 310K-init.coor  310K-init.xsc  NPT.conf  parm99bs0_all.prm  sbox_init.pdb  sbox_init.psf
+temperature :  300 310 320 330 340 350 360 370 380 390 400 410 420 430 440 450
+
+[QB]
+# resource specific settings
+host: qb1.loni.org
+gridftp_url: qb1.loni.org
+scheduler: pbs
+number_nodes: 64
+executable: /usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2
+jobtype: mpi
+working_dir_root: /work/luckow/replica/
+allocation: loni_jha_big
+queue: workq
+userproxy:
+
+Ensure that the working directories specified exists. You can create the directories like this:
+
+mkdir /work/luckow/replica/1
+mkdir /work/luckow/replica/2
+...
+
+3.) The REMD Manager can be run as follows:
+
+$ grid-proxy-init
+$ python REMD-simple.py --configfile=re_manager_simple.conf

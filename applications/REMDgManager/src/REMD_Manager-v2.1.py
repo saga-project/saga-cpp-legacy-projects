@@ -602,7 +602,7 @@ def run_REMDg(configfile_name):
             #else:
             #    print "Replica: "+ str(irep) +  " Glidin job on host: " + host + "state: not running. "
             # only start replicas if glidin job is running
-            if check_glidein_for_replica(RE_info, current_replica_id_glidein_dict, irep)==True:
+            if GlideIn==False or check_glidein_for_replica(RE_info, current_replica_id_glidein_dict, irep)==True:
                remote_machine_ip = RE_info.remote_hosts[irep]
                if len(RE_info.gridftp_hosts)>0:
                    remote_machine_ip = RE_info.gridftp_hosts[irep]
