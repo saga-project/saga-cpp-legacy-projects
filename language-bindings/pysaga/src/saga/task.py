@@ -338,7 +338,7 @@ class TaskContainer(Object, Monitorable):
                   Task states can be made after any exception gets raised.
         """
         
-    def wait(self, mode, timeout):
+    def wait(self, mode = WaitMode.ALL, timeout = -1.0):
         """
         Wait for one or more of the Tasks to finish.
         @summary:  Wait for one or more of the Tasks to finish.

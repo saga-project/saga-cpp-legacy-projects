@@ -142,7 +142,10 @@ class Task(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to start the Task.
 
         """
-        raise NotImplemented, "run() is not implemented in this object"
+        try:
+            self.delegateObject.run()
+        except java.lang.Exception, e:
+            raise convertException(e)
     
     def cancel(self, timeout=0.0):
         #in float timeout = 0.0
@@ -168,8 +171,18 @@ class Task(Object, Monitorable):
           
 
         """
-        raise NotImplemented, "cancel() is not implemented in this object"
+        if type(timeout) is not float or type(timeout) is not int:
+            raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
+        try:
+            if timeout is 0:
+                self.delegateObject.cancel()
+            else:
+                self.delegateObject.cancel(timeout)
+        except java.lang.Exception, e:
+            raise convertException(e)
     
+#TODO: check type checking default parameters for methods in for all!! classes.     
+
     def wait(self, timeout=-1.0):
         #in float timeout = -1.0, out boolean finished
         """
@@ -195,7 +208,23 @@ class Task(Object, Monitorable):
         @note: for timeout semantics, see Section 2 of the GFD-R-P.90 document
 
         """        
-        raise NotImplemented, "wait() is not implemented in this object"
+        if type(timeout) is not float or type(timeout) is not int:
+            raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
+        if timeout < 0 and timeout is not -1:
+            raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
+        try:
+            retval = 0
+            if timeout is -1:
+                self.delegateObject.waitfor()
+                return True
+            else:
+                retval = self.delegateObject.waitfor(timeout)
+                if retval is 1:
+                    return True
+                else:
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)
       
     def get_state(self):
         #out state state
@@ -209,7 +238,11 @@ class Task(Object, Monitorable):
         @raise NoSuccess:
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to retrieve the Task state.
         """
-        raise NotImplemented, "get_state() is not implemented in this object"
+        try:
+            retval = self.delegateObject.run()
+            return retval.getValue()
+        except java.lang.Exception, e:
+            raise convertException(e)
       
     def get_result(self):
         """
@@ -227,7 +260,48 @@ class Task(Object, Monitorable):
         @note: the method returns the type and value which would be returned by the synchronous version of
             the respective function call.
         """
+        try:
+            retval = self.delegateObject.getResult()
+        except java.lang.Exception, e:
+            raise convertException(e)
+        if type(retval) is java.lang.Boolean:
+            if retval.booleanValue() is 1: return True
+            else: return False
+        elif type(retval) is org.ogf.saga.context.Context:
+            return Context(delegateObject = retval)
+        elif type(retval) is org.ogf.saga.file.Directory:  pass
+        elif type(retval) is org.ogf.saga.file.File: pass
+        elif type(retval) is org.ogf.saga.file.FileInputStream: pass
+        elif type(retval) is org.ogf.saga.file.FileOutputStream: pass
+        elif type(retval) is java.io.InputStream: pass     
+        elif type(retval) is java.lang.Integer:
+            return retval.intValue()
+        elif type(retval) is org.ogf.saga.job.Job: pass
+        elif type(retval) is org.ogf.saga.job.JobDescription: pass
+        elif type(retval) is org.ogf.saga.job.JobSelf: pass  
+        elif type(retval) is java.util.List: pass
+            # List<String>
+            # List<URL>
+        elif type(retval) is org.ogf.saga.logicalfile.LogicalDirectory: pass
+        elif type(retval) is org.ogf.saga.logicalfile.LogicalFile: pass
+        elif type(retval) is java.lang.Long:
+            return retval.longValue()
+        elif type(retval) is org.ogf.saga.namespace.NSDirectory: pass
+        elif type(retval) is org.ogf.saga.namespace.NSEntry: pass
+        elif type(retval) is java.io.OutputStream: pass
+        elif type(retval) is org.ogf.saga.stream.Stream: pass
+        elif type(retval) is org.ogf.saga.stream.StreamInputStream: pass
+        elif type(retval) is org.ogf.saga.stream.StreamOutputStream: pass
+        elif type(retval) is java.lang.String: 
+            return retval
+        elif type(retval) is org.ogf.saga.url.URL:
+            return URL(delgateObject=retval)
+        elif type(retval) is java.lang.Void:
+            return None
+        else: return retval
         
+#TODO: implement Task.get_value        
+
     def get_object(self):
         """
         Get the object from which this Task was created.
@@ -239,6 +313,8 @@ class Task(Object, Monitorable):
         @raise NoSuccess:
         @note: the method returns a shallow copy of the object this Task was created from.
         """
+ 
+#TODO: add object reference to Task. Add in each Method giving a task
       
       # error handling
     def rethrow(self):
@@ -263,7 +339,10 @@ class Task(Object, Monitorable):
                  'FAILED' state.
         @note: rethrow() can be called multiple times, always raising the same exception.
         """
-    
+        try:
+            self.delegateObject.rethrow()
+        except java.lang.Exception, e:
+            raise convertException(e)
     
     
 class TaskContainer(Object, Monitorable):
@@ -283,8 +362,9 @@ class TaskContainer(Object, Monitorable):
             - value: -
 
     """
+    delegateObject = None
     
-    def __init__(self):
+    def __init__(self, **impl ):
         """
         Initialize the TaskContainer.
         @summary: Initialize the TaskContainer.
@@ -293,17 +373,16 @@ class TaskContainer(Object, Monitorable):
         @raise NoSuccess:
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to create a TaskContainer.
         """
-        
-        
-    def __del__(self):
-        """
-        Destroy the TaskContainer.
-        @summary: Destroy the TaskContainer.
-        @note: Tasks in the TaskContainer during its destruction are not affected by its
-                       destruction, and, in particular, are not canceled.
-        """
-
-
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.task.TaskContainer:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.TaskContainer. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+            return
+        try:
+            self.delegateObject = org.ogf.saga.task.TaskFactory.createTaskContainer()
+        except java.lang.Exception, e:
+            raise convertException(e)
+       
     def add(self, task):
         """
         Add a Task to a TaskContainer.
@@ -323,6 +402,12 @@ class TaskContainer(Object, Monitorable):
                   to the container.
                   
         """
+        if type(task) is not Task:
+            raise BadParameter, "Parameter task is not a Task object. Type: " + str(type(task))
+        try:
+            self.delegateObject.add(task.delegateObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
         
     def remove(self, cookie):
         """
@@ -344,6 +429,13 @@ class TaskContainer(Object, Monitorable):
                   Task from the TaskContainer.
                   
         """
+        if type(cookie) is not int:
+            raise BadParameter, "Parameter cookie is not an int. Type: " + str(type(cookie))
+        try:
+            retval = self.delegateObject.remove(task.delegateObject)
+            return Task(delegateObject = retval)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
     def run(self):
         """
@@ -365,8 +457,12 @@ class TaskContainer(Object, Monitorable):
         @note: As the order of execution of the Tasks is undefined, no assumption on the individual
                   Task states can be made after any exception gets raised.
         """
+        try:
+            self.delegateObject.run()
+        except java.lang.Exception, e:
+            raise convertException(e)       
         
-    def wait(self, mode, timeout):
+    def wait(self, mode = WaitMode.ALL, timeout = -1.0):
         """
         Wait for one or more of the Tasks to finish.
         @summary:  Wait for one or more of the Tasks to finish.
@@ -401,6 +497,26 @@ class TaskContainer(Object, Monitorable):
                   Task states can be made after any exception gets raised.
         @note: for timeout semantics, see Section 2 of the GFD-R-P.90 document
         """
+        if type(timeout) is not float or type(timeout) is not int:
+            raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
+        if mode is not WaitMode.ALL or mode is not WaitMode.ANY:
+            raise BadParameter, "Parameter mode is not WaitMode.ALL or WaitMode.ANY. mode: "+str(mode)
+        if timeout < 0 and timeout is not -1.0:
+            raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
+        if mode is WaitMode.ANY:
+            waitmode = org.ogf.saga.task.WaitMode.ANY
+        else: 
+            waitmode = org.ogf.saga.task.WaitMode.ALL
+        try:
+            retval = None
+            if timeout is -1.0:
+                retval = self.delegateObject.waitFor(waitmode)
+            else:
+                retval = self.delegateObject.waitFor(timeout, waitmode)
+            return Task(delegateObject = retval)
+        except java.lang.Exception, e:
+            raise convertException(e)  
+#TODO: add object reference to Task. Add in each Method giving a task        
         
     def cancel(self, timeout):
         """
@@ -423,6 +539,17 @@ class TaskContainer(Object, Monitorable):
         @note: As the order of execution of the Tasks is undefined, no assumption on the individual
                   Task states can be made after any exception gets raised.
         """
+        if type(timeout) is not float or type(timeout) is not int:
+            raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
+        if timeout < 0 and timeout is not -1.0:
+            raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
+        try:
+            if timeout is -1.0:
+                self.delegateObject.cancel() 
+            else:
+                self.delegateObject.cancel(timeout)
+        except java.lang.Exception, e:
+             raise convertException(e)
 
     def size(self):
         """
@@ -436,6 +563,11 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to 
             list the Tasks in the container.
         """
+        try:
+            return self.delegateObject.size() 
+        except java.lang.Exception, e:
+             raise convertException(e)       
+        
         
     def list_tasks(self):
         """
@@ -449,6 +581,11 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to list the
                   Tasks in the container.
         """
+        try:
+            retval = self.delegateObject.listTasks()
+            return tuple(retval) 
+        except java.lang.Exception, e:
+             raise convertException(e)            
         
     def get_task(self, cookie):
         """
@@ -467,6 +604,13 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to list the
                   Tasks in the container.
         """
+        if type(cookie) is not int:
+            raise BadParameter, "Parameter timeout is not an int. Type: " + str(type(timeout))
+        try:
+            retval = self.delegateObject.getTask()
+            return Task(delegateObject = retval)
+        except java.lang.Exception, e:
+             raise convertException(e)       
     
     def get_tasks(self):
         """
@@ -482,6 +626,10 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to list the
                  Tasks in the container.
         """
+# getTasks
+#
+#Task<?,?>[] getTasks()
+ 
         
     def get_states(self):
         """
@@ -496,3 +644,7 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to obtain the
                  states of the Tasks in the container.
         """
+#        getStates
+#
+#State[] getStates()
+#        
