@@ -76,16 +76,16 @@ class Permissions(Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = delegateObject.permissionsAllow(TaskMode.ASYNC, id, perm)
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.ASYNC, id, perm)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = delegateObject.permissionsAllow(TaskMode.SYNC, id, perm)
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.SYNC, id, perm)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = delegateObject.permissionsAllow(TaskMode.TASK, id, perm)
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.TASK, id, perm)
                 return Task(delegateObject=javaObject)                
             else:
-                delegateObject.permissionsAllow(id, perm)
+                self.delegateObject.permissionsAllow(id, perm)
         except java.lang.Exception, e:
             raise convertException(e)
             
@@ -121,16 +121,16 @@ class Permissions(Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = delegateObject.permissionsDeny(TaskMode.ASYNC, id, perm)
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.ASYNC, id, perm)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = delegateObject.permissionsDeny(TaskMode.SYNC, id, perm)
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.SYNC, id, perm)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = delegateObject.permissionsDeny(TaskMode.TASK, id, perm)
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.TASK, id, perm)
                 return Task(delegateObject=javaObject)                
             else:
-                delegateObject.permissionsDeny(id, perm)
+                self.delegateObject.permissionsDeny(id, perm)
         except java.lang.Exception, e:
             raise convertException(e)
 
@@ -168,16 +168,16 @@ class Permissions(Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = delegateObject.permissionsCheck(TaskMode.ASYNC, id, perm)
+                javaObject = self.delegateObject.permissionsCheck(TaskMode.ASYNC, id, perm)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = delegateObject.permissionsCheck(TaskMode.SYNC, id, perm)
+                javaObject = self.delegateObject.permissionsCheck(TaskMode.SYNC, id, perm)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = delegateObject.permissionsCheck(TaskMode.TASK, id, perm)
+                javaObject = self.delegateObject.permissionsCheck(TaskMode.TASK, id, perm)
                 return Task(delegateObject=javaObject)                
             else:
-                retval = delegateObject.permissionsCheck(id, perm)
+                retval = self.delegateObject.permissionsCheck(id, perm)
                 if retval is 1:
                     return True
                 else:
@@ -210,16 +210,16 @@ class Permissions(Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = delegateObject.getOwner(TaskMode.ASYNC)
+                javaObject = self.delegateObject.getOwner(TaskMode.ASYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = delegateObject.getOwner(TaskMode.SYNC)
+                javaObject = self.delegateObject.getOwner(TaskMode.SYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = delegateObject.getOwner(TaskMode.TASK)
+                javaObject = self.delegateObject.getOwner(TaskMode.TASK)
                 return Task(delegateObject=javaObject)                
             else:
-                return delegateObject.getOwner()
+                return self.delegateObject.getOwner()
         except java.lang.Exception, e:
             raise convertException(e)     
     
@@ -246,16 +246,16 @@ class Permissions(Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = delegateObject.getGroup(TaskMode.ASYNC)
+                javaObject = self.delegateObject.getGroup(TaskMode.ASYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = delegateObject.getGroup(TaskMode.SYNC)
+                javaObject = self.delegateObject.getGroup(TaskMode.SYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = delegateObject.getGroup(TaskMode.TASK)
+                javaObject = self.delegateObject.getGroup(TaskMode.TASK)
                 return Task(delegateObject=javaObject)                
             else:
-                return delegateObject.getGroup()
+                return self.delegateObject.getGroup()
         except java.lang.Exception, e:
             raise convertException(e)     
 

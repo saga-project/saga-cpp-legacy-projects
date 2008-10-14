@@ -460,6 +460,7 @@ class TaskContainer(Object, Monitorable):
         Get the states of all Tasks in the TaskContainer.
         @summary: Get the states of all Tasks in the TaskContainer.
         @return: list of states for Tasks in TaskContainer
+        @rtype: list
         @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:

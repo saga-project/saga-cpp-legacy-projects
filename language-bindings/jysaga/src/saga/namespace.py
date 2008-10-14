@@ -3,6 +3,8 @@ from object import Object
 from permissions import Permissions
 from task import Async
 from error import NotImplemented
+from org.ogf.saga.namespace import NSFactory
+from org.ogf.saga.task import TaskMode
 
 class Flags(object):
     """ 
@@ -68,14 +70,15 @@ class Flags(object):
     """
     
 
-class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
+class NSEntry(Object, Permissions, Async): 
     """
     NSEntry defines methods which serve the inspection of the entry itself, methods
     which allows to manage the entry (e.g. to copy, move, or remove it), and
     methods to manipulate the entry's access control lists.
     """
+    delegateObject = None
 
-    def __init__(self, session, name, flags=Flags.NONE):
+    def __init__(self, session, name, flags=Flags.NONE, **impl):
         """
         Initialize the the object
         @summary: initialize the the object
@@ -106,7 +109,25 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
               entry - all notes to the respective open
               call (on namespace_directory) apply.
         """
-        super(NSEntry,self).__init__()
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.namespace.NSEntry:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSEntry. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+        else:
+            if type(session) is not Session:
+                raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
+            if type(name) is not URL:
+                raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
+            try:
+                if flags is Flags.NONE:
+                    self.delegateObject = NSFactory.createNSEntry(session.delegateObject, name.delegateObject)
+                else:
+                    self.delegateObject = NSFactory.createNSEntry(session.delegateObject, name.delegateObject, flags)
+            except java.lang.Exception, e:
+                raise convertException(e)
+#DOCUMENT: cannot be created asynchronous object
 
     def __del__(self):
         """
@@ -116,9 +137,13 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  if the instance was not closed before, the destructor performs a close()
             on the instance, and all notes to close() apply.
         """
-
-    def get_url(self):
-        #out URL url );
+        self.close()
+        Object.__del__(self)
+        Permissions.__del__(self)
+        Async.__del__(self)
+        
+    def get_url(self, tasktype=TaskType.NORMAL):
+        #out URL url 
         """
         Obtain the complete url pointing to the entry
         @summary: obtain the complete url pointing to the entry
@@ -129,9 +154,28 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @raise Timeout:
         @raise NoSuccess:
         """        
-        raise NotImplemented, "get_url() method is not implemented in this object"
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getURL(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getURL(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getURL(TaskMode.TASK)
+                return Task(delegateObject=javaObject)        
+            else:
+                retval = self.delegateObject.getURL()
+                return URL (delegateObject = retval)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-    def get_cwd(self):
+
+
+    def get_cwd(self, tasktype=TaskType.NORMAL):
         #out URL cwd
         """
         Obtain the current working directory for the entry
@@ -145,9 +189,26 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: returns the directory part of the url path element.
 
         """        
-        raise NotImplemented, "get_cwd() method is not implemented in this object"
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getCWD(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getCWD(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getCWD(TaskMode.TASK)
+                return Task(delegateObject=javaObject)        
+            else:
+                retval = self.delegateObject.getCWD()
+                return URL (delegateObject = retval)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-    def get_name(self): 
+    def get_name(self, tasktype=TaskType.NORMAL): 
         #out URL name
         """
         Obtain the name part of the url path element
@@ -159,9 +220,26 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @raise Timeout:
         @raise NoSuccess:
          """
-        raise NotImplemented, "get_name() method is not implemented in this object"
-
-    def is_dir(self):
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getName(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getName(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getName(TaskMode.TASK)
+                return Task(delegateObject=javaObject)   
+            else:
+                retval = self.delegateObject.getName()
+                return URL (delegateObject = retval)
+        except java.lang.Exception, e:
+            raise convertException(e)
+        
+    def is_dir(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being a directory
@@ -180,9 +258,29 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: returns True if entry is a directory, False otherwise
         @note:  similar to 'test -d' as defined by POSIX.
         """        
-        raise NotImplemented, "is_dir() method is not implemented in this object"
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.isDir(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.isDir(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.isDir(TaskMode.TASK)
+                return Task(delegateObject=javaObject)   
+            else:       
+                retval = self.delegateObject.isDir()
+                if retval is 1:
+                    return True
+                else: 
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-    def is_entry(self):
+    def is_entry(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being an NSEntry
@@ -204,9 +302,29 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  similar to 'test -f' as defined by POSIX.
 
         """        
-        raise NotImplemented, "is_entry() method is not implemented in this object"
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.isEntry(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.isEntry(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.isEntry(TaskMode.TASK)
+                return Task(delegateObject=javaObject)   
+            else:  
+                retval = self.delegateObject.isEntry()
+                if retval is 1:
+                    return True
+                else: 
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-    def is_link(self):
+    def is_link(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being a link
@@ -226,9 +344,28 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: similar to 'test -L' as defined by POSIX.
 
         """        
-        raise NotImplemented, "is_link() method is not implemented in this object"
-
-    def read_link(self):
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.isLink(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.isLink(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.isLink(TaskMode.TASK)
+                return Task(delegateObject=javaObject)   
+            else:
+                retval = self.delegateObject.isLink()
+                if retval is 1:
+                    return True
+                else: 
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)
+    def read_link(self, tasktype=TaskType.NORMAL):
         #out URL link
         """
         Get the name of the link target
@@ -250,9 +387,26 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
             'IncorrectState' exception is raised.
         @note:  similar to 'ls -L' as defined by POSIX.
         """        
-        raise NotImplemented, "read_link() method is not implemented in this object"
-    
-    def copy(self, target, flags = Flags.NONE):
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.readLink(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.readLink(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.readLink(TaskMode.TASK)
+                return Task(delegateObject=javaObject)   
+            else:
+                retval = self.delegateObject.readLink()
+                return URL (delegateObject = retval)
+        except java.lang.Exception, e:
+            raise convertException(e)
+        
+    def copy(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Copy the entry to another part of the name space
         @summary: copy the entry to another part of the name space
@@ -295,9 +449,44 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  the default flags are 'NONE' (0).
         @note:  similar to 'cp' as defined by POSIX.
         """        
+        if type(target) is not URL:
+            raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            javaObject = None
+            if tasktype is TaskType.ASYNC:
+                if flags is Flags.NONE:
+                    javaObject = self.delegateObject.copy(TaskMode.ASYNC, target.delegateObject)
+                else:
+                    self.delegateObject.copy(TaskMode.ASYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                if flags is Flags.NONE:
+                    javaObject = self.delegateObject.copy(TaskMode.SYNC, target.delegateObject)
+                else:
+                    self.delegateObject.copy(TaskMode.SYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                if flags is Flags.NONE:
+                    javaObject = self.delegateObject.copy(TaskMode.TASK, target.delegateObject)
+                else:
+                    self.delegateObject.copy(TaskMode.TASK, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                if flags is Flags.NONE:
+                    self.delegateObject.copy(target.delegateObject)
+                else:
+                    self.delegateObject.copy(target.delegateObject, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)
+            
         raise NotImplemented, "copy() method is not implemented in this object" 
     
-    def link(self, target, flags = Flags.NONE):
+    def link(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Create a symbolic link from the target entry to the source entry ( this entry) so that any reference
         to the target refers to the source entry
@@ -347,9 +536,29 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: similar to 'ln' as defined by POSIX.
      
         """        
-        raise NotImplemented, "link() method is not implemented in this object"
-
-    def move(self, target, flags = Flags.NONE):
+        if type(target) is not URL:
+            raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.link(TaskMode.ASYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.link(TaskMode.SYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.link(TaskMode.TASK, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.link(target.delegateObject, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)      
+        
+    def move(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Rename source to target, or move source to target if target is a directory.
         @summary: rename or move target
@@ -394,9 +603,29 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: similar to 'mv' as defined by POSIX.
         
         """
-        raise NotImplemented, "move() method is not implemented in this object"
+        if type(target) is not URL:
+            raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.move(TaskMode.ASYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.move(TaskMode.SYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.move(TaskMode.TASK, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.move(target.delegateObject, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)      
 
-    def remove(self, flags = Flags.NONE):
+    def remove(self, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Removes this entry, and closes it
         @summary: removes this entry, and closes it
@@ -429,9 +658,27 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  similar to 'rm' as defined by POSIX.
         
         """   
-        raise NotImplemented, "remove() method is not implemented in this object"
-
-    def close(self, timeout = 0.0):
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.remove(TaskMode.ASYNC, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.remove(TaskMode.SYNC, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.remove(TaskMode.TASK, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.remove(flags)
+        except java.lang.Exception, e:
+            raise convertException(e)      
+        
+    def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
         Closes the NSEntry
         @summary: closes the NSEntry
@@ -449,9 +696,41 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @see: Section 2 of the GFD-R-P.90 document for resource deallocation semantics and timeout semantics.
         
         """        
-        raise NotImplemented, "close() method is not implemented in this object"
+        if type(timeout) is not float or type(timeout) is not int:
+            raise BadParameter, "Parameter timout is wrong type. Type: " + str(type(timeout))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
 
-    def permissions_allow(self, id, perm, flags = Flags.NONE):
+        try:
+            if tasktype is TaskType.ASYNC:
+                if timeout is 0.0:
+                   javaObject = self.delegateObject.close(TaskMode.ASYNC)
+                else:
+                    javaObject = self.delegateObject.close(TaskMode.ASYNC,timeout)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                if timeout is 0.0:
+                   javaObject = self.delegateObject.close(TaskMode.SYNC)
+                else:
+                    javaObject = self.delegateObject.close(TaskMode.SYNC,timeout)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                if timeout is 0.0:
+                   javaObject = self.delegateObject.close(TaskMode.TASK)
+                else:
+                    javaObject = self.delegateObject.close(TaskMode.TASK,timeout)
+                return Task(delegateObject=javaObject)
+            else:
+                if timeout is 0.0:
+                    self.delegateObject.close()
+                else:
+                    self.delegateObject.close(timeout)
+        except java.lang.Exception, e:
+            raise convertException(e)             
+
+
+    def permissions_allow(self, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in string id, in permission perm, in int flags = None
         """
         Enable a permission
@@ -478,9 +757,31 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  specifying 'RECURSIVE' for a non-directory causes a 'BadParameter' exception.
 
         """        
-        raise NotImplemented, "permissions_allow() method is not implemented in this object"
+        if type(id) is not str:
+            raise BadParameter, "Parameter id is not a string. Type: " + str(type(id)) 
+        if type(perm) is not int:
+            raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.ASYNC ,id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.SYNC ,id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK: 
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.TASK ,id, perm, flags)
+                return Task(delegateObject=javaObject)                                           
+            else:
+                self.delegateObject.permissionsAllow(id, perm, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)   
 
-    def permissions_deny(self, id, perm, flags = Flags.NONE):
+    def permissions_deny(self, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in string id, in permission perm, in int flags = None
         """
         Disable a permission flag
@@ -506,8 +807,30 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: specifying 'RECURSIVE' for a non-directory causes a 'BadParameter' exception.
 
         """        
-        raise NotImplemented, "permissions_deny() method is not implemented in this object"
-
+        if type(id) is not str:
+            raise BadParameter, "Parameter id is not a string. Type: " + str(type(id)) 
+        if type(perm) is not int:
+            raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.ASYNC ,id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.SYNC ,id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK: 
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.TASK ,id, perm, flags)
+                return Task(delegateObject=javaObject)                                           
+            else:
+                self.delegateObject.permissionsDeny(id, perm, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)   
+        
     
 class NSDirectory(NSEntry):
     """
@@ -520,7 +843,7 @@ class NSDirectory(NSEntry):
     and open_dir()).
     """
     
-    def __init__(self, session = None, url = None, flags = Flags.NONE):
+    def __init__(self, session = None, url = None, flags = Flags.NONE, **impl):
         """
         Initialize the object
         @summary: initialize the object

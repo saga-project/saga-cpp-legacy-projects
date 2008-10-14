@@ -626,16 +626,22 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to list the
                  Tasks in the container.
         """
-# getTasks
-#
-#Task<?,?>[] getTasks()
- 
-        
+        list = []
+        try:
+            javaArray = self.delegateObject.getTasks()
+        except java.lang.Exception, e:
+             raise convertException(e) 
+        for i in range (len(javaArray)):
+            temp = Task(delegateObject = javaArray[i])
+            list.append(temp)
+        return list
+       
     def get_states(self):
         """
         Get the states of all Tasks in the TaskContainer.
         @summary: Get the states of all Tasks in the TaskContainer.
         @return: list of states for Tasks in TaskContainer
+        @rtype: list
         @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
@@ -644,7 +650,11 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to obtain the
                  states of the Tasks in the container.
         """
-#        getStates
-#
-#State[] getStates()
-#        
+        try:
+            javaArray = self.delegateObject.getStates()
+        except java.lang.Exception, e:
+            raise convertException(e)
+        list = []
+        for i in range(len(javaArray)):
+            list.append(javaArray[i].getValue())
+        return list
