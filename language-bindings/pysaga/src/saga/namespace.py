@@ -520,7 +520,7 @@ class NSDirectory(NSEntry):
     and open_dir()).
     """
     
-    def __init__(self, session = None, url = None, flags = Flags.NONE):
+    def __init__(self, session, url, flags = Flags.NONE):
         """
         Initialize the object
         @summary: initialize the object

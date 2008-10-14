@@ -843,7 +843,7 @@ class NSDirectory(NSEntry):
     and open_dir()).
     """
     
-    def __init__(self, session = None, url = None, flags = Flags.NONE, **impl):
+    def __init__(self, session, url, flags = Flags.NONE, **impl):
         """
         Initialize the object
         @summary: initialize the object
@@ -874,10 +874,27 @@ class NSDirectory(NSEntry):
         @note:  the default flags are 'NONE' (0).
 
         """
-        super(NSDirectory,self).__init__()
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.namespace.NSDirectory:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSDirectory. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+        else:
+            if type(session) is not Session:
+                raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
+            if type(name) is not URL:
+                raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
+            try:
+                if flags is Flags.NONE:
+                    self.delegateObject = NSFactory.createNSDirectory(session.delegateObject, name.delegateObject)
+                else:
+                    self.delegateObject = NSFactory.createNSDirectory(session.delegateObject, name.delegateObject, flags)
+            except java.lang.Exception, e:
+                raise convertException(e)
     
     #navigation/query methods    
-    def change_dir(self, url):
+    def change_dir(self, url, tasktype=TaskType.NORMAL):
         """
         Change the working directory
         @summary: change the working directory
@@ -901,10 +918,28 @@ class NSDirectory(NSEntry):
         @note:  similar to the 'cd' command in the POSIX shell.
        
         """
-        raise NotImplemented, "change_dir() method is not implemented in this object"
+        if type(url) is not URL:
+            raise BadParameter, "Parameter url is not a URL. Type: " + str(type(url))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.changeDir(TaskMode.ASYNC, url.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.changeDir(TaskMode.SYNC, url.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.changeDir(TaskMode.TASK, url.delegateObject)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.changeDir(url.delegateObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
  
     #navigation/query methods
-    def list(self, name_pattern = ".", flags = Flags.NONE):
+    def list(self, name_pattern = ".", flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in string name_pattern = ".", in int flags = None, out array<saga::url> names
         """
         List entries in this directory
@@ -950,10 +985,25 @@ class NSDirectory(NSEntry):
         @note:  similar to 'ls' as defined by POSIX.
 
         """        
-        raise NotImplemented, "list() method is not implemented in this object"
  
+#  List<URL>     list()
+#          Lists entries in the directory.
+# List<URL>     list(int flags)
+#          Lists entries in the directory.
+# List<URL>     list(String pattern)
+#          Lists entries in the directory that match the specified pattern.
+# List<URL>     list(String pattern, int flags)
+#          Lists entries in the directory that match the specified pattern.
+# Task<NSDirectory,List<URL>>     list(TaskMode mode)
+#          Creates a task that lists entries in the directory.
+# Task<NSDirectory,List<URL>>     list(TaskMode mode, int flags)
+#          Creates a task that lists entries in the directory.
+# Task<NSDirectory,List<URL>>     list(TaskMode mode, String pattern)
+#          Creates a task that lists entries in the directory that match the specified pattern.
+# Task<NSDirectory,List<URL>>     list(TaskMode mode, String pattern, int flags)
+#          Creates a task that lists entries in the directory that match the specified pattern.
     #navigation/query methods
-    def find(self, name_pattern, flags = Flags.RECURSIVE):
+    def find(self, name_pattern, flags = Flags.RECURSIVE, tasktype=TaskType.NORMAL):
         #in string name_pattern, in  int flags = Recursive, out array<saga::url> names
         """
         Find entries in the current directory and below
@@ -991,10 +1041,17 @@ class NSDirectory(NSEntry):
         @note:  similar to 'find' as defined by POSIX, but limited to the -name option.
 
         """
-        raise NotImplemented, "find() method is not implemented in this object"
-    
+ 
+#  List<URL>     find(String pattern)
+#          Finds entries in the directory and below that match the specified pattern.
+# List<URL>     find(String pattern, int flags)
+#          Finds entries in the directory and below that match the specified pattern.
+# Task<NSDirectory,List<URL>>     find(TaskMode mode, String pattern)
+#          Creates a task that finds entries in the directory and below that match the specified pattern.
+# Task<NSDirectory,List<URL>>     find(TaskMode mode, String pattern, int flags)
+#          Creates a task that finds entries in the directory and below that match the specified   
     #navigation/query methods
-    def exists (self,name):
+    def exists (self,name, tasktype=TaskType.NORMAL):
         #in  URL name, out boolean exists
         """
         Checks if entry exists
@@ -1021,10 +1078,17 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -e' as defined by POSIX.
 
         """
-        raise NotImplemented, "exist() method is not implemented in this object"
+
+
+# Task<NSDirectory,Boolean>     exists(TaskMode mode, URL name)
+#          Creates a task that queries for the existence of an entry.
+# boolean     exists(URL name)
+#          Queries for the existence of an entry.
   
+  
+#TODO: document Overridden methods. Make method include NSEntry and NSDirectory versions.
     #navigation/query methods
-    def is_dir(self, name):
+    def is_dir(self, name, tasktype=TaskType.NORMAL):
         #in URL name, out boolean test 
         """
         Tests url for being a directory
@@ -1054,10 +1118,23 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -d' as defined by POSIX.
 
         """
-        raise NotImplemented, "is_dir() method is not implemented in this object"
+
+#From NSEntry        
+# boolean     isDir()
+#         Tests this entry for being a directory.
+# Task<NSEntry,Boolean>     isDir(TaskMode mode)
+#         Creates a task that tests this entry for being a directory.
+
+# From NSDirectory
+#  Task<NSDirectory,Boolean>     isDir(TaskMode mode, URL name)
+#         Creates a task that tests the name for being a directory.
+# boolean     isDir(URL name)
+#         Tests the name for being a directory.
+#          
+
  
     #navigation/query methods
-    def is_entry (self, name):
+    def is_entry (self, name, tasktype=TaskType.NORMAL):
         #in URL name, out boolean test 
         """
         Tests name for being an NSEntry
@@ -1086,9 +1163,19 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "is_entry() method is not implemented in this object"
+
+#NSEntry
+# boolean     isEntry()
+#          Tests this entry for being a namespace entry.
+# Task<NSEntry,Boolean>     isEntry(TaskMode mode)
+#          Creates a task that tests this entry for being a namespace entry.
+#NSDirectory
+# Task<NSDirectory,Boolean>     isEntry(TaskMode mode, URL name)
+#          Creates a task that tests the name for being a namespace entry.
+# boolean     isEntry(URL name) 
  
     #navigation/query methods
-    def is_link(self, name):
+    def is_link(self, name, tasktype=TaskType.NORMAL):
         #in saga::url name, out boolean test
         """
         Tests name for being a symbolic link
@@ -1117,8 +1204,16 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "is_link() method is not implemented in this object"
+
+# boolean     isLink()
+#          Tests this entry for being a link.
+# Task<NSEntry,Boolean>     isLink(TaskMode mode)
+#          Creates a task that tests this entry for being a link.
+#  Task<NSDirectory,Boolean>     isLink(TaskMode mode, URL name)
+#          Creates a task that tests the name for being a link.
+# boolean     isLink(URL name)          
  
-    def read_link(self, name):
+    def read_link(self, name, tasktype=TaskType.NORMAL):
         #in URL name, out URL link
         """
         Returns the name of the link target
@@ -1147,9 +1242,18 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "read_link() method is not implemented in this object"
+
+# URL     readLink()
+#          Returns the URL representing the link target.
+# Task<NSEntry,URL>     readLink(TaskMode mode)
+#          Creates a task that returns the URL representing the link target.
+# Task<NSDirectory,URL>     readLink(TaskMode mode, URL name)
+#          Creates a task that returns the URL representing the link target.
+# URL     readLink(URL name)
+#          Returns the URL representing the link target.
  
     # manage entries by number
-    def get_num_entries (self):
+    def get_num_entries (self, tasktype=TaskType.NORMAL):
         #out int num
         """
         Gives the number of entries in the directory
@@ -1172,9 +1276,14 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "get_num_entries() method is not implemented in this object"
+
+# int     getNumEntries()
+#          Obtains the number of entries in this directory.
+# Task<NSDirectory,Integer>     getNumEntries(TaskMode mode)
+#          Creates a task that obtains the number of entries in this directory.
     
     # manage entries by number
-    def get_entry(self, entry):
+    def get_entry(self, entry, tasktype=TaskType.NORMAL):
         #in int entry, out URL name 
         """
         Gives the name of an entry in the directory based upon the enumeration defined by get_num_entries
@@ -1204,9 +1313,14 @@ class NSDirectory(NSEntry):
 
         """       
         raise NotImplemented, "get_entry() method is not implemented in this object"
+
+# URL     getEntry(int entry)
+#          Gives the name of an entry in the directory based upon the enumeration defined by getNumEntries().
+# Task<NSDirectory,URL>     getEntry(TaskMode mode, int entry)
+#          Creates a task that gives the name of an entry in the directory based upon the enumeration defined by 
  
     # management methods + management methods - wildcard versions
-    def copy(self, source, target, flags = Flags.NONE):
+    def copy(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL source,   in URL target, in int flags = None
         #in string source,in URL target, in int flags = None
         """
@@ -1252,9 +1366,30 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "copy() method is not implemented in this object"
+
+#    copy(TaskMode mode, URL target)
+#          Creates a task that copies this entry to another part of the namespace.
+# Task<NSEntry,Void>     copy(TaskMode mode, URL target, int flags)
+#          Creates a task that copies this entry to another part of the namespace.
+# void     copy(String source, URL target)
+#          Copies the source entry to another part of the namespace.
+# void     copy(String source, URL target, int flags)
+#          Copies the source entry to another part of the namespace.
+# Task<NSDirectory,Void>     copy(TaskMode mode, String source, URL target)
+#          Creates a task that copies the source entry to another part of the namespace.
+# Task<NSDirectory,Void>     copy(TaskMode mode, String source, URL target, int flags)
+#          Creates a task that copies the source entry to another part of the namespace.
+# Task<NSDirectory,Void>     copy(TaskMode mode, URL source, URL target)
+#          Creates a task that copies source the entry to another part of the namespace.
+# Task<NSDirectory,Void>     copy(TaskMode mode, URL source, URL target, int flags)
+#          Creates a task that copies source the entry to another part of the namespace.
+# void     copy(URL source, URL target)
+#          Copies the source entry to another part of the namespace.
+# void     copy(URL source, URL target, int flags)
+#          Copies the source entry to another part of the namespace.
  
     # management methods + management methods - wildcard versions
-    def link(self, source, target, flags = Flags.NONE):
+    def link(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL source,    in URL target, in int flags = None
         #in string source, in URL target, in int flags = None
         """
@@ -1308,9 +1443,35 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "link() method is not implemented in this object"
+
+# Task<NSEntry,Void>     link(TaskMode mode, URL target)
+#          Creates a task that creates a symbolic link from the target to this entry.
+# Task<NSEntry,Void>     link(TaskMode mode, URL target, int flags)
+#          Creates a task that creates a symbolic link from the target to this entry.
+# void     link(URL target)
+#          Creates a symbolic link from the target to this entry.
+# void     link(URL target, int flags)
+#          Creates a symbolic link from the target to this entry.
+# void     link(String source, URL target)
+#          Creates a symbolic link from the specified target to the specified source.
+# void     link(String source, URL target, int flags)
+#          Creates a symbolic link from the specified target to the specified source.
+# Task<NSDirectory,Void>     link(TaskMode mode, String source, URL target)
+#          Creates a task that creates a symbolic link from the specified target to the specified source.
+# Task<NSDirectory,Void>     link(TaskMode mode, String source, URL target, int flags)
+#          Creates a task that creates a symbolic link from the specified target to the specified source.
+# Task<NSDirectory,Void>     link(TaskMode mode, URL source, URL target)
+#          Creates a task that creates a symbolic link from the specified target to the specified source.
+# Task<NSDirectory,Void>     link(TaskMode mode, URL source, URL target, int flags)
+#          Creates a task that creates a symbolic link from the specified target to the specified source.
+# void     link(URL source, URL target)
+#          Creates a symbolic link from the specified target to the specified source.
+# void     link(URL source, URL target, int flags)
+#          Creates a symbolic link from the specified target to the specified source.
+
   
    # management methods + management methods - wildcard versions
-    def move (self, source, target, flags = Flags.NONE):
+    def move (self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
        #in URL source,    in URL target, in int flags = None
        #in string source, in URL target, in int flags = None
         """
@@ -1365,9 +1526,35 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "move() method is not implemented in this object"
+
+# Task<NSEntry,Void>     move(TaskMode mode, URL target)
+#          Creates a task that renames this entry to the target, or moves this entry to the target if it is a directory.
+# Task<NSEntry,Void>     move(TaskMode mode, URL target, int flags)
+#          Creates a task that renames this entry to the target, or moves this entry to the target if it is a directory.
+# void     move(URL target)
+#          Renames this entry to the target, or moves this entry to the target if it is a directory.
+# void     move(URL target, int flags)
+#          Renames this entry to the target, or moves this entry to the target if it is a directory.
+# void     move(String source, URL target)
+#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+# void     move(String source, URL target, int flags)
+#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+# Task<NSDirectory,Void>     move(TaskMode mode, String source, URL target)
+#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+# Task<NSDirectory,Void>     move(TaskMode mode, String source, URL target, int flags)
+#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+# Task<NSDirectory,Void>     move(TaskMode mode, URL source, URL target)
+#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+# Task<NSDirectory,Void>     move(TaskMode mode, URL source, URL target, int flags)
+#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+# void     move(URL source, URL target)
+#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+# void     move(URL source, URL target, int flags)
+#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
+
   
    # management methods + management methods - wildcard versions
-    def remove(self, target, flags =  Flags.NONE):
+    def remove(self, target, flags =  Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL    target, in int flags = None
         #in string target, in int flags = None
         """
@@ -1411,9 +1598,33 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "remove() method is not implemented in this object"
+# void     remove()
+#          Removes this entry and closes it.
+# void     remove(int flags)
+#          Removes this entry and closes it.
+# Task<NSEntry,Void>     remove(TaskMode mode)
+#          Creates a task that removes this entry and closes it.
+# Task<NSEntry,Void>     remove(TaskMode mode, int flags)
+#          Creates a task that removes this entry and closes it.
+# void     remove(String target)
+#          Removes the specified entry.
+# void     remove(String target, int flags)
+#          Removes the specified entry.
+# Task<NSDirectory,Void>     remove(TaskMode mode, String target)
+#          Creates a task that removes the specified entry.
+# Task<NSDirectory,Void>     remove(TaskMode mode, String target, int flags)
+#          Creates a task that removes the specified entry.
+# Task<NSDirectory,Void>     remove(TaskMode mode, URL target)
+#          Creates a task that removes the specified entry.
+# Task<NSDirectory,Void>     remove(TaskMode mode, URL target, int flags)
+#          Creates a task that removes the specified entry.
+# void     remove(URL target)
+#          Removes the specified entry.
+# void     remove(URL target, int flags)
+#          Removes the specified entry.
   
    # management methods
-    def make_dir(self, target, flags = Flags.NONE):
+    def make_dir(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Creates a new directory
         @summary: creates a new directory
@@ -1451,9 +1662,18 @@ class NSDirectory(NSEntry):
         """
         #in saga::url target, in int flags =  None
         raise NotImplemented, "make_dir() method is not implemented in this object"
+ 
+# Task<NSDirectory,Void>     makeDir(TaskMode mode, URL target)
+#          Creates a task that creates a new directory.
+# Task<NSDirectory,Void>     makeDir(TaskMode mode, URL target, int flags)
+#          Creates a task that creates a new directory.
+# void     makeDir(URL target)
+#          Creates a new directory.
+# void     makeDir(URL target, int flags)
+#          Creates a new directory.
   
     #factory methods
-    def open(self, name, flags = Flags.NONE ):
+    def open(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL ):
         #in  saga::url name, in  int flags = None, out ns_entry entry
         """
         Creates a new NSEntry instance
@@ -1503,9 +1723,18 @@ class NSDirectory(NSEntry):
 
         """        
         raise NotImplemented, "open() method is not implemented in this object"
+
+# Task<NSDirectory,NSEntry>     open(TaskMode mode, URL name)
+#          Creates a task that creates a new NamespaceEntry instance.
+# Task<NSDirectory,NSEntry>     open(TaskMode mode, URL name, int flags)
+#          Creates a task that creates a new NamespaceEntry instance.
+# NSEntry     open(URL name)
+#          Creates a new NamespaceEntry instance.
+# NSEntry     open(URL name, int flags)
+#          Creates a new NamespaceEntry instance.
  
     #factory methods
-    def open_dir(self, name, flags = Flags.NONE):
+    def open_dir(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in  saga::url name, in  int flags = None, out ns_directory dir
         """
         Creates a new NSDirectory instance
@@ -1551,9 +1780,18 @@ class NSDirectory(NSEntry):
 
         """
         raise NotImplemented, "open_dir() method is not implemented in this object"
+
+# Task<NSDirectory,NSDirectory>     openDir(TaskMode mode, URL name)
+#          Creates a task that creates a new NamespaceDirectory instance.
+# Task<NSDirectory,NSDirectory>     openDir(TaskMode mode, URL name, int flags)
+#          Creates a task that creates a new NamespaceDirectory instance.
+# NSDirectory     openDir(URL name)
+#          Creates a new NamespaceDirectory instance.
+# NSDirectory     openDir(URL name, int flags)
+#          Creates a new NamespaceDirectory instance.
  
     #permissions with flags + permissions with flags - wildcard version
-    def permissions_allow(self, target, id, perm, flags = Flags.NONE):
+    def permissions_allow(self, target, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL target,    in string id, in int perm, in int flags = None
         #in string target, in string id, in int perm, in int flags = None
         """
@@ -1589,9 +1827,31 @@ class NSDirectory(NSEntry):
 
         """ 
         raise NotImplemented, "permissions_allow() method is not implemented in this object"
+
+# void     permissionsAllow(String id, int permissions, int flags)
+#          Allows the specified permissions for the specified id.
+# Task<NSEntry,Void>     permissionsAllow(TaskMode mode, String id, int permissions, int flags)
+#          Creates a task that enables the specified permissions for the specified id.
+# void     permissionsAllow(String target, String id, int permissions)
+#          Allows the specified permissions for the specified id.
+# void     permissionsAllow(String target, String id, int permissions, int flags)
+#          Allows the specified permissions for the specified id.
+# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, String target, String id, int permissions)
+#          Creates a task that enables the specified permissions for the specified id.
+# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, String target, String id, int permissions, int flags)
+#          Creates a task that enables the specified permissions for the specified id.
+# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, URL target, String id, int permissions)
+#          Creates a task that enables the specified permissions for the specified id.
+# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, URL target, String id, int permissions, int flags)
+#          Creates a task that enables the specified permissions for the specified id.
+# void     permissionsAllow(URL target, String id, int permissions)
+#          Allows the specified permissions for the specified id.
+# void     permissionsAllow(URL target, String id, int permissions, int flags)
+#          Allows the specified permissions for the specified id.
+
  
     #permissions with flags + permissions with flags - wildcard version
-    def permissions_deny(self, target, id, perm, flags = Flags.NONE):
+    def permissions_deny(self, target, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL target,    in string id, in int perm, in int flags = None
         #in string target, in string id, in int perm, in int flags = None
         """
@@ -1626,4 +1886,16 @@ class NSDirectory(NSEntry):
              undefined. 
         """       
         raise NotImplemented, "permissions_deny() method is not implemented in this object"
+    
+# void     permissionsDeny(String id, int permissions, int flags)
+# Task<NSEntry,Void>     permissionsDeny(TaskMode mode, String id, int permissions, int flags)
+# void     permissionsDeny(String target, String id, int permissions)
+# void     permissionsDeny(String target, String id, int permissions, int flags)
+# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, String target, String id, int permissions)
+# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, String target, String id, int permissions, int flags)
+# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, URL target, String id, int permissions)
+# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, URL target, String id, int permissions, int flags)
+# void     permissionsDeny(URL target, String id, int permissions)
+# void     permissionsDeny(URL target, String id, int permissions, int flags)
+       
  
