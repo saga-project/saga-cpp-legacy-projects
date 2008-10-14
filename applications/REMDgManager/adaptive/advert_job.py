@@ -49,8 +49,6 @@ class advert_glidin_job():
             os.environ["X509_USER_PROXY"]=userproxy
             print "use proxy: " + userproxy
         else:
-            #if os.environ.has_key("X509_USER_PROXY"):
-            #    del os.environ["X509_USER_PROXY"]
             print "use standard proxy"
         # SAGA Context is broken at this point
         #s = saga.session()
@@ -76,7 +74,7 @@ class advert_glidin_job():
         jd.spmd_variation = "single"
         jd.arguments = [self.database_host, self.glidin_url]
         if (replica_agent_executable == None or replica_agent_executable == ""):
-            jd.executable = "$(HOME)/src/REMDgManager/src/advert_launcher.sh" # backward compatibility to be removed
+            jd.executable = "$(HOME)/src/REMDgManager/adaptive/advert_launcher.sh" # backward compatibility to be removed
         else:
             jd.executable = replica_agent_executable
         jd.queue = queue
