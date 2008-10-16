@@ -36,9 +36,9 @@ class Flags(object):
     BINARY        = 2048
 
 class SeekMode(object):
-    START   = 0        # Python uses start=0,current=1, 2=end, SAGA 1,2,3
-    CURRENT = 1
-    END     = 2
+    START   = 1        # Python uses start=0,current=1, 2=end, SAGA 1,2,3
+    CURRENT = 2
+    END     = 3
 
 class Iovec(Buffer, Object):
     """
@@ -50,7 +50,7 @@ class Iovec(Buffer, Object):
 
     """
 
-    def __init__(self, size = -1, data = [], offset = 0, len_in = -1 ):
+    def __init__(self, size = -1, data = None, len_in = -1, offset = 0 ):
         #in array<byte> data = "", in int size = 0, in int offset = 0, in int len_in = size, out buffer obj
         """
         Initialize an iovec instance

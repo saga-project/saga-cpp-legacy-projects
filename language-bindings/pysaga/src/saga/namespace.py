@@ -161,7 +161,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
          """
         raise NotImplemented, "get_name() method is not implemented in this object"
 
-    def is_dir(self):
+    def is_dir_self(self):
         #out boolean test
         """
         Tests the entry for being a directory
@@ -182,7 +182,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "is_dir() method is not implemented in this object"
 
-    def is_entry(self):
+    def is_entry_self(self):
         #out boolean test
         """
         Tests the entry for being an NSEntry
@@ -206,7 +206,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "is_entry() method is not implemented in this object"
 
-    def is_link(self):
+    def is_link_self(self):
         #out boolean test
         """
         Tests the entry for being a link
@@ -228,7 +228,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "is_link() method is not implemented in this object"
 
-    def read_link(self):
+    def read_link_self(self):
         #out URL link
         """
         Get the name of the link target
@@ -252,7 +252,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "read_link() method is not implemented in this object"
     
-    def copy(self, target, flags = Flags.NONE):
+    def copy_self(self, target, flags = Flags.NONE):
         """
         Copy the entry to another part of the name space
         @summary: copy the entry to another part of the name space
@@ -297,7 +297,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "copy() method is not implemented in this object" 
     
-    def link(self, target, flags = Flags.NONE):
+    def link_self(self, target, flags = Flags.NONE):
         """
         Create a symbolic link from the target entry to the source entry ( this entry) so that any reference
         to the target refers to the source entry
@@ -349,7 +349,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "link() method is not implemented in this object"
 
-    def move(self, target, flags = Flags.NONE):
+    def move_self(self, target, flags = Flags.NONE):
         """
         Rename source to target, or move source to target if target is a directory.
         @summary: rename or move target
@@ -396,7 +396,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """
         raise NotImplemented, "move() method is not implemented in this object"
 
-    def remove(self, flags = Flags.NONE):
+    def remove_self(self, flags = Flags.NONE):
         """
         Removes this entry, and closes it
         @summary: removes this entry, and closes it
@@ -451,7 +451,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "close() method is not implemented in this object"
 
-    def permissions_allow(self, id, perm, flags = Flags.NONE):
+    def permissions_allow_self(self, id, perm, flags = Flags.NONE):
         #in string id, in permission perm, in int flags = None
         """
         Enable a permission
@@ -480,7 +480,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "permissions_allow() method is not implemented in this object"
 
-    def permissions_deny(self, id, perm, flags = Flags.NONE):
+    def permissions_deny_self(self, id, perm, flags = Flags.NONE):
         #in string id, in permission perm, in int flags = None
         """
         Disable a permission flag

@@ -1,5 +1,5 @@
 # Page 195 package saga.namespace
-from object import Object
+from object import Object, ObjectType
 from permissions import Permissions
 from task import Async
 from error import NotImplemented
@@ -239,7 +239,7 @@ class NSEntry(Object, Permissions, Async):
         except java.lang.Exception, e:
             raise convertException(e)
         
-    def is_dir(self, tasktype=TaskType.NORMAL):
+    def is_dir_self(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being a directory
@@ -280,7 +280,7 @@ class NSEntry(Object, Permissions, Async):
         except java.lang.Exception, e:
             raise convertException(e)
 
-    def is_entry(self, tasktype=TaskType.NORMAL):
+    def is_entry_self(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being an NSEntry
@@ -324,7 +324,7 @@ class NSEntry(Object, Permissions, Async):
         except java.lang.Exception, e:
             raise convertException(e)
 
-    def is_link(self, tasktype=TaskType.NORMAL):
+    def is_link_self(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being a link
@@ -365,7 +365,8 @@ class NSEntry(Object, Permissions, Async):
                     return False
         except java.lang.Exception, e:
             raise convertException(e)
-    def read_link(self, tasktype=TaskType.NORMAL):
+        
+    def read_link_self(self, tasktype=TaskType.NORMAL):
         #out URL link
         """
         Get the name of the link target
@@ -406,7 +407,7 @@ class NSEntry(Object, Permissions, Async):
         except java.lang.Exception, e:
             raise convertException(e)
         
-    def copy(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
+    def copy_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Copy the entry to another part of the name space
         @summary: copy the entry to another part of the name space
@@ -459,34 +460,20 @@ class NSEntry(Object, Permissions, Async):
         try:
             javaObject = None
             if tasktype is TaskType.ASYNC:
-                if flags is Flags.NONE:
-                    javaObject = self.delegateObject.copy(TaskMode.ASYNC, target.delegateObject)
-                else:
-                    self.delegateObject.copy(TaskMode.ASYNC, target.delegateObject, flags)
+                javaObject = self.delegateObject.copy(TaskMode.ASYNC, target.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                if flags is Flags.NONE:
-                    javaObject = self.delegateObject.copy(TaskMode.SYNC, target.delegateObject)
-                else:
-                    self.delegateObject.copy(TaskMode.SYNC, target.delegateObject, flags)
+                javaObject = self.delegateObject.copy(TaskMode.SYNC, target.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                if flags is Flags.NONE:
-                    javaObject = self.delegateObject.copy(TaskMode.TASK, target.delegateObject)
-                else:
-                    self.delegateObject.copy(TaskMode.TASK, target.delegateObject, flags)
+                javaObject = self.delegateObject.copy(TaskMode.TASK, target.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             else:
-                if flags is Flags.NONE:
-                    self.delegateObject.copy(target.delegateObject)
-                else:
-                    self.delegateObject.copy(target.delegateObject, flags)
+                self.delegateObject.copy(target.delegateObject, flags)
         except java.lang.Exception, e:
             raise convertException(e)
-            
-        raise NotImplemented, "copy() method is not implemented in this object" 
-    
-    def link(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
+   
+    def link_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Create a symbolic link from the target entry to the source entry ( this entry) so that any reference
         to the target refers to the source entry
@@ -558,7 +545,7 @@ class NSEntry(Object, Permissions, Async):
         except java.lang.Exception, e:
             raise convertException(e)      
         
-    def move(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
+    def move_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Rename source to target, or move source to target if target is a directory.
         @summary: rename or move target
@@ -625,7 +612,7 @@ class NSEntry(Object, Permissions, Async):
         except java.lang.Exception, e:
             raise convertException(e)      
 
-    def remove(self, flags = Flags.NONE, tasktype=TaskType.NORMAL):
+    def remove_self(self, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Removes this entry, and closes it
         @summary: removes this entry, and closes it
@@ -705,19 +692,19 @@ class NSEntry(Object, Permissions, Async):
         try:
             if tasktype is TaskType.ASYNC:
                 if timeout is 0.0:
-                   javaObject = self.delegateObject.close(TaskMode.ASYNC)
+                    javaObject = self.delegateObject.close(TaskMode.ASYNC)
                 else:
                     javaObject = self.delegateObject.close(TaskMode.ASYNC,timeout)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
                 if timeout is 0.0:
-                   javaObject = self.delegateObject.close(TaskMode.SYNC)
+                    javaObject = self.delegateObject.close(TaskMode.SYNC)
                 else:
                     javaObject = self.delegateObject.close(TaskMode.SYNC,timeout)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
                 if timeout is 0.0:
-                   javaObject = self.delegateObject.close(TaskMode.TASK)
+                    javaObject = self.delegateObject.close(TaskMode.TASK)
                 else:
                     javaObject = self.delegateObject.close(TaskMode.TASK,timeout)
                 return Task(delegateObject=javaObject)
@@ -730,7 +717,7 @@ class NSEntry(Object, Permissions, Async):
             raise convertException(e)             
 
 
-    def permissions_allow(self, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
+    def permissions_allow_self(self, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in string id, in permission perm, in int flags = None
         """
         Enable a permission
@@ -781,7 +768,16 @@ class NSEntry(Object, Permissions, Async):
         except java.lang.Exception, e:
             raise convertException(e)   
 
-    def permissions_deny(self, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.NSENTRY
+
+    def permissions_deny_self(self, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in string id, in permission perm, in int flags = None
         """
         Disable a permission flag
@@ -966,43 +962,43 @@ class NSDirectory(NSEntry):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: if name_pattern is not given (i.e. is an empty string), all entries in the current working
-                  directory are listed.
-        @note: if name_pattern is given and points to a directory, the contents of that directory
-                  are listed.
-        @note: the name_pattern follows the standard POSIX  shell wildcard specification, as described
-             above.
-        @note:  list does not follow symbolically linked directories, unless the 'DEREFERENCE' flag
-             is specified - otherwise list lists symbolic link entries with a matching name.
-        @note:  if the 'DEREFERENCE' flag is set, list returns the name of link targets, not of the
-             link entry itself.
+        @note: if name_pattern is not given (i.e. is an empty string), all entries in the current working directory are listed.
+        @note: if name_pattern is given and points to a directory, the contents of that directory are listed.
+        @note: the name_pattern follows the standard POSIX  shell wildcard specification, as described above.
+        @note:  list does not follow symbolically linked directories, unless the 'DEREFERENCE' flag is specified - otherwise list lists symbolic link entries with a matching name.
+        @note:  if the 'DEREFERENCE' flag is set, list returns the name of link targets, not of the link entry itself.
         @note:  the default flags are 'NONE' (0).
         @note:  other flags are not allowed, and cause a 'BadParameter' exception.
-        @note:  if the name_pattern cannot be parsed, a 'BadParameter' exception with a descriptive
-             error message is raised.
-        @note:  if the name_pattern does not match any entry, an empty list is returned, but no exception is
-             raised.
+        @note:  if the name_pattern cannot be parsed, a 'BadParameter' exception with a descriptive error message is raised.
+        @note:  if the name_pattern does not match any entry, an empty list is returned, but no exception is raised.
         @note:  similar to 'ls' as defined by POSIX.
+        """  
+        if type(name_pattern) is not str:
+            raise BadParameter, "Parameter name_pattern is not a string. Type: " + str(type(name_pattern))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(int))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.list(TaskMode.ASYNC, name_pattern, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.list(TaskMode.SYNC, name_pattern, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.list(TaskMode.TASK, name_pattern, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                javaArray = self.delegateObject.list(name_pattern, flags)                
+                retval = []
+                for i in range(len(javaArray)):
+                    ret.append(URL(delegateObject = javaArray[i]))
+                return retval
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-        """        
- 
-#  List<URL>     list()
-#          Lists entries in the directory.
-# List<URL>     list(int flags)
-#          Lists entries in the directory.
-# List<URL>     list(String pattern)
-#          Lists entries in the directory that match the specified pattern.
-# List<URL>     list(String pattern, int flags)
-#          Lists entries in the directory that match the specified pattern.
-# Task<NSDirectory,List<URL>>     list(TaskMode mode)
-#          Creates a task that lists entries in the directory.
-# Task<NSDirectory,List<URL>>     list(TaskMode mode, int flags)
-#          Creates a task that lists entries in the directory.
-# Task<NSDirectory,List<URL>>     list(TaskMode mode, String pattern)
-#          Creates a task that lists entries in the directory that match the specified pattern.
-# Task<NSDirectory,List<URL>>     list(TaskMode mode, String pattern, int flags)
-#          Creates a task that lists entries in the directory that match the specified pattern.
-    #navigation/query methods
     def find(self, name_pattern, flags = Flags.RECURSIVE, tasktype=TaskType.NORMAL):
         #in string name_pattern, in  int flags = Recursive, out array<saga::url> names
         """
@@ -1030,10 +1026,8 @@ class NSDirectory(NSEntry):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note:  find operates recursively below the current working directory if the 'RECURSIVE' flag is
-              specified (default)
-        @note:  find does not follow symbolically linked directories, unless the 'DEREFERENCE' flag
-              is specified - otherwise find lists symbolic link entries with a matching name.
+        @note:  find operates recursively below the current working directory if the 'RECURSIVE' flag is specified (default)
+        @note:  find does not follow symbolically linked directories, unless the 'DEREFERENCE' flag is specified - otherwise find lists symbolic link entries with a matching name.
         @note:  the default flags are 'RECURSIVE' (1).
         @note:  other flags are not allowed, and cause a 'BadParameter' exception.
         @note:  the name_pattern follows the standard POSIX shell wildcard specification, as described above.
@@ -1041,17 +1035,34 @@ class NSDirectory(NSEntry):
         @note:  similar to 'find' as defined by POSIX, but limited to the -name option.
 
         """
- 
-#  List<URL>     find(String pattern)
-#          Finds entries in the directory and below that match the specified pattern.
-# List<URL>     find(String pattern, int flags)
-#          Finds entries in the directory and below that match the specified pattern.
-# Task<NSDirectory,List<URL>>     find(TaskMode mode, String pattern)
-#          Creates a task that finds entries in the directory and below that match the specified pattern.
-# Task<NSDirectory,List<URL>>     find(TaskMode mode, String pattern, int flags)
-#          Creates a task that finds entries in the directory and below that match the specified   
+        if type(name_pattern) is not str:
+            raise BadParameter, "Parameter name_pattern is not a string. Type: " + str(type(name_pattern))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(int))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.find(TaskMode.ASYNC, name_pattern, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.find(TaskMode.SYNC, name_pattern, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.find(TaskMode.TASK, name_pattern, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                javaArray = self.delegateObject.find(name_pattern, flags)                
+                retval = []
+                for i in range(len(javaArray)):
+                    ret.append(URL(delegateObject = javaArray[i]))
+                return retval
+        except java.lang.Exception, e:
+            raise convertException(e)
+
     #navigation/query methods
-    def exists (self,name, tasktype=TaskType.NORMAL):
+    def exists (self, name, tasktype=TaskType.NORMAL):
         #in  URL name, out boolean exists
         """
         Checks if entry exists
@@ -1078,15 +1089,32 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -e' as defined by POSIX.
 
         """
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.exists(TaskMode.ASYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.exists(TaskMode.SYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.exists(TaskMode.TASK, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            else:
+                retval = self.delegateObject.exists(name.delegateObject)                
+                if reval is 1: return True
+                else: return False
+        except java.lang.Exception, e:
+            raise convertException(e)
 
+#DOCUMENT: difference type False/True -> bool-int
+#TODO: document Overridden methods. Make method include NSEntry and NSDirectory versions x_self.
 
-# Task<NSDirectory,Boolean>     exists(TaskMode mode, URL name)
-#          Creates a task that queries for the existence of an entry.
-# boolean     exists(URL name)
-#          Queries for the existence of an entry.
-  
-  
-#TODO: document Overridden methods. Make method include NSEntry and NSDirectory versions.
+    
     #navigation/query methods
     def is_dir(self, name, tasktype=TaskType.NORMAL):
         #in URL name, out boolean test 
@@ -1118,21 +1146,30 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -d' as defined by POSIX.
 
         """
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.isDir(TaskMode.ASYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.isDir(TaskMode.SYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.isDir(TaskMode.TASK, name.delegateObject)
+                return Task(delegateObject=javaObject)   
+            else:       
+                retval = self.delegateObject.isDir(name.delegateObject)
+                if retval is 1:
+                    return True
+                else: 
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-#From NSEntry        
-# boolean     isDir()
-#         Tests this entry for being a directory.
-# Task<NSEntry,Boolean>     isDir(TaskMode mode)
-#         Creates a task that tests this entry for being a directory.
-
-# From NSDirectory
-#  Task<NSDirectory,Boolean>     isDir(TaskMode mode, URL name)
-#         Creates a task that tests the name for being a directory.
-# boolean     isDir(URL name)
-#         Tests the name for being a directory.
-#          
-
- 
     #navigation/query methods
     def is_entry (self, name, tasktype=TaskType.NORMAL):
         #in URL name, out boolean test 
@@ -1162,17 +1199,29 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -f' as defined by POSIX.
 
         """
-        raise NotImplemented, "is_entry() method is not implemented in this object"
-
-#NSEntry
-# boolean     isEntry()
-#          Tests this entry for being a namespace entry.
-# Task<NSEntry,Boolean>     isEntry(TaskMode mode)
-#          Creates a task that tests this entry for being a namespace entry.
-#NSDirectory
-# Task<NSDirectory,Boolean>     isEntry(TaskMode mode, URL name)
-#          Creates a task that tests the name for being a namespace entry.
-# boolean     isEntry(URL name) 
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.isEntry(TaskMode.ASYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.isEntry(TaskMode.SYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.isEntry(TaskMode.TASK, name.delegateObject)
+                return Task(delegateObject=javaObject)   
+            else:  
+                retval = self.delegateObject.isEntry(name.delegateObject)
+                if retval is 1:
+                    return True
+                else: 
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)
  
     #navigation/query methods
     def is_link(self, name, tasktype=TaskType.NORMAL):
@@ -1203,16 +1252,30 @@ class NSDirectory(NSEntry):
         @note: similar to 'test -L' as defined by POSIX.
 
         """
-        raise NotImplemented, "is_link() method is not implemented in this object"
-
-# boolean     isLink()
-#          Tests this entry for being a link.
-# Task<NSEntry,Boolean>     isLink(TaskMode mode)
-#          Creates a task that tests this entry for being a link.
-#  Task<NSDirectory,Boolean>     isLink(TaskMode mode, URL name)
-#          Creates a task that tests the name for being a link.
-# boolean     isLink(URL name)          
- 
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.isLink(TaskMode.ASYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.isLink(TaskMode.SYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.isLink(TaskMode.TASK, name.delegateObject)
+                return Task(delegateObject=javaObject)   
+            else:
+                retval = self.delegateObject.isLink(name.delegateObject)
+                if retval is 1:
+                    return True
+                else: 
+                    return False
+        except java.lang.Exception, e:
+            raise convertException(e)
+        
     def read_link(self, name, tasktype=TaskType.NORMAL):
         #in URL name, out URL link
         """
@@ -1241,16 +1304,26 @@ class NSDirectory(NSEntry):
         @note:  if 'name' does not exist, a 'DoesNotExist' exception is raised.
 
         """
-        raise NotImplemented, "read_link() method is not implemented in this object"
-
-# URL     readLink()
-#          Returns the URL representing the link target.
-# Task<NSEntry,URL>     readLink(TaskMode mode)
-#          Creates a task that returns the URL representing the link target.
-# Task<NSDirectory,URL>     readLink(TaskMode mode, URL name)
-#          Creates a task that returns the URL representing the link target.
-# URL     readLink(URL name)
-#          Returns the URL representing the link target.
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.readLink(TaskMode.ASYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.readLink(TaskMode.SYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.readLink(TaskMode.TASK,name.delegateObject)
+                return Task(delegateObject=javaObject)   
+            else:
+                retval = self.delegateObject.readLink(name.delegateObject)
+                return URL (delegateObject = retval)
+        except java.lang.Exception, e:
+            raise convertException(e)
  
     # manage entries by number
     def get_num_entries (self, tasktype=TaskType.NORMAL):
@@ -1275,13 +1348,24 @@ class NSDirectory(NSEntry):
         @note: vaguely similar to 'opendir'/'readdir' (2) as defined by POSIX.
 
         """
-        raise NotImplemented, "get_num_entries() method is not implemented in this object"
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getNumEntries(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getNumEntries(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getNumEntries(TaskMode.TASK)
+                return Task(delegateObject=javaObject)   
+            else:
+                return self.delegateObject.getNumEntries()
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-# int     getNumEntries()
-#          Obtains the number of entries in this directory.
-# Task<NSDirectory,Integer>     getNumEntries(TaskMode mode)
-#          Creates a task that obtains the number of entries in this directory.
-    
     # manage entries by number
     def get_entry(self, entry, tasktype=TaskType.NORMAL):
         #in int entry, out URL name 
@@ -1312,13 +1396,27 @@ class NSDirectory(NSEntry):
         @note:  vaguely similar to 'opendir'/'readdir' (2) as defined by POSIX.
 
         """       
-        raise NotImplemented, "get_entry() method is not implemented in this object"
+        if type(entry) is not int:
+            raise BadParameter, "Parameter entry is not an int. Type: " + str(type(entry))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getEntry(TaskMode.ASYNC, entry)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getNumEntries(TaskMode.SYNC, entry)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getNumEntries(TaskMode.TASK, entry)
+                return Task(delegateObject=javaObject)   
+            else:
+                javaObject = self.delegateObject.getEntry(entry)
+                return URL(delegateObject = javaObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-# URL     getEntry(int entry)
-#          Gives the name of an entry in the directory based upon the enumeration defined by getNumEntries().
-# Task<NSDirectory,URL>     getEntry(TaskMode mode, int entry)
-#          Creates a task that gives the name of an entry in the directory based upon the enumeration defined by 
- 
     # management methods + management methods - wildcard versions
     def copy(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL source,   in URL target, in int flags = None
@@ -1365,29 +1463,35 @@ class NSDirectory(NSEntry):
            target URL specifies a directory, otherwise a 'BadParameter' exception is raised.
 
         """
-        raise NotImplemented, "copy() method is not implemented in this object"
+        if type(source) is not URL or type(source) is not str:
+            raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
+        if type(target) is not URL:
+            raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))      
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(source) is str:
+            source_parameter = source
+        else:
+            source_parameter = source.delegateObject
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.copy(TaskMode.ASYNC, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.copy(TaskMode.SYNC, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.copy(TaskMode.TASK, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.copy( source_parameter, target.delegateObject, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)
+        
 
-#    copy(TaskMode mode, URL target)
-#          Creates a task that copies this entry to another part of the namespace.
-# Task<NSEntry,Void>     copy(TaskMode mode, URL target, int flags)
-#          Creates a task that copies this entry to another part of the namespace.
-# void     copy(String source, URL target)
-#          Copies the source entry to another part of the namespace.
-# void     copy(String source, URL target, int flags)
-#          Copies the source entry to another part of the namespace.
-# Task<NSDirectory,Void>     copy(TaskMode mode, String source, URL target)
-#          Creates a task that copies the source entry to another part of the namespace.
-# Task<NSDirectory,Void>     copy(TaskMode mode, String source, URL target, int flags)
-#          Creates a task that copies the source entry to another part of the namespace.
-# Task<NSDirectory,Void>     copy(TaskMode mode, URL source, URL target)
-#          Creates a task that copies source the entry to another part of the namespace.
-# Task<NSDirectory,Void>     copy(TaskMode mode, URL source, URL target, int flags)
-#          Creates a task that copies source the entry to another part of the namespace.
-# void     copy(URL source, URL target)
-#          Copies the source entry to another part of the namespace.
-# void     copy(URL source, URL target, int flags)
-#          Copies the source entry to another part of the namespace.
- 
     # management methods + management methods - wildcard versions
     def link(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL source,    in URL target, in int flags = None
@@ -1442,32 +1546,33 @@ class NSDirectory(NSEntry):
              target URL specifies a directory. Otherwise a 'BadParameter' exception is raised.
 
         """
-        raise NotImplemented, "link() method is not implemented in this object"
-
-# Task<NSEntry,Void>     link(TaskMode mode, URL target)
-#          Creates a task that creates a symbolic link from the target to this entry.
-# Task<NSEntry,Void>     link(TaskMode mode, URL target, int flags)
-#          Creates a task that creates a symbolic link from the target to this entry.
-# void     link(URL target)
-#          Creates a symbolic link from the target to this entry.
-# void     link(URL target, int flags)
-#          Creates a symbolic link from the target to this entry.
-# void     link(String source, URL target)
-#          Creates a symbolic link from the specified target to the specified source.
-# void     link(String source, URL target, int flags)
-#          Creates a symbolic link from the specified target to the specified source.
-# Task<NSDirectory,Void>     link(TaskMode mode, String source, URL target)
-#          Creates a task that creates a symbolic link from the specified target to the specified source.
-# Task<NSDirectory,Void>     link(TaskMode mode, String source, URL target, int flags)
-#          Creates a task that creates a symbolic link from the specified target to the specified source.
-# Task<NSDirectory,Void>     link(TaskMode mode, URL source, URL target)
-#          Creates a task that creates a symbolic link from the specified target to the specified source.
-# Task<NSDirectory,Void>     link(TaskMode mode, URL source, URL target, int flags)
-#          Creates a task that creates a symbolic link from the specified target to the specified source.
-# void     link(URL source, URL target)
-#          Creates a symbolic link from the specified target to the specified source.
-# void     link(URL source, URL target, int flags)
-#          Creates a symbolic link from the specified target to the specified source.
+        if type(source) is not URL or type(source) is not str:
+            raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
+        if type(target) is not URL:
+            raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(source) is str:
+            source_parameter = source
+        else:
+            source_parameter = source.delegateObject
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.link(TaskMode.ASYNC,source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.link(TaskMode.SYNC, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.link(TaskMode.TASK, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.link(target.delegateObject, source_parameter, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)      
 
   
    # management methods + management methods - wildcard versions
@@ -1525,33 +1630,33 @@ class NSDirectory(NSEntry):
            otherwise a 'BadParameter' exception is raised.
 
         """
-        raise NotImplemented, "move() method is not implemented in this object"
-
-# Task<NSEntry,Void>     move(TaskMode mode, URL target)
-#          Creates a task that renames this entry to the target, or moves this entry to the target if it is a directory.
-# Task<NSEntry,Void>     move(TaskMode mode, URL target, int flags)
-#          Creates a task that renames this entry to the target, or moves this entry to the target if it is a directory.
-# void     move(URL target)
-#          Renames this entry to the target, or moves this entry to the target if it is a directory.
-# void     move(URL target, int flags)
-#          Renames this entry to the target, or moves this entry to the target if it is a directory.
-# void     move(String source, URL target)
-#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-# void     move(String source, URL target, int flags)
-#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-# Task<NSDirectory,Void>     move(TaskMode mode, String source, URL target)
-#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-# Task<NSDirectory,Void>     move(TaskMode mode, String source, URL target, int flags)
-#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-# Task<NSDirectory,Void>     move(TaskMode mode, URL source, URL target)
-#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-# Task<NSDirectory,Void>     move(TaskMode mode, URL source, URL target, int flags)
-#          Creates a task that renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-# void     move(URL source, URL target)
-#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-# void     move(URL source, URL target, int flags)
-#          Renames the specified source to the specified target, or move the specified source to the specified target if the target is a directory.
-
+        if type(source) is not URL or type(source) is not str:
+            raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
+        if type(target) is not URL:
+            raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(source) is str:
+            source_parameter = source
+        else:
+            source_parameter = source.delegateObject
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.move(TaskMode.ASYNC, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.move(TaskMode.SYNC, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.move(TaskMode.TASK, source_parameter, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.move(source_parameter, target.delegateObject, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)    
   
    # management methods + management methods - wildcard versions
     def remove(self, target, flags =  Flags.NONE, tasktype=TaskType.NORMAL):
@@ -1597,31 +1702,31 @@ class NSDirectory(NSEntry):
             is raised - the state of the operations on the other elements of the expanded entry list is undefined.
 
         """
-        raise NotImplemented, "remove() method is not implemented in this object"
-# void     remove()
-#          Removes this entry and closes it.
-# void     remove(int flags)
-#          Removes this entry and closes it.
-# Task<NSEntry,Void>     remove(TaskMode mode)
-#          Creates a task that removes this entry and closes it.
-# Task<NSEntry,Void>     remove(TaskMode mode, int flags)
-#          Creates a task that removes this entry and closes it.
-# void     remove(String target)
-#          Removes the specified entry.
-# void     remove(String target, int flags)
-#          Removes the specified entry.
-# Task<NSDirectory,Void>     remove(TaskMode mode, String target)
-#          Creates a task that removes the specified entry.
-# Task<NSDirectory,Void>     remove(TaskMode mode, String target, int flags)
-#          Creates a task that removes the specified entry.
-# Task<NSDirectory,Void>     remove(TaskMode mode, URL target)
-#          Creates a task that removes the specified entry.
-# Task<NSDirectory,Void>     remove(TaskMode mode, URL target, int flags)
-#          Creates a task that removes the specified entry.
-# void     remove(URL target)
-#          Removes the specified entry.
-# void     remove(URL target, int flags)
-#          Removes the specified entry.
+        if type(source) is not URL or type(source) is not str:
+            raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(source) is str:
+            source_parameter = source
+        else:
+            source_parameter = source.delegateObject
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.remove(TaskMode.ASYNC, source_parameter, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.remove(TaskMode.SYNC, source_parameter, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.remove(TaskMode.TASK, source_parameter, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.remove(source_parameter, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)             
   
    # management methods
     def make_dir(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
@@ -1661,16 +1766,27 @@ class NSDirectory(NSEntry):
         
         """
         #in saga::url target, in int flags =  None
-        raise NotImplemented, "make_dir() method is not implemented in this object"
- 
-# Task<NSDirectory,Void>     makeDir(TaskMode mode, URL target)
-#          Creates a task that creates a new directory.
-# Task<NSDirectory,Void>     makeDir(TaskMode mode, URL target, int flags)
-#          Creates a task that creates a new directory.
-# void     makeDir(URL target)
-#          Creates a new directory.
-# void     makeDir(URL target, int flags)
-#          Creates a new directory.
+        if type(target) is not URL:
+            raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.makeDir(TaskMode.ASYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.makeDir(TaskMode.SYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.makeDir(TaskMode.TASK, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                self.delegateObject.makeDir(target.delegateObject, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)
   
     #factory methods
     def open(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL ):
@@ -1722,16 +1838,29 @@ class NSDirectory(NSEntry):
         @note: similar to 'open' (2) as defined by POSIX.
 
         """        
-        raise NotImplemented, "open() method is not implemented in this object"
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.open(TaskMode.ASYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.open(TaskMode.SYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.open(TaskMode.TASK, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                javaObject = self.delegateObject.open(target.delegateObject, flags)
+                return NSEntry(delegateObject = javaObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-# Task<NSDirectory,NSEntry>     open(TaskMode mode, URL name)
-#          Creates a task that creates a new NamespaceEntry instance.
-# Task<NSDirectory,NSEntry>     open(TaskMode mode, URL name, int flags)
-#          Creates a task that creates a new NamespaceEntry instance.
-# NSEntry     open(URL name)
-#          Creates a new NamespaceEntry instance.
-# NSEntry     open(URL name, int flags)
-#          Creates a new NamespaceEntry instance.
  
     #factory methods
     def open_dir(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
@@ -1779,17 +1908,30 @@ class NSDirectory(NSEntry):
         @note: if 'name' can be parsed as URL, but contains an invalid directory name, a 'BadParameter' exception is raised
 
         """
-        raise NotImplemented, "open_dir() method is not implemented in this object"
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.openDir(TaskMode.ASYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.openDir(TaskMode.SYNC, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.openDir(TaskMode.TASK, target.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                javaObject = self.delegateObject.openDir(target.delegateObject, flags)
+                return NSDirectory(delegateObject = javaObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-# Task<NSDirectory,NSDirectory>     openDir(TaskMode mode, URL name)
-#          Creates a task that creates a new NamespaceDirectory instance.
-# Task<NSDirectory,NSDirectory>     openDir(TaskMode mode, URL name, int flags)
-#          Creates a task that creates a new NamespaceDirectory instance.
-# NSDirectory     openDir(URL name)
-#          Creates a new NamespaceDirectory instance.
-# NSDirectory     openDir(URL name, int flags)
-#          Creates a new NamespaceDirectory instance.
- 
+
     #permissions with flags + permissions with flags - wildcard version
     def permissions_allow(self, target, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL target,    in string id, in int perm, in int flags = None
@@ -1821,33 +1963,38 @@ class NSDirectory(NSEntry):
         @note:  specifying 'RECURSIVE' for a non-directory causes a 'BadParameter' exception.
         @note: the 'source' string can contain wildcards.
         @note: on error conditions on any of the expanded list of source entries, the respective error
-             is raised - the state of the operations on the other elements of the expanded entry list is
-             undefined. 
-
-
+             is raised - the state of the operations on the other elements of the expanded entry list is undefined. 
         """ 
-        raise NotImplemented, "permissions_allow() method is not implemented in this object"
+        if type(target) is not URL or type(source) is not str:
+            raise BadParameter, "Parameter target is not a URL or string. Type: " + str(type(target))
+        if type(id) is not str:
+            raise BadParameter, "Parameter id is not a string. Type: " + str(type(id)) 
+        if type(perm) is not int:
+            raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(source) is str: 
+            target_parameter = target
+        else: 
+            target_parameter = target.delegateObject
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.ASYNC, target_parameter, id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.SYNC, target_parameter, id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK: 
+                javaObject = self.delegateObject.permissionsAllow(TaskMode.TASK, target_parameter, id, perm, flags)
+                return Task(delegateObject=javaObject)                                           
+            else:
+                self.delegateObject.permissionsAllow(target_parameter, id, perm, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)   
 
-# void     permissionsAllow(String id, int permissions, int flags)
-#          Allows the specified permissions for the specified id.
-# Task<NSEntry,Void>     permissionsAllow(TaskMode mode, String id, int permissions, int flags)
-#          Creates a task that enables the specified permissions for the specified id.
-# void     permissionsAllow(String target, String id, int permissions)
-#          Allows the specified permissions for the specified id.
-# void     permissionsAllow(String target, String id, int permissions, int flags)
-#          Allows the specified permissions for the specified id.
-# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, String target, String id, int permissions)
-#          Creates a task that enables the specified permissions for the specified id.
-# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, String target, String id, int permissions, int flags)
-#          Creates a task that enables the specified permissions for the specified id.
-# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, URL target, String id, int permissions)
-#          Creates a task that enables the specified permissions for the specified id.
-# Task<NSDirectory,Void>     permissionsAllow(TaskMode mode, URL target, String id, int permissions, int flags)
-#          Creates a task that enables the specified permissions for the specified id.
-# void     permissionsAllow(URL target, String id, int permissions)
-#          Allows the specified permissions for the specified id.
-# void     permissionsAllow(URL target, String id, int permissions, int flags)
-#          Allows the specified permissions for the specified id.
 
  
     #permissions with flags + permissions with flags - wildcard version
@@ -1885,17 +2032,42 @@ class NSDirectory(NSEntry):
              is raised - the state of the operations on the other elements of the expanded entry list is
              undefined. 
         """       
-        raise NotImplemented, "permissions_deny() method is not implemented in this object"
-    
-# void     permissionsDeny(String id, int permissions, int flags)
-# Task<NSEntry,Void>     permissionsDeny(TaskMode mode, String id, int permissions, int flags)
-# void     permissionsDeny(String target, String id, int permissions)
-# void     permissionsDeny(String target, String id, int permissions, int flags)
-# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, String target, String id, int permissions)
-# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, String target, String id, int permissions, int flags)
-# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, URL target, String id, int permissions)
-# Task<NSDirectory,Void>     permissionsDeny(TaskMode mode, URL target, String id, int permissions, int flags)
-# void     permissionsDeny(URL target, String id, int permissions)
-# void     permissionsDeny(URL target, String id, int permissions, int flags)
-       
+        if type(target) is not URL or type(source) is not str:
+            raise BadParameter, "Parameter target is not a URL or string. Type: " + str(type(target))
+        if type(id) is not str:
+            raise BadParameter, "Parameter id is not a string. Type: " + str(type(id)) 
+        if type(perm) is not int:
+            raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(source) is str: 
+            target_parameter = target
+        else: 
+            target_parameter = target.delegateObject
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.ASYNC, target_parameter, id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.SYNC, target_parameter, id, perm, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK: 
+                javaObject = self.delegateObject.permissionsDeny(TaskMode.TASK, target_parameter, id, perm, flags)
+                return Task(delegateObject=javaObject)                                           
+            else:
+                self.delegateObject.permissionsDeny(target_parameter, id, perm, flags)
+        except java.lang.Exception, e:
+            raise convertException(e)    
+
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.NSDIRECTORY    
  

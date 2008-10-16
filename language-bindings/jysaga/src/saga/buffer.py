@@ -57,6 +57,8 @@ class Buffer(Object):
         @raise NoSuccess:
         @see: notes about memory management in GFD-R-P.90 document.
         """
+ 
+#TODO: Redo init.
         if delegateObject in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.buffer.Buffer:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.context.Context. Type: " + str(type(impl["delegateObject"]))

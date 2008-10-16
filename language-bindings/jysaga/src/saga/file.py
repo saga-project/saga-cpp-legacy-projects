@@ -13,7 +13,7 @@ from error import NotImplemented
 #import org.ogf.saga.url.URL;
 #import org.ogf.saga.namespace.Flags;
 #import org.ogf.saga.file.File;
-#import org.ogf.saga.file.FileFactory;
+from org.ogf.saga.file import FileFactory
 #import java.lang.Exception;
 
 class Flags(object):
@@ -36,9 +36,10 @@ class Flags(object):
     BINARY        = 2048
 
 class SeekMode(object):
-    START   = 0        # Python uses start=0,current=1, 2=end, SAGA 1,2,3
-    CURRENT = 1
-    END     = 2
+    START   = 1        
+    CURRENT = 2
+    END     = 3
+#DOCUMENT: Python uses start=0,current=1, 2=end, SAGA 1,2,3
 
 class Iovec(Buffer, Object):
     """
@@ -49,8 +50,13 @@ class Iovec(Buffer, Object):
     beeing interpreted as the POSIX iov len, i.e. the number of bytes to read/write.
 
     """
+    delegateObject = None
+    managedByImp = None
+    array = None
+    applicationBuf = None
+    closed = False
 
-    def __init__(self, size = -1, data = [], offset = 0, len_in = -1 ):
+    def __init__(self, size = -1, data = None, len_in = -1, offset = 0, **impl):
         #in array<byte> data = "", in int size = 0, in int offset = 0, in int len_in = size, out buffer obj
         """
         Initialize an iovec instance
@@ -68,8 +74,69 @@ class Iovec(Buffer, Object):
         @Note: all notes from the buffer __init__() apply.
         @Note: if len_in is larger than size, and size is not given as -1, a BadParameter exception is raised.
         """
-        pass
 
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.file.IOVec:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.IOVec. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+            return
+        if type(size) is not int:
+            raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
+        if type(data) is not array or type(data) is not list or data is not None:
+            raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
+        if type(data) is array and data.typecode is not 'c':
+            raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode           
+        if type(len_in) is not int:
+            raise BadParameter, "Parameter len_in is not an int. Type: " + str(type(len_in))
+        if type(offset) is not int:
+            raise BadParameter, "Parameter offset is not an int. Type: " + str(type(offset))        
+        if offset < 0:
+            raise BadParameter, "Parameter offset < 0. offset:" + str(offset)
+# 0-0        
+        if size is -1 and data is None:
+            raise BadParameter, "Parameters size and data are not specified." 
+# 1-0
+        elif size is not -1 and data is None:    
+            if size is 0 or size < -1:
+                raise BadParameter, "Parameter size is <= 0"
+            try:
+                if len_in == -1:
+                    self.delegateObject = FileFactory.createIOVec(size)
+                    self.managedByImp = True
+                else:
+                    self.delegateObject = FileFactory.createIOVec(size, len_in)
+                    self.managedByImp = True
+            except java.lang.Exception, e:
+                raise self.convertException(e)
+# 0-1 
+        elif size is -1 and data is not None: 
+            try:
+                self.array = jarray.zeros( len(data), 'b')
+                if len_in == -1:
+                    self.delegateObject =  FileFactory.createIOVec(self.array)
+                else:
+                    self.delegateObject =  FileFactory.createIOVec(self.array, len_in)
+                self.managedByImp = False
+                self.applicationBuf = data
+            except java.lang.Exception, e:
+                raise self.convertException(e)
+#1-1 
+        elif size is not -1 and data is not None:
+            try:
+                self.array = jarray.zeros( size, 'b')
+                if len_in == -1:
+                    self.delegateObject =  FileFactory.createIOVec(self.array)
+                else:
+                    self.delegateObject =  FileFactory.createIOVec(self.array, len_in)
+                    self.managedByImp = False
+                    self.applicationBuf = data
+            except java.lang.Exception, e:
+                raise self.convertException(e)
+        else:
+            raise BadParameter, "Parameters can not be processed. size:" + size + " " + str(type(size)) + ". data: " + data + " " + str(type(data))          
+        if offset > 0:
+            self.set_offset(offset)
+        
     def set_offset(self, offset):
         #in int offset
         """
@@ -79,6 +146,13 @@ class Iovec(Buffer, Object):
         @type offset: int
         @raise BadParameter: if offset is smaller that zero, a BadParameter exception is raised.
         """
+        if type(offset) is not int:
+            raise BadParameter, "Parameter offset is not an int. Type: " + str(type(offset)) 
+        try:
+            self.delegateObject.setOffset(offset)
+        except java.lang.Exception, e:
+            raise self.convertException(e)
+
 
     def get_offset (self):
         #out int offset);
@@ -88,8 +162,10 @@ class Iovec(Buffer, Object):
         @return: value of offset
         @rtype: int
         """
-        offset = 0
-        return offset
+        try:
+            return self.delegateObject.getOffset()
+        except java.lang.Exception, e:
+            raise self.convertException(e)
         
     def set_len_in(self, len_in):
         #set_len_in (in int len_in);
@@ -99,6 +175,10 @@ class Iovec(Buffer, Object):
         @type len_in: int
         @raise BadParameter: if len_in is larger than size, and size is not set to -1, a BadParameter exception is raised.
         """
+        try:
+            return self.delegateObject.setLenIn(len_in)
+        except java.lang.Exception, e:
+            raise self.convertException(e)
 
     def get_len_in(self):
         #get_len_in (out int len_in);
@@ -108,8 +188,10 @@ class Iovec(Buffer, Object):
         @return: value of len_in (see __init__)
         @rtype: int
         """
-        len_in = 0
-        return len_in
+        try:
+            return self.delegateObject.getLenIn()
+        except java.lang.Exception, e:
+            raise self.convertException(e)    
 
     def get_len_out(self):
         #get_len_out (out int len_out);
@@ -121,15 +203,18 @@ class Iovec(Buffer, Object):
         @Note: before completion of the operation, the returned value is -1.
         @Note: for implementation managed memory, the value of len_out is always the same as for size.
         """
-        len_out = 0
-        return len_out
+        try:
+            return self.delegateObject.getLenOut()
+        except java.lang.Exception, e:
+            raise self.convertException(e)    
+
 
 class File(NSEntry):
     """
     This class represents an open file descriptor for read/write operations on a physical file
 
     """
-    fileObject = None
+    delegateObject = None
     
     def __init__(self, session, name, flags=Flags.READ):
         """

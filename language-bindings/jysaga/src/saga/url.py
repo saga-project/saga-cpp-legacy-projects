@@ -33,16 +33,15 @@ class URL(Object):
             interpretation of the URL is not part of this class' functionality.   
 
         """
-        super(URL, self).__init__()
         if type(url) is not str:
             raise BadParameter, "Parameter url is not a string. Type: " + str(type(url))
-        if urlObject in impl:
-            if type(impl["urlObject"]) is not org.ogf.saga.url.URL:
-                raise BadParameter, "Parameter impl[\"urlObject\"] is not a org.ogf.saga.url.URL. Type: " + str(type(impl["urlObject"]))
-            self.urlObject = impl["urlObject"]
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.url.URL:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.url.URL. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
         else:
             try:
-                self.urlObject = URLFactory.createURL(url)
+                self.delegateObject = URLFactory.createURL(url)
             except java.lang.Exception, e:
                 raise self.convertException(e)
              
