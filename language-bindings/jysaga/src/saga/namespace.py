@@ -78,7 +78,7 @@ class NSEntry(Object, Permissions, Async):
     """
     delegateObject = None
 
-    def __init__(self, session, name, flags=Flags.NONE, **impl):
+    def __init__(self, name, session="default", flags=Flags.NONE, **impl):
         """
         Initialize the the object
         @summary: initialize the the object
@@ -114,19 +114,24 @@ class NSEntry(Object, Permissions, Async):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSEntry. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
         else:
-            if type(session) is not Session:
+            if type(session) is not Session and session is not "default":
                 raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
             if type(name) is not URL:
                 raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
             if type(flags) is not int:
                 raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
             try:
-                if flags is Flags.NONE:
+                if flags is Flags.NONE and session is not "default":
                     self.delegateObject = NSFactory.createNSEntry(session.delegateObject, name.delegateObject)
-                else:
+                elif flags is not Flags.NONE and session is not "default":
                     self.delegateObject = NSFactory.createNSEntry(session.delegateObject, name.delegateObject, flags)
+                elif flags is Flags.NONE and session is "default":
+                    self.delegateObject = NSFactory.createNSEntry(name.delegateObject)
+                else:
+                    self.delegateObject = NSFactory.createNSEntry(name.delegateObject, flags)
             except java.lang.Exception, e:
                 raise convertException(e)
+
 #DOCUMENT: cannot be created asynchronous object
 
     def __del__(self):
@@ -828,7 +833,7 @@ class NSEntry(Object, Permissions, Async):
             raise convertException(e)   
         
     
-class NSDirectory(NSEntry):
+class NSDirectory(NSEntry, Async):
     """
     NSDirectory inherits all navigation and manipulation methods from NSEntry,
     but adds some more methods to these sets: instead of dir.copy (target)
@@ -839,14 +844,14 @@ class NSDirectory(NSEntry):
     and open_dir()).
     """
     
-    def __init__(self, session, url, flags = Flags.NONE, **impl):
+    def __init__(self, name, session="default", flags = Flags.NONE, **impl):
         """
         Initialize the object
         @summary: initialize the object
-        @param url: initial working dir
+        @param name: initial working dir
         @param flags: open mode
         @param session: session handle for object creation
-        @type url : L{URL}
+        @type name : L{URL}
         @type session: L{Session}
         @type flags: int
         @postcondition: the directory is opened.
@@ -875,17 +880,21 @@ class NSDirectory(NSEntry):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSDirectory. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
         else:
-            if type(session) is not Session:
+            if type(session) is not Session and session is not "default":
                 raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
             if type(name) is not URL:
                 raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
             if type(flags) is not int:
                 raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
             try:
-                if flags is Flags.NONE:
+                if flags is Flags.NONE and session is not "default":
                     self.delegateObject = NSFactory.createNSDirectory(session.delegateObject, name.delegateObject)
-                else:
+                elif flags is not Flags.NONE and session is not "default":
                     self.delegateObject = NSFactory.createNSDirectory(session.delegateObject, name.delegateObject, flags)
+                elif flags is Flags.NONE and session is "default":
+                    self.delegateObject = NSFactory.createNSDirectory(name.delegateObject)
+                else:
+                    self.delegateObject = NSFactory.createNSDirectory(name.delegateObject, flags)
             except java.lang.Exception, e:
                 raise convertException(e)
     

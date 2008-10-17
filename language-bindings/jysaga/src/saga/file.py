@@ -14,6 +14,8 @@ from error import NotImplemented
 #import org.ogf.saga.namespace.Flags;
 #import org.ogf.saga.file.File;
 from org.ogf.saga.file import FileFactory
+from org.ogf.saga.task import TaskMode
+from org.ogf.saga.file import SeekMode
 #import java.lang.Exception;
 
 class Flags(object):
@@ -209,14 +211,14 @@ class Iovec(Buffer, Object):
             raise self.convertException(e)    
 
 
-class File(NSEntry):
+class File(NSEntry, Async):
     """
     This class represents an open file descriptor for read/write operations on a physical file
 
     """
     delegateObject = None
     
-    def __init__(self, session, name, flags=Flags.READ):
+    def __init__(self, name, session="default", flags=Flags.READ, **impl):
         """
         Initialize the File object
         @summary: initialize the File object
@@ -244,54 +246,31 @@ class File(NSEntry):
         @raise NoSuccess:
         @Note: all notes from the Directory.open() method apply.
         @Note: the default flags are READ (512).
-
         """
-        super(File,self).__init__()
-        # todo: check types
-#        self.fileObject = org.ogf.saga.file.FileFactory.createFile( url_name.urlObject, org.ogf.saga.namespace.Flags.READ.getValue() );
-        #print "sagaFile.File object created"
- 
-#   def __convertException(self, e):
-#        if isinstance(e, org.ogf.saga.error.AlreadyExistsException):
-#            print "org.ogf.saga.error.AlreadyExistsException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.AuthenticationFailedException):
-#            print "org.ogf.saga.error.AuthenticationFailedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.AuthorizationFailedException):
-#            print "org.ogf.saga.error.AuthorizationFailedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.BadParameterException):
-#            print "org.ogf.saga.error.BadParameterException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.DoesNotExistException):
-#            print "org.ogf.saga.error.DoesNotExistException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.IncorrectStateException):
-#            print "org.ogf.saga.error.IncorrectStateException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.IncorrectURLException):
-#            print "org.ogf.saga.error.IncorrectURLException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.NoSuccessException):
-#            print "org.ogf.saga.error.NoSuccessException: \n" + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.NotImplementedException):
-#            print "org.ogf.saga.error.NotImplementedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.PermissionDeniedException):
-#            print "org.ogf.saga.error.PermissionDeniedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.SagaIOException):
-#            print "org.ogf.saga.error.SagaIOException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.TimeoutException):
-#            print "org.ogf.saga.error.TimeoutException: " + e.getMessage()
-#        else:
-#            print "Unknown other java.exception " + e.getMessage() 
-     
-#    def copy(self, url_target, flags=0):
-#        """override from NSEntry"""
-#        print type(url_target.urlObject) 
-#        try:
-#            self.fileObject.copy(url_target.urlObject, flags);
-#        except java.lang.Exception, exception:
-#            self.__convertException(e=exception)
-#        print "file.copy finished"
-#        # org.ogf.saga.namespace.Flags.OVERWRITE.getValue());
-# 
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.file.File:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.File. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+        else:
+            if type(session) is not Session and session is not "default":
+                raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
+            if type(name) is not URL:
+                raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
+            try:
+                if flags is Flags.NONE and session is not "default":
+                    self.delegateObject = FileFactory.createFile(session.delegateObject, name.delegateObject)
+                elif flags is not Flags.NONE and session is not "default":
+                    self.delegateObject = FileFactory.createFile(session.delegateObject, name.delegateObject, flags)
+                elif flags is Flags.NONE and session is "default":
+                    self.delegateObject = FileFactory.createFile(name.delegateObject)
+                else:
+                    self.delegateObject = FileFactory.createFile(name.delegateObject, flags)
+            except java.lang.Exception, e:
+                raise convertException(e)
 
-
-    def get_size(self):
+    def get_size(self, tasktype=TaskType.NORMAL):
         """
         Returns the number of bytes in the file
         @summary: returns the number of bytes in the file
@@ -308,10 +287,26 @@ class File(NSEntry):
         @Note: similar to the st_size field from stat(2)as defined by POSIX
 
         """
-        size = 0;
-        return size
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getSize(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getSize(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getSize(TaskMode.TASK)
+                return Task(delegateObject=javaObject)        
+            else:
+                return self.delegateObject.getSize()
+        except java.lang.Exception, e:
+                raise convertException(e)
+
     
-    def read(self, len = -1, buf=None):
+    def read(self, len = -1, buf=None, tasktype=TaskType.NORMAL):
         #inout buffer buf, in int len_in = -1, out int len_out ):
         """
         Reads up to len bytes from the file into a buffer.
@@ -362,10 +357,64 @@ class File(NSEntry):
             If that is also not available, a BadParameter exception is raised.
         @Note: similar to read (2) as specified by POSIX
         """
-        len_out = 0
-        return len_out
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type (len) is not int:
+            raise BadParameter, "Parameter len is not an int. Type: " + str(type(len))
+        if buf.__class__ is not Buffer and buf is not None:
+            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        try:
+            if len_in is not -1 and data is not None:
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.read(TaskMode.ASYNC, buf.delegateObject, len_in)
+                    return Task(delegateObject=javaObject, fileReadBuffer = buf)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.read(TaskMode.SYNC, buf.delegateObject, len_in)
+                    return Task(delegateObject=javaObject, fileReadBuffer = buf)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.read(TaskMode.TASK, buf.delegateObject, len_in)
+                    return Task(delegateObject=javaObject, fileReadBuffer = buf)        
+                else:
+                    retval = self.delegateObject.read(data.delegateObject, len_in)
+                    buf.update_data()
+                    return retval
+            elif len_in is not -1 and data is None:
+                javaBuffer =  BufferFactory.createBuffer(len_in)
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.read(TaskMode.ASYNC, javaBuffer, len_in)
+                    return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.read(TaskMode.SYNC, javaBuffer, len_in)
+                    return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.read(TaskMode.TASK, javaBuffer, len_in)
+                    return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)        
+                else:
+                    retval = self.delegateObject.read(javaBuffer, len_in)
+                    return retval.getData().toString()
+            elif len_in is -1 and data is None:
+                #- B{Call format: read()} 
+                javaBuffer =  BufferFactory.createBuffer()
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.read(TaskMode.ASYNC, javaBuffer)
+                    return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.read(TaskMode.SYNC, javaBuffer)
+                    return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.read(TaskMode.TASK, javaBuffer)
+                    return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)        
+                else:
+                    retval = self.delegateObject.read(javaBuffer)
+                    return retval.getData().toString()                    
+                pass
+        except java.lang.Exception, e:
+                raise convertException(e)
         
-    def write(self, buf, len = -1):
+#TODO: Check after read, update application managed buffer
+        
+    def write(self, buf, len = -1, tasktype=TaskType.Normal):
         # (in buffer buf, in int len_in = -1, out int len_out ):
         """
         Writes up to len from buffer into the file at the current file position.
@@ -400,8 +449,49 @@ class File(NSEntry):
         @Note: similar to write (2) as specified by POSIX
 
         """
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type (len) is not int:
+            raise BadParameter, "Parameter len is not an int. Type: " + str(type(len))
+        if buf.__class__ is not Buffer:
+            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        if len < -1:
+            raise BadParameter, "Parameter len < 0"
+        try:
+            if tasktype is TaskType.ASYNC:
+                if len is -1:
+                    javaObject = self.delegateObject.write(TaskMode.ASYNC, buf.delegateObject)
+                else:
+                    javaObject = self.delegateObject.write(TaskMode.ASYNC, buf.delegateObject, len)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                if len is -1:
+                    javaObject = self.delegateObject.write(TaskMode.SYNC, buf.delegateObject)
+                else:
+                    javaObject = self.delegateObject.write(TaskMode.SYNC, buf.delegateObject, len)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                if len is -1:
+                    javaObject = self.delegateObject.write(TaskMode.Task, buf.delegateObject)
+                else:
+                    javaObject = self.delegateObject.write(TaskMode.Task, buf.delegateObject, len)
+                return Task(delegateObject=javaObject) 
+            else:
+                if len is -1:
+                    return self.delegateObject.write(buf.delegateObject)
+                else:
+                    return self.delegateObject.write(buf.delegateObject, len)
+        except java.lang.Exception, e:
+                raise convertException(e)
 
-    def seek (self, offset, whence = 0):
+#
+# int     write(Buffer buffer)
+#          Writes up to the buffer's size bytes from the buffer to the file at the current file position.
+# int     write(Buffer buffer, int len)
+#          Writes up to len bytes from the buffer to the file at the current file position.
+
+    def seek (self, offset, whence = 0, tasktype=TaskType.NORMAL ):
         #return out int position
         """
         Reposition the file pointer
@@ -433,6 +523,27 @@ class File(NSEntry):
         @Note: note that a subsequent read at or behind the end of file returns no data.
         @Note: similar to lseek (2) as specified by POSIX.
         """
+        if type(whence) is not int:
+            raise BadParameter, "Parameter whence is not an int. Type " + str(type(tasktype))
+        if type(offset) is not int:
+            raise BadParameter, "Parameter offset is not an int. Type " + str(type(offset))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getSize(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getSize(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getSize(TaskMode.TASK)
+                return Task(delegateObject=javaObject)        
+            else:
+                return self.delegateObject.getSize()
+        except java.lang.Exception, e:
+                raise convertException(e)
         position = 0
         return position
             
@@ -691,7 +802,7 @@ class File(NSEntry):
         len_out = 0
         return len_out
 
-class Directory(NSDirectory):
+class Directory(NSDirectory, Async):
     """
     This class represents an open file descriptor for read/write operations on a physical directory. 
     """

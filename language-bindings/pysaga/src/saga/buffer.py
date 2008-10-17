@@ -55,7 +55,7 @@ class Buffer(Object):
             the instance, and all notes to close() apply.
         """
         
-    def set_size( size = -1):
+    def set_size(self, size = -1):
        """
        Set size of buffer.
        @summary: Set size of buffer.

@@ -129,9 +129,8 @@ class File(NSEntry):
     This class represents an open file descriptor for read/write operations on a physical file
 
     """
-    fileObject = None
     
-    def __init__(self, session, name, flags=Flags.READ):
+    def __init__(self, name, session="default", flags=Flags.READ):
         """
         Initialize the File object
         @summary: initialize the File object
@@ -161,50 +160,6 @@ class File(NSEntry):
         @Note: the default flags are READ (512).
 
         """
-        super(File,self).__init__()
-        # todo: check types
-#        self.fileObject = org.ogf.saga.file.FileFactory.createFile( url_name.urlObject, org.ogf.saga.namespace.Flags.READ.getValue() );
-        #print "sagaFile.File object created"
- 
-#   def __convertException(self, e):
-#        if isinstance(e, org.ogf.saga.error.AlreadyExistsException):
-#            print "org.ogf.saga.error.AlreadyExistsException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.AuthenticationFailedException):
-#            print "org.ogf.saga.error.AuthenticationFailedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.AuthorizationFailedException):
-#            print "org.ogf.saga.error.AuthorizationFailedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.BadParameterException):
-#            print "org.ogf.saga.error.BadParameterException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.DoesNotExistException):
-#            print "org.ogf.saga.error.DoesNotExistException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.IncorrectStateException):
-#            print "org.ogf.saga.error.IncorrectStateException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.IncorrectURLException):
-#            print "org.ogf.saga.error.IncorrectURLException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.NoSuccessException):
-#            print "org.ogf.saga.error.NoSuccessException: \n" + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.NotImplementedException):
-#            print "org.ogf.saga.error.NotImplementedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.PermissionDeniedException):
-#            print "org.ogf.saga.error.PermissionDeniedException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.SagaIOException):
-#            print "org.ogf.saga.error.SagaIOException: " + e.getMessage()
-#        elif isinstance(e, org.ogf.saga.error.TimeoutException):
-#            print "org.ogf.saga.error.TimeoutException: " + e.getMessage()
-#        else:
-#            print "Unknown other java.exception " + e.getMessage() 
-     
-#    def copy(self, url_target, flags=0):
-#        """override from NSEntry"""
-#        print type(url_target.urlObject) 
-#        try:
-#            self.fileObject.copy(url_target.urlObject, flags);
-#        except java.lang.Exception, exception:
-#            self.__convertException(e=exception)
-#        print "file.copy finished"
-#        # org.ogf.saga.namespace.Flags.OVERWRITE.getValue());
-# 
-
 
     def get_size(self):
         """
@@ -611,7 +566,7 @@ class Directory(NSDirectory):
     This class represents an open file descriptor for read/write operations on a physical directory. 
     """
     
-    def __init__(self, name, session, flags=Flags.READ):
+    def __init__(self, name, session="default", flags=Flags.READ):
         #in session s, in URL name, in int flags = Read, out directory obj the newly created object
         """
         Initialize the Directory object

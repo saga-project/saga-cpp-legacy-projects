@@ -130,7 +130,7 @@ class Buffer(Object):
             self.close(0)
         Object.__del__(self)
         
-    def set_size( size = -1):
+    def set_size(self, size = -1):
        """
        Set size of buffer.
        @summary: Set size of buffer.
@@ -209,6 +209,25 @@ class Buffer(Object):
             self.applicationBuf = data
         except java.lang.Exception, e:
            raise self.convertException(e)
+ 
+    def update_data(self):
+        if len(self.array) <= len(self.data):
+            for i in range(len(self.array)):
+                if self.array[i] < 0:
+                    self.data[i] = chr(self.data[i]+256)
+                else:
+                    self.data[i] = chr(self.data[i])
+        else:  #self.array > self.data
+            for i in range(len(self.data)):
+                if self.array[i] < 0:                           
+                    self.data[i] = chr(self.data[i]+256)
+                else:
+                    self.data[i] = chr(self.data[i]) 
+            for i in range(len(self.data), len(self.array) ):
+                if self.array[i] < 0:                           
+                    self.data.append(chr(self.data[i]+256))
+                else:
+                    self.data.append(chr(self.data[i]))                            
     
     def get_data(self):
         #out array<byte> data
@@ -233,23 +252,7 @@ class Buffer(Object):
                 return self.delegateObject.getData().tostring()
             else:
                 if type(self.data) is list or type(self.data) is array:
-                    if len(self.array) <= len(self.data):
-                        for i in range(len(self.array)):
-                            if self.array[i] < 0:
-                                self.data[i] = chr(self.data[i]+256)
-                            else:
-                                self.data[i] = chr(self.data[i])
-                    else:  #self.array > self.data
-                        for i in range(len(self.data)):
-                            if self.array[i] < 0:                           
-                                self.data[i] = chr(self.data[i]+256)
-                            else:
-                                self.data[i] = chr(self.data[i]) 
-                        for i in range(len(self.data), len(self.array) ):
-                            if self.array[i] < 0:                           
-                                self.data.append(chr(self.data[i]+256))
-                            else:
-                                self.data.append(chr(self.data[i]))                            
+                    self.update_data()
                     return self.data
                 else:
                     raise NoSuccess, "self.data is not a array or a list. Internal inconsistincy."

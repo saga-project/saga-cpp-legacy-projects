@@ -104,6 +104,7 @@ class Task(Object, Monitorable):
 
     """
     delegateObject = None
+    fileReadBuffer = None
     
     def __init__(self, **impl):
         #no constructor
@@ -112,7 +113,12 @@ class Task(Object, Monitorable):
             if type(impl["delegateObject"]) is not org.ogf.saga.task.Task:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.Task. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
-
+        if fileReadBuffer in impl:
+            if type(impl["fileReadBuffer"]) is not org.ogf.saga.buffer.Buffer:
+                raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga.buffer.Buffer Type: " + str(type(impl["fileReadBuffer"]))
+            self.fileReadBuffer = impl["fileReadBuffer"]
+ 
+#DOCUMENT: fileReadBuffer 
     
     def __del__(self):
         """
@@ -274,7 +280,12 @@ class Task(Object, Monitorable):
         elif type(retval) is org.ogf.saga.file.FileInputStream: pass
         elif type(retval) is org.ogf.saga.file.FileOutputStream: pass
         elif type(retval) is java.io.InputStream: pass     
-        elif type(retval) is java.lang.Integer:
+        elif type(retval) is java.lang.Integer or type(retval) is int:
+            if self.fileReadBuffer is not None:
+                if self.fileReadBuffer.__class__ is Buffer:
+                    self.fileReadBuffer.update_data()
+                else:
+                    return self.fileReadBuffer.getData().toString()
             return retval.intValue()
         elif type(retval) is org.ogf.saga.job.Job: pass
         elif type(retval) is org.ogf.saga.job.JobDescription: pass
