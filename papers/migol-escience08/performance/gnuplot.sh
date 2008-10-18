@@ -4,6 +4,7 @@
 #set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
 set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+#set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
                                       
 
 set encoding iso_8859_1
@@ -37,14 +38,16 @@ set nokey
 #set format x "%d.%m."
 set format y "%.0f"
 set xrange [0.5:4.7] 
-set yrange [0:50] 
+set yrange [0:55] 
 set boxwidth 0.8 relative
 set style fill solid 0.9
 # set linestyle 1 lt 1 lw 50
 #"data.txt" using 1:2:6 title "Job Startup Time" with boxes linetype 1  fs solid 0.25,\
    
 set output "perf_submission.eps" 
-plot "data.txt" using 1:2:3  title "Submission Time" with boxes linetype 1  fs solid 0.5
+#plot "data.txt" using 1:2:3  title "Submission Time" with boxes linetype 1  fs solid 0.5  
+plot "data.txt" using 1:2:3:(0.75)  title "Submission Time" with boxerrorbars linetype 1  fs solid 0.5 
+
     #"data.txt" using 1:4:6 title "Resource Creation" with boxes linetype 1  fs solid 0.5
     # "data.txt" using 1:5:6 title "Delegation on Demand" with boxes fs pattern
 
@@ -60,12 +63,16 @@ set output "perf_monitoring.eps"
 unset xtics 
 set xtics (20,40,60,80,100,120,140,160,180,200,220,240)
 #set logscale x 
-set xrange [20:240]       
-set yrange [0:30]
+set xrange [0:260]       
+set yrange [20:23]  
+set ytics (20,21,22,23)
 #set logscale x 2
 set ylabel "Runtime (in min)" #font "Helvetica, 20" 
-set xlabel "Monitoring Intervall (in s)" 
-plot "data-monitoring.txt" using 1:2  with lp                     
+set xlabel "Monitoring Intervall (in s)"    
+f(x)=21.3                           
+set key
+plot "data-monitoring.txt" using 1:2  title "With Migol" with lp 13,\
+     f(x) title "Without Migol" with line  14
      
 set output "perf_remd.eps"       
 #set logscale x 2
@@ -74,14 +81,12 @@ set key
 set xtics autofreq
 set yrange [3:12] 
 #set xrange [2:16]
-set xrange [2:8]        
+set xrange [2:16]        
 set xtics (2,4,8,16)
 set logscale x
 set ylabel "Runtime (in min)" #font "Helvetica, 20"
 set xlabel "Number Replica Processes"   
-plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\
-     "data-remd.txt" using 1:6 title "SAGA/GRAM (QB/Poseidon/Eric)" with lp,\
-     "data-remd.txt" using 1:4 title "SAGA/Migol (QB/Poseidon)" with lp,\
+plot "data-remd.txt" using 1:4 title "SAGA/Migol (QB/Poseidon)" with lp,\
      "data-remd.txt" using 1:5 title "SAGA/GRAM  (QB/Poseidon)" with lp,\
      "data-remd.txt" using 1:2 title "SAGA/Migol (QB)" with lp 9,\
      "data-remd.txt" using 1:3 title "SAGA/GRAM  (QB)" with lp 14  
