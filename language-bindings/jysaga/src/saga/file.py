@@ -9,6 +9,8 @@ from object import Object, ObjectType
 from attributes import Attributes
 from error import NotImplemented
 
+import jarray.array
+
 #import org.ogf.saga.url.URLFactory;
 #import org.ogf.saga.url.URL;
 #import org.ogf.saga.namespace.Flags;
@@ -376,8 +378,9 @@ class File(NSEntry, Async):
                     javaObject = self.delegateObject.read(TaskMode.TASK, buf.delegateObject, len_in)
                     return Task(delegateObject=javaObject, fileReadBuffer = buf)        
                 else:
-                    retval = self.delegateObject.read(data.delegateObject, len_in)
-                    buf.update_data()
+                    retval = self.delegateObject.read(buf.delegateObject, len_in)
+                    if buf.managedByImp is False:
+                        buf.update_data()
                     return retval
             elif len_in is not -1 and data is None:
                 javaBuffer =  BufferFactory.createBuffer(len_in)
@@ -408,7 +411,6 @@ class File(NSEntry, Async):
                 else:
                     retval = self.delegateObject.read(javaBuffer)
                     return retval.getData().toString()                    
-                pass
         except java.lang.Exception, e:
                 raise convertException(e)
         
@@ -485,11 +487,7 @@ class File(NSEntry, Async):
         except java.lang.Exception, e:
                 raise convertException(e)
 
-#
-# int     write(Buffer buffer)
-#          Writes up to the buffer's size bytes from the buffer to the file at the current file position.
-# int     write(Buffer buffer, int len)
-#          Writes up to len bytes from the buffer to the file at the current file position.
+
 
     def seek (self, offset, whence = 0, tasktype=TaskType.NORMAL ):
         #return out int position
@@ -544,10 +542,8 @@ class File(NSEntry, Async):
                 return self.delegateObject.getSize()
         except java.lang.Exception, e:
                 raise convertException(e)
-        position = 0
-        return position
             
-    def read_v(self, iovecs):
+    def read_v(self, iovecs, tasktype=TaskType.NORMAL):
         #inout array<iovec> iovecs
         """
         Gather/scatter read
@@ -575,8 +571,38 @@ class File(NSEntry, Async):
         @Note: similar to readv (2) as specified by POSIX
         
         """
-
-    def write_v(self, iovecs): 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(iovecs) is not Iovec and type(iovecs) is not list:
+            raise BadParameter, "Parameter iovecs is not a list of Iovecs , but " + str(type(tasktype))
+        if type(iovecs) is list:
+            for i in range(len(iovecs)):
+                if type(iovecs[i]) is not Iovec:
+                    raise BadParameter, "Parameter iovecs is not a list of IOVecs, Contains a" + str(type(tasktype)) + "at position " + str(i)
+        javaArray = jarray.array([], org.ogf.saga.file.IOVec)
+        for j in range(len(iovecs)):
+            javaArray.append(iovecs[i].delegateObject)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.readV(TaskMode.ASYNC, javaArray)
+                return Task(delegateObject=javaObject, fileReadBuffer = iovecs)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.readV(TaskMode.SYNC, javaArray)
+                return Task(delegateObject=javaObject, fileReadBuffer = iovecs)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.readV(TaskMode.TASK, javaArray)
+                return Task(delegateObject=javaObject, fileReadBuffer = iovecs)        
+            else:
+                self.delegateObject.readV(javaArray)
+                for item in iovecs:
+                    if item.managedByImp is False:
+                        item.update_data()               
+        except java.lang.Exception, e:
+                raise convertException(e)        
+            
+        
+    def write_v(self, iovecs, tasktype=TaskType.NORMAL): 
         #inout array<iovec> iovecs ):
         """
         Gather/scatter write
@@ -602,10 +628,37 @@ class File(NSEntry, Async):
                  If that is also not available, a BadParameter exception is raised.
         @Note: if the file was opened READONLY, a PermissionDenied exception is raised.
         @Note: similar to writev (2) as specified by POSIX
-
         """
-     
-    def size_p (self, pattern):
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(iovecs) is not Iovec and type(iovecs) is not list:
+            raise BadParameter, "Parameter iovecs is not a list of Iovecs , but " + str(type(tasktype))
+        if type(iovecs) is list:
+            for i in range(len(iovecs)):
+                if type(iovecs[i]) is not Iovec:
+                    raise BadParameter, "Parameter iovecs is not a list of IOVecs, Contains a" + str(type(tasktype)) + "at position " + str(i)
+        javaArray = jarray.array([], org.ogf.saga.file.IOVec)
+        for j in range(len(iovecs)):
+            javaArray.append(iovecs[i].delegateObject)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.writeV(TaskMode.ASYNC, javaArray)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.writeV(TaskMode.SYNC, javaArray)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.writeV(TaskMode.TASK, javaArray)
+                return Task(delegateObject=javaObject)        
+            else:
+                self.delegateObject.writeV(javaArray)
+        except java.lang.Exception, e:
+                raise convertException(e)        
+
+
+
+    def size_p (self, pattern, tasktype=TaskType.NORMAL):
         #in string pattern, out int size
         """
         Determine the storage size required for a pattern I/O operation
@@ -627,11 +680,28 @@ class File(NSEntry, Async):
         @Note: if the pattern cannot be parsed or interpreted, a BadParameter exception is raised.
 
         """
-        size = 0
-        return size
+        if type(pattern) is not str:
+            raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.sizeP(TaskMode.ASYNC,pattern)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.sizeP(TaskMode.SYNC, pattern)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.sizeP(TaskMode.TASK, pattern)
+                return Task(delegateObject=javaObject)        
+            else:
+                return self.delegateObject.sizeP(pattern)
+        except java.lang.Exception, e:
+                raise convertException(e)        
+ 
     
-    
-    def read_p(self, pattern, buf):
+    def read_p(self, pattern, buf, tasktype=TaskType.NORMAL):
         # in string pattern, inout buffer buf, out int len_out
         """
         Pattern-based read
@@ -657,11 +727,33 @@ class File(NSEntry, Async):
         @Note: an exception MUST be raised if any of the individual writes detects a condition which would raise an exception for the normal write method.
 
         """
-        len_out = 0
-        return len_out
+        if type(pattern) is not str:
+            raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
+        if buf.__class__ is not Buffer:
+            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.readP(TaskMode.ASYNC, pattern, buf.delegateObject)
+                return Task(delegateObject=javaObject, fileReadBuffer = buf)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.readP(TaskMode.SYNC, pattern,buf.delegateObject)
+                return Task(delegateObject=javaObject, fileReadBuffer = buf)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.readP(TaskMode.TASK, pattern, buf.delegateObject)
+                return Task(delegateObject=javaObject, fileReadBuffer = buf)        
+            else:
+                retval = self.delegateObject.readP(pattern, buf.delegateObject)
+                if buf.managedByImp is False:
+                    buf.update_data()
+                return retval 
+        except java.lang.Exception, e:
+                raise convertException(e)
 
 
-    def write_p(self, pattern, buf): 
+    def write_p(self, pattern, buf, tasktype=TaskType.NORMAL): 
         #in string pattern, in buffer buf, out int len_out
         """
         Pattern-based write
@@ -687,10 +779,31 @@ class File(NSEntry, Async):
         @Note: an exception MUST be raised if any of the individual writes detects a condition which would raise an exception for the normal write method.
 
         """
-        len_out = 0
-        return len_out
+        if type(pattern) is not str:
+            raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
+        if buf.__class__ is not Buffer:
+            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.writeP(TaskMode.ASYNC, pattern, buf.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.writeP(TaskMode.SYNC, pattern,buf.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.writeP(TaskMode.TASK, pattern, buf.delegateObject)
+                return Task(delegateObject=javaObject)        
+            else:
+                retval = self.delegateObject.writeP(pattern, buf.delegateObject)
+                return retval 
+        except java.lang.Exception, e:
+                raise convertException(e)
 
-    def modes_e(self):
+
+    def modes_e(self, tasktype=TaskType.NORMAL):
         #out array<string> emodes
         """
         List the extended modes available in this implementation, and/or on server side
@@ -708,10 +821,29 @@ class File(NSEntry, Async):
             the application programmer to determine what extended I/O methods are supported by the implementation.
 
         """
-        emodes = (None, ) #tuple
-        return emodes
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.modesE(TaskMode.ASYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.modesE(TaskMode.SYNC)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.modesE(TaskMode.TASK)
+                return Task(delegateObject=javaObject)        
+            else:
+                retval = self.delegateObject.modesE()
+                list = []
+                for i in range(retval.size()):
+                    list.append( retval.get(i).toString() )
+                return tuple(list) 
+        except java.lang.Exception, e:
+                raise convertException(e)
 
-    def size_e (self, emode, spec):
+    def size_e (self, emode, spec, tasktype=TaskType.NORMAL):
         #in string emode, in string spec, out int size
         """
         Determine the storage size required for an extended I/O operation
@@ -735,10 +867,30 @@ class File(NSEntry, Async):
         @Note: if the specification cannot be parsed or interpreted, a BadParameter exception is raised.
 
         """
-        size = 0
-        return size
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(emode) is not str:
+            raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
+        if type(spec) is not str:
+            raise BadParameter, "Parameter spec is not a string. Type: " + str(type(spec))
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.sizeE(TaskMode.ASYNC, emode, spec)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.sizeE(TaskMode.SYNC, emode, spec)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.sizeE(TaskMode.TASK, emode, spec)
+                return Task(delegateObject=javaObject)        
+            else:
+                return self.delegateObject.sizeE(emode, spec)       
+        except java.lang.Exception, e:
+                raise convertException(e) 
+            
 
-    def read_e(self, emode, spec, buf):
+    def read_e(self, emode, spec, buf, tasktype=TaskType.NORMAL):
         # (in string emode, in string spec, inout buffer buf, out int len_out );
         """
         Extended read
@@ -767,10 +919,36 @@ class File(NSEntry, Async):
         @Note: an exception is raised if any of the individual reads detects a condition which would raise an exception for the normal read method.
 
         """
-        len_out = 0
-        return len_out
-
-    def write_e (self, emode, spec, buf):
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(emode) is not str:
+            raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
+        if type(spec) is not str:
+            raise BadParameter, "Parameter spec is not a string. Type: " + str(type(spec))
+        if buf.__class__ is not Buffer:
+            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.readE(TaskMode.ASYNC, emode, spec, buf.delegateObject)
+                return Task(delegateObject=javaObject, fileReadBuffer = buf)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.readE(TaskMode.SYNC,  emode, spec, buf.delegateObject)
+                return Task(delegateObject=javaObject, fileReadBuffer = buf)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.readE(TaskMode.TASK,  emode, spec, buf.delegateObject)
+                return Task(delegateObject=javaObject, fileReadBuffer = buf)        
+            else:
+                retval = self.delegateObject.readE(emode, spec, buf.delegateObject)
+                if buf.managedByImp is False:
+                    buf.update_data()
+                return retval 
+        except java.lang.Exception, e:
+                raise convertException(e)
+                
+    
+        
+    def write_e (self, emode, spec, buf, tasktype=TaskType.NORMAL):
         #in string emode, in string spec, in buffer buf, out int len_out
         """
         Extended write
@@ -799,15 +977,38 @@ class File(NSEntry, Async):
         @Note: an exception MUST be raised if any of the individual writes detects a condition which would raise an exception for the normal write method.
 
         """   
-        len_out = 0
-        return len_out
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(emode) is not str:
+            raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
+        if type(spec) is not str:
+            raise BadParameter, "Parameter spec is not a string. Type: " + str(type(spec))
+        if buf.__class__ is not Buffer:
+            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.writeE(TaskMode.ASYNC, emode, spec, buf.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.writeE(TaskMode.SYNC,  emode, spec, buf.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.writeE(TaskMode.TASK,  emode, spec, buf.delegateObject)
+                return Task(delegateObject=javaObject)        
+            else:
+                retval = self.delegateObject.writeE(emode, spec, buf.delegateObject)
+                return retval 
+        except java.lang.Exception, e:
+                raise convertException(e)
+  
 
 class Directory(NSDirectory, Async):
     """
     This class represents an open file descriptor for read/write operations on a physical directory. 
     """
     
-    def __init__(self, name, session, flags=Flags.READ):
+    def __init__(self, name, session="default", flags=Flags.READ, **impl):
         #in session s, in URL name, in int flags = Read, out directory obj the newly created object
         """
         Initialize the Directory object
@@ -835,16 +1036,36 @@ class Directory(NSDirectory, Async):
         @note: the semantics of the inherited constructors apply
 
         """
-        super(Directory, self).__init__()
+        if delegateObject in impl:
+            if type(impl["delegateObject"]) is not org.ogf.saga.file.Directory:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.Directory. Type: " + str(type(impl["delegateObject"]))
+            self.delegateObject = impl["delegateObject"]
+        else:
+            if type(session) is not Session and session is not "default":
+                raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
+            if type(name) is not URL:
+                raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
+            try:
+                if flags is Flags.NONE and session is not "default":
+                    self.delegateObject = FileFactory.createDirectory(session.delegateObject, name.delegateObject)
+                elif flags is not Flags.NONE and session is not "default":
+                    self.delegateObject = FileFactory.createDirectory(session.delegateObject, name.delegateObject, flags)
+                elif flags is Flags.NONE and session is "default":
+                    self.delegateObject = FileFactory.createDirectory(name.delegateObject)
+                else:
+                    self.delegateObject = FileFactory.createDirectory(name.delegateObject, flags)
+            except java.lang.Exception, e:
+                raise convertException(e)       
         
-        
-    def get_size(self, name, flags = None):
+    def get_size(self, name, flags = None, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = None, out int size
         """
         Returns the size of the file
         @summary: Returns the size of the file
         @param name: name of file to inspect
-        @type name: sagaURL.URL()
+        @type name: L{URL}
         @param flags: mode for operation
         @type flags: int
         @return: size of the file
@@ -869,19 +1090,59 @@ class Directory(NSDirectory, Async):
         @note: similar to the 'st_size' field from 'stat' (2) as defined by POSIX
 
         """
-        size = 0
-        return size
-    
-    def is_file (self, name, flags = None):
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(name) is not URL:
+                raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+        if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.getSize(TaskMode.ASYNC, name.delegateObject,flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.getSize(TaskMode.SYNC, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.getSize(TaskMode.TASK, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)        
+            else:
+                return self.delegateObject.getSize(name.delegateObject, flags)
+        except java.lang.Exception, e:
+                raise convertException(e)
+
+            
+    def is_file (self, name, tasktype=TaskType.NORMAL):
         #return boolean test
         """
         Alias:    for is_entry in saga.namespace.NSDirectory
         @see: L{saga.namespace.NSDirectory.is_entry()}
         """
-        
-        pass
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if type(name) is not URL:
+                raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.isFile(TaskMode.ASYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.isFile(TaskMode.SYNC, name.delegateObject)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.isFile(TaskMode.TASK, name.delegateObject)
+                return Task(delegateObject=javaObject)        
+            else:
+                return self.delegateObject.isFile(name.delegateObject)
+        except java.lang.Exception, e:
+                raise convertException(e)                
 
-    def open_dir (self, name, flags = Flags.READ):
+#DOCUMENT: Flags parameter not needed!
+
+
+    def open_dir (self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = READ, out directory dir)
         """
         Creates a directory object
@@ -913,11 +1174,30 @@ class Directory(NSDirectory, Async):
         @Note: default flags are 'READ' (512).
 
         """
-        dir = Directory(name, self.session, flags)
-        return dir
-        pass
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.openDirectory(TaskMode.ASYNC, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.openDirectory(TaskMode.SYNC, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.openDirectory(TaskMode.TASK, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                javaObject = self.delegateObject.openDirectory(name.delegateObject, flags)
+                return Directory(delegateObject = javaObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
 
-    def open (self, name, flags = Flags.READ):
+    def open (self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = Read, out file file
         """
         Creates a new file instance
@@ -954,4 +1234,26 @@ class Directory(NSDirectory, Async):
         @note: default flags are 'Read' (512).
 
         """
-        pass
+        if type(name) is not URL:
+            raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
+        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        try:
+            if tasktype is TaskType.ASYNC:
+                javaObject = self.delegateObject.openFile(TaskMode.ASYNC, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.SYNC:
+                javaObject = self.delegateObject.openFile(TaskMode.SYNC, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            if tasktype is TaskType.TASK:
+                javaObject = self.delegateObject.openFile(TaskMode.TASK, name.delegateObject, flags)
+                return Task(delegateObject=javaObject)
+            else:
+                javaObject = self.delegateObject.openFile(name.delegateObject, flags)
+                return File(delegateObject = javaObject)
+        except java.lang.Exception, e:
+            raise convertException(e)
+        

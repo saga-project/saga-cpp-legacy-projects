@@ -603,7 +603,7 @@ class Directory(NSDirectory):
         Returns the size of the file
         @summary: Returns the size of the file
         @param name: name of file to inspect
-        @type name: sagaURL.URL()
+        @type name: L{URL}
         @param flags: mode for operation
         @type flags: int
         @return: size of the file
@@ -631,7 +631,7 @@ class Directory(NSDirectory):
         size = 0
         return size
     
-    def is_file (self, name, flags = None):
+    def is_file (self, name):
         #return boolean test
         """
         Alias:    for is_entry in saga.namespace.NSDirectory
@@ -646,7 +646,7 @@ class Directory(NSDirectory):
         Creates a directory object
         @summary: Creates a directory object
         @param name: name of directory to open
-        @type name: saga.url.URL
+        @type name: L{URL}
         @param flags: flags defining operation modus
         @type flags: value from saga.file.Flags
         @return: opened directory instance

@@ -211,23 +211,23 @@ class Buffer(Object):
            raise self.convertException(e)
  
     def update_data(self):
-        if len(self.array) <= len(self.data):
+        if len(self.array) <= len(self.applicationBuf):
             for i in range(len(self.array)):
                 if self.array[i] < 0:
-                    self.data[i] = chr(self.data[i]+256)
+                    self.applicationBuf[i] = chr(self.applicationBuf[i]+256)
                 else:
-                    self.data[i] = chr(self.data[i])
-        else:  #self.array > self.data
-            for i in range(len(self.data)):
+                    self.applicationBuf[i] = chr(self.applicationBuf[i])
+        else:  #self.array > self.applicationBuf
+            for i in range(len(self.applicationBuf)):
                 if self.array[i] < 0:                           
-                    self.data[i] = chr(self.data[i]+256)
+                    self.applicationBuf[i] = chr(self.applicationBuf[i]+256)
                 else:
-                    self.data[i] = chr(self.data[i]) 
-            for i in range(len(self.data), len(self.array) ):
+                    self.applicationBuf[i] = chr(self.applicationBuf[i]) 
+            for i in range(len(self.applicationBuf), len(self.array) ):
                 if self.array[i] < 0:                           
-                    self.data.append(chr(self.data[i]+256))
+                    self.applicationBuf.append(chr(self.applicationBuf[i]+256))
                 else:
-                    self.data.append(chr(self.data[i]))                            
+                    self.applicationBuf.append(chr(self.applicationBuf[i]))                            
     
     def get_data(self):
         #out array<byte> data
@@ -251,11 +251,11 @@ class Buffer(Object):
             if self.managedByImp is True:
                 return self.delegateObject.getData().tostring()
             else:
-                if type(self.data) is list or type(self.data) is array:
+                if type(self.applicationBuf) is list or type(self.applicationBuf) is array:
                     self.update_data()
-                    return self.data
+                    return self.applicationBuf
                 else:
-                    raise NoSuccess, "self.data is not a array or a list. Internal inconsistincy."
+                    raise NoSuccess, "self.applicationBuf is not a array or a list. Internal inconsistincy."
         except java.lang.Exception, e:
            raise self.convertException(e)
 

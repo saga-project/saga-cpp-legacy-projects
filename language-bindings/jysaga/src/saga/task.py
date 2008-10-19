@@ -10,6 +10,8 @@ from object import Object, ObjectType
 from monitoring import Monitorable
 from error import NotImplemented
 from org.ogf.saga.task import TaskMode
+from buffer import Buffer
+from file import Iovec
 
 class State(object):
     """ 
@@ -270,6 +272,15 @@ class Task(Object, Monitorable):
             retval = self.delegateObject.getResult()
         except java.lang.Exception, e:
             raise convertException(e)
+        
+        if self.fileReadBuffer is not None:
+            if self.fileReadBuffer.managedByImp is False:    #Buffer or Iovec
+                self.fileReadBuffer.update_data()
+            if type(self.fileReadBuffer) is list:            # list of Iovecs
+                for iovec in list:
+                    if iovec.managedByImp is False:
+                        iovec.update_data()
+        
         if type(retval) is java.lang.Boolean:
             if retval.booleanValue() is 1: return True
             else: return False
@@ -280,19 +291,28 @@ class Task(Object, Monitorable):
         elif type(retval) is org.ogf.saga.file.FileInputStream: pass
         elif type(retval) is org.ogf.saga.file.FileOutputStream: pass
         elif type(retval) is java.io.InputStream: pass     
-        elif type(retval) is java.lang.Integer or type(retval) is int:
+        elif type(retval) is java.lang.Integer:
             if self.fileReadBuffer is not None:
-                if self.fileReadBuffer.__class__ is Buffer:
-                    self.fileReadBuffer.update_data()
-                else:
+               if self.fileReadBuffer.managedByImp is False: 
                     return self.fileReadBuffer.getData().toString()
-            return retval.intValue()
+            if type(retval) is java.lang.Integer: return retval.intValue()
+            else:                                 return retval
         elif type(retval) is org.ogf.saga.job.Job: pass
         elif type(retval) is org.ogf.saga.job.JobDescription: pass
         elif type(retval) is org.ogf.saga.job.JobSelf: pass  
-        elif type(retval) is java.util.List: pass
-            # List<String>
-            # List<URL>
+        elif type(retval) is java.util.List: 
+            if retval.isEmpty() is False:
+                if type(reval.get(0)) is java.lang.String:    # List<String>
+                    list = []
+                    for i in range(retval.size()):
+                        list.append( retval.get(i).toString() )
+                        return tuple(list) 
+                if type(reval.get(0)) is org.ogf.saga.url.URL: # List<URL>
+                    list = []
+                    for i in range(retval.size()):
+                        temp = URL (delegateObject = retval.get(i))
+                        list.append(temp)
+                        return tuple(list)                     
         elif type(retval) is org.ogf.saga.logicalfile.LogicalDirectory: pass
         elif type(retval) is org.ogf.saga.logicalfile.LogicalFile: pass
         elif type(retval) is java.lang.Long:
@@ -304,7 +324,7 @@ class Task(Object, Monitorable):
         elif type(retval) is org.ogf.saga.stream.StreamInputStream: pass
         elif type(retval) is org.ogf.saga.stream.StreamOutputStream: pass
         elif type(retval) is java.lang.String: 
-            return retval
+            return retval.toString()
         elif type(retval) is org.ogf.saga.url.URL:
             return URL(delgateObject=retval)
         elif type(retval) is java.lang.Void:
