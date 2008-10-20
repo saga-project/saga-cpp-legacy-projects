@@ -5,13 +5,15 @@
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 #GFD-R-P.90 section 3.6, page 81,  package saga.context
 
-from object import Object, ObjectType
-from attributes import Attributes
-from error import NotImplemented
-from session import Session
+from saga.object import Object, ObjectType
+from saga.attributes import Attributes
+from saga.error import NotImplemented
+#from saga.session import Session
+
 from org.ogf.saga.context import ContextFactory, Context
-from java.lang import String
 import org.ogf.saga.error.DoesNotExistException
+from java.lang import String
+
 
 class Context(Object, Attributes):
     delegateObject = None
@@ -126,7 +128,7 @@ class Context(Object, Attributes):
             The notes to set_defaults apply.
         @see: the notes about lifetime management in Section 2 of the GFD-R-P.90 document
         """
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.url.URL:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.context.Context. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]

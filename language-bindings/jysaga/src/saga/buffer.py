@@ -59,7 +59,7 @@ class Buffer(Object):
         """
  
 #TODO: Redo init.
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.buffer.Buffer:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.context.Context. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]

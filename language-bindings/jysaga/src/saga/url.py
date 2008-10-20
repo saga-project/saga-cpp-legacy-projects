@@ -4,20 +4,19 @@
 # Specification and documentation can be found in section 3.3, page 53-58 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-#DOCUMENT: second constructor urlObject see IMPL
+#DOCUMENT: second constructor delegateObject see IMPL
 
 from object import Object, ObjectType
-from error import NotImplemented, BadParameter, IncorrectURL, AlreadyExists, DoesNotExist, IncorrectState, \
-                    PermissionDenied, AuthorizationFailed, AuthenticationFailed, Timeout, NoSuccess
 
 from org.ogf.saga.url import URLFactory, URL
+import java.lang.Exception
 
 class URL(Object):
     """
     URLs are used to reference remote entities.
     @version: 1.0
     """
-    urlObject = None
+    delegateObject = None
 
     def __init__(self, url="", **impl):
         """
@@ -33,13 +32,13 @@ class URL(Object):
             interpretation of the URL is not part of this class' functionality.   
 
         """
-        if type(url) is not str:
-            raise BadParameter, "Parameter url is not a string. Type: " + str(type(url))
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.url.URL:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.url.URL. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
         else:
+            if type(url) is not str:
+                raise BadParameter, "Parameter url is not a string. Type: " + str(type(url))
             try:
                 self.delegateObject = URLFactory.createURL(url)
             except java.lang.Exception, e:
@@ -63,7 +62,7 @@ class URL(Object):
             raise BadParameter, "Parameter url is not a string. Type: " + str(type(url))
         #TODO: document that if _init_ raises an error the object is not created
         try:
-            self.urlObject.setURL(url)
+            self.delegateObject.setURL(url)
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -78,7 +77,7 @@ class URL(Object):
 
         """
         try:
-            return self.urlObject.getURL()
+            return self.delegateObject.getString()
         except java.lang.Exception, e:
             raise self.convertException(e)
 
@@ -100,7 +99,7 @@ class URL(Object):
         if type(scheme) is not str:
             raise BadParameter, "Parameter scheme is not a string. Type: " + str(type(scheme))
         try:
-            self.urlObject.setScheme(scheme)
+            self.delegateObject.setScheme(scheme)
         except java.lang.Exception, e:
             raise self.convertException(e)
         
@@ -115,7 +114,7 @@ class URL(Object):
 
         """
         try:
-            return self.urlObject.getScheme()
+            return self.delegateObject.getScheme()
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -137,7 +136,7 @@ class URL(Object):
         if type(host) is not str:
             raise BadParameter, "Parameter host is not a string. Type: " + str(type(host))
         try:
-            self.urlObject.setHost(host)
+            self.delegateObject.setHost(host)
         except java.lang.Exception, e:
             raise self.convertException(e)
         
@@ -152,7 +151,7 @@ class URL(Object):
         
         """
         try:
-            return self.urlObject.getScheme()
+            return self.delegateObject.getScheme()
         except java.lang.Exception, e:
             raise self.convertException(e)
 
@@ -174,7 +173,7 @@ class URL(Object):
         if type(port) is not int:
             raise BadParameter, "Parameter port is not an int. Type: " + str(type(port))
         try:
-            self.urlObject.setPort(port)
+            self.delegateObject.setPort(port)
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -189,7 +188,7 @@ class URL(Object):
         
         """
         try:
-            return self.urlObject.getPort()
+            return self.delegateObject.getPort()
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -211,7 +210,7 @@ class URL(Object):
         if type (fragment) is not str:
             raise BadParameter, "Parameter fragment is not a string. Type: " + str(type(fragment))
         try:
-            self.urlObject.setFragment(fragment)
+            self.delegateObject.setFragment(fragment)
         except java.lang.Exception, e:
             raise self.convertException(e)      
         
@@ -226,7 +225,7 @@ class URL(Object):
         
         """
         try:
-            return self.urlObject.getFragment()
+            return self.delegateObject.getFragment()
         except java.lang.Exception, e:
             raise self.convertException(e)       
      
@@ -248,7 +247,7 @@ class URL(Object):
         if type (path) is not str:
             raise BadParameter, "Parameter path is not a string. Type: " + str(type(path))
         try:
-            self.urlObject.setPath(path)
+            self.delegateObject.setPath(path)
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -263,7 +262,7 @@ class URL(Object):
         
         """
         try:
-            return self.urlObject.getPath()
+            return self.delegateObject.getPath()
         except java.lang.Exception, e:
             raise self.convertException(e)
 
@@ -285,7 +284,7 @@ class URL(Object):
         if type (query) is not str:
             raise BadParameter, "Parameter query is not a string. Type: " + str(type(query))
         try:
-            self.urlObject.setQuery(query)
+            self.delegateObject.setQuery(query)
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -300,7 +299,7 @@ class URL(Object):
         
         """
         try:
-            return self.urlObject.getQuery()
+            return self.delegateObject.getQuery()
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -322,7 +321,7 @@ class URL(Object):
         if type (userinfo) is not str:
             raise BadParameter, "Parameter userinfo is not a string. Type: " + str(type(userinfo))
         try:
-            self.urlObject.setUserInfo(userinfo)
+            self.delegateObject.setUserInfo(userinfo)
         except java.lang.Exception, e:
             raise self.convertException(e)        
     
@@ -337,7 +336,7 @@ class URL(Object):
         
         """
         try:
-            return self.urlObject.getUserInfo()
+            return self.delegateObject.getUserInfo()
         except java.lang.Exception, e:
             raise self.convertException(e)
         
@@ -367,7 +366,7 @@ class URL(Object):
         if type (scheme) is not str:
             raise BadParameter, "Parameter scheme is not a string. Type: " + str(type(scheme))
         try:
-            tempObject = self.urlObject.translate(scheme)
+            tempObject = self.delegateObject.translate(scheme)
             return URL(tempObject.getString)
         except java.lang.Exception, e:
             raise self.convertException(e)    

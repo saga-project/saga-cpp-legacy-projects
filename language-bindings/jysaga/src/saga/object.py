@@ -4,9 +4,6 @@
 # Specification and documentation can be found in section 3.2, page 47-52 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from error import NotImplemented
-from session import Session
-
 class ObjectType(object):
     """
     ObjectType allows for inspection of SAGA object instances.
@@ -69,6 +66,7 @@ class Object(object):
         @return: type of the object as an int from ObjectType
         @rtype: int
         """
+        from saga.error import NotImplemented
         raise NotImplemented, "get_type() is not yet implemented in this object"
         
     def get_session(self):
@@ -86,6 +84,7 @@ class Object(object):
         @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
             Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
         """
+        from saga.session import Session
         try:
             javaSession = self.delegateObject.getSession()
             session = Session(sessionObject=javaSession)
@@ -116,12 +115,27 @@ class Object(object):
     def convertException(self, e):
         object = None
         message = ""
+        from org.ogf.saga.error.AlreadyExistsException import AlreadyExistsException
+        from org.ogf.saga.error.AuthenticationFailedException import AuthenticationFailedException
+        from org.ogf.saga.error.AuthorizationFailedException import AuthorizationFailedException
+        from org.ogf.saga.error.BadParameterException import BadParameterException
+        from org.ogf.saga.error.DoesNotExistException import DoesNotExistException
+        from org.ogf.saga.error.IncorrectStateException import IncorrectStateException
+        from org.ogf.saga.error.IncorrectURLException import IncorrectURLException
+        from org.ogf.saga.error.NoSuccessException import NoSuccessException
+        from org.ogf.saga.error.NotImplementedException import NotImplementedException
+        from org.ogf.saga.error.PermissionDeniedException import PermissionDeniedException
+        from org.ogf.saga.error.SagaException import SagaException
+        from org.ogf.saga.error.SagaIOException import SagaIOException
+        from org.ogf.saga.error.TimeoutException import TimeoutException
+
+
         try:
             object = e.getObject()
             print "convertException: java Exception had an attached sagaObject. Object is NOT yet translated to a python object"
             object = None
             #TODO: convert sagaObject naar Object -> referentie naar self
-        except java.lang.Exception, exception:
+        except org.ogf.saga.error.DoesNotExistException, exception:
             object = None
         message = e.getMessage()
                
@@ -153,4 +167,4 @@ class Object(object):
             error = NoSuccess(message, object)
         return error
     
-        #DOCUMENT: Document SagaIOException -> NoSucces IOError, multiple inheritence 
+#DOCUMENT: Document SagaIOException -> NoSucces IOError, multiple inheritence 

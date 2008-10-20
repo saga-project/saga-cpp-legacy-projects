@@ -1,8 +1,8 @@
 # Page 195 package saga.namespace
-from object import Object, ObjectType
-from permissions import Permissions
-from task import Async
-from error import NotImplemented
+from saga.object import Object, ObjectType
+from saga.permissions import Permissions
+from saga.task import Async, TaskType
+from saga.error import NotImplemented
 from org.ogf.saga.namespace import NSFactory
 from org.ogf.saga.task import TaskMode
 
@@ -109,7 +109,7 @@ class NSEntry(Object, Permissions, Async):
               entry - all notes to the respective open
               call (on namespace_directory) apply.
         """
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.namespace.NSEntry:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSEntry. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
@@ -159,7 +159,7 @@ class NSEntry(Object, Permissions, Async):
         @raise Timeout:
         @raise NoSuccess:
         """        
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -194,7 +194,7 @@ class NSEntry(Object, Permissions, Async):
         @note: returns the directory part of the url path element.
 
         """        
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -225,7 +225,7 @@ class NSEntry(Object, Permissions, Async):
         @raise Timeout:
         @raise NoSuccess:
          """
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -263,7 +263,7 @@ class NSEntry(Object, Permissions, Async):
         @note: returns True if entry is a directory, False otherwise
         @note:  similar to 'test -d' as defined by POSIX.
         """        
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -307,7 +307,7 @@ class NSEntry(Object, Permissions, Async):
         @note:  similar to 'test -f' as defined by POSIX.
 
         """        
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -349,7 +349,7 @@ class NSEntry(Object, Permissions, Async):
         @note: similar to 'test -L' as defined by POSIX.
 
         """        
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -393,7 +393,7 @@ class NSEntry(Object, Permissions, Async):
             'IncorrectState' exception is raised.
         @note:  similar to 'ls -L' as defined by POSIX.
         """        
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -459,7 +459,7 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -532,7 +532,7 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -599,7 +599,7 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -652,7 +652,7 @@ class NSEntry(Object, Permissions, Async):
         """   
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -690,7 +690,7 @@ class NSEntry(Object, Permissions, Async):
         """        
         if type(timeout) is not float or type(timeout) is not int:
             raise BadParameter, "Parameter timout is wrong type. Type: " + str(type(timeout))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
 
@@ -755,7 +755,7 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -814,7 +814,7 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -875,7 +875,7 @@ class NSDirectory(NSEntry, Async):
         @note:  the default flags are 'NONE' (0).
 
         """
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.namespace.NSDirectory:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSDirectory. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
@@ -925,7 +925,7 @@ class NSDirectory(NSEntry, Async):
         """
         if type(url) is not URL:
             raise BadParameter, "Parameter url is not a URL. Type: " + str(type(url))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -986,7 +986,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name_pattern is not a string. Type: " + str(type(name_pattern))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(int))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1048,7 +1048,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name_pattern is not a string. Type: " + str(type(name_pattern))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(int))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1100,7 +1100,7 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1157,7 +1157,7 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1210,7 +1210,7 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1263,7 +1263,7 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1315,7 +1315,7 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1357,7 +1357,7 @@ class NSDirectory(NSEntry, Async):
         @note: vaguely similar to 'opendir'/'readdir' (2) as defined by POSIX.
 
         """
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1407,7 +1407,7 @@ class NSDirectory(NSEntry, Async):
         """       
         if type(entry) is not int:
             raise BadParameter, "Parameter entry is not an int. Type: " + str(type(entry))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1478,7 +1478,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))      
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         if type(source) is str:
@@ -1561,7 +1561,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         if type(source) is str:
@@ -1645,7 +1645,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         if type(source) is str:
@@ -1715,7 +1715,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         if type(source) is str:
@@ -1779,7 +1779,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1851,7 +1851,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1921,7 +1921,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -1982,7 +1982,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         if type(source) is str: 
@@ -2049,7 +2049,7 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         if type(source) is str: 

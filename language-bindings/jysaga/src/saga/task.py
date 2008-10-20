@@ -6,12 +6,11 @@
 
 # GFD-R-P.90
 #package saga.Task
-from object import Object, ObjectType
-from monitoring import Monitorable
-from error import NotImplemented
+from saga.object import Object, ObjectType
+from saga.monitoring import Monitorable
+from saga.error import NotImplemented
+from saga.buffer import Buffer
 from org.ogf.saga.task import TaskMode
-from buffer import Buffer
-from file import Iovec
 
 class State(object):
     """ 
@@ -107,17 +106,20 @@ class Task(Object, Monitorable):
     """
     delegateObject = None
     fileReadBuffer = None
+
     
     def __init__(self, **impl):
         #no constructor
         super(Task,self).__init__()
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.task.Task:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.Task. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
         if fileReadBuffer in impl:
-            if type(impl["fileReadBuffer"]) is not org.ogf.saga.buffer.Buffer:
-                raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga.buffer.Buffer Type: " + str(type(impl["fileReadBuffer"]))
+            from saga.file import Iovec
+            if  type(impl["fileReadBuffer"]) is not org.ogf.saga.buffer.Buffer \
+            and type(impl["fileReadBuffer"]) is not org.ogf.saga.file.IOVec:
+                raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga. [buffer.Buffer/file.IOVec] Type: " + str(type(impl["fileReadBuffer"]))
             self.fileReadBuffer = impl["fileReadBuffer"]
  
 #DOCUMENT: fileReadBuffer 
@@ -268,6 +270,7 @@ class Task(Object, Monitorable):
         @note: the method returns the type and value which would be returned by the synchronous version of
             the respective function call.
         """
+                
         try:
             retval = self.delegateObject.getResult()
         except java.lang.Exception, e:
@@ -404,7 +407,7 @@ class TaskContainer(Object, Monitorable):
         @raise NoSuccess:
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to create a TaskContainer.
         """
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.task.TaskContainer:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.TaskContainer. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]

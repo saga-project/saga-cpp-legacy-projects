@@ -4,7 +4,8 @@
 # Specification and documentation can be found in section 3.1, page 35-46 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from object import Object
+import saga.object
+#from object import Object
 
 class SagaException(Exception):
 	"""

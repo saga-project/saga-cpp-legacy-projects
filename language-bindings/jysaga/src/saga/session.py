@@ -4,10 +4,12 @@
 # Specification and documentation can be found in section 3.5, page 75-80 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from object import Object, ObjectType
-from attributes import Attributes
-from error import NotImplemented
-from context import Context
+
+from saga.object import Object, ObjectType
+from saga.attributes import Attributes
+from saga.error import NotImplemented
+from saga.context import Context
+
 
 from org.ogf.saga.session import Session, SessionFactory
 from org.ogf.saga.context import ContextFactory
@@ -34,7 +36,7 @@ class Session(Object):
              change the properties of the default session, which is continued to be implicetly used on
              the creation of all saga objects, unless specified otherwise.
         """
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if type(impl["delegateObject"]) is not org.ogf.saga.session.Session:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.session.Session. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]

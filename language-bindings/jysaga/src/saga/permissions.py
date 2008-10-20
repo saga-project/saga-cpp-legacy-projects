@@ -4,10 +4,10 @@
 # Specification and documentation can be found in section 3.6, page 87-100 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from error import NotImplemented
-from task import Async, TaskType
+from saga.task import Async
+from saga.error import NotImplemented
 from org.ogf.saga.task import TaskMode
-
+from saga.task import TaskType
 
 class Permission(object):
     """
@@ -71,7 +71,7 @@ class Permissions(Async):
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
         if type(perm) is not int:
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -116,7 +116,7 @@ class Permissions(Async):
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
         if type(perm) is not int:
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -163,7 +163,7 @@ class Permissions(Async):
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
         if type(perm) is not int:
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -205,7 +205,7 @@ class Permissions(Async):
              method does not return an empty string, '*' (all), or a group id.
 
         """
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
@@ -241,7 +241,7 @@ class Permissions(Async):
         @note: returns the id of the group owning the entity
         @note: if the implementation does not support groups, the method returns an empty string.
         """
-        if tasktype is not TaskType.Normal or tasktype is not TypeTask.SYNC \
+        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
         or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:

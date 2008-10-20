@@ -4,12 +4,12 @@
 # Specification and documentation can be found in section 3.9, page 114-139 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from error import NotImplemented
-from attributes import Attributes
-from object import Object, ObjectType
+from saga.error import NotImplemented
+from saga.attributes import Attributes
+from saga.object import Object, ObjectType
 from org.ogf.saga.monitoring import MonitoringFactory
-import ort.ogf.monitoring.Metric
-import org.ogf.monitoring.Callback
+import org.ogf.saga.monitoring.Metric
+import org.ogf.saga.monitoring.Callback
 import org.ogf.saga.task.Task
 import org.ogf.saga.task.TaskContainer
 import org.ogf.saga.stream.Stream
@@ -59,7 +59,7 @@ class Callback(object):
         """
         raise NotImplemented, "cb() is not implemented in this object. Classes extending Callback must implement their own cb()"
 
-class CallbackProxy(org.ogf.monitoring.Callback):
+class CallbackProxy(org.ogf.saga.monitoring.Callback):
     pythonCallbackObject = None
     
     def __init__(self, **impl):
@@ -135,7 +135,7 @@ class Metric(Object, Attributes):
          required parameter (all but "unit") will cause a BadParameter exception.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend could not create that specific metric.
         """
-        if delegateObject in impl:
+        if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.monitoring.Metric):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.monitoring.Metric. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
