@@ -36,6 +36,9 @@ class SagaException(Exception):
 			else:
 				self.sagaObject = sagaObject
 
+	def __str__(self):
+		return repr(self.message)
+
 	def getMessage():
 		"""
 		Returns the message associated with the exception.

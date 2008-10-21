@@ -62,7 +62,7 @@ class URL(Object):
             raise BadParameter, "Parameter url is not a string. Type: " + str(type(url))
         #TODO: document that if _init_ raises an error the object is not created
         try:
-            self.delegateObject.setURL(url)
+            self.delegateObject.setString(url)
         except java.lang.Exception, e:
             raise self.convertException(e)
     
@@ -151,7 +151,7 @@ class URL(Object):
         
         """
         try:
-            return self.delegateObject.getScheme()
+            return self.delegateObject.getHost()
         except java.lang.Exception, e:
             raise self.convertException(e)
 
@@ -367,7 +367,7 @@ class URL(Object):
             raise BadParameter, "Parameter scheme is not a string. Type: " + str(type(scheme))
         try:
             tempObject = self.delegateObject.translate(scheme)
-            return URL(tempObject.getString)
+            return URL(tempObject.getString())
         except java.lang.Exception, e:
             raise self.convertException(e)    
         
@@ -384,7 +384,10 @@ class URL(Object):
         @return: uuid for the object
         @rtype: string 
         """
-        raise NotImplemented, "get_id() is not yet implemented in this object"
+        from saga.error import NotImplemented
+        error = NotImplemented("get_id() is not yet implemented in this object")
+        raise error
+        # raise NotImplemented, "get_id() is not yet implemented in this object"
      
     def get_type(self):
         """
@@ -410,6 +413,7 @@ class URL(Object):
         @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
             Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
         """
+        from saga.error import NotImplemented
         raise NotImplemented, "get_session() is not yet implemented in this object"
     
     def clone(self):
@@ -425,5 +429,6 @@ class URL(Object):
         @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
         """
+        from saga.error import NotImplemented
         raise NotImplemented, "clone() is not yet implemented in this object"
     

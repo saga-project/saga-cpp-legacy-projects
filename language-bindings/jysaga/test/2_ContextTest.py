@@ -1,4 +1,5 @@
-from saga.url  import URL
+from saga.session import Session
+from saga.context import Context
 from saga.error import *
 from saga.object import ObjectType, Object
 
@@ -58,69 +59,55 @@ def checkObjectMethods(o):
     except NotImplemented, e:
         print "!!! WARNING !!! get_id() not implemented"
     try:
-        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.URL is " +str(ObjectType.URL)
+        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.CONTEXT is " +str(ObjectType.CONTEXT)
     except Exception, e:
         print "!!! WARNING !!!", str(e) 
     try:   
         session = o.get_session()
         print "get_session: "+ str(session.__class__) + " type: "+str(session.get_type()) + " get_id:" + str(session.get_id())                 
     except Exception, e:
-        print "!!! WARNING !!!", str(e) 
-    try:    
-        clone = o.clone()
-        print "clone:       "+ str(clone.__class__) + " type: "+str(clone.get_type()) + " get_id:" + str(clone.get_id())
-        print "ObjectType.SESSION "+str(ObjectType.SESSION)
-    except Exception, e:
-        print "!!! WARNING !!!", str(e) 
+        print "!!! WARNING !!!", "Context.get_session(): " + str(e) 
+#    try:    
+    clone = o.clone()
+    print "clone:       "+ str(clone.__class__) + " type: "+str(clone.get_type()) + " get_id:" + str(clone.get_id())
+    print "ObjectType.SESSION "+str(ObjectType.SESSION)
+#    except Exception, e:
+#        print "!!! WARNING !!!", "Context.clone(): " + str(e) 
+
+def checkMethods(context, name):
+    print "=== Check all context methods, name and return values"
+    print "set_defaults     " + str(context.set_defaults())   
+    print "list_attributes  " + str(context.list_attributes())
+    print "attribute_exists (" +name+ ")      " + str(context.attribute_exists(name))
+    print "attribute_is_readonly (" +name+ ") " + str(context.attribute_is_readonly(name))
+    print "attribute_is_removable(" +name+ ") " + str(context.attribute_is_removable(name))
+    print "attribute_is_vector (" +name+ ")   " + str(context.attribute_is_vector(name))
+    print "attribute_is_writable (" +name+ ") " + str(context.attribute_is_writable(name))
+    print "find_attributes (U*)             " + str(context.find_attributes(["U*"]))
+    print "get_attribute(" +name+ ")          " + str(context.get_attribute(name))
 
 print "==================================================="
-print "== Test of URL                                   =="
+print "== Test of Context                               =="
 print "==================================================="
+print "=== Create -empty- Context "
+context = Context()
+print "=== Check all methods"
+checkObjectMethods(context)
+checkMethods(context, "LifeTime")
+print "=== Create Context(RemoteID)  "
+context = Context("RemoteID")
+checkMethods(context, "RemoteID")
 
-temp_filename = "/tmp/1_urlTest.py.temp"
-translate_url = "http://host.net/~user/tmp/file"
-#"gopher://userinfo@floodgate.net:80/path/to/water.txt?query#info"
+#for i in context.list_attributes():
+#    print i, context.attribute_exists(i)
+#get_vector_attribute
+#
+#remove_attribute
+#set_attribute
+#set_vector_attribute 
 
-#print "- create test file(s)"
-#file = open( temp_filename, "w")
-#file.write("abcdefghijklmnopqrstuvwxyz")
-#file.flush()
-#file.close()
-
-#print "=== created " + temp_filename
-print "=== create an -EMPTY- URL"
-
-url = URL()
-printParts(url)
-
-print "=== create an URL of " + temp_filename
-url = URL("file://"+temp_filename)
-printParts(url)
-
-print "=== create an URL of ftp://ftp.is.co.za/rfc/rfc1808.txt"
-url = URL("ftp://ftp.is.co.za/rfc/rfc1808.txt")
-printParts(url)
-
-print "=== set new values for the URL"
-setParts(url)
-print "=== show new values"
-printParts(url)
-print "=== set string to ftp://ftp.bla.nl:21/file.txt?query=something"
-url.set_string(url='ftp://ftp.bla.nl:21/file.txt?query=something')
-printParts(url) 
-
-  
-print "=== Translate, give scheme string, get URL"   
-sagaURL = url.translate("gopher")
-print "translate() output class:      " + str(sagaURL.__class__ )
-print "translate() output get_string: " + sagaURL.get_string() 
-
-print "=== Check inherited Object methods"
-checkObjectMethods(sagaURL)
-
-import os
-os.remove(temp_filename)
+#TODO: Test find_attributes with longer lists
 
 print "==================================================="
-print "== End Test of URL                               =="
+print "== End Test of Context                           =="
 print "==================================================="

@@ -15,6 +15,7 @@ import org.ogf.saga.error.DoesNotExistException
 from java.lang import String
 
 
+
 class Context(Object, Attributes):
     delegateObject = None
     """
@@ -129,8 +130,9 @@ class Context(Object, Attributes):
         @see: the notes about lifetime management in Section 2 of the GFD-R-P.90 document
         """
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.url.URL:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.context.Context. Type: " + str(type(impl["delegateObject"]))
+            if not isinstance(impl["delegateObject"], org.ogf.saga.impl.context.Context):
+                from saga.error import BadParameter
+                raise BadParameter("Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.context.Context. Type: " + str( impl["delegateObject"].__class__))
             self.delegateObject = impl["delegateObject"]
         try:
             if name is "" or type(name) is not string:
@@ -139,6 +141,8 @@ class Context(Object, Attributes):
                 self.delegateObject = ContextFactory.createContext(name);
         except java.lang.Exception, e:
             raise self.convertException(e)
+
+#TODO: Redo all BadParameter throws.... :(
 
     def set_defaults(self):
         """
@@ -176,8 +180,27 @@ class Context(Object, Attributes):
         @rtype: int
         """
         return ObjectType.CONTEXT
-        
+ 
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
-     
+        """        
+        
+        try:
+            delegateClone = self.delegateObject.clone()
+            tempClone = Context(delegateObject=delegateClone)
+            return tempClone
+        except java.lang.Exception, e:
+            raise self.convertException(e)
+        
        
 # all attributes methods inherited from Attributes

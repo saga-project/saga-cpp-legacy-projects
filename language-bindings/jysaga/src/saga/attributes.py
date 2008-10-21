@@ -243,22 +243,31 @@ class Attributes(object):
 
         """
         if type(pattern) is not list and type(pattern) is not tuple:
-            raise BadParameter, "Parameter pattern (" + str(type(pattern)) +") is not a list."        
+            from saga.error import BadParameter
+            raise BadParameter( "Parameter pattern (" + str(type(pattern)) +") is not a list.")
         tempString = None
         javaArray = None
-        try:
+        import jarray.array
+        import java.lang.String
+                
+#        try:
+        if True:
             if len(pattern) is 0:
-                javaArray = self.delegateObject.findAttributes("")
+                temp = java.lang.String("")
+                tempArray = jarray.array(temp, java.lang.String)                
+                javaArray = self.delegateObject.findAttributes(tempArray)
             elif len(pattern) is 1:
-                javaArray = self.delegateObject.findAttributes(pattern[0])
+                temp = java.lang.String(pattern[0])
+                tempArray = jarray.array([temp], java.lang.String)
+                javaArray = self.delegateObject.findAttributes(tempArray)
             else:
                 tempString = str(pattern[0])
                 for i in range(1, len(pattern)):
                     tempString = tempString + "," + str(pattern[i]) 
                 execstring = "javaArray = contextObject.findAttributes(" + tempString + ")"
                 exec execstring
-        except java.lang.Exception, e:
-            raise self.convertException(e)    
+#        except java.lang.Exception, e:
+#            raise self.convertException(e)    
         return tuple(javaArray)   
 #TODO: String[] instead of ... 
     

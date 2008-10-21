@@ -4,6 +4,20 @@
 # Specification and documentation can be found in section 3.2, page 47-52 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException 
+ 
 class ObjectType(object):
     """
     ObjectType allows for inspection of SAGA object instances.
@@ -86,8 +100,8 @@ class Object(object):
         """
         from saga.session import Session
         try:
-            javaSession = self.delegateObject.getSession()
-            session = Session(sessionObject=javaSession)
+            tempSession = self.delegateObject.getSession()
+            session = Session(sessionObject=tempSession)
             return session
         except java.lang.Exception, e:
             raise self.convertException(e)
@@ -105,29 +119,37 @@ class Object(object):
         @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
         """
-        try:
-            javaClone = self.delegateObject.clone()
-            context = Context(delegateObject=javaClone)
-            return context
-        except java.lang.Exception, e:
-            raise self.convertException(e)
+        from saga.error import NotImplemented
+        raise NotImplemented, "clone() is not yet implemented in this object"
+ 
+#        try:
+#            javaClone = self.delegateObject.clone()
+#            clone = <OBJECT_NAME>(delegateObject=javaClone)
+#            return clone
+#        except java.lang.Exception, e:
+#            raise self.convertException(e)
         
     def convertException(self, e):
+#        from org.ogf.saga.error.AlreadyExistsException import AlreadyExistsException
+#        from org.ogf.saga.error.AuthenticationFailedException import AuthenticationFailedException
+#        from org.ogf.saga.error.AuthorizationFailedException import AuthorizationFailedException
+#        from org.ogf.saga.error.BadParameterException import BadParameterException
+#        from org.ogf.saga.error.DoesNotExistException import DoesNotExistException
+#        from org.ogf.saga.error.IncorrectStateException import IncorrectStateException
+#        from org.ogf.saga.error.IncorrectURLException import IncorrectURLException
+#        from org.ogf.saga.error.NoSuccessException import NoSuccessException
+#        from org.ogf.saga.error.NotImplementedException import NotImplementedException
+#        from org.ogf.saga.error.PermissionDeniedException import PermissionDeniedException
+#        from org.ogf.saga.error.SagaException import SagaException
+#        from org.ogf.saga.error.SagaIOException import SagaIOException
+#        from org.ogf.saga.error.TimeoutException import TimeoutException
+#        
+        from saga.error import NotImplemented, IncorrectURL, BadParameter, \
+            AlreadyExists, DoesNotExist, IncorrectState, PermissionDenied, \
+             AuthorizationFailed, AuthenticationFailed, Timeout, NoSuccess
         object = None
         message = ""
-        from org.ogf.saga.error.AlreadyExistsException import AlreadyExistsException
-        from org.ogf.saga.error.AuthenticationFailedException import AuthenticationFailedException
-        from org.ogf.saga.error.AuthorizationFailedException import AuthorizationFailedException
-        from org.ogf.saga.error.BadParameterException import BadParameterException
-        from org.ogf.saga.error.DoesNotExistException import DoesNotExistException
-        from org.ogf.saga.error.IncorrectStateException import IncorrectStateException
-        from org.ogf.saga.error.IncorrectURLException import IncorrectURLException
-        from org.ogf.saga.error.NoSuccessException import NoSuccessException
-        from org.ogf.saga.error.NotImplementedException import NotImplementedException
-        from org.ogf.saga.error.PermissionDeniedException import PermissionDeniedException
-        from org.ogf.saga.error.SagaException import SagaException
-        from org.ogf.saga.error.SagaIOException import SagaIOException
-        from org.ogf.saga.error.TimeoutException import TimeoutException
+
 
 
         try:

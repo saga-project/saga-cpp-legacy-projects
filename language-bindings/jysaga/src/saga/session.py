@@ -10,7 +10,6 @@ from saga.attributes import Attributes
 from saga.error import NotImplemented
 from saga.context import Context
 
-
 from org.ogf.saga.session import Session, SessionFactory
 from org.ogf.saga.context import ContextFactory
 
