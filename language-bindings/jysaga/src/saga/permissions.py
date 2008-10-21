@@ -178,7 +178,7 @@ class Permissions(Async):
                 return Task(delegateObject=javaObject)                
             else:
                 retval = self.delegateObject.permissionsCheck(id, perm)
-                if retval is 1:
+                if retval == 1:
                     return True
                 else:
                     return False

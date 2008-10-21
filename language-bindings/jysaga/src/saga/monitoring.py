@@ -445,7 +445,7 @@ class Steerable(Monitorable):
             raise BadParameter, "Parameter metric is not a Metric. Type: " + str(type(metric))
         try:
             retval =  self.delgateObject.addMetric(metric.delegateObject)
-            if retval is 1:
+            if retval == 1:
                 return True
             else: 
                 return False

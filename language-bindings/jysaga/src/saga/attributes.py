@@ -5,6 +5,19 @@
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from error import NotImplemented
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
 
 class Attributes(object):
     """
@@ -66,7 +79,7 @@ class Attributes(object):
             raise BadParameter, "Parameter key (" + str(type(key)) +") or value (" + str(type(value)) + ") is not a string."
         try:
             self.delegateObject.setAttribute(key, value)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
     
     def get_attribute(self, key):
@@ -103,7 +116,7 @@ class Attributes(object):
             raise BadParameter, "Parameter key (" + str(type(key)) + ") is not a string."
         try:
             return self.delegateObject.getAttribute(key)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
             
     def set_vector_attribute(self, key, values):
@@ -133,9 +146,11 @@ class Attributes(object):
         if type(values) is not list and type(values) is not tuple:
             raise BadParameter, "Parameter values (" + str(type(key)) +") is not a list."        
         try:
-            jythonArray = array(values, String)
+            import jarray.array
+            import java.lang.String
+            jythonArray = jarray.array(values, java.lang.String)
             self.delegateObject.setVectorAttribute( key, jythonArray)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)        
        
     def get_vector_attribute(self, key):
@@ -165,7 +180,7 @@ class Attributes(object):
         try:
             javaArray = self.delegateObject.getVectorAttribute(key)
             return tuple(javaArray)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
        
     def remove_attribute(self, key):
@@ -193,7 +208,7 @@ class Attributes(object):
             raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."        
         try:
             self.delegateObject.removeAttribute(key)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)   
     
     def list_attributes(self):
@@ -218,7 +233,7 @@ class Attributes(object):
         try:
             javaArray = self.delegateObject.listAttributes()
             return tuple(javaArray)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e) 
         
     def find_attributes(self,  pattern):
@@ -250,8 +265,7 @@ class Attributes(object):
         import jarray.array
         import java.lang.String
                 
-#        try:
-        if True:
+        try:
             if len(pattern) is 0:
                 temp = java.lang.String("")
                 tempArray = jarray.array(temp, java.lang.String)                
@@ -261,13 +275,10 @@ class Attributes(object):
                 tempArray = jarray.array([temp], java.lang.String)
                 javaArray = self.delegateObject.findAttributes(tempArray)
             else:
-                tempString = str(pattern[0])
-                for i in range(1, len(pattern)):
-                    tempString = tempString + "," + str(pattern[i]) 
-                execstring = "javaArray = contextObject.findAttributes(" + tempString + ")"
-                exec execstring
-#        except java.lang.Exception, e:
-#            raise self.convertException(e)    
+                tempArray = jarray.array(pattern, java.lang.String) 
+                javaArray = self.delegateObject.findAttributes(tempArray)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)    
         return tuple(javaArray)   
 #TODO: String[] instead of ... 
     
@@ -294,14 +305,14 @@ class Attributes(object):
         if type(key) is not str:
             raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."       
         try:
-            retvalue = self.delegateObject.getAttribute(key)
-            if len(retvalue) > 0:
+            retval = self.delegateObject.getAttribute(key)
+            if len(retval) > 0:
                 return True
             else:
                 return False
         except org.ogf.saga.error.DoesNotExistException, d:
             return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)   
 
 #TODO: No attributeExists() in java 
@@ -332,12 +343,12 @@ class Attributes(object):
         if type(key) is not str:
             raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
         try:
-            retvalue = self.delegateObject.isReadOnlyAttribute(key)
-            if retvalue is 1:
+            retval = self.delegateObject.isReadOnlyAttribute(key)
+            if retval == 1:
                 return True
             else:
                 return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)  
         
     def attribute_is_writable(self, key):
@@ -364,12 +375,12 @@ class Attributes(object):
         if type(key) is not str:
             raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
         try:
-            retvalue = self.delegateObject.isWritableAttribute(key)
-            if retvalue is 1:
+            retval = self.delegateObject.isWritableAttribute(key)
+            if retval == 1:
                 return True
             else:
                 return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e) 
     
     def attribute_is_removable (self, key):
@@ -396,12 +407,12 @@ class Attributes(object):
         if type(key) is not str:
             raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
         try:
-            retvalue = self.delegateObject.isRemovableAttribute(key)
-            if retvalue is 1:
+            retval = self.delegateObject.isRemovableAttribute(key)
+            if retval == 1:
                 return True
             else:
                 return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e) 
        
     def attribute_is_vector(self, key):
@@ -427,11 +438,11 @@ class Attributes(object):
         if type(key) is not str:
             raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
         try:
-            retvalue = self.delegateObject.isVectorAttribute(key)
-            if retvalue is 1:
+            retval = self.delegateObject.isVectorAttribute(key)
+            if retval == 1:
                 return True
             else:
                 return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e) 
        

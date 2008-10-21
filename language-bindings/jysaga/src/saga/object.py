@@ -103,7 +103,7 @@ class Object(object):
             tempSession = self.delegateObject.getSession()
             session = Session(sessionObject=tempSession)
             return session
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def clone(self):

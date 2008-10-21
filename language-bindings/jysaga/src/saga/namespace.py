@@ -278,7 +278,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)   
             else:       
                 retval = self.delegateObject.isDir()
-                if retval is 1:
+                if retval == 1:
                     return True
                 else: 
                     return False
@@ -322,7 +322,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)   
             else:  
                 retval = self.delegateObject.isEntry()
-                if retval is 1:
+                if retval == 1:
                     return True
                 else: 
                     return False
@@ -364,7 +364,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)   
             else:
                 retval = self.delegateObject.isLink()
-                if retval is 1:
+                if retval == 1:
                     return True
                 else: 
                     return False
@@ -1172,7 +1172,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)   
             else:       
                 retval = self.delegateObject.isDir(name.delegateObject)
-                if retval is 1:
+                if retval == 1:
                     return True
                 else: 
                     return False
@@ -1225,7 +1225,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)   
             else:  
                 retval = self.delegateObject.isEntry(name.delegateObject)
-                if retval is 1:
+                if retval == 1:
                     return True
                 else: 
                     return False
@@ -1278,7 +1278,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)   
             else:
                 retval = self.delegateObject.isLink(name.delegateObject)
-                if retval is 1:
+                if retval == 1:
                     return True
                 else: 
                     return False

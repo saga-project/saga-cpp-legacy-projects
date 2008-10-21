@@ -3,55 +3,19 @@ from saga.context import Context
 from saga.error import *
 from saga.object import ObjectType, Object
 
-def printParts(url):
-    t = url.get_string()
-    if t is None: print "get_string:    -"
-    else: print "get_string:   " + str(t) + " " + str(type(t)) 
-    
-    t =  url.get_scheme() 
-    if t is None: print "get_scheme:    -"
-    else: print "get_scheme:   " + str(t) + " " + str(type(t)) 
-    
-    t = url.get_host()
-    if t is None: print "get_host:      -"
-    else: print "get_host:     " + str(t) + " " + str(type(t)) 
-    
-    t = url.get_port()
-    if t is None: print "get_port:      -"
-    else: print "get_port:     " + str(t) + " " + str(type(t))
-    
-    t = url.get_fragment()
-    if t is None: print "get_fragment:  -"
-    else: print "get_fragment: " + str(t) + " " + str(type(t))
-    
-    t = url.get_path()
-    if t is None: print "get_path:      -"
-    else: print "get_path:     " + str(t) + " " + str(type(t))
-    
-    t = url.get_query()
-    if t is None: print "get_query:     -"
-    else: print "get_query:    " + str(t) + " " + str(type(t))  
-    
-    t = url.get_userinfo()
-    if t is None: print "get_userinfo:  -"
-    else: print "get_userinfo: " + str(t) + " " + str(type(t))   
-    
-def setParts(url):
-    print "set_scheme:       ssh"
-    url.set_scheme("ssh")
-    print "set_host:         host.net"
-    url.set_host("host.net")
-    print "set_port:         80" 
-    url.set_port(80)
-    print "set_fragment:     fragment"
-    url.set_fragment("fragment")
-    print "set_path:         /path"
-    url.set_path("/path")           
-    print "set_query:        query"
-    url.set_query("query")
-    print "set_userinfo:     userinfo" 
-    url.set_userinfo("userinfo")
-
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException 
 
 def checkObjectMethods(o):
     try:
@@ -74,6 +38,81 @@ def checkObjectMethods(o):
 #    except Exception, e:
 #        print "!!! WARNING !!!", "Context.clone(): " + str(e) 
 
+def printAttributes(context):
+    print "Name           Ex\tRO\tREM\tVec\tWri\tValue"
+    list =  context.list_attributes()
+    for i in list:
+        length =  14 - len(str(i)) 
+        space = length * '.'
+        string = str(i) + space
+        print string, context.attribute_exists(i),"\t" , 
+        if (context.attribute_is_readonly(i)) is True: print 1,
+        else: print 0,
+        print "\t" ,str(context.attribute_is_removable(i)), "\t" ,str(context.attribute_is_vector(i)), \
+          "\t" ,str(context.attribute_is_writable(i)),"\t", str(context.get_attribute(i))
+
+def setAttributes(context):
+    try:
+        context.set_attribute("CertRepository", "/etc/grid-security/certificates/")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:
+        context.set_attribute("UserProxy","/tmp/x509up_u01234")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)    
+    try:
+        context.set_attribute("Type","http")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:
+        context.set_attribute("UserID","testname")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:    
+        context.set_attribute("Server","www.few.vu.nl")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:
+        context.set_attribute("UserVO","O=dutchgrid")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)    
+    try:
+        context.set_attribute("RemoteID","/O=dutchgrid/O=users/O=vu/OU=cs/CN=Joe Doe")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:
+        context.set_attribute("LifeTime","1247781600")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)   
+    try:    
+        context.set_attribute("RemoteHost","galjas.few.vu.nl")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:    
+        context.set_attribute("UserPass","super_secret_password")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:    
+        context.set_attribute("RemotePort","80")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:    
+        context.set_attribute("UserCert","$HOME/.globus/usercert.pem")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+    try:    
+        context.set_attribute("UserKey","$HOME/.globus/userkey.pem")
+    except Exception, e:
+        print "!!! WARNING !!!", str(e)
+#    try:    
+#        context.set_attribute("<KEY>","<VALUE>")
+#    except Exception, e:
+#        print "!!! WARNING !!!", str(e)
+#    try:    
+#        context.set_vector_attribute("<KEY>",<LIST_OF_VALUES>)
+#    except Exception, e:
+#        print "!!! WARNING !!!", str(e)        
+                        
 def checkMethods(context, name):
     print "=== Check all context methods, name and return values"
     print "set_defaults     " + str(context.set_defaults())   
@@ -83,7 +122,11 @@ def checkMethods(context, name):
     print "attribute_is_removable(" +name+ ") " + str(context.attribute_is_removable(name))
     print "attribute_is_vector (" +name+ ")   " + str(context.attribute_is_vector(name))
     print "attribute_is_writable (" +name+ ") " + str(context.attribute_is_writable(name))
-    print "find_attributes (U*)             " + str(context.find_attributes(["U*"]))
+    print "find_attributes ([U*])             " + str(context.find_attributes(["U*"]))
+    tup = context.find_attributes(["U*", "*ote*", "*er*"])
+    temp = list(tup)
+    temp.sort()                               
+    print "find_attributes ([U*,*ote*,*erv*]) " + str(temp)
     print "get_attribute(" +name+ ")          " + str(context.get_attribute(name))
 
 print "==================================================="
@@ -94,19 +137,17 @@ context = Context()
 print "=== Check all methods"
 checkObjectMethods(context)
 checkMethods(context, "LifeTime")
-print "=== Create Context(RemoteID)  "
-context = Context("RemoteID")
-checkMethods(context, "RemoteID")
-
-#for i in context.list_attributes():
-#    print i, context.attribute_exists(i)
-#get_vector_attribute
-#
+print "=== Create Context(ftp) and set defaults "
+context = Context("ftp")
+context.set_defaults()
+printAttributes(context)
+print "=== set some attributes"
+setAttributes(context)
+printAttributes(context)
+print "=== Can't remove the standard attributes, so skipping those"
 #remove_attribute
-#set_attribute
+print "=== Can't add or change vector attributes, so skipping those too"
 #set_vector_attribute 
-
-#TODO: Test find_attributes with longer lists
 
 print "==================================================="
 print "== End Test of Context                           =="

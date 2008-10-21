@@ -135,11 +135,11 @@ class Context(Object, Attributes):
                 raise BadParameter("Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.context.Context. Type: " + str( impl["delegateObject"].__class__))
             self.delegateObject = impl["delegateObject"]
         try:
-            if name is "" or type(name) is not string:
+            if name is "" or type(name) is not str:
                 self.delegateObject = ContextFactory.createContext();
             else:
                 self.delegateObject = ContextFactory.createContext(name);
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
 #TODO: Redo all BadParameter throws.... :(
@@ -165,7 +165,7 @@ class Context(Object, Attributes):
         """
         try:
             self.delegateObject.setDefaults()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         
 #    def get_id(self): Inherited from Object
@@ -199,7 +199,7 @@ class Context(Object, Attributes):
             delegateClone = self.delegateObject.clone()
             tempClone = Context(delegateObject=delegateClone)
             return tempClone
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         
        

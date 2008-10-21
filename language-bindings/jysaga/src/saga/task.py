@@ -229,7 +229,7 @@ class Task(Object, Monitorable):
                 return True
             else:
                 retval = self.delegateObject.waitfor(timeout)
-                if retval is 1:
+                if retval == 1:
                     return True
                 else:
                     return False
