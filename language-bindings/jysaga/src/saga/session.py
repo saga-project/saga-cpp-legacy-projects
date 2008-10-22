@@ -64,7 +64,7 @@ class Session(Object):
             raise BadParameter, "Parameter context is not of type Context but " + str(type(context))
         try:
             self.delegateObject.addContext(context.delegateObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     def remove_context(self, context):
@@ -88,7 +88,7 @@ class Session(Object):
             raise BadParameter, "Parameter context is not of type Context but " + str(type(context))
         try:
             self.delegateObject.removeContext(context.delegateObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         pass
         
@@ -109,7 +109,7 @@ class Session(Object):
         retval = []
         try:
             self.delegateObject.listContexts()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         if (len(javaArray)) is 0:
             return retval

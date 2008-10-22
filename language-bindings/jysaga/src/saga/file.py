@@ -21,6 +21,7 @@ import jarray.array
 from org.ogf.saga.file import FileFactory
 from org.ogf.saga.task import TaskMode
 from org.ogf.saga.file import SeekMode
+from org.ogf.saga.buffer import BufferFactory
 #import java.lang.Exception;
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -113,10 +114,10 @@ class Iovec(Buffer, Object):
         if offset < 0:
             raise BadParameter, "Parameter offset < 0. offset:" + str(offset)
 # 0-0        
-        if size is -1 and data is None:
+        if size == -1 and data is None:
             raise BadParameter, "Parameters size and data are not specified." 
 # 1-0
-        elif size is not -1 and data is None:    
+        elif size != -1 and data is None:    
             if size is 0 or size < -1:
                 raise BadParameter, "Parameter size is <= 0"
             try:
@@ -126,10 +127,10 @@ class Iovec(Buffer, Object):
                 else:
                     self.delegateObject = FileFactory.createIOVec(size, len_in)
                     self.managedByImp = True
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 # 0-1 
-        elif size is -1 and data is not None: 
+        elif size == -1 and data is not None: 
             try:
                 self.array = jarray.zeros( len(data), 'b')
                 if len_in == -1:
@@ -138,10 +139,10 @@ class Iovec(Buffer, Object):
                     self.delegateObject =  FileFactory.createIOVec(self.array, len_in)
                 self.managedByImp = False
                 self.applicationBuf = data
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 #1-1 
-        elif size is not -1 and data is not None:
+        elif size != -1 and data is not None:
             try:
                 self.array = jarray.zeros( size, 'b')
                 if len_in == -1:
@@ -150,7 +151,7 @@ class Iovec(Buffer, Object):
                     self.delegateObject =  FileFactory.createIOVec(self.array, len_in)
                     self.managedByImp = False
                     self.applicationBuf = data
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
         else:
             raise BadParameter, "Parameters can not be processed. size:" + size + " " + str(type(size)) + ". data: " + data + " " + str(type(data))          
@@ -170,7 +171,7 @@ class Iovec(Buffer, Object):
             raise BadParameter, "Parameter offset is not an int. Type: " + str(type(offset)) 
         try:
             self.delegateObject.setOffset(offset)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
 
@@ -184,7 +185,7 @@ class Iovec(Buffer, Object):
         """
         try:
             return self.delegateObject.getOffset()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         
     def set_len_in(self, len_in):
@@ -197,7 +198,7 @@ class Iovec(Buffer, Object):
         """
         try:
             return self.delegateObject.setLenIn(len_in)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
     def get_len_in(self):
@@ -210,7 +211,7 @@ class Iovec(Buffer, Object):
         """
         try:
             return self.delegateObject.getLenIn()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)    
 
     def get_len_out(self):
@@ -225,7 +226,7 @@ class Iovec(Buffer, Object):
         """
         try:
             return self.delegateObject.getLenOut()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)    
 
 
@@ -277,7 +278,7 @@ class File(NSEntry):
             if type(flags) is not int:
                 raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
             try:
-                if flags is Flags.NONE and session is not "default":
+                if flags is Flags.NONE and session != "default":
                     self.delegateObject = FileFactory.createFile(session.delegateObject, name.delegateObject)
                 elif flags is not Flags.NONE and session is not "default":
                     self.delegateObject = FileFactory.createFile(session.delegateObject, name.delegateObject, flags)
@@ -285,7 +286,7 @@ class File(NSEntry):
                     self.delegateObject = FileFactory.createFile(name.delegateObject)
                 else:
                     self.delegateObject = FileFactory.createFile(name.delegateObject, flags)
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
     def get_size(self, tasktype=TaskType.NORMAL):
@@ -320,7 +321,7 @@ class File(NSEntry):
                 return Task(delegateObject=javaObject)        
             else:
                 return self.delegateObject.getSize()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
     
@@ -384,38 +385,41 @@ class File(NSEntry):
         if buf.__class__ is not Buffer and buf is not None:
             raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
         try:
-            if len_in is not -1 and data is not None:
+#        if True:
+
+            if len != -1 and buf is not None:
                 if tasktype is TaskType.ASYNC:
-                    javaObject = self.delegateObject.read(TaskMode.ASYNC, buf.delegateObject, len_in)
+                    javaObject = self.delegateObject.read(TaskMode.ASYNC, buf.delegateObject, len)
                     return Task(delegateObject=javaObject, fileReadBuffer = buf)
                 if tasktype is TaskType.SYNC:
-                    javaObject = self.delegateObject.read(TaskMode.SYNC, buf.delegateObject, len_in)
+                    javaObject = self.delegateObject.read(TaskMode.SYNC, buf.delegateObject, len)
                     return Task(delegateObject=javaObject, fileReadBuffer = buf)
                 if tasktype is TaskType.TASK:
-                    javaObject = self.delegateObject.read(TaskMode.TASK, buf.delegateObject, len_in)
+                    javaObject = self.delegateObject.read(TaskMode.TASK, buf.delegateObject, len)
                     return Task(delegateObject=javaObject, fileReadBuffer = buf)        
                 else:
-                    retval = self.delegateObject.read(buf.delegateObject, len_in)
+                    retval = self.delegateObject.read(buf.delegateObject, len)
                     if buf.managedByImp is False:
                         buf.update_data()
                     return retval
-            elif len_in is not -1 and data is None:
-                javaBuffer =  BufferFactory.createBuffer(len_in)
+            elif len is not -1 and buf is None:
+                javaBuffer =  BufferFactory.createBuffer(len)
                 if tasktype is TaskType.ASYNC:
-                    javaObject = self.delegateObject.read(TaskMode.ASYNC, javaBuffer, len_in)
+                    javaObject = self.delegateObject.read(TaskMode.ASYNC, javaBuffer, len)
                     return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)
                 if tasktype is TaskType.SYNC:
-                    javaObject = self.delegateObject.read(TaskMode.SYNC, javaBuffer, len_in)
+                    javaObject = self.delegateObject.read(TaskMode.SYNC, javaBuffer, len)
                     return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)
                 if tasktype is TaskType.TASK:
-                    javaObject = self.delegateObject.read(TaskMode.TASK, javaBuffer, len_in)
+                    javaObject = self.delegateObject.read(TaskMode.TASK, javaBuffer, len)
                     return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)        
                 else:
-                    retval = self.delegateObject.read(javaBuffer, len_in)
+                    retval = self.delegateObject.read(javaBuffer, len)
                     return retval.getData().toString()
-            elif len_in is -1 and data is None:
+            elif len is -1 and buf is None:
                 #- B{Call format: read()} 
-                javaBuffer =  BufferFactory.createBuffer()
+                
+                javaBuffer =  BufferFactory.createBuffer(self.delegateObject.getSize())
                 if tasktype is TaskType.ASYNC:
                     javaObject = self.delegateObject.read(TaskMode.ASYNC, javaBuffer)
                     return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)
@@ -427,9 +431,10 @@ class File(NSEntry):
                     return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)        
                 else:
                     retval = self.delegateObject.read(javaBuffer)
-                    return retval.getData().toString()                    
-        except java.lang.Exception, e:
-                raise convertException(e)
+                    return javaBuffer.getData().tostring()                    
+        except org.ogf.saga.error.SagaException, e:
+            raise convertException(e)
+                      
         
 #TODO: Check after read, update application managed buffer
         
@@ -501,7 +506,7 @@ class File(NSEntry):
                     return self.delegateObject.write(buf.delegateObject)
                 else:
                     return self.delegateObject.write(buf.delegateObject, len)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
 
@@ -557,7 +562,7 @@ class File(NSEntry):
                 return Task(delegateObject=javaObject)        
             else:
                 return self.delegateObject.getSize()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
             
     def read_v(self, iovecs, tasktype=TaskType.NORMAL):
@@ -615,7 +620,7 @@ class File(NSEntry):
                 for item in iovecs:
                     if item.managedByImp is False:
                         item.update_data()               
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)        
             
         
@@ -670,7 +675,7 @@ class File(NSEntry):
                 return Task(delegateObject=javaObject)        
             else:
                 self.delegateObject.writeV(javaArray)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)        
 
 
@@ -714,7 +719,7 @@ class File(NSEntry):
                 return Task(delegateObject=javaObject)        
             else:
                 return self.delegateObject.sizeP(pattern)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)        
  
     
@@ -766,7 +771,7 @@ class File(NSEntry):
                 if buf.managedByImp is False:
                     buf.update_data()
                 return retval 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
 
@@ -816,7 +821,7 @@ class File(NSEntry):
             else:
                 retval = self.delegateObject.writeP(pattern, buf.delegateObject)
                 return retval 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
 
@@ -857,7 +862,7 @@ class File(NSEntry):
                 for i in range(retval.size()):
                     list.append( retval.get(i).toString() )
                 return tuple(list) 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
     def size_e (self, emode, spec, tasktype=TaskType.NORMAL):
@@ -903,7 +908,7 @@ class File(NSEntry):
                 return Task(delegateObject=javaObject)        
             else:
                 return self.delegateObject.sizeE(emode, spec)       
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e) 
             
 
@@ -960,7 +965,7 @@ class File(NSEntry):
                 if buf.managedByImp is False:
                     buf.update_data()
                 return retval 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
                 
     
@@ -1016,7 +1021,7 @@ class File(NSEntry):
             else:
                 retval = self.delegateObject.writeE(emode, spec, buf.delegateObject)
                 return retval 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
   
 
@@ -1073,7 +1078,7 @@ class Directory(NSDirectory):
                     self.delegateObject = FileFactory.createDirectory(name.delegateObject)
                 else:
                     self.delegateObject = FileFactory.createDirectory(name.delegateObject, flags)
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)       
         
     def get_size(self, name, flags = None, tasktype=TaskType.NORMAL):
@@ -1126,7 +1131,7 @@ class Directory(NSDirectory):
                 return Task(delegateObject=javaObject)        
             else:
                 return self.delegateObject.getSize(name.delegateObject, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
             
@@ -1153,7 +1158,7 @@ class Directory(NSDirectory):
                 return Task(delegateObject=javaObject)        
             else:
                 return self.delegateObject.isFile(name.delegateObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)                
 
 #DOCUMENT: Flags parameter not needed!
@@ -1211,7 +1216,7 @@ class Directory(NSDirectory):
             else:
                 javaObject = self.delegateObject.openDirectory(name.delegateObject, flags)
                 return Directory(delegateObject = javaObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     def open (self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
@@ -1271,6 +1276,6 @@ class Directory(NSDirectory):
             else:
                 javaObject = self.delegateObject.openFile(name.delegateObject, flags)
                 return File(delegateObject = javaObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         

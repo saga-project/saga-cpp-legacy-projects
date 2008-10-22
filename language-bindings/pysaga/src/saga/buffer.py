@@ -113,7 +113,7 @@ class Buffer(Object):
         @raise IncorrectState:
         @Note: see notes about memory management in the GFD-R-P.90 document
         @note: if the buffer was created as implementation
-                    managed (size = -1), but no I/O operation has
+                    managed (size == -1), but no I/O operation has
                     yet been successfully performed on the buffer,
                     a 'DoesNotExist' exception is raised.
         """

@@ -82,15 +82,16 @@ buffer3 = Buffer(101,carray)
 print "get_size:" , str(buffer3.get_size())
 checkObjectMethods(buffer3)
 
-temp_filename = "/tmp/1_urlTest.py.temp"
+
 print "=== create test file(s)", temp_filename
+temp_filename = "/tmp/1_urlTest.py.temp"
 file = open( temp_filename, "w")
 file.write("abcdefghijklmnopqrstuvwxyz")
 file.flush()
 file.close()
 
 url = URL("file://"+temp_filename)
-f = File(url)     
+f = File(url) 
 print f.read()     
 #__init__(self, session, name, flags=512)
 #initialize the File object     
@@ -135,8 +136,6 @@ print f.read()
 #extended write
 
 
-print "get_size(119): " , str(buffer2.set_size(119))
-print "get_size:     " , str(buffer2.get_size())
 
 buffer1.close()
 buffer2.close(-0.0)

@@ -70,7 +70,7 @@ class Object(object):
         """
         try:
             return self.delegateObject.getId()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
       
     def get_type(self):
@@ -126,7 +126,7 @@ class Object(object):
 #            javaClone = self.delegateObject.clone()
 #            clone = <OBJECT_NAME>(delegateObject=javaClone)
 #            return clone
-#        except java.lang.Exception, e:
+#        except org.ogf.saga.error.SagaException, e:
 #            raise self.convertException(e)
         
     def convertException(self, e):

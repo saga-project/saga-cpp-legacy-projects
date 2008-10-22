@@ -154,7 +154,7 @@ class Task(Object, Monitorable):
         """
         try:
             self.delegateObject.run()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
     
     def cancel(self, timeout=0.0):
@@ -188,7 +188,7 @@ class Task(Object, Monitorable):
                 self.delegateObject.cancel()
             else:
                 self.delegateObject.cancel(timeout)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
     
 #TODO: check type checking default parameters for methods in for all!! classes.     
@@ -220,7 +220,7 @@ class Task(Object, Monitorable):
         """        
         if type(timeout) is not float or type(timeout) is not int:
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
-        if timeout < 0 and timeout is not -1:
+        if timeout < 0 and timeout != -1:
             raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
         try:
             retval = 0
@@ -233,7 +233,7 @@ class Task(Object, Monitorable):
                     return True
                 else:
                     return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
       
     def get_state(self):
@@ -251,7 +251,7 @@ class Task(Object, Monitorable):
         try:
             retval = self.delegateObject.run()
             return retval.getValue()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
       
     def get_result(self):
@@ -273,7 +273,7 @@ class Task(Object, Monitorable):
                 
         try:
             retval = self.delegateObject.getResult()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
         if self.fileReadBuffer is not None:
@@ -375,7 +375,7 @@ class Task(Object, Monitorable):
         """
         try:
             self.delegateObject.rethrow()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
     
     
@@ -414,7 +414,7 @@ class TaskContainer(Object, Monitorable):
             return
         try:
             self.delegateObject = org.ogf.saga.task.TaskFactory.createTaskContainer()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
        
     def add(self, task):
@@ -440,7 +440,7 @@ class TaskContainer(Object, Monitorable):
             raise BadParameter, "Parameter task is not a Task object. Type: " + str(type(task))
         try:
             self.delegateObject.add(task.delegateObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
     def remove(self, cookie):
@@ -468,7 +468,7 @@ class TaskContainer(Object, Monitorable):
         try:
             retval = self.delegateObject.remove(task.delegateObject)
             return Task(delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     def run(self):
@@ -493,7 +493,7 @@ class TaskContainer(Object, Monitorable):
         """
         try:
             self.delegateObject.run()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)       
         
     def wait(self, mode = WaitMode.ALL, timeout = -1.0):
@@ -535,7 +535,7 @@ class TaskContainer(Object, Monitorable):
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
         if mode is not WaitMode.ALL or mode is not WaitMode.ANY:
             raise BadParameter, "Parameter mode is not WaitMode.ALL or WaitMode.ANY. mode: "+str(mode)
-        if timeout < 0 and timeout is not -1.0:
+        if timeout < 0 and timeout != -1.0:
             raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
         if mode is WaitMode.ANY:
             waitmode = org.ogf.saga.task.WaitMode.ANY
@@ -548,7 +548,7 @@ class TaskContainer(Object, Monitorable):
             else:
                 retval = self.delegateObject.waitFor(timeout, waitmode)
             return Task(delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)  
 #TODO: add object reference to Task. Add in each Method giving a task        
         
@@ -575,14 +575,14 @@ class TaskContainer(Object, Monitorable):
         """
         if type(timeout) is not float or type(timeout) is not int:
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
-        if timeout < 0 and timeout is not -1.0:
+        if timeout < 0 and timeout != -1.0:
             raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
         try:
             if timeout is -1.0:
                 self.delegateObject.cancel() 
             else:
                 self.delegateObject.cancel(timeout)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
              raise convertException(e)
 
     def size(self):
@@ -599,7 +599,7 @@ class TaskContainer(Object, Monitorable):
         """
         try:
             return self.delegateObject.size() 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
              raise convertException(e)       
         
         
@@ -618,7 +618,7 @@ class TaskContainer(Object, Monitorable):
         try:
             retval = self.delegateObject.listTasks()
             return tuple(retval) 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
              raise convertException(e)            
         
     def get_task(self, cookie):
@@ -643,7 +643,7 @@ class TaskContainer(Object, Monitorable):
         try:
             retval = self.delegateObject.getTask()
             return Task(delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
              raise convertException(e)       
     
     def get_tasks(self):
@@ -663,7 +663,7 @@ class TaskContainer(Object, Monitorable):
         list = []
         try:
             javaArray = self.delegateObject.getTasks()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
              raise convertException(e) 
         for i in range (len(javaArray)):
             temp = Task(delegateObject = javaArray[i])
@@ -686,7 +686,7 @@ class TaskContainer(Object, Monitorable):
         """
         try:
             javaArray = self.delegateObject.getStates()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         list = []
         for i in range(len(javaArray)):

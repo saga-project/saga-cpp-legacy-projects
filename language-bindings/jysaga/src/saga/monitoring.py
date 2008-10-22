@@ -155,7 +155,7 @@ class Metric(Object, Attributes):
             raise BadParameter, "Parameter value is not a string. Type: " + str(type(value))        
         try:
             self.delegateObject = MonitoringFactory.createMetric(name, desc, mode, unit, type, value) 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
       
     #callback handling
@@ -196,7 +196,7 @@ class Metric(Object, Attributes):
             delegateCallback = CallbackProxy(pythonCallbackObject=cb)
             cookie = self.delegateObject.addCallback(delegateCallback)
             self.callbacks[cookie] = delegateCallback
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e) 
         return cookie              
       
@@ -232,7 +232,7 @@ class Metric(Object, Attributes):
             raise BadParameter, "Parameter cookie is not an int. Type: " + str(type(cookie))
         try:
             self.delegateObject.removeCallback(name, cookie)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         del self.callbacks[cookie]
         #TODO: check if multiple names can exist with same cookie! Remove old proxies!
@@ -270,7 +270,7 @@ class Metric(Object, Attributes):
         """
         try:
             self.delegateObject.fire()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
 class Monitorable(object):
@@ -304,7 +304,7 @@ class Monitorable(object):
         try:
             retval = self.delegateObject.listMetrics()
             return(tuple(retval))
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
      
     def get_metric(self, name):
@@ -337,7 +337,7 @@ class Monitorable(object):
         try:
             javaObject = self.delegateObject.getMetric(name)
             return Metric(delegateObject=javaObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
      
     def add_callback(self, name, cb):
@@ -371,7 +371,7 @@ class Monitorable(object):
             delegateCallback = CallbackProxy(pythonCallbackObject=cb)
             cookie = self.delegateObject.addCallback(name, delegateCallback )
             self.callbacks[cookie] = delegateCallback
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         return cookie
      
@@ -402,7 +402,7 @@ class Monitorable(object):
             raise BadParameter, "Parameter cookie is not an int. Type: " + str(type(cookie))
         try:
             self.delegateObject.removeCallback(name, cookie)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         # del self.callbacks[cookie]
         #TODO: check if multiple names can exist with same cookie! Remove old proxies!

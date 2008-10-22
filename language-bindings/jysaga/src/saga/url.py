@@ -41,7 +41,7 @@ class URL(Object):
                 raise BadParameter, "Parameter url is not a string. Type: " + str(type(url))
             try:
                 self.delegateObject = URLFactory.createURL(url)
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
              
         
@@ -63,7 +63,7 @@ class URL(Object):
         #TODO: document that if _init_ raises an error the object is not created
         try:
             self.delegateObject.setString(url)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def get_string (self):
@@ -78,7 +78,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getString()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
     def set_scheme (self, scheme = ""):
@@ -100,7 +100,7 @@ class URL(Object):
             raise BadParameter, "Parameter scheme is not a string. Type: " + str(type(scheme))
         try:
             self.delegateObject.setScheme(scheme)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         
     def get_scheme(self):
@@ -115,7 +115,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getScheme()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def set_host (self, host = ""):
@@ -137,7 +137,7 @@ class URL(Object):
             raise BadParameter, "Parameter host is not a string. Type: " + str(type(host))
         try:
             self.delegateObject.setHost(host)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         
     def get_host (self):
@@ -152,7 +152,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getHost()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
     def set_port (self, port=-1):
@@ -174,7 +174,7 @@ class URL(Object):
             raise BadParameter, "Parameter port is not an int. Type: " + str(type(port))
         try:
             self.delegateObject.setPort(port)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def get_port (self):
@@ -189,7 +189,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getPort()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def set_fragment (self, fragment = ""):
@@ -211,7 +211,7 @@ class URL(Object):
             raise BadParameter, "Parameter fragment is not a string. Type: " + str(type(fragment))
         try:
             self.delegateObject.setFragment(fragment)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)      
         
     def get_fragment (self):
@@ -226,7 +226,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getFragment()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)       
      
     def set_path (self, path = ""):
@@ -248,7 +248,7 @@ class URL(Object):
             raise BadParameter, "Parameter path is not a string. Type: " + str(type(path))
         try:
             self.delegateObject.setPath(path)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def get_path (self):
@@ -263,7 +263,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getPath()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
     def set_query (self, query = ""):
@@ -285,7 +285,7 @@ class URL(Object):
             raise BadParameter, "Parameter query is not a string. Type: " + str(type(query))
         try:
             self.delegateObject.setQuery(query)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def get_query (self):
@@ -300,7 +300,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getQuery()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
     
     def set_userinfo (self, userinfo = ""):
@@ -322,7 +322,7 @@ class URL(Object):
             raise BadParameter, "Parameter userinfo is not a string. Type: " + str(type(userinfo))
         try:
             self.delegateObject.setUserInfo(userinfo)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)        
     
     def get_userinfo (self):
@@ -337,7 +337,7 @@ class URL(Object):
         """
         try:
             return self.delegateObject.getUserInfo()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         
     def translate (self, scheme):
@@ -368,7 +368,7 @@ class URL(Object):
         try:
             tempObject = self.delegateObject.translate(scheme)
             return URL(tempObject.getString())
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)    
         
 ###################################

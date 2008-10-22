@@ -90,7 +90,7 @@ class Buffer(Object):
                 else:
                     self.delegateObject = BufferFactory.createBuffer(size)
                     self.managedByImp = True
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
         elif size is not None and data is not None: 
@@ -100,21 +100,21 @@ class Buffer(Object):
                 raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(data)) 
             if type(data) is array.array and data.typecode != 'c':
                 raise BadParameter, "Parameter data is an array of the wrongtype. Typecode: ",  data.typecode   
-            if size < 1 and size is not -1:
+            if size < 1 and size != -1:
                 raise BadParameter, "Parameter size is < 1"
             try:
                 self.array = jarray.zeros(size, 'b')
                 self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
         
         elif size is None and data is None:
             try:
                 self.delegateObject = BufferFactory.createBuffer()
                 self.managedByImp = True
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
             
         elif size is None and data is not None:
@@ -128,7 +128,7 @@ class Buffer(Object):
                 self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
         else:
             raise BadParameter, "Parameters can not be processed. size:" + size + " " + str(type(size)) + " " + data + " " + str(type(data))          
@@ -161,7 +161,7 @@ class Buffer(Object):
            self.managedByImp = True
            array = None
            applicationBuf = None
-       except java.lang.Exception, e:
+       except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
 
 
@@ -184,7 +184,7 @@ class Buffer(Object):
            raise IncorrectState, "Buffer object is already closed()"
         try:
            return self.delegateObject.getSize()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
         
     
@@ -212,16 +212,16 @@ class Buffer(Object):
             raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
         if type(data) is array.array and data.typecode != 'c':
             raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
-        if size < 1 and size is not -1:
+        if size < 1 and size != -1:
             raise BadParameter, "Parameter size is < 1"       
-        if size is -1:
+        if size == -1:
             size is len(data)
         try:
             self.array = jarray.zeros(size, 'b')            
             self.delegateObject.setData(self.array)
             self.managedByImp = False
             self.applicationBuf = data
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
  
     def update_data(self):
@@ -255,7 +255,7 @@ class Buffer(Object):
         @raise IncorrectState:
         @Note: see notes about memory management in the GFD-R-P.90 document
         @note: if the buffer was created as implementation
-                    managed (size = -1), but no I/O operation has
+                    managed (size == -1), but no I/O operation has
                     yet been successfully performed on the buffer,
                     a 'DoesNotExist' exception is raised.
         """
@@ -270,7 +270,7 @@ class Buffer(Object):
                     return self.applicationBuf
                 else:
                     raise NoSuccess, "self.applicationBuf is not a array or a list. Internal inconsistincy."
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
 
 #type data:<type 'array'>
@@ -305,7 +305,7 @@ class Buffer(Object):
             else:
                 self.delegateObject.close(timeout)
                 self.closed = True 
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
        
     def get_type(self):

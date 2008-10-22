@@ -129,7 +129,7 @@ class NSEntry(Object, Permissions, Async):
                     self.delegateObject = NSFactory.createNSEntry(name.delegateObject)
                 else:
                     self.delegateObject = NSFactory.createNSEntry(name.delegateObject, flags)
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
 
 #DOCUMENT: cannot be created asynchronous object
@@ -175,7 +175,7 @@ class NSEntry(Object, Permissions, Async):
             else:
                 retval = self.delegateObject.getURL()
                 return URL (delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
 
@@ -210,7 +210,7 @@ class NSEntry(Object, Permissions, Async):
             else:
                 retval = self.delegateObject.getCWD()
                 return URL (delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     def get_name(self, tasktype=TaskType.NORMAL): 
@@ -241,7 +241,7 @@ class NSEntry(Object, Permissions, Async):
             else:
                 retval = self.delegateObject.getName()
                 return URL (delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
     def is_dir_self(self, tasktype=TaskType.NORMAL):
@@ -282,7 +282,7 @@ class NSEntry(Object, Permissions, Async):
                     return True
                 else: 
                     return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     def is_entry_self(self, tasktype=TaskType.NORMAL):
@@ -326,7 +326,7 @@ class NSEntry(Object, Permissions, Async):
                     return True
                 else: 
                     return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     def is_link_self(self, tasktype=TaskType.NORMAL):
@@ -368,7 +368,7 @@ class NSEntry(Object, Permissions, Async):
                     return True
                 else: 
                     return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
     def read_link_self(self, tasktype=TaskType.NORMAL):
@@ -409,7 +409,7 @@ class NSEntry(Object, Permissions, Async):
             else:
                 retval = self.delegateObject.readLink()
                 return URL (delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
     def copy_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
@@ -475,7 +475,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.copy(target.delegateObject, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
    
     def link_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
@@ -547,7 +547,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.link(target.delegateObject, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)      
         
     def move_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
@@ -614,7 +614,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.move(target.delegateObject, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)      
 
     def remove_self(self, flags = Flags.NONE, tasktype=TaskType.NORMAL):
@@ -667,7 +667,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.remove(flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)      
         
     def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
@@ -718,7 +718,7 @@ class NSEntry(Object, Permissions, Async):
                     self.delegateObject.close()
                 else:
                     self.delegateObject.close(timeout)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)             
 
 
@@ -770,7 +770,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)                                           
             else:
                 self.delegateObject.permissionsAllow(id, perm, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)   
 
     def get_type(self):
@@ -829,7 +829,7 @@ class NSEntry(Object, Permissions, Async):
                 return Task(delegateObject=javaObject)                                           
             else:
                 self.delegateObject.permissionsDeny(id, perm, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)   
         
     
@@ -895,7 +895,7 @@ class NSDirectory(NSEntry, Async):
                     self.delegateObject = NSFactory.createNSDirectory(name.delegateObject)
                 else:
                     self.delegateObject = NSFactory.createNSDirectory(name.delegateObject, flags)
-            except java.lang.Exception, e:
+            except org.ogf.saga.error.SagaException, e:
                 raise convertException(e)
     
     #navigation/query methods    
@@ -940,7 +940,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.changeDir(url.delegateObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
  
     #navigation/query methods
@@ -1005,7 +1005,7 @@ class NSDirectory(NSEntry, Async):
                 for i in range(len(javaArray)):
                     ret.append(URL(delegateObject = javaArray[i]))
                 return retval
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     def find(self, name_pattern, flags = Flags.RECURSIVE, tasktype=TaskType.NORMAL):
@@ -1067,7 +1067,7 @@ class NSDirectory(NSEntry, Async):
                 for i in range(len(javaArray)):
                     ret.append(URL(delegateObject = javaArray[i]))
                 return retval
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     #navigation/query methods
@@ -1117,7 +1117,7 @@ class NSDirectory(NSEntry, Async):
                 retval = self.delegateObject.exists(name.delegateObject)                
                 if reval is 1: return True
                 else: return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
 #DOCUMENT: difference type False/True -> bool-int
@@ -1176,7 +1176,7 @@ class NSDirectory(NSEntry, Async):
                     return True
                 else: 
                     return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     #navigation/query methods
@@ -1229,7 +1229,7 @@ class NSDirectory(NSEntry, Async):
                     return True
                 else: 
                     return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
  
     #navigation/query methods
@@ -1282,7 +1282,7 @@ class NSDirectory(NSEntry, Async):
                     return True
                 else: 
                     return False
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
     def read_link(self, name, tasktype=TaskType.NORMAL):
@@ -1331,7 +1331,7 @@ class NSDirectory(NSEntry, Async):
             else:
                 retval = self.delegateObject.readLink(name.delegateObject)
                 return URL (delegateObject = retval)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
  
     # manage entries by number
@@ -1372,7 +1372,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)   
             else:
                 return self.delegateObject.getNumEntries()
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     # manage entries by number
@@ -1423,7 +1423,7 @@ class NSDirectory(NSEntry, Async):
             else:
                 javaObject = self.delegateObject.getEntry(entry)
                 return URL(delegateObject = javaObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
     # management methods + management methods - wildcard versions
@@ -1497,7 +1497,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.copy( source_parameter, target.delegateObject, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
         
 
@@ -1580,7 +1580,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.link(target.delegateObject, source_parameter, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)      
 
   
@@ -1664,7 +1664,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.move(source_parameter, target.delegateObject, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)    
   
    # management methods + management methods - wildcard versions
@@ -1734,7 +1734,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.remove(source_parameter, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)             
   
    # management methods
@@ -1794,7 +1794,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)
             else:
                 self.delegateObject.makeDir(target.delegateObject, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
   
     #factory methods
@@ -1867,7 +1867,7 @@ class NSDirectory(NSEntry, Async):
             else:
                 javaObject = self.delegateObject.open(target.delegateObject, flags)
                 return NSEntry(delegateObject = javaObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
  
@@ -1937,7 +1937,7 @@ class NSDirectory(NSEntry, Async):
             else:
                 javaObject = self.delegateObject.openDir(target.delegateObject, flags)
                 return NSDirectory(delegateObject = javaObject)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
 
 
@@ -2001,7 +2001,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)                                           
             else:
                 self.delegateObject.permissionsAllow(target_parameter, id, perm, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)   
 
 
@@ -2068,7 +2068,7 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)                                           
             else:
                 self.delegateObject.permissionsDeny(target_parameter, id, perm, flags)
-        except java.lang.Exception, e:
+        except org.ogf.saga.error.SagaException, e:
             raise convertException(e)    
 
     def get_type(self):
