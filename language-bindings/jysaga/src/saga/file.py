@@ -6,8 +6,11 @@ from saga.permissions import  Permissions
 from saga.buffer import Buffer
 from saga.object import Object, ObjectType
 from saga.attributes import Attributes
-from saga.error import NotImplemented
+from saga.error import NotImplemented, BadParameter
 from saga.task import TaskType
+from saga.session import Session
+from saga.url import URL
+
 
 import jarray.array
 
@@ -19,6 +22,19 @@ from org.ogf.saga.file import FileFactory
 from org.ogf.saga.task import TaskMode
 from org.ogf.saga.file import SeekMode
 #import java.lang.Exception;
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
 
 class Flags(object):
     """
@@ -88,7 +104,7 @@ class Iovec(Buffer, Object):
             raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
         if type(data) is not array or type(data) is not list or data is not None:
             raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
-        if type(data) is array and data.typecode is not 'c':
+        if type(data) is array and data.typecode != 'c':
             raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode           
         if type(len_in) is not int:
             raise BadParameter, "Parameter len_in is not an int. Type: " + str(type(len_in))
@@ -254,7 +270,7 @@ class File(NSEntry):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.File. Type: " + str(type(impl["delegateObject"]))
             self.delegateObject = impl["delegateObject"]
         else:
-            if type(session) is not Session and session is not "default":
+            if type(session) is not Session and session != "default":
                 raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
             if type(name) is not URL:
                 raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
@@ -289,9 +305,9 @@ class File(NSEntry):
         @Note: similar to the st_size field from stat(2)as defined by POSIX
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getSize(TaskMode.ASYNC)
@@ -359,9 +375,10 @@ class File(NSEntry):
             If that is also not available, a BadParameter exception is raised.
         @Note: similar to read (2) as specified by POSIX
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter( "Parameter tasktype is not one of the TaskType values, but " + str(tasktype))
         if type (len) is not int:
             raise BadParameter, "Parameter len is not an int. Type: " + str(type(len))
         if buf.__class__ is not Buffer and buf is not None:
@@ -451,9 +468,9 @@ class File(NSEntry):
         @Note: similar to write (2) as specified by POSIX
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type (len) is not int:
             raise BadParameter, "Parameter len is not an int. Type: " + str(type(len))
         if buf.__class__ is not Buffer:
@@ -525,9 +542,9 @@ class File(NSEntry):
             raise BadParameter, "Parameter whence is not an int. Type " + str(type(tasktype))
         if type(offset) is not int:
             raise BadParameter, "Parameter offset is not an int. Type " + str(type(offset))
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getSize(TaskMode.ASYNC)
@@ -571,9 +588,9 @@ class File(NSEntry):
         @Note: similar to readv (2) as specified by POSIX
         
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(iovecs) is not Iovec and type(iovecs) is not list:
             raise BadParameter, "Parameter iovecs is not a list of Iovecs , but " + str(type(tasktype))
         if type(iovecs) is list:
@@ -629,9 +646,9 @@ class File(NSEntry):
         @Note: if the file was opened READONLY, a PermissionDenied exception is raised.
         @Note: similar to writev (2) as specified by POSIX
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(iovecs) is not Iovec and type(iovecs) is not list:
             raise BadParameter, "Parameter iovecs is not a list of Iovecs , but " + str(type(tasktype))
         if type(iovecs) is list:
@@ -682,9 +699,9 @@ class File(NSEntry):
         """
         if type(pattern) is not str:
             raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.sizeP(TaskMode.ASYNC,pattern)
@@ -731,9 +748,9 @@ class File(NSEntry):
             raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
         if buf.__class__ is not Buffer:
             raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.readP(TaskMode.ASYNC, pattern, buf.delegateObject)
@@ -783,9 +800,9 @@ class File(NSEntry):
             raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
         if buf.__class__ is not Buffer:
             raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.writeP(TaskMode.ASYNC, pattern, buf.delegateObject)
@@ -821,9 +838,9 @@ class File(NSEntry):
             the application programmer to determine what extended I/O methods are supported by the implementation.
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.modesE(TaskMode.ASYNC)
@@ -867,9 +884,9 @@ class File(NSEntry):
         @Note: if the specification cannot be parsed or interpreted, a BadParameter exception is raised.
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(emode) is not str:
             raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
         if type(spec) is not str:
@@ -919,9 +936,9 @@ class File(NSEntry):
         @Note: an exception is raised if any of the individual reads detects a condition which would raise an exception for the normal read method.
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(emode) is not str:
             raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
         if type(spec) is not str:
@@ -977,9 +994,9 @@ class File(NSEntry):
         @Note: an exception MUST be raised if any of the individual writes detects a condition which would raise an exception for the normal write method.
 
         """   
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(emode) is not str:
             raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
         if type(spec) is not str:
@@ -1090,9 +1107,9 @@ class Directory(NSDirectory):
         @note: similar to the 'st_size' field from 'stat' (2) as defined by POSIX
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(name) is not URL:
                 raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
@@ -1119,9 +1136,9 @@ class Directory(NSDirectory):
         Alias:    for is_entry in saga.namespace.NSDirectory
         @see: L{saga.namespace.NSDirectory.is_entry()}
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(name) is not URL:
                 raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         try:
@@ -1178,9 +1195,9 @@ class Directory(NSDirectory):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.openDirectory(TaskMode.ASYNC, name.delegateObject, flags)
@@ -1238,9 +1255,9 @@ class Directory(NSDirectory):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL or tasktype is not TypeTask.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
+        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.openFile(TaskMode.ASYNC, name.delegateObject, flags)

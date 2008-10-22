@@ -7,9 +7,23 @@
 from object import ObjectType, Object
 from error import NotImplemented, BadParameter,IncorrectState
 import jarray
+import array.array
 
 from org.ogf.saga.buffer import BufferFactory, Buffer
 
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
 
 #use jython's JArray to create a byte[]. but needs to 
 #update the application buffer then after each mutation....
@@ -60,8 +74,8 @@ class Buffer(Object):
  
 #TODO: Redo init.
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.buffer.Buffer:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.context.Context. Type: " + str(type(impl["delegateObject"]))
+            if not isinstance(impl["delegateObject"], org.ogf.saga.buffer.Buffer):
+                raise BadParameter("Parameter impl[\"delegateObject\"] is not a org.ogf.saga.buffer.Buffer. Type: " + str(impl["delegateObject"].__class__))
             self.delegateObject = impl["delegateObject"]
         super(Buffer,self).__init__()
         if size is not None and data is None:
@@ -82,10 +96,10 @@ class Buffer(Object):
         elif size is not None and data is not None: 
             if type(size) is not int:
                 raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
-            if type(data) is not array or type(data) is not list:
-                raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
-            if type(data) is array and data.typecode is not 'c':
-                raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode   
+            if type(data) is not array.array and type(data) is not list:
+                raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(data)) 
+            if type(data) is array.array and data.typecode != 'c':
+                raise BadParameter, "Parameter data is an array of the wrongtype. Typecode: ",  data.typecode   
             if size < 1 and size is not -1:
                 raise BadParameter, "Parameter size is < 1"
             try:
@@ -104,9 +118,9 @@ class Buffer(Object):
                 raise self.convertException(e)
             
         elif size is None and data is not None:
-            if type(data) is not array or type(data) is not list:
+            if type(data) is not array.array or type(data) is not list:
                 raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
-            if type(data) is array and data.typecode is not 'c':
+            if type(data) is array.array and data.typecode != 'c':
                 raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
             size = len(data)
             try:
@@ -194,9 +208,9 @@ class Buffer(Object):
         """
         if self.closed is True :
            raise IncorrectState, "Buffer object is already closed()"
-        if type(data) is not array or type(data) is not list:
+        if type(data) is not array.array or type(data) is not list:
             raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
-        if type(data) is array and data.typecode is not 'c':
+        if type(data) is array.array and data.typecode != 'c':
             raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
         if size < 1 and size is not -1:
             raise BadParameter, "Parameter size is < 1"       
@@ -282,7 +296,7 @@ class Buffer(Object):
         @note: if close() is implicitly called in  __del__(), it will never raise an exception.
         @see: for resource deallocation semantics and timeout semantics, see  Section 2 of the GFD-R-P.90 document
         """
-        if type(timeout) is not float or type(timeout) is not int:
+        if type(timeout) is not float and type(timeout) is not int:
             raise BadParameter, "Parameter timout is wrong type. Type: " + str(type(timeout))
         try:
             if timeout > 0:
@@ -317,11 +331,17 @@ class Buffer(Object):
         @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
         """
-        javaClone = delegateObject.clone()
-        temp = Buffer(delegateObject = javaClone)
-        temp.managedByImp = self.managedByImp
-        temp.array = jarray.array(self.array, 'b')
-        #TODO: check clone and buffer behaviour -> Java Data copying? Set data?
-        temp.applicationBuf = self.applicationBuf
-        temp.closed = self.closed
-
+        try:
+            javaClone = self.delegateObject.clone()
+            temp = Buffer(delegateObject = javaClone)
+            temp.managedByImp = self.managedByImp
+            if self.array is None:
+                temp.array = None
+            else:
+                temp.array = jarray.array(self.array, 'b')
+            #TODO: check clone and buffer behaviour -> Java Data copying? Set data?
+            temp.applicationBuf = self.applicationBuf
+            temp.closed = self.closed
+            return temp
+        except org.ogf.saga.error.SagaException, e:
+            raise convertException(e)
