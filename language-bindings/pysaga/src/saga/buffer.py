@@ -106,8 +106,9 @@ class Buffer(Object):
         """
         Retrieve the buffer data.
         @summary: Retrieve the buffer data.
-        @return: buffer data to retrieve. Type depends on what type was used to create the Buffer object
-        @rtype: char array or list
+        @return: buffer data to retrieve. Type depends on what type was used to create the Buffer object.
+            If the buffer is implementation managed, it returns a string.
+        @rtype: char array, list, string
         @Raise NotImplemented:
         @raise DoesNotExist:
         @raise IncorrectState:

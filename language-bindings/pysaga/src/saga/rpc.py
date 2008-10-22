@@ -8,6 +8,10 @@ from task import Async
 class IOMode(object):
     """
     IOMode specifies the modus of the saga.rpc.Parameter instances
+
+    status: This object is not completly specified yet.
+    ===================================================   
+    
     """
     
     IN    = 1 
@@ -22,6 +26,10 @@ class Parameter(Buffer):
     The parameter class inherits the saga.buffer.Buffer class, and adds one additional
     state attribute: IOMode, which is read-only. With that addition, the new class
     can conveniently be used to define input, inout and output parameters for RPC calls.
+    
+    status: This object is not completly specified yet.
+    ===================================================
+
     """
     
     def __init__(self, size, mode, data):
@@ -68,6 +76,9 @@ class RPC(Object, Permissions, Async ):
     This class represents a remote function handle, which can be called (repeatedly),
     and returns the result of the respective remote procedure invocation.
 
+    status: This object is not completly specified yet.
+    ===================================================
+    
     """
      
      

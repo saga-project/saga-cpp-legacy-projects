@@ -385,8 +385,6 @@ class File(NSEntry):
         if buf.__class__ is not Buffer and buf is not None:
             raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
         try:
-#        if True:
-
             if len != -1 and buf is not None:
                 if tasktype is TaskType.ASYNC:
                     javaObject = self.delegateObject.read(TaskMode.ASYNC, buf.delegateObject, len)
@@ -402,7 +400,7 @@ class File(NSEntry):
                     if buf.managedByImp is False:
                         buf.update_data()
                     return retval
-            elif len is not -1 and buf is None:
+            elif len != -1 and buf is None:
                 javaBuffer =  BufferFactory.createBuffer(len)
                 if tasktype is TaskType.ASYNC:
                     javaObject = self.delegateObject.read(TaskMode.ASYNC, javaBuffer, len)
@@ -416,7 +414,7 @@ class File(NSEntry):
                 else:
                     retval = self.delegateObject.read(javaBuffer, len)
                     return retval.getData().toString()
-            elif len is -1 and buf is None:
+            elif len == -1 and buf is None:
                 #- B{Call format: read()} 
                 
                 javaBuffer =  BufferFactory.createBuffer(self.delegateObject.getSize())
@@ -431,7 +429,9 @@ class File(NSEntry):
                     return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)        
                 else:
                     retval = self.delegateObject.read(javaBuffer)
-                    return javaBuffer.getData().tostring()                    
+                    return javaBuffer.getData().tostring()    
+            else:
+                raise BadParameter("Correct call is read(size,data), read(size) or read() ")  
         except org.ogf.saga.error.SagaException, e:
             raise convertException(e)
                       

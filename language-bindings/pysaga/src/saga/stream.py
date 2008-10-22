@@ -10,7 +10,13 @@ from context import Context
 from attributes import Attributes
 from error import NotImplemented
 
+
+
 class State(object):
+    """
+    status: This object is not completly specified yet.
+    ===================================================
+    """
     NEW =  1
     OPEN = 2
     CLOSED = 3
@@ -18,16 +24,23 @@ class State(object):
     ERROR = 5
  
 class Activity(object):
+    """
+    status: This object is not completly specified yet.
+    ===================================================
+    """
     READ = 1
     WRITE = 2
     EXCEPTION = 4
     
     
-class StreamService(Object, Monitorable, Permissions): # Async in Permissions
+class StreamService(Object, Monitorable, Permissions, Async): # Async in Permissions
     """
     The StreamService object establishes a listening/server object that waits for
     client connections. It can only be used as a factory for client sockets. It does not
     do any read/write I/O.
+
+    status: This object is not completly specified yet.
+    ===================================================
     
         - B{Metrics:}
             - name: stream_server.client_connect
@@ -36,6 +49,7 @@ class StreamService(Object, Monitorable, Permissions): # Async in Permissions
             - unit: 1
             - type: Trigger
             - value: 1
+            
     """
       
     def __init__(self, session, url):
@@ -110,6 +124,11 @@ class StreamService(Object, Monitorable, Permissions): # Async in Permissions
 class Stream(Object, Async, Attributes, Monitorable):
     """
     This is the object that encapsulates all client Stream objects.
+
+    status: This object is not completly specified yet.
+    ===================================================
+        
+
 
     B{Attributes supported:}
     
@@ -206,6 +225,8 @@ class Stream(Object, Async, Attributes, Monitorable):
             - unit: 1
             - type: Trigger
             - value: 1
+            
+
     """
     
     def __init__(self, session, url = ""):

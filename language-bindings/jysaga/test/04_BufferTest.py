@@ -63,7 +63,7 @@ print "=== Creating empty implementation managed Buffer"
 print "=== buffer1 = Buffer()"
 buffer1 = Buffer()
 print "get_size:      " , str(buffer1.get_size())
-print "get_size(50):  " , str(buffer1.set_size(50))
+print "set_size(50):  " , str(buffer1.set_size(50))
 print "get_size:      " , str(buffer1.get_size())
 checkObjectMethods(buffer1)
     
@@ -82,17 +82,29 @@ buffer3 = Buffer(101,carray)
 print "get_size:" , str(buffer3.get_size())
 checkObjectMethods(buffer3)
 
-
+temp_filename = "/tmp/04_BufferTest.py.temp"
 print "=== create test file(s)", temp_filename
-temp_filename = "/tmp/1_urlTest.py.temp"
 file = open( temp_filename, "w")
 file.write("abcdefghijklmnopqrstuvwxyz")
 file.flush()
 file.close()
 
 url = URL("file://"+temp_filename)
-f = File(url) 
-print f.read()     
+f = File(url)
+print "== Reading from", temp_filename, "in buffer1"
+print "f.read(buf=buffer1)    ",str(f.read(buffer1.get_size(),buffer1)),"content: ", buffer1.get_data()
+f = File(url)
+print "== Reading from", temp_filename, "in buffer2"
+print "f.read(buf=buffer2)    ",str(f.read(buffer2.get_size(),buffer2)),"content: ", list(buffer2.get_data())
+f = File(url)
+print "== Reading from", temp_filename, "in buffer3"
+print "f.read(buf=buffer3)    ",str(f.read(buffer3.get_size(),buf=buffer3)),"content: ", carray.tostring()
+#set_data(self, data, size=-1)
+#Set new buffer data.     
+#char array or list     
+#get_data(self)
+#Retrieve the buffer data.  
+
 #__init__(self, session, name, flags=512)
 #initialize the File object     
 #int     
@@ -148,11 +160,7 @@ buffer3.close(10.0)
 #get_size(self)
 #Retrieve the current value for size.     
 #      
-#set_data(self, data, size=-1)
-#Set new buffer data.     
-#char array or list     
-#get_data(self)
-#Retrieve the buffer data.     
+   
 
 
 

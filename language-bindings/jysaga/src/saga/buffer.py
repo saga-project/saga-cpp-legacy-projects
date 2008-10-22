@@ -72,66 +72,43 @@ class Buffer(Object):
         @see: notes about memory management in GFD-R-P.90 document.
         """
  
-#TODO: Redo init.
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.buffer.Buffer):
                 raise BadParameter("Parameter impl[\"delegateObject\"] is not a org.ogf.saga.buffer.Buffer. Type: " + str(impl["delegateObject"].__class__))
             self.delegateObject = impl["delegateObject"]
-        super(Buffer,self).__init__()
-        if size is not None and data is None:
-            if type(size) is not int:
-                raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
-            if size == 0 or size < -1:
-                raise BadParameter, "Parameter size is <= 0"
-            try:
-                if size == -1:
-                    self.delegateObject = BufferFactory.createBuffer()
-                    self.managedByImp = True
-                else:
-                    self.delegateObject = BufferFactory.createBuffer(size)
-                    self.managedByImp = True
-            except org.ogf.saga.error.SagaException, e:
-                raise self.convertException(e)
-
-        elif size is not None and data is not None: 
-            if type(size) is not int:
-                raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
-            if type(data) is not array.array and type(data) is not list:
-                raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(data)) 
-            if type(data) is array.array and data.typecode != 'c':
-                raise BadParameter, "Parameter data is an array of the wrongtype. Typecode: ",  data.typecode   
-            if size < 1 and size != -1:
-                raise BadParameter, "Parameter size is < 1"
-            try:
+        if type(size) is not int:
+                raise Badparameter, "Parameter size is not an int. Type:", str(type(size))
+        if size < -1:
+            raise BadParameter, "Parameter size is < 0"
+        if type(data) is not array.array and type(data) is not list and data is not None:
+            raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(data)) 
+        if type(data) is array.array and data.typecode != 'c':
+            raise BadParameter, "Parameter data is an array of the wrongtype. Typecode: ",  data.typecode   
+        try:
+            if size != -1 and data is None:
+                self.delegateObject = BufferFactory.createBuffer(size)
+                self.managedByImp = True
+            
+            elif size != -1 and data is not None: 
                 self.array = jarray.zeros(size, 'b')
                 self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
-            except org.ogf.saga.error.SagaException, e:
-                raise self.convertException(e)
-        
-        elif size is None and data is None:
-            try:
+
+            elif size == -1 and data is None:
                 self.delegateObject = BufferFactory.createBuffer()
                 self.managedByImp = True
-            except org.ogf.saga.error.SagaException, e:
-                raise self.convertException(e)
-            
-        elif size is None and data is not None:
-            if type(data) is not array.array or type(data) is not list:
-                raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
-            if type(data) is array.array and data.typecode != 'c':
-                raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
-            size = len(data)
-            try:
+
+            elif size == -1 and data is not None:
+                size = len(data)
                 self.array = jarray.zeros(size, 'b')
                 self.delegateObject =  BufferFactory.createBuffer(self.array)
                 self.managedByImp = False
                 self.applicationBuf = data
-            except org.ogf.saga.error.SagaException, e:
+            else:
+                raise BadParameter, "Parameters can not be processed. size:" + size + " " + str(type(size)) + " " + data + " " + str(type(data))          
+        except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
-        else:
-            raise BadParameter, "Parameters can not be processed. size:" + size + " " + str(type(size)) + " " + data + " " + str(type(data))          
         
         
     def __del__(self):
@@ -156,8 +133,13 @@ class Buffer(Object):
            raise IncorrectState, "Buffer object is already closed()"
        if type(size) is not int:
            raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
+       if size < -1:
+           raise BadParameter, "Parameter size < 0"
        try:
-           self.delegateObject.setSize()
+           if size == -1:
+               self.delegateObject.setSize()
+           else:
+               self.delegateObject.setSize(size)
            self.managedByImp = True
            array = None
            applicationBuf = None
@@ -208,7 +190,7 @@ class Buffer(Object):
         """
         if self.closed is True :
            raise IncorrectState, "Buffer object is already closed()"
-        if type(data) is not array.array or type(data) is not list:
+        if type(data) is not array.array and type(data) is not list:
             raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
         if type(data) is array.array and data.typecode != 'c':
             raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
@@ -228,20 +210,20 @@ class Buffer(Object):
         if len(self.array) <= len(self.applicationBuf):
             for i in range(len(self.array)):
                 if self.array[i] < 0:
-                    self.applicationBuf[i] = chr(self.applicationBuf[i]+256)
+                    self.applicationBuf[i] = chr(self.array[i]+256)
                 else:
-                    self.applicationBuf[i] = chr(self.applicationBuf[i])
+                    self.applicationBuf[i] = chr(self.array[i])
         else:  #self.array > self.applicationBuf
             for i in range(len(self.applicationBuf)):
                 if self.array[i] < 0:                           
-                    self.applicationBuf[i] = chr(self.applicationBuf[i]+256)
+                    self.applicationBuf[i] = chr(self.array[i]+256)
                 else:
-                    self.applicationBuf[i] = chr(self.applicationBuf[i]) 
+                    self.applicationBuf[i] = chr(self.array[i]) 
             for i in range(len(self.applicationBuf), len(self.array) ):
                 if self.array[i] < 0:                           
-                    self.applicationBuf.append(chr(self.applicationBuf[i]+256))
+                    self.applicationBuf.append(chr(self.array[i]+256))
                 else:
-                    self.applicationBuf.append(chr(self.applicationBuf[i]))                            
+                    self.applicationBuf.append(chr(self.array[i]))                            
     
     def get_data(self):
         #out array<byte> data

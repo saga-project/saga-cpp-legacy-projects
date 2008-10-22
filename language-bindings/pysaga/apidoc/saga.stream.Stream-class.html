@@ -83,307 +83,308 @@
 </pre>
 
 <hr />
-<p>This is the object that encapsulates all client Stream objects.</p>
-  <b>Attributes supported:</b>
-  <ul>
-    <li>
-      <b>Bufsize</b>
-      <ul>
-        <li>
-          name: Bufsize
-        </li>
-        <li>
-          desc: determines the size of the send buffer
-        </li>
-        <li>
-          mode: ReadWrite, optional
-        </li>
-        <li>
-          type: Int
-        </li>
-        <li>
-          value: system dependend
-        </li>
-        <li>
-          notes:
-          <ul>
-            <li>
-              the implementation documents the default value, and its 
-              meaning (e.g. on what layer that buffer is maintained, or if 
-              it disables zero copy).
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>Timeout</b>
-      <ul>
-        <li>
-          name: Timeout
-        </li>
-        <li>
-          desc: determines the amount of idle time before dropping the 
-          line, in seconds
-        </li>
-        <li>
-          mode: ReadWrite, optional
-        </li>
-        <li>
-          type: Int
-        </li>
-        <li>
-          value: system dependend
-        </li>
-        <li>
-          notes:
-          <ul>
-            <li>
-              the implementation documents the default value
-            </li>
-            <li>
-              if this attribute is supported, the connection is closed 
-              by the implementation if for that many seconds nothing has 
-              been read from or written to the stream.
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>Blocking</b>
-      <ul>
-        <li>
-          name: Blocking
-        </li>
-        <li>
-          desc: determines if read/writes are blocking or not
-        </li>
-        <li>
-          mode: ReadWrite, optional
-        </li>
-        <li>
-          type: Bool
-        </li>
-        <li>
-          value: True
-        </li>
-        <li>
-          notes:
-          <ul>
-            <li>
-              if the attribute is not supported, the implementation is 
-              blocking
-            </li>
-            <li>
-              if the attribute is set to &quot;True&quot;, a read or 
-              write operation may return immediately if no data can be read
-              or written - that does not constitute an error (see EAGAIN in
-              POSIX).
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>Compression</b>
-      <ul>
-        <li>
-          name:  Compression
-        </li>
-        <li>
-          desc:  determines if data are compressed before/after 
-          transfer
-        </li>
-        <li>
-          mode: ReadWrite, optional
-        </li>
-        <li>
-          type: Bool
-        </li>
-        <li>
-          value: schema dependent
-        </li>
-        <li>
-          note: the implementation documents the default values for the 
-          available schemas
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>Nodelay</b>
-      <ul>
-        <li>
-          name:  Nodelay
-        </li>
-        <li>
-          desc:  determines if packets are sent immediately, i.e. 
-          without delay
-        </li>
-        <li>
-          mode: ReadWrite, optional
-        </li>
-        <li>
-          type: Bool
-        </li>
-        <li>
-          value: True
-        </li>
-        <li>
-          note: similar to the TCP_NODELAY option
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>Reliable</b>
-      <ul>
-        <li>
-          name:  Reliable
-        </li>
-        <li>
-          desc:  determines if all sent data MUST arrive
-        </li>
-        <li>
-          mode:  ReadWrite, optional
-        </li>
-        <li>
-          type:  Bool
-        </li>
-        <li>
-          value: True
-        </li>
-        <li>
-          note: if the attribute is not supported, the implementation 
-          MUST be reliable
-        </li>
-      </ul>
-    </li>
-  </ul>
-  <b>Metrics supported:</b>
-  <ul>
-    <li>
-      <b>stream.state</b>
-      <ul>
-        <li>
-          name: stream.state
-        </li>
-        <li>
-          desc: fires if the state of the stream changes, and has the 
-          value of the new state
-        </li>
-        <li>
-          mode: ReadOnly
-        </li>
-        <li>
-          unit: 1
-        </li>
-        <li>
-          type: Enum -value: New
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>stream.read</b>
-      <ul>
-        <li>
-          name: stream.read
-        </li>
-        <li>
-          desc: fires if a stream gets readable
-        </li>
-        <li>
-          mode: ReadOnly
-        </li>
-        <li>
-          unit: 1
-        </li>
-        <li>
-          type: Trigger
-        </li>
-        <li>
-          value: 1
-        </li>
-        <li>
-          note: a stream is considered readable if subsequent read() can
-          sucessfully read 1 or more bytes of data.
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>stream.write</b>
-      <ul>
-        <li>
-          name:  stream.write
-        </li>
-        <li>
-          desc:  fires if a stream gets writable
-        </li>
-        <li>
-          mode:  ReadOnly
-        </li>
-        <li>
-          unit:  1
-        </li>
-        <li>
-          type:  Trigger
-        </li>
-        <li>
-          value: 1
-        </li>
-        <li>
-          note: a stream is considered writable if a subsequent write() 
-          can sucessfully write 1 or more units of data.
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>stream.exception</b>
-      <ul>
-        <li>
-          name:  stream.exception
-        </li>
-        <li>
-          desc:  fires if a stream has an error condition
-        </li>
-        <li>
-          mode:  ReadOnly
-        </li>
-        <li>
-          unit:  1
-        </li>
-        <li>
-          type:  Trigger
-        </li>
-        <li>
-          value: 1
-        </li>
-      </ul>
-    </li>
-    <li>
-      <b>stream.dropped</b>
-      <ul>
-        <li>
-          name:  stream.dropped
-        </li>
-        <li>
-          desc:  fires if the stream gets dropped by the remote 
-          party
-        </li>
-        <li>
-          mode: ReadOnly
-        </li>
-        <li>
-          unit: 1
-        </li>
-        <li>
-          type: Trigger
-        </li>
-        <li>
-          value: 1
-        </li>
-      </ul>
-    </li>
-  </ul><br /><br />
+This is the object that encapsulates all client Stream objects.
+  <h1 class="heading">status: This object is not completly specified yet.</h1>
+    <b>Attributes supported:</b>
+    <ul>
+      <li>
+        <b>Bufsize</b>
+        <ul>
+          <li>
+            name: Bufsize
+          </li>
+          <li>
+            desc: determines the size of the send buffer
+          </li>
+          <li>
+            mode: ReadWrite, optional
+          </li>
+          <li>
+            type: Int
+          </li>
+          <li>
+            value: system dependend
+          </li>
+          <li>
+            notes:
+            <ul>
+              <li>
+                the implementation documents the default value, and its 
+                meaning (e.g. on what layer that buffer is maintained, or 
+                if it disables zero copy).
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>Timeout</b>
+        <ul>
+          <li>
+            name: Timeout
+          </li>
+          <li>
+            desc: determines the amount of idle time before dropping the
+            line, in seconds
+          </li>
+          <li>
+            mode: ReadWrite, optional
+          </li>
+          <li>
+            type: Int
+          </li>
+          <li>
+            value: system dependend
+          </li>
+          <li>
+            notes:
+            <ul>
+              <li>
+                the implementation documents the default value
+              </li>
+              <li>
+                if this attribute is supported, the connection is closed
+                by the implementation if for that many seconds nothing has 
+                been read from or written to the stream.
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>Blocking</b>
+        <ul>
+          <li>
+            name: Blocking
+          </li>
+          <li>
+            desc: determines if read/writes are blocking or not
+          </li>
+          <li>
+            mode: ReadWrite, optional
+          </li>
+          <li>
+            type: Bool
+          </li>
+          <li>
+            value: True
+          </li>
+          <li>
+            notes:
+            <ul>
+              <li>
+                if the attribute is not supported, the implementation is
+                blocking
+              </li>
+              <li>
+                if the attribute is set to &quot;True&quot;, a read or 
+                write operation may return immediately if no data can be 
+                read or written - that does not constitute an error (see 
+                EAGAIN in POSIX).
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>Compression</b>
+        <ul>
+          <li>
+            name:  Compression
+          </li>
+          <li>
+            desc:  determines if data are compressed before/after 
+            transfer
+          </li>
+          <li>
+            mode: ReadWrite, optional
+          </li>
+          <li>
+            type: Bool
+          </li>
+          <li>
+            value: schema dependent
+          </li>
+          <li>
+            note: the implementation documents the default values for 
+            the available schemas
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>Nodelay</b>
+        <ul>
+          <li>
+            name:  Nodelay
+          </li>
+          <li>
+            desc:  determines if packets are sent immediately, i.e. 
+            without delay
+          </li>
+          <li>
+            mode: ReadWrite, optional
+          </li>
+          <li>
+            type: Bool
+          </li>
+          <li>
+            value: True
+          </li>
+          <li>
+            note: similar to the TCP_NODELAY option
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>Reliable</b>
+        <ul>
+          <li>
+            name:  Reliable
+          </li>
+          <li>
+            desc:  determines if all sent data MUST arrive
+          </li>
+          <li>
+            mode:  ReadWrite, optional
+          </li>
+          <li>
+            type:  Bool
+          </li>
+          <li>
+            value: True
+          </li>
+          <li>
+            note: if the attribute is not supported, the implementation 
+            MUST be reliable
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <b>Metrics supported:</b>
+    <ul>
+      <li>
+        <b>stream.state</b>
+        <ul>
+          <li>
+            name: stream.state
+          </li>
+          <li>
+            desc: fires if the state of the stream changes, and has the 
+            value of the new state
+          </li>
+          <li>
+            mode: ReadOnly
+          </li>
+          <li>
+            unit: 1
+          </li>
+          <li>
+            type: Enum -value: New
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>stream.read</b>
+        <ul>
+          <li>
+            name: stream.read
+          </li>
+          <li>
+            desc: fires if a stream gets readable
+          </li>
+          <li>
+            mode: ReadOnly
+          </li>
+          <li>
+            unit: 1
+          </li>
+          <li>
+            type: Trigger
+          </li>
+          <li>
+            value: 1
+          </li>
+          <li>
+            note: a stream is considered readable if subsequent read() 
+            can sucessfully read 1 or more bytes of data.
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>stream.write</b>
+        <ul>
+          <li>
+            name:  stream.write
+          </li>
+          <li>
+            desc:  fires if a stream gets writable
+          </li>
+          <li>
+            mode:  ReadOnly
+          </li>
+          <li>
+            unit:  1
+          </li>
+          <li>
+            type:  Trigger
+          </li>
+          <li>
+            value: 1
+          </li>
+          <li>
+            note: a stream is considered writable if a subsequent 
+            write() can sucessfully write 1 or more units of data.
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>stream.exception</b>
+        <ul>
+          <li>
+            name:  stream.exception
+          </li>
+          <li>
+            desc:  fires if a stream has an error condition
+          </li>
+          <li>
+            mode:  ReadOnly
+          </li>
+          <li>
+            unit:  1
+          </li>
+          <li>
+            type:  Trigger
+          </li>
+          <li>
+            value: 1
+          </li>
+        </ul>
+      </li>
+      <li>
+        <b>stream.dropped</b>
+        <ul>
+          <li>
+            name:  stream.dropped
+          </li>
+          <li>
+            desc:  fires if the stream gets dropped by the remote 
+            party
+          </li>
+          <li>
+            mode: ReadOnly
+          </li>
+          <li>
+            unit: 1
+          </li>
+          <li>
+            type: Trigger
+          </li>
+          <li>
+            value: 1
+          </li>
+        </ul>
+      </li>
+    </ul><br /><br />
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -1186,7 +1187,7 @@
   <tr>
     <td align="left" class="footer">
     <a href="epydoc-log.html">Generated by Epydoc
-    3.0beta1 on Tue Sep 23 10:34:39 2008</a>
+    3.0beta1 on Wed Oct 22 23:08:19 2008</a>
     </td>
     <td align="right" class="footer">
       <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>

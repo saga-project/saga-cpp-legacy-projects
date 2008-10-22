@@ -10,6 +10,9 @@ from error import NotImplemented
 class State(object):
     """
     The state is equivalent to the inherited saga.task.State, but adds the SUSPENDED state:
+
+    status: This object is not completly specified yet.
+    ===================================================    
     """
     NEW       =  1
     RUNNING   =  2
@@ -23,6 +26,9 @@ class JobDescription(Object,Attributes):
     This object encapsulates all the attributes which define a job to be run. It has
     no methods of its own, but implements the saga::attributes interface in order
     to provide access to the job properties, which are expressed as JSDL keywords.
+
+    status: This object is not completly specified yet.
+    ===================================================
     
     B{Attributes:}
     
@@ -258,6 +264,7 @@ class JobDescription(Object,Attributes):
                 - format: URI (e.g. fax:+123456789, sms:+123456789, mailto:joe@doe.net).
                 - available in DRMAA
                 - not supported by JSDL    
+                
     """
 
     def __init__(self):
@@ -274,6 +281,9 @@ class JobDescription(Object,Attributes):
 class JobService(Object, Async):
     """
     The job_service represents a resource management backend, and as such allows to create and submit jobs, and to discover jobs.
+    
+    status: This object is not completly specified yet.
+    ===================================================
     """
 
     def __init__(self, session, url = ""):
@@ -431,6 +441,9 @@ class JobService(Object, Async):
  
 class StdIO(object):
     """
+    status: This object is not completly specified yet.
+    ===================================================
+    
     Should implement methods: ['__class__', '__delattr__', '__doc__', '__enter__', '__exit__', '__getattribute__', '__hash__', '__init__', '__iter__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', 'close', 'closed', 'encoding', 'fileno', 'flush', 'isatty', 'mode', 'name', 'newlines', 'next', 'read', 'readinto', 'readline', 'readlines', 'seek', 'softspace', 'tell', 'truncate', 'write', 'writelines', 'xreadlines']
     This class is used to give acces to the opaque data from stdin, stdout and stderr
     @summary: This class is used to give acces to the opaque data from stdin, stdout and stderr
@@ -439,6 +452,10 @@ class StdIO(object):
     
 class Job(Task, Attributes, Permissions, Async): # Async inherited from Permissions
     """
+    status: This object is not completly specified yet.
+    ===================================================
+ 
+    
     Attributes:
     name: JobID
     desc: SAGA representation of the job identifier
@@ -552,6 +569,7 @@ class Job(Task, Attributes, Permissions, Async): # Async inherited from Permissi
     type:  Float
     value: 0.0
     notes: - metric becomes 'Final' after job completion, and then shows the performance high water mark
+    
     """
 
     #job inspection
@@ -781,4 +799,7 @@ class JobSelf(Job, Steerable):
     The job_self class IS-A job which represents the current application (i.e. the
     very application which owns that job_self instance). It can only by created
     by calling get_self() on a job service (that call can fail though).
+    
+    status: This object is not completly specified yet.
+    ===================================================
     """

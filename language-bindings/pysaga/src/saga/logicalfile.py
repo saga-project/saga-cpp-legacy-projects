@@ -11,6 +11,8 @@ class Flags(object):
     All added flags are used for the opening of logical file and logical directory instances, and are not 
     applicable to the operations inherited from the namespace package.
 
+    status: This object is not completly specified yet.
+    ===================================================
     """
     NONE              =    0
     OVERWRITE         =    1
@@ -29,9 +31,11 @@ class Flags(object):
 
 class LogicalFile(NSEntry, Attributes):
     """
-    B{To Be Added!}::
-      
-      Check Indentation!
+
+    status: This object is not completly specified yet.
+    ===================================================
+
+    ::      
       CONSTRUCTOR     (in session                 s,
                        in saga::url               name,
                        in int                     flags = Read,
@@ -49,11 +53,14 @@ class LogicalFile(NSEntry, Attributes):
       // Attributes (extensible):
       //
       // no attributes pre-defined
+  
     """
     
 class LogicalDirectory(NSDirectory, Attributes):
-    """
-    B{To Be Added!}
+   """
+   status: This object is not completly specified yet.
+   =================================================== 
+
     CONSTRUCTOR (in session s, in saga::url name, in int flags = Read, out logical_directory obj);
     DESTRUCTOR      (in   logical_directory     obj);
  
@@ -64,4 +71,4 @@ class LogicalDirectory(NSDirectory, Attributes):
     open (in saga::url name, in int flags = Read, out logical_file file);
     // find logical files based on name and meta data
     find (in string name_pattern, in array<string> attr_pattern, in int flags = Recursive, out array<saga::url> names    );
-    """
+   """
