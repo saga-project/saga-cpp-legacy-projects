@@ -56,10 +56,10 @@ def printAttributes(context):
           "\t" ,str(context.attribute_is_writable(i)),"\t", str(context.get_attribute(i))
 
 print "==================================================="
-print "== Test of Buffer                                =="
+print "== Test of Session                               =="
 print "==================================================="
 
-print "=== Creating empty implementation managed Buffer"
+print "=== Creating empty session"
 print "=== buffer1 = Buffer()"
 buffer1 = Buffer()
 print "get_size:      " , str(buffer1.get_size())
@@ -82,86 +82,16 @@ buffer3 = Buffer(101,carray)
 print "get_size:" , str(buffer3.get_size())
 checkObjectMethods(buffer3)
 
-temp_filename = "/tmp/04_BufferTest.py.temp"
+temp_filename = "/tmp/03_SessionTest.py.temp"
 print "=== create test file(s)", temp_filename
 file = open( temp_filename, "w")
 file.write("abcdefghijklmnopqrstuvwxyz")
 file.flush()
 file.close()
 
-url = URL("file://"+temp_filename)
-f = File(url)
-print "== Reading from", temp_filename, "in buffer1"
-print "f.read(buf=buffer1)    ",str(f.read(buffer1.get_size(),buffer1)),"content: ", buffer1.get_data()
-f = File(url)
-print "== Reading from", temp_filename, "in buffer2"
-print "f.read(buf=buffer2)    ",str(f.read(buffer2.get_size(),buffer2)),"content: ", list(buffer2.get_data())
-f = File(url)
-print "== Reading from", temp_filename, "in buffer3"
-print "f.read(buf=buffer3)    ",str(f.read(buffer3.get_size(),buf=buffer3)),"content: ", carray.tostring()
 
-carray2 = array.zeros('c', 100)
-buffer3.set_data(carray2)
-try:
-    carray3 = array.array('c')
-    buffer3.set_data(carray3)
-except BadParameter,e:
-    print "BadParameter:", str(e)
-
-f = File(url)
-print "== Reading from", temp_filename, "in buffer3 (carray2)"
-print "f.read(buf=buffer3)    ",str(f.read(buffer3.get_size(),buf=buffer3)),"content: ", carray2.tostring()
-
-
-#__init__(self, session, name, flags=512)
-#initialize the File object     
-#int     
-#get_size(self)
-#returns the number of bytes in the file     
-#int or string     
-#read(self, len=-1, buf=None)
-#reads up to len bytes from the file into a buffer     
-#int     
-#write(self, buf, len=-1)
-#writes up to len from buffer into the file at the current file position.     
-#int     
-#seek(self, offset, whence=0)
-#reposition the file pointer     
-#      
-#read_v(self, iovecs)
-#gather/scatter read     
-#      
-#write_v(self, iovecs)
-#gather/scatter write     
-#int     
-#size_p(self, pattern)
-#determine the storage size required for a pattern I/O operation     
-#int     
-#read_p(self, pattern, buf)
-#pattern-based read     
-#int     
-#write_p(self, pattern, buf)
-#pattern-based write     
-#tuple     
-#modes_e(self)
-#list the extended modes available in this implementation, and/or on server side     
-#int     
-#size_e(self, emode, spec)
-#determine the storage size required for an extended I/O operation     
-#int     
-#read_e(self, emode, spec, buf)
-#extended read     
-#int     
-#write_e(self, emode, spec, buf)
-#extended write
-
-
-
-buffer1.close()
-buffer2.close(-0.0)
-buffer3.close(10.0)    
 
 
 print "==================================================="
-print "== End Test of Buffer                            =="
+print "== End Test of Session                           =="
 print "==================================================="

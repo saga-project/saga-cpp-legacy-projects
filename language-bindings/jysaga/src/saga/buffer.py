@@ -196,10 +196,15 @@ class Buffer(Object):
             raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode
         if size < 1 and size != -1:
             raise BadParameter, "Parameter size is < 1"       
-        if size == -1:
-            size is len(data)
         try:
-            self.array = jarray.zeros(size, 'b')            
+            length = size
+            if length == -1:
+                if len(data) > 0:
+                    #DOCUMENT: this is extention to saga spec.
+                    length = len(data)
+                else:
+                    raise BadParameter("len(data) is <= 0, and size is not specified")
+            self.array = jarray.zeros(length, 'b')            
             self.delegateObject.setData(self.array)
             self.managedByImp = False
             self.applicationBuf = data
