@@ -1,9 +1,9 @@
-""" The main script for REMDgManager (w/o migol) : REMDManager-v1.0.py 
+""" The main script for REMDgManager (w/o migol) : REMDManager-3.0.py 
 2008/8/26
 
-Usage : (For Test_RE)   python REMDManager-v1.0.py  
-                     or python REMDManager-v1.0.py --type=Test_RE
-        (For REMD) python REMDManager-v1.0.py --type=REMD --configfile=remd_manager.config
+Usage : (For Test_RE)   python REMD_Manager-v3.0.py  
+                     or python REMD_Manager-v3.0.py --type=Test_RE
+        (For REMD) python REMD_Manager-v3.0.py --type=REMD --configfile=re_manager_v3.conf
 
 jhkim at cct dot lsu dot edu
 
@@ -32,9 +32,12 @@ import re
 import math
 import threading
 import traceback
-import advert_job
 import pdb
 import ConfigParser
+
+# import bigjob implementation (advert based)
+sys.path.append('../bigjob/')
+import advert_job
 
 class ReManager():
     """ 
@@ -141,19 +144,6 @@ class ReManager():
 
 
     def file_stage_in_with_saga(self, input_file_list_with_path, remote_machine_ip, remote_dir):
-#        userproxy=None
-#        try: 
-#            userproxy = RE_info.userproxy[RE_info.remote_hosts.index(remote_machine_ip)] 
-#        except:
-#            try:
-#                userproxy = RE_info.userproxy[RE_info.gridftp_hosts.index(remote_machine_ip)]
-#            except:
-#                pass
-#        if userproxy != None or userproxy=="":
-#             os.environ["X509_USER_PROXY"]=userproxy
-#             print "use proxy: " + userproxy
-#        else:
-#             print "use standard proxy"
         cwd = os.getcwd()
         for ifile in input_file_list_with_path:
             # destination url
@@ -162,6 +152,12 @@ class ReManager():
             else:
                 dest_url_str = 'gridftp://'+remote_machine_ip + "/"
             ifile_basename = os.path.basename(ifile)
+            try:
+                dest_dir = dest_url_str + remote_dir
+                saga.file.directory(saga.url(dest_dir), saga.file.Create |  saga.file.ReadWrite)
+            except:
+                print "Could not create: " + dest_dir
+
             dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
             # source url
             source_url_str = 'file://' + os.path.join(cwd, ifile)
@@ -603,7 +599,7 @@ if __name__ == "__main__" :
         re_manager.run_REMDg() 
     else:
         print "Usage : \n python " + sys.argv[0] + " --type=<REMD> --configfile=<configfile> \n"
-        print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=remd_manager.config"
+        print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=re_manager_v3.conf"
         sys.exit(1)      
         
     #print "REMDgManager Total Runtime: " + str(time.time()-start) + " s"

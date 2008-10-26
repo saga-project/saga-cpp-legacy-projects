@@ -47,7 +47,8 @@ class advert_launcher:
         # init rms (SGE/PBS)
         self.init_rms()
 
-         # open advert service base url
+        self.failed_polls = 0
+        # open advert service base url
         hostname = socket.gethostname()
         self.base_url = args[2]
         print "Open advert: " + self.base_url
@@ -288,11 +289,11 @@ class advert_launcher:
     def poll_jobs(self):
         """Poll jobs from advert service. """
         jobs = []
-        try:
-            jobs = self.base_dir.list()
-            print "Found " + "%d"%len(jobs) + " jobs"
-        except:
-            pass
+        #try:
+        jobs = self.base_dir.list()
+        print "Found " + "%d"%len(jobs) + " jobs"
+        #except:
+        #    pass
         for i in jobs:  
             #print i.get_string()
             job_dir = None
@@ -372,9 +373,12 @@ class advert_launcher:
                 self.poll_jobs()
                 self.monitor_jobs()            
                 time.sleep(5)
+                self.failed_polls=0
             except saga.exception:
                 traceback.print_exc(file=sys.stdout)
-                break
+                self.failed_polls=self.failed_polls+1
+                if self.failed_polls>3: # after 3 failed attempts exit
+                    break
 
     def stop_background_thread(self):        
         self.stop=True

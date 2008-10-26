@@ -186,23 +186,3 @@ class advert_job():
     def __repr__(self):        
         return self.job_url
 
-
-""" Test Job Submission via Advert """
-if __name__ == "__main__":
-    if (len(sys.argv)!=2):
-        print "Usage: \n" + sys.argv[0] + " <database_host>"
-        sys.exit(1)
-        
-    a = advert_job(sys.argv[1])
-    jd = saga.cpr.description()
-    jd.executable = "/bin/date"
-    jd.numberofprocesses = "2"
-    jd.spmdvariation = "MPI"
-    jd.arguments = [""]  
-    jd.workingdirectory = "/tmp/"
-    jd.output = "output.txt"   
-    jd.error = "error.txt"
-    
-    job = a.submit_job("", jd)    
-    print "state: " + str(job.get_state())
-    

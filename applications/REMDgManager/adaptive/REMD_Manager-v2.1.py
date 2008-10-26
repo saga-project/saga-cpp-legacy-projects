@@ -1,9 +1,9 @@
-""" The main script for REMDgManager (w/o migol) : REMDManager-v1.0.py 
+""" The main script for REMDgManager (w/o migol) : REMDManager-v2.1.py 
 2008/8/26
 
-Usage : (For Test_RE)   python REMDManager-v1.0.py  
-                     or python REMDManager-v1.0.py --type=Test_RE
-        (For REMD) python REMDManager-v1.0.py --type=REMD --configfile=remd_manager.config
+Usage : (For Test_RE)   python REMDManager-v2.1.py  
+                     or python REMDManager-v2.1.py --type=Test_RE
+        (For REMD) python REMDManager-v2.1.py --type=REMD --configfile=re_manager_v1.conf
 
 jhkim at cct dot lsu dot edu
 
@@ -834,7 +834,7 @@ if __name__ == "__main__" :
         run_REMDg(options.configfile) 
     else:
         print "Usage : \n python " + sys.argv[0] + " --type=<REMD> --configfile=<configfile> \n"
-        print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=remd_manager.config"
+        print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=re_manager_v1.conf"
         sys.exit(1)      
         
     #print "REMDgManager Total Runtime: " + str(time.time()-start) + " s"
