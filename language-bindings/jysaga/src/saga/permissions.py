@@ -87,7 +87,7 @@ class Permissions(Async):
             else:
                 self.delegateObject.permissionsAllow(id, perm)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
             
     def permissions_deny(self, id, perm, tasktype=TaskType.NORMAL):
         """
@@ -132,7 +132,7 @@ class Permissions(Async):
             else:
                 self.delegateObject.permissionsDeny(id, perm)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
 
     def permissions_check(self, id, perm, tasktype=TaskType.NORMAL):
         """
@@ -183,7 +183,7 @@ class Permissions(Async):
                 else:
                     return False
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)       
+            raise self.convertException(e)       
     
     def get_owner(self,type=TaskType.NORMAL):
         """
@@ -221,7 +221,7 @@ class Permissions(Async):
             else:
                 return self.delegateObject.getOwner()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)     
+            raise self.convertException(e)     
     
     def get_group(self, tasktype=TaskType.NORMAL):
         """
@@ -257,5 +257,5 @@ class Permissions(Async):
             else:
                 return self.delegateObject.getGroup()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)     
+            raise self.convertException(e)     
 

@@ -33,8 +33,8 @@ class URL(Object):
 
         """
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.url.URL:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.url.URL. Type: " + str(type(impl["delegateObject"]))
+            if impl["delegateObject"].__class__ is not org.ogf.saga.url.URL:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.url.URL. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
             if type(url) is not str:

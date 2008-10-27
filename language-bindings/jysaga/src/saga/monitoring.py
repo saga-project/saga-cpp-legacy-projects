@@ -137,7 +137,7 @@ class Metric(Object, Attributes):
         """
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.monitoring.Metric):
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.monitoring.Metric. Type: " + str(type(impl["delegateObject"]))
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.monitoring.Metric. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
             return
         super(Metric, self).__init__()
@@ -156,7 +156,7 @@ class Metric(Object, Attributes):
         try:
             self.delegateObject = MonitoringFactory.createMetric(name, desc, mode, unit, type, value) 
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
       
     #callback handling
     def add_callback(self, cb): 
@@ -197,7 +197,7 @@ class Metric(Object, Attributes):
             cookie = self.delegateObject.addCallback(delegateCallback)
             self.callbacks[cookie] = delegateCallback
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e) 
+            raise self.convertException(e) 
         return cookie              
       
     def remove_callback(self, cookie):
@@ -233,7 +233,7 @@ class Metric(Object, Attributes):
         try:
             self.delegateObject.removeCallback(name, cookie)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         del self.callbacks[cookie]
         #TODO: check if multiple names can exist with same cookie! Remove old proxies!
               
@@ -271,7 +271,7 @@ class Metric(Object, Attributes):
         try:
             self.delegateObject.fire()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         
 class Monitorable(object):
     """SAGA objects which provide metrics and can thus be monitored extend the Monitorable class"""
@@ -305,7 +305,7 @@ class Monitorable(object):
             retval = self.delegateObject.listMetrics()
             return(tuple(retval))
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
      
     def get_metric(self, name):
          #in string name, return metric metric
@@ -338,7 +338,7 @@ class Monitorable(object):
             javaObject = self.delegateObject.getMetric(name)
             return Metric(delegateObject=javaObject)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
      
     def add_callback(self, name, cb):
         #in string name, in callback cb, out int cookie
@@ -372,7 +372,7 @@ class Monitorable(object):
             cookie = self.delegateObject.addCallback(name, delegateCallback )
             self.callbacks[cookie] = delegateCallback
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         return cookie
      
     def remove_callback(self, name, cookie):
@@ -403,7 +403,7 @@ class Monitorable(object):
         try:
             self.delegateObject.removeCallback(name, cookie)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         # del self.callbacks[cookie]
         #TODO: check if multiple names can exist with same cookie! Remove old proxies!
    
@@ -450,7 +450,7 @@ class Steerable(Monitorable):
             else: 
                 return False
         except java.lang.Exception:
-            raise convertException(e)
+            raise self.convertException(e)
 
     def remove_metric(self, name):
         #in string name
@@ -486,7 +486,7 @@ class Steerable(Monitorable):
         try:
             self.delgateObject.removeMetric(name)
         except java.lang.Exception:
-            raise convertException(e)
+            raise self.convertException(e)
 
     def fire_metric(self, name):
         #in string name
@@ -519,5 +519,5 @@ class Steerable(Monitorable):
         try:
             self.delgateObject.fireMetric(name)
         except java.lang.Exception:
-            raise convertException(e)
+            raise self.convertException(e)
         raise NotImplemented, "fire_metric() is not implemented in this object"

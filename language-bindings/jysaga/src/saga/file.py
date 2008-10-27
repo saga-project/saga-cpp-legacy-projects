@@ -7,7 +7,7 @@ from saga.buffer import Buffer
 from saga.object import Object, ObjectType
 from saga.attributes import Attributes
 from saga.error import NotImplemented, BadParameter
-from saga.task import TaskType
+from saga.task import TaskType, Task
 from saga.session import Session
 from saga.url import URL
 
@@ -97,8 +97,8 @@ class Iovec(Buffer, Object):
         """
 
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.file.IOVec:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.IOVec. Type: " + str(type(impl["delegateObject"]))
+            if impl["delegateObject"].__class__ is not org.ogf.saga.file.IOVec:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.IOVec. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
             return
         if type(size) is not int:
@@ -267,8 +267,8 @@ class File(NSEntry):
         @Note: the default flags are READ (512).
         """
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.file.File:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.File. Type: " + str(type(impl["delegateObject"]))
+            if impl["delegateObject"].__class__ is not org.ogf.saga.file.File:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.File. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
             if type(session) is not Session and session != "default":
@@ -287,7 +287,9 @@ class File(NSEntry):
                 else:
                     self.delegateObject = FileFactory.createFile(name.delegateObject, flags)
             except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
+            
+#TODO: add async object creation to all task implementing methods.
 
     def get_size(self, tasktype=TaskType.NORMAL):
         """
@@ -306,8 +308,8 @@ class File(NSEntry):
         @Note: similar to the st_size field from stat(2)as defined by POSIX
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -322,7 +324,7 @@ class File(NSEntry):
             else:
                 return self.delegateObject.getSize()
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
 
     
     def read(self, len = -1, buf=None, tasktype=TaskType.NORMAL):
@@ -433,7 +435,7 @@ class File(NSEntry):
             else:
                 raise BadParameter("Correct call is read(size,data), read(size) or read() ")  
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
                       
         
 #TODO: Check after read, update application managed buffer
@@ -473,8 +475,8 @@ class File(NSEntry):
         @Note: similar to write (2) as specified by POSIX
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type (len) is not int:
             raise BadParameter, "Parameter len is not an int. Type: " + str(type(len))
@@ -507,7 +509,7 @@ class File(NSEntry):
                 else:
                     return self.delegateObject.write(buf.delegateObject, len)
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
 
 
 
@@ -547,8 +549,8 @@ class File(NSEntry):
             raise BadParameter, "Parameter whence is not an int. Type " + str(type(tasktype))
         if type(offset) is not int:
             raise BadParameter, "Parameter offset is not an int. Type " + str(type(offset))
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -563,7 +565,7 @@ class File(NSEntry):
             else:
                 return self.delegateObject.getSize()
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
             
     def read_v(self, iovecs, tasktype=TaskType.NORMAL):
         #inout array<iovec> iovecs
@@ -593,8 +595,8 @@ class File(NSEntry):
         @Note: similar to readv (2) as specified by POSIX
         
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(iovecs) is not Iovec and type(iovecs) is not list:
             raise BadParameter, "Parameter iovecs is not a list of Iovecs , but " + str(type(tasktype))
@@ -621,7 +623,7 @@ class File(NSEntry):
                     if item.managedByImp is False:
                         item.update_data()               
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)        
+                raise self.convertException(e)        
             
         
     def write_v(self, iovecs, tasktype=TaskType.NORMAL): 
@@ -651,8 +653,8 @@ class File(NSEntry):
         @Note: if the file was opened READONLY, a PermissionDenied exception is raised.
         @Note: similar to writev (2) as specified by POSIX
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(iovecs) is not Iovec and type(iovecs) is not list:
             raise BadParameter, "Parameter iovecs is not a list of Iovecs , but " + str(type(tasktype))
@@ -676,7 +678,7 @@ class File(NSEntry):
             else:
                 self.delegateObject.writeV(javaArray)
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)        
+                raise self.convertException(e)        
 
 
 
@@ -704,8 +706,8 @@ class File(NSEntry):
         """
         if type(pattern) is not str:
             raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -720,7 +722,7 @@ class File(NSEntry):
             else:
                 return self.delegateObject.sizeP(pattern)
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)        
+                raise self.convertException(e)        
  
     
     def read_p(self, pattern, buf, tasktype=TaskType.NORMAL):
@@ -753,8 +755,8 @@ class File(NSEntry):
             raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
         if buf.__class__ is not Buffer:
             raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -772,7 +774,7 @@ class File(NSEntry):
                     buf.update_data()
                 return retval 
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
 
 
     def write_p(self, pattern, buf, tasktype=TaskType.NORMAL): 
@@ -805,8 +807,8 @@ class File(NSEntry):
             raise BadParameter, "Parameter pattern is not a string. Type: " + str(type(pattern))
         if buf.__class__ is not Buffer:
             raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -822,7 +824,7 @@ class File(NSEntry):
                 retval = self.delegateObject.writeP(pattern, buf.delegateObject)
                 return retval 
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
 
 
     def modes_e(self, tasktype=TaskType.NORMAL):
@@ -843,8 +845,8 @@ class File(NSEntry):
             the application programmer to determine what extended I/O methods are supported by the implementation.
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -863,7 +865,7 @@ class File(NSEntry):
                     list.append( retval.get(i).toString() )
                 return tuple(list) 
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
 
     def size_e (self, emode, spec, tasktype=TaskType.NORMAL):
         #in string emode, in string spec, out int size
@@ -889,8 +891,8 @@ class File(NSEntry):
         @Note: if the specification cannot be parsed or interpreted, a BadParameter exception is raised.
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(emode) is not str:
             raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
@@ -909,7 +911,7 @@ class File(NSEntry):
             else:
                 return self.delegateObject.sizeE(emode, spec)       
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e) 
+                raise self.convertException(e) 
             
 
     def read_e(self, emode, spec, buf, tasktype=TaskType.NORMAL):
@@ -941,8 +943,8 @@ class File(NSEntry):
         @Note: an exception is raised if any of the individual reads detects a condition which would raise an exception for the normal read method.
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(emode) is not str:
             raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
@@ -966,7 +968,7 @@ class File(NSEntry):
                     buf.update_data()
                 return retval 
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
                 
     
         
@@ -999,8 +1001,8 @@ class File(NSEntry):
         @Note: an exception MUST be raised if any of the individual writes detects a condition which would raise an exception for the normal write method.
 
         """   
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(emode) is not str:
             raise BadParameter, "Parameter emode is not a string. Type: " + str(type(emode))
@@ -1022,7 +1024,7 @@ class File(NSEntry):
                 retval = self.delegateObject.writeE(emode, spec, buf.delegateObject)
                 return retval 
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
   
 
 class Directory(NSDirectory):
@@ -1059,8 +1061,8 @@ class Directory(NSDirectory):
 
         """
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.file.Directory:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.Directory. Type: " + str(type(impl["delegateObject"]))
+            if impl["delegateObject"].__class__ is not org.ogf.saga.file.Directory:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.Directory. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
             if type(session) is not Session and session is not "default":
@@ -1079,7 +1081,7 @@ class Directory(NSDirectory):
                 else:
                     self.delegateObject = FileFactory.createDirectory(name.delegateObject, flags)
             except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)       
+                raise self.convertException(e)       
         
     def get_size(self, name, flags = None, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = None, out int size
@@ -1112,8 +1114,8 @@ class Directory(NSDirectory):
         @note: similar to the 'st_size' field from 'stat' (2) as defined by POSIX
 
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(name) is not URL:
                 raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
@@ -1132,7 +1134,7 @@ class Directory(NSDirectory):
             else:
                 return self.delegateObject.getSize(name.delegateObject, flags)
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
 
             
     def is_file (self, name, tasktype=TaskType.NORMAL):
@@ -1141,8 +1143,8 @@ class Directory(NSDirectory):
         Alias:    for is_entry in saga.namespace.NSDirectory
         @see: L{saga.namespace.NSDirectory.is_entry()}
         """
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(name) is not URL:
                 raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
@@ -1159,7 +1161,7 @@ class Directory(NSDirectory):
             else:
                 return self.delegateObject.isFile(name.delegateObject)
         except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)                
+                raise self.convertException(e)                
 
 #DOCUMENT: Flags parameter not needed!
 
@@ -1200,8 +1202,8 @@ class Directory(NSDirectory):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -1217,7 +1219,7 @@ class Directory(NSDirectory):
                 javaObject = self.delegateObject.openDirectory(name.delegateObject, flags)
                 return Directory(delegateObject = javaObject)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
 
     def open (self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = Read, out file file
@@ -1260,8 +1262,8 @@ class Directory(NSDirectory):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL or tasktype is not TaskType.SYNC \
-        or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
@@ -1277,5 +1279,5 @@ class Directory(NSDirectory):
                 javaObject = self.delegateObject.openFile(name.delegateObject, flags)
                 return File(delegateObject = javaObject)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         

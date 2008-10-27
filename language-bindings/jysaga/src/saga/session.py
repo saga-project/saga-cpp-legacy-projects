@@ -7,11 +7,25 @@
 
 from saga.object import Object, ObjectType
 from saga.attributes import Attributes
-from saga.error import NotImplemented
+from saga.error import NotImplemented, BadParameter
 from saga.context import Context
 
 from org.ogf.saga.session import Session, SessionFactory
 from org.ogf.saga.context import ContextFactory
+
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
 
 class Session(Object):
     """
@@ -36,8 +50,8 @@ class Session(Object):
              the creation of all saga objects, unless specified otherwise.
         """
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.session.Session:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.session.Session. Type: " + str(type(impl["delegateObject"]))
+            if impl["delegateObject"].__class__ is not org.ogf.saga.session.Session:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.session.Session. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
             if default == True:
@@ -65,7 +79,7 @@ class Session(Object):
         try:
             self.delegateObject.addContext(context.delegateObject)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
 
     def remove_context(self, context):
         """
@@ -89,8 +103,8 @@ class Session(Object):
         try:
             self.delegateObject.removeContext(context.delegateObject)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
-        pass
+            raise self.convertException(e)
+#DOCUMENT: removeContext() doesn't work yet
         
     def list_contexts(self):
         """
@@ -108,9 +122,9 @@ class Session(Object):
         javaArray = None
         retval = []
         try:
-            self.delegateObject.listContexts()
+            javaArray = self.delegateObject.listContexts()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         if (len(javaArray)) is 0:
             return retval
         else:

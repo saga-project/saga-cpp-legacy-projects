@@ -331,4 +331,4 @@ class Buffer(Object):
             temp.closed = self.closed
             return temp
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)

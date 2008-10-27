@@ -6,6 +6,8 @@ from saga.buffer import Buffer
 import array.array
 from saga.file import File
 from saga.url import URL
+from saga.task import Task, TaskType, State
+
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -27,7 +29,7 @@ def checkObjectMethods(o):
     except Exception, e:
         print "!!! WARNING !!! get_id(): ", str(e)
     try:
-        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.SESSION is " +str(ObjectType.SESSION)
+        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.TASK is " +str(ObjectType.TASK)
     except Exception, e:
         print "!!! WARNING !!!", "get_type:", str(e) 
     try:   
@@ -42,55 +44,81 @@ def checkObjectMethods(o):
     except Exception, e:
         print "!!! WARNING !!!", "clone(): " + str(e) 
 
-def printAttributes(context):
+def checkMonitorableMethods(o):
+#     add_callback, get_metric, list_metrics, remove_callback 
+    pass
+
+def printAttributes(o):
     print "Name           Ex\tRO\tREM\tVec\tWri\tValue"
-    list =  context.list_attributes()
+    list =  o.list_attributes()
     for i in list:
         length =  14 - len(str(i)) 
         space = length * '.'
         string = str(i) + space
-        print string, context.attribute_exists(i),"\t" , 
-        if (context.attribute_is_readonly(i)) is True: print 1,
+        print string, o.attribute_exists(i),"\t" , 
+        if (o.attribute_is_readonly(i)) is True: print 1,
         else: print 0,
-        print "\t" ,str(context.attribute_is_removable(i)), "\t" ,str(context.attribute_is_vector(i)), \
-          "\t" ,str(context.attribute_is_writable(i)),"\t", str(context.get_attribute(i))
+        print "\t" ,str(o.attribute_is_removable(i)), "\t" ,str(o.attribute_is_vector(i)), \
+          "\t" ,str(o.attribute_is_writable(i)),"\t", str(o.get_attribute(i))
 
 print "==================================================="
-print "== Test of Session                               =="
+print "== Test of Task                                  =="
 print "==================================================="
 
-print "=== Creating empty session"
-session = Session()
-print "=== Listing session contexts"
-contexts = session.list_contexts()
-print "Contexts:",str(type(contexts)), str(contexts)
-print "=== Create context (ftp)"
-context = Context("ftp")
-print "=== add context"
-session.add_context(context)
-print "=== Listing session contexts"
-contexts = session.list_contexts()
-print "Contexts:",str(type(contexts)), str(contexts)
-for i in range(len(contexts)):
-    print "list_attributes["+str(i)+"]" + str(contexts[i].list_attributes())
-print "=== Create context (globus)"
-context2 = Context("globus")
-print "=== add context"
-session.add_context(context2)
-contexts = session.list_contexts()
-print "Contexts:",str(type(contexts)), str(contexts)
-for i in range(len(contexts)):
-    print "list_attributes["+str(i)+"]" + str(contexts[i].list_attributes())
-print "=== remove first context"
-try:
-    session.remove_context(contexts[0])
-except Exception,e:
-    print str(e.__class__), str(e), "(remove_context doesn't work yet)"
-print "=== Listing session contexts"
-contexts = session.list_contexts()
-print "Contexts:",str(type(contexts)), str(contexts)
-checkObjectMethods(session)
+task = None
+temp_filename = "/tmp/05_TaskTest.py.temp"
+print "=== create test file(s)", temp_filename
+file = open( temp_filename, "w")
+file.write("abcdefghijklmnopqrstuvwxyz")
+file.flush()
+file.close()
+print "=== create a Task by an ASYNC call to File.get_size"     
+url = URL(temp_filename)
+file = File(url)
+task = file.get_size(TaskType.ASYNC)
+
+print"=== State: NEW:",State.NEW,
+print "RUNNING:", State.RUNNING,
+print "DONE:",State.DONE,
+print "CANCELED:", State.CANCELED,
+print "FAILED:", State.FAILED
+print "Task.get_state():", task.get_state()  
+print "Outcome was:", task.get_result()
+  
+# if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \\
+# or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:  
+#__del__(self)
+#Destroy the object.     
+#      
+#cancel(self, timeout=0.0)
+#Cancel the asynchronous operation.     
+#<object>     
+#get_object(self)
+#Get the object from which this Task was created.     
+#<return value>     
+#get_result(self)
+#Get the result of the async operation.     
+#int     
+#get_state(self)
+#Get the state of the Task.     
+#      
+#rethrow(self)
+#Re-raise any exception a failed Task caught.     
+#      
+#run(self)
+#Start the asynchronous operation.     
+#bool     
+#wait(self, timeout=-1.0)
+#Wait for the Task to finish.
+
+checkObjectMethods(task)
+checkMonitorableMethods(task)
+
+
+print "=== Doing nothing yet"
+ 
+
 
 print "==================================================="
-print "== End Test of Session                           =="
+print "== End Test of Task                              =="
 print "==================================================="

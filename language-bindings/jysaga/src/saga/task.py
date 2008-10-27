@@ -8,9 +8,13 @@
 #package saga.Task
 from saga.object import Object, ObjectType
 from saga.monitoring import Monitorable
-from saga.error import NotImplemented
+from saga.error import NotImplemented, BadParameter, NoSuccess
 from saga.buffer import Buffer
 from org.ogf.saga.task import TaskMode
+
+import org.ogf.saga.impl.task.Task
+
+#document: possible glue layer for C++?
 
 class State(object):
     """ 
@@ -112,14 +116,14 @@ class Task(Object, Monitorable):
         #no constructor
         super(Task,self).__init__()
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.task.Task:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.Task. Type: " + str(type(impl["delegateObject"]))
+            if impl["delegateObject"].__class__ is not org.ogf.saga.impl.task.Task:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.task.Task. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
-        if fileReadBuffer in impl:
+        if "fileReadBuffer" in impl:
             from saga.file import Iovec
-            if  type(impl["fileReadBuffer"]) is not org.ogf.saga.buffer.Buffer \
-            and type(impl["fileReadBuffer"]) is not org.ogf.saga.file.IOVec:
-                raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga. [buffer.Buffer/file.IOVec] Type: " + str(type(impl["fileReadBuffer"]))
+            if  impl["fileReadBuffer"].__class__ is not org.ogf.saga.impl.buffer.Buffer \
+            and impl["fileReadBuffer"].__class__ is not org.ogf.saga.impl.file.IOVec:
+                raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga.impl.[buffer.Buffer/file.IOVec] Type: " + str(impl["fileReadBuffer"].__class__)
             self.fileReadBuffer = impl["fileReadBuffer"]
  
 #DOCUMENT: fileReadBuffer 
@@ -155,7 +159,7 @@ class Task(Object, Monitorable):
         try:
             self.delegateObject.run()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
     
     def cancel(self, timeout=0.0):
         #in float timeout = 0.0
@@ -189,7 +193,7 @@ class Task(Object, Monitorable):
             else:
                 self.delegateObject.cancel(timeout)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
     
 #TODO: check type checking default parameters for methods in for all!! classes.     
 
@@ -234,7 +238,7 @@ class Task(Object, Monitorable):
                 else:
                     return False
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
       
     def get_state(self):
         #out state state
@@ -248,11 +252,12 @@ class Task(Object, Monitorable):
         @raise NoSuccess:
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to retrieve the Task state.
         """
-        try:
-            retval = self.delegateObject.run()
+#        try:
+        if True:
+            retval = self.delegateObject.getState()
             return retval.getValue()
-        except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+#        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
       
     def get_result(self):
         """
@@ -270,11 +275,39 @@ class Task(Object, Monitorable):
         @note: the method returns the type and value which would be returned by the synchronous version of
             the respective function call.
         """
+        from saga.file import Iovec
+        import org.ogf.saga.task.Task
+        import java.lang.Boolean
+        import org.ogf.saga.context.Context
+        import org.ogf.saga.file.Directory
+        import org.ogf.saga.file.File
+        import org.ogf.saga.file.FileInputStream
+        import org.ogf.saga.file.FileOutputStream
+        import java.io.InputStream
+        import java.lang.Integer
+        import org.ogf.saga.job.Job
+        import org.ogf.saga.job.JobDescription
+        import org.ogf.saga.job.JobSelf
+        import java.util.List
+        import java.lang.String
+        import org.ogf.saga.url.URL
+        import org.ogf.saga.logicalfile.LogicalDirectory
+        import org.ogf.saga.logicalfile.LogicalFile
+        import java.lang.Long
+        import org.ogf.saga.namespace.NSDirectory
+        import org.ogf.saga.namespace.NSEntry
+        import java.io.OutputStream
+        import org.ogf.saga.stream.Stream
+        import org.ogf.saga.stream.StreamInputStream
+        import org.ogf.saga.stream.StreamOutputStream
+        import java.lang.String
+        import org.ogf.saga.url.URL
+        import java.lang.Void
                 
         try:
             retval = self.delegateObject.getResult()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         
         if self.fileReadBuffer is not None:
             if self.fileReadBuffer.managedByImp is False:    #Buffer or Iovec
@@ -320,6 +353,8 @@ class Task(Object, Monitorable):
         elif type(retval) is org.ogf.saga.logicalfile.LogicalFile: pass
         elif type(retval) is java.lang.Long:
             return retval.longValue()
+        elif type(retval) is long:
+            return retval
         elif type(retval) is org.ogf.saga.namespace.NSDirectory: pass
         elif type(retval) is org.ogf.saga.namespace.NSEntry: pass
         elif type(retval) is java.io.OutputStream: pass
@@ -332,7 +367,9 @@ class Task(Object, Monitorable):
             return URL(delgateObject=retval)
         elif type(retval) is java.lang.Void:
             return None
-        else: return retval
+        else: 
+            raise NoSuccess, "!!! Unknown file type in task.get_result!!! " + str(retval.__class__)
+            return retval
         
 #TODO: implement Task.get_value        
 
@@ -376,8 +413,37 @@ class Task(Object, Monitorable):
         try:
             self.delegateObject.rethrow()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
-    
+            raise self.convertException(e)
+
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+  
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = Task(delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+        
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.TASK
     
 class TaskContainer(Object, Monitorable):
     """
@@ -408,14 +474,14 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to create a TaskContainer.
         """
         if "delegateObject" in impl:
-            if type(impl["delegateObject"]) is not org.ogf.saga.task.TaskContainer:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.TaskContainer. Type: " + str(type(impl["delegateObject"]))
+            if impl["delegateObject"].__class__ is not org.ogf.saga.impl.task.TaskContainer:
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.task.TaskContainer. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
             return
         try:
             self.delegateObject = org.ogf.saga.task.TaskFactory.createTaskContainer()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
        
     def add(self, task):
         """
@@ -441,7 +507,7 @@ class TaskContainer(Object, Monitorable):
         try:
             self.delegateObject.add(task.delegateObject)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         
     def remove(self, cookie):
         """
@@ -469,7 +535,7 @@ class TaskContainer(Object, Monitorable):
             retval = self.delegateObject.remove(task.delegateObject)
             return Task(delegateObject = retval)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
 
     def run(self):
         """
@@ -494,7 +560,7 @@ class TaskContainer(Object, Monitorable):
         try:
             self.delegateObject.run()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)       
+            raise self.convertException(e)       
         
     def wait(self, mode = WaitMode.ALL, timeout = -1.0):
         """
@@ -549,7 +615,7 @@ class TaskContainer(Object, Monitorable):
                 retval = self.delegateObject.waitFor(timeout, waitmode)
             return Task(delegateObject = retval)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)  
+            raise self.convertException(e)  
 #TODO: add object reference to Task. Add in each Method giving a task        
         
     def cancel(self, timeout):
@@ -583,7 +649,7 @@ class TaskContainer(Object, Monitorable):
             else:
                 self.delegateObject.cancel(timeout)
         except org.ogf.saga.error.SagaException, e:
-             raise convertException(e)
+             raise self.convertException(e)
 
     def size(self):
         """
@@ -600,7 +666,7 @@ class TaskContainer(Object, Monitorable):
         try:
             return self.delegateObject.size() 
         except org.ogf.saga.error.SagaException, e:
-             raise convertException(e)       
+             raise self.convertException(e)       
         
         
     def list_tasks(self):
@@ -619,7 +685,7 @@ class TaskContainer(Object, Monitorable):
             retval = self.delegateObject.listTasks()
             return tuple(retval) 
         except org.ogf.saga.error.SagaException, e:
-             raise convertException(e)            
+             raise self.convertException(e)            
         
     def get_task(self, cookie):
         """
@@ -644,7 +710,7 @@ class TaskContainer(Object, Monitorable):
             retval = self.delegateObject.getTask()
             return Task(delegateObject = retval)
         except org.ogf.saga.error.SagaException, e:
-             raise convertException(e)       
+             raise self.convertException(e)       
     
     def get_tasks(self):
         """
@@ -664,7 +730,7 @@ class TaskContainer(Object, Monitorable):
         try:
             javaArray = self.delegateObject.getTasks()
         except org.ogf.saga.error.SagaException, e:
-             raise convertException(e) 
+             raise self.convertException(e) 
         for i in range (len(javaArray)):
             temp = Task(delegateObject = javaArray[i])
             list.append(temp)
@@ -687,7 +753,7 @@ class TaskContainer(Object, Monitorable):
         try:
             javaArray = self.delegateObject.getStates()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
         list = []
         for i in range(len(javaArray)):
             list.append(javaArray[i].getValue())
