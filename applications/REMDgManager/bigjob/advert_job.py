@@ -23,7 +23,7 @@ import os
 import traceback
 
 """ Config parameters (will move to config file in future) """
-APPLICATION_NAME="REMD"
+APPLICATION_NAME="BigJob"
 CPR = False
         
 class advert_glidin_job():
@@ -108,12 +108,17 @@ class advert_glidin_job():
         print "Cancel Glidin Job"
         self.job.cancel()
         try:
+            self.app_dir.change_dir("..")
             self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
         except:
             pass
 
     def __repr__(self):
-         return self.glidin_url 
+        return self.glidin_url 
+
+    def __del__(self):
+        self.cancel()
+
                     
                     
 class advert_job():
@@ -175,6 +180,7 @@ class advert_job():
     def delete_job(self):
         print "delete job and close dirs: " + self.job_url
         try:
+            self.job_dir.change_dir("..")
             self.job_dir.remove(saga.url(self.job_url), saga.name_space.Recursive)
             self.job_dir.close()
         except:
