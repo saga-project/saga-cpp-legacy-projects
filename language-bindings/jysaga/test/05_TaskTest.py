@@ -82,14 +82,32 @@ print "RUNNING:", State.RUNNING,
 print "DONE:",State.DONE,
 print "CANCELED:", State.CANCELED,
 print "FAILED:", State.FAILED
-print "Task.get_state():", task.get_state()  
-print "Outcome was:", task.get_result()
+
+outcome = file.get_size(TaskType.NORMAL)
+print "file.get_size(TaskType.NORMAL)    Outcome was:", outcome
+print "=== Create SYNC task"
+taskSYNC = file.get_size(TaskType.SYNC)
+#print "Create ASYNC task,",
+#taskASYNC = file.get_size(TaskType.ASYNC)
+#print "Create TASK task. ",
+#taskTASK = file.get_size(TaskType.TASK)
+#print "DONE"
+#
+print "SYNC Task.get_state():", taskSYNC.get_state(), 
+print "  Outcome was:", taskSYNC.get_result()
+#print "ASYNC Task.get_state():", taskASYNC.get_state(), "  Outcome was:", taskASYNC.get_result()
+#print "TASK Task.get_state():", taskTASK.get_state(), " Start running the TASK"
+#if taskTASK.get_state() is State.NEW:
+#    taskTASK.run()
+#print "TASK Task.get_state():", taskTASK.get_state(), "  Outcome was:", taskTASK.get_result()
   
-# if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \\
-# or tasktype is not TaskType.ASYNC  or tasktype is not TaskType.TASK:  
+  
 #__del__(self)
 #Destroy the object.     
-#      
+print "=== Cancel the already done SYNC task"
+taskSYNC.cancel(10)
+
+      
 #cancel(self, timeout=0.0)
 #Cancel the asynchronous operation.     
 #<object>     

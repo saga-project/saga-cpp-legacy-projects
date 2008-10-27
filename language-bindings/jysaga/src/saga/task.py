@@ -252,11 +252,10 @@ class Task(Object, Monitorable):
         @raise NoSuccess:
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to retrieve the Task state.
         """
-#        try:
-        if True:
+        try:
             retval = self.delegateObject.getState()
             return retval.getValue()
-#        except org.ogf.saga.error.SagaException, e:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
       
     def get_result(self):
