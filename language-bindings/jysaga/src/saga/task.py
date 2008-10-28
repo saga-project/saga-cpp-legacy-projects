@@ -12,7 +12,15 @@ from saga.error import NotImplemented, BadParameter, NoSuccess
 from saga.buffer import Buffer
 from org.ogf.saga.task import TaskMode
 
-import org.ogf.saga.impl.task.Task
+try:
+    import org.ogf.saga.impl.task.Task
+except:
+    pass
+
+try:
+   import org.ogf.saga.impl.task.TaskImpl 
+except:
+    pass
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -129,7 +137,8 @@ class Task(Object, Monitorable):
         #no constructor
         super(Task,self).__init__()
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.impl.task.Task:
+            #DOCUMENT: Changed task.Task to TaskImpl!
+            if impl["delegateObject"].__class__ is not org.ogf.saga.impl.task.TaskImpl:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.task.Task. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         if "fileReadBuffer" in impl:
