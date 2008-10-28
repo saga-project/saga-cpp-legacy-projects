@@ -160,6 +160,7 @@ class Object(object):
         except org.ogf.saga.error.DoesNotExistException, exception:
             object = None
         message = e.getMessage()
+
                
         if isinstance(e, org.ogf.saga.error.AlreadyExistsException):
             error = AlreadyExists(message, object)
@@ -172,7 +173,7 @@ class Object(object):
         elif isinstance(e, org.ogf.saga.error.DoesNotExistException):
             error = DoesNotExist(message, object)
         elif isinstance(e, org.ogf.saga.error.IncorrectStateException):
-            IncorrectState(message, object)
+            error = IncorrectState(message, object)
         elif isinstance(e, org.ogf.saga.error.IncorrectURLException):
             error = IncorrectURL(message, object)
         elif isinstance(e, org.ogf.saga.error.NoSuccessException):

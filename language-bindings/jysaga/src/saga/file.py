@@ -316,7 +316,6 @@ class File(NSEntry):
                 javaObject = self.delegateObject.getSize(TaskMode.ASYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                print self.delegateObject.getSize()
                 javaObject = self.delegateObject.getSize(TaskMode.SYNC)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:

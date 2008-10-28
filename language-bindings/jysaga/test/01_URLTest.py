@@ -118,8 +118,8 @@ print "translate() output get_string: " + sagaURL.get_string()
 print "=== Check inherited Object methods"
 checkObjectMethods(sagaURL)
 
-import os
-os.remove(temp_filename)
+#import os
+#os.remove(temp_filename)
 
 print "==================================================="
 print "== End Test of URL                               =="

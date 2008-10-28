@@ -14,6 +14,19 @@ from org.ogf.saga.task import TaskMode
 
 import org.ogf.saga.impl.task.Task
 
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
 #document: possible glue layer for C++?
 
 class State(object):
@@ -185,7 +198,7 @@ class Task(Object, Monitorable):
           
 
         """
-        if type(timeout) is not float or type(timeout) is not int:
+        if type(timeout) is not float and type(timeout) is not int:
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
         try:
             if timeout is 0:
@@ -307,6 +320,7 @@ class Task(Object, Monitorable):
             retval = self.delegateObject.getResult()
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
+            
         
         if self.fileReadBuffer is not None:
             if self.fileReadBuffer.managedByImp is False:    #Buffer or Iovec

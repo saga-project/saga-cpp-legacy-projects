@@ -72,35 +72,59 @@ file = open( temp_filename, "w")
 file.write("abcdefghijklmnopqrstuvwxyz")
 file.flush()
 file.close()
-print "=== create a Task by an ASYNC call to File.get_size"     
+print "=== create a Task by an SYNC/ASYNC/TASK call to File.get_size"     
 url = URL(temp_filename)
 file = File(url)
-task = file.get_size(TaskType.ASYNC)
 
-print"=== State: NEW:",State.NEW,
-print "RUNNING:", State.RUNNING,
-print "DONE:",State.DONE,
-print "CANCELED:", State.CANCELED,
-print "FAILED:", State.FAILED
+print"=== State: NEW:"+ str(State.NEW),
+print "RUNNING:"+ str(State.RUNNING),
+print "DONE:"+ str(State.DONE),
+print "CANCELED:"+ str( State.CANCELED),
+print "FAILED:"+ str(State.FAILED)
 
 outcome = file.get_size(TaskType.NORMAL)
-print "file.get_size(TaskType.NORMAL)    Outcome was:", outcome
-print "=== Create SYNC task"
+print "    file.get_size(TaskType.NORMAL)    Outcome was:", outcome
+print "=== Create SYNC task",
 taskSYNC = file.get_size(TaskType.SYNC)
-#print "Create ASYNC task,",
-#taskASYNC = file.get_size(TaskType.ASYNC)
-#print "Create TASK task. ",
-#taskTASK = file.get_size(TaskType.TASK)
-#print "DONE"
-#
-print "SYNC Task.get_state():", taskSYNC.get_state(), 
-print "  Outcome was:", taskSYNC.get_result()
-#print "ASYNC Task.get_state():", taskASYNC.get_state(), "  Outcome was:", taskASYNC.get_result()
-#print "TASK Task.get_state():", taskTASK.get_state(), " Start running the TASK"
-#if taskTASK.get_state() is State.NEW:
-#    taskTASK.run()
-#print "TASK Task.get_state():", taskTASK.get_state(), "  Outcome was:", taskTASK.get_result()
-  
+print "Create ASYNC task,",
+taskASYNC = file.get_size(TaskType.ASYNC)
+print "Create TASK task. ",
+taskTASK = file.get_size(TaskType.TASK)
+print "DONE"
+
+print "   SYNC Task.get_state():", taskSYNC.get_state(), "Outcome was:", taskSYNC.get_result()
+print "   ASYNC Task.get_state():", taskASYNC.get_state()
+from time import sleep
+counter = 0
+while (taskASYNC.get_state() == 2 and counter < 10):
+     sleep (5)
+     print "        taskASYNC is still running. Sleeping for 5"
+     counter = counter + 1
+if counter != 10:
+    print "    Outcome was:", taskASYNC.get_result()
+else:
+    print "    taskASYNC has not finished after 50 seconds"
+    
+print "    TASK Task.get_state():", taskTASK.get_state(), " Start running the TASK"
+if taskTASK.get_state() == State.NEW:
+    try:
+        print "    Doing get_result on the new TASK:",
+        taskTASK.get_result()
+    except Exception, e:
+        print str(e)
+    taskTASK.run()
+print "    TASK Task.get_state():", taskTASK.get_state()
+counter = 0
+while (taskTASK.get_state() == 2 and counter < 10):
+     sleep (5)
+     print "        taskTASK is still running. Sleeping for 5"
+     counter = counter+1
+     
+if counter != 10:
+    print "Outcome was:",
+    print str(taskTASK.get_result())
+else:
+    print "taskTASK has not finished after 50 seconds"
   
 #__del__(self)
 #Destroy the object.     
@@ -129,13 +153,8 @@ taskSYNC.cancel(10)
 #wait(self, timeout=-1.0)
 #Wait for the Task to finish.
 
-checkObjectMethods(task)
-checkMonitorableMethods(task)
-
-
-print "=== Doing nothing yet"
- 
-
+#checkObjectMethods(task)
+#checkMonitorableMethods(task)
 
 print "==================================================="
 print "== End Test of Task                              =="
