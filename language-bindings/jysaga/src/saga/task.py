@@ -138,7 +138,7 @@ class Task(Object, Monitorable):
         super(Task,self).__init__()
         if "delegateObject" in impl:
             #DOCUMENT: Changed task.Task to TaskImpl!
-            if impl["delegateObject"].__class__ is not org.ogf.saga.impl.task.TaskImpl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.task.Task):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.task.Task. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         if "fileReadBuffer" in impl:
@@ -147,6 +147,7 @@ class Task(Object, Monitorable):
             and impl["fileReadBuffer"].__class__ is not org.ogf.saga.impl.file.IOVec:
                 raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga.impl.[buffer.Buffer/file.IOVec] Type: " + str(impl["fileReadBuffer"].__class__)
             self.fileReadBuffer = impl["fileReadBuffer"]
+ #TODO: fix isinstance
  
 #DOCUMENT: fileReadBuffer 
     
@@ -244,17 +245,17 @@ class Task(Object, Monitorable):
         @note: for timeout semantics, see Section 2 of the GFD-R-P.90 document
 
         """        
-        if type(timeout) is not float or type(timeout) is not int:
+        if type(timeout) is not float and type(timeout) is not int:
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
         if timeout < 0 and timeout != -1:
             raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
         try:
             retval = 0
             if timeout is -1:
-                self.delegateObject.waitfor()
+                self.delegateObject.waitFor()
                 return True
             else:
-                retval = self.delegateObject.waitfor(timeout)
+                retval = self.delegateObject.waitFor(timeout)
                 if retval == 1:
                     return True
                 else:
@@ -409,7 +410,7 @@ class Task(Object, Monitorable):
  
 #TODO: add object reference to Task. Add in each Method giving a task
       
-      # error handling
+#DOCUMENT: error handling in methods when creating tasks???
     def rethrow(self):
         """
         Re-raise any exception a failed Task caught.
@@ -619,9 +620,9 @@ class TaskContainer(Object, Monitorable):
                   Task states can be made after any exception gets raised.
         @note: for timeout semantics, see Section 2 of the GFD-R-P.90 document
         """
-        if type(timeout) is not float or type(timeout) is not int:
+        if type(timeout) is not float and type(timeout) is not int:
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
-        if mode is not WaitMode.ALL or mode is not WaitMode.ANY:
+        if mode is not WaitMode.ALL and mode is not WaitMode.ANY:
             raise BadParameter, "Parameter mode is not WaitMode.ALL or WaitMode.ANY. mode: "+str(mode)
         if timeout < 0 and timeout != -1.0:
             raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
@@ -661,7 +662,7 @@ class TaskContainer(Object, Monitorable):
         @note: As the order of execution of the Tasks is undefined, no assumption on the individual
                   Task states can be made after any exception gets raised.
         """
-        if type(timeout) is not float or type(timeout) is not int:
+        if type(timeout) is not float and type(timeout) is not int:
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
         if timeout < 0 and timeout != -1.0:
             raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)

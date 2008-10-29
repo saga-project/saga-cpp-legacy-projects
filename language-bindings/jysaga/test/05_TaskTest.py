@@ -4,7 +4,7 @@ from saga.error import *
 from saga.object import ObjectType, Object
 from saga.buffer import Buffer
 import array.array
-from saga.file import File
+from saga.file import File, SeekMode, Directory, Flags
 from saga.url import URL
 from saga.task import Task, TaskType, State
 
@@ -130,31 +130,44 @@ else:
 #Destroy the object.     
 print "=== Cancel the already done SYNC task"
 taskSYNC.cancel(10)
+taskTASK = file.get_size(TaskType.TASK)
 
+print "=== Cancel a new job"
+try:
+    taskTASK.cancel(0)
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
       
-#cancel(self, timeout=0.0)
-#Cancel the asynchronous operation.     
+print "!!! get_object not yet implemented !!!"
 #<object>     
 #get_object(self)
 #Get the object from which this Task was created.     
-#<return value>     
-#get_result(self)
-#Get the result of the async operation.     
-#int     
-#get_state(self)
-#Get the state of the Task.     
-#      
-#rethrow(self)
-#Re-raise any exception a failed Task caught.     
-#      
-#run(self)
-#Start the asynchronous operation.     
-#bool     
-#wait(self, timeout=-1.0)
-#Wait for the Task to finish.
 
-#checkObjectMethods(task)
-#checkMonitorableMethods(task)
+dir = Directory( URL("file:///tmp/") )
+taskSYNC = dir.get_size(name=URL(temp_filename), flags = Flags.RECURSIVE, tasktype=TaskType.SYNC)
+
+print "=== dir.get_size(name=URL(temp_filename), flags = Flags.RECURSIVE, tasktype=TaskType.SYNC)"
+print "=== creates an exception. Retrow() "  
+try:
+    taskSYNC.rethrow()
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
+
+print "=== Test wait()"
+taskTASK = file.get_size(TaskType.TASK)
+try:
+    taskTASK.wait(timeout=0)
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
+try:
+    taskTASK.run()
+    taskTASK.wait(timeout=0)
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
+
+
+checkObjectMethods(taskTASK)
+checkMonitorableMethods(taskTASK)
 
 print "==================================================="
 print "== End Test of Task                              =="
