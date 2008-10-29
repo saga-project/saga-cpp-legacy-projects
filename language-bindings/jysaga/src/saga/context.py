@@ -130,17 +130,18 @@ class Context(Object, Attributes):
         @see: the notes about lifetime management in Section 2 of the GFD-R-P.90 document
         """
         if "delegateObject" in impl:
-            if not isinstance(impl["delegateObject"], org.ogf.saga.impl.context.Context):
+            if not isinstance(impl["delegateObject"], org.ogf.saga.impl.context.ContextImpl):
                 from saga.error import BadParameter
-                raise BadParameter("Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.context.Context. Type: " + str( impl["delegateObject"].__class__))
+                raise BadParameter("Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.context.ContextImpl. Type: " + str( impl["delegateObject"].__class__))
             self.delegateObject = impl["delegateObject"]
-        try:
-            if name is "" or type(name) is not str:
-                self.delegateObject = ContextFactory.createContext();
-            else:
-                self.delegateObject = ContextFactory.createContext(name);
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)
+        else:    
+            try:
+                if name is "" or type(name) is not str:
+                    self.delegateObject = ContextFactory.createContext();
+                else:
+                    self.delegateObject = ContextFactory.createContext(name);
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
 
 #TODO: Redo all BadParameter throws.... :(
 

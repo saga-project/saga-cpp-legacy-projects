@@ -83,6 +83,7 @@ for i in range(len(contexts)):
     print "list_attributes["+str(i)+"]" + str(contexts[i].list_attributes())
 print "=== remove first context"
 try:
+    print contexts[0].delegateObject
     session.remove_context(contexts[0])
 except Exception,e:
     print str(e.__class__), str(e), "(remove_context doesn't work yet)"
