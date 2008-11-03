@@ -181,10 +181,10 @@ class File(NSEntry):
         size = 0;
         return size
     
-    def read(self, len = -1, buf=None):
-        #inout buffer buf, in int len_in = -1, out int len_out ):
+    def read(self, size = -1, buf=None):
+        #inout buffer buf, in int size_in = -1, out int len_out ):
         """
-        Reads up to len bytes from the file into a buffer.
+        Reads up to size bytes from the file into a buffer.
                
             - B{Call format: read( size, data )}
                 - B{Returns: int}
@@ -202,10 +202,10 @@ class File(NSEntry):
                 - B{Returns: string}
                     - the read data. Size of the string could be between 0 and the file length
         
-        @summary: reads up to len bytes from the file into a buffer
-        @param len: number of bytes to be read
+        @summary: reads up to size bytes from the file into a buffer
+        @param size: number of bytes to be read
         @param buf: buffer to read data into
-        @type len: int
+        @type size: int
         @type buf: L{Buffer}
         @return: number of bytes successfully read or string containing the read data 
         @rtype: int or string
@@ -220,30 +220,30 @@ class File(NSEntry):
         @raise NoSuccess:
         @Note: the actual number of bytes read into buffer is returned in the int. It is not an error
             to read less bytes than requested, or in fact zero bytes, e.g. at the end of the file.
-        @Note: errors are indicated by returning negative values for len_out, which correspond to
+        @Note: errors are indicated by returning negative values, which correspond to
             negatives of the respective POSIX ERRNO error code.
         @Note: the file pointer is positioned at the end of the byte area successfully read during this call.
-        @Note: the given buffer must be able to grow large enough to store up to len bytes, or managed by the
+        @Note: the given buffer must be able to grow large enough to store up to size bytes, or managed by the
             implementation - otherwise a BadParameter exception is raised.
         @Note: the notes about memory management from the buffer class apply.
         @Note: if the file was opened in write-only mode (i.e. no READ or READWRITE flag was given), this
             method raises an PermissionDenied exception.
-        @Note: if len is smaller than 0, or not given, the buffer size is used for len. 
+        @Note: if size is smaller than 0, or not given, the buffer size is used for size. 
             If that is also not available, a BadParameter exception is raised.
         @Note: similar to read (2) as specified by POSIX
         """
-        len_out = 0
-        return len_out
+        size_out = 0
+        return size_out
         
-    def write(self, buf, len = -1):
-        # (in buffer buf, in int len_in = -1, out int len_out ):
+    def write(self, buf, size = -1):
+        # (in buffer buf, in int size_in = -1, out int size_out ):
         """
-        Writes up to len from buffer into the file at the current file position.
-        @summary: writes up to len from buffer into the file at the current file position.
+        Writes up to size from buffer into the file at the current file position.
+        @summary: writes up to size from buffer into the file at the current file position.
         @param buf:  buffer to write data from       
-        @param len: number of bytes to write
+        @param size: number of bytes to write
         @type buf: L{Buffer} or string
-        @type len: int
+        @type size: int
         @return: number of bytes successfully written
         @rtype: int
         @postcondition: the buffer data are written to the file.
@@ -264,7 +264,7 @@ class File(NSEntry):
         @Note: the given buffer must hold enough data to write - otherwise, only the available data
                  will be written, and the returned value will be set to the number of bytes written.
         @Note: the notes about memory management from the buffer class apply.
-        @Note: if len is smaller than 0, or not given, the buffer size is used for len.
+        @Note: if size is smaller than 0, or not given, the buffer size is used for size.
                  If that is also not available, a BadParameter exception is raised.
         @Note: if data are written beyond the current end of file, the intermediate gap is filled with null bytes.
         @Note: similar to write (2) as specified by POSIX
@@ -389,7 +389,6 @@ class File(NSEntry):
         size = 0
         return size
     
-    
     def read_p(self, pattern, buf):
         # in string pattern, inout buffer buf, out int len_out
         """
@@ -418,7 +417,6 @@ class File(NSEntry):
         """
         len_out = 0
         return len_out
-
 
     def write_p(self, pattern, buf): 
         #in string pattern, in buffer buf, out int len_out
@@ -595,7 +593,6 @@ class Directory(NSDirectory):
 
         """
         super(Directory, self).__init__()
-        
         
     def get_size(self, name, flags = None):
         #in URL name, in int flags = None, out int size

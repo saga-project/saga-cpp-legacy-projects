@@ -372,126 +372,113 @@ class LogicalDirectory(NSDirectory, Attributes):
         Alias for is_entry of L{saga.namespace.NSDirectory}
         """
         
-    def open_dir(self, name, flags):
+    def open_dir(self, name, flags = Flags.READ):
         """
         Creates a new LogicalDirectory instance
-      Format:   open_dir         (in saga::url name,
-                                  in int        flags = Read,
-                                  out logical_directory dir);
-      Inputs:   name:             name of directory to open
-                flags:            flags defining operation
-                                  modus
-      InOuts:   -
-      Outputs: dir:               opened directory instance
-      precondition: -
-      postcondition: - the session of the returned instance is that of
-                  the calling instance.
-                - 'Owner' of name is the id of the context
-                  used to perform the opereration if name gets
-                  created.
-      @permission:   Exec for name's parent directory.
-                Write for name's parent directory if Create is set.
-                Write for name if Write is set.
-@raise NotImplemented:
-@raise IncorrectURL:
-@raise BadParameter:
-@raise AlreadyExists:
-@raise DoesNotExist:
-@raise IncorrectState:
-@raise PermissionDenied:
-@raise AuthorizationFailed:
-@raise AuthenticationFailed:
-@raise Timeout:
-@raise NoSuccess:
+        @summary: Creates a new LogicalDirectory instance
+        @param name: name of directory to open
+        @param flags: flags defining operation modus
+        @type name: L{URL}
+        @type flags: int  
+        @return: opened directory instance
+        @rtype: L{LogicalDirectory}
+        @postcondition: the session of the returned instance is that of
+            the calling instance.
+        @postcondition: 'Owner' of name is the id of the context used to perform 
+            the opereration if name gets created.
+        @permission: Exec for name's parent directory.
+        @permission: Write for name's parent directory if Create is set.
+        @permission: Write for name if Write is set.
+        @raise NotImplemented:
+        @raise IncorrectURL:
+        @raise BadParameter:
+        @raise AlreadyExists:
+        @raise DoesNotExist:
+        @raise IncorrectState:
+        @raise PermissionDenied:
+        @raise AuthorizationFailed:
+        @raise AuthenticationFailed:
+        @raise Timeout:
+        @raise NoSuccess:
         @Note: all notes from the NSDirectory.open_dir() method apply.
         @note: default flags are 'READ' (512).
         """
     
-    def open(self, name, flags):
+    def open(self, name, flags = Flags.READ):
         """
-      Purpose:  creates a new logical_file instance
+        Create a new LogicalFile instance.
+        @summary: Create a new LogicalFile instance.
       Format:   open             (in saga::url      name,
                                   in int           flags = Read,
                                   out logical_file file);
-      Inputs:   name:             file to be opened
-                flags:            flags defining operation
-                                  modus
-      InOuts:   -
-      Outputs: file:              opened file instance
-      precondition: -
-      postcondition: - the session of the returned instance is that of
-                  the calling instance.
-                - 'Owner' of name is the id of the context
-                  used to perform the opereration if name gets
-                  created.
-      @permission:   Exec for name's parent directory.
-                Write for name's parent directory if Create is set.
-                Write for name if Write is set.
-                Read for name if Read is set.
-@raise NotImplemented
-@raise IncorrectURL
-@raise BadParameter
-@raise AlreadyExists
-@raise DoesNotExist
-@raise IncorrectState
-@raise PermissionDenied
-@raise AuthorizationFailed
-@raise AuthenticationFailed
-@raise Timeout
-@raise NoSuccess
-      Notes:    - all notes from the ns_directory::open() method
-                  apply.
-                - the flag set 'Read | Write' is equivalent to
-                  the flag 'ReadWrite'.
-                - default flags are 'Read' (512).
+        @param name: file to be opened
+        @param flags: flags defining operation modus
+        @type name: L{URL}
+        @type flags: int
+        @return: opened file instance
+        @rtype: LogicalFile
+        @postcondition: the session of the returned instance is that of the 
+            calling instance.
+        @postcondition: 'Owner' of name is the id of the context used to perform 
+            the opereration if name gets created.
+        @permission: Exec for name's parent directory.
+        @permission: Write for name's parent directory if Create is set.
+        @permission: Write for name if Write is set.
+        @permission: Read for name if Read is set.
+        @raise NotImplemented:
+        @raise IncorrectURL:
+        @raise BadParameter:
+        @raise AlreadyExists:
+        @raise DoesNotExist:
+        @raise IncorrectState:
+        @raise PermissionDenied:
+        @raise AuthorizationFailed:
+        @raise AuthenticationFailed:
+        @raise Timeout:
+        @raise NoSuccess:
+        @Note: all notes from the NSDirectory.open() method apply.
+        @note: the flag set 'Read | Write' is equivalent to the flag 
+            'ReadWrite'.
+        @note: default flags are 'Read' (512).
         """
     
     def find(self, name_pattern, attr_pattern, flags = Flags.RECURSIVE):
         """
-      Purpose:  find entries in the current directory and below,
-                with matching names and matching meta data
-      Format:   find             (in string             name_pattern,
-                                  in array<string>      attr_pattern,
-                                  in int                flags = Recursive,
-                                  out array<saga::url> names);
-      Inputs:   name_pattern:     pattern for names of
-                                  entries to be found
-                attr_pattern:     pattern for meta data
-                                  key/values of entries to be
-                                  found
-                flags:            flags defining the operation
-                                  modus
-      InOuts:   -
-      Outputs: names:             array of names matching both
-                                  pattern
-      precondition: -
-      postcondition: -
-      @permission:   Read for cwd.
-                Query for entries specified by name_pattern.
-                Exec for parent directories of these entries.
-                Query for parent directories of these entries.
-                Read for directories specified by name_pattern.
-                Exec for directories specified by name_pattern.
-                Exec for parent directories of these directories.
-                Query for parent directories of these directories.
-@raise NotImplemented
-@raise BadParameter
-@raise IncorrectState
-@raise PermissionDenied
-@raise AuthorizationFailed
-@raise AuthenticationFailed
-@raise Timeout
-@raise NoSuccess
-      Notes:    - the description of find() in the Introduction
-                  to this section applies.
-           - the semantics for both the find_attributes()
-             method in the saga::attributes interface and
-             for the find() method in the
-             saga::ns_directory class apply. On
-             conflicts, the find() semantic supersedes
-             the find_attributes() semantic. Only entries
-             matching all attribute patterns and the name
-             space pattern are returned.
-           - the default flags are 'Recursive' (2).
+        Find entries in the current directory and below, with matching names 
+            and matching meta data
+        @summary: Find entries in directory and below.
+        @type name_pattern: string
+        @type attr_pattern: list of strings 
+        @type flags: int 
+        @param name_pattern: pattern for names of entries to be found
+        @param attr_pattern: pattern for meta data key/values of entries to be
+            found
+        @param flags: flags defining the operation modus
+        @return: list of names matching both pattern
+        @permission: Read for cwd.
+        @permission: Query for entries specified by name_pattern.
+        @permission: Exec for parent directories of these entries.
+        @permission: Query for parent directories of these entries.
+        @permission: Read for directories specified by name_pattern.
+        @permission: Exec for directories specified by name_pattern.
+        @permission: Exec for parent directories of these directories.
+        @permission: Query for parent directories of these directories.
+        @raise NotImplemented:
+        @raise BadParameter:
+        @raise IncorrectState:
+        @raise PermissionDenied:
+        @raise AuthorizationFailed:
+        @raise AuthenticationFailed:
+        @raise Timeout:
+        @raise NoSuccess:
+        @Note: the description of find() in the Introduction of 
+            section 4.4 of GFD-R-P.90, applies.
+        @note: the semantics for both the find_attributes() method in the 
+            saga.attributes.Attributes class and for the find() method in the
+            saga.namespace.NSDirectory class apply. On conflicts, the find() 
+            semantic supersedes the find_attributes() semantic. Only entries
+            matching all attribute patterns and the name space pattern are 
+            returned.
+        @note: the default flags are 'Recursive' (2).
         """  
    

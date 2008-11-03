@@ -189,5 +189,6 @@ class Object(object):
         else:
             error = NoSuccess(message, object)
         return error
-    
+
+#DOCUMENT: python readlines does not live up to its own description.    
 #DOCUMENT: Document SagaIOException -> NoSucces IOError, multiple inheritence 

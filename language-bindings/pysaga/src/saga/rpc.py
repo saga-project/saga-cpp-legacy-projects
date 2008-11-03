@@ -1,5 +1,12 @@
-# Page 302
-#  package saga.rpc
+# Package: saga
+# Module: rpc 
+# Description: The module which specifies classes which handle remote procedure
+#    calls.
+# Specification and documentation can be found in section 4.5, page 302-312 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+
 from buffer import Buffer
 from object import Object, ObjectType
 from permissions import Permissions
@@ -8,42 +15,64 @@ from task import Async
 class IOMode(object):
     """
     IOMode specifies the modus of the saga.rpc.Parameter instances
-
-    status: This object is not completly specified yet.
-    ===================================================   
-    
     """
     
     IN    = 1 
-    """The parameter is an input parameter: its initial value will be evaluated, and its data buffer will not be changed during the invocation of call()."""
+    """
+    @summary: The parameter is an input parameter: its initial value will be 
+        evaluated, and its data buffer will not be changed during the invocation 
+        of call().
+        """
+    
     OUT   = 2 
-    """The parameter is an output parameter: its initial value will not be evaluated, and its data buffer will likely be changed during the invocation of call()."""
+    """
+    @summary: The parameter is an output parameter: its initial value will not 
+        be evaluated, and its data buffer will likely be changed during the 
+        invocation of call().
+    """
+    
     INOUT = 3
-    """The parameter is input and output parameter: its initial value will not evaluated, and its data buffer will likely be changed during the invocation of call()."""
+    """
+    @summary: The parameter is input and output parameter: its initial value 
+        will not evaluated, and its data buffer will likely be changed during 
+        the invocation of call().
+    """
     
 class Parameter(Buffer):
     """
-    The parameter class inherits the saga.buffer.Buffer class, and adds one additional
-    state attribute: IOMode, which is read-only. With that addition, the new class
-    can conveniently be used to define input, inout and output parameters for RPC calls.
-    
-    status: This object is not completly specified yet.
-    ===================================================
+    The Parameter class inherits the saga.buffer.Buffer class, and adds one 
+    additional state attribute: IOMode, which is read-only. With that addition, 
+    the new class can conveniently be used to define input, inout and output 
+    parameters for RPC calls.
 
+    @summary: Parameter can be used to define input, inout and output parameters 
+        for RPC calls.
     """
     
-    def __init__(self, size, mode, data):
-        #in array<byte> data = "", in int size = 0, in io_mode mode = In, out buffer obj
+    def __init__(self, size, mode, data = None):
         """
-        Create an parameter instance
-        @summary: Create an parameter instance
+        Initialize an parameter instance.
+        
+            - B{Call format: Parameter( size, mode, data )}
+                - B{Precondition:}
+                    - size must be >= 0, mode must be one of the IOMode variables
+                - B{Postcondition:}
+                    - the memory is managed by the application.
+            
+            - B{Call format: Parameter( size, mode )}
+                - B{Postcondition:}
+                    - if "data" is not specified and size > 0, the memory is 
+                        allocated by the implementation.
+                    - if "data" is not specified, the memory is managed by the 
+                        implementation.
 
+        @summary: Initialize an parameter instance.
         @param size: size of data to be used
         @type size: int
         @param mode: type of parameter
         @type mode: a value from IOMode
         @param data: data buffer to be used
-        @type data: B{TO DO}
+        @type data: char array or a list
         @raise NotImplemented:
         @raise BadParameter:
         @raise NoSuccess:
@@ -53,7 +82,6 @@ class Parameter(Buffer):
         
         
     def set_io_mode(self, mode):
-        #in io_mode mode
         """
         Purpose: Set io mode
         @summary: set io mode
@@ -62,7 +90,6 @@ class Parameter(Buffer):
         """
    
     def get_io_mode(self):
-        #out io_mode mode
         """
         Retrieve the current value for io mode
         @summary: Retrieve the current value for io mode
@@ -73,23 +100,20 @@ class Parameter(Buffer):
    
 class RPC(Object, Permissions, Async ):
     """
-    This class represents a remote function handle, which can be called (repeatedly),
-    and returns the result of the respective remote procedure invocation.
-
-    status: This object is not completly specified yet.
-    ===================================================
-    
+    This class represents a remote function handle, which can be called 
+    (repeatedly), and returns the result of the respective remote procedure 
+    invocation.
     """
      
      
-    def __init__(self, session, url):
-        #in session s, in saga::url url = "", out rpc obj
+    def __init__(self, session, funcname):
         """
         Initializes a remote function handle
         @summary: Initializes a remote function handle
         @param session: saga session to use
         @type session: L{Session<saga.session.Session>} object
-        @param url: name of remote method to initialize (funcname?)
+        @param funcname: name of remote method to initialize
+        @type funcname: L{URL} 
         @PostCondition: the instance is open.
         @Permission: Query
         @raises NotImplemented:
@@ -101,39 +125,42 @@ class RPC(Object, Permissions, Async ):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: if url is not given, or is empty (the default), the implementation will choose an  appropriate default value.
-        @note: according to the GridRPC specification, the constructor may or may not contact the RPC
-              server; absence of an exception does not imply that following RPC calls will succeed, or that
-              a remote function handle is in fact available.
-        @note: the following mapping MUST be applied from GridRPC errors to SAGA exceptions:
+        @note: if url is not given, or is empty (the default), the 
+            implementation will choose an  appropriate default value.
+        @note: according to the GridRPC specification, the constructor may or 
+            may not contact the RPC server; absence of an exception does not 
+            imply that following RPC calls will succeed, or that a remote 
+            function handle is in fact available.
+        @note: the following mapping is be applied from GridRPC errors to SAGA 
+          exceptions:
             - GRPC_SERVER_NOT_FOUND   : BadParameter
             - GRPC_FUNCTION_NOT_FOUND : DoesNotExist
             - GRPC_RPC_REFUSED        : AuthorizationFailed
             - GRPC_OTHER_ERROR_CODE   : NoSuccess
-        @note: non-GridRPC based implementations SHOULD ensure upon object construction that the remote handle
-              is available, for consistency with the semantics on other SAGA object constructors.
+        @note: non-GridRPC based implementations SHOULD ensure upon object 
+            construction that the remote handle is available, for consistency 
+            with the semantics on other SAGA object constructors.
 
         """
         super(RPC, self).__init__()
-        
-#DESTRUCTOR (in     rpc               obj           );
-#DESTRUCTOR Purpose: destroy the object Format: DESTRUCTOR (in rpc obj)
-#Inputs:   obj:                  the object to destroy
-#PostCond: - the instance is closed.
-#Notes:    - if the instance was not closed before, the destructor performs a close() on the instance, and all notes to close() apply.
 
-    #rpc method invocation
-    def call(self, parameters):
-        #inout array<parameter>  parameters
+    def __del__(self):
         """
-        Call the remote procedure
-        @summary: Call the remote procedure
-        Format:   call         (inout array<parameter> param);
+        @postcondition: the instance is closed.
+        @Note: if the instance was not closed before, the destructor performs a 
+            close() on the instance, and all notes to close() apply.
+        """
+    
+    def call(self, parameters):
+        """
+        Call the remote procedure.
+        @summary: Call the remote procedure.
         @param parameters: argument/result values for call
-        @type parameters: list
+        @type parameters: list of Parameters
         @PreCondition: the instance is open.
-        @PostCondition: the instance is avaiable for another call() invocation, even if the present call did not
-            yet finish, in the asynchronous case.
+        @PostCondition: the instance is avaiable for another call() invocation, 
+            even if the present call did not yet finish, in the asynchronous 
+            case.
         @Permission: Exec
         @raise NotImplemented:
         @raise IncorrectURL:
@@ -145,36 +172,39 @@ class RPC(Object, Permissions, Async ):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: according to the GridRPC specification, the RPC server might not be contacted before
-            invoking call(). For this reason, all notes to the object constructor apply to the call()
-            method as well.
-        @note: if an implementation finds inconsistent information in the parameter vector, a
-            BadParameter exception is raised.
-        @note: arbitrary backend failures (e.g. semantic  failures in the provided parameter stack, or
-                 any errors occuring during the execution of  the remote procedure) MUST be mapped to a
-                 "NoSuccess" exception, with a descriptive error message. That way, error semantics of
-                 the SAGA implementation and of the RPC function implementation are strictly distinguished.
-        @note: the notes about memory management from the L{saga.buffer.Buffer} class apply.
+        @note: according to the GridRPC specification, the RPC server might not 
+            be contacted before invoking call(). For this reason, all notes to 
+            the object constructor apply to the call() method as well.
+        @note: if an implementation finds inconsistent information in the 
+            Parameter list, a BadParameter exception is raised.
+        @note: arbitrary backend failures (e.g. semantic  failures in the 
+            provided parameter stack, or any errors occuring during the 
+            execution of  the remote procedure) are mapped to a "NoSuccess" 
+            exception, with a descriptive error message. That way, error 
+            semantics of the SAGA implementation and of the RPC function 
+            implementation are strictly distinguished.
+        @note: the notes about memory management from the L{saga.buffer.Buffer} 
+            class apply.
 
         """
         
-    #handle management
     def close(self, timeout = 0.0):
-        #in float timeout = 0.0
         """
-        Closes the rpc handle instance
-        @summary: Closes the rpc handle instance
-        Format:   close              (in float timeout = 0.0);
+        Closes the rpc handle instance.
+        @summary: Closes the rpc handle instance.
         @param timeout: seconds to wait
         @type timeout: float
         @PostCondition: the instance is closed.
         @raise NotImplemented:
         @raise IncorrectState:
         @raise NoSuccess:
-        @Note: any subsequent method call on the object MUST raise an "IncorrectState" exception (apart from DESTRUCTOR and close()).
-        @note: if close() is implicitely called in the DESTRUCTOR, it will never raise an exception.
+        @Note: any subsequent method call on the object raises an 
+            "IncorrectState" exception (apart from DESTRUCTOR and close()).
+        @note: if close() is implicitely called in the DESTRUCTOR, it will never 
+            raise an exception.
         @note: close() can be called multiple times, with no side effects.
-        @see: for resource deallocation semantics, see Section 2 of the GFD-R-P.90 document
+        @see: for resource deallocation semantics, see Section 2 of the 
+            GFD-R-P.90 document
         @see: for timeout semantics, see Section 2 of the GFD-R-P.90 document
 
         """

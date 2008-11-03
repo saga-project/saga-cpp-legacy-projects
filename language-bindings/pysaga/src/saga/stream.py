@@ -1,5 +1,10 @@
-# Page 281
-#  package saga.stream
+# Package: saga
+# Module: stream 
+# Description: The module which specifies classes which interact with streams
+# Specification and documentation can be found in section 4.5, page 281-301 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from object import Object, ObjectType
 from task import Async
@@ -14,33 +19,80 @@ from error import NotImplemented
 
 class State(object):
     """
-    status: This object is not completly specified yet.
-    ===================================================
+    State holds the possible states for a Stream.
+    @summary: State holds the possible states for a Stream.
     """
+    
     NEW =  1
+    """
+    @summary: A newly constructed stream enters the initial NEW state. It is not 
+        connected yet, and no I/O operations can be performed on it. connect()
+        must be called to advance the state to OPEN (on success) or ERROR (on
+        failure).
+    """
+
     OPEN = 2
+    """
+    @summary: The stream is connected to the remote endpoint, and I/O operations 
+        can be called. If any error eccurs on the stream, it will move into the 
+        ERROR state. If the remote party closes the connection, the stream will 
+        move into the DROPPED state. If close() is called on the stream, the 
+        stream will enter the CLOSED state.
+    """
+    
     CLOSED = 3
+    """
+    @summary: The close() method was called on the stream – I/O is no longer 
+        possible. This is a ﬁnal state.
+    """
+    
     DROPPED = 4
+    """
+    @summary: The remote party closed the connection – I/O is no longer 
+        possible. This is a ﬁnal state.
+    """
+    
     ERROR = 5
+    """
+    @summary: An error occured on the stream – I/O is no longer possible. This 
+        is a ﬁnal state. 
+    """
  
 class Activity(object):
     """
-    status: This object is not completly specified yet.
-    ===================================================
-    """
-    READ = 1
-    WRITE = 2
-    EXCEPTION = 4
-    
-    
-class StreamService(Object, Monitorable, Permissions, Async): # Async in Permissions
-    """
-    The StreamService object establishes a listening/server object that waits for
-    client connections. It can only be used as a factory for client sockets. It does not
-    do any read/write I/O.
+    The SAGA stream API allows for event driven communication. A stream can
+    ﬂag activities, i.e. Read, Write and Exception, and the application can 
+    react on these activities. It is possible to poll for these events 
+    (using wait() with a potential timeout), or to get asynchronous notiﬁcation 
+    of these events, by using the respective metrics.
 
-    status: This object is not completly specified yet.
-    ===================================================
+    @summary: Activity holds the possible events for which the application can
+        get an asynchronous notification.
+    """
+    
+    READ = 1
+    """
+    @summary: Data are available on the stream, and a subsequent read() will  
+        succeed.
+    """
+    
+    WRITE = 2
+    """
+    @summary: The stream is accepting data, and a subsequent write() will 
+        succeed.
+    """
+    
+    EXCEPTION = 4
+    """
+    @summary: An error occured on the stream, and a following I/O operation may 
+        fail.
+    """
+    
+class StreamService(Object, Monitorable, Permissions, Async): 
+    """
+    The StreamService object establishes a listening/server object that waits 
+    for client connections. It can only be used as a factory for client sockets. 
+    It does not do any read/write I/O.
     
         - B{Metrics:}
             - name: stream_server.client_connect
@@ -50,23 +102,43 @@ class StreamService(Object, Monitorable, Permissions, Async): # Async in Permiss
             - type: Trigger
             - value: 1
             
+    @summary: The StreamService object establishes a listening/server object 
+        that waits for client connections. 
     """
       
-    def __init__(self, session, url):
-        #in session s, in URL url, out StreamService obj
+    def __init__(self, session, url = ""):
         """
-        Create a new StreamService object
-        
-        B{TODO ADD!} 
+        Initializes a new StreamService object.
+        @summary: Initializes a new StreamService object.
+        @param session: session to be used for object creation
+        @type session: L{Session} 
+        @param url: channel name or url, defines the source side binding for 
+            the stream
+        @type url: L{URL}
+        @postcondition: StreamService can wait for incoming connections.
+        @postcondition: 'Owner' of name is the id of the context used to create 
+            the StreamService.
+        @postcondition: the StreamServer has 'Exec', 'Query', 'Read'
+           and 'Write' permissions for '*'.
+        @raise NotImplemented:
+        @raise IncorrectURL:
+        @raise BadParameter:
+        @raise PermissionDenied:
+        @raise AuthorizationFailed:
+        @raise AuthenticationFailed:
+        @raise Timeout:
+        @raise NoSuccess:
+        @note: if the given url is an empty string (the default), the 
+            implementation will choose an appropriate default value.
+        @note: the implementation ensures that the given URL is usable, and a 
+            later call to 'serve' will not fail because of the information given
+            by the URL - otherwise, a 'BadParameter' exception is thrown.
         """
-
-    # Destructor -> close()
 
     def get_url(self):
-        #out URL url
         """
-        Get URL to be used to connect to this server
-        @summary: get URL to be used to connect to this server
+        Get URL to be used to connect to this server.
+        @summary: Get URL to be used to connect to this server.
         @return: the URL of the connection.
         @rtype: L{URL}
         @raise NotImplemented:
@@ -76,23 +148,24 @@ class StreamService(Object, Monitorable, Permissions, Async): # Async in Permiss
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: returns a URL which can be passed to the Stream constructor to create a connection to this StreamService.
+        @Note: returns a URL which can be passed to the Stream constructor to 
+            create a connection to this StreamService.
         """
         url = URL()
         return url
     
     def serve(self, timeout = -1.0):
-        #in float timeout = -1.0, out stream stream
         """
-        Wait for incoming client connections
-        @summary: wait for incoming client connections
+        Wait for incoming client connections.
+        @summary: Wait for incoming client connections.
         @param timeout: number of seconds to wait for a client
         @type timeout: float
         @return: new Connected Stream object
         @rtype: L{Stream}
         @PostCondition: the returned client is in "OPEN" state.
-        @PostCondition: the session of the returned client is that of the StreamServer.
-        @permission:  Exec.
+        @PostCondition: the session of the returned client is that of the 
+            StreamServer.
+        @permission: Exec.
         @permission: Exec for the connecting remote party.
         @raise NotImplemented:
         @raise IncorrectState:
@@ -113,22 +186,19 @@ class StreamService(Object, Monitorable, Permissions, Async): # Async in Permiss
         @param timeout: seconds to wait
         @type timeout: float
         @PostCondition: no clients are accepted anymore.
-        @PostCondition: no callbacks registered for the "ClientConnect" metric are invoked.
+        @PostCondition: no callbacks registered for the "ClientConnect" metric 
+            are invoked.
         @raise NotImplemented:
         @raise IncorrectState:
         @raise NoSuccess:
-        @Note: any subsequent method call on the object, besides close(), raises an "IncorrectState" exception.
+        @Note: any subsequent method call on the object, besides close(), 
+            raises an "IncorrectState" exception.
         """
 
     
 class Stream(Object, Async, Attributes, Monitorable):
     """
     This is the object that encapsulates all client Stream objects.
-
-    status: This object is not completly specified yet.
-    ===================================================
-        
-
 
     B{Attributes supported:}
     
@@ -247,18 +317,26 @@ class Stream(Object, Async, Attributes, Monitorable):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: server location and possibly protocol are described by the input URL.
-        @Note: the url parameter can be None (which is the default). A stream so constructed is only to be used
-                 as parameter to an asynchronous StreamServer.serve() call. For such a stream, a later call to connect() will fail.
-        @Note: the implementation MUST ensure that the information given in the URL are usable - otherwise a BadParameter exception MUST be raised.
-        @Note: the socket is only connected after the connect() method is called.
-
+        @Note: server location and possibly protocol are described by the input 
+            URL.
+        @Note: the url parameter can be None (which is the default). A stream 
+            so constructed is only to be used as parameter to an asynchronous 
+            StreamServer.serve() call. For such a stream, a later call to 
+            connect() will fail.
+        @Note: the implementation ensures that the information given in the URL 
+            are usable - otherwise a BadParameter exception is raised.
+        @Note: the socket is only connected after the connect() method is 
+            called.
         """
 
-# destructor the socket is closed  f the instance was not closed before, the destructor performs a close() on the instance, and all notes to close() apply.
+    def __def__(self):
+        """
+        @note: If during the destruction of the object, the object was not 
+            closed before, the destructor performs a close() on the instance, 
+            and all notes to close() apply.
+        """
 
     def get_url(self): 
-        #out URL url
         """
         Get URL used for creating the stream
         @summary: get URL used for creating the stream
@@ -271,23 +349,23 @@ class Stream(Object, Async, Attributes, Monitorable):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: returns a URL which can be passed to a stream constructor to create another
-                    connection to the same StreamService.
-        @Note: the returned url may be empty, indicating that this instance has been created with an empty
-                    url as parameter to the stream CONSTRUCTOR().
+        @Note: returns a URL which can be passed to a stream constructor to 
+            create another connection to the same StreamService.
+        @Note: the returned url may be empty, indicating that this instance has 
+            been created with an empty url as parameter to the Stream 
+            constructor.
         """
-        
         return URL()
         
     def get_context(self):
-        #out context ctx
         """
         Return remote authorization info
         @summary: return remote authorization info
         @return: remote context
         @rtype: L{Context}
         @PreCondition: the stream is, or has been, in the "OPEN" state.
-        @PostCondition: the returned context is deep copied, and does not share state with any other object.
+        @PostCondition: the returned context is deep copied, and does not share 
+            state with any other object.
         @Raise NotImplemented:
         @raise IncorrectState:
         @raise PermissionDenied: 
@@ -295,22 +373,31 @@ class Stream(Object, Async, Attributes, Monitorable):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: the context returned contains the security information from the REMOTE party, and can be used for authorization.
-        @Note: if the stream is in a final state, but has been in "OPEN" state before, the returned context represents the remote party the stream has been connected to while it was in "OPEN" state.
-        @Note: if the stream is not in "OPEN" state, and is not in a final state after having been in "OPEN" state, an "IncorrectState" exception is raised.
-        @Note: if no security information are available, the returned context has the type "Unknown" and no attributes are attached.
-        @Note: the returned context MUST be authenticated, or must be of type "Unknown" as described above.
-
+        @Note: the context returned contains the security information from the 
+            REMOTE party, and can be used for authorization.
+        @Note: if the stream is in a final state, but has been in "OPEN" state 
+            before, the returned context represents the remote party the stream 
+            has been connected to while it was in "OPEN" state.
+        @Note: if the stream is not in "OPEN" state, and is not in a final state 
+            after having been in "OPEN" state, an "IncorrectState" exception is 
+            raised.
+        @Note: if no security information are available, the returned context 
+            has the type "Unknown" and no attributes are attached.
+        @Note: the returned context MUST be authenticated, or must be of type 
+            "Unknown" as described above.
         """
         return Context()
     
     def connect(self):
         """
-        Establishes a connection to the target defined during the construction of the stream.
-        @summary: establishes a connection to the target defined during the construction of the stream.
-        @PreCondition:   the stream is in "NEW" state.
-        @PostCondition:   the stream is in "OPEN" state.
-        @permission: Exec for the StreamService represented by the url used for creating this stream instance.
+        Establishes a connection to the target defined during the construction 
+            of the stream.
+        @summary: Establishes a connection to the target defined during the 
+            construction of the stream.
+        @PreCondition: the stream is in "NEW" state.
+        @PostCondition: the stream is in "OPEN" state.
+        @permission: Exec for the StreamService represented by the url used for 
+            creating this stream instance.
         @raise NotImplemented:
         @raise IncorrectState:
         @raise PermissionDenied: 
@@ -319,23 +406,25 @@ class Stream(Object, Async, Attributes, Monitorable):
         @raise Timeout:
         @raise NoSuccess:
         @Note: on failure, the stream state is changed to "ERROR"
-        @Note: if the stream instance is not in "NEW" state, an "IncorrectState" exception is raised.
-
+        @Note: if the stream instance is not in "NEW" state, an "IncorrectState" 
+            exception is raised.
         """
 
     def wait(self, what, timeout = -1.0):
-        #in int what, in float timeout = -1.0, out int cause
         """
-        Check if stream is ready for reading/writing, or if it has entered an error state.
-        @summary: check if stream is ready for reading/writing, or if it has entered an error state
-        @param what: activity types to wait for
+        Check if stream is ready for reading/writing, or if it has entered an 
+            error state.
+        @summary: Check if stream is ready for reading/writing, or if it has 
+            entered an error state
+        @param what: activity type to wait for from L{Activity}
         @type what: int
         @param timeout: number of seconds to wait
         @type timeout: float
         @return: activity type causing the call to return
         @rtype: int
         @PreCondition: the stream is in "OPEN" state.
-        @PostCondition: the stream can be read from, or written to, or it is in "ERROR" state.
+        @PostCondition: the stream can be read from, or written to, or it is in 
+            "ERROR" state.
         @raise NotImplemented:
         @raise IncorrectState:
         @raise PermissionDenied: 
@@ -343,10 +432,12 @@ class Stream(Object, Async, Attributes, Monitorable):
         @raise AuthenticationFailed:
         @raise NoSuccess:
         @Note: wait will only check on the conditions specified by "what"
-        @Note: "what" is an integer representing OR"ed "READ", "WRITE", or "EXCEPTION" flags from L{Activity}
-        @Note: "cause" describes the availability of the socket (eg. OR"ed "READ", "WRITE", or "EXCEPTION")
-        @Note: if the stream is not in "OPEN" state, an "IncorrectState" exception is raised.
-        
+        @Note: "what" is an integer representing OR"ed "READ", "WRITE", or 
+            "EXCEPTION" flags from L{Activity}
+        @Note: "cause" describes the availability of the socket (eg. OR"ed 
+            "READ", "WRITE", or "EXCEPTION")
+        @Note: if the stream is not in "OPEN" state, an "IncorrectState" 
+            exception is raised.
         """
         cause = 0
         return cause
@@ -354,33 +445,59 @@ class Stream(Object, Async, Attributes, Monitorable):
     def close(self, timeout = 0.0):
         """
         Closes an active connection
-        @summary: closes an active connection
+        @summary: Closes an active connection.
         @param timeout: seconds to wait
         @type timeout: float
-        @PostCondition:   stream is in "Closed" state
+        @PostCondition: stream is in "Closed" state
         @raise NotImplemented:
         @raise IncorrectState:
         @raise NoSuccess:
-        @Note: any subsequent method call on the object raises an "IncorrectState" exception (apart from __del__() and close()).
-        @Note: if close() is implicitely called in the __del__(), it will never raise an exception.
+        @Note: any subsequent method call on the object raises an 
+            "IncorrectState" exception (apart from __del__() and close()).
+        @Note: if close() is implicitely called in the __del__(), it will never 
+            raise an exception.
         @Note: close() can be called multiple times, with no side effects.
         """
+
+#    def read(self, len = -1, buf=None):
+#        #inout buffer buf, in int len_in = -1, out int len_out ):
+#        """
+#        Reads up to len bytes from the file into a buffer.
+#               
+
+#               
         
-        
-    def read (self, len = -1, buf = ""):
+    def read (self, size = -1, buf = None):
         #inout buffer buf, in int len_in = -1, out int len_out
         """
-        Read a data buffer from stream
-        @summary: read a data buffer from stream
-        @param len: Maximum number of units that can be copied into the buffer.
-        @type len: int
+        Read up to size bytes of data from stream.
+
+            - B{Call format: read( size, data )}
+                - B{Returns: int}
+                    - number of bytes successfully read
+                - B{Postcondition:}
+                    - the data from the file are available in the buffer.
+            
+            - B{Call format: read( size )}
+                - B{Returns: string}
+                    - the read data. 'size' determines the maximum length to be 
+                        read 
+                - B{Postcondition:}
+                    - the data is available in the returned string
+        
+        @summary: Read a data from a stream
+        @param size: Maximum number of units that can be copied into the buffer.
+        @type size: int
         @param buf: buffer to store read data into
-        @type buf: L{Buffer} or string
-        @return: number of bytes read, if successful.
-        @rtype: int
+        @type buf: L{Buffer}
+        @return: string containing the data or the number of bytes read, if 
+            successful. 
+        @rtype: int or string
         @PreCondition: the stream is in "OPEN" state.
-        @PostCondition: data from the stream are available in the buffer.
-        @permission: Read for the StreamService represented by the url used for creating this stream instance.
+        @PostCondition: data from the stream are available in the buffer or in
+            the returned string.
+        @permission: Read for the StreamService represented by the url used for 
+            creating this stream instance.
         @raise NotImplemented:
         @raise BadParameter:
         @raise IncorrectState:
@@ -389,37 +506,44 @@ class Stream(Object, Async, Attributes, Monitorable):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: if the stream is blocking, the call waits until data become available.
-        @Note: if the stream is non-blocking, the call returns immediately, even if no data 
-            are available -- that is not an error condition.
-        @Note: the actually number read into buffer is returned in the return value or can be found by 
-            checking the length of the returned string. It is not an error to read less bytes than requested, or in fact zero bytes.
-        @Note: errors are indicated by returning negative values, which correspond
-            to negatives of the respective ERRNO error code
-        @Note: the given buffer must be large enough to store up to len, or managed by the
-            implementation - otherwise a BadParameter exception is raised.
+        @Note: if the stream is blocking, the call waits until data become 
+            available.
+        @Note: if the stream is non-blocking, the call returns immediately, even 
+            if no data is available. That is not an error condition.
+        @Note: the actually number read into buffer is returned in the return 
+            value or can be found by checking the length of the returned string. 
+            It is not an error to read less bytes than requested, or in fact 
+            zero bytes.
+        @Note: errors are indicated by returning negative values, which 
+            correspond to negatives of the respective ERRNO error code
+        @Note: the given buffer must be large enough to store up to len, or 
+            managed by the implementation, otherwise a BadParameter exception is 
+            raised.
         @Note: the notes about memory management from the Buffer class apply.
-        @Note: if len is smaller than 0, or not given, the buffer size is used for len. If that is also
-            not available, a BadParameter exception is raised.
-        @Note: if the stream is not in "OPEN" state, an "IncorrectState" exception is raised.
+        @Note: if len is smaller than 0, or not given, the buffer size is used 
+            for len. If that is also not available, a BadParameter exception is 
+            raised.
+        @Note: if the stream is not in "OPEN" state, an "IncorrectState" 
+            exception is raised.
         @Note: similar to read (2) as specified by POSIX
         """
         len_out = 0
         return len_out
         
-    def write(self, buf, len):
-        #in buffer buf, in int len_in = -1, out int len_out
+    def write(self, buf, size):
+        #in buffer buf, in int size_in = -1, out int size_out
         """
         Write a data buffer to stream
         @summary: write a data buffer to stream
-        @param len: number of units of data in the buffer
-        @type len: int
+        @param size: number of units of data in the buffer
+        @type size: int
         @param buf: buffer containing data that will be sent out via socket
         @type buf: L{Buffer} or string
-        @return: nr of units written if successful
+        @return: nr of bytes written if successful
         @PreCondition: the stream is in "OPEN" state.
         @PostCondition: the buffer data are written to the stream.
-        @permission: Write for the StreamService represented by the url used for creating this stream instance.
+        @permission: Write for the StreamService represented by the url used for 
+            creating this stream instance.
         @raise NotImplemented:
         @raise BadParameter
         @raise IncorrectState:
@@ -428,19 +552,24 @@ class Stream(Object, Async, Attributes, Monitorable):
         @raise AuthenticationFailed
         @raise Timeout
         @raise NoSuccess
-        @Note: if the stream is blocking, the call waits until the data can be written.
+        @Note: if the stream is blocking, the call waits until the data can be 
+            written.
         @Note: if the stream is non-blocking, the call returns immediately, 
             even if no data are written. That is not an error condition.
-        @Note: it is not an error to write less than len units.
-        @Note: errors are indicated by returning negative values for the return value, 
-            which correspond to negatives of the respective ERRNO error code
+        @Note: it is not an error if write has written less than size to the 
+            stream.
+        @Note: errors are indicated by returning negative values for the return 
+            value, which correspond to negatives of the respective ERRNO error 
+            code
         @Note: the notes about memory management from the buffer class apply.
-        @Note: if len is smaller than 0, or not given, the buffer size is used for len. 
-            If that is also not available, a BadParameter exception is raised.
-        @Note: if the stream is not in "OPEN" state, an "IncorrectState" exception is raised.
+        @Note: if size is smaller than 0, or not given, the buffer size is used 
+            for size. If that is also not available, a BadParameter exception is 
+            raised.
+        @Note: if the stream is not in "OPEN" state, an "IncorrectState" 
+            exception is raised.
         @Note: similar to write (2) as specified by POSIX
 
         """
         
-        len_out = 0
-        return len_out
+        size_out = 0
+        return size_out
