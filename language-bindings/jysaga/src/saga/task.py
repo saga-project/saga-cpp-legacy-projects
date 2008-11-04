@@ -11,16 +11,10 @@ from saga.monitoring import Monitorable
 from saga.error import NotImplemented, BadParameter, NoSuccess
 from saga.buffer import Buffer
 from org.ogf.saga.task import TaskMode
-
-try:
-    import org.ogf.saga.impl.task.Task
-except:
-    pass
-
-try:
-   import org.ogf.saga.impl.task.TaskImpl 
-except:
-    pass
+import org.ogf.saga.task.Task
+import org.ogf.saga.task.TaskContainer
+import org.ogf.saga.file.IOVec
+import org.ogf.saga.buffer.Buffer
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -143,14 +137,15 @@ class Task(Object, Monitorable):
             self.delegateObject = impl["delegateObject"]
         if "fileReadBuffer" in impl:
             from saga.file import Iovec
-            if  impl["fileReadBuffer"].__class__ is not org.ogf.saga.impl.buffer.Buffer \
-            and impl["fileReadBuffer"].__class__ is not org.ogf.saga.impl.file.IOVec:
-                raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga.impl.[buffer.Buffer/file.IOVec] Type: " + str(impl["fileReadBuffer"].__class__)
+            if not isinstance(impl["fileReadBuffer"], org.ogf.saga.buffer.Buffer) \
+            and not isinstance(impl["fileReadBuffer"], org.ogf.saga.file.IOVec):
+                raise BadParameter, "Parameter impl[\"fileReadBuffer\"] is not a org.ogf.saga.[buffer.Buffer/file.IOVec] Type: " + str(impl["fileReadBuffer"].__class__)
             self.fileReadBuffer = impl["fileReadBuffer"]
  #TODO: fix isinstance
  
 #DOCUMENT: fileReadBuffer 
-    
+ 
+#TODO: create dummy task which only holds a error    
     def __del__(self):
         """
         Destroy the object.
@@ -497,8 +492,8 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to create a TaskContainer.
         """
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.impl.task.TaskContainer:
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.impl.task.TaskContainer. Type: " + str(impl["delegateObject"].__class__)
+            if not isinstance(impl["delegateObject"], org.ogf.saga.task.TaskContainer):
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.task.TaskContainer. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
             return
         try:
@@ -528,7 +523,7 @@ class TaskContainer(Object, Monitorable):
         if type(task) is not Task:
             raise BadParameter, "Parameter task is not a Task object. Type: " + str(type(task))
         try:
-            self.delegateObject.add(task.delegateObject)
+            return self.delegateObject.add(task.delegateObject)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         
@@ -546,16 +541,18 @@ class TaskContainer(Object, Monitorable):
         @raise DoesNotExist:
         @raise Timeout:
         @raise NoSuccess:
-        @note: if a Task was added more than once, it can be removed only once - see notes to add().
-        @note: if the Task identified by the cookie is not in the TaskContainer, a 'DoesNotExist' exception is raised.
-        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to remove the
-                  Task from the TaskContainer.
+        @note: if a Task was added more than once, it can be removed only once - 
+            see notes to add().
+        @note: if the Task identified by the cookie is not in the TaskContainer, 
+            a 'DoesNotExist' exception is raised.
+        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
+            was not able to remove the Task from the TaskContainer.
                   
         """
         if type(cookie) is not int:
             raise BadParameter, "Parameter cookie is not an int. Type: " + str(type(cookie))
         try:
-            retval = self.delegateObject.remove(task.delegateObject)
+            retval = self.delegateObject.remove(cookie)
             return Task(delegateObject = retval)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
@@ -572,13 +569,15 @@ class TaskContainer(Object, Monitorable):
         @raise DoesNotExist:
         @raise Timeout:
         @raise NoSuccess:
-        @note: run() causes an 'IncorrectState' exception if any of the Tasks in the container causes
-                  that exception on run().
-        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to run one or
-                  more Tasks in the container.
-        @note: if the TaskContainer is empty, an 'DoesNotExist' exception is raised.
-        @note: As the order of execution of the Tasks is undefined, no assumption on the individual
-                  Task states can be made after any exception gets raised.
+        @note: run() causes an 'IncorrectState' exception if any of the Tasks 
+            in the container causes that exception on run().
+        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
+            was not able to run one or more Tasks in the container.
+        @note: if the TaskContainer is empty, an 'DoesNotExist' exception is 
+            raised.
+        @note: As the order of execution of the Tasks is undefined, no 
+            assumption on the individual Task states can be made after any 
+            exception gets raised.
         """
         try:
             self.delegateObject.run()
@@ -641,33 +640,36 @@ class TaskContainer(Object, Monitorable):
             raise self.convertException(e)  
 #TODO: add object reference to Task. Add in each Method giving a task        
         
-    def cancel(self, timeout):
+    def cancel(self, timeout = 0.0):
         """
         Cancel all the asynchronous operations in the container.
         @summary:  Cancel all the asynchronous operations in the container.
-        @param timeout:              time for freeing resources
+        @param timeout: time for freeing resources
         @type timeout: float
-        @postcondition: if no timeout occurs, all Tasks in the container are in 'CANCELED' state.
+        @postcondition: if no timeout occurs, all Tasks in the container are in 
+            'CANCELED' state.
         @raise NotImplemented:
         @raise IncorrectState:
         @raise DoesNotExist:
         @raise Timeout:
         @raise NoSuccess:
         @note: see semantics of Task cancel.
-        @note: cancel() MUST cause an 'IncorrectState' exception if any of the Tasks in the container
-                  causes that exception on cancel().
-        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to run one or
-                  more Tasks in the container.
-        @note: if the TaskContainer is empty, a 'DoesNotExist' exception is raised.
-        @note: As the order of execution of the Tasks is undefined, no assumption on the individual
-                  Task states can be made after any exception gets raised.
+        @note: cancel() MUST cause an 'IncorrectState' exception if any of the 
+            Tasks in the container causes that exception on cancel().
+        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
+            was not able to run one or more Tasks in the container.
+        @note: if the TaskContainer is empty, a 'DoesNotExist' exception is 
+            raised.
+        @note: As the order of execution of the Tasks is undefined, no 
+            assumption on the individual Task states can be made after any 
+            exception gets raised.
         """
         if type(timeout) is not float and type(timeout) is not int:
             raise BadParameter, "Parameter timeout is not a number. Type: " + str(type(timeout))
         if timeout < 0 and timeout != -1.0:
             raise BadParameter,"Parameter timeout is a negative number. timeout: " + str(timeout)
         try:
-            if timeout is -1.0:
+            if timeout == -0.0:
                 self.delegateObject.cancel() 
             else:
                 self.delegateObject.cancel(timeout)
@@ -701,8 +703,8 @@ class TaskContainer(Object, Monitorable):
         @raise   NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
-        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to list the
-                  Tasks in the container.
+        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
+            was not able to list the Tasks in the container.
         """
         try:
             retval = self.delegateObject.listTasks()
@@ -730,7 +732,7 @@ class TaskContainer(Object, Monitorable):
         if type(cookie) is not int:
             raise BadParameter, "Parameter timeout is not an int. Type: " + str(type(timeout))
         try:
-            retval = self.delegateObject.getTask()
+            retval = self.delegateObject.getTask(cookie)
             return Task(delegateObject = retval)
         except org.ogf.saga.error.SagaException, e:
              raise self.convertException(e)       
@@ -770,8 +772,8 @@ class TaskContainer(Object, Monitorable):
         @raise NoSuccess:
         @note: the returned list is not ordered
         @note: if the TaskContainer is empty, an empty list is returned.
-        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend was not able to obtain the
-                 states of the Tasks in the container.
+        @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
+            was not able to obtain the states of the Tasks in the container.
         """
         try:
             javaArray = self.delegateObject.getStates()
@@ -781,3 +783,33 @@ class TaskContainer(Object, Monitorable):
         for i in range(len(javaArray)):
             list.append(javaArray[i].getValue())
         return list
+    
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.TASKCONTAINER
+
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement 
+            saga.object.Object, and returns a deep copy of the respective class 
+            type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = TaskContainer(delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)

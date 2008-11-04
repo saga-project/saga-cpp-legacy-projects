@@ -27,7 +27,7 @@ def checkObjectMethods(o):
     except Exception, e:
         print "!!! WARNING !!! get_id(): ", str(e)
     try:
-        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.BUFFER is " +str(ObjectType.BUFFER)
+        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.METRIC is " +str(ObjectType.METRIC)
     except Exception, e:
         print "!!! WARNING !!!", "get_type:", str(e) 
     try:   

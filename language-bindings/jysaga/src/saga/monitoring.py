@@ -7,6 +7,7 @@
 from saga.error import NotImplemented
 from saga.attributes import Attributes
 from saga.object import Object, ObjectType
+
 from org.ogf.saga.monitoring import MonitoringFactory
 import org.ogf.saga.monitoring.Metric
 import org.ogf.saga.monitoring.Callback
@@ -63,40 +64,73 @@ class CallbackProxy(org.ogf.saga.monitoring.Callback):
     pythonCallbackObject = None
     
     def __init__(self, **impl):
-        if pythonCallbackObject in impl:
+        if "pythonCallbackObject" in impl:
             if not isinstance(impl["pythonCallbackObject"], Callback):
-                raise BadParameter, "Parameter impl[\"pythonCallbackObject\"] is not a subclass of Callback. Type: " + str(type(impl["pythonCallbackObject"]))
+                raise BadParameter, "Parameter impl[\"pythonCallbackObject\"] is not a subclass of Callback. Type: " + str(impl["pythonCallbackObject"].__class__)
             self.pythonCallbackObject = impl["pythonCallbackObject"]
 
     def cb(self, monitorable, metric, context):  
-        tempMetric = Metric(delegateObject = metric)
-        tempContext = Context(delegateObject = context)
+        from saga.task import Task, TaskContainer
+        #from saga.stream import Stream, StreamService
+        #from saga.job import Job, JobSelf
+        #TODO: Uncomment this
+        
+        print "CallbackProxy.cb called:"
+        print " check 1",
+        if metric is not None:
+            tempMetric = Metric("","","","","","",delegateObject = metric)
+        else:
+            tempMetric = None
+        
+        print "2",
+        
+        if context is not None:
+            tempContext = Context(delegateObject = context)
+        else:
+            tempContext = None
+            
+        print "3",
         tempMonitorable = None
+
         if  isinstance (monitorable, org.ogf.saga.task.Task):
-            tempMonitorable = Task(delegateObject = monitorable)
+            print "TASK",
+            try:
+                tempMonitorable = Task(delegateObject = monitorable)
+            except Exception, e:
+                print str(e.__class__),":", str(e)
+            print "/TASK",
         
         elif isinstance(monitorable, org.ogf.saga.task.TaskContainer):
+            print "TASKCONTAINER",
             tempMonitorable = TaskContainer(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.stream.StreamService):
+            print "STREAMSERVICE",
             tempMonitorable = StreamService(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.stream.Stream):
+            print "STREAM",
             tempMonitorable = Stream(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.job.Job):
+            print "JOB",
             tempMonitorable = Job(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.job.JobSelf):
+            print "JOBSELF",            
             tempMonitorable = Jobself(delegateObject = monitorable)
+
         else:
+            print "ELSE",
             #TODO: Check if CallbackProxy fallback is needed
             message = "CallbackProxy: unknown monitorable object was passed from Java Implementation. Type: "
             message = message + str(monitorable.__class__) + " Not passed to pythonObject.cb() " 
             print message
         if tempMonitorable is not None:
+            print "CALL MADE"
             self.pythonCallbackObject.cb(tempMonitorable, tempMetric, tempContext)
-        
+            print "CALL FINISHED"
+            return
       
 class Metric(Object, Attributes):
     """A metric represents an entity / value to be monitored."""
@@ -190,8 +224,8 @@ class Metric(Object, Attributes):
                  "AuthenticationFailed", "AuthorizationFailed" or "PermissionDenied" exception to be raised.
 
         """
-        if isinstance(cb, Callback) is False:
-            raise BadParameter, "Parameter cb is not a subclass of Callback. Type: " + str(type(cb))
+        if not isinstance(cb, Callback):
+            raise BadParameter, "Parameter cb is not a subclass of Callback. Type: " + str(cb.__class__)
         try:
             delegateCallback = CallbackProxy(pythonCallbackObject=cb)
             cookie = self.delegateObject.addCallback(delegateCallback)
@@ -336,7 +370,7 @@ class Monitorable(object):
             raise BadParameter, "Parameter name is not a string. Type: " +str(type(name))
         try:
             javaObject = self.delegateObject.getMetric(name)
-            return Metric(delegateObject=javaObject)
+            return Metric("","","","","","",delegateObject=javaObject)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
      

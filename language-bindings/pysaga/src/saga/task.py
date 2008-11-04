@@ -374,7 +374,7 @@ class TaskContainer(Object, Monitorable):
         @note: for timeout semantics, see Section 2 of the GFD-R-P.90 document
         """
         
-    def cancel(self, timeout):
+    def cancel(self, timeout = 0.0):
         """
         Cancel all the asynchronous operations in the container.
         @summary:  Cancel all the asynchronous operations in the container.
