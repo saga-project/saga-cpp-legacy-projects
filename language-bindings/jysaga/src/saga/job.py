@@ -6,12 +6,34 @@
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
 #    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from object import Object, ObjectType
-from attributes import Attributes
-from task import Async, Task
-from monitoring import Steerable
-from permissions import Permissions
-from error import NotImplemented
+from saga.object import Object, ObjectType
+from saga.attributes import Attributes
+from saga.task import Async, Task
+from saga.monitoring import Steerable
+from saga.permissions import Permissions
+from saga.error import NotImplemented
+from saga.url import URL
+from saga.session import Session
+
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
+
+from org.ogf.saga.job import JobFactory
+import org.ogf.saga.job.JobService
+import org.ogf.saga.job.JobDescription
+import org.ogf.saga.job.Job
+import org.ogf.saga.job.JobSelf
 
 class State(object):
     """
@@ -322,8 +344,9 @@ class JobDescription(Object,Attributes):
     @summary: This object encapsulates all the attributes which define a job 
         to be run.            
     """
+    delegateObject = None
 
-    def __init__(self):
+    def __init__(self, **impl):
         """ 
         Initialize the object
         @summary: initialize the object
@@ -332,7 +355,18 @@ class JobDescription(Object,Attributes):
         @Note:    a JobDescription is not associated with a Session, 
             but can be used for JobServices from different sessions.
         """
-        super(JobDescription, self).__init__()
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.job.JobDescription):
+                raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
+                    + " a org.ogf.saga.job.JobDescription. Type: " \
+                    + str(impl["delegateObject"].__class__)
+            self.delegateObject = impl["delegateObject"]
+            return
+        else:
+            try:
+                self.delegateObject = JobFactory.createJobDescription()
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
           
 class JobService(Object, Async):
     """
@@ -340,7 +374,10 @@ class JobService(Object, Async):
     to create and submit jobs, and to discover jobs.
     """
 
-    def __init__(self, url = "", session = Session() ):
+#TODO: look for more session/url parameter sets. change them.
+#TODO: create ASYNC object creation
+
+    def __init__(self, url = "", session = Session(), **impl):
         """
         Create the object
         @summary: Create the object
@@ -364,6 +401,30 @@ class JobService(Object, Async):
          not exist), a BadParameter exception is raised.
 
         """
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.job.JobService):
+                raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
+                    + " a org.ogf.saga.job.JobService. Type: " \
+                    + str(impl["delegateObject"].__class__)
+            self.delegateObject = impl["delegateObject"]
+            return
+        else:
+            if type(url) is not str and not isinstance(url, URL): 
+                raise BadParameter, "Parameter url is not string or a URL but" \
+                    + " a" + str(url.__class__)
+            if not isinstance(session, Session):
+                raise BadParameter, "Parameter session is not a Session but a "\
+                    + str(session.__class__)
+            try:
+                if url == "": 
+                    self.delegateObject = JobFactory.createJobService(session.delegateObject)
+                elif isinstance(url,URL):
+                    self.delegateObject = JobFactory.createJobService(session.delegateObject, url.delegateObject)
+                else:
+                    urlObject = URL(url)
+                    self.delegateObject = JobFactory.createJobService(session.delegateObject, urlObject.delegateObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
 
     def create_job(self, jd):
         #in JobDescription jd, out job job
@@ -396,8 +457,17 @@ class JobService(Object, Async):
             and not usable for creating a job instance, a BadParameter exception 
             is raised, which MUST indicate which attribute(s) caused this 
             exception, and why.
-
         """
+        if not isinstance(jd, JobDescription):
+            raise BadParameter, "Parameter jd is not a JobDescription, but a" \
+                + str(jd.__class__)
+        try:
+            javaObject = self.delegateObject.createJob(jd)
+            return Job(delegateObject=javaObject)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+        
+#todo implement async versions
         
         
     def run_job(self, commandline, host = ""):
