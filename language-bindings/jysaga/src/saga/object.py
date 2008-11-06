@@ -17,6 +17,7 @@ import org.ogf.saga.error.PermissionDeniedException
 import org.ogf.saga.error.SagaException 
 import org.ogf.saga.error.SagaIOException 
 import org.ogf.saga.error.TimeoutException 
+import java.io.IOException
  
 class ObjectType(object):
     """
@@ -186,6 +187,8 @@ class Object(object):
             error = sagaIO(message, object)
         elif isinstance(e, org.ogf.saga.error.TimeoutException):
             error = Timeout(message, object)
+        elif isinstance(e, java.io.IOException):    #needed for StdIO class
+            error = sagaIO(messaga, object)
         else:
             error = NoSuccess(message, object)
         return error

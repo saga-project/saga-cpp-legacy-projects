@@ -11,7 +11,7 @@ from saga.attributes import Attributes
 from saga.task import Async, Task
 from saga.monitoring import Steerable
 from saga.permissions import Permissions
-from saga.error import NotImplemented
+from saga.error import NotImplemented, PermissionDenied
 from saga.url import URL
 from saga.session import Session
 
@@ -30,12 +30,18 @@ import org.ogf.saga.error.SagaIOException
 import org.ogf.saga.error.TimeoutException
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.IOException
+import java.lang.String
+
+import array.array
 
 from org.ogf.saga.job import JobFactory
 import org.ogf.saga.job.JobService
 import org.ogf.saga.job.JobDescription
 import org.ogf.saga.job.Job
 import org.ogf.saga.job.JobSelf
+
+
 
 class State(object):
     """
@@ -674,8 +680,8 @@ class StdIO(object):
     @summary: This class is used to give acces to the opaque data like from 
         stdin, stdout and stderr
     """
-    self.name
-    self.mode
+    name = None
+    mode = None
     delegateObject = None
 
     def __init__(self, **impl):
@@ -692,19 +698,38 @@ class StdIO(object):
                     + " a java.io.InputStream/OutputStream. Type: " \
                     + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
-            return        
+            if "name" in impl:
+                if not type(impl["name"]) is str:
+                    raise BadParameter,"Parameter impl[\"name\"] is not a " \
+                        + "string but a " + str(impl["name"].__class__) 
+                self.name =  impl["name"] 
+            return 
+    # OutputStream belongs to job.getStdin()
+    # InputStream  belongs to job.getStdout and job.getStderr()
+               
         
     def close(self):
         """
         Closes the stream from reading or writing (if applicable)
         @summary: Closes the stream from reading or writing (if applicable)
         """
+        try:
+            self.delagateObject.close()
+        except java.io.IOException, e:
+            raise convertException(e)
     
     def flush(self):
         """
         Forces the datastream to flush the data.
         @summary: Forces the datastream to flush the data
         """
+        if isinstance( self.delegateObject, java.io.OutputStream):
+            try:
+                self.delagateObject.flush()
+            except java.io.IOException, e:
+                raise convertException(e)
+        else:
+            pass
 
     def get_name(self):
         """
@@ -715,15 +740,27 @@ class StdIO(object):
             it represents the stderr of the job
         @rtype: string
         """
+        if self.name != None:
+            return self.name
+        else:
+            if isinstance(self.delegateObject, java.io.OutputStream):
+                return "<stdin>"
+            else:
+                return "<undefined_stdout_or_stderr>"
+                
 
     def get_mode(self):
-       """
-       Returns the mode of the StdIO object
-       @summary: Returns the mode of the StdIO object
-       @return: 'w' if this object represents the stdin of the job,
+        """
+        Returns the mode of the StdIO object
+        @summary: Returns the mode of the StdIO object
+        @return: 'w' if this object represents the stdin of the job,
             'r' if it represents the stdout of the job and 'r' if
             it represents the stderr of the job
-       """ 
+        """ 
+        if isinstance(self.delegateObject, java.io.OutputStream):
+            return "w"
+        else:
+            return "r"      
 
     def write(self, data):
         """
@@ -736,17 +773,87 @@ class StdIO(object):
         @note: due to buffering, flush() or close() may be needed before it 
             is written to stdin
         """
+        if isinstance(self.delegateObject , java.io.InputStream):
+            raise PermissionDenied, "Cannot write to the stdout or stderr of" \
+                + " the job"
+        if type(data) is not str:
+            raise BadParameter, "Parameter data is not a string, but a " \
+                + str(data.__class__)
+        try:
+            tempString = java.lang.String(data)
+            tempByteArray = tempString.getBytes()
+            self.delegateObject.write( tempByteArray )
+        except java.io.IOException, e:
+            raise self.convertException(e)
 
     def writelines(self, data):
         """
         Write a sequence of strings to the stdin of the job. Newlines in the 
         sequence are not written to the stdin of the job
         @param data: sequence of strings to write
-        @type data: string, or a tuple, list or array of strings  
+        @type data: string, or a tuple, list or array of chars  
         @summary: Write a sequence of strings to the stdin of the job.
         @raise PermissionDenied: if this object represents stdout or stderr of 
             the job.
         """
+        if isinstance(self.delegateObject , java.io.InputStream):
+            raise PermissionDenied, "Cannot write to the stdout or stderr of" \
+                + " the job"
+        if type(data) is not str and not isinstance(data, array.array) \
+        and type(data) is not list and type(data) is not tuple:
+            raise BadParameter, "Parameter data is not a string, array, list " \
+                "or tuple of strings"
+        if type(data) is str:
+            tempString = java.lang.String()
+            tempList = data.split('\n')
+            try:
+                for i in range(len(tempList)):
+                    tempString.concat( tempList[i] )
+            except TypeError, e:
+                raise BadParameter, "Parameter data cannot be parsed as a " \
+                    + "string: " + str(e) 
+            try:
+                tempByteArray = tempString.getBytes()
+                self.delegateObject.write( tempByteArray )
+            except java.io.IOException, e:
+                raise self.convertException(e)   
+        elif type(data) is list or type(data) is tuple:
+            tempString = java.lang.String()
+            for i in range(len(data)):
+                tempList = data[i].split('\n')
+                try:
+                    for j in range(len(tempList)):
+                        tempString.concat( tempList[j] )
+                except TypeError, e:
+                    raise BadParameter, "Parameter data cannot be parsed as a" \
+                        + " string: " + str(e) 
+            try:
+                tempByteArray = tempString.getBytes()
+                self.delegateObject.write( tempByteArray )
+            except java.io.IOException, e:
+                raise self.convertException(e)               
+        elif isinstance(data, array.array):
+            if data.typecode != 'c':
+                raise BadParameter, "Parameter is an array of wrong type. " \
+                    + "Expected typecode 'c', got: " + data.typecode
+            tempString = java.lang.String()
+            templist = data.tostring().split('\n')
+            try:
+                for j in range(len(tempList)):
+                    tempString.concat( tempList[j] )
+            except TypeError, e:
+                    raise BadParameter, "Parameter data cannot be parsed as a" \
+                        + " string: " + str(e) 
+            try:
+                tempByteArray = tempString.getBytes()
+                self.delegateObject.write( tempByteArray )
+            except java.io.IOException, e:
+                raise self.convertException(e)        
+        else:
+            raise BadParameter, "Parameter data cannot be parsed as a " \
+                    + "string: " + str(data.__class__) 
+            
+            
 
     def read(self, size = -1, blocking=True):
         """
@@ -770,6 +877,9 @@ class StdIO(object):
             case.
       
         """
+        if isinstance(self.delegateObject , java.io.OutputStream):
+            raise PermissionDenied, "Cannot read from the stdin the job" 
+        
         
     def readline(self, size = -1, blocking = True):
         """

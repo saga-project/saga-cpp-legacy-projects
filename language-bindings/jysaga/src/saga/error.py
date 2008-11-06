@@ -9,7 +9,8 @@ import saga.object
 
 class SagaException(Exception):
 	"""
-	This is the exception base class inherited by all exceptions raised by a SAGA object implementation.
+	This is the exception base class inherited by all exceptions raised by a 
+	SAGA object implementation.
 	@version: 1.0
 	"""
 	message = ""
@@ -25,6 +26,7 @@ class SagaException(Exception):
 		@param sagaObject: a sagaObject associated with this exception I{(optional)}.	
 		@type sagaObject: L{Object}
 		"""
+		#TODO: wade through erroneous code in here and Pysaga
 		if message is not None:
 			self.message = message
 		else:

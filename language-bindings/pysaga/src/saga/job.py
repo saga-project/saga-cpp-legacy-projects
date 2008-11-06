@@ -614,7 +614,7 @@ class StdIO(object):
         Write a sequence of strings to the stdin of the job. Newlines in the 
         sequence are not written to the stdin of the job
         @param data: sequence of strings to write
-        @type data: string, or a tuple, list or array of strings  
+        @type data: string, or a tuple, list or array of chars  
         @summary: Write a sequence of strings to the stdin of the job.
         @raise PermissionDenied: if this object represents stdout or stderr of 
             the job.
