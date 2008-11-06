@@ -352,6 +352,7 @@ class Task(Object, Monitorable):
             if type(retval) is java.lang.Integer: return retval.intValue()
             else:                                 return retval
         elif type(retval) is org.ogf.saga.job.Job: pass
+        #TODO: check if job comes from JobService.runJob() -> also return StdIOs
         elif type(retval) is org.ogf.saga.job.JobDescription: pass
         elif type(retval) is org.ogf.saga.job.JobSelf: pass  
         elif type(retval) is java.util.List: 

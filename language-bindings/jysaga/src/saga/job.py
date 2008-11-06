@@ -28,6 +28,8 @@ import org.ogf.saga.error.PermissionDeniedException
 import org.ogf.saga.error.SagaException 
 import org.ogf.saga.error.SagaIOException 
 import org.ogf.saga.error.TimeoutException
+import java.io.InputStream
+import java.io.OutputStream
 
 from org.ogf.saga.job import JobFactory
 import org.ogf.saga.job.JobService
@@ -77,8 +79,8 @@ class State(object):
         
     SUSPENDED = 6
     """
-    @summary: This state identiﬁes a job instance which has been suspended. 
-        This state corresponds to the BES state ’Suspend’.
+    @summary: This state identifies a job instance which has been suspended. 
+        This state corresponds to the BES state 'Suspend'.
     """
 
 
@@ -521,11 +523,29 @@ class JobService(Object, Async):
         #    python being notable exceptions). If these parameters are omitted, 
         #    the job is to be started non-interactively, and the output I/O 
         #    streams may be discarded.
-        job = Job()
-        stdin = StdIO()
-        stdout = StdIO()
-        stderr = StdIO()
-        return job, stdin, stdout, stderr
+        if type(commandline) is not str:
+            raise BadParameter, "Parameter commandline is not a string but a "\
+                    + str(commandline.__class__)
+        if type(host) is not str:
+            raise BadParameter, "Parameter host is not a string but a "\
+                    + str(host.__class__)
+        try:
+            javaJobObject = self.delegateObject.runJob(commandline, host, True)
+            returnJob = Job(delegateObject=javaJobObject)
+            
+            javaStdin = tempJob.getStdin() #OutputStream
+            returnStdin = StdIO(delegateObject = javaStdin)
+        
+            javaStdout = tempJob.getStdout() #InputStream
+            returnStdout = StdIO(delegateObject = javaStdout)
+            
+            javaStderr = tempJob.getStderr() #InputStream
+            returnStderr = StdIO(delegateObject = javaStderr)            
+        
+            return returnJob, returnStdin, returnStdout, returnStderr
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+
 
     def list(self):
         #out array<string>   job_ids
@@ -550,7 +570,15 @@ class JobService(Object, Async):
             cause an 'AuthorizationFailed' exception).
 
         """
-        return []
+        try:
+            retval = []
+            javaList = self.delegateObject.list()
+            for i in range(javaList.size()):
+                retval.append( javaList.get(i).toString() )
+            return retval
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+        #TODO: implement ASYNC versions
     
     def get_job (self, job_id):
         #in  string job_id, out job job
@@ -561,8 +589,8 @@ class JobService(Object, Async):
             representing this job.
         @param job_id: job identifier as returned by the resource manager
         @type job_id: string 
-        @param job: a job object representing the job identified by job_id
-        @type job: L{Job} 
+        @return: a job object representing the job identified by job_id
+        @rtype: L{Job} 
         @PreCondition: Job identified by job_id is managed by the job_service.
         @permission: Query on the job.
         @raise NotImplemented:
@@ -582,13 +610,21 @@ class JobService(Object, Async):
             BadParameter exception is raised.
 
         """
-        return Job()
+        if type(job_id) is not str:
+            raise BadParameter, "Parameter job_id is not a string but a "\
+                    + str(host.__class__)
+        try:
+            javaObject = self.delegateObject.getJob(job_id)
+            return Job(delegateObject = javaObject)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+
         
     def get_self (self):
         #out job_self job
         """
         This method returns a Job object representing I{B{this}} job, i.e. the 
-            calling application.
+        calling application.
         @summary: This method returns a Job object representing I{B{this}} job, 
             i.e. the calling application.
         @return: a L{JobSelf} object representing I{B{this}} job.
@@ -609,30 +645,54 @@ class JobService(Object, Async):
         @Note: if a job_service cannot handle the calling job as a job_self 
             instance, a 'NoSuccess' exception is raised, with a descriptive 
             error message.
-
         """
+        try:
+            javaObject = self.delegateObject.getSelf()
+            return JobSelf(delegateObject = javaObject)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+
+    def clone(self):
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = JobService( delegateObject = javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+        
+    def get_type(self):
+        return ObjectType.JOBSERVICE
  
 class StdIO(object):
     """
     This class is used to give acces to the opaque data like from from stdin, 
-        stdout and stderr. This is an extention from the SAGA specification. 
-        StdIO supports most operations associated with stdin, stdout and stderr
-        but not all methods are available in the same object. For instance:
-        if a StdIO object represents the job's stdin, it makes no sense to 
-        read from the StdIO object as a stdin cannot generate data. 
+    stdout and stderr. This is an extention from the SAGA specification. 
+    StdIO supports most operations associated with stdin, stdout and stderr
+    but not all methods are available in the same object. For instance:
+    if a StdIO object represents the job's stdin, it makes no sense to 
+    read from the StdIO object as a stdin cannot generate data. 
     @summary: This class is used to give acces to the opaque data like from 
         stdin, stdout and stderr
     """
     self.name
     self.mode
+    delegateObject = None
 
-    def __init__(self):
+    def __init__(self, **impl):
         """
-        Initializes the StdIO object This object can only be created from the
-            JobService.run_job() or Job.get_std*() methods
+        Initializes the StdIO object. This object can only be created from the
+        JobService.run_job() or Job.get_stdin(), Job.get_stdout() and 
+        Job.get_stderr()  methods
         @summary: Initializes the StdIO object 
-        
         """
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"],java.io.OutputStream) and \
+               not isinstance(impl["delegateObject"],java.io.InputStream):
+                raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
+                    + " a java.io.InputStream/OutputStream. Type: " \
+                    + str(impl["delegateObject"].__class__)
+            self.delegateObject = impl["delegateObject"]
+            return        
         
     def close(self):
         """
@@ -680,7 +740,7 @@ class StdIO(object):
     def writelines(self, data):
         """
         Write a sequence of strings to the stdin of the job. Newlines in the 
-            sequence are not written to the stdin of the job
+        sequence are not written to the stdin of the job
         @param data: sequence of strings to write
         @type data: string, or a tuple, list or array of strings  
         @summary: Write a sequence of strings to the stdin of the job.
@@ -691,7 +751,7 @@ class StdIO(object):
     def read(self, size = -1, blocking=True):
         """
         Read at most size bytes from stdout or from stderr, depending which 
-            one is represented by this object.
+        one is represented by this object.
         @summary: Read at most size bytes from stdout/stderr.
         @return: string with the data 
         @rtype: string
@@ -899,6 +959,23 @@ class Job(Task, Attributes, Permissions, Async):
     @summary: The job provides the manageability interface to a job 
         instance submitted to a resource manager.
     """
+    delegateObject = None
+
+    def __init__(self, **impl):
+        """
+        @summary: Initializes the Job object. Cannot only be created by
+            methods which create a Job, and not through j = Job()
+        """
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"],org.ogf.saga.job.Job):
+                raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
+                    + " a org.ogf.saga.job.Job. Type: " \
+                    + str(impl["delegateObject"].__class__)
+            self.delegateObject = impl["delegateObject"]
+            return 
+        else:
+            raise BadParameter, "Job can only be created through methods" \
+                + " and not through \"job = Job()\" "
 
     #job inspection
     def get_job_description(self):
@@ -1030,7 +1107,7 @@ class Job(Task, Attributes, Permissions, Async):
     def suspend(self):
         """
         Ask the resource manager to perform a suspend operation on the running 
-            job.
+        job.
         @summary: Ask the resource manager to perform a suspend operation on 
             the running job.
         @PreCondition: the job is in 'Running' state.
@@ -1051,7 +1128,7 @@ class Job(Task, Attributes, Permissions, Async):
     def resume(self):
         """
         Ask the resource manager to perform a resume operation on a suspended 
-            job.
+        job.
         @summary: Ask the resource manager to perform a resume operation on a 
             suspended job.
         @PreCondition: the job is in 'Suspended' state.
@@ -1133,7 +1210,7 @@ class Job(Task, Attributes, Permissions, Async):
         #in int signum
         """
         Ask the resource manager to deliver an arbitrary signal to a dispatched 
-            job.
+        job.
         @param signum: signal number to be delivered
         @type param: int
         @PreCondition: job is in 'Running' or 'Suspended' state.

@@ -42,28 +42,28 @@ class State(object):
     
     CLOSED = 3
     """
-    @summary: The close() method was called on the stream – I/O is no longer 
-        possible. This is a ﬁnal state.
+    @summary: The close() method was called on the stream - I/O is no longer
+        possible. This is a final state.
     """
     
     DROPPED = 4
     """
-    @summary: The remote party closed the connection – I/O is no longer 
-        possible. This is a ﬁnal state.
+    @summary: The remote party closed the connection - I/O is no longer 
+        possible. This is a final state.
     """
     
     ERROR = 5
     """
-    @summary: An error occured on the stream – I/O is no longer possible. This 
-        is a ﬁnal state. 
+    @summary: An error occured on the stream - I/O is no longer possible. This 
+        is a final state. 
     """
  
 class Activity(object):
     """
     The SAGA stream API allows for event driven communication. A stream can
-    ﬂag activities, i.e. Read, Write and Exception, and the application can 
+    flag activities, i.e. Read, Write and Exception, and the application can 
     react on these activities. It is possible to poll for these events 
-    (using wait() with a potential timeout), or to get asynchronous notiﬁcation 
+    (using wait() with a potential timeout), or to get asynchronous notification 
     of these events, by using the respective metrics.
 
     @summary: Activity holds the possible events for which the application can
@@ -391,7 +391,7 @@ class Stream(Object, Async, Attributes, Monitorable):
     def connect(self):
         """
         Establishes a connection to the target defined during the construction 
-            of the stream.
+        of the stream.
         @summary: Establishes a connection to the target defined during the 
             construction of the stream.
         @PreCondition: the stream is in "NEW" state.
@@ -413,7 +413,7 @@ class Stream(Object, Async, Attributes, Monitorable):
     def wait(self, what, timeout = -1.0):
         """
         Check if stream is ready for reading/writing, or if it has entered an 
-            error state.
+        error state.
         @summary: Check if stream is ready for reading/writing, or if it has 
             entered an error state
         @param what: activity type to wait for from L{Activity}
@@ -530,7 +530,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         len_out = 0
         return len_out
         
-    def write(self, buf, size):
+    def write(self, buf, size = -1):
         #in buffer buf, in int size_in = -1, out int size_out
         """
         Write a data buffer to stream
@@ -545,13 +545,13 @@ class Stream(Object, Async, Attributes, Monitorable):
         @permission: Write for the StreamService represented by the url used for 
             creating this stream instance.
         @raise NotImplemented:
-        @raise BadParameter
+        @raise BadParameter:
         @raise IncorrectState:
-        @raise PermissionDenied
-        @raise AuthorizationFailed
-        @raise AuthenticationFailed
-        @raise Timeout
-        @raise NoSuccess
+        @raise PermissionDenied:
+        @raise AuthorizationFailed:
+        @raise AuthenticationFailed:
+        @raise Timeout:
+        @raise NoSuccess:
         @Note: if the stream is blocking, the call waits until the data can be 
             written.
         @Note: if the stream is non-blocking, the call returns immediately, 

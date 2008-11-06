@@ -83,308 +83,307 @@
 </pre>
 
 <hr />
-This is the object that encapsulates all client Stream objects.
-  <h1 class="heading">status: This object is not completly specified yet.</h1>
-    <b>Attributes supported:</b>
-    <ul>
-      <li>
-        <b>Bufsize</b>
-        <ul>
-          <li>
-            name: Bufsize
-          </li>
-          <li>
-            desc: determines the size of the send buffer
-          </li>
-          <li>
-            mode: ReadWrite, optional
-          </li>
-          <li>
-            type: Int
-          </li>
-          <li>
-            value: system dependend
-          </li>
-          <li>
-            notes:
-            <ul>
-              <li>
-                the implementation documents the default value, and its 
-                meaning (e.g. on what layer that buffer is maintained, or 
-                if it disables zero copy).
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>Timeout</b>
-        <ul>
-          <li>
-            name: Timeout
-          </li>
-          <li>
-            desc: determines the amount of idle time before dropping the
-            line, in seconds
-          </li>
-          <li>
-            mode: ReadWrite, optional
-          </li>
-          <li>
-            type: Int
-          </li>
-          <li>
-            value: system dependend
-          </li>
-          <li>
-            notes:
-            <ul>
-              <li>
-                the implementation documents the default value
-              </li>
-              <li>
-                if this attribute is supported, the connection is closed
-                by the implementation if for that many seconds nothing has 
-                been read from or written to the stream.
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>Blocking</b>
-        <ul>
-          <li>
-            name: Blocking
-          </li>
-          <li>
-            desc: determines if read/writes are blocking or not
-          </li>
-          <li>
-            mode: ReadWrite, optional
-          </li>
-          <li>
-            type: Bool
-          </li>
-          <li>
-            value: True
-          </li>
-          <li>
-            notes:
-            <ul>
-              <li>
-                if the attribute is not supported, the implementation is
-                blocking
-              </li>
-              <li>
-                if the attribute is set to &quot;True&quot;, a read or 
-                write operation may return immediately if no data can be 
-                read or written - that does not constitute an error (see 
-                EAGAIN in POSIX).
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>Compression</b>
-        <ul>
-          <li>
-            name:  Compression
-          </li>
-          <li>
-            desc:  determines if data are compressed before/after 
-            transfer
-          </li>
-          <li>
-            mode: ReadWrite, optional
-          </li>
-          <li>
-            type: Bool
-          </li>
-          <li>
-            value: schema dependent
-          </li>
-          <li>
-            note: the implementation documents the default values for 
-            the available schemas
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>Nodelay</b>
-        <ul>
-          <li>
-            name:  Nodelay
-          </li>
-          <li>
-            desc:  determines if packets are sent immediately, i.e. 
-            without delay
-          </li>
-          <li>
-            mode: ReadWrite, optional
-          </li>
-          <li>
-            type: Bool
-          </li>
-          <li>
-            value: True
-          </li>
-          <li>
-            note: similar to the TCP_NODELAY option
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>Reliable</b>
-        <ul>
-          <li>
-            name:  Reliable
-          </li>
-          <li>
-            desc:  determines if all sent data MUST arrive
-          </li>
-          <li>
-            mode:  ReadWrite, optional
-          </li>
-          <li>
-            type:  Bool
-          </li>
-          <li>
-            value: True
-          </li>
-          <li>
-            note: if the attribute is not supported, the implementation 
-            MUST be reliable
-          </li>
-        </ul>
-      </li>
-    </ul>
-    <b>Metrics supported:</b>
-    <ul>
-      <li>
-        <b>stream.state</b>
-        <ul>
-          <li>
-            name: stream.state
-          </li>
-          <li>
-            desc: fires if the state of the stream changes, and has the 
-            value of the new state
-          </li>
-          <li>
-            mode: ReadOnly
-          </li>
-          <li>
-            unit: 1
-          </li>
-          <li>
-            type: Enum -value: New
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>stream.read</b>
-        <ul>
-          <li>
-            name: stream.read
-          </li>
-          <li>
-            desc: fires if a stream gets readable
-          </li>
-          <li>
-            mode: ReadOnly
-          </li>
-          <li>
-            unit: 1
-          </li>
-          <li>
-            type: Trigger
-          </li>
-          <li>
-            value: 1
-          </li>
-          <li>
-            note: a stream is considered readable if subsequent read() 
-            can sucessfully read 1 or more bytes of data.
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>stream.write</b>
-        <ul>
-          <li>
-            name:  stream.write
-          </li>
-          <li>
-            desc:  fires if a stream gets writable
-          </li>
-          <li>
-            mode:  ReadOnly
-          </li>
-          <li>
-            unit:  1
-          </li>
-          <li>
-            type:  Trigger
-          </li>
-          <li>
-            value: 1
-          </li>
-          <li>
-            note: a stream is considered writable if a subsequent 
-            write() can sucessfully write 1 or more units of data.
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>stream.exception</b>
-        <ul>
-          <li>
-            name:  stream.exception
-          </li>
-          <li>
-            desc:  fires if a stream has an error condition
-          </li>
-          <li>
-            mode:  ReadOnly
-          </li>
-          <li>
-            unit:  1
-          </li>
-          <li>
-            type:  Trigger
-          </li>
-          <li>
-            value: 1
-          </li>
-        </ul>
-      </li>
-      <li>
-        <b>stream.dropped</b>
-        <ul>
-          <li>
-            name:  stream.dropped
-          </li>
-          <li>
-            desc:  fires if the stream gets dropped by the remote 
-            party
-          </li>
-          <li>
-            mode: ReadOnly
-          </li>
-          <li>
-            unit: 1
-          </li>
-          <li>
-            type: Trigger
-          </li>
-          <li>
-            value: 1
-          </li>
-        </ul>
-      </li>
-    </ul><br /><br />
+<p>This is the object that encapsulates all client Stream objects.</p>
+  <b>Attributes supported:</b>
+  <ul>
+    <li>
+      <b>Bufsize</b>
+      <ul>
+        <li>
+          name: Bufsize
+        </li>
+        <li>
+          desc: determines the size of the send buffer
+        </li>
+        <li>
+          mode: ReadWrite, optional
+        </li>
+        <li>
+          type: Int
+        </li>
+        <li>
+          value: system dependend
+        </li>
+        <li>
+          notes:
+          <ul>
+            <li>
+              the implementation documents the default value, and its 
+              meaning (e.g. on what layer that buffer is maintained, or if 
+              it disables zero copy).
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>Timeout</b>
+      <ul>
+        <li>
+          name: Timeout
+        </li>
+        <li>
+          desc: determines the amount of idle time before dropping the 
+          line, in seconds
+        </li>
+        <li>
+          mode: ReadWrite, optional
+        </li>
+        <li>
+          type: Int
+        </li>
+        <li>
+          value: system dependend
+        </li>
+        <li>
+          notes:
+          <ul>
+            <li>
+              the implementation documents the default value
+            </li>
+            <li>
+              if this attribute is supported, the connection is closed 
+              by the implementation if for that many seconds nothing has 
+              been read from or written to the stream.
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>Blocking</b>
+      <ul>
+        <li>
+          name: Blocking
+        </li>
+        <li>
+          desc: determines if read/writes are blocking or not
+        </li>
+        <li>
+          mode: ReadWrite, optional
+        </li>
+        <li>
+          type: Bool
+        </li>
+        <li>
+          value: True
+        </li>
+        <li>
+          notes:
+          <ul>
+            <li>
+              if the attribute is not supported, the implementation is 
+              blocking
+            </li>
+            <li>
+              if the attribute is set to &quot;True&quot;, a read or 
+              write operation may return immediately if no data can be read
+              or written - that does not constitute an error (see EAGAIN in
+              POSIX).
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>Compression</b>
+      <ul>
+        <li>
+          name:  Compression
+        </li>
+        <li>
+          desc:  determines if data are compressed before/after 
+          transfer
+        </li>
+        <li>
+          mode: ReadWrite, optional
+        </li>
+        <li>
+          type: Bool
+        </li>
+        <li>
+          value: schema dependent
+        </li>
+        <li>
+          note: the implementation documents the default values for the 
+          available schemas
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>Nodelay</b>
+      <ul>
+        <li>
+          name:  Nodelay
+        </li>
+        <li>
+          desc:  determines if packets are sent immediately, i.e. 
+          without delay
+        </li>
+        <li>
+          mode: ReadWrite, optional
+        </li>
+        <li>
+          type: Bool
+        </li>
+        <li>
+          value: True
+        </li>
+        <li>
+          note: similar to the TCP_NODELAY option
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>Reliable</b>
+      <ul>
+        <li>
+          name:  Reliable
+        </li>
+        <li>
+          desc:  determines if all sent data MUST arrive
+        </li>
+        <li>
+          mode:  ReadWrite, optional
+        </li>
+        <li>
+          type:  Bool
+        </li>
+        <li>
+          value: True
+        </li>
+        <li>
+          note: if the attribute is not supported, the implementation 
+          MUST be reliable
+        </li>
+      </ul>
+    </li>
+  </ul>
+  <b>Metrics supported:</b>
+  <ul>
+    <li>
+      <b>stream.state</b>
+      <ul>
+        <li>
+          name: stream.state
+        </li>
+        <li>
+          desc: fires if the state of the stream changes, and has the 
+          value of the new state
+        </li>
+        <li>
+          mode: ReadOnly
+        </li>
+        <li>
+          unit: 1
+        </li>
+        <li>
+          type: Enum -value: New
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>stream.read</b>
+      <ul>
+        <li>
+          name: stream.read
+        </li>
+        <li>
+          desc: fires if a stream gets readable
+        </li>
+        <li>
+          mode: ReadOnly
+        </li>
+        <li>
+          unit: 1
+        </li>
+        <li>
+          type: Trigger
+        </li>
+        <li>
+          value: 1
+        </li>
+        <li>
+          note: a stream is considered readable if subsequent read() can
+          sucessfully read 1 or more bytes of data.
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>stream.write</b>
+      <ul>
+        <li>
+          name:  stream.write
+        </li>
+        <li>
+          desc:  fires if a stream gets writable
+        </li>
+        <li>
+          mode:  ReadOnly
+        </li>
+        <li>
+          unit:  1
+        </li>
+        <li>
+          type:  Trigger
+        </li>
+        <li>
+          value: 1
+        </li>
+        <li>
+          note: a stream is considered writable if a subsequent write() 
+          can sucessfully write 1 or more units of data.
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>stream.exception</b>
+      <ul>
+        <li>
+          name:  stream.exception
+        </li>
+        <li>
+          desc:  fires if a stream has an error condition
+        </li>
+        <li>
+          mode:  ReadOnly
+        </li>
+        <li>
+          unit:  1
+        </li>
+        <li>
+          type:  Trigger
+        </li>
+        <li>
+          value: 1
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>stream.dropped</b>
+      <ul>
+        <li>
+          name:  stream.dropped
+        </li>
+        <li>
+          desc:  fires if the stream gets dropped by the remote 
+          party
+        </li>
+        <li>
+          mode: ReadOnly
+        </li>
+        <li>
+          unit: 1
+        </li>
+        <li>
+          type: Trigger
+        </li>
+        <li>
+          value: 1
+        </li>
+      </ul>
+    </li>
+  </ul><br /><br />
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -413,6 +412,22 @@ This is the object that encapsulates all client Stream objects.
         <span class="summary-sig-arg">session</span>,
         <span class="summary-sig-arg">url</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>)</span><br />
       initializes a client stream for later connection to a server.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="saga.stream.Stream-class.html#__def__" class="summary-sig-name">__def__</a>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
             
             
@@ -464,7 +479,7 @@ This is the object that encapsulates all client Stream objects.
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="saga.stream.Stream-class.html#connect" class="summary-sig-name">connect</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      establishes a connection to the target defined during the 
+      Establishes a connection to the target defined during the 
       construction of the stream.</td>
           <td align="right" valign="top">
             
@@ -484,7 +499,7 @@ This is the object that encapsulates all client Stream objects.
           <td><span class="summary-sig"><a href="saga.stream.Stream-class.html#wait" class="summary-sig-name">wait</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">what</span>,
         <span class="summary-sig-arg">timeout</span>=<span class="summary-sig-default">-1.0</span>)</span><br />
-      check if stream is ready for reading/writing, or if it has entered
+      Check if stream is ready for reading/writing, or if it has entered
       an error state</td>
           <td align="right" valign="top">
             
@@ -503,7 +518,7 @@ This is the object that encapsulates all client Stream objects.
         <tr>
           <td><span class="summary-sig"><a href="saga.stream.Stream-class.html#close" class="summary-sig-name">close</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">timeout</span>=<span class="summary-sig-default">0.0</span>)</span><br />
-      closes an active connection</td>
+      Closes an active connection.</td>
           <td align="right" valign="top">
             
             
@@ -515,14 +530,14 @@ This is the object that encapsulates all client Stream objects.
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">int</span>
+      <span class="summary-type">int or string</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="saga.stream.Stream-class.html#read" class="summary-sig-name">read</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">len</span>=<span class="summary-sig-default">-1</span>,
-        <span class="summary-sig-arg">buf</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>)</span><br />
-      read a data buffer from stream</td>
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">buf</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Read a data from a stream</td>
           <td align="right" valign="top">
             
             
@@ -540,7 +555,7 @@ This is the object that encapsulates all client Stream objects.
         <tr>
           <td><span class="summary-sig"><a href="saga.stream.Stream-class.html#write" class="summary-sig-name">write</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">buf</span>,
-        <span class="summary-sig-arg">len</span>)</span><br />
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">-1</span>)</span><br />
       write a data buffer to stream</td>
           <td align="right" valign="top">
             
@@ -695,15 +710,38 @@ This is the object that encapsulates all client Stream objects.
         connect() will fail.
         </li>
         <li>
-        the implementation MUST ensure that the information given in the
-        URL are usable - otherwise a BadParameter exception MUST be 
-        raised.
+        the implementation ensures that the information given in the URL
+        are usable - otherwise a BadParameter exception is raised.
         </li>
         <li>
         the socket is only connected after the connect() method is 
         called.
         </li>
       </ul>
+</div></td></tr></table>
+</div>
+<a name="__def__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__def__</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </table>
+  
+  
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        If during the destruction of the object, the object was not 
+        closed before, the destructor performs a close() on the instance, 
+        and all notes to close() apply.
+      </p>
 </div></td></tr></table>
 </div>
 <a name="get_url"></a>
@@ -743,8 +781,8 @@ This is the object that encapsulates all client Stream objects.
         </li>
         <li>
         the returned url may be empty, indicating that this instance has
-        been created with an empty url as parameter to the stream 
-        CONSTRUCTOR().
+        been created with an empty url as parameter to the Stream 
+        constructor.
         </li>
       </ul>
 </div></td></tr></table>
@@ -886,7 +924,9 @@ This is the object that encapsulates all client Stream objects.
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>what</code></strong> (int) - activity types to wait for</li>
+        <li><strong class="pname"><code>what</code></strong> (int) - activity type to wait for from <a 
+          href="saga.stream.Activity-class.html" 
+          class="link">Activity</a></li>
         <li><strong class="pname"><code>timeout</code></strong> (float) - number of seconds to wait</li>
     </ul></dd>
     <dt>Returns: int</dt>
@@ -988,25 +1028,71 @@ This is the object that encapsulates all client Stream objects.
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">read</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">len</span>=<span class="sig-default">-1</span>,
-        <span class="sig-arg">buf</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>)</span>
+        <span class="sig-arg">size</span>=<span class="sig-default">-1</span>,
+        <span class="sig-arg">buf</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     >&nbsp;
     </td>
   </table>
   
-  Read a data buffer from stream
+  Read up to size bytes of data from stream.
+  <ul>
+    <li>
+      <b>Call format: read( size, data )</b>
+      <ul>
+        <li>
+          <b>Returns: int</b>
+          <ul>
+            <li>
+              number of bytes successfully read
+            </li>
+          </ul>
+        </li>
+        <li>
+          <b>Postcondition:</b>
+          <ul>
+            <li>
+              the data from the file are available in the buffer.
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <b>Call format: read( size )</b>
+      <ul>
+        <li>
+          <b>Returns: string</b>
+          <ul>
+            <li>
+              the read data. 'size' determines the maximum length to be 
+              read
+            </li>
+          </ul>
+        </li>
+        <li>
+          <b>Postcondition:</b>
+          <ul>
+            <li>
+              the data is available in the returned string
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>len</code></strong> (int) - Maximum number of units that can be copied into the 
+        <li><strong class="pname"><code>size</code></strong> (int) - Maximum number of units that can be copied into the 
           buffer.</li>
         <li><strong class="pname"><code>buf</code></strong> (<a href="saga.buffer.Buffer-class.html" 
-          class="link">Buffer</a> or string) - buffer to store read data into</li>
+          class="link">Buffer</a>) - buffer to store read data into</li>
     </ul></dd>
-    <dt>Returns: int</dt>
-        <dd>number of bytes read, if successful.</dd>
+    <dt>Returns: int or string</dt>
+        <dd>string containing the data or the number of bytes read, if 
+          successful.</dd>
     <dt>Raises:</dt>
     <dd><ul class="nomargin-top">
         <li><code><strong class='fraise'><a href="saga.error.NotImplemented-class.html">NotImplemented</a></strong></code> - </li>
@@ -1023,7 +1109,8 @@ This is the object that encapsulates all client Stream objects.
         the stream is in &quot;OPEN&quot; state.
       </p>
       <p><strong>Postcondition:</strong>
-        data from the stream are available in the buffer.
+        data from the stream are available in the buffer or in the 
+        returned string.
       </p>
       <p><strong>Permission:</strong>
         Read for the StreamService represented by the url used for 
@@ -1037,8 +1124,7 @@ This is the object that encapsulates all client Stream objects.
         </li>
         <li>
         if the stream is non-blocking, the call returns immediately, 
-        even if no data are available -- that is not an error 
-        condition.
+        even if no data is available. That is not an error condition.
         </li>
         <li>
         the actually number read into buffer is returned in the return 
@@ -1052,7 +1138,7 @@ This is the object that encapsulates all client Stream objects.
         </li>
         <li>
         the given buffer must be large enough to store up to len, or 
-        managed by the implementation - otherwise a BadParameter exception 
+        managed by the implementation, otherwise a BadParameter exception 
         is raised.
         </li>
         <li>
@@ -1083,7 +1169,7 @@ This is the object that encapsulates all client Stream objects.
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">write</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">buf</span>,
-        <span class="sig-arg">len</span>)</span>
+        <span class="sig-arg">size</span>=<span class="sig-default">-1</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     >&nbsp;
@@ -1094,17 +1180,22 @@ This is the object that encapsulates all client Stream objects.
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>len</code></strong> (int) - number of units of data in the buffer</li>
+        <li><strong class="pname"><code>size</code></strong> (int) - number of units of data in the buffer</li>
         <li><strong class="pname"><code>buf</code></strong> (<a href="saga.buffer.Buffer-class.html" 
           class="link">Buffer</a> or string) - buffer containing data that will be sent out via socket</li>
     </ul></dd>
     <dt>Returns:</dt>
-        <dd>nr of units written if successful</dd>
+        <dd>nr of bytes written if successful</dd>
     <dt>Raises:</dt>
     <dd><ul class="nomargin-top">
-        <li><code><strong class='fraise'><a href="saga.error.NotImplemented-class.html">NotImplemented</a></strong></code> - @raise BadParameter</li>
-        <li><code><strong class='fraise'><a href="saga.error.IncorrectState-class.html">IncorrectState</a></strong></code> - @raise PermissionDenied @raise AuthorizationFailed @raise 
-        AuthenticationFailed @raise Timeout @raise NoSuccess</li>
+        <li><code><strong class='fraise'><a href="saga.error.NotImplemented-class.html">NotImplemented</a></strong></code> - </li>
+        <li><code><strong class='fraise'><a href="saga.error.BadParameter-class.html">BadParameter</a></strong></code> - </li>
+        <li><code><strong class='fraise'><a href="saga.error.IncorrectState-class.html">IncorrectState</a></strong></code> - </li>
+        <li><code><strong class='fraise'><a href="saga.error.PermissionDenied-class.html">PermissionDenied</a></strong></code> - </li>
+        <li><code><strong class='fraise'><a href="saga.error.AuthorizationFailed-class.html">AuthorizationFailed</a></strong></code> - </li>
+        <li><code><strong class='fraise'><a href="saga.error.AuthenticationFailed-class.html">AuthenticationFailed</a></strong></code> - </li>
+        <li><code><strong class='fraise'><a href="saga.error.Timeout-class.html">Timeout</a></strong></code> - </li>
+        <li><code><strong class='fraise'><a href="saga.error.NoSuccess-class.html">NoSuccess</a></strong></code> - </li>
     </ul></dd>
   </dl>
 <div class="fields">      <p><strong>Precondition:</strong>
@@ -1128,7 +1219,8 @@ This is the object that encapsulates all client Stream objects.
         even if no data are written. That is not an error condition.
         </li>
         <li>
-        it is not an error to write less than len units.
+        it is not an error if write has written less than size to the 
+        stream.
         </li>
         <li>
         errors are indicated by returning negative values for the return
@@ -1140,9 +1232,9 @@ This is the object that encapsulates all client Stream objects.
         apply.
         </li>
         <li>
-        if len is smaller than 0, or not given, the buffer size is used 
-        for len. If that is also not available, a BadParameter exception is
-        raised.
+        if size is smaller than 0, or not given, the buffer size is used
+        for size. If that is also not available, a BadParameter exception 
+        is raised.
         </li>
         <li>
         if the stream is not in &quot;OPEN&quot; state, an 
@@ -1187,7 +1279,7 @@ This is the object that encapsulates all client Stream objects.
   <tr>
     <td align="left" class="footer">
     <a href="epydoc-log.html">Generated by Epydoc
-    3.0beta1 on Wed Oct 22 23:08:19 2008</a>
+    3.0beta1 on Thu Nov  6 11:02:25 2008</a>
     </td>
     <td align="right" class="footer">
       <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>

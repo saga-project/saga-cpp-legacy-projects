@@ -41,12 +41,10 @@ file = FileFactory.createFile(url)
 
 taskTASK = file.getSize(TaskMode.TASK)
 
-metric_list = taskTASK.listMetrics()
-print "=== List metrics", str(metric_list)
-metr = taskTASK.getMetric('Task.state')
+#metric_list = taskTASK.listMetrics()
+#print "=== List metrics", str(metric_list)
+#metr = taskTASK.getMetric('Task.state')
  
-
-
 c = CallbackProxy()
 cookie =  taskTASK.addCallback('Task.state', c)
 print "=== Callback added to taskTask. Cookie was", cookie, "state:",taskTASK.getState()
@@ -58,8 +56,8 @@ while taskTASK.getState() == 2:
         print "+",    
        
 print "=== taskTask.get_state():", taskTASK.getState()
-print "=== remove callback",
-taskTASK.removeCallback('Task.state', cookie)
+#print "=== remove callback",
+#taskTASK.removeCallback('Task.state', cookie)
 print taskTASK.getResult()
 
 print "==================================================="

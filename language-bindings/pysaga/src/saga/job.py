@@ -12,6 +12,7 @@ from task import Async, Task
 from monitoring import Steerable
 from permissions import Permissions
 from error import NotImplemented
+from session import Session
 
 class State(object):
     """
@@ -55,8 +56,8 @@ class State(object):
         
     SUSPENDED = 6
     """
-    @summary: This state identiﬁes a job instance which has been suspended. 
-        This state corresponds to the BES state ’Suspend’.
+    @summary: This state identifies a job instance which has been suspended.
+        This state corresponds to the BES state 'Suspend'.
     """
 
 
@@ -491,8 +492,8 @@ class JobService(Object, Async):
             representing this job.
         @param job_id: job identifier as returned by the resource manager
         @type job_id: string 
-        @param job: a job object representing the job identified by job_id
-        @type job: L{Job} 
+        @return: a job object representing the job identified by job_id
+        @rtype: L{Job} 
         @PreCondition: Job identified by job_id is managed by the job_service.
         @permission: Query on the job.
         @raise NotImplemented:
@@ -518,7 +519,7 @@ class JobService(Object, Async):
         #out job_self job
         """
         This method returns a Job object representing I{B{this}} job, i.e. the 
-            calling application.
+        calling application.
         @summary: This method returns a Job object representing I{B{this}} job, 
             i.e. the calling application.
         @return: a L{JobSelf} object representing I{B{this}} job.
@@ -545,22 +546,23 @@ class JobService(Object, Async):
 class StdIO(object):
     """
     This class is used to give acces to the opaque data like from from stdin, 
-        stdout and stderr. This is an extention from the SAGA specification. 
-        StdIO supports most operations associated with stdin, stdout and stderr
-        but not all methods are available in the same object. For instance:
-        if a StdIO object represents the job's stdin, it makes no sense to 
-        read from the StdIO object as a stdin cannot generate data. 
+    stdout and stderr. This is an extention from the SAGA specification. 
+    StdIO supports most operations associated with stdin, stdout and stderr
+    but not all methods are available in the same object. For instance:
+    if a StdIO object represents the job's stdin, it makes no sense to 
+    read from the StdIO object as a stdin cannot generate data. 
     @summary: This class is used to give acces to the opaque data like from 
         stdin, stdout and stderr
     """
-    self.name
-    self.mode
+    name = None
+    mode = None
 
     def __init__(self):
         """
-        Initializes the StdIO object This object can only be created from the
-            JobService.run_job() or Job.get_std*() methods
-        @summary: Initializes the StdIO object 
+        Initializes the StdIO object. This object can only be created from the
+        JobService.run_job() or Job.get_stdin(), Job.get_stdout() and 
+        Job.get_stderr()  methods
+        @summary: Initializes the StdIO object.
         
         """
         
@@ -610,7 +612,7 @@ class StdIO(object):
     def writelines(self, data):
         """
         Write a sequence of strings to the stdin of the job. Newlines in the 
-            sequence are not written to the stdin of the job
+        sequence are not written to the stdin of the job
         @param data: sequence of strings to write
         @type data: string, or a tuple, list or array of strings  
         @summary: Write a sequence of strings to the stdin of the job.
@@ -621,7 +623,7 @@ class StdIO(object):
     def read(self, size = -1, blocking=True):
         """
         Read at most size bytes from stdout or from stderr, depending which 
-            one is represented by this object.
+        one is represented by this object.
         @summary: Read at most size bytes from stdout/stderr.
         @return: string with the data 
         @rtype: string
@@ -960,7 +962,7 @@ class Job(Task, Attributes, Permissions, Async):
     def suspend(self):
         """
         Ask the resource manager to perform a suspend operation on the running 
-            job.
+        job.
         @summary: Ask the resource manager to perform a suspend operation on 
             the running job.
         @PreCondition: the job is in 'Running' state.
@@ -981,7 +983,7 @@ class Job(Task, Attributes, Permissions, Async):
     def resume(self):
         """
         Ask the resource manager to perform a resume operation on a suspended 
-            job.
+        job.
         @summary: Ask the resource manager to perform a resume operation on a 
             suspended job.
         @PreCondition: the job is in 'Suspended' state.
@@ -1063,9 +1065,9 @@ class Job(Task, Attributes, Permissions, Async):
         #in int signum
         """
         Ask the resource manager to deliver an arbitrary signal to a dispatched 
-            job.
+        job.
         @param signum: signal number to be delivered
-        @type param: int
+        @type signum: int
         @PreCondition: job is in 'Running' or 'Suspended' state.
         @PostCondition: the signal was delivered to the job.
         @Permission:  Exec (job can be controlled).

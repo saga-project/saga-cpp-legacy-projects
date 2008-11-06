@@ -66,6 +66,7 @@ contexts = session.list_contexts()
 print "Contexts:",str(type(contexts)), str(contexts)
 print "=== Create context (ftp)"
 context = Context("ftp")
+printAttributes(context)
 print "=== add context"
 session.add_context(context)
 print "=== Listing session contexts"
@@ -82,6 +83,9 @@ print "Contexts:",str(type(contexts)), str(contexts)
 for i in range(len(contexts)):
     print "list_attributes["+str(i)+"]" + str(contexts[i].list_attributes())
 print "=== remove first context"
+printAttributes(contexts[0])
+printAttributes(contexts[1])
+
 try:
     print contexts[0].delegateObject
     session.remove_context(contexts[0])

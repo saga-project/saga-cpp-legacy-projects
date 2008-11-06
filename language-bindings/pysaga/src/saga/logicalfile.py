@@ -82,13 +82,13 @@ class Flags(object):
     # 256    #reserved for Append  
     READ = 512
     """
-    @summary: The logical file or directory is opened for reading – that does 
+    @summary: The logical file or directory is opened for reading - that does 
         not imply the ability to change the logical file or directory.
     """
     
     WRITE = 1024
     """
-    @summary: The logical file or directory is opened for writing – that does 
+    @summary: The logical file or directory is opened for writing - that does 
         not imply the ability to read from the logical file or directory.
 
     """
@@ -213,8 +213,6 @@ class LogicalFile(NSEntry, Attributes):
         """
         Change a replica location in replica set.
         @summary: Change a replica location in replica set.
-        Format:   update_location (in saga::url name_old,
-                                  in saga::url name_new);
         @param old: replica to be updated
         @type old: L{URL}
         @param new: update of replica
@@ -260,7 +258,7 @@ class LogicalFile(NSEntry, Attributes):
         List the locations in the location set
         @summary: List the locations in the location set
         @return: List of locations in set
-        @rtype: list ofL{URL}
+        @rtype: list of L{URL}s
         @Permission: Read
         @raise NotImplemented:
         @raise IncorrectState:
@@ -278,7 +276,7 @@ class LogicalFile(NSEntry, Attributes):
         """
         
         
-    def replicate(self, name, flags = FLAGS.NONE):
+    def replicate(self, name, flags = Flags.NONE):
         """
         Replicate a file from any of the known replica locations to a new 
         location, and, on success, add the new replica location to the
@@ -408,15 +406,12 @@ class LogicalDirectory(NSDirectory, Attributes):
         """
         Create a new LogicalFile instance.
         @summary: Create a new LogicalFile instance.
-      Format:   open             (in saga::url      name,
-                                  in int           flags = Read,
-                                  out logical_file file);
         @param name: file to be opened
         @param flags: flags defining operation modus
         @type name: L{URL}
         @type flags: int
         @return: opened file instance
-        @rtype: LogicalFile
+        @rtype: L{LogicalFile}
         @postcondition: the session of the returned instance is that of the 
             calling instance.
         @postcondition: 'Owner' of name is the id of the context used to perform 
@@ -445,7 +440,7 @@ class LogicalDirectory(NSDirectory, Attributes):
     def find(self, name_pattern, attr_pattern, flags = Flags.RECURSIVE):
         """
         Find entries in the current directory and below, with matching names 
-            and matching meta data
+        and matching meta data
         @summary: Find entries in directory and below.
         @type name_pattern: string
         @type attr_pattern: list of strings 
