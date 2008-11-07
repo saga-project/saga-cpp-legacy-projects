@@ -434,7 +434,7 @@ class JobService(Object, Async):
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
-    def create_job(self, jd):
+    def create_job(self, jd, tasktype=TaskType.NORMAL):
         #in JobDescription jd, out job job
         """
         Create a job instance
@@ -443,6 +443,9 @@ class JobService(Object, Async):
         @type jd: L{JobDescription} 
         @return: a job object representing the submitted job instance
         @rtype: L{Job}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: jd has an 'Executable' attribute.
         @PostCondition: job is in 'New' state
         @PostCondition: jd is deep copied (no state is shared after method 
@@ -469,6 +472,25 @@ class JobService(Object, Async):
         if not isinstance(jd, JobDescription):
             raise BadParameter, "Parameter jd is not a JobDescription, but a" \
                 + str(jd.__class__)
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+#        try:
+#            if tasktype is TaskType.ASYNC:
+#                javaObject = self.delegateObject.getGroup(TaskMode.ASYNC)
+#                return Task(delegateObject=javaObject)
+#            if tasktype is TaskType.SYNC:
+#                javaObject = self.delegateObject.getGroup(TaskMode.SYNC)
+#                return Task(delegateObject=javaObject)
+#            if tasktype is TaskType.TASK:
+#                javaObject = self.delegateObject.getGroup(TaskMode.TASK)
+#                return Task(delegateObject=javaObject)                
+#            else:
+#                return self.delegateObject.getGroup()
+#        except org.ogf.saga.error.SagaException, e:
+#            raise self.convertException(e)    
+        
         try:
             javaObject = self.delegateObject.createJob(jd)
             return Job(delegateObject=javaObject)
@@ -478,7 +500,7 @@ class JobService(Object, Async):
 #todo implement async versions
         
         
-    def run_job(self, commandline, host = ""):
+    def run_job(self, commandline, host = "", tasktype=TaskType.NORMAL):
         #in string commandline, in string host = "", out job job, 
         #out opaque stdin, out opaque stdout, out opaque stderr
         """
@@ -488,6 +510,9 @@ class JobService(Object, Async):
         @type commandline: string  
         @param host: hostname to be used by rm for submission
         @type host: string
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: tuple of 4 elements: job (L{Job}, a job object representing 
             the submitted job instance), stdin (L{StdIO}, IO handle for the 
             running job's standard input stream), stdout (L{StdIO}, IO handle 
@@ -529,6 +554,11 @@ class JobService(Object, Async):
         #    python being notable exceptions). If these parameters are omitted, 
         #    the job is to be started non-interactively, and the output I/O 
         #    streams may be discarded.
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                
         if type(commandline) is not str:
             raise BadParameter, "Parameter commandline is not a string but a "\
                     + str(commandline.__class__)
@@ -553,12 +583,15 @@ class JobService(Object, Async):
             raise self.convertException(e)
 
 
-    def list(self):
+    def list(self, tasktype=TaskType.NORMAL):
         #out array<string>   job_ids
         """
         Get a list of jobs which are currently known by the resource manager.
         @summary: Get a list of jobs which are currently known by the resource 
             manager. 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: job_ids an list of job identifiers
         @rtype: list of strings
         @permission: Query on jobs identified by the returned ids
@@ -576,6 +609,10 @@ class JobService(Object, Async):
             cause an 'AuthorizationFailed' exception).
 
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")" 
         try:
             retval = []
             javaList = self.delegateObject.list()
@@ -585,8 +622,9 @@ class JobService(Object, Async):
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         #TODO: implement ASYNC versions
+        #TODO: redo Permission param tasktype description
     
-    def get_job (self, job_id):
+    def get_job (self, job_id, tasktype=TaskType.NORMAL):
         #in  string job_id, out job job
         """
         Given a job identifier, this method returns a Job object 
@@ -595,6 +633,9 @@ class JobService(Object, Async):
             representing this job.
         @param job_id: job identifier as returned by the resource manager
         @type job_id: string 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: a job object representing the job identified by job_id
         @rtype: L{Job} 
         @PreCondition: Job identified by job_id is managed by the job_service.
@@ -619,6 +660,10 @@ class JobService(Object, Async):
         if type(job_id) is not str:
             raise BadParameter, "Parameter job_id is not a string but a "\
                     + str(host.__class__)
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         try:
             javaObject = self.delegateObject.getJob(job_id)
             return Job(delegateObject = javaObject)
@@ -626,13 +671,16 @@ class JobService(Object, Async):
             raise self.convertException(e)
 
         
-    def get_self (self):
+    def get_self (self, tasktype=TaskType.NORMAL):
         #out job_self job
         """
         This method returns a Job object representing I{B{this}} job, i.e. the 
         calling application.
         @summary: This method returns a Job object representing I{B{this}} job, 
             i.e. the calling application.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: a L{JobSelf} object representing I{B{this}} job.
         @rtype: L{JobSelf}
         @PreCondition: the application is managed by the job_service.
@@ -652,6 +700,10 @@ class JobService(Object, Async):
             instance, a 'NoSuccess' exception is raised, with a descriptive 
             error message.
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         try:
             javaObject = self.delegateObject.getSelf()
             return JobSelf(delegateObject = javaObject)
@@ -681,8 +733,8 @@ class StdIO(object):
         stdin, stdout and stderr
     """
     name = None
-    mode = None
     delegateObject = None
+    EOF_reached = None
 
     def __init__(self, **impl):
         """
@@ -865,20 +917,75 @@ class StdIO(object):
         @param size: Maximum number of characters to read.
         @type size: bool
         @param blocking: whether the read should block until it has read a 
-            number of bytes equal to size or not.
+            number of bytes equal or less then size or not.
         @type blocking: int
         @raise PermissionDenied: if this object represents the stdin of the job.
-        @note: if blocking is False, read may return a string which length is 
-            smaller than parameter size. 
+        @note: whether blocking is True or False, read may return a string which
+             length is smaller than parameter size. 
+        @note: when there is no data available and blocking is True, read will
+            block until it has read at least one byte. If blocking is False,
+            read might return an empty string.
         @note: if size is not specified read will return as much data as is 
             available
         @note: if read has read an EOF from the stdout or stderr, read returns 
             an empty string for the blocking case and None for the non-blocking
             case.
-      
+
         """
         if isinstance(self.delegateObject , java.io.OutputStream):
-            raise PermissionDenied, "Cannot read from the stdin the job" 
+            raise PermissionDenied, "Cannot read from the stdin of the job" 
+        if blocking != True and blocking != False:
+            raise BadParameter, "Parameter blocking is not a bool, but a " \
+                + str(blocking.__class__)
+        if type(size) is not int:
+            raise BadParameter, "Parameter size is not an int, but a " \
+                + str(size.__class__)
+        if size <= 0 and size != -1:
+            raise BadParameter, "Parameter size is <= 0, namely" + str(size)
+        
+        import jarray.zeros
+        import java.lang.Byte
+        tempArray = None
+        read = None
+        
+        if blocking == False:
+            if self.EOF_reached == True:
+                return None
+            available = self.delegateObject.available()
+            if available == 0:
+                return ""
+            
+            elif available >= size and size != -1:
+                tempArray = jarray.zeros('b', size)
+                read = self.delegateObject.read(tempArray,0,size)
+            else: #available < size
+                tempArray = jarray.zeros('b', available)
+                read = self.delegateObject.read(tempArray,0,available)
+
+            if read >= 0:
+                return tempArray.tostring()[0:read]
+            else:
+                self.EOF_reached = True
+                return None    # end of file detected
+        else:  #blocking == True
+            if self.EOF_reached == True:
+                return ""
+            if size != -1:
+                tempArray = jarray.zeros('b', size)
+                read = self.delegateObject.read(tempArray,0,size)
+            else: # size not specified
+                available = self.delegateObject.available()
+                if available == 0:
+                    available = 4096
+                tempArray = jarray.zeros('b', available)
+                read = self.delegateObject.read(tempArray)
+            if read >= 0:
+                return tempArray.tostring()[0:read]
+            else:
+                self.EOF_reached = True
+                return ""    # end of file detected
+
+#TODO add the try / except
         
         
     def readline(self, size = -1, blocking = True):
@@ -891,11 +998,14 @@ class StdIO(object):
             may be returned
         @type size: bool
         @param blocking: whether the read should block until it has read a 
-            line or number of bytes equal to size or not.
+            line or number of bytes equal or less then size or not.
         @type blocking: int
         @raise PermissionDenied: if this object represents the stdin of the job.
         @note: if blocking is False, readline may return a string which length 
             is smaller than parameter size. 
+        @note: when there is no data available and blocking is True, read will
+            block until it has read at least one byte. If blocking is False,
+            read might return an empty string. 
         @note: if size is not specified readline will return one line of data or
             as much data as is available
         @note: if readline has read an EOF from the stdout or stderr, read 
@@ -903,7 +1013,89 @@ class StdIO(object):
             the non-blocking case.        
         
         """
+        if isinstance(self.delegateObject , java.io.OutputStream):
+            raise PermissionDenied, "Cannot read from the stdin of the job" 
+        if blocking != True and blocking != False:
+            raise BadParameter, "Parameter blocking is not a bool, but a " \
+                + str(blocking.__class__)
+        if type(size) is not int:
+            raise BadParameter, "Parameter size is not an int, but a " \
+                + str(size.__class__)
+        if size <= 0 and size != -1:
+            raise BadParameter, "Parameter size is <= 0, namely" + str(size)
+
+        import jarray.zeros
+        import java.lang.Byte
+        tempArray = None
+        read = None
+        available = self.delegateObject.available()
         
+        if blocking == False:
+            if self.EOF_reached ==True:
+                return None
+            if available == 0:
+                    return ""
+
+            if size == -1:
+                tempArray = jarray.zeros('b', available)
+                for i in range(available):
+                    read = self.delegateObject.read(tempArray, i, 1)
+                    if read == -1:
+                       self.EOF_reached = True
+                       return tempArray.tostring()[0:i]
+                    if tempArray[i] == 10: # check for newline character
+                        return tempArray.tostring()[0:i+1]    
+                return tempArray.tostring()
+            
+            else: #size > 0
+                if size < available:
+                    available = size
+                tempArray = jarray.zeros('b', available)
+                for i in range(available):
+                    read = self.delegateObject.read(tempArray, i, 1)
+                    if read == -1:
+                       self.EOF_reached = True
+                       return tempArray.tostring()[0:i]
+                    if tempArray[i] == 10: # check for newline character
+                        return tempArray.tostring()[0:i+1]    
+                return tempArray.tostring()            
+            
+        else: #blocking == True
+            if self.EOF_reached == True:
+                return ""
+            if size == -1:
+                if available == 0:
+                    tempArray = jarray.zeros('b', 4096)
+                else:
+                    tempArray = jarray.zeros('b', available)                    
+            else: #size > 0:
+                tempArray = jarray.zeros('b', size)
+                
+            read = self.delegateObject.read(tempArray, 0, 1)
+            if read == -1:
+                self.EOF_reached = True
+                return ""
+            if tempArray[i] == 10: # check for newline character
+                return "\n"                   
+                
+            available = self.delegateObject.available()
+            if available > len(tempArray-1):
+                available = len(tempArray-1)
+                    
+            for i in range(available):
+                read = self.delegateObject.read(tempArray, i+i, 1)
+                if read == -1:
+                    self.EOF_reached = True
+                    return tempArray.tostring()[0:i+1]
+                if tempArray[i] == 10: # check for newline character
+                    return tempArray.tostring()[0:i+2]    
+            return tempArray.tostring()                
+                            
+                
+ 
+ 
+#TODO add the try / except
+            
     def readlines(self, size, blocking = True):
         """
         Read multiple lines from the stdout or stderr.
@@ -915,12 +1107,17 @@ class StdIO(object):
             incomplete line as last element of the list may be returned
         @type size: bool
         @param blocking: whether the read should block until it has read a 
-            number of bytes equal to size or not.
+            number of bytes equal or less then size or not.
         @type blocking: int
         @raise PermissionDenied: if this object represents the stdin of the job.
         @note: if blocking is False, readlines may return a list of strings 
             which total length including newlines is  smaller than parameter 
             size. 
+        @note: read newline character do count towards the size limit, although
+            the are not returned to the user. 
+        @note: when there is no data available and blocking is True, read will
+            block until it has read at least one byte. If blocking is False,
+            read might return an empty string. 
         @note: if size is not specified readlines will return a list of as much
             strings available. The last element in the list may be an incomplete
             line
@@ -929,7 +1126,54 @@ class StdIO(object):
             the non-blocking case.            
         
         """
-
+        if isinstance(self.delegateObject , java.io.OutputStream):
+            raise PermissionDenied, "Cannot read from the stdin of the job" 
+        if blocking != True and blocking != False:
+            raise BadParameter, "Parameter blocking is not a bool, but a " \
+                + str(blocking.__class__)
+        if type(size) is not int:
+            raise BadParameter, "Parameter size is not an int, but a " \
+                + str(size.__class__)
+        if size <= 0 and size != -1:
+            raise BadParameter, "Parameter size is <= 0, namely" + str(size)
+        result = []
+        total_read = 0
+        
+        if blocking == False:
+            while total_read < size:
+                string = self.readline( size-total_read, blocking)
+                if string == None:
+                    return result
+                total_read += len(string)
+                if string[-1] == '\n':
+                    result.append( string[0:-1])
+                else:
+                    result.append( string )
+                    return result
+            return result
+        else: # blocking == True:
+            available = self.delegateObject.available()
+            if available == 0:
+                string = self.readline( size-total_read, blocking)
+                if string == "":
+                    return result
+                if string[-1] == '\n':
+                    result.append( string[0:-1])
+                else:
+                    result.append( string )
+                return result                
+            else:
+                while total_read < size:
+                    string = self.readline( size-total_read, blocking)
+                    if string == None:
+                        return result
+                    total_read += len(string)
+                    if string[-1] == '\n':
+                        result.append( string[0:-1])
+                    else:
+                        result.append( string )
+                        return result
+                return result            
 
     
 class Job(Task, Attributes, Permissions, Async): 
@@ -1085,15 +1329,18 @@ class Job(Task, Attributes, Permissions, Async):
             return 
         else:
             raise BadParameter, "Job can only be created through methods" \
-                + " and not through \"job = Job()\" "
+                + " and not through \"job = Job()\" or likewise "
 
     #job inspection
-    def get_job_description(self):
+    def get_job_description(self, tasktype=TaskType.NORMAL):
         #out job_description  jd
         """
         Retrieve the job_description which was used to submit this job instance.
         @summary: Retrieve the job_description which was used to submit this job
             instance.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: the JobDescription object
         @rtype: L{JobDescription}
         @PostCondition: return value is deep copied (no state is shared after 
@@ -1114,12 +1361,24 @@ class Job(Task, Attributes, Permissions, Async):
             In that case, a 'DoesNotExist' exception is raised, with a 
             descriptive error message.
         """
-        return JobDescription()
-    
-    def get_stdin(self):
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+        try:
+            javaObject = self.delegateObject.getJobDescription()
+            return JobDescription(delegateObject = javaObject)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)   
+            
+        
+    def get_stdin(self, tasktype=TaskType.NORMAL):
         """
         Retrieve input stream for a job.
         @summary: Retrieve input stream for a job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: standard input stream for the job
         @rtype: L{StdIO}
         @PreCondition:    the job is interactive.
@@ -1145,12 +1404,19 @@ class Job(Task, Attributes, Permissions, Async):
         @Note: if the job is not in 'New' state, it is not guaranteed that the 
             job did not receive other data on its standard input stream before.
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         return StdIO()
     
-    def get_stdout(self):
+    def get_stdout(self, tasktype=TaskType.NORMAL):
         """
         Retrieve output stream of job
         @summary: Retrieve output stream of job
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: standard output stream for the job
         @rtype: L{StdIO}
         @PreCondition: the job is interactive.
@@ -1178,12 +1444,19 @@ class Job(Task, Attributes, Permissions, Async):
             then not returned on the returned stream.
 
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         return StdIO()
     
-    def get_stderr(self):
+    def get_stderr(self, tasktype=TaskType.NORMAL):
         """
         Retrieve error stream of job
         @summary: Retrieve error stream of job
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: standard error stream for the job
         @rtype: L{StdIO}
         @PreCondition: the job is interactive.
@@ -1211,15 +1484,22 @@ class Job(Task, Attributes, Permissions, Async):
             then not returned on the returned stream.
 
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         return StdIO()
     
     #job management
-    def suspend(self):
+    def suspend(self, tasktype=TaskType.NORMAL):
         """
         Ask the resource manager to perform a suspend operation on the running 
         job.
         @summary: Ask the resource manager to perform a suspend operation on 
             the running job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType} 
         @PreCondition: the job is in 'Running' state.
         @PostCondition: the job is in 'Suspended' state.
         @permission: Exec (job can be controlled).
@@ -1234,13 +1514,21 @@ class Job(Task, Attributes, Permissions, Async):
             exception is raised.
 
         """
-        
-    def resume(self):
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                
+                          
+    def resume(self, tasktype=TaskType.NORMAL):
         """
         Ask the resource manager to perform a resume operation on a suspended 
         job.
         @summary: Ask the resource manager to perform a resume operation on a 
             suspended job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Suspended' state.
         @PostCondition: the job is in 'Running' state.
         @permission: Exec (job can be controlled).
@@ -1254,13 +1542,20 @@ class Job(Task, Attributes, Permissions, Async):
         @Note:  if the job is not in 'Suspended' state, an 'IncorrectState' 
             exception is raised.
         """
-
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                
     
-    def checkpoint(self):
+    def checkpoint(self, tasktype=TaskType.NORMAL):
         """
         Ask the resource manager to initiate a checkpoint operation on a running job.
         @summary: Ask the resource manager to initiate a checkpoint operation 
             on a running job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Running' state.
         @PostCondition: the job is in 'Running' state.
         @PostCondition: the job was checkpointed.
@@ -1280,13 +1575,20 @@ class Job(Task, Attributes, Permissions, Async):
             exception is raised.
 
         """
-    
-    def migrate(self, jd):
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                    
+    def migrate(self, jd, tasktype=TaskType.NORMAL):
         #in job_description jd
         """
         Ask the resource manager to migrate a job.
         @param jd: new job parameters to apply when the job is migrated
         @type jd: L{JobDescription} 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition:    the job is in 'Running' or 'Suspended' state.
         @PostCondition:    the job keeps its state.
         @PostCondition: jd is deep copied (no state is shared after method 
@@ -1315,14 +1617,22 @@ class Job(Task, Attributes, Permissions, Async):
             job_description.
        
         """
-    
-    def signal(self, signum):
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                
+                    
+    def signal(self, signum, tasktype=TaskType.NORMAL):
         #in int signum
         """
         Ask the resource manager to deliver an arbitrary signal to a dispatched 
         job.
         @param signum: signal number to be delivered
         @type param: int
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: job is in 'Running' or 'Suspended' state.
         @PostCondition: the signal was delivered to the job.
         @Permission:  Exec (job can be controlled).
@@ -1343,6 +1653,11 @@ class Job(Task, Attributes, Permissions, Async):
             'IncorrectState' exception is raised.
         
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                
 
 
 class JobSelf(Job, Steerable):

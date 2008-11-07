@@ -290,6 +290,7 @@ class File(NSEntry):
                 raise self.convertException(e)
             
 #TODO: add async object creation to all task implementing methods.
+#TODO: async task creation -> errors -> create dummy task. file and namespace modules
 
     def get_size(self, tasktype=TaskType.NORMAL):
         """

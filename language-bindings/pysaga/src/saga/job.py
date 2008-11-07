@@ -8,7 +8,7 @@
 
 from object import Object, ObjectType
 from attributes import Attributes
-from task import Async, Task
+from task import Async, Task, TaskType
 from monitoring import Steerable
 from permissions import Permissions
 from error import NotImplemented
@@ -366,13 +366,16 @@ class JobService(Object, Async):
 
         """
 
-    def create_job(self, jd):
+    def create_job(self, jd, tasktype=TaskType.NORMAL):
         #in JobDescription jd, out job job
         """
         Create a job instance
         @summary: Create a job instance
         @param jd: description of job to be submitted
         @type jd: L{JobDescription} 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType} 
         @return: a job object representing the submitted job instance
         @rtype: L{Job}
         @PreCondition: jd has an 'Executable' attribute.
@@ -401,7 +404,7 @@ class JobService(Object, Async):
         """
         
         
-    def run_job(self, commandline, host = ""):
+    def run_job(self, commandline, host = "", tasktype=TaskType.NORMAL):
         #in string commandline, in string host = "", out job job, 
         #out opaque stdin, out opaque stdout, out opaque stderr
         """
@@ -411,6 +414,9 @@ class JobService(Object, Async):
         @type commandline: string  
         @param host: hostname to be used by rm for submission
         @type host: string
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: tuple of 4 elements: job (L{Job}, a job object representing 
             the submitted job instance), stdin (L{StdIO}, IO handle for the 
             running job's standard input stream), stdout (L{StdIO}, IO handle 
@@ -458,12 +464,15 @@ class JobService(Object, Async):
         stderr = StdIO()
         return job, stdin, stdout, stderr
 
-    def list(self):
+    def list(self, tasktype=TaskType.NORMAL):
         #out array<string>   job_ids
         """
         Get a list of jobs which are currently known by the resource manager.
         @summary: Get a list of jobs which are currently known by the resource 
             manager. 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: job_ids an list of job identifiers
         @rtype: list of strings
         @permission: Query on jobs identified by the returned ids
@@ -483,7 +492,7 @@ class JobService(Object, Async):
         """
         return []
     
-    def get_job (self, job_id):
+    def get_job (self, job_id, tasktype=TaskType.NORMAL):
         #in  string job_id, out job job
         """
         Given a job identifier, this method returns a Job object 
@@ -492,6 +501,9 @@ class JobService(Object, Async):
             representing this job.
         @param job_id: job identifier as returned by the resource manager
         @type job_id: string 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: a job object representing the job identified by job_id
         @rtype: L{Job} 
         @PreCondition: Job identified by job_id is managed by the job_service.
@@ -515,13 +527,16 @@ class JobService(Object, Async):
         """
         return Job()
         
-    def get_self (self):
+    def get_self (self, tasktype=TaskType.NORMAL):
         #out job_self job
         """
         This method returns a Job object representing I{B{this}} job, i.e. the 
         calling application.
         @summary: This method returns a Job object representing I{B{this}} job, 
             i.e. the calling application.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL} 
+        @type tasktype: value from L{TaskType}
         @return: a L{JobSelf} object representing I{B{this}} job.
         @rtype: L{JobSelf}
         @PreCondition: the application is managed by the job_service.
@@ -630,11 +645,14 @@ class StdIO(object):
         @param size: Maximum number of characters to read.
         @type size: bool
         @param blocking: whether the read should block until it has read a 
-            number of bytes equal to size or not.
+            number of bytes equal or less then size or not.
         @type blocking: int
         @raise PermissionDenied: if this object represents the stdin of the job.
-        @note: if blocking is False, read may return a string which length is 
-            smaller than parameter size. 
+        @note: whether blocking is True or False, read may return a string which
+             length is smaller than parameter size. 
+        @note: when there is no data available and blocking is True, read will
+            block until it has read at least one byte. If blocking is False,
+            read might return an empty string.
         @note: if size is not specified read will return as much data as is 
             available
         @note: if read has read an EOF from the stdout or stderr, read returns 
@@ -653,11 +671,14 @@ class StdIO(object):
             may be returned
         @type size: bool
         @param blocking: whether the read should block until it has read a 
-            line or number of bytes equal to size or not.
+            line or number of bytes equal or less then size or not.
         @type blocking: int
         @raise PermissionDenied: if this object represents the stdin of the job.
         @note: if blocking is False, readline may return a string which length 
             is smaller than parameter size. 
+        @note: when there is no data available and blocking is True, read will
+            block until it has read at least one byte. If blocking is False,
+            read might return an empty string. 
         @note: if size is not specified readline will return one line of data or
             as much data as is available
         @note: if readline has read an EOF from the stdout or stderr, read 
@@ -677,12 +698,17 @@ class StdIO(object):
             incomplete line as last element of the list may be returned
         @type size: bool
         @param blocking: whether the read should block until it has read a 
-            number of bytes equal to size or not.
+            number of bytes equal or less then size or not.
         @type blocking: int
         @raise PermissionDenied: if this object represents the stdin of the job.
         @note: if blocking is False, readlines may return a list of strings 
             which total length including newlines is  smaller than parameter 
-            size. 
+            size.
+        @note: read newline character do count towards the size limit, although
+            the are not returned to the user.
+        @note: when there is no data available and blocking is True, read will
+            block until it has read at least one byte. If blocking is False,
+            read might return an empty list. 
         @note: if size is not specified readlines will return a list of as much
             strings available. The last element in the list may be an incomplete
             line
@@ -833,12 +859,15 @@ class Job(Task, Attributes, Permissions, Async):
     """
 
     #job inspection
-    def get_job_description(self):
+    def get_job_description(self, tasktype=TaskType.NORMAL):
         #out job_description  jd
         """
         Retrieve the job_description which was used to submit this job instance.
         @summary: Retrieve the job_description which was used to submit this job
             instance.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: the JobDescription object
         @rtype: L{JobDescription}
         @PostCondition: return value is deep copied (no state is shared after 
@@ -861,10 +890,13 @@ class Job(Task, Attributes, Permissions, Async):
         """
         return JobDescription()
     
-    def get_stdin(self):
+    def get_stdin(self, tasktype=TaskType.NORMAL):
         """
         Retrieve input stream for a job.
         @summary: Retrieve input stream for a job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: standard input stream for the job
         @rtype: L{StdIO}
         @PreCondition:    the job is interactive.
@@ -892,10 +924,13 @@ class Job(Task, Attributes, Permissions, Async):
         """
         return StdIO()
     
-    def get_stdout(self):
+    def get_stdout(self, tasktype=TaskType.NORMAL):
         """
         Retrieve output stream of job
         @summary: Retrieve output stream of job
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: standard output stream for the job
         @rtype: L{StdIO}
         @PreCondition: the job is interactive.
@@ -925,10 +960,13 @@ class Job(Task, Attributes, Permissions, Async):
         """
         return StdIO()
     
-    def get_stderr(self):
+    def get_stderr(self, tasktype=TaskType.NORMAL):
         """
         Retrieve error stream of job
         @summary: Retrieve error stream of job
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: standard error stream for the job
         @rtype: L{StdIO}
         @PreCondition: the job is interactive.
@@ -959,12 +997,15 @@ class Job(Task, Attributes, Permissions, Async):
         return StdIO()
     
     #job management
-    def suspend(self):
+    def suspend(self, tasktype=TaskType.NORMAL):
         """
         Ask the resource manager to perform a suspend operation on the running 
         job.
         @summary: Ask the resource manager to perform a suspend operation on 
             the running job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Running' state.
         @PostCondition: the job is in 'Suspended' state.
         @permission: Exec (job can be controlled).
@@ -980,12 +1021,15 @@ class Job(Task, Attributes, Permissions, Async):
 
         """
         
-    def resume(self):
+    def resume(self, tasktype=TaskType.NORMAL):
         """
         Ask the resource manager to perform a resume operation on a suspended 
         job.
         @summary: Ask the resource manager to perform a resume operation on a 
             suspended job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}  
+        @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Suspended' state.
         @PostCondition: the job is in 'Running' state.
         @permission: Exec (job can be controlled).
@@ -1001,11 +1045,14 @@ class Job(Task, Attributes, Permissions, Async):
         """
 
     
-    def checkpoint(self):
+    def checkpoint(self, tasktype=TaskType.NORMAL):
         """
         Ask the resource manager to initiate a checkpoint operation on a running job.
         @summary: Ask the resource manager to initiate a checkpoint operation 
             on a running job.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Running' state.
         @PostCondition: the job is in 'Running' state.
         @PostCondition: the job was checkpointed.
@@ -1026,12 +1073,15 @@ class Job(Task, Attributes, Permissions, Async):
 
         """
     
-    def migrate(self, jd):
+    def migrate(self, jd, tasktype=TaskType.NORMAL):
         #in job_description jd
         """
         Ask the resource manager to migrate a job.
         @param jd: new job parameters to apply when the job is migrated
         @type jd: L{JobDescription} 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition:    the job is in 'Running' or 'Suspended' state.
         @PostCondition:    the job keeps its state.
         @PostCondition: jd is deep copied (no state is shared after method 
@@ -1061,13 +1111,16 @@ class Job(Task, Attributes, Permissions, Async):
        
         """
     
-    def signal(self, signum):
+    def signal(self, signum, tasktype=TaskType.NORMAL):
         #in int signum
         """
         Ask the resource manager to deliver an arbitrary signal to a dispatched 
         job.
         @param signum: signal number to be delivered
         @type signum: int
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: job is in 'Running' or 'Suspended' state.
         @PostCondition: the signal was delivered to the job.
         @Permission:  Exec (job can be controlled).
