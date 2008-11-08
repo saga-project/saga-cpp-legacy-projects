@@ -126,6 +126,7 @@ class advert_job():
     def __init__(self, database_host):
         """Constructor"""
         self.database_host = database_host
+        self.job_url=None
         
     def submit_job(self, glidin_url, jd):
         """ submit job via advert service to NAMD-Launcher 
