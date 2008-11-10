@@ -127,11 +127,10 @@ class advert_job():
         """Constructor"""
         self.database_host = database_host
         self.job_url=None
+        self.uuid = uuid.uuid1()
+        self.job_url = None
         
-    def submit_job(self, glidin_url, jd):
-        """ submit job via advert service to NAMD-Launcher 
-            dest_url - url reference to advert job or host on which the advert job is going to run"""
-        print "submit job: " + str(glidin_url)
+    def get_job_url(self, glidin_url):
         self.saga_glidin_url = saga.url(glidin_url)
         if(self.saga_glidin_url.scheme=="advert"): #
             pass
@@ -149,8 +148,34 @@ class advert_job():
             #self.glidin_dir = saga.advert.directory(self.saga_glidin_url, 
             #                                        saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         # create dir for job
-        self.uuid = uuid.uuid1()
         self.job_url = self.saga_glidin_url.get_string() + "/" + str(self.uuid)
+        return self.job_url
+
+    def submit_job(self, glidin_url, jd):
+        """ submit job via advert service to NAMD-Launcher 
+            dest_url - url reference to advert job or host on which the advert job is going to run"""
+        print "submit job: " + str(glidin_url)
+        if self.job_url==None:
+            self.job_url=self.get_job_url(glidin_url)
+
+        #self.saga_glidin_url = saga.url(glidin_url)
+        #if(self.saga_glidin_url.scheme=="advert"): #
+        #    pass
+        #    #self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+        #else: # any other url, try to guess glidin job url
+        #    host=""
+        #    try:
+        #        host = self.saga_glidin_url.host
+        #    except:
+        #        pass
+        #    if host =="":
+        #        host=socket.gethostname()
+        #    # create dir for destination url
+        #    self.saga_glidin_url = saga.url("advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host)
+        #    #self.glidin_dir = saga.advert.directory(self.saga_glidin_url, 
+        #    #                                        saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+        # create dir for job
+        #self.job_url = self.saga_glidin_url.get_string() + "/" + str(self.uuid)
         for i in range(0,3):
             try:
                 print "create job entry - attempt: " + str(i)
@@ -191,5 +216,8 @@ class advert_job():
         self.delete_job()
     
     def __repr__(self):        
-        return self.job_url
+        if(self.job_url==None):
+            return "None"
+        else:
+            return self.job_url
 

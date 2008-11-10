@@ -47,14 +47,18 @@ class many_job_service():
 
         # queue contains unscheduled subjobs        
         self.subjob_queue = Queue.Queue()
+        
+        # submit bigjobs to resources
+        self.init_bigjobs()
+        
         # thread which tries to resubmit jobs
         self.stop=threading.Event()
         self.rescheduler_thread=threading.Thread(target=self.reschedule_subjobs_thread)
         self.rescheduler_thread.start()
         
-        # submit bigjobs to resources
-        self.init_bigjobs()
-        
+        # last queue Size
+        self.last_queue_size = 0
+
     def init_bigjobs(self):
         """ start on specified resources a bigjob """
         self.bigjob_list = self.schedule_bigjobs()
@@ -114,35 +118,34 @@ class many_job_service():
             free_cores = i["free_cores"]
             bigjob_url = bigjob.glidin_url
             state = bigjob.get_state_detail()
-            print "Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + i["number_cores"] + " State: " + state 
-            if state.lower() == "running" and free_cores > int(subjob.job_description.number_of_processes):
+            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + i["number_cores"] + " State: " + state)
+            if state.lower() == "running" and free_cores >= int(subjob.job_description.number_of_processes):
                 free_cores = i["free_cores"]
                 free_cores = free_cores - int(subjob.job_description.number_of_processes)
                 i["free_cores"]=free_cores
                 lock.release()
-                print "Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + i["number_cores"] + " State: " + state 
                 return i 
 
             lock.release()
         
         # no resource found
         self.subjob_queue.put(subjob)
-        print "found no active resource for sub-job => (re-) queue it"
+        logging.debug("found no active resource for sub-job => (re-) queue it")
         return None        
 
     def free_resources(self, subjob):
         """free resources taken by subjob"""
-        logging.debug("attempt to free resources")
         if(self.subjob_bigjob_dict.has_key(subjob)):
             logging.debug("job: " + str(subjob) + " done - free resources")
             bigjob = self.subjob_bigjob_dict[subjob]
             lock = bigjob["lock"]
+            lock.acquire()
             free_cores = bigjob["free_cores"]
             free_cores = free_cores + int(subjob.job_description.number_of_processes)
             bigjob["free_cores"]=free_cores
             del(self.subjob_bigjob_dict[subjob])
             lock.release()
-            print "Big Job: " +  bigjob.glidin_url + " Cores: " + "%s"%free_cores + "/" + bigjob["number_cores"]
+            print "Freed resource - new state: Big Job: " +  bigjob["bigjob"].glidin_url + " Cores: " + "%s"%free_cores + "/" + bigjob["number_cores"]
     
     def reschedule_subjobs_thread(self):
         """ periodically checks subjob_queue for unscheduled subjobs
@@ -154,9 +157,26 @@ class many_job_service():
             # check whether this is a real subjob object  
             if isinstance(subjob, sub_job):
                 self.run_subjob(subjob)
-                time.sleep(5) # sleep 30 s        
+                if self.last_queue_size == self.subjob_queue.qsize() or self.get_total_free_cores()==0:
+                    time.sleep(5) # sleep 30 s        
 
         logging.debug("Re-Scheduler terminated")
+
+
+    def get_free_cores(self, bigjob):
+        """ return number of free cores if bigjob is active """
+        #pdb.set_trace()
+        if bigjob["bigjob"].get_state_detail().lower()=="running":
+            return bigjob["free_cores"]
+
+        return 0            
+
+    def get_total_free_cores(self):
+        """ get's the total number of free cores from all active  bigjobs """
+        free_cores = map(self.get_free_cores, self.bigjob_list)
+        total_free_cores = reduce(lambda x, y: x + y, free_cores)
+        logging.debug("free_cores: " + str(free_cores) + " total_free_cores: " + str(total_free_cores))
+        return total_free_cores
 
     def cancel(self):
         logging.debug("Cancel re-scheduler thread")
@@ -228,8 +248,7 @@ class sub_job():
         pass
     
     def __repr__(self):        
-        return self.job.job_url
-
+        return str(self.job)
 
 """ Test Job Submission via ManyJob abstraction """
 if __name__ == "__main__":
@@ -261,6 +280,7 @@ if __name__ == "__main__":
         mjs.cancel()
     except:
         try:
-            mjs.cancel()
+            if mjs != None:
+                mjs.cancel()
         except:
             pass
