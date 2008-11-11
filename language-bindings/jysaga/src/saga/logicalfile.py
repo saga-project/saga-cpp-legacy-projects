@@ -7,10 +7,15 @@
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
 #    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from object import Object, ObjectType
-from attributes import Attributes
-from namespace import NSEntry, NSDirectory
-from url import URL
+from saga.object import Object, ObjectType
+from saga.attributes import Attributes
+from saga.namespace import NSEntry, NSDirectory
+from saga.url import URL
+
+import org.ogf.saga.logicalfile.LogicalFile
+import org.ogf.saga.logicalfile.LogicalDirectory
+from org.ogf.saga.logicalfile import LogicalFileFactory
+
 
 class Flags(object):
     """
@@ -107,6 +112,7 @@ class LogicalFile(NSEntry, Attributes, Async):
     @summary: This class provides the means to handle the contents of logical 
         files
     """
+    delegateObject = None
       
     def __init__(self, name, session = Session(), flags = Flags.READ):
         """
@@ -139,7 +145,29 @@ class LogicalFile(NSEntry, Attributes, Async):
             LogicalDirectory.open() method apply.
         @note: the default flags are 'Read' (512)
         """
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.logicalfile.LogicalFile):
+                raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
+                    + " a org.ogf.saga.logicalfile.LogicalFile. Type: " \
+                    + str(impl["delegateObject"].__class__)
+            self.delegateObject = impl["delegateObject"]
+            return
 
+        if not isinstance(name, URL):
+            raise BadParameter, "Parameter name is not an URL, but "\
+                + "a " + str(name.__class__)
+        if not isinstance(session, Session):
+            raise BadParameter, "Parameter session is not a Session, but "\
+                + "a " + str(session.__class__)
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int, but a "\
+                + str(flags.__class__)
+        
+        try:
+            self.delegateObject = LogicalFileFactory.createLogicalFile\
+                (session.delgateObject, name.delegateObject, flags)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
         
     def add_location(self, name, tasktype=TaskType.NORMAL):
         """
@@ -176,7 +204,15 @@ class LogicalFile(NSEntry, Attributes, Async):
         @note: if the LogicalFile was opened ReadOnly, a 'PermissionDenied' 
             exception is raised.
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         
+        #Normal, synchronous add_location
+        
+        
+                
     def remove_location(self, name, tasktype=TaskType.NORMAL):
         """
         Remove a replica location from the replica set

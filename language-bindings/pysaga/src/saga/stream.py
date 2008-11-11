@@ -14,6 +14,7 @@ from url import URL
 from context import Context
 from attributes import Attributes
 from error import NotImplemented
+from session import Session
 
 
 
@@ -106,7 +107,7 @@ class StreamService(Object, Monitorable, Permissions, Async):
         that waits for client connections. 
     """
       
-    def __init__(self, session, url = ""):
+    def __init__(self, url = "", session = Session()):
         """
         Initializes a new StreamService object.
         @summary: Initializes a new StreamService object.
@@ -135,10 +136,13 @@ class StreamService(Object, Monitorable, Permissions, Async):
             by the URL - otherwise, a 'BadParameter' exception is thrown.
         """
 
-    def get_url(self):
+    def get_url(self, tasktype=TaskType.NORMAL):
         """
         Get URL to be used to connect to this server.
         @summary: Get URL to be used to connect to this server.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: the URL of the connection.
         @rtype: L{URL}
         @raise NotImplemented:
@@ -154,12 +158,15 @@ class StreamService(Object, Monitorable, Permissions, Async):
         url = URL()
         return url
     
-    def serve(self, timeout = -1.0):
+    def serve(self, timeout = -1.0, tasktype=TaskType.NORMAL):
         """
         Wait for incoming client connections.
         @summary: Wait for incoming client connections.
         @param timeout: number of seconds to wait for a client
         @type timeout: float
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: new Connected Stream object
         @rtype: L{Stream}
         @PostCondition: the returned client is in "OPEN" state.
@@ -178,13 +185,16 @@ class StreamService(Object, Monitorable, Permissions, Async):
         stream = Stream()
         return stream
 
-    def close(self, timeout = 0.0):
+    def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         #in float timeout = 0.0
         """
         Closes a stream service
         @summary: closes a stream service
         @param timeout: seconds to wait
         @type timeout: float
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PostCondition: no clients are accepted anymore.
         @PostCondition: no callbacks registered for the "ClientConnect" metric 
             are invoked.
@@ -299,7 +309,7 @@ class Stream(Object, Async, Attributes, Monitorable):
 
     """
     
-    def __init__(self, session, url = ""):
+    def __init__(self, url = "", session = Session() ):
         """
         Initializes a client stream for later connection to a server.
         @summary: initializes a client stream for later connection to a server.
@@ -336,10 +346,13 @@ class Stream(Object, Async, Attributes, Monitorable):
             and all notes to close() apply.
         """
 
-    def get_url(self): 
+    def get_url(self, tasktype=TaskType.NORMAL): 
         """
         Get URL used for creating the stream
         @summary: get URL used for creating the stream
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: the URL of the connection.
         @rtype: L{URL}
         @Raise NotImplemented:
@@ -357,10 +370,13 @@ class Stream(Object, Async, Attributes, Monitorable):
         """
         return URL()
         
-    def get_context(self):
+    def get_context(self, tasktype=TaskType.NORMAL):
         """
         Return remote authorization info
         @summary: return remote authorization info
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: remote context
         @rtype: L{Context}
         @PreCondition: the stream is, or has been, in the "OPEN" state.
@@ -388,12 +404,15 @@ class Stream(Object, Async, Attributes, Monitorable):
         """
         return Context()
     
-    def connect(self):
+    def connect(self, tasktype=TaskType.NORMAL):
         """
         Establishes a connection to the target defined during the construction 
         of the stream.
         @summary: Establishes a connection to the target defined during the 
             construction of the stream.
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PreCondition: the stream is in "NEW" state.
         @PostCondition: the stream is in "OPEN" state.
         @permission: Exec for the StreamService represented by the url used for 
@@ -410,7 +429,7 @@ class Stream(Object, Async, Attributes, Monitorable):
             exception is raised.
         """
 
-    def wait(self, what, timeout = -1.0):
+    def wait(self, what, timeout = -1.0, tasktype=TaskType.NORMAL):
         """
         Check if stream is ready for reading/writing, or if it has entered an 
         error state.
@@ -420,6 +439,9 @@ class Stream(Object, Async, Attributes, Monitorable):
         @type what: int
         @param timeout: number of seconds to wait
         @type timeout: float
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: activity type causing the call to return
         @rtype: int
         @PreCondition: the stream is in "OPEN" state.
@@ -442,12 +464,15 @@ class Stream(Object, Async, Attributes, Monitorable):
         cause = 0
         return cause
       
-    def close(self, timeout = 0.0):
+    def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
         Closes an active connection
         @summary: Closes an active connection.
         @param timeout: seconds to wait
         @type timeout: float
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PostCondition: stream is in "Closed" state
         @raise NotImplemented:
         @raise IncorrectState:
@@ -467,7 +492,7 @@ class Stream(Object, Async, Attributes, Monitorable):
 
 #               
         
-    def read (self, size = -1, buf = None):
+    def read (self, size = -1, buf = None, tasktype=TaskType.NORMAL):
         #inout buffer buf, in int len_in = -1, out int len_out
         """
         Read up to size bytes of data from stream.
@@ -490,6 +515,9 @@ class Stream(Object, Async, Attributes, Monitorable):
         @type size: int
         @param buf: buffer to store read data into
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: string containing the data or the number of bytes read, if 
             successful. 
         @rtype: int or string
@@ -530,7 +558,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         len_out = 0
         return len_out
         
-    def write(self, buf, size = -1):
+    def write(self, buf, size = -1, tasktype=TaskType.NORMAL):
         #in buffer buf, in int size_in = -1, out int size_out
         """
         Write a data buffer to stream
@@ -539,6 +567,9 @@ class Stream(Object, Async, Attributes, Monitorable):
         @type size: int
         @param buf: buffer containing data that will be sent out via socket
         @type buf: L{Buffer} or string
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @return: nr of bytes written if successful
         @PreCondition: the stream is in "OPEN" state.
         @PostCondition: the buffer data are written to the stream.

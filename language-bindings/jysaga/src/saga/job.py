@@ -469,34 +469,39 @@ class JobService(Object, Async):
             is raised, which MUST indicate which attribute(s) caused this 
             exception, and why.
         """
-        if not isinstance(jd, JobDescription):
-            raise BadParameter, "Parameter jd is not a JobDescription, but a" \
-                + str(jd.__class__)
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-#        try:
-#            if tasktype is TaskType.ASYNC:
-#                javaObject = self.delegateObject.getGroup(TaskMode.ASYNC)
-#                return Task(delegateObject=javaObject)
-#            if tasktype is TaskType.SYNC:
-#                javaObject = self.delegateObject.getGroup(TaskMode.SYNC)
-#                return Task(delegateObject=javaObject)
-#            if tasktype is TaskType.TASK:
-#                javaObject = self.delegateObject.getGroup(TaskMode.TASK)
-#                return Task(delegateObject=javaObject)                
-#            else:
-#                return self.delegateObject.getGroup()
-#        except org.ogf.saga.error.SagaException, e:
-#            raise self.convertException(e)    
         
-        try:
-            javaObject = self.delegateObject.createJob(jd)
-            return Job(delegateObject=javaObject)
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)
+        #Normal, synchronous create_job()
+        if tasktype == TaskType.NORMAL:
+            if not isinstance(jd, JobDescription):
+                raise BadParameter, "Parameter jd is not a JobDescription, but"\
+                " a" + str(jd.__class__)
+            try:
+                javaObject = self.delegateObject.createJob(jd.delegateObject)
+                return Job(delegateObject=javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
         
+        #Asynchronous create_job()
+        else:
+            if not isinstance(jd, JobDescription):
+                bp = BadParameter("Parameter jd is not a JobDescription, but"\
+                " a" + str(jd.__class__))
+                return Task(error = bp)
+            try:
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.createJob(TaskMode.ASYNC, jd.delegateObject)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.createJob(TaskMode.SYNC, jd.delegateObject)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.createJob(TaskMode.TASK, jd.delegateObject)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)    
+                
 #todo implement async versions
         
         
@@ -558,31 +563,53 @@ class JobService(Object, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-                
-        if type(commandline) is not str:
-            raise BadParameter, "Parameter commandline is not a string but a "\
-                    + str(commandline.__class__)
-        if type(host) is not str:
-            raise BadParameter, "Parameter host is not a string but a "\
+
+        #Normal, synchronous run_job()
+        if tasktype == TaskType.NORMAL:               
+            if type(commandline) is not str:
+                raise BadParameter, "Parameter commandline is not a string but"\
+                +" a " + str(commandline.__class__)
+            if type(host) is not str:
+                raise BadParameter, "Parameter host is not a string but a "\
                     + str(host.__class__)
-        try:
-            javaJobObject = self.delegateObject.runJob(commandline, host, True)
-            returnJob = Job(delegateObject=javaJobObject)
+            try:
+                javaJobObject = self.delegateObject.runJob(commandline, host, True)
+                returnJob = Job(delegateObject=javaJobObject)
             
-            javaStdin = tempJob.getStdin() #OutputStream
-            returnStdin = StdIO(delegateObject = javaStdin)
+                javaStdin = tempJob.getStdin() #OutputStream
+                returnStdin = StdIO(delegateObject = javaStdin)
         
-            javaStdout = tempJob.getStdout() #InputStream
-            returnStdout = StdIO(delegateObject = javaStdout)
+                javaStdout = tempJob.getStdout() #InputStream
+                returnStdout = StdIO(delegateObject = javaStdout)
             
-            javaStderr = tempJob.getStderr() #InputStream
-            returnStderr = StdIO(delegateObject = javaStderr)            
+                javaStderr = tempJob.getStderr() #InputStream
+                returnStderr = StdIO(delegateObject = javaStderr)            
         
-            return returnJob, returnStdin, returnStdout, returnStderr
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)
-
-
+                return returnJob, returnStdin, returnStdout, returnStderr
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
+        #Asynchronous run_job()
+        else:
+            if type(commandline) is not str:
+                bp = BadParameter("Parameter commandline is not a string but"\
+                +" a " + str(commandline.__class__))
+                return Task(error = bp)
+            
+            if type(host) is not str:
+                bp = BadParameter, "Parameter host is not a string but a "\
+                    + str(host.__class__)
+                return Task(error = bp)
+            try:
+             if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.runJob(TaskMode.ASYNC,commandline,host,True)
+             if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.runJob(TaskMode.SYNC,commandline,host,True)
+             if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.runJob(TaskMode.TASK,commandline,host,True)
+             return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)              
+            
     def list(self, tasktype=TaskType.NORMAL):
         #out array<string>   job_ids
         """
@@ -613,16 +640,31 @@ class JobService(Object, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")" 
-        try:
-            retval = []
-            javaList = self.delegateObject.list()
-            for i in range(javaList.size()):
-                retval.append( javaList.get(i).toString() )
-            return retval
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)
-        #TODO: implement ASYNC versions
-        #TODO: redo Permission param tasktype description
+        
+        #Normal list()
+        if tasktype == TaskType.NORMAL:
+            try:
+                retval = []
+                javaList = self.delegateObject.list()
+                for i in range(javaList.size()):
+                    retval.append( javaList.get(i).toString() )
+                return retval
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
+        
+        #Asynchronous list()
+        else:
+            try:
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.list(TaskMode.ASYNC)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.list(TaskMode.SYNC)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.list(TaskMode.TASK)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)                  
+        
     
     def get_job (self, job_id, tasktype=TaskType.NORMAL):
         #in  string job_id, out job job
@@ -657,19 +699,39 @@ class JobService(Object, Async):
             BadParameter exception is raised.
 
         """
-        if type(job_id) is not str:
-            raise BadParameter, "Parameter job_id is not a string but a "\
-                    + str(host.__class__)
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-        try:
-            javaObject = self.delegateObject.getJob(job_id)
-            return Job(delegateObject = javaObject)
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)
+                
+        #Normal get_job()
+        if tasktype == TaskType.NORMAL:
+            if type(job_id) is not str:
+                raise BadParameter, "Parameter job_id is not a string but a "\
+                    + str(host.__class__)
+            try:
+                javaObject = self.delegateObject.getJob(job_id)
+                return Job(delegateObject = javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
 
+        #Asynchronous get_job()
+        else:
+            if type(job_id) is not str:
+                bp = BadParameter("Parameter job_id is not a string but a "\
+                    + str(host.__class__))
+                return Task(error = bp)
+            try:
+                if tasktype is TaskType.ASYNC:
+                  javaObject = self.delegateObject.getJob(TaskMode.ASYNC,job_id)
+                if tasktype is TaskType.SYNC:
+                  javaObject = self.delegateObject.getJob(TaskMode.SYNC,job_id)
+                if tasktype is TaskType.TASK:
+                  javaObject = self.delegateObject.getJob(TaskMode.TASK,job_id)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)                   
+        
         
     def get_self (self, tasktype=TaskType.NORMAL):
         #out job_self job
@@ -704,11 +766,27 @@ class JobService(Object, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-        try:
-            javaObject = self.delegateObject.getSelf()
-            return JobSelf(delegateObject = javaObject)
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)
+        
+        #Normal get_self()
+        if tasktype == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.getSelf()
+                return JobSelf(delegateObject = javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
+
+        #Asynchronous get_self()
+        else:
+            try:
+                if tasktype is TaskType.ASYNC:
+                  javaObject = self.delegateObject.getSelf(TaskMode.ASYNC)
+                if tasktype is TaskType.SYNC:
+                  javaObject = self.delegateObject.getSelf(TaskMode.SYNC)
+                if tasktype is TaskType.TASK:
+                  javaObject = self.delegateObject.getSelf(TaskMode.TASK)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
 
     def clone(self):
         try:
@@ -755,7 +833,10 @@ class StdIO(object):
                     raise BadParameter,"Parameter impl[\"name\"] is not a " \
                         + "string but a " + str(impl["name"].__class__) 
                 self.name =  impl["name"] 
-            return 
+            return
+        raise BadParameter, "StdIO objects can only be created through "\
+            + "JobService.run_job() or Job.get_stdin(), Job.get_stdout() and "\
+            + "Job.get_stderr()"
     # OutputStream belongs to job.getStdin()
     # InputStream  belongs to job.getStdout and job.getStderr()
                
@@ -1365,13 +1446,29 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-        try:
-            javaObject = self.delegateObject.getJobDescription()
-            return JobDescription(delegateObject = javaObject)
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)   
-            
         
+        #Normal get_job_description()
+        if tasktype == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.getJobDescription()
+                return JobDescription(delegateObject = javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)   
+            
+        #Asynchronous get_job_description()
+        else:
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.getJobDescription(TaskMode.ASYNC)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.getJobDescription(TaskMode.SYNC)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.getJobDescription(TaskMode.TASK)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)           
+    
+    
     def get_stdin(self, tasktype=TaskType.NORMAL):
         """
         Retrieve input stream for a job.
@@ -1408,8 +1505,29 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-        return StdIO()
+ 
+        #Normal get_stdin()
+        if typetask == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.getStdin()
+                return StdIO(delegateObject = javaObject, name= "<stdin>")
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
     
+        #Asynchronous get_stdin()    
+        else:
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.getStdin(TaskMode.ASYNC)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.getStdin(TaskMode.SYNC)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.getStdin(TaskMode.TASK)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)               
+    
+
     def get_stdout(self, tasktype=TaskType.NORMAL):
         """
         Retrieve output stream of job
@@ -1448,7 +1566,27 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-        return StdIO()
+
+        #Normal get_stdout()
+        if typetask == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.getStdout()
+                return StdIO(delegateObject = javaObject, name = "<stdout>")
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
+    
+        #Asynchronous get_stdout()    
+        else:
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.getStdout(TaskMode.ASYNC)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.getStdout(TaskMode.SYNC)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.getStdout(TaskMode.TASK)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)      
     
     def get_stderr(self, tasktype=TaskType.NORMAL):
         """
@@ -1488,7 +1626,27 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-        return StdIO()
+
+        #Normal get_stderr()
+        if typetask == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.getStderr()
+                return StdIO(delegateObject = javaObject, name = "<stderr>")
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
+    
+        #Asynchronous get_stderr()    
+        else:
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.getStderr(TaskMode.ASYNC)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.getStderr(TaskMode.SYNC)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.getStderr(TaskMode.TASK)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)     
     
     #job management
     def suspend(self, tasktype=TaskType.NORMAL):
@@ -1518,7 +1676,26 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-                
+
+        #Normal suspend()
+        if typetask == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.suspend()
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
+    
+        #Asynchronous suspend()    
+        else:
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.suspend(TaskMode.ASYNC)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.suspend(TaskMode.SYNC)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.suspend(TaskMode.TASK)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)                    
                           
     def resume(self, tasktype=TaskType.NORMAL):
         """
@@ -1547,6 +1724,25 @@ class Job(Task, Attributes, Permissions, Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
+        #Normal resume()
+        if typetask == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.resume()
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
+    
+        #Asynchronous resume()    
+        else:
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.resume(TaskMode.ASYNC)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.resume(TaskMode.SYNC)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.resume(TaskMode.TASK)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)   
     
     def checkpoint(self, tasktype=TaskType.NORMAL):
         """
@@ -1579,6 +1775,26 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+
+        #Normal checkpoint()
+        if typetask == TaskType.NORMAL:
+            try:
+                javaObject = self.delegateObject.checkpoint()
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
+    
+        #Asynchronous checkpoint()    
+        else:
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.checkpoint(TaskMode.ASYNC)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.checkpoint(TaskMode.SYNC)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.checkpoint(TaskMode.TASK)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)  
                     
     def migrate(self, jd, tasktype=TaskType.NORMAL):
         #in job_description jd
@@ -1621,7 +1837,35 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-                
+
+        #Normal migrate()
+        if typetask == TaskType.NORMAL:
+            if not isinstance(jd, JobDescription):
+                raise BadParameter, "Parameter jd is not a JobDescription, but"\
+                    +" a "+ str(jd.__class__)
+            
+            try:
+                javaObject = self.delegateObject.migrate(jd.delegateObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
+    
+        #Asynchronous migrate()    
+        else:
+          if not isinstance(jd, JobDescription):
+                bp = BadParameter("Parameter jd is not a JobDescription, but"\
+                    +" a "+ str(jd.__class__))
+                return Task(error = bp)
+          
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.migrate(TaskMode.ASYNC,jd.delegateObject)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.migrate(TaskMode.SYNC,jd.delegateObject)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.migrate(TaskMode.TASK,jd.delegateObject)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)                  
                     
     def signal(self, signum, tasktype=TaskType.NORMAL):
         #in int signum
@@ -1657,6 +1901,35 @@ class Job(Task, Attributes, Permissions, Async):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+
+        #Normal signal()
+        if typetask == TaskType.NORMAL:
+            if not isinstance(signum, int):
+                raise BadParameter, "Parameter signum is not an int, but"\
+                    +" a "+ str(signum.__class__)
+            
+            try:
+                javaObject = self.delegateObject.signal(signum)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)        
+    
+        #Asynchronous signal()    
+        else:
+          if not isinstance(signum, int):
+                bp =  BadParameter("Parameter signum is not an int, but"\
+                                   +" a "+ str(signum.__class__))
+                return Task(error = bp)
+          
+          try:
+            if tasktype is TaskType.ASYNC:
+              javaObject = self.delegateObject.signal(TaskMode.ASYNC,signum)
+            if tasktype is TaskType.SYNC:
+              javaObject = self.delegateObject.signal(TaskMode.SYNC,signum)
+            if tasktype is TaskType.TASK:
+              javaObject = self.delegateObject.signal(TaskMode.TASK,signum)
+            return Task(delegateObject=javaObject)                
+          except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e) 
                 
 
 
