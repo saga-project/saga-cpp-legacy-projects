@@ -26,7 +26,6 @@ import os
 import random
 import time
 import optparse
-import logging
 import saga
 import re
 import math
@@ -111,63 +110,56 @@ class ReManager():
         except:
             pass
         jd.working_directory = machine["working_dir_root"] + "/" + str(replica_id)
-        jd.output = "output.txt"    #this is requried for Migol
+        jd.output = "output.txt"  
         jd.error = "error.txt"
         return jd
 
 
-    def file_stage_in_with_saga(self, input_file_list_with_path, remote_machine_ip, remote_dir):
+    def file_stage_in_with_saga(self, input_file_list_with_path, remote_url_prefix, remote_dir):
         cwd = os.getcwd()
         for ifile in input_file_list_with_path:
             # destination url
-            if remote_machine_ip.find('localhost') >= 0:
-                dest_url_str = 'file://'
-            else:
-                dest_url_str = 'gridftp://'+remote_machine_ip + "/"
+            dest_url = saga.url(remote_url_prefix + "/")
             ifile_basename = os.path.basename(ifile)
-            try:
-                dest_dir = dest_url_str + remote_dir
-                saga.file.directory(saga.url(dest_dir), saga.file.Create |  saga.file.ReadWrite)
-            except:
-                print "Could not create: " + dest_dir
 
-            dest_url_str = dest_url_str + os.path.join(remote_dir, ifile_basename)
+            try:
+                dest_dir = saga.url(remote_url_prefix)
+                dest_dir.path = remote_dir
+                saga.file.directory(dest_dir, saga.file.Create |  saga.file.ReadWrite)
+            except:
+                print "Could not create: " + dest_dir.get_string()
+
+            dest_url.path = os.path.join(remote_dir, ifile_basename)
+
             # source url
-            source_url_str = 'file://' + os.path.join(cwd, ifile)
+            source_url = saga.url('file://' + os.path.join(cwd, ifile))
 
             if not os.path.isfile(ifile):
                 error_msg = "Input file %s does not exist in %s"%(ifile_basename, os.path.dirname(ifile))
-                logging.error(error_msg)
+                print(error_msg)
             else:
                 try:
-                    source_url = saga.url(source_url_str)
-                    dest_url = saga.url(dest_url_str)
-                    print "stage file: " + source_url_str + " to " + dest_url_str
+                    print "stage file: " + source_url.get_string() + " to " + dest_url.get_string()
                     sagafile = saga.file.file(source_url)
                     sagafile.copy(dest_url)
-                    logging.info("Now Input file %s is staged into %s"%(ifile_basename,dest_url_str))
                 except saga.exception, e:
                     error_msg = "Input file %s failed to be staged in"%(ifile_basename)
-                    logging.error(error_msg)
+                    print(error_msg)
                     
         return None
     
-    def file_stage_out_with_saga(self, file_list, local_dir, remote_machine_ip, remote_dir):
+    def file_stage_out_with_saga(self, file_list, local_dir, remote_url_prefix, remote_dir):
         for ifile in file_list:
             try:
-                source_url_str = "gsiftp://"+remote_machine_ip + "/" + os.path.join(remote_dir, ifile)
-                dest_url_str = "file://" + local_dir + "/" + ifile
-    # for the time being, use globus-url-copy            
-    #            source_url = saga.url(source_url_str)
-    #            dest_url = saga.url(dest_url_str)
-     
-    #            sagafile = saga.file.file(source_url)
-    #            sagafile.copy(dest_url)
-                print "(DEBUG) Now I am pulling the output.txt file at %s to %s"%(source_url_str, dest_url_str)
-                cmd = "globus-url-copy %s %s"%(source_url_str, dest_url_str) 
-                os.system(cmd)    
+                source_url = saga.url(remote_url_prefix)
+                source_url.path= os.path.join(remote_dir, ifile)
+                dest_url = saga.url("file://" + local_dir + "/")
+                dest_url.path = ifile
+                print "(DEBUG) Staging out output.txt file at %s to %s"%(source_url.get_string(), dest_url.get_string())
+                sagafile = saga.file.file(source_url)
+                sagafile.copy(dest_url)
             except saga.exception, e:
-                error_msg = "File stage out failed: "+ source_url_str
+                error_msg = "File stage out failed: "+ source_url.get_string()
     
         return None
     
@@ -200,12 +192,10 @@ class ReManager():
         #I know This is not the best one!  namd output is staged out and take the energy out from the file
         file_list = ["output.txt"]  
         local_dir = os.getcwd()
-        remote_machine_ip = machine["host"]
-        if machine.has_key("gridftp_url"):
-           remote_machine_ip = machine["gridftp_url"]
+        remote_url_prefix = machine["file_url"]
         remote_dir = machine["working_dir_root"] + "/" + str(replica_id)
     
-        self.file_stage_out_with_saga(file_list, local_dir, remote_machine_ip, remote_dir)
+        self.file_stage_out_with_saga(file_list, local_dir, remote_url_prefix, remote_dir)
        
         enfile = open("output.txt", "r")
         lines = enfile.readlines()
@@ -240,14 +230,12 @@ class ReManager():
     def stage_files(self, file_list, machine, replica_id):
         """ stage passed file list to specified remote machine
             create directory in working dir for replica_id """ 
-        remote_machine_ip = machine["host"]
-        if machine.has_key("gridftp_url"):
-           remote_machine_ip = machine["gridftp_url"]
+        remote_url_prefix = machine["file_url"]
         remote_dir = machine["working_dir_root"] + "/" + str(replica_id)
         # prepare parameter 
         self.prepare_NAMD_config(replica_id) 
-        self.file_stage_in_with_saga(file_list, remote_machine_ip, remote_dir) 
-        print "(INFO) Replica %d : Input files are staged into %s  "%(replica_id, remote_machine_ip)
+        self.file_stage_in_with_saga(file_list, remote_url_prefix, remote_dir) 
+        print "(INFO) Replica %d : Input files are staged into %s  "%(replica_id, remote_url_prefix)
 
     #########################################################
     #  run_REMDg
@@ -272,7 +260,7 @@ class ReManager():
             replica_id = 0
             for resource in self.resourceMap.keys():
                 machine = self.resourceMap[resource]
-                host = machine["host"]
+                host = saga.url(machine["rm_url"]).host
                 nodes = int(machine["number_nodes"])
                 num_jobs = nodes / self.number_of_mpi_processes
                 print "Host: " + host + " Nodes: " + str(nodes) + " Num jobs: " + str(num_jobs)
@@ -292,7 +280,7 @@ class ReManager():
                     ################ replica job spawning ###########################  
                     print "check host: " + str(host)
                     jd = self.set_saga_job_description(machine, replica_id)
-                    dest_url_string = "gram://" + host + "/" + "jobmanager-" + machine["scheduler"]     # just for the time being
+                    dest_url_string = machine["rm_url"]     # just for the time being
                     new_job = self.submit_job(dest_url_string, jd)
                     self.replica_jobs.insert(replica_id, new_job)
                     self.replica_job_machine_dic[replica_id] = machine
@@ -362,16 +350,13 @@ class ReManager():
                 break
     
             ########################## delete old jobs #####################
-            if self.glide_in == True:    
-                for i in self.replica_jobs:
-                    i.cancel()
+            for i in self.replica_jobs:
+                i.cancel()
                     
         self.print_config()
-        print "REMD Runtime: " + str(time.time()-start) + " s; Glide-In: " + str(self.glide_in) \
-                + "; number replica: " + str(self.total_number_replica) + "; CPR: " + str(self.cpr) \
+        print "REMD Runtime: " + str(time.time()-start) + " s; " \
+                + "; number replica: " + str(self.total_number_replica) \
                 + "; number namd jobs: " + str(total_number_of_namd_jobs)
-        # stop gliding job        
-        self.stop_glidin_jobs()
         
     def print_config(self):
         for section in self.resourceMap.keys():
@@ -381,7 +366,6 @@ class ReManager():
                 print " ", option[0] , "=", option[1]
     
     def __del__(self):
-        print "kill gram jobs"
         for i in self.replica_jobs:
             i.cancel()
     
