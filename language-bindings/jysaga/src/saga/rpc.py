@@ -7,10 +7,26 @@
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
 #    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-from buffer import Buffer
-from object import Object, ObjectType
-from permissions import Permissions
-from task import Async
+from saga.buffer import Buffer
+from saga.object import Object, ObjectType
+from saga.permissions import Permissions
+from saga.task import Async
+
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
+
+import org.ogf.saga.rpc.IOMode
 
 class IOMode(object):
     """
@@ -88,6 +104,21 @@ class Parameter(Buffer):
         @param mode: value for io mode
         @type mode: one of the values from IOMode
         """
+        if mode is not IOMode.IN and mode is not IOMode.OUT and\
+            mode is not IOMode.INOUT:
+            raise BadParameter("Parameter mode is not a value from IOMode"\
+                +" but " + str(mode) +" "+ str(mode__class__))
+
+        try:
+            if mode == IOMode.IN:
+                self.delegateObject.setIOMode(org.ogf.saga.rpc.IOMode.IN)
+            if mode == IOMode.OUT:
+                self.delegateObject.setIOMode(org.ogf.saga.rpc.IOMode.OUT)
+            if mode == IOMode.INOUT:
+                self.delegateObject.setIOMode(org.ogf.saga.rpc.IOMode.INOUT)        
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)   
+
    
     def get_io_mode(self):
         """
@@ -96,7 +127,17 @@ class Parameter(Buffer):
         @return: value of io mode
         @rtype: one of the values from IOMode
         """
-   
+ 
+        try:
+            mode = self.delegateObject.getIOMode()
+            if mode == org.ogf.saga.rpc.IOMode.IN:
+                return IOMode.IN
+            if mode == org.ogf.saga.rpc.IOMode.OUT:
+                return IOMode.OUT
+            if mode == org.ogf.saga.rpc.IOMode.INOUT:
+                return IOMode.INOUT        
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e) 
    
 class RPC(Object, Permissions, Async ):
     """
@@ -106,7 +147,7 @@ class RPC(Object, Permissions, Async ):
     """
      
      
-    def __init__(self, session, funcname):
+    def __init__(self, funcname, session = Session() ):
         """
         Initializes a remote function handle
         @summary: Initializes a remote function handle
@@ -150,6 +191,14 @@ class RPC(Object, Permissions, Async ):
         @Note: if the instance was not closed before, the destructor performs a 
             close() on the instance, and all notes to close() apply.
         """
+        Async.__del__()
+        Permissions.__del__()
+        Object.__del__() 
+        try:
+            self.close()
+        except:
+            pass
+        supe
     
     def call(self, parameters, tasktype=TaskType.NORMAL):
         """
@@ -190,7 +239,12 @@ class RPC(Object, Permissions, Async ):
             class apply.
 
         """
-        
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                
+                       
     def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
         Closes the rpc handle instance.
@@ -214,3 +268,8 @@ class RPC(Object, Permissions, Async ):
         @see: for timeout semantics, see Section 2 of the GFD-R-P.90 document
 
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+                

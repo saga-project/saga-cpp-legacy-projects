@@ -106,7 +106,7 @@ class RPC(Object, Permissions, Async ):
     """
      
      
-    def __init__(self, session, funcname):
+    def __init__(self, funcname, session = Session() ):
         """
         Initializes a remote function handle
         @summary: Initializes a remote function handle

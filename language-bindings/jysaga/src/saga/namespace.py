@@ -1051,7 +1051,7 @@ class NSDirectory(NSEntry, Async):
         if type(name_pattern) is not str:
             raise BadParameter, "Parameter name_pattern is not a string. Type: " + str(type(name_pattern))
         if type(flags) is not int:
-            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(int))
+            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
@@ -1069,7 +1069,7 @@ class NSDirectory(NSEntry, Async):
                 javaArray = self.delegateObject.find(name_pattern, flags)                
                 retval = []
                 for i in range(len(javaArray)):
-                    ret.append(URL(delegateObject = javaArray[i]))
+                    retval.append(URL(delegateObject = javaArray[i]))
                 return retval
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)

@@ -466,6 +466,8 @@ class Task(Object, Monitorable):
                         temp = URL (delegateObject = retval.get(i))
                         list.append(temp)
                         return list
+            else:
+                return []
         elif type(retval) is org.ogf.saga.logicalfile.LogicalDirectory: pass
         elif type(retval) is org.ogf.saga.logicalfile.LogicalFile: pass
         elif type(retval) is java.lang.Long:
@@ -640,9 +642,14 @@ class TaskContainer(Object, Monitorable):
             was not able to add the Task to the container.
                   
         """
-        if type(task) is not Task:
+        if not isinstance(task, Task):
             raise BadParameter, "Parameter task is not a Task object. Type: " \
                 + str(type(task))
+        if task.taskFailed == True:
+            raise NoSuccess, "task has already failed because of wrong"\
+                            +" parameters given to create the task. Check with "\
+                            + "task.retrow()"
+#DOCUMENT: behaviour with dummy tasks.
         try:
             return self.delegateObject.add(task.delegateObject)
         except org.ogf.saga.error.SagaException, e:

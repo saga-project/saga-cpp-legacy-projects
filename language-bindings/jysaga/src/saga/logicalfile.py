@@ -12,6 +12,20 @@ from saga.attributes import Attributes
 from saga.namespace import NSEntry, NSDirectory
 from saga.url import URL
 
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
+
 import org.ogf.saga.logicalfile.LogicalFile
 import org.ogf.saga.logicalfile.LogicalDirectory
 from org.ogf.saga.logicalfile import LogicalFileFactory
@@ -209,9 +223,38 @@ class LogicalFile(NSEntry, Attributes, Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         
-        #Normal, synchronous add_location
-        
-        
+        #Normal, synchronous add_location()
+        if tasktype == TaskType.NORMAL:
+            if not isinstance(name, URL):
+                raise BadParameter, "Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__)
+            try:
+                self.delegateObject.addLocation(name.delegateObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
+
+        #Asynchronous add_location()
+        else:
+            if not isinstance(name, URL):
+                bp = BadParameter("Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__))
+                return Task(error = bp)
+            
+            try:
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.addLocation\
+                                            (TaskMode.ASYNC,name.delegateObject)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.addLocation\
+                                            (TaskMode.SYNC,name.delegateObject)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.addLocation\
+                                            (TaskMode.TASK,name.delegateObject)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)    
+
                 
     def remove_location(self, name, tasktype=TaskType.NORMAL):
         """
@@ -252,6 +295,43 @@ class LogicalFile(NSEntry, Attributes, Async):
         @note: if the LogicalFile was opened ReadOnly, a 'PermissionDenied' 
             exception is raised.
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+        
+        #Normal, synchronous remove_location()
+        if tasktype == TaskType.NORMAL:
+            if not isinstance(name, URL):
+                raise BadParameter, "Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__)
+            try:
+                self.delegateObject.removeLocation(name.delegateObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
+
+        #Asynchronous remove_location()
+        else:
+            if not isinstance(name, URL):
+                bp = BadParameter("Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__))
+                return Task(error = bp)
+            
+            try:
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.removeLocation\
+                                            (TaskMode.ASYNC,name.delegateObject)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.removeLocation\
+                                            (TaskMode.SYNC,name.delegateObject)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.removeLocation\
+                                            (TaskMode.TASK,name.delegateObject)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
+
 
     def update_location(self, old, new, tasktype=TaskType.NORMAL):
         """
@@ -299,7 +379,52 @@ class LogicalFile(NSEntry, Attributes, Async):
         @note: if the LogicalFile was opened WriteOnly, an 'PermissionDenied' 
             exception is thrown.
         """
-                  
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+        
+        #Normal, synchronous update_location()
+        if tasktype == TaskType.NORMAL:
+            if not isinstance(old, URL):
+                raise BadParameter, "Parameter old is not an URL, but "\
+                    + "a " + str(old.__class__)
+            if not isinstance(new, URL):
+                raise BadParameter, "Parameter new is not an URL, but "\
+                    + "a " + str(new.__class__)
+            try:
+                self.delegateObject.updateLocation\
+                                        (old.delegateObject,new.delegateObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
+
+        #Asynchronous update_location()
+        else:
+            if not isinstance(old, URL):
+                bp = BadParameter("Parameter old is not an URL, but "\
+                    + "a " + str(new.__class__))
+                return Task(error = bp)
+            if not isinstance(new, URL):
+                bp = BadParameter("Parameter new is not an URL, but "\
+                    + "a " + str(new.__class__))
+                return Task(error = bp)
+            
+            try:
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.updateLocation\
+                        (TaskMode.ASYNC,old.delegateObject,new.delegateObject)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.updateLocation\
+                        (TaskMode.SYNC,old.delegateObject,new.delegateObject)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.updateLocation\
+                        (TaskMode.TASK,old.delegateObject,new.delegateObject)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)   
+   
+                 
     def list_locations(self, tasktype=TaskType.NORMAL):
         """
         List the locations in the location set
@@ -324,7 +449,38 @@ class LogicalFile(NSEntry, Attributes, Async):
         @note: if the LogicalFile was opened WriteOnly, an 'PermissionDenied' 
             exception is thrown.
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         
+        #Normal, synchronous list_locations()
+        if tasktype == TaskType.NORMAL:
+
+            try:
+                retval = self.delegateObject.listLocations()
+                list = []
+                for i in range(retval.size()):
+                    temp = URL (delegateObject = retval.get(i))
+                    list.append(temp)
+                return list
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
+
+        #Asynchronous list_locations()
+        else:
+            try:
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                  javaObject = self.delegateObject.listLocations(TaskMode.ASYNC)
+                if tasktype is TaskType.SYNC:
+                  javaObject = self.delegateObject.listLocations(TaskMode.SYNC)
+                if tasktype is TaskType.TASK:
+                  javaObject = self.delegateObject.listLocations(TaskMode.TASK)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)          
+
         
     def replicate(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
@@ -375,7 +531,65 @@ class LogicalFile(NSEntry, Attributes, Async):
             exception is thrown.
         @note: if the LogicalFile was opened WriteOnly, an 'PermissionDenied' 
             exception is thrown.
-    """
+        """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+        
+        #Normal, synchronous replicate()
+        if tasktype == TaskType.NORMAL:
+            if not isinstance(name, URL):
+                raise BadParameter, "Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__)
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int, but"\
+                    + "a" + str(flags.__class__)
+            try:
+                if flags == Flags.NONE:
+                    self.delegateObject.replicate(name.delegateObject)
+                else:
+                    self.delegateObject.replicate(name.delegateObject, flags)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
+
+        #Asynchronous replicate()
+        else:
+            if not isinstance(name, URL):
+                bp = BadParameter("Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__))
+                return Task(error = bp)
+            if type(flags) is not int:
+                bp = BadParameter( "Parameter flags is not an int, but"\
+                    + "a" + str(flags.__class__))
+                return Task(error = bp)
+            
+            try:
+                javaObject = None
+                if flags == Flags.NONE:
+                    if tasktype is TaskType.ASYNC:
+                        javaObject = self.delegateObject.replicate\
+                                            (TaskMode.ASYNC,name.delegateObject)
+                    if tasktype is TaskType.SYNC:
+                        javaObject = self.delegateObject.replicate\
+                                            (TaskMode.SYNC,name.delegateObject)
+                    if tasktype is TaskType.TASK:
+                        javaObject = self.delegateObject.replicate\
+                                            (TaskMode.TASK,name.delegateObject)
+                else:
+                    if tasktype is TaskType.ASYNC:
+                        javaObject = self.delegateObject.replicate\
+                                    (TaskMode.ASYNC,name.delegateObject,flags)
+                    if tasktype is TaskType.SYNC:
+                        javaObject = self.delegateObject.replicate\
+                                    (TaskMode.SYNC,name.delegateObject,flags)
+                    if tasktype is TaskType.TASK:
+                        javaObject = self.delegateObject.replicate\
+                                    (TaskMode.TASK,name.delegateObject,flags) 
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)    
+    
     
 class LogicalDirectory(NSDirectory, Attributes, Async):
     """
@@ -385,6 +599,7 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
     @summary:  This class represents a container for logical files in a logical 
         file namespace.
     """
+    delegateObject = None
    
     def __init__(self, name, session = Session(), flags = Flags.READ):
         """
@@ -417,12 +632,75 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
             LogicalDirectory.open_dir() method apply.
         @note: the default flags are 'READ' (512).
         """
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.logicalfile.LogicalDirectory):
+                raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
+                    + " a org.ogf.saga.logicalfile.LogicalDirectory. Type: " \
+                    + str(impl["delegateObject"].__class__)
+            self.delegateObject = impl["delegateObject"]
+            return
+
+        if not isinstance(name, URL):
+            raise BadParameter, "Parameter name is not an URL, but "\
+                + "a " + str(name.__class__)
+        if not isinstance(session, Session):
+            raise BadParameter, "Parameter session is not a Session, but "\
+                + "a " + str(session.__class__)
+        if type(flags) is not int:
+            raise BadParameter, "Parameter flags is not an int, but a "\
+                + str(flags.__class__)
+        
+        try:
+            self.delegateObject = LogicalFileFactory.createLogicalDirectory\
+                (session.delgateObject, name.delegateObject, flags)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+
+#TODO: create async version of object creation
 
     def is_file(self, name, tasktype=TaskType.NORMAL):
         """
         Alias for is_entry of L{saga.namespace.NSDirectory}
         """
-        
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"       
+ 
+        #Normal synchronous is_file()
+        if taskType == TaskType.NORMAL:
+            if not isinstance(name, URL):
+                raise BadParameter, "Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__)
+            try:
+                if self.delegateObject.isFile(name.delegateObject) == 1:
+                    return True
+                else:
+                    return False
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)         
+ 
+        #Asynchronous is_file()        
+        else:
+            if not isinstance(name, URL):
+                bp = BadParameter("Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__))
+                return Task(error = bp)
+            try:
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.isFile\
+                                            (TaskMode.ASYNC,name.delegateObject)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.isFile\
+                                            (TaskMode.SYNC, name.delegateObject)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.isFile\
+                                            (TaskMode.TASK, name.delegateObject)
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)   
+
         
     def open_dir(self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         """
@@ -458,6 +736,52 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @Note: all notes from the NSDirectory.open_dir() method apply.
         @note: default flags are 'READ' (512).
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+        
+        #Normal, synchronous open_dir()
+        if tasktype == TaskType.NORMAL:
+            if not isinstance(name, URL):
+                raise BadParameter, "Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__)
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int, but"\
+                    + "a" + str(flags.__class__)
+            try:
+                javaObject = self.delegateObject.openLogicalDir\
+                                                    (name.delegateObject, flags)
+                return LogicalDirectory(delegateObject = javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
+
+        #Asynchronous open_dir()
+        else:
+            if not isinstance(name, URL):
+                bp = BadParameter("Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__))
+                return Task(error = bp)
+            if type(flags) is not int:
+                bp = BadParameter( "Parameter flags is not an int, but"\
+                    + "a" + str(flags.__class__))
+                return Task(error = bp)
+            
+            try:
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.openLogicalDir\
+                                    (TaskMode.ASYNC,name.delegateObject,flags)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.openLogicalDir\
+                                    (TaskMode.SYNC,name.delegateObject,flags)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.openLogicalDir\
+                                    (TaskMode.TASK,name.delegateObject,flags) 
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)    
+
     
     def open(self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         """
@@ -496,6 +820,52 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
             'ReadWrite'.
         @note: default flags are 'READ' (512).
         """
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+        
+        #Normal, synchronous open_File()
+        if tasktype == TaskType.NORMAL:
+            if not isinstance(name, URL):
+                raise BadParameter, "Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__)
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int, but"\
+                    + "a" + str(flags.__class__)
+            try:
+                javaObject = self.delegateObject.openLogicalFile\
+                                                    (name.delegateObject, flags)
+                return LogicalFile(delegateObject = javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)               
+
+        #Asynchronous open_File()
+        else:
+            if not isinstance(name, URL):
+                bp = BadParameter("Parameter name is not an URL, but "\
+                    + "a " + str(name.__class__))
+                return Task(error = bp)
+            if type(flags) is not int:
+                bp = BadParameter( "Parameter flags is not an int, but"\
+                    + "a" + str(flags.__class__))
+                return Task(error = bp)
+            
+            try:
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.openLogicalFile\
+                                    (TaskMode.ASYNC,name.delegateObject,flags)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.openLogicalFile\
+                                    (TaskMode.SYNC,name.delegateObject,flags)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.openLogicalFile\
+                                    (TaskMode.TASK,name.delegateObject,flags) 
+                return Task(delegateObject=javaObject)                
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)  
+
     
     def find(self, name_pattern, attr_pattern, flags = Flags.RECURSIVE, tasktype=TaskType.NORMAL):
         """
@@ -540,4 +910,89 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
             returned.
         @note: the default flags are 'RECURSIVE' (2).
         """  
+        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+                +" values, but " + str(tasktype)
+
+
+        #Normal synchronous find()
+        if tasktype == TaskType.NORMAL:
+            if type(name_pattern) is not str:
+                raise BadParameter, "Parameter name_pattern is not a string. "\
+                    +"Type: " + str(type(name_pattern))
+            if type(name_pattern) is not str:
+                raise BadParameter, "Parameter name_pattern is not a string. "\
+                    +"Type: " + str(type(name_pattern))            
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int. Type: "\
+                     + str(type(int))
+            if type(attr_pattern) is not list:
+                raise BadParameter, "Parameter attr_pattern is not a list. "\
+                    +"Type: " + str(attr_pattern.__class__)                                 
+            
+            import java.lang.String
+            import jarray.array
+            javaArray = None
+            try:
+                javaArray = jarray.array(attr_pattern, java.lang.String)
+            except TypeError:
+                raise BadParameter("Parameter attr_pattern consists out of more"\
+                    +" types objects than just strings")
+            try:
+                retval = self.delegateObject.find(name_pattern, javaArray, flags)
+                list = []
+                for i in range(retval.size()):
+                    temp = URL (delegateObject = retval.get(i))
+                    list.append(temp)
+                return list
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)            
+        
+        #Asynchronous find()
+        else:
+            if type(name_pattern) is not str:
+                bp =  BadParameter( "Parameter name_pattern is not a string. "\
+                    +"Type: " + str(name_pattern__class__))
+                return Task(error = bp)
+            
+            if type(name_pattern) is not str:
+                bp =  BadParameter( "Parameter name_pattern is not a string. "\
+                    +"Type: " + str(name_pattern__class__))           
+                return Task(error = bp)
+            
+            if type(flags) is not int:
+                bp =  BadParameter( "Parameter flags is not an int. Type: "\
+                     + str(flags.__class__))
+                return Task(error = bp)
+            
+            if type(attr_pattern) is not list:
+                bp =  BadParameter( "Parameter attr_pattern is not a list. "\
+                    +"Type: " + str(attr_pattern.__class__))         
+                return Task(error = bp)            
+            
+            import java.lang.String
+            import jarray.array
+            javaArray = None
+            try:
+                javaArray = jarray.array(attr_pattern, java.lang.String)
+            except TypeError:
+                bp =  BadParameter("Parameter attr_pattern consists out of more"\
+                    +" types of objects than just strings")            
+                return Task(error = bp)
+            
+            
+            try: 
+                javaObject = None
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.find(TaskMode.ASYNC, name_pattern, javaArray, flags)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.find(TaskMode.SYNC, name_pattern, javaArray,flags)
+                if tasktype is TaskType.TASK:
+                    javaObject = self.delegateObject.find(TaskMode.TASK, name_pattern, javaArray,flags)
+                return Task(delegateObject=javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
+
+
    
