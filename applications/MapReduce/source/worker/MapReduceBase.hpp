@@ -12,6 +12,7 @@
 #include <saga/saga.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "parseCommand.hpp"
 #include "../utils/LogWriter.hpp"
@@ -89,18 +90,18 @@ namespace MapReduce {
          return retval;
       }
       void writeIntermediate(void) {
-         std::map<std::string, std::vector<std::string> >::iterator mapIt = intermediate_.begin();
+         std::vector<std::pair<strPtr, strVectorPtr> >::iterator mapIt = intermediate_.begin();
          std::string intermediateData[NUM_MAPS];
          while(mapIt != intermediate_.end()) {
-            std::string intermediateKey = mapIt->first;
+            std::string intermediateKey = *(mapIt->first);
             int hash_value = hash(intermediateKey, NUM_MAPS);
             intermediateData[hash_value].append(intermediateKey);
             intermediateData[hash_value].append(" ");
-            intermediateData[hash_value].append(mapIt->second[0]);
-            std::size_t size = mapIt->second.size();
+            intermediateData[hash_value].append((*(mapIt->second))[0]);
+            std::size_t size = mapIt->second->size();
             for(unsigned int x = 1; x < size; x++) {
                intermediateData[hash_value].append(", ");
-               intermediateData[hash_value].append(mapIt->second[x]);
+               intermediateData[hash_value].append((*(mapIt->second))[x]);
             }
             mapIt++;
             intermediateData[hash_value].append(";\n");
@@ -117,7 +118,24 @@ namespace MapReduce {
        * and advertising these files.                          *
        * ******************************************************/
       void emitIntermediate(std::string key, std::string value) {
-         intermediate_[key].push_back(value);
+         std::vector<std::pair<strPtr, strVectorPtr> >::iterator mapIt = intermediate_.begin();
+         bool contained = false;
+         while(mapIt != intermediate_.end()) {
+            if(*(mapIt->first) == key) {
+               //Contained in structure
+               (mapIt->second)->push_back(value);
+               contained = true;
+               break;
+            }
+            mapIt++;
+         }
+         if(contained == false) {
+            //Not in structure
+            strVectorPtr initialValue(new std::vector<std::string>);
+            initialValue->push_back(value);
+            strPtr initialKey(new std::string(key));
+            intermediate_.push_back(std::make_pair(initialKey, initialValue));
+         }
          if(intermediate_.size() >= MAX_INTERMEDIATE_SIZE) {
             writeIntermediate();
          }
@@ -155,7 +173,9 @@ namespace MapReduce {
    
       std::vector<saga::filesystem::file> mapFiles_;
       std::vector<saga::filesystem::file> reduceFiles_;
-      std::map<std::string,std::vector<std::string> > intermediate_;
+      typedef boost::shared_ptr<std::string> strPtr;
+      typedef boost::shared_ptr<std::vector<std::string> > strVectorPtr;
+      std::vector<std::pair<strPtr, strVectorPtr> > intermediate_;
       saga::advert::directory workerDir_;
       saga::advert::directory intermediateDir_;
       saga::advert::directory chunksDir_;
@@ -271,8 +291,8 @@ namespace MapReduce {
                   RunReduce reduceHandler(workerDir_, reduceInputDir_, outputPrefix_);
                  
                   // Get a map of keys and a vector of the values
-                  std::map<std::string, std::vector<std::string> > keyValues(reduceHandler.getLines());
-                  std::map<std::string, std::vector<std::string> >::const_iterator keyValuesIT = keyValues.begin();
+                  std::vector<std::pair<strPtr, strVectorPtr> > keyValues(reduceHandler.getLines());
+                  std::vector<std::pair<strPtr, strVectorPtr> >::const_iterator  keyValuesIT = keyValues.begin();
                   // Iterate over these keys and their values and
                   // reduce them by passing them to the user defined
                   // reduce function

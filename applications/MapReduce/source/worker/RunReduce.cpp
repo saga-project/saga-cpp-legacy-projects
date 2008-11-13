@@ -23,7 +23,6 @@ namespace MapReduce {
           while(entriesIT != entries.end()) {
              saga::advert::entry adv(*entriesIT, mode);
              files_.push_back(adv.retrieve_string());
-             std::cout << "part of input for me = " << adv.retrieve_string() << std::endl;
              entriesIT++;
           }
       }
@@ -50,32 +49,50 @@ namespace MapReduce {
       }
    }
 
+  struct comparison {
+     bool operator() (std::pair<strPtr, strVectorPtr> i,
+                      std::pair<strPtr, strVectorPtr> j) {
+        int result = (i.first)->compare(*(j.first));
+        if(result < 0) return true;
+        return false;
+     }
+  } comparisonObj;
 /*********************************************************
  * getLines returns a representation of each line from   *
  * the input files as a map<string, vector<string> > to  *
  * be passed to the user defined reduce function.        *
  * ******************************************************/
-  std::map<std::string, std::vector<std::string> > RunReduce::getLines() {
+  std::vector<std::pair<strPtr, strVectorPtr> > RunReduce::getLines() {
       std::vector<std::string> lines;
       std::vector<std::string>::const_iterator linesIT;
-      std::map<std::string, std::vector<std::string> > keyValues;
-      std::map<std::string, std::vector<std::string> >::iterator keyValuesIT;
+      std::vector<std::pair<strPtr, strVectorPtr> > keyValues;
+      std::vector<std::pair<strPtr, strVectorPtr> >::iterator keyValuesIT;
       lines = merger<std::string>(files_);
       for(linesIT = lines.begin();linesIT!=lines.end();linesIT++) {
          std::string key(getKey(*linesIT));
-         std::vector<std::string> values;
-         values = parseMapLine(*linesIT);
+         std::vector<std::string> values(parseMapLine(*linesIT));
+         keyValuesIT = keyValues.begin();
+
          //If the key is already in the list
-         keyValuesIT = keyValues.find(key);
+         while(keyValuesIT != keyValues.end()) {
+            if(*(keyValuesIT->first) == key) {
+               //Contained
+               break;
+            }
+            keyValuesIT++;
+         }
          if(keyValuesIT != keyValues.end()) {
             for(std::vector<std::string>::iterator valuesIT = values.begin(); valuesIT != values.end(); valuesIT++) {
-               keyValuesIT->second.push_back(*valuesIT);
+               (keyValuesIT->second)->push_back(*valuesIT);
             }
          }
          else {
-            keyValues.insert(std::make_pair(key, values));
+            strVectorPtr initialValue(new std::vector<std::string>(values));
+            strPtr initalKey(new std::string(key));
+            keyValues.push_back(std::make_pair(initalKey, initialValue));
          }
       }
+      std::sort(keyValues.begin(), keyValues.end(), comparisonObj);
       return keyValues;
   }
 

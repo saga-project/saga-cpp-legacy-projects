@@ -27,14 +27,14 @@ class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
     * The implemented reduce function that will get called  *
     * when it becomes time to do some reducing.             *
     * ******************************************************/
-   void reduce(std::string key, const std::vector<std::string> &values) {
+   void reduce(boost::shared_ptr<std::string> key, boost::shared_ptr<std::vector<std::string> > values) {
      int result = 0;
-     std::vector<std::string>::const_iterator valuesIT = values.begin();
-     while(valuesIT != values.end()) {
+     std::vector<std::string>::const_iterator valuesIT = values->begin();
+     while(valuesIT != values->end()) {
         result += boost::lexical_cast<int>(*valuesIT);
         valuesIT++;
      }
-     emit(key, boost::lexical_cast<std::string>(result));
+     emit(*key, boost::lexical_cast<std::string>(result));
    }
 };
 
