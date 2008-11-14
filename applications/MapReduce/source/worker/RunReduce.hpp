@@ -22,7 +22,7 @@ namespace MapReduce {
       RunReduce(saga::advert::directory workerDir, saga::advert::directory reduceInputDir,
                 std::string outputPrefix);
       ~RunReduce();
-      std::vector<std::pair<strPtr, strVectorPtr> > getLines();
+      void getLines(std::vector<std::pair<strPtr, strVectorPtr> > &keyValues);
      private:
       std::vector<std::string> files_;
       saga::advert::directory workerDir_;

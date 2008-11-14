@@ -80,7 +80,7 @@ namespace MapReduce {
        * files after mapping.  No real reason to use this one, *
        * but it does the job.                                  *
        * ******************************************************/
-      int hash(std::string input,unsigned int limit) {
+      int hash(std::string const &input, unsigned int limit) {
          int sum = 0, retval;
          std::size_t length = input.length();
          for(std::size_t count = 0; count < length; count++) {
@@ -93,7 +93,7 @@ namespace MapReduce {
          std::vector<std::pair<strPtr, strVectorPtr> >::iterator mapIt = intermediate_.begin();
          std::string intermediateData[NUM_MAPS];
          while(mapIt != intermediate_.end()) {
-            std::string intermediateKey = *(mapIt->first);
+            std::string const &intermediateKey = *(mapIt->first);
             int hash_value = hash(intermediateKey, NUM_MAPS);
             intermediateData[hash_value].append(intermediateKey);
             intermediateData[hash_value].append(" ");
@@ -117,7 +117,7 @@ namespace MapReduce {
        * handles writing the key value pairs to proper files   *
        * and advertising these files.                          *
        * ******************************************************/
-      void emitIntermediate(std::string key, std::string value) {
+      void emitIntermediate(std::string const &key, std::string const &value) {
          std::vector<std::pair<strPtr, strVectorPtr> >::iterator mapIt = intermediate_.begin();
          bool contained = false;
          while(mapIt != intermediate_.end()) {
@@ -127,7 +127,7 @@ namespace MapReduce {
                contained = true;
                break;
             }
-            mapIt++;
+            ++mapIt;
          }
          if(contained == false) {
             //Not in structure
@@ -145,7 +145,7 @@ namespace MapReduce {
        * handles taking the output from reduce and writing it  *
        * to the proper file.                                   *
        * ******************************************************/
-      void emit(std::string key, std::string value) {
+      void emit(std::string const &key, std::string const& value) {
          int hash_value = hash(key, NUM_MAPS);
          reduceValueMessages_[hash_value] += key;
          reduceValueMessages_[hash_value] += " " + value + "\n";
@@ -291,14 +291,15 @@ namespace MapReduce {
                   RunReduce reduceHandler(workerDir_, reduceInputDir_, outputPrefix_);
                  
                   // Get a map of keys and a vector of the values
-                  std::vector<std::pair<strPtr, strVectorPtr> > keyValues(reduceHandler.getLines());
+                  std::vector<std::pair<strPtr, strVectorPtr> > keyValues;
+                  reduceHandler.getLines(keyValues);
                   std::vector<std::pair<strPtr, strVectorPtr> >::const_iterator  keyValuesIT = keyValues.begin();
                   // Iterate over these keys and their values and
                   // reduce them by passing them to the user defined
                   // reduce function
                   while(keyValuesIT != keyValues.end()) {
-                     d.reduce(keyValuesIT->first, keyValuesIT->second);
-                     keyValuesIT++;
+                     d.reduce(*(keyValuesIT->first), *(keyValuesIT->second));
+                     ++keyValuesIT;
                   }
                   for(int counter = 0; counter < NUM_MAPS; counter++) {
                      reduceFiles_[counter].write(saga::buffer(reduceValueMessages_[counter], reduceValueMessages_[counter].length()));

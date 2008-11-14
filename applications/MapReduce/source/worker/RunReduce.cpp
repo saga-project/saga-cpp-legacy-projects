@@ -62,10 +62,9 @@ namespace MapReduce {
  * the input files as a map<string, vector<string> > to  *
  * be passed to the user defined reduce function.        *
  * ******************************************************/
-  std::vector<std::pair<strPtr, strVectorPtr> > RunReduce::getLines() {
+   void RunReduce::getLines(std::vector<std::pair<strPtr, strVectorPtr> > &keyValues) {
       std::vector<std::string> lines;
       std::vector<std::string>::const_iterator linesIT;
-      std::vector<std::pair<strPtr, strVectorPtr> > keyValues;
       std::vector<std::pair<strPtr, strVectorPtr> >::iterator keyValuesIT;
       lines = merger<std::string>(files_);
       for(linesIT = lines.begin();linesIT!=lines.end();linesIT++) {
@@ -93,7 +92,6 @@ namespace MapReduce {
          }
       }
       std::sort(keyValues.begin(), keyValues.end(), comparisonObj);
-      return keyValues;
   }
 
 } // namespace MapReduce
