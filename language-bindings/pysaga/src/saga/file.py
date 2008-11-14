@@ -130,7 +130,7 @@ class File(NSEntry):
 
     """
     
-    def __init__(self, name, session="default", flags=Flags.READ):
+    def __init__(self, name, session = Session(), flags=Flags.READ):
         """
         Initialize the File object
         @summary: initialize the File object
@@ -564,7 +564,7 @@ class Directory(NSDirectory):
     This class represents an open file descriptor for read/write operations on a physical directory. 
     """
     
-    def __init__(self, name, session="default", flags=Flags.READ):
+    def __init__(self, name, session = Session(), flags=Flags.READ):
         #in session s, in URL name, in int flags = Read, out directory obj the newly created object
         """
         Initialize the Directory object

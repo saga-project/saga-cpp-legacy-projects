@@ -131,32 +131,53 @@ class Object(object):
 #            raise self.convertException(e)
         
     def convertException(self, e):
-#        from org.ogf.saga.error.AlreadyExistsException import AlreadyExistsException
-#        from org.ogf.saga.error.AuthenticationFailedException import AuthenticationFailedException
-#        from org.ogf.saga.error.AuthorizationFailedException import AuthorizationFailedException
-#        from org.ogf.saga.error.BadParameterException import BadParameterException
-#        from org.ogf.saga.error.DoesNotExistException import DoesNotExistException
-#        from org.ogf.saga.error.IncorrectStateException import IncorrectStateException
-#        from org.ogf.saga.error.IncorrectURLException import IncorrectURLException
-#        from org.ogf.saga.error.NoSuccessException import NoSuccessException
-#        from org.ogf.saga.error.NotImplementedException import NotImplementedException
-#        from org.ogf.saga.error.PermissionDeniedException import PermissionDeniedException
-#        from org.ogf.saga.error.SagaException import SagaException
-#        from org.ogf.saga.error.SagaIOException import SagaIOException
-#        from org.ogf.saga.error.TimeoutException import TimeoutException
-#        
         from saga.error import NotImplemented, IncorrectURL, BadParameter, \
             AlreadyExists, DoesNotExist, IncorrectState, PermissionDenied, \
              AuthorizationFailed, AuthenticationFailed, Timeout, NoSuccess
         object = None
         message = ""
 
+        import org.ogf.saga.error.AlreadyExistsException
+        import org.ogf.saga.error.AuthenticationFailedException 
+        import org.ogf.saga.error.AuthorizationFailedException
+        import org.ogf.saga.error.BadParameterException 
+        import org.ogf.saga.error.DoesNotExistException
+        import org.ogf.saga.error.IncorrectStateException
+        import org.ogf.saga.error.IncorrectURLException 
+        import org.ogf.saga.error.NoSuccessException 
+        import org.ogf.saga.error.NotImplementedException
+        import org.ogf.saga.error.PermissionDeniedException
+        import org.ogf.saga.error.SagaException 
+        import org.ogf.saga.error.SagaIOException 
+        import org.ogf.saga.error.TimeoutException 
+        import java.io.IOException
 
 
         try:
             object = e.getObject()
-            print "convertException: java Exception had an attached sagaObject. Object is NOT yet translated to a python object"
-            object = None
+            from saga.file import Directory, File
+            from saga.namespace import NSEntry, NSDirectory
+            import org.ogf.saga.file.Directory
+            import org.ogf.saga.file.File
+            import org.ogf.saga.namespace.NSEntry
+            import org.ogf.saga.namespace.NSDirectory
+            #TODO: Subclasses first!
+         
+         
+            if isinstance(object, org.ogf.saga.file.Directory):
+                object = Directory(name="", delegateObject = object)
+            elif isinstance(object, org.ogf.saga.file.File):
+                object = File(name="", delegateObject = object)
+            elif isinstance(object,org.ogf.saga.namespace.NSDirectory):
+                object = NSDirectory(name="", delegateObject = object)
+            elif isinstance(object, org.ogf.saga.namespace.NSEntry ):
+                object = NSEntry(name="", delegateObject = object) 
+            
+            else:
+                print "convertException: java Exception had an attached sagaObject."\
+                +"Object is NOT yet translated to a python object. " + \
+                str(object.__class__)
+                object = None
             #TODO: convert sagaObject naar Object -> referentie naar self
         except org.ogf.saga.error.DoesNotExistException, exception:
             object = None

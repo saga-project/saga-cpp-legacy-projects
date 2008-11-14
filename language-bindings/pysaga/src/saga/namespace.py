@@ -75,7 +75,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
     methods to manipulate the entry's access control lists.
     """
 
-    def __init__(self, name, session="default", flags=Flags.NONE):
+    def __init__(self, name, session= Session(), flags=Flags.NONE):
         """
         Initialize the the object
         @summary: initialize the the object
@@ -520,7 +520,7 @@ class NSDirectory(NSEntry):
     and open_dir()).
     """
     
-    def __init__(self, name, session="default", flags = Flags.NONE):
+    def __init__(self, name, session = Session(), flags = Flags.NONE):
         """
         Initialize the object
         @summary: initialize the object

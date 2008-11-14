@@ -30,7 +30,7 @@ import org.ogf.saga.error.PermissionDeniedException
 import org.ogf.saga.error.SagaException 
 import org.ogf.saga.error.SagaIOException 
 import org.ogf.saga.error.TimeoutException
-#document: possible glue layer for C++?
+#DOCUMENT: possible glue layer for C++?
 
 class State(object):
     """ 
@@ -509,7 +509,8 @@ class Task(Object, Monitorable):
         @note: the method returns a shallow copy of the object this Task was 
             created from.
         """
- 
+        raise NotImplemented("Task.get_object is not yet implemented")
+
 #TODO: add object reference to Task. Add in each Method giving a task
       
 #DOCUMENT: error handling in methods when creating tasks???

@@ -8,7 +8,7 @@
 
 from saga.object import Object, ObjectType
 from saga.attributes import Attributes
-from saga.task import Async, Task
+from saga.task import Async, Task, TaskType
 from saga.monitoring import Steerable
 from saga.permissions import Permissions
 from saga.error import NotImplemented, PermissionDenied

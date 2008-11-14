@@ -6,10 +6,24 @@
 
 #DOCUMENT: second constructor delegateObject see IMPL
 
-from object import Object, ObjectType
+from saga.object import Object, ObjectType
+from saga.error import BadParameter
 
 from org.ogf.saga.url import URLFactory, URL
-import java.lang.Exception
+
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
 
 class URL(Object):
     """
@@ -33,7 +47,7 @@ class URL(Object):
 
         """
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.url.URL:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.url.URL):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.url.URL. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:

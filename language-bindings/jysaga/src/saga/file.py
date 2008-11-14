@@ -237,7 +237,7 @@ class File(NSEntry):
     """
     delegateObject = None
     
-    def __init__(self, name, session="default", flags=Flags.READ, **impl):
+    def __init__(self, name, session = Session(), flags=Flags.READ, **impl):
         """
         Initialize the File object
         @summary: initialize the File object
@@ -267,7 +267,7 @@ class File(NSEntry):
         @Note: the default flags are READ (512).
         """
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.file.File:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.file.File):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.File. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
@@ -1041,7 +1041,7 @@ class Directory(NSDirectory):
     This class represents an open file descriptor for read/write operations on a physical directory. 
     """
     
-    def __init__(self, name, session="default", flags=Flags.READ, **impl):
+    def __init__(self, name, session = Session(), flags=Flags.READ, **impl):
         #in session s, in URL name, in int flags = Read, out directory obj the newly created object
         """
         Initialize the Directory object
@@ -1070,7 +1070,7 @@ class Directory(NSDirectory):
 
         """
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.file.Directory:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.file.Directory):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.Directory. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:

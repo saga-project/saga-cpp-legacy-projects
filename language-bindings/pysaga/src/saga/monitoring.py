@@ -49,7 +49,44 @@ class Callback(object):
         """
   
 class Metric(Object, Attributes):
-    """A metric represents an entity or value to be monitored."""
+    """A metric represents an entity or value to be monitored.
+    
+        - Attributes:
+            - B{Name}
+                -   name: Name
+                -   desc: name of the metric
+                -   mode: ReadOnly
+                -   type: String
+                -   value: -
+                -   notes: naming conventions as described below apply
+            - B{Description}
+                -   name: Description
+                -   desc: description of the metric
+                -   mode: ReadOnly
+                -   type: String
+            - B{Mode}
+                -   name: Mode
+                -   desc: access mode of the metric
+                -   mode: ReadOnly
+                -   type: String
+                -   value: ’ReadOnly’, ’ReadWrite’ or ’Final’
+            - B{Unit}
+                -   name: Unit
+                -   desc: unit of the metric
+                -   mode: ReadOnly
+                -   type: String
+            - B{Type}
+                -   name: Type
+                -   desc: value type of the metric
+                -   mode: ReadOnly
+                -   type: String
+                -   value: ’String’, ’Int’, ’Float’, ’Bool’, ’Time’ or ’Trigger’
+            -B{Value}
+                -   name: Value
+                -   desc: value of the metric
+
+    
+    """
 
     def __init__(self, name, desc, mode, unit, mtype, value):
         """

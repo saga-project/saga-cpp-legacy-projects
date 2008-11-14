@@ -4,8 +4,7 @@
 # Specification and documentation can be found in section 3.1, page 35-46 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
-import saga.object
-#from object import Object
+from saga.object import Object
 
 class SagaException(Exception):
 	"""
@@ -33,7 +32,7 @@ class SagaException(Exception):
 			raise BadParameter, "parameter message is None"
 			
 		if sagaObject is not None:
-			if type(sagaObject) is not Object:
+			if not isinstance(sagaObject, Object):
 				raise BadParameter, "parameter sagaObject is not an Object"
 			else:
 				self.sagaObject = sagaObject

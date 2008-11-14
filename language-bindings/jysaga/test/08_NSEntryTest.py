@@ -6,7 +6,7 @@ from saga.buffer import Buffer
 import array.array
 from saga.file import File
 from saga.url import URL
-from saga.monitoring import Metric, Callback, Monitorable, Steerable
+from saga.namespace import Flags, NSEntry, NSDirectory
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -28,7 +28,7 @@ def checkObjectMethods(o):
     except Exception, e:
         print "!!! WARNING !!! get_id(): ", str(e)
     try:
-        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.METRIC is " +str(ObjectType.METRIC)
+        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.NSEntry is " +str(ObjectType.NSENTRY)
     except Exception, e:
         print "!!! WARNING !!!", "get_type:", str(e) 
     try:   
@@ -39,9 +39,13 @@ def checkObjectMethods(o):
     try:    
         clone = o.clone()
         print "clone:       "+ str(clone.__class__) + " type: "+str(clone.get_type()) + " get_id:" + str(clone.get_id())
+        print type(clone.delegateObject)
+        clone.is_entry_self()
 
     except Exception, e:
         print "!!! WARNING !!!", "clone(): " + str(e) 
+
+
 
 def printAttributes(o):
     print "Name           Ex\tRO\tREM\tVec\tWri\tValue"
@@ -169,60 +173,231 @@ def checkMonitorableMethods(o):
     print o.get_result()
     print " done"
 
-class Callb(Callback):
-    returnValue = False
-    def __init__(self, keep=True):
-        if keep == True:
-            self.returnValue = True
-        else:
-            self.returnValue = False
-    
-    def cb(self, monitorable, metric, context):
-     import sys
-     print("================ callb.cb() called ===================\n")
-     return self.returnValue    
     
 print "==================================================="
-print "== Test of Metric                                =="
+print "== Test of NSEntry                               =="
 print "==================================================="
 
-m = Metric("TotalCPUCount","total number of cpus requested for this job",\
-           "ReadWrite","1","Int","1")      
-#__init__(self, name, desc, mode, unit, mtype, value)
-#Initializes the Metric object.     
+task = None
+temp_filename = "/tmp/08_NSEntryTest.py.temp"
+temp_filename_link = "/tmp/08_NSEntryTest.py.link"
+print "=== create test file(s)", temp_filename
+file = open( temp_filename, "w")
+file.write("abcdefghijklmnopqrstuvwxyz")
+file.flush()
+file.close()
 
-#int add_callback(self, cb)
-#Add asynchronous notifier callback to watch metric changes.     
+import os
+try:
+    os.symlink(temp_filname,temp_filename_link)
+except:
+    import java.lang.Runtime
+    r = java.lang.Runtime.getRuntime();
+    p = r.exec("ln -s " + temp_filename + " " + temp_filename_link)
 
-print "=== add_callback(c)",
-c = Callb(True)
+url = URL(temp_filename)
+sess = Session(False)
+nse1  = NSEntry(url)
+nse2 = NSEntry(url,sess)
+nse3 = NSEntry(url, sess, Flags.CREATE)
+nse3 = File(url, flags = Flags.CREATE)
 
-cookie = m.add_callback(c)
-print "Cookie is",cookie
+#__init__(self, name, session= Session(), flags=0)
+#initialize the the object     
+
+temp = nse3.get_url()
+if not isinstance(temp,URL):
+    print "get_url() does not return a URL"
+if temp.get_type() != ObjectType.URL:
+    print "get_url().get_type() does not return a ObjectType.URL"
+print "=== get_url()", temp.get_string()
       
-#fire(self)
-#Push a new metric value to the backend.
+#URL     
+#get_url(self)
+#obtain the complete url pointing to the entry     
 
-print "=== fire()"
-m.fire()
+temp = nse3.get_cwd()
+if not isinstance(temp,URL):
+    print "get_cwd() does not return a URL"
+if temp.get_type() != ObjectType.URL:
+    print "get_cwd().get_type() does not return a ObjectType.URL"
+print "=== get_cwd()", temp.get_string()
 
-#remove_callback(self, cookie)
-#Remove a callback from a metric.     
+#URL     
+#get_cwd(self)
+#obtain the current working directory for the entry     
 
-print "=== remove_callback "
-m.remove_callback(cookie)     
+temp = nse3.get_name()
+if not isinstance(temp,URL):
+    print "get_name() does not return a URL"
+if temp.get_type() != ObjectType.URL:
+    print "get_name().get_type() does not return a ObjectType.URL"
+print "=== get_name()", temp.get_string()
+
+#URL     
+#get_name(self)
+#obtain the name part of the url path element     
+#bool     
+
+temp = nse3.is_dir_self()
+if not isinstance(temp,type(False)):
+    print "is_dir() does not return a bool"
+print "=== is_dir()", temp
+
+#is_dir_self(self)
+#tests the entry for being a directory     
+
+temp = nse3.is_entry_self()
+if not isinstance(temp,type(False)):
+    print "is_entry_self() does not return a bool"
+print "=== is_entry_self()", temp
+
+#bool is_entry_self(self)
+#tests the entry for being an NSEntry     
+
+try:
+    temp = nse3.is_link_self()
+    if not isinstance(temp,bool):
+        print "is_link_self() does not return a bool"
+        print "=== is_link_self()", temp
+except Exception,e:
+    print "=== is_link():", str(e.__class__), str(e)
+
+#bool is_link_self(self)
+#tests the entry for being a link     
+
+try:
+    url_link = URL(temp_filename_link)
+    nse4  = NSEntry(url_link)
+    temp = nse4.read_link_self()
+    if not isinstance(temp,URL):
+        print "read_link_self() does not return a URL"
+    if temp.get_type() != ObjectType.URL:
+        print "read_link_self().get_type() does not return a ObjectType.URL"
+    print "=== read_link_self() on",url_link.get_string(),"is", temp.get_string()
+except Exception,e:
+    print "=== read_link():", str(e.__class__), str(e)
+#URL     
+#read_link_self(self)
+#get the name of the link target     
+
+url_copy = URL(temp_filename+"copy")
+nse3.copy_self(url_copy, Flags.OVERWRITE)
+print "=== copy original to copy"
+nse4 = NSEntry(url_copy)
+temp = nse4.is_entry_self()
+if not isinstance(temp,type(False)):
+    print "is_entry_self() on the copy does not return a bool"
+print "=== is_entry_self() on copy:", temp
+
+#copy_self(self, target, flags=0)
+#copy the entry to another part of the name space     
+
+try:
+    url_link_copy = URL(temp_filename+"link_copy")
+    nse3.link_self(url_link_copy, Flags.OVERWRITE)
+    print "=== link link_copy to original"
+    nse5 = NSEntry(url_link_copy)
+    temp = nse5.is_link_self()
+    if not isinstance(temp,type(False)):
+        print "is_link_self() on the copy does not return a bool"
+    print "=== is_link_self() on link_copy:", temp
+except Exception,e:
+    print "=== link_self():", str(e.__class__), str(e)
+  
+#link_self(self, target, flags=0)
+#create a symbolic link     
+
+url_copy = URL(temp_filename+"moved")
+try:
+    nse6 = NSEntry(url_copy)
+    nse6.remove_self()
+except:
+    pass
+
+nse4.move_self(url_copy)
+print "=== moved original to copy"
+nse5 = NSEntry(url_copy)
+temp = nse5.is_entry_self()
+if not isinstance(temp,type(False)):
+    print "is_entry_self() on the copy does not return a bool"
+print "=== is_entry_self() on moved:", temp
+nse4.close()
+
+#move_self(self, target, flags=0)
+#rename or move target     
+
+url_copy = URL(temp_filename+"moved")
+nse6 = NSEntry(url_copy)
+nse6.remove_self()
+print "=== remove_self() on moved"
+try:
+    nse6 = NSEntry(url_copy)
+except Exception, e:
+    print "=== is_entry() on removed:" , str(e.__class__), str(e)
+ 
+      
+#remove_self(self, flags=0)
+#removes this entry, and closes it     
+#  
+
+try: nse1.close()
+except Exception, e: print "=== close():" , str(e.__class__), str(e)
+try: nse2.close(1.0)
+except Exception, e: print "=== close():" , str(e.__class__), str(e)
+try: nse3.close(10)
+except Exception, e: print "=== close():" , str(e.__class__), str(e)
+try: nse4.close(0)
+except Exception, e: print "=== close():" , str(e.__class__), str(e)
+try: nse5.close()
+except Exception, e: print "=== close():" , str(e.__class__), str(e)
+try: nse6.close()
+except Exception, e: print "=== close():" , str(e.__class__), str(e)
+
+print "=== close() on all NSEntries"
+
+#close(self, timeout=0.0)
+#closes the NSEntry Format: close (in float timeout = 0.0);     
+# 
+
+url = URL(temp_filename)
+nse1  = NSEntry(url) 
+from saga.permissions import Permission
+try:
+    nse1.permissions_allow_self("uhmmm",Permission.ALL, 0)
+except Exception ,e:
+    print "=== permission_allow_self():" , str(e.__class__), str(e)   
+
+#permissions_allow_self(self, id, perm, flags=0)
+#enable a permission     
+
+try:
+    nse1.permissions_deny_self("uhmmm",Permission.QUERY, 0)
+except Exception ,e:
+    print "=== permission_deny_self():" , str(e.__class__), str(e)
+      
+#permissions_deny_self(self, id, perm, flags=0)
+#disable a permission flag     
+#
 
 
-checkObjectMethods(m)
+checkObjectMethods(nse1)
 #Inherited from object.Object: clone, get_id, get_session, get_type
 
-print "=== Attributes of a sample metric"
-printAttributes(m)
-#Inherited from attributes.Attributes: attribute_exists, attribute_is_readonly, 
-#    attribute_is_removable, attribute_is_vector, attribute_is_writable, 
-#    find_attributes, get_attribute, get_vector_attribute, list_attributes, 
-#    remove_attribute, set_attribute, set_vector_attribute 
+
+
+#
+#Inherited from permissions.Permissions: get_group, get_owner, permissions_allow, permissions_check, permissions_deny 
+
+nse1.close()
+del nse1
+
+#__del__(self)
+#destroy the object     
+
+
+# Everything task.Async
 
 print "==================================================="
-print "== End Test of Metric                            =="
+print "== End Test of NSEntry                           =="
 print "==================================================="

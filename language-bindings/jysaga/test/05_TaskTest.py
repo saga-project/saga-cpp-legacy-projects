@@ -25,8 +25,19 @@ import org.ogf.saga.error.SagaIOException
 import org.ogf.saga.error.TimeoutException 
 
 class Callb(Callback):
+    returnValue = False
+    def __init__(self, keep):
+        if keep == True:
+            self.returnValue = True
+        else:
+            self.returnValue = False
+    
     def cb(self, monitorable, metric, context):
-        print "========================== callb.cb() called ==================="
+     import sys
+     sys.stdout.write("================ callb.cb() called ===================\n")
+     sys.stdout.write("================ State of Task Changed ===============\n")
+     sys.stdout.flush()
+     return self.returnValue
 
 def checkObjectMethods(o):
     try:
@@ -56,20 +67,18 @@ def checkMonitorableMethods(o):
  
     from time import sleep 
 
-    c = Callb()
+    c = Callb(True)
     cookie =  o.add_callback('Task.state', c)
     print "=== Callback added to taskTask. Cookie was", cookie, "state:",o.get_state()
     print "=== taskTask.run()"
-    o.run()                                ###
-    while o.get_state() == 2:              ###
+    o.run()                                
+    while o.get_state() == 2:              
         for i in range(5):
             sleep(1)
             print "+",    
-    #add_callback, remove_callback          
     print "=== taskTask.get_state():", o.get_state()
     print "=== remove callback",
     o.remove_callback('Task.state', cookie)
-#    o.run()
     print o.get_result()
     print " done"
     
@@ -102,96 +111,98 @@ print "=== create a Task by an SYNC/ASYNC/TASK call to File.get_size"
 url = URL(temp_filename)
 file = File(url)
 
-#print"=== State: NEW:"+ str(State.NEW),
-#print "RUNNING:"+ str(State.RUNNING),
-#print "DONE:"+ str(State.DONE),
-#print "CANCELED:"+ str( State.CANCELED),
-#print "FAILED:"+ str(State.FAILED)
-#
-#outcome = file.get_size(TaskType.NORMAL)
-#print "    file.get_size(TaskType.NORMAL)    Outcome was:", outcome
-#print "=== Create SYNC task",
-#taskSYNC = file.get_size(TaskType.SYNC)
-#print "Create ASYNC task,",
-#taskASYNC = file.get_size(TaskType.ASYNC)
-#print "Create TASK task. ",
-#taskTASK = file.get_size(TaskType.TASK)
-#print "DONE"
-#
-#print "   SYNC Task.get_state():", taskSYNC.get_state(), "Outcome was:", taskSYNC.get_result()
-#print "   ASYNC Task.get_state():", taskASYNC.get_state()
-#from time import sleep
-#counter = 0
-#while (taskASYNC.get_state() == 2 and counter < 10):
-#     sleep (5)
-#     print "        taskASYNC is still running. Sleeping for 5"
-#     counter = counter + 1
-#if counter != 10:
-#    print "    Outcome was:", taskASYNC.get_result()
-#else:
-#    print "    taskASYNC has not finished after 50 seconds"
-#    
-#print "    TASK Task.get_state():", taskTASK.get_state(), " Start running the TASK"
-#if taskTASK.get_state() == State.NEW:
-#    try:
-#        print "    Doing get_result on the new TASK:",
-#        taskTASK.get_result()
-#    except Exception, e:
-#        print str(e)
-#    taskTASK.run()
-#print "    TASK Task.get_state():", taskTASK.get_state()
-#counter = 0
-#while (taskTASK.get_state() == 2 and counter < 10):
-#     sleep (5)
-#     print "        taskTASK is still running. Sleeping for 5"
-#     counter = counter+1
-#     
-#if counter != 10:
-#    print "Outcome was:",
-#    print str(taskTASK.get_result())
-#else:
-#    print "taskTASK has not finished after 50 seconds"
-#  
-##__del__(self)
-##Destroy the object.     
-#print "=== Cancel the already done SYNC task"
-#taskSYNC.cancel(10)
-#taskTASK = file.get_size(TaskType.TASK)
-#
-#print "=== Cancel a new job"
-#try:
-#    taskTASK.cancel(0)
-#except Exception, e:
-#    print "Exception caught.", e.__class__, str(e)
-#      
-#print "!!! get_object not yet implemented !!!"
-##<object>     
-##get_object(self)
-##Get the object from which this Task was created.     
-#
-#dir = Directory( URL("file:///tmp/") )
-#taskSYNC = dir.get_size(name=URL(temp_filename), flags = Flags.RECURSIVE, tasktype=TaskType.SYNC)
-#
-#print "=== dir.get_size(name=URL(temp_filename), flags = Flags.RECURSIVE, tasktype=TaskType.SYNC)"
-#print "=== creates an exception. Retrow() "  
-#try:
-#    taskSYNC.rethrow()
-#except Exception, e:
-#    print "Exception caught.", e.__class__, str(e)
-#
-#print "=== Test wait()"
-#taskTASK = file.get_size(TaskType.TASK)
-#try:
-#    taskTASK.wait(timeout=0)
-#except Exception, e:
-#    print "Exception caught.", e.__class__, str(e)
-#try:
-#    taskTASK.run()
-#    taskTASK.wait(timeout=0)
-#except Exception, e:
-#    print "Exception caught.", e.__class__, str(e)
-#
-#checkObjectMethods(taskTASK)
+print"=== State: NEW:"+ str(State.NEW),
+print "RUNNING:"+ str(State.RUNNING),
+print "DONE:"+ str(State.DONE),
+print "CANCELED:"+ str( State.CANCELED),
+print "FAILED:"+ str(State.FAILED)
+
+outcome = file.get_size(TaskType.NORMAL)
+print "    file.get_size(TaskType.NORMAL)    Outcome was:", outcome
+print "=== Create SYNC task",
+taskSYNC = file.get_size(TaskType.SYNC)
+print "Create ASYNC task,",
+taskASYNC = file.get_size(TaskType.ASYNC)
+print "Create TASK task. ",
+taskTASK = file.get_size(TaskType.TASK)
+print "DONE"
+
+print "   SYNC Task.get_state():", taskSYNC.get_state(), "Outcome was:", taskSYNC.get_result()
+print "   ASYNC Task.get_state():", taskASYNC.get_state()
+from time import sleep
+counter = 0
+while (taskASYNC.get_state() == 2 and counter < 10):
+     sleep (5)
+     print "        taskASYNC is still running. Sleeping for 5"
+     counter = counter + 1
+if counter != 10:
+    print "    Outcome was:", taskASYNC.get_result()
+else:
+    print "    taskASYNC has not finished after 50 seconds"
+    
+print "    TASK Task.get_state():", taskTASK.get_state(), " Start running the TASK"
+if taskTASK.get_state() == State.NEW:
+    try:
+        print "    Doing get_result on the new TASK:",
+        taskTASK.get_result()
+    except Exception, e:
+        print str(e)
+    taskTASK.run()
+print "    TASK Task.get_state():", taskTASK.get_state()
+counter = 0
+while (taskTASK.get_state() == 2 and counter < 10):
+     sleep (5)
+     print "        taskTASK is still running. Sleeping for 5"
+     counter = counter+1
+     
+if counter != 10:
+    print "Outcome was:",
+    print str(taskTASK.get_result())
+else:
+    print "taskTASK has not finished after 50 seconds"
+  
+#__del__(self)
+#Destroy the object.     
+print "=== Cancel the already done SYNC task"
+taskSYNC.cancel(10)
+taskTASK = file.get_size(TaskType.TASK)
+
+print "=== Cancel a new job"
+try:
+    taskTASK.cancel(0)
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
+      
+try:
+    object = taskTASK.get_object()
+except Exception,e:
+    print str(e.__class__), str(e)
+
+#Get the object from which this Task was created.     
+
+dir = Directory( URL("file:///tmp/") )
+taskSYNC = dir.get_size(name=URL(temp_filename), flags = Flags.RECURSIVE, tasktype=TaskType.SYNC)
+
+print "=== dir.get_size(name=URL(temp_filename), flags = Flags.RECURSIVE, tasktype=TaskType.SYNC)"
+print "=== creates an exception. Retrow() "  
+try:
+    taskSYNC.rethrow()
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
+
+print "=== Test wait()"
+taskTASK = file.get_size(TaskType.TASK)
+try:
+    taskTASK.wait(timeout=0)
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
+try:
+    taskTASK.run()
+    taskTASK.wait(timeout=0)
+except Exception, e:
+    print "Exception caught.", e.__class__, str(e)
+
+checkObjectMethods(taskTASK)
 
 taskTASK = file.get_size(TaskType.TASK)
 checkMonitorableMethods(taskTASK)

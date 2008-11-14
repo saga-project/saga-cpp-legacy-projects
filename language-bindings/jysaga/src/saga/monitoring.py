@@ -75,65 +75,109 @@ class CallbackProxy(org.ogf.saga.monitoring.Callback):
         #from saga.job import Job, JobSelf
         #TODO: Uncomment this
         
-        print "CallbackProxy.cb called:"
-        print " check 1",
+#        print "=== Calbackproxy.cb() called ==="
+
         if metric is not None:
             tempMetric = Metric("","","","","","",delegateObject = metric)
         else:
             tempMetric = None
         
-        print "2",
-        
         if context is not None:
             tempContext = Context(delegateObject = context)
         else:
             tempContext = None
-            
-        print "3",
+
         tempMonitorable = None
 
         if  isinstance (monitorable, org.ogf.saga.task.Task):
-            print "TASK",
             try:
                 tempMonitorable = Task(delegateObject = monitorable)
             except Exception, e:
                 print str(e.__class__),":", str(e)
-            print "/TASK",
         
         elif isinstance(monitorable, org.ogf.saga.task.TaskContainer):
-            print "TASKCONTAINER",
+#            print "TASKCONTAINER",
             tempMonitorable = TaskContainer(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.stream.StreamService):
-            print "STREAMSERVICE",
+#            print "STREAMSERVICE",
             tempMonitorable = StreamService(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.stream.Stream):
-            print "STREAM",
+#            print "STREAM",
             tempMonitorable = Stream(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.job.Job):
-            print "JOB",
+#            print "JOB",
             tempMonitorable = Job(delegateObject = monitorable)
         
         elif isinstance(monitorable, org.ogf.saga.job.JobSelf):
-            print "JOBSELF",            
+#            print "JOBSELF",            
             tempMonitorable = Jobself(delegateObject = monitorable)
 
         else:
-            print "ELSE",
             #TODO: Check if CallbackProxy fallback is needed
-            message = "CallbackProxy: unknown monitorable object was passed from Java Implementation. Type: "
-            message = message + str(monitorable.__class__) + " Not passed to pythonObject.cb() " 
-            print message
-        if tempMonitorable is not None:
-            print "CALL MADE"
-            self.pythonCallbackObject.cb(tempMonitorable, tempMetric, tempContext)
-            print "CALL FINISHED"
-            return
+            if monitorable is not None:
+                message = "CallbackProxy: unknown monitorable object was passed "\
+                    +"from Java Implementation. Type: "
+                message = message + str(monitorable.__class__)
+                message = message + ". Not passed to pythonObject.cb(). Please "\
+                    +"report this to JySaga Maintainers."
+                import sys
+                sys.stderr.write(message)
+            try:
+                if self.pythonCallbackObject is not None:
+                    returnValue =  self.pythonCallbackObject.cb\
+                                    (tempMonitorable, tempMetric, tempContext)
+                else:
+                    returnValue = False
+                return returnValue
+            except Exception, e:
+                sys.stderr.write("A Callback to cb() raised an exception. "\
+                                + str(e.__class__) + str(e) )
+                return False
+            #TODO: Document Behaviour
+            #DOCUMENT: Absolutely no errors in CallBackProxy, or will hang
       
 class Metric(Object, Attributes):
-    """A metric represents an entity / value to be monitored."""
+    """A metric represents an entity / value to be monitored.
+    
+        - Attributes:
+            - B{Name}
+                -   name: Name
+                -   desc: name of the metric
+                -   mode: ReadOnly
+                -   type: String
+                -   value: -
+                -   notes: naming conventions as described below apply
+            - B{Description}
+                -   name: Description
+                -   desc: description of the metric
+                -   mode: ReadOnly
+                -   type: String
+            - B{Mode}
+                -   name: Mode
+                -   desc: access mode of the metric
+                -   mode: ReadOnly
+                -   type: String
+                -   value: ’ReadOnly’, ’ReadWrite’ or ’Final’
+            - B{Unit}
+                -   name: Unit
+                -   desc: unit of the metric
+                -   mode: ReadOnly
+                -   type: String
+            - B{Type}
+                -   name: Type
+                -   desc: value type of the metric
+                -   mode: ReadOnly
+                -   type: String
+                -   value: ’String’, ’Int’, ’Float’, ’Bool’, ’Time’ or ’Trigger’
+            -B{Value}
+                -   name: Value
+                -   desc: value of the metric
+
+    
+    """
     delegateObject = None
     callbacks = {}
 
@@ -188,7 +232,7 @@ class Metric(Object, Attributes):
         if type(value) is not str:
             raise BadParameter, "Parameter value is not a string. Type: " + str(type(value))        
         try:
-            self.delegateObject = MonitoringFactory.createMetric(name, desc, mode, unit, type, value) 
+            self.delegateObject = MonitoringFactory.createMetric(name, desc, mode, unit, mtype, value) 
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
       
@@ -265,10 +309,12 @@ class Metric(Object, Attributes):
         if type(cookie) is not int:
             raise BadParameter, "Parameter cookie is not an int. Type: " + str(type(cookie))
         try:
-            self.delegateObject.removeCallback(name, cookie)
+             #TODO: Veranderd!
+            self.delegateObject.removeCallback( cookie)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         del self.callbacks[cookie]
+        #TODO: kwam van hier!
         #TODO: check if multiple names can exist with same cookie! Remove old proxies!
               
               
@@ -306,6 +352,18 @@ class Metric(Object, Attributes):
             self.delegateObject.fire()
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
+        
+    def clone(self):
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = Metric(name="",desc="", mode="", unit="", mtype="", \
+                           value="",delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+        
+    def get_type(self):
+       return ObjectType.METRIC
         
 class Monitorable(object):
     """SAGA objects which provide metrics and can thus be monitored extend the Monitorable class"""
@@ -483,7 +541,7 @@ class Steerable(Monitorable):
                 return True
             else: 
                 return False
-        except java.lang.Exception:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
     def remove_metric(self, name):
@@ -519,7 +577,7 @@ class Steerable(Monitorable):
             raise BadParameter, "Parameter name is not a string. Type: " + str(type(name))
         try:
             self.delgateObject.removeMetric(name)
-        except java.lang.Exception:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
     def fire_metric(self, name):
@@ -552,6 +610,6 @@ class Steerable(Monitorable):
             raise BadParameter, "Parameter name is not a string. Type: " + str(type(name))
         try:
             self.delgateObject.fireMetric(name)
-        except java.lang.Exception:
+        except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
-        raise NotImplemented, "fire_metric() is not implemented in this object"
+

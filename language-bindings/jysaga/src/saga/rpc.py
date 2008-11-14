@@ -10,7 +10,8 @@
 from saga.buffer import Buffer
 from saga.object import Object, ObjectType
 from saga.permissions import Permissions
-from saga.task import Async
+from saga.task import Async, Task, TaskType
+from saga.session import Session
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 

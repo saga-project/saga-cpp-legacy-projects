@@ -21,9 +21,10 @@ import org.ogf.saga.error.TimeoutException
 
 class Attributes(object):
     """
-    There are various places in the SAGA API where attributes need to be associated with objects, 
-    for instance for job descriptions and metrics. The Attributes
-    class provides a common interface for storing and retrieving attributes.
+    There are various places in the SAGA API where attributes need to be 
+    associated with objects, for instance for job descriptions and metrics. The 
+    Attributes class provides a common interface for storing and retrieving 
+    attributes.
     """
     delegateObject = None
     
@@ -45,38 +46,35 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: an empty string means to set an empty value (the attribute is not removed).
+        @note: an empty string means to set an empty value (the attribute is 
+            not removed).
         @note: the attribute is created, if it does not exist
-        @note: a 'PermissionDenied' exception is raised if the
-             attribute to be changed is ReadOnly.
-        @note: only some SAGA objects allow to create new
-             attributes - others allow only access to
-             predefined attributes. If a non-existing
-             attribute is queried on such objects, a
-             'DoesNotExist' exception is raised
-        @note: changes of attributes may reflect changes of
-             endpoint entity properties. As such,
-             authorization and/or authentication may fail
-             for settings such attributes, for some
-             backends. In that case, the respective
-             'AuthenticationFailed', 'AuthorizationFailed',
-             and 'PermissionDenied' exceptions are raised.
-             For example, an implementation may forbid to
-             change the saga.stream.Stream 'Bufsize' attribute.
-        @note: if an attribute is not well formatted, or
-             outside of some allowed range, a 'BadParameter'
-             exception with a descriptive error message is
-             raised.
-        @note: if the operation is attempted on a vector
-             attribute, an 'IncorrectState' exception is
-             raised.
-        @note: setting of attributes may time out, or may fail
-             for other reasons - which causes a 'Timeout' or
-             'NoSuccess' exception, respectively.
+        @note: a 'PermissionDenied' exception is raised if the attribute to be 
+            changed is ReadOnly.
+        @note: only some SAGA objects allow to create new attributes - others 
+            allow only access to predefined attributes. If a non-existing
+            attribute is queried on such objects, a 'DoesNotExist' exception is 
+            raised
+        @note: changes of attributes may reflect changes of endpoint entity 
+            properties. As such, authorization and/or authentication may fail
+             for settings such attributes, for some backends. In that case, the 
+             respective 'AuthenticationFailed', 'AuthorizationFailed', and 
+             'PermissionDenied' exceptions are raised. For example, an 
+             implementation may forbid to change the saga.stream.Stream 
+             'Bufsize' attribute.
+        @note: if an attribute is not well formatted, or outside of some allowed 
+            range, a 'BadParameter' exception with a descriptive error message 
+            is raised.
+        @note: if the operation is attempted on a vector attribute, an 
+            'IncorrectState' exception is raised.
+        @note: setting of attributes may time out, or may fail for other 
+            reasons - which causes a 'Timeout' or 'NoSuccess' exception, 
+            respectively.
 
         """
         if type(key) is not str or type(value) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") or value (" + str(type(value)) + ") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") or value (" + str(type(value)) + ") is not a string."
         try:
             self.delegateObject.setAttribute(key, value)
         except org.ogf.saga.error.SagaException, e:
@@ -100,20 +98,25 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: queries of attributes may imply queries of endpoint entity properties. As such,
-              authorization and/or authentication may fail for querying such attributes, for some
-              backends. In that case, the respective 'AuthenticationFailed', 'AuthorizationFailed',
-              and 'PermissionDenied' exceptions are raised. For example, an implementation may forbid to
-              read the saga.stream.Stream 'Bufsize' attribute.
-        @note: reading an attribute value for an attribute which is not in the current set of attributes
-              causes a 'DoesNotExist' exception.
-        @note: if the operation is attempted on a vector attribute, an 'IncorrectState' exception is raised.
-        @note: getting attribute values may time out, or may fail for other reasons - which causes a
-              'Timeout' or 'NoSuccess' exception, respectively.
+        @note: queries of attributes may imply queries of endpoint entity 
+            properties. As such,  authorization and/or authentication may fail 
+            for querying such attributes, for some backends. In that case, the 
+            respective 'AuthenticationFailed', 'AuthorizationFailed', and 
+            'PermissionDenied' exceptions are raised. For example, an 
+            implementation may forbid to read the saga.stream.Stream 'Bufsize' 
+            attribute.
+        @note: reading an attribute value for an attribute which is not in the 
+            current set of attributes causes a 'DoesNotExist' exception.
+        @note: if the operation is attempted on a vector attribute, an 
+            'IncorrectState' exception is raised.
+        @note: getting attribute values may time out, or may fail for other 
+            reasons - which causes a 'Timeout' or 'NoSuccess' exception, 
+            respectively.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) + ") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                + ") is not a string."
         try:
             return self.delegateObject.getAttribute(key)
         except org.ogf.saga.error.SagaException, e:
@@ -138,13 +141,16 @@ class Attributes(object):
         @raise Timeout:
         @raise NoSuccess:
         @note: the notes to the set_attribute() method apply.
-        @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
+        @note: if the operation is attempted on a scalar attribute, an 
+            'IncorrectState' exception is raised.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."
         if type(values) is not list and type(values) is not tuple:
-            raise BadParameter, "Parameter values (" + str(type(key)) +") is not a list."        
+            raise BadParameter, "Parameter values (" + str(type(key)) \
+                +") is not a list."        
         try:
             import jarray.array
             import java.lang.String
@@ -172,11 +178,13 @@ class Attributes(object):
         @raise Timeout:
         @raise NoSuccess:
         @note: the notes to the get_attribute() method apply.
-        @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
+        @note: if the operation is attempted on a scalar attribute, an 
+            'IncorrectState' exception is raised.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."
         try:
             javaArray = self.delegateObject.getVectorAttribute(key)
             return tuple(javaArray)
@@ -200,12 +208,16 @@ class Attributes(object):
         @raise NoSuccess:
         @note: a vector attribute can also be removed with this method
         @note: only some SAGA objects allow to remove attributes.
-        @note: a ReadOnly attribute cannot be removed - any attempt to do so raises a 'PermissionDenied' exception.
-        @note: if a non-existing attribute is removed, a 'DoesNotExist' exception is raised.
-        @note: exceptions have the same semantics as defined for the set_attribute() method description.
+        @note: a ReadOnly attribute cannot be removed - any attempt to do so 
+            raises a 'PermissionDenied' exception.
+        @note: if a non-existing attribute is removed, a 'DoesNotExist' 
+            exception is raised.
+        @note: exceptions have the same semantics as defined for the 
+            set_attribute() method description.
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."        
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."        
         try:
             self.delegateObject.removeAttribute(key)
         except org.ogf.saga.error.SagaException, e:
@@ -227,7 +239,8 @@ class Attributes(object):
         @raise NoSuccess:
         @note: exceptions have the same semantics as defined
             for the get_attribute() method description.
-        @note: if no attributes are defined for the object, an empty tuple is returned.
+        @note: if no attributes are defined for the object, an empty tuple is 
+            returned.
 
         """
         try:
@@ -253,13 +266,16 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: the pattern must be formatted as described earlier, otherwise a 'BadParameter' exception is raised.
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: the pattern must be formatted as described earlier, otherwise a 
+            'BadParameter' exception is raised.
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
         if type(pattern) is not list and type(pattern) is not tuple:
             from saga.error import BadParameter
-            raise BadParameter( "Parameter pattern (" + str(type(pattern)) +") is not a list.")
+            raise BadParameter( "Parameter pattern (" + str(type(pattern)) \
+                                +") is not a list.")
         tempString = None
         javaArray = None
         import jarray.array
@@ -297,13 +313,16 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists.
-        @note:exceptions have the same semantics as defined for the get_attribute() method description,
-            apart from the fact that a 'DoesNotExist' exception is never raised.
+        @note: This method returns True if the attribute identified by the key 
+            exists.
+        @note:exceptions have the same semantics as defined for the 
+            get_attribute() method description, apart from the fact that a 
+            'DoesNotExist' exception is never raised.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."       
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."       
         try:
             retval = self.delegateObject.getAttribute(key)
             if len(retval) > 0:
@@ -334,14 +353,16 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists, and can be read
-              by get_attribute() or get_vector attribute(), but cannot be changed by set_attribute() and
-              set_vector_attribute().
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by the key 
+            exists, and can be read by get_attribute() or get_vector attribute(), 
+            but cannot be changed by set_attribute() and set_vector_attribute().
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."
         try:
             retval = self.delegateObject.isReadOnlyAttribute(key)
             if retval == 1:
@@ -367,13 +388,16 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists, and can be
-            changed by set_attribute() or set_vector_attribute().
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by the key 
+            exists, and can be changed by set_attribute() or 
+            set_vector_attribute().
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."
         try:
             retval = self.delegateObject.isWritableAttribute(key)
             if retval == 1:
@@ -399,13 +423,15 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists, and can be
-                 removed by remove_attribute().
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by the key 
+            exists, and can be removed by remove_attribute().
+        @note: exceptions have the same semantics as defined for 
+            the get_attribute() method description.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."
         try:
             retval = self.delegateObject.isRemovableAttribute(key)
             if retval == 1:
@@ -431,12 +457,15 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by key is a vector attribute.
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by key is a 
+            vector attribute.
+        @note: exceptions have the same semantics as defined for 
+            the get_attribute() method description.
 
         """
         if type(key) is not str:
-            raise BadParameter, "Parameter key (" + str(type(key)) +") is not a string."
+            raise BadParameter, "Parameter key (" + str(type(key)) \
+                +") is not a string."
         try:
             retval = self.delegateObject.isVectorAttribute(key)
             if retval == 1:

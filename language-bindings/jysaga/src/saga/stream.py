@@ -7,7 +7,7 @@
 #    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from saga.object import Object, ObjectType
-from saga.task import Async
+from saga.task import Async, Task, TaskType
 from saga.monitoring import Monitorable
 from saga.permissions import Permissions
 from saga.url import URL

@@ -11,6 +11,8 @@ from saga.object import Object, ObjectType
 from saga.attributes import Attributes
 from saga.namespace import NSEntry, NSDirectory
 from saga.url import URL
+from saga.task import Async, Task, TaskType
+from saga.session import Session
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 

@@ -22,21 +22,75 @@ import org.ogf.saga.namespace.Flags;
 import org.ogf.saga.session.Session;
 import org.ogf.saga.session.SessionFactory;
 
-#application.py
-import sagaContext
-import sagaSession
+from org.ogf.saga.url import URLFactory
+from org.ogf.saga.file import FileFactory
+from org.ogf.saga.task import TaskFactory , TaskMode, WaitMode
+import org.ogf.saga.monitoring.Callback
+from time import sleep
+
+from org.ogf.saga.monitoring import  MonitoringFactory
+
+class CallbackProxy(org.ogf.saga.monitoring.Callback):
+    pythonCallbackObject = None
+
+    def cb(self, monitorable, metric, context):
+        from saga.task import Task, TaskContainer
+
+        print "CallbackProxy.cb called:"
+
+        if metric is not None:
+            print str(metric)
+        else:
+            print "metric is None"
+
+        if context is not None:
+            print str(context)
+        else:
+            print "context is None"
+
+        if monitorable is not None:
+            print str(monitorable)
+        else:
+            print "monitorable is None"
+
+        print "End of CallbackProxy.cb call"
+        return
+
+m = MonitoringFactory.createMetric("TotalCPUCount","total number of cpus requested for this job",\
+           "ReadWrite","1","Int","1")      
      
-def main():
-   c = sagaContext.Context("ftp")
-   s = sagaSession.Session()
-   s.add_context(c)
-   
-   cont = s.list_contexts()
-   print cont
+print "=== add_callback(c)",
+c = CallbackProxy()
+cookie = m.addCallback(c)
+print "Cookie is",cookie
 
-if __name__ == "__main__":
-    main()
+      
+#fire(self)
+#Push a new metric value to the backend.
 
+print "=== fire()"
+m.fire()
+
+#remove_callback(self, cookie)
+#Remove a callback from a metric.     
+
+print "=== remove_callback "
+m.removeCallback(cookie) 
+
+##application.py
+#import sagaContext
+#import sagaSession
+#     
+#def main():
+#   c = sagaContext.Context("ftp")
+#   s = sagaSession.Session()
+#   s.add_context(c)
+#   
+#   cont = s.list_contexts()
+#   print cont
+#
+#if __name__ == "__main__":
+#    main()
 
 #################################################################
    #for x in cont:
@@ -62,15 +116,15 @@ if __name__ == "__main__":
    #print bp.session, bp
    #f= FileFactory.createFile(session, url, flags)
 
-def cloner(obj):
-    return obj.clone() 
-
-class Blar:
-    session = None
-    
-    def cloner(self):
-        if not self.session==None:
-            b = Blar()
-            b.session = self.session.clone()
-            return b    
+#def cloner(obj):
+#    return obj.clone() 
+#
+#class Blar:
+#    session = None
+#    
+#    def cloner(self):
+#        if not self.session==None:
+#            b = Blar()
+#            b.session = self.session.clone()
+#            return b    
 

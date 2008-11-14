@@ -2,9 +2,26 @@
 from saga.object import Object, ObjectType
 from saga.permissions import Permissions
 from saga.task import Async, TaskType
-from saga.error import NotImplemented
+from saga.error import NotImplemented, BadParameter
+from saga.session import Session
+from saga.url import URL
 from org.ogf.saga.namespace import NSFactory
 from org.ogf.saga.task import TaskMode
+
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
+
 
 class Flags(object):
     """ 
@@ -78,7 +95,7 @@ class NSEntry(Object, Permissions, Async):
     """
     delegateObject = None
 
-    def __init__(self, name, session="default", flags=Flags.NONE, **impl):
+    def __init__(self, name, session= Session(), flags=Flags.NONE, **impl):
         """
         Initialize the the object
         @summary: initialize the the object
@@ -110,7 +127,7 @@ class NSEntry(Object, Permissions, Async):
               call (on namespace_directory) apply.
         """
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.namespace.NSEntry:
+            if not isinstance(impl["delegateObject"],org.ogf.saga.namespace.NSEntry):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSEntry. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
@@ -121,14 +138,7 @@ class NSEntry(Object, Permissions, Async):
             if type(flags) is not int:
                 raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
             try:
-                if flags is Flags.NONE and session is not "default":
-                    self.delegateObject = NSFactory.createNSEntry(session.delegateObject, name.delegateObject)
-                elif flags is not Flags.NONE and session is not "default":
-                    self.delegateObject = NSFactory.createNSEntry(session.delegateObject, name.delegateObject, flags)
-                elif flags is Flags.NONE and session is "default":
-                    self.delegateObject = NSFactory.createNSEntry(name.delegateObject)
-                else:
-                    self.delegateObject = NSFactory.createNSEntry(name.delegateObject, flags)
+                self.delegateObject = NSFactory.createNSEntry(session.delegateObject, name.delegateObject, flags)
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
@@ -142,10 +152,11 @@ class NSEntry(Object, Permissions, Async):
         @note:  if the instance was not closed before, the destructor performs a close()
             on the instance, and all notes to close() apply.
         """
-        self.close()
         Object.__del__(self)
         Permissions.__del__(self)
         Async.__del__(self)
+        self.close()
+
         
     def get_url(self, tasktype=TaskType.NORMAL):
         #out URL url 
@@ -688,8 +699,8 @@ class NSEntry(Object, Permissions, Async):
         @see: Section 2 of the GFD-R-P.90 document for resource deallocation semantics and timeout semantics.
         
         """        
-        if type(timeout) is not float or type(timeout) is not int:
-            raise BadParameter, "Parameter timout is wrong type. Type: " + str(type(timeout))
+        if type(timeout) is not float and type(timeout) is not int:
+            raise BadParameter, "Parameter timeout is wrong type. Type: " + str(type(timeout))
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
@@ -832,6 +843,26 @@ class NSEntry(Object, Permissions, Async):
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)   
         
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = NSEntry(name = "" ,delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)  
+  
     
 class NSDirectory(NSEntry, Async):
     """
@@ -844,7 +875,7 @@ class NSDirectory(NSEntry, Async):
     and open_dir()).
     """
     
-    def __init__(self, name, session="default", flags = Flags.NONE, **impl):
+    def __init__(self, name, session = Session(), flags = Flags.NONE, **impl):
         """
         Initialize the object
         @summary: initialize the object
@@ -876,7 +907,7 @@ class NSDirectory(NSEntry, Async):
 
         """
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.namespace.NSDirectory:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.namespace.NSDirectory):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.namespace.NSDirectory. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
