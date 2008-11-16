@@ -21,31 +21,32 @@ import org.ogf.saga.error.PermissionDeniedException
 import org.ogf.saga.error.SagaException 
 import org.ogf.saga.error.SagaIOException 
 import org.ogf.saga.error.TimeoutException 
+from java.lang import NullPointerException
 
 def checkObjectMethods(o):
     try:
-        print "get_id:      "+ str(o.get_id()   )
+        print "=== get_id:      "+ str(o.get_id()   )
     except Exception, e:
-        print "!!! WARNING !!! get_id(): ", str(e)
+        print "!!! WARNING !!! get_id(): ", str(e.__class__),str(e)
     try:
-        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.NSEntry is " +str(ObjectType.NSENTRY)
+        print "=== get_type:    "+ str(o.get_type() ) + ", ObjectType.NSEntry is " +str(ObjectType.NSENTRY)
     except Exception, e:
-        print "!!! WARNING !!!", "get_type:", str(e) 
+        print "!!! WARNING !!!", "get_type:", str(e.__class__),str(e) 
     try:   
         session = o.get_session()
-        print "get_session: "+ str(session.__class__),"get_id:" + str(session.get_id()),"type: "+str(session.get_type()), "ObjectType.SESSION "+str(ObjectType.SESSION)                 
+        print "=== get_session: "+ str(session.__class__),"get_id:" + str(session.get_id()),"type: "+str(session.get_type()), "ObjectType.SESSION "+str(ObjectType.SESSION)                 
     except Exception, e:
-        print "get_session(): " + str(e) 
+        print "get_session(): " + str(e.__class__),str(e) 
     try:    
         clone = o.clone()
-        print "clone:       "+ str(clone.__class__) + " type: "+str(clone.get_type()) + " get_id:" + str(clone.get_id())
-        print type(clone.delegateObject)
-        clone.is_entry_self()
-
+        print "=== clone:       "+ str(clone.__class__) + " type: "+str(clone.get_type()) + " get_id:" + str(clone.get_id())
     except Exception, e:
-        print "!!! WARNING !!!", "clone(): " + str(e) 
-
-
+        print "!!! WARNING !!!", "clone(): " + str(e.__class__),str(e) 
+    try:
+        clone.is_entry_self()
+    except NullPointerException, e:
+        print "!!! WARNING !!!", "clone.is_entry(): " + str(e.__class__),str(e)
+    
 
 def printAttributes(o):
     print "Name           Ex\tRO\tREM\tVec\tWri\tValue"
@@ -385,9 +386,56 @@ checkObjectMethods(nse1)
 #Inherited from object.Object: clone, get_id, get_session, get_type
 
 
+try:
+#if True:
+    temp = nse1.get_group()
+    if type(temp) is not str:
+        print "=== get_group() does not return a string"
+    print "=== get_group():", temp
+except  Exception ,e:
+    print "=== get_group():" , str(e.__class__), str(e)
 
-#
-#Inherited from permissions.Permissions: get_group, get_owner, permissions_allow, permissions_check, permissions_deny 
+#string get_group(self, tasktype=0)
+#Get the group owning the entity.
+
+try:
+    temp = nse1.get_owner()
+    if type(temp) is not str:
+        print "=== get_owner() does not return a string"
+    print "=== get_owner():", temp
+except  Exception ,e:
+    print "=== get_owner():" , str(e.__class__), str(e)
+
+#get_owner(self, tasktype=0)
+#Get the owner of the entity. 
+
+
+
+try:
+    nse1.permissions_allow("uhmmm",Permission.ALL, 0)
+except Exception ,e:
+    print "=== permission_allow():" , str(e.__class__), str(e) 
+
+#permissions_allow(self, id, perm, tasktype=0)
+#Enable permission flags.     
+
+try:
+    nse1.permissions_deny("uhmmm",Permission.QUERY, 0)
+except Exception ,e:
+    print "=== permission_deny():" , str(e.__class__), str(e)
+      
+#permissions_deny(self, id, perm, tasktype=0)
+#Disable permission flags.     
+
+#bool     
+#permissions_check(self, id, perm, tasktype=0)
+#Check permission flags.     
+#string     
+    
+try:
+    nse1.permissions_check("uhmmm",Permission.QUERY, 0)
+except Exception ,e:
+    print "=== permission_check():" , str(e.__class__), str(e)
 
 nse1.close()
 del nse1

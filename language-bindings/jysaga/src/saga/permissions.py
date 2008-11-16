@@ -9,6 +9,20 @@ from saga.error import NotImplemented
 from org.ogf.saga.task import TaskMode
 from saga.task import TaskType
 
+import org.ogf.saga.error.AlreadyExistsException
+import org.ogf.saga.error.AuthenticationFailedException 
+import org.ogf.saga.error.AuthorizationFailedException
+import org.ogf.saga.error.BadParameterException 
+import org.ogf.saga.error.DoesNotExistException
+import org.ogf.saga.error.IncorrectStateException
+import org.ogf.saga.error.IncorrectURLException 
+import org.ogf.saga.error.NoSuccessException 
+import org.ogf.saga.error.NotImplementedException
+import org.ogf.saga.error.PermissionDeniedException
+import org.ogf.saga.error.SagaException 
+import org.ogf.saga.error.SagaIOException 
+import org.ogf.saga.error.TimeoutException
+
 class Permission(object):
     """
     Permission specifies the available permissions in SAGA
@@ -185,7 +199,7 @@ class Permissions(Async):
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)       
     
-    def get_owner(self,type=TaskType.NORMAL):
+    def get_owner(self,tasktype=TaskType.NORMAL):
         """
         Get the owner of the entity.
         @summary: Get the owner of the entity.

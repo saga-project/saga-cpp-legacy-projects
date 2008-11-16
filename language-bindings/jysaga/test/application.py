@@ -27,8 +27,12 @@ from org.ogf.saga.file import FileFactory
 from org.ogf.saga.task import TaskFactory , TaskMode, WaitMode
 import org.ogf.saga.monitoring.Callback
 from time import sleep
+from org.ogf.saga.namespace import NSFactory
+from org.ogf.saga.task import TaskMode
 
 from org.ogf.saga.monitoring import  MonitoringFactory
+
+from org.ogf.saga.namespace import Flags
 
 class CallbackProxy(org.ogf.saga.monitoring.Callback):
     pythonCallbackObject = None
@@ -56,26 +60,72 @@ class CallbackProxy(org.ogf.saga.monitoring.Callback):
         print "End of CallbackProxy.cb call"
         return
 
-m = MonitoringFactory.createMetric("TotalCPUCount","total number of cpus requested for this job",\
-           "ReadWrite","1","Int","1")      
-     
-print "=== add_callback(c)",
-c = CallbackProxy()
-cookie = m.addCallback(c)
-print "Cookie is",cookie
+url_source = URLFactory.createURL("file:///tmp/09_NSDirectoryDIRECTORY")
+url_target = URLFactory.createURL("file:///tmp/09_NSDirectoryDIRECTORYcopy")
+nsd = NSFactory.createNSDirectory(url_source)
+try:
+    print "NSDirectory.copy(src,target):"
+    nsd.copy( url_source, url_target, Flags.RECURSIVE.getValue())
+except org.ogf.saga.error.SagaException, e:
+    print "NSDirectory.copy(src,target):" , str(e.__class__), str(e) 
+#
+#try:
+#    print "NSDirectory.copy(target):"
+#    nsd.copy(url_target,2)
+#except org.ogf.saga.error.SagaException, e:
+#    print "NSDirectory.copy(target):" , str(e.__class__), str(e)
+    
+#try:
+#    nsd.copy( url_source, url_target, Flags.RECURSIVE)
+#except org.ogf.saga.error.SagaException, e:
+#    print "2.NSDirectory.copy(RECURSIVE):" , str(e.__class__), str(e)
+    
+#    
+#nse = None
+#try:
+#    nse = NSFactory.createNSEntry(url_source)
+#except org.ogf.saga.error.SagaException, e:
+#    print "NSEntry():" , str(e.__class__), str(e)
+#
+#if nse != None:
+#    nse.copy(url_target)
+#    NONE            =  0
+#    OVERWRITE       =  1
+#    RECURSIVE       =  2
+#    DEREFERENCE     =  4
+#    CREATE          =  8
+#    EXCLUSIVE       = 16
+#    LOCK            = 32
+#    CREATEPARENTS   = 64
 
-      
-#fire(self)
-#Push a new metric value to the backend.
+#temp_filename = "/tmp/08_NSEntryTest.py.temp"
+#url =  URLFactory.createURL(temp_filename)
+#nse = NSFactory.createNSEntry(url)
+#print "NSEntry.isEntry():",nse.isEntry()
+#clone = nse.clone()
+#print "Clone.isclone():",clone.isEntry()
 
-print "=== fire()"
-m.fire()
 
-#remove_callback(self, cookie)
-#Remove a callback from a metric.     
-
-print "=== remove_callback "
-m.removeCallback(cookie) 
+#m = MonitoringFactory.createMetric("TotalCPUCount","total number of cpus requested for this job",\
+#           "ReadWrite","1","Int","1")      
+#     
+#print "=== add_callback(c)",
+#c = CallbackProxy()
+#cookie = m.addCallback(c)
+#print "Cookie is",cookie
+#
+#      
+##fire(self)
+##Push a new metric value to the backend.
+#
+#print "=== fire()"
+#m.fire()
+#
+##remove_callback(self, cookie)
+##Remove a callback from a metric.     
+#
+#print "=== remove_callback "
+#m.removeCallback(cookie) 
 
 ##application.py
 #import sagaContext

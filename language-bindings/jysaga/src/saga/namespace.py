@@ -848,11 +848,12 @@ class NSEntry(Object, Permissions, Async):
         @summary: Deep copy the object
         @return: the deep copied object
         @rtype: L{Object}
-        @PostCondition: apart from session and callbacks, no other state is shared
-            between the original object and it's copy.
+        @PostCondition: apart from session and callbacks, no other state is 
+            shared between the original object and it's copy.
         @raise NoSuccess:
-        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
-                 a deep copy of the respective class type.
+        @Note: that method is overloaded by all classes which implement 
+            saga.object.Object, and returns a deep copy of the respective class 
+            type.
         @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
         """
@@ -1038,7 +1039,7 @@ class NSDirectory(NSEntry, Async):
                 javaArray = self.delegateObject.list(name_pattern, flags)                
                 retval = []
                 for i in range(len(javaArray)):
-                    ret.append(URL(delegateObject = javaArray[i]))
+                    retval.append(URL(delegateObject = javaArray[i]))
                 return retval
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
@@ -1150,8 +1151,10 @@ class NSDirectory(NSEntry, Async):
                 return Task(delegateObject=javaObject)
             else:
                 retval = self.delegateObject.exists(name.delegateObject)                
-                if reval is 1: return True
-                else: return False
+                if retval == 1: 
+                    return True
+                else: 
+                    return False
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
@@ -1475,15 +1478,16 @@ class NSDirectory(NSEntry, Async):
         @type target: L{URL}
         @type flags: int
         @postcondition: an identical copy of source exists at target.
-        @postcondition:  'Owner' of target is the id of the context used to perform the opereration if target gets
-                  created.
+        @postcondition:  'Owner' of target is the id of the context used to 
+            perform the opereration if target gets created.
         @permission: Query for source.
         @permission: Exec for source's parent directory.
         @permission: Query for target.
         @permission: Query for target's parent directory.
         @permission: Exec for target's parent directory.
         @permission: Write for target if target does exist.
-        @permission: Write for target's parent directory if target does not exist.
+        @permission: Write for target's parent directory if target does not 
+            exist.
         @raise NotImplemented:
         @raise IncorrectURL:
         @raise BadParameter:
@@ -1497,17 +1501,21 @@ class NSDirectory(NSEntry, Async):
         @raise NoSuccess:
         @note: all notes to the NSEntry.copy() method apply.
         @note: the default flags are 'NONE' (0).
-        @note: if 'name' can be parsed as URL, but contains an invalid entry name, a 'BadParameter' exception is raised.
-        @note: if 'name' is a valid entry name but the entry does not exist, a 'DoesNotExist' exception is raised.
-        @note: when 'source' as a string is given as parameter, it can contain wildcards.
+        @note: if 'name' can be parsed as URL, but contains an invalid entry 
+            name, a 'BadParameter' exception is raised.
+        @note: if 'name' is a valid entry name but the entry does not exist, a 
+            'DoesNotExist' exception is raised.
+        @note: when 'source' as a string is given as parameter, it can contain 
+            wildcards.
         @note:  on error conditions on any of the expanded
-           list of source entries, the respective error is raised. The state of the operations on the
-           other elements of the expanded entry list is undefined.
-        @note:  if source expands to multiple entries, then the
-           target URL specifies a directory, otherwise a 'BadParameter' exception is raised.
+           list of source entries, the respective error is raised. The state of 
+           the operations on the other elements of the expanded entry list is 
+           undefined.
+        @note:  if source expands to multiple entries, then the target URL 
+          specifies a directory, otherwise a 'BadParameter' exception is raised.
 
         """
-        if type(source) is not URL or type(source) is not str:
+        if type(source) is not URL and type(source) is not str:
             raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
         if type(target) is not URL:
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))      
@@ -1590,7 +1598,7 @@ class NSDirectory(NSEntry, Async):
              target URL specifies a directory. Otherwise a 'BadParameter' exception is raised.
 
         """
-        if type(source) is not URL or type(source) is not str:
+        if type(source) is not URL and type(source) is not str:
             raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
         if type(target) is not URL:
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
@@ -1656,12 +1664,13 @@ class NSDirectory(NSEntry, Async):
         @raise Timeout:
         @raise NoSuccess:
         @note: all notes to the NSEntry.move() method apply.
-        @note:  if the 'RECURSIVE' flag is defined, the source is recursively copied if it is a directory;
-                  otherwise this flag is ignored.
-        @note:  if the 'DEREFERENCE' flag is specified, the method applies to the link target of source.
-                  The flag causes a 'BadParameter' exception if source is not a link.
-        @note:  if the the target already exists, the 'OVERWRITE' flag must be specified, otherwise
-             an 'AlreadyExists' exception is raised.
+        @note:  if the 'RECURSIVE' flag is defined, the source is recursively 
+            copied if it is a directory; otherwise this flag is ignored.
+        @note:  if the 'DEREFERENCE' flag is specified, the method applies to 
+            the link target of source. The flag causes a 'BadParameter' 
+            exception if source is not a link.
+        @note:  if the the target already exists, the 'OVERWRITE' flag must be 
+            specified, otherwise an 'AlreadyExists' exception is raised.
         @note:  the default flags are 'NONE' (0).
         @note:  other flags are not allowed on this method, and cause a 'BadParameter' exception.
         @note:  if 'source' can be parsed as URL, but contains an invalid entry name, a 'BadParameter' exception is raised.
@@ -1674,7 +1683,7 @@ class NSDirectory(NSEntry, Async):
            otherwise a 'BadParameter' exception is raised.
 
         """
-        if type(source) is not URL or type(source) is not str:
+        if type(source) is not URL and type(source) is not str:
             raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
         if type(target) is not URL:
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
@@ -1713,12 +1722,12 @@ class NSDirectory(NSEntry, Async):
         @param flags: defining the operation modus
         @type target: L{URL} or string
         @type flags: int
-        @postcondition: source is removed.
-        @postcondition: source is closed if it refers to the cwd.
-        @permission: Query for source.
-        @permission: Write for source.
-        @permission: Exec for source's parent directory.
-        @permission: Write for source's parent directory.
+        @postcondition: target is removed.
+        @postcondition: target is closed if it refers to the cwd.
+        @permission: Query for target.
+        @permission: Write for target.
+        @permission: Exec for target's parent directory.
+        @permission: Write for target's parent directory.
         @raise NotImplemented:
         @raise IncorrectURL:
         @raise BadParameter:
@@ -1731,46 +1740,72 @@ class NSDirectory(NSEntry, Async):
         @raise Timeout:
         @raise NoSuccess:
         @note: all notes to the NSEntry.remove() method apply.
-        @note: if the 'RECURSIVE' flag is defined, the source is recursively removed if it is a directory;
+        @note: if the 'RECURSIVE' flag is defined, the target is recursively removed if it is a directory;
                   otherwise this flag is ignored.
-        @note:  if the 'DEREFERENCE' flag is specified, the method applies to the link target of source.
-             The flag causes a 'BadParameter' exception if source is not a link.
+        @note:  if the 'DEREFERENCE' flag is specified, the method applies to the link target of target.
+             The flag causes a 'BadParameter' exception if target is not a link.
         @note:  the default flags are 'NONE' (0).
         @note:  other flags are not allowed on this method, and cause a 'BadParameter' exception.
-        @note:  if 'source' can be parsed as URL, but contains an invalid entry name, a 'BadParameter' exception is raised.
-        @note:  if 'source' is a valid entry name but the entry does not exist, a 'DoesNotExist' exception is raised.
+        @note:  if 'target' can be parsed as URL, but contains an invalid entry name, a 'BadParameter' exception is raised.
+        @note:  if 'target' is a valid entry name but the entry does not exist, a 'DoesNotExist' exception is raised.
         @note:  removing any parent or the current directoy (e.g. '.', '..' etc.) is not allowed, and
              raises a 'BadParameter' exception
-        @note:  the 'source' string as parameter can contain wildcards
-        @note:  on error conditions on any of the expanded list of source entries, the respective error
+        @note:  the 'target' string as parameter can contain wildcards
+        @note:  on error conditions on any of the expanded list of target entries, the respective error
             is raised - the state of the operations on the other elements of the expanded entry list is undefined.
 
         """
-        if type(source) is not URL or type(source) is not str:
-            raise BadParameter, "Parameter source is not a URL or string. Type: " + str(type(source))
-        if type(flags) is not int:
-            raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
-        if type(source) is str:
-            source_parameter = source
-        else:
-            source_parameter = source.delegateObject
-        try:
-            if tasktype is TaskType.ASYNC:
-                javaObject = self.delegateObject.remove(TaskMode.ASYNC, source_parameter, flags)
-                return Task(delegateObject=javaObject)
-            if tasktype is TaskType.SYNC:
-                javaObject = self.delegateObject.remove(TaskMode.SYNC, source_parameter, flags)
-                return Task(delegateObject=javaObject)
-            if tasktype is TaskType.TASK:
-                javaObject = self.delegateObject.remove(TaskMode.TASK, source_parameter, flags)
-                return Task(delegateObject=javaObject)
+            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+            +"values, but " + str(tasktype)
+
+        if tasktype == TaskType.NORMAL:
+            if type(target) is not URL and type(target) is not str:
+                raise BadParameter, "Parameter target is not a URL or string. "\
+                    +"Type: " + str(type(source))
+            if type(flags) is not int:
+                raise BadParameter, "Parameter flags is not an int. Type: " \
+                    + str(type(flags)) 
+        
+            if type(target) is str:
+                target_parameter = target
             else:
-                self.delegateObject.remove(source_parameter, flags)
-        except org.ogf.saga.error.SagaException, e:
-            raise self.convertException(e)             
+                target_parameter = target.delegateObject
+            
+            try:
+                self.delegateObject.remove(target_parameter, flags)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
+
+        else:
+            if type(target) is not URL and type(target) is not str:
+                bp =  BadParameter("Parameter target is not a URL or string. "\
+                    +"Type: " + str(type(source)))
+                return Task(error = bp)
+            if type(flags) is not int:
+                bp = BadParameter("Parameter flags is not an int. Type: " \
+                    + str(type(flags)))
+                return Task(error = bp)
+            
+            if type(target) is str:
+                target_parameter = target
+            else:
+                target_parameter = target.delegateObject
+
+            try:
+                if tasktype is TaskType.ASYNC:
+                    javaObject = self.delegateObject.remove\
+                                    (TaskMode.ASYNC, target_parameter, flags)
+                if tasktype is TaskType.SYNC:
+                    javaObject = self.delegateObject.remove\
+                                    (TaskMode.SYNC, target_parameter, flags)
+                if taskType is TaskType.TASK:
+                    javaObject = self.delegateObject.remove\
+                                    (TaskMode.TASK, target_parameter, flags)
+                return Task(delegateObject=javaObject)
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)             
   
    # management methods
     def make_dir(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
@@ -1891,17 +1926,17 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = self.delegateObject.open(TaskMode.ASYNC, target.delegateObject, flags)
+                javaObject = self.delegateObject.open(TaskMode.ASYNC, name.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = self.delegateObject.open(TaskMode.SYNC, target.delegateObject, flags)
+                javaObject = self.delegateObject.open(TaskMode.SYNC, name.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = self.delegateObject.open(TaskMode.TASK, target.delegateObject, flags)
+                javaObject = self.delegateObject.open(TaskMode.TASK, name.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             else:
-                javaObject = self.delegateObject.open(target.delegateObject, flags)
-                return NSEntry(delegateObject = javaObject)
+                javaObject = self.delegateObject.open(name.delegateObject, flags)
+                return NSEntry(name = "",delegateObject = javaObject)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
@@ -1961,17 +1996,17 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = self.delegateObject.openDir(TaskMode.ASYNC, target.delegateObject, flags)
+                javaObject = self.delegateObject.openDir(TaskMode.ASYNC, name.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = self.delegateObject.openDir(TaskMode.SYNC, target.delegateObject, flags)
+                javaObject = self.delegateObject.openDir(TaskMode.SYNC, name.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = self.delegateObject.openDir(TaskMode.TASK, target.delegateObject, flags)
+                javaObject = self.delegateObject.openDir(TaskMode.TASK, name.delegateObject, flags)
                 return Task(delegateObject=javaObject)
             else:
-                javaObject = self.delegateObject.openDir(target.delegateObject, flags)
-                return NSDirectory(delegateObject = javaObject)
+                javaObject = self.delegateObject.openDir(name.delegateObject, flags)
+                return NSDirectory(name = "", delegateObject = javaObject)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
@@ -2005,11 +2040,11 @@ class NSDirectory(NSEntry, Async):
         @note:  all notes to permissions_allow from the saga.permissions.Permission class apply.
         @note:  allowed flags are: 'RECURSIVE', 'DEREFERENCE'. All other flags cause a 'BadParameter' exception.
         @note:  specifying 'RECURSIVE' for a non-directory causes a 'BadParameter' exception.
-        @note: the 'source' string can contain wildcards.
-        @note: on error conditions on any of the expanded list of source entries, the respective error
+        @note: the 'target' string can contain wildcards.
+        @note: on error conditions on any of the expanded list of target entries, the respective error
              is raised - the state of the operations on the other elements of the expanded entry list is undefined. 
         """ 
-        if type(target) is not URL or type(source) is not str:
+        if type(target) is not URL and type(target) is not str:
             raise BadParameter, "Parameter target is not a URL or string. Type: " + str(type(target))
         if type(id) is not str:
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id)) 
@@ -2020,7 +2055,7 @@ class NSDirectory(NSEntry, Async):
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
-        if type(source) is str: 
+        if type(target) is str: 
             target_parameter = target
         else: 
             target_parameter = target.delegateObject
@@ -2071,12 +2106,12 @@ class NSDirectory(NSEntry, Async):
         @note: allowed flags are: 'RECURSIVE', 'DEREFERENCE'. All other flags cause a 'BadParameter'
               exception.
         @note: specifying 'RECURSIVE' for a non-directory causes a 'BadParameter' exception.
-        @note: the 'source' string can contain wildcards.
-        @note: on error conditions on any of the expanded list of source entries, the respective error
+        @note: the 'target' string can contain wildcards.
+        @note: on error conditions on any of the expanded list of target entries, the respective error
              is raised - the state of the operations on the other elements of the expanded entry list is
              undefined. 
         """       
-        if type(target) is not URL or type(source) is not str:
+        if type(target) is not URL and type(target) is not str:
             raise BadParameter, "Parameter target is not a URL or string. Type: " + str(type(target))
         if type(id) is not str:
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id)) 
@@ -2087,7 +2122,7 @@ class NSDirectory(NSEntry, Async):
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
-        if type(source) is str: 
+        if type(target) is str: 
             target_parameter = target
         else: 
             target_parameter = target.delegateObject
@@ -2114,4 +2149,27 @@ class NSDirectory(NSEntry, Async):
         @rtype: int
         """
         return ObjectType.NSDIRECTORY    
- 
+
+
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is 
+            shared between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement 
+            saga.object.Object, and returns a deep copy of the respective class 
+            type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = NSDirectory(name = "" ,delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+        
+          
