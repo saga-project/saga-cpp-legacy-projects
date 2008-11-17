@@ -271,7 +271,7 @@ class File(NSEntry):
 
         """
 
-    def seek (self, offset, whence = 0):
+    def seek (self, offset, whence = SeekMode.START):
         #return out int position
         """
         Reposition the file pointer

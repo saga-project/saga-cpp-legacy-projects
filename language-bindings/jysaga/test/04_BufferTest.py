@@ -23,24 +23,24 @@ import org.ogf.saga.error.TimeoutException
 
 def checkObjectMethods(o):
     try:
-        print "get_id:      "+ str(o.get_id()   )
+        print "=== get_id:      "+ str(o.get_id()   )
     except Exception, e:
-        print "!!! WARNING !!! get_id(): ", str(e)
+        print "!!! get_id(): ", str(e)
     try:
-        print "get_type:    "+ str(o.get_type() ) + ", ObjectType.BUFFER is " +str(ObjectType.BUFFER)
+        print "=== get_type:    "+ str(o.get_type() ) + ", ObjectType.BUFFER is " +str(ObjectType.BUFFER)
     except Exception, e:
-        print "!!! WARNING !!!", "get_type:", str(e) 
+        print "!!! get_type:", str(e) 
     try:   
         session = o.get_session()
-        print "get_session: "+ str(session.__class__),"get_id:" + str(session.get_id()),"type: "+str(session.get_type()), "ObjectType.SESSION "+str(ObjectType.SESSION)                 
+        print "=== get_session: "+ str(session.__class__),"get_id:" + str(session.get_id()),"type: "+str(session.get_type()), "ObjectType.SESSION "+str(ObjectType.SESSION)                 
     except Exception, e:
-        print "!!! WARNING !!!", "get_session(): " + str(e) 
+        print "!!! get_session(): " + str(e) 
     try:    
         clone = o.clone()
-        print "clone:       "+ str(clone.__class__) + " type: "+str(clone.get_type()) + " get_id:" + str(clone.get_id())
-
+        print "=== clone:       "+ str(clone.__class__) + " type: "+str(clone.get_type()) + " get_id:" + str(clone.get_id())
+        clone.get_size()
     except Exception, e:
-        print "!!! WARNING !!!", "clone(): " + str(e) 
+        print "!!! clone(): " + str(e) 
 
 def printAttributes(context):
     print "Name           Ex\tRO\tREM\tVec\tWri\tValue"
@@ -55,31 +55,31 @@ def printAttributes(context):
         print "\t" ,str(context.attribute_is_removable(i)), "\t" ,str(context.attribute_is_vector(i)), \
           "\t" ,str(context.attribute_is_writable(i)),"\t", str(context.get_attribute(i))
 
-print "==================================================="
-print "== Test of Buffer                                =="
-print "==================================================="
+print "========================================================================"
+print "== Test of Buffer                                                     =="
+print "========================================================================"
+
+max_size = 30
 
 print "=== Creating empty implementation managed Buffer"
-print "=== buffer1 = Buffer()"
 buffer1 = Buffer()
-print "get_size:      " , str(buffer1.get_size())
-print "set_size(50):  " , str(buffer1.set_size(50))
-print "get_size:      " , str(buffer1.get_size())
+print "=== get_size():" , str(buffer1.get_size()),
+print "\t\tset_size(",max_size,")", 
+buffer1.set_size(max_size)
+print "\t\tget_size():" , str(buffer1.get_size())
 checkObjectMethods(buffer1)
     
-print "=== Creating implementation managed Buffer, size 100"
-print "=== buffer2 = Buffer(100)"
-buffer2 = Buffer(100)
-print "get_size:      " , str(buffer2.get_size())
-print "get_size(119): " , str(buffer2.set_size(119))
-print "get_size:      " , str(buffer2.get_size())
-checkObjectMethods(buffer2)
+print "=== Creating implementation managed Buffer, size",max_size
+buffer2 = Buffer(max_size)
+print "=== get_size():" , str(buffer2.get_size()),
+print "\t\tset_size(",max_size+1,")", 
+buffer2.set_size(max_size+1)
+print "\t\tget_size():" , str(buffer2.get_size())
 
-print "=== Creating application managed Buffer, size 101"
-print "=== buffer3 = Buffer(101,carray)"
+print "=== Creating application managed Buffer, size", max_size,
 carray = array.array('c')
-buffer3 = Buffer(101,carray)
-print "get_size:" , str(buffer3.get_size())
+buffer3 = Buffer(max_size,carray)
+print "\tget_size():" , str(buffer3.get_size())
 checkObjectMethods(buffer3)
 
 temp_filename = "/tmp/04_BufferTest.py.temp"
@@ -90,78 +90,71 @@ file.flush()
 file.close()
 
 url = URL("file://"+temp_filename)
-f = File(url)
-print "== Reading from", temp_filename, "in buffer1"
-print "f.read(buf=buffer1)    ",str(f.read(buffer1.get_size(),buffer1)),"content: ", buffer1.get_data()
-f = File(url)
-print "== Reading from", temp_filename, "in buffer2"
-print "f.read(buf=buffer2)    ",str(f.read(buffer2.get_size(),buffer2)),"content: ", list(buffer2.get_data())
-f = File(url)
-print "== Reading from", temp_filename, "in buffer3"
-print "f.read(buf=buffer3)    ",str(f.read(buffer3.get_size(),buf=buffer3)),"content: ", carray.tostring()
+#print "== Reading from", temp_filename, "in buffers"
 
-carray2 = array.zeros('c', 100)
+f = File(url)
+#print "f.read(buf=buffer1)    ",
+l1 = f.read(buffer1.get_size(),buffer1)
+f = File(url)
+#print "f.read(buf=buffer2)    ",
+l2 = (f.read(buffer2.get_size(),buffer2))
+f = File(url)
+#print "f.read(buf=buffer3)    ",
+l3 = (f.read(buffer3.get_size(),buf=buffer3))
+if l1 != l2 or l1 != l3:
+    print "!!! read sizes are not equal."
+
+
+t1 =  buffer1.get_data()
+t2 =  buffer2.get_data()
+t3 =  carray.tostring() 
+
+carray2 = array.zeros('c', max_size)
 buffer3.set_data(carray2)
 try:
     carray3 = array.array('c')
     buffer3.set_data(carray3)
+    print "!!! Should raise a BadParameter!"
 except BadParameter,e:
-    print "BadParameter:", str(e)
-
+    pass
+    
 f = File(url)
-print "== Reading from", temp_filename, "in buffer3 (carray2)"
-print "f.read(buf=buffer3)    ",str(f.read(buffer3.get_size(),buf=buffer3)),"content: ", carray2.tostring()
+#print "== Reading from", temp_filename, "in buffer3 (carray2)"
+#print "f.read(buf=buffer3)    ",
+l4 = (f.read(buffer3.get_size(),buf=buffer3))
 
+t4 = carray2.tostring()
 
-#__init__(self, session, name, flags=512)
-#initialize the File object     
-#int     
-#get_size(self)
-#returns the number of bytes in the file     
-#int or string     
-#read(self, len=-1, buf=None)
-#reads up to len bytes from the file into a buffer     
-#int     
-#write(self, buf, len=-1)
-#writes up to len from buffer into the file at the current file position.     
-#int     
-#seek(self, offset, whence=0)
-#reposition the file pointer     
-#      
-#read_v(self, iovecs)
-#gather/scatter read     
-#      
-#write_v(self, iovecs)
-#gather/scatter write     
-#int     
-#size_p(self, pattern)
-#determine the storage size required for a pattern I/O operation     
-#int     
-#read_p(self, pattern, buf)
-#pattern-based read     
-#int     
-#write_p(self, pattern, buf)
-#pattern-based write     
-#tuple     
-#modes_e(self)
-#list the extended modes available in this implementation, and/or on server side     
-#int     
-#size_e(self, emode, spec)
-#determine the storage size required for an extended I/O operation     
-#int     
-#read_e(self, emode, spec, buf)
-#extended read     
-#int     
-#write_e(self, emode, spec, buf)
-#extended write
+for i in range(buffer1.get_size()):
+    if t1[i] != t2[i]:
+        print "!!! character on position",i,"differs between buffer1 and buffer2"
+        break
+    if i == buffer1.get_size()-1:
+        print "=== buffer1 and buffer 2 are equal"
+        break
+ 
+ 
+for i in range(buffer1.get_size()):
+    if t1[i] != t3[i]:
+        print "!!! character on position",i,"differs between buffer1 and buffer3"
+        break
+    if i == buffer1.get_size()-1:
+        print "=== buffer1 and buffer 3 are equal"
+        break
 
-
+for i in range(buffer1.get_size()):
+    if t1[i] != t4[i]:
+        print "!!! character on position",i,"differs between buffer1 and buffer4"
+        break
+    if i == buffer1.get_size()-1:
+        print "=== buffer1 and buffer 4 are equal"
+        break
 
 buffer1.close()
 buffer2.close(-0.0)
 buffer3.close(10.0)    
 
 
-print "==================================================="
-print "== End Test of Buffer                            =="
-print "==================================================="
+print "========================================================================"
+print "== End Test of Buffer                                                 =="
+print "========================================================================"

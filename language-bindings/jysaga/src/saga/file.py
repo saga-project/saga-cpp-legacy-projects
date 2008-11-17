@@ -11,7 +11,7 @@ from saga.task import TaskType, Task
 from saga.session import Session
 from saga.url import URL
 
-
+import array.array
 import jarray.array
 
 #import org.ogf.saga.url.URLFactory;
@@ -20,8 +20,9 @@ import jarray.array
 #import org.ogf.saga.file.File;
 from org.ogf.saga.file import FileFactory
 from org.ogf.saga.task import TaskMode
-from org.ogf.saga.file import SeekMode
 from org.ogf.saga.buffer import BufferFactory
+import org.ogf.saga.file.SeekMode
+
 #import java.lang.Exception;
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -72,7 +73,7 @@ class Iovec(Buffer, Object):
 
     """
     delegateObject = None
-    managedByImp = None
+    managedByImp = True
     array = None
     applicationBuf = None
     closed = False
@@ -97,13 +98,13 @@ class Iovec(Buffer, Object):
         """
 
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.file.IOVec:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.file.IOVec):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.IOVec. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
             return
-        if type(size) is not int:
+        if type(size) is not int: 
             raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
-        if type(data) is not array or type(data) is not list or data is not None:
+        if type(data) is not array.array and type(data) is not list and data is not None:
             raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
         if type(data) is array and data.typecode != 'c':
             raise BadParameter, "Parameter data is an array of the wrongtype. Typecode:" + data.typecode           
@@ -149,8 +150,8 @@ class Iovec(Buffer, Object):
                     self.delegateObject =  FileFactory.createIOVec(self.array)
                 else:
                     self.delegateObject =  FileFactory.createIOVec(self.array, len_in)
-                    self.managedByImp = False
-                    self.applicationBuf = data
+                self.managedByImp = False
+                self.applicationBuf = data
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
         else:
@@ -228,11 +229,49 @@ class Iovec(Buffer, Object):
             return self.delegateObject.getLenOut()
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)    
+        
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.IOVEC
+    
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            temp = Iovec(delegateObject = javaClone)
+            temp.managedByImp = self.managedByImp
+            if self.array is None:
+                temp.array = None
+            else:
+                temp.array = jarray.array(self.array, 'b')
+            #TODO: check clone and buffer behaviour -> Java Data copying? Set data?
+            temp.applicationBuf = self.applicationBuf
+            temp.closed = self.closed
+            return temp
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)          
 
 
 class File(NSEntry):
     """
-    This class represents an open file descriptor for read/write operations on a physical file
+    This class represents an open file descriptor for read/write operations on a 
+    physical file
 
     """
     delegateObject = None
@@ -248,7 +287,8 @@ class File(NSEntry):
         @type name: L{URL}
         @type flags: int
         @postcondition: the file is opened.
-        @postcondition: Owner of target is the id of the context use to perform the opereration, if the file gets created.
+        @postcondition: Owner of target is the id of the context use to perform 
+            the opereration, if the file gets created.
         @permission: Exec for parent directory.
         @permission: Write for parent directory if Create is set.
         @permission: Write for name if Write is set.
@@ -268,24 +308,23 @@ class File(NSEntry):
         """
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.file.File):
-                raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.file.File. Type: " + str(impl["delegateObject"].__class__)
+                raise BadParameter, "Parameter impl[\"delegateObject\"] is not"\
+                " a org.ogf.saga.file.File. Type: " + \
+                str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:
-            if type(session) is not Session and session != "default":
-                raise BadParameter, "Parameter session is not a Session. Type: " + str(type(session))
+            if type(session) is not Session:
+                raise BadParameter,"Parameter session is not a Session. Type: "\
+                     + str(type(session))
             if type(name) is not URL:
-                raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
+                raise BadParameter, "Parameter name is not a URL. Type: " \
+                + str(type(name))
             if type(flags) is not int:
-                raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
+                raise BadParameter, "Parameter flags is not an int. Type: " \
+                + str(type(flags))
             try:
-                if flags is Flags.NONE and session != "default":
-                    self.delegateObject = FileFactory.createFile(session.delegateObject, name.delegateObject)
-                elif flags is not Flags.NONE and session is not "default":
-                    self.delegateObject = FileFactory.createFile(session.delegateObject, name.delegateObject, flags)
-                elif flags is Flags.NONE and session is "default":
-                    self.delegateObject = FileFactory.createFile(name.delegateObject)
-                else:
-                    self.delegateObject = FileFactory.createFile(name.delegateObject, flags)
+                self.delegateObject = FileFactory.createFile\
+                            (session.delegateObject, name.delegateObject, flags)
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
             
@@ -323,7 +362,10 @@ class File(NSEntry):
                 javaObject = self.delegateObject.getSize(TaskMode.TASK)
                 return Task(delegateObject=javaObject)        
             else:
-                return self.delegateObject.getSize()
+                import java.lang.Long
+                temp = java.lang.Long( self.delegateObject.getSize() )
+                return temp.intValue()
+                #DOCUMENT: cast the long to int
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
@@ -393,8 +435,8 @@ class File(NSEntry):
             raise BadParameter( "Parameter tasktype is not one of the TaskType values, but " + str(tasktype))
         if type (size)is not int:
             raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
-        if buf.__class__ is not Buffer and buf is not None:
-            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        if not issubclass(buf.__class__, Buffer) and buf is not None:
+            raise BadParameter, "Parameter buf is not a Buffer or subclass. Class: " + str(buf.__class__)
         try:
             if size != -1 and buf is not None:
                 if tasktype is TaskType.ASYNC:
@@ -424,7 +466,7 @@ class File(NSEntry):
                     return Task(delegateObject=javaObject, fileReadBuffer=javaBuffer)        
                 else:
                     retval = self.delegateObject.read(javaBuffer, size)
-                    return retval.getData().toString()
+                    return javaBuffer.getData().tostring()
             elif size == -1 and buf is None:
                 #- B{Call format: read()} 
                 
@@ -522,7 +564,7 @@ class File(NSEntry):
 
 
 
-    def seek (self, offset, whence = 0, tasktype=TaskType.NORMAL ):
+    def seek (self, offset, whence = SeekMode.START, tasktype=TaskType.NORMAL ):
         #return out int position
         """
         Reposition the file pointer
@@ -561,18 +603,24 @@ class File(NSEntry):
         if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
+        if whence == SeekMode.START:
+            whence_parameter = org.ogf.saga.file.SeekMode.START 
+        elif whence == SeekMode.CURRENT:
+            whence_parameter = org.ogf.saga.file.SeekMode.CURRENT
+        else: #whence == SeekMode.END
+            whence_parameter = org.ogf.saga.file.SeekMode.END
         try:
             if tasktype is TaskType.ASYNC:
-                javaObject = self.delegateObject.getSize(TaskMode.ASYNC)
+                javaObject = self.delegateObject.seek(TaskMode.ASYNC, offset, whence_parameter)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.SYNC:
-                javaObject = self.delegateObject.getSize(TaskMode.SYNC)
+                javaObject = self.delegateObject.seek(TaskMode.SYNC, offset, whence_parameter)
                 return Task(delegateObject=javaObject)
             if tasktype is TaskType.TASK:
-                javaObject = self.delegateObject.getSize(TaskMode.TASK)
+                javaObject = self.delegateObject.seek(TaskMode.TASK, offset, whence_parameter)
                 return Task(delegateObject=javaObject)        
             else:
-                return self.delegateObject.getSize()
+                return self.delegateObject.seek(offset,whence_parameter)
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
             
@@ -1035,6 +1083,34 @@ class File(NSEntry):
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
   
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.FILE
+
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = File(name="", delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
 
 class Directory(NSDirectory):
     """
@@ -1141,7 +1217,10 @@ class Directory(NSDirectory):
                 javaObject = self.delegateObject.getSize(TaskMode.TASK, name.delegateObject, flags)
                 return Task(delegateObject=javaObject)        
             else:
-                return self.delegateObject.getSize(name.delegateObject, flags)
+                import java.lang.Long
+                temp = java.lang.Long(self.delegateObject.getSize(name.delegateObject, flags))
+                return temp.intValue()
+                #DOCUMENT: cast the long to int
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 

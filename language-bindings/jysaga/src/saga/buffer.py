@@ -188,7 +188,7 @@ class Buffer(Object):
                the first __init__ call format with the given size.
         @note: the notes for __del__ and the first __init__ call format apply.
         """
-        if self.closed is True :
+        if self.closed == True :
            raise IncorrectState, "Buffer object is already closed()"
         if type(data) is not array.array and type(data) is not list:
             raise BadParameter, "Parameter data is not an list or a char array. Type: " + str(type(size)) 
