@@ -1,28 +1,39 @@
-%% LyX 1.5.3 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 1.4.3 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[11pt,english,a4paper,onecolumn]{article}
-\usepackage[latin9]{inputenc}
+\usepackage[T1]{fontenc}
 
 \makeatletter
-\usepackage{babel}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+%% LyX 1.5.3 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+
+
+
+\makeatletter
+
 \makeatother
 
+\usepackage{babel}
+\makeatother
 \begin{document}
 
 \title{{\Large Specification and Implementation of a Python to SAGA Language
 Binding}{\normalsize }\\
-{\normalsize Computer Science Master Thesis}{\Large{} }}
+ {\normalsize Computer Science Master Thesis} {\Large }}
 
 
-\author{{\normalsize P.F.A. van Zoolingen}\\
-{\normalsize 1284657, pzn400@few.vu.nl}}
+\author{P.F.A. van Zoolingen{\normalsize }\\
+ {\normalsize 1284657, pzn400@few.vu.nl}}
 
 \maketitle
 
 \section{Abstract}
-
-
-\subsection{Abstract English}
 
 This thesis describes the effort to create a Python language binding
 for SAGA, the Simple Api for Grid Applications, and its efforts to
@@ -33,28 +44,10 @@ which come with grids. This adds to the adopting of SAGA in a world
 of with many different APIs and middleware layers.
 
 
-\subsection{Abstract Nederlands}
-
-
-\subsection{List of Frequently Used Terms}
-
-\begin{itemize}
-\item API: Application Programming Interface. A set of variables, methods
-and classes that is offered by an operating system or software library
-to support requests made by computer programs.
-\item Grid: A collection of interconnected computers consisting of different
-hardware, placed in different locations and belonging to different
-organizations.
-\item Grid Aware: Applications which are grid aware are designed to run
-on a grid and use the possibilities of the grid, such as distributing
-workload between available nodes in the grid.
-\item Reference Implementation: Software which implements the functionality
-described by SAGA. New applications can link to this software and
-call methods described in SAGA to use the grid.
-\item SAGA: Simple API for Grid Applications
-\end{itemize}
-
 \section{Introduction}
+
+
+\subsection{Introduction English}
 
 SAGA stands for Simple API for Grid Applications and was developed
 to offer users a simple tool to program applications for of heterogeneous
@@ -66,24 +59,63 @@ programming grid aware applications.
 
 To use this API, the functionality described by SAGA has to be implemented
 by another piece of software. This is called the Saga reference implementation.
-At this point there are two different reference implementations which
-are programmed in the programming languages Java and C++. Which in
-a general sense means that only Java and C++ applications can easily
+At this point there are three different reference implementations
+which are programmed in the programming languages Java and C++. Which
+in a general sense means that only Java and C++ applications can easily
 use SAGA to access the grid in an easy way. This thesis describes
 the efforts to add another language to that list, namely Python. Python
 is partially supported by the C++ reference implementation, but there
 is no specific Python language binding available which describes the
-SAGA functionality in Python specific way independent of the chosen
+SAGA functionality in Python specific way, independent of the chosen
 reference implementation. During the course of my master project I
 have specified the Python language binding and have implemented the
-language binding for the Java reference implementation. 
+language binding for the Java reference implementation.
 
 This thesis is divided into different pieces. First I will describe
 and explain what SAGA is, where it comes from and how it is implemented.
 Then I will continue with a description of Python and a special implementation
-of Python called Jython. Followed by the specification of the language
-binding and its implementation. After that, the testing, discussion,
-future work and the conclusion will be described.
+of Python called Jython, followed by the specification of the language
+binding and its implementation. After that I will conclude with the
+testing, discussion, future work and the conclusion.
+
+
+\subsection{Introduction Dutch}
+
+SAGA staat voor Simpele API voor Grid Applicaties en is ontwikkeld
+als een simpel stuk gereedschap om het programmeren op hetrogene grids
+te vergemakkelijken. Dit soort grids bestaan vaak uit verschillende
+hardware, besturingssystemen en middleware software en het is vaak
+lastig om hier grid applicaties voor te programmeren. De API is ontwikkeld
+als een aanspreekpunt voor de grid, onafhankelijk van de onderliggende
+hard- en software. Tevens houdt de API de programmeur weg bij de onderliggende
+details, die per platform zeer kunnen verschillen, en laat de programmeur
+zich bezighouden met het programmeren van een hogere abstractie niveau
+voor zijn applicatie.
+
+Om de API te kunnen gebruiken moet de functionaliteit beschreven door
+SAGA ge\"implementeerd worden door andere software. De algemene term
+voor deze software is de Referentie Implementatie. Momenteel bestaan
+drie verschillende referentie implementaties die gemaakt zijn in de
+programmeertalen Java en C++. Dit houdt globaal in de talen C++ en
+Java redelijk eenvoudig is om een applicatie te programmeren en de
+achterliggende referentie implementatie en daarmee het grid te gebruiken.
+Deze Master these beschrijft de inspanning om daar een derde taal
+aan toe te voegen, namelijk Python. Python word op dit moment al deels
+ondersteund door de C++ referentie implementatie maar er is geen algemene
+specificatie, ofwel een 'language binding', beschikbaar die de SAGA
+functionaliteit beschrijft in een Python specifieke manier, onafhankelijk
+van de onderliggende referentie implementatie. Tijdens mijn Master
+project heb ik een Python language binding voor SAGA gespecificeerd
+en daarnaast ge\"implementeerd bovenop de Java referentie implementatie.
+Deze implementatie zou in theorie moeten werken op elke Java referentie
+implementatie. 
+
+Deze these is onderverdeeld in verschillende delen. Eerst zal ik uitleggen
+wat SAGA is, waar het vandaan komt en hoe het geimplementeerd is.
+Ik zal doorgaan met een beschrijving van Python en een specifieke
+implementatie van Python genaamd Jython, gevolgd door de specificatie
+van de language binding en zijn implementatie. Ik zal besluiten met
+het test gedeelte, de discussie, het vooruitzicht en de conclusie.
 
 
 \section{SAGA}
@@ -91,14 +123,142 @@ future work and the conclusion will be described.
 
 \subsection{SAGA}
 
-
-\subsection{GFD.90}
+As mentioned in the introduction, SAGA stands for Simple API for Grid
+Applications. SAGA came as an idea in a time when multiple middleware
+projects and applications groups were looking for higher-level programming
+abstractions and the simplification of programming for the grid \cite{SAGA}.
+A SAGA research group (SAGA-RG) was founded within the Global Grid
+Forum (GGF), which later merged into the Open Grid Forum (OGF). The
+aim of the group has been to identify a set of basic grid operations
+and derive a simple consistent API, which eases the development of
+applications that make use of grid technologies. 
 
 
 \subsection{Use Cases}
 
+To poll the needs of users, the research group sent out a call for
+use cases. In these use cases users described many subjects such as
+their application area, the desired look and feel of the API and resource,
+performance, security considerations. The majority of use cases which
+were returned came from scientific users \cite{UseCases}, which probably
+biased SAGA in the analysis of the use cases towards scientific applications.
+In this analysis, the research group focused on the identification
+of the SAGA API scope, on the level of abstraction wanted and needed
+by the application programmers. Non-functional requirements and requirements
+from other projects, such as GAT \cite{GAT} and CoG \cite{CoG} were
+also considered.
 
-\subsection{OMII}
+
+\subsection{The API}
+
+With 24 use cases available, the requirements from the users could
+be distilled \cite{ReqAnalysis}. A design team was formed to use
+these requirements to design and develop the API. A few general design
+issues were considered and agree upon.
+
+\begin{itemize}
+\item The API would be designed and developed in a object-oriented manner
+using a language-neutral representation.
+\item Asynchronicity is prefered to be handled by a polling mechanism rather
+than a subscribe/listen mechanism to make implementations in non-multithreaded
+environment easier.
+\item Grid subsystems should be specified independent from each other to
+allow independent development and implementation of parts of the API.
+\item Sessions and Security should be an essential part of SAGA since applications
+often run accros administrative domains and security boundaries.
+\item Data Management like remote file access and replica catalogs are also
+an important part of grid applications and should therefore also be
+in SAGA.
+\item Remote jobs and asynchronous operations are a common requirement for
+grid applications and must be supported in the API.
+\item SAGA should support interprocess communication as a stream concept,
+similar to BSD sockets.
+\end{itemize}
+Ultimately, the purpose of SAGA is to provide an simple API that can
+be used with much less effort compared to the vanilla interfaces of
+existing grid middleware. A guiding principle for achieving this simplicity
+is the 80/20 rule: serve 80\% of the use cases with 20\% of the effort
+needed for serving 100 \% of all possible requirements and to provide
+a standardized, common interface across various grid middleware systems
+and their versions. 
+
+After determining the requirements, a so-called SAGA Strawman API
+was developed to accomodate the requirements and after some iterations
+SAGA was released in January 2008 \cite{GFD.90}. SAGA is described
+in a document called \emph{{}``A Simple API for Grid Applications
+(SAGA)''} or GFD.90. GFD.90 specifies the core components of SAGA
+has formed the basis of specification of the Python language-binding,
+which will be explained in section \ref{sec:Specification}, and the
+reference implementations. It is aimed at implementors of the API
+and not directly at end-users. The end-users can use the documentation
+and specific language-bindings given by the implementors of the reference
+implentations. The document holds much information about the complete
+SAGA project but what is interesting for building a language-binding
+is stated in section 3 and 4 of GFD.90. These sections consist of
+a number of interface and class specifications, which are divided
+in multiple packages. 
+
+The packages in Look \& Feel part consist of:
+
+%
+\begin{table}
+\begin{tabular}{|c|c|c|c|}
+\hline 
+Error&
+Object&
+URL&
+Buffer\tabularnewline
+\hline
+\hline 
+Session&
+Context&
+Permission&
+Attributes\tabularnewline
+\hline 
+&
+Task&
+Monitoring&
+\tabularnewline
+\hline
+\end{tabular}
+
+
+\caption{\label{tab: LF}Look and Feel packages}
+\end{table}
+
+
+\begin{tabular}{cccc}
+Errors&
+Object&
+Url&
+Buffer\tabularnewline
+Session&
+Context &
+Permission &
+Attributes \tabularnewline
+&
+Task&
+\multicolumn{1}{c}{Monitoring}&
+\tabularnewline
+\end{tabular}
+
+
+
+The API packages consist of:
+
+\begin{tabular}{ccc}
+Job&
+Namespace&
+File\tabularnewline
+Replica&
+Streams&
+RPC\tabularnewline
+\end{tabular}
+
+
+\subsection{OMII-UK}
+
+\cite{OMII-UK} 
 
 
 \subsection{OGF}
@@ -107,19 +267,16 @@ future work and the conclusion will be described.
 \subsection{Previous Work}
 
 
-\subsection{SAGA Reference Implementations}
-
-
 \subsection{Java SAGA Reference Implementation}
 
 
 \subsection{C++ SAGA Reference Implementation}
 
 
-\subsection{Adapters - JavaGAT}
+\subsection{Adaptors - JavaGAT}
 
 
-\subsection{Adapters}
+\subsection{Adaptors}
 
 
 \section{Python}
@@ -149,7 +306,7 @@ future work and the conclusion will be described.
 \subsection{Difference Jython - Python}
 
 
-\section{Specification}
+\section{Specification\label{sec:Specification}}
 
 
 \subsection{All Modules Specified with Design Decisions}
@@ -184,7 +341,7 @@ future work and the conclusion will be described.
 \section{Testing}
 
 
-\section{Test Environment}
+\subsection{Test Environment}
 
 
 \subsection{scripts}
@@ -195,7 +352,7 @@ future work and the conclusion will be described.
 
 \subsection{Repository}
 
-\pagebreak[0]
+\newpage{}
 
 
 \section{Discussion}
@@ -209,29 +366,51 @@ future work and the conclusion will be described.
 
 \subsection{Extending the API}
 
+Extention packages
+
 
 \subsection{Special Python operators}
 
 
 \subsection{Updating Implementation with new Reference Implementations}
 
-\pagebreak[0]
+
+\section{List of Frequently Used Terms}
+
+\begin{itemize}
+\item API: Application Programming Interface. A set of variables, methods
+and classes that is offered by an operating system or software library
+to support requests made by computer programs. 
+\item Grid: A collection of interconnected computers consisting of different
+hardware, placed in different locations and belonging to different
+organizations. 
+\item Grid Aware: Applications which are grid aware are designed to run
+on a grid and use the possibilities of the grid, such as distributing
+workload between available nodes in the grid. 
+\item Language Binding: An API in a specific programming language which
+gives access to a library or service
+\item Reference Implementation: Software which implements the functionality
+described by SAGA. New applications can link to this software and
+call methods described in SAGA to use the grid. 
+\item SAGA: Simple API for Grid Applications 
+\end{itemize}
+\newpage{}
 
 
 \section{Conclusion}
 
-\pagebreak[0]
-
 
 \section{Bibliography}
+
+\bibliographystyle{plain}
+\addcontentsline{toc}{section}{\refname}\bibliography{Thesis}
+
 
 
 \section{Acknowledgments}
 
-\pagebreak[0] 
 
-
-\section{Appendix A: Source Code}
+\section{Appendix A: Installing and Running JySaga}
 
 
 \section{Appendix B: Proof of a Higgs-boson}
