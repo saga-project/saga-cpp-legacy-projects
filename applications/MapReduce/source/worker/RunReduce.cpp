@@ -49,50 +49,36 @@ namespace MapReduce {
       }
    }
 
-  struct comparison {
-     bool operator() (std::pair<strPtr, strVectorPtr> i,
-                      std::pair<strPtr, strVectorPtr> j) {
-        int result = (i.first)->compare(*(j.first));
-        if(result < 0) return true;
-        return false;
-     }
-  } comparisonObj;
 /*********************************************************
  * getLines returns a representation of each line from   *
  * the input files as a map<string, vector<string> > to  *
  * be passed to the user defined reduce function.        *
  * ******************************************************/
-   void RunReduce::getLines(std::vector<std::pair<strPtr, strVectorPtr> > &keyValues) {
+   void RunReduce::getLines(unorderedMap &keyValues) {
       std::vector<std::string> lines;
       std::vector<std::string>::const_iterator linesIT;
-      std::vector<std::pair<strPtr, strVectorPtr> >::iterator keyValuesIT;
-      lines = merger<std::string>(files_);
+      merger<std::string>(lines, files_);
+
       for(linesIT = lines.begin();linesIT!=lines.end();linesIT++) {
          std::string key(getKey(*linesIT));
-         std::vector<std::string> values(parseMapLine(*linesIT));
-         keyValuesIT = keyValues.begin();
+         std::vector<std::string> values;
+         parseMapLine(values, *linesIT);
 
-         //If the key is already in the list
-         while(keyValuesIT != keyValues.end()) {
-            if(*(keyValuesIT->first) == key) {
-               //Contained
-               break;
-            }
-            keyValuesIT++;
-         }
-         if(keyValuesIT != keyValues.end()) {
-            for(std::vector<std::string>::iterator valuesIT = values.begin(); valuesIT != values.end(); valuesIT++) {
-               (keyValuesIT->second)->push_back(*valuesIT);
-            }
+         if(keyValues.find(key) == keyValues.end()) {
+            //Not in structure
+            strVectorPtr initialValue(new std::vector<std::string>(values));
+            keyValues[key] = initialValue;
          }
          else {
-            strVectorPtr initialValue(new std::vector<std::string>(values));
-            strPtr initalKey(new std::string(key));
-            keyValues.push_back(std::make_pair(initalKey, initialValue));
+            //Contained in structure
+            std::vector<std::string>::const_iterator valuesIT = values.begin();
+            std::vector<std::string>::const_iterator end = values.end();
+            while(valuesIT != end) {
+               keyValues[key]->push_back(*valuesIT);
+               ++valuesIT;
+            }
          }
       }
-      std::sort(keyValues.begin(), keyValues.end(), comparisonObj);
   }
-
 } // namespace MapReduce
 

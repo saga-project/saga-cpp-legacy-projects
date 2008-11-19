@@ -16,8 +16,7 @@ namespace MapReduce {
       std::string::size_type pos = line.find(' ');
       return line.substr(0,pos);
    }
-   std::vector<std::string> parseMapLine(std::string line) {
-      std::vector<std::string> retValues;
+   void parseMapLine(std::vector<std::string> &retValues, std::string const &line) {
       for(std::string::size_type x=0;x<line.size();x++) {
          std::string::size_type pos1 = line.find(' ', x);
          std::string::size_type pos2 = line.find(',', pos1);
@@ -33,7 +32,6 @@ namespace MapReduce {
              }
           }
       }
-      return retValues;
    }
 } // namespace MapReduce
 

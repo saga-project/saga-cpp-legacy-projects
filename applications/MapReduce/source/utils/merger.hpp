@@ -12,8 +12,7 @@
 
 namespace MapReduce {
    template <class T>
-   std::vector<std::string> merger(std::vector<std::string> fileList) {
-      std::vector<std::string> list;
+   void merger(std::vector<std::string> &list, std::vector<std::string> fileList) {
       while(fileList.size() > 0) {
          boost::iostreams::stream <saga_file_device> in (fileList.back());
          char line[1000];
@@ -23,7 +22,6 @@ namespace MapReduce {
          fileList.pop_back();
       }
       std::sort(list.begin(),list.end());
-      return list;
    }
 } // namespace MapReduce
 

@@ -12,9 +12,9 @@
 #include <saga/saga.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "parseCommand.hpp"
+#include "unorderedMap.hpp"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
 #include "RunMap.hpp"
@@ -89,11 +89,14 @@ namespace MapReduce {
          retval = (sum % limit);
          return retval;
       }
+
+
       void writeIntermediate(void) {
-         std::vector<std::pair<strPtr, strVectorPtr> >::iterator mapIt = intermediate_.begin();
+         unorderedMap::iterator mapIt = intermediate_.begin();
+         unorderedMap::iterator end = intermediate_.end();
          std::string intermediateData[NUM_MAPS];
-         while(mapIt != intermediate_.end()) {
-            std::string const &intermediateKey = *(mapIt->first);
+         while(mapIt != end) {
+            std::string const &intermediateKey = mapIt->first;
             int hash_value = hash(intermediateKey, NUM_MAPS);
             intermediateData[hash_value].append(intermediateKey);
             intermediateData[hash_value].append(" ");
@@ -118,23 +121,18 @@ namespace MapReduce {
        * and advertising these files.                          *
        * ******************************************************/
       void emitIntermediate(std::string const &key, std::string const &value) {
-         std::vector<std::pair<strPtr, strVectorPtr> >::iterator mapIt = intermediate_.begin();
-         bool contained = false;
-         while(mapIt != intermediate_.end()) {
-            if(*(mapIt->first) == key) {
-               //Contained in structure
-               (mapIt->second)->push_back(value);
-               contained = true;
-               break;
-            }
-            ++mapIt;
-         }
-         if(contained == false) {
+         unorderedMap::iterator mapIt = intermediate_.begin();
+         unorderedMap::iterator end   = intermediate_.end();
+
+         if(intermediate_.find(key) == intermediate_.end()) {
             //Not in structure
             strVectorPtr initialValue(new std::vector<std::string>);
             initialValue->push_back(value);
-            strPtr initialKey(new std::string(key));
-            intermediate_.push_back(std::make_pair(initialKey, initialValue));
+            intermediate_[key] = initialValue;
+         }
+         else {
+               //Contained in structure
+               intermediate_[key]->push_back(value);
          }
          if(intermediate_.size() >= MAX_INTERMEDIATE_SIZE) {
             writeIntermediate();
@@ -173,9 +171,7 @@ namespace MapReduce {
    
       std::vector<saga::filesystem::file> mapFiles_;
       std::vector<saga::filesystem::file> reduceFiles_;
-      typedef boost::shared_ptr<std::string> strPtr;
-      typedef boost::shared_ptr<std::vector<std::string> > strVectorPtr;
-      std::vector<std::pair<strPtr, strVectorPtr> > intermediate_;
+      unorderedMap intermediate_;
       saga::advert::directory workerDir_;
       saga::advert::directory intermediateDir_;
       saga::advert::directory chunksDir_;
@@ -291,14 +287,14 @@ namespace MapReduce {
                   RunReduce reduceHandler(workerDir_, reduceInputDir_, outputPrefix_);
                  
                   // Get a map of keys and a vector of the values
-                  std::vector<std::pair<strPtr, strVectorPtr> > keyValues;
+                  unorderedMap keyValues;
                   reduceHandler.getLines(keyValues);
-                  std::vector<std::pair<strPtr, strVectorPtr> >::const_iterator  keyValuesIT = keyValues.begin();
+                  unorderedMap::const_iterator  keyValuesIT = keyValues.begin();
                   // Iterate over these keys and their values and
                   // reduce them by passing them to the user defined
                   // reduce function
                   while(keyValuesIT != keyValues.end()) {
-                     d.reduce(*(keyValuesIT->first), *(keyValuesIT->second));
+                     d.reduce(keyValuesIT->first, *(keyValuesIT->second));
                      ++keyValuesIT;
                   }
                   for(int counter = 0; counter < NUM_MAPS; counter++) {

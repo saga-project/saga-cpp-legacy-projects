@@ -6,15 +6,11 @@
 #ifndef MR_RUN_REDUCE_HPP
 #define MR_RUN_REDUCE_HPP
 
+#include "unorderedMap.hpp"
 #include <string>
 #include <vector>
 #include <saga/saga.hpp>
 #include "version.hpp"
-#include <boost/shared_ptr.hpp>
-
-typedef boost::shared_ptr<std::string> strPtr;
-typedef boost::shared_ptr<std::vector<std::string> > strVectorPtr;
-
 
 namespace MapReduce {
    class RunReduce {
@@ -22,7 +18,7 @@ namespace MapReduce {
       RunReduce(saga::advert::directory workerDir, saga::advert::directory reduceInputDir,
                 std::string outputPrefix);
       ~RunReduce();
-      void getLines(std::vector<std::pair<strPtr, strVectorPtr> > &keyValues);
+      void getLines(unorderedMap &keyValues);
      private:
       std::vector<std::string> files_;
       saga::advert::directory workerDir_;
