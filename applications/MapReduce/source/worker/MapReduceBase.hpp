@@ -124,6 +124,9 @@ namespace MapReduce {
          unorderedMap::iterator mapIt = intermediate_.begin();
          unorderedMap::iterator end   = intermediate_.end();
 
+         if(intermediate_.empty() == true) {
+            intermediate_.rehash(MAX_INTERMEDIATE_SIZE);
+         }
          if(intermediate_.find(key) == intermediate_.end()) {
             //Not in structure
             strVectorPtr initialValue(new std::vector<std::string>);
