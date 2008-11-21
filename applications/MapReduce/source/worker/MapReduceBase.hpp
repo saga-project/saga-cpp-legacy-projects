@@ -17,9 +17,15 @@
 #include "unorderedMap.hpp"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
+#include "../utils/block_profiler.hpp"
 #include "RunMap.hpp"
 #include "RunReduce.hpp"
 #include "SystemInfo.hpp"
+
+struct wi {};
+struct ei {};
+struct us {};
+struct hs {};
 
 namespace MapReduce {
    template<typename Derived>
@@ -63,7 +69,7 @@ namespace MapReduce {
       int run(void) {
          try {
            registerWithDB(); //Connect and create directories in database
-           mainLoop(5); //sleep interval of 5
+           mainLoop(2); //sleep interval of 5
          }
          catch (saga::exception const & e) {
             std::cerr << "MapReduceBase::init : Exception caught : " << e.what() << std::endl;
@@ -81,6 +87,7 @@ namespace MapReduce {
        * but it does the job.                                  *
        * ******************************************************/
       int hash(std::string const &input, unsigned int limit) {
+         block_profiler<hs> hash_timer = block_profiler<hs>("hash timer");
          int sum = 0, retval;
          std::size_t length = input.length();
          for(std::size_t count = 0; count < length; count++) {
@@ -90,8 +97,8 @@ namespace MapReduce {
          return retval;
       }
 
-
       void writeIntermediate(void) {
+         block_profiler<wi> write_timer = block_profiler<wi>("write intermediate");
          unorderedMap::iterator mapIt = intermediate_.begin();
          unorderedMap::iterator end = intermediate_.end();
          std::string intermediateData[NUM_MAPS];
@@ -121,6 +128,7 @@ namespace MapReduce {
        * and advertising these files.                          *
        * ******************************************************/
       void emitIntermediate(std::string const &key, std::string const &value) {
+         block_profiler<ei> emit_timer = block_profiler<ei>("emitIntermediate");
          unorderedMap::iterator mapIt = intermediate_.begin();
          unorderedMap::iterator end   = intermediate_.end();
 
@@ -187,6 +195,7 @@ namespace MapReduce {
        * ******************************************************/
       void updateStatus_(void) {
          //(1) update the last seen (keep alive) timestamp 
+         block_profiler<us> update_timer = block_profiler<us>("update status");
          time_t timestamp; time(&timestamp);
          try {
            workerDir_.set_attribute(ATTR_LAST_SEEN, 
@@ -323,9 +332,7 @@ namespace MapReduce {
                cleanup_();
                return;
             }
-            //(2) write some statistics + ping signal 
             updateStatus_();
-            //(3) sleep for a while
             sleep(updateInterval);
          }
       }
