@@ -49,36 +49,45 @@ class Parameter(Buffer):
         for RPC calls.
     """
     
-    def __init__(self, size, mode, data = None):
+    def __init__(self, data = None, size = -1, mode = IOMode.IN):
         """
         Initialize an parameter instance.
-        
-            - B{Call format: Parameter( size, mode, data )}
-                - B{Precondition:}
-                    - size must be >= 0, mode must be one of the IOMode variables
-                - B{Postcondition:}
-                    - the memory is managed by the application.
-            
-            - B{Call format: Parameter( size, mode )}
-                - B{Postcondition:}
-                    - if "data" is not specified and size > 0, the memory is 
-                        allocated by the implementation.
-                    - if "data" is not specified, the memory is managed by the 
-                        implementation.
-
         @summary: Initialize an parameter instance.
         @param size: size of data to be used
         @type size: int
         @param mode: type of parameter
         @type mode: a value from IOMode
-        @param data: data buffer to be used
-        @type data: char array or a list
+        @param data: data buffer to be used or other (see note)
+        @type data: char array or list, or other (see note)
         @raise NotImplemented:
         @raise BadParameter:
         @raise NoSuccess:
+        @note: If Parameter is initialized as Parameter(), it becomes an
+            implementation managed IN Parameter, which data has yet to be set.
+        @note: If data is an array or list of chars it works identical to Buffer
+            or Iovec and creates an application managed buffer
+        @note: For IN and IOOUT Parameters, it is also possible to use normal 
+            types, such as int, char, long, bool, float, str, or lists of them.
+            Arrays of chars ('c') can be used if bytes are expected. Which types, 
+            how and if they are interpreted is dependent of the underlying 
+            implementation.
+        @note: For OUT Parameters with size -1 it is possible to retreive
+            normal types, such as int, long, bool, float, str, or lists or of them,
+            through the get_data() method after the call(). Which types will be 
+            returned is dependent of the underlying implementation.
+        @note: The mode value has to be initialized for each parameter, and size 
+            and buffer values have to be initialized for each In and InOut 
+            Parameter. For OUT parameters, size may have the value -1 in which 
+            case the buffer is be un-allocated, and is to be created (e.g. 
+            allocated) by the SAGA implementation upon arrival of the result 
+            data, with a size sufficient to hold all result data. The size value 
+            is to be set by the implementation to the allocated buffer size. 
+        @note: When an Out or InOut Parameter uses a pre-allocated buffer, any 
+            data exceeding the buffer size are discarded. The application is 
+            responsible for specifying correct buffer sizes for pre-allocated 
+            buffers; otherwise the behaviour is undeﬁned.
         @Note: all notes from the saga.buffer.Buffer.__init__() apply.
         """
-        super(Parameter, self).__init__()
         
         
     def set_io_mode(self, mode):

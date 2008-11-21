@@ -42,6 +42,7 @@ class Buffer(Object):
 
 #DOCUMENT: Tweak for java specific arrays.
 #DOCUMENT: get data only through get_data with application managed buffer
+#TODO: if application managed buffer: update internal buffer between calls using the buffer
     def __init__(self, size = -1, data = None, **impl):
         # in array<byte> data, in int size,      out buffer obj or in int size = -1, out buffer obj
 
@@ -76,6 +77,7 @@ class Buffer(Object):
             if not isinstance(impl["delegateObject"], org.ogf.saga.buffer.Buffer):
                 raise BadParameter("Parameter impl[\"delegateObject\"] is not a org.ogf.saga.buffer.Buffer. Type: " + str(impl["delegateObject"].__class__))
             self.delegateObject = impl["delegateObject"]
+            return
         if type(size) is not int:
                 raise Badparameter, "Parameter size is not an int. Type:", str(type(size))
         if size < -1:

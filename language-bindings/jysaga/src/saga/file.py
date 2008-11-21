@@ -531,10 +531,11 @@ class File(NSEntry):
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type (size)is not int:
             raise BadParameter, "Parameter size is not an int. Type: " + str(type(size))
-        if buf.__class__ is not Buffer:
-            raise BadParameter, "Parameter buf is not a Buffer. Class: " + str(buf.__class__)
+        if not issubclass(buf.__class__, Buffer) and buf is not None:
+            raise BadParameter, "Parameter buf is not a Buffer or subclass. Class: " + str(buf.__class__)
         if size < -1:
             raise BadParameter, "Parameter size < 0"
+        #TODO: update internal buffer with data from application
         try:
             if tasktype is TaskType.ASYNC:
                 if size is -1:

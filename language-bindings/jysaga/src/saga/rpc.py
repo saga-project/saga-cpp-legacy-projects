@@ -13,6 +13,10 @@ from saga.permissions import Permissions
 from saga.task import Async, Task, TaskType
 from saga.session import Session
 
+import array.array
+import jarray.array
+import jarray.zeros
+
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
 import org.ogf.saga.error.AuthorizationFailedException
@@ -28,6 +32,9 @@ import org.ogf.saga.error.SagaIOException
 import org.ogf.saga.error.TimeoutException
 
 import org.ogf.saga.rpc.IOMode
+import org.ogf.saga.rpc.Parameter
+from org.ogf.saga.rpc import RPCFactory
+
 
 class IOMode(object):
     """
@@ -55,7 +62,7 @@ class IOMode(object):
         the invocation of call().
     """
     
-class Parameter(Buffer):
+class Parameter(Object):
     """
     The Parameter class inherits the saga.buffer.Buffer class, and adds one 
     additional state attribute: IOMode, which is read-only. With that addition, 
@@ -65,38 +72,83 @@ class Parameter(Buffer):
     @summary: Parameter can be used to define input, inout and output parameters 
         for RPC calls.
     """
+    delegateObject = None
+    managedByImp = None
+    implementation_data = None
+#    application_data = None
     
-    def __init__(self, size, mode, data = None):
+    
+    def __init__(self, data = None, size = -1, mode = IOMode.IN):
         """
         Initialize an parameter instance.
-        
-            - B{Call format: Parameter( size, mode, data )}
-                - B{Precondition:}
-                    - size must be >= 0, mode must be one of the IOMode variables
-                - B{Postcondition:}
-                    - the memory is managed by the application.
-            
-            - B{Call format: Parameter( size, mode )}
-                - B{Postcondition:}
-                    - if "data" is not specified and size > 0, the memory is 
-                        allocated by the implementation.
-                    - if "data" is not specified, the memory is managed by the 
-                        implementation.
-
         @summary: Initialize an parameter instance.
         @param size: size of data to be used
         @type size: int
         @param mode: type of parameter
         @type mode: a value from IOMode
-        @param data: data buffer to be used
-        @type data: char array or a list
+        @param data: data buffer to be used or other (see note)
+        @type data: char array or list, or other (see note)
         @raise NotImplemented:
         @raise BadParameter:
         @raise NoSuccess:
+        @note: If Parameter is initialized as Parameter(), it becomes an
+            implementation managed IN Parameter, which data has yet to be set.
+        @note: If data is an array or list of chars it works identical to Buffer
+            or Iovec and creates an application managed buffer
+        @note: For IN and IOOUT Parameters, it is also possible to use normal 
+            types, such as int, long, bool, float, str, or lists or arrays of them. 
+            Which types, How and if they are interpreted is dependent of the 
+            underlying RPC implementation.
+        @note: For IN and IOOUT Parameters, it is also possible to use normal 
+            types, such as int, char, long, bool, float, str, or lists of them.
+            Arrays of chars ('b') can be used if bytes are expected. Which types, 
+            how and if they are interpreted is dependent of the underlying 
+            implementation.
+        @note: The mode value has to be initialized for each parameter, and size 
+            and buffer values have to be initialized for each In and InOut 
+            Parameter. For OUT parameters, size may have the value -1 in which 
+            case the buffer is be un-allocated, and is to be created (e.g. 
+            allocated) by the SAGA implementation upon arrival of the result 
+            data, with a size sufficient to hold all result data. The size value 
+            is to be set by the implementation to the allocated buffer size. 
+        @note: When an Out or InOut Parameter uses a pre-allocated buffer, any 
+            data exceeding the buffer size are discarded. The application is 
+            responsible for specifying correct buffer sizes for pre-allocated 
+            buffers; otherwise the behaviour is undeﬁned.
         @Note: all notes from the saga.buffer.Buffer.__init__() apply.
         """
-        super(Parameter, self).__init__()
-        
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.rpc.Parameter):
+                raise BadParameter("Parameter impl[\"delegateObject\"] is not a "\
+                                   +"org.ogf.saga.rpc.Parameter. Type: " \
+                                   + str(impl["delegateObject"].__class__))
+            self.delegateObject = impl["delegateObject"]
+            return
+        if type(size) is not int:
+                raise Badparameter, "Parameter size is not an int. Type:", \
+                    str(type(size))
+        if size < -1:
+            raise BadParameter, "Parameter size is < 0"
+        if mode is not IOMode.IN and mode is not IOMode.OUT and\
+            mode is not IOMode.INOUT:
+            raise BadParameter("Parameter mode is not a value from IOMode"\
+                +" but " + str(mode) +" "+ str(mode__class__))
+
+        try:
+            if mode == IOMode.OUT:
+                mode_parameter = org.ogf.saga.rpc.IOMode.OUT
+            elif mode == IOMode.INOUT:
+                mode_parameter = org.ogf.saga.rpc.IOMode.INOUT
+            else: # mode == IOMode.IN:
+                mode_parameter = org.ogf.saga.rpc.IOMode.IN
+
+            self.delegateObject = RPCFactory.createParameter(mode_parameter)
+            if data != None:
+                self.set_data(data, size)
+
+        except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)                
+ 
         
     def set_io_mode(self, mode):
         """
@@ -128,7 +180,6 @@ class Parameter(Buffer):
         @return: value of io mode
         @rtype: one of the values from IOMode
         """
- 
         try:
             mode = self.delegateObject.getIOMode()
             if mode == org.ogf.saga.rpc.IOMode.IN:
@@ -139,6 +190,282 @@ class Parameter(Buffer):
                 return IOMode.INOUT        
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e) 
+ 
+    
+    def set_data(self, data, size=-1):
+        #in array<byte>  data, in int size
+        """
+        Set new buffer data.
+        @summary: Set new buffer data.
+        @param data: data to be used in buffer
+        @type data: char array or a list
+        @param size: size of given data
+        @type size: int
+        @PostCondition: the buffer memory is managed by the application.
+        @Raise NotImplemented:
+        @raise BadParameter:
+        @raise IncorrectState:
+        @Note: the method is semantically equivalent to
+               destroying the buffer, and re-creating it with
+               the first __init__ call format with the given size.
+        @note: the notes for __del__ and the first __init__ call format apply.
+        """
+        #PARAMETER CHECKS
+        if size < 1 and size != -1:
+            raise BadParameter, "Parameter size is < 1" 
+        if type(size) is not int:
+            raise BadParameter, "Parameter size is not an int. Type:"\
+                +str(size.__class__)
+
+        #IF DATA IS NONE
+        if data == None:
+            try:            
+                self.delegateObject.setData(data)
+                return
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)
+
+        #IF DATA IS ARRAY('c')
+        elif type(data) is array.array:
+            if data.typecode == 'c':
+                self.implementation_data = jarray.zeros(len(data), 'b')
+            else:
+                raise BadParameter, "Typecode "+data.typecode+" not supported"    
+            
+            try: 
+                for i in range(len(self.implementation_data)):
+                    if data[i] > chr(127) and data[i] < chr(256):
+                        self.implementation_data[i] = ord(data[i]-256)
+                    else:
+                        self.implementation_data[i] = ord(data[i])             
+            except OverflowError:
+                raise BadParameter("Parameter data contained contained outside"\
+                                   +" domain chr(0) and chr(255)")
+               
+                self.delegateObject.setData(self.implementation_data)
+#                self.application_data = data
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)            
+
+        #IF DATA IS LIST
+        elif type(data) is list:
+            if len(list) == 0:
+                    self.implementation_data = None            
+            elif type(data[0]) is int:
+                if(max(data)==1 or max(data)==0)and(min(data)==1 or min(data)==0):
+                   try:
+                       self.implementation_data = jarray.array(data,'z')
+                   except TypeError, e:
+                       raise BadParameter,"Parameter data contains mulitple"\
+                                      +" types instead of only True or False" 
+                else:
+                    try:
+                        self.implementation_data = jarray.array(data,'i')
+                    except TypeError, e:
+                        raise BadParameter,"Parameter data contains mulitple"\
+                                      +" types instead of only int"
+            elif type(data[0]) is long:
+                try:
+                    self.implementation_data = jarray.array(data,'l')
+                except TypeError, e:
+                    raise BadParameter,"Parameter data contains mulitple"\
+                                      +" types instead of only long"
+            elif type(data[0]) is float:
+                try:
+                    self.implementation_data = jarray.array(data,'f')
+                except TypeError, e:
+                    raise BadParameter,"Parameter data contains mulitple"\
+                                      +" types instead of only float"
+            elif type(data[0]) is str:
+                len_OK = True
+                try:
+                    for i in range(len(data)):
+                        if len(data[i]) > 1:
+                            len_OK = False
+                            break 
+                except:
+                    raise BadParameter,"Parameter data contains mulitple "\
+                                      +"types instead of only str or characters"
+                if len_OK:
+                    try:
+                        self.implementation_data = jarray.array(data,'c')
+                    except TypeError, e:
+                        raise BadParameter,"Parameter data contains mulitple"\
+                                      +" types instead of only characters" 
+                else:
+                    import java.lang.String                   
+                    try:
+                        self.implementation_data = jarray.array(data,java.lang.String)
+                    except TypeError, e:
+                        raise BadParameter,"Parameter data contains mulitple"\
+                                      +" types instead of only str"
+            else:
+                return BadParameter("Type"+ str(data[0].__class__)+\
+                                    " not supported)")
+            try:
+                self.delegateObject.setData(self.implementation_data)
+#                self.application_data = data
+            except org.ogf.saga.error.SagaException, e:
+                raise self.convertException(e)  
+        
+        #IF DATA IS A NORMAL TYPE                         
+        elif type(data) is int or type(data) is long or type(data) is float\
+                or type(data) is str:
+                try: 
+                    self.delegateObject.setData(data)
+                    self.implementation_data = data
+#                    self.application_data = data
+                except org.ogf.saga.error.SagaException, e:
+                    raise self.convertException(e) 
+        #IF DATA IS A BOOL (does not exist in jython yet)
+        elif type(data) is bool:
+                try: 
+                    self.delegateObject.setData(data)
+                    self.implementation_data
+#                    self.application_data = data
+                except org.ogf.saga.error.SagaException, e:
+                    raise self.convertException(e)                 
+        else: #ANY OTHER TYPE: UNKNOWN CONSEQUENCES
+                 try: 
+                    self.delegateObject.setData(data)
+                    self.implementation_data = data
+#                    self.application_data = data
+                 except org.ogf.saga.error.SagaException, e:
+                    raise self.convertException(e)                                                                                       
+    
+                             
+    def get_data(self):
+        #out array<byte> data
+        """
+        Retrieve the buffer data.
+        @summary: Retrieve the buffer data.
+        @return: buffer data to retrieve. Type depends on what type was used to create the Buffer object
+        @rtype: char array or list
+        @Raise NotImplemented:
+        @raise DoesNotExist:
+        @raise IncorrectState:
+        @Note: see notes about memory management in the GFD-R-P.90 document
+        @note: if the buffer was created as implementation
+                    managed (size == -1), but no I/O operation has
+                    yet been successfully performed on the buffer,
+                    a 'DoesNotExist' exception is raised.
+        """
+        try:
+            temp = self.delegateObject.getData()
+        except org.ogf.saga.error.SagaException, e:
+            raise convertException(e)
+
+        if temp == None:
+            return None
+ 
+        if type(temp) is int or type(temp) is long or type(temp) is float\
+                or type(temp) is str: 
+            return temp
+
+        if type(temp) is jarray.array:
+            if len(temp) == 0:
+                return []
+ 
+            if temp.typecode == 'b':
+                retval = []
+                for i in range(len(temp)):
+                    if temp[i] < 0:
+                        retval.append( chr(self.implementation_data[i]+256) )
+                    else:
+                        retval.append( chr(self.implementation_data[i]) )
+                return retval
+            
+            if temp.typecode == 'z' or temp.typecode == 'i' or \
+               temp.typecode == 'i' or temp.typecode == 'l' or \
+               temp.typecode == 'f' or temp.typecode == 'c':
+                return list(temp)
+
+            import java.lang.String
+            if temp.typecode == 'java.lang.String':
+                retval = []
+                for i in range(len(temp)):
+                    retval.append( temp[i].toString() ) 
+                return retval             
+
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.PARAMETER
+
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        from saga.error import NotImplemented
+        raise NotImplemented("clone() is not implemented")
+        
+#        try:
+#            javaClone = self.delegateObject.clone()
+#            temp = Buffer(delegateObject = javaClone)
+#            temp.managedByImp = self.managedByImp
+#            if self.implementation_data is None:
+#                temp.array = None
+#            else:
+#                temp.array = jarray.array(self.implementation_data, 'b')
+#            #TODO: check clone and buffer behaviour -> Java Data copying? Set data?
+#            temp.applicationBuf = self.application_data
+#            temp.closed = self.closed
+#            return temp
+#        except org.ogf.saga.error.SagaException, e:
+#            raise self.convertException(e)
+
+    def get_session(self):
+        """
+        Query the objects session.
+        @summary: Query the objects session.
+        @return: session of the object
+        @rtype: L{Session}
+        @PreCondition: the object was created in a session, either
+            explicitly or implicitly.
+        @PostCondition: the returned session is shallow copied.
+        @raise DoesNotExist:
+        @Note: if no specific session was attached to the object at creation time, 
+            the default SAGA session is returned.
+        @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
+            Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
+        """
+        from saga.error import NotImplemented
+        raise NotImplemented("get_session() is not implemented")
+
+#        from saga.session import Session
+#        try:
+#            tempSession = self.delegateObject.getSession()
+#            session = Session(sessionObject=tempSession)
+#            return session
+#        except org.ogf.saga.error.SagaException, e:
+#            raise self.convertException(e)
+ 
+    def get_id(self):
+        """
+        Query the object ID.
+        @summary: Query the object ID.
+        @return: uuid for the object
+        @rtype: string 
+        """
+        from saga.error import NotImplemented
+        raise NotImplemented("get_id() is not implemented")
+#        try:
+#            return self.delegateObject.getId()
+#        except org.ogf.saga.error.SagaException, e:
+#           raise self.convertException(e) 
    
 class RPC(Object, Permissions, Async ):
     """
@@ -184,7 +511,15 @@ class RPC(Object, Permissions, Async ):
             with the semantics on other SAGA object constructors.
 
         """
-        super(RPC, self).__init__()
+        if not isinstance(funcname, URL):
+            raise BadParameter("Parameter funcname is not an URL")
+        if not isinstance(session, Session):
+            raise BadParameter("Parameter session is not a Session")        
+
+        try:
+            self.delegateObject = RPCFactory.createRPC(session.delegateObject, funcname.delegateObject)
+        except org.ogf.saga.error.SagaException, e:
+            raise convertException(e)
 
     def __del__(self):
         """
@@ -199,7 +534,7 @@ class RPC(Object, Permissions, Async ):
             self.close()
         except:
             pass
-        supe
+
     
     def call(self, parameters, tasktype=TaskType.NORMAL):
         """
@@ -244,8 +579,46 @@ class RPC(Object, Permissions, Async ):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
-                
-                       
+        
+        #Normal call()
+        if tasktype == TaskType.NORMAL: 
+            temp = jarray.zeros(len(parameters), org.ogf.saga.rpc.Parameter)
+
+            for i in range(len(parameters)):
+                try:
+                    temp[i] = parameters[i].delegateObject
+                except:
+                    raise BadParameter("Parameter parameters contains more"\
+                                       "types than Parameter. "+i+": "\
+                                        +str(parameters[i].__class__))
+            try:           
+                self.delegategateObject.call( temp )
+            except org.ogf.saga.error.SagaException, e:
+                raise convertException(e) 
+        
+        #Asynchronous call()
+        else:
+            temp = jarray.zeros(len(parameters), org.ogf.saga.rpc.Parameter)
+
+            for i in range(len(parameters)):
+                try:
+                    temp[i] = parameters[i].delegateObject
+                except:
+                    bp = BadParameter("Parameter parameters contains more"\
+                                       "types than Parameter. "+i+": "\
+                                        +str(parameters[i].__class__))            
+            try:
+                task = None
+                if tasktype is TaskType.ASYNC:
+                    task = self.delegateObject.close(TaskMode.ASYNC, temp)
+                if tasktype is TaskType.SYNC:
+                    task = self.delegateObject.close(TaskMode.SYNC, temp)
+                if tasktype is TaskType.TASK:
+                    task = self.delegateObject.close(TaskMode.TASK, temp)
+                return Task(delegateObject = task)        
+            except org.ogf.saga.error.SagaException, e:
+                raise convertException(e)            
+
     def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
         Closes the rpc handle instance.
@@ -273,4 +646,46 @@ class RPC(Object, Permissions, Async ):
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
+
+
+        #Normal close()
+        if tasktype == TaskType.NORMAL:
+            if type(timeout) is not float and type(timeout) is not int:
+                raise BadParameter, "Parameter timeout is not a float, but " +\
+                                str(timeout.__class__)+")"
+            
+            try:
+                if timeout == 0.0:
+                    self.delegateObject.close()
+                else:
+                    self.delegateObject.close(timeout)
+            except org.ogf.saga.error.SagaException, e:
+                raise convertException(e)
+ 
+        #Asynchronous close()
+        else:
+            if type(timeout) is not float and type(timeout) is not int:
+                bp = BadParameter( "Parameter timeout is not a float, but " +\
+                                str(timeout.__class__)+")")
+                return Task(error = bp)
+            try:
+                task = None
+                if tasktype is TaskType.ASYNC:
+                    if timeout == 0.0:
+                        task = self.delegateObject.close(TaskMode.ASYNC)
+                    else:
+                        task = self.delegateObject.close(TaskMode.ASYNC,timeout)
+                if tasktype is TaskType.SYNC:
+                    if timeout == 0.0:
+                        task = self.delegateObject.close(TaskMode.SYNC)
+                    else:
+                        task = self.delegateObject.close(TaskMode.SYNC,timeout)                
+                if tasktype is TaskType.TASK:
+                    if timeout == 0.0:
+                        task = self.delegateObject.close(TaskMode.TASK)
+                    else:
+                        task = self.delegateObject.close(TaskMode.TASK,timeout) 
+                return Task(delegateObject = task)        
+            except org.ogf.saga.error.SagaException, e:
+                raise convertException(e)
                 
