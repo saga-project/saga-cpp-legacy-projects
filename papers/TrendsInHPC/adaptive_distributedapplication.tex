@@ -1,0 +1,239 @@
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{color}
+\usepackage{ifpdf}
+\usepackage{wrapfig}
+%\usepackage[cm]{fullpage}
+\usepackage{textcomp}
+\usepackage{srcltx}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{lscape}
+\usepackage{longtable}
+\usepackage{paralist}
+
+% \usepackage{ams}
+
+% \ifpdf    %   \usepackage[pdftex,
+%               colorlinks=true,
+%               linkcolor=red,
+%               citecolor=red,
+%               filecolor=red,
+%               ]{hyperref}
+% \else
+%   \usepackage[hypertex]{hyperref}
+% \fi
+
+% Space saving
+\usepackage[small,compact]{titlesec}
+\usepackage[small,it]{caption}
+\renewcommand\floatpagefraction{.9}
+\renewcommand\topfraction{.9}
+\renewcommand\bottomfraction{.9}
+%\renewcommand\textfrare{.1}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+
+\textwidth = 6.5315 in
+\textheight = 9.0315 in
+\oddsidemargin = 0.0 in
+\evensidemargin = 0.0 in
+\topmargin = 0.0 in
+\headheight = 0.0 in
+\headsep = 0.0 in
+%\parskip = 0.0in
+%\parindent = 0.5cm
+\parskip = 0.0716in
+\parindent = 0.0cm
+\textfloatsep = 0.1in
+
+\ifpdf \pdfinfo{ /Author (Shantenu Jha et al.)  /Title (Programming Abstractions for Large-Scale Distributed Applications) }
+
+  \usepackage[pdftex,colorlinks=true, linkcolor=blue,citecolor=blue,
+       urlcolor=blue]{hyperref}
+\fi
+
+\graphicspath{{images/}{../images}}
+
+\newcommand{\projectnamefull}{\textit{} }
+
+\newcommand{\upup}{\vspace*{-0.5em}}
+\newcommand{\up}{\vspace*{-0.25em}}
+
+\newcommand{\I}[1]{\textit{#1}}
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\T}[1]{\texttt{#1}}
+
+\newcommand{\BI}[1]{\B{\I{#1}}}
+
+\ifpdf
+  \DeclareGraphicsExtensions{.pdf, .png, .jpg}
+\else
+  \DeclareGraphicsExtensions{.ps, .eps}
+\fi
+
+\long\def\comment#1{{\bf \textcolor{magenta}{\bf #1}}}
+\long\def\ccomment#1{{\bf \textcolor{blue}{\bf #1}}}
+\newcommand{\C}{\comment}
+\newcommand{\CC}{\ccomment}
+
+\newcommand{\yes}{$\bullet$}
+
+\newif\ifdraft
+\drafttrue
+
+\ifdraft
+ \newcommand{\jhanote}[1]{  {\textcolor{red}     { ***Shantenu: #1 }}}
+ \newcommand{\luckownote}[1]{ {\textcolor{magenta}    { ***Luckow:      #1 }}}
+ \newcommand{\yyenote}[1]{ {\textcolor{blue}    { ***YYE:     #1 }}}
+ \newcommand{\amnote}[1]{   {\textcolor{magenta} { ***Merzky:    #1 }}}
+\else
+ \newcommand{\jhanote}[1]{}
+ \newcommand{\luckownote}[1]{}
+ \newcommand{\yyenote}[1]{}
+ \newcommand{\amnote}[1]{}
+
+\fi
+
+
+\begin{document}
+
+\title{Adaptive Distributed Applications: Scaling From HTC to HPC} 
+
+\author{Shantenu Jha$^{1,2,3}$, Yaakoub El-Khamra$^{1}$,  Hartmut Kaiser$^{1}$, \\
+  Joohyun Kim$^{1}$, Andre Luckow$^{4}$, Andre Merzky$^{1}$,  Ole Weidner$^{1}$ \\[1em]
+  \small $^1$Center for Computation and Technology,
+  Louisiana State University\\[-0.3em]
+  \small $^2$Department of Computer Science,
+  Louisiana State University\\[-0.3em]
+  \small $^3$e-Science Institute, Edinburgh\\[-0.3em]
+  \small $^{4}$Institute of Computer Science, Potsdam University, Germany\\
+}
+
+\maketitle
+%\tableofcontents
+
+\vspace*{5mm}
+
+\section*{Abstract}
+
+In this chapter, we will discuss adaptive applications -- an important
+class of distributed applications. We will discuss how the Simple API
+for Distributed Applications (SAGA) has been used to develop a broad
+range of adaptive distributed applications. We will discuss how SAGA
+can be used as the building block and basis for a large range of
+applications types and classes. SAGA presents a comprehensive
+``progamming language'' for distributed systems by supporting the most
+commonly required functionality.  We will go on to discuss several
+specific distributed applications that have been developed using SAGA
+and present both details of their execution environments and some
+preliminary performance results as the number of distributed resources
+utilised increases.
+
+
+\newpage
+
+\section{Introduction and Outline}
+\textcolor{blue}{Shantenu} \hspace{0.1in} \textcolor{blue}{}
+\hspace{0.1in} \textcolor{blue}{}
+
+
+\jhanote{The aim of the book chapter is to discuss the two adaptive
+  distributed applications that we have developed using SAGA. This
+  chapter will build upon the earlier papers:\\
+  i. TeraGrid 08 \\
+  ii. Phil Trans Paper and e-Science 2008 for replica exchange\\
+  SJ will write the introduction, wherein a general discussion of
+  using distributed systems will be presented, the importance of
+  adaptive applications in order to utilise these distributed systems
+  will be introduced, a brief introduction to developing distributed
+  applications will be presented.}
+
+Much development has focused on the support for legacy parallel and
+cluster applications codes, without changing application usage and
+execution modes. In part, this is also due to a lack of suitable
+abstractions to re-architect ``legacy applications'' to have agile
+execution and usage modes, as well as to develop ﬁrst principles
+distributed applications. There exist an unexplored range of
+applications that can beneﬁt from the Grid paradigm; progress on this
+front will come from application development that does not depend on
+the homogeneous, isolated and relatively static model of resource
+allocation and performance inherited from parallel or cluster
+legacies. In many ways, the current situation is analogous to that
+which existed when vector processing hard- ware was
+introduced. Scientiﬁc codes written for previous architectures could
+be ported to vector machines, but the true power of the approach was
+only available to hand-coded assembly language examples that could
+directly exploit the vector hardware and memory model. Until codes
+were re-written and new codes developed speciﬁcally with vectorization
+in mind, the performance beneﬁts were not fully realized.  The lack of
+such application-level programming abstractions is compounded by the
+fact that there exist often incompatible middleware systems in both
+research and production environments.
+
+In general, applications that are able to leverage the heterogeneity
+and dynamic performance response inherent in distributed systems to
+their advantage, have proved exceedingly diﬃcult to implement.
+
+There are eﬀorts to harmonize diﬀerent Grids by using a medley of
+tools, inter-operational eﬀorts and standardization in the many layers
+below the application level. Although driven with the noble aim of
+increasing the utilization of Grids, their impact in facilitating
+applications remains unclear; these are likely to be necessary steps
+towards eﬀective distributed systems, but not suﬃcient.  To address
+these challenges and in particular to ﬁnd a solution to the universal,
+apparently intractable problem of successfully enabling applications
+to utilize multiple, distributed resources seamlessly, several
+applications groups expressed the desire for a simple programmatic
+interface that is widely-adopted and available. The goal of such an
+interface would be to provide a ``grid counterpart to MPI'' (at least
+in impact if not in details) and that would supply developers with a
+simple, uniform, and standard programmatic interface with which to
+develop applications.
+
+The need now is to demonstrate the unique beneﬁts of adopting the SAGA
+paradigm by delivering concrete examples of advanced Grid
+applications.
+
+\section{The Simple API for Grid Applications}\textcolor{blue}{SJ}
+
+
+\subsection{Our Solutions}
+
+Brief discussion of FAUST
+
+\section{Adaptive Distributed Applications}  \textcolor{blue}{SJ}
+
+Matching requirements to resources \\
+Fault tolerance \\
+Mechanism to utilise heterogenity \\
+
+Must discuss why this application needs to be i) distributed ii) adaptive/dynamic, iii) use different types of resources
+
+\subsection{Some very simple discussion of i) infrastructure used,
+  ii) types of runs iii) results..}
+
+\section{Ensemble Kalman Filter}  \textcolor{blue}{YYE}
+
+\jhanote{Yaakoub is there a better name for this section?}
+
+Must discuss why this application needs to be i) distributed ii) adaptive/dynamic, iii) use different types of resources
+
+\section{Adaptive Distributed Replica-Exchange Simulations}
+
+\section{Challenges}\textcolor{blue}{Ole, SJ, Luckow}
+
+Need to say a few things about schedulers and other factors
+that impede adaptivity? \\
+
+
+\section*{Acknowledgements}
+
+
+\bibliographystyle{unsrt}
+\bibliography{dpa_surveypaper}
+\end{document}
+
