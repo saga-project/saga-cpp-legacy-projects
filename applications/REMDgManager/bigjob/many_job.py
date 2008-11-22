@@ -19,6 +19,9 @@ import advert_job
 import Queue
 import threading
 import logging
+import time
+import math
+import operator
 
 # Log everything, and send it to stderr.
 logging.basicConfig(level=logging.DEBUG)
@@ -58,13 +61,14 @@ class many_job_service():
         
         # last queue Size
         self.last_queue_size = 0
+        self.submisssion_times=[]
 
     def init_bigjobs(self):
         """ start on specified resources a bigjob """
         self.bigjob_list = self.schedule_bigjobs()
         for i in self.bigjob_list:
             gram_url = i["gram_url"]
-            print "start bigjob at: " + gram_url
+            logging.debug("start bigjob at: " + gram_url)
             bigjob = advert_job.advert_glidin_job(self.advert_host)
             bigjob.start_glidin_job(gram_url,
                                     i["re_agent"],
@@ -101,11 +105,18 @@ class many_job_service():
 
         # create subjob on bigjob
         bigjob = bigjob_info["bigjob"]
+        st = time.time()
         job.submit_job(bigjob.glidin_url, subjob.job_description)
-        
+        self.submisssion_times.append(time.time()-st)
+
         # store reference of subjob for further bookkeeping    
         self.active_subjob_list.append(job)
         self.subjob_bigjob_dict[subjob] = bigjob_info
+        return job
+
+    def queue_subjob(self, subjob):
+        self.subjob_queue.put(subjob)
+        job = advert_job.advert_job(self.advert_host)
         return job
 
     def schedule_subjob (self, subjob):
@@ -188,6 +199,16 @@ class many_job_service():
         for i in self.bigjob_list:
             bigjob = i["bigjob"]
             bigjob.cancel()
+        self.print_stats(self.submisssion_times, "Submission Times")
+
+    def print_stats(self, times, description):
+        sum = reduce(operator.add, times)
+        mean = sum/len(times)
+        variance=0
+        for i in times:
+            variance += (i - mean)**2
+        variance = math.sqrt(variance)
+        print description + " Average: " + str(mean) + " Stdev: " + str(variance)
 
     def __repr__(self):
         return str(self.uuid)
@@ -209,7 +230,7 @@ class sub_job():
  
     def run(self):
          # select appropriate bigjob
-        self.job = self.manyjob.run_subjob(self)
+        self.job = self.manyjob.queue_subjob(self)
 
     def get_state(self):     
         try:

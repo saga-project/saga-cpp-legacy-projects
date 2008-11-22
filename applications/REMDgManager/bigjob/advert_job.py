@@ -21,6 +21,7 @@ import pdb
 import socket
 import os
 import traceback
+import logging
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob"
@@ -64,7 +65,7 @@ class advert_glidin_job():
         self.glidin_dir = saga.advert.directory(saga.url(self.glidin_url), saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         # application level state since globus adaptor does not support state detail
         self.glidin_dir.set_attribute("state", str(saga.job.Unknown)) 
-        print "set glidin state to: " + self.glidin_dir.get_attribute("state")
+        logging.debug("set glidin state to: " + self.glidin_dir.get_attribute("state"))
         if CPR==True:
                 jd = saga.cpr.description()
         else:    
@@ -134,7 +135,7 @@ class advert_job():
         self.saga_glidin_url = saga.url(glidin_url)
         if(self.saga_glidin_url.scheme=="advert"): #
             pass
-            #self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+
         else: # any other url, try to guess glidin job url
             host=""
             try:
@@ -158,24 +159,6 @@ class advert_job():
         if self.job_url==None:
             self.job_url=self.get_job_url(glidin_url)
 
-        #self.saga_glidin_url = saga.url(glidin_url)
-        #if(self.saga_glidin_url.scheme=="advert"): #
-        #    pass
-        #    #self.glide_dir = saga.advert.directory(self.saga_glidin_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
-        #else: # any other url, try to guess glidin job url
-        #    host=""
-        #    try:
-        #        host = self.saga_glidin_url.host
-        #    except:
-        #        pass
-        #    if host =="":
-        #        host=socket.gethostname()
-        #    # create dir for destination url
-        #    self.saga_glidin_url = saga.url("advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host)
-        #    #self.glidin_dir = saga.advert.directory(self.saga_glidin_url, 
-        #    #                                        saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
-        # create dir for job
-        #self.job_url = self.saga_glidin_url.get_string() + "/" + str(self.uuid)
         for i in range(0,3):
             try:
                 print "create job entry - attempt: " + str(i)
@@ -188,11 +171,12 @@ class advert_job():
                         if jd.attribute_is_vector(i):
                             self.job_dir.set_vector_attribute(i, jd.get_vector_attribute(i))
                         else:
-                            print "Add attribute: " + str(i) + " Value: " + jd.get_attribute(i)
+                            logging.debug("Add attribute: " + str(i) + " Value: " + jd.get_attribute(i))
                             self.job_dir.set_attribute(i, jd.get_attribute(i))
 
                 self.job_dir.set_attribute("state", str(saga.job.Unknown))
                 # return self object for get_state() query    
+                #logging.debug("Submission time (time to create advert entries): " + str(time.time()-start) + " s")
                 return self    
             except:
                 traceback.print_exc(file=sys.stdout)

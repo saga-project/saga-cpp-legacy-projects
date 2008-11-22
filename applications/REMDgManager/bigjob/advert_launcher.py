@@ -187,8 +187,11 @@ class advert_launcher:
                 self.jobs.append(job_dir)
                 
                 # create stdout/stderr file descriptors
-                stdout = open(workingdirectory+"/"+output, "w")
-                stderr = open(workingdirectory+"/"+error, "w")
+                output_file = os.path.abspath(output)
+                error_file = os.path.abspath(error)
+                print "stdout: " + output_file + " stderr: " + error_file
+                stdout = open(output_file, "w")
+                stderr = open(error_file, "w")
                 command = executable + " " + arguments
                 
                 # special setup for MPI NAMD jobs
