@@ -277,8 +277,8 @@ class advert_launcher:
          for i in allocated_nodes:
              self.busynodes.remove(i)
              self.freenodes.append(i)
-         #print "Delete " + machine_file_name
-         #os.remove(machine_file_name)
+         print "Delete " + machine_file_name
+         os.remove(machine_file_name)
                
             
     def get_machine_file_name(self, job_dir):

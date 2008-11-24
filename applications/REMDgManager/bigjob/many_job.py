@@ -207,6 +207,7 @@ class many_job_service():
         variance=0
         for i in times:
             variance += (i - mean)**2
+        variance /= (n-1)
         variance = math.sqrt(variance)
         print description + " Average: " + str(mean) + " Stdev: " + str(variance)
 

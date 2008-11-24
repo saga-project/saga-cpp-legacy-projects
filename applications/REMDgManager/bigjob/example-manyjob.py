@@ -17,7 +17,7 @@ import advert_job
 import logging
 import many_job
 
-NUMBER_JOBS=8192
+NUMBER_JOBS=16384
 
 def has_finished(state):
         state = state.lower()
@@ -60,9 +60,9 @@ if __name__ == "__main__":
             jd.number_of_processes = "1"
             jd.spmd_variation = "single"
             jd.arguments = [""]
-            jd.working_directory = "/home/luckow"
-            jd.output =  cwd + "/output/stdout-" + str(i) + ".txt"
-            jd.error = cwd + "/output/stderr-" + str(i) + ".txt"
+            jd.working_directory = "/work/luckow"
+            jd.output =  "/work/luckow/output/stdout-" + str(i) + ".txt"
+            jd.error = "/work/luckow/output/stderr-" + str(i) + ".txt"
             subjob = mjs.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."
