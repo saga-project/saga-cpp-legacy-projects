@@ -1169,7 +1169,7 @@ class Directory(NSDirectory):
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)       
         
-    def get_size(self, name, flags = None, tasktype=TaskType.NORMAL):
+    def get_size(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = None, out int size
         """
         Returns the size of the file
@@ -1306,7 +1306,7 @@ class Directory(NSDirectory):
                 return Task(delegateObject=javaObject)
             else:
                 javaObject = self.delegateObject.openDirectory(name.delegateObject, flags)
-                return Directory(delegateObject = javaObject)
+                return Directory(name = "",delegateObject = javaObject)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 
@@ -1366,7 +1366,37 @@ class Directory(NSDirectory):
                 return Task(delegateObject=javaObject)
             else:
                 javaObject = self.delegateObject.openFile(name.delegateObject, flags)
-                return File(delegateObject = javaObject)
+                return File(name = "",delegateObject = javaObject)
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+        
+        
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.DIRECTORY
+    
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = Directory(name="", delegateObject=javaClone)
+            return clone
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         

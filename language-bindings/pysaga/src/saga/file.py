@@ -594,7 +594,7 @@ class Directory(NSDirectory):
         """
         super(Directory, self).__init__()
         
-    def get_size(self, name, flags = None):
+    def get_size(self, name, flags = Flags.NONE):
         #in URL name, in int flags = None, out int size
         """
         Returns the size of the file
