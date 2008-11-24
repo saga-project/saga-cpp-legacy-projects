@@ -22,10 +22,12 @@
 #include "RunReduce.hpp"
 #include "SystemInfo.hpp"
 
-struct wi {};
-struct ei {};
-struct us {};
-struct hs {};
+struct start_up {};
+struct write_intermediate {};
+struct emit_intermediate {};
+struct emit_type {};
+struct update_status {};
+struct hash_type {};
 
 namespace MapReduce {
    template<typename Derived>
@@ -36,6 +38,7 @@ namespace MapReduce {
        * to use and the session to use.                        *
        * ******************************************************/
       MapReduceBase(int argCount, char **argList) {
+         block_profiler<start_up> su = block_profiler<start_up>("startup");
          boost::program_options::variables_map vm;
          try {
             if(!parseCommand(argCount, argList, vm))
@@ -87,7 +90,7 @@ namespace MapReduce {
        * but it does the job.                                  *
        * ******************************************************/
       int hash(std::string const &input, unsigned int limit) {
-         block_profiler<hs> hash_timer = block_profiler<hs>("hash timer");
+         block_profiler<hash_type> hash_timer = block_profiler<hash_type>("hash timer");
          int sum = 0, retval;
          std::size_t length = input.length();
          for(std::size_t count = 0; count < length; count++) {
@@ -98,7 +101,7 @@ namespace MapReduce {
       }
 
       void writeIntermediate(void) {
-         block_profiler<wi> write_timer = block_profiler<wi>("write intermediate");
+         block_profiler<write_intermediate> write_timer = block_profiler<write_intermediate>("write intermediate");
          unorderedMap::iterator mapIt = intermediate_.begin();
          unorderedMap::iterator end = intermediate_.end();
          std::string intermediateData[NUM_MAPS];
@@ -128,7 +131,7 @@ namespace MapReduce {
        * and advertising these files.                          *
        * ******************************************************/
       void emitIntermediate(std::string const &key, std::string const &value) {
-         block_profiler<ei> emit_timer = block_profiler<ei>("emitIntermediate");
+         block_profiler<emit_intermediate> emit_timer = block_profiler<emit_intermediate>("emitIntermediate");
          unorderedMap::iterator mapIt = intermediate_.begin();
          unorderedMap::iterator end   = intermediate_.end();
 
@@ -155,6 +158,7 @@ namespace MapReduce {
        * to the proper file.                                   *
        * ******************************************************/
       void emit(std::string const &key, std::string const& value) {
+         block_profiler<emit_type> emit_timer = block_profiler<emit_type>("emit (reduce");
          int hash_value = hash(key, NUM_MAPS);
          reduceValueMessages_[hash_value] += key;
          reduceValueMessages_[hash_value] += " " + value + "\n";
@@ -195,7 +199,7 @@ namespace MapReduce {
        * ******************************************************/
       void updateStatus_(void) {
          //(1) update the last seen (keep alive) timestamp 
-         block_profiler<us> update_timer = block_profiler<us>("update status");
+         block_profiler<update_status> update_timer = block_profiler<update_status>("update status");
          time_t timestamp; time(&timestamp);
          try {
            workerDir_.set_attribute(ATTR_LAST_SEEN, 
@@ -229,6 +233,7 @@ namespace MapReduce {
        * attributes describing this session.                   *
        * ******************************************************/
       void registerWithDB(void) {
+         block_profiler<start_up> su = block_profiler<start_up>("startup");
          int mode = saga::advert::ReadWrite;
          //(1) connect to the orchestrator database
          std::string advertKey(database_ + "//" + sessionUUID_ + "/");

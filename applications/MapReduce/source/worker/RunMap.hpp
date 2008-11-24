@@ -11,6 +11,7 @@
 #include <saga/saga.hpp>
 #include <boost/lexical_cast.hpp>
 #include "../utils/defines.hpp"
+#include "../utils/block_profiler.hpp"
 #include "version.hpp"
 
 namespace MapReduce {

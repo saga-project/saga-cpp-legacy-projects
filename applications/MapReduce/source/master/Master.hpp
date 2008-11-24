@@ -45,8 +45,8 @@ namespace MapReduce {
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
             outputPrefix_  =  cfgFileParser_.getOutputPrefix();
             // create a UUID for this agent
-            //uuid_ = uuid().string();  //Temporarily disabled
-            uuid_ = "DUMMY-UUID";
+            uuid_ = saga::uuid().string();  //Temporarily disabled
+//            uuid_ = "DUMMY-UUID";
             saga::url advertKey(std::string(database_ + "//" + uuid_ + "/log"));
             logURL_ = advertKey;
             //create new LogWriter instance that writes to stdout
@@ -238,12 +238,13 @@ namespace MapReduce {
             // into names to be chunked by chunker
             while(fileListIT != fileList.end()) {
                std::vector<saga::url> temp;
-               temp = d.chunker(fileListIT->name);
+               d.chunker(temp, fileListIT->name);
                for(std::vector<saga::url>::const_iterator tempIT = temp.begin();tempIT!=temp.end();tempIT++) {
                   fileChunks_.push_back(*tempIT);
                }
                fileListIT++;
             }
+            std::cout << "sizeof(filelist) = " << fileChunks_.size() << std::endl;
             std::vector<saga::url>::const_iterator fileChunks_IT = fileChunks_.begin();
             // Advertise chunks
             while(fileChunks_IT != fileChunks_.end()) {
@@ -362,12 +363,12 @@ namespace MapReduce {
                workersIT++;
             }
          }
-         std::vector<saga::url> chunker(std::string fileArg) {
+         void chunker(std::vector<saga::url> &retval, std::string fileArg) {
             int mode = saga::filesystem::Read;
             int x=0;
-            saga::size_t const KB64 = 1024*64; //64KB
+            saga::size_t const KB64 = 67108864;
+//            saga::size_t const KB64 = 1073741824;
             saga::size_t bytesRead;
-            std::vector<saga::url> retval;
             saga::url urlFile(fileArg);
             char data[KB64+1];
             saga::filesystem::file f(urlFile, mode);
@@ -378,7 +379,6 @@ namespace MapReduce {
                if(bytesRead < KB64)
                {
                   g.write(saga::buffer(data, bytesRead));
-                  retval.push_back(g.get_url());
                }
                else
                {
@@ -392,11 +392,11 @@ namespace MapReduce {
                   g.write(saga::buffer(data, pos));
                   f.seek(dist,saga::filesystem::Current);
                   retval.push_back(g.get_url());
+                  std::cout << "read more than kb64 and adding <" << g.get_url().get_string() << "> because done" << std::endl;
                   x++;
                   for ( unsigned int i = 2; i <= KB64; ++i ) { data[i] = '\0'; }
                }
             }
-            return retval;
          }
       }; 
    } // namespace Master

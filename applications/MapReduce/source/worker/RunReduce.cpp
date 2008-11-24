@@ -1,10 +1,11 @@
 #include "RunReduce.hpp"
 #include "../utils/defines.hpp"
+#include "../utils/block_profiler.hpp"
 #include "../utils/merger.hpp"
 #include "../utils/parseMapLine.hpp"
 
 namespace MapReduce {
-
+   struct get_lines {};
 /*********************************************************
  * RunReduce constructor sets the state of the worker and*
  * retreives input files from the advert database posted *
@@ -55,6 +56,7 @@ namespace MapReduce {
  * be passed to the user defined reduce function.        *
  * ******************************************************/
    void RunReduce::getLines(unorderedMap &keyValues) {
+      block_profiler<get_lines> gl = block_profiler<get_lines>("get lines for reduce");
       std::vector<std::string> lines;
       std::vector<std::string>::const_iterator linesIT;
       merger<std::string>(lines, files_);

@@ -96,6 +96,7 @@ namespace MapReduce {
                if(found == false)
                {
                   finished_.push_back(finished_file);
+                  std::cout << "finished file to list: " << finished_file << std::endl;
                }
                saga::task t0 = possibleWorker.set_attribute<saga::task_base::Sync>("STATE",   WORKER_STATE_IDLE);
                saga::task t1 = possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND", "");

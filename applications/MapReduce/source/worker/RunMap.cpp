@@ -1,7 +1,7 @@
 #include "RunMap.hpp"
 
 namespace MapReduce {
-
+   struct get_file {};
 /*********************************************************
  * RunMap constructor sets up the state and other info   *
  * for the worker.                                       *
@@ -50,6 +50,7 @@ namespace MapReduce {
  * worker to use from the advert database.               *
  * ******************************************************/
    saga::url RunMap::getFile() {
+      block_profiler<get_file> gf = block_profiler<get_file>("get file utility");
       try {
          saga::advert::entry adv(chunksDir_.open(saga::url("./chunk"), saga::advert::ReadWrite));
          return saga::url(adv.retrieve_string());
