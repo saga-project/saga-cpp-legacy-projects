@@ -25,7 +25,7 @@ namespace MapReduce
     ///////////////////////////////////////////////////////////////////////////
     namespace detail
     {
-//#if BOOST_VERSION >= 103600
+#if BOOST_VERSION >= 103600
         class accumulator_stats
         {
         private:
@@ -63,7 +63,7 @@ namespace MapReduce
             totals_type totals_;
             char const* const description_;
         };
-/*#else
+#else
         class accumulator_stats
         {
         private:
@@ -100,7 +100,7 @@ namespace MapReduce
             totals_type totals_;
             char const* const description_;
         };
-#endif*/
+#endif
     }
 
     ///////////////////////////////////////////////////////////////////////////
