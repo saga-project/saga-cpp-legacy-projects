@@ -1,491 +1,71 @@
-%%%%%%%%%%%%%%%
-% RSGUIDE.TEX %
-%%%%%%%%%%%%%%%
+\documentclass{article}
+\usepackage[left=3cm,top=2cm,right=3cm,nohead,nofoot]{geometry} 
+\usepackage{setspace}
 
-% Guide to preparing TeX articles for Royal
-% Society articles using RSPUBLIC.CLS
-% Use this file as a test file
+\title{Project 1:  OSP Scheduler}
 
-\documentclass{rspublic}  
-
-\usepackage[utf8]{inputenc}
-\usepackage{graphicx}
-\usepackage{url}
-\usepackage{float}
-\usepackage{times}    
-\usepackage{listings}   
-\usepackage{times}     
-\usepackage{paralist}    
-\usepackage{wrapfig}    
-\usepackage[small,it]{caption}
-\usepackage{multirow}
-\usepackage{ifpdf}    
-\usepackage{subfig} 
-\usepackage{color}
-\usepackage{natbib}   
-
-
-\title{Programming Abstractions for Data Intensive Computing}
-
-\author{Michael Miceli$^{12}$, Chris Miceli$^{12}$, Shantenu Jha$^{123}$,
-  Hartmut Kaiser$^{1}$, Andre Merzky$^{1}$\\
-  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
-      State University, USA}}\\
-  \small{\emph{$^{2}$Department of Computer Science, Louisiana State
-      University, USA}}\\
-  \small{\emph{$^{3}$e-Science Institute, Edinburgh, UK}}\\
-}
-
-\newif\ifdraft
-%\drafttrue
-\ifdraft
-\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
-\newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
-\newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
-\else
-\newcommand{\amnote}[1]{}
-\newcommand{\jhanote}[1]{}
-\newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
-\fi
+\author{Michael Miceli}
 
 \begin{document}
-
 \maketitle
+\doublespacing
+%\begin{abstract}{\end{abstract}
+
+\section{Overview}
+
+I have implemented a scheduling algorithm for OSP.  My algorithm is priority-based using the length of the process as the main priority.  This is known as Shortest Job Next or Shortest Job First.  Another factor that goes into my priority is age.  As a process ages I increase its priority until it is run.  This ensures that a process does not starve for more than 7000 seconds.  Implementation-wise, the main data structure in my algorithm is a sorted queue.  Then, I use this sorted queue to keep track of the highest priority.  When OSP dispatches a new process, my algorithm adds the process back to the ready queue, and removes the head of the queue.
+
+\section{Implementation}
+
+\indent The sorted queue is the most fundamental part of my scheduler.  Every time an element is inserted into the queue, it is inserted in the correct order.  First, I assign the incoming PCB's priority to its size.  Then, I would traverse the queue using the PCB's prev and next variables and insert it into the correct position.  In my implementation a higher priority has higher precedence.  There is also a remove by pid function.  This is essential for removing a random process from a queue (cf. removing from the head).  If a process has aged sufficiently, then its priority must be changed in order to ensure it will be run soon.  Instead of moving pointers around, my algorithm simply reinserts the process; however, it must be removed first.
+
+\section{Test}
+
+\indent For testing purposes I reran my tests many times with different “magic numbers” in my code to maximize the scheduler.  Also, I made sure to only have one variable at a time.  However, this assumes that maximizing each variable independently will maximize the result, which I assume.  Mainly, I modified two different variables:  the aging and priority.  For aging, I ran tests evaluating how long the process' last dispatch time is be before increasing the process's priority.  The table for this variable is below.
+
+
+\section{Graphs}
+
+\begin{table}[ht]
+\caption{Comparisons of last dispatch times}
+\centering
+\begin{tabular}{c c}
+\hline\hline
+Clock cycles waiting & Grade \\ [0.5ex]
+\hline
+1000 &  99.6100\% \\ 
+2000 & -46.4800\% \\
+3000 &  95.0400\% \\
+4000 & -24.0500\% \\
+5000 & 102.1900\% \\
+6000 &  96.4100\% \\ [1ex]
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\caption{Comparisons of priority increase}
+\centering
+\begin{tabular}{c c}
+\hline\hline
+Priority increase & Grade \\ [0.5ex]
+\hline
+1000 &  102.1900\% \\ 
+2000 & -152.1300\% \\
+3000 &   95.8700\% \\
+4000 &   84.8900\% \\
+5000 &  102.3800\% \\
+6000 &   97.4600\% \\ [1ex]
+7000 &   94.8100\% \\ [1ex]
+8000 &   98.6300\% \\ [1ex]
+\hline
+\end{tabular}
+\end{table}
+
+\section{Conclusion}
+
+I believe that some of the anomalies in the tables (negative numbers) can be explained through an overall increase in priorities over all processes, which in turn removes the idea of aging completely.  No aging would have yielded 96.9100\%, but with many starving processes.  Consequently, this solution is unacceptable with a multiuser environment.  My best implementation was a priority increase of 5000 for the oldest process when its last dispatch time was greater than 5000 clock cycles.
 
-\begin{abstract}{SAGA, ..., search, sequencing.. data-intensive}
-  SAGA~\cite{saga_gfd90} is a high level API that provides a simple,
-  standard and uniform interface for the most commonly required
-  distributed functionality.  SAGA can be used to encode grid
-  applications~\cite{saga_escience07, saga_tg08}, tool-kits to manage
-  distributed applications as well as implement abstractions that
-  support commonly occurring programming, access and usage patterns.
-  The focus of this paper is on the latter set, i.e.  the use of SAGA
-  in implementing well known abstractions for data intensive
-  computing.  In this paper, we will implement MapReduce and All-Pairs
-  abstractions using SAGA and use them to solve commonly encountered
-  genomic tasks.  We will show how multiple sequence alignment can be
-  orchestrated using the SAGA-All-pairs implementation, and genome
-  searching can be implemented using MapReduce.  In addition, the aim
-  of this paper is to show (validate) that SAGA is sufficiently
-  complete and has a high-level interface to support these programming
-  abstractions.  Figure~\ref{fig:data_intensive_app_saga} illustrates
-  the software architecture of the implementation, highlighting the
-  different abstraction levels that allow the reuse of most of the
-  system for both algorithms and for different genomic applications.
-  We will highlight the salient points of our implementations, and how
-  we handle common considerations such as when to move the data to the
-  machine or when to process it locally.  The implementation of these
-  abstractions encapsulates details such as latency hiding,
-  performance and other variables (such as cluster sizes, and queue
-  sizes).  The user should be able to easily add a few function calls
-  without worrying about many considerations required by most grid
-  computing applications.  We will discuss other performance issues
-  that arise when implementing abstractions specific for
-  data-intensive computing.  A grid application's design should not
-  focus on the bandwidth of the network, the dispatch latency, the
-  number of machines available, and data reliability.  Even something
-  as simple as process size can be a tough challenge to optimize.  If
-  a job is too small, then network traffic becomes a bottleneck and
-  the design is inefficient.  If a job is too large, it is difficult
-  to tell when it is hanging or still computing.  Also, if another job
-  with a higher priority takes a machine over, the application will be
-  waiting on jobs longer.  The main point of this paper is to show how
-  a flexible, extensible implementation of programming data-intensive
-  abstractions using SAGA can shield the application developer many of
-  these considerations.
-
-\end{abstract}
-
-\section{Introduction} {\bf Jha} 
-
-\jhanote{traditional algorithms are OK when data are limited.. but data
-  requirements can change in different ways.. not only will data be
-  greater, but also after a point will also be distributed. This is
-  indicative of the data-gathering process (multiple-resources,
-  replicated?) also indicative of the fact that often data-collection
-  is growing greater than data-analysis (for example exabyte data last
-  year).  Finally, with data-distributed, comes the following (at
-  least challenges): do we move data-to-compute, or compute-to-data,
-  is there a transition point, and can the same application be written
-  to support both modes?}
-
-\jhanote{From above, we need to write what has been traditionally
-  non-distributed applications, in a distributed fashion. General
-  philosophy on how we write distributed applications... One approach
-  is to use infrastructure independent frameworks.}
-
-\jhanote{Motivation for why this work is important. Applications
-  are developed with specific infrastructure in mind. So in a
-  way are limited by the infrastructure.. so whereas application
-  can be often be written to scale, infrastructure doesn't
-  always..}
-
-\jhanote{This is a new way of developing applications using high-level
-  abstractions. These high-level abstractions in turn ways to
-  encode/support certain patterns, in this case data-parallel/access
-  patterns. In turn the abstractions are infrastructure independent}.
-
-
-\jhanote{Outline the work in this paper. New concept. Thus one
-  important requirement is to determine how these
-  i) how these patterns work for real scientific applications, \\
-  ii) how well the general-implementations of these patterns work with
-  respect to native implementations of these patterns \\
-  iii) combination of i and ii, i.e. how well these applications
-  behave when encoded using these high-level abstractions
-  in comparison on general purpose infrastructure\\
-  The aim is not to report better or even equivalent performance of
-  these ``generalized applications compared to the native
-  implementation of these application..}
-
-\jhanote{it is important to compare gene-search using MapReduce and a
-  simple straighforward application; similarly a multiple
-  alignment excercise without using All-Pairs..}
-
-\section{Data-Intensive Patterns}
-
-\subsection{Example 1: MapReduce}
-
-MapReduce~\cite{mapreduce-paper} is a programming framework which
-supports applications which operate on very large data sets on
-clusters of computers.  MapReduce relies on a number of capabilities
-of the underlying system, most related to file operations.  Others are 
-related to process/data allocation.  The Google File System, and other
-distributed file systems, provide the relevant capabilities, such as atomic
-file renames.  Implementations of MapReduce on these distributed file systems
-are free to focus on implementing the data-flow pipeline, which is the
-algorithmic core of the MapReduce framework.
-
-We have recently implemented MapReduce in SAGA, targeting general
-purpose Grid systems, where the system capabilities required by
-MapReduce are usually not natively supported -- instead, a general
-purpose grid provides a much larger set of lower level operations.
-Some semantics, such as again the atomic file rename, is provided by
-the SAGA API layer, others, such as data/compute allocation are not.
-Our implementation is thus required to interleave the core logic with
-explicit instructions on where processes are to be scheduled.  Note that
-some of the required capabilities can be provided by higher level grid
-services -- those are, however, often not standardized, and often not
-available in general purpose Grids.
-
-The advantage of this approach is obviously that our implementation is
-no longer bound to run on a system providing the appropriate semantics
-originally required by MapReduce, but is portable to other, more
-generic systems as well.  The drawback of the approach is obvious as
-well: our implementation is relatively more complex, as it needs to
-add semantic system capabilities at some level or the other, and it is
-inherently slower, as it is for these capabilities very difficult or
-near impossible to obtain system level performance on application
-level.  But many of these are due to the early-stages of the
-implementation of SAGA, and not a fundamental limitation of the design
-or concept.
-% Drawback can be seen with size limit and hadoop's inability to work over
-% different partitions
-%  when operating on specific parts of the data set~\cite{gsoc-saga}.
-
-
-\subsubsection{Details}
-
-MapReduce is a programming framework developed by Google for running
-data-intensive processes over a large cluster of commodity machines.
-The main idea is to provide an easy interface for users to solve a
-specific domain of problem with grids without having the client worry 
-about the semantics of the grid, for example, dispatch latency, machine
-failure, data distribution, and network bandwidth.  All of these are
-problems that could make some naïve implementations on a grid slower
-than serial implementations.  When using a MapReduce implementation,
-the programmer interacts with only two functions: map and reduce.  
-The map function will go through the datasets and create a map of data
-to some type of output.  A map is a datatype in computer science that
-relates one object to another, i.e. a name to a phone number.  The reduce
-function will go through all of the maps and combine them to produce
-another output.  The de facto example is word count.  Say, one has a
-large set of documents and he wants to find how many of each word is
-present in all the documents.  The map function would go through each
-document and for every word produce a map from the document to a list
-of 1’s.  An example for the word “cat” may look like this cat $\Rightarrow$ 1, 1,
-1, 1, 1.  Then, the reduce function will add up the 1’s to produce a
-final output, i.e. cat $\Rightarrow$ 5.  At first this framework may seem limiting,
-but this is in part what makes it so successful.  Its structure is 
-is very easily parallelized.   Also, there have been a large number
-of distinct applications written using it, and its popularity has been
-steadily increasing.  This shows that the framework is well suited for
-solving data-intensive problems.
-
-One feature worth noting in MapReduce is that the ultimate dataset is not 
-on one machine, it is partitioned on multiple machines located throughout the 
-grid. Google uses their distributed file system (Google File System) to keep 
-track of where each file is located.  Alternatively, they store MapReduce 
-results in Bigtable.  We will attempt to imitate this using our implementation
-of MapReduce over HDFS.  Also, we will use HBase for communication between jobs.
-
-\subsubsection{Our Implementation} 
-
-There are a few implementations of MapReduce, most notably Google's and
-Hadoop's.  These are what our implementation is based on.  It is able
-to handle most of the problems associated with grid applications.  We use
-the idea of a master/slave type framework.  The programmer would compile
-different slave applications for every different type of machine he 
-would expect to encounter in the grid.  The slave application is
-where the map and reduce functions are.  Then the master will handle
-submitting these jobs on other machines as well as keeping track of
-the state of the machines -- idle, done, or failed.  This allows for
-easy running of an application using large girds that have frequent
-machine failures.  Our MapReduce also handles data distribution in the
-same manner Google does, by creating partitions of data so the entire
-data set will never be on one machine, thus limiting network bandwidth
-and data distribution.  These files could then recognized by a
-distributed file systems such as Hadoop File System.  Although, our
-current implementation is written to avoid excessive network
-bandwidth, it does not change depending on current network
-availability.
-
-\subsubsection{Gene Searching}
-
-Gene searching is an important part of biology.
-\michaelnote{I'm sure Shantenu knows more about why gene searching is 
-an important part of biology than I do!}
-
-MapReduce can easily be used to find certain gene fragments in a large gene 
-file.  The mapping function looks through its input and if it finds the 
-sequence - or something close - it will then produce a map of a file to a 
-position in the file where the fragment started.  The reduce will then take 
-every map and append the results.  The is good for searching large datasets, 
-because it is easily done through MapReduce, ensuring network reliability, and 
-parallelization.  
-
-\subsection{Example 2: All-Pairs}
-
-All-pairs is used for combinatorial testing.  It involved comparing 
-every element in a set to every element in another set.  This is used 
-for many things, including testing the validity of an algorithm, or 
-finding an anomaly in a configuration.  For example, the accepted 
-method for testing the strength of a facial recognition algorithm 
-is to use All-pairs testing.  This creates a similarity matrix, and 
-because it is known which images are the same person, the matrix can show 
-the accuracy of the algorithm.  Our example is of gene alignment, where it 
-is necessary to compare every fragment gene - it could be a test drug - to 
-every base - a specific gene.  We are going to use our all-pairs abstraction 
-using the Hadoop File System and using gridftp to not only show that SAGA 
-allows for many different configurations, but also to see how these different 
-configurations behave.  Also, we will compare this to a naïve implementation 
-of submitting a job for every comparison.  
-
-\subsubsection{Details}
-
-All-pairs testing is a useful tool in testing the reliability of a
-produce - an algorithm, software, hardware, \ldots.  This is because
-many times one small difference in a configuration can show
-incompatibilities.  However, testing is not the only field in which
-All-pairs is useful.  Anywhere every element from one set has to be
-compared to every element from another set, All-pairs can help.  This
-is the main goal of All-pairs to ensure that every combination of
-pairings from two sets is tested.
-
-\subsubsection{Our Implementation}
-
-Our All-pairs implementation is very similar to our MapReduce
-implementation.  The main difference is in the way jobs are ran and
-how the data are stored.  In MapReduce the final data is stored on
-many machines - if there is a distributed filesystem available -
-whereas All-pairs uses the database to store information about the
-job.  We decided to do this because all data must be available to be
-useful.  We could have used a distributed file system such as HDFS,
-but we felt that the output was not large enough to constitute this.
-This is due to the fact that - although the data is relatively large -
-the result should usually be a real number representing the distance
-of two genes.
-
-\subsubsection{Multiple Sequence Alignment}
-
-Multiple Sequence Alignment is an important part of biology.
-\michaelnote{AGAIN:  I'm sure Shantenu knows more about why this is 
-more important part of biology than I do!}
-
-Multiple sequence alignment uses a comparison matrix as a reference to
-compare many fragment genes to many base genes.  Each fragment is
-compared to every base gene to find the smallest distance.  The result
-of the smallest distance is then stored for that fragment using a
-database management system - Hbase, Bigtable, Postgresql, \ldots.
-Distance is computed by summing up the amount of similarity between
-each nucleotide of the fragment to each one in the base.  This is done
-starting at every point possible on the base.
-
-
-\subsection*{Hadoop}
-
-Data intensive applications require large amounts of data to be
-available at run-time in a reliable and efficient manner.  The Hadoop
-Distributed File System (HDFS) is an distributed parallel fault
-tolerant application that handles the details of spreading data across
-multiple machines in a traditional hierarchical file organization.  It
-has been highly successful and is currently used by Yahoo!, Facebook,
-and the New York Times to name a few.  HDFS also handles replication
-and striping of data for fault-tolerance.  Implemented in Java, HDFS
-is designed to run on commodity hardware while providing scalability
-and optimizations for large files.  The file system works by having
-one or two namenodes, masters, and many rack-aware datanodes, slaves.
-All data requests go through the namenode that uses block operations
-on each data node to properly assemble the data for the requesting
-application.  The goal of replication and rack-awareness is to improve
-reliability and data retrieval time based on locality.  In data
-intensive applications, these qualities are essential.
-%Discuss the C interface to Hadoop
-
-\subsection*{Bigtable, HBase}
-
-Bigtable is a specific type of database system created by Google to
-have better control over scalability and performance than other
-databases.  It is very flexible and has many advantages over normal
-databases.  The main difference is that it is meant to store extremely
-large datasets, into the petabytes, over thousands of
-machines~\cite{bigtable}.  Another advantage is the ability to be
-accessed through MapReduce.  Since MapReduce is inherently very well
-parallelized, accessing Bigtable is very efficient.  Due to the
-success of Bigtable, HBase was developed by Hadoop as an open source
-alternative for use with Hadoop's MapReduce.  Both HBase and Bigtable
-are implemented in a similar way.  They split up large tables and
-replicate them over many machines to avoid node failure.  Also, since
-the data are partitioned accessing it does not create a large strain
-on the grid's network bandwidth.
-
-%Provide 1 paragraph description of Bigtable and its specific
-%implementation -- HBase
-
-\jhanote{repeat the motivation for using both ``native'' and
-  non-native infrastructure dependence}
-
-\subsection*{Interfacing SAGA to Hadoop and Bigtable}
-
-% We used hadoop as a metadata storage, work still needs to be done to
-% see how well SAGA-MapReduce is at accessing elements as part of
-% mapping
-
-\section{Applications}
-
-\subsection*{Alignment}
-
-\subsection*{Search}
-
-
-
-\subsection*{Background and Motivation for the experiments}
-
-Most of the time users of grid applications are forced to work with a
-specific set of applications, because either the system administrator
-doesn't allow installation of software across the grid, or the
-application forced a specific configuration.  For example, Hadoop's
-MapReduce can only interface with the local file system or the HDFS.
-We hope to show that SAGA is capable of "swapping out" different
-configurations depending on specific grid requirements.
-
-\jhanote{Describe the native implementation of mapreduce\\
-  essentially explain how this is yahoo's mapreduce: hadoop + hdfs}
-
-\jhanote{Need to explain the applications, and how the applications
-  work in a i) native state and ii) how they work using hbase/hadoop? \\
-  especially why does an application that uses all-pairs need hbase?
-  is that a change of programming model?  \\ Similarly, for
-  mapreduce?}
-
-
-\section*{Experiments}
-
-
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.8\textwidth]{saga-mapreduce_controlflow.png}
-          \caption{High-level control flow diagram for
-            SAGA-MapReduce. SAGA uses a master-worker paradigm to
-            implement the MapReduce pattern. The diagram shows that
-            there are several different infrastructure options to a
-            SAGA based application; in particular for MapReduce there
-            are ``file coordination'' options -- Hadoop versus
-            GridFTP, and for coordination Hbase or a PostgreSQL
-            database could be used. There are performance issues with
-            the number (and thus size) of chunks and the number of
-            resources over which these chunks are distributed.
-            \jhanote{I think there should be something between the
-              Map(1) and the Reduce(2) phases.. something that comes
-              back to the Master, non?}}
-      \label{saga-mapreduce_controlflow.png}
-\end{figure}
-
-
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.8\textwidth]{saga_mapreduce_1worker.png}
-          \caption{Performance figures for SAGA-MapReduce, using 1
-            worker (and thus not distributed, but localised to a
-            single machine, \jhanote{could the master and worker not
-              be on different machines? if so, should we call this
-              ``local'' or ``distributed''?}, and its comparision to
-            Yahoo's MapReduce implementation. The three different
-            scenarios considered are (i) all infrastructure is local
-            and thus SAGA's local adapters are invoked, (ii) local job
-            adaptors are used, but the hadoop file-system (HDFS) is
-            used, (iii) Yahoo's mapreduce. Yahoo's mapreduce has
-            better performance than the SAGA-Mapreduce implementations
-            considered here. This is not surprising, as SAGA based
-            implementations have not been optimised.}
-      \label{saga_mapreduce_1worker.png}
-\end{figure}
-
-
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.8\textwidth]{saga_mapreduce_3workers.png}
-          \caption{}
-      \label{saga_mapreduce_3workers.png}
-\end{figure}
-
-
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.8\textwidth]{saga_allpairs.png}
-          \caption{}
-      \label{sagaallpairs}
-\end{figure}
-
-
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.8\textwidth]{saga_allpairs_1and3workers.png}
-          \caption{}
-      \label{saga_allpairs_1and3workers.png}
-\end{figure}
-
-
-\subsection*{MapReduce using Advert Service}
-%Right now assume we are using 1GB to 10GB
-We are going to use the default advert service of SAGA (SQL) to 
-communicate between jobs as well as store information about 
-individual jobs.
-
-\subsection*{MapReduce using HBase}
-In this experiment we are going to use the Hbase advert service 
-provided by SAGA to determine how it compares to the default advert 
-service, i.e. speed, and latency.
-
-\subsection*{Native Implementation: MapReduce using HBase and Hadoop}
-We are going to mimic Google's MapReduce, which uses the Google File System (GFS)
-to store intermediate and final results.  They also store metadata about the grid 
-with Bigtable.  Since we do not have GFS or Bigtable available to use, we are going 
-to use the Hadoop File system (HDFS) and HBase to store the metadata similar to 
-what Yahoo! uses.  We will call this the native implementation of MapReduce.
-
-\subsection*{SAGA Based MapReduce}
-
-Performance figures when using the Advert service -- on one machine,
-on >1 machine, finding the bottleneck
-
-\jhanote{These figures can then be used to justify some of the 
-  development efforts proposed in OMIISAGA-2}
-
-\section{Acknowledgments}
-
-\bibliographystyle{plain}
-\bibliography{saga_data_intensive}
 
 \end{document}
 
