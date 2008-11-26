@@ -20,9 +20,11 @@ using namespace faust;
 // CONSTRUCTOR 
 //
 manyjobs::job::job() 
-: jobid_(saga::uuid().string()), state_(New)
+: state_(New)
 {
-  
+  std::string jobid("manyjob://");
+  jobid.append(saga::uuid().string());
+  jobid_ = jobid;
 }
 ////////////////////////////////////////////////////////////////////////////////
 // DESTRUCTOR

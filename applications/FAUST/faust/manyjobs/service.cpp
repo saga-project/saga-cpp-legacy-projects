@@ -19,7 +19,7 @@ using namespace faust;
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 //
-manyjobs::service::service(std::vector<host_description> hostlist)
+manyjobs::service::service(std::vector<resource> resources, int num_jobs)
 {
   using namespace saga::job;
   
@@ -28,11 +28,14 @@ manyjobs::service::service(std::vector<host_description> hostlist)
   identifier.append(" manyjobs::service");
   log_ = new detail::logwriter(identifier, std::cout);
   
+  std::string msg("Starting new job servie instance." );
+  log_->write(msg, LOGLEVEL_INFO);
+  
   // check if the given hosts, queues, projects are valid!
   unsigned int fails = 0;
   
-  std::vector<host_description>::iterator i;
-  for(i = hostlist.begin(); i != hostlist.end(); ++i)
+  std::vector<resource>::iterator i;
+  for(i = resources.begin(); i != resources.end(); ++i)
   {
     saga::url contact((*i).contact);
     saga::job::service sjs;
@@ -40,7 +43,7 @@ manyjobs::service::service(std::vector<host_description> hostlist)
     // Try to initialize the job service - if it fails, remove this entry
     // from the list.
     try {
-      std::string msg("Checking job service availability: " + contact.get_url());
+      std::string msg("Checking resource availability: " + contact.get_url());
       log_->write(msg, LOGLEVEL_INFO);
       
       sjs = saga::job::service(contact);
@@ -50,8 +53,8 @@ manyjobs::service::service(std::vector<host_description> hostlist)
       ++fails;
       
       if(DEBUG) log_->write(e.what(), LOGLEVEL_DEBUG);
-      std::string msg("Cannot connect with job service: " + contact.get_url());
-      msg.append(". Removing entry from host list." );
+      std::string msg("Cannot connect with resource: " + contact.get_url());
+      msg.append(". Removing entry from resource list." );
       log_->write(msg, LOGLEVEL_ERROR); 
       
       continue; // we don't want to try queueing if this stage already fails!
@@ -60,7 +63,7 @@ manyjobs::service::service(std::vector<host_description> hostlist)
     // Try to queue a sample dummy job to see if the queue and project 
     // informations a valid. If it fails, remove this entry from the list.
     try {
-      std::string msg("Queuing a sample job on: " + (*i).contact.get_url());
+      std::string msg("Queuing sample job on: " + (*i).contact.get_url());
       msg.append(" (queue="+(*i).queue+", project="+(*i).project+")");
       log_->write(msg, LOGLEVEL_INFO);
       
@@ -81,26 +84,25 @@ manyjobs::service::service(std::vector<host_description> hostlist)
       
       if(DEBUG) log_->write(e.what(), LOGLEVEL_DEBUG);
       std::string msg("Cannot queue a sample job on: " + (*i).contact.get_url());
-      msg.append(". Removing entry from host list." );
+      msg.append(". Removing entry from resource list." );
       std::cout << e.what() << std::endl;
       log_->write(msg, LOGLEVEL_ERROR);  
     }
     
     // Host description seems to work properly. Add it to our
     // internal host list.
-    hostlist_.push_back((*i));
-    
+    resources_.insert(resources_pair((*i).contact.get_url(), (*i)));
   }
   
   // if we don't have any working execution hosts, abort!
-  if(fails == hostlist.size()) {
-    log_->write("No usable job services available. Aborting.", LOGLEVEL_FATAL); 
+  if(fails == resources.size()) {
+    log_->write("No usable resources available. Aborting.", LOGLEVEL_FATAL); 
     exit(-1);
     // FATAL -> THROW Exception! 
   }
   
   // start the persistant service instances for the remaining hosts
-  //create_job_services();
+  // create_job_services();
   
 }
 
@@ -122,13 +124,16 @@ manyjobs::job * manyjobs::service::create_job(manyjobs::description jdesc)
   
   joblist_.insert(joblist_pair(jp->get_job_id(), jp));
   
+  std::string msg("Registering new job instance: " + jp->get_job_id());
+  log_->write(msg, LOGLEVEL_INFO);
+  
   return jp.get();
 }
   
 ////////////////////////////////////////////////////////////////////////////////
 // 
 //
-std::vector<std::string> manyjobs::service::list(void)
+std::vector<std::string> manyjobs::service::list_jobs(void)
 {
   std::vector<std::string> job_ids;
   
@@ -146,13 +151,41 @@ std::vector<std::string> manyjobs::service::list(void)
 //
 void manyjobs::service::debug_check()
 {
-  joblist_map::const_iterator ci;
+/*  joblist_map::const_iterator ci;
   for(ci = joblist_.begin(); ci != joblist_.end(); ++ci)
   {
     std::cout << "id: " << ci->second->get_job_id() << " state: " 
     << ci->second->get_state() << std::endl;
+  }*/
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+//
+faust::manyjobs::resource manyjobs::service::get_resource(std::string contact)
+{
+  if(resources_.find(contact) == resources_.end())
+  {
+    // THROW SOME EXCEPTION
+  }
+
+  return resources_[contact];
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+//
+std::vector<std::string> manyjobs::service::list_resources(void)
+{
+  std::vector<std::string> res;
+  
+  resources_map::const_iterator ci;
+  for(ci = resources_.begin(); ci != resources_.end(); ++ci)
+  {
+    res.push_back(ci->first);
   }
   
+  return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,15 +193,13 @@ void manyjobs::service::debug_check()
 //
 void manyjobs::service::create_job_services()
 {
-  std::vector<host_description>::iterator i;
-  for(i = hostlist_.begin(); i != hostlist_.end(); ++i)
+  /*std::vector<resource>::iterator i;
+  for(i = resources_.begin(); i != resources_.end(); ++i)
   {
     try {
       saga::url contact((*i).contact);
       std::string msg("Connecting to job service: " + (*i).contact.get_url());
-      log_->write(msg, LOGLEVEL_INFO);
-      servicelist_.push_back(saga::job::service((*i).contact));
-      
+      log_->write(msg, LOGLEVEL_INFO);      
 
       //servicelist_.push_back(saga::job::service((*i).contact));
     }
@@ -178,7 +209,7 @@ void manyjobs::service::create_job_services()
       std::string msg("Cannot connect with job service: " + (*i).contact.get_url());
       log_->write(msg, LOGLEVEL_ERROR);  
     }
-  }
+  }*/
   
 }
 

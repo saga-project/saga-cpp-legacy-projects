@@ -27,10 +27,12 @@ namespace faust
 {
   namespace manyjobs {
  
-    /*! \brief Structure representing an execution host.
+    /*! \brief This structure defines a computing %resource. A list of 
+     *         resources is used to create a manyjob 
+     *         %service instance.
      *  
      */
-    struct host_description {
+    struct resource {
       saga::url    contact;
       saga::url    workdir;
       std::string  queue;
@@ -40,19 +42,44 @@ namespace faust
     // forward decl. 
     class job; 
     
+    ///@cond - exclude from Doxygen
     typedef boost::shared_ptr<job> job_ptr;
     typedef std::map<std::string,  job_ptr> joblist_map;
     typedef std::pair<std::string, job_ptr> joblist_pair;
     
+    typedef std::map<std::string,  resource> resources_map;
+    typedef std::pair<std::string, resource> resources_pair;
+    
+    ///@endcond - exclude from Doxygen
+    
+    /*! \brief A %job %service represents a %manyjobs resource manager that
+     *         uses a set of hosts an scheduling strategies to efficiently 
+     *         create and schedule %job instances.
+     * 
+     *         <br><b>Usage example:</b><br><br>
+     *         <code> 
+     *         std::vector<faust::manyjobs::resource> resources;<br>
+     *
+     *         faust::manyjobs::resource rd;<br>
+     *         rd.contact = "gram://qb.loni.org:2119/jobmanager-pbs";<br>
+     *         rd.project = "sample_project";<br>
+     *         rd.queue   = "workq";<br>
+     *         rd.workdir = "/tmp/";<br>
+     * 
+     *         resources.push_back(rd);<br>
+     * 
+     *         faust::manyjobs::service s(resources);
+     *
+     *         </code> 
+     */
     class FAUST_EXPORT service : public saga::object
     {
       
     private:
-      
-      std::vector<host_description>   hostlist_;
-      std::vector<saga::job::service> servicelist_;
-      std::map<std::string, job_ptr>  joblist_;
       faust::detail::logwriter *      log_;
+      
+      resources_map  resources_;
+      joblist_map    joblist_;
       
     public:
       
@@ -60,7 +87,7 @@ namespace faust
        *         that uses the hosts decribed by hostlist.
        *  
        */
-      explicit service (std::vector<host_description> hostlist);
+      explicit service (std::vector<resource> resources, int num_jobs);
       
       /*! \brief Tries to properly shut down this %manyjobs instance.
        *  
@@ -74,19 +101,51 @@ namespace faust
        */
       faust::manyjobs::job * create_job(faust::manyjobs::description job_desc);
       
-      /*! \brief  Tries to get a list of jobs currently known by 
-       *          this %service instance.
+      /*! \brief  Lists the IDs of all jobs that are currently 
+       *          associated with this %service instance.
        *  \return List of job identifiers.
        * 
        */
-      std::vector<std::string> list(void); 
+      std::vector<std::string> list_jobs(void); 
+
+      /*! \brief  Lists the contact strings of all resources that 
+       *          are associated with this %service instance.
+       *
+       *   When the %manyjobs %service starts up, it iterates over the list
+       *   of given %resouces and validates them. If validation 
+       *   fails for a %resource, the %resource is removed from the internal
+       *   list and hence won't show up in the %list_resources vector.  
+       *
+       *         <b>Usage example:</b><br><br>
+       *         <code>
+       *         faust::manyjobs::service s(resources);<br>
+       *         std::vector<std::string> rl = s.list_resources();<br>
+       *         std::vector<std::string>::const_iterator ci;<br>
+       *         for(ci = rl.begin(); ci != rl.end(); ++ci) <br>
+       *         {<br>
+       *         &nbsp;&nbsp;std::cout << (*ci) << std::endl; <br>
+       *         }
+       *
+       *         </code> 
+       *  \return List of %resource contact strings.
+       * 
+       */
+      std::vector<std::string> list_resources(void); 
       
-      /*! \brief  Tries to return a %job object for a given %job ID.
+      /*! \brief  Returns a %job object for a given %job ID.
        *         
        *  \return The job object.
        *
        */
       faust::manyjobs::job get_job(std::string job_id);
+
+      /*! \brief  Returns a %resource %description for a given contact string.
+       *         
+       *  \return The job object.
+       *
+       */
+      faust::manyjobs::resource get_resource(std::string contact);
+      
       
       /*! \brief  Temporary debug method...
        *

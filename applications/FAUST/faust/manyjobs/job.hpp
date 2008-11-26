@@ -22,18 +22,31 @@ namespace faust
 {
   namespace manyjobs {
     
+    /*! \brief Possible states for a %manyjob. Currently it adopts the saga
+     *         job model states but it might me extended/altered at some point.
+     */
     enum state
-    {
+    { /*! Add brief description! */
       Unknown   = -1,
+      /*! Add brief description! */
       New       =  1,
+      /*! Add brief description! */
       Running   =  2,
+      /*! Add brief description! */
       Done      =  3,
+      /*! Add brief description! */
       Canceled  =  4,
+      /*! Add brief description! */
       Failed    =  5,
+      /*! Add brief description! */
       Suspended =  6
     };
     
-    
+    /*! \brief The %job provides the manageability interface to a %job 
+     *         instance submitted through a manyjob %service instance. 
+     *         It can't be instanciated directly, only thourgh the create_job
+     *         factory method. 
+     */
     class FAUST_EXPORT job : public saga::object
     {
     

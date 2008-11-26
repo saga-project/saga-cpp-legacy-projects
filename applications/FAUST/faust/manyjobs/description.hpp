@@ -19,6 +19,12 @@ namespace faust
 {
   namespace manyjobs {
     
+    
+    /*! \brief The %description encapsulates all the attributes which define a 
+     *         %job. It has no methods of its own, but implements the 
+     *         saga::attributes interface.
+     *
+     */
     class FAUST_EXPORT description : public saga::object
     {
     public:

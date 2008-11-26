@@ -16,8 +16,8 @@
 
 int main (int argc, char* argv[])
 {
-  std::vector<faust::manyjobs::host_description> hostlist;
-  faust::manyjobs::host_description h1, h2, h3;
+  std::vector<faust::manyjobs::resource> hostlist;
+  faust::manyjobs::resource h1, h2, h3;
   
   //h1.contact = "gram://gatekeeper.lonestar.tacc.teragrid.org:2119/jobmanager-lsf";
   //h1.project = "";
@@ -40,7 +40,7 @@ int main (int argc, char* argv[])
   hostlist.push_back(h2);
   hostlist.push_back(h3);
   
-  faust::manyjobs::service s(hostlist);
+  faust::manyjobs::service s(hostlist, 64);
   
   //////////////////////////////////
   // test service::create_job()
@@ -52,10 +52,17 @@ int main (int argc, char* argv[])
   //////////////////////////////////
   // test job.get_job_id()
   std::cout << j->get_job_id() << std::endl;
+
+  //////////////////////////////////
+  // test service::list_resources()
+  std::vector<std::string> rl = s.list_resources();
+  std::vector<std::string>::const_iterator ci1;
+  for(ci1 = rl.begin(); ci1 != rl.end(); ++ci1)
+    std::cout << (*ci1) << std::endl;
   
   //////////////////////////////////
-  // test service::list()
-  std::vector<std::string> jl = s.list();
+  // test service::list_jobs()
+  std::vector<std::string> jl = s.list_jobs();
   std::vector<std::string>::const_iterator ci;
   for(ci = jl.begin(); ci != jl.end(); ++ci)
     std::cout << (*ci) << std::endl;
