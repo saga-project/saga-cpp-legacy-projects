@@ -12,7 +12,11 @@
 
 #include <saga/saga.hpp>
 
-#ifndef GRIDNPB_TASK_H
+#include "defines.hpp"
+#include "LogWriter.hpp"
+
+#ifndef GRIDNPB_TASKCONTROLLER_H
+#define GRIDNPB_TASKCONTROLLER_H
 
 namespace
 {
@@ -42,10 +46,13 @@ namespace GridNPB
         std::list<std::string> host_list;
         saga::job::description job_desc;
         saga::job::job job;
+        LogWriter * logwriter;
         
     public:
-        TaskController(saga::url rm_url, std::string workdir, int instances);
-        ~TaskController() { };
+        TaskController(saga::url rm_url, std::string workdir, 
+                       std::string queue, std::string allocation,
+                       int instances);
+        ~TaskController();
         
         void launch();
         void kill(int timeout);

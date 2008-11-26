@@ -19,9 +19,16 @@
 
 int main (int argc, char * const argv[]) 
 {
-    saga::url rm_url("any://oliver1.loni.org/jobmanager-pbs");
-    GridNPB::TaskController t(rm_url, "/work/oweidner/", 8);
-    t.launch();
+    saga::url rm_url_1("any://oliver1.loni.org/jobmanager-pbs");
+
+    
+    GridNPB::TaskController t1(rm_url_1, 
+                               "/work/oweidner/", 
+                               "checkpt", 
+                               "loni_jha_big",
+                               16);
+
+    
     
     return EXIT_SUCCESS;
 }
