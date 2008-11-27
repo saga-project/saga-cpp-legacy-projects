@@ -8,7 +8,6 @@
 
 #include <string>
 #include <vector>
-#include "../utils/LogWriter.hpp"
 
 namespace MapReduce {
    namespace Master {
@@ -47,7 +46,6 @@ namespace MapReduce {
       class ConfigFileParser {
         private:
          std::string      cfgFilePath_;
-         LogWriter*  log_;
       
          SessionDescription        sessionDesc_;
          std::vector<HostDescription>   targetHostList_;
@@ -55,11 +53,11 @@ namespace MapReduce {
          std::vector<FileDescription>   fileDescList_;
          std::string                    outputPrefix_;
         
-         void parse_(void);
 
         public:
          ConfigFileParser();
-         ConfigFileParser(std::string cfgFilePath, LogWriter &log);
+         ConfigFileParser(std::string cfgFilePath);
+         void parse(void);
         
          SessionDescription             getSessionDescription(void);
          std::vector<BinaryDescription> getExecutableList(void);

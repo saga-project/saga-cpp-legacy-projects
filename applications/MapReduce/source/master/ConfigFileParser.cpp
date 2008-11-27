@@ -10,17 +10,14 @@
 #include "../xmlParser/xmlParser.h"
 
 using namespace MapReduce::Master;
-using namespace std;
 
 ConfigFileParser::ConfigFileParser()
 {
 }
 
-ConfigFileParser::ConfigFileParser(std::string cfgFilePath, MapReduce::LogWriter &log)
-: cfgFilePath_(cfgFilePath), log_(&log)
+ConfigFileParser::ConfigFileParser(std::string cfgFilePath)
+: cfgFilePath_(cfgFilePath)
 {
-  parse_();
-  //generateTestInstance_();
 }
 
 SessionDescription ConfigFileParser::getSessionDescription()
@@ -28,27 +25,27 @@ SessionDescription ConfigFileParser::getSessionDescription()
   return sessionDesc_;
 }
 
-vector<BinaryDescription> ConfigFileParser::getExecutableList()
+std::vector<BinaryDescription> ConfigFileParser::getExecutableList()
 {
   return binDescList_;
 }
 
-vector<FileDescription> ConfigFileParser::getFileList()
+std::vector<FileDescription> ConfigFileParser::getFileList()
 {
   return fileDescList_;
 }
 
-vector<HostDescription> ConfigFileParser::getTargetHostList()
+std::vector<HostDescription> ConfigFileParser::getTargetHostList()
 {
   return targetHostList_;
 }
 
-string ConfigFileParser::getOutputPrefix()
+std::string ConfigFileParser::getOutputPrefix()
 {
   return outputPrefix_;
 }
 
-void ConfigFileParser::parse_(void)
+void ConfigFileParser::parse(void)
 {
   std::string tmp("");
   
@@ -58,26 +55,27 @@ void ConfigFileParser::parse_(void)
     
     // parse the TaskFarmingSession node
     if( NULL != xMainNode.getAttribute("name") )		
-      sessionDesc_.name = xMainNode.getAttribute("name");
+       sessionDesc_.name = xMainNode.getAttribute("name");
     if( NULL != xMainNode.getAttribute("version") )
-      sessionDesc_.version = xMainNode.getAttribute("version");
+       sessionDesc_.version = xMainNode.getAttribute("version");
     if( NULL != xMainNode.getAttribute("user") )
-      sessionDesc_.user = xMainNode.getAttribute("user");
+       sessionDesc_.user = xMainNode.getAttribute("user");
     if( NULL != xMainNode.getAttribute("priority") )
-      sessionDesc_.priority = xMainNode.getAttribute("priority");
+       sessionDesc_.priority = xMainNode.getAttribute("priority");
     if( NULL != xMainNode.getAttribute("experimentID") )
-      sessionDesc_.experimentID = xMainNode.getAttribute("experimentID");
+       sessionDesc_.experimentID = xMainNode.getAttribute("experimentID");
     if( NULL != xMainNode.getAttribute("eventLevel") )
-      sessionDesc_.eventLevel = xMainNode.getAttribute("eventLevel");
+       sessionDesc_.eventLevel = xMainNode.getAttribute("eventLevel");
       
     // parse the OrchestratorDB section
     XMLNode xNode = xMainNode.getChildNode("OrchestratorDB").getChildNode("Host");
     if( NULL != xNode.getText())
-      sessionDesc_.orchestrator = xNode.getText();
+       sessionDesc_.orchestrator = xNode.getText();
     else {
-        std::string message("XML Parser: Orchestrator section not found");
-        log_->write(message, LOGLEVEL_ERROR);
-      }
+       std::string message("XML Parser: Orchestrator section not found");
+       std::cerr << "[Error] " << message << std::endl;
+       throw new xmlParser::exception(message);
+    }
       
     // parse the TargetHosts section
     xNode = xMainNode.getChildNode("TargetHosts");
@@ -95,8 +93,9 @@ void ConfigFileParser::parse_(void)
       if(complete)
         targetHostList_.push_back(hd);
       else {
-       std::string message("XML Parser: Incomplete TargetHost/Host section found");
-        log_->write(message, LOGLEVEL_ERROR);
+         std::string message("XML Parser: Incomplete TargetHost/Host section found");
+         std::cerr << "[Error] " << message << std::endl;
+         throw new xmlParser::exception(message);
       }
     }
             
@@ -119,7 +118,8 @@ void ConfigFileParser::parse_(void)
         binDescList_.push_back(bd);
       else {
         std::string message("XML Parser: Incomplete ApplicationBinaries/BinaryImage section found");
-        log_->write(message, LOGLEVEL_ERROR);
+        std::cerr << "[Error] " << message << std::endl;
+        throw new xmlParser::exception(message);
       }
     }
 
@@ -129,7 +129,8 @@ void ConfigFileParser::parse_(void)
     }
     else {
        std::string message("XML Parser: Incomplete OutputPrefix section found");
-       log_->write(message, LOGLEVEL_ERROR);
+       std::cerr << "[Error] " << message << std::endl;
+       throw new xmlParser::exception(message);
     }
 
     // parse the ApplicationFiles section
@@ -146,8 +147,8 @@ void ConfigFileParser::parse_(void)
       else complete = false;
       if(!complete) {
          std::string message("XML Parser: Incomplete ApplicationFile section found");
-         log_->write(message, LOGLEVEL_ERROR);
-         break;
+         std::cerr << "[Error] " << message << std::endl;
+         throw new xmlParser::exception(message);
       }
       else
          fileDescList_.push_back(fd);
@@ -157,7 +158,7 @@ void ConfigFileParser::parse_(void)
   {
     std::string message("XML Parser FAILED:");
     message.append(e.what());
-    log_->write(message, LOGLEVEL_FATAL);
+    std::cerr << "[Fatal] " << message << std::endl;
     throw e; // propagate exception!
   }
 }

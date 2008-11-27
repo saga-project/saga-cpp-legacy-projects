@@ -4,6 +4,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include "Master.hpp"
+#include "../xmlParser/xmlParser.h"
 
 using namespace MapReduce::Master;
 
@@ -25,6 +26,10 @@ int main(int argc, char* argv[]) {
    }
    catch (saga::exception const& e) {
       std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
+      std::cerr << "Exiting..." << std::endl;
+   }
+   catch (xmlParser::exception const& e) {
+      std::cerr << "xmlParser:  exception caught: " << e.what() << std::endl;
       std::cerr << "Exiting..." << std::endl;
    }
    catch (std::exception const& e) {
