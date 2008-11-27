@@ -1154,11 +1154,375 @@ def
  methods with the same name but only differing in parameter types.
  The same effect can still be archieved in Python since the parameter type
  is not defined in the method declaration.
+ It does give difficulties if SAGA specification has overloaded methods
+ with completely different sets of parameter types.
+\end_layout
+
+\begin_layout Subsubsection*
+Multiple Return Values
+\end_layout
+
+\begin_layout Standard
+Python also supports returning multiple variables from one method call opposed
+ to many other languages.
+ This prevents using special objects which hold more variables or special
+ global variables.
+ The actual returned type is a special read-only list called a tuple, but
+ users can use multiple variables to automatically unpack the tuple among
+ the variables.
+ See algorithm 
+\begin_inset LatexCommand \ref{alg: multi ret values}
+
+\end_inset
+
+ for an example.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float algorithm
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+
+\family typewriter
+def method():
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+variable1 = 'a String'
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+variable2 = 2
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+return variable1, variable2
+\newline
  
 \end_layout
 
 \begin_layout Standard
-Named Parameters, default parameters, return values, overloading
+
+\family typewriter
+var1, var2 = method()
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{alg: multi ret values}
+
+\end_inset
+
+Example of multiple return values in Python
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since the variables are dynamically typed, the same method can return multiple
+ variables of different types.
+ This feature is usable with the 
+\family typewriter
+JobService.run_job() 
+\family default
+method since that method is specified to return the job and three handles
+ to the standard input, output and error.
+\end_layout
+
+\begin_layout Subsubsection*
+Default Parameter Values
+\end_layout
+
+\begin_layout Standard
+In the method declaration it is possible to specify default values for parameter
+s in the method definition.
+ Not all parameters need default values, but those that do specify them,
+ need to be placed at the end.
+ Python needs this order to determine which given value in the method call
+ belongs to which parameter.
+ See algorithm 
+\begin_inset LatexCommand \ref{alg:Expl-defparameters}
+
+\end_inset
+
+ for an example.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float algorithm
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+
+\family typewriter
+def write( buffer, size=3, offset=5):
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+pass
+\newline
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+write( buf )
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+write( buf, 3 )
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+write( buf, 3, 5 )
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+write( buf, offset=5 )
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+write( offset=5, size=3, buffer=buf)
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{alg:Expl-defparameters}
+
+\end_inset
+
+Example of default parameters in Python.
+ Each 
+\family typewriter
+write()
+\family default
+ call has exactly the same parameter values.
+ The 
+\family typewriter
+pass
+\family default
+ statement does nothing, but leaving the method empty will result in a syntax
+ error.
+ Python uses whitespace to define blocks of code, also called suites.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Named Parameters
+\end_layout
+
+\begin_layout Standard
+When looking at the example of algorithm 
+\begin_inset LatexCommand \ref{alg:Expl-defparameters}
+
+\end_inset
+
+ you can notice that in the last two writes the parameter names are explicitly
+ mentioned.
+ This explicit naming of the parameters allows that when dealing with a
+ large amount of defaulted parameters, you can specify which parameters
+ you want to change in the method call instead of specifying all the parameters.
+ An example is shown in algorithm 
+\begin_inset LatexCommand \ref{alg:Example-of-explicitly}
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float algorithm
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+
+\family typewriter
+def method( first=1, second=2, third=3, last = '4'):
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+pass
+\newline
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+method ( last = 'final')
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{alg:Example-of-explicitly}
+
+\end_inset
+
+Example of explicitly naming the parameters
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To improve usability in the Python language binding, deceiding about the
+ order of the defaulted parameters is an interesting issue.
+ A 
+\family typewriter
+File.read()
+\family default
+ call from the SAGA specification defined as 
+\family typewriter
+read(size='-1', buffer=None)
+\family default
+ has a different parameter order than a 
+\family typewriter
+File.write()
+\family default
+ call which is defined as 
+\family typewriter
+write( buffer, size='-1').
+ 
+\family default
+This looks inconsistant, but is done because a data buffer is needed for
+ writing, but is optional for reading.
+ The read data is returned as a string.
+ The amount of data read can be checked by doing a 
+\family typewriter
+len()
+\family default
+ call with the string as parameter, i.e: 
+\family typewriter
+len(returnedString)
+\family default
+ 
+\end_layout
+
+\begin_layout Subsubsection*
+Different Data Types
+\end_layout
+
+\begin_layout Standard
+Although Python supports many data types, it misses some types which are
+ standard in other languages and are mentioned in GFD.90.
+ These include enum, byte and char.
+ Characters are just strings with a length of one.
+ The array package does have notion of a character to store strings of length
+ one, but there is no separate data type.
+\end_layout
+
+\begin_layout Standard
+Python has no notion of an enum, but this can be solved in different ways.
+ First of all, a class can be constructed containing all the values from
+ the enum, such as the Flag enums in the SAGA specification.
+ Another solution is to use dictionaries, which have similarities with hashtable
+s in other languages.
+ Dictionaries are commenly used in Python, but their syntax is less straightforw
+ard than using simple objects filled with variables.
+\end_layout
+
+\begin_layout Standard
+The byte data type is missing from Python.
+ This causes some confusion how to specify and implement the mutable Buffer
+ defined in SAGA.
+ The Buffer encapsulates a sequence of bytes to use in read and write operations
+ and is an essential part of SAGA.
+ A possibility is to deny users to use application managed buffers and use
+ implementation managed buffers only, but this would limit the use of Buffers
+ in SAGA and exclude a part of SAGA from the language binding.
+ There is no standard to use buffers and they are not available in Python.
+ Users could write their own buffer library, but it defeats the platform
+ independent principle.
+ 
+\end_layout
+
+\begin_layout Standard
+A solution was found in using arrays of chars.
+ Arrays are guaranteed to contain only the specified data type and if characters
+ are read or written they are immediatly visable to users.
+ Problems may arise if underlying implementations use different encodings
+ for the characters, like unicode, but that should be solved the programmers
+ implementing the language binding.
+ Suggestions were made to me to completly remove the buffers since they
+ would be 'not Pythonesque' or 'Pythonic'
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Although 'Pythonic' is an extremely vague term, Python programmers generally
+ assume there is only one correct way to do something.
+ Other solutions are not Pythonic.
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Python also has support for numbers.
+ Normally programmers will only need an int.
+ Int is internally implemented as a C long.
+ If the int overflows because two very large numbers are multiplied, Python
+ will automatically switch to a long.
+ Longs can be arbitrarily long.
+ Python has no double but only a double-precision float.
+ Shorts are also not available in Python.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1192,6 +1556,10 @@ All Modules Specified with Design Decisions
 
 \begin_layout Section
 Implementation
+\end_layout
+
+\begin_layout Standard
+variable classes not write protected
 \end_layout
 
 \begin_layout Subsection
