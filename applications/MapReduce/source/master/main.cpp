@@ -27,14 +27,17 @@ int main(int argc, char* argv[]) {
    catch (saga::exception const& e) {
       std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
       std::cerr << "Exiting..." << std::endl;
+      return 255;
    }
    catch (xmlParser::exception const& e) {
       std::cerr << "xmlParser:  exception caught: " << e.what() << std::endl;
       std::cerr << "Exiting..." << std::endl;
+      return 255;
    }
    catch (std::exception const& e) {
       std::cerr << "std:  exception caught: " << e.what() << std::endl;
       std::cerr << "Exiting..." << std::endl;
+      return 255;
    }
    catch (...) {
       std::cerr << "FATAL Exception caught!" << std::endl << "Exiting..." << std::endl;

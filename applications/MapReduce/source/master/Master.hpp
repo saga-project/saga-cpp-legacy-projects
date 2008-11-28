@@ -34,21 +34,10 @@ namespace MapReduce {
          ***************************************/
          Master(int argC, char **argV) {
             boost::program_options::variables_map vm;
-            try {
-               if (!parseCommand(argC, argV, vm))
-                  throw saga::exception("Incorrect command line arguments", saga::BadParameter);
-            }
-            catch(saga::exception const& e) {
-               throw;
-            }
+            parseCommand(argC, argV, vm);
             std::string configFilePath (vm["config"].as<std::string>());
             cfgFileParser_ = ConfigFileParser(configFilePath);
-            try {
-               cfgFileParser_.parse();
-            }
-            catch(xmlParser::exception const& e) {
-               throw;
-            }
+            cfgFileParser_.parse();
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
             outputPrefix_  =  cfgFileParser_.getOutputPrefix();
             // create a UUID for this agent
