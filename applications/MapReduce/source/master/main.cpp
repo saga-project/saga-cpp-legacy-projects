@@ -5,6 +5,7 @@
 
 #include "Master.hpp"
 #include "../xmlParser/xmlParser.h"
+#include <boost/scoped_ptr.hpp>
 
 using namespace MapReduce::Master;
 
@@ -17,15 +18,15 @@ class MasterImpl : public Master<MasterImpl> {
       saga::size_t const KB64 = 67108864;
       saga::size_t bytesRead;
       saga::url urlFile(fileArg);
-      char data[KB64+1];
+      boost::scoped_array<char> data(new char[KB64+1]);
       saga::filesystem::file f(urlFile, mode);
-      while((bytesRead = f.read(saga::buffer(data,KB64))) != 0) {
+      while((bytesRead = f.read(saga::buffer(data.get(),KB64))) != 0) {
          saga::size_t pos;
          int gmode = saga::filesystem::Write | saga::filesystem::Create;
          saga::filesystem::file g(saga::url(fileArg + "chunk" + boost::lexical_cast<std::string>(x)), gmode);
          if(bytesRead < KB64)
          {
-            g.write(saga::buffer(data, bytesRead));
+            g.write(saga::buffer(data.get(), bytesRead));
             retval.push_back(g.get_url());
          }
          else
@@ -37,7 +38,7 @@ class MasterImpl : public Master<MasterImpl> {
                }
             }
             int dist = -(bytesRead-pos);
-            g.write(saga::buffer(data, pos));
+            g.write(saga::buffer(data.get(), pos));
             f.seek(dist,saga::filesystem::Current);
             retval.push_back(g.get_url());
             x++;
