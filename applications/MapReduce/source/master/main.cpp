@@ -11,6 +11,40 @@ using namespace MapReduce::Master;
 class MasterImpl : public Master<MasterImpl> {
   public:
    MasterImpl(int argC, char **argV) : Master<MasterImpl>(argC,argV) {}
+   void chunker(std::vector<saga::url> &retval, std::string fileArg) {
+      int mode = saga::filesystem::Read;
+      int x=0;
+      saga::size_t const KB64 = 67108864;
+      saga::size_t bytesRead;
+      saga::url urlFile(fileArg);
+      char data[KB64+1];
+      saga::filesystem::file f(urlFile, mode);
+      while((bytesRead = f.read(saga::buffer(data,KB64))) != 0) {
+         saga::size_t pos;
+         int gmode = saga::filesystem::Write | saga::filesystem::Create;
+         saga::filesystem::file g(saga::url(fileArg + "chunk" + boost::lexical_cast<std::string>(x)), gmode);
+         if(bytesRead < KB64)
+         {
+            g.write(saga::buffer(data, bytesRead));
+            retval.push_back(g.get_url());
+         }
+         else
+         {
+            for(int y=bytesRead; y >= 0;y--) {
+               if(data[y]==' ') {
+                  pos=y;
+                  break;
+               }
+            }
+            int dist = -(bytesRead-pos);
+            g.write(saga::buffer(data, pos));
+            f.seek(dist,saga::filesystem::Current);
+            retval.push_back(g.get_url());
+            x++;
+            for ( unsigned int i = 2; i <= KB64; ++i ) { data[i] = '\0'; }
+         }
+      }
+   }
 };
 
 /*********************************************
