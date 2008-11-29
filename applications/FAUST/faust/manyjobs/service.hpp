@@ -19,6 +19,7 @@
 #include <faust/faust/defines.hpp>
 #include <faust/faust/logwriter.hpp>
 
+#include <faust/manyjobs/state.hpp>
 #include <faust/manyjobs/job.hpp>
 #include <faust/manyjobs/service.hpp>
 #include <faust/manyjobs/description.hpp>
@@ -40,7 +41,7 @@ namespace faust
     };
     
     // forward decl. 
-    class job; 
+    class job; class job_group; 
     
     ///@cond - exclude from Doxygen
     typedef boost::shared_ptr<job> job_ptr;
@@ -94,15 +95,43 @@ namespace faust
        */
       ~service();
       
-      /*! \brief  Tries to create a new %job instance described by
-       *          %job %description.
-       *  \return A new job object. 
+      /*! \brief  Creates a new %job instance without dependencies ('top-level %job') 
+       *          based on the provided %job %description.
+       *
+       *  \return A new job object pointer. 
        * 
        */
-      faust::manyjobs::job * create_job(faust::manyjobs::description job_desc);
+      job * create_job(description job_desc);
+
+      /*! \brief  Creates a new 'sub-job' instance which execution state depends
+       *          on the state of the %job identified by job_id. 
+       *
+       *  \return A new job object pointer. 
+       * 
+       */
+      job * create_job(description job_desc, std::string job_id, state job_state);
+
+      
+      /*! \brief  Creates a new %job instance without dependencies ('top-level %job') 
+       *          based on the provided %job %description.
+       *
+       *  \return A new job object pointer. 
+       * 
+       */
+      job_group create_job_group(std::vector<description> job_descs);
+      
+      /*! \brief  Creates a new group of %jobs ('sub-job') instance which all 
+       *          depend on the state of the %job identified by job_id. 
+       *
+       *  \return A new job object pointer. 
+       * 
+       */
+      job_group create_job_group(std::vector<description> job_descs, 
+                                           std::string job_id, state job_state);
       
       /*! \brief  Lists the IDs of all jobs that are currently 
        *          associated with this %service instance.
+       *
        *  \return List of job identifiers.
        * 
        */
