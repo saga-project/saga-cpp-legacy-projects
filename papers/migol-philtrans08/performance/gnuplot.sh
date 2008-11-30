@@ -40,7 +40,7 @@ set xrange [0.5:4.7]
 set yrange [0:50] 
 set boxwidth 0.8 relative
 set style fill solid 0.9
-# set linestyle 1 lt 1 lw 50
+#set linestyle 1 lt 1 lw 50
 #"data.txt" using 1:2:6 title "Job Startup Time" with boxes linetype 1  fs solid 0.25,\
    
 set output "perf_submission.eps" 
@@ -161,10 +161,12 @@ set yrange [0:140]
 set ytics (10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140)   
 #set xrange [0.9:9.25]  
 set xrange [1.95:16.5]
-set xtics (1,2,4,8,16)
+set xtics (1,2,4,8,16)   
+#set style line  1 linewidth 16 
+#set style line  2 linewidth 12 
 
-plot  "data_re_numberresources_tc.txt" using 4:3 title "With Glide-In" with lp linewidth 3,\
-      "data_re_numberresources_tc.txt" using 4:2 title "Without Glide-In" with lp linewidth 3
+plot  "data_re_numberresources_tc.txt" using 4:3 title "With Glide-In" with lp linewidth 4,\
+      "data_re_numberresources_tc.txt" using 4:2 title "Without Glide-In" with lp linewidth 4
 
 set output "perf_glidein_tc_64ex.eps"
 set xtics ("No Glide-In" 1, "With Glide-In" 2.0, "2 Glide-Ins" 3.0, "4 Glide-Ins" 4.0)
