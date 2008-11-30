@@ -1,0 +1,2203 @@
+%\documentclass[times, 10pt, twocolumn]{article} 
+%\documentclass[conference,final]{IEEEtran}
+     
+\documentclass{rspublic}   
+
+%\usepackage{latex8}
+%\usepackage{times}
+
+%\documentstyle[times,art10,twocolumn,latex8]{article}
+
+%------------------------------------------------------------------------- 
+% take the % away on next line to produce the final camera-ready version 
+%\pagestyle{empty}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{float}
+\usepackage{times}    
+\usepackage{multirow}    
+\usepackage{listings}   
+\usepackage{times}     
+\usepackage{paralist}    
+\usepackage{wrapfig}    
+\usepackage[small,it]{caption}
+\usepackage{multirow}
+\usepackage{ifpdf}    
+\usepackage{subfig} 
+                    
+%Bibliography                     
+\usepackage{natbib}   
+
+\usepackage{listings}
+\usepackage{keyval}  
+\usepackage{color}
+\definecolor{listinggray}{gray}{0.95}
+\definecolor{darkgray}{gray}{0.7}
+\definecolor{commentgreen}{rgb}{0, 0.4, 0}
+\definecolor{darkblue}{rgb}{0, 0, 0.4}
+\definecolor{middleblue}{rgb}{0, 0, 0.7}
+\definecolor{darkred}{rgb}{0.4, 0, 0}
+\definecolor{brown}{rgb}{0.5, 0.5, 0}
+
+\lstdefinestyle{myListing}{
+  frame=single,   
+  backgroundcolor=\color{listinggray},  
+  %float=t,
+  language=C,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  aboveskip=0em,
+  %numbers=left, 
+  %numberstyle=\tiny
+}      
+
+\lstdefinestyle{myPythonListing}{
+  frame=single,   
+  backgroundcolor=\color{listinggray},  
+  %float=t,
+  language=Python,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  %numbers=left, 
+  %numberstyle=\tiny
+}
+
+
+\title[Adaptive Distributed Replica-Exchange Simulations]{Adaptive Distributed
+  Replica-Exchange Simulations}
+
+% \title[Distributed Replica-Exchange Simulations]{ Distributed
+%   Replica-Exchange Simulations on Production Environments using SAGA
+%   and Migol}
+
+% \title{Reliable Replica-Exchange Simulations of Biomolecular Systems
+%   on Production Distributed Environments using SAGA-CPR and Migol}
+% Computational Grids using SAGA-CPR and Migol}
+
+
+\author[Luckow, Jha, Kim, Merzky, Schnor]{
+  Andr\'e Luckow$^{1}$, Shantenu Jha$^{2,3,4}$, Joohyun Kim$^{2}$, Andre Merzky$^{2}$ and Bettina Schnor$^{1}$\\
+  \small{\emph{$^{1}$Institute of Computer Science, Potsdam University, Germany}}\\
+  \small{\emph{$^{2}$Center for Computation \& Technology, Louisiana State University, USA}}\\
+  \small{\emph{$^{3}$Department of Computer Science, Louisiana State
+      University, USA}}\\
+  \small{\emph{$^{4}$e-Science Institute, Edinburgh, UK}}\\
+}
+
+%\date{}
+
+\def\acknowledgementname{Acknowledgements}
+\newenvironment{acknowledgement}%
+{\section*{\acknowledgementname}%
+\parindent=0pt%
+}
+
+\newif\ifdraft
+%\drafttrue
+\ifdraft
+\newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
+\else
+\newcommand{\kimnote}[1]{}
+\newcommand{\alnote}[1]{}
+\newcommand{\amnote}[1]{}
+\newcommand{\jhanote}[1]{}
+\fi
+
+\newcommand{\I}[1]{\textit{#1}}
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\T}[1]{\texttt{#1}}
+
+\newcommand{\glidein}[1]{Glide-In }  
+\newcommand{\replicaagent}[1]{Replica-Agent }         
+\newcommand{\remanager}[1]{RE-Manager }
+
+\begin{document} 
+
+
+\maketitle    
+
+\begin{abstract}{Replica-Exchange, SAGA, Migol, Fault Tolerance}  
+  % There exists a class of scientific applications for which
+  % utilizing distributed resources is critical for reducing the
+  % time-to-solution. However, try to avoid redundancy within the
+  % abstract - BS
+
+%   One challenge arises from the need to orchestrate many tasks over
+%   multiple resources; another arises from the desire to create an
+%   infrastructure independent approach.
+%   is helpful, if not critical for the effective solution of the
+%   scientific problem.
+
+  The ability to effectively utilise multiple distributed resources to
+  reduce the time-to-completion remains a challenge at many levels.
+  We discuss the Replica-Exchange class of applications, which in
+  principle, due to the loose-coupling of the sub-tasks (replicas),
+  can benefit greatly from utilising as many resources as available.
+  % --  distributed or otherwise.  
+  An implementation of a {\it  pleasingly-distributed} algorithm such 
+  as Replica-Exchange, that
+  is independent of infrastructural details, however, does not exist.
+  This paper proposes an extensible and scalable framework based on
+  SAGA and Migol that provides a general-purpose, opportunistic
+  mechanism to effectively utilise multiple resources in an
+  infrastructure independent way. By analysing the requirements of the
+  Replica-Exchange algorithm and the challenges of implementing it on
+  real production systems, we propose a new abstraction (BigJob),
+  which forms the basis of the adaptive redistribution of replicas and
+  the effective scheduling of the multiple sub-tasks.
+  
+  \jhanote{AndreL: I changed resources in the last sentence to
+    replicas. Let me know if you agree?}
+
+  \jhanote{Just as a general remark, if we have adaptive in the title,
+    it is only proper that we also have the word ``Adaptive'' in the
+    abstract}
+
+  % Looks like buzzword parade to the reader - I prefer to skip it The
+  % implementation of our framework can be used in clusters and Grid
+  % supporting single-processor as well as multi-processor simulations
+  % that require tightly-coupled resources.
+
+  % SAGA is a high-level programmatic abstraction layer that provides
+  % a standardised interface for the distributed functionality
+  % required for application development. Migol provides the
+  % underlying middleware which ensures the reliable execution of
+  % applications even in the presence of failures.
+
+ % SAGA~\citep{saga_gfd90} and Migol~\citep{schnorLuckow08} for
+
+  \jhanote{In this paper, we describe the design, development and
+    deployment of a unique framework for constructing fault-tolerant
+    distributed simulations.}
+
+  \jhanote{Less emphasis on the SAGA/Migol framework: The framework
+    consists of two primary components -- SAGA and Migol, is scalable,
+    general purpose and extensible.}
+
+  \jhanote{I think this can go: We provide details of a newly
+    developed functionality in SAGA -- the Checkpoint and Recovery
+    API. Migol is an adaptive Grid middleware, which addresses the
+    fault tolerance of Grid applications and services by providing the
+    capability to recover applications from checkpoint files
+    transparently.  In addition to describing the integration of
+    SAGA-CPR with the Migol infrastructure,} \alnote{I added a small
+    note about Migol to the abstract (I tried to keep it short.)}
+
+  \jhanote{We also outline our experiences with running a large scale,
+    general-purpose, SAGA-CPR based RE application in a
+    production distributed environment.}
+
+\end{abstract}
+
+\section{Introduction}
+
+\jhanote{General Remark: Replica-Exchange is used as i) application
+  class, ii) algorithm, and iii) simulations. We'll need to be
+  careful. Fundamentally it is a class-of-algorithms, one which
+  applications are based and simulations of which are carried out!}
+
+\jhanote{General Remark: We are using RE and Replica-Exchange interchangeably?
+  In principle, once we've defined RE (I think in Section 1 itself), we 
+  should just use RE and not Replica-Exchange. AndreL: Can you make this
+  consistent please?}
+\alnote{Ok. RE is consistently used (except in captions)}
+
+\jhanote{Need to add what is the unique contribution of this work? How
+  it extends earlier work and forms the basis of future work.. (maybe
+  this goes into the conclusion section)}
+
+%%%%% problem setting: pleasingly distributed RE
+Several classes of applications are well suited for distributed
+environments. Probably the best known and most powerful examples are
+those that involve an ensemble of decoupled tasks, such as simple
+parameter sweep applications~\citep{1239909}.  \jhanote{Can we put a
+  simple reference here? Either to a famous parameter sweep study, or
+  to a system such as APST that supports parameter studies}
+\alnote{Since I am not sure how famous the application must be (MC
+  e.g.?), I referenced the APST paper, which provides a good
+  introduction to parameter sweeps. Should we detail what the system
+  does or just cite it?}  \jhanote{I think just citing it is
+  sufficient. Thanks.}  A slightly more complicated and challenging
+class of distributed applications are those that have a degree of
+coupling between individual sub-tasks.  An interesting example of such
+applications are those based upon the \emph{Replica-Exchange
+  (RE)}~\citep{hansmann,Sugita:1999rm} algorithm. \jhanote{Was
+  simulation before algorithm... We were making sloppy errors
+  here.. for example equating applications and simulations!} RE
+simulations are used to understand important physical phenomena --
+ranging from protein folding dynamics to binding affinity calculations
+required for computational drug discovery.
+  
+%%%%% RE nature of the problem
+RE simulations involve the concurrent execution of multiple
+simulations -- the \emph{replicas}. The coupling between replicas
+takes place in the form of periodic exchange attempts between paired
+replicas. Typically, coupling occurs infrequently compared to the
+run-time of each replica, and is small in terms of communication
+bandwidth requirements; thus RE is {\it prima facie} a perfect
+algorithm to exploit distributed resources. We label such a class of
+algorithms as {\it pleasingly-distributed}.
+
+% Despite their essentially loosely-coupled nature, RE simulations
+% require a level of coupling: the coupling is in the form of exchanges
+% that occurs infrequently compared to the run-time between exchanges,
+% and it is small in that the communication bandwidth requirement is
+% small.  Thus, RE is {\it prima facie} a perfect algorithm to exploit
+% heterogenous, loosely-coupled distributed resources.
+
+%%%%% related work
+Most RE implementations are either infrastructure
+specific~\citep{Woods:2005nx}, or if using multiple distributed
+resources, require prior co-scheduling~\citep{repex_mpig}. 
+%of distributed resources
+% Work reported in Ref[~\citep{repex_mpig}] 
+The work reported by Manos is an important example of
+first-generation Grid applications, wherein the effectiveness of
+coupling multiple distributed resources for scientific problems has
+been demonstrated.  \jhanote{AndreL, I know we are short on space, but
+  the above line is politically important and will help smoothen the
+  passage of this paper} The real power of distributed systems
+however, arises from adaptive algorithms and implementations that
+provide applications with an agile execution model, and thus the
+ability to utilise resources dynamically, as opposed to a static
+execution model inherited from parallel and cluster computing.
+Unfortunately, the barrier to the development of such adaptive
+applications is high and the infrastructure  support 
+%for applications with dynamic resource utilisation requirements 
+is poor.  Therefore, it is
+not surprisingly that not many adaptive applications exist. Specifically,
+there is no implementation of an adaptive RE algorithm, 
+which is both able to effectively and reliably
+utilise multiple distributed resources without prior scheduling as
+well as being independent of any specific %computational platform or
+infrastructure.
+                      
+%%%%% reference to contribution of escience paper
+To address heterogeneity and failures, which are both inherent
+characteristics of distributed environments, we demonstrated the use of
+the \textit{Simple API for Grid Applications (SAGA)}~\citep{saga_url}, 
+in particular its Checkpoint Recovery (CPR) package, and of
+the Migol middleware~\citep{schnorLuckow08} to build a reliable RE
+application (see~\citet{Luckow:2008la}).
+% Further, we showed its usability on several different resources.
+In general, SAGA and Migol provide the tools for developing a broad
+range of applications, of which RE is a specific example.
+% of a loosely-coupled application. 
+Implementing such a framework 
+%with the ability to handle faults and heterogeneity, 
+was an important first-step on the critical-path
+towards developing a framework that can support adaptive RE simulations on
+production-level infrastructure.
+
+%%%%% contributions of this paper  
+% \jhanote{I'm not convinced the reader knows what
+%   ``the framework'' at this stage means. Are you?}
+% \alnote{not quite,
+%   added RE to make ``the framework'' more concrete}
+% This paper arises from practical considerations related to the
+% deployment of a distributed, loosely-coupled application.  
+In this paper we address
+some of the challenges and performance bottlenecks encountered when
+performing RE simulations over multiple distributed resources,
+%the RE framework 
+%A major concern that arises for example, is the overall
+such as the overall slowdown due to synchronisation arising from the
+light-coupling and the lack of co-scheduled resources. Production
+distributed environments in their current incarnation are manifest as
+an aggregation of multiple single-resources, and although there are some
+initial attempts at supporting co-scheduled resources for
+tightly-coupled simulations~\citep{repex_mpig}, there are insufficient
+attempts at supporting a broader range of distributed and collective
+modes of operations, such as required for loosely-coupled
+applications.  For example, current infrastructure does not provide
+efficient {\it ap\-pli\-cation-level} mechanisms for co-ordinated resource
+sharing. One approach to rectify these deficits are system-level
+abstractions that allow applications to effectively utilise
+distributed resources concurrently.
+
+% \jhanote{Andre L please let me know if you
+%   agree with this addition? -- ``in combination with the Glide-In
+%   mechanism''} \alnote{As AM pointed out in his mail, we probably
+%   need to explain the difference between BigJob and Glide-In a little
+%   better. I am not sure whether it confuses the reader too much.}
+
+The unique contribution of this paper is the implementation of a RE
+framework that overcomes the described limitations, by being able to
+adapt at runtime to a change in resource availabilities and
+application resource requirements. The framework utilises the
+\emph{BigJob} abstraction, which % in combination with the Glide-In mechanism,
+allows the efficient dispatching of jobs by grouping smaller sub-jobs
+% utilisation of distributed resources without prior co-scheduling 
+into a larger job. 
+%  \jhanote{I'm wondering if we should call BigJob
+%   novel or is the framework that is
+%   novel?}  
+% \alnote{I would call the abstraction novel. As we learned today there
+% are a couple of Glide-In frameworks out there.} 
+% % The BigJob abstraction also serves as basis for
+% % supporting adaptive RE simulations.
+% \jhanote{Also in the previous sentence, I agree with the first part --
+%   ``bigjob allows the utilisation of distributed resources without
+%   prior scheduling'', but dont agree with the latter part of the
+%   sentence, ie this is achieved by grouping smaller-jobs into a larger
+%   job. this bit allows the individual jobs to be efficiently
+%   scheduled, not distributed utilisation. Does this make sense?}
+% \jhanote{Remember this is a paragraph in the opening/introduction
+%   section, hence will be scrutinised more carefully} \alnote{Agree, I
+%   dropped the co-scheduling stuff from the sentence before, since the
+%   remainder of the paragraph focuses on adaptiveness.}  
+The RE framework relies on the \emph{BigJob} abstraction not only for
+dispatching replica jobs, but also adds higher-level functionality by
+allowing the dynamic utilisation of additional resources as they
+become available.  Our implementation is both independent of 
+platform and infrastructure details, and can respond gracefully to
+failures.  We present data that validates the claim that as more
+resources become available our framework can opportunistically employ
+these resources to lead to a reduction in the time-to-completion of
+the scientific problem.  
+
+% Although the tests we report here are still
+% experiments (i.e., we are not reporting science results in this
+% paper), it is critical to note, that our tests are performed on
+% production infrastructure, such as the TeraGrid under exact conditions
+% encountered by application-scientists and not on research
+% infrastructure such as Grid5000~\citep{iosup07}.  \jhanote{suitable
+%   reference here please}\alnote{added}
+
+
+%%%%%%%%%%%%%  Shantenu original %%%%%%%%%%%%%                                                  
+% The heterogeneity and dynamism of a computational Grid results in
+% increased difficulty and complexity in developing and deploying
+% adaptive, distributed applications.  
+% To master this complexity, a well-defined programming abstraction as 
+% well as a sophisticated middleware is required. 
+% The abstraction should allow scientists to
+% focus on the application logic, while the middleware provides critical
+% services, such as reliable job management and monitoring.
+% However, abstractions that enable effective distributed application development,
+% are not sufficient.  Distributed applications need to operate 
+% and execute in real production environments; 
+% however, production distributed environments are in
+% their current implementation and incarnation upto now, the aggregation
+% of multiple single-resources and there are no explicit attempts at
+% supporting the collective, distributed mode of operations.  For
+% example, production infrastructure does not provide a mechanism for
+% co-ordinated resource sharing; one approach to rectify this deficit is
+% via system-level abstractions from which such higher-level
+% functionality can be provided.
+
+% Some applications can respond to such failures via redundant or
+% speculative computing.  However, redundant computing has its
+% limitations, especially when there is a level of heterogeneity and
+% coupling between tasks.  Speculative computing is still possible, but
+% its use to mitigate the consequence of distributed failures, leads to
+% a whole host of load-balancing and scheduling problems.  
+        
+% \jhanote{Need to consider this paragraph a bit more carefully. Could
+%   go against us.}         
+
+% The unique contribution of this paper is the implementation of a
+% framework that enables the effective collective utilisation of
+% multiple distributed resources that overcomes production-grade
+% infrastructure limitations without prior co-scheduling. 
+% Our implementation is both independent
+% of the platform and infrastructure details, and can respond gracefully
+% to fault-tolerance.  We present preliminary data that validates the
+% claim that as more resources become available our framework can
+% opportunistically employ these resources to lead to a reduction in
+% the time-to-completion of the scientific problem.    
+
+The remainder of the paper is structured as follows: In the next
+section we provide the basic ideas behind RE and specifically
+RE using Molecular Dynamics (REMD) simulations.  
+% We then
+% briefly discuss the SAGA/Migol fault-tolerant framework in
+% section~\ref{sec:sagamigol}.  
+In section~\ref{sec:remd_impl}, we
+describe the details of a REMD application implemented using the
+SAGA/Mi\-gol framework. Section~\ref{sec:glidein} discusses the new
+BigJob abstraction and the SAGA Glide-In framework.  We highlight
+different adaptivity strategies for supporting dynamic applications in
+section~\ref{sec:adaptivitiy}.  In the subsequent section we discuss
+the deployment and results of experiments using the SAGA based
+RE framework on the TeraGrid.  We conclude by discussing
+related work -- which will highlight the unique features
+of our implementation, and provide a glimpse of future work
+in this direction.
+
+\jhanote{AndreL: if we don't provide a mention of future work at the
+  end, please highlight: i) the use of intelligent placement ii)
+  using this to solve real Riboswitch problem. Use this citation
+  please: Huang, Wei; Aboul-ela, Fareed; Jha, Shantenu; Boyapati,
+  Vamsi. Computational study of conformational switching of s-box
+  riboswitch. Poster at 235th ACS National Meeting, New Orleans, LA,
+  United States, April 6-10, 2008 (2008), BIOL-182. at
+  http://www.cct.lsu.edu/~whuang/}       
+\alnote{added}
+
+
+\section{Replica-Exchange Molecular Dynamics}
+\alnote{I restructured this section: 1) general introduction to MD
+  problems and further motivation for RE algorithm 2)
+  Structure/Classification of REMD algorithms}  In Molecular
+Dynamics (MD) approaches, a sufficient sampling of configurations is
+an important requirement for connecting atomistic results to
+macroscopic or thermodynamic quantities available from experiments.
+However, even with the most powerful computing resources at the
+moment, straightforward MD simulations are unable to reach the
+relevant time-scales required to study conformational changes and
+searches. This is partly due to the inherent limitations in the MD
+algorithm -- a global synchronization is required at the end of each
+time step.  This provides an important motivation for research into
+finding ways to accelerate sampling and enhance ``effective''
+time-scales studied. Generalized ensemble approaches -- of which
+Replica-Exchange Molecular Dynamics (REMD)~\citep{Sugita:1999rm} are a
+prominent example -- represent an important and promising attempt to
+overcome the general limitations of insufficient time-scales, as well
+as specific limitations of inadequate conformational sampling arising
+from kinetic trappings.  The fact that one single long-running
+simulation can be substituted for an ensemble of shorter-running
+simulations, make these ideal candidates for distributed environments.
+
+RE simulations can be thought of as consisting of
+two distinct components: the underlying simulation engine/mechanism
+used for each replica, and the coupling-mechanism between the
+individual replicas.  It is important to note that RE is in fact a
+class of algorithms and not a specific
+algorithm~\citep{dpa-paper}; for example, there can be not only
+different simulation strategies -- such as the Monte Carlo and the
+described MD approach -- but also multiple levels-of-coupling.  
+
+The degree and frequency of coupling and exchange can be either
+regular~\citep{hansmann,Sugita:1999rm}, or
+irregular~\citep{PhysRevLett.86.4983,pande_bj03}. An example of the latter --
+parallel replica dynamics as implemented in Folding@home
+\citep{folding} involves coordination between replicas only when an
+``event'' occurs.  In contrast, for regular RE applications, attempts
+to exchange states between certain pairs occur at fixed intervals. A
+major challenge common to both types is the design,
+development and deployment of a general purpose RE framework for
+distributed environments.
+
+
+% \section{SAGA/Migol: Providing a Fault-Tolerant Framework for
+%   Distributed Applications}\label{sec:sagamigol}
+% %for Replica-Exchange Simulations}\label{sec:sagamigol}
+% 
+% % Fault Tolerance
+% \jhanote{I think we need just a paragraph or two at most, outlining
+%   what SAGA Migol does and why it is required critically for the
+%   replica exchange applications. Reference the IEEE e-Science paper
+%   and say that details of the integration of SAGA-Migol are presented
+%   there.}
+% 
+% % Distributed computing environments are inherently prone to 
+% % failures~\citep{schroeder,10.1109/E-SCIENCE.2006.93,DBLP:conf/grid/KhaliliHOSC06}. 
+% % The more resources involved, the greater the probability of a failure.
+% % Replica-Exchange simulations are very fragile: the loss of a single
+% % replica process due to a node or network failure usually causes the
+% % abort of the entire simulation. Thus, the middleware must detect and
+% % resolve failures, such as the crash of the Globus GRAM or of a
+% % resource running parts of the RE application, accurately.
+% 
+% Distributed systems are inherently prone to
+% failures~\citep{schroeder,10.1109/E-SCIENCE.2006.93}; distributed
+% applications must be able to cope with different failure modes.  In
+% particular, RE simulations are very fragile: the loss of a single
+% replica due to a node or network failure could cause intolerable levels
+% of slowdown if not a total abortion of the simulation.  The framework
+% used to implement a fault-tolerant REMD consists of two primary
+% components: the SAGA and Migol~\citep{schnorLuckow08}.  While
+% SAGA represents a well-defined, standardized interface for writing
+% Grid applications, Migol provides the underlying middleware services
+% to guarantee the correct and reliable exe\-cution of applications even
+% in the presence of failures. \jhanote{I substituted abstraction with
+%   interface; want to keep the use (or misuse) of abstraction to be
+%   consistent with what is defined in Section 5} SAGA and Migol offer a
+% scalable, general purpose and extensible environment for developing
+% resilient Grid applications.  Migol has been seamlessly integrated
+% with the SAGA C++ reference implementation~\citep{Kaiser:2006qp} using
+% the provided adaptor mechanism. Details of the SAGA/Migol integration
+% are described in~\citet{Luckow:2008la}.
+% 
+% % Migol is an adaptive Grid middleware that provides several mechanisms
+% % for supporting the fault tolerance of distributed applications.
+% 
+% The SAGA-CPR API provides a high-level programming interface for
+% starting, monitoring and recovering of checkpoint-restartable jobs. To
+% support these use cases, applications can register checkpoint and job
+% metadata with a Grid middleware, such as Migol, using this API.  Migol
+% can then automatically detect and transparently handle common
+% failures, such as node or application crashes. For recovery Migol
+% relies on application-level checkpointing to ensure that the amount of
+% lost computation is minimized. The application is solely responsible
+% for registering job and checkpoint metadata with the central registry
+% service of Migol. Once registered, Migol will handle the monitoring
+% and, if necessary, the recovering of the application.
+% 
+% 
+% 
+% % Using the powerful capabilities provided by SAGA-CPR, applications can
+% % easily and reliable orchestrate hundreds of checkpoint-restartable
+% % tasks and benefit from an adaptive infrastructure such as Migol at the
+% % same time.
+% 
+% 
+% % The framework is based on the Globus Toolkit 4.  
+% 
+% 
+% 
+% \jhanote{Are we using SAGA-CPR Migol here for checkpointing? or
+%   error/fault detection} 
+% \alnote{We support SAGA-CPR/Migol in the code... No experiments done though}  
+% 
+% \alnote{Almost all of this issues are mentioned in the introductions,
+%   I am therefore not sure whether we still need this section?
+%   Shantenu, what do you think}
+% 
+% \jhanote{I've kind of reduced mention/details of SAGA/Migol in the
+%   introduction (so as to focus on the new stuff), so its OK here now,
+%   I think}    
+
+% Programming abstraction Implementing a RE application that is
+% capable of running in a heterogeneous and distributed environment is
+% a complex task. RE simulations involve the parallel orchestration of
+% many replica jobs. To master this complexity, a well-defined
+% programming abstraction as well as a sophisticated middleware is
+% required. The abstraction should allow scientists to focus on the
+% application logic, while the middleware provides critical services,
+% such as reliable job management and monitoring.
+% 
+% % Synchronization & Scheduling issues
+% Despite their mostly loosely coupled nature, RE simulations require
+% a small level of coupling.  The central master, the RE-Manager, must
+% periodically obtain the results, i.\,e.\ the energy levels, of all
+% replicas to determine the new configuration of the next RE step.  
+% This significantly limits the applicability of RE to heterogenous 
+% distributed environments, such as Grids.  Even on a single machine 
+% the required synchronization leads
+% to various load-balancing and scheduling issues. In distributed
+% environments jobs often experience large slowdowns due to
+% long queueing times in particular when using production resources. 
+% Such delays can have a severe impact on the overall time to
+% completion.                                                    
+% In our earlier experiments~\citep{Luckow:2008la} this obstacle  
+% became evident -- for individual RE runs on a single machine, 
+% as well as for runs across different heterogeneous resources.
+% Especially when running replicas across multiple resources, 
+% a single crowded resource can delay the completion of the 
+% simulation arbitrary. Thus, an efficient mechanism for dispatching 
+% sub-jobs across multiple distributed resources
+% is required.
+%                  
+% % Fault Tolerance
+% Another important issue in error-prone distributed environments is
+% fault tolerance.  Especially RE simulations are very fragile: the
+% loss of a single replica due to a node or network failure
+% usually causes the abort of the entire simulation. Thus, the
+% middleware must detect and resolve failures, such as the crash of the 
+% Globus GRAM or of a resource running parts of the RE application, accurately.
+%                                   
+% % not synthetic, real and meanginful physical models 
+% \alnote{I am not sure whether we keep this claim... - maybe we should not promise
+% too much...}
+% Implementing an approach that can scale upto very large 
+% production infrastructures is a far more challenging task than
+% implementing a toy-model on a research environment. Our approach is
+% aimed strictly at the former, to provide a basis for real scientific
+% problems. The scale-up and complexity of production environment makes
+% this extension non-trivial.     
+
+% Another challenge in a heterogeneous environments is the
+% synchronization required after each round. In particular, when
+% running RE across multiple clusters the effects of queue wait
+% times can be severe. To avoid this issue, a middleware must provide
+% efficient mechanisms to allocate resources for multiple replica runs
+% in a row.
+
+\alnote{The scheduling and reliability sections partially already described the solution. 
+I added the important points to challenges. The description of our approach have been 
+moved back to the Implementation and Scheduling section.}
+                         
+\section{Implementing Distributed Replica-Exchange Using SAGA/Migol}
+\label{sec:remd_impl}
+\jhanote{this is an important section. we need to put in details of
+  how our implementation addresses issues of bigjob/smalljob to
+  overcome restarting one one machine and how we overcome slowdown due
+  to different scheduler loads on different machines..}
+
+% The \emph{Simple API for Grid Applications (SAGA)}~\citep{saga_gfd90}
+% provides an easy-to-use, standardised API for developing a broad range
+% of distributed applications, including, but not limited to
+% loosely-coupled applications.  In particular, SAGA CPR and Migol allows 
+% the efficient management of checkpoint-recoverable jobs. 
+% Thus, SAGA is ideally suited for
+% encoding the orchestration logic of RE simulations.      
+
+This section describes the architecture and implementation of the RE
+framework. 
+
+\jhanote{Put in a paragraph or two of the main points of the
+  how it is done here; maybe even discussing the ideas related to
+  checkpointing, new jobs, MPI issues discussed etc. etc. Try to
+  establish what is specific to the SAGA way of doing things from what
+  is a general distributed computing problem/issue}
+
+\jhanote{I still think that at some stage -- maybe not in this paper,
+  the above point should be addressed}      
+  
+\alnote{I added a paragraph highlighting the SAGA way (decoupling, transparent use of migol).}  
+          
+\subsection{RE-Manager Architecture}      
+
+\begin{figure}[t]
+      \centering
+          \includegraphics[width=0.7\textwidth]{REMDgManager-architecture.pdf}
+          \caption{\footnotesize \bf RE-Manager Architecture: The
+            core of the framework, the RE-manager, orchestrates 
+            a set of distributed replicas using SAGA \& Migol. 
+            The Replica-Agent is responsible for managing and monitoring 
+            replicas on a single machine. Finally, the Migol 
+            infrastructure ensures that the RE-Manager and the Replica-Agent 
+            are monitored and recovered if necessary.            
+            \jhanote{The caption of this
+              figure need to changed to be in harmony with the opening
+              paragraph of ``RE-Manager Architecture'', where this
+              figure is referenced and discussed. I.e., we talk about
+              three components in that paragraph, this caption should
+              be structured accordingly too.}
+              \alnote{Reworked caption to highlight this three components. 
+              I am not sure whether this is a good time to introduce the GlideIn stuff. But, I 
+              decided to leave this for the next subsection to focus initially on
+              the efficient implementation of RE}
+              }
+      \label{fig:REMD-Manager-architecture}
+\end{figure}
+
+As illustrated in Figure~\ref{fig:REMD-Manager-architecture}, the
+framework comprises of three components, the RE-Manager,
+the Replica-Agent and the Migol infrastructure. 
+The  \emph{RE-Manager}, also referred to as task manager,
+is deployed on the user's desktop and provides the user interface 
+to the overall RE run. It orchestrates all replicas, i.\,e.\ the 
+parameterization of replica  tasks, file staging, job spawning 
+and the conduction of the RE itself using the SAGA-CPR
+and File API.                                                                
+
+The second element is the task agent, the \textit{Replica-Agent},
+that resides on the high performance machines where RE simulations
+are carried out. The \replicaagent\ is launched using SAGA-CPR and Migol.
+It is responsible for spawning and monitoring of the replicas. 
+NAMD~\citep{Phillips:2005gd}, a highly scalable, parallel MD
+code, is used to carry out the MD simulation corresponding to each
+replica run. It is important to mention that any other Molecular Dynamics 
+or Monte Carlo code could be used just as simply and effectively.
+
+The last component is Migol and the underlying middleware. 
+Migol handles the reliable execution of replicas, i.\,e.\ the submission,
+the monitoring and, if required, the recovery of replicas or the application itself. 
+
+
+% The \emph{RE-Manager}~\footnote{The complete \remanager\ code can be found
+% at https://svn.cct.lsu.edu/repos/saga-projects/applications/REMDgManager/}
+
+% For the implementation 
+% of the RE logic, this component heavily relies on the SAGA Python bindings 
+% for accessing the File and CPR API as well as the enhanced job management 
+% framework for efficient clustering of jobs. 
+                                  
+% \alnote{I am really not sure about this code snippet. It somehow
+%   represents the logics - however I am not sure whether it is worth
+%   the space.} \jhanote{I agree, that as written it is not very
+%   effective. Also, since it does not show the exchange and thus the
+%   reader does not see how ``distributed'' and ``local'' exchanges are
+%   handled equally simply. Can we i) use psuedo-code to highlight this?
+%   ii) mention where the reader can get the actually code?. We should
+%   definitely do point ii) and possibly point i)}
+
+\jhanote{This part currently conflates architecture and control-flow}
+                       
+\subsection{Replica-Exchange Logic}
+                                            
+RE simulations involve the running of multiple replica jobs to enhance
+the sampling of configuration space. In the case of REMD each replica
+job is assigned a different temperature.  Depending on the number of
+configured processes $n$, the \remanager\ creates $\frac{n}{2}$ pairs
+of replicas.  Before launching a job the \remanager\ ensures that all
+required input files are transferred to the respective resource. For
+this purpose, the SAGA File API and the GridFTP adaptor (step 1 in
+Figure~\ref{fig:REMD-Manager-architecture}) are used.  The replica
+jobs are then submitted to the resource using the SAGA-CPR API and
+Migol/GRAM (step 2a-2c). Migol ensures that the job description of
+each replica is stored within the Migol backend to ensure a later
+recovery. Globus GRAM is used to start the application.
+
+When all replicas reach a pre-determined state (e.\,g., the NAMD job
+finishes after a fixed number of steps), the decision as to whether to
+pairwise exchange temperatures between neighbouring replicas is
+determined by the Metropolis scheme.%~\citep{metropolis:1087}.  
+The state between exchanges -- that is, the run of an ensemble of replicas
+in parallel and the subsequent attempt to pairwise exchange all the
+replicas, is referred to as generation. No two replicas can belong to
+different generations.  If successful, parameters such as the
+temperature, are swapped. Both jobs are then relaunched using the
+mechanisms described above. Often the Metropolis scheme returns a
+negative result, and an exchange is not carried out; thus it is
+difficult to respond to a possible exchange speculatively.
+
+In summary, SAGA allows the simple decoupling of the RE application
+logic from the underlying Grid middleware. It provides a well-defined
+and sufficiently rich interface for implementing the RE
+logic.% At the same time
+% applications can benefit from Migol by simply configuring the
+% corresponding adaptor.
+
+
+% \subsection{Reliability}
+% To achieve fault tolerance, the RE-Manager, the Replica-Agents and the
+% replicas periodically write persistent checkpoints to allow
+% an automatic recovery via the Migol infrastructure. The \remanager\
+% and Replica-Agents periodically update the application's metadata,
+% i.\,e.\ the state, monitoring endpoint and new checkpoint URLs, at the
+% Migol backend using the CPR API. During the entire runtime the
+% \remanager\ and the Replica-Agents are monitored by Migol using the
+% monitoring endpoint of the Replica-Agent. If a failure is discovered
+% by Migol, an automatic restart of an agent or the RE-Manager is
+% initiated.   
+
+\alnote{Should we make this a subsection or a section? In my opinion,
+the GlideIn stuff is a major contribution of this paper -- thus I decided to
+give it a separate section. I also think it is more readable than going to the
+subsubsection level.}           
+
+\subsection{Deploying on Production Environments: Scheduling}
+
+The RE framework has been successfully deployed on production
+environments, such as LONI and the TeraGrid~\citep{Luckow:2008la}.
+The RE-Manager, must periodically obtain the results of all replicas
+to determine the new configurations of the next RE step.  As the
+number of replicas increases, the probability of an overall slowdown
+caused by the synchronization required by the RE algorithm after each
+generation increases.  A major reason for such a slowdown is the fact that
+re-started replicas are required to queue again at
+the local scheduler.  In pathological cases, the complete system can
+come to a halt caused by a single crowded or slow resource.
+
+To avoid such bottlenecks, the multiple sub-tasks that comprise
+distributed applications need to avoid re-queuing at the system
+batch-queue level.  Additionally, distributed applications that are
+decomposable into sub-tasks should be able to respond to the dynamic
+availability of resources.  Unfortunately, current infrastructure does
+not support such dynamic scheduling directly, thus in order to provide
+this capability to applications we need (i) abstractions that enable
+agile execution models via application-level allocation of resources,
+and (ii) different adaptivity strategies that determine how resources
+are efficiently utilised.  {\it The following section describes the
+  extensions to the simple RE framework that enables efficient
+  scheduling of sub-tasks and supports adaptive applications.}
+
+
+
+
+% which allows the simple clustering of tasks
+\jhanote{Do you see the important difference: BigJob is the clustering
+  of tasks; Glide-In is the scheduling mechanism that utilises it to
+  solve the repetitive queuing problem}
+
+\alnote{removed Glide-In introduction and move it to next
+  section... Otherwise too much redundancy}
+% Using the BigJob abstractions,
+% applications can utilize this framework to implement different adaptivity
+% strategies.
+
+% We propose a novel, adaptive RE algorithm to relax this
+% constraint. The adaptive RE algorithm permits a change in the number
+% of replicas that are employed by adjusting the sampling range.  With
+% this capability adaptive RE is able to opportunistically employ
+% resources as they become available.
+% The major cause for slowdowns are queueing delays, which particularly
+% occur when using production resources. 
+
+% To address this issue, we propose a ``Glide-In'' framework 
+% based on SAGA (similar to Condor
+% Glide-In~\citep{citeulike:291860}), which allows the direct
+% dispatching of replica jobs and overcomes the need to co-schedule
+% resources.  The enhanced job abstraction allows RE applications to
+% efficiently cluster sub-tasks, which are executed on the same machine.
+% The adaptive RE algorithm is build on top of this abstraction.
+% Although the adaptive algorithm does not (and cannot) remove the need
+% for synchronisation amongst the replicas at the exchange step, it
+% ensures that a synchronization is only conducted between running
+% replica processes on available resources, i.\,e.\ resources with an
+% active Glide-In job.
+
+
+% \section{SAGA Glide-In: Efficient Job Scheduling for Replica Jobs}
+\section{Adaptive Replica-Exchange: Abstractions and Implementation}
+\label{sec:glidein}
+
+As motivated before, the use of multiple {\it simple} Grid jobs to
+execute many replicas has a severe limitation: all simple jobs must
+queue at the resource management system, i.\,e.\ a single delayed
+job can cause the slowdown of the overall application.  We overcome
+this issue by using an efficient dispatching scheme, which builds upon
+the ability to cluster replicas using the novel BigJob abstraction
+before submission. Based on this abstraction, we propose different
+strategies that address the dynamic conditions of distributed
+environments.
+
+\jhanote{AndreL: Check the above. OK}
+
+\alnote{Made a minor correction. Adjusted to new structure of section
+  5. I am not sure whether there is too much redundancy to 4b}
+
+% In this section we provide 
+% details of the design and implementation of the SAGA Glide-In framework. 
+
+\alnote{Structure: 1) Intro to cluster job sub, bigjob, glide-in 2.)
+  formalism Thus, I commented this out: In this section we provide
+  details of our implementation, but before that we will discuss some
+  simple formalism so as to understand the terms and establish
+  connections to other work better.  }
+% \jhanote{AFAIK, First demonstrated use of GlideIn for loosely coupled
+%   jobs}  
+
+% In the following, we describe SAGA Glide-In, a novel system-level
+% abstraction, which allows applications to avoid this issue.  We
+% further demonstrate the simplicity and extensibility of SAGA by
+% implementing this abstraction on top of SAGA.
+               
+\subsection{Patterns and Abstractions}
+\alnote{How do we align enhanced job model and BigJob abstraction?}
+
+\jhanote{Enhanced job model is SAGA specific; BigJob isn't. Also one
+  is a ``model'', whilst the BigJob is with a specific application
+  need in mind. Thus in addition the truth is there are levels of
+  abstractions, it what is an abstraction and what is a model is a
+  matter of perspective/origin too}              
+
+To understand the relationship between clustered job submissions,
+BigJob and Gli\-de-Ins, it is useful to review two basic underlying
+concepts, \I{patterns} and \I{abstractions}.  \alnote{I commented this
+  out (liked the second definition of pattern better): A pattern is a
+  references to a commonly occurring mode -- whether in programming an
+  application, in the way an application is used or executed.}
+\I{Patterns} are the formalization of frequently reoccurring modes,
+either in programming an application or in the way an application is
+used or executed.
+% They often apply across a range of different specific contexts. 
+For example, the need to submit multiple jobs together is a common
+requirement and practice, and thus provides a simple example of an
+execution pattern.  
+
+A mechanism that supports a pattern is referred to as an
+\I{abstraction}; just as patterns can be programmatic or execution, so
+can abstractions.  \jhanote{Should we give another example, rather
+  than the clustered-job pattern? AndreL, AndreM: any suggestions?}
+\alnote{I think 1 example is supporting our use case is sufficient.}
+For example, there exists a commonly employed approach to avoid
+queuing delays through the use of place-holder jobs, which is able to
+dispatch several sub-jobs without each sub-job needing to queue at the
+local scheduler. A specific mechanism to support this pattern is the
+\emph{Glide-In} abstraction, in reference to the Condor Glide-In
+system~\citep{citeulike:291860}, which pioneered this idea. A Glide-In
+job requests a sufficiently large chunk of resources; smaller sub-jobs
+can then rapidly be executed through the Glide-In job.  By avoiding
+the high initial costs for queueing each individual replica job, the
+time-to-completion can be dramatically reduced.
+
+\begin{figure}[t]
+      \centering
+      \includegraphics[width=0.7\textwidth]{remdmanager_v12}   
+      \caption{\footnotesize \bf RE-Manager Abstractions: The BigJob
+        abstraction provides the capability to cluster sub-jobs into a
+        larger big-job. This feature is implemented on top of the
+        Glide-In abstraction, which %utilizes a place-holder job for
+                                    %this purpose.
+        implements a place-holder job for effective scheduling.  SAGA
+        Glide-In is implemented using capabilities provided by SAGA --
+        in particular SAGA-CPR and Advert.}
+      \label{fig:abstractions}
+\end{figure}
+
+Figure~\ref{fig:abstractions} summarizes the abstractions developed
+and used in this work to support the clustering of sub-jobs into a
+larger big-jobs and the effective dispatching of the sub-jobs.  The
+specific capability to cluster sub-jobs, is provided to the
+application via the \emph{BigJob} abstraction. This abstraction
+enhances the SAGA job model \jhanote{Need a sentence or two about what
+  ``enhancing the SAGA job model'' means, ie in turn outlining what
+  the SAGA Job Model is?}  with the capability to allocate
+larger chunks of resource for a single job.
+% allocate larger chunks of resources prior to an application run.
+\jhanote{AndreL: Not sure what the commented out line was about.. if
+  you'd like to reinstate, please clarify/elaborate}
+
+Another abstraction
+-- the SAGA Glide-In abstraction is used to support the commonly
+occurring requirement to schedule multiple sub-tasks relative to each
+other and not in competition with other jobs submitted to the batch
+queue system.  Thus, a \texttt{big\_job} and \texttt{sub\_job} object
+are defined; for each \texttt{big\_job} object, a Glide-In job with
+the desired number of resources is started, and \texttt{sub\_job}
+objects -- which correspond to individual replicas, are mapped to a
+\texttt{big\_job} using the jobid as reference. It is helpful to
+reiterate that although there is a big\_job object, it is submitted
+as a Glide-In job, and that BigJob abstraction in turn utilises the
+Glide-In abstraction to map the individual big-job and sub-jobs to
+physical resources.
+
+% For the purposes of our work, the pattern is the clustering of
+% multiple job to be submitted, which is supported using the 
+% application-level BigJob abstraction. 
+
+% , whereby the BigJob abstraction is implemented on top of the
+% system-level Glide-In abstraction.
+
+% A common principle to avoid queuing delays is the usage of so called
+% Glide-In jobs (see~\cite{citeulike:291860}). This job represents a
+% place-holder for a set of sub-jobs. For this Glide-In job a
+% sufficiently large chunk of resources is requested. Smaller sub-jobs
+% can then rapidly be executed through the Glide-In job. By avoiding the
+% high initial costs for queueing each individual replica job the
+% completion times of the RE applications can be dramatically reduced.   
+%
+% Since the first implementation of this principle was provided by
+% Condor Glide-In~\citep{citeulike:291860}, this pattern is also
+% referred to as Glide-In.  \alnote{add further advantages:
+%   configurability of MPI versions, flexible clustering of tasks}
+%
+% \jhanote{I don't think the principle is known as glidein. The term
+%   glidein owes its origin to Miron and his insistence on the bird/fly
+%   metaphor for all things condor-ish, ie. the term is adapted from
+%   what was probably the first implementation of this common pattern in
+%   the Condor system.}      
+% \alnote{ok, this metaphor made it for me already in to the common
+%   language ;-). Now I understand this. Another option would be to
+%   describe this pattern as place-holder job pattern}
+   
+         
+\subsection{Implementation}
+
+% In this section, we describe the extensions made to the RE framework
+% to support the BigJob and the Glide-In abstractions as well as provide
+% an adaptive RE framework.
+% 
+% \subsubsection{Components}     
+
+\begin{figure}[t]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{remdmanager_v11}   
+    \includegraphics[width=0.7\textwidth]{re_bigjob_interactions}   
+    \caption{\footnotesize \bf RE-Manager and SAGA Glide-In Framework:
+      The Glide-In job (\replicaagent\ ) is used as place-holder job
+      for all replica sub-jobs running on a single cluster. The
+      \remanager\ can control both the \replicaagent\ and the replica
+      jobs using a SAGA-based user-level job API (the BigJob
+      abstraction). By using this efficient way to allocate resources,
+      queuing times are minimized and the time-to-completion can be
+      dramatically reduced. \jhanote{AndreL: This would be a good
+        place to illustrate clearly, what is a \texttt{big\_job} and
+        what is \texttt{sub\-job}}} \alnote{done.} \alnote{After doing
+      the interaction figure i am really not sure whether the
+      abstraction figure adds any value. I think it is sufficient to
+      mention that the Glide-In job is started via the CPR API, the
+      rest is identical.}
+    \label{fig:remdmanager_v1.1}
+\end{figure}
+    
+% RE-Manager overall
+The RE framework presented in section~\ref{sec:remd_impl} has been
+extended to support the management and scheduling of replica jobs.
+BigJob provides the ability to cluster sub-jobs; Glide-In provides the
+ability to effectively schedule the sub-jobs.  As illustrated in
+Figure~\ref{fig:remdmanager_v1.1}, the RE-Manager uses the
+\texttt{big\_job} and \texttt{sub\_job} objects as replacement for the
+\texttt{job} object defined by SAGA CPR.  The \texttt{big\_job} and
+\texttt{sub\_job} objects behave similarly to regular SAGA CPR job
+objects. Thus the RE-Manager, which is the application in this case,
+does not require any extensive modification to accommodate this
+replacement; all that the RE-Manager has to do additionally, is
+provide a mapping from a \texttt{sub\_job} to a suitable
+\texttt{big\_job} via a jobid.
+
+% BigJob
+The SAGA Glide-In implementation comprises of three components: 1) The
+\emph{Glide-In Manager}, which as the name suggests manages the
+orchestration and scheduling of Glide-In jobs (which in turn allows
+the management of both big-job objects and sub-jobs) and 2) The
+\emph{Replica-Agent}, which represents the Glide-In job and thus, the
+application-level resource manager on the respective resource, and 3)
+the \emph{Advert Service}, which is used for communication between the
+Glide-In Manager and Replica Agent.
+
+% In particular, the Replica Agent has been extended
+% to function as Glide-In, i.\,e.\ they are able to manage a set of
+% allocated resources and dispatch sub-jobs on request. 
+% In principal, the Replica-Agent represents an application-level
+% scheduler for the allocated resources.      
+  
+% \subsubsection{Interactions}            
+% The implementation of the BigJob abstraction relies on the SAGA 
+% Glide-In framework to reserve resources on a cluster.
+
+Before running regular jobs, an application, in this case the 
+RE-Manager, must initializes a
+\texttt{big\_job} object. The Glide-In Manager then queues a Glide-In
+job, which actually runs a Replica-Agent on the respective resource,
+using the SAGA-CPR API.  For this \texttt{big\_job} instance the
+specified number of resources is requested. Subsequently,
+\texttt{sub\_job} objects can be submitted through the Glide-In
+Manager using the jobid of the \texttt{big\_job} as reference.
+The Glide-In Manager ensures that the sub-jobs are launched onto the 
+correct resource based upon the specified jobid using the right number
+of processes.
+
+Communication between the Replica-Agent and Glide-In Manager is
+carried out using the SAGA Advert Service, a central key/value
+store. For each new job an advert entry is created by the
+RE-Manager. The \replicaagent\ periodically polls for new jobs.  If a
+new job is found and resources are available, the job is directly
+dispatched, otherwise it is queued. Further, the agent encapsulates
+local machine-specific settings. During the launch the \replicaagent\
+ensures, that the right combination of compiler, MPI library and NAMD
+executable is used.
+
+% The SAGA Glide-In framework provides the BigJob abstraction, which
+% allows applications to allocate larger chunks of resources and to
+% map these resources to a set of sub-jobs.
+\jhanote{``The enhanced job used by the BigJob abstraction can be used
+  as drop-in replacement for a SAGA job object.'' The previous line in
+  quotes, is confusing. BigJob is an abstraction, and big-job is
+  implementation. Let us not address enhanced job model in the
+  implementation section; remember it is a SAGA specific thing}
+
+\alnote{I think this is redundant to the first paragraph: As 
+shown in Figure~\ref{fig:remdmanager_v1.1}, a big-job object is
+submitted to the SAGA Glide-In Manager, which queues a Glide-In job
+onto a specific resource. Then when sub-jobs are submitted by the
+RE-Manager, they are launched onto the correct resource based upon the
+job id, and with the right number of processors.  }
+
+% The BigJob abstraction is used as basis for the application-aware scheduler
+% of the RE-Manager. 
+% The scheduler determines the number and size of all replicas and
+% maps each replica to a resource, i.\,e.\ a \texttt{big\_job}. Depending on the used adaptivity mode,
+% it dynamically adjusts the number of replicas respectively the replica 
+% size to the available resources. The application-level approach ensures 
+% that the underlying physical model is respected.
+
+\subsection{Adaptive Replica Scheduling}
+\label{sec:adaptivitiy}    
+\alnote{Is this a worth a new section or does it rather belong to
+  5b). We should probably join both sections.}  
+
+\jhanote{Sorry, if I missed answering this Q earlier, but yes, I think
+  if there is a way of merging the two sections, then that will be
+  good. Something along the lines of, ``Abstractions to Support
+  Adaptive Replica Exchange'' or ``Abstractions to Support Adaptive
+  Replica Exchange: BigJob and SAGA Glide-In''}
+
+\alnote{I shrinked this section pretty much... Maybe the some more
+    aspects from the original section could be added. The complete
+    section is commented out below.}
+
+% As emphasised before, an agile execution model efficiently utilising
+% available resources is critical for the time-to-completion. 
+Distributed applications including RE simulations must be able to 
+deal with time-varying resource availabilities.
+An application is referred to as \emph{dynamic} when either the
+resource requirements of the application, or the availability and
+utilisation of resources by the application changes during its
+runtime.  \emph{Adaptivity} is a mechanism to respond to dynamic
+changes; % as opposed to just ignoring the dynamism of a distributedenvironment.
+a dynamic application may deploy multiple adaptive strategies or
+choose between competing adaptive strategies.
+
+For an application to be adaptive, it is necessary for it to be able
+to effectively utilise an expanded or reduced set of resources;
+additionally for an adaptive application to be scalable it must also
+be able to determine which resources to utilise efficiently, if not
+optimally.  For resource determination, our framework currently relies
+on a static, user-defined mapping of replicas and resources.  In the
+remainder of this paper, we will focus on dynamic resource utilisation
+(and not on dynamic resource determination or optimisation).
+
+% -- either determination or application partitioning.
+
+% he optimal selection of the best resources to use (Resource
+% Determination (D)), and (ii) the effective utilisation of an
+% expanded or reduced set of resources (Resource Utilisation (U)).
+
+% Mapping - BS Despite the availability of a suitable abstraction for
+% managing Glide-Ins, several scheduling issues arise. A particular
+% optimization problem is the size of the \glidein\ job.  A scalable
+% application requires the support for both resource determination and
+% selection.
+
+For jobs that want to maximise their throughput the ability to adapt
+to dynamically changing resource loads and requirements is
+critical. It is equally important for long-running applications to be
+able to support an agile execution model allowing the effective
+utilisation of resources as they become available.  Specifically,
+there are different ways a RE simulation can respond to a change in
+the number of resources required/available:
+\begin{compactitem}         
+\item {\it Scenario A:} By increasing the number of processes assigned
+  to replicas the time-to-completion can be reduced. In addition,
+  resources can be partitioned in a way that balances the different
+  speeds of resources.  For example, by adding processes to a 
+  delayed replica, bottlenecks due to synchronisation of replicas can
+  be avoided.
+  %light-coupling between all replicas can be avoided.
+  \jhanote{AndreL: The last sentence needs more elaboration before it
+    makes sense. Plus slowdown maybe due to heterogenous resources,
+    but in some cases, it could be due to late start, especially if
+    exchange takes place between replicas on different machines}
+  \alnote{Ok, I elaborated the last sentence a little more. One more
+    remark: when using SAGA Glide-In the late start effect should not
+    exist.}
+
+\item {\it Scenario B:} As resources become dynamically available, the
+  number of replicas can be adjusted. Depending on the underlying
+  physics model, the additional replicas can be used to either refine
+  the temperature range (adaptive sampling) or to extend the
+  temperature range (enhanced dynamics).
+\end{compactitem}           
+Both adaptive strategies have been realized within the RE-Manager, and
+BigJob and Glide-In are useful abstractions in both scenarios. 
+
+
+% Our framework supports and implements both strategies.  
+
+\jhanote{We need a better place for this paragraph. It is an important
+  paragraph, but probably not well suited here -- where the discussion
+  is all about adaptivity. The paragraph below is about
+  agile-execution supporting adaptivity while there is no mention of
+  adaptivity and MPIg jobs.}
+\alnote{I commented this paragraph about MPIg out. Most of the points are
+made in related work (work of owain). We could also extend the criticism
+there, but I am not sure about the politics thing...}  
+% It is useful to contrast our approach
+% to the single application approach used by MPIg. The MPIg model has
+% the advantage of being able to continue without checkpoint/restart
+% after an exchange; however, as mentioned it requires the co-scheduling
+% of resources, which may not be an option on many resources. Also,
+% co-scheduling might be required for very large or long-running
+% simulations, and possibly for tightly-coupled simulations; for
+% loosely-coupled applications which support adaptivity via
+% agile-execution, performance may be just as good as a rigid
+% co-allocation scheme without any of the constraints.
+
+
+
+\jhanote{Difference between schema and scheme!}
+\alnote{ok got it, scheme is more suitable in most cases when referring to adaptive
+scheduling scheme}
+\jhanote{This is a dangerous remark to
+  make. Not sure if I wrote it in the first place, or AndreL did, but
+  either way, it has to be either substantiated or removed. We can
+  argue qualitatively that we maybe be better, but the last sentence
+  is a Quantitative remark and that is unacceptable without data to
+  back it up. Thoughts?}
+
+\jhanote{We could caveat it by saying, short-running or remind the
+  reader that is the only way for systems that do not provide
+  co-scheduling of resources}
+
+\alnote{I tried to rephrase this sentence a little. I think for loosely coupled
+apps, co-scheduling is less relevant than for coupled apps. However,
+we did not do a performance study... Thus no data.}   
+
+% \jhanote{Andre L, here is a note, which will hopefully help: as you
+%   know \glidein\ is a system level abstraction. So we should not say
+%   \glidein\ based application, but applications that use \glidein\ ,
+%   ie application is distinct from the system}
+
+\jhanote{Secondly, it is important to distinguish between the new
+  ``Job abstraction'' ie meta-job and simple-job as an extension of
+  the SAGA job-model, from the \glidein\ abstraction. I am sure we are
+  all aware of the differences, but in the writing the two seem to be
+  conflated, or at least will appear conflated for a person reading
+  this the first time. I would say the mata-job/simple-job is a usage
+  pattern, and the \glidein\ is an abstraction that supports this
+  pattern.}
+
+\jhanote{We could probably structure the subsection on ``Efficient
+  Replica Job Scheduling'' into two parts, an opening on ``Job
+  Patterns and Abstractions'' and secondly
+  ``Implementations''. Currently, we need more details describing
+  Figure 2 and the control flow between \remanager\ and individual
+  replica-jobs within a meta-job. This location of this note, is a
+  good point to separate the two.}    
+
+
+% \section{Musings on Dynamic Resources, Adaptive Applications, and
+%   RE Simulations}                                                                  
+% Applications with many component (e.\,g.\ replicas) or stages (concurrent
+% or sequential) may have time-varying resource requirements, e.g., in
+% the number of processes, or the need to have lower queue waiting time,
+% or enhanced time-to-solution of a sub-component. Such applications are
+% referred to as dynamic application. Adaptivity is a mechanism to
+% respond to dynamic changes as opposed to just ignoring the dynamic
+% attributes. A single dynamic application may have possibly different
+% adaptive strategies that can be used. There is a qualitative scale of
+% ``dynamism''. At the one end of easiness, where the dynamism is very
+% simple to predict, almost effectively make it static.  At the other
+% end of the spectrum, there is the very difficult to predict dynamic
+% requirements -- difficult either due to strong fluctuations, or just
+% very different phases (irregular). Either way a static resource
+% mapping strategy will not          
+
+% On a slightly different note, it is important to distinguish between
+% multiple ``heterogenous parameters'' versus dynamical attributes; we
+% prefer to call an application dynamic when the resource requirement
+% changes or the availability changes. In contrast, a static number of
+% parameters have different values or for that matter even dynamic
+% values (I would call that computational steering -- either manual or
+% automated). In a nutshell, resources variability makes an application
+% dynamic; a mechanism to respond to the change makes it adaptive.  
+
+
+% We are going to show that as the number of resources available (pool)
+% gets larger, the greater the advantages to point U even though point D
+% becomes harder. A truly scalable agile-execution model requires
+% support/strategies both U and D, for at some stage the inability to do
+% D effectively will limit the returns on U. In this paper, we will
+% focus on point U, and will discuss point D (in conjunction with U) in
+% a later publication. 
+
+% A relevant question is: Do BigJobs (using Glide-Ins mechanism) make it
+% easier to do any of these directly?  At some level the answer is yes
+% as it makes both tasks easier.  Instead of a single task, we are now
+% looking at a higher-level task -- an aggregation, and in some ways it
+% reduces the complexity.  In both cases, the sub-tasks are immune from
+% the fluctuations of the scheduling system.  But the BigJobs that
+% support Glide-In mechanism help with requirement U directly, and not
+% directly with requirement D, thus a necessary but not a sufficient
+% mechanism to respond to the dynamic nature of RE
+% applications.
+% 
+% There is a need to distinguish between BigJob and Glide-In. One can
+% have BigJob ie aggregated jobs, without supporting flexible
+% scheduling/allocation within the BigJob ie the unit is now just a
+% BigJob. But BigJob with Glide-In allows the aggregation of sub-jobs
+% and provides the advantages of the aggregation without losing the unit
+% to be a sub-job ie. scheduling/allocation is supported for individual
+% sub-jobs. 
+
+% RE in addition to being a good candidate for
+% embarrassingly-distributed applications, are also very good candidates
+% for using dynamic resource pools; Glide-Ins are a very useful
+% abstraction for dynamic resources aggregation and utilisation.
+% 
+% There are different ways in which our simulation can respond
+% to a change in the number of resources required/available:
+% 
+% \begin{enumerate}
+% \item The {\bf number} and {\bf location} of BigJobs can adapt, and
+%   everything else remains the same i.e, this leads to an increase in
+%   the net number of replicas
+% \item The size of a BigJob can adapt, keeping the number of BigJobs a
+%   constant. Thus either the number of processes per replica will
+%   change or the number of replicas per BigJob will change
+% \item Within a BigJob (of fixed size), the number of processes
+%   assigned to a replica can adapt (possibly keeping the number of
+%   replicas the same, or determining some replicas to put into sleep
+%   state)
+% \item Again for a fixed BigJob size, assume the number of replicas
+%   assigned to a BigJob can adapt, (possibly varying the number of
+%   replicas in a BigJob)
+% \end{enumerate}     
+
+% Motivations for having an implementation of RE
+% simulations that are adaptive (ie can respond to dynamic changes in
+% resource requirements and availability).
+% 
+% {\it Scenario A:} Vary the number of processes assigned to each
+% replica (?) by speeding up a job that is slowing down others
+% 
+% {\it Scenario B:} Vary the Number of replicas, (i) reassign Temp
+% (refined/adaptive sampling) and, (ii) replicas at new (extended T)
+% (enhanced dynamics)
+% 
+% {\it Scenario C:} Parallel replica dynamics: Just use the additional
+% resources to be assigned to speed up the calculation.
+% 
+% Scenario (A) in turn could be met, when either changing the number of
+% replicas (Approach 4) or changing the number of processors associated
+% with each replica (Approach 3) or just use Approach 2 Scenario (B)
+% could be met with Approach 4 or Approach 1.  
+
+% Resource Determination (D): Interestingly the qualitative nature of
+% the problem remains the same, just the number-of-degrees of freedom
+% that need managing changes. For example, the strategy that needs to be
+% determined to find optimal size and location of a BigJob is the same
+% as that for non-aggregated jobs, ie. for example BQP enables both.
+% (The determined optimal size of BigJob in turn influences the number
+% of replicas in a BigJob or the size of individual replicas).   
+
+% It is useful to contrast our approach to approach where a single
+% application image is used (e.\,g.\ MPIg model). The MPIg approach
+% has the advantage of being able to continue without
+% checkpoint/restart after an exchange, but it is not agile, for
+% example it needs co-scheduling of resources. This might be
+% acceptable for very very large simulations or very long running
+% simulations, but in general and on average, it is more likely that
+% an implementation that is adaptive will have a lower
+% time-to-completion.
+
+% Scheduling - BS
+% Another issue results from possibly different start times of the
+% \replicaagent\ job at different resources.  
+
+\section{Distributed Replica-Exchange on the TeraGrid}
+\label{sec:exp}
+        
+To evaluate the performance of the RE-Manager several experiments have
+been conducted on the TeraGrid (TG) and LONI resources. The resources
+used are: Ranger (TG), Abe (TG) and QueenBee (QB; both TG and LONI).
+% We investigated the performance of the SAGA Glide-In mechanism under
+% different adaptivity modes.  
+The RE-Manager was configured to run a MD simulation with up to 16
+replicas sampling a temperature range between 300 and 450\,K. Replica
+exchanges are carried out between pairs of replica processes, thus
+there are up to 8 exchanges in each generation; each test run comprises
+of up to 64 attempted exchanges\jhanote{AndreL: I don't think the
+  numbers add up here!}  \alnote{Yes, they do not add up. I
+  standardized all figures to T\_c for 64 attempted exchanges} Each
+replica is a parallel NAMD simulation, can use up to 24 MPI processes
+and runs for 500 time steps between exchange attempts. The metric of
+performance used in our tests, is the time-to-completion for 64
+attempted exchanges.
+
+\jhanote{the use of the term cluster should be consistent with the
+  resource description :)}
+
+% QB, which is both a LONI and a TeraGrid resource, is the largest
+% LONI machine and has a peak performance of over 50 TFlops.
+% Figure~\ref{fig:saga-taskfarming} gives an overview of the testbed.
+% Scientific results obtained from using this infrastructure
+% will be reported elsewhere.
+
+\jhanote{define Generation?}  \alnote{added definition to introduction
+  - should we define it here also?}  \jhanote{distinguish between
+  replica, replica processes; or at least keep usage consistent}
+\alnote{OK, hopefully use replica consistently} \jhanote{describe how
+  exchange partner is chosen? remains the same?}\alnote{yes, the pairs
+  remain the same. Added a sentence.}
+
+
+% Our tests are aimed at first determing the when of the SAGA Glide-In
+% framework,
+
+\subsection{SAGA Glide-In Performance} 
+
+\begin{figure}[t]
+  \centering
+  % \subfloat[RE-ManagerScaling]{\includegraphics[width=0.48\textwidth]{performance/perf_remd_timesteps.pdf}}
+  % \subfloat[Glide-In
+  % Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein.pdf}}
+  \subfloat[RE-Manager Scaling]{\includegraphics[width=0.48\textwidth]{performance/perf_re_numberresource_tc_64ex}}
+    \subfloat[Glide-In
+    Performance]{\includegraphics[width=0.48\textwidth]{performance/perf_glidein_tc_64ex}}
+  \caption{\footnotesize \bf SAGA Glide-In and RE Performance
+    (QueenBee): \jhanote{For the redline, is there just one glide-in
+      that is being used, or multiplied? I think the answer is one, but
+      need explicit mentioning.}  Obviously, the increase in the
+    number of resources allows a faster completion of 64 replica exchange
+    attempts. Especially beneficial in particular for runs with many
+    replicas is the clustering of processes using the SAGA
+    Glide-Ins. Using a single Glide-In job for all replicas we
+    observed significant performance improvements of up to 50\,\%.}
+  \jhanote{AndreL: Why don't we use the same metric as elsewhere, ie
+    time-to-completion?}\alnote{ok, done.}
+  \jhanote{How many replicas in each glide-in? In the case where there
+    are is no Glide-In?}  \alnote{All Replicas are within the single
+    Glide-In, i.e. 2, 4, 8 resp. 16 replicas.  With 0 Glide-Ins each
+    job is separately started - no glidein is used.}
+    \label{fig:perf_remd_glidin}
+\end{figure} 
+
+
+
+Initially, we investigate the advantages of using the SAGA 
+Glide-In framework. We vary the number of replicas simulated, and
+compare the performance of the different REMD runs with and without
+SAGA Glide-In on a single machine (QB).
+Figure~\ref{fig:perf_remd_glidin} illustrates the results.
+%which is important to support the the advanced adaptivity features of
+%the RE-Manager. 
+\jhanote{The above is not required here; this is performance/results
+  section, plus it is already mentioned in an earlier section, thus is
+  repetitive}
+%i.\,e.\ the simulated problem set and the runtime, 
+\jhanote{AndreL: I can't understand what simulated problem set means?}
+\alnote{consistently changed metric to T\_c}
+As expected, with an increase in the number of replicas the time
+required for 64 exchange attempts decreases
+(Figure~\ref{fig:perf_remd_glidin}a).
+% allows the
+% computation of a greater problem set, i.\,e.\ the sampling of a wider
+% parameter range (Figure~\ref{fig:perf_remd_glidin}a).  
+\jhanote{Once again, it is not obvious if the number of Glide-Ins is
+  being increased on one machine?}  \alnote{I hope this becomes clear
+  now with the new introduction section.}  However, the figure also
+shows the limitations of the regular job submission mechanism: The
+more processes are spawned, the more likely queueing delays will
+eventually manifest.  With the SAGA Glide-In framework the
+time-to-completion decreases almost linearly as the number of replicas
+used increases; in contrast, without SAGA Glide-In the
+time-to-completion increases again when using more than eight
+replicas.  \jhanote{not sure what computed problem set is...?}
+\alnote{should refer to NAMD step/s. replaced it.}  \jhanote{We need
+  to change the metric I think. Why aren't we just using
+  time-to-completion as defined earlier?}\alnote{ok changed.}  This
+slowdown was caused by the delay encountered by some replicas.  On QB
+our experience was that usually only 12 replicas became active
+concurrently, while the remaining 4 replicas were queued at the local
+scheduler causing this slowdown.  \jhanote{AndreL: Do you mean ``at
+  the same time'', ie concurrently? If so, let us use concurrently
+  please.}\alnote{rephrased this sentence} The remaining four replicas
+had to wait in the queue and produced a significant slowdown during
+the synchronization after each generation.  This behaviour occurs on
+crowded resources or if policies at the local resource manager
+restrict the number of resources that are concurrently allocated to a
+user, e.g., a restriction on the number of active jobs per user.  In
+certain situations the usage of smaller jobs can have an advantage,
+e.\,g.\ when the local scheduler backfills such jobs, however, usually
+not all replicas can be backfilled.
+
+\jhanote{unfortunately this paragraph and the one before are unclear}
+\jhanote{I would recommend using time-to-completion over
+  time-to-solution; also maybe use shorthand T\_c?}  \jhanote{Ah, OK
+  single-machine is mentioned here now. Need to mention explicitly
+  upfront} \alnote{hopefully mentioned sufficiently often now}
+
+Figure~\ref{fig:perf_remd_glidin}b shows the effect of the SAGA
+Glide-In framework on the time-to-completion ($T_{c}$) using 16
+replicas on QB.  Using the Glide-In framework, there was a reduction
+in $T_{c}$ from 52\,minutes to about 26 minutes per average, which
+corresponds to a decrease of about 50\,\% runtime.  In the best case,
+improvements of up to 70\,\% were observed. As described, this effect
+is mainly attributed to the elimination of queuing times for every
+sub-job. Once the Replica-Agent becomes active, replicas can be
+efficiently dispatched without requiring interactions with the local
+scheduler.
+
+\jhanote{need to clarify what the 80\% means/implies?} \alnote{I
+  refined the above paragraph. Are there any particular implications
+  you refer to?}
+
+The unpredictable nature of these queueing times is reflected in the
+high standard deviation observed. While long queueing times also apply
+to Glide-Ins, the impact is in general less severe.  In the Glide-In
+scenario, the queueing times become negligible, the longer the RE
+simulation is (the runtimes have been kept short for this simple
+scenario).
+
+\jhanote{We need to say something about the location of the kink when
+  glide-in is not used. This is another way of addressing the erratic
+  behaviour. Do we have insight as to whether the kink often occurs
+  sooner than at 8 replicas? If so, how often.  This would help us
+  reiterate that the use of glide-in gives a constant/static
+  performance estimate, whereas the lack of a GlideIn makes it
+  erratic.}  \alnote{I updated the data. This were still the old graph
+  from MTAGS. I added data from some additional runs, which reduced
+  the benefit of Glide-In a little, but also the stdev for the without
+  Glide-In case was reduced. Unfortunately, I do not have too many
+  data points for the 2, 4, 8 replica processes to really say whether
+  there are earlier kinks.  The position of the kink really depends on
+  the length of the PBS queue. In this scenario the cluster was not
+  too crowded, so that many jobs could be backfilled (but not all jobs
+  could be backfilled.)}  \alnote{I describe the slowdown with more
+  than 12 replicas above when referring to Fig. 4a. Is this
+  sufficient? or should I describe it again down here?}
+\jhanote{AndreL: I think this section reads well now. Thanks.}
+
+
+% In contrast, when no Glide-Ins are used every sub-jobs is subject to
+% the queuing delay at the local scheduler.
+% In certain situations the usage of smaller jobs can have an advantage,
+% e.\,g.\ when the local scheduler backfills such jobs. However, usually
+% not all replicas can be backfilled. Also, some resources
+% impose a restriction on the number of active jobs per user. 
+\jhanote{I moved the paragraph upwards...}
+% In general, the more processes are spawned the more likely are
+% delays.
+
+% The Glide-In framework represents an essential building block for
+% conducting efficient RE simulations. In the following,
+% different adaptive resource utilization schemes, which have been
+% implemented on top of SAGA Glide-In, are evaluated.    
+
+\subsection{Adaptive Resource Utilization}
+
+To evaluate the performance of our framework for different adaptive
+strategies, the RE-Manager has been deployed on multiple
+resources %on the TeraGrid
+and tests performed for two different adaptive scenarios.  In the
+first, the \emph{replica size} -- the number of MPI processes assigned
+to each replica, was varied (scenario A). In the second, the
+\emph{replica number} -- the number of replicas participating in a
+generation was varied (scenario B). We compare the runtime of the REMD
+simulation for 64 attempted exchanges on different sets of distributed
+resources and Glide-In configurations.
+                    
+\begin{figure}[h]
+  \begin{minipage}[t]{.48\textwidth}
+    \begin{center}  
+      \includegraphics[width=\textwidth]{performance/perf_distributed_size_replica.pdf}
+      \caption{\footnotesize \bf Replica Size Adaptivity (Scenario A):
+        As the number of resources available increases, the number of
+        cores assigned to a replica (a NAMD job) is dynamically
+        adjusted, while keeping the number of replicas constant at
+        sixteen.  There are 4~Glide-Ins, and each has 32 core assigned
+        to it.  As more resources become available, more cores can be
+        assigned to each replica (NAMD job) which leads to a reduction
+        of $T_{c}$.  }
+      \label{fig:performance_perf_distributed_A}
+    \end{center}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{.485\textwidth}
+    \begin{center}  
+     
+%      This scenario utilises the capability of the underlying physics
+%      model to
+      \includegraphics[width=\textwidth]{performance/perf_distributed_number_replica.pdf}
+      \caption{\footnotesize \bf Replica Number Adaptivity (Scenario
+        B): In this scenario, the framework dynamically adjusts the
+        number of replicas.  A constant number of 4 Glide-Ins with 64
+        cores each are distributed across 1, 2 and 3 machines; the
+        size of each replica is kept fixed at 16 cores. Once again,
+        the greater the number of distributed resources that can be
+        utilised, the smaller $T_{c}$.}
+      \label{fig:performance_perf_distributed_B}
+    \end{center}
+  \end{minipage}
+  \hfill
+\end{figure}
+
+% \begin{figure}[t]
+%     \centering                     
+%     %\includegraphics[width=0.48\textwidth]{performance/perf_distributed_number_replica.pdf}
+%        \subfloat[Replica Process Size Adaptivity]{\includegraphics[width=0.48\textwidth]{performance/perf_distributed_size_replica.pdf}}
+%        \subfloat[Replica Process Number Adaptivity]{\includegraphics[width=0.48\textwidth]{performance/perf_distributed_number_replica.pdf}}    
+%        \caption{\footnotesize \bf Performance of the RE-Manager: 
+%          In scenario A, the size of all replica processes is dynamically adjusted to
+%          the number of available resources. All resources, i.\,e.\ Ab
+%          The figure shows the runtime of the RE-Manager for
+%          64 pair-wise exchanges using 16 replica processes with 16
+%          cores each. For all three scenarios 4 Glide-Ins with the size
+%          of 64 cores are used. The utilization of more machines leads to a
+%          shorter time-to-completion ($T_{c}$).          
+%          \jhanote{It is not clear to me from
+%            the caption whether the number of BigJobs remains the same
+%            for the three scenarios presented, i.e., the difference is
+%            location. Needs clarification} }
+%            \alnote{The issue I have currently is that the GlideIn size and the queueing delays
+%            are different between both experiments, which explains the difference in particular
+%            on a single machine. }
+%     \label{fig:performance_perf_distributed}
+% \end{figure}   
+
+% general setup                     
+In scenario A, up to 3 different resources are used, the number of
+Glide-Ins varies from 4 to 12, whilst the number of replicas used is
+fixed at 16. Thus the size of the individual replicas is varied.  When
+a resource is being used, it runs 4 Glide-Ins and each Glide-In job
+has a constant size of 32 cores each.  Although, the number of
+Glide-In jobs on a resource is fixed at 4 for reasons of simplicity,
+our results will hold for general values of this parameter. If all
+resources (Abe, QB and Ranger) were being used, there would be 12
+Glide-In jobs with 32 cores each, for a total of 384 cores.
+
+%A constant number of 16 replicas is used.
+% experiment procedure
+In three different cases (shown in Figure 5), Glide-Ins are submitted
+to one, 2 or 3 statically configured resources. Usually, these
+Glide-Ins are subject to different queueing delays at the local
+scheduler. To reflect these different resource loads, the number of
+MPI processes assigned to each of the replicas is dynamically
+increased as new resources become available (and therefore the number
+of Glide-Ins can be increased). Depending on the number of available
+resources, between 8 (for 4 Glide-Ins) and 24 cores (for 12 Glide-Ins)
+are used for each replica.
+
+\alnote{moved up: We mention explicitly that for our experiments, the
+  number of Glide-In jobs on a resource is fixed at 4; this is done
+  for simplicity and our results hold for general values of this
+  parameter.}
+
+\jhanote{AndreL: We need to mention how the experiments were
+  conducted: I guess the static configuration set both the number and
+  the specific resources to use. Then when first glide-in job started,
+  other glide-in jobs were in queue. then at some stage the other
+  glide-in job changed state (Q) and started running. Need to mention
+  this is what we mean by ``when additional resources became
+  available''.. as opposed to discovering resources. Plus it will help
+  the reader understand the results too.}
+
+\alnote{ok refined the two paragraphs above: 1) general setup 2)
+  experiment procedure. The points you mention in your comment should
+  be reflected in 2)}
+
+\jhanote{AndreL: We need to mention explicitly that i) the size of a
+  glide-in job was kept constant at 32 cores, and ii) this number of
+  32 is a seat-of-the-pants/empirically derived number.}
+
+\alnote{It is rather an intuitive number to force a lower number of
+  cores per replica for the 1 resource case. Otherwise, there would
+  probably no speedup for this scenario with only 500 NAMD
+  steps. There is some overhead for moving replicas from one machine
+  to another one (file staging).}
+
+Figure~\ref{fig:performance_perf_distributed_A} shows the results of
+the distributed run. In spite of the overhead for migrating replicas
+to newly available resources, a notable speedup of up to 15\,minutes
+can be observed as the number of resources increases from one to three;
+% there is a further reduction in the mean $T_c$ by a minute or two as
+% the number of resources increases from two to three.
+Although, the efficiency, defined as runtime on 1 resource divided by
+the runtime on multiple resources scaled by the number of resources,
+is only about 0.5, this is a limitation of the used setup rather than
+a general scalability barrier.  The setup comprises of rather short
+NAMD jobs; in particular during the initial phase jobs are often
+migrated to other resources, which mainly causes this overhead. During
+longer runs this overhead is essentially negligible. What is also very
+important to note is the reduced fluctuation in the $T_c$ when
+multiple resources are used. This is indicative of the fact that there
+is a reduction in the sensitivity to queue-loads -- something that
+applications on real production environments have to battle with.
+\jhanote{AndreL: Mention how many times these experiments were
+  repeated? were the three cases repeated the same number of times? or
+  was the first case (one machine) done more times than the 3 machine
+  run, in which case the error bars are even more significant}
+
+\jhanote{I think we need to address
+  the following else we will get dinged by the referees: We increase
+  our resource pool by a factor of 3, but get only a 33\% improvement
+  at best} \alnote{I tried to explain this number a little better
+  using the calculated efficiency: (t(1)/t(n))/n: E(2) = 0.58; E(3) =
+  0.47; There are still some issues with scenario A (in particular I
+  am referring to the heterogeneous speeds of these three machines
+  making this increasing number of MPI processes less efficient!)}
+\jhanote{I think we should talk about the above remark. Also we should
+  define efficiency in the text, else we will get dinged.}  
+\alnote{efficiency defined.}
+
+% general setup
+In scenario B, the capability of the RE-Manager to adaptively adjust
+the number of replicas simulated -- in effect adjusting either the
+range of temperature or the specific temperatures simulated -- is
+evaluated. For this purpose, up to 4 Glide-Ins with 64 cores each are
+distributed across 1, 2 and 3 different distributed resources. That
+means that the total of 256 cores is allocated on (i) Abe only, (ii)
+Abe and Ranger respectively (iii) Abe, Ranger and QB.  Each replica
+has a constant number of 16 MPI processes, and thus any Glide-In can
+run exactly 4 replicas when active.
+
+\jhanote{AndreL: Make it easy for the ready to grasp the number of
+  cores used when just Abe; when Abe/Ranger and finally when
+  Abe/Ranger/QB. (i) Is it 4 glide-ins in each of the three scenarios?
+  4 glide-ins on Abe, then 4 glides-in on Abe/Ranger and then 4
+  glide-ins on Abe/QB/Ranger??}
+
+\alnote{Added sentence. Answer to your question: yes}
+              
+%  procedure
+At the beginning of the experiment, all 4 Glide-Ins are submitted to
+either 1, 2 or 3 resources (statically configured).  Similar to
+scenario A, queueing delays usually occur; this is true whether using
+1 resource or using 3.  Consequently, not all Glide-Ins start
+simultaneously.  Using the adaptive temperature sampling algorithm,
+the number of replicas is dynamically varied as the number of active
+Glide-Ins increases. Depending on the number of running Glide-Ins, the
+ensemble consists of 4 to 16 replicas (increase in
+steps of 4).
+
+\jhanote{I don't understand how the number of replicas can be
+  increased if (a) the size of each replica is kept a constant and (b)
+  the number of processors assigned remains at 256 in all cases? What
+  was the starting value of the number of replicas?}  
+
+\jhanote{Once again, I think we need to put in a few sentences of how
+  the experiments were performed. It will help the reader and clear up
+  a few things that are difficult to understand.}
+% A maximum of 16 replicas and 256 cores are used.
+
+As shown in Figure~\ref{fig:performance_perf_distributed_B}, $T_{c}$
+decreases with the number of resources used.  With the the simulation
+distributed onto greater number of resources, the probability that a
+single heavily-utilised resource delays the overall progress of the
+simulation is reduced.
+% This is also reflected in the standard deviation,
+% which clearly decreases as the number of distributed resources used
+% increases. 
+The results clearly demonstrate the benefits of the adaptive replica
+scheme -- it is favourable to instantly use resources as they become
+active instead of waiting for the complete set of nodes to become
+available.  \jhanote{Once again, we will need to provide efficiency
+  numbers as people are accustomed to seeing in parallel computing: ie
+  Time-to-completion for net number of processors employed.  The point
+  here is not to be defensive compared to a 100\% scaling, but the
+  point is to remind that we are solving a very different problem!}
+\alnote{since the number of used resources remains the same (they are
+  just differently distributed), the efficiency for scenario B is 1:1
+  reflection in the time-to-completion.}
+
+% This was the optimal Glide-In size
+% determined in earlier experiments.  
+% We measured the runtime for 64 attempted pair-wise exchanges 
+% with respect to the number of TeraGrid
+% resources utilised.  
+\jhanote{This is going to sound bizarre... but in future we should
+  probably use a power-of-two number of exchanges and not nice numbers
+  like 40 or 42 :)}           
+\alnote{updated it to 64... will attempt more once I have this stuff working}
+
+% This is in particular useful for smaller resources, such as Oliver, where it 
+% is only possible to request 64 cores at a time. In contrast to the QB only run, 
+% the runtime only slightly increases by about 1.5 minutes, which is 
+% acceptable compared to a possible delay due to insufficient resources on Poseidon.
+                                              
+\alnote{Unfortunately, we have not been able to replica the
+  experiments without the Glide-In mechanism due to various reasons:
+  MPI/Globus not correctly configured on Ranger}
+
+
+\section{Related Work}
+
+\jhanote{This paragraph discussing different Glide-In mechanisms and
+  implementations needs to be moved to another section. Maybe into
+  ``Related Work'', but definitely not here; it disrupts the flow.}
+\alnote{ok, moved this to related work added comment why our approach is unique}
+
+\jhanote{This section should focus on both just the ``algorithmic''
+  advances/modification around Replica Exchange. But also
+  advances/related work around  implementation in distributed
+  environments}
+                       
+\alnote{Should we add related work with respect to glide-in?}
+
+\jhanote{We should talk about Condor's glide-in, but are there other
+  systems that implement glide-in features? Not that I'm aware of}
+
+\jhanote{Joohyun: can you put in information on the AREMD and other
+  papers you have sent around?}
+
+
+% \jhanote{This might have to be commented out: Checkpointing and
+%   rollback recovery is widely used in Grids. For example, the
+%   Condor/PGRADE system~\citep{DBLP:conf/eagc/KovacsK04} consists of a
+%   checkpointing mechanism for PVM applications and uses
+%   Condor-G~\citep{citeulike:291860} for scheduling.  While PGRADE
+%   emphasises an integrated user-level checkpoint approach, we believe
+%   that this approach is not suitable for a heterogeneous Grid
+%   landscape. Further, the framework does not ensure the
+%   fault-tolerance of the service infrastructure sufficiently.}
+                                 
+\jhanote{This will have to be commented out: Further, these frameworks
+  or schedulers focus on individual aspects, e.\,g.\ Nimrod-G focuses
+  on task farming or GridWay on meta-scheduling. Migol aims to provide
+  an overall autonomic, self-healing infrastructure, which addresses
+  the fault tolerance of Grid applications and the infrastructure
+  itself.}
+
+% \noindent{\it Previous CPR Efforts:} Several frameworks for
+% high-throughput computing and task farming exist,
+% Condor-G~\citep{citeulike:291860}, Nimrod-G~\citep{buyya00nimrodg}, and
+% Legion~\citep{689541} to name a few. These provide basic fault
+% tolerance support by automatic re-scheduling failed tasks. Advanced
+% features such as the management of checkpoints however, are not
+% supported. Further, these frameworks rely on a very simple failure
+% detection mechanism -- usually by simply polling the job state at the
+% Globus gatekeeper. This allows the detection of some errors, but
+% application-level failure detectors as used by the Migol/SAGA library
+% can detect much more complex errors. For example, especially parallel
+% applications can fail quite inconsistently: in the best case the
+% application aborts, at worst the application hangs indefinitely. These
+% kind of failures are not visible at Grid resource management system
+% level.
+
+% At the level of related application programming interfaces for
+% checkpointing, proprietary interfaces are dominant. This is because
+% applications most often rely on application level checkpointing, and
+% perform also their own checkpoint management (checkpointing policies,
+% frequencies, dependencies, staging etc).  \alnote{Should we remove
+%   this from here - this is already mentioned now at the beginning.}
+% The Open Grid Forum's\footnote{\texttt{http://www.ogf.org}} GridCPR
+% group (Grid CheckPoint and Recovery) made an early attempt to describe
+% a generic CPR architecture, and to define a generic CPR API, which
+% would support applications to manage their complete
+% checkpoint/recovery life cycle~\citep{ogf_cpr_arch}.  Based on that
+% architecture, and on a set of CPR use cases~\citep{ogf_cpr_uc}, the
+% SAGA group in OGF defined the CPR API package~\citep{saga_cpr_draft}
+% (work in progress), whose implementation is described in this paper.
+% The rendering of the CPR API in the SAGA API framework allows (a) to
+% seamlessly combine CPR operations and other high level Grid
+% programming abstractions provided by SAGA, and (b) to abstract from
+% the actual implementation of the CPR mechanism.  The CPR API which has
+% been demonstrated with the Migol framework, can work as well with
+% other systems, e.\,g.\, the XtreemOS system level checkpointing
+% capabilities~\citep{xtreemos_cpr}.
+
+\noindent{\it Other Distributed RE simulations:}
+Several projects, such as Folding@home and WISDOM, utilise distributed
+infrastructures. While
+Folding@home~\citep{PhysRevLett.86.4983}\jhanote{Folding@Home~\citep{PhysRevLett.86.4983}
+is parallel replica dynamics but that is a special case of
+RE; when a certain event happens, there is a need for
+coordination amongst ALL replicas. We should maybe point this out,
+but I think it is fair at this level of detail, to consider
+folding@Home to be in the same application class to effectively
+parallelize simulations} is based on BOINC~\citep{1033223}, the
+WISDOM~\citep{wisdom} project utilises the EGEE infrastructure. 
+Although WISDOM has similar application characteristics as discussed
+here, the project is currently tied to the gLite%~\citep{glite}
+middleware.  In contrast to WISDOM and Folding@home, our approach is
+not restricted to a specific distributed environment. SAGA based
+job-launching and file-handling is supported on most general-purpose
+Grids via the appropriate adaptors~\citep{saga_url}.
+% as SAGA is a community
+% specification and is soon to be standard~\citep{saga_url}.       
+
+LAMMPS~\citep{Plimpton:1995nx} supports replica-exchange
+natively, and has been extended to support
+distributed RE based on MPIg~\citep{repex_mpig}, which allows the
+development of topology aware applications. However, this approach is
+different to ours; firstly, it represents a specific solution and is
+arguably less general than our RE framework in that it requires
+changes to the source code; our implementation does not require any
+changes to the source code and NAMD can be easily replaced with
+another MD code.  Also, the use of MPIg, or any
+distributed computing generalization of MPI, requires the rigid
+co-allocation of all resources, i.\,e.\ in the absence of co-scheduler
+such as HARC, there is a under utilization of resources by requiring
+nodes to remain idle until all resources became available.  In
+contrast, our RE framework is able to adaptively use resources as they
+become available. However, we believe that where resources can be
+co-scheduled and where long or large systems are being simulated
+the approach outlined in Ref.~\citep{repex_mpig} is preferred.
+
+\cite{Woods:2005nx} deployed a RE framework on top of Condor.  To
+address adaptivity the framework proposes so called catchup clusters,
+which are used to speedup slow replicas. In contrast, our RE framework
+is generic and allows the utilisation of different distributed
+infrastructures (including Condor). Further, it can support similar
+catchup strategies, e.\,g.\ by initially setting the replica size to
+1; during the simulations additional resources can then be dynamically
+added to slow replicas.
+
+\noindent{\it Other Glide-In Frameworks:}   
+Different systems that use similar Glide-In approaches have been
+developed. \citet{citeulike:291860} initially proposed this idea in
+their work on Condor Glide-In. Using Condor Glide-In a complete Condor
+pool can be initiated using the GRAM service. Falkon~\citep{1362680}
+is a newer system, which emphasize in particular the performance of
+its task dispatcher.  However, both systems have limitations and
+impose e.\,g.\ different overheads: Condor \glidein\ requires the
+start of a complete set of Condor daemons within the allocated set of
+resources. 
+%For Falkon, \citet{citeulike:3169002}  startup time
+%of over 2 minutes on a Blue Gene/P machine have been reported. 
+Falkon  does not support MPI applications, i.\,e.\ it is not usable for our
+application scenario.  
+
+\jhanote{We need to mention the work using ``Catch-Up'' clusters which
+  uses single processor NAMD simulations. Mention that our approach
+  can effectively replicate the catch-up cluster mechanism; set all
+  replica-sizes to be 1 to begin with, then those that slowdown can
+  be enhanced}
+\alnote{done}
+% Further, firewall issues
+% have been reported for both systems.
+
+% \alnote{Should we add some details regarding the scientific results of
+%   WISDOM and Folding@home and how they differ from our REMD with NAMD?
+%   Or are we just comparing the Grid infrastructure?}  \jhanote{In
+%   response to immediately preceeding alnote, IMHO we don't need to
+%   address scientific results, but will just say the ``size of the
+%   problem'' that can be studied is limited}
+
+%% ----------------------------------------------------------------------------
+\section{Conclusion and Future Work}
+
+\jhanote{Mention BQP and co-scheduling as opposed to opportunistic
+  approach. Reference Kalman-filter work. Reference Promita's work
+  using BQP for tightly-coupled applications.} 
+                
+\alnote{I removed some parts due to redundancy}
+% The RE framework uses the distributed programming
+% interfaces provided by SAGA as well as the Migol middleware.  
+% SAGA provides a middleware-independent, programming abstraction for distributed
+% environments. With the new SAGA-CPR API RE simulations can interface
+% with a checkpoint-recovery infrastructure, such as Migol. Using Migol, 
+% the RE framework is able to transparently handle the failure of a Globus 
+% GRAM service, a Replica-Agent or the Replica-Manager.
+% 
+% Using standard programmatic abstractions we have developed a general
+% purpose, fault-tolerant framework that implements a commonly occurring
+% application usage pattern: the loose coupling of multiple tightly-coupled
+% applications. The framework is general purpose and extensible to
+% different usage patterns, deployment scenarios and specific simulation
+% codes. We demonstrated the successful usage of the framework to implement 
+% RE simulations and to deploy these in a production Grid environment.
+% 
+% In contrast to other RE implementations on distributed simulations, it
+% is critical to note and emphasise the general usability and
+% extensibility -- across different infrastructures, across a range of
+% scientific applications and usage patterns (e.g.  the multiple
+% variants of the RE) -- of our approach. 
+
+
+% Using the
+% newly developed SAGA adaptor for Migol, any SAGA application can
+% re-use Migol's fault-tolerant services for monitoring and recovery.
+
+% The application developer is not required to provide any special code,
+% just the Migol adaptor must be configured.  % The Migol framework has
+% strong self-healing capabilities: critical services, such as the
+% Application Information Service (AIS) are able to automatically detect
+% failures and reconfigure themselves, and thus addresses common failure
+% modes in distributed environments without user interaction.
+% In case of failures, e.\,g.,\ a node-crash, applications are
+% automatically restarted from the last saved
+% checkpoint.
+
+                    
+\alnote{Attempt to structure conclusion: 1) SAGA/Migol 2.) Glide-In
+  3.) Adaptive Sampling 4.) Future Work: Glide-In, REMD, Reservation,
+  BQP}
+                                         
+\jhanote{needs smoothening} 
+
+In summary, SAGA provides a well-defined and sufficiently powerful
+interface to develop the required abstraction to support adaptive
+distributed RE applications.  SAGA also allows the simple decoupling
+of the RE orchestration logic from the underlying distributed
+infrastructure. All this whilst remaining general purpose and
+extensible.  Using SAGA-CPR, the framework is able to utilise the
+Migol infrastructure, i.\,e. the application can benefit from
+features, such as the automatic monitoring and the transparent
+recovery of failed tasks.
+
+\alnote{I used BigJob now as abstraction name...}  
+
+By only slightly extending the job model defined by SAGA, the BigJob
+abstraction was used to support the requirements of the RE
+framework.
+% While the current implementation of the framework uses 
+% a custom protocol to implement this abstraction, it can also be applied 
+% to other middleware platforms, such as Condor Glide-In.     
+% and different adaptivity strategies that our framework support, the
+% agile execution of RE simulations in dynamic environments has been
+% developed. 
+The RE framework is based on the BigJob abstraction, with support for
+the Glide-In mechanism. Using the SAGA-based RE framework the
+application can dynamically use available resources by adjusting
+either the number of replicas, or the number of MPI processes per
+replica, in a light-weight, scalable and extensible manner.  Thus our
+framework supports the agile-execution of RE simulations in a
+distributed environment.
+% With this approach
+% expensive idle time due to a rigid co-allocation scheme can be
+% avoided, which significantly reduced the time-to-completion.
+While the implementation of this abstraction is entirely based on
+SAGA, a utilization of other frameworks, such as the orignal Condor
+Glide-In~\citep{citeulike:291860} or Falkon~\citep{1362680}, is
+possible. Currently, we are actively working on a Condor adaptor for
+SAGA, which will also support native Glide-In functionality for Condor
+Jobs; our BigJob abstraction will then serve as abstraction, while the
+Condor level Glide-In is used as implementation where appropriate.
+
+The adaptive RE framework has been successfully deployed on
+the TG and LONI resources.
+% The SAGA Glide-In framework allows the efficient
+% dispatching of replicas. Using this framework the time  
+% to complete could be reduced by upto 80\,\%.                                      
+Using the BigJob abstraction, RE sub-jobs could efficiently be dispatched 
+reducing the time-to-completion up to 70\,\%. The use of different 
+adaptivity strategies to dynamically utilise additional resources led 
+to a further reduction of the time-to-completion.
+
+
+
+
+\alnote{I move this to a note:
+The SAGA \glidein\ framework represents the first known instance of creating a
+system (deployment) level abstraction for distributed systems from
+basic programming interfaces.} 
+
+\alnote{I would not call it deployment abstraction... If I think about
+deployment I am always thinking of the pain with boost.}
+\alnote{I am also not sure about the ``abstraction created from 
+  programming interfaces'': 
+  I mean I know many abstractions which are created based on
+  programming interfaces: Any C/C++-library based on the POSIX
+  interfaces, higher-level Grid services based on Globus WSRF
+  framework, etc.}   
+
+
+% The implementation of adaptive RE minimizes slowdowns due to synchronisation, 
+% whilst making it easy to add/remove resources {\it dynamically} respecting the
+% underlying phys\-ics of the problem at the same time.  
+       
+
+                                 
+
+
+% Currently, we are actively
+% working on a Condor adaptor for SAGA, which will also support native
+% \glidein\ functionality for Condor Jobs; our enhanced job model 
+% will then serve as abstraction, while the Condor level 
+% \glidein\ is used as implementation where appropriate.
+% \alnote{This is kind of }
+   
+% Various optimization, such as the prefetching of tasks or the refinement
+% of the deployed adaptivity strategies, can further reduce the time-to-completion. 
+        
+In the future, we will refine our RE framework making it
+more adaptive towards dynamic environments, e.\,g.\ by deploying  
+a more asynchronous scheme as described by \citet{Gallicchio:2007yq}.
+Further, we will utilise our RE framework to study real science problems,
+such as the Riboswitch problem~\citep{Huang:2008xe}.     
+
+% Further, we will refine both the infrastructure and the RE algorithm
+% used.  
+
+At the same time, we will  improve our RE infrastructure to support
+further adaptive strategies for resource determination and utilisation.
+While it has been shown, that resources can efficiently be allocated with
+the BigJob abstraction, a mechanism for dynamic resource discovery and 
+for intelligent placements of jobs will be beneficial to further 
+decrease the time-to-completion. 
+% Currently, replicas are 
+% statically assigned to resources; a good selection algorithm that favours
+% less crowded resources enhances the number of resources that the RE-Manager
+% can acquire for spawning replicas. 
+Various approaches for the resources determination have been proposed, e.\,g.\ batch queue 
+prediction~\citep{1254939,Chakraborty:2008nx} and advance reservation-based 
+schemes~\citep{Jeske:2007wj}. 
+% We will evaluate these systems in conjunction
+% with our adaptive framework in the future. 
+
+
+% However, these approaches have been designed for long-running applications. 
+% In general, the scheduling 
+% overhead for short-running tasks must be kept to a minimum. However, in 
+% particular for Glide-In tasks such schemas could allow a further reduction of
+% the queueing time and thus the time to solution.  
+
+\alnote{I did not mention it yet, but the SD API could be a good option to control
+the resource discovery.}
+
+% queuing delays are advance reservation.  An advance reservation commits a particular
+% resource over a defined time interval from the service provide to the consumer. Advance 
+% reservations allow the efficient co-allocation of resources without wasting compute cycles.
+
+
+\jhanote{Still sensitive to varying load-factors ie queuing delays, 
+  on different machines}
+
+\jhanote{In future work, we need to mention that we are deploying this
+  infrastructure on a real distributed system (LONI) and are using it
+  to study the binding interactions of peptide-RNA (Joohyun, would you
+  agree?). We will report on the specific science results obtained
+  using this approach in publication TBD but most likely Phil Trans of
+  Royal Soc A}
+
+\jhanote{we should also note the challenges that arise when physical
+  models get very large ie low probability of exchange, reference PNAS
+  paper, and how this might possibly be alleviated using distributed
+  systems ie. adaptive number of replicas can be used to increase the
+  probability of exchange. We are already using a variable number of
+  replicas between stages, now we say we can exploit this ``feature''
+  for other advantages. At least in principle.  Joohyun, you are free
+  to argue otherwise....}
+
+\begin{acknowledgement}
+	  This work would not have been possible without the support of 
+	  the wider SAGA team. Important funding for SAGA
+	  specification and development has been provided by the UK EPSRC
+	  grant number GR/D0766171/1 (via OMII).  SJ acknowledges the
+	  e-Science Institute, Edinburgh for supporting the research theme,
+	  ``Distributed Programming Abstractions''.  We would also like to
+	  thank Yaakoub el-Khamra for useful discussions. This work has also
+	  been made possible thanks to computer resources provided by the
+	  TeraGrid and LONI.        
+
+\end{acknowledgement}
+
+\bibliographystyle{kluwer}
+\bibliography{saga,literatur}    
+\end{document}
+
+An approach commonly employed to avoid queuing delays is the usage of
+a place-holder job, which is able to dispatch several sub-jobs without
+each sub-job needing to queue at the local scheduler. This principle
+is also referred to as \emph{Glide-In}, in reference to the Condor
+Glide-In system~\citep{citeulike:291860}, which pioneered this idea. A
+Glide-In job requests a sufficiently large chunk of resources; smaller
+sub-jobs can then rapidly be executed through the Glide-In job.  By
+avoiding the high initial costs for queueing each individual replica
+job, the time-to-completion can be dramatically reduced.
+
+Figure~\ref{fig:abstractions} summarizes the abstractions developed
+for supporting the clustering of sub-jobs into a larger big-jobs and
+the effective dispatching of the sub-jobs.  The capability to cluster
+sub-jobs, is provided to the application via the \emph{BigJob}
+abstraction. This abstraction enhances the SAGA job model
+\jhanote{Need a sentence or two about what ``enhancing the SAGA job
+  model'' means, ie in turn outlining what the SAGA Job Model is?}
+with the possibility to allocate larger chunks of resources prior to
+an application run. For this purpose, the \texttt{big\_job} and the
+\texttt{sub\_job} object are defined, whereby the BigJob abstraction
+is implemented on top of the system-level Glide-In abstraction. For
+each \texttt{big\_job} object, a Glide-In job with the desired number
+of resources is started. In the following, \texttt{sub\_job} objects
+-- which correspond to individual replicas, are mapped to a
+\texttt{big\_job} using the jobid as reference.
+
+% For this purpose the \texttt{big\_job} object is
+% defined, which is used to initialize a Glide-In job with the desired
+% number of resources.  Further, the \texttt{sub\_job} object, which can
+% be mapped to a \texttt{big\_job} using the job id, is specified.
+
+To understand the relationship between clustered job submissions, the
+BigJob and Gli\-de-In abstractions, it is useful to review two basic
+underlying concepts, \I{patterns} and \I{abstractions}.  \alnote{I
+  commented this out (liked the second definition of pattern better):
+  A pattern is a references to a commonly occurring mode -- whether in
+  programming an application, in the way an application is used or
+  executed.}  \I{Patterns} are the formalization of frequently
+reoccurring modes, either in programming an application or in the way
+an application is used or executed.
+% They often apply across a range of different specific contexts. 
+For example, the need to submit multiple jobs together is a common
+requirement and practise, and thus provides a simple example of an
+execution pattern.  A mechanism that supports a pattern is referred to
+as an \I{abstraction}; just as patterns can be programmatic or execution,
+so can abstractions.  \jhanote{Should we give another example, rather
+  than the clustered-job pattern? AndreL, AndreM: any suggestions?}
+\alnote{I think 1 example is supporting our use case is sufficient.}
+
+For the purposes of our work, the pattern is the clustering of
+multiple job to be submitted, which is supported using the 
+application-level BigJob abstraction. BigJob in turn utilises another
+abstraction -- the system-level Glide-In abstraction, which supports 
+the commonly occurring requirement to schedule multiple sub-tasks 
+relative to each other and not in competition with other jobs 
+submitted to the batch queue system.
