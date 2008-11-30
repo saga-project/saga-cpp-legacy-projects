@@ -95,8 +95,8 @@ namespace faust
        */
       ~service();
       
-      /*! \brief  Creates a new %job instance without dependencies ('top-level %job') 
-       *          based on the provided %job %description.
+      /*! \brief  Creates a new 'top-level-job' instance without dependencies 
+       *          to other jobs. 
        *
        *  \return A new job object pointer. 
        * 
