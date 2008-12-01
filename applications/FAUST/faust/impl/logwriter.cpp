@@ -14,7 +14,7 @@
 #include <ostream>
 
 #include <saga/saga.hpp>
-#include <faust/faust/logwriter.hpp>
+#include <faust/impl/logwriter.hpp>
 
 using namespace saga;
 
