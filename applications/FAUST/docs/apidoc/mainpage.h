@@ -1,4 +1,5 @@
-/*! \mainpage FAUST - A Framework for Adaptive Ubiquitous Scalable Tasks 
+
+/*! \mainpage FAUST - A Framework for Adaptive Ubiquitous Scalable Tasks  
 *
 * <p align="center"><img  src="./murnau_faust.jpg" /></p>
 *
