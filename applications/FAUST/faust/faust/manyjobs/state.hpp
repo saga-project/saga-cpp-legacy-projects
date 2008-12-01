@@ -25,15 +25,17 @@ namespace faust
       /*! Add brief description! */
       New       =  1,
       /*! Add brief description! */
-      Running   =  2,
+      Pending   =  2,
       /*! Add brief description! */
-      Done      =  3,
+      Running   =  4,
       /*! Add brief description! */
-      Canceled  =  4,
+      Done      =  8,
       /*! Add brief description! */
-      Failed    =  5,
+      Canceled  =  16,
       /*! Add brief description! */
-      Suspended =  6
+      Failed    =  32,
+      /*! Add brief description! */
+      Suspended =  64
     };
   }
 }

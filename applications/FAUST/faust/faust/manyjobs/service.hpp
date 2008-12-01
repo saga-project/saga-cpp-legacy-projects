@@ -23,7 +23,10 @@
 namespace faust
 {
   // fwd. decl. implementation class // 
+  ///@cond - exclude from Doxygen
   namespace impl { namespace manyjobs { class service_impl; } }
+  ///@endcond - exclude from Doxygen
+
   
   namespace manyjobs {
  
@@ -41,25 +44,10 @@ namespace faust
     
     class job; class job_group;
     
-    /*! \brief A %job %service represents a %manyjobs resource manager that
+    /*! \brief A %job %service represents a %manyjobs %resource manager that
      *         uses a set of hosts an scheduling strategies to efficiently 
      *         create and schedule %job instances.
      * 
-     *         <br><b>Example:</b><br><br>
-     *         <code> 
-     *         std::vector<faust::manyjobs::resource> resources;<br>
-     *
-     *         faust::manyjobs::resource rd;<br>
-     *         rd.contact = "gram://qb.loni.org:2119/jobmanager-pbs";<br>
-     *         rd.project = "sample_project";<br>
-     *         rd.queue   = "workq";<br>
-     *         rd.workdir = "/tmp/";<br>
-     * 
-     *         resources.push_back(rd);<br>
-     * 
-     *         faust::manyjobs::service s(resources);
-     *
-     *         </code> 
      */
     class FAUST_EXPORT service : public saga::object
     {
@@ -72,19 +60,46 @@ namespace faust
       
     public:
       
-      /*! \brief Tries to create a new %manyjobs %service instance
-       *         that uses the hosts decribed by hostlist.
+      /*! \brief  Creates a new %manyjobs %service instance that schedules 
+       *          jobs on the hosts decribed in the provided list of resources.
+       *
+       *          Detailed %description goes here...
+       *
+       *          <b>Example:</b><br>
+       *          <code> 
+       *          std::vector<faust::manyjobs::resource> resources;<br>
+       *
+       *          faust::manyjobs::resource rd;<br>
+       *          rd.contact = "gram://qb.loni.org:2119/jobmanager-pbs";<br>
+       *          rd.project = "sample_project";<br>
+       *          rd.queue   = "workq";<br>
+       *          rd.workdir = "/tmp/";<br>
+       * 
+       *          resources.push_back(rd);<br>
+       * 
+       *          faust::manyjobs::service s(resources);
+       *
+       *          </code> 
+       *
+       *  \param  resources List of resource objects this %service instance
+       *                    should work with.
+       *  \param  num_jobs Total number of jobs this %service instance can
+       *                   expect to run (scheduling hint).
        *  
        */
       explicit service (std::vector<resource> resources, int num_jobs);
       
-      /*! \brief Tries to properly shut down this %manyjobs instance.
+      /*! \brief  Shuts down this %manyjobs %service instance.
+       *
+       *          Detailed %description goes here...
        *  
        */
       ~service();
       
       /*! \brief  Creates a new 'top-level-job' instance without dependencies 
        *          to other jobs. 
+       *
+       *          Detailed %description goes here...
        *
        *  \return A new job object pointer. 
        * 
@@ -199,20 +214,6 @@ namespace faust
        *
        */
       faust::manyjobs::resource get_resource(std::string contact);
-      
-      
-      /*! \brief  Temporary debug method...
-       *
-       */
-      void debug_check();
-      
-    private:
-      
-      /* Create job services
-       *
-       */ 
-      void create_job_services();
-      
       
     };
   }

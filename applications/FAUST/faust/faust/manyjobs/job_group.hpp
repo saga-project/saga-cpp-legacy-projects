@@ -22,7 +22,10 @@
 namespace faust
 {
   // fwd. decl. implementation class 
+  ///@cond - exclude from Doxygen
   namespace impl { namespace manyjobs { class job_group_impl; class service_impl; } }
+  ///@endcond - exclude from Doxygen
+
 
   namespace manyjobs {
     
