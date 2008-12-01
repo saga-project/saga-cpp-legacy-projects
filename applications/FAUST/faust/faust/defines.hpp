@@ -13,7 +13,6 @@
 #define FAUST_DEFINES_HPP
 
 #include <faust/faust/exports.hpp>
-
 #include <faust/faust/version.hpp>
 
 #define FW_NAME "FAUST"

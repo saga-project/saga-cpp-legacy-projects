@@ -14,14 +14,14 @@
 #include <faust/faust/defines.hpp>
 #include <faust/faust/manyjobs/description.hpp>
 
-using namespace faust;
+using namespace faust::manyjobs;
 
-manyjobs::description::description() 
+description::description() 
 {
   
 }
 
-manyjobs::description::~description() 
+description::~description() 
 {
   
 }

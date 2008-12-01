@@ -15,6 +15,7 @@
 #include <saga/saga.hpp>
 
 #include <faust/faust/exports.hpp>
+#include <faust/faust/manyjobs/job.hpp>
 #include <faust/faust/manyjobs/state.hpp>
 #include <faust/faust/manyjobs/description.hpp>
 
@@ -29,7 +30,9 @@ namespace faust
       
       private:
         
-        std::string jobid_;
+        std::string                  jobid_;
+        faust::manyjobs::state       state_;
+        faust::manyjobs::description description_;
         
       public:
         

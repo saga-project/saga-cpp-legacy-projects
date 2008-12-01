@@ -80,7 +80,5 @@ int main (int argc, char* argv[])
     std::cout << (*ci) << std::endl;
   
   
-  s.debug_check();
-  
   return 0;
 }

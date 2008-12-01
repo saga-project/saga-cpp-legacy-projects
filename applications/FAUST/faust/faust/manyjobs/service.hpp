@@ -12,25 +12,19 @@
 #ifndef FAUST_MANYJOBS_SERVICE_HPP
 #define FAUST_MANYJOBS_SERVICE_HPP
 
-#include <saga/saga.hpp>
-
 #include <boost/shared_ptr.hpp>
 
-#include <faust/faust/defines.hpp>
-#include <faust/impl/logwriter.hpp>
-
+#include <faust/faust/exports.hpp>
 #include <faust/faust/manyjobs/state.hpp>
 #include <faust/faust/manyjobs/job.hpp>
 #include <faust/faust/manyjobs/job_group.hpp>
-#include <faust/faust/manyjobs/service.hpp>
 #include <faust/faust/manyjobs/description.hpp>
-
-#include <faust/impl/manyjobs/job_group_impl.hpp>
-#include <faust/faust/manyjobs/job_group.hpp>
-
 
 namespace faust
 {
+  // fwd. decl. implementation class // 
+  namespace impl { namespace manyjobs { class service_impl; } }
+  
   namespace manyjobs {
  
     /*! \brief This structure defines a computing %resource. A list of 
@@ -45,18 +39,7 @@ namespace faust
       std::string  project;
     };
     
-    // forward decl. 
-    class job;  
-    
-    ///@cond - exclude from Doxygen
-    typedef boost::shared_ptr<job> job_ptr;
-    typedef std::map<std::string,  job_ptr> joblist_map;
-    typedef std::pair<std::string, job_ptr> joblist_pair;
-    
-    typedef std::map<std::string,  resource> resources_map;
-    typedef std::pair<std::string, resource> resources_pair;
-    
-    ///@endcond - exclude from Doxygen
+    class job; class job_group;
     
     /*! \brief A %job %service represents a %manyjobs resource manager that
      *         uses a set of hosts an scheduling strategies to efficiently 
@@ -82,10 +65,10 @@ namespace faust
     {
       
     private:
-      faust::detail::logwriter *      log_;
       
-      resources_map  resources_;
-      joblist_map    joblist_;
+      typedef boost::shared_ptr<faust::impl::manyjobs::service_impl> impl_ptr;
+      impl_ptr impl;
+
       
     public:
       
@@ -169,7 +152,7 @@ namespace faust
        * 
        */
       job_group create_job_group(std::vector<description> job_descs, 
-                                           job dep_job, state job_state);
+                                 std::string dep_job, state job_state);
       
       /*! \brief  Lists the IDs of all jobs that are currently 
        *          associated with this %service instance.

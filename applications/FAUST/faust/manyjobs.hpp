@@ -12,9 +12,11 @@
 #ifndef FAUST_MANYJOBS_HPP
 #define FAUST_MANYJOBS_HPP
 
+//#include <faust/faust/manyjobs/job.hpp>
+//#include <faust/faust/manyjobs/job_group.hpp>
+//#include <faust/faust/manyjobs/description.hpp>
+//#include <faust/faust/manyjobs/state.hpp>
 #include <faust/faust/manyjobs/service.hpp>
-#include <faust/faust/manyjobs/job.hpp>
-#include <faust/faust/manyjobs/job_group.hpp>
-#include <faust/faust/manyjobs/description.hpp>
+
 
 #endif /* FAUST_MANYJOBS_HPP */

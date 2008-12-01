@@ -1,65 +1,78 @@
 /*
- *  job_group_impl.cpp 
+ *  job.cpp
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/30/08.
+ *  Created by Ole Weidner on 11/22/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <faust/impl/manyjobs/job_group_impl.hpp>
+#include <faust/faust/manyjobs/job.hpp>
+#include <faust/impl/manyjobs/job_impl.hpp>
 
-using namespace faust::impl::manyjobs;
-
-////////////////////////////////////////////////////////////////////////////////
-// CONSTRUCTOR
-//
-job_group_impl::job_group_impl() 
-{
-  std::string jobid("manyjob://");
-  jobid.append(saga::uuid().string());
-  jobid_ = jobid;          
-}
+using namespace faust::manyjobs;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void job_group_impl::run()
+job::job() 
+: impl(new faust::impl::manyjobs::job_impl())
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_group_impl::wait(double timeout)
-{
-  return false;
+void job::run() 
+{ 
+  impl->run(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_group_impl::cancel(double timeout)
-{
-  return false;
+bool job::wait(double timeout) 
+{ 
+  return impl->wait(timeout); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_group_impl::suspend()
-{
-  return false;
+bool job::cancel(double timeout) 
+{ 
+  return impl->cancel(timeout); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_group_impl::resume()
-{
-  return false;
+bool job::suspend() 
+{ 
+  return impl->suspend(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-std::string job_group_impl::get_job_id()
+bool job::resume() 
+{ 
+  return impl->suspend(); 
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+std::string job::get_job_id() 
+{ 
+  return impl->get_job_id(); 
+}      
+
+////////////////////////////////////////////////////////////////////////////////
+//
+faust::manyjobs::state job::get_state()
 {
-  return jobid_;
+  return impl->get_state();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+faust::manyjobs::description job::get_description()
+{
+  return impl->get_description();
 }
