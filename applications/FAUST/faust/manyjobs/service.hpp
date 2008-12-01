@@ -21,8 +21,13 @@
 
 #include <faust/manyjobs/state.hpp>
 #include <faust/manyjobs/job.hpp>
+#include <faust/manyjobs/job_group.hpp>
 #include <faust/manyjobs/service.hpp>
 #include <faust/manyjobs/description.hpp>
+
+#include <faust/impl/manyjobs/job_group_impl.hpp>
+#include <faust/manyjobs/job_group.hpp>
+
 
 namespace faust
 {
@@ -41,7 +46,7 @@ namespace faust
     };
     
     // forward decl. 
-    class job; class job_group; 
+    class job;  
     
     ///@cond - exclude from Doxygen
     typedef boost::shared_ptr<job> job_ptr;
@@ -57,7 +62,7 @@ namespace faust
      *         uses a set of hosts an scheduling strategies to efficiently 
      *         create and schedule %job instances.
      * 
-     *         <br><b>Usage example:</b><br><br>
+     *         <br><b>Example:</b><br><br>
      *         <code> 
      *         std::vector<faust::manyjobs::resource> resources;<br>
      *
@@ -112,22 +117,59 @@ namespace faust
       job * create_job(description job_desc, std::string job_id, state job_state);
 
       
-      /*! \brief  Creates a new %job instance without dependencies ('top-level %job') 
-       *          based on the provided %job %description.
+      /*! \brief  Creates a new %job_group instance. All jobs in the %job_group
+       *          are initially in <b>PENDING</b> state.
        *
-       *  \return A new job object pointer. 
+       *          Detailed %description goes here...
+       *          
+       *          <b>Example:</b><br>
+       *          <code> 
+       *          std::vector<description> desc;<br>
+       *          desc.push_back(jd1);<br>
+       *          desc.push_back(jd2);<br>
+       *          desc.push_back(jd3);<br>
+       *          <br>
+       *          faust::manyjobs::service s(resources);<br> 
+       *          faust::manyjobs::job_group jg = s.create_job_group(desc);<br>
+       *          </code>
+       *
+       *  \param  job_descs A list of %job %description objects describing the 
+       *          %job properties.
+       *
+       *  \return A new job_group object containing one ore more jobs. 
        * 
        */
       job_group create_job_group(std::vector<description> job_descs);
       
-      /*! \brief  Creates a new group of %jobs ('sub-job') instance which all 
-       *          depend on the state of the %job identified by job_id. 
+      /*! \brief  Creates a new %job_group instance that depends on the state
+       *          of another %job instance. All jobs in the %job_group
+       *          are initially in <b>PENDING</b> state.
        *
-       *  \return A new job object pointer. 
+       *          Detailed %description goes here...
+       *
+       *          <b>Example:</b><br>
+       *          <code> 
+       *          std::vector<description> desc;<br>
+       *          desc.push_back(jd1);<br>
+       *          desc.push_back(jd2);<br>
+       *          desc.push_back(jd3);<br>
+       *          <br>
+       *          faust::manyjobs::service s(resources);<br> <br>
+       *          //Creates a job_group that can't be scheduled before <br>
+       *          //j1 has reached DONE state.<br>
+       *          faust::manyjobs::job_group jg = s.create_job_group(desc, j1, Done);<br>
+       *          </code>
+       *
+       *  \param  job_descs A list of %job %description objects describing the 
+       *          %job properties.
+       *  \param  dep_job The job object that provides the state on which the 
+       *          scheduling of this %job_group depends on.
+       *  \param  job_state The state 
+       *  \return A new job_group object containing one ore more jobs. 
        * 
        */
       job_group create_job_group(std::vector<description> job_descs, 
-                                           std::string job_id, state job_state);
+                                           job dep_job, state job_state);
       
       /*! \brief  Lists the IDs of all jobs that are currently 
        *          associated with this %service instance.

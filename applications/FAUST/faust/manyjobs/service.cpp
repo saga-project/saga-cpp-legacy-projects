@@ -72,11 +72,11 @@ manyjobs::service::service(std::vector<resource> resources, int num_jobs)
       jd.set_attribute (attributes::description_interactive, saga::attributes::common_false);
       jd.set_attribute (attributes::description_queue,       (*i).queue);
       std::vector<std::string> project; project.push_back((*i).project);
-      jd.set_vector_attribute (attributes::description_job_project, project);
+      //jd.set_vector_attribute (attributes::description_job_project, project);
       
-      saga::job::job j = sjs.create_job(jd);
-      j.run();
-      j.cancel();
+      //saga::job::job j = sjs.create_job(jd);
+      //j.run();
+      //j.cancel();
     }
     catch(saga::exception const & e)
     {
@@ -186,6 +186,20 @@ std::vector<std::string> manyjobs::service::list_resources(void)
   }
   
   return res;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+//
+faust::manyjobs::job_group manyjobs::service::create_job_group(std::vector<description> job_descs)
+{
+  faust::manyjobs::job_group g;
+  
+ // joblist_.insert(joblist_pair(g.get_job_id(), g));
+  std::string msg("Registering new job_group instance: " + g.get_job_id());
+  log_->write(msg, LOGLEVEL_INFO);
+  
+  return g;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

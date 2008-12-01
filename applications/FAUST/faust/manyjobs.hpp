@@ -14,6 +14,7 @@
 
 #include <faust/manyjobs/service.hpp>
 #include <faust/manyjobs/job.hpp>
+#include <faust/manyjobs/job_group.hpp>
 #include <faust/manyjobs/description.hpp>
 
 #endif /* FAUST_MANYJOBS_HPP */

@@ -43,6 +43,18 @@ int main (int argc, char* argv[])
   faust::manyjobs::service s(hostlist, 64);
   
   //////////////////////////////////
+  // test service::create_job_group()
+  faust::manyjobs::description d1, d2;
+  std::vector<faust::manyjobs::description> desc;
+  desc.push_back(d1);
+  desc.push_back(d2);
+  faust::manyjobs::job_group jg1 = s.create_job_group(desc); 
+  std::cout << "group id: " << jg1.get_job_id() << std::endl;
+  faust::manyjobs::job_group jg2 = jg1;
+  std::cout << "copied group id: " << jg2.get_job_id() << std::endl;
+
+  
+  //////////////////////////////////
   // test service::create_job()
   faust::manyjobs::description d;
   faust::manyjobs::job * j = s.create_job(d); 

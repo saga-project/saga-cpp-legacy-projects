@@ -34,9 +34,7 @@ namespace faust
     friend class service;
       
     private:
-      /*! \brief Tries to create a new %manyjobs %job instance.
-       *  
-       */
+
       job();
       
       std::string jobid_;
