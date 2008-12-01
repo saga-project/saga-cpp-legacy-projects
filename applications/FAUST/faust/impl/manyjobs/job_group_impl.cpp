@@ -11,8 +11,11 @@
 
 #include <faust/impl/manyjobs/job_group_impl.hpp>
 
-using namespace faust::manyjobs::impl;
+using namespace faust::impl::manyjobs;
 
+////////////////////////////////////////////////////////////////////////////////
+// CONSTRUCTOR
+//
 job_group_impl::job_group_impl() 
 {
   std::string jobid("manyjob://");
@@ -20,7 +23,10 @@ job_group_impl::job_group_impl()
   jobid_ = jobid;          
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// 
+//
 std::string job_group_impl::get_job_id()
 {
-return jobid_;
+  return jobid_;
 }

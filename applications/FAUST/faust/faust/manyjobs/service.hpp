@@ -17,7 +17,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <faust/faust/defines.hpp>
-#include <faust/faust/logwriter.hpp>
+#include <faust/impl/logwriter.hpp>
 
 #include <faust/faust/manyjobs/state.hpp>
 #include <faust/faust/manyjobs/job.hpp>

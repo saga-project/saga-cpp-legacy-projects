@@ -40,10 +40,10 @@ namespace faust
       
     private:
 
-      typedef boost::shared_ptr<faust::manyjobs::impl::job_impl> impl_ptr;
+      typedef boost::shared_ptr<faust::impl::manyjobs::job_impl> impl_ptr;
       impl_ptr impl;
       
-      job() : impl(new faust::manyjobs::impl::job_impl())
+      job() : impl(new faust::impl::manyjobs::job_impl())
       {
       }
             

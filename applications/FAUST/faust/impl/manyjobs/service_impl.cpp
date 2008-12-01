@@ -1,5 +1,5 @@
 /*
- *  job_group_impl.cpp 
+ *  service_impl.cpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
  *  Created by Ole Weidner on 11/30/08.
@@ -9,24 +9,14 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <faust/impl/manyjobs/job_impl.hpp>
+#include <faust/impl/manyjobs/service_impl.hpp>
 
 using namespace faust::impl::manyjobs;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 //
-job_impl::job_impl() 
+service_impl::service_impl (std::vector<resource> resources, int num_jobs)
 {
-  std::string jobid("manyjob://");
-  jobid.append(saga::uuid().string());
-  jobid_ = jobid;          
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// 
-//
-std::string job_impl::get_job_id()
-{
-  return jobid_;
+  
 }
