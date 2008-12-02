@@ -11,6 +11,8 @@
 
 #include <iostream>
 
+#include <saga/saga/packages/job/job_description.hpp>
+
 #include <faust/faust.hpp>
 #include <faust/manyjobs.hpp>
 
@@ -57,6 +59,10 @@ int main (int argc, char* argv[])
   //////////////////////////////////
   // test service::create_job()
   faust::manyjobs::description d;
+    
+  d.set_attribute(faust::manyjobs::attributes::executable, "test");
+  
+  
   faust::manyjobs::job j = s.create_job(d); 
   faust::manyjobs::job j1 = s.create_job(d); 
   faust::manyjobs::job j2 = s.create_job(d); 

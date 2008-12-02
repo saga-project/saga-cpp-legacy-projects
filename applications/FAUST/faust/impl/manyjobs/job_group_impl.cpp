@@ -63,3 +63,9 @@ std::string job_group_impl::get_job_id()
 {
   return jobid_;
 }
+
+std::vector<std::string> job_group_impl::list_job_ids()
+{
+  std::vector<std::string> ids;
+  return ids;
+}

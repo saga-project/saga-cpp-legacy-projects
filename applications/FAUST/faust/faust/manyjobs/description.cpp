@@ -16,7 +16,7 @@
 
 using namespace faust::manyjobs;
 
-description::description() 
+description::description() : saga::job::description()
 {
   
 }
@@ -24,4 +24,14 @@ description::description()
 description::~description() 
 {
   
+}
+
+void description::set_attribute(std::string key, std::string value)
+{
+  saga::job::description::set_attribute(key, value);
+}
+
+std::string description::get_attribute(std::string key)
+{
+  return saga::job::description::get_attribute(key);
 }

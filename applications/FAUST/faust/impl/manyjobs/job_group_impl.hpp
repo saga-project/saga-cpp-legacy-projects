@@ -41,6 +41,7 @@ namespace faust
         bool suspend();
         bool resume();
         std::string get_job_id();
+        std::vector<std::string> list_job_ids();
       };
     }
   }

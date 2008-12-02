@@ -2,5 +2,5 @@
 
 doxygen
 
-scp -r cpp/* oweidner@macpro01.cct.lsu.edu:Sites/faust/
+scp -r html/* oweidner@macpro01.cct.lsu.edu:Sites/faust/
 

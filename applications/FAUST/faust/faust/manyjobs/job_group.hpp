@@ -43,35 +43,40 @@ namespace faust
       
     public:
       
-      /*! \brief Tries to run this %job instance. 
+      /*! \brief Runs all jobs in this group. 
        *
        */
       void run();
       
-      /*! \brief Tries to wait for this %job instance to complete.
+      /*! \brief Waits for all jobs in this group to finish.
        *
        */
       bool wait(double timeout = -1.0);
       
-      /*! \brief Tries to cancel this %job instance.
+      /*! \brief Cancels all jobs in this group.
        *
        */
       bool cancel(double timeout = -1.0);
       
-      /*! \brief Tries to suspend this %job instance.
+      /*! \brief Suspends all jobs in this group.
        *
        */
       bool suspend();
       
-      /*! \brief Tries to resume this %job instance.
+      /*! \brief Resumes all jobs in this group.
        *
        */
       bool resume();
       
-      /*! \brief Returns the unique ID for this %job_group. 
+      /*! \brief Returns the unique ID for this %group. 
        *
        */
       std::string get_job_id();     
+      
+      /*! \brief Returns a list of unique IDs for all jobs in this %group. 
+       *
+       */
+      std::vector<std::string> list_job_ids();     
       
     };
   }
