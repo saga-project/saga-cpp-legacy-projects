@@ -1,0 +1,81 @@
+
+Mandelbrot
+==========
+
+ The Mandelbrot application is SAGA example application, demonstrating
+ one way to implement the master/client paradigm with SAGA.  The
+ application consists, naturally, of two components: master and client.
+ The workflow consists of 5 staged, which are explained below in some
+ detail:
+
+
+ 1. Startup:
+ -----------
+
+  In 'mandelbrot.set_njobs (int n)', SAGA is used to start n jobs on
+  local or remote resources.  To do that, a job service instance is
+  created and JOBS_PER_SERVICE jobs are started on that instance.  That
+  is repeated as long as needed to get n jobs running.  After starting
+  the jobs, the routine also checks if the job becomes alive, and
+  registers itself (see distribution of work).
+
+
+ 2. Distribution of work items:
+ ------------------------------
+
+  All command and data exchange is done via the advert service.  The
+  application created a new advert directory for that purpose (the 'job
+  bucket').  In there, each client job creates its own subdirectory (the
+  'work buckets').  The master fills these work buckets with work items,
+  and the client works on those items as long as they find new ones.
+  Once the clients run out of work, they terminate.
+
+  A work item is defined as a block of points in the complex number
+  plane.  That block, and a couple of parameters to the algorithm, are
+  stored in individual adverts.  The 'state' attribute of the work item
+  is initially set to 'work' by the master, to signal the clients that
+  it needs to be handled.  Once the client starts working on the item,
+  'state' is set to 'started', to signal the master that it is busy.
+
+ 
+ 3. Collection of results:
+ -------------------------
+
+  Once the work is done, the client stores the resulting data in the
+  'data' attribute in the work item advert, and changes the 'state'
+  attribute to 'done'.  
+
+
+ 4. Display of results:
+ ----------------------
+
+  The master continously looks out for 'done' items, and displays the
+  data as they arrive.  That is done via the output device ('dev_'),
+  which, in the 'X11' case opens an X window and draws the data.  The
+  images in snapshot_1.png and snapshot_2.png show the rendering of the
+  resulting mandelbrot set, after about 50% of work done, and after
+  completion.
+
+
+ 5. Shutdown:
+ ------------
+
+  Once the client jobs don't find any active work items anymore, they
+  terminate.  But also the master's destructor kills the client jobs, to
+  account for premature shutdown (while work items are still available).
+
+
+ Client:
+ -------
+
+  The clients are very simple: they simply scan their work bucket for
+  new work items, and handle them as long as they come in.  Once the
+  bucket is empty, the terminate.  Do you catch the race condition here?
+  ;-)  
+
+  Note that the clients are, by default, writing log files to
+  /tmp/client.<id>.log.  Logging is done via the SAGA file package, and
+  defined in client/logger.[ch]pp.
+  
+
+ 

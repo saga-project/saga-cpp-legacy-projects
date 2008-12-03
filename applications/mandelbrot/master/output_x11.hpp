@@ -30,7 +30,8 @@ class output_x11 : public output_base
 
     void paint_box (int x0, int n_x, 
                     int y0, int n_y,
-                    std::vector <std::vector <int> > & data);
+                    std::vector <std::vector <int> > & data, 
+                    std::string ident = "");
 
     void control (void);
 };

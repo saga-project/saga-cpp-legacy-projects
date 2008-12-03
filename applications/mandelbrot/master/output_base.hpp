@@ -9,7 +9,8 @@ class output_base
   public:
     virtual void paint_box (int x0, int n_x, 
                             int y0, int n_y,
-                            std::vector <std::vector <int> > & data) = 0;
+                            std::vector <std::vector <int> > & data,
+                            std::string ident = "") = 0;
     virtual void control (void) = 0;
 };
 

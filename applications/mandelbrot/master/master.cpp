@@ -12,7 +12,7 @@ int main (int argc, char** argv)
       mandelbrot m;
 
       m.set_output ("x11");
-      m.set_njobs  (1);
+      m.set_njobs  (3);
       m.compute    ();
 
       std::cout << "\n done - press key to finish\n";

@@ -55,7 +55,6 @@ output_x11::output_x11 (int size_x,
   int    max   = 65536;
   double delta = (max - min) / (C_NUM - 1);
 
-
   // fill colormap with nice colors
   for ( int c = 0; c < C_NUM; c++ )
   {
@@ -74,6 +73,10 @@ output_x11::output_x11 (int size_x,
     colors_.push_back (color.pixel);
   }
 
+  // store balck and white at end of vector
+  colors_.push_back (BlackPixel (dpy_, scr_));
+  colors_.push_back (WhitePixel (dpy_, scr_));
+
   // allow exposure events to be catched
   XSelectInput (dpy_, win_, ExposureMask);
 
@@ -83,12 +86,14 @@ output_x11::output_x11 (int size_x,
 
 output_x11::~output_x11 (void)
 {
+  control ();
 }
 
 
 void output_x11::paint_box (int x0, int n_x, 
                             int y0, int n_y,
-                            std::vector <std::vector <int> > & data)
+                            std::vector <std::vector <int> > & data, 
+                            std::string ident)
 {
   if ( data.size ()    < 1 || 
        data[0].size () < 1 )
@@ -117,7 +122,8 @@ void output_x11::paint_box (int x0, int n_x,
     for ( int y = 0; y < n_y; y++ )
     {
       // set paint color according to data value
-      XSetForeground (dpy_, gc_, colors_[line[y] % C_NUM]);
+      // (first two colors are reserved
+      XSetForeground (dpy_, gc_, colors_[line[y] % (C_NUM - 2) + 2]);
 
       // draw the point at given coordinates
       XDrawPoint     (dpy_, win_, gc_, 
@@ -125,6 +131,53 @@ void output_x11::paint_box (int x0, int n_x,
                       y0 + y);
     }
   }
+
+  // for demo purposes, we also draw box boundaries
+  for ( int bx = 0; bx < n_x; bx++ )
+  {
+    if ( bx % 2 )
+    {
+      XSetForeground (dpy_, gc_, colors_[C_NUM + 0]);
+    }
+    else
+    {
+      XSetForeground (dpy_, gc_, colors_[C_NUM + 1]);
+    }
+
+    XDrawPoint     (dpy_, win_, gc_, 
+                    x0 + bx, 
+                    y0 + 0);
+    XDrawPoint     (dpy_, win_, gc_, 
+                    x0 + bx, 
+                    y0 + n_y);
+  }
+
+  for ( int by = 0; by < n_y; by++ )
+  {
+    if ( by % 2 )
+    {
+      XSetForeground (dpy_, gc_, colors_[C_NUM + 0]);
+    }
+    else
+    {
+      XSetForeground (dpy_, gc_, colors_[C_NUM + 1]);
+    }
+
+    XDrawPoint     (dpy_, win_, gc_, 
+                    x0 + 0, 
+                    y0 + by);
+    XDrawPoint     (dpy_, win_, gc_, 
+                    x0 + n_x, 
+                    y0 + by);
+  }
+
+  // draw signature
+  XSetForeground (dpy_, gc_, WhitePixel (dpy_, scr_));
+  XDrawString    (dpy_, win_, gc_, x0 + 10, y0 + 20, 
+                  ident.c_str (), ident.length ());
+
+  // make sure everything gets drawn
+  XFlush (dpy_);
 }
 
 
