@@ -75,11 +75,13 @@ service_impl::service_impl (std::vector<faust::manyjobs::resource> resources, in
       jd.set_attribute (attributes::description_interactive, saga::attributes::common_false);
       jd.set_attribute (attributes::description_queue,       (*i).queue);
       std::vector<std::string> project; project.push_back((*i).project);
-      //jd.set_vector_attribute (attributes::description_job_project, project);
+      jd.set_vector_attribute (attributes::description_job_project, project);
       
-      //saga::job::job j = sjs.create_job(jd);
-      //j.run();
-      //j.cancel();
+      saga::job::job j = sjs.create_job(jd);
+      j.run(); 
+      sleep(2); // GRAM needs some time otherwise it will reply with an error! 
+      //std::cout << j.get_job_id() << std::endl;
+      j.cancel();
     }
     catch(saga::exception const & e)
     {

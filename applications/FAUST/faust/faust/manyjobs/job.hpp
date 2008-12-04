@@ -30,8 +30,8 @@ namespace faust
 
     /*! \brief The %job provides the manageability interface to a %job 
      *         instance submitted through a manyjob %service instance. 
-     *         It can't be instanciated directly, only thourgh the create_job
-     *         factory method. 
+     *         It can't be instanciated directly, only thourgh the 
+     *         service::create_job factory methods.
      */
     class FAUST_EXPORT job : public saga::object
     {

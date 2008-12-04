@@ -16,9 +16,9 @@ namespace faust
 {  
   namespace manyjobs {
     
-    /*! \brief This structure defines a computing %resource. A list of 
-     *         resources is used to create a manyjob 
-     *         %service instance.
+    /*! \brief This structure defines a computing %resource. It contains attributes
+     *         like a contact string, queue and project names. A list of 
+     *         resources is used to create a manyjob %service instance.
      *  
      */
     struct resource {

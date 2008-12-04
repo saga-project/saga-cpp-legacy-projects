@@ -21,12 +21,10 @@ int main (int argc, char* argv[])
   std::vector<faust::manyjobs::resource> hostlist;
   faust::manyjobs::resource h1, h2, h3;
   
-  //h1.contact = "gram://gatekeeper.lonestar.tacc.teragrid.org:2119/jobmanager-lsf";
-  //h1.project = "";
-  //h1.queue   = "";
-  //h1.workdir = "";
-
-  //h2.contact = "gram://gatekeeper.ranger.tacc.teragrid.org:2119/jobmanager-sge";
+  h1.contact = "gram://gatekeeper.lonestar.tacc.teragrid.org:2119/jobmanager-lsf";
+  h1.project = "";
+  h1.queue   = "";
+  h1.workdir = "";
 
   h2.contact = "gram://qb.loni.org:2119/jobmanager-pbs";
   h2.project = "loni_jha_big";
@@ -38,7 +36,7 @@ int main (int argc, char* argv[])
   h3.queue   = "workq";
   h3.workdir = "/tmp/";
   
-  //hostlist.push_back(h1);
+  hostlist.push_back(h1);
   hostlist.push_back(h2);
   hostlist.push_back(h3);
   

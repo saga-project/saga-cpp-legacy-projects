@@ -29,6 +29,13 @@ namespace faust
 
   namespace manyjobs {
     
+    /*! \brief The %job_group provides the manageability interface to a set
+     *         of jobs submitted through a %manyjobs %service instance. A
+     *         job group behaves like a single job - any method that is called
+     *         will be applied to all jobs in a group. 
+     *         A %job_group can't be instanciated directly, only thourgh the 
+     *         service::create_job_group factory methods.
+     */
     class FAUST_EXPORT job_group : public saga::object
     {
       // service impl. class needs to be friend to call private c'tor 
