@@ -18,7 +18,7 @@ int main (int argc, char** argv)
   }
 
   std::stringstream ss;
-  ss << "/tmp/client." << argv[2] << ".log";
+  ss << "file://localhost/tmp/client." << argv[2] << ".log";
   logger l (ss.str ());
 
   try
@@ -91,84 +91,61 @@ int main (int argc, char** argv)
             ss << "found work in " << work_ads[i].get_path () << "\n";
             l.log (ss.str ().c_str ());
 
-            // signal successful startup
-            ad.set_attribute ("state", "started");
+            double off_x = ::atof (ad.get_attribute ("off_x").c_str ());
+            double off_y = ::atof (ad.get_attribute ("off_y").c_str ());
+            double res_x = ::atof (ad.get_attribute ("res_x").c_str ());
+            double res_y = ::atof (ad.get_attribute ("res_y").c_str ());
+            double num_x = ::atof (ad.get_attribute ("num_x").c_str ());
+            double num_y = ::atof (ad.get_attribute ("num_y").c_str ());
+            int    limit = ::atoi (ad.get_attribute ("limit").c_str ());
+            int    escap = ::atoi (ad.get_attribute ("escap").c_str ());
+            int    jobid = ::atoi (ad.get_attribute ("jobid").c_str ());
 
-            if ( ! ad.attribute_exists ("off_x") ||
-                 ! ad.attribute_exists ("off_y") ||
-                 ! ad.attribute_exists ("res_x") ||
-                 ! ad.attribute_exists ("res_y") ||
-                 ! ad.attribute_exists ("num_x") ||
-                 ! ad.attribute_exists ("num_y") ||
-                 ! ad.attribute_exists ("limit") ||
-                 ! ad.attribute_exists ("escap") ||
-                 ! ad.attribute_exists ("ident") ||
-                 ! ad.attribute_exists ("jobid") )
+            l.log ("handling request\n");
+
+            // point in complex plane to iterate over
+            double c0;
+            double c1;
+
+            // data to paint
+            std::stringstream data;
+
+            // iterate over all pixels in complex plane
+            for ( int x = 0; x < num_x; x++ )
             {
-              // signal failure
-              l.log ("cannot handle incomplete request\n");
+              // x coordinate of pixel in complex plane (real part)
+              double c0 = off_x + x * res_x;
 
-              ad.set_attribute ("state", "bad_request");
-            }
-            else
-            {
-              double off_x = ::atof (ad.get_attribute ("off_x").c_str ());
-              double off_y = ::atof (ad.get_attribute ("off_y").c_str ());
-              double res_x = ::atof (ad.get_attribute ("res_x").c_str ());
-              double res_y = ::atof (ad.get_attribute ("res_y").c_str ());
-              double num_x = ::atof (ad.get_attribute ("num_x").c_str ());
-              double num_y = ::atof (ad.get_attribute ("num_y").c_str ());
-              int    limit = ::atoi (ad.get_attribute ("limit").c_str ());
-              int    escap = ::atoi (ad.get_attribute ("escap").c_str ());
-              int    jobid = ::atoi (ad.get_attribute ("jobid").c_str ());
-
-              l.log ("handling request\n");
-
-              // point in complex plane to iterate over
-              double c0;
-              double c1;
-
-              // data to paint
-              std::stringstream data;
-
-              // iterate over all pixels in complex plane
-              for ( int x = 0; x < num_x; x++ )
+              for ( int y = 0; y < num_y; y++ )
               {
-                // x coordinate of pixel in complex plane (real part)
-                double c0 = off_x + x * res_x;
+                // y coordinate of pixel in complex plane (imaginary part)
+                double c1 = off_y + y * res_y;
 
-                for ( int y = 0; y < num_y; y++ )
+                std::complex <double> C (c0, c1);
+                std::complex <double> Z (.0, .0); // initial value for iteration Z
+
+                int iter;
+
+                for ( iter = 0; iter <= limit; iter++ )
                 {
-                  // y coordinate of pixel in complex plane (imaginary part)
-                  double c1 = off_y + y * res_y;
+                  Z = Z * Z + C;
 
-                  std::complex <double> C (c0, c1);
-                  std::complex <double> Z (.0, .0); // initial value for iteration Z
-
-                  int iter;
-
-                  for ( iter = 0; iter <= limit; iter++ )
-                  {
-                    Z = Z * Z + C;
-
-                    if ( abs (Z) > escap )
-                      break;
-                  }
-
-                  // store the number of iteration needed to escape the limit
-                  data << iter << " ";
+                  if ( abs (Z) > escap )
+                    break;
                 }
+
+                // store the number of iteration needed to escape the limit
+                data << iter << " ";
               }
+            }
 
-              // signal work done
-              ad.set_attribute ("data",  data.str ());
-              ad.set_attribute ("state", "done");
+            // signal work done
+            ad.set_attribute ("data",  data.str ());
+            ad.set_attribute ("state", "done");
 
-              // flag that we did some work.  So, once we run out of work, we
-              // can terminate
-              work_done = true;
-
-            } // if ad looks like a complete work item
+            // flag that we did some work.  So, once we run out of work, we
+            // can terminate
+            work_done = true;
 
           } // if ad.state == "work"
 
@@ -176,6 +153,8 @@ int main (int argc, char** argv)
         }
         catch ( saga::exception const & e )
         {
+          // this advert failed for some reason.  
+          // Simply continue with the next one.
           l.log ("SAGA Exception for advert op");
           l.log (e.what ());
         }
