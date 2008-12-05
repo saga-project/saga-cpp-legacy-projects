@@ -44,6 +44,8 @@ int main (int argc, char** argv)
     bool wait_for_work = true;
     bool work_done     = false;
 
+    ::sleep (15);
+
     while ( wait_for_work )
     {
       // find work ads for this job
