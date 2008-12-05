@@ -13,19 +13,25 @@
 
 \makeatother
 \end_preamble
-\options a4paper,onecolumn
 \language english
 \inputencoding default
 \fontscheme default
 \graphics default
 \paperfontsize 11
 \spacing single
-\papersize default
-\use_geometry false
+\papersize a4paper
+\use_geometry true
 \use_amsmath 0
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
+\leftmargin 1cm
+\topmargin 2cm
+\rightmargin 1cm
+\bottommargin 2cm
+\headheight 1cm
+\headsep 1cm
+\footskip 1cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -34,6 +40,7 @@
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
+\bullet 2 0 8 -1
 \tracking_changes false
 \output_changes false
 \end_header
@@ -62,24 +69,23 @@ P.F.A.
 \end_layout
 
 \begin_layout Abstract
-This thesis describes how I created a Python language binding for SAGA,
- the Simple API for Grid Applications, and how I implemented the language
+This thesis describes how we created a Python language binding for SAGA,
+ the Simple API for Grid Applications, and how we implemented the language
  binding on top of the Java reference implementation.
  Using this functionality, Python programmers can use SAGA to program grid
- aware applications and to shield themselves from all the details which
- come with grids.
- The language binding and its implementation add to the adopting of SAGA
+ aware applications and shield themselves from all the details which come
+ with grids.
+ The language binding and its implementation add to the adoption of SAGA
  in a world of with many different APIs and middleware layers.
 \end_layout
 
 \begin_layout Section
-Introduction 
+Introduction
 \end_layout
 
 \begin_layout Standard
-This Master thesis is not a trivial subject for many people, and thus I
- found it desireable to write this introduction in two languages, English
- and Dutch.
+This section contains the introduction to this thesis.
+ It is written in both English and Dutch.
 \end_layout
 
 \begin_layout Subsection
@@ -87,43 +93,43 @@ Introduction English
 \end_layout
 
 \begin_layout Standard
-SAGA stands for Simple API for Grid Applications and was developed to offer
+SAGA stands for Simple API for Grid Applications, and was developed to offer
  users a simple tool to program applications for heterogeneous grids.
  These grids often consist of different types of hardware, operating systems
  and middleware software and are hard to program.
  SAGA is developed to be independent of any underlying hardware or software
- and to shield the user from all the details and to let him focus on programming
+ and it shields the user from all the details, and lets him focus on programming
  grid aware applications.
 \end_layout
 
 \begin_layout Standard
-To use this API, the functionality described by SAGA has to be implemented
- by another piece of software.
- This is called the SAGA implementation.
- At this point there are two different reference implementations which are
+To use the SAGA API, the functionality described by SAGA has to be implemented
+ by another piece of software: the SAGA implementation.
+ Currently, there are two different reference implementations which are
  programmed in the programming languages Java and C++.
- In a general sense, only Java and C++ applications can easily use SAGA
- to access the grid in an easy way.
- This thesis describes how I added another language to that list, namely
+ In a general sense, only Java and C++ applications can use the SAGA implementat
+ions to access the grid in an easy way.
+ This thesis describes how we added another language to that list, namely
  Python.
  Python is partially supported by the C++ reference implementation, but
  there is no specific Python language binding available.
  A language binding is a set of classes and methods which describes the
- SAGA functionality in Python specific way, independent of the chosen reference
- implementation.
- During the course of my master project I have specified the Python language
- binding and have implemented the language binding for the Java reference
- implementation.
+ SAGA functionality in a Python specific way, independent of the chosen
+ reference implementation.
+ During the course of my master project we have specified the Python language
+ binding and implemented the language binding for the Java reference implementat
+ion.
 \end_layout
 
 \begin_layout Standard
 This thesis is divided into different pieces.
- First I will describe and explain what SAGA is, where it comes from and
+ First we will describe and explain what SAGA is, where it comes from and
  how it is implemented.
- Then I will continue with a description of Python and a special implementation
+ Then we will continue with a description of Python and a special implementation
  of Python called Jython, followed by the specification of the language
  binding and its implementation.
- After that I will conclude with the testing, discussion, future work and
+ After that we will describe the testing processes of the language binding,
+ the discussion of the project, the future work and we will conclude with
  the conclusion.
 \end_layout
 
@@ -133,16 +139,17 @@ Introduction Dutch
 
 \begin_layout Standard
 SAGA staat voor Simpele API voor Grid Applicaties en is ontwikkeld als een
- simpel stuk gereedschap om het programmeren op hetrogene grids te vergemakkelij
-ken.
+ simpel stuk gereedschap om het programmeren op heterogene grids te vergemakkeli
+jken.
  Dit soort grids bestaan vaak uit verschillende hardware, besturingssystemen
  en middleware software en het is vaak lastig om hier grid applicaties voor
  te programmeren.
- SAGA is ontwikkeld als een aanspreekpunt voor de grid, onafhankelijk van
+ SAGA is ontwikkeld als een aanspreekpunt voor het grid, onafhankelijk van
  de onderliggende hard- en software.
  Tevens houdt de API de programmeur weg bij de onderliggende details, die
- per platform zeer kunnen verschillen, en laat de programmeur zich bezighouden
- met het programmeren van een hogere abstractie niveau voor zijn applicatie.
+ per platform zeer kunnen verschillen.
+ De programmeur kan zich hierdoor bezighouden met het programmeren van een
+ hogere abstractie niveau voor zijn applicatie.
 \end_layout
 
 \begin_layout Standard
@@ -164,18 +171,19 @@ mplementeerd worden door andere software, ook wel de SAGA implementatie
  genoemd.
  Momenteel bestaan twee verschillende referentie implementaties die gemaakt
  zijn in de programmeertalen Java en C++.
- Dit houdt globaal in dat het in de talen C++ en Java redelijk eenvoudig
- is om een applicatie te programmeren en de achterliggende implementatie
- en daarmee het grid te gebruiken.
- Deze Master these beschrijft hoe daar een derde taal aan toe is gevoegd,
+ Dit houdt globaal in dat het alleen in de talen C++ en Java mogelijk is
+ om een applicatie te programmeren die door middel van SAGA het grid te
+ gebruikt.
+ Deze master thesis beschrijft hoe daar een derde taal aan toe is gevoegd,
  namelijk Python.
  Python word op dit moment al deels ondersteund door de C++ referentie implement
-atie maar er is geen Python 'language binding', beschikbaar voor.
+atie, maar er is nog geen Python 'language binding' gespecificeerd die de
+ syntax voor Python applicaties vastlegt.
  De language binding specificeerd een set van klassen en methodes die de
  SAGA functionaliteit beschrijft in een Python specifieke manier, onafhankelijk
  van de onderliggende referentie implementatie.
- Tijdens mijn Master project heb ik een Python language binding voor SAGA
- gespecificeerd en daarnaast ge
+ Tijdens mijn master project heb ik een Python language binding voor SAGA
+ gespecificeerd en ge
 \begin_inset ERT
 status inlined
 
@@ -189,20 +197,33 @@ status inlined
 \end_inset
 
 mplementeerd bovenop de Java referentie implementatie.
- Deze implementatie zou in theorie moeten werken op elke Java referentie
- implementatie.
+ Deze implementatie zou in theorie moeten werken op elke Java implementatie
+ van SAGA.
  
 \end_layout
 
 \begin_layout Standard
-Deze these is onderverdeeld in verschillende delen.
- Eerst zal ik uitleggen wat SAGA is, waar het vandaan komt en hoe het geimplemen
-teerd is.
+Deze thesis is onderverdeeld in verschillende delen.
+ Eerst zal ik uitleggen wat SAGA is, waar het vandaan komt en hoe het ge
+\begin_inset ERT
+status inlined
+
+\begin_layout Standard
+
+
+\backslash
+"i
+\end_layout
+
+\end_inset
+
+mplementeerd is.
  Ik zal doorgaan met een beschrijving van Python en een specifieke implementatie
  van Python genaamd Jython, gevolgd door de specificatie van de language
  binding en zijn implementatie.
- Ik zal besluiten met het test gedeelte, de discussie, het vooruitzicht
- en de conclusie.
+ Daarna zal ik het testen van de language binding bespreken, de discussie
+ van het project, het mogelijke vervolg onderzoek na dit project en besluiten
+ met de conclusie.
 \end_layout
 
 \begin_layout Section
@@ -210,19 +231,18 @@ SAGA
 \end_layout
 
 \begin_layout Standard
-In this section I will describe what SAGA is, how it was created and the
- packages which are part of SAGA.
- In the last part I will discuss the reference implementations and how they
- work.
+In this section we will describe what SAGA is, how it was created and the
+ packages it consists of.
+ In the last part we will discuss the Java and C++ reference implementations
+ and how they work.
 \end_layout
 
 \begin_layout Subsection
-SAGA
+Short History of SAGA
 \end_layout
 
 \begin_layout Standard
-As mentioned in the introduction, SAGA stands for Simple API for Grid Applicatio
-ns.
+SAGA stands for Simple API for Grid Applications.
  SAGA came as an idea in a time when multiple middleware projects and applicatio
 ns groups were looking for higher-level programming abstractions and the
  simplification of programming for the grid 
@@ -239,15 +259,11 @@ ns groups were looking for higher-level programming abstractions and the
  
 \end_layout
 
-\begin_layout Subsection
-Use Cases
-\end_layout
-
 \begin_layout Standard
 To poll the needs of users, the research group sent out a call for use cases.
  In these use cases users described many subjects such as their application
- area, the desired look and feel of the API and resource, performance, security
- considerations.
+ area, the desired look and feel of the API, and resource, performance and
+ security considerations.
  The majority of use cases which were returned came from scientific users
  
 \begin_inset LatexCommand \cite{UseCases}
@@ -273,10 +289,6 @@ n programmers.
  were also considered.
 \end_layout
 
-\begin_layout Subsection
-The API
-\end_layout
-
 \begin_layout Standard
 With 24 use cases available, the requirements from the users could be distilled
  
@@ -296,24 +308,18 @@ The API would be designed and developed in a object-oriented manner using
 \end_layout
 
 \begin_layout Itemize
-Asynchronicity is prefered to be handled by a polling mechanism rather than
- a subscribe/listen mechanism to make implementations in non-multithreaded
- environment easier.
-\end_layout
-
-\begin_layout Itemize
 Grid subsystems should be specified independent from each other to allow
  independent development and implementation of parts of the API.
 \end_layout
 
 \begin_layout Itemize
-Sessions and Security should be an essential part of SAGA since applications
- often run accros administrative domains and security boundaries.
+Sessions and security should be an essential part of SAGA since applications
+ often run across administrative domains and security boundaries.
 \end_layout
 
 \begin_layout Itemize
-Data Management like remote file access and replica catalogs are also an
- important part of grid applications and should therefore also be in SAGA.
+Data management, like remote file access and replica catalogs are an important
+ part of grid applications and should therefore be part of SAGA.
 \end_layout
 
 \begin_layout Itemize
@@ -322,7 +328,13 @@ Remote jobs and asynchronous operations are a common requirement for grid
 \end_layout
 
 \begin_layout Itemize
-SAGA should support interprocess communication as a stream concept, similar
+Asynchronicity is preferred to be handled by a polling mechanism rather
+ than a subscribe/listen mechanism to make implementations in non multi-threaded
+ environment easier.
+\end_layout
+
+\begin_layout Itemize
+SAGA should support inter-process communication as a stream concept, similar
  to BSD sockets.
 \end_layout
 
@@ -339,8 +351,8 @@ Ultimately, the purpose of SAGA is to provide an simple API that can be
 
 \begin_layout Standard
 After determining the requirements, a so-called SAGA Strawman API was developed
- to accomodate the requirements and after some iterations SAGA was released
- in January 2008 
+ to accommodate the requirements and after some iterations the SAGA API
+ was published in January 2008 
 \begin_inset LatexCommand \cite{GFD.90}
 
 \end_inset
@@ -359,22 +371,21 @@ A Simple API for Grid Applications (SAGA)
  
 \emph default
 or GFD.90.
- GFD.90 specifies the core components of SAGA has formed the basis of specificati
-on of the Python language-binding, which will be explained in section 
+ GFD.90 specifies the core components of SAGA.
+ It has formed the basis of specification of the Python language binding,
+ which will be explained in section 
 \begin_inset LatexCommand \ref{sec:Specification}
 
 \end_inset
 
 , and the reference implementations.
- It is aimed at implementors of the API and not directly at end-users.
- The end-users can use the documentation and specific language-bindings
- given by the implementors of the reference implentations.
- The document holds much information about the complete SAGA project but
- what is interesting for building a language-binding is stated in section
- 3 and 4 of GFD.90.
- These sections consists out of a number of interface and class specifications,
- which are divided in multiple packages.
- 
+ It is aimed at implementors of the API and not directly at end users.
+ The implementors of the reference implementations can supply the end users
+ with the documentation and specific language bindings.
+\end_layout
+
+\begin_layout Standard
+
 \end_layout
 
 \begin_layout Subsection
@@ -382,9 +393,11 @@ SAGA API
 \end_layout
 
 \begin_layout Standard
-SAGA is devided into two parts.
- A Look & Feel part containing the base classes and interfaces and an API
- part which represents explicit entities and actions of some backend system.
+SAGA is divided into two parts.
+ The first part is the Look & Feel part which contains the base classes
+ and interfaces.
+ The second part is the API part which represents explicit entities and
+ actions of some backend system.
 \end_layout
 
 \begin_layout Subsubsection
@@ -394,243 +407,171 @@ Look & Feel
 \begin_layout Standard
 The SAGA Look & Feel is defined by a number of classes and interfaces which
  ensure the non-functional properties of the SAGA API.
- These interfaces and classes are intended to be used by the functional
- SAGA API packages and are shown in table 
-\begin_inset LatexCommand \ref{tab: LF}
-
-\end_inset
-
-.
- 
+ Non-functional requirements are requirements that specify criteria that
+ can be used to judge the operation of a system, rather than specific behaviors.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Float table
-placement h
-wide false
-sideways false
-status open
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="4">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Error
+The interfaces and classes from the Look & Feel are intended to be used
+ by the functional SAGA API packages
 \end_layout
 
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Object
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-URL
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Buffer
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Session
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Context
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Permission
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Attributes
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Monitoring
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Task
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Caption
-\begin_inset LatexCommand \label{tab: LF}
-
-\end_inset
-
-Look and Feel packages
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The Error package contains all the exceptions which can raised or thrown
- by SAGA API calls.
+\begin_layout Description
+Error The Error package contains all the exceptions which can raised or
+ thrown by SAGA API calls.
  GFD.90 also describes an 
 \family typewriter
 error_handler
 \family default
  which allows a user of the API to query for the latest error associated
- with a SAGA ob ject but should not be included in language bindings of
- languages which have exception handling capabilities of their own, such
- as Python.
+ with a SAGA object.
+ Error handlers should not be included in language bindings of languages
+ which have exception handling capabilities of their own, such as Python.
 \end_layout
 
-\begin_layout Standard
-The Object package provides mechanisms which are needed by all SAGA objects,
- such as cloning and getting the type, ID and Session of the object.
+\begin_layout Description
+Object The 
+\family typewriter
+Object
+\family default
+ package provides mechanisms which are needed by all SAGA objects, such
+ as cloning and getting the type, ID and Session of the object.
+ The 
+\family typewriter
+Object
+\family default
+ class is also called the 
+\emph on
+base object
 \end_layout
 
-\begin_layout Standard
-URL is used reference local or remote resources.
- Using a separate URL class simplifies the construction, parsing and checking
- of URLs in applications and unifies the signatures of SAGA method calls
- which accept URLs.
+\begin_layout Description
+URL The 
+\family typewriter
+URL
+\family default
+ object is used to reference local and remote resources.
+ Using a separate 
+\family typewriter
+URL
+\family default
+ object simplifies the construction, parsing and checking of URLs in application
+s and unifies the signatures of SAGA method calls that accept URLs.
 \end_layout
 
-\begin_layout Standard
-Buffer is designed as a container for data and is used in combination with
- a number of SAGA calls which perform byte-level I/O operations.
+\begin_layout Description
+Buffer SAGA has a generic buffer object that is designed as a container
+ for data.
+ 
+\family typewriter
+Buffer
+\family default
+ is used in combination with a number of SAGA calls that perform byte-level
+ I/O operations.
  The data can be either allocated and maintained in application memory or
- by managed by the SAGA implementation.
+ be managed by the SAGA implementation.
 \end_layout
 
-\begin_layout Standard
-The session object provides the functionality of a session, which isolates
- independent sets of SAGA objects from each other.
- Sessions also support the management of security information by using contexts.
+\begin_layout Description
+Session The Session object provides the functionality to interactively exchange
+ information between two computers and isolates independent sets of SAGA
+ objects from each other.
+ Sessions support the management of security information by using contexts.
 \end_layout
 
-\begin_layout Standard
-The Context class is a container for security information and is attached
- to a Session to make the information available to all objects instantiated
- in that session.
+\begin_layout Description
+Context The 
+\family typewriter
+Context
+\family default
+ class is a container for security information and is attached to a 
+\family typewriter
+Session
+\family default
+ object to make the information available to all objects instantiated in
+ that session.
  Multiple contexts can co-exist in one session for different method calls
- and can be shared between Sessions.
+ and can be shared between sessions.
  
 \end_layout
 
-\begin_layout Standard
-Permission package contains the interface to let applications allow or deny
- specific operations on SAGA objects or grid entities for different types
- of users.
+\begin_layout Description
+Permission The 
+\family typewriter
+permission
+\family default
+ package contains an interface to let applications allow or deny specific
+ operations on SAGA objects or grid entities for different types of users.
  Because it is difficult to anticipate how different types of middleware
- handle these permissions, applications using the Permission package are
- not expected to be fully portable between SAGA applications.
- In addition, each implementation must specify which permission it supports
- and for which operation.
+ handle these permissions, applications using the 
+\family typewriter
+permission
+\family default
+ package are not expected to be fully portable between SAGA applications.
+ In addition, each implementation must specify which permissions it supports
+ and for which operations.
 \end_layout
 
-\begin_layout Standard
-The Attributes package provides an interface for storing and retrieving
- attributes accociated with SAGA objects.
+\begin_layout Description
+Attributes The 
+\family typewriter
+attributes
+\family default
+ package provides an interface for storing and retrieving attributes associated
+ with SAGA objects.
  The supported attributes of an object are included in the description of
- the object.
+ the object in the language binding.
+ 
 \end_layout
 
-\begin_layout Standard
-The Monitoring package provides a mechanism to monitor certain properties
- of monitorable SAGA objects by exposing metrics to the application.
+\begin_layout Description
+Monitoring The 
+\family typewriter
+monitoring
+\family default
+ package provides a mechanism to monitor certain properties of monitorable
+ SAGA objects by exposing metrics to the application.
  These metrics which represent monitorable entities, such as state or CPU
  time used.
  Steerable objects even allow certain metric values to be changed.
+ An example of a monitorable object is a 
+\family typewriter
+Task.
+ 
+\family default
+The 
+\family typewriter
+Task 
+\family default
+object has a 
+\family typewriter
+task.state
+\family default
+ metric which can be monitored.
+ If a special object, called a 
+\family typewriter
+Callback
+\family default
+, is attached to the task and the state changes, the SAGA implementation
+ calls the 
+\family typewriter
+cb()
+\family default
+ method of the 
+\family typewriter
+Callback
+\family default
+ to respond to the state change of the task.
 \end_layout
 
-\begin_layout Standard
-The last package of the Look & Feel is Task.
+\begin_layout Description
+Task The last package of the look & feel is 
+\family typewriter
+task
+\family default
+.
  Tasks are representations of asynchronous operations and each SAGA object
- which implements the 
+ that implements the 
 \family typewriter
 async
 \family default
@@ -643,115 +584,22 @@ API Packages
 \end_layout
 
 \begin_layout Standard
-The interfaces, classes and methods defined in API packages of GFD.90 are,
- in general, representing explicit entities and actions of some backend
- system.
- The currently specified packages are shown in table 
-\begin_inset LatexCommand \ref{tab:API-Packages}
-
-\end_inset
-
-, but new packages may be added in the future.
+The interfaces, classes and methods defined in the API or functional packages
+ of GFD.90 are, in general, representing explicit entities and actions of
+ some backend system.
+ The currently specified packages are shown below, but new packages may
+ be added in the future.
 \end_layout
 
-\begin_layout Standard
-\begin_inset Float table
-placement h
-wide false
-sideways false
-status open
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="2" columns="3">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
-<column alignment="center" valignment="top" rightline="true" width="0">
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Job
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Namespace
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-File
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Replica
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Stream
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-RPC
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Caption
-\begin_inset LatexCommand \label{tab:API-Packages}
-
-\end_inset
-
-API Packages
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Job offers the functionality to submit jobs to grid resources and to monitor
- and control these jobs.
- Job submitting can be done in batch mode or interactive mode and jobs be
- controlled through different methods calls such as 
+\begin_layout Description
+Job The 
+\family typewriter
+job
+\family default
+ package offers the functionality to submit jobs to grid resources and to
+ monitor and control these jobs.
+ Job submission can be done in batch mode or interactive mode.
+ Jobs be controlled through different methods calls such as 
 \family typewriter
 run()
 \family default
@@ -760,37 +608,79 @@ run()
 suspend()
 \family default
 .
- Status information can be retreived for both running and completed jobs.
+ Status information can be retrieved for both running and completed jobs.
  
 \end_layout
 
-\begin_layout Standard
-The Namespace package describes notions of namespace entries and directories
- allows to navigate through a namespace such as filesystems.
- 
+\begin_layout Description
+Namespace The 
+\family typewriter
+namespace
+\family default
+ package describes notions of hierarchical namespace entries and directories.
+ These 
+\family typewriter
+NSEntry
+\family default
+ and 
+\family typewriter
+NSDirectory 
+\family default
+objects allow to navigate through a namespace such as filesystems.
+ Operations like moving, renaming, copying or removing these namespace entries
+ are also supported.
 \end_layout
 
-\begin_layout Standard
-The File package is an extention of Namespace and also allows access to
- the contents of the files regardless of their location.
+\begin_layout Description
+File The 
+\family typewriter
+file
+\family default
+ package is an extension of the 
+\family typewriter
+namespace
+\family default
+ package and, in addition to all the operations from 
+\family typewriter
+namespace
+\family default
+, allows access to the contents of the files regardless of their location.
  It also offers the Scattered, Pattern-Based and Extended I/O paradigms.
 \end_layout
 
-\begin_layout Standard
-The Replica package describes the interaction with replica systems, especially
- logical files, logical directories and creating replicas.
+\begin_layout Description
+Replica The 
+\family typewriter
+replica
+\family default
+ package describes the interaction with replica systems, especially logical
+ files, logical directories and creating replicas.
+ A logical file is a namespace entry with some metadata and associated set
+ of physical replica files.
+ A replica (or physical file) is a file which is registered on a logical
+ file.
+ In general, all replicas registered on the same logical file are identical,
+ but can be on different machines in the grid.
  
 \end_layout
 
-\begin_layout Standard
-The Stream specifies the functionality to create simple remote socket to
- establish connections between components.
+\begin_layout Description
+Stream The 
+\family typewriter
+stream
+\family default
+ package specifies the functionality to create simple remote socket to establish
+ connections between components.
  These components can then form a distributed application together.
 \end_layout
 
-\begin_layout Standard
-The RPC or Remote Procedure Call Package specifies the dealing with invoking
- of methods on different machines.
+\begin_layout Description
+RPC The Remote Procedure Call (RPC) or 
+\family typewriter
+rpc
+\family default
+ package specifies operations to execute code on other machines.
+ This is done by invoking methods on different machines.
  A high level API called GridRPC 
 \begin_inset LatexCommand \cite{GridRPC}
 
@@ -807,7 +697,7 @@ Reference Implementations
 \begin_layout Standard
 SAGA currently has two reference implementations, one written in Java and
  one written in C++.
- In this section I will explain what they are and how they work.
+ In this section we will explain what they are and how they work.
 \end_layout
 
 \begin_layout Subsubsection
@@ -822,7 +712,7 @@ After GFD.90 was released in January 2008, a Java SAGA reference implementation
 \end_inset
 
 .
- It is largly based on JavaGAT 
+ It is largely based on JavaGAT 
 \begin_inset LatexCommand \cite{JavaGAT}
 
 \end_inset
@@ -850,18 +740,21 @@ The structure of JavaGAT can be seen in figure
 \end_layout
 
 \begin_layout Standard
+\noindent
+\align center
+
+\family typewriter
 \begin_inset Float figure
-placement h
-wide false
+wide true
 sideways false
 status open
 
 \begin_layout Standard
+\align center
 \begin_inset Graphics
-	filename JavaGATFigure1.png
+	filename JavaGATFigure.eps
 	scale 50
-	keepAspectRatio
-	clip
+	BoundingBox 0bp 365bp 694bp 842bp
 
 \end_inset
 
@@ -873,11 +766,7 @@ status open
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-The structure of the JavaGAT implemententation, taken from 
+The structure of the JavaGAT implementation, taken from 
 \begin_inset LatexCommand \cite{JavaGAT}
 
 \end_inset
@@ -891,14 +780,19 @@ The structure of the JavaGAT implemententation, taken from
 \end_layout
 
 \begin_layout Standard
-It consists out of different layers which all have its own responsibility.
+The Java SAGA reference implementation consists of different layers which
+ all have its own responsibility.
  The top layer is the API that serves as the interface to the user.
  Below the API resides the engine.
  The engine is responsible for delegating the API calls to the correct middlewar
 e.
  The Capability Provider Interface is the layer which connects the engine
- to middleware specific software, called adaptors.
- When the engine receives a request, i.e, to copy a file, it selects the
+ to middleware specific software, called 
+\emph on
+adaptors
+\emph default
+.
+ When the engine receives a request, e.g., to copy a file, it selects the
  right adaptor with help from the CPI.
  The adaptor then delegates the copy request to the actual middleware that
  copies the file.
@@ -907,16 +801,16 @@ e.
 
 \begin_layout Standard
 Principles used from JavaGAT in the SAGA Java reference implementation include
- the intelligent dispatching, nested exceptions and the adaptor writing
- framework.
- The intelligent dispatching is the process where the engine chooses the
- correct adaptor for the requested action and the related preferences.
+ intelligent dispatching, nested exceptions and the adaptor writing framework.
+ Intelligent dispatching is the process where the engine chooses the correct
+ adaptor for the requested action and the related preferences [ADD MORE
+ INFO].
  Nested exceptions are special aggregations of exceptions which come from
  the different adaptors.
  Adaptors might raise exceptions when they fail at a certain action or do
  not implement the requested action.
- All these exceptions are stored in a nested exception and is only thrown
- to the grid application if every adaptor failed at fulfilling the request.
+ All these exceptions are stored in a nested exception which is only thrown
+ to the grid application after every adaptor failed at fulfilling the request.
  The adaptor writing framework makes it easy for users to write or change
  adaptors with little effort.
  This is an advantage because there are many middleware systems available
@@ -925,23 +819,27 @@ Principles used from JavaGAT in the SAGA Java reference implementation include
 
 \begin_layout Standard
 The Java reference implementation implements SAGA completely since this
- is a requirement in the SAGA specification.
- There are still some deviations from GFD.90, such as links and permissions.
- Java does not have a notion of links and permissions so it is not possible
- to include them.
+ is a requirement in the SAGA specification to be called fully compliant.
+ Implementation which do not implement all specified methods are called
+ partially compliant.
+ There are still some deviations from GFD.90, such as symbolic links and
+ permissions.
+ Java does not have a notion of symbolic links and permissions so it is
+ not possible to include them.
  If methods relating to them are called, the implementation will throw a
  
 \family typewriter
 NotImplementedException
 \family default
 .
- The implemented Java language binding also contains small extentions like
- file streams and using RPC with objects instead of using Byte arrays.
+ The implemented Java language binding also contains small extensions like
+ file streams and using RPC with objects instead of using byte arrays.
 \end_layout
 
 \begin_layout Standard
 Adaptors currently included with the Java reference implementation are XMLRPC
- for RPC, Socket for streams, Gridsam for jobs, and Adaptors from JavaGAT.
+ for RPC, Socket for streams, Gridsam for jobs, and Adaptors from JavaGAT
+ [ADD MORE INFO ON ADAPTORS].
 \end_layout
 
 \begin_layout Subsubsection
@@ -949,7 +847,7 @@ C++ SAGA Reference Implementation
 \end_layout
 
 \begin_layout Standard
-Before the GFD.90 specification for SAGA was released a group at the Louisiana
+Before the GFD.90 specification for SAGA was released, a group at the Louisiana
  State University 
 \begin_inset LatexCommand \cite{LSU}
 
@@ -961,23 +859,23 @@ Before the GFD.90 specification for SAGA was released a group at the Louisiana
 \end_inset
 
 .
- People from the group were also involved in the SAGA design process and
- the developing of GAT and pioneered in implementing a SAGA C++ implementation.
- This implementation works in a similar way as the Java implementation as
- that it also includes call routing through to the adaptors.
- It also features the probing of multiple adaptors and the variable adaptor
- strategies.
- In addition, it tries latency hiding strategies such as bulk optimalization
+ People from that group were also involved in the SAGA design process and
+ the development of GAT, and pioneered in implementing a SAGA C++ implementation.
+ This implementation works in a similar way as the Java implementation.
+ It also includes call routing through to the adaptors, the probing of multiple
+ adaptors and the variable adaptor strategies.
+ In addition, it tries latency hiding strategies such as bulk optimization
  and automatic load distribution over multiple adaptors.
 \end_layout
 
 \begin_layout Standard
-The implementation offers wrappers for C and Python but they are not fully
- functional as they are in alpha stage.
+The C++ reference implementation offers wrappers for C and Python, but they
+ are in alpha stage and therefore not fully functional.
  A Python language binding is not available and the wrapper closely follows
  the syntax of the underlying C++ layer.
- My Python language binding is specified top-down from the SAGA specification,
- the wrapper is designed bottom-up from the implementation.
+ The Python language binding described in this thesis is specified top-down
+ from the SAGA specification, the wrapper is designed bottom-up from the
+ implementation [ADD WHAT IS BETTER].
 \end_layout
 
 \begin_layout Section
@@ -987,7 +885,7 @@ Python
 \begin_layout Standard
 The Python language binding for SAGA is a specification of the classes and
  methods in the programming language Python.
- In this section I will explain parts of Python and how it influences the
+ In this section we will explain parts of Python and how it influences the
  specification.
  
 \end_layout
@@ -1015,7 +913,7 @@ Python is a high level interpreted scripting language and applications do
  support the ANSI C compiler and scripts have to be written only once to
  be run on many platforms.
  Some projects have rewritten the interpreter in different programming languages
- to take advantage of the distict features of the language.
+ to take advantage of the distinct features of the language.
  These projects include Jython for a Java interpreter and IronPython for
  a C# version.
  According to estimations 
@@ -1038,7 +936,7 @@ Syntax Features
 Python has some features in its syntax which influenced the SAGA language
  binding, and makes one to one copying of the SAGA specification not as
  straight forward as it seems.
- In this section I will explain which features those are.
+ In this section we will explain which features those are.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1047,7 +945,7 @@ Dynamic Typing
 
 \begin_layout Standard
 Python uses dynamic typing, which means that the type of a variable is bound
- to the type of variable value, and can change regulary.
+ to the type of variable value, and can change regularly.
  In static typing, the type is set when the variable is created and cannot
  be changed afterwards.
  This gives new possibilities when dealing with return values and parameter
@@ -1062,7 +960,7 @@ If it looks like a duck and quacks like a duck, it must be a duck.").
  on the object.
  In this context it means that if you can call quack() and walk() on an
  object, the type was probably Duck.
- If it gave a runtime error, the object was definitly not a Duck.
+ If it gave a runtime error, the object was definitely not a Duck.
  There are ways check the type of a variable, like 
 \family typewriter
 type(), isinstance(), issubclass() or variable.__class__
@@ -1071,10 +969,14 @@ type(), isinstance(), issubclass() or variable.__class__
 \end_layout
 
 \begin_layout Subsubsection
-Keywords and builtins
+Keywords and built-ins
 \end_layout
 
 \begin_layout Standard
+\begin_inset LatexCommand \label{sub:Keywords-and-builtins}
+
+\end_inset
+
 Python has reserved keywords just like every programming language.
  Most of these are are similar to other languages, but Python has some specific
  ones which are also used in the SAGA specification.
@@ -1100,7 +1002,7 @@ None
 \family default
  are reserved.
  Although Python is case-sensitive, this gives problems when defining a
- consequent namescheme.
+ consequent naming scheme.
 \end_layout
 
 \begin_layout Standard
@@ -1152,7 +1054,7 @@ def
  method with the same name.
  This makes it impossible to do overloading, defined as defining multiple
  methods with the same name but only differing in parameter types.
- The same effect can still be archieved in Python since the parameter type
+ The same effect can still be achieved in Python since the parameter type
  is not defined in the method declaration.
  It does give difficulties if SAGA specification has overloaded methods
  with completely different sets of parameter types.
@@ -1420,7 +1322,7 @@ Example of explicitly naming the parameters
 \end_layout
 
 \begin_layout Standard
-To improve usability in the Python language binding, deceiding about the
+To improve usability in the Python language binding, deciding about the
  order of the defaulted parameters is an interesting issue.
  A 
 \family typewriter
@@ -1439,7 +1341,7 @@ File.write()
 write( buffer, size='-1').
  
 \family default
-This looks inconsistant, but is done because a data buffer is needed for
+This looks inconsistent, but is done because a data buffer is needed for
  writing, but is optional for reading.
  The read data is returned as a string.
  The amount of data read can be checked by doing a 
@@ -1472,7 +1374,7 @@ Python has no notion of an enum, but this can be solved in different ways.
  the enum, such as the Flag enums in the SAGA specification.
  Another solution is to use dictionaries, which have similarities with hashtable
 s in other languages.
- Dictionaries are commenly used in Python, but their syntax is less straightforw
+ Dictionaries are commonly used in Python, but their syntax is less straightforw
 ard than using simple objects filled with variables.
 \end_layout
 
@@ -1494,19 +1396,35 @@ The byte data type is missing from Python.
 \begin_layout Standard
 A solution was found in using arrays of chars.
  Arrays are guaranteed to contain only the specified data type and if characters
- are read or written they are immediatly visable to users.
+ are read or written they are immediately visible to users.
  Problems may arise if underlying implementations use different encodings
- for the characters, like unicode, but that should be solved the programmers
+ for the characters, like Unicode, but that should be solved the programmers
  implementing the language binding.
- Suggestions were made to me to completly remove the buffers since they
- would be 'not Pythonesque' or 'Pythonic'
+ Suggestions were made to me to completely remove the buffers since they
+ would be not 
+\emph on
+Pythonesque
+\emph default
+ or 
+\emph on
+Pythonic
+\emph default
+
 \begin_inset Foot
 status open
 
 \begin_layout Standard
-Although 'Pythonic' is an extremely vague term, Python programmers generally
- assume there is only one correct way to do something.
- Other solutions are not Pythonic.
+Although 
+\emph on
+Pythonic
+\emph default
+ is an extremely vague term, Python programmers generally assume there is
+ only one correct way to do something.
+ Other solutions are not 
+\emph on
+Pythonic
+\emph default
+.
 \end_layout
 
 \end_inset
@@ -1522,23 +1440,206 @@ Python also has support for numbers.
  will automatically switch to a long.
  Longs can be arbitrarily long.
  Python has no double but only a double-precision float.
- Shorts are also not available in Python.
+ Shorts are not available in Python.
 \end_layout
 
 \begin_layout Subsubsection
 Extending Python
 \end_layout
 
+\begin_layout Standard
+As mentioned earlier, it is possible to write libraries for Python and import
+ them dynamically.
+ These libraries can be written in Python but it is also possible to write
+ them in C or C++.
+ Using predefined data types and structs it is possible to program a library
+ which is usable by the CPython interpreter.
+ This possibility can be used to speedup performance in certain loops or
+ to add functionality to applications which is not available in standard
+ Python.
+ The downside of this mechanism is that the switching between the library
+ and the interpreter takes some time and would mean a performance hit for
+ simple calls which could also be done in standard Python.
+ The writing of these libraries is not trivial and uses many Python specific
+ data types and syntax.
+ Fortunately there are tools available which help in this task such as SWIG
+ 
+\begin_inset LatexCommand \cite{SWIG}
+
+\end_inset
+
+ and Boost 
+\begin_inset LatexCommand \cite{boost.python}
+
+\end_inset
+
+.
+ The Boost.Python library is used in the C++ reference implementation to
+ create their Python wrapper, and thus making the SAGA functionality available
+ to Python users.
+\end_layout
+
+\begin_layout Standard
+During the specification of the Python language binding we have used the
+ features which are already available in the language and have avoided using
+ features which would mean that extra libraries would have be added.
+ It was planned that the specification could be implemented by using the
+ standard Python distribution or derivatives like Jython.
+\end_layout
+
 \begin_layout Subsubsection
-Future versions of Python
+\begin_inset LatexCommand \label{sub:Version-of-Python}
+
+\end_inset
+
+Version of Python
+\end_layout
+
+\begin_layout Standard
+The language binding consists mostly out of class and method declarations
+ and conforms to the current 2.6 version of Python which was released in
+ October 2008.
+ Although this does not say much about underlying implementations of the
+ language binding, these declarations are not expected to change or become
+ invalid in upcoming versions of Python.
+ In December 2008, version 3.0 was released.
+ It is stated that this version is incompatible with the previous versions.
+ 
+\end_layout
+
+\begin_layout Standard
+There are some changes which effect the language binding.
+ Version 3.0 implements a byte data type 
+\begin_inset LatexCommand \cite{bytePEP}
+
+\end_inset
+
+,
+\begin_inset LatexCommand \cite{PyLibFunctions}
+
+\end_inset
+
+ and a mutable byte buffer
+\begin_inset LatexCommand \cite{byteByfferPEP}
+
+\end_inset
+
+ as a byte array.
+ These changes will severely simplify the specification and implementation
+ of the 
+\family typewriter
+Buffer
+\family default
+ class and the 
+\family typewriter
+Iovec
+\family default
+ class.
+ These classes now work with char arrays to emulate bytes.
+ The Parameter class from the rpc package will also be helped with introduction
+ of a byte data type because it simplifies the use of method calls which
+ require byte arrays or byte buffers.
+ There is also a proposal for overloading and interfaces 
+\begin_inset LatexCommand \cite{overloadingPEP}
+
+\end_inset
+
+ .
+ Interfaces would be defined as classes having abstract methods without
+ an implementation.
+ These interfaces would be more suitable to implement the interfaces defined
+ in GFD.90.
+ Abstract base classes 
+\begin_inset LatexCommand \cite{abstractBaseClasses}
+
+\end_inset
+
+ are supported since version 2.6 roughly do the same.
+ These 'Python Enhancement Proposals' or PEPs would solve difficulties that
+ were raised in the 2.x versions of Python.
+ Now that Python 3.0 is released, it will take some time before it is excepted
+ as the mainstream version for Python programmers.
+ In addition to that, it will take some time before the other implementations
+ like Jython will fully support version 3.0.
 \end_layout
 
 \begin_layout Subsection
 Jython
 \end_layout
 
+\begin_layout Standard
+Python is not the only interpreter of Python source code as there are multiple
+ implementations available at this point.
+ Stackless 
+\begin_inset LatexCommand \cite{stackless}
+
+\end_inset
+
+ has all the functions of the reference implementations but does not use
+ an internal stack which makes it useful for multi-threaded Python applications.
+ The implementation in .Net is called IronPython 
+\begin_inset LatexCommand \cite{ironpython}
+
+\end_inset
+
+ and the implementation in Java is called Jython 
+\begin_inset LatexCommand \cite{jython}
+
+\end_inset
+
+.
+ These implementations allow users to make use of Python and Java or .Net,
+ which adds possible solutions for solving a problem.
+ They can take advantage of features from both languages and all tools and
+ libraries which are written in them.
+\end_layout
+
+\begin_layout Standard
+This is where SAGA comes in.
+ To use let a Python application use the C++ implementation, it can access
+ it through the wrapper.
+ To let it access the Java implementation we have to use something different
+ than the Python reference implementation.
+ The solution for this is to run Python applications on the Jython interpreter
+ which can use the underlying SAGA implementation.
+\end_layout
+
+\begin_layout Standard
+Jython was first called JPython when it was created in late 1997 by Jim
+ Hugunin.
+ In 2000 it was moved to SourceForge and renamed to Jython.
+ Its current version is 2.2.1 with the 2.5 release coming around January 2009.
+ This 2.5 release will probably have the same features as the 2.5 release
+ of the Python reference implementation.
+ 
+\end_layout
+
 \begin_layout Subsection
-Difference Jython - Python
+Differences between Jython and Python
+\end_layout
+
+\begin_layout Standard
+Jython and Python are actually the same language, but there are some differences
+ between them.
+ An out-dated list of them can be found at 
+\begin_inset LatexCommand \cite{diffJyPy}
+
+\end_inset
+
+, which shows that differences are mostly in behavior between the two interprete
+rs.
+ Jython also lacks some built-in modules and modules like Numeric for scientific
+ calculations.
+ It will always lag behind the reference implementation since new features
+ and changes to the language are designed and implemented there first.
+ The Java language also misses features which deal with operating system
+ specific issues such as links and permissions.
+\end_layout
+
+\begin_layout Standard
+When taking all the differences into account, it should be possible to create
+ applications which run on both the CPython and the Jython interpreter as
+ long the programmer remembers to keep the differences into account.
 \end_layout
 
 \begin_layout Section
@@ -1550,8 +1651,2103 @@ Specification
 
 \end_layout
 
+\begin_layout Standard
+This section describes how the specification of the Python language binding
+ was designed and what choices were made in the process.
+ Although the complete specification, including all the notes of the 16
+ modules, 55 classes and more than 200 methods, would be to much to be included
+ within this thesis, we will describe most design decisions.
+\end_layout
+
 \begin_layout Subsection
-All Modules Specified with Design Decisions
+Global Design Decisions
+\end_layout
+
+\begin_layout Standard
+The specification for the language binding was inspired by three things;
+ The GFD.90 
+\begin_inset LatexCommand \cite{GFD.90}
+
+\end_inset
+
+ document, the Python style guide 
+\begin_inset LatexCommand \cite{styleGuide}
+
+\end_inset
+
+ and suggestions given on the saga-rg mailinglist.
+ Since we did not have much experience with Python the people on the mailinglist
+ gave us quite some insight about proper syntax and programming constructs.
+ The style guide was a good start to set the rules on how the specification
+ should look like.
+ GFD.90 contained all specifics on SAGA itself and is the primary source
+ of information related to SAGA.
+ Most naming was directly taken from the document, just as all the documentation.
+\end_layout
+
+\begin_layout Standard
+The layout of the packages is simple.
+ The root of the package structure is 
+\family typewriter
+saga
+\family default
+.
+ This is the name of a directory containing all the modules.
+ The modules are files with the 
+\family typewriter
+.py
+\family default
+ extension and contain the classes which are related to each other and are
+ defined as a package in the GFD.90 document.
+ Python recognizes this structure of a directory, module files and a special
+ 
+\family typewriter
+__init__.py
+\family default
+ file as a complete package is able to import them.
+ For example the URL class can be imported with the statement
+\family typewriter
+ from saga.url import URL
+\family default
+.
+ 
+\end_layout
+
+\begin_layout Standard
+All the document strings in the specification are complemented with special
+ statements used by an application called Epydoc 
+\begin_inset LatexCommand \cite{epydoc}
+
+\end_inset
+
+.
+ Epydoc can generate a browsable version of the language binding which helps
+ application programmers designing Python programs using SAGA.
+ Almost all documentation in the document strings comes from GFD.90 and is
+ adapted to the language binding.
+\end_layout
+
+\begin_layout Standard
+I have used the CapitalizedWords convention for the naming of classes, the
+ all-lowercase convention for package and module names, the all-lowercase
+ with underscores for the method names, the parameter names and variable
+ names, and the UPPERCASE convention for constants.
+ These conventions come from the style guide with the exception of convention
+ for constants.
+ Using all-lowercase or CapWords would create clashes between some constants
+ and reserved keywords as mentioned in section 
+\begin_inset LatexCommand \ref{sub:Keywords-and-builtins}
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Interfaces do not exist in Python, but GFD.90 does define them.
+ Interfaces are specified as normal classes, with the specified methods
+ in them.
+ Implementations of the language binding should make sure that instantiating
+ an 'interface' class does not work since it makes no sense to do so.
+ 
+\end_layout
+
+\begin_layout Standard
+Since enumerations do not exist in Python but GFD.90 does define them, we
+ have specified the enums as normal classes in the specification.
+ These classes contain the constants from the enums.
+ 
+\end_layout
+
+\begin_layout Standard
+I have mapped the possible return types to their Python counterpart, such
+ as strings to strings, numbers to ints and arrays to lists.
+\end_layout
+
+\begin_layout Standard
+To deal with asynchronous methods and the task creation we have added a
+ tasktype parameter to all methods in classes which are subclasses of the
+ Async class.
+ This parameter is the last one of all the defined parameters and defaulted
+ to 
+\family typewriter
+TaskType.NORMAL
+\family default
+.
+ This means that by default the method is executed synchronous and returns
+ its specified return value and not a 
+\family typewriter
+Task
+\family default
+ object.
+ By placing the parameter last and by defaulting it, it the syntax of the
+ synchronous and asynchronous calls stay consistent and should not interfere
+ with each other.
+\end_layout
+
+\begin_layout Standard
+Get and set methods are not regarded as 
+\emph on
+Pythonic, 
+\emph default
+but GFD.90 requires them for the language binding to be fully compliant.
+ Therefore many class variables on which the getters and setters operate
+ can also be accessed through so-called properties.
+ In the description of the packages we shall mention the properties where
+ they are defined.
+\end_layout
+
+\begin_layout Subsection
+Error
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Float table
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="2">
+<features>
+<column alignment="left" valignment="top" leftline="true" width="0">
+<column alignment="left" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+None
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+__init__(self, message, saga_object=None) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Initialize an Exception object.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_message() 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Returns the message associated with the exception.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+Object
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_object() 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Returns the SAGA Object associated with the exception.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{tab:ErrorMethods}
+
+\end_inset
+
+Specified methods in Error module
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+Error
+\family default
+ module consists out of a 
+\family typewriter
+SagaException
+\family default
+ class which features the methods from table 
+\begin_inset LatexCommand \ref{tab:ErrorMethods}
+
+\end_inset
+
+ and 11 subclasses of the 
+\family typewriter
+SagaException
+\family default
+ which are shown in table 
+\begin_inset LatexCommand \ref{tab:Subclasses-of-SagaException}
+
+\end_inset
+
+.
+ We have placed the 
+\family typewriter
+sagaObject
+\family default
+ parameter behind the message parameter because not all exceptions contain
+ an object and thus the 
+\family typewriter
+saga_object
+\family default
+ is optional.
+ 
+\family typewriter
+__init__
+\family default
+ contains both constructors mentioned in GFD.90.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+SagaException
+\family default
+ exposes the properties 
+\family typewriter
+message
+\family default
+ and 
+\family typewriter
+saga_object
+\family default
+ to directly get the message and the associated base 
+\family typewriter
+Object
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Float table
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="4">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+NotImplemented
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+IncorrectURL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+BadParameter
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+AlreadyExists
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+DoesNotExist
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+IncorrectState
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+PermissionDenied
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+AuthorizationFailed
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+AuthenticationFailed
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+Timeout
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+NoSuccess
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{tab:Subclasses-of-SagaException}
+
+\end_inset
+
+Subclasses of SagaException
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Python has exception-handling capabilities and does not need the 
+\family typewriter
+error_handler
+\family default
+ interface.
+\end_layout
+
+\begin_layout Subsection
+Object
+\end_layout
+
+\begin_layout Standard
+The Object module contains the 
+\family typewriter
+ObjectType
+\family default
+ class and the 
+\family typewriter
+Object
+\family default
+ class.
+ 
+\family typewriter
+ObjectType
+\family default
+ was originally designed as an enum but is now a class with constants that
+ are returned by objects to describe their type.
+ 
+\family typewriter
+Object
+\family default
+ was an interface, but is now a class with the same methods.
+ The methods are shown in table 
+\begin_inset LatexCommand \ref{tab:ObjectMethods}
+
+\end_inset
+
+, and are not different from the GFD.90 specification.
+ 
+\family typewriter
+get_type()
+\family default
+ returns a value from 
+\family typewriter
+ObjectType
+\family default
+ which happen to be integers and 
+\family typewriter
+clone()
+\family default
+ returns a deep copy of an object which is an object itself.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+Object
+\family default
+ exposes the properties 
+\family typewriter
+id
+\family default
+ to get the object ID, 
+\family typewriter
+type
+\family default
+ to get the object type and 
+\family typewriter
+session
+\family default
+ to get the 
+\family typewriter
+Session
+\family default
+ of the object.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Float table
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="8" columns="2">
+<features>
+<column alignment="left" valignment="top" leftline="true" width="0">
+<column alignment="left" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_id(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Query the object ID.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+ int 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_type(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Query the object type.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+Session
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_session(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Query the objects session.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+Object
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+clone(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Deep copy the object.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{tab:ObjectMethods}
+
+\end_inset
+
+Methods from the Object class
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+URL
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+url
+\family default
+ package contains only the 
+\family typewriter
+URL
+\family default
+ class.
+ The methods defined in 
+\family typewriter
+URL
+\family default
+, shown in table 
+\begin_inset LatexCommand \ref{tab:URLMethods}
+
+\end_inset
+
+, are practically the same as defined in GFD.90.
+ 
+\family typewriter
+URL
+\family default
+ is a subclass of 
+\family typewriter
+Object
+\family default
+ and thus inherits all its methods and properties.
+ Additional properties exposed by 
+\family typewriter
+URL
+\family default
+ are 
+\family typewriter
+string, scheme, host, port, fragment, path, query 
+\family default
+and
+\family typewriter
+ userinfo
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Float table
+wide true
+sideways false
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="36" columns="2">
+<features>
+<column alignment="left" valignment="top" leftline="true" width="0">
+<column alignment="left" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+__init__(self, url='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Initialize an URL instance.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_string(self, url='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set a new url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_string(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Retrieve the url as string.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_scheme(self, scheme='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set the scheme of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_scheme(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Get the scheme of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_host(self, host='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set the host of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_host(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Get the host of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_port(self, port=-1)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set the port of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+int 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_port(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Get the port of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_fragment(self, fragment='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set the fragment of the url.
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_fragment(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Get the fragment of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+set_path(self, path='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set the path of the url.
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_path(self) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Get the path of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_query(self, query='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set the query of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_query(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Get the query of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_userinfo(self, userinfo='')
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set the userinfo of the url.
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_userinfo(self) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Get the userinfo of the url.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+URL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+translate(self, scheme)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Translate an URL to a new scheme.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+                 
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{tab:URLMethods}
+
+\end_inset
+
+Methods from the URL class
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Buffer 
+\end_layout
+
+\begin_layout Standard
+The buffer package contains only the Buffer class.
+ Buffer contains the methods shown in table 
+\begin_inset LatexCommand \ref{tab:BufferMethods}
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Float table
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="14" columns="2">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+__init__(self, size=-1, data=None)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Initialize an I/O buffer.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+__del__(self) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Destroy a buffer.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_size(self, size=-1) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set size of buffer.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+int
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_size(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Retrieve the current value for size.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+set_data(self, data, size=-1) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Set new buffer data.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+char array, list 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+get_data(self)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+or string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Retrieve the buffer data.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+close(self, timeout=-0.0)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Closes the object.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+    
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{tab:BufferMethods}
+
+\end_inset
+
+Methods from the Buffer class
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Session 
+\end_layout
+
+\begin_layout Subsection
+Context 
+\end_layout
+
+\begin_layout Subsection
+Permission 
+\end_layout
+
+\begin_layout Subsection
+Attributes 
+\end_layout
+
+\begin_layout Subsection
+Monitoring 
+\end_layout
+
+\begin_layout Subsection
+Task 
+\end_layout
+
+\begin_layout Subsection
+Job 
+\end_layout
+
+\begin_layout Subsection
+Namespace 
+\end_layout
+
+\begin_layout Subsection
+File 
+\end_layout
+
+\begin_layout Subsection
+Replica 
+\end_layout
+
+\begin_layout Subsection
+Stream 
+\end_layout
+
+\begin_layout Subsection
+RPC 
 \end_layout
 
 \begin_layout Section
@@ -1614,28 +3810,272 @@ Repository
 Discussion
 \end_layout
 
+\begin_layout Standard
+This master project has delivered a Python language binding for SAGA and
+ an implementation for the language binding on top of the Java SAGA reference
+ implementation.
+ Programmers can use the specification of the language binding to use SAGA
+ in their Python applications.
+ Our opinion is that the specification is user friendly and conforms to
+ how Python programmers would like to see the SAGA API.
+ The specification consists out of standard Python data types and looks
+ like an easily understandable API.
+ 
+\end_layout
+
+\begin_layout Standard
+The specification of the 
+\family typewriter
+Buffer
+\family default
+, 
+\family typewriter
+IOVec
+\family default
+ and 
+\family typewriter
+Parameter
+\family default
+ classes might look unorthodox but is specified this way because Python
+ does not have a byte type.
+ The classes were designed in GFD.90 as containers of bytes and therefor
+ a translation had to made.
+ Suggestions were made on the mailinglist to completely remove the buffer
+ classes from the specifications and to use strings as representations of
+ the data.
+ We decided to have both principles of (application-managed and implementation-m
+anaged) buffers and strings.
+ Strings are mostly used for simple read and write operations.
+ 
+\end_layout
+
+\begin_layout Standard
+The specification includes one additional class that was not directly defined
+ in GFD.90.
+ The 
+\family typewriter
+job.StdIO
+\family default
+ class represents the standard input, standard output and standard error
+ of jobs.
+ Because there can be multiple jobs, multiple representations of input and
+ output streams must be available to the Python application.
+ Standard Input and output in Python are represented as a special file,
+ and therefore the 
+\family typewriter
+job.StdIO
+\family default
+ class has many methods that can also be found in the Python file class.
+ 
+\end_layout
+
+\begin_layout Standard
+The language binding implementation is programmed to be as Python-like as
+ possible, but only if that would not interfere with the principle that
+ implementation details of the language binding should be hidden from the
+ user.
+ An example of this is the explicit checking of parameter types instead
+ of using the duck typing principle.
+ Without the checking, exceptions could be raised by Jython that are not
+ clear to the user and could confuse him.
+ The explicit type checking gives the user clear information when the wrong
+ parameters were given.
+ Overall the implementation follows the Python programming style.
+\end_layout
+
+\begin_layout Standard
+Since the language binding implementation is a 'glue layer' between Python
+ applications and the Java SAGA reference implementation, the language binding
+ should also run on top of other Java implementations.
+ A requirement is that other implementations must implement the Java language
+ binding in their Java SAGA implementation.
+ Our Python language binding will not support classes or packages in addition
+ to the language binding, but the everything in the Java language binding
+ should work.
+\end_layout
+
+\begin_layout Standard
+Currently, people from the Vrije Universiteit are working to create a wrapper
+ around the Python wrapper of the C++ SAGA reference implementation.
+ This wrapper will use our Python language binding specification.
+ When the project is finished, it will be possible to write Python programs
+ using the specification and run them on both the C++ and the Java reference
+ implementations.
+\end_layout
+
+\begin_layout Standard
+The Python wrapper which comes with the C++ reference implementation is
+ designed bottom-up while our specification top-down.
+ The bottom-up approach lies close to the C++ implementation but is not
+ explicitly designed for Python programmers or makes use of the specific
+ features such as lists and default values for parameters.
+ Our specification is designed without explicitly fitting it to a specific
+ SAGA implementation.
+ 
+\end_layout
+
+\begin_layout Standard
+We have done no measurements on the performance of the language binding
+ implementation.
+ It is very hard to measure the performance and even harder to compare it
+ to another reference.
+ The implementation is dependent on the Java virtual machine, the Jython
+ interpreter and the Java reference implementation and is in no way comparable
+ to the Python wrapper of the C++ implementation.
+  
+\end_layout
+
 \begin_layout Section
 Future Work
 \end_layout
 
-\begin_layout Subsection
-Synchronize specification with LSU
+\begin_layout Standard
+After the specification and implementation of the Python language binding
+ for SAGA some work still has to be done.
+ This sections explains which issues will need attention in the future.
 \end_layout
 
 \begin_layout Subsection
-Extending the API
+Synchronize Specification with the Python Wrapper
 \end_layout
 
 \begin_layout Standard
-Extention packages
+At this point, there are both our specification and the specification which
+ comes with Python wrapper of the C++ reference implementation.
+ They both differ at many points, such as naming of methods, variables and
+ parameters.
+ To reach the goal of creating a Python application which can run on both
+ reference implementations these specifications need to be synchronized
+ with each other.
+ 
+\end_layout
+
+\begin_layout Standard
+This synchronizing has difficulties of its own such as technical and political
+ and will probably result in sub-optimal solutions and loss of backward
+ compatibility for the few Python applications which already use SAGA.
+ At this point work is done to create a wrapper around the existing Python
+ wrapper which uses the specification described in the thesis.
 \end_layout
 
 \begin_layout Subsection
-Special Python operators
+\begin_inset LatexCommand \label{sub:Extentions-to-the}
+
+\end_inset
+
+Extensions to the API
+\end_layout
+
+\begin_layout Standard
+As more grid middleware and other technologies are developed, SAGA will
+ probably need to be extended in the future.
+ To access these new extension packages the Python language binding will
+ have to be updated with the new functionality using the look and feel packages
+ of the existing language binding.
+\end_layout
+
+\begin_layout Standard
+Now that version 3.0 of Python (see section 
+\begin_inset LatexCommand \ref{sub:Version-of-Python}
+
+\end_inset
+
+) is released, the specification of language binding will have to be updated
+ to reflect the changes and new data types, or a new specification will
+ have to be made which is available in addition to version which uses Python
+ 2.x syntax.
+ Updates include the abstract base classes or interfaces to the
 \end_layout
 
 \begin_layout Subsection
-Updating Implementation with new Reference Implementations
+Special Methods
+\end_layout
+
+\begin_layout Standard
+Python uses a number of built-in methods to define certain behavior.
+ Programmers can define or overload these methods to implements the custom
+ behavior.
+ An example of this is the 
+\family typewriter
+__init__()
+\family default
+ method, where is defined what is initialized after the object is created.
+ In the implementation of the language binding almost every class has a
+ custom 
+\family typewriter
+__init__()
+\family default
+ method.
+ There are many special methods which can be defined like object (value)
+ comparisons, operations on class attributes, operations like add and multiply
+ or methods related to the representation of the class when printed.
+ At this point, only the standard operations are specified and some have
+ custom implementation like 
+\family typewriter
+__init__() and __new__().
+
+\family default
+ To improve usability more of these special methods have to be specified
+ and implemented.
+ These include __len__() to check the length or size, __cmp__() to compare
+ objects or the special attribute methods.
+ 
+\end_layout
+
+\begin_layout Standard
+Support for pickling also fall in this category.
+ Pickling is what Java programmers may call serialization.
+ It is the storing of Python objects to persistent media, such as a harddisk,
+ to load them again a later time.
+ These stored objects can be sent to other applications or used between
+ different runs of the same application.
+ The Python language binding implementation does not support this, but could
+ be added if users need this functionality.
+ Implementors then shall have to deal with storing the Python objects and
+ the delegate objects, which is difficult if the underlying application
+ does not support the serialization mechanism.
+\end_layout
+
+\begin_layout Subsection
+Updating Language Binding Implementations.
+ 
+\end_layout
+
+\begin_layout Standard
+In addition to the points given in section 
+\begin_inset LatexCommand \ref{sub:Extentions-to-the}
+
+\end_inset
+
+, the implementation of the language binding will also need to be changed
+ if the underlying SAGA implementation is changed.
+ This can happen if methods which previously threw a 
+\family typewriter
+NotImplemented
+\family default
+ exception are now implemented or if bugs are solved or new features are
+ implemented.
+ Since the SAGA implementation is also bound to its language binding, change
+ is not expected to happen often after a reliable working version is released.
+ Still, it must be taken into account that change in the SAGA implementation
+ means that change in the Python language binding is needed.
+\end_layout
+
+\begin_layout Subsection
+Consistency
+\end_layout
+
+\begin_layout Standard
+The designing and implementing of the Python language binding was a learning
+ process in which great amounts of experience were gained.
+ An effect of this is that within the code of the specification and the
+ implementation small things may differ and might not be consistent.
+ This also include that not all the rules from the Python style guide are
+ reflected within them.
+ Making the code and declarations consistent will help the programmers when
+ updating or changing the implementation.
+ The current implementation also misses some comments about the working
+ of the code in addition to the comments given in the document strings.
 \end_layout
 
 \begin_layout Section
@@ -1682,8 +4122,12 @@ SAGA: Simple API for Grid Applications
 Conclusion
 \end_layout
 
+\begin_layout Standard
+The conclusion.
+\end_layout
+
 \begin_layout Section
-Bibliography
+Acknowledgments
 \end_layout
 
 \begin_layout Standard
@@ -1694,16 +4138,24 @@ Bibliography
 
 \end_layout
 
-\begin_layout Section
-Acknowledgments
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+appendix
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
-Appendix A: Installing and Running JySaga
-\end_layout
-
-\begin_layout Section
-Appendix B: Proof of a Higgs-boson
+Installing and Running JySaga
 \end_layout
 
 \end_body
