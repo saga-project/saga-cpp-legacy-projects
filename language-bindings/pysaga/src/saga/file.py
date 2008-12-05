@@ -2,12 +2,13 @@
 #package saga.file
 
 from namespace import  NSEntry, NSDirectory
-from task import Async
+from task import Async, Task, TaskType
 from permissions import  Permissions
 from buffer import Buffer
 from object import Object, ObjectType
 from attributes import Attributes
 from error import NotImplemented
+from session import Session
 
 #import org.ogf.saga.url.URLFactory;
 #import org.ogf.saga.url.URL;

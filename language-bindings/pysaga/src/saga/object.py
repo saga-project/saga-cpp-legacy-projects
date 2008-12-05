@@ -79,7 +79,6 @@ class Object(object):
         @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
             Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
         """
-        
     
     def clone(self):
         """
@@ -95,3 +94,9 @@ class Object(object):
 
         """
     
+    id = property(get_id, 
+            doc="""The object ID.\n@type: string""")
+    type= property(get_type,
+            doc="""The object type.\n@type: int""")
+    session= property(get_session,
+            doc="""The L{Session} of the object.\n@type:L{Session}""")

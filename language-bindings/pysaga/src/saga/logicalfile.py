@@ -11,6 +11,8 @@ from object import Object, ObjectType
 from attributes import Attributes
 from namespace import NSEntry, NSDirectory
 from url import URL
+from session import Session
+from task import Async, TaskType, Task
 
 class Flags(object):
     """

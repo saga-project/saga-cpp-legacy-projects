@@ -10,7 +10,9 @@
 from buffer import Buffer
 from object import Object, ObjectType
 from permissions import Permissions
-from task import Async
+from task import Async, TaskType, Task
+from session import Session
+
 
 class IOMode(object):
     """
@@ -85,7 +87,7 @@ class Parameter(Buffer):
         @note: When an Out or InOut Parameter uses a pre-allocated buffer, any 
             data exceeding the buffer size are discarded. The application is 
             responsible for specifying correct buffer sizes for pre-allocated 
-            buffers; otherwise the behaviour is undeﬁned.
+            buffers; otherwise the behaviour is undefined.
         @Note: all notes from the saga.buffer.Buffer.__init__() apply.
         """
         

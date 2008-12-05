@@ -9,47 +9,64 @@ from attributes import Attributes
 from object import Object, ObjectType
 
 class Callback(object):
-    """Callbacks are used for asynchronous notification of metric changes (events) """
+    """
+    Callbacks are used for asynchronous notification of metric changes 
+    (events) 
+    """
     
     def cb(self, monitorable, metric, context):
         """
         Asynchronous handler for metric changes.
         @summary: Asynchronous handler for metric changes.
-        @param monitorable: the saga monitorable object which causes the callback invocation
+        @param monitorable: the saga monitorable object which causes the 
+            callback invocation
         @type monitorable: L{Monitorable<saga.monitoring.Monitorable>}
         @param metric: the metric causing the callback invocation
         @type metric: L{Metric<saga.monitoring.Metric>}
-        @param context: the context associated with the entity causing the callback
+        @param context: the context associated with the entity causing the 
+            callback
         @type context: L{Context<saga.context.Context>}
         @return: indicator if callback stays registered
         @rtype: bool
         @PreCondition: the passed context is authenticated.
-        @PostCondition: if cb returns True, the callback stays registered, and will be invoked again on the next metric update.
-        @PostCondition: if cb returns False, the callback gets unregistered, and will not be invoked again on metric updates, unless it gets re-added by the user.
+        @PostCondition: if cb returns True, the callback stays registered, and 
+            will be invoked again on the next metric update.
+        @PostCondition: if cb returns False, the callback gets unregistered, and 
+            will not be invoked again on metric updates, unless it gets re-added 
+            by the user.
         @Raise NotImplemented:
         @raise AuthorizationFailed:
-        @Note: "metric" is the Metric the callback is invoked on, that means that this metric
-               recently changed. Note that this change is semantically defined by the metric, e.g. the
-               string of the "value" attribute of the metric might have the same value in two subsequent
-               invocations of the callback.
-        @note: "monitorable" is the Monitorable object the metric "metric" belonges to.
-        @note: "context" is the Context which allows the callback to authorize the metric change.
-               If the cb method decides not to authorize this particular invocation, it raises an "AuthorizationFailed" exception.
-        @note: if no context is available, a context of type "Unknown" is passed, with no attributes
-               attached. Note that this can also indicate that a non-authenticated party connected.
-        @note: a callback can be added to a metric multiple times. A "False" return value (no keep) will
-               remove only one registration, and keep the others.
-        @note: a callback can be added to multiple metrics at the same time. A "False" return (no keep) will
-               only remove the registration on the metric the callback was invoked on.
-        @note: the application must ensure appropriate locking of callback instances which are used with multiple metrics.
-        @note: a callback added to exactly one metric exactly once is guaranteed to be active at most once at
-               any given time. That implies that the SAGA implementation queues pending requests
-               until a callback invocation is finished.
+        @Note: "metric" is the Metric the callback is invoked on, that means 
+            that this metric recently changed. Note that this change is 
+            semantically defined by the metric, e.g. the string of the "value" 
+            attribute of the metric might have the same value in two subsequent
+            invocations of the callback.
+        @note: "monitorable" is the Monitorable object the metric "metric" 
+            belonges to.
+        @note: "context" is the Context which allows the callback to authorize 
+            the metric change. If the cb method decides not to authorize this 
+            particular invocation, it raises an "AuthorizationFailed" exception.
+        @note: if no context is available, a context of type "Unknown" is 
+            passed, with no attributes attached. Note that this can also 
+            indicate that a non-authenticated party connected.
+        @note: a callback can be added to a metric multiple times. A "False" 
+            return value (no keep) will remove only one registration, and keep 
+            the others.
+        @note: a callback can be added to multiple metrics at the same time. A 
+            "False" return (no keep) will only remove the registration on the 
+            metric the callback was invoked on.
+        @note: the application must ensure appropriate locking of callback 
+            instances which are used with multiple metrics.
+        @note: a callback added to exactly one metric exactly once is guaranteed 
+            to be active at most once at any given time. That implies that the 
+            SAGA implementation queues pending requests until a callback 
+            invocation is finished.
 
         """
   
 class Metric(Object, Attributes):
-    """A metric represents an entity or value to be monitored.
+    """
+    A metric represents an entity or value to be monitored.
     
         - Attributes:
             - B{Name}
@@ -69,7 +86,7 @@ class Metric(Object, Attributes):
                 -   desc: access mode of the metric
                 -   mode: ReadOnly
                 -   type: String
-                -   value: ’ReadOnly’, ’ReadWrite’ or ’Final’
+                -   value: 'ReadOnly', 'ReadWrite' or 'Final'
             - B{Unit}
                 -   name: Unit
                 -   desc: unit of the metric
@@ -80,7 +97,7 @@ class Metric(Object, Attributes):
                 -   desc: value type of the metric
                 -   mode: ReadOnly
                 -   type: String
-                -   value: ’String’, ’Int’, ’Float’, ’Bool’, ’Time’ or ’Trigger’
+                -   value: 'String', 'Int', 'Float', 'Bool', 'Time' or 'Trigger'
             -B{Value}
                 -   name: Value
                 -   desc: value of the metric

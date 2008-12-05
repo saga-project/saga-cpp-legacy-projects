@@ -7,7 +7,7 @@
 #    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from object import Object, ObjectType
-from task import Async
+from task import Async, TaskType, Task
 from monitoring import Monitorable
 from permissions import Permissions
 from url import URL

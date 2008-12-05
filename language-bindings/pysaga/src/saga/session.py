@@ -82,3 +82,6 @@ class Session(Object):
 
         """
         pass
+    
+    contexts = property(list_contexts,
+            doc="""Contexts attached to a session\n@type: list""")

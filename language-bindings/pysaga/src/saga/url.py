@@ -284,3 +284,21 @@ class URL(Object):
         
         """
         pass
+    
+    string = property(get_string, set_string, 
+            doc="""The complete URL string. \n@type: string""")    
+    scheme = property(get_scheme, set_scheme, 
+            doc="""Scheme part of the URL string. \n@type: string""")
+    host = property(get_host, set_host, 
+            doc="""Host part of the URL string. \n@type: string""")
+    port = property(get_port, set_port, 
+            doc="""Port part of the URL string. \n@type: int""")
+    fragment = property(get_fragment, set_fragment, 
+            doc="""Fragment part of the URL string. \n@type: string""")
+    path = property(get_path, set_path, 
+            doc="""Path part of the URL string. \n@type: string""")
+    query = property(get_query, set_query, 
+            doc="""Query part of the URL string. \n@type: string""")
+    userinfo = property(get_userinfo, set_userinfo, 
+            doc="""User information part of the URL string. \n@type: string""")
+    

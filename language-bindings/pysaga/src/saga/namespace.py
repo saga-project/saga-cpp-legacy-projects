@@ -1,8 +1,9 @@
 # Page 195 package saga.namespace
 from object import Object
 from permissions import Permissions
-from task import Async
+from task import Async, TaskType, Task
 from error import NotImplemented
+from session import Session
 
 class Flags(object):
     """ 
@@ -450,7 +451,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
             directory and the 'RECURSIVE' flag is set.
         @note: the source will not be dereferenced unless the 'DEREFERENCE' flag 
             is given. If derefencing is impossible (e.g. on a broken link), an
-                  'IncorrectState' exception is raised.
+            'IncorrectState' exception is raised.
         @note:  other flags are not allowed, and cause a 'BadParameter' exception.
         @note:  the default flags are 'NONE' (0).
         @note:  if the instance was not closed before, this call performs a 
