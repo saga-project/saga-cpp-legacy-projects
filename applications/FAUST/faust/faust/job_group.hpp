@@ -9,8 +9,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_MANYJOBS_JOB_GROUP_HPP
-#define FAUST_MANYJOBS_JOB_GROUP_HPP
+#ifndef FAUST_JOB_GROUP_HPP
+#define FAUST_JOB_GROUP_HPP
 
 #include <saga/saga.hpp>
 #include <boost/shared_ptr.hpp>
@@ -23,14 +23,12 @@ namespace faust
 {
   // fwd. decl. implementation class 
   ///@cond - exclude from Doxygen
-  namespace impl { namespace manyjobs { class job_group_impl; class service_impl; } }
+  namespace impl { class job_group_impl; class service_impl; }
   ///@endcond - exclude from Doxygen
 
-
-  namespace manyjobs {
     
     /*! \brief The %job_group provides the manageability interface to a set
-     *         of jobs submitted through a %manyjobs %service instance. A
+     *         of jobs submitted through a %faust %service instance. A
      *         job group behaves like a single job - any method that is called
      *         will be applied to all jobs in a group. 
      *         A %job_group can't be instanciated directly, only thourgh the 
@@ -39,11 +37,11 @@ namespace faust
     class FAUST_EXPORT job_group : public saga::object
     {
       // service impl. class needs to be friend to call private c'tor 
-      friend class faust::impl::manyjobs::service_impl;
+      friend class faust::impl::service_impl;
       
     private:
       
-      typedef boost::shared_ptr<faust::impl::manyjobs::job_group_impl> impl_ptr;
+      typedef boost::shared_ptr<faust::impl::job_group_impl> impl_ptr;
       impl_ptr impl;
            
       job_group();
@@ -86,7 +84,6 @@ namespace faust
       std::vector<std::string> list_job_ids();     
       
     };
-  }
 }
 
-#endif /* FAUST_MANYJOBS_JOB_GROUP_HPP */
+#endif /* FAUST_JOB_GROUP_HPP */

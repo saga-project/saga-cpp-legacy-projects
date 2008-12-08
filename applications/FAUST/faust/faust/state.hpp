@@ -9,14 +9,12 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_MANYJOBS_STATE_HPP
-#define FAUST_MANYJOBS_STATE_HPP
+#ifndef FAUST_STATE_HPP
+#define FAUST_STATE_HPP
 
 namespace faust
-{
-  namespace manyjobs {
-    
-    /*! \brief Possible states for a %manyjob. Currently it adopts the saga
+{    
+    /*! \brief Possible states for a %faust %job. Currently it adopts the saga
      *         job model states but it might me extended/altered at some point.
      */
     enum state
@@ -37,7 +35,6 @@ namespace faust
       /*! Add brief description! */
       Suspended =  64
     };
-  }
 }
 
-#endif /*FAUST_MANYJOBS_STATE_HPP*/
+#endif /*FAUST_STATE_HPP*/

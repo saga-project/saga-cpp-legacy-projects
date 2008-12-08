@@ -9,16 +9,14 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_MANYJOBS_DESCRIPTION_HPP
-#define FAUST_MANYJOBS_DESCRIPTION_HPP
+#ifndef FAUST_DESCRIPTION_HPP
+#define FAUST_DESCRIPTION_HPP
 
 #include <saga/saga.hpp>
 #include <faust/faust/defines.hpp>
 
 namespace faust
-{
-  namespace manyjobs {
-    
+{    
     namespace attributes 
     {
       char const* const executable            = "Executable";
@@ -66,7 +64,6 @@ namespace faust
       std::string get_attribute(std::string key);
       
     };
-  }
 }
 
-#endif /* FAUST_MANYJOBS_DESCRIPTION_HPP */
+#endif /* FAUST_DESCRIPTION_HPP */

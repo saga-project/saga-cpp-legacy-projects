@@ -12,12 +12,12 @@
 #include <faust/faust/job.hpp>
 #include <faust/impl/job_impl.hpp>
 
-using namespace faust::manyjobs;
+using namespace faust;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 job::job() 
-: impl(new faust::impl::manyjobs::job_impl())
+: impl(new faust::impl::job_impl())
 {
 }
 
@@ -65,14 +65,14 @@ std::string job::get_job_id()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::manyjobs::state job::get_state()
+faust::state job::get_state()
 {
   return impl->get_state();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::manyjobs::description job::get_description()
+faust::description job::get_description()
 {
   return impl->get_description();
 }

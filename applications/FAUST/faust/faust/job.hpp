@@ -9,8 +9,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_MANYJOBS_JOB_HPP
-#define FAUST_MANYJOBS_JOB_HPP
+#ifndef FAUST_JOB_HPP
+#define FAUST_JOB_HPP
 
 #include <boost/shared_ptr.hpp>
 
@@ -22,14 +22,13 @@ namespace faust
 {
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
-  namespace impl { namespace manyjobs { class job_impl; class service_impl; } }
+  namespace impl { class job_impl; class service_impl; } 
   ///@endcond - exclude from Doxygen
 
 
-  namespace manyjobs {
 
     /*! \brief The %job provides the manageability interface to a %job 
-     *         instance submitted through a manyjob %service instance. 
+     *         instance submitted through a %faust %service instance. 
      *         It can't be instanciated directly, only thourgh the 
      *         service::create_job factory methods.
      */
@@ -37,11 +36,11 @@ namespace faust
     {
     
       // service impl. class needs to be friend to call private c'tor 
-      friend class faust::impl::manyjobs::service_impl;
+      friend class faust::impl::service_impl;
       
     private:
 
-      typedef boost::shared_ptr<faust::impl::manyjobs::job_impl> impl_ptr;
+      typedef boost::shared_ptr<faust::impl::job_impl> impl_ptr;
       impl_ptr impl;
       
       job();
@@ -81,15 +80,14 @@ namespace faust
       /*! \brief Tries to return this %job instance's state.
        *
        */
-      faust::manyjobs::state get_state();
+      faust::state get_state();
       
       /*! \brief Returns this %job instance's description.
        *
        */
-      faust::manyjobs::description get_description();
+      faust::description get_description();
 
     };
-  }
 }
 
-#endif /* FAUST_MANYJOBS_JOB_HPP */
+#endif /* FAUST_JOB_HPP */

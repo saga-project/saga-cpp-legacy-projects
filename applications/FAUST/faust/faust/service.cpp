@@ -12,12 +12,12 @@
 #include <faust/faust/service.hpp>
 #include <faust/impl/service_impl.hpp>
 
-using namespace faust::manyjobs;
+using namespace faust;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 service::service (std::vector<resource> resources, int num_jobs)
-: impl(new faust::impl::manyjobs::service_impl(resources, num_jobs))
+: impl(new faust::impl::service_impl(resources, num_jobs))
 {
 }
 
@@ -72,7 +72,7 @@ std::vector<std::string> service::list_resources()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::manyjobs::job service::get_job(std::string job_id)
+faust::job service::get_job(std::string job_id)
 {
   return impl->get_job(job_id);
 }

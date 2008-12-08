@@ -12,12 +12,12 @@
 #include <faust/faust/job_group.hpp>
 #include <faust/impl/job_group_impl.hpp>
 
-using namespace faust::manyjobs;
+using namespace faust;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 job_group::job_group() 
-: impl(new faust::impl::manyjobs::job_group_impl())
+: impl(new faust::impl::job_group_impl())
 {
 }
 

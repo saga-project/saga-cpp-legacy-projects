@@ -11,13 +11,13 @@
 
 #include <faust/impl/job_impl.hpp>
 
-using namespace faust::impl::manyjobs;
+using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 job_impl::job_impl() 
 {
-  std::string jobid("manyjob://");
+  std::string jobid("faust://");
   jobid.append(saga::uuid().string());
   jobid_ = jobid;          
 }
@@ -65,14 +65,14 @@ std::string job_impl::get_job_id()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::manyjobs::state job_impl::get_state()
+faust::state job_impl::get_state()
 {
   return state_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::manyjobs::description job_impl::get_description()
+faust::description job_impl::get_description()
 {
   return description_;
 }

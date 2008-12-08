@@ -9,16 +9,14 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_MANYJOBS_RESOURCE_HPP
-#define FAUST_MANYJOBS_RESOURCE_HPP
+#ifndef FAUST_RESOURCE_HPP
+#define FAUST_RESOURCE_HPP
 
 namespace faust
-{  
-  namespace manyjobs {
-    
+{      
     /*! \brief This structure defines a computing %resource. It contains attributes
      *         like a contact string, queue and project names. A list of 
-     *         resources is used to create a manyjob %service instance.
+     *         resources is used to create a %faust %service instance.
      *  
      */
     struct resource {
@@ -27,7 +25,6 @@ namespace faust
       std::string  queue;
       std::string  project;
     };
-  }
 }
 
-#endif /* FAUST_MANYJOBS_RESOURCE_HPP */
+#endif /* FAUST_RESOURCE_HPP */

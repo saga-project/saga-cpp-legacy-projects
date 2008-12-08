@@ -14,7 +14,7 @@
 #include <faust/faust/defines.hpp>
 #include <faust/faust/description.hpp>
 
-using namespace faust::manyjobs;
+using namespace faust;
 
 description::description() : saga::job::description()
 {

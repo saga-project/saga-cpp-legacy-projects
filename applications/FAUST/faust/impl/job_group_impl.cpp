@@ -11,14 +11,14 @@
 
 #include <faust/impl/job_group_impl.hpp>
 
-using namespace faust::impl::manyjobs;
+using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 //
 job_group_impl::job_group_impl() 
 {
-  std::string jobid("manyjob://");
+  std::string jobid("faust://");
   jobid.append(saga::uuid().string());
   jobid_ = jobid;          
 }

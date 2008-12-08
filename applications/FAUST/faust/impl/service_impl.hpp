@@ -9,8 +9,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_IMPL_MANYJOBS_SERVICE_IMPL_HPP
-#define FAUST_IMPL_MANYJOBS_SERVICE_IMPL_HPP
+#ifndef FAUST_IMPL_SERVICE_IMPL_HPP
+#define FAUST_IMPL_SERVICE_IMPL_HPP
 
 #include <map>
 #include <saga/saga.hpp>
@@ -26,15 +26,13 @@ namespace faust
 {
   namespace impl
   {
-    namespace manyjobs 
-    {
       class job; // fwd. decl.
 
-      typedef std::map<std::string,  faust::manyjobs::job> joblist_map;
-      typedef std::pair<std::string, faust::manyjobs::job> joblist_pair;
+      typedef std::map<std::string,  faust::job> joblist_map;
+      typedef std::pair<std::string, faust::job> joblist_pair;
       
-      typedef std::map<std::string,  faust::manyjobs::resource> resources_map;
-      typedef std::pair<std::string, faust::manyjobs::resource> resources_pair;
+      typedef std::map<std::string,  faust::resource> resources_map;
+      typedef std::pair<std::string, faust::resource> resources_pair;
             
       class FAUST_EXPORT service_impl : public saga::object
       {
@@ -47,29 +45,28 @@ namespace faust
         
       public:
         
-        explicit service_impl (std::vector<faust::manyjobs::resource> resources, 
+        explicit service_impl (std::vector<faust::resource> resources, 
                                int num_jobs);
         ~service_impl();
         
-        faust::manyjobs::job create_job(faust::manyjobs::description job_desc);
-        faust::manyjobs::job create_job(faust::manyjobs::description job_desc, 
+        faust::job create_job(faust::description job_desc);
+        faust::job create_job(faust::description job_desc, 
                                         std::string dep_job_id, 
-                                        faust::manyjobs::state job_state);
+                                        faust::state job_state);
         
-        faust::manyjobs::job_group create_job_group(std::vector<faust::manyjobs::description> job_descs);
-        faust::manyjobs::job_group create_job_group(std::vector<faust::manyjobs::description> job_descs, 
+        faust::job_group create_job_group(std::vector<faust::description> job_descs);
+        faust::job_group create_job_group(std::vector<faust::description> job_descs, 
                                                     std::string dep_job_id, 
-                                                    faust::manyjobs::state job_state);
+                                                    faust::state job_state);
         
         std::vector<std::string> list_jobs(void); 
         std::vector<std::string> list_resources(void); 
         
-        faust::manyjobs::job get_job(std::string job_id);
-        faust::manyjobs::resource get_resource(std::string contact);
+        faust::job get_job(std::string job_id);
+        faust::resource get_resource(std::string contact);
 
       };
-    }
   }
 }
 
-#endif /* FAUST_IMPL_MANYJOBS_SERVICE_IMPL_HPP */
+#endif /* FAUST_IMPL_SERVICE_IMPL_HPP */

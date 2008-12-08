@@ -17,18 +17,20 @@
 
 #include <faust/impl/service_impl.hpp>
 
-using namespace faust::impl::manyjobs;
+#include <saga/saga.hpp>
+
+using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 //
-service_impl::service_impl (std::vector<faust::manyjobs::resource> resources, int num_jobs)
+service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs)
 {
   using namespace saga::job;
   
   // Initialize log service for this instance
   std::string identifier(FW_NAME);
-  identifier.append(" manyjobs::service");
+  identifier.append(" faust::service");
   log_ = new detail::logwriter(identifier, std::cout);
   
   std::string msg("Starting new job servie instance." );
@@ -37,7 +39,7 @@ service_impl::service_impl (std::vector<faust::manyjobs::resource> resources, in
   // check if the given hosts, queues, projects are valid!
   unsigned int fails = 0;
   
-  std::vector<faust::manyjobs::resource>::iterator i;
+  std::vector<faust::resource>::iterator i;
   for(i = resources.begin(); i != resources.end(); ++i)
   {
     saga::url contact((*i).contact);
@@ -71,11 +73,11 @@ service_impl::service_impl (std::vector<faust::manyjobs::resource> resources, in
       log_->write(msg, LOGLEVEL_INFO);
       
       saga::job::description jd;
-      jd.set_attribute (attributes::description_executable,  "/bin/date");
-      jd.set_attribute (attributes::description_interactive, saga::attributes::common_false);
-      jd.set_attribute (attributes::description_queue,       (*i).queue);
+      jd.set_attribute (saga::job::attributes::description_executable,  "/bin/date");
+      jd.set_attribute (saga::job::attributes::description_interactive, saga::attributes::common_false);
+      jd.set_attribute (saga::job::attributes::description_queue, (*i).queue);
       std::vector<std::string> project; project.push_back((*i).project);
-      jd.set_vector_attribute (attributes::description_job_project, project);
+      jd.set_vector_attribute (saga::job::attributes::description_job_project, project);
       
       saga::job::job j = sjs.create_job(jd);
       j.run(); 
@@ -132,7 +134,7 @@ std::vector<std::string> service_impl::list_jobs(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-faust::manyjobs::resource service_impl::get_resource(std::string contact)
+faust::resource service_impl::get_resource(std::string contact)
 {
   if(resources_.find(contact) == resources_.end())
   {
@@ -159,10 +161,10 @@ std::vector<std::string> service_impl::list_resources(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-faust::manyjobs::job_group 
-service_impl::create_job_group(std::vector<faust::manyjobs::description> job_descs)
+faust::job_group 
+service_impl::create_job_group(std::vector<faust::description> job_descs)
 {
-  faust::manyjobs::job_group ret;
+  faust::job_group ret;
   
   // joblist_.insert(joblist_pair(g.get_job_id(), g));
   std::string msg("Registering new job_group instance: " + ret.get_job_id());
@@ -173,12 +175,12 @@ service_impl::create_job_group(std::vector<faust::manyjobs::description> job_des
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-faust::manyjobs::job_group 
-service_impl::create_job_group(std::vector<faust::manyjobs::description> job_descs, 
+faust::job_group 
+service_impl::create_job_group(std::vector<faust::description> job_descs, 
                                std::string dep_job_id, 
-                               faust::manyjobs::state job_state)
+                               faust::state job_state)
 {
-  faust::manyjobs::job_group ret;
+  faust::job_group ret;
   
   // joblist_.insert(joblist_pair(g.get_job_id(), g));
   std::string msg("Registering new job_group instance: " + ret.get_job_id());
@@ -190,10 +192,10 @@ service_impl::create_job_group(std::vector<faust::manyjobs::description> job_des
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-faust::manyjobs::job
-service_impl::create_job(faust::manyjobs::description job_descs)
+faust::job
+service_impl::create_job(faust::description job_descs)
 {
-  faust::manyjobs::job ret;
+  faust::job ret;
   
   joblist_.insert(joblist_pair(ret.get_job_id(), ret));
   std::string msg("Registering new job_group instance: " + ret.get_job_id());
@@ -204,12 +206,12 @@ service_impl::create_job(faust::manyjobs::description job_descs)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-faust::manyjobs::job
-service_impl::create_job(faust::manyjobs::description job_descs,
+faust::job
+service_impl::create_job(faust::description job_descs,
                          std::string dep_job_id, 
-                         faust::manyjobs::state job_state)
+                         faust::state job_state)
 {
-  faust::manyjobs::job ret;
+  faust::job ret;
   
   joblist_.insert(joblist_pair(ret.get_job_id(), ret));
   std::string msg("Registering new job_group instance: " + ret.get_job_id());
@@ -220,7 +222,7 @@ service_impl::create_job(faust::manyjobs::description job_descs,
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-faust::manyjobs::job
+faust::job
 service_impl::get_job(std::string job_id)
 {
   

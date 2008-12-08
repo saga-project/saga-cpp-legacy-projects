@@ -9,8 +9,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_IMPL_MANYJOBS_JOB_IMPL_HPP
-#define FAUST_IMPL_MANYJOBS_JOB_IMPL_HPP
+#ifndef FAUST_IMPL_JOB_IMPL_HPP
+#define FAUST_IMPL_JOB_IMPL_HPP
 
 #include <saga/saga.hpp>
 
@@ -23,16 +23,14 @@ namespace faust
 {
   namespace impl 
   {
-    namespace manyjobs
-    {
       class FAUST_EXPORT job_impl : public saga::object
       {
       
       private:
         
         std::string                  jobid_;
-        faust::manyjobs::state       state_;
-        faust::manyjobs::description description_;
+        faust::state       state_;
+        faust::description description_;
         
       public:
         
@@ -43,11 +41,10 @@ namespace faust
         bool suspend();
         bool resume();
         std::string get_job_id();        
-        faust::manyjobs::state get_state();
-        faust::manyjobs::description get_description();        
+        faust::state get_state();
+        faust::description get_description();        
       };
-    }
   }
 }
 
-#endif /* FAUST_IMPL_MANYJOBS_JOB_IMPL_HPP */
+#endif /* FAUST_IMPL_JOB_IMPL_HPP */
