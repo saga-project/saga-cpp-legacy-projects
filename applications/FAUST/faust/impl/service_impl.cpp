@@ -10,12 +10,12 @@
  */
 
 #include <faust/faust/defines.hpp>
-#include <faust/faust/manyjobs/job.hpp>
-#include <faust/faust/manyjobs/job_group.hpp>
-#include <faust/faust/manyjobs/resource.hpp>
-#include <faust/faust/manyjobs/description.hpp>
+#include <faust/faust/job.hpp>
+#include <faust/faust/job_group.hpp>
+#include <faust/faust/resource.hpp>
+#include <faust/faust/description.hpp>
 
-#include <faust/impl/manyjobs/service_impl.hpp>
+#include <faust/impl/service_impl.hpp>
 
 using namespace faust::impl::manyjobs;
 

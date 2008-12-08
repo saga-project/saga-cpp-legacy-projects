@@ -12,7 +12,7 @@
 #include <saga/impl/exception.hpp>
 
 #include <faust/faust/defines.hpp>
-#include <faust/faust/manyjobs/description.hpp>
+#include <faust/faust/description.hpp>
 
 using namespace faust::manyjobs;
 

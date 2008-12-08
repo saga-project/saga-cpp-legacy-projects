@@ -17,8 +17,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include <faust/faust/exports.hpp> 
-#include <faust/faust/manyjobs/state.hpp>
-#include <faust/faust/manyjobs/job.hpp>
+#include <faust/faust/state.hpp>
+#include <faust/faust/job.hpp>
 
 #include <faust/impl/logwriter.hpp>
 

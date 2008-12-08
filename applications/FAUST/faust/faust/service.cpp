@@ -9,8 +9,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <faust/faust/manyjobs/service.hpp>
-#include <faust/impl/manyjobs/service_impl.hpp>
+#include <faust/faust/service.hpp>
+#include <faust/impl/service_impl.hpp>
 
 using namespace faust::manyjobs;
 

@@ -15,9 +15,9 @@
 #include <saga/saga.hpp>
 
 #include <faust/faust/exports.hpp>
-#include <faust/faust/manyjobs/job.hpp>
-#include <faust/faust/manyjobs/state.hpp>
-#include <faust/faust/manyjobs/description.hpp>
+#include <faust/faust/job.hpp>
+#include <faust/faust/state.hpp>
+#include <faust/faust/description.hpp>
 
 namespace faust
 {
