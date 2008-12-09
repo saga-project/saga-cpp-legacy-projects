@@ -45,8 +45,8 @@ class MapReduceImpl : public MapReduceBase<MapReduceImpl> {
  * ******************************************************/
 int main(int argc,char **argv) {
   putenv("SAGA_VERBOSE=100");
-  std::freopen("/work/mmicel2/worker-stderr.txt", "w", stderr);
-  std::freopen("/work/mmicel2/worker-stdout.txt", "w", stdout);
+  std::freopen("/tmp/worker-stderr.txt", "w", stderr);
+  std::freopen("/tmp/worker-stdout.txt", "w", stdout);
   try {
       MapReduceImpl app(argc,argv);
       app.run();

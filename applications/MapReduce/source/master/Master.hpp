@@ -11,6 +11,7 @@
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
 #include "../xmlParser/xmlParser.h"
+#include "../utils/block_profiler.hpp"
 #include "HandleMaps.hpp"
 #include "HandleReduces.hpp"
 #include "parseCommand.hpp"
@@ -21,7 +22,17 @@
  * framework.                      *
  * ********************************/
 namespace MapReduce {
+      /* block Profiler Tags */
    namespace Master {
+      struct bp_tag_quit {};
+      struct bp_tag_reduce {};
+      struct bp_tag_map {};
+      struct bp_tag_spawn {};
+      struct bp_tag_pop_files {};
+      struct bp_tag_pop_bins {};
+      struct bp_tag_session {};
+      struct bp_tag_register {};
+      struct bp_tag_log_write {};
       template <class Derived>
       class Master {
         public:
@@ -109,7 +120,7 @@ namespace MapReduce {
          saga::advert::directory binariesDir_;
          saga::advert::directory chunksDir_;
          std::string outputPrefix_;
-         
+        
          MapReduce::LogWriter * log;
          ConfigFileParser cfgFileParser_;
          
@@ -122,6 +133,7 @@ namespace MapReduce {
           * create anything.                                      *
           * ******************************************************/
          void registerWithDB_(void) {
+            block_profiler<bp_tag_register> profiler = block_profiler<bp_tag_register>("Register with DB");
             int mode = saga::advert::ReadWrite;  
             std::string message("Connecting to Orchestrator Database (");
             message += (database_) + ")... ";
@@ -147,6 +159,7 @@ namespace MapReduce {
           * session (MapReduce instance).                         *
           * ******************************************************/
          void createNewSession_(void) {
+            block_profiler<bp_tag_session> profiler = block_profiler<bp_tag_session>("Create Session");
             int mode = saga::advert::ReadWrite | saga::advert::Create;
             std::string message("Creating a new session (" + uuid_ + ")... ");
             saga::task_container tc;
@@ -184,6 +197,7 @@ namespace MapReduce {
           * the database under the directory ADVERT_DIR_BINARIES  *
           * ******************************************************/
          void populateBinariesList_(void) {
+            block_profiler<bp_tag_pop_bins> profiler = block_profiler<bp_tag_pop_bins>("Populate Binaries");
             std::vector<BinaryDescription> binaryList                   = cfgFileParser_.getExecutableList();
             std::vector<BinaryDescription>::const_iterator binaryListIT = binaryList.begin();
             unsigned int successCounter = 0;
@@ -222,6 +236,7 @@ namespace MapReduce {
           * of the database.                                      *
           ********************************************************/
          void populateFileList_(void) {
+            block_profiler<bp_tag_pop_files> profiler = block_profiler<bp_tag_pop_files>("Populate Files");
             std::vector<FileDescription> fileList                   = cfgFileParser_.getFileList();
             std::vector<FileDescription>::const_iterator fileListIT = fileList.begin();
             unsigned int successCounter = 0;
@@ -271,6 +286,7 @@ namespace MapReduce {
           * the master                                            *
           * ******************************************************/
          void spawnAgents_(void) {
+            block_profiler<bp_tag_spawn> profiler = block_profiler<bp_tag_spawn>("Spawn Agents");
             std::vector<BinaryDescription> binaryList               = cfgFileParser_.getExecutableList();
             std::vector<HostDescription>  hostList                  = cfgFileParser_.getTargetHostList();
             std::vector<HostDescription>::const_iterator hostListIT = hostList.begin();
@@ -328,6 +344,7 @@ namespace MapReduce {
           * begin working                                         *
           * ******************************************************/
          void runMaps_(void) {
+            block_profiler<bp_tag_map> profiler = block_profiler<bp_tag_map>("Mapping");
             HandleMaps mapHandler(fileChunks_, workersDir_, log);
             std::string message("Launching maps...");
    
@@ -341,6 +358,7 @@ namespace MapReduce {
           * master                                                *
           * ******************************************************/
          void runReduces_(void) {
+            block_profiler<bp_tag_reduce> profiler = block_profiler<bp_tag_reduce>("Reducing");
             HandleReduces reduceHandler(NUM_MAPS, workersDir_, log);
             std::string message("Beginning Reduces...");
    
@@ -348,6 +366,7 @@ namespace MapReduce {
             reduceHandler.assignReduces();
          }
          void sendQuit_(void) {
+            block_profiler<bp_tag_quit> profiler = block_profiler<bp_tag_quit>("Quit Command");
             std::vector<saga::url> workers = workersDir_.list("*");
             std::vector<saga::url>::iterator workersIT = workers.begin();
             while(workersIT != workers.end())

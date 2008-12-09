@@ -8,11 +8,14 @@
 #include <boost/scoped_ptr.hpp>
 
 using namespace MapReduce::Master;
+struct bp_tag_chunk {};
+struct bp_tag_overall {};
 
 class MasterImpl : public Master<MasterImpl> {
   public:
    MasterImpl(int argC, char **argV) : Master<MasterImpl>(argC,argV) {}
    void chunker(std::vector<saga::url> &retval, std::string fileArg) {
+      MapReduce::block_profiler<bp_tag_chunk> profiler = MapReduce::block_profiler<bp_tag_chunk>("Chunking time (included in pop_files)");
       int mode = saga::filesystem::Read;
       int x=0;
       saga::size_t const KB64 = 67108864;
@@ -55,6 +58,7 @@ class MasterImpl : public Master<MasterImpl> {
  * Possible args are --config config_file    *
  * ******************************************/
 int main(int argc, char* argv[]) {
+  MapReduce::block_profiler<bp_tag_overall> profiler = MapReduce::block_profiler<bp_tag_overall>("Overall");
   try {
       MasterImpl app(argc, argv);
       app.run();
