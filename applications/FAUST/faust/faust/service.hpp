@@ -14,6 +14,7 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <faust/faust/object.hpp>
 #include <faust/faust/exports.hpp>
 #include <faust/faust/state.hpp>
 #include <faust/faust/job.hpp>
@@ -49,7 +50,7 @@ namespace faust
      *         create and schedule %job instances.
      * 
      */
-    class FAUST_EXPORT service : public saga::object
+    class FAUST_EXPORT service : public faust::object
     {
       
     private:

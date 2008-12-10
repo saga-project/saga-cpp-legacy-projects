@@ -17,7 +17,7 @@ using namespace faust;
 ////////////////////////////////////////////////////////////////////////////////
 //
 service::service (std::vector<resource> resources, int num_jobs)
-: impl(new faust::impl::service_impl(resources, num_jobs))
+: object(object::Service), impl(new faust::impl::service_impl(resources, num_jobs))
 {
 }
 

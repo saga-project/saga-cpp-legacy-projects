@@ -10,6 +10,7 @@
  */
 
 #include <faust/faust/defines.hpp>
+#include <faust/faust/object.hpp>
 #include <faust/faust/job.hpp>
 #include <faust/faust/job_group.hpp>
 #include <faust/faust/resource.hpp>
@@ -18,6 +19,8 @@
 #include <faust/impl/service_impl.hpp>
 
 #include <saga/saga.hpp>
+
+#include <boost/utility/addressof.hpp>
 
 using namespace faust::impl;
 
@@ -227,12 +230,8 @@ service_impl::create_job_group(std::vector<faust::description> job_descs,
 faust::job
 service_impl::create_job(faust::description job_descs)
 {
-  faust::job ret;
-  
-  joblist_.insert(joblist_pair(ret.get_job_id(), ret));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  faust::job ret;  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
@@ -243,12 +242,8 @@ service_impl::create_job(faust::description job_descs,
                          std::string dep_job_id, 
                          faust::dependency dep)
 {
-  faust::job ret;
-  
-  joblist_.insert(joblist_pair(ret.get_job_id(), ret));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  faust::job ret;  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
@@ -259,12 +254,8 @@ service_impl::create_job(faust::description job_descs,
                          faust::job job_obj, 
                          faust::dependency dep)
 {
-  faust::job ret;
-  
-  joblist_.insert(joblist_pair(ret.get_job_id(), ret));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  faust::job ret;  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
@@ -275,22 +266,32 @@ service_impl::create_job(faust::description job_descs,
                          faust::job_group job_group_obj, 
                          faust::dependency dep)
 {
-  faust::job ret;
-  
-  joblist_.insert(joblist_pair(ret.get_job_id(), ret));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  faust::job ret;  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// 
+void service_impl::insert_job_into_job_list(std::string jobid, faust::object obj) 
+{
+  joblist_.insert(joblist_pair(jobid, obj));
+  std::string msg("Registering new " + faust::get_object_type_name(obj) + " instance: " + jobid);
+  log_->write(msg, LOGLEVEL_INFO);  
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job
 service_impl::get_job(std::string job_id)
 {
-  
+  if( joblist_[job_id].get_type() != faust::object::Job )
+    ;// TODO THROW ERROR
+  else
+  {
+    faust::object & obj = joblist_[job_id];
+    return *static_cast<faust::job *> (boost::addressof(obj));
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 // 

@@ -67,6 +67,10 @@ int main (int argc, char* argv[])
   std::cout << j.get_job_id() << std::endl;
 
   //////////////////////////////////
+  // test job.get_job()
+  faust::job t1 = s.get_job(j.get_job_id());
+  
+  //////////////////////////////////
   // test service::list_resources()
   std::vector<std::string> rl = s.list_resources();
   std::vector<std::string>::const_iterator ci1;

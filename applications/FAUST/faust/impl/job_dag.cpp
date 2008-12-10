@@ -7,5 +7,5 @@
  *
  */
 
-#include "job_dag.h"
+#include <faust/impl/job_dag.hpp>
 

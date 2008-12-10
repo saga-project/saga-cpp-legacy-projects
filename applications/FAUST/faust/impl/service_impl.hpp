@@ -16,6 +16,7 @@
 #include <saga/saga.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <faust/faust/object.hpp> 
 #include <faust/faust/exports.hpp> 
 #include <faust/faust/state.hpp>
 #include <faust/faust/dependency.hpp>
@@ -29,8 +30,8 @@ namespace faust
   {
       class job; // fwd. decl.
 
-      typedef std::map<std::string,  faust::job> joblist_map;
-      typedef std::pair<std::string, faust::job> joblist_pair;
+      typedef std::map<std::string,  faust::object> joblist_map;
+      typedef std::pair<std::string, faust::object> joblist_pair;
       
       typedef std::map<std::string,  faust::resource> resources_map;
       typedef std::pair<std::string, faust::resource> resources_pair;
@@ -43,6 +44,8 @@ namespace faust
         
         resources_map              resources_;
         joblist_map                joblist_;
+        
+        void insert_job_into_job_list(std::string jobid, faust::object obj);
         
       public:
         

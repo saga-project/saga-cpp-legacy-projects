@@ -17,7 +17,7 @@ using namespace faust;
 ////////////////////////////////////////////////////////////////////////////////
 //
 job_group::job_group() 
-: impl(new faust::impl::job_group_impl())
+: object(object::JobGroup), impl(new faust::impl::job_group_impl())
 {
 }
 

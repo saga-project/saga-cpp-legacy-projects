@@ -16,6 +16,7 @@
 #include <faust/faust/defines.hpp>
 
 /**** FAUST job interface ****/
+#include <faust/faust/object.hpp>
 #include <faust/faust/job.hpp>
 #include <faust/faust/job_group.hpp>
 #include <faust/faust/description.hpp>
