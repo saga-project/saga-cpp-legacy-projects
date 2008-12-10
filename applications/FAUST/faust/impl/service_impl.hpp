@@ -18,6 +18,7 @@
 
 #include <faust/faust/exports.hpp> 
 #include <faust/faust/state.hpp>
+#include <faust/faust/dependency.hpp>
 #include <faust/faust/job.hpp>
 
 #include <faust/impl/logwriter.hpp>
@@ -51,18 +52,32 @@ namespace faust
         
         faust::job create_job(faust::description job_desc);
         faust::job create_job(faust::description job_desc, 
-                                        std::string dep_job_id, 
-                                        faust::state job_state);
+                              std::string dep_job_id, 
+                              faust::dependency dep);
+        faust::job create_job(faust::description job_desc, 
+                              faust::job job_obj, 
+                              faust::dependency dep);
+        faust::job create_job(faust::description job_desc, 
+                              faust::job_group job_group_obj, 
+                              faust::dependency dep);
+        
         
         faust::job_group create_job_group(std::vector<faust::description> job_descs);
         faust::job_group create_job_group(std::vector<faust::description> job_descs, 
-                                                    std::string dep_job_id, 
-                                                    faust::state job_state);
+                                          std::string dep_job_id, 
+                                          faust::dependency dep);
+        faust::job_group create_job_group(std::vector<faust::description> job_descs, 
+                                          faust::job job_obj, 
+                                          faust::dependency dep);
+        faust::job_group create_job_group(std::vector<faust::description> job_descs, 
+                                          faust::job_group job_group_obj, 
+                                          faust::dependency dep);        
         
         std::vector<std::string> list_jobs(void); 
         std::vector<std::string> list_resources(void); 
         
         faust::job get_job(std::string job_id);
+        faust::job_group get_job_group(std::string job_id);
         faust::resource get_resource(std::string contact);
 
       };

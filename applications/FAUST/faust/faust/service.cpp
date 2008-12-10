@@ -36,9 +36,23 @@ job service::create_job(description job_desc)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-job service::create_job(description job_desc, std::string job_id, state job_state)
+job service::create_job(description job_desc, std::string job_id, dependency dep)
 {
-  return impl->create_job(job_desc, job_id, job_state);
+  return impl->create_job(job_desc, job_id, dep);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+job service::create_job(description job_desc, job job_obj, dependency dep)
+{
+  return impl->create_job(job_desc, job_obj, dep);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+job service::create_job(description job_desc, job_group job_group_obj, dependency dep)
+{
+  return impl->create_job(job_desc, job_group_obj, dep);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,9 +65,25 @@ job_group service::create_job_group(std::vector<description> job_descs)
 ////////////////////////////////////////////////////////////////////////////////
 //
 job_group service::create_job_group(std::vector<description> job_descs, 
-                           std::string dep_job, state job_state)
+                           std::string dep_job, dependency dep)
 {
-  return impl->create_job_group(job_descs, dep_job, job_state);
+  return impl->create_job_group(job_descs, dep_job, dep);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+job_group service::create_job_group(std::vector<description> job_descs, 
+                                    job job_obj, dependency dep)
+{
+  return impl->create_job_group(job_descs, job_obj, dep);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+job_group service::create_job_group(std::vector<description> job_descs, 
+                                    job_group job_group_obj, dependency dep)
+{
+  return impl->create_job_group(job_descs, job_group_obj, dep);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,4 +105,11 @@ std::vector<std::string> service::list_resources()
 faust::job service::get_job(std::string job_id)
 {
   return impl->get_job(job_id);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+faust::job_group service::get_job_group(std::string job_id)
+{
+  return impl->get_job_group(job_id);
 }

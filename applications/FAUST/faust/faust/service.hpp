@@ -19,6 +19,8 @@
 #include <faust/faust/job.hpp>
 #include <faust/faust/job_group.hpp>
 #include <faust/faust/description.hpp>
+#include <faust/faust/dependency.hpp>
+
 
 namespace faust
 {
@@ -94,27 +96,44 @@ namespace faust
        */
       ~service();
       
-      /*! \brief  Creates a new 'top-level-job' instance without dependencies 
+      /*! \brief  Creates a new %job instance without dependencies 
        *          to other jobs. 
        *
        *          Detailed %description goes here...
        *
-       *  \return A new job object pointer. 
+       *  \return A new %job object. 
        * 
        */
       job create_job(description job_desc);
 
-      /*! \brief  Creates a new 'sub-job' instance which execution state depends
-       *          on the state of the %job identified by job_id. 
+      /*! \brief  Creates a new %job instance which depends on the execution
+       *          state of the %job identified by job_id. The %job_id can
+       *          point to a %job or a %job_group.
        *
-       *  \return A new job object pointer. 
+       *  \return A new %job object. 
        * 
        */
-      job create_job(description job_desc, std::string job_id, state job_state);
+      job create_job(description job_desc, std::string job_id, dependency dep);
 
+      /*! \brief  Creates a new %job instance which depends on the execution
+       *          state of the provided %job object.
+       *
+       *  \return A new %job object. 
+       * 
+       */
+      job create_job(description job_desc, job job_obj, dependency dep);
       
-      /*! \brief  Creates a new %job_group instance. All jobs in the %job_group
-       *          are initially in <b>PENDING</b> state.
+      /*! \brief  Creates a new %job instance which depends on the execution
+       *          state of the provided %job_group object.
+       *
+       *  \return A new job object. 
+       * 
+       */
+      job create_job(description job_desc, job_group job_group_obj, dependency dep);
+      
+      
+      /*! \brief  Creates a new %job_group instance without %dependecies to
+       *          other jobs.
        *
        *          Detailed %description goes here...
        *          
@@ -138,8 +157,7 @@ namespace faust
       job_group create_job_group(std::vector<description> job_descs);
       
       /*! \brief  Creates a new %job_group instance that depends on the state
-       *          of another %job instance. All jobs in the %job_group
-       *          are initially in <b>PENDING</b> state.
+       *          of another %job instance. 
        *
        *          Detailed %description goes here...
        *
@@ -153,19 +171,31 @@ namespace faust
        *          faust::service s(resources);<br> <br>
        *          //Creates a job_group that can't be scheduled before <br>
        *          //j1 has reached DONE state.<br>
-       *          faust::job_group jg = s.create_job_group(desc, j1, Done);<br>
+       *          faust::job_group jg = s.create_job_group(desc, j1, Data);<br>
        *          </code>
        *
        *  \param  job_descs A list of %job %description objects describing the 
        *          %job properties.
        *  \param  dep_job The job object that provides the state on which the 
        *          scheduling of this %job_group depends on.
-       *  \param  job_state The state 
+       *  \param  dep The type of dependency 
        *  \return A new job_group object containing one ore more jobs. 
        * 
        */
       job_group create_job_group(std::vector<description> job_descs, 
-                                 std::string dep_job, state job_state);
+                                 std::string dep_job, dependency dep);
+
+      /*! \brief  Creates a new %job_group instance which depends on the 
+       *          execution state of the provided %job object.
+       */
+      job_group create_job_group(std::vector<description> job_descs, 
+                                 job job_obj, dependency dep);
+      
+      /*! \brief  Creates a new %job_group instance which depends on the 
+       *          execution state of the provided %job_group object.
+       */
+      job_group create_job_group(std::vector<description> job_descs, 
+                                 job_group job_group_obj, dependency dep);
       
       /*! \brief  Lists the IDs of all jobs that are currently 
        *          associated with this %service instance.
@@ -201,11 +231,18 @@ namespace faust
       
       /*! \brief  Returns a %job object for a given %job ID.
        *         
-       *  \return The job object.
+       *  \return The %job object.
        *
        */
       faust::job get_job(std::string job_id);
 
+      /*! \brief  Returns a %job_group object for a given %job ID.
+       *         
+       *  \return The %job_group object.
+       *
+       */
+      faust::job_group get_job_group(std::string job_id);
+      
       /*! \brief  Returns a %resource %description for a given contact string.
        *         
        *  \return The job object.

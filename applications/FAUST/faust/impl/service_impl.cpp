@@ -178,7 +178,39 @@ service_impl::create_job_group(std::vector<faust::description> job_descs)
 faust::job_group 
 service_impl::create_job_group(std::vector<faust::description> job_descs, 
                                std::string dep_job_id, 
-                               faust::state job_state)
+                               dependency dep)
+{
+  faust::job_group ret;
+  
+  // joblist_.insert(joblist_pair(g.get_job_id(), g));
+  std::string msg("Registering new job_group instance: " + ret.get_job_id());
+  log_->write(msg, LOGLEVEL_INFO);
+  
+  return ret;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+faust::job_group 
+service_impl::create_job_group(std::vector<faust::description> job_descs, 
+                               faust::job job_obj, 
+                               dependency dep)
+{
+  faust::job_group ret;
+  
+  // joblist_.insert(joblist_pair(g.get_job_id(), g));
+  std::string msg("Registering new job_group instance: " + ret.get_job_id());
+  log_->write(msg, LOGLEVEL_INFO);
+  
+  return ret;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+faust::job_group 
+service_impl::create_job_group(std::vector<faust::description> job_descs, 
+                               faust::job_group job_group_obj, 
+                               dependency dep)
 {
   faust::job_group ret;
   
@@ -209,7 +241,7 @@ service_impl::create_job(faust::description job_descs)
 faust::job
 service_impl::create_job(faust::description job_descs,
                          std::string dep_job_id, 
-                         faust::state job_state)
+                         faust::dependency dep)
 {
   faust::job ret;
   
@@ -223,7 +255,47 @@ service_impl::create_job(faust::description job_descs,
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job
+service_impl::create_job(faust::description job_descs,
+                         faust::job job_obj, 
+                         faust::dependency dep)
+{
+  faust::job ret;
+  
+  joblist_.insert(joblist_pair(ret.get_job_id(), ret));
+  std::string msg("Registering new job_group instance: " + ret.get_job_id());
+  log_->write(msg, LOGLEVEL_INFO);
+  
+  return ret;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+faust::job
+service_impl::create_job(faust::description job_descs,
+                         faust::job_group job_group_obj, 
+                         faust::dependency dep)
+{
+  faust::job ret;
+  
+  joblist_.insert(joblist_pair(ret.get_job_id(), ret));
+  std::string msg("Registering new job_group instance: " + ret.get_job_id());
+  log_->write(msg, LOGLEVEL_INFO);
+  
+  return ret;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+faust::job
 service_impl::get_job(std::string job_id)
+{
+  
+}
+////////////////////////////////////////////////////////////////////////////////
+// 
+faust::job_group
+service_impl::get_job_group(std::string job_id)
 {
   
 }
