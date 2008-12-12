@@ -44,7 +44,8 @@ class advert_glidin_job():
                  queue,
                  project,
                  working_directory,
-                 userproxy):
+                 userproxy,
+                 walltime):
         """ start advert_launcher on specified host """
         if userproxy != None and userproxy != '':
             os.environ["X509_USER_PROXY"]=userproxy
@@ -80,6 +81,8 @@ class advert_glidin_job():
             jd.executable = replica_agent_executable
         jd.queue = queue
         jd.job_project = [project]
+        if walltime!=None:
+            jd.wall_time_limit=str(walltime)
 
         jd.working_directory = "$(HOME)"
         jd.output = "advert-launcher-" + str(self.uuid) + "-stdout.txt"

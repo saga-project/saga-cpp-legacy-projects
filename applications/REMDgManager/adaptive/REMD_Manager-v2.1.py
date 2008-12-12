@@ -470,7 +470,7 @@ def start_glidin_jobs(RE_info):
                                                nodes_per_glidein,
                                                queue,
                                                project,
-                                               workingdirectory, userproxy)
+                                               workingdirectory, userproxy, None)
                 if RE_info.advert_glidin_jobs.has_key(i) == False:
                     RE_info.advert_glidin_jobs[i] = []
                 RE_info.advert_glidin_jobs[i].append(advert_glidin_job);

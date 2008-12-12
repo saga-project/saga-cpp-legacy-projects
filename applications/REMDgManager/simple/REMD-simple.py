@@ -35,6 +35,7 @@ import pdb
 import ConfigParser
 
 class ReManager():
+
     """ 
     This class holds information about the application and replicas remotely running via SAGA-CPR/MIGOL
     """    
@@ -368,6 +369,7 @@ class ReManager():
     def __del__(self):
         for i in self.replica_jobs:
             i.cancel()
+
     
 #########################################################
 #  main

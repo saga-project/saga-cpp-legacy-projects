@@ -352,7 +352,9 @@ class ReManager():
                                                    nodes_per_glidein,
                                                    queue,
                                                    project,
-                                                   workingdirectory, userproxy)
+                                                   workingdirectory, 
+                                                   userproxy,
+                                                   None)
                     if i.has_key("glide_in_jobs") == False:
                         i["glide_in_jobs"] = []
                     i["glide_in_jobs"] .append(advert_glidin_job);

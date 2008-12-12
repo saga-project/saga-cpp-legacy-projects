@@ -30,7 +30,8 @@ if __name__ == "__main__":
                                         queue,
                                         project,
                                         workingdirectory, 
-                                        userproxy)
+                                        userproxy, 
+                                        None)
     print "BigJob URL: " + advert_glidin_job.glidin_url
 
     # submit sub-job through big-job
