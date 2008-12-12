@@ -1,16 +1,22 @@
 # Package: saga
 # Module: attributes 
-# Description: The module which specifies the classes concerning the setting and getting of attributes in saga
-# Specification and documentation can be found in section 3.8, page 101-113 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Description: The module which specifies the classes concerning the setting 
+#    and getting of attributes in saga
+# Specification and documentation can be found in section 3.8, page 101-113 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from error import NotImplemented
 
 class Attributes(object):
     """
-    There are various places in the SAGA API where attributes need to be associated with objects, 
-    for instance for job descriptions and metrics. The Attributes
-    class provides a common interface for storing and retrieving attributes.
+    There are various places in the SAGA API where attributes need to be 
+    associated with objects, for instance for job descriptions and metrics. The 
+    Attributes class provides a common interface for storing and retrieving 
+    attributes.
+    
+    @undocumented: __get_attributes
     """
     
     def set_attribute(self, key, value):
@@ -31,7 +37,8 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: an empty string means to set an empty value (the attribute is not removed).
+        @note: an empty string means to set an empty value (the attribute is not 
+            removed).
         @note: the attribute is created, if it does not exist
         @note: a 'PermissionDenied' exception is raised if the
              attribute to be changed is ReadOnly.
@@ -80,25 +87,29 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: queries of attributes may imply queries of endpoint entity properties. As such,
-              authorization and/or authentication may fail for querying such attributes, for some
-              backends. In that case, the respective 'AuthenticationFailed', 'AuthorizationFailed',
-              and 'PermissionDenied' exceptions are raised. For example, an implementation may forbid to
-              read the saga.stream.Stream 'Bufsize' attribute.
-        @note: reading an attribute value for an attribute which is not in the current set of attributes
-              causes a 'DoesNotExist' exception.
-        @note: if the operation is attempted on a vector attribute, an 'IncorrectState' exception is raised.
-        @note: getting attribute values may time out, or may fail for other reasons - which causes a
-              'Timeout' or 'NoSuccess' exception, respectively.
+        @note: queries of attributes may imply queries of endpoint entity 
+            properties. As such, authorization and/or authentication may fail 
+            for querying such attributes, for some backends. In that case, the 
+            respective 'AuthenticationFailed', 'AuthorizationFailed', and 
+            'PermissionDenied' exceptions are raised. For example, an 
+            implementation may forbid to read the saga.stream.Stream 'Bufsize' 
+            attribute.
+        @note: reading an attribute value for an attribute which is not in the 
+            current set of attributes causes a 'DoesNotExist' exception.
+        @note: if the operation is attempted on a vector attribute, an 
+            'IncorrectState' exception is raised.
+        @note: getting attribute values may time out, or may fail for other 
+            reasons - which causes a 'Timeout' or 'NoSuccess' exception, 
+            respectively.
 
         """
             
     def set_vector_attribute(self, key, values):
         """
-        Set an attribute to an list of values.
-        @summary: Set an attribute to an array of values.
-        @param key:                  attribute key
-        @param values:               array of attribute values
+        Set an attribute to a list of values.
+        @summary: Set an attribute to a list of string values.
+        @param key: attribute key
+        @param values:  list of attribute values
         @type key: string
         @type values: list
         @permission: Write
@@ -112,19 +123,20 @@ class Attributes(object):
         @raise Timeout:
         @raise NoSuccess:
         @note: the notes to the set_attribute() method apply.
-        @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
+        @note: if the operation is attempted on a scalar attribute, an 
+            'IncorrectState' exception is raised.
 
         """
     
     def get_vector_attribute(self, key):
         #return a list of values
         """
-        Get the tuple of values associated with an attribute.
-        @summary: Get the tuple of values associated with an attribute.
+        Get the list of values associated with an attribute.
+        @summary: Get the list of values associated with an attribute.
         @param key: attribute key
         @type key: string
-        @return: tuple of values of the attribute.
-        @rtype: tuple
+        @return: list of values of the attribute.
+        @rtype: list
         @permission: Query
         @raise NotImplemented:
         @raise DoesNotExist:
@@ -135,7 +147,8 @@ class Attributes(object):
         @raise Timeout:
         @raise NoSuccess:
         @note: the notes to the get_attribute() method apply.
-        @note: if the operation is attempted on a scalar attribute, an 'IncorrectState' exception is raised.
+        @note: if the operation is attempted on a scalar attribute, an 
+            'IncorrectState' exception is raised.
 
         """
     
@@ -143,10 +156,10 @@ class Attributes(object):
         """
         Removes an attribute.
         @summary: Removes an attribute.
-        @param    key:                  attribute to be removed
+        @param key: attribute to be removed
         @type key: string
-        @postcondition: - the attribute is not available anymore.
-        @permission:    Write
+        @postcondition: the attribute is not available anymore.
+        @permission: Write
         @raise NotImplemented:
         @raise DoesNotExist:
         @raise PermissionDenied:
@@ -156,9 +169,12 @@ class Attributes(object):
         @raise NoSuccess:
         @note: a vector attribute can also be removed with this method
         @note: only some SAGA objects allow to remove attributes.
-        @note: a ReadOnly attribute cannot be removed - any attempt to do so raises a 'PermissionDenied' exception.
-        @note: if a non-existing attribute is removed, a 'DoesNotExist' exception is raised.
-        @note: exceptions have the same semantics as defined for the set_attribute() method description.
+        @note: a ReadOnly attribute cannot be removed - any attempt to do so 
+            raises a 'PermissionDenied' exception.
+        @note: if a non-existing attribute is removed, a 'DoesNotExist' 
+            exception is raised.
+        @note: exceptions have the same semantics as defined for the 
+            set_attribute() method description.
         """
 
      
@@ -168,7 +184,7 @@ class Attributes(object):
         Get the list of attribute keys.
         @summary: Get the list of attribute keys.
         @return: existing attribute keys
-        @rtype: tuple
+        @rtype: list
         @permission: Query
         @raise NotImplemented:
         @raise PermissionDenied:
@@ -178,7 +194,8 @@ class Attributes(object):
         @raise NoSuccess:
         @note: exceptions have the same semantics as defined
             for the get_attribute() method description.
-        @note: if no attributes are defined for the object, an empty tuple is returned.
+        @note: if no attributes are defined for the object, an empty list is 
+            returned.
 
         """
     
@@ -190,7 +207,7 @@ class Attributes(object):
         @param pattern: list of string search patterns
         @type pattern: list
         @return: matching attribute keys
-        @rtype: tuple
+        @rtype: list
         @permission: Query
         @raise NotImplemented:
         @raise BadParameter:
@@ -199,8 +216,10 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: the pattern must be formatted as described earlier, otherwise a 'BadParameter' exception is raised.
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: the pattern must be formatted as described earlier, otherwise a 
+            'BadParameter' exception is raised.
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
     
@@ -219,9 +238,11 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists.
-        @note:exceptions have the same semantics as defined for the get_attribute() method description,
-            apart from the fact that a 'DoesNotExist' exception is never raised.
+        @note: This method returns True if the attribute identified by the key 
+            exists.
+        @note:exceptions have the same semantics as defined for the 
+            get_attribute() method description, apart from the fact that a 
+            'DoesNotExist' exception is never raised.
 
         """
      
@@ -241,10 +262,12 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists, and can be read
-              by get_attribute() or get_vector attribute(), but cannot be changed by set_attribute() and
-              set_vector_attribute().
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by the key 
+            exists, and can be read by get_attribute() or get_vector 
+            attribute(), but cannot be changed by set_attribute() and
+            set_vector_attribute().
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
          
@@ -264,9 +287,11 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists, and can be
-            changed by set_attribute() or set_vector_attribute().
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by the key 
+            exists, and can be changed by set_attribute() or 
+            set_vector_attribute().
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
     
@@ -286,9 +311,10 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by the key exists, and can be
-                 removed by remove_attribute().
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by the key 
+            exists, and can be removed by remove_attribute().
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
      
@@ -308,7 +334,15 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: This method returns True if the attribute identified by key is a vector attribute.
-        @note: exceptions have the same semantics as defined for the get_attribute() method description.
+        @note: This method returns True if the attribute identified by key is a 
+            vector attribute.
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
+        
+    def __get_attributes(self):
+        return {}
+        
+    attributes = property(__get_attributes,
+          doc="""The attributes in dictionary form.\n@type: dict""")

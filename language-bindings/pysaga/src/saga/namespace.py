@@ -79,7 +79,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
     and methods to manipulate the entry's access control lists.
     """
 
-    def __init__(self, name, session= Session(), flags=Flags.NONE):
+    def __init__(self, name, session= Session(), flags=Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Initialize the the object
         @summary: initialize the the object
@@ -89,6 +89,10 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @type session: L{Session}
         @type name: L{URL}
         @type flags: int
+        @param tasktype: return a normal NSEntry or a Task object that creates a
+            NSEntry in a final, RUNNING or NEW state. By default, type 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the entry is opened.
         @postcondition: 'Owner' of target is the id of the context use to 
             perform the opereration, if the entry gets created.
@@ -122,11 +126,14 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
             a close() on the instance, and all notes to close() apply.
         """
 
-    def get_url(self):
+    def get_url(self, tasktype=TaskType.NORMAL):
         #out URL url );
         """
         Obtain the complete url pointing to the entry
         @summary: obtain the complete url pointing to the entry
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @rtype: L{URL} 
         @return: url pointing to the entry
         @raise NotImplemented:
@@ -136,11 +143,14 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented,"get_url() method is not implemented in this object"
 
-    def get_cwd(self):
+    def get_cwd(self, tasktype=TaskType.NORMAL):
         #out URL cwd
         """
         Obtain the current working directory for the entry
         @summary: obtain the current working directory for the entry
+        @type tasktype: int 
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: L{URL}
         @return: current working directory
         @raise NotImplemented:
@@ -152,11 +162,14 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented,"get_cwd() method is not implemented in this object"
 
-    def get_name(self): 
+    def get_name(self, tasktype=TaskType.NORMAL): 
         #out URL name
         """
         Obtain the name part of the url path element
         @summary: obtain the name part of the url path element
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: L{URL}
         @return: last part of path element
         @raise NotImplemented:
@@ -166,11 +179,14 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
          """
         raise NotImplemented,"get_name() method is not implemented in this object"
 
-    def is_dir_self(self):
+    def is_dir_self(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being a directory
         @summary: tests the entry for being a directory
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: bool
         @return: indicatator if entry is a directory
         @permission: Query
@@ -187,11 +203,14 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented,"is_dir_self() method is not implemented in this object"
 
-    def is_entry_self(self):
+    def is_entry_self(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being an NSEntry
         @summary: tests the entry for being an NSEntry
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: bool
         @return: indicator if entry is an NSEntry
         @permission: Query
@@ -211,11 +230,14 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented,"is_entry_self() method is not implemented in this object"
 
-    def is_link_self(self):
+    def is_link_self(self, tasktype=TaskType.NORMAL):
         #out boolean test
         """
         Tests the entry for being a link
         @summary: tests the entry for being a link
+        @type tasktype: int 
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: bool
         @return: indicator if entry is a link
         @permission: Query
@@ -233,11 +255,14 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented,"is_link_self() method is not implemented in this object"
 
-    def read_link_self(self):
+    def read_link_self(self, tasktype=TaskType.NORMAL):
         #out URL link
         """
         Get the name of the link target
         @summary: get the name of the link target
+        @type tasktype: int 
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: L{URL}
         @return: the resolved name
         @permission: Query
@@ -257,7 +282,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented,"read_link_self() method is not implemented in this object"
     
-    def copy_self(self, target, flags = Flags.NONE):
+    def copy_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Copy the entry to another part of the name space
         @summary: copy the entry to another part of the name space
@@ -265,6 +290,9 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @param flags: flags defining the operation modus
         @type target: L{URL}
         @type flags: int 
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: an identical copy exists at target.
         @postcondition: 'Owner' of target is the id of the context use to 
             perform the opereration, if target gets created.
@@ -312,7 +340,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "copy_self() method is not implemented in this object" 
     
-    def link_self(self, target, flags = Flags.NONE):
+    def link_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Create a symbolic link from the target entry to the source entry 
         (this entry) so that any reference to the target refers to the source 
@@ -322,6 +350,9 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @param flags: flags defining the operation modus
         @type target: L{URL}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: - a symbolic link to the entry exists at target.
         @postcondition: 'Owner' of target is the id of the context use to 
             perform the opereration if target gets created.
@@ -372,7 +403,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "link_self() method is not implemented in this object"
 
-    def move_self(self, target, flags = Flags.NONE):
+    def move_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Rename source to target, or move source to target if target is a 
         directory.
@@ -381,6 +412,9 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @param flags: flags defining the operation modus
         @type target: L{URL}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: an identical copy exists at target.
         @postcondition: the original entry is removed.
         @postcondition: 'Owner' of target is the id of the context use to 
@@ -426,12 +460,15 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """
         raise NotImplemented, "move_self() method is not implemented in this object"
 
-    def remove_self(self, flags = Flags.NONE):
+    def remove_self(self, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Removes this entry, and closes it
         @summary: removes this entry, and closes it
         @param flags: the operation modus
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: the original entry is closed and removed.
         @permission: Query
         @permission: Write
@@ -461,13 +498,15 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """   
         raise NotImplemented, "remove_self() method is not implemented in this object"
 
-    def close(self, timeout = 0.0):
+    def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
         Closes the NSEntry
-        @summary: closes the NSEntry
-        Format:   close              (in float timeout = 0.0);
+        @summary: Closes the NSEntry
         @param timeout: seconds to wait
         @type timeout: float 
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}        
         @postcondition: the entry instance is closed.
         @raise NotImplemented:
         @raise IncorrectState:
@@ -483,7 +522,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "close() method is not implemented in this object"
 
-    def permissions_allow_self(self, id, perm, flags = Flags.NONE):
+    def permissions_allow_self(self, id, perm, flags=Flags.NONE, tasktype=TaskType.NORMAL):
         #in string id, in permission perm, in int flags = None
         """
         Enable a permission
@@ -494,6 +533,9 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @type id : string
         @type perm: value from L{Permission}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: the permissions are enabled.
         @permission:  Owner
         @raise NotImplemented:
@@ -514,7 +556,7 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """        
         raise NotImplemented, "permissions_allow() method is not implemented in this object"
 
-    def permissions_deny_self(self, id, perm, flags = Flags.NONE):
+    def permissions_deny_self(self, id, perm, flags=Flags.NONE, tasktype=TaskType.NORMAL):
         #in string id, in permission perm, in int flags = None
         """
         Disable a permission flag
@@ -525,6 +567,9 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @type id : string
         @type perm: value from L{Permission}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: the permissions are disabled.
         @permission: Owner
         @raise NotImplemented:
@@ -557,7 +602,7 @@ class NSDirectory(NSEntry):
     and open_dir()).
     """
     
-    def __init__(self, name, session = Session(), flags = Flags.NONE):
+    def __init__(self, name, session=Session(), flags=Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Initialize the object
         @summary: initialize the object
@@ -567,6 +612,10 @@ class NSDirectory(NSEntry):
         @type name : L{URL}
         @type session: L{Session}
         @type flags: int
+        @param tasktype: return a normal NSDirectory or a Task object that 
+            creates a NSDirectory in a final, RUNNING or NEW state. By default, 
+            type is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the directory is opened.
         @postcondition: 'Owner' of target is the id of the context use to 
             perform the opereration, if the directory gets created.
@@ -592,12 +641,15 @@ class NSDirectory(NSEntry):
         super(NSDirectory,self).__init__()
     
     #navigation/query methods    
-    def change_dir(self, url):
+    def change_dir(self, url, tasktype=TaskType.NORMAL):
         """
         Change the working directory
         @summary: change the working directory
         @param url : directory to change to
         @type url: L{URL}
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: dir is the directory the instance represents.
         @permission: Exec for dir.
         @raise NotImplemented:
@@ -619,7 +671,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "change_dir() method is not implemented in this object"
  
     #navigation/query methods
-    def list(self, name_pattern = ".", flags = Flags.NONE):
+    def list(self, name_pattern = ".", flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in string name_pattern = ".", in int flags = None, out array<saga::url> names
         """
         List entries in this directory
@@ -628,8 +680,11 @@ class NSDirectory(NSEntry):
         @param name_pattern: name or pattern to list
         @type flags: int
         @type name_pattern: string
-        @rtype: tuple
-        @return: tuple of names matching the name_pattern
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @rtype: list
+        @return: list of names matching the name_pattern
         @permission:  Query for entries specified by name_pattern.
         @permission: Exec for parent directories of these entries.
         @permission: Query for parent directories of these entries.
@@ -669,7 +724,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "list() method is not implemented in this object"
  
     #navigation/query methods
-    def find(self, name_pattern, flags = Flags.RECURSIVE):
+    def find(self, name_pattern, flags = Flags.RECURSIVE, tasktype=TaskType.NORMAL):
         #in string name_pattern, in  int flags = Recursive, out array<saga::url> names
         """
         Find entries in the current directory and below
@@ -678,8 +733,11 @@ class NSDirectory(NSEntry):
         @param flags: flags defining the operation modus
         @type name_pattern: string
         @type flags: int
-        @rtype: tuple 
-        @return: tuple of names matching the name_pattern
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @rtype: list 
+        @return: list of names matching the name_pattern
         @permission: Read for cwd.
         @permission: Query for entries specified by name_pattern.
         @permission: Exec for parent directories of these entries.
@@ -713,13 +771,16 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "find() method is not implemented in this object"
     
     #navigation/query methods
-    def exists (self,name):
+    def exists (self,name, tasktype=TaskType.NORMAL):
         #in  URL name, out boolean exists
         """
         Checks if entry exists
         @summary: checks if entry exists
         @param name: name to be tested for existence
         @type name : L{URL}
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: bool
         @return: bool indicating existence of name
         @permission: Query for name.
@@ -744,13 +805,16 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "exist() method is not implemented in this object"
   
     #navigation/query methods
-    def is_dir(self, name):
+    def is_dir(self, name, tasktype=TaskType.NORMAL):
         #in URL name, out boolean test 
         """
         Tests url for being a directory
         @summary: tests name for being a directory
         @param name: URL to be tested
         @type name: L{URL}
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: bool
         @return: bool indicating if name is a directory
         @permission:    Query for name.
@@ -779,13 +843,16 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "is_dir() method is not implemented in this object"
  
     #navigation/query methods
-    def is_entry (self, name):
+    def is_entry (self, name, tasktype=TaskType.NORMAL):
         #in URL name, out boolean test 
         """
         Tests name for being an NSEntry
         @summary: tests name for being an NSEntry
         @param name: name to be tested
         @type name: L{URL}
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: bool
         @return: bool indicating if name is a non-directory entry
         @permission: Query for name.
@@ -812,13 +879,16 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "is_entry() method is not implemented in this object"
  
     #navigation/query methods
-    def is_link(self, name):
+    def is_link(self, name, tasktype=TaskType.NORMAL):
         #in saga::url name, out boolean test
         """
         Tests name for being a symbolic link
         @summary: tests name for being a symbolic link
         @param name: name to be tested
         @type name: L{URL}
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: bool
         @return: bool indicating if name is a link
         @permission:    Query for name.
@@ -844,13 +914,16 @@ class NSDirectory(NSEntry):
         """
         raise NotImplemented, "is_link() method is not implemented in this object"
  
-    def read_link(self, name):
+    def read_link(self, name, tasktype=TaskType.NORMAL):
         #in URL name, out URL link
         """
         Returns the name of the link target
         @summary: returns the name of the link target
         @param name: name to be resolved
         @type name: L{URL}
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: L{URL}
         @return: resolved name
         @permission:    Query for name.
@@ -875,11 +948,14 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "read_link() method is not implemented in this object"
  
     # manage entries by number
-    def get_num_entries (self):
+    def get_num_entries (self, tasktype=TaskType.NORMAL):
         #out int num
         """
         Gives the number of entries in the directory
         @summary:gives the number of entries in the directory
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: int
         @return: number of entries in the directory
         @permission: Query for cwd.
@@ -900,7 +976,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "get_num_entries() method is not implemented in this object"
     
     # manage entries by number
-    def get_entry(self, entry):
+    def get_entry(self, entry, tasktype=TaskType.NORMAL):
         #in int entry, out URL name 
         """
         Gives the name of an entry in the directory based upon the enumeration 
@@ -908,6 +984,9 @@ class NSDirectory(NSEntry):
         @summary:gives the name of an entry in the directory
         @param entry: index of entry to get
         @type entry: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: L{URL}
         @return: name of entry at index
         @permission:    Query for cwd.
@@ -934,7 +1013,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "get_entry() method is not implemented in this object"
  
     # management methods + management methods - wildcard versions
-    def copy(self, source, target, flags = Flags.NONE):
+    def copy(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL source,   in URL target, in int flags = None
         #in string source,in URL target, in int flags = None
         """
@@ -946,6 +1025,9 @@ class NSDirectory(NSEntry):
         @type source: L{URL} or string
         @type target: L{URL}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: an identical copy of source exists at target.
         @postcondition:  'Owner' of target is the id of the context used to 
             perform the opereration if target gets created.
@@ -987,7 +1069,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "copy() method is not implemented in this object"
  
     # management methods + management methods - wildcard versions
-    def link(self, source, target, flags = Flags.NONE):
+    def link(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL source,    in URL target, in int flags = None
         #in string source, in URL target, in int flags = None
         """
@@ -1000,6 +1082,9 @@ class NSDirectory(NSEntry):
         @type source:  L{URL} or string
         @type target: L{URL}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: - a symbolic link to source exists at target.
         @postcondition:  'Owner' of target is the id of the context used to 
             perform the opereration if target gets created.
@@ -1048,7 +1133,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "link() method is not implemented in this object"
   
    # management methods + management methods - wildcard versions
-    def move (self, source, target, flags = Flags.NONE):
+    def move (self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
        #in URL source,    in URL target, in int flags = None
        #in string source, in URL target, in int flags = None
         """
@@ -1061,6 +1146,9 @@ class NSDirectory(NSEntry):
         @type source: L{URL} or string
         @type target: L{URL}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: an identical copy of source exists at target.
         @postcondition: source is removed.
         @postcondition: 'Owner' of target is the id of the context used to 
@@ -1114,7 +1202,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "move() method is not implemented in this object"
   
    # management methods + management methods - wildcard versions
-    def remove(self, target, flags =  Flags.NONE):
+    def remove(self, target, flags =  Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL    target, in int flags = None
         #in string target, in int flags = None
         """
@@ -1124,6 +1212,9 @@ class NSDirectory(NSEntry):
         @param flags: defining the operation modus
         @type target: L{URL} or string
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: target is removed.
         @postcondition: target is closed if it refers to the cwd.
         @permission: Query for target.
@@ -1166,7 +1257,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "remove() method is not implemented in this object"
   
    # management methods
-    def make_dir(self, target, flags = Flags.NONE):
+    def make_dir(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Creates a new directory
         @summary: creates a new directory
@@ -1174,6 +1265,9 @@ class NSDirectory(NSEntry):
         @param flags: flags defining the operation modus
         @type target: L{URL}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: 'Owner' of target is the id of the context used to 
             perform the opereration if target gets created.
         @permission:    Exec for target's parent directory.
@@ -1208,7 +1302,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "make_dir() method is not implemented in this object"
   
     #factory methods
-    def open(self, name, flags = Flags.NONE ):
+    def open(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in  saga::url name, in  int flags = None, out ns_entry entry
         """
         Creates a new NSEntry instance
@@ -1217,6 +1311,9 @@ class NSDirectory(NSEntry):
         @param flags: flags defining the operation modus
         @type name: L{URL}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: L{NSEntry}
         @return: opened entry instance
         @postcondition: the session of the returned instance is that of the 
@@ -1271,7 +1368,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "open() method is not implemented in this object"
  
     #factory methods
-    def open_dir(self, name, flags = Flags.NONE):
+    def open_dir(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in  saga::url name, in  int flags = None, out ns_directory dir
         """
         Creates a new NSDirectory instance
@@ -1280,6 +1377,9 @@ class NSDirectory(NSEntry):
         @param flags: flags defining the operation modus
         @type name: L{URL}
         @type flags: int 
+        @type tasktype: int 
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @rtype: L{NSDirectory}
         @return: opened directory instance
         @postcondition: - the session of the returned instance is that of the 
@@ -1326,7 +1426,7 @@ class NSDirectory(NSEntry):
         raise NotImplemented, "open_dir() method is not implemented in this object"
  
     #permissions with flags + permissions with flags - wildcard version
-    def permissions_allow(self, target, id, perm, flags = Flags.NONE):
+    def permissions_allow(self, target, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL target,    in string id, in int perm, in int flags = None
         #in string target, in string id, in int perm, in int flags = None
         """
@@ -1340,6 +1440,9 @@ class NSDirectory(NSEntry):
         @type id : string
         @type perm: value from L{Permission}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: the permissions are enabled.
         @permission: Owner of target
         @raise NotImplemented:
@@ -1369,7 +1472,7 @@ class NSDirectory(NSEntry):
             +"this object"
  
     #permissions with flags + permissions with flags - wildcard version
-    def permissions_deny(self, target, id, perm, flags = Flags.NONE):
+    def permissions_deny(self, target, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL target,    in string id, in int perm, in int flags = None
         #in string target, in string id, in int perm, in int flags = None
         """
@@ -1383,6 +1486,9 @@ class NSDirectory(NSEntry):
         @type id : string
         @type perm: value from L{Permission}
         @type flags: int
+        @type tasktype: int
+        @param tasktype: return the normal return value or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @postcondition: - the permissions are disabled.
         @permission:    Owner of target
         @raise NotImplemented:

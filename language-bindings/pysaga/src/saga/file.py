@@ -19,7 +19,8 @@ from session import Session
 
 class Flags(object):
     """
-    The flags describe the properties of several operations on file and directory instances.
+    The flags describe the properties of several operations on file and 
+    directory instances.
     """
     NONE          = 0 
     OVERWRITE     = 1
@@ -44,11 +45,11 @@ class SeekMode(object):
 class Iovec(Buffer, Object):
     """
     The iovec class inherits the Buffer class, and three additional state
-    attributes: offset, len in and len out (with the latter one being read-only).
-    With that addition, the new class can be used very much the same way as the
-    iovec structure defined by POSIX for readv/writev, with the buffer len in
-    beeing interpreted as the POSIX iov len, i.e. the number of bytes to read/write.
-
+    attributes: offset, len in and len out (with the latter one being 
+    read-only). With that addition, the new class can be used very much the 
+    same way as the iovec structure defined by POSIX for readv/writev, with the 
+    buffer len in being interpreted as the POSIX iov len, i.e. the number of 
+    bytes to read/write.
     """
 
     def __init__(self, size = -1, data = None, len_in = -1, offset = 0 ):
@@ -59,7 +60,8 @@ class Iovec(Buffer, Object):
         @param size: size of data to be used
         @param data: data to be used
         @param offset: offset for I/O operation
-        @param len_in: number of units to read or write on read_v/write_v. default -1 means that len_in is size
+        @param len_in: number of units to read or write on read_v/write_v. 
+            default -1 means that len_in is size
         @type size: int
         @type offset: int
         @type len_in: int
@@ -67,7 +69,8 @@ class Iovec(Buffer, Object):
         @raise BadParameter:
         @raise NoSuccess:
         @Note: all notes from the buffer __init__() apply.
-        @Note: if len_in is larger than size, and size is not given as -1, a BadParameter exception is raised.
+        @Note: if len_in is larger than size, and size is not given as -1, a 
+            BadParameter exception is raised.
         """
         pass
 
@@ -78,7 +81,8 @@ class Iovec(Buffer, Object):
         @summary: set offset
         @param offset: value for offset
         @type offset: int
-        @raise BadParameter: if offset is smaller that zero, a BadParameter exception is raised.
+        @raise BadParameter: if offset is smaller that zero, a BadParameter 
+            exception is raised.
         """
 
     def get_offset (self):
@@ -98,7 +102,8 @@ class Iovec(Buffer, Object):
         Set len_in
         @param len_in: value for len_in (see __init__)
         @type len_in: int
-        @raise BadParameter: if len_in is larger than size, and size is not set to -1, a BadParameter exception is raised.
+        @raise BadParameter: if len_in is larger than size, and size is not set 
+            to -1, a BadParameter exception is raised.
         """
 
     def get_len_in(self):
@@ -118,20 +123,24 @@ class Iovec(Buffer, Object):
         Retrieve the value for len_out
         @return: value of len_out
         @rtype: int
-        @Note: len_out reports the number of units read or written in a completed read_w or write_w operation.
+        @Note: len_out reports the number of units read or written in a 
+            completed read_w or write_w operation.
         @Note: before completion of the operation, the returned value is -1.
-        @Note: for implementation managed memory, the value of len_out is always the same as for size.
+        @Note: for implementation managed memory, the value of len_out is always 
+            the same as for size.
         """
         len_out = 0
         return len_out
 
 class File(NSEntry):
     """
-    This class represents an open file descriptor for read/write operations on a physical file
+    This class represents an open file descriptor for read/write operations on 
+    a physical file
 
     """
     
-    def __init__(self, name, session = Session(), flags=Flags.READ):
+    def __init__(self, name, session=Session(), flags=Flags.READ, 
+                                                     tasktype=TaskType.NORMAL):
         """
         Initialize the File object
         @summary: initialize the File object
@@ -141,8 +150,13 @@ class File(NSEntry):
         @type session: L{Session}
         @type name: L{URL}
         @type flags: int
+        @param tasktype: return a normal File object or a Task object that 
+            creates a File in a final, RUNNING or NEW state. By default, type 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the file is opened.
-        @postcondition: Owner of target is the id of the context use to perform the opereration, if the file gets created.
+        @postcondition: Owner of target is the id of the context use to perform 
+            the opereration, if the file gets created.
         @permission: Exec for parent directory.
         @permission: Write for parent directory if Create is set.
         @permission: Write for name if Write is set.
@@ -162,11 +176,15 @@ class File(NSEntry):
 
         """
 
-    def get_size(self):
+    def get_size(self, tasktype=TaskType.NORMAL):
         """
         Returns the number of bytes in the file
         @summary: returns the number of bytes in the file
         @return: number of bytes in the file
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @rtype: int
         @permission: Query
         @raise NotImplemented:
@@ -182,7 +200,7 @@ class File(NSEntry):
         size = 0;
         return size
     
-    def read(self, size = -1, buf=None):
+    def read(self, size = -1, buf=None, tasktype=TaskType.NORMAL):
         #inout buffer buf, in int size_in = -1, out int len_out ):
         """
         Reads up to size bytes from the file into a buffer.
@@ -195,20 +213,27 @@ class File(NSEntry):
             
             - B{Call format: read( size )}
                 - B{Returns: string}
-                    - the read data. 'size' determines the maximum length to be read 
+                    - the read data. 'size' determines the maximum length to be 
+                        read 
                 - B{Postcondition:}
                     - the data is available in the returned string
                     
             - B{Call format: read()}
                 - B{Returns: string}
-                    - the read data. Size of the string could be between 0 and the file length
+                    - the read data. Size of the string could be between 0 and 
+                        the file length
         
         @summary: reads up to size bytes from the file into a buffer
         @param size: number of bytes to be read
         @param buf: buffer to read data into
         @type size: int
         @type buf: L{Buffer}
-        @return: number of bytes successfully read or string containing the read data 
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
+        @return: number of bytes successfully read or string containing the 
+            read data 
         @rtype: int or string
         @permission: Read
         @raise NotImplemented:
@@ -219,32 +244,43 @@ class File(NSEntry):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: the actual number of bytes read into buffer is returned in the int. It is not an error
-            to read less bytes than requested, or in fact zero bytes, e.g. at the end of the file.
-        @Note: errors are indicated by returning negative values, which correspond to
-            negatives of the respective POSIX ERRNO error code.
-        @Note: the file pointer is positioned at the end of the byte area successfully read during this call.
-        @Note: the given buffer must be able to grow large enough to store up to size bytes, or managed by the
-            implementation - otherwise a BadParameter exception is raised.
+        @Note: the actual number of bytes read into buffer is returned in the 
+            int. It is not an error to read less bytes than requested, or in 
+            fact zero bytes, e.g. at the end of the file.
+        @Note: errors are indicated by returning negative values, which 
+            correspond to negatives of the respective POSIX ERRNO error code.
+        @Note: the file pointer is positioned at the end of the byte area 
+            successfully read during this call.
+        @Note: the given buffer must be able to grow large enough to store up 
+            to size bytes, or managed by the implementation - otherwise a 
+            BadParameter exception is raised.
         @Note: the notes about memory management from the buffer class apply.
-        @Note: if the file was opened in write-only mode (i.e. no READ or READWRITE flag was given), this
-            method raises an PermissionDenied exception.
-        @Note: if size is smaller than 0, or not given, the buffer size is used for size. 
-            If that is also not available, a BadParameter exception is raised.
+        @Note: if the file was opened in write-only mode (i.e. no READ or 
+            READWRITE flag was given), this method raises an PermissionDenied 
+            exception.
+        @Note: if size is smaller than 0, or not given, the buffer size is used 
+            for size. If that is also not available, a BadParameter exception 
+            is raised.
         @Note: similar to read (2) as specified by POSIX
         """
         size_out = 0
         return size_out
         
-    def write(self, buf, size = -1):
+    def write(self, buf, size = -1, tasktype=TaskType.NORMAL):
         # (in buffer buf, in int size_in = -1, out int size_out ):
         """
-        Writes up to size from buffer into the file at the current file position.
-        @summary: writes up to size from buffer into the file at the current file position.
+        Writes up to size from buffer into the file at the current file 
+        position.
+        @summary: writes up to size from buffer into the file at the current 
+            file position.
         @param buf:  buffer to write data from       
         @param size: number of bytes to write
         @type buf: L{Buffer} or string
         @type size: int
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of bytes successfully written
         @rtype: int
         @postcondition: the buffer data are written to the file.
@@ -257,22 +293,27 @@ class File(NSEntry):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: errors are indicated by returning negative values, which correspond to
-                 negatives of the respective POSIX ERRNO error code.
-        @Note: the file pointer is positioned at the end of the byte area written during this call.
-        @Note: if the file was opened in read-only mode (i.e. no WRITE or READWRITE flag was given), this
-                 method raises an PermissionDenied exception.
-        @Note: the given buffer must hold enough data to write - otherwise, only the available data
-                 will be written, and the returned value will be set to the number of bytes written.
+        @Note: errors are indicated by returning negative values, which 
+            correspond to negatives of the respective POSIX ERRNO error code.
+        @Note: the file pointer is positioned at the end of the byte area 
+            written during this call.
+        @Note: if the file was opened in read-only mode (i.e. no WRITE or 
+            READWRITE flag was given), this method raises an PermissionDenied 
+            exception.
+        @Note: the given buffer must hold enough data to write - otherwise, 
+            only the available data will be written, and the returned value 
+            will be set to the number of bytes written.
         @Note: the notes about memory management from the buffer class apply.
-        @Note: if size is smaller than 0, or not given, the buffer size is used for size.
-                 If that is also not available, a BadParameter exception is raised.
-        @Note: if data are written beyond the current end of file, the intermediate gap is filled with null bytes.
+        @Note: if size is smaller than 0, or not given, the buffer size is used 
+            for size. If that is also not available, a BadParameter exception 
+            is raised.
+        @Note: if data are written beyond the current end of file, the 
+            intermediate gap is filled with null bytes.
         @Note: similar to write (2) as specified by POSIX
 
         """
 
-    def seek (self, offset, whence = SeekMode.START):
+    def seek (self, offset, whence=SeekMode.START, tasktype=TaskType.NORMAL):
         #return out int position
         """
         Reposition the file pointer
@@ -281,9 +322,14 @@ class File(NSEntry):
         @param whence: offset is relative to whence
         @type offset: int
         @type whence: int
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: position of pointer after seek
         @rtype: int
-        @postcondition: the file pointer is moved to the new position. Following read() or write() operations use that position.
+        @postcondition: the file pointer is moved to the new position. Following 
+            read() or write() operations use that position.
         @permission: Read or Write.
         @raise NotImplemented:
         @raise IncorrectState:
@@ -292,29 +338,39 @@ class File(NSEntry):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: seek repositions the file pointer for subsequent read, write and seek calls.
-        @Note: initially (after open), the file pointer is positioned at the beginning of the file,
-                 unless the Append flag was given - then the initial position is the end of the file.
-        @Note: the repositioning is done relative to the position given in Whence, so relative to
-                 the BEGIN or END of the file, or to the CURRENT position.
-        @Note: errors are indicated by returning negative values for len_out, which correspond to
-                 negatives of the respective POSIX ERRNO error code.
-        @Note: the file pointer can be positioned after the end of the file without extending it.
+        @Note: seek repositions the file pointer for subsequent read, write and 
+            seek calls.
+        @Note: initially (after open), the file pointer is positioned at the 
+            beginning of the file, unless the Append flag was given - then the 
+            initial position is the end of the file.
+        @Note: the repositioning is done relative to the position given in 
+            Whence, so relative to the BEGIN or END of the file, or to the 
+            CURRENT position.
+        @Note: errors are indicated by returning negative values for len_out, 
+            which correspond to negatives of the respective POSIX ERRNO error 
+            code.
+        @Note: the file pointer can be positioned after the end of the file 
+            without extending it.
         @Note: the given offset can be positive, negative, or zero.
-        @Note: note that a subsequent read at or behind the end of file returns no data.
+        @Note: note that a subsequent read at or behind the end of file returns 
+            no data.
         @Note: similar to lseek (2) as specified by POSIX.
         """
         position = 0
         return position
             
-    def read_v(self, iovecs):
+    def read_v(self, iovecs, tasktype=TaskType.NORMAL):
         #inout array<iovec> iovecs
         """
         Gather/scatter read
         @summary: gather/scatter read
-        @param iovecs: list of iovec structs defining start (offset) and length (len_in) of each individual read, 
-                the buffer to read into, and integer to store result into (len_out).
+        @param iovecs: list of iovec structs defining start (offset) and 
+            length (len_in) of each individual read, the buffer to read into, 
+            and integer to store result into (len_out).
         @type iovecs: list of iovecs
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: data from the file are available in the iovec buffers.
         @permission: Read
         @raise NotImplemented:
@@ -336,7 +392,7 @@ class File(NSEntry):
         
         """
 
-    def write_v(self, iovecs): 
+    def write_v(self, iovecs, tasktype=TaskType.NORMAL): 
         #inout array<iovec> iovecs ):
         """
         Gather/scatter write
@@ -344,6 +400,9 @@ class File(NSEntry):
         @param iovecs: list of iovecs defining start (offset) and length (len_in) of each
                 individual write, and buffers containing the data to write (len_out)
         @type iovecs: list of iovecs
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the iovec buffer data are written to the file.
         @permission: Write
         @raise NotImplemented:
@@ -365,7 +424,7 @@ class File(NSEntry):
 
         """
      
-    def size_p (self, pattern):
+    def size_p (self, pattern, tasktype=TaskType.NORMAL):
         #in string pattern, out int size
         """
         Determine the storage size required for a pattern I/O operation
@@ -373,6 +432,9 @@ class File(NSEntry):
         @param pattern: pattern to determine size for
         @type pattern: string
         @return: size required for I/O operation with that pattern
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @rtype: int
         @raise NotImplemented:
         @raise BadParameter:
@@ -390,7 +452,7 @@ class File(NSEntry):
         size = 0
         return size
     
-    def read_p(self, pattern, buf):
+    def read_p(self, pattern, buf, tasktype=TaskType.NORMAL):
         # in string pattern, inout buffer buf, out int len_out
         """
         Pattern-based read
@@ -399,6 +461,9 @@ class File(NSEntry):
         @param buf: buffer to store read data into
         @type pattern: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of bytes successfully read
         @rtype: int
         @postcondition: data from the file are available in the buffers.
@@ -419,7 +484,7 @@ class File(NSEntry):
         len_out = 0
         return len_out
 
-    def write_p(self, pattern, buf): 
+    def write_p(self, pattern, buf, tasktype=TaskType.NORMAL): 
         #in string pattern, in buffer buf, out int len_out
         """
         Pattern-based write
@@ -428,6 +493,9 @@ class File(NSEntry):
         @param buf: buffer to be written
         @type pattern: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of units successfully written
         @rtype: int
         @postcondition: the buffer data are written to the file.
@@ -448,13 +516,16 @@ class File(NSEntry):
         len_out = 0
         return len_out
 
-    def modes_e(self):
+    def modes_e(self, tasktype=TaskType.NORMAL):
         #out array<string> emodes
         """
         List the extended modes available in this implementation, and/or on server side
         @summary: list the extended modes available in this implementation, and/or on server side
-        @return: tuple of modes available for extended I/O
-        @rtype: tuple
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
+        @return: list of modes available for extended I/O
+        @rtype: list
         @raise NotImplemented:
         @raise IncorrectState:
         @raise PermissionDenied:
@@ -466,10 +537,10 @@ class File(NSEntry):
             the application programmer to determine what extended I/O methods are supported by the implementation.
 
         """
-        emodes = (None, ) #tuple
+        emodes = [None] #list
         return emodes
 
-    def size_e (self, emode, spec):
+    def size_e (self, emode, spec, tasktype=TaskType.NORMAL):
         #in string emode, in string spec, out int size
         """
         Determine the storage size required for an extended I/O operation
@@ -478,6 +549,9 @@ class File(NSEntry):
         @param spec: specification to determine size for
         @type emode: string
         @type spec: string
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: size required for I/O operation with that emode/spec
         @rtype: int
         @raise NotImplemented:
@@ -496,7 +570,7 @@ class File(NSEntry):
         size = 0
         return size
 
-    def read_e(self, emode, spec, buf):
+    def read_e(self, emode, spec, buf, tasktype=TaskType.NORMAL):
         # (in string emode, in string spec, inout buffer buf, out int len_out );
         """
         Extended read
@@ -507,6 +581,9 @@ class File(NSEntry):
         @type emode: string
         @type spec: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of bytes successfully read
         @rtype: int
         @postcondition: data from the file are available in the buffers.
@@ -528,7 +605,7 @@ class File(NSEntry):
         len_out = 0
         return len_out
 
-    def write_e (self, emode, spec, buf):
+    def write_e (self, emode, spec, buf, tasktype=TaskType.NORMAL):
         #in string emode, in string spec, in buffer buf, out int len_out
         """
         Extended write
@@ -539,6 +616,9 @@ class File(NSEntry):
         @type emode: string
         @type spec: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of units successfully written
         @rtype: int
         @postcondition: the buffer data are written to the file.
@@ -565,7 +645,7 @@ class Directory(NSDirectory):
     This class represents an open file descriptor for read/write operations on a physical directory. 
     """
     
-    def __init__(self, name, session = Session(), flags=Flags.READ):
+    def __init__(self, name, session=Session(), flags=Flags.READ, tasktype=TaskType.NORMAL):
         #in session s, in URL name, in int flags = Read, out directory obj the newly created object
         """
         Initialize the Directory object
@@ -573,6 +653,10 @@ class Directory(NSDirectory):
         @param session: session to associate the object with
         @param name: location of directory 
         @keyword flags: mode for opening
+        @param tasktype: return a normal Directory object or a Task object that 
+            creates a Directory in a final, RUNNING or NEW state. By default, 
+            tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the directory is opened.
         @postcondition: 'Owner' of target is the id of the context use to perform the opereration, if the directory gets created.
         @permission: Exec for parent directory.
@@ -595,7 +679,7 @@ class Directory(NSDirectory):
         """
         super(Directory, self).__init__()
         
-    def get_size(self, name, flags = Flags.NONE):
+    def get_size(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = None, out int size
         """
         Returns the size of the file
@@ -603,6 +687,9 @@ class Directory(NSDirectory):
         @param name: name of file to inspect
         @type name: L{URL}
         @param flags: mode for operation
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @type flags: int
         @return: size of the file
         @rtype: int
@@ -629,16 +716,16 @@ class Directory(NSDirectory):
         size = 0
         return size
     
-    def is_file (self, name):
+    def is_file (self, name, tasktype=TaskType.NORMAL):
         #return boolean test
         """
-        Alias:    for is_entry in saga.namespace.NSDirectory
-        @see: L{saga.namespace.NSDirectory.is_entry()}
+        Alias for L{NSDirectory.is_entry()}
+        @see: L{NSDirectory.is_entry()}
         """
         
         pass
 
-    def open_dir (self, name, flags = Flags.READ):
+    def open_dir (self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = READ, out directory dir)
         """
         Creates a directory object
@@ -647,8 +734,11 @@ class Directory(NSDirectory):
         @type name: L{URL}
         @param flags: flags defining operation modus
         @type flags: value from saga.file.Flags
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: opened directory instance
-        @rtype: saga.file.Directory
+        @rtype: L{Directory}
         @PostCondition: the session of the returned instance is that of the calling instance.
         @PostCondition: 'Owner' of name is the id of the context used to perform the opereration if name gets created.
         @permission: Exec for name's parent directory.
@@ -674,14 +764,18 @@ class Directory(NSDirectory):
         return dir
         pass
 
-    def open (self, name, flags = Flags.READ):
+    def open (self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         #in URL name, in int flags = Read, out file file
         """
         Creates a new file instance
         @summary: Creates a new file instance
-        @param name: URl of the file to be opened
+        @param name: URL of the file to be opened
         @param flags: flags defining operation modus
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: opened file instance
+        @rtype: L{File}
         @PostCondition: the session of the returned instance is that of the calling instance.
         @PostCondition: 'Owner' of name is the id of the context used to perform the opereration if name gets created.
         @permission: Exec for name's parent directory.

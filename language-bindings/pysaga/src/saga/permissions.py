@@ -39,6 +39,9 @@ class Permissions(Async):
     Permissions provides a generic interface for applications to allow or deny
     specific operations on SAGA objects or grid entities, such as files, streams, or
     monitorables, and to query and set such permissions
+    
+    @undocumented: __get_group
+    @undocumented: __get_owner
     """   
 
     def permissions_allow(self, id, perm, tasktype=TaskType.NORMAL):
@@ -49,7 +52,8 @@ class Permissions(Async):
         @type id: string
         @param perm: permissions to enable
         @type perm: int
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: int
         @PostCondition: the permissions are enabled.
         @Permission: Owner
@@ -73,7 +77,7 @@ class Permissions(Async):
         @param id: id to set permissions for
         @type id: string
         @param perm: permissions to disable
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: int 
         @PostCondition: the permissions are disabled.
         @permission: Owner
@@ -98,7 +102,7 @@ class Permissions(Async):
         @type id: string
         @param perm: permissions to check
         @type perm: int
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: int        
         @return: indicates if, for that id, the permissions are granted (True) or not (False).
         @rtype: bool
@@ -122,7 +126,7 @@ class Permissions(Async):
         @summary: Get the owner of the entity.
         @return: id of the owner
         @rtype: string
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: int        
         @permission: Query
         @raise NotImplemented:
@@ -143,7 +147,7 @@ class Permissions(Async):
         """
         Get the group owning the entity.
         @summary:  Get the group owning the entity.
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: int
         @return: id of the group
         @rtype: string
@@ -157,3 +161,16 @@ class Permissions(Async):
         @note: returns the id of the group owning the entity
         @note: if the implementation does not support groups, the method returns an empty string.
         """
+
+    def __get_group(self):
+        return get_group()
+
+    group = property(__get_group,
+            doc="""The id of the group owning the entity.\n@type: string""")
+
+    def __get_owner(self):
+        return get_owner()
+
+    owner = property(__get_owner,
+            doc="""The id of the owner of the entity.\n@type: string""")
+        

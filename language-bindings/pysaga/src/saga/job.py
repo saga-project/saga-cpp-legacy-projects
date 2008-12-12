@@ -29,8 +29,8 @@ class State(object):
     
     RUNNING = 2
     """
-    @summary: the run() method has been invoked on the Task, either explicitly or
-        implicitly. This state corresponds to the BES state 'Running'. This
+    @summary: the run() method has been invoked on the Task, either explicitly 
+        or implicitly. This state corresponds to the BES state 'Running'. This
         state is initial
     """
         
@@ -43,15 +43,16 @@ class State(object):
         
     CANCELED = 4
     """
-    @summary: the asynchronous operation has been canceled, i.e. cancel() has been
-        called on the Task instance. It corresponds to the BES state 'Canceled'.
-        This state is final.
+    @summary: the asynchronous operation has been canceled, i.e. cancel() has 
+        been called on the Task instance. It corresponds to the BES state 
+        'Canceled'. This state is final.
     """
         
     FAILED = 5
     """
-    @summary: the synchronous or asynchronous operation has finished unsuccessfully.
-        It corresponds to the BES state 'Failed'. This state is final.
+    @summary: the synchronous or asynchronous operation has finished 
+        unsuccessfully. It corresponds to the BES state 'Failed'. This state is 
+        final.
     """
         
     SUSPENDED = 6
@@ -171,8 +172,8 @@ class JobDescription(Object,Attributes):
                 - this implies that stdio streams will stay connected to the 
                     submitter after job submission, and during job execution.
                 - if an implementation cannot handle interactive jobs, and this 
-                    attribute is present, and 'True', the job creation MUST
-                    raise an 'IncorrectParameter' error with a descriptive error 
+                    attribute is present, and 'True', the job creation 
+                    raises an 'IncorrectParameter' error with a descriptive error 
                     message.
                 - not supported by JSDL, DRMAA
         - B{Input}
@@ -226,8 +227,8 @@ class JobDescription(Object,Attributes):
             - value: 'Default'
             - notes: 
                 - can have the Values 'True', 'False', and 'Default'
-                - On 'False', output files MUST be kept after job the finishes
-                - On 'True', output files MUST be deleted after job the finishes
+                - On 'False', output files are kept after job the finishes
+                - On 'True', output files are deleted after job the finishes
                 - On 'Default', the behaviour is defined by the implementation 
                     or the backend.
                 - translates into 'DeleteOnTermination' elements in JSDL
@@ -281,7 +282,7 @@ class JobDescription(Object,Attributes):
             - name:  OperatingSystemType
             - desc:  compatible operating system for job submission
             - mode:  ReadWrite, optional
-            - type:  List of Strings
+            - type:  List of strings
             - value: -
             - notes: 
                 - allowed values as specified in JSDL
@@ -292,7 +293,7 @@ class JobDescription(Object,Attributes):
             - desc:  list of host names which are to be considered by the 
                 resource manager as candidate targets
             - mode: ReadWrite, optional
-            - type: Vector String B{Need Update TODO}
+            - type: List of strings
             - value: -
             - notes: 
                 - semantics as defined by JSDL
@@ -322,7 +323,101 @@ class JobDescription(Object,Attributes):
      
     @summary: This object encapsulates all the attributes which define a job 
         to be run.            
+    @undocumented: get_Executable
+    @undocumented: set_Executable
+    @undocumented: del_Executable
+    
+    @undocumented: get_Arguments
+    @undocumented: set_Arguments
+    @undocumented: del_Arguments
+    
+    @undocumented: get_SPMDVariation
+    @undocumented: set_SPMDVariation
+    @undocumented: del_SPMDVariation
+    
+    @undocumented: get_TotalCPUCount
+    @undocumented: set_TotalCPUCount
+    @undocumented: del_TotalCPUCount
+    
+    @undocumented: get_NumberOfProcesses
+    @undocumented: set_NumberOfProcesses
+    @undocumented: del_NumberOfProcesses
+    
+    @undocumented: get_ProcessesPerHost
+    @undocumented: set_ProcessesPerHost
+    @undocumented: del_ProcessesPerHost
+    
+    @undocumented: get_ThreadsPerProcess
+    @undocumented: set_ThreadsPerProcess
+    @undocumented: del_ThreadsPerProcess
+    
+    @undocumented: get_Environment
+    @undocumented: set_Environment
+    @undocumented: del_Environment
+    
+    @undocumented: get_WorkingDirectory
+    @undocumented: set_WorkingDirectory
+    @undocumented: del_WorkingDirectory
+    
+    @undocumented: get_Interactive
+    @undocumented: set_Interactive
+    @undocumented: del_Interactive
+    
+    @undocumented: get_Input
+    @undocumented: set_Input
+    @undocumented: del_Input
+    
+    @undocumented: get_Output
+    @undocumented: set_Output
+    @undocumented: del_Output
+    
+    @undocumented: get_Error
+    @undocumented: set_Error
+    @undocumented: del_Error
+    
+    @undocumented: get_FileTransfer
+    @undocumented: set_FileTransfer
+    @undocumented: del_FileTransfer
+    
+    @undocumented: get_Cleanup
+    @undocumented: set_Cleanup
+    @undocumented: del_Cleanup
+    
+    @undocumented: get_JobStartTime
+    @undocumented: set_JobStartTime
+    @undocumented: del_JobStartTime
+    
+    @undocumented: get_TotalCPUTime
+    @undocumented: set_TotalCPUTime
+    @undocumented: del_TotalCPUTime
+    
+    @undocumented: get_TotalPhysicalMemory
+    @undocumented: set_TotalPhysicalMemory
+    @undocumented: del_TotalPhysicalMemory
+    
+    @undocumented: get_CPUArchitecture
+    @undocumented: set_CPUArchitecture
+    @undocumented: del_CPUArchitecture
+    
+    @undocumented: get_OperatingSystemType
+    @undocumented: set_OperatingSystemType
+    @undocumented: del_OperatingSystemType
+    
+    @undocumented: get_CandidateHosts
+    @undocumented: set_CandidateHosts
+    @undocumented: del_CandidateHosts
+    
+    @undocumented: get_Queue
+    @undocumented: set_Queue
+    @undocumented: del_Queue
+    
+    @undocumented: get_JobContact
+    @undocumented: set_JobContact
+    @undocumented: del_JobContact
     """
+
+
+#TODO: implement properties
 
     def __init__(self):
         """ 
@@ -334,21 +429,331 @@ class JobDescription(Object,Attributes):
             but can be used for JobServices from different sessions.
         """
         super(JobDescription, self).__init__()
-          
+
+    def __set_Executable(value):
+        set_attribute("Executable", value)
+        
+    def __get_Executable():
+        return get_attribute("Executable")  
+    
+    def __del_Executable():
+        return set_attribute("Executable", "")            
+
+    Executable = property(__get_Executable, __set_Executable, __del_Executable, 
+            doc="""The Executable attribute. \n@type:List of strings""")
+
+    def __set_Arguments(value):
+        set_vector_attribute("Arguments", value)
+        
+    def __get_Arguments():
+        return get_vector_attribute("Arguments")  
+    
+    def __del_Arguments():
+        return set_vector_attribute("Arguments", [])            
+
+    Arguments = property(__get_Arguments, __set_Arguments, __del_Arguments, 
+            doc="""The Arguments attribute. \n@type:List of strings""")
+     
+    def __set_SPMDVariation(value):
+        set_attribute("SPMDVariation", value)
+        
+    def __get_SPMDVariation():
+        return get_attribute("SPMDVariation")  
+    
+    def __del_SPMDVariation():
+        return set_attribute("SPMDVariation", "")            
+
+    SPMDVariation = property(__get_SPMDVariation, __set_SPMDVariation,
+                             __del_SPMDVariation,
+                             """The SPMDVariation attribute. \n@type: string""")
+     
+    def __set_TotalCPUCount(value):
+        set_attribute("TotalCPUCount", value)
+        
+    def __get_TotalCPUCount():
+        return get_attribute("TotalCPUCount")  
+    
+    def __del_TotalCPUCount():
+        return set_attribute("TotalCPUCount", "")            
+
+    TotalCPUCount = property(__get_TotalCPUCount, __set_TotalCPUCount,
+                             __del_TotalCPUCount, 
+                             """The TotalCPUCount attribute. \n@type: string""")
+
+    def __set_NumberOfProcesses(value):
+        set_attribute("NumberOfProcesses", value)
+        
+    def __get_NumberOfProcesses():
+        return get_attribute("NumberOfProcesses")  
+    
+    def __del_NumberOfProcesses():
+        return set_attribute("NumberOfProcesses", "")            
+
+    NumberOfProcesses = property(__get_NumberOfProcesses,
+                                 __set_NumberOfProcesses, 
+                                 __del_NumberOfProcesses, 
+                                 """The NumberOfProcesses attribute. 
+                                 \n@type: string""")
+     
+    def __set_ProcessesPerHost(value):
+        set_attribute("ProcessesPerHost", value)
+        
+    def __get_ProcessesPerHost():
+        return get_attribute("ProcessesPerHost")  
+    
+    def __del_ProcessesPerHost():
+        return set_attribute("ProcessesPerHost", "")            
+
+    ProcessesPerHost = property(__get_ProcessesPerHost, __set_ProcessesPerHost,
+                                __del_ProcessesPerHost, 
+                                """The ProcessesPerHost attribute. 
+                                \n@type: string""")
+
+
+    def __set_ThreadsPerProcess(value):
+        set_attribute("ThreadsPerProcess", value)
+        
+    def __get_ThreadsPerProcess():
+        return get_attribute("ThreadsPerProcess")  
+    
+    def __del_ThreadsPerProcess():
+        return set_attribute("ThreadsPerProcess", "")            
+
+    ThreadsPerProcess = property(__get_ThreadsPerProcess, 
+                                 __set_ThreadsPerProcess, 
+                                 __del_ThreadsPerProcess, 
+                                 """The ThreadsPerProcess attribute. 
+                                 \n@type: string""")
+     
+    def __set_Environment(value):
+        set_vector_attribute("Environment", value)
+        
+    def __get_Environment():
+        return get_vector_attribute("Environment")  
+    
+    def __del_Environment():
+        return set_vector_attribute("Environment", [])            
+
+    Environment = property(__get_Environment, __set_Environment, 
+                           __del_Environment,
+                           """The Environment attribute. 
+                           \n@type:List of strings""")
+
+    def __set_WorkingDirectory(value):
+        set_attribute("WorkingDirectory", value)
+        
+    def __get_WorkingDirectory():
+        return get_attribute("WorkingDirectory")  
+    
+    def __del_WorkingDirectory():
+        return set_attribute("WorkingDirectory", "")            
+
+    WorkingDirectory = property(__get_WorkingDirectory, __set_WorkingDirectory, 
+                                __del_WorkingDirectory, 
+                                """The WorkingDirectory attribute. 
+                                \n@type: string""")
+
+    def __set_Interactive(value):
+        set_attribute("Interactive", value)
+        
+    def __get_Interactive():
+        return get_attribute("Interactive")  
+    
+    def __del_Interactive():
+        return set_attribute("Interactive", "")            
+
+    Interactive = property(__get_Interactive, __set_Interactive, 
+                           __del_Interactive, 
+                           """The Interactive attribute. \n@type: string""")
+
+    def __set_Input(value):
+        set_attribute("Input", value)
+        
+    def __get_Input():
+        return get_attribute("Input")  
+    
+    def __del_Input():
+        return set_attribute("Input", "")            
+
+    Input = property(__get_Input, __set_Input, __del_Input, 
+            """The Input attribute. \n@type: string""")
+     
+    def __set_Output(value):
+        set_attribute("Output", value)
+        
+    def __get_Output():
+        return get_attribute("Output")  
+    
+    def __del_Output():
+        return set_attribute("Output", "")            
+
+    Output = property(__get_Output, __set_Output, __del_Output, 
+            doc="""The Output attribute. \n@type: string""")
+
+    def __set_Error(value):
+        set_attribute("Error", value)
+        
+    def __get_Error():
+        return get_attribute("Error")  
+    
+    def __del_Error():
+        return set_attribute("Error", "")            
+
+    Error = property(__get_Error, __set_Error, __del_Error, 
+            doc="""The Error attribute. \n@type: string""")
+     
+    def __set_FileTransfer(value):
+        set_attribute("FileTransfer", value)
+        
+    def __get_FileTransfer():
+        return get_attribute("FileTransfer")  
+    
+    def __del_FileTransfer():
+        return set_attribute("FileTransfer", "")            
+
+    FileTransfer = property(__get_FileTransfer, __set_FileTransfer, 
+                            __del_FileTransfer, 
+                            """The FileTransfer attribute. \n@type: string""")
+    
+    def __set_Cleanup(value):
+        set_attribute("Cleanup", value)
+        
+    def __get_Cleanup():
+        return get_attribute("Cleanup")  
+    
+    def __del_Cleanup():
+        return set_attribute("Cleanup", "")            
+
+    Cleanup = property(__get_Cleanup, __set_Cleanup, __del_Cleanup, 
+            doc="""The Cleanup attribute. \n@type: string""")
+     
+    def __set_JobStartTime(value):
+        set_attribute("JobStartTime", value)
+        
+    def __get_JobStartTime():
+        return get_attribute("JobStartTime")  
+    
+    def __del_JobStartTime():
+        return set_attribute("JobStartTime", "")            
+
+    JobStartTime = property(__get_JobStartTime, __set_JobStartTime, 
+                            __del_JobStartTime, 
+                            """The JobStartTime attribute. \n@type: string""")
+
+    def __set_TotalCPUTime(value):
+        set_attribute("TotalCPUTime", value)
+        
+    def __get_TotalCPUTime():
+        return get_attribute("TotalCPUTime")  
+    
+    def __del_TotalCPUTime():
+        return set_attribute("TotalCPUTime", "")            
+
+    TotalCPUTime = property(__get_TotalCPUTime, __set_TotalCPUTime, 
+                            __del_TotalCPUTime, 
+                            """The TotalCPUTime attribute. \n@type: string""")
+    def __set_TotalPhysicalMemory(value):
+        set_attribute("TotalPhysicalMemory", value)
+        
+    def __get_TotalPhysicalMemory():
+        return get_attribute("TotalPhysicalMemory")  
+    
+    def __del_TotalPhysicalMemory():
+        return set_attribute("TotalPhysicalMemory", "")            
+
+    TotalPhysicalMemory = property(__get_TotalPhysicalMemory, 
+                                   __set_TotalPhysicalMemory, 
+                                   __del_TotalPhysicalMemory, 
+                                   """The TotalPhysicalMemory attribute. \n
+                                   @type: string""")
+     
+               
+    def __set_CPUArchitecture(value):
+        set_vector_attribute("CPUArchitecture", value)
+        
+    def __get_CPUArchitecture():
+        return get_vector_attribute("CPUArchitecture")  
+    
+    def __del_CPUArchitecture():
+        return set_vector_attribute("CPUArchitecture", [])
+
+    CPUArchitecture = property(__get_CPUArchitecture, __set_CPUArchitecture, 
+                               __del_CPUArchitecture, 
+                               """The CPUArchitecture attribute. \n
+                               @type:List of strings""")
+     
+    def __set_OperatingSystemType(value):
+        set_vector_attribute("OperatingSystemType", value)
+        
+    def __get_OperatingSystemType():
+        return get_vector_attribute("OperatingSystemType")  
+    
+    def __del_OperatingSystemType():
+        return set_vector_attribute("OperatingSystemType", [])
+
+    OperatingSystemType = property(__get_OperatingSystemType, 
+                                   __set_OperatingSystemType, 
+                                   __del_OperatingSystemType, 
+                                   """The OperatingSystemType attribute. \n
+                                   @type:List of strings""")
+     
+    def __set_CandidateHosts(value):
+        set_vector_attribute("CandidateHosts", value)
+        
+    def __get_CandidateHosts():
+        return get_vector_attribute("CandidateHosts")  
+    
+    def __del_CandidateHosts():
+        return set_vector_attribute("CandidateHosts", [])            
+
+    CandidateHosts = property(__get_CandidateHosts, __set_CandidateHosts,
+                               __del_CandidateHosts, 
+                               """The CandidateHosts attribute. \n
+                               @type:List of strings""")
+
+    def __set_Queue(value):
+        set_attribute("Queue", value)
+        
+    def __get_Queue():
+        return get_attribute("Queue")  
+    
+    def __del_Queue():
+        return set_attribute("Queue", "")            
+
+    Queue= property(__get_Queue, __set_Queue, __del_Queue, 
+                     """The Queue attribute. \n@type: string""")
+     
+    def __set_JobContact(value):
+        set_vector_attribute("JobContact", value)
+        
+    def __get_JobContact():
+        return get_vector_attribute("JobContact")  
+    
+    def __del_JobContact():
+        return set_vector_attribute("JobContact", [])            
+
+    JobContact = property(__get_JobContact, __set_JobContact, __del_JobContact, 
+                          """The JobContact attribute. \n
+                          @type:List of strings""")
+
 class JobService(Object, Async):
     """
     The job_service represents a resource management backend, and as such allows 
     to create and submit jobs, and to discover jobs.
     """
 
-    def __init__(self, url = "", session = Session() ):
+    def __init__(self, url = "", session = Session(), tasktype=TaskType.NORMAL):
         """
-        Create the object
-        @summary: Create the object
+        Initialize the object
+        @summary: Initialize the object
         @param session: session to associate with the object
         @type session: L{Session} 
         @param url: contact url for resource manager
         @type url: L{URL} or string
+        @param tasktype: return a normal JobService object or a Task object in a 
+            final, RUNNING or NEW state that creates a JobService object.
+            By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType} 
         @raise NotImplemented:
         @raise IncorrectURL:
         @raise PermissionDenied:
@@ -357,7 +762,7 @@ class JobService(Object, Async):
         @raise Timeout:
         @raise NoSuccess:
         @Note: 'url' defaults to an empty string - in that case, the 
-         implementation must perform a  resource discovery, or fall back to a 
+         implementation performs a  resource discovery, or fall back to a 
          fixed value, or find a valid rm contact in any other way. If that is 
          not possible, a BadParameter exception is raised, and indicates 
          that a rm contact string is needed.
@@ -374,7 +779,7 @@ class JobService(Object, Async):
         @param jd: description of job to be submitted
         @type jd: L{JobDescription} 
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType} 
         @return: a job object representing the submitted job instance
         @rtype: L{Job}
@@ -398,7 +803,7 @@ class JobService(Object, Async):
         @Note: if the job description contains values which are outside of 
             the allowed range, or cannot be parsed, or are otherwise invalid 
             and not usable for creating a job instance, a BadParameter exception 
-            is raised, which MUST indicate which attribute(s) caused this 
+            is raised, which indicates which attribute(s) caused this 
             exception, and why.
 
         """
@@ -415,7 +820,7 @@ class JobService(Object, Async):
         @param host: hostname to be used by rm for submission
         @type host: string
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: tuple of 4 elements: job (L{Job}, a job object representing 
             the submitted job instance), stdin (L{StdIO}, IO handle for the 
@@ -471,10 +876,10 @@ class JobService(Object, Async):
         @summary: Get a list of jobs which are currently known by the resource 
             manager. 
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
-        @return: job_ids an list of job identifiers
-        @rtype: list of strings
+        @return: a list of strings representing of job identifiers
+        @rtype: list
         @permission: Query on jobs identified by the returned ids
         @raise NotImplemented:
         @raise PermissionDenied:
@@ -502,7 +907,7 @@ class JobService(Object, Async):
         @param job_id: job identifier as returned by the resource manager
         @type job_id: string 
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: a job object representing the job identified by job_id
         @rtype: L{Job} 
@@ -535,7 +940,7 @@ class JobService(Object, Async):
         @summary: This method returns a Job object representing I{B{this}} job, 
             i.e. the calling application.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL} 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL} 
         @type tasktype: value from L{TaskType}
         @return: a L{JobSelf} object representing I{B{this}} job.
         @rtype: L{JobSelf}
@@ -569,8 +974,8 @@ class StdIO(object):
     @summary: This class is used to give acces to the opaque data like from 
         stdin, stdout and stderr
     """
-    name = None
-    mode = None
+    __name = None
+    __mode = None
 
     def __init__(self):
         """
@@ -607,6 +1012,7 @@ class StdIO(object):
        """
        Returns the mode of the StdIO object
        @summary: Returns the mode of the StdIO object
+       @rtype: string
        @return: 'w' if this object represents the stdin of the job,
             'r' if it represents the stdout of the job and 'r' if
             it represents the stderr of the job
@@ -687,7 +1093,7 @@ class StdIO(object):
         
         """
         
-    def readlines(self, size, blocking = True):
+    def readlines(self, size=-1, blocking = True):
         """
         Read multiple lines from the stdout or stderr.
         @summary: Read multiple lines from the stdout or stderr.
@@ -718,6 +1124,11 @@ class StdIO(object):
         
         """
 
+    name = property(get_name,
+                    doc="""the name of the StdIO object.\n@type: string""")
+
+    mode = property(get_mode,
+                    doc="""the mode ot the StdIO object.\n@type: string""")
 
     
 class Job(Task, Attributes, Permissions, Async): 
@@ -779,7 +1190,8 @@ class Job(Task, Attributes, Permissions, Async):
             - value: -
             - notes: 
                 - exit code is collected from the process which was started 
-                  from the 'Executable'  attribute of the job_description object.
+                  from the 'Executable'  attribute of the job_description 
+                  object.
                 - only available in final states, if at all
         - B{Termsig}
             - name:  Termsig
@@ -856,7 +1268,88 @@ class Job(Task, Attributes, Permissions, Async):
 
     @summary: The job provides the manageability interface to a job 
         instance submitted to a resource manager.
+    @undocumented: __get_JobID
+    @undocumented: __get_ExecutionHosts
+    @undocumented: __get_Created
+    @undocumented: __get_Started
+    @undocumented: __get_Finished
+    @undocumented: __get_WorkingDirectory
+    @undocumented: __get_ExitCode
+    @undocumented: __get_Termsig
     """
+
+    def __get_JobID():
+        return get_attribute("JobID")  
+
+    JobID = property(__get_JobID,  
+                          doc="""The JobID attribute.\n @type:string""")
+
+    def __get_ExecutionHosts():
+        return get_vector_attribute("ExecutionHosts")  
+           
+    ExecutionHosts = property(__get_ExecutionHosts, 
+                          doc="""The ExecutionHosts attribute.\n
+                          @type:list of strings""")
+
+    def __get_Created():
+        return get_attribute("Created")  
+
+    Created = property(__get_Created,  
+                          doc="""The Created attribute.\n
+                          @type:string""")
+
+#TODO: Check type of Created, Timestamp is vague.
+#            - name: Created
+#            - desc: time stamp of the job creation in the resource manager
+#            - mode: ReadOnly, optional
+#            - type: Time
+#            - value: -
+#            - notes: can be interpreted as submission time
+
+        
+    def __get_Started():
+        return get_attribute("Started")  
+ 
+    Started = property(__get_Started, doc="""The  attribute.\n @type:string""")
+#TODO: Check type of Started, Timestamp is vague.
+#            - name: Started
+#            - desc: time stamp indicating when the job started running
+#            - mode: ReadOnly, optional
+#            - type: Time
+#            - value: -
+
+    def __get_Finished():
+        return get_attribute("Finished")  
+
+    Finished = property(__get_Finished, doc="""The Finished attribute.\n
+                          @type:string""")
+#TODO: Check type of Finished, Timestamp is vague.
+#            - name: Finished
+#            - desc:  time stamp indicating when the job completed
+#            - mode:  ReadOnly, optional
+#            - type:  Time
+#            - value: -
+
+    def __get_WorkingDirectory():
+        return get_attribute("WorkingDirectory")  
+
+    WorkingDirectory = property(__get_WorkingDirectory, 
+                                doc="""The WorkingDirectory attribute.\n
+                                @type:string""")
+
+    def __get_ExitCode():
+        return get_attribute("ExitCode")  
+
+    ExitCode = property(__get_ExitCode, 
+                          doc="""The ExitCode attribute.\n @type:int""")
+#TODO: implementation ExitCode: cast to int
+
+    def __get_Termsig():
+        return get_attribute("Termsig")  
+
+    Termsig = property(__get_Termsig, doc="""The Termsig attribute.\n
+                          @type:int""")
+#TODO: implementation TermSig: cast to int
 
     #job inspection
     def get_job_description(self, tasktype=TaskType.NORMAL):
@@ -866,7 +1359,7 @@ class Job(Task, Attributes, Permissions, Async):
         @summary: Retrieve the job_description which was used to submit this job
             instance.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: the JobDescription object
         @rtype: L{JobDescription}
@@ -895,7 +1388,7 @@ class Job(Task, Attributes, Permissions, Async):
         Retrieve input stream for a job.
         @summary: Retrieve input stream for a job.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: standard input stream for the job
         @rtype: L{StdIO}
@@ -929,7 +1422,7 @@ class Job(Task, Attributes, Permissions, Async):
         Retrieve output stream of job
         @summary: Retrieve output stream of job
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: standard output stream for the job
         @rtype: L{StdIO}
@@ -947,7 +1440,7 @@ class Job(Task, Attributes, Permissions, Async):
         @raise NoSuccess:
         @Note: if the preconditions are met, but the standard output stream is 
             not available for some reason, a 'DoesNotExist' exception is raised.
-        @Note: the stream MUST be valid until the job reaches a final state. 
+        @Note: the stream is valid until the job reaches a final state. 
             If it is, for some reason, disconnected earlier, a error message is 
             raised.
         @Note: if the job is not interactive, e.g. it was submitted with the 
@@ -965,7 +1458,7 @@ class Job(Task, Attributes, Permissions, Async):
         Retrieve error stream of job
         @summary: Retrieve error stream of job
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: standard error stream for the job
         @rtype: L{StdIO}
@@ -983,7 +1476,7 @@ class Job(Task, Attributes, Permissions, Async):
         @raise NoSuccess:
         @Note: if the preconditions are met, but the standard error stream is 
             not available for some reason, a 'DoesNotExist' exception is raised.
-        @Note: the stream MUST be valid until the job reaches a final state. 
+        @Note: the stream is valid until the job reaches a final state. 
             If it is, for some reason, disconnected earlier, a error message is 
             raised.
         @Note: if the job is not interactive, e.g. it was submitted with the 
@@ -1004,7 +1497,7 @@ class Job(Task, Attributes, Permissions, Async):
         @summary: Ask the resource manager to perform a suspend operation on 
             the running job.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Running' state.
         @PostCondition: the job is in 'Suspended' state.
@@ -1028,7 +1521,7 @@ class Job(Task, Attributes, Permissions, Async):
         @summary: Ask the resource manager to perform a resume operation on a 
             suspended job.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}  
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}  
         @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Suspended' state.
         @PostCondition: the job is in 'Running' state.
@@ -1047,11 +1540,12 @@ class Job(Task, Attributes, Permissions, Async):
     
     def checkpoint(self, tasktype=TaskType.NORMAL):
         """
-        Ask the resource manager to initiate a checkpoint operation on a running job.
+        Ask the resource manager to initiate a checkpoint operation on a running 
+        job.
         @summary: Ask the resource manager to initiate a checkpoint operation 
             on a running job.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Running' state.
         @PostCondition: the job is in 'Running' state.
@@ -1080,7 +1574,7 @@ class Job(Task, Attributes, Permissions, Async):
         @param jd: new job parameters to apply when the job is migrated
         @type jd: L{JobDescription} 
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition:    the job is in 'Running' or 'Suspended' state.
         @PostCondition:    the job keeps its state.
@@ -1119,7 +1613,7 @@ class Job(Task, Attributes, Permissions, Async):
         @param signum: signal number to be delivered
         @type signum: int
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: job is in 'Running' or 'Suspended' state.
         @PostCondition: the signal was delivered to the job.
