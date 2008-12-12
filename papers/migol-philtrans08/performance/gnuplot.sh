@@ -164,6 +164,7 @@ set xrange [1.95:16.5]
 set xtics (1,2,4,8,16)   
 #set style line  1 linewidth 16 
 #set style line  2 linewidth 12 
+                                                                                          
 
 plot  "data_re_numberresources_tc.txt" using 4:3 title "With Glide-In" with lp linewidth 4,\
       "data_re_numberresources_tc.txt" using 4:2 title "Without Glide-In" with lp linewidth 4
