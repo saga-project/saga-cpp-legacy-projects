@@ -461,7 +461,6 @@ class Monitorable(object):
         @raise NoSuccess:
         @Note: notes to the remove_callback method of the metric class apply
         """
-
    
 class Steerable(Monitorable):
     """

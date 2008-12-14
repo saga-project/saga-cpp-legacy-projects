@@ -10,12 +10,6 @@ from attributes import Attributes
 from error import NotImplemented
 from session import Session
 
-#import org.ogf.saga.url.URLFactory;
-#import org.ogf.saga.url.URL;
-#import org.ogf.saga.namespace.Flags;
-#import org.ogf.saga.file.File;
-#import org.ogf.saga.file.FileFactory;
-#import java.lang.Exception;
 
 class Flags(object):
     """

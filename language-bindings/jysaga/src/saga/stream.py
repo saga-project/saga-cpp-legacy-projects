@@ -7,7 +7,7 @@
 #    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from saga.object import Object, ObjectType
-from saga.task import Async, Task, TaskType
+from saga.task import Async, TaskType, Task
 from saga.monitoring import Monitorable
 from saga.permissions import Permissions
 from saga.url import URL
@@ -29,7 +29,6 @@ import org.ogf.saga.error.PermissionDeniedException
 import org.ogf.saga.error.SagaException 
 import org.ogf.saga.error.SagaIOException 
 import org.ogf.saga.error.TimeoutException
-
 import org.ogf.saga.stream.Stream
 import org.ogf.saga.stream.StreamService
 from org.ogf.saga.stream import StreamFactory
@@ -122,10 +121,8 @@ class StreamService(Object, Monitorable, Permissions, Async):
     @summary: The StreamService object establishes a listening/server object 
         that waits for client connections. 
     """
-    delegateObject = None
-
       
-    def __init__(self, url = "", session = Session(), **impl ):
+    def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL, **impl ):
         """
         Initializes a new StreamService object.
         @summary: Initializes a new StreamService object.
@@ -134,6 +131,10 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @param url: channel name or url, defines the source side binding for 
             the stream
         @type url: L{URL}
+        @param tasktype: return a normal StreamService object or or return a 
+            Task object that creates the StreamService object in a final, 
+            RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @postcondition: StreamService can wait for incoming connections.
         @postcondition: 'Owner' of name is the id of the context used to create 
             the StreamService.
@@ -153,6 +154,7 @@ class StreamService(Object, Monitorable, Permissions, Async):
             later call to 'serve' will not fail because of the information given
             by the URL - otherwise, a 'BadParameter' exception is thrown.
         """
+        self.delegateObject = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.stream.StreamService):
                 raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
@@ -181,10 +183,10 @@ class StreamService(Object, Monitorable, Permissions, Async):
 
     def get_url(self, tasktype=TaskType.NORMAL):
         """
-        Get URL to be used to connect to this server.
-        @summary: Get URL to be used to connect to this server.
+        Get the URL to be used to connect to this server.
+        @summary: Get the URL to be used to connect to this server.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: the URL of the connection.
         @rtype: L{URL}
@@ -233,7 +235,7 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @param timeout: number of seconds to wait for a client
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: new Connected Stream object
         @rtype: L{Stream}
@@ -305,7 +307,7 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @param timeout: seconds to wait
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: no clients are accepted anymore.
         @PostCondition: no callbacks registered for the "ClientConnect" metric 
@@ -418,7 +420,7 @@ class Stream(Object, Async, Attributes, Monitorable):
             - mode:  ReadWrite, optional
             - type:  Bool
             - value: True
-            - note: if the attribute is not supported, the implementation MUST be reliable
+            - note: if the attribute is not supported, the implementation is reliable
         
     B{Metrics supported:}
     
@@ -462,11 +464,22 @@ class Stream(Object, Async, Attributes, Monitorable):
             - type: Trigger
             - value: 1
             
-
+    @undocumented: __set_Bufsize
+    @undocumented: __get_Bufsize
+    @undocumented: __set_Timeout
+    @undocumented: __get_Timeout
+    @undocumented: __set_Blocking
+    @undocumented: __get_Blocking
+    @undocumented: __set_Compression
+    @undocumented: __get_Compression
+    @undocumented: __set_Nodelay
+    @undocumented: __get_Nodelay
+    @undocumented: __set_Reliable     
+    @undocumented: __get_Reliable
     """
     buffer_size = 4096
     
-    def __init__(self, url = "", session = Session() ):
+    def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL, **impl):
         """
         Initializes a client stream for later connection to a server.
         @summary: initializes a client stream for later connection to a server.
@@ -474,6 +487,10 @@ class Stream(Object, Async, Attributes, Monitorable):
         @param url: server location as URL
         @type session: L{Session}
         @type url: L{URL}
+        @param tasktype: return a normal Stream object or or return a 
+            Task object that creates the Stream object in a final, 
+            RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @PostCondition:   the state of the socket is "New".
         @permission: Query for the StreamService represented by url.
         @raise NotImplemented:
@@ -522,6 +539,8 @@ class Stream(Object, Async, Attributes, Monitorable):
 
     def __def__(self):
         """
+        Destroy a Stream object.
+        @summary: Destroy a Stream object.
         @note: If during the destruction of the object, the object was not 
             closed before, the destructor performs a close() on the instance, 
             and all notes to close() apply.
@@ -532,7 +551,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         Get URL used for creating the stream
         @summary: get URL used for creating the stream
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: the URL of the connection.
         @rtype: L{URL}
@@ -582,7 +601,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         Return remote authorization info
         @summary: return remote authorization info
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: remote context
         @rtype: L{Context}
@@ -606,7 +625,7 @@ class Stream(Object, Async, Attributes, Monitorable):
             raised.
         @Note: if no security information are available, the returned context 
             has the type "Unknown" and no attributes are attached.
-        @Note: the returned context MUST be authenticated, or must be of type 
+        @Note: the returned context is authenticated, or is of type 
             "Unknown" as described above.
         """
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
@@ -643,7 +662,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         @summary: Establishes a connection to the target defined during the 
             construction of the stream.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: the stream is in "NEW" state.
         @PostCondition: the stream is in "OPEN" state.
@@ -686,7 +705,6 @@ class Stream(Object, Async, Attributes, Monitorable):
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e) 
 
-
     def wait(self, what, timeout = -1.0, tasktype=TaskType.NORMAL):
         """
         Check if stream is ready for reading/writing, or if it has entered an 
@@ -698,7 +716,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         @param timeout: number of seconds to wait
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: activity type causing the call to return
         @rtype: int
@@ -783,7 +801,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         @param timeout: seconds to wait
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: stream is in "Closed" state
         @raise NotImplemented:
@@ -866,7 +884,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         @param buf: buffer to store read data into
         @type buf: L{Buffer}
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: string containing the data or the number of bytes read, if 
             successful. 
@@ -998,7 +1016,7 @@ class Stream(Object, Async, Attributes, Monitorable):
         @param buf: buffer containing data that will be sent out via socket
         @type buf: L{Buffer} or string
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: nr of bytes written if successful
         @PreCondition: the stream is in "OPEN" state.
@@ -1034,9 +1052,6 @@ class Stream(Object, Async, Attributes, Monitorable):
         if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
             raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
-
-
-
         if tasktype == TaskType.NORMAL:
             if type (size)is not int:
                 raise BadParameter, "Parameter size is not an int. Type: " \
@@ -1086,4 +1101,61 @@ class Stream(Object, Async, Attributes, Monitorable):
 
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
+
+    def __set_Bufsize(value):
+        set_attribute("Bufsize", value)
         
+    def __get_Bufsize():
+        return get_attribute("Bufsize")  
+
+    Bufsize = property(__get_Bufsize, __set_Bufsize,
+            doc="""The Bufsize attribute. \n@type: int""")
+
+    def __set_Timeout(value):
+        set_attribute("Timeout", value)
+        
+    def __get_Timeout():
+        return get_attribute("Timeout")  
+
+    Timeout = property(__get_Timeout, __set_Timeout,
+            doc="""The Timeout attribute. \n@type: int""")
+
+
+    def __set_Blocking(value):
+        set_attribute("Blocking", value)
+        
+    def __get_Blocking():
+        return get_attribute("Blocking")  
+
+    Blocking = property(__get_Blocking, __set_Blocking,
+            doc="""The Blocking attribute. \n@type: bool""")
+
+    def __set_Compression(value):
+        set_attribute("Compression", value)
+        
+    def __get_Compression():
+        return get_attribute("Compression")  
+
+    Compression = property(__get_Compression, __set_Compression, 
+                           doc="""The Compression attribute. \n@type: bool""")
+
+    def __set_Nodelay(value):
+        set_attribute("Nodelay", value)
+        
+    def __get_Nodelay():
+        return get_attribute("Nodelay")  
+    
+    Nodelay = property(__get_Nodelay, __set_Nodelay,
+            doc="""The Nodelay attribute. \n@type: bool""")
+
+
+    def __set_Reliable(value):
+        set_attribute("Reliable", value)
+        
+    def __get_Reliable():
+        return get_attribute("Reliable")  
+
+    Reliable = property(__get_Reliable, __set_Reliable, 
+            doc="""The Reliable attribute. \n@type: bool""")
+     
+  

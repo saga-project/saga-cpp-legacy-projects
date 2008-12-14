@@ -1,8 +1,11 @@
 # Package: saga
 # Module: permissions 
-# Description: The module which specifies the classes concerning the permissions used in saga
-# Specification and documentation can be found in section 3.6, page 87-100 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Description: The module which specifies the classes concerning the 
+#    permissions used in saga
+# Specification and documentation can be found in section 3.7, page 87-100 
+#    of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from saga.task import Async
 from saga.error import NotImplemented
@@ -29,33 +32,53 @@ class Permission(object):
     """
     
     NONE = 0
-    """No permission whatsoever. """
+    """
+    No permission whatsoever. 
+    """
     
     QUERY = 1
-    """ This permission identifies the ability to access all meta data of an entity, and thus to obtain any information about an entity.  """
+    """
+    This permission identifies the ability to access all meta data of an entity, 
+    and thus to obtain any information about an entity.  
+    """
     
     READ = 2
-    """This permission identifies the ability to access the contents and the output of an entity"""
+    """
+    This permission identifies the ability to access the contents and the 
+    output of an entity
+    """
 
     WRITE = 4
-    """This permission identifies the ability to manipulate the contents of an entity."""
+    """
+    This permission identifies the ability to manipulate the contents of an 
+    entity.
+    """
     
     EXEC = 8    
-    """This permission identifies the ability to perform an action on an entity. """
+    """
+    This permission identifies the ability to perform an action on an entity. 
+    """
     
     OWNER = 16
-    """This permission identifies the ability to change permissions and ownership of an entity."""
+    """
+    This permission identifies the ability to change permissions and ownership 
+    of an entity.
+    """
     
     ALL = 31
-    """All the permissions. """
+    """
+    All the permissions. 
+    """
 
 class Permissions(Async):
     """
     Permissions provides a generic interface for applications to allow or deny
-    specific operations on SAGA objects or grid entities, such as files, streams, or
-    monitorables, and to query and set such permissions
+    specific operations on SAGA objects or grid entities, such as files, 
+    streams, or monitorables, and to query and set such permissions
+    
+    @undocumented: __get_group
+    @undocumented: __get_owner
     """   
-    delegateObject = None
 
     def permissions_allow(self, id, perm, tasktype=TaskType.NORMAL):
         """
@@ -65,8 +88,10 @@ class Permissions(Async):
         @type id: string
         @param perm: permissions to enable
         @type perm: int
-        @param type: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
-        @type type: int
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @PostCondition: the permissions are enabled.
         @Permission: Owner
         @raise NotImplemented:
@@ -78,8 +103,8 @@ class Permissions(Async):
         @raise NoSuccess:
         @Note: an id '*' sets the permissions for all (world)
         @note: the 'Owner' permission can not be set to the id '*' (all).
-        @note: if the given id is unknown or not supported, a 'BadParameter' exception is raised.
-
+        @note: if the given id is unknown or not supported, a 'BadParameter' 
+            exception is raised.
         """
         if type(id) is not str:
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
@@ -110,7 +135,9 @@ class Permissions(Async):
         @param id: id to set permissions for
         @type id: string
         @param perm: permissions to disable
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: int 
         @PostCondition: the permissions are disabled.
         @permission: Owner
@@ -123,8 +150,8 @@ class Permissions(Async):
         @raise NoSuccess:
         @Note: an id '*' sets the permissions for all (world)
         @note: the 'Owner' permission can not be set to the id '*' (all).
-        @note: if the given id is unknown or not supported, a 'BadParameter' exception is raised.
-
+        @note: if the given id is unknown or not supported, a 'BadParameter' 
+            exception is raised.
         """
         if type(id) is not str:
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
@@ -156,9 +183,12 @@ class Permissions(Async):
         @type id: string
         @param perm: permissions to check
         @type perm: int
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: int        
-        @return: indicates if, for that id, the permissions are granted (True) or not (False).
+        @return: indicates if, for that id, the permissions are granted (True) 
+            or not (False).
         @rtype: bool
         @permission:    Query
         @raise NotImplemented:
@@ -169,9 +199,10 @@ class Permissions(Async):
         @raise Timeout:
         @raise NoSuccess:
         @Note: an id '*' gets the permissions for all (world)
-        @note: 'True' is only returned when all permissions specified in 'perm' are set for the given id.
-        @note: if the given id is unknown or not supported, a 'BadParameter' exception is raised.
-
+        @note: 'True' is only returned when all permissions specified in 'perm' 
+            are set for the given id.
+        @note: if the given id is unknown or not supported, a 'BadParameter' 
+            exception is raised.
         """
         if type(id) is not str:
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
@@ -205,7 +236,9 @@ class Permissions(Async):
         @summary: Get the owner of the entity.
         @return: id of the owner
         @rtype: string
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: int        
         @permission: Query
         @raise NotImplemented:
@@ -215,9 +248,9 @@ class Permissions(Async):
         @raise Timeout:
         @raise NoSuccess:
         @Note: returns the id of the owner of the entity
-        @note: an entity which extends Permissions, always has exactly one owner: this
-             method does not return an empty string, '*' (all), or a group id.
-
+        @note: an entity which extends Permissions, always has exactly one 
+            owner: this method does not return an empty string, '*' (all), or 
+            a group id.
         """
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
@@ -241,7 +274,9 @@ class Permissions(Async):
         """
         Get the group owning the entity.
         @summary:  Get the group owning the entity.
-        @param tasktype: return the normal return values or a Task object in a final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: int
         @return: id of the group
         @rtype: string
@@ -253,7 +288,8 @@ class Permissions(Async):
         @raise Timeout:
         @raise NoSuccess:
         @note: returns the id of the group owning the entity
-        @note: if the implementation does not support groups, the method returns an empty string.
+        @note: if the implementation does not support groups, the method 
+            returns an empty string.
         """
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
@@ -273,3 +309,15 @@ class Permissions(Async):
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)     
 
+    def __get_group(self):
+        return self.get_group()
+
+    group = property(__get_group,
+            doc="""The id of the group owning the entity.\n@type: string""")
+
+    def __get_owner(self):
+        return self.get_owner()
+
+    owner = property(__get_owner,
+            doc="""The id of the owner of the entity.\n@type: string""")
+        

@@ -1,8 +1,11 @@
-# Package: saga 
+# Package: saga
 # Module: object 
-# Description: The module which specifies the base SAGA object class and ObjectType class
-# Specification and documentation can be found in section 3.2, page 47-52 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Description: The module which specifies the base SAGA object class and 
+#    ObjectType class
+# Specification and documentation can be found in section 3.2, page 47-52 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -60,7 +63,6 @@ class Object(object):
     @version: 1.0
     
     """
-    delegateObject = None
         
     def get_id(self):
         """
@@ -216,3 +218,10 @@ class Object(object):
 
 #DOCUMENT: python readlines does not live up to its own description.    
 #DOCUMENT: Document SagaIOException -> NoSucces IOError, multiple inheritence 
+
+    id = property(get_id, 
+            doc="""The object ID.\n@type: string""")
+    type= property(get_type,
+            doc="""The object type.\n@type: int""")
+    session= property(get_session,
+            doc="""The L{Session} of the object.\n@type:L{Session}""")

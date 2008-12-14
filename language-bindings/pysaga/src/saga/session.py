@@ -1,8 +1,10 @@
 # Package: saga
 # Module: session 
 # Description: The module which specifies the session used in saga
-# Specification and documentation can be found in section 3.5, page 75-80 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Specification and documentation can be found in section 3.5, 
+#    page 75-80 of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from object import Object, ObjectType
 from attributes import Attributes
@@ -28,7 +30,6 @@ class Session(Object):
              default session, with all the default contexts attached. The application can then
              change the properties of the default session, which is continued to be implicetly used on
              the creation of all saga objects, unless specified otherwise.
-
         """
         pass
         

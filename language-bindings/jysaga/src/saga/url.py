@@ -1,16 +1,15 @@
 # Package: saga
 # Module: url 
 # Description: The module which specifies the url class used in saga
-# Specification and documentation can be found in section 3.3, page 53-58 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Specification and documentation can be found in section 3.3, page 53-58 
+#    of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 #DOCUMENT: second constructor delegateObject see IMPL
-
 from saga.object import Object, ObjectType
 from saga.error import BadParameter
-
 from org.ogf.saga.url import URLFactory, URL
-
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
 import org.ogf.saga.error.AuthorizationFailedException
@@ -30,7 +29,6 @@ class URL(Object):
     URLs are used to reference remote entities.
     @version: 1.0
     """
-    delegateObject = None
 
     def __init__(self, url="", **impl):
         """
@@ -46,6 +44,7 @@ class URL(Object):
             interpretation of the URL is not part of this class' functionality.   
 
         """
+        self.delegateObject = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.url.URL):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.url.URL. Type: " + str(impl["delegateObject"].__class__)
@@ -385,10 +384,6 @@ class URL(Object):
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)    
         
-###################################
-#    Inherited from Object        #
-###################################
-
 #TODO: Object methodes in URL
 
     def get_id(self):
@@ -445,4 +440,24 @@ class URL(Object):
         """
         from saga.error import NotImplemented
         raise NotImplemented, "clone() is not yet implemented in this object"
+    
+
+
+    
+    string = property(get_string, set_string, 
+            doc="""The complete URL string. \n@type: string""")    
+    scheme = property(get_scheme, set_scheme, 
+            doc="""Scheme part of the URL string. \n@type: string""")
+    host = property(get_host, set_host, 
+            doc="""Host part of the URL string. \n@type: string""")
+    port = property(get_port, set_port, 
+            doc="""Port part of the URL string. \n@type: int""")
+    fragment = property(get_fragment, set_fragment, 
+            doc="""Fragment part of the URL string. \n@type: string""")
+    path = property(get_path, set_path, 
+            doc="""Path part of the URL string. \n@type: string""")
+    query = property(get_query, set_query, 
+            doc="""Query part of the URL string. \n@type: string""")
+    userinfo = property(get_userinfo, set_userinfo, 
+            doc="""User information part of the URL string. \n@type: string""")
     

@@ -23,7 +23,7 @@ class SagaException(Exception):
 		"""
 		pass
 
-	def get_message():
+	def get_message(self):
 		"""
 		Returns the message associated with the exception.
 		@summary: Returns the message associated with the exception.
@@ -32,7 +32,7 @@ class SagaException(Exception):
 		"""
 		pass
 
-	def get_object():
+	def get_object(self):
 		"""
 		Returns the SAGA base L{Object} associated with the exception.
 		@summary: Returns the SAGA base L{Object} associated with the exception.

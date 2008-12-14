@@ -10,13 +10,12 @@
 from saga.buffer import Buffer
 from saga.object import Object, ObjectType
 from saga.permissions import Permissions
-from saga.task import Async, Task, TaskType
+from saga.task import Async, TaskType, Task
 from saga.session import Session
 
 import array.array
 import jarray.array
 import jarray.zeros
-
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
 import org.ogf.saga.error.AuthorizationFailedException
@@ -30,11 +29,9 @@ import org.ogf.saga.error.PermissionDeniedException
 import org.ogf.saga.error.SagaException 
 import org.ogf.saga.error.SagaIOException 
 import org.ogf.saga.error.TimeoutException
-
 import org.ogf.saga.rpc.IOMode
 import org.ogf.saga.rpc.Parameter
 from org.ogf.saga.rpc import RPCFactory
-
 
 class IOMode(object):
     """
@@ -72,13 +69,9 @@ class Parameter(Object):
     @summary: Parameter can be used to define input, inout and output parameters 
         for RPC calls.
     """
-    delegateObject = None
-    managedByImp = None
-    implementation_data = None
-#    application_data = None
     
-    
-    def __init__(self, data = None, size = -1, mode = IOMode.IN):
+    #TODO: buffer methods.
+    def __init__(self, data=None, size=-1, mode=IOMode.IN, **impl):
         """
         Initialize an parameter instance.
         @summary: Initialize an parameter instance.
@@ -95,15 +88,15 @@ class Parameter(Object):
             implementation managed IN Parameter, which data has yet to be set.
         @note: If data is an array or list of chars it works identical to Buffer
             or Iovec and creates an application managed buffer
-        @note: For IN and IOOUT Parameters, it is also possible to use normal 
-            types, such as int, long, bool, float, str, or lists or arrays of them. 
-            Which types, How and if they are interpreted is dependent of the 
-            underlying RPC implementation.
-        @note: For IN and IOOUT Parameters, it is also possible to use normal 
+        @note: For IN and INOUT Parameters, it is also possible to use normal 
             types, such as int, char, long, bool, float, str, or lists of them.
-            Arrays of chars ('b') can be used if bytes are expected. Which types, 
-            how and if they are interpreted is dependent of the underlying 
-            implementation.
+            Arrays of chars ('c') can be used if bytes are expected. Which 
+            types, how and if they are interpreted is dependent of the 
+            underlying implementation.
+        @note: For OUT Parameters with size -1 it is possible to retreive
+            normal types, such as int, long, bool, float, str, or lists or of 
+            them, through the get_data() method after the call(). Which types 
+            will be returned is dependent of the underlying implementation.
         @note: The mode value has to be initialized for each parameter, and size 
             and buffer values have to be initialized for each In and InOut 
             Parameter. For OUT parameters, size may have the value -1 in which 
@@ -114,9 +107,13 @@ class Parameter(Object):
         @note: When an Out or InOut Parameter uses a pre-allocated buffer, any 
             data exceeding the buffer size are discarded. The application is 
             responsible for specifying correct buffer sizes for pre-allocated 
-            buffers; otherwise the behaviour is undeﬁned.
+            buffers; otherwise the behaviour is undefined.
         @Note: all notes from the saga.buffer.Buffer.__init__() apply.
         """
+        self.delegateObject = None
+        self.managedByImp = None
+        self.implementation_data = None
+        #self.application_data = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.rpc.Parameter):
                 raise BadParameter("Parameter impl[\"delegateObject\"] is not a "\
@@ -475,7 +472,7 @@ class RPC(Object, Permissions, Async ):
     """
      
      
-    def __init__(self, funcname, session = Session() ):
+    def __init__(self, funcname, session=Session(), tasktype=TaskType.NORMAL, **impl):
         """
         Initializes a remote function handle
         @summary: Initializes a remote function handle
@@ -483,6 +480,10 @@ class RPC(Object, Permissions, Async ):
         @type session: L{Session<saga.session.Session>} object
         @param funcname: name of remote method to initialize
         @type funcname: L{URL} 
+        @param tasktype: return a normal RPC object or a Task object that 
+            creates a RPC object in a final, RUNNING or NEW state. By default, 
+            tasktype is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}        
         @PostCondition: the instance is open.
         @Permission: Query
         @raises NotImplemented:
@@ -523,6 +524,8 @@ class RPC(Object, Permissions, Async ):
 
     def __del__(self):
         """
+        Destroys the RPC object.
+        @summary: Destroys the RPC object.
         @postcondition: the instance is closed.
         @Note: if the instance was not closed before, the destructor performs a 
             close() on the instance, and all notes to close() apply.
@@ -530,11 +533,7 @@ class RPC(Object, Permissions, Async ):
         Async.__del__()
         Permissions.__del__()
         Object.__del__() 
-        try:
-            self.close()
-        except:
-            pass
-
+        self.close()
     
     def call(self, parameters, tasktype=TaskType.NORMAL):
         """
@@ -543,7 +542,8 @@ class RPC(Object, Permissions, Async ):
         @param parameters: argument/result values for call
         @type parameters: list of Parameters
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: the instance is open.
         @PostCondition: the instance is avaiable for another call() invocation, 
@@ -626,7 +626,8 @@ class RPC(Object, Permissions, Async ):
         @param timeout: seconds to wait
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: the instance is closed.
         @raise NotImplemented:

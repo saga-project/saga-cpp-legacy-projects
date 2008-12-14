@@ -2,8 +2,8 @@
 # Module: task 
 # Description: The module which specifies the classes concerning the Task model 
 #    in saga
-# Specification and documentation can be found in section 3.10, page 140-162 of 
-#    the GFD-R-P.90 document
+# Specification and documentation can be found in section 3.10, page 140-162 
+#    of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
 #    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
@@ -79,8 +79,7 @@ class WaitMode(object):
     """
     ALL = 0  
     """
-    @summary: wait() returns if all Tasks in the container reached a final 
-        state
+    @summary: wait() returns if all Tasks in the container reached a final state
     """
     
     ANY = 1
@@ -99,7 +98,7 @@ class Async(object):
 class TaskType(object):
     """
     The variables in this class are used in classes which support the Task model
-    to specify which version of the method they want to use. Classes supporting
+    to specify which version of the method they want to use. Classes supporting 
     the Task model subclass L{Async}.
     """
     # Java way is
@@ -119,8 +118,8 @@ class TaskType(object):
 class Task(Object, Monitorable):
     """
     Tasks represent asynchronous API calls. They are only created
-    by invoking an asynchronous method (Tasks should not be created directly) on
-    a SAGA object which returns a Task object (with saga.Task.Async or 
+    by invoking an asynchronous method (Tasks should not be created directly) 
+    on a SAGA object which returns a Task object (with saga.Task.Async or 
     saga.Task.Task). But as saga.job.Job instances inherit from the Task class, 
     Jobs are also effectively created as Tasks. If a Task gets created, it will 
     share the state of the object it was created from.
@@ -135,16 +134,15 @@ class Task(Object, Monitorable):
             - value: 0
 
     """
-    delegateObject = None
-    fileReadBuffer = None
-    taskFailed = False
-    failureCause = None
-    taskWasRunJob = False
-    name = None
     
     def __init__(self, **impl):
         #no constructor
-        super(Task,self).__init__()
+        self.delegateObject = None
+        self.fileReadBuffer = None
+        self.taskFailed = False
+        self.failureCause = None
+        self.taskWasRunJob = False
+        self.name = None
         if "fileReadBuffer" in impl:
             from saga.file import Iovec
             if not isinstance(impl["fileReadBuffer"], org.ogf.saga.buffer.Buffer) \
@@ -186,9 +184,9 @@ class Task(Object, Monitorable):
         """
         Destroy the object.
         @PostCondition: state is no longer shared with the object the Task was 
-            created from.
+           created from.
         @PostCondition: the Task instance is 'CANCELED' prior to resource 
-            deallocation.
+           deallocation.
         @Note: if the instance was not in a final state before, the destructor 
            performs a cancel() on the instance, and all notes to cancel() apply.
         """
@@ -205,7 +203,7 @@ class Task(Object, Monitorable):
         @postcondition: Task is in 'RUNNING' state
         @permission: appropriate permissions for the method represented by the 
             Task
-        @raise  NotImplemented:
+        @raise NotImplemented:
         @raise IncorrectState:
         @raise Timeout:
         @raise NoSuccess:
@@ -223,7 +221,6 @@ class Task(Object, Monitorable):
             raise self.convertException(e)
     
     def cancel(self, timeout=0.0):
-        #in float timeout = 0.0
         """
         Cancel the asynchronous operation.
         @summary:  Cancel the asynchronous operation.
@@ -267,7 +264,6 @@ class Task(Object, Monitorable):
 #TODO: check type checking default parameters for methods in for all!! classes.     
 
     def wait(self, timeout=-1.0):
-        #in float timeout = -1.0, out boolean finished
         """
         Wait for the Task to finish.
         @summary:  Wait for the Task to finish.
@@ -502,7 +498,7 @@ class Task(Object, Monitorable):
         Get the object from which this Task was created.
         @summary: Get the object from which this Task was created.
         @return: object this Task was created from
-        @rtype I{<object>}
+        @rtype: I{<Object>}
         @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
@@ -580,6 +576,18 @@ class Task(Object, Monitorable):
         @rtype: int
         """
         return ObjectType.TASK
+
+    state = property(get_state, 
+            doc="""The state of the Task. \n@type: int""")    
+    
+    result = property(get_result, 
+            doc="""The result of the async operation. \
+            Accessing this property implies a wait until the result is \
+            available \n@type: <return value>""")
+    
+    object = property(get_object, 
+            doc="""The object from which the task was created.\
+            \n@type: <Object>""")
     
 class TaskContainer(Object, Monitorable):
     """
@@ -600,7 +608,6 @@ class TaskContainer(Object, Monitorable):
             - value: -
 
     """
-    delegateObject = None
     
     def __init__(self, **impl ):
         """
@@ -612,6 +619,7 @@ class TaskContainer(Object, Monitorable):
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
             was not able to create a TaskContainer.
         """
+        self.delegateObject = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.task.TaskContainer):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not"\
@@ -624,6 +632,16 @@ class TaskContainer(Object, Monitorable):
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
        
+    def __del__(self):
+        """
+        Destroy the TaskContainer.
+        @summary: Destroy the TaskContainer.
+        @note: Tasks in the TaskContainer during its destruction are not 
+            affected by its destruction, and, in particular, are not canceled.
+        """
+		#TODO: implement taskcontainer.__del__()
+
+
     def add(self, task):
         """
         Add a Task to a TaskContainer.
@@ -631,13 +649,13 @@ class TaskContainer(Object, Monitorable):
         @param task: Task to add to the TaskContainer
         @type task: L{Task}
         @return: cookie identifying the added Task
-        @rtype int
+        @rtype: int
         @postcondition: the Task is managed by the Task container.
         @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
         @note: a Task can be added only once. Any attempt to add a Task to the 
-            container which already is in the container is silently ignored, and 
+            container which already is in the container is silently ignored, and
             the same cookie as for the original Task is returned again.
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
             was not able to add the Task to the container.
@@ -670,7 +688,7 @@ class TaskContainer(Object, Monitorable):
         @raise DoesNotExist:
         @raise Timeout:
         @raise NoSuccess:
-        @note: if a Task was added more than once, it can be removed only once - 
+        @note: if a Task was added more than once, it can be removed only once -
             see notes to add().
         @note: if the Task identified by the cookie is not in the TaskContainer, 
             a 'DoesNotExist' exception is raised.
@@ -724,8 +742,8 @@ class TaskContainer(Object, Monitorable):
         @type timeout: float
         @return: finished Task or one of all the finished Tasks
         @rtype: L{Task}
-        @postcondition: if no timeout occurs, All/Any Tasks in the container are 
-            in a final state.
+        @postcondition: if no timeout occurs, All/Any Tasks in the container 
+            are in a final state.
         @raise NotImplemented:
         @raise IncorrectState:
         @raise DoesNotExist:
@@ -779,7 +797,7 @@ class TaskContainer(Object, Monitorable):
             raise self.convertException(e)  
 #TODO: add object reference to Task. Add in each Method giving a task        
         
-    def cancel(self, timeout = 0.0):
+    def cancel(self, timeout=0.0):
         """
         Cancel all the asynchronous operations in the container.
         @summary:  Cancel all the asynchronous operations in the container.
@@ -834,14 +852,13 @@ class TaskContainer(Object, Monitorable):
         except org.ogf.saga.error.SagaException, e:
              raise self.convertException(e)       
         
-        
     def list_tasks(self):
         """
         List the Tasks in the TaskContainer.
         @summary: List the Tasks in the TaskContainer.
-        @return: tuple of cookies for all Tasks in TaskContainer
-        @rtype: tuple
-        @raise   NotImplemented:
+        @return: list of cookies for all Tasks in TaskContainer
+        @rtype: list
+        @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
         @note: a 'Timeout' or 'NoSuccess' exception indicates that the backend 
@@ -926,7 +943,14 @@ class TaskContainer(Object, Monitorable):
         for i in range(len(javaArray)):
             list.append(javaArray[i].getValue())
         return list
+
+    cookies = property(list_tasks, 
+            doc="""List of cookies from the Tasks in the TaskContainer.\
+             \n@type: list""")
     
+    tasks = property(get_tasks,
+            doc="""List of the Tasks in the TaskContainer. \n@type: list""") 
+
     def get_type(self):
         """
         Query the object type.

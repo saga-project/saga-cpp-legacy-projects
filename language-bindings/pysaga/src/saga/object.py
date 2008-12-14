@@ -1,8 +1,11 @@
 # Package: saga
 # Module: object 
-# Description: The module which specifies the base SAGA object class and ObjectType class
-# Specification and documentation can be found in section 3.2, page 47-52 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Description: The module which specifies the base SAGA object class and 
+#    ObjectType class
+# Specification and documentation can be found in section 3.2, page 47-52 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from error import NotImplemented
 

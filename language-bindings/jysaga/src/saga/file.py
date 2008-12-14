@@ -14,16 +14,11 @@ from saga.url import URL
 import array.array
 import jarray.array
 
-#import org.ogf.saga.url.URLFactory;
-#import org.ogf.saga.url.URL;
-#import org.ogf.saga.namespace.Flags;
-#import org.ogf.saga.file.File;
 from org.ogf.saga.file import FileFactory
 from org.ogf.saga.task import TaskMode
 from org.ogf.saga.buffer import BufferFactory
 import org.ogf.saga.file.SeekMode
 
-#import java.lang.Exception;
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
 import org.ogf.saga.error.AuthorizationFailedException
@@ -40,7 +35,8 @@ import org.ogf.saga.error.TimeoutException
 
 class Flags(object):
     """
-    The flags describe the properties of several operations on file and directory instances.
+    The flags describe the properties of several operations on file and 
+    directory instances.
     """
     NONE          = 0 
     OVERWRITE     = 1
@@ -66,17 +62,13 @@ class SeekMode(object):
 class Iovec(Buffer, Object):
     """
     The iovec class inherits the Buffer class, and three additional state
-    attributes: offset, len in and len out (with the latter one being read-only).
-    With that addition, the new class can be used very much the same way as the
-    iovec structure defined by POSIX for readv/writev, with the buffer len in
-    beeing interpreted as the POSIX iov len, i.e. the number of bytes to read/write.
-
+    attributes: offset, len in and len out (with the latter one being 
+    read-only). With that addition, the new class can be used very much the 
+    same way as the iovec structure defined by POSIX for readv/writev, with the 
+    buffer len in being interpreted as the POSIX iov len, i.e. the number of 
+    bytes to read/write.
     """
-    delegateObject = None
-    managedByImp = True
-    array = None
-    applicationBuf = None
-    closed = False
+
 
     def __init__(self, size = -1, data = None, len_in = -1, offset = 0, **impl):
         #in array<byte> data = "", in int size = 0, in int offset = 0, in int len_in = size, out buffer obj
@@ -86,7 +78,8 @@ class Iovec(Buffer, Object):
         @param size: size of data to be used
         @param data: data to be used
         @param offset: offset for I/O operation
-        @param len_in: number of units to read or write on read_v/write_v. default -1 means that len_in is size
+        @param len_in: number of units to read or write on read_v/write_v. 
+            default -1 means that len_in is size
         @type size: int
         @type offset: int
         @type len_in: int
@@ -94,8 +87,15 @@ class Iovec(Buffer, Object):
         @raise BadParameter:
         @raise NoSuccess:
         @Note: all notes from the buffer __init__() apply.
-        @Note: if len_in is larger than size, and size is not given as -1, a BadParameter exception is raised.
+        @Note: if len_in is larger than size, and size is not given as -1, a 
+            BadParameter exception is raised.
         """
+        self.delegateObject = None
+        self.managedByImp = True
+        self.array = None
+        self.applicationBuf = None
+        self.closed = False
+
 
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.file.IOVec):
@@ -166,7 +166,8 @@ class Iovec(Buffer, Object):
         @summary: set offset
         @param offset: value for offset
         @type offset: int
-        @raise BadParameter: if offset is smaller that zero, a BadParameter exception is raised.
+        @raise BadParameter: if offset is smaller that zero, a BadParameter 
+            exception is raised.
         """
         if type(offset) is not int:
             raise BadParameter, "Parameter offset is not an int. Type: " + str(type(offset)) 
@@ -174,7 +175,6 @@ class Iovec(Buffer, Object):
             self.delegateObject.setOffset(offset)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
-
 
     def get_offset (self):
         #out int offset);
@@ -195,7 +195,8 @@ class Iovec(Buffer, Object):
         Set len_in
         @param len_in: value for len_in (see __init__)
         @type len_in: int
-        @raise BadParameter: if len_in is larger than size, and size is not set to -1, a BadParameter exception is raised.
+        @raise BadParameter: if len_in is larger than size, and size is not set 
+            to -1, a BadParameter exception is raised.
         """
         try:
             return self.delegateObject.setLenIn(len_in)
@@ -221,9 +222,11 @@ class Iovec(Buffer, Object):
         Retrieve the value for len_out
         @return: value of len_out
         @rtype: int
-        @Note: len_out reports the number of units read or written in a completed read_w or write_w operation.
+        @Note: len_out reports the number of units read or written in a 
+            completed read_w or write_w operation.
         @Note: before completion of the operation, the returned value is -1.
-        @Note: for implementation managed memory, the value of len_out is always the same as for size.
+        @Note: for implementation managed memory, the value of len_out is always 
+            the same as for size.
         """
         try:
             return self.delegateObject.getLenOut()
@@ -270,13 +273,14 @@ class Iovec(Buffer, Object):
 
 class File(NSEntry):
     """
-    This class represents an open file descriptor for read/write operations on a 
-    physical file
+    This class represents an open file descriptor for read/write operations on 
+    a physical file
 
     """
-    delegateObject = None
     
-    def __init__(self, name, session = Session(), flags=Flags.READ, **impl):
+    
+    def __init__(self, name, session=Session(), flags=Flags.READ, 
+								tasktype=TaskType.NORMAL **impl):
         """
         Initialize the File object
         @summary: initialize the File object
@@ -286,6 +290,10 @@ class File(NSEntry):
         @type session: L{Session}
         @type name: L{URL}
         @type flags: int
+        @param tasktype: return a normal File object or a Task object that 
+            creates a File in a final, RUNNING or NEW state. By default, type 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the file is opened.
         @postcondition: Owner of target is the id of the context use to perform 
             the opereration, if the file gets created.
@@ -306,6 +314,7 @@ class File(NSEntry):
         @Note: all notes from the Directory.open() method apply.
         @Note: the default flags are READ (512).
         """
+        self.delegateObject = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.file.File):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not"\
@@ -336,6 +345,10 @@ class File(NSEntry):
         Returns the number of bytes in the file
         @summary: returns the number of bytes in the file
         @return: number of bytes in the file
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @rtype: int
         @permission: Query
         @raise NotImplemented:
@@ -398,6 +411,10 @@ class File(NSEntry):
         @param buf: buffer to read data into
         @type size: int
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of bytes successfully read or string containing the 
             read data 
         @rtype: int or string
@@ -415,18 +432,18 @@ class File(NSEntry):
             fact zero bytes, e.g. at the end of the file.
         @Note: errors are indicated by returning negative values, which 
             correspond to negatives of the respective POSIX ERRNO error code.
-        @Note: the file pointer is positioned at the end of the byte area
+        @Note: the file pointer is positioned at the end of the byte area 
             successfully read during this call.
-        @Note: the given buffer must be able to grow large enough to store up to
-            size bytes, or managed by the implementation - otherwise a 
+        @Note: the given buffer must be able to grow large enough to store up 
+            to size bytes, or managed by the implementation - otherwise a 
             BadParameter exception is raised.
         @Note: the notes about memory management from the buffer class apply.
         @Note: if the file was opened in write-only mode (i.e. no READ or 
             READWRITE flag was given), this method raises an PermissionDenied 
             exception.
         @Note: if size is smaller than 0, or not given, the buffer size is used 
-            for size. If that is also not available, a BadParameter exception is 
-            raised.
+            for size. If that is also not available, a BadParameter exception 
+            is raised.
         @Note: similar to read (2) as specified by POSIX
         """
         
@@ -494,12 +511,18 @@ class File(NSEntry):
     def write(self, buf, size = -1, tasktype=TaskType.NORMAL):
         # (in buffer buf, in int size_in = -1, out int size_out ):
         """
-        Writes up to size from buffer into the file at the current file position.
-        @summary: writes up to size from buffer into the file at the current file position.
+        Writes up to size from buffer into the file at the current file 
+        position.
+        @summary: writes up to size from buffer into the file at the current 
+            file position.
         @param buf:  buffer to write data from       
         @param size: number of bytes to write
         @type buf: L{Buffer} or string
         @type size: int
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of bytes successfully written
         @rtype: int
         @postcondition: the buffer data are written to the file.
@@ -512,17 +535,22 @@ class File(NSEntry):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: errors are indicated by returning negative values, which correspond to
-                 negatives of the respective POSIX ERRNO error code.
-        @Note: the file pointer is positioned at the end of the byte area written during this call.
-        @Note: if the file was opened in read-only mode (i.e. no WRITE or READWRITE flag was given), this
-                 method raises an PermissionDenied exception.
-        @Note: the given buffer must hold enough data to write - otherwise, only the available data
-                 will be written, and the returned value will be set to the number of bytes written.
+        @Note: errors are indicated by returning negative values, which 
+            correspond to negatives of the respective POSIX ERRNO error code.
+        @Note: the file pointer is positioned at the end of the byte area 
+            written during this call.
+        @Note: if the file was opened in read-only mode (i.e. no WRITE or 
+            READWRITE flag was given), this method raises an PermissionDenied 
+            exception.
+        @Note: the given buffer must hold enough data to write - otherwise, 
+            only the available data will be written, and the returned value 
+            will be set to the number of bytes written.
         @Note: the notes about memory management from the buffer class apply.
-        @Note: if size is smaller than 0, or not given, the buffer size is used for size.
-                 If that is also not available, a BadParameter exception is raised.
-        @Note: if data are written beyond the current end of file, the intermediate gap is filled with null bytes.
+        @Note: if size is smaller than 0, or not given, the buffer size is used 
+            for size. If that is also not available, a BadParameter exception 
+            is raised.
+        @Note: if data are written beyond the current end of file, the 
+            intermediate gap is filled with null bytes.
         @Note: similar to write (2) as specified by POSIX
 
         """
@@ -563,9 +591,7 @@ class File(NSEntry):
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
-
-
-    def seek (self, offset, whence = SeekMode.START, tasktype=TaskType.NORMAL ):
+    def seek (self, offset, whence=SeekMode.START, tasktype=TaskType.NORMAL):
         #return out int position
         """
         Reposition the file pointer
@@ -574,9 +600,14 @@ class File(NSEntry):
         @param whence: offset is relative to whence
         @type offset: int
         @type whence: int
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: position of pointer after seek
         @rtype: int
-        @postcondition: the file pointer is moved to the new position. Following read() or write() operations use that position.
+        @postcondition: the file pointer is moved to the new position. Following 
+            read() or write() operations use that position.
         @permission: Read or Write.
         @raise NotImplemented:
         @raise IncorrectState:
@@ -585,16 +616,22 @@ class File(NSEntry):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @Note: seek repositions the file pointer for subsequent read, write and seek calls.
-        @Note: initially (after open), the file pointer is positioned at the beginning of the file,
-                 unless the Append flag was given - then the initial position is the end of the file.
-        @Note: the repositioning is done relative to the position given in Whence, so relative to
-                 the BEGIN or END of the file, or to the CURRENT position.
-        @Note: errors are indicated by returning negative values for len_out, which correspond to
-                 negatives of the respective POSIX ERRNO error code.
-        @Note: the file pointer can be positioned after the end of the file without extending it.
+        @Note: seek repositions the file pointer for subsequent read, write and 
+            seek calls.
+        @Note: initially (after open), the file pointer is positioned at the 
+            beginning of the file, unless the Append flag was given - then the 
+            initial position is the end of the file.
+        @Note: the repositioning is done relative to the position given in 
+            Whence, so relative to the BEGIN or END of the file, or to the 
+            CURRENT position.
+        @Note: errors are indicated by returning negative values for len_out, 
+            which correspond to negatives of the respective POSIX ERRNO error 
+            code.
+        @Note: the file pointer can be positioned after the end of the file 
+            without extending it.
         @Note: the given offset can be positive, negative, or zero.
-        @Note: note that a subsequent read at or behind the end of file returns no data.
+        @Note: note that a subsequent read at or behind the end of file returns 
+            no data.
         @Note: similar to lseek (2) as specified by POSIX.
         """
         if type(whence) is not int:
@@ -630,9 +667,13 @@ class File(NSEntry):
         """
         Gather/scatter read
         @summary: gather/scatter read
-        @param iovecs: list of iovec structs defining start (offset) and length (len_in) of each individual read, 
-                the buffer to read into, and integer to store result into (len_out).
+        @param iovecs: list of iovec structs defining start (offset) and 
+            length (len_in) of each individual read, the buffer to read into, 
+            and integer to store result into (len_out).
         @type iovecs: list of iovecs
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: data from the file are available in the iovec buffers.
         @permission: Read
         @raise NotImplemented:
@@ -692,6 +733,9 @@ class File(NSEntry):
         @param iovecs: list of iovecs defining start (offset) and length (len_in) of each
                 individual write, and buffers containing the data to write (len_out)
         @type iovecs: list of iovecs
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the iovec buffer data are written to the file.
         @permission: Write
         @raise NotImplemented:
@@ -748,6 +792,9 @@ class File(NSEntry):
         @param pattern: pattern to determine size for
         @type pattern: string
         @return: size required for I/O operation with that pattern
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @rtype: int
         @raise NotImplemented:
         @raise BadParameter:
@@ -792,6 +839,9 @@ class File(NSEntry):
         @param buf: buffer to store read data into
         @type pattern: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of bytes successfully read
         @rtype: int
         @postcondition: data from the file are available in the buffers.
@@ -834,7 +884,6 @@ class File(NSEntry):
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
-
     def write_p(self, pattern, buf, tasktype=TaskType.NORMAL): 
         #in string pattern, in buffer buf, out int len_out
         """
@@ -844,6 +893,9 @@ class File(NSEntry):
         @param buf: buffer to be written
         @type pattern: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of units successfully written
         @rtype: int
         @postcondition: the buffer data are written to the file.
@@ -890,8 +942,11 @@ class File(NSEntry):
         """
         List the extended modes available in this implementation, and/or on server side
         @summary: list the extended modes available in this implementation, and/or on server side
-        @return: tuple of modes available for extended I/O
-        @rtype: tuple
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
+        @return: list of modes available for extended I/O
+        @rtype: list
         @raise NotImplemented:
         @raise IncorrectState:
         @raise PermissionDenied:
@@ -918,10 +973,10 @@ class File(NSEntry):
                 return Task(delegateObject=javaObject)        
             else:
                 retval = self.delegateObject.modesE()
-                list = []
+                temp = []
                 for i in range(retval.size()):
-                    list.append( retval.get(i).toString() )
-                return tuple(list) 
+                    temp.append( retval.get(i).toString() )
+                return list(temp) 
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
@@ -934,6 +989,9 @@ class File(NSEntry):
         @param spec: specification to determine size for
         @type emode: string
         @type spec: string
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: size required for I/O operation with that emode/spec
         @rtype: int
         @raise NotImplemented:
@@ -983,6 +1041,9 @@ class File(NSEntry):
         @type emode: string
         @type spec: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of bytes successfully read
         @rtype: int
         @postcondition: data from the file are available in the buffers.
@@ -1041,6 +1102,9 @@ class File(NSEntry):
         @type emode: string
         @type spec: string
         @type buf: L{Buffer}
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: number of units successfully written
         @rtype: int
         @postcondition: the buffer data are written to the file.
@@ -1118,7 +1182,7 @@ class Directory(NSDirectory):
     This class represents an open file descriptor for read/write operations on a physical directory. 
     """
     
-    def __init__(self, name, session = Session(), flags=Flags.READ, **impl):
+    def __init__(self, name, session = Session(), flags=Flags.READ, tasktype=TaskType.NORMAL, **impl):
         #in session s, in URL name, in int flags = Read, out directory obj the newly created object
         """
         Initialize the Directory object
@@ -1126,6 +1190,10 @@ class Directory(NSDirectory):
         @param session: session to associate the object with
         @param name: location of directory 
         @keyword flags: mode for opening
+        @param tasktype: return a normal Directory object or a Task object that 
+            creates a Directory in a final, RUNNING or NEW state. By default, 
+            tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @postcondition: the directory is opened.
         @postcondition: 'Owner' of target is the id of the context use to perform the opereration, if the directory gets created.
         @permission: Exec for parent directory.
@@ -1177,6 +1245,9 @@ class Directory(NSDirectory):
         @param name: name of file to inspect
         @type name: L{URL}
         @param flags: mode for operation
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @type flags: int
         @return: size of the file
         @rtype: int
@@ -1229,8 +1300,8 @@ class Directory(NSDirectory):
     def is_file (self, name, tasktype=TaskType.NORMAL):
         #return boolean test
         """
-        Alias:    for is_entry in saga.namespace.NSDirectory
-        @see: L{saga.namespace.NSDirectory.is_entry()}
+        Alias for L{NSDirectory.is_entry()}
+        @see: L{NSDirectory.is_entry()}
         """
         if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
@@ -1261,11 +1332,14 @@ class Directory(NSDirectory):
         Creates a directory object
         @summary: Creates a directory object
         @param name: name of directory to open
-        @type name: saga.url.URL
+        @type name: L{URL}
         @param flags: flags defining operation modus
         @type flags: value from saga.file.Flags
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: opened directory instance
-        @rtype: saga.file.Directory
+        @rtype: L{Directory}
         @PostCondition: the session of the returned instance is that of the calling instance.
         @PostCondition: 'Owner' of name is the id of the context used to perform the opereration if name gets created.
         @permission: Exec for name's parent directory.
@@ -1315,9 +1389,13 @@ class Directory(NSDirectory):
         """
         Creates a new file instance
         @summary: Creates a new file instance
-        @param name: URl of the file to be opened
+        @param name: URL of the file to be opened
         @param flags: flags defining operation modus
+        @param tasktype: return the normal return values or a Task object in a 
+            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: int
         @return: opened file instance
+        @rtype: L{File}
         @PostCondition: the session of the returned instance is that of the calling instance.
         @PostCondition: 'Owner' of name is the id of the context used to perform the opereration if name gets created.
         @permission: Exec for name's parent directory.

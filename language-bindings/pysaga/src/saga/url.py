@@ -1,8 +1,10 @@
 # Package: saga
 # Module: url 
 # Description: The module which specifies the url class used in saga
-# Specification and documentation can be found in section 3.3, page 53-58 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Specification and documentation can be found in section 3.3, page 53-58 
+#    of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 
 from object import Object, ObjectType
@@ -28,7 +30,6 @@ class URL(Object):
             interpretation of the URL is not part of this class' functionality.   
 
         """
-        pass
         
     def set_string (self, url = ""):
         """
@@ -43,7 +44,6 @@ class URL(Object):
         @note: the notes for __init__() apply.
 
         """
-        pass
     
     def get_string (self):
         """
@@ -55,7 +55,6 @@ class URL(Object):
         @Note: the URL may be empty, e.g. after creating the instance with an empty url parameter.
 
         """
-        pass
 
     def set_scheme (self, scheme = ""):
         """
@@ -72,7 +71,6 @@ class URL(Object):
             URL, a 'BadParameter' exception is raised.
         
         """
-        pass
 
     def get_scheme(self):
         """
@@ -84,7 +82,6 @@ class URL(Object):
         @Note: the returned scheme is either empty, or guaranteed to be well formed (see RFC-3986).
 
         """
-        pass
     
     def set_host (self, host = ""):
         """
@@ -101,7 +98,6 @@ class URL(Object):
             URL, a 'BadParameter' exception is raised.
         
         """
-        pass
 
     def get_host (self):
         """
@@ -113,7 +109,6 @@ class URL(Object):
         @Note: the returned host is either empty, or guaranteed to be well formed (see RFC-3986).
         
         """
-        pass
 
     def set_port (self, port=-1):
         """
@@ -130,7 +125,6 @@ class URL(Object):
             URL, a 'BadParameter' exception is raised.
         
         """        
-        pass
     
     def get_port (self):
         """
@@ -142,7 +136,6 @@ class URL(Object):
         @Note: the returned port is either empty, or guaranteed to be well formed (see RFC-3986).
         
         """
-        pass
     
     def set_fragment (self, fragment = ""):
         """
@@ -159,7 +152,6 @@ class URL(Object):
             URL, a 'BadParameter' exception is raised.
         
         """
-        pass
     
     def get_fragment (self):
         """
@@ -171,7 +163,6 @@ class URL(Object):
         @Note: the returned fragment is either empty, or guaranteed to be well formed (see RFC-3986).
         
         """
-        pass
      
     def set_path (self, path = ""):
         """
@@ -188,7 +179,6 @@ class URL(Object):
             URL, a 'BadParameter' exception is raised.
         
         """        
-        pass
     
     def get_path (self):
         """
@@ -200,7 +190,6 @@ class URL(Object):
         @Note: the returned path is either empty, or guaranteed to be well formed (see RFC-3986).
         
         """
-        pass
 
     def set_query (self, query = ""):
         """
@@ -217,7 +206,6 @@ class URL(Object):
             URL, a 'BadParameter' exception is raised.
         
         """        
-        pass
     
     def get_query (self):
         """
@@ -229,7 +217,6 @@ class URL(Object):
         @Note: the returned query is either empty, or guaranteed to be well formed (see RFC-3986).
         
         """
-        pass
     
     def set_userinfo (self, userinfo = ""):
         """
@@ -246,7 +233,6 @@ class URL(Object):
             URL, a 'BadParameter' exception is raised.
         
         """       
-        pass
     
     def get_userinfo (self):
         """
@@ -258,7 +244,6 @@ class URL(Object):
         @Note: the returned userinfo is either empty, or guaranteed to be well formed (see RFC-3986).
         
         """
-        pass
         
     def translate (self, scheme):
         #return url
@@ -283,7 +268,6 @@ class URL(Object):
         @Note: the notes from section 'The URL Problem' of the GFD-R-P.90 document apply.
         
         """
-        pass
     
     string = property(get_string, set_string, 
             doc="""The complete URL string. \n@type: string""")    

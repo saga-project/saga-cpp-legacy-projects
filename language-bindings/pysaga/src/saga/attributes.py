@@ -37,8 +37,8 @@ class Attributes(object):
         @raise AuthenticationFailed:
         @raise Timeout:
         @raise NoSuccess:
-        @note: an empty string means to set an empty value (the attribute is not 
-            removed).
+        @note: an empty string means to set an empty value (the attribute is 
+            not removed).
         @note: the attribute is created, if it does not exist
         @note: a 'PermissionDenied' exception is raised if the
              attribute to be changed is ReadOnly.
@@ -313,8 +313,8 @@ class Attributes(object):
         @raise NoSuccess:
         @note: This method returns True if the attribute identified by the key 
             exists, and can be removed by remove_attribute().
-        @note: exceptions have the same semantics as defined for the 
-            get_attribute() method description.
+        @note: exceptions have the same semantics as defined for 
+            the get_attribute() method description.
 
         """
      
@@ -336,8 +336,8 @@ class Attributes(object):
         @raise NoSuccess:
         @note: This method returns True if the attribute identified by key is a 
             vector attribute.
-        @note: exceptions have the same semantics as defined for the 
-            get_attribute() method description.
+        @note: exceptions have the same semantics as defined for 
+            the get_attribute() method description.
 
         """
         

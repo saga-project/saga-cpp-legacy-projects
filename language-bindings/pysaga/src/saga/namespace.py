@@ -1,4 +1,11 @@
-# Page 195 package saga.namespace
+# Package: saga
+# Module: namespace
+# Description: The module which specifies the classes concerning namespaces
+# Specification and documentation can be found in section 4.2, page 195-239 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+
 from object import Object
 from permissions import Permissions
 from task import Async, TaskType, Task
@@ -72,7 +79,7 @@ class Flags(object):
     """
     
 
-class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
+class NSEntry(Object, Permissions, Async): 
     """
     NSEntry defines methods which serve the inspection of the entry itself, 
     methods which allows to manage the entry (e.g. to copy, move, or remove it), 
@@ -115,7 +122,6 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
               entry - all notes to the respective open
               call (on namespace_directory) apply.
         """
-        super(NSEntry,self).__init__()
 
     def __del__(self):
         """
@@ -127,7 +133,6 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         """
 
     def get_url(self, tasktype=TaskType.NORMAL):
-        #out URL url );
         """
         Obtain the complete url pointing to the entry
         @summary: obtain the complete url pointing to the entry
@@ -141,10 +146,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @raise Timeout:
         @raise NoSuccess:
         """        
-        raise NotImplemented,"get_url() method is not implemented in this object"
 
     def get_cwd(self, tasktype=TaskType.NORMAL):
-        #out URL cwd
         """
         Obtain the current working directory for the entry
         @summary: obtain the current working directory for the entry
@@ -160,10 +163,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: returns the directory part of the url path element.
 
         """        
-        raise NotImplemented,"get_cwd() method is not implemented in this object"
 
     def get_name(self, tasktype=TaskType.NORMAL): 
-        #out URL name
         """
         Obtain the name part of the url path element
         @summary: obtain the name part of the url path element
@@ -177,10 +178,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @raise Timeout:
         @raise NoSuccess:
          """
-        raise NotImplemented,"get_name() method is not implemented in this object"
 
     def is_dir_self(self, tasktype=TaskType.NORMAL):
-        #out boolean test
         """
         Tests the entry for being a directory
         @summary: tests the entry for being a directory
@@ -201,10 +200,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: returns True if entry is a directory, False otherwise
         @note:  similar to 'test -d' as defined by POSIX.
         """        
-        raise NotImplemented,"is_dir_self() method is not implemented in this object"
 
     def is_entry_self(self, tasktype=TaskType.NORMAL):
-        #out boolean test
         """
         Tests the entry for being an NSEntry
         @summary: tests the entry for being an NSEntry
@@ -228,10 +225,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  similar to 'test -f' as defined by POSIX.
 
         """        
-        raise NotImplemented,"is_entry_self() method is not implemented in this object"
 
     def is_link_self(self, tasktype=TaskType.NORMAL):
-        #out boolean test
         """
         Tests the entry for being a link
         @summary: tests the entry for being a link
@@ -253,10 +248,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: similar to 'test -L' as defined by POSIX.
 
         """        
-        raise NotImplemented,"is_link_self() method is not implemented in this object"
 
     def read_link_self(self, tasktype=TaskType.NORMAL):
-        #out URL link
         """
         Get the name of the link target
         @summary: get the name of the link target
@@ -280,7 +273,6 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
             to a link, an 'IncorrectState' exception is raised.
         @note:  similar to 'ls -L' as defined by POSIX.
         """        
-        raise NotImplemented,"read_link_self() method is not implemented in this object"
     
     def copy_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
@@ -338,7 +330,6 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  the default flags are 'NONE' (0).
         @note:  similar to 'cp' as defined by POSIX.
         """        
-        raise NotImplemented, "copy_self() method is not implemented in this object" 
     
     def link_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
@@ -401,7 +392,6 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: similar to 'ln' as defined by POSIX.
      
         """        
-        raise NotImplemented, "link_self() method is not implemented in this object"
 
     def move_self(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
@@ -458,7 +448,6 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note: similar to 'mv' as defined by POSIX.
         
         """
-        raise NotImplemented, "move_self() method is not implemented in this object"
 
     def remove_self(self, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
@@ -496,7 +485,6 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
         @note:  similar to 'rm' as defined by POSIX.
         
         """   
-        raise NotImplemented, "remove_self() method is not implemented in this object"
 
     def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
@@ -520,10 +508,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
             semantics and timeout semantics.
         
         """        
-        raise NotImplemented, "close() method is not implemented in this object"
 
     def permissions_allow_self(self, id, perm, flags=Flags.NONE, tasktype=TaskType.NORMAL):
-        #in string id, in permission perm, in int flags = None
         """
         Enable a permission
         @summary: enable a permission
@@ -554,10 +540,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
             'BadParameter' exception.
 
         """        
-        raise NotImplemented, "permissions_allow() method is not implemented in this object"
 
     def permissions_deny_self(self, id, perm, flags=Flags.NONE, tasktype=TaskType.NORMAL):
-        #in string id, in permission perm, in int flags = None
         """
         Disable a permission flag
         @summary: disable a permission flag
@@ -588,10 +572,8 @@ class NSEntry(Object, Permissions, Async): # Async is inherited from Permissions
             'BadParameter' exception.
 
         """        
-        raise NotImplemented, "permissions_deny() method is not implemented in this object"
-
     
-class NSDirectory(NSEntry):
+class NSDirectory(NSEntry, Async):
     """
     NSDirectory inherits all navigation and manipulation methods from NSEntry,
     but adds some more methods to these sets: instead of dir.copy (target)
@@ -638,9 +620,7 @@ class NSDirectory(NSEntry):
         @note:  the default flags are 'NONE' (0).
 
         """
-        super(NSDirectory,self).__init__()
-    
-    #navigation/query methods    
+   
     def change_dir(self, url, tasktype=TaskType.NORMAL):
         """
         Change the working directory
@@ -668,11 +648,8 @@ class NSDirectory(NSEntry):
         @note:  similar to the 'cd' command in the POSIX shell.
        
         """
-        raise NotImplemented, "change_dir() method is not implemented in this object"
  
-    #navigation/query methods
     def list(self, name_pattern = ".", flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        #in string name_pattern = ".", in int flags = None, out array<saga::url> names
         """
         List entries in this directory
         @summary: list entries in this directory
@@ -719,13 +696,9 @@ class NSDirectory(NSEntry):
         @note:  if the name_pattern does not match any entry, an empty list is 
             returned, but no exception is raised.
         @note:  similar to 'ls' as defined by POSIX.
-
         """        
-        raise NotImplemented, "list() method is not implemented in this object"
  
-    #navigation/query methods
     def find(self, name_pattern, flags = Flags.RECURSIVE, tasktype=TaskType.NORMAL):
-        #in string name_pattern, in  int flags = Recursive, out array<saga::url> names
         """
         Find entries in the current directory and below
         @summary: find entries in the current directory and below
@@ -768,11 +741,8 @@ class NSDirectory(NSEntry):
             option.
 
         """
-        raise NotImplemented, "find() method is not implemented in this object"
     
-    #navigation/query methods
-    def exists (self,name, tasktype=TaskType.NORMAL):
-        #in  URL name, out boolean exists
+    def exists (self, name, tasktype=TaskType.NORMAL):
         """
         Checks if entry exists
         @summary: checks if entry exists
@@ -802,11 +772,8 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -e' as defined by POSIX.
 
         """
-        raise NotImplemented, "exist() method is not implemented in this object"
-  
-    #navigation/query methods
+
     def is_dir(self, name, tasktype=TaskType.NORMAL):
-        #in URL name, out boolean test 
         """
         Tests url for being a directory
         @summary: tests name for being a directory
@@ -840,11 +807,8 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -d' as defined by POSIX.
 
         """
-        raise NotImplemented, "is_dir() method is not implemented in this object"
- 
-    #navigation/query methods
+
     def is_entry (self, name, tasktype=TaskType.NORMAL):
-        #in URL name, out boolean test 
         """
         Tests name for being an NSEntry
         @summary: tests name for being an NSEntry
@@ -876,11 +840,8 @@ class NSDirectory(NSEntry):
         @note:  similar to 'test -f' as defined by POSIX.
 
         """
-        raise NotImplemented, "is_entry() method is not implemented in this object"
- 
-    #navigation/query methods
+
     def is_link(self, name, tasktype=TaskType.NORMAL):
-        #in saga::url name, out boolean test
         """
         Tests name for being a symbolic link
         @summary: tests name for being a symbolic link
@@ -912,10 +873,8 @@ class NSDirectory(NSEntry):
         @note: similar to 'test -L' as defined by POSIX.
 
         """
-        raise NotImplemented, "is_link() method is not implemented in this object"
  
     def read_link(self, name, tasktype=TaskType.NORMAL):
-        #in URL name, out URL link
         """
         Returns the name of the link target
         @summary: returns the name of the link target
@@ -945,11 +904,8 @@ class NSDirectory(NSEntry):
         @note:  if 'name' does not exist, a 'DoesNotExist' exception is raised.
 
         """
-        raise NotImplemented, "read_link() method is not implemented in this object"
- 
-    # manage entries by number
+
     def get_num_entries (self, tasktype=TaskType.NORMAL):
-        #out int num
         """
         Gives the number of entries in the directory
         @summary:gives the number of entries in the directory
@@ -973,11 +929,8 @@ class NSDirectory(NSEntry):
         @note: vaguely similar to 'opendir'/'readdir' (2) as defined by POSIX.
 
         """
-        raise NotImplemented, "get_num_entries() method is not implemented in this object"
-    
-    # manage entries by number
+
     def get_entry(self, entry, tasktype=TaskType.NORMAL):
-        #in int entry, out URL name 
         """
         Gives the name of an entry in the directory based upon the enumeration 
         defined by get_num_entries
@@ -1010,12 +963,8 @@ class NSDirectory(NSEntry):
         @note:  vaguely similar to 'opendir'/'readdir' (2) as defined by POSIX.
 
         """       
-        raise NotImplemented, "get_entry() method is not implemented in this object"
- 
-    # management methods + management methods - wildcard versions
-    def copy(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        #in URL source,   in URL target, in int flags = None
-        #in string source,in URL target, in int flags = None
+
+    def copy(self, source, target, flags=Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Copy the entry to another part of the name space
         @summary: copy the entry to another part of the name space
@@ -1066,12 +1015,8 @@ class NSDirectory(NSEntry):
             raised.
 
         """
-        raise NotImplemented, "copy() method is not implemented in this object"
- 
-    # management methods + management methods - wildcard versions
+
     def link(self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        #in URL source,    in URL target, in int flags = None
-        #in string source, in URL target, in int flags = None
         """
         Create a symbolic link from the target entry to the source entry so that 
         any reference to the target refers to the source entry
@@ -1130,12 +1075,8 @@ class NSDirectory(NSEntry):
              exception is raised.
 
         """
-        raise NotImplemented, "link() method is not implemented in this object"
-  
-   # management methods + management methods - wildcard versions
+
     def move (self, source, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-       #in URL source,    in URL target, in int flags = None
-       #in string source, in URL target, in int flags = None
         """
         Rename source to target, or move source to target if target is a 
         directory.
@@ -1199,12 +1140,8 @@ class NSDirectory(NSEntry):
             specifies a directory - otherwise a 'BadParameter' exception is 
             raised.
         """
-        raise NotImplemented, "move() method is not implemented in this object"
-  
-   # management methods + management methods - wildcard versions
+
     def remove(self, target, flags =  Flags.NONE, tasktype=TaskType.NORMAL):
-        #in URL    target, in int flags = None
-        #in string target, in int flags = None
         """
         Removes the entry
         @summary: removes the entry
@@ -1254,9 +1191,7 @@ class NSDirectory(NSEntry):
             undefined.
 
         """
-        raise NotImplemented, "remove() method is not implemented in this object"
-  
-   # management methods
+
     def make_dir(self, target, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
         Creates a new directory
@@ -1298,12 +1233,8 @@ class NSDirectory(NSEntry):
         @note:  similar to 'mkdir' (2) as defined by POSIX.
         
         """
-        #in saga::url target, in int flags =  None
-        raise NotImplemented, "make_dir() method is not implemented in this object"
-  
-    #factory methods
+
     def open(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        #in  saga::url name, in  int flags = None, out ns_entry entry
         """
         Creates a new NSEntry instance
         @summary: creates a new NSEntry instance
@@ -1365,11 +1296,8 @@ class NSDirectory(NSEntry):
         @note: similar to 'open' (2) as defined by POSIX.
 
         """        
-        raise NotImplemented, "open() method is not implemented in this object"
- 
-    #factory methods
+
     def open_dir(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        #in  saga::url name, in  int flags = None, out ns_directory dir
         """
         Creates a new NSDirectory instance
         @summary: creates a new NSDirectory instance
@@ -1423,12 +1351,8 @@ class NSDirectory(NSEntry):
             name, a 'BadParameter' exception is raised
 
         """
-        raise NotImplemented, "open_dir() method is not implemented in this object"
- 
-    #permissions with flags + permissions with flags - wildcard version
+
     def permissions_allow(self, target, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        #in URL target,    in string id, in int perm, in int flags = None
-        #in string target, in string id, in int perm, in int flags = None
         """
         Enable a permission
         @summary:enable a permission
@@ -1465,16 +1389,9 @@ class NSDirectory(NSEntry):
             entries, the respective error is raised - the state of the 
             operations on the other elements of the expanded entry list is
             undefined. 
-
-
         """ 
-        raise NotImplemented,"permissions_allow() method is not implemented in"\
-            +"this object"
- 
-    #permissions with flags + permissions with flags - wildcard version
+
     def permissions_deny(self, target, id, perm, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        #in URL target,    in string id, in int perm, in int flags = None
-        #in string target, in string id, in int perm, in int flags = None
         """
         Disable a permission flag
         @summary: disable a permission flag
@@ -1512,6 +1429,3 @@ class NSDirectory(NSEntry):
             operations on the other elements of the expanded entry list is
             undefined. 
         """       
-        raise NotImplemented, "permissions_deny() method is not implemented in"\
-                +"this object"
- 

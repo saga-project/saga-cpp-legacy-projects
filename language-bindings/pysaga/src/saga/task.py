@@ -236,7 +236,7 @@ class Task(Object, Monitorable):
         Get the object from which this Task was created.
         @summary: Get the object from which this Task was created.
         @return: object this Task was created from
-        @rtype: I{<object>}
+        @rtype: I{<Object>}
         @raise NotImplemented:
         @raise Timeout:
         @raise NoSuccess:
@@ -433,7 +433,7 @@ class TaskContainer(Object, Monitorable):
         """
         Cancel all the asynchronous operations in the container.
         @summary:  Cancel all the asynchronous operations in the container.
-        @param timeout:              time for freeing resources
+        @param timeout: time for freeing resources
         @type timeout: float
         @postcondition: if no timeout occurs, all Tasks in the container are in 
             'CANCELED' state.

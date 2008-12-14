@@ -1,8 +1,10 @@
 # Package: saga
 # Module: context 
 # Description: The module which specifies the context classes used in saga
-# Specification and documentation can be found in section 3.6, page 81-86 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Specification and documentation can be found in section 3.6, page 81-86 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from object import Object, ObjectType
 from attributes import Attributes
@@ -198,6 +200,10 @@ class Context(Object, Attributes):
 
         """
         pass
+
+
+
+
 
     def __set_Type(value):
         set_attribute("Type", value)

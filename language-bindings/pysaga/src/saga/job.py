@@ -428,7 +428,6 @@ class JobDescription(Object,Attributes):
         @Note:    a JobDescription is not associated with a Session, 
             but can be used for JobServices from different sessions.
         """
-        super(JobDescription, self).__init__()
 
     def __set_Executable(value):
         set_attribute("Executable", value)
@@ -742,7 +741,7 @@ class JobService(Object, Async):
     to create and submit jobs, and to discover jobs.
     """
 
-    def __init__(self, url = "", session = Session(), tasktype=TaskType.NORMAL):
+    def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL):
         """
         Initialize the object
         @summary: Initialize the object
@@ -974,8 +973,6 @@ class StdIO(object):
     @summary: This class is used to give acces to the opaque data like from 
         stdin, stdout and stderr
     """
-    __name = None
-    __mode = None
 
     def __init__(self):
         """

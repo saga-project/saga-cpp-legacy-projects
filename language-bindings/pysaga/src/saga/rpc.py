@@ -91,7 +91,6 @@ class Parameter(Buffer):
         @Note: all notes from the saga.buffer.Buffer.__init__() apply.
         """
         
-        
     def set_io_mode(self, mode):
         """
         Purpose: Set io mode
@@ -108,7 +107,6 @@ class Parameter(Buffer):
         @rtype: one of the values from IOMode
         """
    
-   
 class RPC(Object, Permissions, Async ):
     """
     This class represents a remote function handle, which can be called 
@@ -117,7 +115,7 @@ class RPC(Object, Permissions, Async ):
     """
      
      
-    def __init__(self, funcname, session=Session() ):
+    def __init__(self, funcname, session=Session(), tasktype=TaskType.NORMAL):
         """
         Initializes a remote function handle
         @summary: Initializes a remote function handle
@@ -157,7 +155,6 @@ class RPC(Object, Permissions, Async ):
             with the semantics on other SAGA object constructors.
 
         """
-        super(RPC, self).__init__()
 
     def __del__(self):
         """

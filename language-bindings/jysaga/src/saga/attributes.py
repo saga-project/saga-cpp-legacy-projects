@@ -1,8 +1,11 @@
 # Package: saga
 # Module: attributes 
-# Description: The module which specifies the classes concerning the setting and getting of attributes in saga
-# Specification and documentation can be found in section 3.7, page 101-113 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Description: The module which specifies the classes concerning the setting 
+#    and getting of attributes in saga
+# Specification and documentation can be found in section 3.8, page 101-113 of 
+#    the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 from error import NotImplemented
 import org.ogf.saga.error.AlreadyExistsException
@@ -25,6 +28,8 @@ class Attributes(object):
     associated with objects, for instance for job descriptions and metrics. The 
     Attributes class provides a common interface for storing and retrieving 
     attributes.
+    
+    @undocumented: __get_attributes
     """
     delegateObject = None
     
@@ -49,27 +54,32 @@ class Attributes(object):
         @note: an empty string means to set an empty value (the attribute is 
             not removed).
         @note: the attribute is created, if it does not exist
-        @note: a 'PermissionDenied' exception is raised if the attribute to be 
-            changed is ReadOnly.
-        @note: only some SAGA objects allow to create new attributes - others 
-            allow only access to predefined attributes. If a non-existing
-            attribute is queried on such objects, a 'DoesNotExist' exception is 
-            raised
-        @note: changes of attributes may reflect changes of endpoint entity 
-            properties. As such, authorization and/or authentication may fail
-             for settings such attributes, for some backends. In that case, the 
-             respective 'AuthenticationFailed', 'AuthorizationFailed', and 
-             'PermissionDenied' exceptions are raised. For example, an 
-             implementation may forbid to change the saga.stream.Stream 
-             'Bufsize' attribute.
-        @note: if an attribute is not well formatted, or outside of some allowed 
-            range, a 'BadParameter' exception with a descriptive error message 
-            is raised.
-        @note: if the operation is attempted on a vector attribute, an 
-            'IncorrectState' exception is raised.
-        @note: setting of attributes may time out, or may fail for other 
-            reasons - which causes a 'Timeout' or 'NoSuccess' exception, 
-            respectively.
+        @note: a 'PermissionDenied' exception is raised if the
+             attribute to be changed is ReadOnly.
+        @note: only some SAGA objects allow to create new
+             attributes - others allow only access to
+             predefined attributes. If a non-existing
+             attribute is queried on such objects, a
+             'DoesNotExist' exception is raised
+        @note: changes of attributes may reflect changes of
+             endpoint entity properties. As such,
+             authorization and/or authentication may fail
+             for settings such attributes, for some
+             backends. In that case, the respective
+             'AuthenticationFailed', 'AuthorizationFailed',
+             and 'PermissionDenied' exceptions are raised.
+             For example, an implementation may forbid to
+             change the saga.stream.Stream 'Bufsize' attribute.
+        @note: if an attribute is not well formatted, or
+             outside of some allowed range, a 'BadParameter'
+             exception with a descriptive error message is
+             raised.
+        @note: if the operation is attempted on a vector
+             attribute, an 'IncorrectState' exception is
+             raised.
+        @note: setting of attributes may time out, or may fail
+             for other reasons - which causes a 'Timeout' or
+             'NoSuccess' exception, respectively.
 
         """
         if type(key) is not str or type(value) is not str:
@@ -99,7 +109,7 @@ class Attributes(object):
         @raise Timeout:
         @raise NoSuccess:
         @note: queries of attributes may imply queries of endpoint entity 
-            properties. As such,  authorization and/or authentication may fail 
+            properties. As such, authorization and/or authentication may fail 
             for querying such attributes, for some backends. In that case, the 
             respective 'AuthenticationFailed', 'AuthorizationFailed', and 
             'PermissionDenied' exceptions are raised. For example, an 
@@ -124,10 +134,10 @@ class Attributes(object):
             
     def set_vector_attribute(self, key, values):
         """
-        Set an attribute to an list of values.
-        @summary: Set an attribute to an array of values.
-        @param key:                  attribute key
-        @param values:               array of attribute values
+        Set an attribute to a list of values.
+        @summary: Set an attribute to a list of string values.
+        @param key: attribute key
+        @param values:  list of attribute values
         @type key: string
         @type values: list
         @permission: Write
@@ -162,12 +172,12 @@ class Attributes(object):
     def get_vector_attribute(self, key):
         #return a list of values
         """
-        Get the tuple of values associated with an attribute.
-        @summary: Get the tuple of values associated with an attribute.
+        Get the list of values associated with an attribute.
+        @summary: Get the list of values associated with an attribute.
         @param key: attribute key
         @type key: string
-        @return: tuple of values of the attribute.
-        @rtype: tuple
+        @return: list of values of the attribute.
+        @rtype: list
         @permission: Query
         @raise NotImplemented:
         @raise DoesNotExist:
@@ -187,7 +197,7 @@ class Attributes(object):
                 +") is not a string."
         try:
             javaArray = self.delegateObject.getVectorAttribute(key)
-            return tuple(javaArray)
+            return list(javaArray)
         except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e)
        
@@ -195,10 +205,10 @@ class Attributes(object):
         """
         Removes an attribute.
         @summary: Removes an attribute.
-        @param    key:                  attribute to be removed
+        @param key: attribute to be removed
         @type key: string
-        @postcondition: - the attribute is not available anymore.
-        @permission:    Write
+        @postcondition: the attribute is not available anymore.
+        @permission: Write
         @raise NotImplemented:
         @raise DoesNotExist:
         @raise PermissionDenied:
@@ -229,7 +239,7 @@ class Attributes(object):
         Get the list of attribute keys.
         @summary: Get the list of attribute keys.
         @return: existing attribute keys
-        @rtype: tuple
+        @rtype: list
         @permission: Query
         @raise NotImplemented:
         @raise PermissionDenied:
@@ -239,13 +249,13 @@ class Attributes(object):
         @raise NoSuccess:
         @note: exceptions have the same semantics as defined
             for the get_attribute() method description.
-        @note: if no attributes are defined for the object, an empty tuple is 
+        @note: if no attributes are defined for the object, an empty list is 
             returned.
 
         """
         try:
             javaArray = self.delegateObject.listAttributes()
-            return tuple(javaArray)
+            return list(javaArray)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e) 
         
@@ -257,7 +267,7 @@ class Attributes(object):
         @param pattern: list of string search patterns
         @type pattern: list
         @return: matching attribute keys
-        @rtype: tuple
+        @rtype: list
         @permission: Query
         @raise NotImplemented:
         @raise BadParameter:
@@ -295,7 +305,7 @@ class Attributes(object):
                 javaArray = self.delegateObject.findAttributes(tempArray)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)    
-        return tuple(javaArray)   
+        return list(javaArray)   
 #TODO: String[] instead of ... 
     
     def attribute_exists(self, key):
@@ -324,8 +334,8 @@ class Attributes(object):
             raise BadParameter, "Parameter key (" + str(type(key)) \
                 +") is not a string."       
         try:
-            retval = self.delegateObject.getAttribute(key)
-            if len(retval) > 0:
+            retval = self.delegateObject.existsAttribute(key)
+            if retval == True:
                 return True
             else:
                 return False
@@ -354,8 +364,9 @@ class Attributes(object):
         @raise Timeout:
         @raise NoSuccess:
         @note: This method returns True if the attribute identified by the key 
-            exists, and can be read by get_attribute() or get_vector attribute(), 
-            but cannot be changed by set_attribute() and set_vector_attribute().
+            exists, and can be read by get_attribute() or get_vector 
+            attribute(), but cannot be changed by set_attribute() and
+            set_vector_attribute().
         @note: exceptions have the same semantics as defined for the 
             get_attribute() method description.
 
@@ -475,3 +486,17 @@ class Attributes(object):
         except org.ogf.saga.error.SagaException, e:
            raise self.convertException(e) 
        
+
+        
+    def __get_attributes(self):
+        attributes=self.list_attributes()
+        temp = {}
+        for i in attributes:
+            if self.attribute_is_vector(i):
+                temp[i]=self.get_vector_attribute(i)
+            else:
+                temp[i]=self.get_attribute(i)
+        return temp
+    
+    attributes = property(__get_attributes,
+          doc="""The attributes in dictionary form.\n@type: dict""")

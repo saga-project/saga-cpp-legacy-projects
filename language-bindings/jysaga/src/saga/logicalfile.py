@@ -128,9 +128,9 @@ class LogicalFile(NSEntry, Attributes, Async):
     @summary: This class provides the means to handle the contents of logical 
         files
     """
-    delegateObject = None
       
-    def __init__(self, name, session = Session(), flags = Flags.READ):
+    def __init__(self, name, session=Session(), 
+                 flags=Flags.READ, tasktype=TaskType.NORMAL, **impl):
         """
         Initialize the object.
         @summary: Initialize the object.
@@ -140,6 +140,10 @@ class LogicalFile(NSEntry, Attributes, Async):
         @type name: L{URL}
         @param flags: mode for opening
         @type flags: int
+        @param tasktype: return a normal LogicalFile object or or return a Task 
+            object that creates the LogicalFile object in a final, RUNNING or 
+            NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @postcondition: the logical file is opened.
         @postcondition: 'Owner' of target is the id of the context use to 
             perform the opereration, if the logical file gets created.
@@ -161,6 +165,7 @@ class LogicalFile(NSEntry, Attributes, Async):
             LogicalDirectory.open() method apply.
         @note: the default flags are 'Read' (512)
         """
+        self.delegateObject = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.logicalfile.LogicalFile):
                 raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
@@ -192,7 +197,8 @@ class LogicalFile(NSEntry, Attributes, Async):
         @param name: location to add to set
         @type name: L{URL}
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: name is in the list of replica locations for the 
             LogicalFile.
@@ -265,7 +271,8 @@ class LogicalFile(NSEntry, Attributes, Async):
         @param name: replica to remove from set
         @type name: L{URL}
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @postCondition: name is not anymore in list of replica locations for the 
             LogicalFile.
@@ -344,7 +351,8 @@ class LogicalFile(NSEntry, Attributes, Async):
         @param new: update of replica
         @type new: L{URL}
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: old is not anymore in list of replica locations for the 
             LogicalFile.
@@ -434,7 +442,8 @@ class LogicalFile(NSEntry, Attributes, Async):
         @return: List of locations in set
         @rtype: list of L{URL}s
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType} 
         @Permission: Read
         @raise NotImplemented:
@@ -483,6 +492,9 @@ class LogicalFile(NSEntry, Attributes, Async):
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)          
 
+    
+    locations = property(list_locations, doc="""Locations in the location set 
+                                            \n@type: list of URLs""")    
         
     def replicate(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
         """
@@ -494,7 +506,8 @@ class LogicalFile(NSEntry, Attributes, Async):
         @type name: L{URL}
         @param flags: flags defining the operation modus
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: an identical copy of one of the available replicas 
             exists at name.
@@ -592,7 +605,6 @@ class LogicalFile(NSEntry, Attributes, Async):
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)    
     
-    
 class LogicalDirectory(NSDirectory, Attributes, Async):
     """
     This class represents a container for logical files in a logical file 
@@ -601,9 +613,9 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
     @summary:  This class represents a container for logical files in a logical 
         file namespace.
     """
-    delegateObject = None
    
-    def __init__(self, name, session = Session(), flags = Flags.READ):
+    def __init__(self, name, session=Session(), 
+                 flags=Flags.READ, tasktype=TaskType.NORMAL, **impl):
         """
         Initialize the object.
         @summary: Initialize the object.
@@ -613,6 +625,10 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @type name: L{URL}
         @param flags: mode for opening
         @type flags: int
+        @param tasktype: return a normal LogicalDirectory object or or return a 
+            Task object that creates the LogicalDirectory object in a final, 
+            RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+        @type tasktype: value from L{TaskType}
         @postcondition: the logical_directory is opened.
         @postcondition: 'Owner' of target is the id of the context use to 
             perform the opereration, if the LogicalDirectory gets created.
@@ -634,6 +650,7 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
             LogicalDirectory.open_dir() method apply.
         @note: the default flags are 'READ' (512).
         """
+        self.delegateObject = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.logicalfile.LogicalDirectory):
                 raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
@@ -662,7 +679,7 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
 
     def is_file(self, name, tasktype=TaskType.NORMAL):
         """
-        Alias for is_entry of L{saga.namespace.NSDirectory}
+        Alias for L{NSDirectory.is_entry()}
         """
         if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
         and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
@@ -704,6 +721,7 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
                 raise self.convertException(e)   
 
         
+        
     def open_dir(self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         """
         Creates a new LogicalDirectory instance
@@ -713,7 +731,8 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @type name: L{URL}
         @type flags: int  
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: opened directory instance
         @rtype: L{LogicalDirectory}
@@ -794,7 +813,8 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @type name: L{URL}
         @type flags: int
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: opened file instance
         @rtype: L{LogicalFile}
@@ -869,7 +889,8 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
                 raise self.convertException(e)  
 
     
-    def find(self, name_pattern, attr_pattern, flags = Flags.RECURSIVE, tasktype=TaskType.NORMAL):
+    def find(self, name_pattern, attr_pattern, 
+             flags=Flags.RECURSIVE, tasktype=TaskType.NORMAL):
         """
         Find entries in the current directory and below, with matching names 
         and matching meta data
@@ -882,10 +903,11 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
             found
         @param flags: flags defining the operation modus
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, type is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: list of names matching both pattern
-        @rtype: list of {URL}s
+        @rtype: list of L{URL}s
         @permission: Read for cwd.
         @permission: Query for entries specified by name_pattern.
         @permission: Exec for parent directories of these entries.

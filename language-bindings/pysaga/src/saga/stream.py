@@ -17,7 +17,6 @@ from error import NotImplemented
 from session import Session
 
 
-
 class State(object):
     """
     State holds the possible states for a Stream.
@@ -142,7 +141,7 @@ class StreamService(Object, Monitorable, Permissions, Async):
 
     def get_url(self, tasktype=TaskType.NORMAL):
         """
-        Get URL to be used to connect to this server.
+        Get the URL to be used to connect to this server.
         @summary: Get the URL to be used to connect to this server.
         @param tasktype: return the normal return values or a Task object in a 
             final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
@@ -159,8 +158,6 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @Note: returns a URL which can be passed to the Stream constructor to 
             create a connection to this StreamService.
         """
-        url = URL()
-        return url
     
     def serve(self, timeout = -1.0, tasktype=TaskType.NORMAL):
         """
@@ -186,8 +183,6 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @raise NoSuccess:
         @raise Timeout: if no client connects within the specified timeout
         """
-        stream = Stream()
-        return stream
 
     def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         #in float timeout = 0.0
@@ -324,7 +319,7 @@ class Stream(Object, Async, Attributes, Monitorable):
     @undocumented: __get_Reliable
     """
     
-    def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL ):
+    def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL):
         """
         Initializes a client stream for later connection to a server.
         @summary: initializes a client stream for later connection to a server.
@@ -389,8 +384,7 @@ class Stream(Object, Async, Attributes, Monitorable):
             been created with an empty url as parameter to the Stream 
             constructor.
         """
-        return URL()
-        
+       
     def get_context(self, tasktype=TaskType.NORMAL):
         """
         Return remote authorization info
@@ -423,7 +417,6 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: the returned context is authenticated, or is of type 
             "Unknown" as described above.
         """
-        return Context()
     
     def connect(self, tasktype=TaskType.NORMAL):
         """
@@ -482,8 +475,6 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: if the stream is not in "OPEN" state, an "IncorrectState" 
             exception is raised.
         """
-        cause = 0
-        return cause
       
     def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
@@ -505,14 +496,6 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: close() can be called multiple times, with no side effects.
         """
 
-#    def read(self, len = -1, buf=None):
-#        #inout buffer buf, in int len_in = -1, out int len_out ):
-#        """
-#        Reads up to len bytes from the file into a buffer.
-#               
-
-#               
-        
     def read (self, size = -1, buf = None, tasktype=TaskType.NORMAL):
         #inout buffer buf, in int len_in = -1, out int len_out
         """
@@ -576,8 +559,6 @@ class Stream(Object, Async, Attributes, Monitorable):
             exception is raised.
         @Note: similar to read (2) as specified by POSIX
         """
-        len_out = 0
-        return len_out
         
     def write(self, buf, size = -1, tasktype=TaskType.NORMAL):
         #in buffer buf, in int size_in = -1, out int size_out
@@ -622,10 +603,6 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: similar to write (2) as specified by POSIX
 
         """
-        
-        size_out = 0
-        return size_out
-    
 
     def __set_Bufsize(value):
         set_attribute("Bufsize", value)

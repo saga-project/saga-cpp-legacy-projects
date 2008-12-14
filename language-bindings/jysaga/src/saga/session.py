@@ -1,8 +1,10 @@
 # Package: saga
 # Module: session 
 # Description: The module which specifies the session used in saga
-# Specification and documentation can be found in section 3.5, page 75-80 of the GFD-R-P.90 document
-# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
+# Specification and documentation can be found in section 3.5, 
+#    page 75-80 of the GFD-R-P.90 document
+# Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
+#    Exact Science (FEW), Vrije Universiteit, Amsterdam, The Netherlands.
 
 
 from saga.object import Object, ObjectType
@@ -33,7 +35,6 @@ class Session(Object):
     dependent sets of SAGA objects from each other. Sessions also support the
     management of security information
     """
-    delegateObject = None
         
     def __init__(self, default=True, **impl):
         """
@@ -49,6 +50,7 @@ class Session(Object):
              change the properties of the default session, which is continued to be implicetly used on
              the creation of all saga objects, unless specified otherwise.
         """
+        self.delegateObject = None
         if "delegateObject" in impl:
             if impl["delegateObject"].__class__ is not org.ogf.saga.session.Session:
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.session.Session. Type: " + str(impl["delegateObject"].__class__)
@@ -58,7 +60,7 @@ class Session(Object):
                 self.delegateObject = SessionFactory.createSession()
             else:
                 self.delegateObject = SessionFactory.createSession(False)
-            
+#TODO: check type of default    
         
     def add_context(self, context):
         """
@@ -145,7 +147,25 @@ class Session(Object):
         """
         return ObjectType.SESSION
 
-# Attributes methods inherited from Attributes
-    
-    
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
 
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = Session(delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+    
+    contexts = property(list_contexts,
+            doc="""Contexts attached to a session\n@type: list""")
