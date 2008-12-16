@@ -25,7 +25,18 @@ namespace faust {
   }
 }
 
-faust::object::object(faust::object::type obj_type)
+faust::object::object (faust::impl::object * init)
+//: //impl_ (init->_internal_weak_this.use_count() ? 
+    //     init->shared_from_this() : boost::shared_ptr<saga::impl::object>(init))
+{
+}
+
+faust::object::object (boost::shared_ptr<faust::impl::object> init)
+: impl_ (init)
+{
+}
+
+/*faust::object::object(faust::impl::object *obj, faust::object::type obj_type)
 : type_(obj_type)
 {
   
@@ -39,4 +50,4 @@ faust::object::~object()
 faust::object::type faust::object::get_type() const
 {
   return type_;
-}
+}*/

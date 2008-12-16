@@ -285,13 +285,13 @@ void service_impl::insert_job_into_job_list(std::string jobid, faust::object obj
 faust::job
 service_impl::get_job(std::string job_id)
 {
-  if( joblist_[job_id].get_type() != faust::object::Job )
+ /* if( joblist_[job_id].get_type() != faust::object::Job )
     ;// TODO THROW ERROR
   else
   {
     faust::object & obj = joblist_[job_id];
     return *static_cast<faust::job *> (boost::addressof(obj));
-  }
+  }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 // 

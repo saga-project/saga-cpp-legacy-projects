@@ -13,7 +13,8 @@
 #define FAUST_IMPL_JOB_IMPL_HPP
 
 #include <saga/saga.hpp>
-#include <saga/impl/engine/object.hpp>
+
+#include <faust/impl/object_impl.hpp>
 
 #include <faust/faust/exports.hpp>
 #include <faust/faust/job.hpp>
@@ -24,12 +25,12 @@ namespace faust
 {
   namespace impl 
   {
-    class FAUST_EXPORT job_impl : public saga::object
+    class FAUST_EXPORT job_impl : public faust::impl::object
       {
       
       private:
         
-        std::string                  jobid_;
+        std::string        jobid_;
         faust::state       state_;
         faust::description description_;
         

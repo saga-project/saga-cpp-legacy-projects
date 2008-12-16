@@ -19,10 +19,21 @@
 
 namespace faust {
   
+  // fwd. decl. implementation class // 
+  ///@cond - exclude from Doxygen
+  namespace impl { class object; }
+  ///@endcond - exclude from Doxygen
+  
   /////////////////////////////////////////////////////////////////////////////
   //
   class object 
   {    
+    
+  protected:
+    
+    typedef boost::shared_ptr<faust::impl::object> impl_ptr;
+    impl_ptr impl_;
+
   public:
     
     enum type {
@@ -31,8 +42,10 @@ namespace faust {
       Job        =    2,
       JobGroup   =    4
     };
-    object() {}
-    object(faust::object::type);
+    
+    //object() {}
+    explicit object(faust::impl::object *obj);// faust::object::type tp);
+    explicit object (boost::shared_ptr<faust::impl::object> init);
   
     ~object();
     

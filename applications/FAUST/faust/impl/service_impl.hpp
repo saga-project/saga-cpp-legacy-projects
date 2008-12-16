@@ -16,6 +16,8 @@
 #include <saga/saga.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <faust/impl/object_impl.hpp>
+
 #include <faust/faust/object.hpp> 
 #include <faust/faust/exports.hpp> 
 #include <faust/faust/state.hpp>
@@ -36,7 +38,7 @@ namespace faust
       typedef std::map<std::string,  faust::resource> resources_map;
       typedef std::pair<std::string, faust::resource> resources_pair;
             
-      class FAUST_EXPORT service_impl : public saga::object
+    class FAUST_EXPORT service_impl : public faust::impl::object
       {
 
       private:

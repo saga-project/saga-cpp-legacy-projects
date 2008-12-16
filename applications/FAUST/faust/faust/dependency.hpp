@@ -23,14 +23,14 @@ namespace faust
      *  implies that the dependent job can only be scheduled when the %job 
      *  which provides its input data is in DONE state. 
      */
-    Data            = 0x32,
+    Data = 0x32,
     
      /*! Describes a <b>communication %dependency</b>. A communication 
       *  %dependency ocures if a %job wants to communicate with another
       *  %job or %job_group during runtime. This implies that all jobs have
       *  to be scheduled at the same time.
       */
-    Communication   = 0x64,
+    Communication = 0x64,
 
   };
 }

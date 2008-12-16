@@ -17,7 +17,8 @@ using namespace faust;
 ////////////////////////////////////////////////////////////////////////////////
 //
 job::job() 
-: object(object::Job), impl(new faust::impl::job_impl())
+//: object(object::Job), impl(new faust::impl::job_impl())
+: faust::object (new faust::impl::job_impl())
 {
 }
 
@@ -25,7 +26,7 @@ job::job()
 //
 void job::run() 
 { 
-  impl->run(); 
+  impl_->run(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////

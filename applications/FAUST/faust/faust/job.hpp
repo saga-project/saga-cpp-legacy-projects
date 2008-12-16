@@ -41,8 +41,8 @@ namespace faust
       
     private:
 
-      typedef boost::shared_ptr<faust::impl::job_impl> impl_ptr;
-      impl_ptr impl;
+      //typedef boost::shared_ptr<faust::impl::job_impl> impl_ptr;
+      //impl_ptr impl;
       
       job();
             

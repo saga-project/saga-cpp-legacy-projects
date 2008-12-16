@@ -14,6 +14,8 @@
 
 #include <saga/saga.hpp>
 
+#include <faust/impl/object_impl.hpp>
+
 #include <faust/faust/exports.hpp>
 #include <faust/faust/job.hpp>
 #include <faust/faust/state.hpp>
@@ -23,7 +25,7 @@ namespace faust
 {
   namespace impl
   {
-      class FAUST_EXPORT job_group_impl : public saga::object
+    class FAUST_EXPORT job_group_impl : public faust::impl::object
       {
         
       private:
