@@ -10,6 +10,8 @@
  */
 
 #include <faust/faust/object.hpp>
+#include <faust/impl/object_impl.hpp>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -30,10 +32,8 @@ namespace faust {
 ////////////////////////////////////////////////////////////////////////////////
 //
 faust::object::object (faust::impl::object * init, faust::object::type obj_type)
-: type_(obj_type), impl_(boost::shared_ptr<faust::impl::object>(init))
-
-//impl_ (init->_internal_weak_this.use_count() ? 
-//init->shared_from_this() : boost::shared_ptr<faust::impl::object>(init))
+: type_(obj_type), impl_ (init->_internal_weak_this.use_count() ? 
+                          init->shared_from_this() : boost::shared_ptr<faust::impl::object>(init))
 {
 }
 
