@@ -201,45 +201,69 @@ infrastructure.
 % developing a framework that can support adaptive RE simulations on
 % production-level infrastructure.
 
-To address heterogeneity and failures, which are both inherent
-characteristics of distributed environments, we demonstrated the use
-of the \textit{Simple API for Grid Applications
-  (SAGA)}~\citep{saga_url}, in particular its Checkpoint Recovery
-(CPR) package, and of the Migol middleware~\citep{schnorLuckow08} to
-build a reliable RE application (see~\citet{Luckow:2008la}).  In this
-paper we address some of the challenges and performance bottlenecks
-encountered when performing RE simulations over multiple distributed
-resources, such as the overall slowdown due to synchronisation arising
-from the light-coupling and the lack of co-scheduled
-resources. Production distributed environments in their current
-incarnation are manifest as an aggregation of multiple
-single-resources, and although there are some initial attempts at
-supporting co-scheduled resources for tightly-coupled simulations
-there are insufficient attempts at supporting a broader range of
-distributed and collective modes of operations, such as required for
-loosely-coupled applications.  For example, current infrastructure
-does not provide efficient {\it ap\-pli\-cation-level} mechanisms for
-co-ordinated resource sharing. % One approach to rectify these deficits
+% To address heterogeneity and failures, which are both inherent
+% characteristics of distributed environments, we demonstrated the use
+% of the \textit{Simple API for Grid Applications
+%   (SAGA)}~\citep{saga_url}, in particular its Checkpoint Recovery
+% (CPR) package, and of the Migol middleware~\citep{schnorLuckow08} to
+% build a reliable RE application (see~\citet{Luckow:2008la}).  
+
+% Production distributed environments in their current
+% incarnation are manifest as an aggregation of multiple
+% single-resources, and although there are some initial attempts at
+% supporting co-scheduled resources for tightly-coupled simulations
+% there are insufficient attempts at supporting a broader range of
+% distributed and collective modes of operations, such as required for
+% loosely-coupled applications.  For example, 
+
+% Current production infrastructure does not provide efficient {\it
+%   ap\-pli\-cation-level} mechanisms for co-ordinated resource
+% sharing. 
+
+In this paper we address some of the challenges and performance
+bottlenecks encountered when performing RE simulations over multiple
+distributed resources, such as the overall slowdown due to
+synchronisation arising from the light-coupling and the lack of
+co-scheduled resources.  This work builds upon work on the creation of
+fault-tolerant framework~\citet{Luckow:2008la}. The unique
+contribution of this paper is the implementation of a RE framework
+that overcomes the described limitations, by being able to adapt at
+runtime to a change in resource availabilities and application
+resource requirements.  We present data that validates the claim that
+as more resources become available our framework can opportunistically
+employ these resources to lead to a reduction in the
+time-to-completion of the scientific problem.  The remainder of the
+paper is structured as follows: In the next section we provide the
+basic ideas behind RE and specifically RE using Molecular Dynamics
+(REMD) simulations.  In section~\ref{sec:remd_impl}, we describe the
+details of a REMD application implemented using the SAGA/Mi\-gol
+framework. Section~\ref{sec:glidein} discusses the new BigJob
+abstraction and the SAGA Glide-In framework.  We highlight different
+adaptivity strategies for supporting dynamic applications in
+section~\ref{sec:adaptivitiy}.  In the subsequent section we discuss
+the deployment and results of experiments using the SAGA based RE
+framework on the TeraGrid.  We conclude by discussing related work --
+which will highlight the unique features of our implementation, and
+provide a glimpse of future work in this direction.
+
+
+% One approach to rectify these deficits
 % are system-level abstractions that allow applications to effectively
 % utilise distributed resources concurrently.
-The unique contribution of this paper is the implementation of a RE
-framework that overcomes the described limitations, by being able to
-adapt at runtime to a change in resource availabilities and
-application resource requirements. The framework utilises the
-\emph{BigJob} abstraction,
-which % in combination with the Glide-In mechanism,
-allows the efficient dispatching of jobs by grouping smaller sub-jobs
-into a larger job.
+
+% The framework utilises the
+% \emph{BigJob} abstraction,
+% which % in combination with the Glide-In mechanism,
+% allows the efficient dispatching of jobs by grouping smaller sub-jobs
+% into a larger job. 
+
 % The RE framework relies on the \emph{BigJob} abstraction not only for
 % dispatching replica jobs, but also adds higher-level functionality by
 % allowing the dynamic utilisation of additional resources as they
 % become available.  Our implementation is both independent of 
 % platform and infrastructure details, and can respond gracefully to
 % failures. 
-We present data that validates the claim that as more
-resources become available our framework can opportunistically employ
-these resources to lead to a reduction in the time-to-completion of
-the scientific problem.  
+
 
 %%%%%%%%%%%%%  Shantenu original %%%%%%%%%%%%%                                                  
 % The heterogeneity and dynamism of a computational Grid results in
@@ -280,19 +304,6 @@ the scientific problem.
 % opportunistically employ these resources to lead to a reduction in
 % the time-to-completion of the scientific problem.    
 
-The remainder of the paper is structured as follows: In the next
-section we provide the basic ideas behind RE and specifically RE using
-Molecular Dynamics (REMD) simulations.  In
-section~\ref{sec:remd_impl}, we describe the details of a REMD
-application implemented using the SAGA/Mi\-gol
-framework. Section~\ref{sec:glidein} discusses the new BigJob
-abstraction and the SAGA Glide-In framework.  We highlight different
-adaptivity strategies for supporting dynamic applications in
-section~\ref{sec:adaptivitiy}.  In the subsequent section we discuss
-the deployment and results of experiments using the SAGA based RE
-framework on the TeraGrid.  We conclude by discussing related work --
-which will highlight the unique features of our implementation, and
-provide a glimpse of future work in this direction.
 
 \section{Replica-Exchange Molecular Dynamics}
 
@@ -474,34 +485,35 @@ environments.
   abstractions, it what is an abstraction and what is a model is a
   matter of perspective/origin too}              
 
-{\it \bf Patterns and Abstractions:} To understand the relationship
-between clustered job submissions, BigJob and Gli\-de-Ins, it is
-useful to review two basic underlying concepts, \I{patterns} and
-\I{abstractions}.  \alnote{I commented this out (liked the second
-  definition of pattern better): A pattern is a references to a
-  commonly occurring mode -- whether in programming an application, in
-  the way an application is used or executed.}  \I{Patterns} are the
-formalization of frequently reoccurring modes, either in programming
-an application or in the way an application is used or executed.  For
-example, the need to submit multiple jobs together is a common
-requirement and practice, and thus provides a simple example of an
-execution pattern.
+%{\it \bf Patterns and Abstractions:}  To understand the relationship
+% between clustered job submissions, BigJob and Gli\-de-Ins, it is
+% useful to review two basic underlying concepts, \I{patterns} and
+% \I{abstractions}.  \alnote{I commented this out (liked the second
+%   definition of pattern better): A pattern is a references to a
+%   commonly occurring mode -- whether in programming an application, in
+%   the way an application is used or executed.}  \I{Patterns} are the
+% formalization of frequently reoccurring modes, either in programming
+% an application or in the way an application is used or executed.  For
+% example, the need to submit multiple jobs together is a common
+% requirement and practice, and thus provides a simple example of an
+% execution pattern.
 
-A mechanism that supports a pattern is referred to as an
-\I{abstraction}; just as patterns can be programmatic or execution, so
-can abstractions.  \jhanote{Should we give another example, rather
-  than the clustered-job pattern? AndreL, AndreM: any suggestions?}
-\alnote{I think 1 example is supporting our use case is sufficient.}
-For example, there exists a commonly employed approach to avoid
-queuing delays through the use of place-holder jobs, which is able to
-dispatch several sub-jobs without each sub-job needing to queue at the
-local scheduler. A specific mechanism to support this pattern is the
-\emph{Glide-In} abstraction, in reference to the Condor Glide-In
-system~\citep{citeulike:291860}, which pioneered this idea. A Glide-In
-job requests a sufficiently large chunk of resources; smaller sub-jobs
-can then rapidly be executed through the Glide-In job.  By avoiding
-the high initial costs for queueing each individual replica job, the
-time-to-completion can be dramatically reduced.
+% A mechanism that supports a pattern is referred to as an
+% \I{abstraction}; just as patterns can be programmatic or execution, so
+% can abstractions.  \jhanote{Should we give another example, rather
+%   than the clustered-job pattern? AndreL, AndreM: any suggestions?}
+% \alnote{I think 1 example is supporting our use case is sufficient.}
+% For example, 
+{\noindent \it \bf Abstractions:} There exists a commonly employed approach to
+avoid queuing delays through the use of place-holder jobs, which is
+able to dispatch several sub-jobs without each sub-job needing to
+queue at the local scheduler. A specific mechanism to support this
+pattern is the \emph{Glide-In} abstraction, in reference to the Condor
+Glide-In system~\citep{citeulike:291860}, which pioneered this idea. A
+Glide-In job requests a sufficiently large chunk of resources; smaller
+sub-jobs can then rapidly be executed through the Glide-In job.  By
+avoiding the high initial costs for queueing each individual replica
+job, the time-to-completion can be dramatically reduced.
 
 \begin{figure}[t]
       \centering
@@ -566,7 +578,7 @@ physical resources.
 \end{figure}
     
 % RE-Manager overall
-{\it \bf Implementation:} The RE framework presented in section~\ref{sec:remd_impl} has been
+{\noindent \it \bf Implementation:} The RE framework presented in section~\ref{sec:remd_impl} has been
 extended to support the management and scheduling of replica jobs.
 BigJob provides the ability to cluster sub-jobs; Glide-In provides the
 ability to effectively schedule the sub-jobs.  As illustrated in
@@ -641,24 +653,25 @@ job id, and with the right number of processors.  }
     aspects from the original section could be added. The complete
     section is commented out below.}
 
-{\it \bf Adaptive Replica Scheduling:} Distributed applications including RE simulations must be able to 
-deal with time-varying resource availabilities.
-An application is referred to as \emph{dynamic} when either the
-resource requirements of the application, or the availability and
-utilisation of resources by the application changes during its
-runtime.  \emph{Adaptivity} is a mechanism to respond to dynamic
-changes; % as opposed to just ignoring the dynamism of a distributedenvironment.
-a dynamic application may deploy multiple adaptive strategies or
-choose between competing adaptive strategies.
-
-For an application to be adaptive, it is necessary for it to be able
-to effectively utilise an expanded or reduced set of resources;
-additionally for an adaptive application to be scalable it must also
-be able to determine which resources to utilise efficiently, if not
-optimally.  For resource determination, our framework currently relies
-on a static, user-defined mapping of replicas and resources.  In the
-remainder of this paper, we will focus on dynamic resource utilisation
-(and not on dynamic resource determination or optimisation).
+  {\noindent \it \bf Adaptive Replica Scheduling:} Distributed applications
+  including RE simulations must be able to deal with time-varying
+  resource availabilities.  An application is referred to as
+  \emph{dynamic} when either the resource requirements of the
+  application, or the availability and utilisation of resources by the
+  application changes during its runtime.  \emph{Adaptivity} is a
+  mechanism to respond to dynamic
+  changes; % as opposed to just ignoring the dynamism of a distributedenvironment.
+  a dynamic application may deploy multiple adaptive strategies or
+  choose between competing adaptive strategies.  For an application to
+  be adaptive, it is necessary for it to be able to effectively
+  utilise an expanded or reduced set of resources; additionally for an
+  adaptive application to be scalable it must also be able to
+  determine which resources to utilise efficiently, if not optimally.
+  For resource determination, our framework currently relies on a
+  static, user-defined mapping of replicas and resources.  In the
+  remainder of this paper, we will focus on dynamic resource
+  utilisation (and not on dynamic resource determination or
+  optimisation).
 
 For jobs that want to maximise their throughput the ability to adapt
 to dynamically changing resource loads and requirements is
@@ -689,9 +702,9 @@ the number of resources required/available:
   the temperature range (adaptive sampling) or to extend the
   temperature range (enhanced dynamics).
 \end{compactitem}           
-Both adaptive strategies have been realized within the RE-Manager, and
-BigJob and Glide-In are useful abstractions in both scenarios. 
-
+% Both adaptive strategies have been realized within the RE-Manager, and
+% BigJob and Glide-In are useful abstractions in both scenarios. 
+Our framework supports both adaptive strategies.
 
 % Our framework supports and implements both strategies.  
 
