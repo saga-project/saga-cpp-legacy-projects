@@ -129,8 +129,9 @@
   analysing the requirements of the Replica-Exchange algorithm and the
   challenges of implementing it on real production systems, we propose
   a new abstraction (BigJob), which forms the basis of the adaptive
-  redistribution of replicas and the effective scheduling of the
-  multiple sub-tasks.
+  redistribution and effective scheduling
+  of replicas.
+%  and the effective scheduling of the  multiple sub-tasks.
 \end{abstract}
 
 \section{Introduction}
@@ -143,19 +144,18 @@ complicated and challenging class of distributed applications are
 those that have a degree of coupling between individual sub-tasks.  An
 interesting example of such applications are those based upon the
 \emph{Replica-Exchange (RE)}~\citep{hansmann,Sugita:1999rm} algorithm.
-RE simulations are used to understand important physical phenomena --
-ranging from protein folding dynamics to binding affinity calculations
-required for computational drug discovery.
-  
+RE simulations are used to understand physical phenomena -- ranging
+from protein folding dynamics to binding affinity calculations.
+
 %%%%% RE nature of the problem
-RE simulations involve the concurrent execution of multiple
+RE simulations involve the concurrent execution of multiple similar
 simulations -- the \emph{replicas}. The coupling between replicas
-takes place in the form of periodic exchange attempts between paired
-replicas. Typically, coupling occurs infrequently compared to the
-run-time of each replica, and is small in terms of communication
-bandwidth requirements; thus RE is {\it prima facie} a perfect
-algorithm to exploit distributed resources. We label such a class of
-algorithms as {\it pleasingly-distributed}.
+occurs via periodic exchange attempts between paired replicas. The
+exchange is typically infrequent compared to the run-time of each
+replica, and is small in terms of communication bandwidth
+requirements. Thus RE is {\it prima facie} a perfect algorithm to
+exploit distributed resources. We label such a class of algorithms as
+{\it pleasingly-distributed}.
 
 %%%%% related work
 Most RE implementations are either infrastructure
@@ -170,59 +170,73 @@ execution model, and thus the ability to utilise resources
 dynamically, as opposed to a static execution model inherited from
 parallel and cluster computing.  Unfortunately, the barrier to the
 development of such adaptive applications is high and the
-infrastructure support
+infrastructure support is poor.
 %for applications with dynamic resource utilisation requirements 
-is poor.  Therefore, it is not surprisingly that not many adaptive
-applications exist. Specifically, there is no implementation of an
+% Therefore, it is not surprisingly that not many adaptive
+% applications exist.
+Specifically, there is no implementation of an
 adaptive RE algorithm, which is both able to effectively and reliably
 utilise multiple distributed resources without prior scheduling as
 well as being independent of any specific %computational platform or
 infrastructure.
                       
 %%%%% reference to contribution of escience paper
+% To address heterogeneity and failures, which are both inherent
+% characteristics of distributed environments, we demonstrated the use
+% of the \textit{Simple API for Grid Applications
+%   (SAGA)}~\citep{saga_url}, in particular its Checkpoint Recovery
+% (CPR) package, and of the Migol middleware~\citep{schnorLuckow08} to
+% build a reliable RE application (see~\citet{Luckow:2008la}).  In
+% general, SAGA and Migol provide the tools for developing a broad range
+% of applications, of which RE is a specific example.  Implementing such
+% a framework was an important first-step on the critical-path towards
+% developing a framework that can support adaptive RE simulations on
+% production-level infrastructure.
+
+%%%%% contributions of this paper  
+% In
+% general, SAGA and Migol provide the tools for developing a broad range
+% of applications, of which RE is a specific example.  Implementing such
+% a framework was an important first-step on the critical-path towards
+% developing a framework that can support adaptive RE simulations on
+% production-level infrastructure.
+
 To address heterogeneity and failures, which are both inherent
 characteristics of distributed environments, we demonstrated the use
 of the \textit{Simple API for Grid Applications
   (SAGA)}~\citep{saga_url}, in particular its Checkpoint Recovery
 (CPR) package, and of the Migol middleware~\citep{schnorLuckow08} to
-build a reliable RE application (see~\citet{Luckow:2008la}).  In
-general, SAGA and Migol provide the tools for developing a broad range
-of applications, of which RE is a specific example.  Implementing such
-a framework was an important first-step on the critical-path towards
-developing a framework that can support adaptive RE simulations on
-production-level infrastructure.
-
-%%%%% contributions of this paper  
-In this paper we address some of the challenges and performance
-bottlenecks encountered when performing RE simulations over multiple
-distributed resources, such as the overall slowdown due to
-synchronisation arising from the light-coupling and the lack of
-co-scheduled resources. Production distributed environments in their
-current incarnation are manifest as an aggregation of multiple
+build a reliable RE application (see~\citet{Luckow:2008la}).  In this
+paper we address some of the challenges and performance bottlenecks
+encountered when performing RE simulations over multiple distributed
+resources, such as the overall slowdown due to synchronisation arising
+from the light-coupling and the lack of co-scheduled
+resources. Production distributed environments in their current
+incarnation are manifest as an aggregation of multiple
 single-resources, and although there are some initial attempts at
-supporting co-scheduled resources for tightly-coupled
-simulations~\citep{repex_mpig}, there are insufficient attempts at
-supporting a broader range of distributed and collective modes of
-operations, such as required for loosely-coupled applications.  For
-example, current infrastructure does not provide efficient {\it
-  ap\-pli\-cation-level} mechanisms for co-ordinated resource
-sharing. One approach to rectify these deficits are system-level
-abstractions that allow applications to effectively utilise
-distributed resources concurrently.
-
+supporting co-scheduled resources for tightly-coupled simulations
+there are insufficient attempts at supporting a broader range of
+distributed and collective modes of operations, such as required for
+loosely-coupled applications.  For example, current infrastructure
+does not provide efficient {\it ap\-pli\-cation-level} mechanisms for
+co-ordinated resource sharing. % One approach to rectify these deficits
+% are system-level abstractions that allow applications to effectively
+% utilise distributed resources concurrently.
 The unique contribution of this paper is the implementation of a RE
 framework that overcomes the described limitations, by being able to
 adapt at runtime to a change in resource availabilities and
 application resource requirements. The framework utilises the
-\emph{BigJob} abstraction, which % in combination with the Glide-In mechanism,
+\emph{BigJob} abstraction,
+which % in combination with the Glide-In mechanism,
 allows the efficient dispatching of jobs by grouping smaller sub-jobs
-into a larger job. 
-The RE framework relies on the \emph{BigJob} abstraction not only for
-dispatching replica jobs, but also adds higher-level functionality by
-allowing the dynamic utilisation of additional resources as they
-become available.  Our implementation is both independent of 
-platform and infrastructure details, and can respond gracefully to
-failures.  We present data that validates the claim that as more
+into a larger job.
+% The RE framework relies on the \emph{BigJob} abstraction not only for
+% dispatching replica jobs, but also adds higher-level functionality by
+% allowing the dynamic utilisation of additional resources as they
+% become available.  Our implementation is both independent of 
+% platform and infrastructure details, and can respond gracefully to
+% failures. 
+We present data that validates the claim that as more
 resources become available our framework can opportunistically employ
 these resources to lead to a reduction in the time-to-completion of
 the scientific problem.  
