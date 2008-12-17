@@ -17,6 +17,7 @@ using namespace faust::impl;
 // CONSTRUCTOR
 //
 job_group_impl::job_group_impl() 
+: object(faust::object::JobGroup)
 {
   std::string jobid("faust://");
   jobid.append(saga::uuid().string());
@@ -64,7 +65,7 @@ std::string job_group_impl::get_job_id()
   return jobid_;
 }
 
-std::vector<std::string> job_group_impl::list_job_ids()
+std::vector<std::string> job_group_impl::list_jobs()
 {
   std::vector<std::string> ids;
   return ids;

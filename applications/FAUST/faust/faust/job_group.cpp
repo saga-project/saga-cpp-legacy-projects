@@ -16,8 +16,17 @@ using namespace faust;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+boost::shared_ptr <faust::impl::job_group_impl> job_group::get_impl (void) const
+{ 
+  typedef faust::object base_type;
+  return boost::static_pointer_cast <faust::impl::job_group_impl> (
+                                                             this->base_type::get_impl ());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
 job_group::job_group() 
-: object(object::JobGroup), impl(new faust::impl::job_group_impl())
+: faust::object (new faust::impl::job_group_impl(), object::JobGroup)
 {
 }
 
@@ -25,47 +34,47 @@ job_group::job_group()
 //
 void job_group::run() 
 { 
-  impl->run(); 
+  get_impl()->run(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job_group::wait(double timeout) 
 { 
-  return impl->wait(timeout); 
+  return get_impl()->wait(timeout); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job_group::cancel(double timeout) 
 { 
-  return impl->cancel(timeout); 
+  return get_impl()->cancel(timeout); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job_group::suspend() 
 { 
-  return impl->suspend(); 
+  return get_impl()->suspend(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job_group::resume() 
 { 
-  return impl->suspend(); 
+  return get_impl()->suspend(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 std::string job_group::get_job_id() 
 { 
-  return impl->get_job_id(); 
+  return get_impl()->get_job_id(); 
 }      
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-std::vector<std::string> job_group::list_job_ids() 
+std::vector<std::string> job_group::list_jobs() 
 { 
-  return impl->list_job_ids(); 
+  return get_impl()->list_jobs(); 
 }  

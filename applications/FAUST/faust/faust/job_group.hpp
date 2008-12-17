@@ -42,8 +42,7 @@ namespace faust
       
     private:
       
-      typedef boost::shared_ptr<faust::impl::job_group_impl> impl_ptr;
-      impl_ptr impl;
+      boost::shared_ptr <faust::impl::job_group_impl> get_impl (void) const;
            
       job_group();
       
@@ -82,7 +81,7 @@ namespace faust
       /*! \brief Returns a list of unique IDs for all jobs in this %group. 
        *
        */
-      std::vector<std::string> list_job_ids();     
+      std::vector<std::string> list_jobs();     
       
     };
 }

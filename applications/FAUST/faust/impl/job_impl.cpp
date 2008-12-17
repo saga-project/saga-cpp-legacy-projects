@@ -16,6 +16,7 @@ using namespace faust::impl;
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 job_impl::job_impl() 
+: object(faust::object::Job)
 {
   std::string jobid("faust://");
   jobid.append(saga::uuid().string());

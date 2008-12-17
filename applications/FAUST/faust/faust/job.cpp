@@ -16,9 +16,17 @@ using namespace faust;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+boost::shared_ptr <faust::impl::job_impl> job::get_impl (void) const
+{ 
+  typedef faust::object base_type;
+  return boost::static_pointer_cast <faust::impl::job_impl> (
+                                                        this->base_type::get_impl ());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
 job::job() 
-//: object(object::Job), impl(new faust::impl::job_impl())
-: faust::object (new faust::impl::job_impl())
+: faust::object (new faust::impl::job_impl(), object::Job)
 {
 }
 
@@ -26,54 +34,54 @@ job::job()
 //
 void job::run() 
 { 
-  impl_->run(); 
+  get_impl()->run(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job::wait(double timeout) 
 { 
-  return impl->wait(timeout); 
+  return get_impl()->wait(timeout); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job::cancel(double timeout) 
 { 
-  return impl->cancel(timeout); 
+  return get_impl()->cancel(timeout); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job::suspend() 
 { 
-  return impl->suspend(); 
+  return get_impl()->suspend(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool job::resume() 
 { 
-  return impl->suspend(); 
+  return get_impl()->suspend(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 std::string job::get_job_id() 
 { 
-  return impl->get_job_id(); 
+  return get_impl()->get_job_id(); 
 }      
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 faust::state job::get_state()
 {
-  return impl->get_state();
+  return get_impl()->get_state();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 faust::description job::get_description()
 {
-  return impl->get_description();
+  return get_impl()->get_description();
 }

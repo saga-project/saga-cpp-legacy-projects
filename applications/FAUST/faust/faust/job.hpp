@@ -27,7 +27,6 @@ namespace faust
   ///@endcond - exclude from Doxygen
 
 
-
     /*! \brief The %job provides the manageability interface to a %job 
      *         instance submitted through a %faust %service instance. 
      *         It can't be instanciated directly, only thourgh the 
@@ -40,11 +39,10 @@ namespace faust
       friend class faust::impl::service_impl;
       
     private:
-
-      //typedef boost::shared_ptr<faust::impl::job_impl> impl_ptr;
-      //impl_ptr impl;
       
       job();
+      
+      boost::shared_ptr <faust::impl::job_impl> get_impl (void) const;
             
     public:
             

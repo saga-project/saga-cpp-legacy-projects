@@ -55,9 +55,7 @@ namespace faust
       
     private:
       
-      typedef boost::shared_ptr<faust::impl::service_impl> impl_ptr;
-      impl_ptr impl;
-
+      boost::shared_ptr <faust::impl::service_impl> get_impl (void) const;
       
     public:
       

@@ -28,6 +28,7 @@ using namespace faust::impl;
 // CONSTRUCTOR
 //
 service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs)
+: object(faust::object::Service)
 {
   using namespace saga::job;
   
@@ -168,11 +169,7 @@ faust::job_group
 service_impl::create_job_group(std::vector<faust::description> job_descs)
 {
   faust::job_group ret;
-  
-  // joblist_.insert(joblist_pair(g.get_job_id(), g));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
@@ -184,11 +181,7 @@ service_impl::create_job_group(std::vector<faust::description> job_descs,
                                dependency dep)
 {
   faust::job_group ret;
-  
-  // joblist_.insert(joblist_pair(g.get_job_id(), g));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
@@ -200,11 +193,7 @@ service_impl::create_job_group(std::vector<faust::description> job_descs,
                                dependency dep)
 {
   faust::job_group ret;
-  
-  // joblist_.insert(joblist_pair(g.get_job_id(), g));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
@@ -216,11 +205,7 @@ service_impl::create_job_group(std::vector<faust::description> job_descs,
                                dependency dep)
 {
   faust::job_group ret;
-  
-  // joblist_.insert(joblist_pair(g.get_job_id(), g));
-  std::string msg("Registering new job_group instance: " + ret.get_job_id());
-  log_->write(msg, LOGLEVEL_INFO);
-  
+  insert_job_into_job_list(ret.get_job_id(), ret);
   return ret;
 }
 
@@ -285,19 +270,25 @@ void service_impl::insert_job_into_job_list(std::string jobid, faust::object obj
 faust::job
 service_impl::get_job(std::string job_id)
 {
- /* if( joblist_[job_id].get_type() != faust::object::Job )
+  /*if( joblist_[job_id].get_type() != faust::object::Job )
     ;// TODO THROW ERROR
-  else
-  {
-    faust::object & obj = joblist_[job_id];
-    return *static_cast<faust::job *> (boost::addressof(obj));
-  }*/
+  //else
+  //{
+   faust::object & obj = joblist_[job_id];
+   return *static_cast<faust::job *> (boost::addressof(obj));
+  //}*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job_group
 service_impl::get_job_group(std::string job_id)
 {
-  
+  /*if( joblist_[job_id].get_type() != faust::object::JobGroup )
+    ;// TODO THROW ERROR
+  //else
+  //{
+  faust::object & obj = joblist_[job_id];
+  return *static_cast<faust::job_group *> (boost::addressof(obj));
+  //}  */
 }
 

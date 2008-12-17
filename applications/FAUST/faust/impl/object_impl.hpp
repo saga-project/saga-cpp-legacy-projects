@@ -12,10 +12,9 @@
 #ifndef FAUST_IMPL_OBJECT_HPP
 #define FAUST_IMPL_OBJECT_HPP
 
-// include boost helper
 #include <boost/noncopyable.hpp>
-#include <boost/thread.hpp>
 
+#include <faust/faust/object.hpp>
 
 namespace faust {
   
@@ -23,8 +22,20 @@ namespace faust {
     
     ////////////////////////////////////////////////////////////////////////////
     //
-    class object 
+    class object : private boost::noncopyable, 
+                   public boost::enable_shared_from_this <object>
       {    
+        
+      private:
+        
+        faust::object::type type_;
+        
+      public:
+        
+        object (faust::object::type type);
+        virtual ~object (void) {}
+        
+        faust::object::type get_type() const;
         
       };
   }
