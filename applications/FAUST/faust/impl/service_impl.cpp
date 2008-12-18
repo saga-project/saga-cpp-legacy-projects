@@ -15,6 +15,7 @@
 #include <faust/faust/job_group.hpp>
 #include <faust/faust/resource.hpp>
 #include <faust/faust/description.hpp>
+#include <faust/faust/exception.hpp>
 
 #include <faust/impl/service_impl.hpp>
 
@@ -270,25 +271,24 @@ void service_impl::insert_job_into_job_list(std::string jobid, faust::object obj
 faust::job
 service_impl::get_job(std::string job_id)
 {
-  if( joblist_[job_id].get_type() != faust::object::Job )
-    ;// TODO THROW ERROR
- // else
-  {
-   //faust::object & obj = joblist_[job_id];
-   //return *static_cast<faust::job *> (boost::addressof(obj));
-  }
+  if( joblist_.find(job_id) == joblist_.end())
+    throw faust::exception ("JobID doesn't exisit." , faust::NoSuccess);
+  else if( joblist_[job_id].get_type() != faust::object::Job )
+    throw faust::exception ("TODO: Describe error" , faust::NoSuccess);
+  else
+    return *static_cast<faust::job *> (boost::addressof(joblist_[job_id]));
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job_group
 service_impl::get_job_group(std::string job_id)
 {
-  /*if( joblist_[job_id].get_type() != faust::object::JobGroup )
-    ;// TODO THROW ERROR
-  //else
-  //{
-  faust::object & obj = joblist_[job_id];
-  return *static_cast<faust::job_group *> (boost::addressof(obj));
-  //}  */
+  if( joblist_.find(job_id) == joblist_.end())
+    throw faust::exception ("JobID doesn't exisit." , faust::NoSuccess);
+  else if( joblist_[job_id].get_type() != faust::object::JobGroup )
+    throw faust::exception ("TODO: Describe error" , faust::NoSuccess);
+  else
+    return *static_cast<faust::job_group *> (boost::addressof(joblist_[job_id]));
 }
 

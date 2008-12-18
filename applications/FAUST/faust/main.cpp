@@ -82,7 +82,10 @@ int main (int argc, char* argv[])
   std::vector<std::string> jl = s.list_jobs();
   std::vector<std::string>::const_iterator ci;
   for(ci = jl.begin(); ci != jl.end(); ++ci)
-    std::cout << (*ci) << std::endl;
+  {
+    faust::job j = s.get_job(*ci);
+    std::cout << j.get_job_id() << std::endl;
+  }
   
   
   return 0;
