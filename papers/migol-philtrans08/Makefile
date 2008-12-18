@@ -8,7 +8,7 @@ DVIPS=dvips
 
 
 # main source files
-NAME = repex_ptrsa
+NAME = repex_ptrsa_short
 TEXTS=$(NAME).tex
 
 #DVIS=draft.dvi bericht.dvi
