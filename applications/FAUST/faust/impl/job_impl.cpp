@@ -1,8 +1,8 @@
 /*
- *  job_impl.cpp 
+ *  job.cpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/30/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -15,7 +15,7 @@ using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
-job_impl::job_impl() 
+job::job() 
 : object(faust::object::Job)
 {
   std::string jobid("faust://");
@@ -25,55 +25,55 @@ job_impl::job_impl()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void job_impl::run()
+void job::run()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_impl::wait(double timeout)
-{
-  return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-bool job_impl::cancel(double timeout)
+bool job::wait(double timeout)
 {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_impl::suspend()
+bool job::cancel(double timeout)
 {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_impl::resume()
+bool job::suspend()
 {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-std::string job_impl::get_job_id()
+bool job::resume()
+{
+  return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+std::string job::get_job_id()
 {
   return jobid_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::state job_impl::get_state()
+faust::state job::get_state()
 {
   return state_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::description job_impl::get_description()
+faust::description job::get_description()
 {
   return description_;
 }

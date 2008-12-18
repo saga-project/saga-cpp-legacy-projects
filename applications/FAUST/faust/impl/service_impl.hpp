@@ -2,7 +2,7 @@
  *  job_service_impl.hpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/30/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -16,8 +16,6 @@
 #include <saga/saga.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <faust/impl/object_impl.hpp>
-
 #include <faust/faust/object.hpp> 
 #include <faust/faust/exports.hpp> 
 #include <faust/faust/state.hpp>
@@ -25,6 +23,7 @@
 #include <faust/faust/job.hpp>
 
 #include <faust/impl/logwriter.hpp>
+#include <faust/impl/object_impl.hpp>
 
 namespace faust
 {
@@ -32,12 +31,14 @@ namespace faust
   {
     class job; // fwd. decl.
     
-    typedef std::map<std::string,  faust::object> joblist_map;
-    typedef std::pair<std::string, faust::object> joblist_pair;
+    typedef std::map<std::string,  faust::object> joblist_map_t;
+    typedef std::pair<std::string, faust::object> joblist_pair_t;
     
     typedef std::map<std::string,  faust::resource> resources_map;
     typedef std::pair<std::string, faust::resource> resources_pair;
     
+    //////////////////////////////////////////////////////////////////////////
+    //
     class FAUST_EXPORT service_impl : public faust::impl::object
     {
       
@@ -45,7 +46,7 @@ namespace faust
       faust::detail::logwriter * log_;
       
       resources_map              resources_;
-      joblist_map                joblist_;
+      joblist_map_t                joblist_;
       
       void insert_job_into_job_list(std::string jobid, faust::object obj);
       

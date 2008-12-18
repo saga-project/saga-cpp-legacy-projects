@@ -2,7 +2,7 @@
  *  job_group.cpp
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/22/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/22/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -16,17 +16,17 @@ using namespace faust;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-boost::shared_ptr <faust::impl::job_group_impl> job_group::get_impl (void) const
+boost::shared_ptr <faust::impl::job_group> job_group::get_impl (void) const
 { 
   typedef faust::object base_type;
-  return boost::static_pointer_cast <faust::impl::job_group_impl> (
+  return boost::static_pointer_cast <faust::impl::job_group> (
                                                              this->base_type::get_impl ());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 job_group::job_group() 
-: faust::object (new faust::impl::job_group_impl(), object::JobGroup)
+: faust::object (new faust::impl::job_group(), object::JobGroup)
 {
 }
 

@@ -2,7 +2,7 @@
  *  logwriter.hpp
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/23/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/23/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -20,28 +20,34 @@
 
 #include <string>
 
-namespace faust { namespace detail {
-    
-  class logwriter {
-
-  private:
-    
-    std::string appName_;
-    std::ostream & out_;
-    
-  public:
-    
-    logwriter();
-    logwriter(std::string appName);
-    logwriter(std::string appName, std::ostream& logStream);
-    
-    ~logwriter();
-    
-    void write(std::string, unsigned int logLevel);
-    
-  };
-
-} } /* faust::detail */
+namespace faust 
+{ 
+  namespace detail 
+  {
+    //////////////////////////////////////////////////////////////////////////
+    //
+    class logwriter {
+      
+    private:
+      
+      std::string appName_;
+      std::ostream & out_;
+      
+    public:
+      
+      logwriter();
+      logwriter(std::string appName);
+      logwriter(std::string appName, std::ostream& logStream);
+      
+      ~logwriter();
+      
+      void write(std::string, unsigned int logLevel);
+      
+    };
+    //
+    //////////////////////////////////////////////////////////////////////////    
+  } 
+} 
 
 #endif /* FAUST_LOGWRITER_HPP */
 

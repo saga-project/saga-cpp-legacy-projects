@@ -1,8 +1,8 @@
 /*
- *  job_impl.hpp 
+ *  job.hpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/30/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -12,21 +12,21 @@
 #ifndef FAUST_IMPL_JOB_IMPL_HPP
 #define FAUST_IMPL_JOB_IMPL_HPP
 
-#include <saga/saga.hpp>
-
-#include <faust/impl/object_impl.hpp>
-
 #include <faust/faust/exports.hpp>
 #include <faust/faust/job.hpp>
 #include <faust/faust/state.hpp>
 #include <faust/faust/description.hpp>
 
+#include <faust/impl/object_impl.hpp>
+
 namespace faust
 {
   namespace impl 
   {
-    class FAUST_EXPORT job_impl : public faust::impl::object
-      {
+    //////////////////////////////////////////////////////////////////////////
+    //
+    class FAUST_EXPORT job : public faust::impl::object
+    {
       
       private:
         
@@ -36,7 +36,7 @@ namespace faust
         
       public:
         
-        job_impl();
+        job();
         void run();
         bool wait(double timeout = -1.0);
         bool cancel(double timeout = -1.0);
@@ -45,7 +45,9 @@ namespace faust
         std::string get_job_id();        
         faust::state get_state();
         faust::description get_description();        
-      };
+    };
+    //
+    //////////////////////////////////////////////////////////////////////////
   }
 }
 

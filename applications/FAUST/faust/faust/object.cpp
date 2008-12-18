@@ -2,7 +2,7 @@
  *  object.cpp
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/29/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/29/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 

@@ -1,8 +1,8 @@
 /*
- *  job_group_impl.cpp 
+ *  job_group.cpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/30/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -16,7 +16,7 @@ using namespace faust::impl;
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 //
-job_group_impl::job_group_impl() 
+job_group::job_group() 
 : object(faust::object::JobGroup)
 {
   std::string jobid("faust://");
@@ -26,46 +26,46 @@ job_group_impl::job_group_impl()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void job_group_impl::run()
+void job_group::run()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_group_impl::wait(double timeout)
-{
-  return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-bool job_group_impl::cancel(double timeout)
+bool job_group::wait(double timeout)
 {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_group_impl::suspend()
+bool job_group::cancel(double timeout)
 {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool job_group_impl::resume()
+bool job_group::suspend()
 {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-std::string job_group_impl::get_job_id()
+bool job_group::resume()
+{
+  return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+std::string job_group::get_job_id()
 {
   return jobid_;
 }
 
-std::vector<std::string> job_group_impl::list_jobs()
+std::vector<std::string> job_group::list_jobs()
 {
   std::vector<std::string> ids;
   return ids;

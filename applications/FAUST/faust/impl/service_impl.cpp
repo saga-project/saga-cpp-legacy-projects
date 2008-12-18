@@ -2,7 +2,7 @@
  *  service_impl.cpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
- *  Created by Ole Weidner on 11/30/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
  *  Copyright 2008 Center for Computation & Technology. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -127,7 +127,7 @@ std::vector<std::string> service_impl::list_jobs(void)
 {
   std::vector<std::string> job_ids;
   
-  joblist_map::const_iterator ci;
+  joblist_map_t::const_iterator ci;
   for(ci = joblist_.begin(); ci != joblist_.end(); ++ci)
   {
     job_ids.push_back(ci->first);
@@ -260,7 +260,7 @@ service_impl::create_job(faust::description job_descs,
 // 
 void service_impl::insert_job_into_job_list(std::string jobid, faust::object obj) 
 {
-  joblist_.insert(joblist_pair(jobid, obj));
+  joblist_.insert(joblist_pair_t(jobid, obj));
   std::string msg("Registering new " + faust::get_object_type_name(obj) + " instance: " + jobid);
   log_->write(msg, LOGLEVEL_INFO);  
 }
@@ -270,13 +270,13 @@ void service_impl::insert_job_into_job_list(std::string jobid, faust::object obj
 faust::job
 service_impl::get_job(std::string job_id)
 {
-  /*if( joblist_[job_id].get_type() != faust::object::Job )
+  if( joblist_[job_id].get_type() != faust::object::Job )
     ;// TODO THROW ERROR
-  //else
-  //{
-   faust::object & obj = joblist_[job_id];
-   return *static_cast<faust::job *> (boost::addressof(obj));
-  //}*/
+ // else
+  {
+   //faust::object & obj = joblist_[job_id];
+   //return *static_cast<faust::job *> (boost::addressof(obj));
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 // 
