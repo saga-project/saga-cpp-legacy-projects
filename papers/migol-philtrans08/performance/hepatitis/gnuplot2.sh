@@ -1,4 +1,4 @@
-set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+set term postscript eps enhanced color linewidth 1.42 "Helvetica" 25 
 
 set encoding iso_8859_1
 
@@ -20,7 +20,7 @@ set y2label "Speed Up"
 set xrange [1:8] 
 set yrange [0:35] 
 
-set y2range [0:10] 
+set y2range [0:10.5] 
 set y2tics 0, 1
 set ytics nomirror
 #set arrow .
@@ -29,7 +29,7 @@ set ytics nomirror
    
 
 set output "perf_repex2.eps" 
-plot "data2.txt" using 1:($$3/60) axis x1y1 title "Time per Generation" with lp,\
+plot "data2.txt" using 1:($3/60) axis x1y1 title "Time per Generation" with lp,\
      "data2.txt" using 1:6 axis x1y2 title "Speed Up" with lp
 
 #set terminal x11

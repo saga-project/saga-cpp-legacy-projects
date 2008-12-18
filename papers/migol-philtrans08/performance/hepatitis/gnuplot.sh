@@ -1,4 +1,4 @@
-set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+set term postscript eps enhanced color linewidth 1.42 "Helvetica" 25 
 
 set encoding iso_8859_1
 
@@ -21,9 +21,9 @@ set xlabel "Time (in min)"
 #set format y "%.0f"
 set xrange [25:280] 
 #set y2range [0:40] 
-set yrange [0:35] 
+set yrange [0:38] 
 
-set y2range [0:9] 
+set y2range [0:10] 
 set y2tics 0, 1
 set ytics nomirror
 #set arrow .
