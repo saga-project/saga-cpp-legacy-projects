@@ -22,6 +22,7 @@
 \usepackage{ifpdf}    
 \usepackage{subfig} 
 \usepackage{pdfsync}                    
+%\usepackage{subfigure}
 
 %Bibliography                     
 \usepackage{natbib}   
@@ -375,16 +376,16 @@ can be used, as well as multiple levels-of-coupling.
 % The framework presented in this paper is used to study possible
 % drugs for the Hepatitis C virus. 
 
-\alnote{NEED TO PUT SOMEWHERE: It is noted that the size of the model is challenging for conventional REMD, 
-and thus with our framework, several interesting outcomes are expected 
-in addition to significances of investigation on biological process relevant 
-to this RNA system. They are 1) limitation of conventional REMD 
-2) usefulness of other advanced techniques for overcoming the size problem 
-such as hybrid REMD, REMD with the solute tempering, and many  
-3) optimization conditions with respect to both implementations of our 
-distributed REMD framework as well as REMD algorithms associated with 
-exchange efficiency and convergence efficiency.   
-}
+\alnote{NEED TO PUT SOMEWHERE: It is noted that the size of the model
+  is challenging for conventional REMD, and thus with our framework,
+  several interesting outcomes are expected in addition to
+  significances of investigation on biological process relevant to
+  this RNA system. They are 1) limitation of conventional REMD 2)
+  usefulness of other advanced techniques for overcoming the size
+  problem such as hybrid REMD, REMD with the solute tempering, and
+  many 3) optimization conditions with respect to both implementations
+  of our distributed REMD framework as well as REMD algorithms
+  associated with exchange efficiency and convergence efficiency.  }
 
 \section{Implementing Distributed Replica-Exchange Using SAGA/Migol}
 \label{sec:remd_impl}
@@ -545,19 +546,50 @@ sub-jobs can then rapidly be executed through the Glide-In job.  By
 avoiding the high initial costs for queueing each individual replica
 job, the time-to-completion can be dramatically reduced.
 
+% \begin{figure}[t]
+%       \centering
+%       \includegraphics[width=0.7\textwidth]{remdmanager_v12}   
+%       \caption{\footnotesize \bf RE-Manager Abstractions: The BigJob
+%         abstraction provides the capability to cluster sub-jobs into a
+%         larger big-job, and is implemented on top of the Glide-In
+%         abstraction.}
+%       \label{fig:abstractions}
+% \end{figure}
+
 \begin{figure}[t]
-      \centering
+  \centering
       \includegraphics[width=0.7\textwidth]{remdmanager_v12}   
       \caption{\footnotesize \bf RE-Manager Abstractions: The BigJob
         abstraction provides the capability to cluster sub-jobs into a
-        larger big-job. This feature is implemented on top of the
-        Glide-In abstraction, which %utilizes a place-holder job for
-                                    %this purpose.
-        implements a place-holder job for effective scheduling.  SAGA
-        Glide-In is implemented using capabilities provided by SAGA --
-        in particular SAGA-CPR and Advert.}
+        larger big-job, and is implemented on top of the Glide-In
+        abstraction.}
       \label{fig:abstractions}
 \end{figure}
+
+\begin{figure}[t]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{remdmanager_v11}   
+    \includegraphics[width=0.7\textwidth]{re_bigjob_interactions}   
+    \caption{\footnotesize \bf RE-Manager and SAGA-Glide-In Framework:
+      The Glide-In job (\replicaagent\ ) is used as place-holder job
+      for all replica sub-jobs running on a single cluster. The
+      \remanager\ can control both the \replicaagent\ and the replica
+      jobs. % Glide-In provides an effective way to provide resources
+%       to the application directly and not to the sub-jobs.
+    }
+    \label{fig:remdmanager_v1.1}
+\end{figure}
+
+% \begin{figure}[!h]
+%   \begin{center}
+%     \subfigure{\includegraphics[width=3.5in]{re_bigjob_interactions}}
+%     \subfigure{\includegraphics[width=3.5in]{re_bigjob_interactions}}
+% }
+    
+
+% , which implements a place-holder job for effective scheduling.
+% SAGA Glide-In is implemented using capabilities provided by SAGA --
+% in particular SAGA-CPR and Advert.
 
 Figure~\ref{fig:abstractions} summarizes the abstractions developed
 and used in this work to support the clustering of sub-jobs into a
@@ -572,41 +604,37 @@ application via the \emph{BigJob} abstraction.
 % multiple sub-jobs.
 % \jhanote{AndreL: Not sure what the commented out line was about.. if
 %   you'd like to reinstate, please clarify/elaborate}
-Another abstraction
--- the SAGA Glide-In abstraction is used to support the commonly
-occurring requirement to schedule multiple sub-tasks relative to each
-other and not in competition with other jobs submitted to the batch
-queue system.  Thus, a \texttt{big\_job} and \texttt{sub\_job} object
-are defined; for each \texttt{big\_job} object, a Glide-In job with
-the desired number of resources is started, and \texttt{sub\_job}
-objects -- which correspond to individual replicas, are mapped to a
-\texttt{big\_job} using the jobid as reference. It is helpful to
-reiterate that although there is a big\_job object, it is submitted
-as a Glide-In job, and that BigJob abstraction in turn utilises the
-Glide-In abstraction to map the individual big-job and sub-jobs to
-physical resources.
+Another abstraction -- the SAGA Glide-In abstraction is used to
+support the commonly occurring requirement to schedule multiple
+sub-tasks relative to each other and not in competition with other
+jobs submitted to the batch queue system.  Thus, a \texttt{big\_job}
+and \texttt{sub\_job} object are defined; for each \texttt{big\_job}
+object, a Glide-In job with the desired number of resources is
+started, and \texttt{sub\_job} objects -- which correspond to
+individual replicas, are mapped to a \texttt{big\_job} using the jobid
+as reference. It is helpful to reiterate that although there is a
+big\_job object, it is submitted as a Glide-In job, and that BigJob
+abstraction in turn utilises the Glide-In abstraction to map the
+individual big-job and sub-jobs to physical resources.
 
-\begin{figure}[t]
-    \centering
-    % \includegraphics[width=0.9\textwidth]{remdmanager_v11}   
-    \includegraphics[width=0.7\textwidth]{re_bigjob_interactions}   
-    \caption{\footnotesize \bf RE-Manager and SAGA Glide-In Framework:
-      The Glide-In job (\replicaagent\ ) is used as place-holder job
-      for all replica sub-jobs running on a single cluster. The
-      \remanager\ can control both the \replicaagent\ and the replica
-      jobs using a SAGA-based user-level job API (the BigJob
-      abstraction). By using this efficient way to allocate resources,
-      queuing times are minimized and the time-to-completion can be
-      dramatically reduced. \jhanote{AndreL: This would be a good
-        place to illustrate clearly, what is a \texttt{big\_job} and
-        what is \texttt{sub\-job}}} \alnote{done.} \alnote{After doing
-      the interaction figure i am really not sure whether the
-      abstraction figure adds any value. I think it is sufficient to
-      mention that the Glide-In job is started via the CPR API, the
-      rest is identical.}
-    \label{fig:remdmanager_v1.1}
-\end{figure}
+% \begin{figure}[t]
+%     \centering
+%     % \includegraphics[width=0.9\textwidth]{remdmanager_v11}   
+%     \includegraphics[width=0.7\textwidth]{re_bigjob_interactions}   
+%     \caption{\footnotesize \bf RE-Manager and SAGA-Glide-In Framework:
+%       The Glide-In job (\replicaagent\ ) is used as place-holder job
+%       for all replica sub-jobs running on a single cluster. The
+%       \remanager\ can control both the \replicaagent\ and the replica
+%       jobs. % Glide-In provides an effective way to provide resources
+% %       to the application directly and not to the sub-jobs.
+%     }
+%     \label{fig:remdmanager_v1.1}
+% \end{figure}
     
+%using a SAGA-based user-level job API (the BigJob
+      %abstraction).
+%  are minimized and the time-to-completion can be
+%       dramatically reduced.
 % RE-Manager overall
 {\noindent \it \bf Implementation:} The RE framework presented in section~\ref{sec:remd_impl} has been
 extended to support the management and scheduling of replica jobs.
