@@ -332,13 +332,13 @@ results to macroscopic or thermodynamic quantities available from
 experiments.  This provides an important motivation for research into
 finding ways to accelerate sampling and enhance ``effective''
 time-scales studied. Generalized ensemble approaches -- of which
-REMD~\citep{Sugita:1999rm} are a prominent example -- represent an
+REMD~\citep{Sugita:1999rm} is a prominent example -- represent an
 important and promising attempt to overcome the general limitations of
 insufficient time-scales, as well as specific limitations of
 inadequate conformational sampling arising from kinetic trappings.
 The fact that one single long-running simulation can be substituted
-for an ensemble of shorter-running simulations, make these ideal
-candidates for distributed environments.
+for an ensemble of loosely-coupled shorter-running simulations, make
+these ideal candidates for distributed environments.
 
 \begin{figure}[t]
       \centering
@@ -935,14 +935,15 @@ scheduler.
   sufficient? or should I describe it again down here?}
 \jhanote{AndreL: I think this section reads well now. Thanks.}
 
-Further, we performed tests for the two different adaptive scenarios.  
-In the scenario A, the number of replicas was kept constant and 
-the \emph{replica size}, i.\,e.\ the number of MPI processes assigned
-to each replica (Conventional REMD). 
-In scenario B, the \emph{replica number} -- the number of replicas participating in a
-generation was varied. This approach is also referred to as Cool Walking. 
-We compare the runtime of the REMD simulation for 64 attempted exchanges 
-on different sets of distributed resources and Glide-In configurations.
+Further, we performed tests for the two different adaptive scenarios.
+In the scenario A, the number of replicas was kept constant and the
+\emph{replica size}, i.\,e.\ the number of MPI processes assigned to
+each replica (Conventional REMD) was varied.  In scenario B, the
+\emph{replica number} -- the number of replicas participating in a
+generation was varied. This approach is also referred to as Cool
+Walking.  We compare the runtime of the REMD simulation for 64
+attempted exchanges on different sets of distributed resources and
+Glide-In configurations.
                     
 \begin{figure}[h]
   \begin{minipage}[t]{.48\textwidth}
@@ -979,7 +980,6 @@ on different sets of distributed resources and Glide-In configurations.
   \hfill
 \end{figure}
 
-
 In scenario A, up to 3 different resources are used, the number of
 Glide-Ins varies from 4 upto 12, whilst the number of replicas used is
 fixed at 16. Thus, the size of the individual replicas is varied.
@@ -997,34 +997,6 @@ increased as new resources become available (and therefore the number
 of Glide-Ins can be increased). Depending on the number of available
 resources, between 8 (for 4 Glide-Ins) and 24 cores (for 12 Glide-Ins)
 are used for each replica.
-
-\alnote{moved up: We mention explicitly that for our experiments, the
-  number of Glide-In jobs on a resource is fixed at 4; this is done
-  for simplicity and our results hold for general values of this
-  parameter.}
-
-\jhanote{AndreL: We need to mention how the experiments were
-  conducted: I guess the static configuration set both the number and
-  the specific resources to use. Then when first glide-in job started,
-  other glide-in jobs were in queue. then at some stage the other
-  glide-in job changed state (Q) and started running. Need to mention
-  this is what we mean by ``when additional resources became
-  available''.. as opposed to discovering resources. Plus it will help
-  the reader understand the results too.}
-
-\alnote{ok refined the two paragraphs above: 1) general setup 2)
-  experiment procedure. The points you mention in your comment should
-  be reflected in 2)}
-
-\jhanote{AndreL: We need to mention explicitly that i) the size of a
-  glide-in job was kept constant at 32 cores, and ii) this number of
-  32 is a seat-of-the-pants/empirically derived number.}
-
-\alnote{It is rather an intuitive number to force a lower number of
-  cores per replica for the 1 resource case. Otherwise, there would
-  probably no speedup for this scenario with only 500 NAMD
-  steps. There is some overhead for moving replicas from one machine
-  to another one (file staging).}
 
 Figure~\ref{fig:performance_perf_distributed_A} shows the results of
 the distributed run. In spite of the overhead for migrating replicas
@@ -1062,9 +1034,9 @@ environments have to battle with.  \jhanote{AndreL: Mention how many
 % general setup
 In scenario B, the capability of the RE-Manager to adaptively adjust
 the number of replicas simulated -- in effect adjusting either the
-range of temperature or the specific temperatures simulated -- is
-evaluated.  For this scenario, up to 4 Glide-Ins with 64 cores each
-are distributed across 1, 2 and 3 different distributed
+range of temperature or the specific temperatures simulated, is
+evaluated.  For this scenario, 4 Glide-Ins with 64 cores each
+are distributed across either 1, 2 or 3 different distributed
 resources. That means that the total of 256 cores is allocated on (i)
 Abe only, (ii) Abe and Ranger respectively (iii) Abe, Ranger and QB.
 Each replica has a constant number of 16 MPI processes, and thus any
@@ -1110,30 +1082,12 @@ simulation is reduced.
 The results clearly demonstrate the benefits of the adaptive replica
 scheme -- it is favourable to instantly use resources as they become
 active instead of waiting for the complete set of nodes to become
-available.  \jhanote{Once again, we will need to provide efficiency
-  numbers as people are accustomed to seeing in parallel computing: ie
-  Time-to-completion for net number of processors employed.  The point
-  here is not to be defensive compared to a 100\% scaling, but the
-  point is to remind that we are solving a very different problem!}
-\alnote{since the number of used resources remains the same (they are
-  just differently distributed), the efficiency for scenario B is 1:1
-  reflection in the time-to-completion.}
-
-
-\jhanote{This is going to sound bizarre... but in future we should
-  probably use a power-of-two number of exchanges and not nice numbers
-  like 40 or 42 :)}           
-\alnote{updated it to 64... will attempt more once I have this stuff working}
-
-                                      
-\alnote{Unfortunately, we have not been able to replica the
-  experiments without the Glide-In mechanism due to various reasons:
-  MPI/Globus not correctly configured on Ranger}
+available.  
 
 \section{Results: Enhanced Sampling of Hepatitis-C Virus}
-In earlier sections we have discussed the design and performance of
-the framework and shown how it enables the effective utilisation of
-multiple resources. In Section 2, we described how the RE approach is
+In the previous section we discussed the design and performance
+of the framework and shown how it enables the effective utilisation of
+multiple resources. In Section 2, we described why the RE approach is
 required to understand the energetics and conformational flexibility
 of the internal loop of the Hepatitis-C virus. The effectiveness of
 the RE approach in increasing the rate of convergence to equilibrium
@@ -1141,29 +1095,31 @@ the RE approach in increasing the rate of convergence to equilibrium
 the rate of attempted exchanges~\citep{Lei:2007xe}, or equally by the
 inverse of the {\it time} between attempted exchanges.
 
-To demonstrate that effectiveness of our RE framework for real sized
+To demonstrate that effectiveness of our RE framework in enhancing
+sampling or the rate of convergence to equilibrium for real sized
 biomolecular systems, we analyse the typical time-series of resources
-used (available) during a six hour run on production infrastructure.
-(green line in Fig~\ref{fig:result_A}).  REMD simulations (Scenario
-A) were performed for HCV IRES IIIb CA variant with explicit
-waters. 16 replicas covering a temperature range from 300 K to 450 K
-were simulated with a parallel version of NAMD.  Each glide-in has 32
-cpus and the number of cpus for each replica is determined by the
-numbers of active glide-in jobs.  Fig.~\ref{fig:result_A} shows how
-the number of active bigjobs changed during this six hour interval. To
-start with there were only enough processors to support one glide-in
-job, but after approximately two hours, there were enough to support
-two active glide-ins and three glide-ins after three hours. Eight
-glide-ins were activated before the six hour time limit. As the number
-of glide-in increases, the number of processors assigned to each
-replica increases, with the physically important consequence that
-there is a concomittant decrease in the average time between exchange
-attempts. This is show in the time-series in red in
-Fig.~\ref{fig:result_A}).  The average time between exchange
-attempts as a function of the number of active glide-ins is shown in
-red in Fig.~\ref{fig:result_A}, whereas the speedup (measured as
-the inverse of the average time normalised by the time taken by one
-glide-in (thus the value of 1 for the one glide-in case).
+used (available) during a six hour run on production infrastructure
+(green line in Fig~\ref{fig:result_A}).  REMD simulations (Scenario A)
+were performed for HCV IRES IIIb CA variant using the model described
+in Section 2. The replicas covered a temperature range from 300 K to
+450K, which sets the number of replicas to a fixed value of 16.  Each
+glide-in has 32 cpus, and thus the number of cpus for each replica is
+determined by the numbers of active glide-in jobs.
+Fig.~\ref{fig:result_A} shows how the number of active glide-ins
+changed during this six hour interval. To start with, there were only
+enough processors to support one glide-in job, but after approximately
+two hours, there were enough to support two active glide-ins and three
+glide-ins were supported after three hours. Eight glide-ins were
+activated before the six hour time limit. As the number of glide-ins
+increases, the number of processors assigned to each replica
+increases, with the physically important consequence that there is a
+concomittant decrease in the average time between exchange
+attempts. This is shown in the time-series in red in
+Fig.~\ref{fig:result_A}.  The average time between exchange attempts
+as a function of the number of active glide-ins is shown in red in
+Fig.~\ref{fig:result_B}, whereas the speedup -- measured as the inverse
+of the average time normalised by the time taken by one glide-in (thus
+the value of 1 for the one glide-in case) is shown green.
 
 \begin{figure}[h]
   \begin{minipage}[t]{.495\textwidth}
@@ -1190,8 +1146,6 @@ glide-in (thus the value of 1 for the one glide-in case).
   \end{minipage}
   \hfill
 \end{figure}             
-
-
 
 
 %% ----------------------------------------------------------------------------
@@ -1222,44 +1176,6 @@ the BigJob abstraction, RE sub-jobs could efficiently be dispatched
 reducing the time-to-completion up to 70\,\%. The use of different
 adaptivity strategies to dynamically utilise additional resources led
 to a further reduction of the time-to-completion.
-
-% Using SAGA-CPR, the framework is able to utilise the
-% Migol infrastructure, i.\,e. the application can benefit from
-% features, such as the automatic monitoring and the transparent
-% recovery of failed tasks.
-
-\alnote{I used BigJob now as abstraction name...}  
-
-% By only slightly extending the job model defined by SAGA, the BigJob
-% abstraction was used to support the requirements of the RE framework.
-% The RE framework is based on the BigJob abstraction, with support for
-% the Glide-In mechanism. Using the SAGA-based RE framework the
-% application can dynamically use available resources by adjusting
-% either the number of replicas, or the number of MPI processes per
-% replica, in a light-weight, scalable and extensible manner.  Thus our
-% framework supports the agile-execution of RE simulations in a
-% distributed environment.  While the implementation of this abstraction
-% is entirely based on SAGA, a utilization of other frameworks, such as
-% the orignal Condor Glide-In~\citep{citeulike:291860} or
-% Falkon~\citep{1362680}, is possible. Currently, we are actively
-% working on a Condor adaptor for SAGA, which will also support native
-% Glide-In functionality for Condor Jobs; our BigJob abstraction will
-% then serve as abstraction, while the Condor level Glide-In is used as
-% implementation where appropriate.
-
-\alnote{I move this to a note: The SAGA \glidein\ framework represents
-  the first known instance of creating a system (deployment) level
-  abstraction for distributed systems from basic programming
-  interfaces.}
-
-\alnote{I would not call it deployment abstraction... If I think about
-deployment I am always thinking of the pain with boost.}
-\alnote{I am also not sure about the ``abstraction created from 
-  programming interfaces'': 
-  I mean I know many abstractions which are created based on
-  programming interfaces: Any C/C++-library based on the POSIX
-  interfaces, higher-level Grid services based on Globus WSRF
-  framework, etc.}   
 
 In the future, we will refine our RE framework making it
 more adaptive towards dynamic environments, e.\,g.\ by deploying  
@@ -1298,7 +1214,6 @@ reservation-based schemes~\citep{Jeske:2007wj}.  \alnote{I did not
   to argue otherwise....}
 
 \vspace{0.1in}
-%\begin{acknowledgement}
 \noindent
 {\bf Acknowledgment:} This work would not have been possible without the support of 
 	  the wider SAGA team. Important funding for SAGA
@@ -1314,4 +1229,92 @@ reservation-based schemes~\citep{Jeske:2007wj}.  \alnote{I did not
 \bibliographystyle{kluwer}
 \bibliography{saga,literatur}    
 \end{document}
+
+\alnote{moved up: We mention explicitly that for our experiments, the
+  number of Glide-In jobs on a resource is fixed at 4; this is done
+  for simplicity and our results hold for general values of this
+  parameter.}
+
+\jhanote{AndreL: We need to mention how the experiments were
+  conducted: I guess the static configuration set both the number and
+  the specific resources to use. Then when first glide-in job started,
+  other glide-in jobs were in queue. then at some stage the other
+  glide-in job changed state (Q) and started running. Need to mention
+  this is what we mean by ``when additional resources became
+  available''.. as opposed to discovering resources. Plus it will help
+  the reader understand the results too.}
+
+\alnote{ok refined the two paragraphs above: 1) general setup 2)
+  experiment procedure. The points you mention in your comment should
+  be reflected in 2)}
+
+\jhanote{AndreL: We need to mention explicitly that i) the size of a
+  glide-in job was kept constant at 32 cores, and ii) this number of
+  32 is a seat-of-the-pants/empirically derived number.}
+
+\alnote{It is rather an intuitive number to force a lower number of
+  cores per replica for the 1 resource case. Otherwise, there would
+  probably no speedup for this scenario with only 500 NAMD
+  steps. There is some overhead for moving replicas from one machine
+  to another one (file staging).}
+
+
+\jhanote{This is going to sound bizarre... but in future we should
+  probably use a power-of-two number of exchanges and not nice numbers
+  like 40 or 42 :)}           
+\alnote{updated it to 64... will attempt more once I have this stuff working}
+
+                                      
+\alnote{Unfortunately, we have not been able to replica the
+  experiments without the Glide-In mechanism due to various reasons:
+  MPI/Globus not correctly configured on Ranger}
+
+\jhanote{Once again, we will need to provide efficiency numbers as
+  people are accustomed to seeing in parallel computing: ie
+  Time-to-completion for net number of processors employed.  The point
+  here is not to be defensive compared to a 100\% scaling, but the
+  point is to remind that we are solving a very different problem!}
+
+\alnote{since the number of used resources remains the same (they are
+  just differently distributed), the efficiency for scenario B is 1:1
+  reflection in the time-to-completion.}
+
+\alnote{I used BigJob now as abstraction name...}  
+
+% By only slightly extending the job model defined by SAGA, the BigJob
+% abstraction was used to support the requirements of the RE framework.
+% The RE framework is based on the BigJob abstraction, with support for
+% the Glide-In mechanism. Using the SAGA-based RE framework the
+% application can dynamically use available resources by adjusting
+% either the number of replicas, or the number of MPI processes per
+% replica, in a light-weight, scalable and extensible manner.  Thus our
+% framework supports the agile-execution of RE simulations in a
+% distributed environment.  While the implementation of this abstraction
+% is entirely based on SAGA, a utilization of other frameworks, such as
+% the orignal Condor Glide-In~\citep{citeulike:291860} or
+% Falkon~\citep{1362680}, is possible. Currently, we are actively
+% working on a Condor adaptor for SAGA, which will also support native
+% Glide-In functionality for Condor Jobs; our BigJob abstraction will
+% then serve as abstraction, while the Condor level Glide-In is used as
+% implementation where appropriate.
+
+\alnote{I move this to a note: The SAGA \glidein\ framework represents
+  the first known instance of creating a system (deployment) level
+  abstraction for distributed systems from basic programming
+  interfaces.}
+
+\alnote{I would not call it deployment abstraction... If I think about
+deployment I am always thinking of the pain with boost.}
+\alnote{I am also not sure about the ``abstraction created from 
+  programming interfaces'': 
+  I mean I know many abstractions which are created based on
+  programming interfaces: Any C/C++-library based on the POSIX
+  interfaces, higher-level Grid services based on Globus WSRF
+  framework, etc.}   
+
+% Using SAGA-CPR, the framework is able to utilise the
+% Migol infrastructure, i.\,e. the application can benefit from
+% features, such as the automatic monitoring and the transparent
+% recovery of failed tasks.
+
 
