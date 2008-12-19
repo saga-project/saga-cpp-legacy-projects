@@ -23,16 +23,15 @@
 \usepackage{subfig} 
 \usepackage{color}
 \usepackage{natbib}   
+\usepackage{pdfsync}
 
+% \title{Application-level Interoperability between Clouds and Grids}
+% \title{SAGA-MapReduce: Providing Infrastructure Independence and
+%   Cloud-Grid Interoperability}
 \title{Programming Abstractions for Data Intensive Computing on Clouds and Grids}
 
-\title{Application-level Interoperability between Clouds and Grids}
-
-\title{SAGA-MapReduce: Providing Infrastructure Independence and
-  Cloud-Grid Interoperability}
-
-\author{Michael Miceli$^{12}$, Chris Miceli$^{12}$, Shantenu Jha$^{123}$,
-  Hartmut Kaiser$^{1}$, Andre Merzky$^{1}$\\
+\author{Michael Miceli$^{12}$, Chris Miceli$^{12}$, Shantenu
+  Jha$^{123}$, Hartmut Kaiser$^{1}$, Andre Merzky$^{1}$, \\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
       State University, USA}}\\
   \small{\emph{$^{2}$Department of Computer Science, Louisiana State
@@ -43,7 +42,7 @@
 \newif\ifdraft
 %\drafttrue
 \ifdraft
-\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1c }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 \newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
 \else
@@ -75,55 +74,142 @@
   and cost....
 \end{abstract}
 
-\keywords{programming models for clouds, computing in the cloud,
-  interoperability}
+% \keywords{programming models for clouds, computing in the cloud,
+%   interoperability}
 
-\section{old abstract} 
-SAGA, search, sequencing.. data-intensive SAGA~\cite{saga_gfd90} is a
-high level API that provides a simple, standard and uniform interface
-for the most commonly required distributed functionality.  SAGA can be
-used to encode grid applications~\cite{saga_escience07, saga_tg08},
-tool-kits to manage distributed applications as well as implement
-abstractions that support commonly occurring programming, access and
-usage patterns.  The focus of this paper is on the latter set, i.e.
-the use of SAGA in implementing well known abstractions for data
-intensive computing.  In this paper, we will implement MapReduce and
-All-Pairs abstractions using SAGA and use them to solve commonly
-encountered genomic tasks.  We will show how multiple sequence
-alignment can be orchestrated using the SAGA-All-pairs implementation,
-and genome searching can be implemented using MapReduce.  In addition,
-the aim of this paper is to show (validate) that SAGA is sufficiently
-complete and has a high-level interface to support these programming
-abstractions.  Figure~\ref{fig:data_intensive_app_saga} illustrates
-the software architecture of the implementation, highlighting the
-different abstraction levels that allow the reuse of most of the
-system for both algorithms and for different genomic applications.  We
-will highlight the salient points of our implementations, and how we
-handle common considerations such as when to move the data to the
-machine or when to process it locally.  The implementation of these
-abstractions encapsulates details such as latency hiding, performance
-and other variables (such as cluster sizes, and queue sizes).  The
-user should be able to easily add a few function calls without
-worrying about many considerations required by most grid computing
-applications.  We will discuss other performance issues that arise
-when implementing abstractions specific for data-intensive computing.
-A grid application's design should not focus on the bandwidth of the
-network, the dispatch latency, the number of machines available, and
-data reliability.  Even something as simple as process size can be a
-tough challenge to optimize.  If a job is too small, then network
-traffic becomes a bottleneck and the design is inefficient.  If a job
-is too large, it is difficult to tell when it is hanging or still
-computing.  Also, if another job with a higher priority takes a
-machine over, the application will be waiting on jobs longer.  The
-main point of this paper is to show how a flexible, extensible
-implementation of programming data-intensive abstractions using SAGA
-can shield the application developer many of these considerations.
+\section{Structure aka Grand Plan}
 
-\section{Introduction} {\bf Jha} 
+Why do we need Programming Abstractions for data intensive 
+computing on Clouds and Grids
 
-\jhanote{traditional algorithms are OK when data are limited.. but data
-  requirements can change in different ways.. not only will data be
-  greater, but also after a point will also be distributed. This is
+\begin{enumerate}
+\item  Infrastructure Independent
+   The plethora of Cloud Systems (have grossman figure)!
+   Ain't no difference from Grids.
+
+\item Application level programming pattens and data-access remains
+invariant on differernt infrastructure, thus decompose
+according to the logic/patterns
+
+\item  Programming Models for Clouds having interesting
+requirements:\\
+Cloud PM  need to have control over data and compute placement
+
+\begin{itemize}
+ \item for perfomance (obvious)
+ \item cost of computing!!
+       same thing, same performance done different can cost very differently
+       hence need to be able to control placement of compute and work
+\end{itemize}
+
+Grids: Regular perfomance issues
+\end{enumerate}
+
+The *RIGHT* Abstraction will provide most if not all of the three features
+/criteria. SAGA is an important useful approach.
+
+To demonstrate/provide irrefutable evidence of the above, we:
+\begin{enumerate}
+\item Implement SAGA-MapReduce
+   which enables us to control chunk size, location of compute
+
+\item We profile SAGA-MapReduce and compare it to Yahoo's MapReduce
+   (Hadoop) on both HDFS and KFS. We're almost as good, but with the
+   added advantage of being infrastructure independent.
+
+\item We understand how performance of SAGA-MapReduce changes with
+  i) number of workers and ii) data-set sizes
+   on regular files systems, and on KFS
+
+\item  We repeat the previous point (3) on 2 distributed systems (LINUX/LONI)
+
+\item We repeat the previous points on 3 distributed systems (LINUX/LONI)
+\end{enumerate}
+
+SAGA-MapReduce on Cloud, Cloud-like-sytems
+
+\begin{enumerate}
+
+\item Distinguish semantics of same function call (show API similarity)
+
+\item Establish SAME SAGA-MapReduce
+
+\item  The Three Cloud Systems we play with are:
+\begin{itemize}
+\item AWS
+\item Nimbus
+\item Eucalyptus (GumboCloud -- howzatt!!)
+\end{itemize}
+Now compare performance of 1,2..10 Workers with 1,2..10 GB
+
+\item Analagous to Grids/LONI We want to do half workers on AWS and half 
+on Nimbus or some combination of the three systems thereof
+\end{enumerate}
+
+Voila! Once we've done all this, we've established SAGA as an
+infrastructure independent and good performing abstraction for
+data-intensive application as outlined in the opening.
+
+
+
+\section{Clouds and data-Intensive applications: Commonalities}
+
+SAGA~\cite{saga_gfd90} is a high level API that provides a simple,
+standard and uniform interface for the most commonly required
+distributed functionality.  SAGA can be used to encode grid
+applications~\cite{saga_escience07, saga_tg08}, tool-kits to manage
+distributed applications as well as implement abstractions that
+support commonly occurring programming, access and usage patterns.
+
+In this paper we will demonstrate the use of SAGA in implementing well
+known abstractions for data intensive computing.  Specifically, we
+have implemented MapReduce and the All-Pairs abstractions and have
+them to solve commonly encountered genomic tasks.
+
+We will discuss briefly how multiple sequence alignment can be
+orchestrated using the SAGA-All-pairs implementation, and genome
+searching can be implemented using MapReduce.  In addition, the aim of
+this paper is to show (validate) that SAGA is sufficiently complete
+and has a high-level interface to support these programming
+abstractions.
+
+Figure~\ref{fig:data_intensive_app_saga} \jhanote{Hartmut: Can you
+  take a stab at this diagram?}  illustrates the software architecture
+of the implementation, highlighting the different abstraction levels
+that allow the reuse of most of the system for both algorithms and for
+different genomic applications.
+
+Some of the programming models that are common to both data-intensive
+application and Cloud-based computing, where there is an explicit
+cost-model for data-movement, is to develop general heurisitcs on how
+we handle common considerations such as when to move the data to the
+machine or when to process it locally.
+
+\jhanote{Need to find a proper home for the following:} The
+implementation of these abstractions encapsulates details such as
+latency hiding, performance and other variables (such as cluster
+sizes, and queue sizes).  The user should be able to easily add a few
+function calls without worrying about many considerations required by
+most grid computing applications.  We will discuss other performance
+issues that arise when implementing abstractions specific for
+data-intensive computing.  A grid application's design should not
+focus on the bandwidth of the network, the dispatch latency, the
+number of machines available, and data reliability.  Even something as
+simple as process size can be a tough challenge to optimize.  If a job
+is too small, then network traffic becomes a bottleneck and the design
+is inefficient.  If a job is too large, it is difficult to tell when
+it is hanging or still computing.  Also, if another job with a higher
+priority takes a machine over, the application will be waiting on jobs
+longer.  The main point of this paper is to show how a flexible,
+extensible implementation of programming data-intensive abstractions
+using SAGA can shield the application developer from many of these
+considerations.
+
+\section{Introduction} 
+
+\jhanote{traditional algorithms are OK when data are limited.. but
+  data requirements can change in different ways.. not only will data
+  be greater, but also after a point will also be distributed. This is
   indicative of the data-gathering process (multiple-resources,
   replicated?) also indicative of the fact that often data-collection
   is growing greater than data-analysis (for example exabyte data last
@@ -390,8 +476,6 @@ on the grid's network bandwidth.
 
 \subsection*{Search}
 
-
-
 \subsection*{Background and Motivation for the experiments}
 
 Most of the time users of grid applications are forced to work with a
@@ -501,7 +585,6 @@ configurations depending on specific grid requirements.
           \caption{}
       \label{saga_allpairs_1and3workers.png}
 \end{figure}
-
 
 \subsection*{MapReduce using Advert Service}
 %Right now assume we are using 1GB to 10GB
