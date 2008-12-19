@@ -136,21 +136,21 @@
 % \end{abstract}
 
 \begin{abstract}{Replica-Exchange, SAGA, Migol, Fault Tolerance}  
-  Due to the loose-coupling of the replicas, Replica-Exchange class of
-  algorithms should be able to benefit greatly from utilising as many
-  resources as available. However, the ability to effectively utilise
-  multiple distributed resources to reduce the time-to-com\-ple\-tion
-  remains a challenge at many levels.  Additionally, an implementation
-  of a {\it pleasingly-distributed} algorithm such as
-  Replica-Exchange, which is independent of infrastructural details
-  does not exist.  This paper proposes an extensible and
-  scalable framework based on SAGA that provides a general-purpose,
-  opportunistic mechanism to effectively utilise multiple resources in
-  an infrastructure independent way. By analysing the requirements of
-  the Replica-Exchange algorithm and the challenges of implementing it
-  on real production systems, we propose a new abstraction (BigJob),
-  which forms the basis of the adaptive redistribution and effective
-  scheduling of replicas.
+  Due to the loose-coupling between replicas, the Replica-Exchange
+  class of algorithms should be able to benefit greatly from utilising
+  as many resources as available. However, the ability to effectively
+  utilise multiple distributed resources to reduce the
+  time-to-com\-ple\-tion remains a challenge at many levels.
+  Additionally, an implementation of a {\it pleasingly-distributed}
+  algorithm such as Replica-Exchange, which is independent of
+  infrastructural details does not exist.  This paper proposes an
+  extensible and scalable framework based on SAGA that provides a
+  general-purpose, opportunistic mechanism to effectively utilise
+  multiple resources in an infrastructure independent way. By
+  analysing the requirements of the Replica-Exchange algorithm and the
+  challenges of implementing it on real production systems, we propose
+  a new abstraction (BigJob), which forms the basis of the adaptive
+  redistribution and effective scheduling of replicas.
 \end{abstract}
 \section{Introduction}
 
@@ -244,15 +244,15 @@ distributed resources, such as the overall slowdown due to
 synchronisation arising from the light-coupling and the lack of
 co-scheduled resources.  The unique contribution of this paper is the
 implementation of a RE framework that overcomes the described
-limitations, by being able to adapt at runtime to a change in resource
-availabilities and application resource requirements.  This framework
-builds upon preliminary work in implementing SAGA with
+limitations, by being able to adapt at runtime to a change in the
+availability of resources and application resource requirements.  This
+framework builds upon preliminary work in implementing SAGA with
 fault-tolerance~\citep{Luckow:2008la}. % We present data that validates
 % the claim that as more resources become available our framework can
 % opportunistically employ these resources to lead to a reduction in the
 % time-to-completion of the scientific problem.
-We provide irrefutable evidence that as more resources become
-available our framework can opportunistically utilise these resources,
+We provide irrefutable evidence that, as more resources become
+available, our framework can opportunistically utilise these resources,
 leading to a reduction in the time-to-completion of the scientific
 problem.  The remainder of the paper is structured as follows: In the
 next section we provide the basic ideas and advantages of using RE
@@ -824,8 +824,8 @@ the number of resources required/available:
   number of replicas can be adjusted. Depending on the underlying
   physics model, the additional replicas can be used to either refine
   the temperature range (adaptive sampling) or to extend the
-  temperature range (enhanced dynamics). This REMD approach is also referred to as
-  Cool Walking.
+  temperature range (enhanced dynamics). This REMD approach is also
+  referred to as Cool Walking.
 \end{compactitem}           
 % Both adaptive strategies have been realized within the RE-Manager, and
 % BigJob and Glide-In are useful abstractions in both scenarios. 
@@ -950,14 +950,13 @@ scheduler.
 \jhanote{AndreL: I think this section reads well now. Thanks.}
 
 Further, we performed tests for the two different adaptive scenarios.
-In the scenario A, the number of replicas was kept constant (conventional REMD) and the
-\emph{replica size}, i.\,e.\ the number of MPI processes assigned to
-each replica  was varied.  In scenario B, the
+In the scenario A, the number of replicas was kept constant
+(conventional REMD) and the \emph{replica size}, i.\,e.\ the number of
+MPI processes assigned to each replica was varied.  In scenario B, the
 \emph{replica number} -- the number of replicas participating in a
-generation was varied (cool
-walking).  We compare the runtime of the REMD simulation for 64
-attempted exchanges on different sets of distributed resources and
-Glide-In configurations.
+generation was varied (cool walking).  We compare the runtime of the
+REMD simulation for 64 attempted exchanges on different sets of
+distributed resources and Glide-In configurations.
                     
 \begin{figure}[h]
   \begin{minipage}[t]{.48\textwidth}
@@ -1099,44 +1098,46 @@ active instead of waiting for the complete set of nodes to become
 available.  
 
 \section{Results: Enhanced Sampling of Hepatitis-C Virus}
-In the previous sections we discussed the design and performance
-of the framework and showed how it enables the effective utilisation of
-multiple resources. Further, we motivated why the RE approach is
-required to understand the energetics and conformational flexibility
-of the internal loop of the Hepatitis-C virus. The effectiveness of
-the RE approach in increasing the rate of convergence to equilibrium
-(Boltzmann distribution) or enhancing the sampling can be measured by
-the rate of attempted exchanges~\citep{Lei:2007xe}, or equally by the
-inverse of the {\it time} between attempted exchanges.
+In the previous sections we discussed the design and performance of
+the framework and showed how it enables the effective utilisation of
+multiple resources. In Section 2, we provided motivation for why the
+RE approach is required to understand the energetics and
+conformational flexibility of the internal loop of the Hepatitis-C
+virus. The effectiveness of the RE approach in increasing the rate of
+convergence to equilibrium (Boltzmann distribution) or enhancing the
+sampling can be measured by the rate of attempted
+exchanges~\citep{Lei:2007xe}, or equally by the inverse of the {\it
+  time} between attempted exchanges.
 
 \alnote{I commented out the lines below - reads like the sentence before}
-To demonstrate the effectiveness of our RE framework, 
 % in enhancing % sampling or 
 % the rate of convergence to equilibrium for real sized
 % biomolecular systems,
-we analyse a typical time-series of resources
-used (available) during a six hour run on a production infrastructure
-(green line in Figure~\ref{fig:result_A}).  REMD simulations (Scenario A)
-were performed for HCV IRES IIIb CA variant using the model described
-in section 2. The replicas covered a temperature range from 300\,K to
-450\,K, which sets the number of replicas to a fixed value of 16.  Each
-Glide-In has 32 cores -- the number of cores for each replica is
-determined by the numbers of active Glide-In jobs.
-Figure~\ref{fig:result_A} shows how the number of active Glide-Ins
-changed during this six hour interval. To start with, there were only
-enough processors to support one Glide-In job, but after approximately
-two hours, there were enough to support two active Glide-Ins and three
-Glide-Ins were supported after three hours. Eight Glide-Ins were
-activated before the six hour time limit. As the number of Glide-Ins
-increases, the number of processors assigned to each replica
-increases, with the physically important consequence that there is a
-concomitant decrease in the average time between exchange
-attempts (red line in Figure~\ref{fig:result_A}).  
-The average time between exchange attempts
-as a function of the number of active Glide-Ins is shown in red in
-Figure~\ref{fig:result_B}, whereas the speedup -- measured as the inverse
-of the average time normalised by the time taken with one Glide-In (thus
-the value of 1 for the one Glide-In case) is shown green.
+
+REMD simulations (Scenario A) were performed for HCV IRES IIIb CA
+variant using the model described in section 2. The replicas covered a
+temperature range from 300\,K to 450\,K, thus fixing the number of
+replicas to 16.  To demonstrate the effectiveness of our RE framework,
+we analyse a typical time-series of the number of resources used
+(available), and thus the number of active Glide-Ins during a six hour
+run on production infrastructure (green line in
+Figure~\ref{fig:result_A}).  Each Glide-In has 32 cores, thus the
+number of cores for each replica is determined by the numbers of
+active Glide-In jobs.  Figure~\ref{fig:result_A} shows how the number
+of active Glide-Ins changed during this six hour interval. To start
+with, there were only enough processors to support one Glide-In job,
+but after approximately two hours, there were enough to support two
+active Glide-Ins and three Glide-Ins were supported after three
+hours. Eight Glide-Ins were activated before the six hour time
+limit. As the number of Glide-Ins increases, the number of processors
+assigned to each replica increases, with the physically important
+consequence that there is a concomitant decrease in the average time
+between exchange attempts (red line in Figure~\ref{fig:result_A}).
+The average time between exchange attempts as a function of the number
+of active Glide-Ins is shown in red in Figure~\ref{fig:result_B},
+whereas the speedup -- measured as the inverse of the average time
+normalised by the time taken with one Glide-In (thus the value of 1
+for the one Glide-In case) is shown in green.
 
 \begin{figure}[h]
   \begin{minipage}[t]{.495\textwidth}
