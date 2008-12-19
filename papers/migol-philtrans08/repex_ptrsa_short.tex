@@ -138,12 +138,12 @@
 \begin{abstract}{Replica-Exchange, SAGA, Migol, Fault Tolerance}  
   Due to the loose-coupling of the replicas, Replica-Exchange class of
   algorithms should be able to benefit greatly from utilising as many
-  resources as available, but the ability to effectively utilise
+  resources as available. However, the ability to effectively utilise
   multiple distributed resources to reduce the time-to-com\-ple\-tion
   remains a challenge at many levels.  Additionally, an implementation
   of a {\it pleasingly-distributed} algorithm such as
-  Replica-Exchange, which is independent of infrastructural details,
-  however, does not exist.  This paper proposes an extensible and
+  Replica-Exchange, which is independent of infrastructural details
+  does not exist.  This paper proposes an extensible and
   scalable framework based on SAGA that provides a general-purpose,
   opportunistic mechanism to effectively utilise multiple resources in
   an infrastructure independent way. By analysing the requirements of
@@ -336,9 +336,10 @@ directions. % We conclude by discussing related work -- which will
 In Molecular Dynamics (MD) approaches, sufficient sampling of
 configurations is an important requirement for connecting atomistic
 results to macroscopic or thermodynamic quantities available from
-experiments.  This provides an important motivation for research into
-finding ways to accelerate sampling and enhance ``effective''
-time-scales studied. Generalized ensemble approaches -- of which
+experiments. This provides an important motivation for researching ways 
+to accelerate sampling and to enhance the ``effective''
+time-scales studied. 
+Generalized ensemble approaches -- of which
 REMD~\citep{Sugita:1999rm} is a prominent example -- represent an
 important and promising attempt to overcome the general limitations of
 insufficient time-scales, as well as specific limitations of
@@ -352,17 +353,17 @@ these ideal candidates for distributed environments.
       \includegraphics[width=0.6\textwidth]{1KP7}   
       \caption{The internal loop HCV IRES IIIb CA variant of the
         Hepatatis C virus}
-      \label{}
+      \label{fig:1kp7}
 \end{figure}
 
 The hepatitis C virus (HCV) internal ribosome entry site (IRES) is
 recognized specifically by the small ribosomal subunit and eukaryotic
 initiation factor 3 (eIF3) before viral translation initiation.  This
-makes it a good candidate for new drugs targetting Hepatatis-C virus.
-Our aim is to use REMD to enhance our sampling of the conformational
-flexibility of internal loop referred to as {\it HCV IRES IIIb CA
+makes it a good candidate for new drugs targeting Hepatatis-C virus.
+Our aim is to use REMD to enhance the sampling of the conformational
+flexibility of the internal loop referred to as {\it HCV IRES IIIb CA
   variant}~\citep{Collier:2002wd} as well as the equilibrium
-energetics.  The model of the physical system under investigation in
+energetics (see Figure~\ref{fig:1kp7}).  The model of the physical system under investigation in
 this work is comprised of a RNA system of nucleotides; the total
 number of atoms in the simulating box is 21887 -- including the RNA
 system, explicit water molecules, and ions for neutralization of the
@@ -433,7 +434,7 @@ and the conduction of the RE itself using the SAGA APIs.
 
 The second element is the task agent, the \textit{Replica-Agent},
 that resides on the high performance machines where RE simulations
-are carried out. The \replicaagent\ is launched using SAGA-CPR and Migol.
+are carried out. The \replicaagent\ is launched using SAGA CPR and Migol.
 %It is responsible for spawning and monitoring of the replicas. 
 NAMD~\citep{Phillips:2005gd}, a highly scalable, parallel MD code, is
 used to carry out the MD simulation corresponding to each replica
@@ -457,17 +458,18 @@ configured processes $n$, the \remanager\ creates $\frac{n}{2}$ pairs
 of replicas.  Before launching a job the \remanager\ ensures that all
 required input files are transferred to the respective resource. For
 this purpose, the SAGA File API and the GridFTP adaptor are used.  
-The replica jobs are then submitted to the resource using the SAGA-CPR API and
-Migol/GRAM. 
+The replica jobs are then submitted to the resource using the SAGA CPR API and
+the Migol/GRAM middleware. 
 
 When all replicas reach a pre-determined state (e.\,g., the NAMD job
 finishes after a fixed number of steps), the decision as to whether to
 pairwise exchange temperatures between neighbouring replicas is
 determined by the Metropolis scheme. %~\citep{metropolis:1087}.  
-The state between exchanges -- that is, the run of an ensemble of replicas
+% The state between exchanges -- that is, 
+The run of an ensemble of replicas
 in parallel and the subsequent attempt to pairwise exchange all the
-replicas, is referred to as generation. No two replicas can belong to
-different generations.  If successful, parameters such as the
+replicas is referred to as generation. No two replicas can belong to
+different generations.  If the exchange attempt is successful, parameters such as the
 temperature, are swapped. Both jobs are then relaunched using the
 mechanisms described above. Often the Metropolis scheme returns a
 negative result, and an exchange is not carried out; thus it is
@@ -532,7 +534,7 @@ environments.
 \alnote{Made a minor correction. Adjusted to new structure of section
   5. I am not sure whether there is too much redundancy to 4b}
 
-\alnote{Structure: 1) Intro to cluster job sub, bigjob, glide-in 2.)
+\alnote{Structure: 1) Intro to cluster job sub, bigjob, Glide-In 2.)
   formalism Thus, I commented this out: In this section we provide
   details of our implementation, but before that we will discuss some
   simple formalism so as to understand the terms and establish
@@ -565,8 +567,8 @@ environments.
 %   than the clustered-job pattern? AndreL, AndreM: any suggestions?}
 % \alnote{I think 1 example is supporting our use case is sufficient.}
 % For example, 
-{\noindent \it \bf Abstractions:} There exists a commonly employed approach to
-avoid queuing delays through the use of place-holder jobs, which is
+{\noindent \it \bf Abstractions:} A common approach to
+avoid queuing delays is the use of place-holder jobs, which are
 able to dispatch several sub-jobs without each sub-job needing to
 queue at the local scheduler. A specific mechanism to support this
 pattern is the \emph{Glide-In} abstraction, in reference to the Condor
@@ -665,17 +667,19 @@ application via the \emph{BigJob} abstraction.
 % multiple sub-jobs.
 % \jhanote{AndreL: Not sure what the commented out line was about.. if
 %   you'd like to reinstate, please clarify/elaborate}
-Another abstraction -- the SAGA Glide-In abstraction is used to
-support the commonly occurring requirement to schedule multiple
-sub-tasks relative to each other and not in competition with other
-jobs submitted to the batch queue system.  Thus, a \texttt{big\_job}
-and \texttt{sub\_job} object are defined; for each \texttt{big\_job}
+The SAGA Glide-In abstraction is used to
+support the commonly occurring place-holder job pattern.
+%  requirement to schedule multiple
+% sub-tasks relative to each other and not in competition with other
+% jobs submitted to the batch queue system.  
+The BigJob abstraction defines a \texttt{big\_job}
+and \texttt{sub\_job} object; for each \texttt{big\_job}
 object, a Glide-In job with the desired number of resources is
-started, and \texttt{sub\_job} objects -- which correspond to
+started, and \texttt{sub\_job} objects, which correspond to
 individual replicas, are mapped to a \texttt{big\_job} using the jobid
 as reference. It is helpful to reiterate that although there is a
-big\_job object, it is submitted as a Glide-In job, and that BigJob
-abstraction in turn utilises the Glide-In abstraction to map the
+\texttt{big\_job} object, it is submitted as a Glide-In job. Also, the
+BigJob abstraction in turn utilises the Glide-In abstraction to map the
 individual big-job and sub-jobs to physical resources.
 
 % \begin{figure}[t]
@@ -702,7 +706,7 @@ extended to support the management and scheduling of replica jobs.
 BigJob provides the ability to cluster sub-jobs; Glide-In provides the
 ability to effectively schedule the sub-jobs.  As illustrated in
 Figure~\ref{fig:remdmanager_v1.1}, the RE-Manager uses the
-\texttt{big\_job} and \texttt{sub\_job} objects as replacement for the
+\texttt{big\_job} and \texttt{sub\_job} objects as replacements for the
 \texttt{job} object defined by SAGA CPR.  The \texttt{big\_job} and
 \texttt{sub\_job} objects behave similarly to regular SAGA CPR job
 objects. Thus the RE-Manager, which is the application in this case,
@@ -713,8 +717,9 @@ provide a mapping from a \texttt{sub\_job} to a suitable
 
 % BigJob
 The SAGA Glide-In implementation comprises of three components: 1) The
-\emph{Glide-In Manager}, which as the name suggests manages the
-orchestration and scheduling of Glide-In jobs (which in turn allows
+\emph{Glide-In Manager}, which provides the Glide-In abstraction and
+manages the orchestration and scheduling 
+of Glide-In jobs (which in turn allows
 the management of both big-job objects and sub-jobs) and 2) The
 \emph{Replica-Agent}, which represents the Glide-In job and thus, the
 application-level resource manager on the respective resource, and 3)
@@ -726,7 +731,7 @@ Before running regular jobs, an application, in this case the
 RE-Manager, must initializes a
 \texttt{big\_job} object. The Glide-In Manager then queues a Glide-In
 job, which actually runs a Replica-Agent on the respective resource,
-using the SAGA-CPR API.  For this \texttt{big\_job} instance the
+using the SAGA CPR API.  For this \texttt{big\_job} instance the
 specified number of resources is requested. Subsequently,
 \texttt{sub\_job} objects can be submitted through the Glide-In
 Manager using the jobid of the \texttt{big\_job} as reference.
@@ -785,7 +790,7 @@ job id, and with the right number of processors.  }
   be adaptive, it is necessary for it to be able to effectively
   utilise an expanded or reduced set of resources; additionally for an
   adaptive application to be scalable it must also be able to
-  determine which resources to utilise efficiently, if not optimally.
+  determine which resources to utilise efficiently.
   For resource determination, our framework currently relies on a
   static, user-defined mapping of replicas and resources.  In the
   remainder of this paper, we will focus on dynamic resource
@@ -819,7 +824,8 @@ the number of resources required/available:
   number of replicas can be adjusted. Depending on the underlying
   physics model, the additional replicas can be used to either refine
   the temperature range (adaptive sampling) or to extend the
-  temperature range (enhanced dynamics).
+  temperature range (enhanced dynamics). This REMD approach is also referred to as
+  Cool Walking.
 \end{compactitem}           
 % Both adaptive strategies have been realized within the RE-Manager, and
 % BigJob and Glide-In are useful abstractions in both scenarios. 
@@ -925,10 +931,10 @@ scheduler.
   you refer to?}
 
 \jhanote{We need to say something about the location of the kink when
-  glide-in is not used. This is another way of addressing the erratic
+  Glide-In is not used. This is another way of addressing the erratic
   behaviour. Do we have insight as to whether the kink often occurs
   sooner than at 8 replicas? If so, how often.  This would help us
-  reiterate that the use of glide-in gives a constant/static
+  reiterate that the use of Glide-In gives a constant/static
   performance estimate, whereas the lack of a GlideIn makes it
   erratic.}  \alnote{I updated the data. This were still the old graph
   from MTAGS. I added data from some additional runs, which reduced
@@ -944,12 +950,12 @@ scheduler.
 \jhanote{AndreL: I think this section reads well now. Thanks.}
 
 Further, we performed tests for the two different adaptive scenarios.
-In the scenario A, the number of replicas was kept constant and the
+In the scenario A, the number of replicas was kept constant (conventional REMD) and the
 \emph{replica size}, i.\,e.\ the number of MPI processes assigned to
-each replica (Conventional REMD) was varied.  In scenario B, the
+each replica  was varied.  In scenario B, the
 \emph{replica number} -- the number of replicas participating in a
-generation was varied. This approach is also referred to as Cool
-Walking.  We compare the runtime of the REMD simulation for 64
+generation was varied (cool
+walking).  We compare the runtime of the REMD simulation for 64
 attempted exchanges on different sets of distributed resources and
 Glide-In configurations.
                     
@@ -989,7 +995,7 @@ Glide-In configurations.
 \end{figure}
 
 In scenario A, up to 3 different resources are used, the number of
-Glide-Ins varies from 4 upto 12, whilst the number of replicas used is
+Glide-Ins varies from 4 up to 12, whilst the number of replicas used is
 fixed at 16. Thus, the size of the individual replicas is varied.
 When a resource is being used, it runs 4 Glide-Ins and each Glide-In
 job has a constant size of 32 cores each.  Although, the number of
@@ -1052,9 +1058,9 @@ Glide-In can run exactly 4 replicas when active.
 
 \jhanote{AndreL: Make it easy for the ready to grasp the number of
   cores used when just Abe; when Abe/Ranger and finally when
-  Abe/Ranger/QB. (i) Is it 4 glide-ins in each of the three scenarios?
-  4 glide-ins on Abe, then 4 glides-in on Abe/Ranger and then 4
-  glide-ins on Abe/QB/Ranger??}
+  Abe/Ranger/QB. (i) Is it 4 Glide-Ins in each of the three scenarios?
+  4 Glide-Ins on Abe, then 4 glides-in on Abe/Ranger and then 4
+  Glide-Ins on Abe/QB/Ranger??}
 
 \alnote{Added sentence. Answer to your question: yes}
               
@@ -1095,7 +1101,7 @@ available.
 \section{Results: Enhanced Sampling of Hepatitis-C Virus}
 In the previous sections we discussed the design and performance
 of the framework and showed how it enables the effective utilisation of
-multiple resources. In section 2, we described why the RE approach is
+multiple resources. Further, we motivated why the RE approach is
 required to understand the energetics and conformational flexibility
 of the internal loop of the Hepatitis-C virus. The effectiveness of
 the RE approach in increasing the rate of convergence to equilibrium
@@ -1103,32 +1109,34 @@ the RE approach in increasing the rate of convergence to equilibrium
 the rate of attempted exchanges~\citep{Lei:2007xe}, or equally by the
 inverse of the {\it time} between attempted exchanges.
 
-To demonstrate the effectiveness of our RE framework in enhancing
-% sampling or 
-the rate of convergence to equilibrium for real sized
-biomolecular systems, we analyse a typical time-series of resources
+\alnote{I commented out the lines below - reads like the sentence before}
+To demonstrate the effectiveness of our RE framework, 
+% in enhancing % sampling or 
+% the rate of convergence to equilibrium for real sized
+% biomolecular systems,
+we analyse a typical time-series of resources
 used (available) during a six hour run on a production infrastructure
-(green line in Fig~\ref{fig:result_A}).  REMD simulations (Scenario A)
+(green line in Figure~\ref{fig:result_A}).  REMD simulations (Scenario A)
 were performed for HCV IRES IIIb CA variant using the model described
 in section 2. The replicas covered a temperature range from 300\,K to
 450\,K, which sets the number of replicas to a fixed value of 16.  Each
-glide-in has 32 cores -- the number of cores for each replica is
-determined by the numbers of active glide-in jobs.
-Fig.~\ref{fig:result_A} shows how the number of active glide-ins
+Glide-In has 32 cores -- the number of cores for each replica is
+determined by the numbers of active Glide-In jobs.
+Figure~\ref{fig:result_A} shows how the number of active Glide-Ins
 changed during this six hour interval. To start with, there were only
-enough processors to support one glide-in job, but after approximately
-two hours, there were enough to support two active glide-ins and three
-glide-ins were supported after three hours. Eight glide-ins were
-activated before the six hour time limit. As the number of glide-ins
+enough processors to support one Glide-In job, but after approximately
+two hours, there were enough to support two active Glide-Ins and three
+Glide-Ins were supported after three hours. Eight Glide-Ins were
+activated before the six hour time limit. As the number of Glide-Ins
 increases, the number of processors assigned to each replica
 increases, with the physically important consequence that there is a
 concomitant decrease in the average time between exchange
-attempts. This is shown in the time-series in red in
-Fig.~\ref{fig:result_A}.  The average time between exchange attempts
-as a function of the number of active glide-ins is shown in red in
-Fig.~\ref{fig:result_B}, whereas the speedup -- measured as the inverse
-of the average time normalised by the time taken with one glide-in (thus
-the value of 1 for the one glide-in case) is shown green.
+attempts (red line in Figure~\ref{fig:result_A}).  
+The average time between exchange attempts
+as a function of the number of active Glide-Ins is shown in red in
+Figure~\ref{fig:result_B}, whereas the speedup -- measured as the inverse
+of the average time normalised by the time taken with one Glide-In (thus
+the value of 1 for the one Glide-In case) is shown green.
 
 \begin{figure}[h]
   \begin{minipage}[t]{.495\textwidth}
@@ -1136,7 +1144,7 @@ the value of 1 for the one glide-in case) is shown green.
       \includegraphics[width=\textwidth]{performance/hepatitis/perf_repex.pdf}
       \caption{\footnotesize \bf The plots show the time-series of the
         average times between exchange attempts (in red and using the
-        left-hand y axis) and the number of active glide-ins over a
+        left-hand y axis) and the number of active Glide-Ins over a
         six-hour run on the TeraGrid.}
       \label{fig:result_A}
     \end{center}
@@ -1148,7 +1156,7 @@ the value of 1 for the one glide-in case) is shown green.
       \includegraphics[width=\textwidth]{performance/hepatitis/perf_repex2.pdf}
       \caption{\footnotesize \bf The plot in red (using the left-hand
         y axis) illustrates how the average time between exchange attempts
-        decreases as the number of glide-ins increases. The plot in
+        decreases as the number of Glide-Ins increases. The plot in
         green shows the speedup.}
       \label{fig:result_B}
     \end{center}
@@ -1250,9 +1258,9 @@ reservation-based schemes~\citep{Jeske:2007wj}.  \alnote{I did not
 
 \jhanote{AndreL: We need to mention how the experiments were
   conducted: I guess the static configuration set both the number and
-  the specific resources to use. Then when first glide-in job started,
-  other glide-in jobs were in queue. then at some stage the other
-  glide-in job changed state (Q) and started running. Need to mention
+  the specific resources to use. Then when first Glide-In job started,
+  other Glide-In jobs were in queue. then at some stage the other
+  Glide-In job changed state (Q) and started running. Need to mention
   this is what we mean by ``when additional resources became
   available''.. as opposed to discovering resources. Plus it will help
   the reader understand the results too.}
@@ -1262,7 +1270,7 @@ reservation-based schemes~\citep{Jeske:2007wj}.  \alnote{I did not
   be reflected in 2)}
 
 \jhanote{AndreL: We need to mention explicitly that i) the size of a
-  glide-in job was kept constant at 32 cores, and ii) this number of
+  Glide-In job was kept constant at 32 cores, and ii) this number of
   32 is a seat-of-the-pants/empirically derived number.}
 
 \alnote{It is rather an intuitive number to force a lower number of
