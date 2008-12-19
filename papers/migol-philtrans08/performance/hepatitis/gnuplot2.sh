@@ -29,8 +29,8 @@ set ytics nomirror
    
 
 set output "perf_repex2.eps" 
-plot "data2.txt" using 1:($3/60) axis x1y1 title "Time per Generation" with lp,\
-     "data2.txt" using 1:6 axis x1y2 title "Speed Up" with lp
+plot "data2.txt" using 1:($3/60) axis x1y1 title "Time per Generation" with lp lw 4,\
+     "data2.txt" using 1:6 axis x1y2 title "Speed Up" with lp lw 4
 
 #set terminal x11
 #replot
