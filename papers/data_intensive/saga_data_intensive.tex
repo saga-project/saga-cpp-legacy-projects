@@ -496,54 +496,66 @@ on the grid's network bandwidth.
 
 \section{SAGA-MapReduce Implementation}
 
-The SAGA based implementation of MapReduce has been developed with the following
-goals in mind:
+The SAGA based implementation of MapReduce has been developed with the
+following goals in mind:
 
 \begin{itemize}
-	\item to provide a generic MapReduce framework allowing easy adaptation to 
-	      the users concrete Mapreduce algorithm
-	\item to ensure portability of the users MapReduce application over a broad range
-	      of Grids and Clouds, filesystems and architectures
-	\item to allow fine control over the number of workers, and the placement of 
-	      data and computation, ensuring to move the work to the data instead of
-	      having to move the data to the work
+\item to provide a generic MapReduce framework allowing easy
+  adaptation to the users concrete Mapreduce algorithm
+\item to ensure portability of the users MapReduce application over a
+  broad range of Grids and Clouds, filesystems and architectures
+\item to allow fine control over the number of workers, and the
+  placement of data and computation, ensuring to move the work to the
+  data instead of having to move the data to the work
 \end{itemize}
 
-The overall architecture of the SAGA-MapReduce implementation is shown in 
-Fig.~\ref{saga-mapreduce_controlflow.png}. The application consists out of two independent
-processes, a master and worker processes. The master process is responsible for:
+The overall architecture of the SAGA-MapReduce implementation is shown
+in Fig.~\ref{saga-mapreduce_controlflow.png}. 
+
+This simple interface provides the complete functionality needed by
+any MapReduce algorithm, while hiding the more complex functionality,
+such as chunking of the input, sorting of the intermediate results,
+launching and coordinating the map and reduce workers, etc. as
+implemented by the framework.
+
+The application consists out of two independent processes, a master
+and worker processes. The master process is responsible for:
 
 \begin{itemize}
-	\item launching all workers for the map and reduce steps as described in a configuration 
-	      file provided by the user (defining the number of workers, the systems/batch queues 
-	      to use for job execution, the input data to use and the output filenames towrite 
-	      the results to)
-  \item coordinating all the executed workers, this includes the chunking of the data,
-        assigning the input data to the workers of the map step, passing the names of the
-        output files of the map step to the workers of the reduce step, and collecting 
-        the generated outputs from the reduce steps.
-  \item relaunching single worker instances in case of failures, 
+\item launching all workers for the map and reduce steps as described
+  in a configuration file provided by the user (defining the number of
+  workers, the systems/batch queues to use for job execution, the
+  input data to use and the output filenames towrite the results to)
+\item coordinating all the executed workers, this includes the
+  chunking of the data, assigning the input data to the workers of the
+  map step, passing the names of the output files of the map step to
+  the workers of the reduce step, and collecting the generated outputs
+  from the reduce steps.
+\item relaunching single worker instances in case of failures,
 \end{itemize}
 
-The master process is readily available to the user and needs no modification for 
-different MapReduce algorithms to execute.
+The master process is readily available to the user and needs no
+modification for different MapReduce algorithms to execute.
 
-The worker processes get assigned work either from the map or the reduce step. The 
-functionality for the different steps have to be provided by the user, which means 
-the user has to write 2 C++ functions implementing the required MapReduce algorithm.
-Fig.\ref{src:saga-mapreduce} shows a very simple example of a MapReduce application
-allowing to count the word frequencies in the input data set. The user provided
-functions |map| (line 14) and |reduce| (line 25) are invoked by the MapReduce 
-framework during the map and reduce steps. The framework provides the URL of the
-input data chunk file to the |map| function, which should call the function 
-|emitIntermediate| for each of the generated output key/value pairs (here the word
-and it's count, i.e. '1', see line 19). During the reduce step, after the data has 
-been sorted, this output data is passed to 
-the |reduce| function. The framework passes the key and a list of all data items
-which have been associated with this key during the map step. The reduce step
-is expected to call the |emit| function (see line 34) for each of the final 
-output elements (here: the word and its overall count). All key/value pairs as 
-passed to |emit| will be combined by the framework into a single output file.
+The worker processes get assigned work either from the map or the
+reduce step. The functionality for the different steps have to be
+provided by the user, which means the user has to write 2 C++
+functions implementing the required MapReduce algorithm.
+Fig.\ref{src:saga-mapreduce} shows a very simple example of a
+MapReduce application allowing to count the word frequencies in the
+input data set. The user provided functions |map| (line 14) and
+|reduce| (line 25) are invoked by the MapReduce framework during the
+map and reduce steps. The framework provides the URL of the input data
+chunk file to the |map| function, which should call the function
+|emitIntermediate| for each of the generated output key/value pairs
+(here the word and it's count, i.e. '1', see line 19). During the
+reduce step, after the data has been sorted, this output data is
+passed to the |reduce| function. The framework passes the key and a
+list of all data items which have been associated with this key during
+the map step. The reduce step is expected to call the |emit| function
+(see line 34) for each of the final output elements (here: the word
+and its overall count). All key/value pairs as passed to |emit| will
+be combined by the framework into a single output file.
 
 
 \begin{figure}[!ht]
@@ -590,27 +602,24 @@ passed to |emit| will be combined by the framework into a single output file.
     }
   };
   \end{mycode}
-  \caption{\label{src:saga-mapreduce}
-    Counting word frequencies using SAGA-MapReduce}
+  \caption{\label{src:saga-mapreduce} Counting word frequencies using
+    SAGA-MapReduce. This is the worker-side code.}
  \end{center}
 \end{figure}
 
-This simple interface provides the complete functionality needed by any
-MapReduce algorithm, while hiding the more complex functionality (such as
-chunking of the input, sorting of the intermediate results, launching and
-coordinating the map and reduce workers, etc.) as implemented by the 
-framework.
 
-As shown in Fig.~\ref{saga-mapreduce_controlflow.png} both, the master and 
-the worker processes use the SAGA-API as an abstract interface to the 
-used infrastructure, making the application portable between different 
-architectures and systems. The worker processes are launched using the SAGA
-job package, allowing to launch the jobs either locally, using Globus/GRAM, AWS,
-or on a Condor pool. The communication between the master and the worker 
-processes is ensured by using the SAGA advert package, abstracting a 
-information database in a platform independent way. All file transfer
-operations are based on the SAGA file package, providing a broad range of
-different file systems and transfer protocols, such as local file systems, 
+As shown in Fig.~\ref{saga-mapreduce_controlflow.png} both, the master
+and the worker processes use the SAGA-API as an abstract interface to
+the used infrastructure, making the application portable between
+different architectures and systems. The w
+orker processes are launched
+using the SAGA job package, allowing to launch the jobs either
+locally, using Globus/GRAM, AWS, or on a Condor pool. The
+communication between the master and the worker processes is ensured
+by using the SAGA advert package, abstracting a information database
+in a platform independent way. All file transfer operations are based
+on the SAGA file package, providing a broad range of different file
+systems and transfer protocols, such as local file systems,
 Globus/GridFTP, KFS, and HDFS.
 
 \section{Applications}
