@@ -1,6 +1,6 @@
-# Package: saga
+# Package: pysaga
 # Module: context 
-# Description: The module which specifies the context classes used in saga
+# Description: The module which specifies the context classes used in SAGA
 # Specification and documentation can be found in section 3.6, page 81-86 of 
 #    the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
@@ -12,7 +12,7 @@ from error import NotImplemented
 
 class Context(Object, Attributes):
     """
-    The saga.context.Context class provides the functionality of a security 
+    The Context class provides the functionality of a security 
     information container.
 
         - B{Attributes:} 
@@ -118,6 +118,7 @@ class Context(Object, Attributes):
                 -     type: String
                 -     value: -
     
+    @version: 1.0, designed for Python 2.x
     @undocumented: get_Type
     @undocumented: set_Type
     @undocumented: del_Type
@@ -160,8 +161,8 @@ class Context(Object, Attributes):
     """
 
     def __init__(self, name=""):
-        """
-        Initialize a security context.
+        """Initialize a security context.
+        
         @summary: Initialize a security context.
         @param name: initial type of context
         @type name: string
@@ -175,11 +176,11 @@ class Context(Object, Attributes):
             document
 
         """
-        pass
+
         
     def set_defaults(self):
-        """
-        Set default values for specified context type.
+        """Set default values for specified context type.
+        
         @summary: Set default values for specified context type.
         @PostCondition: the context is valid, and can be used for authorization.
         @raise NotImplemented:
@@ -199,178 +200,189 @@ class Context(Object, Attributes):
             values could be set.
 
         """
-        pass
+        raise NotImplemented("This method is not yet implemented")
 
 
-
-
-
-    def __set_Type(value):
+    def __set_Type(self, value):
         set_attribute("Type", value)
         
-    def __get_Type():
+    def __get_Type(self):
         return get_attribute("Type")  
     
-    def __del_Type():
+    def __del_Type(self):
         return set_attribute("Type", "")            
 
     Type = property(__get_Type, __set_Type, __del_Type,
-            doc="""The Type attribute. \n@type: string""")
+            doc="""The Type attribute.
+                @type: string""")
 
 
-    def __set_Server(value):
+    def __set_Server(self, value):
         set_attribute("Server", value)
         
-    def __get_Server():
+    def __get_Server(self):
         return get_attribute("Server")   
 
-    def __del_Server():
+    def __del_Server(self):
         return set_attribute("Server", "") 
 
     Server= property(__get_Server, __set_Server, __del_Server,
-            doc="""The Server attribute.\n@type: string""")
+            doc="""The Server attribute.
+                @type: string""")
   
     
-    def __set_CertRepository(value):
+    def __set_CertRepository(self, value):
         set_attribute("CertRepository", value)
         
-    def __get_CertRepository():
+    def __get_CertRepository(self):
         return get_attribute("CertRepository")   
 
-    def __del_CertRepository():
+    def __del_CertRepository(self):
         return set_attribute("CertRepository", "") 
 
     CertRepository = property(__get_CertRepository, __set_CertRepository, 
-      __del_CertRepository, doc="The CertRepository attribute.\n@type: string")
+      __del_CertRepository, doc="""The CertRepository attribute.
+                                  @type: string""")
 
     
-    def __set_UserProxy(value):
+    def __set_UserProxy(self, value):
         set_attribute("UserProxy", value)
         
-    def __get_UserProxy():
+    def __get_UserProxy(self):
         return get_attribute("UserProxy")   
 
-    def __del_UserProxy():
+    def __del_UserProxy(self):
         return set_attribute("UserProxy", "") 
 
     UserProxy = property(__get_UserProxy, __set_UserProxy, __del_UserProxy,
-            doc="""The UserProxy attribute.\n@type: string""")
+            doc="""The UserProxy attribute.
+                @type: string""")
  
     
-    def __set_UserCert(value):
+    def __set_UserCert(self, value):
         set_attribute("UserCert", value)
         
-    def __get_UserCert():
+    def __get_UserCert(self):
         return get_attribute("UserCert")   
 
-    def __del_UserCert():
+    def __del_UserCert(self):
         return set_attribute("UserCert", "") 
 
     UserCert = property(__get_UserCert, __set_UserCert, __del_UserCert,
-            doc="""The UserCert attribute.\n@type: string""")
+            doc="""The UserCert attribute.
+                @type: string""")
  
     
-    def __set_UserKey(value):
+    def __set_UserKey(self, value):
         set_attribute("UserKey", value)
         
-    def __get_UserKey():
+    def __get_UserKey(self):
         return get_attribute("UserKey")   
 
-    def __del_UserKey():
+    def __del_UserKey(self):
         return set_attribute("UserKey", "") 
 
     UserKey = property(__get_UserKey, __set_UserKey, __del_UserKey,
-            doc="""The UserKey attribute.\n@type: string""")
+            doc="""The UserKey attribute.
+                @type: string""")
 
     
-    def __set_UserID(value):
+    def __set_UserID(self, value):
         set_attribute("UserID", value)
         
-    def __get_UserID():
+    def __get_UserID(self):
         return get_attribute("UserID")   
 
-    def __del_UserID():
+    def __del_UserID(self):
         return set_attribute("UserID", "") 
 
     UserID = property(__get_UserID, __set_UserID, __del_UserID,
-            doc="""The UserID attribute.\n@type: string""")
+            doc="""The UserID attribute.
+                @type: string""")
 
     
-    def __set_UserPass(value):
+    def __set_UserPass(self, value):
         set_attribute("UserPass", value)
         
-    def __get_UserPass():
+    def __get_UserPass(self):
         return get_attribute("UserPass")   
 
-    def __del_UserPass():
+    def __del_UserPass(self):
         return set_attribute("UserPass", "") 
 
     UserPass = property(__get_UserPass, __set_UserPass, __del_UserPass,
-            doc="""The UserPass attribute.\n@type: string""")
+            doc="""The UserPass attribute.
+                @type: string""")
     
 
-    def __set_UserVO(value):
+    def __set_UserVO(self, value):
         set_attribute("UserVO", value)
         
-    def __get_UserVO():
+    def __get_UserVO(self):
         return get_attribute("UserVO")   
 
-    def __del_UserVO():
+    def __del_UserVO(self):
         return set_attribute("UserVO", "") 
 
     UserVO = property(__get_UserVO, __set_UserVO, __del_UserVO,
-            doc="""The UserVO attribute.\n@type: string""")
+            doc="""The UserVO attribute.
+                @type: string""")
 
 
-    def __set_LifeTime(value):
+    def __set_LifeTime(self, value):
         set_attribute("LifeTime", value)
         
-    def __get_LifeTime():
+    def __get_LifeTime(self):
         return get_attribute("LifeTime")   
 
-    def __del_LifeTime():
+    def __del_LifeTime(self):
         return set_attribute("LifeTime", "") 
 
     LifeTime = property(__get_LifeTime, __set_LifeTime, __del_LifeTime,
-            doc="""The LifeTime attribute.\n@type: int""")
+            doc="""The LifeTime attribute.
+                @type: int""")
 
 
-    def __set_RemoteID(value):
+    def __set_RemoteID(self, value):
         set_attribute("RemoteID", value)
         
-    def __get_RemoteID():
+    def __get_RemoteID(self):
         return get_attribute("RemoteID")   
 
-    def __del_RemoteID():
+    def __del_RemoteID(self):
         return set_attribute("RemoteID", "") 
 
     RemoteID = property(__get_RemoteID, __set_RemoteID, __del_RemoteID,
-            doc="""The RemoteID attribute.\n@type: string""")
+            doc="""The RemoteID attribute.
+                @type: string""")
     
 
-    def __set_RemoteHost(value):
+    def __set_RemoteHost(self, value):
         set_attribute("RemoteHost", value)
         
-    def __get_RemoteHost():
+    def __get_RemoteHost(self):
         return get_attribute("RemoteHost")   
 
-    def __del_RemoteHost():
+    def __del_RemoteHost(self):
         return set_attribute("RemoteHost", "") 
 
     RemoteHost = property(__get_RemoteHost, __set_RemoteHost, __del_RemoteHost,
-            doc="""The RemoteHost attribute.\n@type: string""")
+            doc="""The RemoteHost attribute.
+                @type: string""")
 
 
     
-    def __set_RemotePort(value):
+    def __set_RemotePort(self, value):
         set_attribute("RemotePort", value)
         
-    def __get_RemotePort():
+    def __get_RemotePort(self):
         return get_attribute("RemotePort")   
 
-    def __del_RemotePort():
+    def __del_RemotePort(self):
         return set_attribute("RemotePort", "") 
 
     RemotePort = property(__get_RemotePort, __set_RemotePort, __del_RemotePort,
-            doc="""The RemotePort attribute.\n@type: string""")
+            doc="""The RemotePort attribute.
+                @type: string""")
+    
 

@@ -1,7 +1,7 @@
-# Package: saga
+# Package: pysaga
 # Module: attributes 
 # Description: The module which specifies the classes concerning the setting 
-#    and getting of attributes in saga
+#    and getting of attributes in SAGA
 # Specification and documentation can be found in section 3.8, page 101-113 of 
 #    the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
@@ -12,16 +12,17 @@ from error import NotImplemented
 class Attributes(object):
     """
     There are various places in the SAGA API where attributes need to be 
-    associated with objects, for instance for job descriptions and metrics. The 
-    Attributes class provides a common interface for storing and retrieving 
+    associated with objects, for instance for job descriptions and metrics. 
+    The Attributes class provides a common interface for storing and retrieving 
     attributes.
     
-    @undocumented: __get_attributes
+    @version: 1.0, designed for Python 2.x
+    
     """
     
     def set_attribute(self, key, value):
-        """
-        Set an attribute to a value.
+        """Set an attribute to a value.
+        
         @summary: Set an attribute to a value.
         @param key: attribute key
         @param value: value to set the attribute to
@@ -55,7 +56,7 @@ class Attributes(object):
              'AuthenticationFailed', 'AuthorizationFailed',
              and 'PermissionDenied' exceptions are raised.
              For example, an implementation may forbid to
-             change the saga.stream.Stream 'Bufsize' attribute.
+             change the L{Stream} 'Bufsize' attribute.
         @note: if an attribute is not well formatted, or
              outside of some allowed range, a 'BadParameter'
              exception with a descriptive error message is
@@ -68,11 +69,11 @@ class Attributes(object):
              'NoSuccess' exception, respectively.
 
         """
+        raise NotImplemented("This method is not yet implemented")
      
     def get_attribute(self, key):
-        #return value
-        """
-        Get an attribute value.
+        """Get an attribute value.
+        
         @summary: Get an attribute value.
         @param key: attribute key
         @type key: string
@@ -88,11 +89,11 @@ class Attributes(object):
         @raise Timeout:
         @raise NoSuccess:
         @note: queries of attributes may imply queries of endpoint entity 
-            properties. As such, authorization and/or authentication may fail 
+            properties. As such,  authorization and/or authentication may fail 
             for querying such attributes, for some backends. In that case, the 
             respective 'AuthenticationFailed', 'AuthorizationFailed', and 
             'PermissionDenied' exceptions are raised. For example, an 
-            implementation may forbid to read the saga.stream.Stream 'Bufsize' 
+            implementation may forbid to read the L{Stream} 'Bufsize' 
             attribute.
         @note: reading an attribute value for an attribute which is not in the 
             current set of attributes causes a 'DoesNotExist' exception.
@@ -103,13 +104,14 @@ class Attributes(object):
             respectively.
 
         """
-            
+        raise NotImplemented("This method is not yet implemented")
+                
     def set_vector_attribute(self, key, values):
-        """
-        Set an attribute to a list of values.
-        @summary: Set an attribute to a list of string values.
+        """Set an attribute to an list of values.
+        
+        @summary: Set an attribute to an array of values.
         @param key: attribute key
-        @param values:  list of attribute values
+        @param values: array of attribute values
         @type key: string
         @type values: list
         @permission: Write
@@ -127,11 +129,11 @@ class Attributes(object):
             'IncorrectState' exception is raised.
 
         """
-    
+        raise NotImplemented("This method is not yet implemented")
+                      
     def get_vector_attribute(self, key):
-        #return a list of values
-        """
-        Get the list of values associated with an attribute.
+        """Get the list of values associated with an attribute.
+        
         @summary: Get the list of values associated with an attribute.
         @param key: attribute key
         @type key: string
@@ -151,12 +153,13 @@ class Attributes(object):
             'IncorrectState' exception is raised.
 
         """
+        raise NotImplemented("This method is not yet implemented")        
     
     def remove_attribute(self, key):
-        """
-        Removes an attribute.
+        """Removes an attribute.
+        
         @summary: Removes an attribute.
-        @param key: attribute to be removed
+        @param  key: attribute to be removed
         @type key: string
         @postcondition: the attribute is not available anymore.
         @permission: Write
@@ -175,13 +178,13 @@ class Attributes(object):
             exception is raised.
         @note: exceptions have the same semantics as defined for the 
             set_attribute() method description.
+            
         """
-
+        raise NotImplemented("This method is not yet implemented")
      
     def list_attributes(self):
-        #return list of keys out
-        """
-        Get the list of attribute keys.
+        """Get the list of attribute keys.
+        
         @summary: Get the list of attribute keys.
         @return: existing attribute keys
         @rtype: list
@@ -198,11 +201,11 @@ class Attributes(object):
             returned.
 
         """
+        raise NotImplemented("This method is not yet implemented")        
     
     def find_attributes(self,  pattern):
-        #return keys_list
-        """
-        Find matching attributes.
+        """Find matching attributes.
+        
         @summary: Find matching attributes.
         @param pattern: list of string search patterns
         @type pattern: list
@@ -222,6 +225,7 @@ class Attributes(object):
             get_attribute() method description.
 
         """
+        raise NotImplemented("This method is not yet implemented")        
     
     def attribute_exists(self, key):
         """
@@ -245,16 +249,17 @@ class Attributes(object):
             'DoesNotExist' exception is never raised.
 
         """
+        raise NotImplemented("This method is not yet implemented")        
      
     def attribute_is_readonly(self, key):
-        """
-        Check if the attribute is read only.
+        """Check if the attribute is read only.
+        
         @summary: Check if the attribute is read only.
-        @param    key:                  attribute key
+        @param key: attribute key
         @type key: string
         @return: indicator if the attribute read only
         @rtype: bool
-        @permission:    Query
+        @permission: Query
         @raise NotImplemented:
         @raise  DoesNotExist:
         @raise PermissionDenied:
@@ -270,16 +275,17 @@ class Attributes(object):
             get_attribute() method description.
 
         """
+        raise NotImplemented("This method is not yet implemented")        
          
     def attribute_is_writable(self, key):
-        """
-        Check if the attribute is writable.
+        """Check if the attribute is writable.
+        
         @summary: Check if the attribute is writable.
         @param key: attribute key
         @type key: string
         @return: indicator if the attribute is writable
         @rtype: bool
-        @permission:    Query
+        @permission: Query
         @raise NotImplemented:
         @raise DoesNotExist:
         @raise PermissionDenied:
@@ -294,10 +300,11 @@ class Attributes(object):
             get_attribute() method description.
 
         """
+        raise NotImplemented("This method is not yet implemented")        
     
     def attribute_is_removable (self, key):
-        """
-        Check if the attribute is removable.
+        """Check if the attribute is removable.
+        
         @summary: Check if the attribute is removable.
         @param key: attribute key
         @type key: string
@@ -313,14 +320,15 @@ class Attributes(object):
         @raise NoSuccess:
         @note: This method returns True if the attribute identified by the key 
             exists, and can be removed by remove_attribute().
-        @note: exceptions have the same semantics as defined for 
-            the get_attribute() method description.
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
+        raise NotImplemented("This method is not yet implemented")        
      
     def attribute_is_vector(self, key):
-        """
-        Check whether the attribute is a vector or a scalar.
+        """Check whether the attribute is a vector or a scalar.
+        
         @summary: Check whether the attribute is a vector or a scalar.
         @param key: attribute key
         @type key: string
@@ -336,13 +344,8 @@ class Attributes(object):
         @raise NoSuccess:
         @note: This method returns True if the attribute identified by key is a 
             vector attribute.
-        @note: exceptions have the same semantics as defined for 
-            the get_attribute() method description.
+        @note: exceptions have the same semantics as defined for the 
+            get_attribute() method description.
 
         """
-        
-    def __get_attributes(self):
-        return {}
-        
-    attributes = property(__get_attributes,
-          doc="""The attributes in dictionary form.\n@type: dict""")
+        raise NotImplemented("This method is not yet implemented")        

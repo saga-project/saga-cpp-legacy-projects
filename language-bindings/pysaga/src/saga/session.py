@@ -1,6 +1,6 @@
-# Package: saga
+# Package: pysaga
 # Module: session 
-# Description: The module which specifies the session used in saga
+# Description: The module which specifies the session used in SAGA
 # Specification and documentation can be found in section 3.5, 
 #    page 75-80 of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
@@ -12,14 +12,18 @@ from error import NotImplemented
 
 class Session(Object):
     """
+    
     The session object provides the functionality of a session, which isolates in-
     dependent sets of SAGA objects from each other. Sessions also support the
     management of security information
+    
+    @version: 1.0, designed for Python 2.x    
+    
     """
         
     def __init__(self, default=True):
-        """
-        Initialize the object.
+        """Initialize the object.
+        
         @summary: Initialize the object.
         @param default: indicates this object should be the default session 
         @type default: bool
@@ -29,13 +33,14 @@ class Session(Object):
         @note: if 'default' is specified as 'True', the constructor returns a shallow copy of the
              default session, with all the default contexts attached. The application can then
              change the properties of the default session, which is continued to be implicetly used on
-             the creation of all saga objects, unless specified otherwise.
+             the creation of all SAGA objects, unless specified otherwise.
+        
         """
-        pass
+        raise NotImplemented("This method is not yet implemented")
         
     def add_context(self, context):
-        """
-        Attach a security context to a session.
+        """Attach a security context to a session.
+        
         @summary: Attach a security context to a session.
         @param context: Security context to add
         @type context: L{Context}
@@ -47,11 +52,11 @@ class Session(Object):
             values as the parameter context, no action is taken.
 
         """
-        pass
+        raise NotImplemented("This method is not yet implemented")
 
     def remove_context(self, context):
-        """
-        Detach a security context from a session.
+        """Detach a security context from a session.
+        
         @summary: Detach a security context from a session.
         @param context: Security context to remove
         @type context: L{Context}
@@ -66,11 +71,11 @@ class Session(Object):
               same attributes as the parameter context.
 
         """
-        pass
+        raise NotImplemented("This method is not yet implemented")
         
     def list_contexts(self):
-        """
-        Retrieve all contexts attached to a session.
+        """Retrieve all contexts attached to a session.
+        
         @summary: Retrieve all contexts attached to a session.
         @return: contexts of this session
         @rtype: list
@@ -82,7 +87,10 @@ class Session(Object):
               about context life time in the GFD-R-P.90 document.
 
         """
-        pass
+        raise NotImplemented("This method is not yet implemented")
     
     contexts = property(list_contexts,
-            doc="""Contexts attached to a session\n@type: list""")
+            doc="""Contexts attached to a session
+                @type: list""")
+    
+    

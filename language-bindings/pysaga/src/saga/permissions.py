@@ -1,7 +1,7 @@
-# Package: saga
+# Package: pysaga
 # Module: permissions 
 # Description: The module which specifies the classes concerning the 
-#    permissions used in saga
+#    permissions used in SAGA
 # Specification and documentation can be found in section 3.7, page 87-100 
 #    of the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
@@ -14,6 +14,8 @@ from task import Async, TaskType
 class Permission(object):
     """
     Permission specifies the available permissions in SAGA
+
+    @version: 1.0, designed for Python 2.x   
     """
     
     NONE = 0
@@ -57,17 +59,20 @@ class Permission(object):
 
 class Permissions(Async):
     """
+    
     Permissions provides a generic interface for applications to allow or deny
     specific operations on SAGA objects or grid entities, such as files, 
     streams, or monitorables, and to query and set such permissions
     
+    @version: 1.0, designed for Python 2.x 
     @undocumented: __get_group
     @undocumented: __get_owner
+    
     """   
 
     def permissions_allow(self, id, perm, tasktype=TaskType.NORMAL):
-        """
-        Enable permission flags.
+        """Enable permission flags.
+        
         @summary: Enable permission flags.
         @param id: id to set permission for
         @type id: string
@@ -90,11 +95,13 @@ class Permissions(Async):
         @note: the 'Owner' permission can not be set to the id '*' (all).
         @note: if the given id is unknown or not supported, a 'BadParameter' 
             exception is raised.
+            
         """
+        raise NotImplemented("This method is not yet implemented")
  
     def permissions_deny(self, id, perm, tasktype=TaskType.NORMAL):
-        """
-        Disable permission flags.
+        """Disable permission flags.
+        
         @summary: Disable permission flags.
         @param id: id to set permissions for
         @type id: string
@@ -116,11 +123,13 @@ class Permissions(Async):
         @note: the 'Owner' permission can not be set to the id '*' (all).
         @note: if the given id is unknown or not supported, a 'BadParameter' 
             exception is raised.
+            
         """
+        raise NotImplemented("This method is not yet implemented")
     
     def permissions_check(self, id, perm, tasktype=TaskType.NORMAL):
-        """
-        Check permissions flags.
+        """Check permissions flags.
+        
         @summary: Check permission flags.
         @param id:  id to check permissions for
         @type id: string
@@ -133,7 +142,7 @@ class Permissions(Async):
         @return: indicates if, for that id, the permissions are granted (True) 
             or not (False).
         @rtype: bool
-        @permission:    Query
+        @permission: Query
         @raise NotImplemented:
         @raise BadParameter:
         @raise PermissionDenied:
@@ -146,11 +155,13 @@ class Permissions(Async):
             are set for the given id.
         @note: if the given id is unknown or not supported, a 'BadParameter' 
             exception is raised.
+            
         """
+        raise NotImplemented("This method is not yet implemented")
     
-    def get_owner(self,tasktype=TaskType.NORMAL):
-        """
-        Get the owner of the entity.
+    def get_owner(self, tasktype=TaskType.NORMAL):
+        """Get the owner of the entity.
+        
         @summary: Get the owner of the entity.
         @return: id of the owner
         @rtype: string
@@ -169,11 +180,13 @@ class Permissions(Async):
         @note: an entity which extends Permissions, always has exactly one 
             owner: this method does not return an empty string, '*' (all), or 
             a group id.
+        
         """
-    
+        raise NotImplemented("This method is not yet implemented")
+        
     def get_group(self, tasktype=TaskType.NORMAL):
-        """
-        Get the group owning the entity.
+        """Get the group owning the entity.
+        
         @summary:  Get the group owning the entity.
         @param tasktype: return the normal return values or a Task object in a 
             final, RUNNING or NEW state. By default, tasktype 
@@ -191,17 +204,23 @@ class Permissions(Async):
         @note: returns the id of the group owning the entity
         @note: if the implementation does not support groups, the method 
             returns an empty string.
+        
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
+    
+    
     def __get_group(self):
         return get_group()
 
     group = property(__get_group,
-            doc="""The id of the group owning the entity.\n@type: string""")
+            doc="""The id of the group owning the entity.
+                @type: string""")
 
     def __get_owner(self):
         return get_owner()
 
     owner = property(__get_owner,
-            doc="""The id of the owner of the entity.\n@type: string""")
+            doc="""The id of the owner of the entity.
+                @type: string""")
         

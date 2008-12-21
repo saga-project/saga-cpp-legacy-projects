@@ -1,7 +1,7 @@
-# Package: saga
+# Package: pysaga
 # Module: monitoring
 # Description: The module which specifies the classes concerning Callbacks, 
-#    Metrics, Monitorable and Steerable in saga
+#    Metrics, Monitorable and Steerable in SAGA
 # Specification and documentation can be found in section 3.9, page 114-139 of 
 #    the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
@@ -15,20 +15,23 @@ class Callback(object):
     """
     Callbacks are used for asynchronous notification of metric changes 
     (events) 
+    
+    @version: 1.0, designed for Python 2.x
+    
     """
     
     def cb(self, monitorable, metric, context):
-        """
-        Asynchronous handler for metric changes.
+        """Asynchronous handler for metric changes.
+        
         @summary: Asynchronous handler for metric changes.
         @param monitorable: the saga monitorable object which causes the 
             callback invocation
-        @type monitorable: L{Monitorable<saga.monitoring.Monitorable>}
+        @type monitorable: L{Monitorable}
         @param metric: the metric causing the callback invocation
-        @type metric: L{Metric<saga.monitoring.Metric>}
+        @type metric: L{Metric}
         @param context: the context associated with the entity causing the 
             callback
-        @type context: L{Context<saga.context.Context>}
+        @type context: L{Context}
         @return: indicator if callback stays registered
         @rtype: bool
         @PreCondition: the passed context is authenticated.
@@ -64,9 +67,13 @@ class Callback(object):
             to be active at most once at any given time. That implies that the 
             SAGA implementation queues pending requests until a callback 
             invocation is finished.
-
+        @note: Callback is class that must be inherited by a class of the
+            Python application. That class must provide an implementation of
+            the cb() method and program its behaviour when the cb() method is
+            called by the SAGA implementation when the metric of the 
+            Monitorable changes.
         """
-        return False
+        raise NotImplemented("This method is not yet implemented")
   
 class Metric(Object, Attributes):
     """
@@ -107,6 +114,7 @@ class Metric(Object, Attributes):
                 -   desc: value of the metric
 
     
+    @version: 1.0, designed for Python 2.x
     @undocumented: get_Name
     @undocumented: set_Name
     @undocumented: del_Name
@@ -160,14 +168,15 @@ class Metric(Object, Attributes):
             cause a BadParameter exception.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend 
             could not create that specific metric.
+            
         """
       
     def add_callback(self, cb): 
-        """
-        Add asynchronous notifier callback to watch metric changes.
+        """Add asynchronous notifier callback to watch metric changes.
+        
         @summary: Add asynchronous notifier callback to watch metric changes.
         @param cb: Callback to be added
-        @type cb: L{Callback<saga.monitoring.Callback>}
+        @type cb: L{Callback}
         @return: handle for this callback, called a cookie, to be used for 
             removal
         @rtype: int
@@ -197,10 +206,11 @@ class Metric(Object, Attributes):
             "PermissionDenied" exception to be raised.
 
         """
-      
+        raise NotImplemented("This method is not yet implemented")
+          
     def remove_callback(self, cookie):
-        """
-        Remove a callback from a metric.
+        """Remove a callback from a metric.
+        
         @summary: Remove a callback from a metric.
         @param cookie: handle identifying the callback to be removed
         @type cookie: int
@@ -232,10 +242,11 @@ class Metric(Object, Attributes):
             permission faults are to be expected.
 
         """
-              
+        raise NotImplemented("This method is not yet implemented")
+                  
     def fire(self):
-        """
-        Push a new metric value to the backend.
+        """Push a new metric value to the backend.
+        
         @summary: Push a new metric value to the backend.
         @PreCondition: the metric is not "Final"
         @PreCondition: the metric is "ReadWrite"
@@ -268,83 +279,86 @@ class Metric(Object, Attributes):
             backend.
 
         """
-      
+        raise NotImplemented("This method is not yet implemented")
+          
 
-    def __set_Name(value):
+    def __set_Name(self, value):
         set_attribute("Name", value)
         
-    def __get_Name():
+    def __get_Name(self):
         return get_attribute("Name") 
 
-    def __del_Name():
+    def __del_Name(self):
         return set_attribute("Name", "")
         
     Name = property(__get_Name, __set_Name, __del_Name,
-            doc="""The Name attribute. \n@type: string""") 
+            doc="""The Name attribute. 
+                @type: string""") 
  
-    def __set_Description(value):
+    def __set_Description(self, value):
         set_attribute("Description", value)
         
-    def __get_Description():
+    def __get_Description(self):
         return get_attribute("Description")  
     
-    def __del_Description():
+    def __del_Description(self):
         return set_attribute("Description", "")            
 
     Description = property(__get_Description, __set_Description, 
-       __del_Description, doc="""The Description attribute. \n@type: string""")
+       __del_Description, doc="""The Description attribute. 
+                               @type: string""")
 
-         
-    def __set_Mode(value):
+    def __set_Mode(self, value):
         set_attribute("Mode", value)
         
-    def __get_Mode():
+    def __get_Mode(self):
         return get_attribute("Mode")  
     
-    def __del_Mode():
+    def __del_Mode(self):
         return set_attribute("Mode", "")            
 
     Mode = property(__get_Mode, __set_Mode, __del_Mode,
-            doc="""The Mode attribute. \n@type: string""")
+            doc="""The Mode attribute. 
+                @type: string""")
          
-         
-    def __set_Unit(value):
+    def __set_Unit(self, value):
         set_attribute("Unit", value)
         
-    def __get_Unit():
+    def __get_Unit(self):
         return get_attribute("Unit")  
     
-    def __del_Unit():
+    def __del_Unit(self):
         return set_attribute("Unit", "")            
 
     Unit = property(__get_Unit, __set_Unit,  __del_Unit,
-            doc="""The Unit attribute. \n@type: string""")
+            doc="""The Unit attribute. 
+                @type: string""")
          
-         
-    def __set_Type(value):
+    def __set_Type(self, value):
         set_attribute("Type", value)
         
-    def __get_Type():
+    def __get_Type(self):
         return get_attribute("Type")  
     
-    def __del_Type():
+    def __del_Type(self):
         return set_attribute("Type", "")            
 
     Type = property(__get_Type, __set_Type, __del_Type,
-            doc="""The Type attribute. \n@type: string""")
+            doc="""The Type attribute. 
+                @type: string""")
 
-    
-    def __set_Value(value):
+    def __set_Value(self, value):
         set_attribute("Value", value)
         
-    def __get_Value():
+    def __get_Value(self):
         return get_attribute("Value")  
     
-    def __del_Value():
+    def __del_Value(self):
         return set_attribute("Value", "")            
 
     Value = property(__get_Value, __set_Value, __del_Value,
-            doc="""The Value attribute. \n@type: string""")
+            doc="""The Value attribute. 
+                @type: string""")
 
 
         
@@ -353,12 +367,14 @@ class Monitorable(object):
     SAGA objects which provide metrics and can thus be monitored extend the 
     Monitorable class
     
+    @version: 1.0, designed for Python 2.x
     @undocumented: __get_metrics
+    
     """
 
     def list_metrics(self):
-        """
-        List all metrics associated with the object.
+        """List all metrics associated with the object.
+        
         @summary: List all metrics associated with the object.
         @return: names identifying the metrics associated with the object 
             instance
@@ -382,22 +398,26 @@ class Monitorable(object):
             not allowed to list the available metrics.
         @note: a "Timeout" or "NoSuccess" exception indicates that the backend 
             was not able to list the available metrics.
+        
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
+    
     def __get_metrics(self):
         return list_metrics()
         
     metrics = property(__get_metrics,
-          doc="""The metrics associated with the object.\n@type: list""")
+          doc="""The metrics associated with the object.
+              @type: list""")
      
     def get_metric(self, name):
-        """
-        Returns a metric instance, identified by name.
+        """Returns a metric instance, identified by name.
+        
         @summary: Returns a metric instance, identified by name.
         @param name: name of the metric to be returned
         @type name: string
         @return: metric instance identified by name
-        @rtype: L{Metric<Metric>}
+        @rtype: L{Metric}
         @Permission: Query
         @Raise NotImplemented:
         @raise DoesNotExist:
@@ -417,10 +437,11 @@ class Monitorable(object):
             was not able to return the named metric.
 
         """
+        raise NotImplemented("This method is not yet implemented")
      
     def add_callback(self, name, cb):
-        """
-        Add a callback to the specified metric.
+        """Add a callback to the specified metric.
+        
         @summary: Add a callback to the specified metric.
         @param name: identifies the metric to which cb is to be added
         @type name: string
@@ -440,10 +461,11 @@ class Monitorable(object):
         @Note: notes to the add_callback method of the metric class apply.
 
         """
+        raise NotImplemented("This method is not yet implemented")
      
     def remove_callback(self, name, cookie):
-        """
-        Remove a callback from the specified metric
+        """Remove a callback from the specified metric
+        
         @summary: Remove a callback from the specified metric.
         @param name: identifies the metric for which cb is to be removed
         @type name: string
@@ -460,17 +482,21 @@ class Monitorable(object):
         @raise Timeout:
         @raise NoSuccess:
         @Note: notes to the remove_callback method of the metric class apply
+        
         """
+        raise NotImplemented("This method is not yet implemented")
    
 class Steerable(Monitorable):
     """
     SAGA objects which can be steered by changing their metrics implement the 
     steerable interface
+
+    @version: 1.0, designed for Python 2.x    
     """
 
     def add_metric(self, metric):
-        """
-        Add a metric instance to the application instance.
+        """Add a metric instance to the application instance.
+        
         @summary: Add a metric instance to the application instance.
         @param metric: metric to be added
         @type metric: L{Metric}
@@ -504,11 +530,13 @@ class Steerable(Monitorable):
         @Note: if the steerable instance does not support the addition of new 
             metrics, i.e. if only the default metrics can be steered, an 
             "IncorrectState" exception is raised.
+            
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
     def remove_metric(self, name):
-        """
-        Remove a metric instance.
+        """Remove a metric instance.
+        
         @summary: Remove a metric instance.
         @param name: identifies the metric to be removed
         @type name: string
@@ -540,10 +568,11 @@ class Steerable(Monitorable):
             metric on a steerable job cannot be removed.
 
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
     def fire_metric(self, name):
-        """
-        Push a new metric value to the backend.
+        """Push a new metric value to the backend.
+        
         @summary: Push a new metric value to the backend.
         @param name: identifies the metric to be fired
         @type name: string
@@ -572,3 +601,6 @@ class Steerable(Monitorable):
             "IncorrectState" exception.
 
         """
+        raise NotImplemented("This method is not yet implemented")
+    
+    

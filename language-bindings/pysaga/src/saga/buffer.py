@@ -1,6 +1,6 @@
-# Package: saga
+# Package: pysaga
 # Module: buffer 
-# Description: The module which specifies the buffer used in saga
+# Description: The module which specifies the buffer used in SAGA
 # Specification and documentation can be found in section 3.4, page 59-74 of 
 #    the GFD-R-P.90 document
 # Author: P.F.A. van Zoolingen, Computer Systems Section, Faculty of 
@@ -11,15 +11,16 @@ from error import NotImplemented
 
 class Buffer(Object):
     """
-    The saga.buffer.Buffer class encapsulates a sequence of data to be used for
-    I/O operations, that allows for uniform I/O syntax and semantics over the 
-    various SAGA API packages.
+    The Buffer class encapsulates a sequence of data to be used 
+    for I/O operations, that allows for uniform I/O syntax and semantics over 
+    the various SAGA API packages.
+    
+    @version: 1.0, designed for Python 2.x
 
     """
 
-    def __init__(self, size = -1, data = None):
-        """
-        Initialize an I/O buffer.
+    def __init__(self, size=-1, data=None):
+        """Initialize an I/O buffer.
         
             - B{Call format: Buffer( size, data )}
                 - B{Precondition:}
@@ -35,39 +36,42 @@ class Buffer(Object):
                         by the implementation.
         
         @summary: Initialize an I/O buffer.
-        
         @param size: size of data buffer to be used
         @type size: int
         @param data: buffer to be used
         @type data: char array or a list
-
         @raise NotImplemented:
         @raise BadParameter: if the implementation cannot handle the given data 
             parameter or the given size
         @raise NoSuccess:
         @see: notes about memory management in GFD-R-P.90 document.
+
         """
-        super(Buffer,self).__init__()
         
     def __del__(self):
-        """
-        Destroy a buffer.
+        """Destroy a buffer.
+        
+        @summary: Destroy a buffer.
         @note: if the instance was not closed before, __del__ performs a close() 
             on the instance, and all notes to close() apply.
+            
         """
+        raise NotImplemented("This method is not yet implemented")
         
-    def set_size(self, size = -1):
-       """
-       Set size of buffer, which becomes implementation managed.
+    def set_size(self, size=-1):
+       """Set size of buffer, which becomes implementation managed.
+       
        @summary: Set size of buffer, which becomes implementation managed.
        @param size: value for size
        @type size: int
        @PostCondition: the buffer memory is managed by the implementation.
+       
        """ 
+       raise NotImplemented("This method is not yet implemented")
 
     def get_size(self):
-        """
-        Retrieve the current value for size.
+        """Retrieve the current value for size.
+        
         @summary: Retrieve the current value for size.
         @return: value of size
         @rtype: int
@@ -81,11 +85,13 @@ class Buffer(Object):
             have been read into the buffer, the call returns the size of the 
             memory which has been allocated by the implementation during that 
             read operation
+            
         """
+        raise NotImplemented("This method is not yet implemented")        
     
     def set_data(self, data, size=-1):
-        """
-        Set new buffer data.
+        """Set new buffer data.
+        
         @summary: Set new buffer data.
         @param data: data to be used in buffer
         @type data: char array or a list
@@ -99,11 +105,13 @@ class Buffer(Object):
                destroying the buffer, and re-creating it with
                the first __init__ call format with the given size.
         @note: the notes for __del__ and the first __init__ call format apply.
+        
         """
+        raise NotImplemented("This method is not yet implemented")       
     
     def get_data(self):
-        """
-        Retrieve the buffer data.
+        """Retrieve the buffer data.
+        
         @summary: Retrieve the buffer data.
         @return: buffer data to retrieve. Type depends on what type was used to 
             create the Buffer object. If the buffer is implementation managed, 
@@ -113,15 +121,16 @@ class Buffer(Object):
         @raise DoesNotExist:
         @raise IncorrectState:
         @Note: see notes about memory management in the GFD-R-P.90 document
-        @note: if the buffer was created as implementation
-                    managed (size == -1), but no I/O operation has
-                    yet been successfully performed on the buffer,
-                    a 'DoesNotExist' exception is raised.
+        @note: if the buffer was created as implementation managed 
+            (size==-1), but no I/O operation has yet been successfully 
+            performed on the buffer, a 'DoesNotExist' exception is raised.
+            
         """
+        raise NotImplemented("This method is not yet implemented")       
         
-    def close(self, timeout = -0.0):
-        """
-        Closes the object.
+    def close(self, timeout=0.0):
+        """Closes the object.
+        
         @summary: Closes the object.
         @param timeout: seconds to wait
         @type timeout: float
@@ -137,9 +146,16 @@ class Buffer(Object):
             raise an exception.
         @see: for resource deallocation semantics and timeout semantics, see 
             Section 2 of the GFD-R-P.90 document
+            
         """
+        raise NotImplemented("This method is not yet implemented")        
+        
 
     size = property(get_size,set_size,
-            doc="""The size of the buffer\n@type: int""")
+            doc="""The size of the buffer
+                @type: int""")
     data = property(get_data,set_data,
-            doc="""The data in the buffer\n@type: char array, list or string""")
+            doc="""The data in the buffer
+                @type: char array, list or string""")
+    
+    
