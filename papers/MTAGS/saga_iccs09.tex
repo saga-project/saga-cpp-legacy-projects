@@ -33,10 +33,11 @@
 \title{ ~\\[-3em] Developing Scientific Applications With
   Loosely-Coupled Sub-Tasks}
 
-\author{Shantenu Jha\inst{1,2}, Yaakoub El-Khamra\inst{1}, Joohyun Kim\inst{1}, Andre Luckow\inst{3}}
+\author{Shantenu Jha\inst{1}, Yaakoub El-Khamra\inst{1}, Joohyun
+  Kim\inst{1}, Andre Luckow\inst{3}}
 
 \institute{Center for Computation and Technology, Louisiana State University, Baton Rouge LA 70803, USA \and
-Department of Computer Science, Louisiana State University, Baton Rouge LA 70803, USA \and
+%Department of Computer Science, Louisiana State University, Baton Rouge LA 70803, USA \and
 Institute of Computer Science, Potsdam University, Germany}
 
 \maketitle
@@ -86,27 +87,30 @@ Institute of Computer Science, Potsdam University, Germany}
 
 \begin{abstract}
   The aim of this paper is to demonstrate how the Simple API for Grid
-  Applications (SAGA) can be used to develop a very wide-range of
-  distributed applications with agile execution models. In particular
-  SAGA is an effective tool for coordinating and orchestrating dynamic
-  applications with many sub-tasks, possibly distributed, whilst keeping
-  the application agnostic to the details of the infrastructure used.
+  Applications (SAGA) can be used to develop a range of
+  applications which are in turn composed of multiple sub-tasks.
+  %with agile execution models. 
+  In particular SAGA is an effective tool for coordinating and
+  orchestrating such applications, whilst keeping the application
+  agnostic to the details of the infrastructure used. Although
+  developed primarily in the context of distributed applications, SAGA
+  provides an equally valid approach for applications with many
+  sub-tasks on single high-end
+  supercomputers. % dynamic applications with many sub-tasks,
+  %possibly distributed, 
   Specifically, in this paper we describe how SAGA has been used to
-  develop applications from the following classes of distributed
-  applications: (i) applications with loosely-coupled homogeneous
-  sub-tasks and, (ii) applications with loosely-coupled heterogeneous
-  sub-tasks. We also analyse and contrast the application
-  characteristics and coupling of the sub-tasks.  As we will show,
-  applications with multiple sub-tasks often have dynamic characteristics, and
-  thus require support for both infrastructure-independent programming
+  develop applications from the following two types of applications:
+  applications with loosely-coupled homogeneous sub-tasks and,
+  applications with loosely-coupled heterogeneous sub-tasks. We also
+  analyse and contrast the scheduling requirements and coupling of the
+  sub-tasks for these two applications.  As we will show, applications
+  with multiple sub-tasks often have dynamic characteristics, and thus
+  require support for both infrastructure-independent programming
   models and agile execution models. Hence attention must be paid to
   the practical deployment challenges along with the theoretical
   advances in the development of infrastructure-independent
   applications.
 \end{abstract}
-
-Although here the focus is on utilising distributed mutliple machines,
-the same approach can be used for monolithic large machines.
 
 There exist many scientific problems that are solved by the collective
 analysis of many independent tasks, e.g., Monte-Carlo simulations, or
@@ -126,6 +130,10 @@ heterogenous. Additionally the nature of coupling between the
 sub-tasks in the former (regular intervals and pair-wise) is very
 different from the latter (irregular and a global-synchronisation
 point).
+
+Although here the focus is on utilising distributed mutliple machines,
+the same approach can be used for monolithic large machines.....
+
 
 % In the latter case, they are not only heterogeneous they are also
 % highly irregular and both applications need to be adaptive to dynamic
@@ -323,11 +331,10 @@ the first type.
 
 \section{Applications With Loosely-Coupled Homogeneous
   Sub-Tasks: Replica-Exchange}  
-\up 
-\alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just to
-  keep this consistent with the other paper. We previously discussed
-  that task has another meaning within SAGA, which could potentially
-  lead to confusion.}
+\up \alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just
+  to keep this consistent with the other paper. We previously
+  discussed that task has another meaning within SAGA, which could
+  potentially lead to confusion.}
   
 \jhanote{Andre, the word to avoid is ``tasks'', which is the term that
   has a SAGA specific context. I think we can safely use sub-tasks for
@@ -394,18 +401,16 @@ candidates for distributed environments.
 
 \up
 
-\alnote{Should I mention CPR/Migol or should I rather keep it on the
-  ``abstractions'' level?}
-
 There are many architectural aspects of the framework used to
 implement RE simulations. However, we will focus on the abstractions
 that we create using SAGA that enable efficient job-submission on any
-underlying infrastructure.  RE simulations can be thought of as
-consisting of two distinct components: the simulation engine/mechanism
-used for each replica process, and the orchestration-coupling
-mechanism between the individual replicas. Our current RE framework
-uses NAMD for the former and a SAGA-based framework for orchestration
-and coordination of the replica sub-tasks.
+underlying infrastructure.  Details can be found in
+Ref.~\cite{repex_ptrsa, repex_escience08}. RE simulations can be
+thought of as consisting of two distinct components: the simulation
+engine/mechanism used for each replica process, and the
+orchestration-coupling mechanism between the individual replicas. Our
+current RE framework uses NAMD for the former and a SAGA-based
+framework for orchestration and coordination of the replica sub-tasks.
 
 The developed RE framework~\cite{Luckow:2008la} comprises of the
 \emph{RE-Manager} -- the central master deployed on the user's
@@ -441,26 +446,24 @@ within the RE framework.
           and single resources. \up}
     \label{fig:remdmanager_v11}
 \end{figure}  
+% The SAGA Glide-In framework comprises of two components: 1) The
+% Glide-In manager provides the enhance job model API and allows the
+% management of both Glide-In jobs and sub-tasks.  2) The Replica-Agents
+% represent the Glide-In jobs. The agents manage their allocated
+% resources and dispatch sub-tasks on request. In this sense the
+% Replica-Agents implement the functionality of an application-level
+% scheduler. Communication between the Replica-Agent and Glide-In
+% manager is carried out using the SAGA advert service, a central
+% key/value store.
 
-
-The SAGA Glide-In framework comprises of two components: 1) The
-Glide-In manager provides the enhance job model API and allows the
-management of both Glide-In jobs and sub-tasks.  2) The Replica-Agents
-represent the Glide-In jobs. The agents manage their allocated
-resources and dispatch sub-tasks on request. In this sense the
-Replica-Agents implement the functionality of an application-level
-scheduler. Communication between the Replica-Agent and Glide-In
-manager is carried out using the SAGA advert service, a central
-key/value store.
-
-With this capability the SAGA Glide-In framework provides a novel
-system-level abstraction for allocating larger chunks of resources and
-for mapping these resources to a set of sub-jobs.%  The enhanced job
-% model can be used as drop-in replacement for SAGA job objects.
-No code modification is required -- the application only maps the
-sub-tasks to a suitable Glide-In job.  The RE-Manager relies on the
-SAGA Glide-In framework to reserve resources on a cluster and to
-efficiently dispatch RE processes to these nodes.
+% With this capability the SAGA Glide-In framework provides a novel
+% system-level abstraction for allocating larger chunks of resources and
+% for mapping these resources to a set of sub-jobs.%  The enhanced job
+% % model can be used as drop-in replacement for SAGA job objects.
+% No code modification is required -- the application only maps the
+% sub-tasks to a suitable Glide-In job.  The RE-Manager relies on the
+% SAGA Glide-In framework to reserve resources on a cluster and to
+% efficiently dispatch RE processes to these nodes.
 
 While the implementation of the enhanced job model is entirely based
 on SAGA %and in particular the SAGA Advert Service,
@@ -512,7 +515,7 @@ the measurements.
 
 \begin{figure}[htbp]
   \subfigure{\includegraphics[width=0.5\textwidth]{perf_glidein.pdf}}
-  \subfigure{\includegraphics[width=0.5\textwidth]{perf_repex.pdf}}
+  \subfigure{\includegraphics[width=0.5\textwidth]{perf_repex2.pdf}}
   \caption{SAGA Glide-In Performance: The figure shows the average
     runtime of a RE simulation with 16 RE processes running on 16
     cores each on QueenBee.  The Glide-In framework provides the
