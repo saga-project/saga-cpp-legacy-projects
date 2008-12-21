@@ -56,7 +56,7 @@
 }
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1c }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
@@ -241,51 +241,10 @@ aim is to use the {\it same} implementation of MapReduce on a range of
 Cloud systems, and test for inter-operability between different
 flavours of Clouds as well as between Clouds and Grids.
 
-\jhanote{traditional algorithms are OK when data are limited.. but
-  data requirements can change in different ways.. not only will data
-  be greater, but also after a point will also be distributed. This is
-  indicative of the data-gathering process (multiple-resources,
-  replicated?) also indicative of the fact that often data-collection
-  is growing greater than data-analysis (for example exabyte data last
-  year).  Finally, with data-distributed, comes the following (at
-  least challenges): do we move data-to-compute, or compute-to-data,
-  is there a transition point, and can the same application be written
-  to support both modes?}
-
-\jhanote{From above, we need to write what has been traditionally
-  non-distributed applications, in a distributed fashion. General
-  philosophy on how we write distributed applications... One approach
-  is to use infrastructure independent frameworks.}
-
-\jhanote{Motivation for why this work is important. Applications
-  are developed with specific infrastructure in mind. So in a
-  way are limited by the infrastructure.. so whereas application
-  can be often be written to scale, infrastructure doesn't
-  always..}
-
-\jhanote{This is a new way of developing applications using high-level
-  abstractions. These high-level abstractions in turn ways to
-  encode/support certain patterns, in this case data-parallel/access
-  patterns. In turn the abstractions are infrastructure independent}.
-
-
-\jhanote{Outline the work in this paper. New concept. Thus one
-  important requirement is to determine how these
-  i) how these patterns work for real scientific applications, \\
-  ii) how well the general-implementations of these patterns work with
-  respect to native implementations of these patterns \\
-  iii) combination of i and ii, i.e. how well these applications
-  behave when encoded using these high-level abstractions
-  in comparison on general purpose infrastructure\\
-  The aim is not to report better or even equivalent performance of
-  these ``generalized applications compared to the native
-  implementation of these application..}
 
 % \jhanote{it is important to compare gene-search using MapReduce and a
 %   simple straighforward application; similarly a multiple alignment
 %   excercise without using All-Pairs..}
-
-\subsection{Clouds and data-Intensive applications: Commonalities}
 
 \subsection{SAGA}
 SAGA~\cite{saga-core} is a high level API that provides a simple,
@@ -295,54 +254,74 @@ applications~\cite{saga_escience07_short, saga_tg08}, tool-kits to manage
 distributed applications as well as implement abstractions that
 support commonly occurring programming, access and usage patterns.
 
-In this paper we will demonstrate the use of SAGA in implementing well
-known abstractions for data intensive computing.  Specifically, we
-have implemented MapReduce and the All-Pairs abstractions and have
-them to solve commonly encountered genomic tasks.
 
-We will discuss briefly how multiple sequence alignment can be
-orchestrated using the SAGA-All-pairs implementation, and genome
-searching can be implemented using MapReduce.  In addition, the aim of
-this paper is to show (validate) that SAGA is sufficiently complete
-and has a high-level interface to support these programming
-abstractions.
+\begin{figure}[t]
+%  \includegraphics[width=0.44\textwidth]{saga-figure02.pdf}
+  \includegraphics[scale=0.5]{saga-figure02.pdf}
+\label{1}
+\end{figure}
 
-Figure~\ref{fig:data_intensive_app_saga} illustrates the software
-architecture of the implementation, highlighting the different
-abstraction levels that allow the reuse of most of the system for both
-algorithms and for different genomic applications.
 
-Some of the programming models that are common to both data-intensive
-application and Cloud-based computing, where there is an explicit
-cost-model for data-movement, is to develop general heurisitcs on how
-we handle common considerations such as when to move the data to the
-machine or when to process it locally.
+%  In addition, the aim of
+% this paper is to show (validate) that SAGA is sufficiently complete
+% and has a high-level interface to support these programming
+% abstractions.
 
-The implementation of these abstractions encapsulates details such as
-latency hiding, performance and other variables (such as cluster
-sizes, and queue sizes).  The user should be able to easily add a few
-function calls without worrying about many considerations required by
-most grid computing applications.  We will discuss other performance
-issues that arise when implementing abstractions specific for
-data-intensive computing.  A grid application's design should not
-focus on the bandwidth of the network, the dispatch latency, the
-number of machines available, and data reliability.  Even something as
-simple as process size can be a tough challenge to optimize.  If a job
-is too small, then network traffic becomes a bottleneck and the design
-is inefficient.  If a job is too large, it is difficult to tell when
-it is hanging or still computing.  Also, if another job with a higher
-priority takes a machine over, the application will be waiting on jobs
-longer.  The main point of this paper is to show how a flexible,
-extensible implementation of programming data-intensive abstractions
-using SAGA can shield the application developer from many of these
-considerations, while still providing the sophisticated end-user the
-ability to control these performance and cost critical/determining
-factors.
+% Figure~\ref{fig:data_intensive_app_saga} illustrates the software
+% architecture of the implementation, highlighting the different
+% abstraction levels that allow the reuse of most of the system for both
+% algorithms and for different genomic applications.
+
+\jhanote{Include only if there is space: Some of the programming
+  models that are common to both data-intensive application and
+  Cloud-based computing, where there is an explicit cost-model for
+  data-movement, is to develop general heurisitcs on how we handle
+  common considerations such as when to move the data to the machine
+  or when to process it locally.}
 
 \section{Patterns for Data-Intensive Computing: MapReduce and
   All-Pairs}
 
+In this paper we will demonstrate the use of SAGA in implementing well
+known programming patterns for data intensive computing.
+Specifically, we have implemented MapReduce and the All-Pairs, and
+have used implementations in SAGA to to solve commonly encountered
+genomic tasks.  Specifically, multiple sequence alignment can be
+orchestrated using the SAGA-All-pairs implementation, and genome
+searching can be implemented using SAGA-MapReduce.
+
+The implementation of these patterns encapsulates details such as
+latency hiding, performance and other variables (such as cluster
+sizes, and queue sizes).  The user should be able to easily add a few
+function calls without necessarily having to worry about many of the
+non-functional considerations often required by applications using
+distributed environments.  In general, SAGA can shield the application
+developer from many of these considerations, while still providing the
+sophisticated end-user the ability to control these performance and
+cost critical/determining factors.
+
+\jhanote{Only if space permits: We will discuss other performance
+  issues that arise when implementing abstractions specific for
+  data-intensive computing.  A grid application's design should not
+  focus on the bandwidth of the network, the dispatch latency, the
+  number of machines available, and data reliability.  Even something
+  as simple as process size can be a tough challenge to optimize.  If
+  a job is too small, then network traffic becomes a bottleneck and
+  the design is inefficient.  If a job is too large, it is difficult
+  to tell when it is hanging or still computing.  Also, if another job
+  with a higher priority takes a machine over, the application will be
+  waiting on jobs longer.  The main point of this paper is to show how
+  a flexible, extensible implementation of programming data-intensive
+  abstractions using SAGA can shield the application developer from
+  many of these considerations, while still providing the
+  sophisticated end-user the ability to control these performance and
+  cost critical/determining factors.}
+
+
+
 \subsection{MapReduce}
+
+\jhanote{This needs to be shortened significantly}
 
 MapReduce~\cite{mapreduce-paper} is a programming framework which
 supports applications which operate on very large data sets on
@@ -416,98 +395,7 @@ Alternatively, they store MapReduce results in Bigtable.  We will
 attempt to imitate this using our implementation of MapReduce over
 HDFS.  Also, we will use HBase for communication between jobs.
 
-\subsection{SAGA-MapReduce}
-
-There are a few implementations of MapReduce, most notably Google's and
-Hadoop's.  These are what our implementation is based on.  It is able
-to handle most of the problems associated with grid applications.  We use
-the idea of a master/slave type framework.  The programmer would compile
-different slave applications for every different type of machine he 
-would expect to encounter in the grid.  The slave application is
-where the map and reduce functions are.  Then the master will handle
-submitting these jobs on other machines as well as keeping track of
-the state of the machines -- idle, done, or failed.  This allows for
-easy running of an application using large girds that have frequent
-machine failures.  Our MapReduce also handles data distribution in the
-same manner Google does, by creating partitions of data so the entire
-data set will never be on one machine, thus limiting network bandwidth
-and data distribution.  These files could then recognized by a
-distributed file systems such as Hadoop File System.  Although, our
-current implementation is written to avoid excessive network
-bandwidth, it does not change depending on current network
-availability.
-
-\subsubsection{Gene Searching}
-
-Gene searching is an important part of biology.  \michaelnote{I'm sure
-  Shantenu knows more about why gene searching is an important part of
-  biology than I do!}
-
-MapReduce can easily be used to find certain gene fragments in a large
-gene file.  The mapping function looks through its input and if it
-finds the sequence - or something close - it will then produce a map
-of a file to a position in the file where the fragment started.  The
-reduce will then take every map and append the results.  The is good
-for searching large datasets, because it is easily done through
-MapReduce, ensuring network reliability, and parallelization.
-
-\subsection{All-Pairs}
-
-All-pairs is used for combinatorial testing.  It involved comparing
-every element in a set to every element in another set.  This is used
-for many things, including testing the validity of an algorithm, or
-finding an anomaly in a configuration.  For example, the accepted
-method for testing the strength of a facial recognition algorithm is
-to use All-pairs testing.  This creates a similarity matrix, and
-because it is known which images are the same person, the matrix can
-show the accuracy of the algorithm.  Our example is of gene alignment,
-where it is necessary to compare every fragment gene - it could be a
-test drug - to every base - a specific gene.  We are going to use our
-all-pairs abstraction using the Hadoop File System and using gridftp
-to not only show that SAGA allows for many different configurations,
-but also to see how these different configurations behave.  Also, we
-will compare this to a naïve implementation of submitting a job for
-every comparison.
-
-\subsubsection{Details}
-
-All-pairs testing is a useful tool in testing the reliability of a
-produce - an algorithm, software, hardware, \ldots.  This is because
-many times one small difference in a configuration can show
-incompatibilities.  However, testing is not the only field in which
-All-pairs is useful.  Anywhere every element from one set has to be
-compared to every element from another set, All-pairs can help.  This
-is the main goal of All-pairs to ensure that every combination of
-pairings from two sets is tested.
-
-\subsubsection{Our Implementation}
-
-Our All-pairs implementation is very similar to our MapReduce
-implementation.  The main difference is in the way jobs are ran and
-how the data are stored.  In MapReduce the final data is stored on
-many machines - if there is a distributed filesystem available -
-whereas All-pairs uses the database to store information about the
-job.  We decided to do this because all data must be available to be
-useful.  We could have used a distributed file system such as HDFS,
-but we felt that the output was not large enough to constitute this.
-This is due to the fact that - although the data is relatively large -
-the result should usually be a real number representing the distance
-of two genes.
-
-\subsubsection{Multiple Sequence Alignment}
-
-Multiple Sequence Alignment is an important part of biology.  Multiple
-sequence alignment uses a comparison matrix as a reference to compare
-many fragment genes to many base genes.  Each fragment is compared to
-every base gene to find the smallest distance.  The result of the
-smallest distance is then stored for that fragment using a database
-management system - Hbase, Bigtable, Postgresql, \ldots.  Distance is
-computed by summing up the amount of similarity between each
-nucleotide of the fragment to each one in the base.  This is done
-starting at every point possible on the base.
-
-
-\section{SAGA-MapReduce Implementation}
+\subsection{SAGA-MapReduce Implementation}
 
 The SAGA based implementation of MapReduce has been developed with the
 following goals in mind:
@@ -689,9 +577,101 @@ and HDFS.
       \label{saga_mapreduce_3workers.png}
 \end{figure}
 
+There are a few implementations of MapReduce, most notably Google's and
+Hadoop's.  These are what our implementation is based on.  It is able
+to handle most of the problems associated with grid applications.  We use
+the idea of a master/slave type framework.  The programmer would compile
+different slave applications for every different type of machine he 
+would expect to encounter in the grid.  The slave application is
+where the map and reduce functions are.  Then the master will handle
+submitting these jobs on other machines as well as keeping track of
+the state of the machines -- idle, done, or failed.  This allows for
+easy running of an application using large girds that have frequent
+machine failures.  Our MapReduce also handles data distribution in the
+same manner Google does, by creating partitions of data so the entire
+data set will never be on one machine, thus limiting network bandwidth
+and data distribution.  These files could then recognized by a
+distributed file systems such as Hadoop File System.  Although, our
+current implementation is written to avoid excessive network
+bandwidth, it does not change depending on current network
+availability.
 
-\subsection{Interfacing SAGA to Hadoop and Bigtable, KFS: The role of
+% \subsubsection{Gene Searching}
+
+% Gene searching is an important part of biology.  \michaelnote{I'm sure
+%   Shantenu knows more about why gene searching is an important part of
+%   biology than I do!}
+
+% MapReduce can easily be used to find certain gene fragments in a large
+% gene file.  The mapping function looks through its input and if it
+% finds the sequence - or something close - it will then produce a map
+% of a file to a position in the file where the fragment started.  The
+% reduce will then take every map and append the results.  The is good
+% for searching large datasets, because it is easily done through
+% MapReduce, ensuring network reliability, and parallelization.
+
+\subsection{All-Pairs} \jhanote{this will probably have to go/reduced
+  drastically}
+
+All-pairs is used for combinatorial testing.  It involved comparing
+every element in a set to every element in another set.  This is used
+for many things, including testing the validity of an algorithm, or
+finding an anomaly in a configuration.  For example, the accepted
+method for testing the strength of a facial recognition algorithm is
+to use All-pairs testing.  This creates a similarity matrix, and
+because it is known which images are the same person, the matrix can
+show the accuracy of the algorithm.  Our example is of gene alignment,
+where it is necessary to compare every fragment gene - it could be a
+test drug - to every base - a specific gene.  We are going to use our
+all-pairs abstraction using the Hadoop File System and using gridftp
+to not only show that SAGA allows for many different configurations,
+but also to see how these different configurations behave.  Also, we
+will compare this to a naïve implementation of submitting a job for
+every comparison.
+
+\subsubsection{Details}
+
+All-pairs testing is a useful tool in testing the reliability of a
+produce - an algorithm, software, hardware, \ldots.  This is because
+many times one small difference in a configuration can show
+incompatibilities.  However, testing is not the only field in which
+All-pairs is useful.  Anywhere every element from one set has to be
+compared to every element from another set, All-pairs can help.  This
+is the main goal of All-pairs to ensure that every combination of
+pairings from two sets is tested.
+
+\subsubsection{Our Implementation}
+
+Our All-pairs implementation is very similar to our MapReduce
+implementation.  The main difference is in the way jobs are ran and
+how the data are stored.  In MapReduce the final data is stored on
+many machines - if there is a distributed filesystem available -
+whereas All-pairs uses the database to store information about the
+job.  We decided to do this because all data must be available to be
+useful.  We could have used a distributed file system such as HDFS,
+but we felt that the output was not large enough to constitute this.
+This is due to the fact that - although the data is relatively large -
+the result should usually be a real number representing the distance
+of two genes.
+
+\subsubsection{Multiple Sequence Alignment}
+
+Multiple Sequence Alignment is an important part of biology.  Multiple
+sequence alignment uses a comparison matrix as a reference to compare
+many fragment genes to many base genes.  Each fragment is compared to
+every base gene to find the smallest distance.  The result of the
+smallest distance is then stored for that fragment using a database
+management system - Hbase, Bigtable, Postgresql, \ldots.  Distance is
+computed by summing up the amount of similarity between each
+nucleotide of the fragment to each one in the base.  This is done
+starting at every point possible on the base.
+
+
+\section{Interfacing SAGA to Cloud-like Infrastructure: The role of
   Adaptors}
+
+\jhanote{talk about Hadoop and Bigtable, KFS}
+
 
 % We used hadoop as a metadata storage, work still needs to be done to
 % see how well SAGA-MapReduce is at accessing elements as part of
@@ -925,3 +905,43 @@ by a Google Summer of Code grant.
 %           \caption{}
 %       \label{saga_allpairs_1and3workers.png}
 % \end{figure}
+
+\jhanote{traditional algorithms are OK when data are limited.. but
+  data requirements can change in different ways.. not only will data
+  be greater, but also after a point will also be distributed. This is
+  indicative of the data-gathering process (multiple-resources,
+  replicated?) also indicative of the fact that often data-collection
+  is growing greater than data-analysis (for example exabyte data last
+  year).  Finally, with data-distributed, comes the following (at
+  least challenges): do we move data-to-compute, or compute-to-data,
+  is there a transition point, and can the same application be written
+  to support both modes?}
+
+\jhanote{From above, we need to write what has been traditionally
+  non-distributed applications, in a distributed fashion. General
+  philosophy on how we write distributed applications... One approach
+  is to use infrastructure independent frameworks.}
+
+\jhanote{Motivation for why this work is important. Applications
+  are developed with specific infrastructure in mind. So in a
+  way are limited by the infrastructure.. so whereas application
+  can be often be written to scale, infrastructure doesn't
+  always..}
+
+\jhanote{This is a new way of developing applications using high-level
+  abstractions. These high-level abstractions in turn ways to
+  encode/support certain patterns, in this case data-parallel/access
+  patterns. In turn the abstractions are infrastructure independent}.
+
+
+\jhanote{Outline the work in this paper. New concept. Thus one
+  important requirement is to determine how these
+  i) how these patterns work for real scientific applications, \\
+  ii) how well the general-implementations of these patterns work with
+  respect to native implementations of these patterns \\
+  iii) combination of i and ii, i.e. how well these applications
+  behave when encoded using these high-level abstractions
+  in comparison on general purpose infrastructure\\
+  The aim is not to report better or even equivalent performance of
+  these ``generalized applications compared to the native
+  implementation of these application..}
