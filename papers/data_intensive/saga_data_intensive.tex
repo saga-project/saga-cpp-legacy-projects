@@ -337,57 +337,17 @@ cost critical/determining factors.
 
 
 
-\subsection{MapReduce}
-
-\jhanote{This needs to be shortened significantly}
-
-MapReduce~\cite{mapreduce-paper} is a programming framework which
-supports applications which operate on very large data sets on
-clusters of computers.  MapReduce relies on a number of capabilities
-of the underlying system, most related to file operations.  Others are 
-related to process/data allocation.  The Google File System, and other
-distributed file systems, provide the relevant capabilities, such as atomic
-file renames.  Implementations of MapReduce on these distributed file systems
-are free to focus on implementing the data-flow pipeline, which is the
-algorithmic core of the MapReduce framework.
-
-We have recently implemented MapReduce in SAGA, targeting general
-purpose Grid systems, where the system capabilities required by
-MapReduce are usually not natively supported -- instead, a general
-purpose grid provides a much larger set of lower level operations.
-Some semantics, such as again the atomic file rename, is provided by
-the SAGA API layer, others, such as data/compute allocation are not.
-Our implementation is thus required to interleave the core logic with
-explicit instructions on where processes are to be scheduled.  Note
-that some of the required capabilities can be provided by higher level
-grid services -- those are, however, often not standardized, and often
-not available in general purpose Grids.
-
-The advantage of this approach is obviously that our implementation is
-no longer bound to run on a system providing the appropriate semantics
-originally required by MapReduce, but is portable to other, more
-generic systems as well.  The drawback of the approach is obvious as
-well: our implementation is relatively more complex, as it needs to
-add semantic system capabilities at some level or the other, and it is
-inherently slower, as it is for these capabilities very difficult or
-near impossible to obtain system level performance on application
-level.  But many of these are due to the early-stages of the
-implementation of SAGA, and not a fundamental limitation of the design
-or concept.
-
-%\subsubsection{Details}
-
-MapReduce is a programming framework developed by Google for running
-data-intensive processes over a large cluster of commodity machines.
-The main idea is to provide an easy interface for users to solve a
-specific domain of problem with grids without having the client worry 
-about the semantics of the grid, for example, dispatch latency, machine
-failure, data distribution, and network bandwidth.  All of these are
-problems that could make some naïve implementations on a grid slower
-than serial implementations.  When using a MapReduce implementation,
-the programmer interacts with only two functions: map and reduce.  
-The map function will go through the datasets and create a map of data
-to some type of output.  
+{\bf MapReduce: } MapReduce is a programming framework developed by
+Google for running data-intensive processes over a large cluster of
+commodity machines.  The main idea is to provide an easy interface for
+users to solve a specific domain of problem with grids without having
+the client worry about the semantics of the grid, for example,
+dispatch latency, machine failure, data distribution, and network
+bandwidth.  All of these are problems that could make some naïve
+implementations on a grid slower than serial implementations.  When
+using a MapReduce implementation, the programmer interacts with only
+two functions: map and reduce.  The map function will go through the
+datasets and create a map of data to some type of output.
 
 A map is a datatype in computer science that relates one object to
 another, i.e. a name to a phone number.  The reduce function will go
@@ -409,27 +369,69 @@ One feature worth noting in MapReduce is that the ultimate dataset is
 not on one machine, it is partitioned on multiple machines located
 throughout the grid. Google uses their distributed file system (Google
 File System) to keep track of where each file is located.
-Alternatively, they store MapReduce results in Bigtable.  We will
-attempt to imitate this using our implementation of MapReduce over
-HDFS.  Also, we will use HBase for communication between jobs.
+Alternatively, they store MapReduce results in Bigtable.  % We will
+% attempt to imitate this using our implementation of MapReduce over
+% HDFS.  Also, we will use HBase for communication between jobs.
 
-\subsection{SAGA-MapReduce Implementation}
+MapReduce~\cite{mapreduce-paper} is a programming framework which
+supports applications which operate on very large data sets on
+clusters of computers.  MapReduce relies on a number of capabilities
+of the underlying system, most related to file operations.  Others are 
+related to process/data allocation.  The Google File System, and other
+distributed file systems, provide the relevant capabilities, such as atomic
+file renames.  Implementations of MapReduce on these distributed file systems
+are free to focus on implementing the data-flow pipeline, which is the
+algorithmic core of the MapReduce framework.
+
+{\bf SAGA-MapReduce Implementation:} We have recently implemented
+MapReduce in SAGA, targeting general purpose Grid systems, where the
+system capabilities required by MapReduce are usually not natively
+supported; instead, a general purpose grid provides a much larger set
+of lower level operations.  Some semantics, such as again the atomic
+file rename, is provided by the SAGA API layer, others, such as
+data/compute allocation are not.  Our implementation is thus required
+to interleave the core logic with explicit instructions on where
+processes are to be scheduled.  Note that some of the required
+capabilities can be provided by higher level grid services -- those
+are, however, often not standardized, and often not available on
+general purpose Grids.
+
+The advantage of this approach is obviously that our implementation is
+no longer bound to run on a system providing the appropriate semantics
+originally required by MapReduce, but is portable to other, more
+generic systems as well.  The drawback of the approach is obvious as
+well: our implementation is relatively more complex, as it needs to
+add semantic system capabilities at some level or the other, and it is
+inherently slower, as it is for these capabilities very difficult or
+near impossible to obtain system level performance on application
+level.  Critically however, none of these complexities are transferred
+to the end-user, and they remain hidden within the framework. Also
+many of these are due to the early-stages of SAGA and incomplete
+features implementated, and not a fundamental limitation of the design
+or concept of the interface or programming models that it supports.
 
 The SAGA based implementation of MapReduce has been developed with the
 following goals in mind:
 
 \begin{itemize}
-\item to provide a generic MapReduce framework allowing easy
+\item Provide a generic MapReduce framework allowing easy
   adaptation to the users concrete Mapreduce algorithm
-\item to ensure portability of the users MapReduce application over a
+\item Ensure portability of the users MapReduce application over a
   broad range of Grids and Clouds, filesystems and architectures
-\item to allow fine control over the number of workers, and the
+\item Allow fine control over the number of workers, and the
   placement of data and computation, ensuring to move the work to the
   data instead of having to move the data to the work
 \end{itemize}
 
 The overall architecture of the SAGA-MapReduce implementation is shown
-in Fig.~\ref{saga-mapreduce_controlflow}. 
+in Fig.~\ref{saga-mapreduce_controlflow}. This simple interface
+provides the complete functionality needed by any MapReduce algorithm,
+while hiding the more complex functionality, such as chunking of the
+input, sorting of the intermediate results, launching and coordinating
+the map and reduce workers, etc. as implemented by the framework.  The
+application consists of two independent processes, a master and worker
+processes. The master process is responsible for:
+
 \begin{figure}[t]
       \centering
           \includegraphics[width=0.4\textwidth]{saga-mapreduce_controlflow.png}
@@ -449,35 +451,25 @@ in Fig.~\ref{saga-mapreduce_controlflow}.
       \label{saga-mapreduce_controlflow}
 \end{figure}
 
-This simple interface provides the complete functionality needed by
-any MapReduce algorithm, while hiding the more complex functionality,
-such as chunking of the input, sorting of the intermediate results,
-launching and coordinating the map and reduce workers, etc. as
-implemented by the framework.
-
-The application consists out of two independent processes, a master
-and worker processes. The master process is responsible for:
-
 \begin{itemize}
-\item launching all workers for the map and reduce steps as described
+\item Launching all workers for the map and reduce steps as described
   in a configuration file provided by the user (defining the number of
   workers, the systems/batch queues to use for job execution, the
   input data to use and the output filenames towrite the results to)
-\item coordinating all the executed workers, this includes the
+\item Coordinating all the executed workers, this includes the
   chunking of the data, assigning the input data to the workers of the
   map step, passing the names of the output files of the map step to
   the workers of the reduce step, and collecting the generated outputs
   from the reduce steps.
-\item relaunching single worker instances in case of failures,
+\item Relaunching single worker instances in case of failures,
 \end{itemize}
 
 The master process is readily available to the user and needs no
-modification for different MapReduce algorithms to execute.
-
-The worker processes get assigned work either from the map or the
-reduce step. The functionality for the different steps have to be
-provided by the user, which means the user has to write 2 C++
-functions implementing the required MapReduce algorithm.
+modification for different MapReduce algorithms to execute.  The
+worker processes get assigned work either from the map or the reduce
+step. The functionality for the different steps have to be provided by
+the user, which means the user has to write 2 C++ functions
+implementing the required MapReduce algorithm.
 Fig.\ref{src:saga-mapreduce} shows a very simple example of a
 MapReduce application allowing to count the word frequencies in the
 input data set. The user provided functions |map| (line 14) and
@@ -491,8 +483,8 @@ passed to the |reduce| function. The framework passes the key and a
 list of all data items which have been associated with this key during
 the map step. The reduce step is expected to call the |emit| function
 (see line 34) for each of the final output elements (here: the word
-and its overall count). All key/value pairs as passed to |emit| will
-be combined by the framework into a single output file.
+and its overall count). All key/value pairs that are passed to |emit|
+will be combined by the framework into a single output file.
 
 \begin{figure}[!ht]
  \begin{center}
@@ -543,20 +535,18 @@ be combined by the framework into a single output file.
  \end{center}
 \end{figure}
 
-
-
 As shown in Fig.~\ref{saga-mapreduce_controlflow} both, the master and
 the worker processes use the SAGA-API as an abstract interface to the
 used infrastructure, making the application portable between different
-architectures and systems. The w orker processes are launched using
-the SAGA job package, allowing to launch the jobs either locally,
-using Globus/GRAM, AWS, or on a Condor pool. The communication between
-the master and the worker processes is ensured by using the SAGA
-advert package, abstracting a information database in a platform
-independent way. All file transfer operations are based on the SAGA
-file package, providing a broad range of different file systems and
-transfer protocols, such as local file systems, Globus/GridFTP, KFS,
-and HDFS.
+architectures and systems. The worker processes are launched using the
+SAGA job package, allowing to launch the jobs either locally, using
+Globus/GRAM, Amazon Web Services, or on a Condor pool. The
+communication between the master and the worker processes is ensured
+by using the SAGA advert package, abstracting a information database
+in a platform independent way. All file transfer operations are based
+on the SAGA file package, providing a broad range of different file
+systems and transfer protocols, such as local file systems,
+Globus/GridFTP, KFS, and HDFS.
 
 \begin{figure}[t]
       \centering
@@ -595,24 +585,27 @@ and HDFS.
       \label{saga_mapreduce_3workers.png}
 \end{figure}
 
-There are a few implementations of MapReduce, most notably Google's and
-Hadoop's.  These are what our implementation is based on.  It is able
-to handle most of the problems associated with grid applications.  We use
-the idea of a master/slave type framework.  The programmer would compile
-different slave applications for every different type of machine he 
-would expect to encounter in the grid.  The slave application is
-where the map and reduce functions are.  Then the master will handle
-submitting these jobs on other machines as well as keeping track of
-the state of the machines -- idle, done, or failed.  This allows for
-easy running of an application using large girds that have frequent
-machine failures.  Our MapReduce also handles data distribution in the
-same manner Google does, by creating partitions of data so the entire
-data set will never be on one machine, thus limiting network bandwidth
-and data distribution.  These files could then recognized by a
-distributed file systems such as Hadoop File System.  Although, our
-current implementation is written to avoid excessive network
-bandwidth, it does not change depending on current network
-availability.
+The Master process creates partitions of data (referred to as chunking, analagous to Google's MapReduce), so the data-set does not have to be
+on one machine and can be distributed; this is an important
+mechanism to avoid limitations in network bandwidth and data distribution.
+These files could then be recognized by a distributed file systems
+such as Hadoop File System.
+
+% There are a few implementations of MapReduce, most notably Google's and
+% Hadoop's.  These are what our implementation is based on.  It is able
+% to handle most of the problems associated with grid applications.  We use
+% the idea of a master/slave type framework.  The programmer would compile
+% different slave applications for every different type of machine he 
+% would expect to encounter in the grid.  The slave application is
+% where the map and reduce functions are.  Then the master will handle
+% submitting these jobs on other machines as well as keeping track of
+% the state of the machines -- idle, done, or failed.  This allows for
+% easy running of an application using large girds that have frequent
+% machine failures.  Our MapReduce also handles data distribution in the
+% same manner Google does, 
+  % Although, our current implementation is
+% written to avoid excessive network bandwidth, it does not change
+% depending on current network availability.
 
 % \subsubsection{Gene Searching}
 
@@ -628,61 +621,57 @@ availability.
 % for searching large datasets, because it is easily done through
 % MapReduce, ensuring network reliability, and parallelization.
 
-\subsection{All-Pairs} \jhanote{this will probably have to go/reduced
-  drastically}
+{\bf All-Pairs: } As the name suggests, All-Pairs involve comparing
+every element in a set to every element in another set.  Such a
+pattern is pervasive and finds utility in many domains -- including
+testing the validity of an algorithm, or finding an anomaly in a
+configuration.  For example, the accepted method for testing the
+strength of a facial recognition algorithm is to use All-pairs
+testing.  This creates a similarity matrix, and because it is known
+which images are the same person, the matrix can show the accuracy of
+the algorithm.
 
-All-pairs is used for combinatorial testing.  It involved comparing
-every element in a set to every element in another set.  This is used
-for many things, including testing the validity of an algorithm, or
-finding an anomaly in a configuration.  For example, the accepted
-method for testing the strength of a facial recognition algorithm is
-to use All-pairs testing.  This creates a similarity matrix, and
-because it is known which images are the same person, the matrix can
-show the accuracy of the algorithm.  Our example is of gene alignment,
-where it is necessary to compare every fragment gene - it could be a
-test drug - to every base - a specific gene.  We are going to use our
-all-pairs abstraction using the Hadoop File System and using gridftp
-to not only show that SAGA allows for many different configurations,
-but also to see how these different configurations behave.  Also, we
-will compare this to a naïve implementation of submitting a job for
-every comparison.
+% All-pairs testing is a useful tool in testing the reliability of a
+% produce - an algorithm, software, hardware, \ldots.  This is because
+% many times one small difference in a configuration can show
+% incompatibilities.  However, testing is not the only field in which
+% All-pairs is useful.  Anywhere every element from one set has to be
+% compared to every element from another set, All-pairs can help.  This
+% is the main goal of All-pairs to ensure that every combination of
+% pairings from two sets is tested.
 
-\subsubsection{Details}
+{\bf SAGA All-Pairs Implementation: } SAGA All-pairs implementation is
+very similar to \sagamapreduce implementation.  The main difference is
+in the way jobs are ran and how the data are stored.  In
+\sagamapreduce the final data is stored on many machines -- if there
+is a distributed filesystem available, whereas SAGA All-pairs uses the
+database to also store information about the job.  We decided to do
+this because all data must be available to be useful. SAGA All-Pairs
+abstraction is implemented using the Hadoop File System and using
+gridftp to not only show that SAGA allows for many different
+configurations, but also to see how these different configurations
+behave. We have also used a distributed data-store -- specifically
+Hbase (Yahoo's implementation of BigTable) in lieu of the traditional
+Advert Service to store the end-results.
 
-All-pairs testing is a useful tool in testing the reliability of a
-produce - an algorithm, software, hardware, \ldots.  This is because
-many times one small difference in a configuration can show
-incompatibilities.  However, testing is not the only field in which
-All-pairs is useful.  Anywhere every element from one set has to be
-compared to every element from another set, All-pairs can help.  This
-is the main goal of All-pairs to ensure that every combination of
-pairings from two sets is tested.
+% We could have used a distributed file system such as HDFS, but we
+% felt that the output was not large enough to constitute this.  This
+% is due to the fact that - although the data is relatively large -
+% the result should usually be a real number representing the distance
+% of two genes.
 
-\subsubsection{Our Implementation}
-
-Our All-pairs implementation is very similar to our MapReduce
-implementation.  The main difference is in the way jobs are ran and
-how the data are stored.  In MapReduce the final data is stored on
-many machines - if there is a distributed filesystem available -
-whereas All-pairs uses the database to store information about the
-job.  We decided to do this because all data must be available to be
-useful.  We could have used a distributed file system such as HDFS,
-but we felt that the output was not large enough to constitute this.
-This is due to the fact that - although the data is relatively large -
-the result should usually be a real number representing the distance
-of two genes.
-
-\subsubsection{Multiple Sequence Alignment}
-
-Multiple Sequence Alignment is an important part of biology.  Multiple
-sequence alignment uses a comparison matrix as a reference to compare
-many fragment genes to many base genes.  Each fragment is compared to
-every base gene to find the smallest distance.  The result of the
-smallest distance is then stored for that fragment using a database
-management system - Hbase, Bigtable, Postgresql, \ldots.  Distance is
-computed by summing up the amount of similarity between each
-nucleotide of the fragment to each one in the base.  This is done
-starting at every point possible on the base.
+{\it Multiple Sequence Alignment Using All-Pairs:} All-Pairs is
+essentially a computational pattern and not an application in of
+itself. An important problem in Bioinformatics -- Multiple Sequence
+Alignment (MSA), can be reformulated to use All-Pairs pattern. It uses
+a comparison matrix as a reference to compare many fragment genes to
+many base genes.  Each fragment is compared to every base gene to find
+the smallest distance -- maximum overlap.  Distance is computed by
+summing up the amount of similarity between each nucleotide of the
+fragment to each one in the base.  This is done starting at every
+point possible on the base. The result of the smallest distance is
+then stored for that fragment using a database management system --
+Hbase, Bigtable, Postgresql, \ldots.
 
 
 \section{Interfacing SAGA to Cloud-like Infrastructure: The role of
@@ -860,6 +849,20 @@ on Nimbus or some combination of the three systems thereof
   \caption{\label{vmjob} Job launch via VM}
  \end{center}
 \end{figure}
+
+
+\section{Conclusion}
+
+We have also shown the importance and power of patterns in
+data-intensive computing. Patterns capture a dominant and recurring
+computational mode; by providing explicit support for such patterns,
+end-users and domain scientists can reformulate their scientific
+problems/applications so as to use these patterns. For example, we
+have shown how traditional bioinfomatics applications such as Multiple
+Sequence Alignment and Gene Search can be implemented using the
+All-Pairs and MapReduce patterns. This provides further motivation for
+abstractions at multiple-levels -- to support basic functionality but
+also data-intensive patterns.
 
 
 
