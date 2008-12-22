@@ -1,4 +1,4 @@
-# Package: saga
+# Package: pysaga
 # Module: logicalfile 
 # Description: The module which specifies classes which interact with replica
 #    systems
@@ -20,6 +20,8 @@ class Flags(object):
     specific flags are added to it. All added flags are used for the opening of 
     logical file and logical directory instances, and are not applicable to the 
     operations inherited from the namespace package.
+
+    @version: 1.0, designed for Python 2.x
 
     """
     NONE = 0
@@ -106,14 +108,18 @@ class LogicalFile(NSEntry, Attributes, Async):
     This class provides the means to handle the contents of logical files. 
     These contents consists of strings representing locations of physical files 
     (replicas) associated with the logical file.
+    
     @summary: This class provides the means to handle the contents of logical 
         files
+    @version: 1.0, designed for Python 2.x    
+
     """
+    
       
     def __init__(self, name, session=Session(), 
                  flags=Flags.READ, tasktype=TaskType.NORMAL):
-        """
-        Initialize the object.
+        """Initialize the object.
+        
         @summary: Initialize the object.
         @param session: session to associate with the object
         @type session: L{Session}
@@ -145,13 +151,14 @@ class LogicalFile(NSEntry, Attributes, Async):
         @Note: the semantics of the inherited constructors and of the 
             LogicalDirectory.open() method apply.
         @note: the default flags are 'Read' (512)
+        
         """
 
         
     def add_location(self, name, tasktype=TaskType.NORMAL):
-        """
-        Add a replica location to the replica set
-        @summary: Add a replica location to the replica set
+        """Add a replica location to the replica set.
+        
+        @summary: Add a replica location to the replica set.
         @param name: location to add to set
         @type name: L{URL}
         @param tasktype: return the normal return values or a Task object in a 
@@ -183,12 +190,14 @@ class LogicalFile(NSEntry, Attributes, Async):
             and in particular does not raise an 'AlreadyExists' exception
         @note: if the LogicalFile was opened ReadOnly, a 'PermissionDenied' 
             exception is raised.
+            
         """
+        raise NotImplemented("This method is not yet implemented")        
         
     def remove_location(self, name, tasktype=TaskType.NORMAL):
-        """
-        Remove a replica location from the replica set
-        @summary: Remove a replica location from the replica set
+        """Remove a replica location from the replica set.
+        
+        @summary: Remove a replica location from the replica set.
         @param name: replica to remove from set
         @type name: L{URL}
         @param tasktype: return the normal return values or a Task object in a 
@@ -224,11 +233,13 @@ class LogicalFile(NSEntry, Attributes, Async):
             description).
         @note: if the LogicalFile was opened ReadOnly, a 'PermissionDenied' 
             exception is raised.
+            
         """
+        raise NotImplemented("This method is not yet implemented")        
 
     def update_location(self, old, new, tasktype=TaskType.NORMAL):
-        """
-        Change a replica location in replica set.
+        """Change a replica location in replica set.
+        
         @summary: Change a replica location in replica set.
         @param old: replica to be updated
         @type old: L{URL}
@@ -272,12 +283,14 @@ class LogicalFile(NSEntry, Attributes, Async):
             exception is raised.
         @note: if the LogicalFile was opened WriteOnly, an 'PermissionDenied' 
             exception is thrown.
+            
         """
+        raise NotImplemented("This method is not yet implemented")        
                   
     def list_locations(self, tasktype=TaskType.NORMAL):
-        """
-        List the locations in the location set
-        @summary: List the locations in the location set
+        """List the locations in the location set.
+        
+        @summary: List the locations in the location set.
         @return: List of locations in set
         @rtype: list of L{URL}s
         @param tasktype: return the normal return values or a Task object in a 
@@ -298,16 +311,20 @@ class LogicalFile(NSEntry, Attributes, Async):
             is still a valid object (see replicate() method description).
         @note: if the LogicalFile was opened WriteOnly, an 'PermissionDenied' 
             exception is thrown.
+            
         """
+        raise NotImplemented("This method is not yet implemented")
+        
     
     locations = property(list_locations, doc="""Locations in the location set 
-                                            \n@type: list of URLs""")    
+                                                @type: list of URLs""")    
+
         
-    def replicate(self, name, flags = Flags.NONE, tasktype=TaskType.NORMAL):
-        """
-        Replicate a file from any of the known replica locations to a new 
+    def replicate(self, name, flags=Flags.NONE, tasktype=TaskType.NORMAL):
+        """Replicate a file from any of the known replica locations to a new
         location, and, on success, add the new replica location to the
-        set of associated replicas
+        set of associated replicas.
+        
         @summary: Replicate a file from a location to a new location.
         @param name: location to replicate to
         @type name: L{URL}
@@ -337,8 +354,8 @@ class LogicalFile(NSEntry, Attributes, Async):
             comlete replica at the given location, which then represents a new 
             replica location. 2) perform an add_location() for the new replica 
             location.
-        @note: all notes to the saga.namespace.NSEntry.copy() and 
-            saga.logicalfile.logicalFile.add_location() methods apply.
+        @note: all notes to the L{NSEntry.copy_self()} and 
+            L{LogicalFile.add_location()} methods apply.
         @note: the method is not required to be atomic, but: the implementation 
             is either successfull in both steps, or throw an exception 
             indicating if both methods failed, or if one of the methods 
@@ -353,21 +370,28 @@ class LogicalFile(NSEntry, Attributes, Async):
             exception is thrown.
         @note: if the LogicalFile was opened WriteOnly, an 'PermissionDenied' 
             exception is thrown.
-    """
+    
+        """
+        raise NotImplemented("This method is not yet implemented")    
+    
+
     
 class LogicalDirectory(NSDirectory, Attributes, Async):
     """
     This class represents a container for logical files in a logical file 
     namespace. It allows traversal of the catalog's name space, and the 
     manipulation and creation (open) of logical files in that name space.
+    
     @summary:  This class represents a container for logical files in a logical 
         file namespace.
+    @version: 1.0, designed for Python 2.x
+    
     """
    
     def __init__(self, name, session=Session(), 
                  flags=Flags.READ, tasktype=TaskType.NORMAL):
-        """
-        Initialize the object.
+        """Initialize the object.
+        
         @summary: Initialize the object.
         @param session: session to associate with the object
         @type session: L{Session}
@@ -399,18 +423,22 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @Note: the semantics of the inherited constructors and of the 
             LogicalDirectory.open_dir() method apply.
         @note: the default flags are 'READ' (512).
+        
         """
 
+
     def is_file(self, name, tasktype=TaskType.NORMAL):
-        """
-        Alias for L{NSDirectory.is_entry()}
-        """
+        """Alias for L{NSDirectory.is_entry()}
         
+        @summary: Alias for L{NSDirectory.is_entry()}
         
-    def open_dir(self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
         """
-        Creates a new LogicalDirectory instance
-        @summary: Creates a new LogicalDirectory instance
+        raise NotImplemented("This method is not yet implemented")        
+        
+    def open_dir(self, name, flags=Flags.READ, tasktype=TaskType.NORMAL):
+        """Creates a new LogicalDirectory instance.
+        
+        @summary: Creates a new LogicalDirectory instance.
         @param name: name of directory to open
         @param flags: flags defining operation modus
         @type name: L{URL}
@@ -441,11 +469,13 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @raise NoSuccess:
         @Note: all notes from the NSDirectory.open_dir() method apply.
         @note: default flags are 'READ' (512).
+        
         """
+        raise NotImplemented("This method is not yet implemented")    
     
-    def open(self, name, flags = Flags.READ, tasktype=TaskType.NORMAL):
-        """
-        Create a new LogicalFile instance.
+    def open(self, name, flags=Flags.READ, tasktype=TaskType.NORMAL):
+        """Create a new LogicalFile instance.
+        
         @summary: Create a new LogicalFile instance.
         @param name: file to be opened
         @param flags: flags defining operation modus
@@ -480,13 +510,15 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @note: the flag set 'Read | Write' is equivalent to the flag 
             'ReadWrite'.
         @note: default flags are 'READ' (512).
+        
         """
-    
+        raise NotImplemented("This method is not yet implemented")
+        
     def find(self, name_pattern, attr_pattern, 
              flags=Flags.RECURSIVE, tasktype=TaskType.NORMAL):
-        """
-        Find entries in the current directory and below, with matching names 
-        and matching meta data
+        """Find entries in the current directory and below, with matching names 
+        and matching meta data.
+        
         @summary: Find entries in directory and below.
         @type name_pattern: string
         @type attr_pattern: list of strings 
@@ -520,11 +552,14 @@ class LogicalDirectory(NSDirectory, Attributes, Async):
         @Note: the description of find() in the Introduction of 
             section 4.4 of GFD-R-P.90, applies.
         @note: the semantics for both the find_attributes() method in the 
-            saga.attributes.Attributes class and for the find() method in the
-            saga.namespace.NSDirectory class apply. On conflicts, the find() 
+            L{Attributes} class and for the find() method in the
+            L{NSDirectory} class apply. On conflicts, the find() 
             semantic supersedes the find_attributes() semantic. Only entries
             matching all attribute patterns and the name space pattern are 
             returned.
         @note: the default flags are 'RECURSIVE' (2).
+        
         """  
+        raise NotImplemented("This method is not yet implemented")
+
    

@@ -1,4 +1,4 @@
-# Package: saga
+# Package: pysaga
 # Module: stream 
 # Description: The module which specifies classes which interact with streams
 # Specification and documentation can be found in section 4.5, page 281-301 of 
@@ -20,7 +20,10 @@ from session import Session
 class State(object):
     """
     State holds the possible states for a Stream.
+
     @summary: State holds the possible states for a Stream.
+    @version: 1.0, designed for Python 2.x
+        
     """
     
     NEW =  1
@@ -68,6 +71,8 @@ class Activity(object):
 
     @summary: Activity holds the possible events for which the application can
         get an asynchronous notification.
+    @version: 1.0, designed for Python 2.x
+           
     """
     
     READ = 1
@@ -103,12 +108,14 @@ class StreamService(Object, Monitorable, Permissions, Async):
             - value: 1
             
     @summary: The StreamService object establishes a listening/server object 
-        that waits for client connections. 
+        that waits for client connections.
+    @version: 1.0, designed for Python 2.x
+             
     """
       
     def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL):
-        """
-        Initializes a new StreamService object.
+        """Initializes a new StreamService object.
+        
         @summary: Initializes a new StreamService object.
         @param session: session to be used for object creation
         @type session: L{Session} 
@@ -137,14 +144,16 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @note: the implementation ensures that the given URL is usable, and a 
             later call to 'serve' will not fail because of the information given
             by the URL - otherwise, a 'BadParameter' exception is thrown.
+            
         """
 
     def get_url(self, tasktype=TaskType.NORMAL):
-        """
-        Get the URL to be used to connect to this server.
+        """Get the URL to be used to connect to this server.
+        
         @summary: Get the URL to be used to connect to this server.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: the URL of the connection.
         @rtype: L{URL}
@@ -157,16 +166,19 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @raise NoSuccess:
         @Note: returns a URL which can be passed to the Stream constructor to 
             create a connection to this StreamService.
+            
         """
+        raise NotImplemented("This method is not yet implemented")
     
-    def serve(self, timeout = -1.0, tasktype=TaskType.NORMAL):
-        """
-        Wait for incoming client connections.
+    def serve(self, timeout=-1.0, tasktype=TaskType.NORMAL):
+        """Wait for incoming client connections.
+        
         @summary: Wait for incoming client connections.
         @param timeout: number of seconds to wait for a client
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: new Connected Stream object
         @rtype: L{Stream}
@@ -182,17 +194,19 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @raise AuthenticationFailed:
         @raise NoSuccess:
         @raise Timeout: if no client connects within the specified timeout
+        
         """
+        raise NotImplemented("This method is not yet implemented")
 
-    def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
-        #in float timeout = 0.0
-        """
-        Closes a stream service
-        @summary: closes a stream service
+    def close(self, timeout=0.0, tasktype=TaskType.NORMAL):
+        """Closes a stream service.
+        
+        @summary: closes a stream service.
         @param timeout: seconds to wait
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: no clients are accepted anymore.
         @PostCondition: no callbacks registered for the "ClientConnect" metric 
@@ -202,8 +216,10 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @raise NoSuccess:
         @Note: any subsequent method call on the object, besides close(), 
             raises an "IncorrectState" exception.
+            
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
     
 class Stream(Object, Async, Attributes, Monitorable):
     """
@@ -223,14 +239,16 @@ class Stream(Object, Async, Attributes, Monitorable):
                   is maintained, or if it disables zero copy).
         - B{Timeout}
             - name: Timeout
-            - desc: determines the amount of idle time before dropping the line, in seconds
+            - desc: determines the amount of idle time before dropping the line, 
+                in seconds
             - mode: ReadWrite, optional
             - type: Int
             - value: system dependend
             - notes: 
                 - the implementation documents the default value
-                - if this attribute is supported, the connection is closed by the
-                  implementation if for that many seconds nothing has been read from or written to the stream.
+                - if this attribute is supported, the connection is closed by 
+                    the implementation if for that many seconds nothing has 
+                    been read from or written to the stream.
         - B{Blocking}
             - name: Blocking
             - desc: determines if read/writes are blocking or not
@@ -238,19 +256,23 @@ class Stream(Object, Async, Attributes, Monitorable):
             - type: Bool
             - value: True
             - notes: 
-                - if the attribute is not supported, the implementation is blocking
-                - if the attribute is set to "True", a read or write operation may return immediately if
-                  no data can be read or written - that does not constitute an error (see EAGAIN in POSIX).
+                - if the attribute is not supported, the implementation is 
+                    blocking
+                - if the attribute is set to "True", a read or write operation 
+                    may return immediately if no data can be read or written - 
+                    that does not constitute an error (see EAGAIN in POSIX).
         - B{Compression}
             - name:  Compression
             - desc:  determines if data are compressed before/after transfer
             - mode: ReadWrite, optional
             - type: Bool
             - value: schema dependent
-            - note: the implementation documents the default values for the available schemas
+            - note: the implementation documents the default values for 
+                the available schemas
         - B{Nodelay}
             - name:  Nodelay
-            - desc:  determines if packets are sent immediately, i.e. without delay
+            - desc:  determines if packets are sent immediately, i.e. without 
+                delay
             - mode: ReadWrite, optional
             - type: Bool
             - value: True
@@ -261,13 +283,15 @@ class Stream(Object, Async, Attributes, Monitorable):
             - mode:  ReadWrite, optional
             - type:  Bool
             - value: True
-            - note: if the attribute is not supported, the implementation is reliable
+            - note: if the attribute is not supported, the implementation 
+                is reliable
         
     B{Metrics supported:}
     
         - B{stream.state}
             - name: stream.state
-            - desc: fires if the state of the stream changes, and has the value of the new state
+            - desc: fires if the state of the stream changes, and has the 
+                value of the new state
             - mode: ReadOnly
             - unit: 1
             - type: Enum
@@ -305,6 +329,7 @@ class Stream(Object, Async, Attributes, Monitorable):
             - type: Trigger
             - value: 1
             
+    @version: 1.0, designed for Python 2.x    
     @undocumented: __set_Bufsize
     @undocumented: __get_Bufsize
     @undocumented: __set_Timeout
@@ -317,11 +342,12 @@ class Stream(Object, Async, Attributes, Monitorable):
     @undocumented: __get_Nodelay
     @undocumented: __set_Reliable     
     @undocumented: __get_Reliable
+    
     """
     
     def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL):
-        """
-        Initializes a client stream for later connection to a server.
+        """Initializes a client stream for later connection to a server.
+        
         @summary: initializes a client stream for later connection to a server.
         @param session: Session handle
         @param url: server location as URL
@@ -351,23 +377,26 @@ class Stream(Object, Async, Attributes, Monitorable):
             are usable - otherwise a BadParameter exception is raised.
         @Note: the socket is only connected after the connect() method is 
             called.
+            
         """
 
     def __def__(self):
-        """
-        Destroy a Stream object.
+        """Destroy a Stream object.
+        
         @summary: Destroy a Stream object.
         @note: If during the destruction of the object, the object was not 
             closed before, the destructor performs a close() on the instance, 
             and all notes to close() apply.
+            
         """
 
     def get_url(self, tasktype=TaskType.NORMAL): 
-        """
-        Get URL used for creating the stream
-        @summary: get URL used for creating the stream
+        """Get URL used for creating the stream.
+        
+        @summary: get URL used for creating the stream.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: the URL of the connection.
         @rtype: L{URL}
@@ -383,14 +412,17 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: the returned url may be empty, indicating that this instance has 
             been created with an empty url as parameter to the Stream 
             constructor.
+            
         """
+        raise NotImplemented("This method is not yet implemented") 
        
     def get_context(self, tasktype=TaskType.NORMAL):
-        """
-        Return remote authorization info
+        """Return remote authorization info
+        
         @summary: return remote authorization info
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: remote context
         @rtype: L{Context}
@@ -416,16 +448,19 @@ class Stream(Object, Async, Attributes, Monitorable):
             has the type "Unknown" and no attributes are attached.
         @Note: the returned context is authenticated, or is of type 
             "Unknown" as described above.
+            
         """
+        raise NotImplemented("This method is not yet implemented")
     
     def connect(self, tasktype=TaskType.NORMAL):
-        """
-        Establishes a connection to the target defined during the construction 
-        of the stream.
+        """Establishes a connection to the target defined during the 
+        construction of the stream.
+        
         @summary: Establishes a connection to the target defined during the 
             construction of the stream.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: the stream is in "NEW" state.
         @PostCondition: the stream is in "OPEN" state.
@@ -441,12 +476,14 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: on failure, the stream state is changed to "ERROR"
         @Note: if the stream instance is not in "NEW" state, an "IncorrectState" 
             exception is raised.
+            
         """
-
-    def wait(self, what, timeout = -1.0, tasktype=TaskType.NORMAL):
-        """
-        Check if stream is ready for reading/writing, or if it has entered an 
-        error state.
+        raise NotImplemented("This method is not yet implemented")
+    
+    def wait(self, what, timeout=-1.0, tasktype=TaskType.NORMAL):
+        """Check if stream is ready for reading/writing, or if it has 
+        entered an error state.
+        
         @summary: Check if stream is ready for reading/writing, or if it has 
             entered an error state
         @param what: activity type to wait for from L{Activity}
@@ -454,7 +491,8 @@ class Stream(Object, Async, Attributes, Monitorable):
         @param timeout: number of seconds to wait
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: activity type causing the call to return
         @rtype: int
@@ -474,16 +512,19 @@ class Stream(Object, Async, Attributes, Monitorable):
             "READ", "WRITE", or "EXCEPTION")
         @Note: if the stream is not in "OPEN" state, an "IncorrectState" 
             exception is raised.
+            
         """
-      
-    def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
-        """
-        Closes an active connection
+        raise NotImplemented("This method is not yet implemented")
+          
+    def close(self, timeout=0.0, tasktype=TaskType.NORMAL):
+        """Closes an active connection.
+        
         @summary: Closes an active connection.
         @param timeout: seconds to wait
         @type timeout: float
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PostCondition: stream is in "Closed" state
         @raise NotImplemented:
@@ -494,12 +535,12 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: if close() is implicitely called in the __del__(), it will never 
             raise an exception.
         @Note: close() can be called multiple times, with no side effects.
+        
         """
-
-    def read (self, size = -1, buf = None, tasktype=TaskType.NORMAL):
-        #inout buffer buf, in int len_in = -1, out int len_out
-        """
-        Read up to size bytes of data from stream.
+        raise NotImplemented("This method is not yet implemented")
+    
+    def read (self, size=-1, buf=None, tasktype=TaskType.NORMAL):
+        """Read up to size bytes of data from stream.
 
             - B{Call format: read( size, data )}
                 - B{Returns: int}
@@ -520,7 +561,8 @@ class Stream(Object, Async, Attributes, Monitorable):
         @param buf: buffer to store read data into
         @type buf: L{Buffer}
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: string containing the data or the number of bytes read, if 
             successful. 
@@ -558,19 +600,21 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: if the stream is not in "OPEN" state, an "IncorrectState" 
             exception is raised.
         @Note: similar to read (2) as specified by POSIX
-        """
         
-    def write(self, buf, size = -1, tasktype=TaskType.NORMAL):
-        #in buffer buf, in int size_in = -1, out int size_out
         """
-        Write a data buffer to stream
+        raise NotImplemented("This method is not yet implemented")
+        
+    def write(self, buf, size=-1, tasktype=TaskType.NORMAL):
+        """Write a data buffer to stream
+        
         @summary: write a data buffer to stream
         @param size: number of units of data in the buffer
         @type size: int
         @param buf: buffer containing data that will be sent out via socket
         @type buf: L{Buffer} or string
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: nr of bytes written if successful
         @PreCondition: the stream is in "OPEN" state.
@@ -603,61 +647,69 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: similar to write (2) as specified by POSIX
 
         """
-
-    def __set_Bufsize(value):
+        raise NotImplemented("This method is not yet implemented")
+    
+    def __set_Bufsize(self, value):
         set_attribute("Bufsize", value)
         
-    def __get_Bufsize():
+    def __get_Bufsize(self):
         return get_attribute("Bufsize")  
 
     Bufsize = property(__get_Bufsize, __set_Bufsize,
-            doc="""The Bufsize attribute. \n@type: int""")
+            doc="""The Bufsize attribute. 
+                @type: int""")
 
-    def __set_Timeout(value):
+    def __set_Timeout(self, value):
         set_attribute("Timeout", value)
         
-    def __get_Timeout():
+    def __get_Timeout(self):
         return get_attribute("Timeout")  
 
     Timeout = property(__get_Timeout, __set_Timeout,
-            doc="""The Timeout attribute. \n@type: int""")
+            doc="""The Timeout attribute. 
+                @type: int""")
 
 
-    def __set_Blocking(value):
+    def __set_Blocking(self, value):
         set_attribute("Blocking", value)
         
-    def __get_Blocking():
+    def __get_Blocking(self):
         return get_attribute("Blocking")  
 
     Blocking = property(__get_Blocking, __set_Blocking,
-            doc="""The Blocking attribute. \n@type: bool""")
+            doc="""The Blocking attribute. 
+                @type: bool""")
 
-    def __set_Compression(value):
+    def __set_Compression(self, value):
         set_attribute("Compression", value)
         
-    def __get_Compression():
+    def __get_Compression(self):
         return get_attribute("Compression")  
 
     Compression = property(__get_Compression, __set_Compression, 
-                           doc="""The Compression attribute. \n@type: bool""")
+                           doc="""The Compression attribute. 
+                               @type: bool""")
 
-    def __set_Nodelay(value):
+    def __set_Nodelay(self, value):
         set_attribute("Nodelay", value)
         
-    def __get_Nodelay():
+    def __get_Nodelay(self):
         return get_attribute("Nodelay")  
     
     Nodelay = property(__get_Nodelay, __set_Nodelay,
-            doc="""The Nodelay attribute. \n@type: bool""")
+            doc="""The Nodelay attribute. 
+                @type: bool""")
 
 
-    def __set_Reliable(value):
+    def __set_Reliable(self, value):
         set_attribute("Reliable", value)
         
-    def __get_Reliable():
+    def __get_Reliable(self):
         return get_attribute("Reliable")  
 
     Reliable = property(__get_Reliable, __set_Reliable, 
-            doc="""The Reliable attribute. \n@type: bool""")
+            doc="""The Reliable attribute. 
+                @type: bool""")
+    
      
   

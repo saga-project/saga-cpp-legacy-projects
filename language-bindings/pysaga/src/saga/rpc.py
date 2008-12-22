@@ -1,4 +1,4 @@
-# Package: saga
+# Package: pysaga
 # Module: rpc 
 # Description: The module which specifies classes which handle remote procedure
 #    calls.
@@ -16,7 +16,10 @@ from session import Session
 
 class IOMode(object):
     """
-    IOMode specifies the modus of the saga.rpc.Parameter instances
+    IOMode specifies the modus of the L{Parameter} instances
+    
+    @version: 1.0, designed for Python 2.x    
+    
     """
     
     IN    = 1 
@@ -42,18 +45,20 @@ class IOMode(object):
     
 class Parameter(Buffer):
     """
-    The Parameter class inherits the saga.buffer.Buffer class, and adds one 
+    The Parameter class inherits the L{Buffer} class, and adds one 
     additional state attribute: IOMode, which is read-only. With that addition, 
     the new class can conveniently be used to define input, inout and output 
     parameters for RPC calls.
 
     @summary: Parameter can be used to define input, inout and output parameters 
         for RPC calls.
+    @version: 1.0, designed for Python 2.x
+
     """
     
     def __init__(self, data=None, size=-1, mode=IOMode.IN):
-        """
-        Initialize an parameter instance.
+        """Initialize an parameter instance.
+        
         @summary: Initialize an parameter instance.
         @param size: size of data to be used
         @type size: int
@@ -88,39 +93,53 @@ class Parameter(Buffer):
             data exceeding the buffer size are discarded. The application is 
             responsible for specifying correct buffer sizes for pre-allocated 
             buffers; otherwise the behaviour is undefined.
-        @Note: all notes from the saga.buffer.Buffer.__init__() apply.
+        @Note: all notes from the L{Buffer.__init__()} apply.
+        
         """
         
     def set_io_mode(self, mode):
-        """
-        Purpose: Set io mode
-        @summary: set io mode
+        """Purpose: Set io mode.
+        
+        @summary: set io mode.
         @param mode: value for io mode
         @type mode: one of the values from IOMode
+        
         """
+        raise NotImplemented("This method is not yet implemented")
    
     def get_io_mode(self):
-        """
-        Retrieve the current value for io mode
-        @summary: Retrieve the current value for io mode
+        """Retrieve the current value for io mode.
+        
+        @summary: Retrieve the current value for io mode.
         @return: value of io mode
         @rtype: one of the values from IOMode
+        
         """
+        raise NotImplemented("This method is not yet implemented")
+        
+        
+    mode = property(get_io_mode, set_io_mode, doc="""The io mode
+                                                    @type: int""")
+
+
    
-class RPC(Object, Permissions, Async ):
+class RPC(Object, Permissions, Async):
     """
     This class represents a remote function handle, which can be called 
     (repeatedly), and returns the result of the respective remote procedure 
     invocation.
+
+    @version: 1.0, designed for Python 2.x
+
     """
      
      
     def __init__(self, funcname, session=Session(), tasktype=TaskType.NORMAL):
-        """
-        Initializes a remote function handle
+        """Initializes a remote function handle
+        
         @summary: Initializes a remote function handle
-        @param session: saga session to use
-        @type session: L{Session<saga.session.Session>} object
+        @param session: SAGA session to use
+        @type session: L{Session} object
         @param funcname: name of remote method to initialize
         @type funcname: L{URL} 
         @param tasktype: return a normal RPC object or a Task object that 
@@ -157,17 +176,18 @@ class RPC(Object, Permissions, Async ):
         """
 
     def __del__(self):
-        """
-        Destroys the RPC object.
+        """Destroys the RPC object.
+        
         @summary: Destroys the RPC object.
         @postcondition: the instance is closed.
         @Note: if the instance was not closed before, the destructor performs a 
             close() on the instance, and all notes to close() apply.
+            
         """
     
     def call(self, parameters, tasktype=TaskType.NORMAL):
-        """
-        Call the remote procedure.
+        """Call the remote procedure.
+        
         @summary: Call the remote procedure.
         @param parameters: argument/result values for call
         @type parameters: list of Parameters
@@ -201,14 +221,15 @@ class RPC(Object, Permissions, Async ):
             exception, with a descriptive error message. That way, error 
             semantics of the SAGA implementation and of the RPC function 
             implementation are strictly distinguished.
-        @note: the notes about memory management from the L{saga.buffer.Buffer} 
+        @note: the notes about memory management from the L{Buffer} 
             class apply.
 
         """
+        raise NotImplemented("This method is not yet implemented")
         
-    def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
-        """
-        Closes the rpc handle instance.
+    def close(self, timeout=0.0, tasktype=TaskType.NORMAL):
+        """Closes the rpc handle instance.
+        
         @summary: Closes the rpc handle instance.
         @param timeout: seconds to wait
         @type timeout: float
@@ -230,3 +251,6 @@ class RPC(Object, Permissions, Async ):
         @see: for timeout semantics, see Section 2 of the GFD-R-P.90 document
 
         """
+        raise NotImplemented("This method is not yet implemented")
+    
+    

@@ -1,4 +1,4 @@
-# Package: saga
+# Package: pysaga
 # Module: job 
 # Description: The module which specifies the classes needed for running jobs
 # Specification and documentation can be found in section 3.2, page 164-194 
@@ -16,8 +16,10 @@ from session import Session
 
 class State(object):
     """
-    The state is equivalent to the inherited saga.task.State, but adds 
-    the SUSPENDED state:
+    The state is equivalent to task.State, but adds the SUSPENDED state:
+    
+    @version: 1.0, designed for Python 2.x
+    
     """
    
     NEW = 1
@@ -65,7 +67,7 @@ class State(object):
 class JobDescription(Object,Attributes):
     """
     This object encapsulates all the attributes which define a job to be run.
-    It has no methods of its own, but implements the saga.attributes.Attributes
+    It has no methods of its own, but implements the L{Attributes}
     interface in order to provide access to the job properties, 
     which are expressed as JSDL keywords.
     
@@ -323,6 +325,8 @@ class JobDescription(Object,Attributes):
      
     @summary: This object encapsulates all the attributes which define a job 
         to be run.            
+    @version: 1.0, designed for Python 2.x
+
     @undocumented: get_Executable
     @undocumented: set_Executable
     @undocumented: del_Executable
@@ -417,334 +421,351 @@ class JobDescription(Object,Attributes):
     """
 
 
-#TODO: implement properties
-
     def __init__(self):
-        """ 
-        Initialize the object
-        @summary: initialize the object
+        """Initialize the object.
+        
+        @summary: initialize the object.
         @Raise NotImplemented:
         @raise NoSuccess:
         @Note:    a JobDescription is not associated with a Session, 
             but can be used for JobServices from different sessions.
+        
         """
 
-    def __set_Executable(value):
+    def __set_Executable(self, value):
         set_attribute("Executable", value)
         
-    def __get_Executable():
+    def __get_Executable(self):
         return get_attribute("Executable")  
     
-    def __del_Executable():
+    def __del_Executable(self):
         return set_attribute("Executable", "")            
 
     Executable = property(__get_Executable, __set_Executable, __del_Executable, 
-            doc="""The Executable attribute. \n@type:List of strings""")
+            doc="""The Executable attribute. 
+                @type:List of strings""")
 
-    def __set_Arguments(value):
+    def __set_Arguments(self, value):
         set_vector_attribute("Arguments", value)
         
-    def __get_Arguments():
+    def __get_Arguments(self):
         return get_vector_attribute("Arguments")  
     
-    def __del_Arguments():
+    def __del_Arguments(self):
         return set_vector_attribute("Arguments", [])            
 
     Arguments = property(__get_Arguments, __set_Arguments, __del_Arguments, 
-            doc="""The Arguments attribute. \n@type:List of strings""")
+            doc="""The Arguments attribute. 
+                @type:List of strings""")
      
-    def __set_SPMDVariation(value):
+    def __set_SPMDVariation(self, value):
         set_attribute("SPMDVariation", value)
         
-    def __get_SPMDVariation():
+    def __get_SPMDVariation(self):
         return get_attribute("SPMDVariation")  
     
-    def __del_SPMDVariation():
+    def __del_SPMDVariation(self):
         return set_attribute("SPMDVariation", "")            
 
     SPMDVariation = property(__get_SPMDVariation, __set_SPMDVariation,
                              __del_SPMDVariation,
-                             """The SPMDVariation attribute. \n@type: string""")
+                             """The SPMDVariation attribute. 
+                             @type: string""")
      
-    def __set_TotalCPUCount(value):
+    def __set_TotalCPUCount(self, value):
         set_attribute("TotalCPUCount", value)
         
-    def __get_TotalCPUCount():
+    def __get_TotalCPUCount(self):
         return get_attribute("TotalCPUCount")  
     
-    def __del_TotalCPUCount():
+    def __del_TotalCPUCount(self):
         return set_attribute("TotalCPUCount", "")            
 
     TotalCPUCount = property(__get_TotalCPUCount, __set_TotalCPUCount,
                              __del_TotalCPUCount, 
-                             """The TotalCPUCount attribute. \n@type: string""")
+                             """The TotalCPUCount attribute. 
+                             @type: string""")
 
-    def __set_NumberOfProcesses(value):
+    def __set_NumberOfProcesses(self, value):
         set_attribute("NumberOfProcesses", value)
         
-    def __get_NumberOfProcesses():
+    def __get_NumberOfProcesses(self):
         return get_attribute("NumberOfProcesses")  
     
-    def __del_NumberOfProcesses():
+    def __del_NumberOfProcesses(self):
         return set_attribute("NumberOfProcesses", "")            
 
     NumberOfProcesses = property(__get_NumberOfProcesses,
                                  __set_NumberOfProcesses, 
                                  __del_NumberOfProcesses, 
                                  """The NumberOfProcesses attribute. 
-                                 \n@type: string""")
+                                 @type: string""")
      
-    def __set_ProcessesPerHost(value):
+    def __set_ProcessesPerHost(self, value):
         set_attribute("ProcessesPerHost", value)
         
-    def __get_ProcessesPerHost():
+    def __get_ProcessesPerHost(self):
         return get_attribute("ProcessesPerHost")  
     
-    def __del_ProcessesPerHost():
+    def __del_ProcessesPerHost(self):
         return set_attribute("ProcessesPerHost", "")            
 
     ProcessesPerHost = property(__get_ProcessesPerHost, __set_ProcessesPerHost,
                                 __del_ProcessesPerHost, 
                                 """The ProcessesPerHost attribute. 
-                                \n@type: string""")
+                                @type: string""")
 
 
-    def __set_ThreadsPerProcess(value):
+    def __set_ThreadsPerProcess(self, value):
         set_attribute("ThreadsPerProcess", value)
         
-    def __get_ThreadsPerProcess():
+    def __get_ThreadsPerProcess(self):
         return get_attribute("ThreadsPerProcess")  
     
-    def __del_ThreadsPerProcess():
+    def __del_ThreadsPerProcess(self):
         return set_attribute("ThreadsPerProcess", "")            
 
     ThreadsPerProcess = property(__get_ThreadsPerProcess, 
                                  __set_ThreadsPerProcess, 
                                  __del_ThreadsPerProcess, 
                                  """The ThreadsPerProcess attribute. 
-                                 \n@type: string""")
+                                 @type: string""")
      
-    def __set_Environment(value):
+    def __set_Environment(self, value):
         set_vector_attribute("Environment", value)
         
-    def __get_Environment():
+    def __get_Environment(self):
         return get_vector_attribute("Environment")  
     
-    def __del_Environment():
+    def __del_Environment(self):
         return set_vector_attribute("Environment", [])            
 
     Environment = property(__get_Environment, __set_Environment, 
                            __del_Environment,
                            """The Environment attribute. 
-                           \n@type:List of strings""")
+                           @type:List of strings""")
 
-    def __set_WorkingDirectory(value):
+    def __set_WorkingDirectory(self, value):
         set_attribute("WorkingDirectory", value)
         
-    def __get_WorkingDirectory():
+    def __get_WorkingDirectory(self):
         return get_attribute("WorkingDirectory")  
     
-    def __del_WorkingDirectory():
+    def __del_WorkingDirectory(self):
         return set_attribute("WorkingDirectory", "")            
 
     WorkingDirectory = property(__get_WorkingDirectory, __set_WorkingDirectory, 
                                 __del_WorkingDirectory, 
                                 """The WorkingDirectory attribute. 
-                                \n@type: string""")
+                                @type: string""")
 
-    def __set_Interactive(value):
+    def __set_Interactive(self, value):
         set_attribute("Interactive", value)
         
-    def __get_Interactive():
+    def __get_Interactive(self):
         return get_attribute("Interactive")  
     
-    def __del_Interactive():
+    def __del_Interactive(self):
         return set_attribute("Interactive", "")            
 
     Interactive = property(__get_Interactive, __set_Interactive, 
                            __del_Interactive, 
-                           """The Interactive attribute. \n@type: string""")
+                           """The Interactive attribute. 
+                           @type: string""")
 
-    def __set_Input(value):
+    def __set_Input(self, value):
         set_attribute("Input", value)
         
-    def __get_Input():
+    def __get_Input(self):
         return get_attribute("Input")  
     
-    def __del_Input():
+    def __del_Input(self):
         return set_attribute("Input", "")            
 
     Input = property(__get_Input, __set_Input, __del_Input, 
-            """The Input attribute. \n@type: string""")
+            """The Input attribute. 
+            @type: string""")
      
-    def __set_Output(value):
+    def __set_Output(self, value):
         set_attribute("Output", value)
         
-    def __get_Output():
+    def __get_Output(self):
         return get_attribute("Output")  
     
-    def __del_Output():
+    def __del_Output(self):
         return set_attribute("Output", "")            
 
     Output = property(__get_Output, __set_Output, __del_Output, 
-            doc="""The Output attribute. \n@type: string""")
+            doc="""The Output attribute. 
+                @type: string""")
 
-    def __set_Error(value):
+    def __set_Error(self, value):
         set_attribute("Error", value)
         
-    def __get_Error():
+    def __get_Error(self):
         return get_attribute("Error")  
     
-    def __del_Error():
+    def __del_Error(self):
         return set_attribute("Error", "")            
 
     Error = property(__get_Error, __set_Error, __del_Error, 
-            doc="""The Error attribute. \n@type: string""")
+            doc="""The Error attribute. 
+                @type: string""")
      
-    def __set_FileTransfer(value):
+    def __set_FileTransfer(self, value):
         set_attribute("FileTransfer", value)
         
-    def __get_FileTransfer():
+    def __get_FileTransfer(self):
         return get_attribute("FileTransfer")  
     
-    def __del_FileTransfer():
+    def __del_FileTransfer(self):
         return set_attribute("FileTransfer", "")            
 
     FileTransfer = property(__get_FileTransfer, __set_FileTransfer, 
                             __del_FileTransfer, 
-                            """The FileTransfer attribute. \n@type: string""")
+                            """The FileTransfer attribute. 
+                            @type: string""")
     
-    def __set_Cleanup(value):
+    def __set_Cleanup(self, value):
         set_attribute("Cleanup", value)
         
-    def __get_Cleanup():
+    def __get_Cleanup(self):
         return get_attribute("Cleanup")  
     
-    def __del_Cleanup():
+    def __del_Cleanup(self):
         return set_attribute("Cleanup", "")            
 
     Cleanup = property(__get_Cleanup, __set_Cleanup, __del_Cleanup, 
-            doc="""The Cleanup attribute. \n@type: string""")
+            doc="""The Cleanup attribute. 
+                @type: string""")
      
-    def __set_JobStartTime(value):
+    def __set_JobStartTime(self, value):
         set_attribute("JobStartTime", value)
         
-    def __get_JobStartTime():
+    def __get_JobStartTime(self):
         return get_attribute("JobStartTime")  
     
-    def __del_JobStartTime():
+    def __del_JobStartTime(self):
         return set_attribute("JobStartTime", "")            
 
     JobStartTime = property(__get_JobStartTime, __set_JobStartTime, 
                             __del_JobStartTime, 
-                            """The JobStartTime attribute. \n@type: string""")
+                            """The JobStartTime attribute. 
+                            @type: string""")
 
-    def __set_TotalCPUTime(value):
+    def __set_TotalCPUTime(self, value):
         set_attribute("TotalCPUTime", value)
         
-    def __get_TotalCPUTime():
+    def __get_TotalCPUTime(self):
         return get_attribute("TotalCPUTime")  
     
-    def __del_TotalCPUTime():
+    def __del_TotalCPUTime(self):
         return set_attribute("TotalCPUTime", "")            
 
     TotalCPUTime = property(__get_TotalCPUTime, __set_TotalCPUTime, 
                             __del_TotalCPUTime, 
-                            """The TotalCPUTime attribute. \n@type: string""")
-    def __set_TotalPhysicalMemory(value):
+                            """The TotalCPUTime attribute. 
+                            @type: string""")
+    
+    def __set_TotalPhysicalMemory(self, value):
         set_attribute("TotalPhysicalMemory", value)
         
-    def __get_TotalPhysicalMemory():
+    def __get_TotalPhysicalMemory(self):
         return get_attribute("TotalPhysicalMemory")  
     
-    def __del_TotalPhysicalMemory():
+    def __del_TotalPhysicalMemory(self):
         return set_attribute("TotalPhysicalMemory", "")            
 
     TotalPhysicalMemory = property(__get_TotalPhysicalMemory, 
                                    __set_TotalPhysicalMemory, 
                                    __del_TotalPhysicalMemory, 
-                                   """The TotalPhysicalMemory attribute. \n
+                                   """The TotalPhysicalMemory attribute. 
                                    @type: string""")
      
                
-    def __set_CPUArchitecture(value):
+    def __set_CPUArchitecture(self, value):
         set_vector_attribute("CPUArchitecture", value)
         
-    def __get_CPUArchitecture():
+    def __get_CPUArchitecture(self):
         return get_vector_attribute("CPUArchitecture")  
     
-    def __del_CPUArchitecture():
+    def __del_CPUArchitecture(self):
         return set_vector_attribute("CPUArchitecture", [])
 
     CPUArchitecture = property(__get_CPUArchitecture, __set_CPUArchitecture, 
                                __del_CPUArchitecture, 
-                               """The CPUArchitecture attribute. \n
+                               """The CPUArchitecture attribute. 
                                @type:List of strings""")
      
-    def __set_OperatingSystemType(value):
+    def __set_OperatingSystemType(self, value):
         set_vector_attribute("OperatingSystemType", value)
         
-    def __get_OperatingSystemType():
+    def __get_OperatingSystemType(self):
         return get_vector_attribute("OperatingSystemType")  
     
-    def __del_OperatingSystemType():
+    def __del_OperatingSystemType(self):
         return set_vector_attribute("OperatingSystemType", [])
 
     OperatingSystemType = property(__get_OperatingSystemType, 
                                    __set_OperatingSystemType, 
                                    __del_OperatingSystemType, 
-                                   """The OperatingSystemType attribute. \n
+                                   """The OperatingSystemType attribute.
                                    @type:List of strings""")
      
-    def __set_CandidateHosts(value):
+    def __set_CandidateHosts(self, value):
         set_vector_attribute("CandidateHosts", value)
         
-    def __get_CandidateHosts():
+    def __get_CandidateHosts(self):
         return get_vector_attribute("CandidateHosts")  
     
-    def __del_CandidateHosts():
+    def __del_CandidateHosts(self):
         return set_vector_attribute("CandidateHosts", [])            
 
     CandidateHosts = property(__get_CandidateHosts, __set_CandidateHosts,
                                __del_CandidateHosts, 
-                               """The CandidateHosts attribute. \n
+                               """The CandidateHosts attribute.
                                @type:List of strings""")
 
-    def __set_Queue(value):
+    def __set_Queue(self, value):
         set_attribute("Queue", value)
         
-    def __get_Queue():
+    def __get_Queue(self):
         return get_attribute("Queue")  
     
-    def __del_Queue():
+    def __del_Queue(self):
         return set_attribute("Queue", "")            
 
     Queue= property(__get_Queue, __set_Queue, __del_Queue, 
-                     """The Queue attribute. \n@type: string""")
+                     """The Queue attribute. 
+                     @type: string""")
      
-    def __set_JobContact(value):
+    def __set_JobContact(self, value):
         set_vector_attribute("JobContact", value)
         
-    def __get_JobContact():
+    def __get_JobContact(self):
         return get_vector_attribute("JobContact")  
     
-    def __del_JobContact():
+    def __del_JobContact(self):
         return set_vector_attribute("JobContact", [])            
 
     JobContact = property(__get_JobContact, __set_JobContact, __del_JobContact, 
-                          """The JobContact attribute. \n
+                          """The JobContact attribute.
                           @type:List of strings""")
 
 class JobService(Object, Async):
     """
     The job_service represents a resource management backend, and as such allows 
     to create and submit jobs, and to discover jobs.
+
+    @version: 1.0, designed for Python 2.x
+    
     """
 
+
     def __init__(self, url="", session=Session(), tasktype=TaskType.NORMAL):
-        """
-        Initialize the object
-        @summary: Initialize the object
+        """Initialize the object.
+        
+        @summary: Initialize the object.
         @param session: session to associate with the object
         @type session: L{Session} 
         @param url: contact url for resource manager
@@ -771,9 +792,8 @@ class JobService(Object, Async):
         """
 
     def create_job(self, jd, tasktype=TaskType.NORMAL):
-        #in JobDescription jd, out job job
-        """
-        Create a job instance
+        """Create a job instance.
+        
         @summary: Create a job instance
         @param jd: description of job to be submitted
         @type jd: L{JobDescription} 
@@ -806,13 +826,11 @@ class JobService(Object, Async):
             exception, and why.
 
         """
+        raise NotImplemented("This method is not yet implemented")       
         
+    def run_job(self, commandline, host="", tasktype=TaskType.NORMAL):
+        """Run a command synchronously.
         
-    def run_job(self, commandline, host = "", tasktype=TaskType.NORMAL):
-        #in string commandline, in string host = "", out job job, 
-        #out opaque stdin, out opaque stdout, out opaque stderr
-        """
-        Run a command synchronously.
         @summary: Run a command synchronously.
         @param commandline: the command and arguments to be run
         @type commandline: string  
@@ -857,21 +875,11 @@ class JobService(Object, Async):
             process.
 
         """
-        #@Note: the I/O handles have to be passed to the call as references, in 
-        #    most languages, as calls often allow only one return value (perl or 
-        #    python being notable exceptions). If these parameters are omitted, 
-        #    the job is to be started non-interactively, and the output I/O 
-        #    streams may be discarded.
-        job = Job()
-        stdin = StdIO()
-        stdout = StdIO()
-        stderr = StdIO()
-        return job, stdin, stdout, stderr
+        raise NotImplemented("This method is not yet implemented")
 
     def list(self, tasktype=TaskType.NORMAL):
-        #out array<string>   job_ids
-        """
-        Get a list of jobs which are currently known by the resource manager.
+        """Get a list of jobs which are currently known by the resource manager.
+        
         @summary: Get a list of jobs which are currently known by the resource 
             manager. 
         @param tasktype: return the normal return values or a Task object in a 
@@ -894,13 +902,12 @@ class JobService(Object, Async):
             cause an 'AuthorizationFailed' exception).
 
         """
-        return []
+        raise NotImplemented("This method is not yet implemented")
     
     def get_job (self, job_id, tasktype=TaskType.NORMAL):
-        #in  string job_id, out job job
-        """
-        Given a job identifier, this method returns a Job object 
+        """Given a job identifier, this method returns a Job object 
         representing this job.
+        
         @summary: Given a job identifier, this method returns a Job object 
             representing this job.
         @param job_id: job identifier as returned by the resource manager
@@ -929,17 +936,17 @@ class JobService(Object, Async):
             BadParameter exception is raised.
 
         """
-        return Job()
+        raise NotImplemented("This method is not yet implemented")
         
     def get_self (self, tasktype=TaskType.NORMAL):
-        #out job_self job
-        """
-        This method returns a Job object representing I{B{this}} job, i.e. the 
-        calling application.
+        """This method returns a Job object representing I{B{this}} job, i.e. 
+        the calling application.
+        
         @summary: This method returns a Job object representing I{B{this}} job, 
             i.e. the calling application.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL} 
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL} 
         @type tasktype: value from L{TaskType}
         @return: a L{JobSelf} object representing I{B{this}} job.
         @rtype: L{JobSelf}
@@ -961,7 +968,10 @@ class JobService(Object, Async):
             error message.
 
         """
- 
+        raise NotImplemented("This method is not yet implemented")
+    
+    
+     
 class StdIO(object):
     """
     This class is used to give acces to the opaque data like from from stdin, 
@@ -972,52 +982,62 @@ class StdIO(object):
     read from the StdIO object as a stdin cannot generate data. 
     @summary: This class is used to give acces to the opaque data like from 
         stdin, stdout and stderr
+    @version: 1.0, designed for Python 2.x
+
     """
 
+
     def __init__(self):
-        """
-        Initializes the StdIO object. This object can only be created from the
-        JobService.run_job() or Job.get_stdin(), Job.get_stdout() and 
+        """Initializes the StdIO object. This object can only be created from 
+        the JobService.run_job() or Job.get_stdin(), Job.get_stdout() and 
         Job.get_stderr()  methods
+        
         @summary: Initializes the StdIO object.
         
         """
         
     def close(self):
-        """
-        Closes the stream from reading or writing (if applicable)
+        """Closes the stream from reading or writing (if applicable)
+        
         @summary: Closes the stream from reading or writing (if applicable)
+        
         """
     
     def flush(self):
-        """
-        Forces the datastream to flush the data.
+        """Forces the datastream to flush the data.
+        
         @summary: Forces the datastream to flush the data
+        
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
     def get_name(self):
-        """
-        Returns the name of the StdIO object.
+        """Returns the name of the StdIO object.
+        
         @summary: Returns the name of the StdIO object.
         @return: '<stdin>' if this object represents the stdin of the job,
             '<stdout>' if it represents the stdout of the job or '<stderr>' if
             it represents the stderr of the job
         @rtype: string
+        
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
     def get_mode(self):
-       """
-       Returns the mode of the StdIO object
+       """Returns the mode of the StdIO object
+       
        @summary: Returns the mode of the StdIO object
        @rtype: string
        @return: 'w' if this object represents the stdin of the job,
             'r' if it represents the stdout of the job and 'r' if
             it represents the stderr of the job
+       
        """ 
+       raise NotImplemented("This method is not yet implemented")       
 
     def write(self, data):
-        """
-        Write data to the stdin of the job.
+        """Write data to the stdin of the job.
+        
         @summary: Write data to the stdin of the job.
         @param data: the data to write
         @type data: string
@@ -1025,23 +1045,27 @@ class StdIO(object):
             the job.
         @note: due to buffering, flush() or close() may be needed before it 
             is written to stdin
+        
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
     def writelines(self, data):
-        """
-        Write a sequence of strings to the stdin of the job. Newlines in the 
+        """Write a sequence of strings to the stdin of the job. Newlines in the 
         sequence are not written to the stdin of the job
+        
         @param data: sequence of strings to write
         @type data: string, or a tuple, list or array of chars  
         @summary: Write a sequence of strings to the stdin of the job.
         @raise PermissionDenied: if this object represents stdout or stderr of 
             the job.
+            
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
     def read(self, size = -1, blocking=True):
-        """
-        Read at most size bytes from stdout or from stderr, depending which 
+        """Read at most size bytes from stdout or from stderr, depending which 
         one is represented by this object.
+        
         @summary: Read at most size bytes from stdout/stderr.
         @return: string with the data 
         @rtype: string
@@ -1063,10 +1087,11 @@ class StdIO(object):
             case.
       
         """
+        raise NotImplemented("This method is not yet implemented")
+            
+    def readline(self, size=-1, blocking=True):
+        """Read the next line from the stdout or stderr of the job.
         
-    def readline(self, size = -1, blocking = True):
-        """
-        Read the next line from the stdout or stderr of the job.
         @summary: Read the next line from the stdout or stderr of the job.
         @return: string with the line of data including the newline character
         @rtype: string
@@ -1089,10 +1114,11 @@ class StdIO(object):
             the non-blocking case.        
         
         """
+        raise NotImplemented("This method is not yet implemented")
+            
+    def readlines(self, size=-1, blocking=True):
+        """Read multiple lines from the stdout or stderr.
         
-    def readlines(self, size=-1, blocking = True):
-        """
-        Read multiple lines from the stdout or stderr.
         @summary: Read multiple lines from the stdout or stderr.
         @return: List of strings with lines of data without the newline 
             characters
@@ -1120,12 +1146,17 @@ class StdIO(object):
             the non-blocking case.            
         
         """
+        raise NotImplemented("This method is not yet implemented")
+    
 
     name = property(get_name,
-                    doc="""the name of the StdIO object.\n@type: string""")
+                    doc="""the name of the StdIO object.
+                        @type: string""")
 
     mode = property(get_mode,
-                    doc="""the mode ot the StdIO object.\n@type: string""")
+                    doc="""the mode ot the StdIO object.
+                        @type: string""")
+
 
     
 class Job(Task, Attributes, Permissions, Async): 
@@ -1265,6 +1296,7 @@ class Job(Task, Attributes, Permissions, Async):
 
     @summary: The job provides the manageability interface to a job 
         instance submitted to a resource manager.
+    @version: 1.0, designed for Python 2.x
     @undocumented: __get_JobID
     @undocumented: __get_ExecutionHosts
     @undocumented: __get_Created
@@ -1273,90 +1305,73 @@ class Job(Task, Attributes, Permissions, Async):
     @undocumented: __get_WorkingDirectory
     @undocumented: __get_ExitCode
     @undocumented: __get_Termsig
+
     """
 
-    def __get_JobID():
+
+    def __get_JobID(self):
         return get_attribute("JobID")  
 
     JobID = property(__get_JobID,  
-                          doc="""The JobID attribute.\n @type:string""")
+                          doc="""The JobID attribute.
+                              @type:string""")
 
-    def __get_ExecutionHosts():
+    def __get_ExecutionHosts(self):
         return get_vector_attribute("ExecutionHosts")  
            
     ExecutionHosts = property(__get_ExecutionHosts, 
-                          doc="""The ExecutionHosts attribute.\n
-                          @type:list of strings""")
+                          doc="""The ExecutionHosts attribute.
+                              @type:list of strings""")
 
-    def __get_Created():
+    def __get_Created(self):
         return get_attribute("Created")  
 
     Created = property(__get_Created,  
-                          doc="""The Created attribute.\n
-                          @type:string""")
+                          doc="""The Created attribute.
+                              @type:string""")
 
-#TODO: Check type of Created, Timestamp is vague.
-#            - name: Created
-#            - desc: time stamp of the job creation in the resource manager
-#            - mode: ReadOnly, optional
-#            - type: Time
-#            - value: -
-#            - notes: can be interpreted as submission time
-
-        
-    def __get_Started():
+    def __get_Started(self):
         return get_attribute("Started")  
- 
-    Started = property(__get_Started, doc="""The  attribute.\n @type:string""")
-#TODO: Check type of Started, Timestamp is vague.
-#            - name: Started
-#            - desc: time stamp indicating when the job started running
-#            - mode: ReadOnly, optional
-#            - type: Time
-#            - value: -
 
-    def __get_Finished():
+    Started = property(__get_Started, doc="""The Started attribute.
+                                            @type:string""")
+
+ 
+    def __get_Finished(self):
         return get_attribute("Finished")  
 
-    Finished = property(__get_Finished, doc="""The Finished attribute.\n
-                          @type:string""")
-#TODO: Check type of Finished, Timestamp is vague.
-#            - name: Finished
-#            - desc:  time stamp indicating when the job completed
-#            - mode:  ReadOnly, optional
-#            - type:  Time
-#            - value: -
+    Finished = property(__get_Finished, doc="""The Finished attribute.
+                                            @type:string""")
 
-    def __get_WorkingDirectory():
+    def __get_WorkingDirectory(self):
         return get_attribute("WorkingDirectory")  
 
     WorkingDirectory = property(__get_WorkingDirectory, 
-                                doc="""The WorkingDirectory attribute.\n
-                                @type:string""")
+                                doc="""The WorkingDirectory attribute.
+                                    @type:string""")
 
-    def __get_ExitCode():
+    def __get_ExitCode(self):
         return get_attribute("ExitCode")  
 
-    ExitCode = property(__get_ExitCode, 
-                          doc="""The ExitCode attribute.\n @type:int""")
-#TODO: implementation ExitCode: cast to int
+    ExitCode = property(__get_ExitCode, doc="""The ExitCode attribute.
+                                              @type:string""")
 
-    def __get_Termsig():
+    def __get_Termsig(self):
         return get_attribute("Termsig")  
 
-    Termsig = property(__get_Termsig, doc="""The Termsig attribute.\n
-                          @type:int""")
-#TODO: implementation TermSig: cast to int
+    Termsig = property(__get_Termsig, doc="""The Termsig attribute.
+                                            @type:string""")
 
-    #job inspection
+
     def get_job_description(self, tasktype=TaskType.NORMAL):
-        #out job_description  jd
-        """
-        Retrieve the job_description which was used to submit this job instance.
+        """Retrieve the job_description which was used to submit this job 
+        instance.
+        
         @summary: Retrieve the job_description which was used to submit this job
             instance.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: the JobDescription object
         @rtype: L{JobDescription}
@@ -1377,15 +1392,19 @@ class Job(Task, Attributes, Permissions, Async):
             the particular SAGA implementation did not persist the information).
             In that case, a 'DoesNotExist' exception is raised, with a 
             descriptive error message.
+            
         """
-        return JobDescription()
+        raise NotImplemented("This method is not yet implemented")
+    
+    
     
     def get_stdin(self, tasktype=TaskType.NORMAL):
-        """
-        Retrieve input stream for a job.
+        """Retrieve input stream for a job.
+        
         @summary: Retrieve input stream for a job.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @return: standard input stream for the job
         @rtype: L{StdIO}
@@ -1411,12 +1430,13 @@ class Job(Task, Attributes, Permissions, Async):
             exception is raised.
         @Note: if the job is not in 'New' state, it is not guaranteed that the 
             job did not receive other data on its standard input stream before.
+        
         """
-        return StdIO()
+        raise NotImplemented("This method is not yet implemented")
     
     def get_stdout(self, tasktype=TaskType.NORMAL):
-        """
-        Retrieve output stream of job
+        """Retrieve output stream of job
+        
         @summary: Retrieve output stream of job
         @param tasktype: return the normal return values or a Task object in a 
             final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
@@ -1448,11 +1468,11 @@ class Job(Task, Attributes, Permissions, Async):
             then not returned on the returned stream.
 
         """
-        return StdIO()
+        raise NotImplemented("This method is not yet implemented")
     
     def get_stderr(self, tasktype=TaskType.NORMAL):
-        """
-        Retrieve error stream of job
+        """Retrieve error stream of job
+        
         @summary: Retrieve error stream of job
         @param tasktype: return the normal return values or a Task object in a 
             final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
@@ -1484,17 +1504,17 @@ class Job(Task, Attributes, Permissions, Async):
             then not returned on the returned stream.
 
         """
-        return StdIO()
+        raise NotImplemented("This method is not yet implemented")
     
-    #job management
     def suspend(self, tasktype=TaskType.NORMAL):
-        """
-        Ask the resource manager to perform a suspend operation on the running 
-        job.
+        """Ask the resource manager to perform a suspend operation on the 
+        running job.
+        
         @summary: Ask the resource manager to perform a suspend operation on 
             the running job.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Running' state.
         @PostCondition: the job is in 'Suspended' state.
@@ -1510,15 +1530,16 @@ class Job(Task, Attributes, Permissions, Async):
             exception is raised.
 
         """
-        
+        raise NotImplemented("This method is not yet implemented")
+            
     def resume(self, tasktype=TaskType.NORMAL):
-        """
-        Ask the resource manager to perform a resume operation on a suspended 
+        """Ask the resource manager to perform a resume operation on a suspended 
         job.
         @summary: Ask the resource manager to perform a resume operation on a 
             suspended job.
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}  
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}  
         @type tasktype: value from L{TaskType}
         @PreCondition: the job is in 'Suspended' state.
         @PostCondition: the job is in 'Running' state.
@@ -1532,13 +1553,14 @@ class Job(Task, Attributes, Permissions, Async):
         @raise NoSuccess:
         @Note:  if the job is not in 'Suspended' state, an 'IncorrectState' 
             exception is raised.
+            
         """
-
+        raise NotImplemented("This method is not yet implemented")
     
     def checkpoint(self, tasktype=TaskType.NORMAL):
-        """
-        Ask the resource manager to initiate a checkpoint operation on a running 
-        job.
+        """Ask the resource manager to initiate a checkpoint operation on a 
+        running job.
+        
         @summary: Ask the resource manager to initiate a checkpoint operation 
             on a running job.
         @param tasktype: return the normal return values or a Task object in a 
@@ -1563,18 +1585,19 @@ class Job(Task, Attributes, Permissions, Async):
             exception is raised.
 
         """
-    
+        raise NotImplemented("This method is not yet implemented")
+        
     def migrate(self, jd, tasktype=TaskType.NORMAL):
-        #in job_description jd
-        """
-        Ask the resource manager to migrate a job.
+        """Ask the resource manager to migrate a job.
+        
         @param jd: new job parameters to apply when the job is migrated
         @type jd: L{JobDescription} 
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
-        @PreCondition:    the job is in 'Running' or 'Suspended' state.
-        @PostCondition:    the job keeps its state.
+        @PreCondition: the job is in 'Running' or 'Suspended' state.
+        @PostCondition: the job keeps its state.
         @PostCondition: jd is deep copied (no state is shared after method 
             invocation)
         @PostCondition: the job reflects the attributes specified in the 
@@ -1601,16 +1624,17 @@ class Job(Task, Attributes, Permissions, Async):
             job_description.
        
         """
-    
+        raise NotImplemented("This method is not yet implemented")
+        
     def signal(self, signum, tasktype=TaskType.NORMAL):
-        #in int signum
-        """
-        Ask the resource manager to deliver an arbitrary signal to a dispatched 
-        job.
+        """Ask the resource manager to deliver an arbitrary signal to a 
+        dispatched job.
+        
         @param signum: signal number to be delivered
         @type signum: int
         @param tasktype: return the normal return values or a Task object in a 
-            final, RUNNING or NEW state. By default, tasktype is L{TaskType.NORMAL}
+            final, RUNNING or NEW state. By default, tasktype 
+            is L{TaskType.NORMAL}
         @type tasktype: value from L{TaskType}
         @PreCondition: job is in 'Running' or 'Suspended' state.
         @PostCondition: the signal was delivered to the job.
@@ -1632,12 +1656,20 @@ class Job(Task, Attributes, Permissions, Async):
             'IncorrectState' exception is raised.
         
         """
-
+        raise NotImplemented("This method is not yet implemented")
+    
+    
+    
 
 class JobSelf(Job, Steerable):
-  """
-  The job_self class IS-A job which represents the current application (i.e. the
-  very application which owns that job_self instance). It can only by created
-  by calling get_self() on a job service (that call can fail though).
-  """
+    """
+    The job_self class IS-A job which represents the current application (i.e. 
+    the very application which owns that job_self instance). It can only by 
+    created by calling get_self() on a job service (that call can fail though).
+
+    @version: 1.0, designed for Python 2.x
+    
+    """
+  
+  
   
