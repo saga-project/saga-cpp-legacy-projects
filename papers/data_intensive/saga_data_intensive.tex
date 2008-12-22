@@ -561,7 +561,7 @@ Globus/GridFTP, KFS, and HDFS.
       \centering
           \includegraphics[width=0.25\textwidth]{saga_mapreduce_1worker.png}
           \caption{Performance figures for SAGA-MapReduce, using one
-            worker (and local to the master).%  and thus not
+            worker (and local to the master). %  and thus not
 %             distributed, but localised to a single machine,
 %             \jhanote{could the master and worker not be on different
 %               machines? if so, should we call this ``local'' or
@@ -590,7 +590,7 @@ Globus/GridFTP, KFS, and HDFS.
 \begin{figure}[t]
       \centering
           \includegraphics[width=0.25\textwidth]{saga_mapreduce_3workers.png}
-          \caption{}
+          \caption{stuff will come..}
       \label{saga_mapreduce_3workers.png}
 \end{figure}
 
@@ -697,7 +697,9 @@ upon~\cite{buyya_hpcc}. A minimal set of these attributes can be
 considered the use of virtualized machines, support for distributed
 file and structured data storage.  Here we will by necessity limit our
 discussion to two type of distributed file-systems (HDFS and KFS) and
-two types of distributed structured-data store (Bigtable and Hbase).
+two types of distributed structured-data store (Bigtable and Hbase)
+that we have developed SAGA adaptors for, and over which
+\sagamapreduce and SAGA All-Pairs works seamlessly.
 
 % Extended and additional attributes could include AppEngine style
 % environments. 
@@ -714,44 +716,45 @@ two types of distributed structured-data store (Bigtable and Hbase).
 {\it HDFS and KFS: }The Hadoop Distributed File System (HDFS) is a
 distributed parallel fault tolerant application that handles the
 details of spreading data across multiple machines in a traditional
-hierarchical file organization.  It has been highly successful and is
-currently used by Yahoo!, Facebook, and the New York Times to name a
-few.  HDFS also handles replication and striping of data for
-fault-tolerance.  Implemented in Java, HDFS is designed to run on
-commodity hardware while providing scalability and optimizations for
-large files.  The file system works by having one or two namenodes,
-masters, and many rack-aware datanodes, slaves.  All data requests go
-through the namenode that uses block operations on each data node to
-properly assemble the data for the requesting application.  The goal
-of replication and rack-awareness is to improve reliability and data
+hierarchical file organization.  % It has been highly successful and is
+% currently used by Yahoo!, Facebook, and the New York Times to name a
+% few.  HDFS also handles replication and striping of data for
+% fault-tolerance.  
+Implemented in Java, HDFS is designed to run on commodity hardware
+while providing scalability and optimizations for large files.  The
+file system works by having one or two namenodes, masters, and many
+rack-aware datanodes, slaves.  All data requests go through the
+namenode that uses block operations on each data node to properly
+assemble the data for the requesting application.  The goal of
+replication and rack-awareness is to improve reliability and data
 retrieval time based on locality.  In data intensive applications,
 these qualities are essential. \jhanote{Michael, can you put in a few
   words about KFS here please?}
 
-{\it Bigtable and HBase:} Bigtable is a specific type of database
-system created by Google to have better control over scalability and
-performance than other databases.  It is very flexible and has many
-advantages over normal databases.  The main difference is that it is
-meant to store extremely large datasets, into the petabytes, over
-thousands of machines~\cite{bigtable_small}.  Another advantage is the
+{\it Bigtable and HBase:} Bigtable~\cite{bigtable_small} is a specific
+type of database system created by Google to have better control over
+scalability and performance than other databases.  It is very flexible
+and has many advantages over normal databases.  The main difference is
+that it is meant to store extremely large datasets, into the
+petabytes, over thousands of machines.  Another advantage is the
 ability to be accessed through MapReduce.  Since MapReduce is
 inherently very well parallelized, accessing Bigtable is very
-efficient.  Due to the success of Bigtable, HBase was developed by
-as an open source alternative to Bigtable for use with Hadoop.
-Both HBase and Bigtable are implemented in a similar way.  They split
-up large tables and replicate them over many machines to avoid node
-failure.  Also, since the data are partitioned accessing it does not
-create a large strain on the grid's network bandwidth.
+efficient.  Due to the success of Bigtable, HBase was developed by as
+an open source alternative to Bigtable for use with Hadoop.  Both
+HBase and Bigtable split up large tables and replicate them over many
+machines to avoid node failure.  Also, since the data are partitioned
+accessing it does not create a large strain on the network bandwidth.
 
 There exist many other implementations of both distributed
-file-systems, such as Sector and of distributed data-store (such as
-Cassandra and Hybertable).  Hypertable is an open-source
-implementation of Bigtable; Cassandra is another Bigtable clone but
-eschews an explicit coordinator (Bigtable's Chubby, HBase's HMaster,
-Hypertable's Hyperspace) for a P2P/DHT approach for data distribution
-and location and for availability.  In the near future we will be
-providing adaptors for
-Sector~\footnote{http://sector.sourceforge.net/} and
+file-systems (such as Sector) and of distributed data-store (such as
+Cassandra and Hybertable); for the most part they are variants on the
+same theme technically but different language and performance criteria
+optimizations.  Hypertable is an open-source implementation of
+Bigtable; Cassandra is another Bigtable clone but eschews an explicit
+coordinator (Bigtable's Chubby, HBase's HMaster, Hypertable's
+Hyperspace) for a P2P/DHT approach for data distribution and location
+and for availability.  In the near future we will be providing
+adaptors for Sector~\footnote{http://sector.sourceforge.net/} and
 Cassandra~\footnote{http://code.google.com/p/the-cassandra-project/}
 As testimony to the power of SAGA, the ability to create the relevant
 adaptors in a lightweight fashion and thus extend applications to new
@@ -762,62 +765,68 @@ abstraction layer.
 % \jhanote{repeat the motivation for using both ``native'' and
 %   non-native infrastructure dependence}
 
-\section{Experiments}
+\section{SAGA as an interface to Clouds and Grids}
 
-\subsection*{Background and Motivation for the experiments}
+% \jhanote{Describe the native implementation of mapreduce\\
+%   essentially explain how this is yahoo's mapreduce: hadoop + hdfs}
 
-Most of the time users of grid applications are forced to work with a
-specific set of applications, because either the system administrator
-doesn't allow installation of software across the grid, or the
-application forced a specific configuration.  For example, Hadoop's
-MapReduce can only interface with the local file system or the HDFS.
-We hope to show that SAGA is capable of "swapping out" different
-configurations depending on specific grid requirements.
+% We are going to use the default advert service of SAGA (SQL) to 
+% communicate between jobs as well as store information about 
+% individual jobs.
 
-\jhanote{Describe the native implementation of mapreduce\\
-  essentially explain how this is yahoo's mapreduce: hadoop + hdfs}
+% In this experiment we are going to use the Hbase advert service 
+% provided by SAGA to determine how it compares to the default advert 
+% service, i.e. speed, and latency.
 
+% We are going to mimic Google's MapReduce, which uses the Google File
+% System (GFS) to store intermediate and final results.  They also store
+% metadata about the grid with Bigtable.  Since we do not have GFS or
+% Bigtable available to use, we are going to use the Hadoop File system
+% (HDFS) and HBase to store the metadata similar to what Yahoo! uses.
+% We will call this the native implementation of MapReduce.
 
-\subsection*{MapReduce using Advert Service}
-%Right now assume we are using 1GB to 10GB
-We are going to use the default advert service of SAGA (SQL) to 
-communicate between jobs as well as store information about 
-individual jobs.
+Experiments are:
 
-\subsection*{MapReduce using HBase}
-In this experiment we are going to use the Hbase advert service 
-provided by SAGA to determine how it compares to the default advert 
-service, i.e. speed, and latency.
+%\begin{compactitem}
+\begin{enumerate}
+\item \sagamapreduce:  versus native MapReduce (using HBase and Hadoop)
+\item \sagamapreduce: local versus distributed file system (HDFS) using 
+ upto 3 workers (upto a data-set size of 10GB).
+\item \sagamapreduce: Vary the number of workers and the size of
+  the data-set for local-file systems
+\item \sagamapreduce: distributed file system using KFS upto 10
+  workers (using data-set sizes upto 10GB)
+\end{enumerate}
+%\end{compactitem}
 
-\subsection*{Native Implementation: MapReduce using HBase and Hadoop}
-We are going to mimic Google's MapReduce, which uses the Google File
-System (GFS) to store intermediate and final results.  They also store
-metadata about the grid with Bigtable.  Since we do not have GFS or
-Bigtable available to use, we are going to use the Hadoop File system
-(HDFS) and HBase to store the metadata similar to what Yahoo! uses.
-We will call this the native implementation of MapReduce.
+We have also distinguished between SAGA All-Pairs using Advert Service
+versus using Hbase for data-store, but due to space constraints we
+will report results of the All-Pairs experiments elsewhere.
 
 \subsection{SAGA-MapReduce on Grids}
 
 \begin{figure}[t]
   \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
-\label{3}
 \caption{Plots showing how the \tc for different data-set sizes
   (1-10GB) varies with the number of workers employed.
   Larger the data-set creater the advantage of more workers. For
   example, As the data-set size increases, the number..}
-
+\label{grids1}
 \end{figure}
 
 \begin{figure}[t]
   \includegraphics[width=0.4\textwidth]{MapReduce_local_datasizeperworker.png}
-\label{1}
+\caption{Stuff will go here}
+\label{grids2}
 \end{figure}
 
 \begin{figure}[t]
   \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime_3d.png}
-\label{2}
+\caption{Stuff will go here too}
+\label{grids3}
 \end{figure}
+
+Experiments 1 and 3; Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
 
 % \begin{figure}[t]  \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontimeperworkerdatasize.png}\label{4}
 % \end{figure}
@@ -829,6 +838,9 @@ We will call this the native implementation of MapReduce.
 % \end{figure}
 
 \subsection{SAGA-MapReduce on Cloud-like infrastructure}
+
+Experiment 2 and 4; Figures ~\ref{saga_mapreduce_1worker.png},
+~\ref{saga_mapreduce_3workers.png}
 
 \subsection{SAGA-MapReduce on Clouds}
 
