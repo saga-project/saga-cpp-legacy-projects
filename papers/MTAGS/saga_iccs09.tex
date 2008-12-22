@@ -1,7 +1,3 @@
-%\documentclass[times, 11pt, onecolumn]{article} 
-%\documentclass[times, 10pt]{article} 
-%\documentclass{article} 
-%\documentclass[conference,final]{IEEEtran}
 \documentclass{llncs}
 
 \usepackage{subfigure}
@@ -36,7 +32,8 @@
 \author{Shantenu Jha\inst{1}, Yaakoub El-Khamra\inst{1}, Joohyun
   Kim\inst{1}, Andre Luckow\inst{3}}
 
-\institute{Center for Computation and Technology, Louisiana State University, Baton Rouge LA 70803, USA \and
+\institute{Center for Computation and Technology, Louisiana State
+  University, Baton Rouge LA 70803, USA \and
 %Department of Computer Science, Louisiana State University, Baton Rouge LA 70803, USA \and
 Institute of Computer Science, Potsdam University, Germany}
 
@@ -86,54 +83,69 @@ Institute of Computer Science, Potsdam University, Germany}
 
 
 \begin{abstract}
-  The aim of this paper is to demonstrate how the Simple API for Grid
-  Applications (SAGA) can be used to develop a range of
-  applications which are in turn composed of multiple sub-tasks.
+%  The aim of this paper is to demonstrate how 
+  The Simple API for Grid Applications (SAGA) can be used to develop a
+  range of applications which are in turn composed of multiple
+  sub-tasks.
   %with agile execution models. 
   In particular SAGA is an effective tool for coordinating and
-  orchestrating such applications, whilst keeping the application
-  agnostic to the details of the infrastructure used. Although
-  developed primarily in the context of distributed applications, SAGA
-  provides an equally valid approach for applications with many
-  sub-tasks on single high-end
-  supercomputers. % dynamic applications with many sub-tasks,
+  orchestrating the many sub-tasks of such applications, whilst
+  keeping the application agnostic to the details of the
+  infrastructure used. Although developed primarily in the context of
+  distributed applications, SAGA provides an equally valid approach
+  for applications with many sub-tasks on single high-end
+  supercomputers, such as emerging peta-scale computers.
+  % dynamic applications with many sub-tasks,
   %possibly distributed, 
   Specifically, in this paper we describe how SAGA has been used to
-  develop applications from the following two types of applications:
-  applications with loosely-coupled homogeneous sub-tasks and,
-  applications with loosely-coupled heterogeneous sub-tasks. We also
-  analyse and contrast the scheduling requirements and coupling of the
-  sub-tasks for these two applications.  As we will show, applications
-  with multiple sub-tasks often have dynamic characteristics, and thus
-  require support for both infrastructure-independent programming
-  models and agile execution models. Hence attention must be paid to
-  the practical deployment challenges along with the theoretical
-  advances in the development of infrastructure-independent
-  applications.
+  develop applications from two types of applications: the first with
+  loosely-coupled homogeneous sub-tasks and, applications with
+  loosely-coupled heterogeneous sub-tasks. We also analyse and
+  contrast the coupling and scheduling requirements of the sub-tasks
+  for these two applications.  We find that applications with multiple
+  sub-tasks often have dynamic characteristics, and thus require
+  support for both infrastructure-independent programming models and
+  agile execution models. Hence attention must be paid to the
+  practical deployment challenges along with the theoretical advances
+  in the development of infrastructure-independent applications.
 \end{abstract}
 
 There exist many scientific problems that are solved by the collective
 analysis of many independent tasks, e.g., Monte-Carlo simulations, or
-parameter sweeps. However, there exist a large class of
-scientific problems that involve applications that can either be
-decomposed into smaller coupled sub-tasks via the of choice an
-algoirthm, or are naturally composed of coupled sub-tasks.  In this
-paper, we will discuss Replica-Exchange (RE) and Ensemble
+parameter sweeps.  There also exists a large class of scientific
+problems that involve applications that can either be decomposed into
+smaller coupled sub-tasks via the of choice an appropriate
+algorithm~\cite{spice_sc05}, or are naturally composed of coupled
+sub-tasks. The decomposition of an otherwise monolithic application
+into smaller components of computation, in principle makes them
+amenable to efficient distribution. 
+
+In this paper, we will discuss Replica-Exchange (RE) and Ensemble
 Kalman-Filter (EnKF) based applications, as representative prototypes
-of of applications with coupled sub-tasks. In addition to a level of
-similarity between application characteristics, what binds the two
-together, is our adopted approach of developing distributed
-applications.  Although similar at some levels, they possses important
-differences too. For RE based simulations, the sub-tasks are identical
-(ie. replicas), whereas for the EnKF the sub-tasks are
-heterogenous. Additionally the nature of coupling between the
-sub-tasks in the former (regular intervals and pair-wise) is very
-different from the latter (irregular and a global-synchronisation
-point).
+of of applications with coupled sub-tasks.  Although similar at some
+levels, they possess important differences too.  For RE based
+simulations, the sub-tasks are identical (ie. replicas), whereas for
+the EnKF the sub-tasks are heterogeneous. Additionally the nature of
+coupling between the sub-tasks in the former (regular intervals and
+pair-wise) is very different from the latter (irregular and a
+global-synchronisation point).
 
-Although here the focus is on utilising distributed mutliple machines,
-the same approach can be used for monolithic large machines.....
-
+It is important to appreciate the difference between
+loosely-coupled when typically used in the context of parallel
+applications versus when used in the context of distributed
+applications. For the former, loosely-coupling is most often a
+reference to the application's tolerance of latency in message
+passing. For distributed applications loose (or tight) coupling has
+more context: it could be a reference to the flexibility in scheduling
+and placing the sub-tasks or even a flexibility in choice of resources
+the different sub-tasks are mapped to. Although both applications we
+investigate are classified as loosely-coupled, the nature of the
+coupling between their sub-tasks varies. It is important to appreciate
+The nature of the coupling of the sub-tasks, in addition to imposing
+constraints on scheduling and resource mapping strategies, also
+determines the feasibility of any speculative computing.  Thus, along
+with the size and number of sub-tasks, the nature of coupling
+determines the overall development and deployment strategy.
 
 % In the latter case, they are not only heterogeneous they are also
 % highly irregular and both applications need to be adaptive to dynamic
@@ -142,19 +154,21 @@ the same approach can be used for monolithic large machines.....
 % loosely-coupled identical sub-tasks (ie replicas) and loosely-coupled
 % but heterogenous sub-tasks.
 
-The Simple API for Grid Applications (SAGA)~\cite{saga_url}
-provides a simple, standard, programmatic approach to codify
-distributed applications such that they can be seamlessly run on any
-underlying infrastructure. Critically this allows the application
-developer to focus on supporting the application characteristics and
-exploiting the relative strengths of different infrastructure whilst
-not worrying about adapting to the details of the underlying
-infrastructure. Not being coupled to the details of the underlying
-infrastructure is a necessary condition for applications whose
-resource requirement might increase or those that might want to make
-opportunistic use of newly available resources. In other words
-independence from specific infrastructure, is a necessary condition
-for dynamic applications in order to achieve the desired
+In addition to some similarity between application characteristics,
+what binds the two together, is our adopted approach of developing
+distributed applications. The Simple API for Grid Applications
+(SAGA)~\cite{saga_url} provides a simple, standard, programmatic
+approach to codify distributed applications such that they can be
+seamlessly run on any underlying infrastructure. Critically this
+allows the application developer to focus on supporting the
+application characteristics and exploiting the relative strengths of
+different infrastructure whilst not worrying about adapting to the
+details of the underlying infrastructure. Not being coupled to the
+details of the underlying infrastructure is a necessary condition for
+applications whose resource requirement might increase or those that
+might want to make opportunistic use of newly available resources. In
+other words independence from specific infrastructure, is a necessary
+condition for dynamic applications in order to achieve the desired
 agile-execution models and thus be adaptive.  The aim of this paper is
 to discuss how SAGA has been used to develop two applications with
 multiple sub-tasks in a way such that these applications can be
@@ -164,14 +178,6 @@ with a minimal, if not no-changes.
 % We posit that along with the size and number of sub-tasks,
 % the coupling between the sub-tasks is an important determinant of the
 % development and deployment mechanism.
-
-Although both applications we investigate are classified as
-loosely-coupled, the nature of the coupling between their sub-tasks
-varies. It is important to appreciate the nature of the coupling of
-the sub-tasks, as it imposes constraints on scheduling and resource
-mapping strategies as well as any speculative computing.  Thus, along
-with the size and number of sub-tasks, the nature of coupling
-determines the overall development and deployment strategy.
 
 % In the former, the sub-tasks progress independent of other sub-tasks
 % with the exception of one (referred to as the paired replica). There
@@ -195,10 +201,10 @@ determines the overall development and deployment strategy.
 % infrastructure Our experiences are consistent with the fact that it
 % is ~\cite{TeraGyroid}
 
-However, lingering problems associated with deployment on production
+Lingering problems associated with deployment on production
 general-purpose Grids (ie broad-Grids) has made the uptake of Grids
 challenging and often unattractive to the end-scientist. In a
-nutshell, our experience is conistent with and indicates that one of
+nutshell, our experience is consistent with and indicates that one of
 the reasons deployment on general-purpose Grids is difficult, because
 Grids are comprised of many ``isolated'' components, and we believe
 that this contributes to a currently unmanageable number
@@ -209,7 +215,10 @@ currently unrealistic and motivate the end-scientist to settle for the
 the solution that is often simpler to deploy. Whereas this has
 consequences for all distributed applications, it influences the
 development and uptake of {\it dynamic} distributed applications
-particularly.
+particularly.  Although the focus here is on utilising distributed
+multiple machines, the same approach can be used for monolithic large
+machines. We will demonstrate the validity of the SAGA approach for
+high-performance computing on large single machines.
 
 % , of which there are a large number of multiple sub-task
 % applications.
@@ -235,7 +244,8 @@ POSIX-style API to the most common Grid functions at a sufficiently
 high-level of abstraction so as to be able to be independent of the
 diverse and dynamic Grid environments.  The SAGA specification defines
 interfaces for the most common Grid-programming functions grouped as a
-set of functional packages.  
+set of functional packages.  The SAGA Version 1.0 specification
+defines the following packages:
 
 \begin{figure}[!h]
   \begin{center}
@@ -250,56 +260,57 @@ set of functional packages.
     adaptors make applications developed using SAGA grid portable.}
   \label{sagalayer}
 \end{figure}
-
 %\begin{itemize}
 
-\noindent Version 1.0~\cite{saga-core} of the specification has been submitted
-to the OGF editorial pipeline.  It defines the following packages:
+% \noindent Version 1.0~\cite{saga-core} of the specification has been submitted
+% to the OGF editorial pipeline.  
+
 \begin{compactitem}
 \item File package - provides methods for accessing local and remote
   filesystems, browsing directories, moving, copying, and deleting
   files, setting access permissions, as well as zero-copy reading and
-  writing
-\item Replica package - provides methods for replica management such
-  as browsing logical filesystems, moving, copying, deleting logical
-  entries, adding and removing physical files from a logical file
-  entry, and search logical files based on attribute sets.
+  writing. The replica package support the same functionality for logical files.
+% \item Replica package - provides methods for replica management such
+%   as browsing logical filesystems, moving, copying, deleting logical
+%   entries, adding and removing physical files from a logical file
+%   entry, and search logical files based on attribute sets.
 \item Job package - provides methods for describing, submitting,
-  monitoring, and controlling local and remote jobs. Many parts of
-  this package were derived from the largely adopted
-  DRMAA~\cite{drmaa_url} specification.
+  monitoring, and controlling local and remote jobs. % Many parts of
+%   this package were derived from the largely adopted
+%   DRMAA~\cite{drmaa_url} specification.
 \item Stream package - provides methods for authenticated local and
   remote socket connections with hooks to support authorization and
   encryption schemes.
-\item RPC package - is an implementation of the GGF GridRPC
+\item RPC package - is an implementation of the OGF GridRPC
   API~\cite{gridrpc_url} definition and provides methods for unified
   remote procedure calls.
 \end{compactitem}
 %\end{itemize}
 
-The two critical aspects of SAGA are its {\it simplicity} of use and
-the fact that it is a recommended standard (and soon on the road to
-becoming a community {\it standard}).  It is important to note, that
-these two properties provide the added value of using SAGA for Grid
-application development.  Simplicity arises from being able to limit
-the scope to only the most common and important grid-functionality
-required by applications.  Standardization represents the fact that
-the interface is derived from a wide-range of applications using a
-collaborative approach and the output of which is endorsed by the
-broader community.
+The SAGA Runtime Engine can dynamically load environment specific
+adaptor (see Fig.~\ref{sagalayer}).  The two critical aspects of SAGA are its
+{\it simplicity} of use and the fact that it is a proposed standard.
+It is important to note, that these two properties provide the added
+value of using SAGA for distributed application development.
+Simplicity arises from being able to limit the scope to only the most
+common and important grid-functionality required by applications.
+Standardization represents the fact that the interface is derived from
+a wide-range of applications using a collaborative approach and the
+output of which is endorsed by the broader community.
 
-\up
+\upp
 
 \subsection{Developing Distributed Applications with SAGA}
 
-\up
+\upp
 
 SAGA can be used to develop and support distributed applications in
 many different ways; the exact way in which it is used, in addition to
 the application characteristics, depends upon factors such as how the
 application needs to be used. For simplicity, in this paper, we will
 discuss only three different approaches for distributed application
-development.  First, applications can use SAGA directly for
+development (schematically summarized on the left side of
+Fig.~\ref{sagalayer}).  First, applications can use SAGA directly for
 standardised and simple distributed function calls that work on nearly
 all middleware systems. Typically, applications developed using direct
 SAGA calls are {\it explicitly} distributed.  Secondly, SAGA can be
@@ -316,22 +327,11 @@ usage-mode. The RE application that we will discuss in the paper
 belongs to the third category, whilst the EnKF based application is of
 the first type.
 
-% \up
-% \begin{figure}[!h]
-%   \begin{center}
-%     \subfigure{\label{sagalayer2}
-%       \includegraphics[width=3.33in]{saga_layered_application}}
-%   \end{center}
-%   \caption{Schematic diagram showing how SAGA supports the development
-%     of three simple, but important ways of developing distributed
-%     applications. \up \up}
-%   \label{sagalayer}
-% \end{figure}
-
 
 \section{Applications With Loosely-Coupled Homogeneous
   Sub-Tasks: Replica-Exchange}  
-\up \alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just
+
+\upp \alnote{Are we referring to sub-jobs as sub-tasks or sub-job? Just
   to keep this consistent with the other paper. We previously
   discussed that task has another meaning within SAGA, which could
   potentially lead to confusion.}
@@ -341,29 +341,29 @@ the first type.
   sub-jobs if we like to. Especially given that the workshop is using
   a generic term -- ``multi-tasks''.}
 
-Replica-Exchange (RE) simulations~\cite{Sugita:1999rm},
-%\cite{hansmann} 
-are an example of distributed applications consisting of homogeneous
-sub-tasks. RE simulations can be used to understand important physical
-phenomena -- ranging from protein folding dynamics to binding affinity
-calculations required for computational drug discovery.  For RE
-simulations utilizing as many distributed resources as possible, is
-critical for the effective solution of the scientific
-problem~\cite{repex_ptrsa}.
-
-Distributed RE simulations must be able to orchestrate different
-resources in a complex and dynamic environment.  Writing such an
-applications is a complex task for a myriad number of reasons, not
-least of which is that distributed computing environments are
-inherently prone to failures~\cite{Luckow:2008la}. In the following a
+% Replica-Exchange (RE) simulations~\cite{Sugita:1999rm},
+% are an example of distributed applications consisting of homogeneous
+% sub-tasks. 
+RE~\cite{Sugita:1999rm} simulations can be used to understand
+important physical phenomena -- ranging from protein folding dynamics
+to binding affinity calculations required for computational drug
+discovery.  For RE simulations utilizing as many distributed resources
+as possible, is critical for the effective solution of the scientific
+problem~\cite{repex_ptrsa}.  Distributed RE simulations must be able
+to orchestrate different resources in a complex and dynamic
+environment.  Writing such an applications is a complex task for a
+myriad number of reasons~\cite{repex_escience08}. In the following a
 SAGA-based RE framework developed for molecular dynamics simulations
 is described.
+% , not least of which is that distributed
+% computing environments are inherently prone to
+% failures
 
-\up
+\upp
 
 \subsection{Application Description}
 
-\up
+\upp
 
 % Replica-exchange simulations are also used to allow a sufficient
 % sampling of configurations. This is an important requirement for
@@ -395,39 +395,41 @@ candidates for distributed environments.
 % Replica Exchange simulations used within Molecular Dynamics (MD)
 % approaches,
 
-\up
+\upp
 
 \subsection{Application Architecture}
 
-\up
+\upp
 
 There are many architectural aspects of the framework used to
 implement RE simulations. However, we will focus on the abstractions
 that we create using SAGA that enable efficient job-submission on any
-underlying infrastructure.  Details can be found in
-Ref.~\cite{repex_ptrsa, repex_escience08}. RE simulations can be
-thought of as consisting of two distinct components: the simulation
+underlying infrastructure.  Details of the architecture and
+abstractions can be found in
+Ref.~\cite{repex_ptrsa,repex_escience08}. Here we present the
+architecture in the context of an application consisting of
+loosely-coupled multiple sub-tasks. RE simulations can be thought of
+as consisting of two distinct components: the simulation
 engine/mechanism used for each replica process, and the
 orchestration-coupling mechanism between the individual replicas. Our
 current RE framework uses NAMD for the former and a SAGA-based
 framework for orchestration and coordination of the replica sub-tasks.
 
-The developed RE framework~\cite{Luckow:2008la} comprises of the
+The developed RE framework~\cite{repex_escience08} comprises of the
 \emph{RE-Manager} -- the central master deployed on the user's
 desktop, and the \textit{Replica-Agents}, that reside on the machines
 where RE simulations are carried out. The RE-Manager orchestrates all
-replicas, i.\,e.\ it is responsible for the parameterization of
+replicas, i.\,e.\ it is responsible for the parametrization of
 replica tasks, file staging, job spawning and the conduction of the
-replica-exchange itself.  The Replica-Agent %is launched by a Grid job
-%and 
-is responsible for spawning and monitoring the replicas (sub-tasks).
+replica-exchange itself.  The Replica-Agent is responsible for
+spawning and monitoring the sub-tasks.
 
 In particular, queueing delays can represent a major bottleneck: a
 single crowded resource can slowdown the simulation arbitrary. Thus,
 to achieve an optimal time to solution, RE sub-tasks need to be
 dispatched efficiently.  A common principle to prevent this is the
 usage of Glide-In jobs, which represent a placeholder for a set of
-sub-tasks (see Frey et.\,al.~\cite{citeulike:291860}).  For a Glide-In
+sub-tasks (see Ref.~\cite{citeulike:291860}).  For a Glide-In
 job, a sufficiently large chunk of resources is requested. Smaller
 sub-tasks can then rapidly be executed through the Glide-In job.
 Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used
@@ -485,9 +487,6 @@ our claim of independence from underlying-infrastructure.
 
 \up
 
-
-
-
 \subsection{Application Deployment}
 
 \up
@@ -498,12 +497,16 @@ our claim of independence from underlying-infrastructure.
 
 We have shown how using the SAGA Glide-In infrastructure on multiple
 TeraGrid/LONI resources, the time-to-solution can be
-reduced~\cite{Luckow:2008la}; here we focus on using the same
+reduced~\cite{Luckow:2008la}. Continuing with the theme that well
+developed abstractions can serve across the spectrum -- distributed
+HPC machines (such as the TeraGrid) to single high-end supercomputers
+(such as Abe or QueenBee) to many smaller machines flocked together
+(Condor style high-throughput), we focus on using the same
 infrastructure to reduce the time-to-solution on a single machine.
 This is also a test of the scalability of the SAGA-based Glide-In
 framework on a single machines. % (QueenBee (QB)).
 
-Figure~\ref{fig:perf_remd_glidin} shows that the Glide-In framework is
+Figure~\ref{perf_remd_glidin} shows that the Glide-In framework is
 especially beneficial if there are fluctuations in the queue-time for
 the sub-tasks (which is almost always!). The more sub-tasks are
 spawned, the more likely such fluctuations/delays become. While with
@@ -514,29 +517,32 @@ queueing times becomes obvious by the high standard deviation found in
 the measurements.
 
 \begin{figure}[htbp]
-  \subfigure{\includegraphics[width=0.5\textwidth]{perf_glidein.pdf}}
-  \subfigure{\includegraphics[width=0.5\textwidth]{perf_repex2.pdf}}
+  \subfigure{\label{perf_remd_glidin} \includegraphics[width=0.5\textwidth]{perf_glidein.pdf}}
+  \subfigure{\label{exchange-165} \includegraphics[width=0.5\textwidth]{perf_repex2.pdf}}
   \caption{SAGA Glide-In Performance: The figure shows the average
     runtime of a RE simulation with 16 RE processes running on 16
     cores each on QueenBee.  The Glide-In framework provides the
     possibility to effectively cluster RE jobs to receive a
     significant reduced time to solution (upto
     80\,\%) even on a single machine.
-    (1) The plots show the time-series of the average times between
-    exchange attempts (in red and using the left-hand y axis) and the
-    number of active Glide-Ins over a six-hour run on the TeraGrid.
-    (2) The plot in red (using the left-hand y axis) illustrates how
-    the average time between exchange attempts decreases as the number
-    of Glide-Ins increases. The plot in green shows the speedup}
+    % (1) The plots show the time-series of the average times between
+%     exchange attempts (in red and using the left-hand y axis) and 
+    The plot on the right shows the number of active Glide-Ins over a
+    six-hour run on the TeraGrid.  The plot in red (using the
+    left-hand y axis) illustrates how the average time between
+    exchange attempts (inverse of physical efficiency) decreases as
+    the number of Glide-Ins increases. The plot in green shows the
+    speedup.}
 \end{figure}
 
-Figure~\ref{fig:perf_remd_glidin} shows that the SAGA Glide-In
-framework can provide a reduced time to solution even on a single
-machine by avoiding queuing time delays and fluctuations for every
-sub-task and allowing the efficient dispatching of RE tasks solely
-through the Replica-Agent. During our experiments we were able to
-measure speedups of up to 80\,\% compared to the non Glide-In
-approach.
+Figure~\ref{perf_remd_glidin} shows that the SAGA Glide-In framework
+can provide a reduced time to solution even on a single machine by
+avoiding queuing time delays and fluctuations for every sub-task and
+allowing the efficient dispatching of RE tasks solely through the
+Replica-Agent. During our experiments we were able to measure speedups
+of up to 80\,\% compared to the non Glide-In
+approach. Fig.~\ref{exchange-165} shows several measures of how the
+use of SAGA framework results in efficienct and effective deployment.
 
 % The unpredictable nature of these queueing times is reflected in the
 % high standard deviation observed in the runtimes. While queueing times
@@ -547,12 +553,11 @@ approach.
 % are used every sub-jobs is subject to the queuing delay at the local
 % scheduler.
 
-The results can be summarized as follows: 1) The SAGA Glide-In
-framework can efficiently dispatch RE sub-tasks providing an enhanced
-time to solution even when deployed on a single machines. 2) By using
-a clever assignment of Glide-Ins to hosts and jobs, the runtime can be
-further optimized. In future, we plan to utilize this by deploying
-adaptive optimization strategies at runtime.
+% The SAGA Glide-In framework can efficiently dispatch RE sub-tasks
+% providing an enhanced time to solution even when deployed on a single
+% machines. 2) By using a clever assignment of Glide-Ins to hosts and
+% jobs, the runtime can be further optimized. In future, we plan to
+% utilize this by deploying adaptive optimization strategies at runtime.
 
 % By avoiding long queuing time for big jobs, a distribution of the
 % replica processes to a set of less crowded resources provides a lot of
@@ -573,21 +578,20 @@ adaptive optimization strategies at runtime.
 
 
 
-\section{Loosely-Coupled Heterogenous Sub-Tasks: Kalman-Filter
+\section{Loosely-Coupled Heterogeneous Sub-Tasks: Kalman-Filter
   Simulations}
 
-\up
+\upp
 
 Ensemble Kalman filters (EnKF) are widely used in science and
-engineering~\cite{KalmanPaper}.
-EnKF are recursive filters that can be used to handle large, noisy
-data. The data can be the set of results and parameters of ensembles
-of different models of a particular physical system. The ensembles are
-run through the Kalman filter to obtain the true physical state of the
-data ~\cite{KalmanPaper}, to effectively solve the inverse
-problem.
+engineering~\cite{KalmanPaper}.  EnKF are recursive filters that can
+be used to handle large, noisy data. The data can be the set of
+results and parameters of ensembles of different models of a
+particular physical system. The ensembles are run through the KF to
+obtain the true physical state of the data ~\cite{KalmanPaper}, to
+effectively solve the inverse problem.
 
-\up
+\upp
 
 \subsection{Application Description}
 
@@ -599,10 +603,11 @@ problem.
 % size within a given system to submit sub-task to...
 %\section{}
 
-\up
-In EnKF, an ensemble of forward models are run with
-different parameters. The data they produce is assimilated at the end
-of each stage, the parameters are corrected, and the models are run
+\upp
+
+In EnKF, an ensemble of forward models are run with different
+parameters. The data they produce is assimilated at the end of each
+stage, the parameters are corrected, and the models are run
 again. This process is repeated several times until a pre-determined
 criteria has been met. The ensemble of forward models are run as
 sub-tasks on possibly different machines, launched by a master filter
@@ -624,58 +629,61 @@ the filter and the ensemble of models.
 
 The variation in model parameters often has a direct and sizable
 influence on the complexity of solving the underlying equations, thus
-varying the required runtime of different models.  The end-to-end
-application consists of several stages; in general at each stage the
-number of models generated varies (each model is solved via a
-sub-task). The size and granularity of the models also varied within a
-stage; consequently for any given stage, the resource requirements of
-each sub-task varied (from 4 processors to 64 processors). The
-run-time of each model was unpredictable and uncorrelated with the
-run-time of models running on the same number of processors – a truly
-independent variable.  This is the fundamental reason behind the fact
-that the individual sub-tasks are heterogeneous with varying run-times
-and resource requirements (if not very hard-to-predict).  Since we
-need both parameters and results for the EnKF, a mechanism to assign
-models to available resources based on their expected time to
-completion and resource requirement is useful.  Such a mechanism
-estimates the time a model will spend in the queue of a resource, the
-time it needs to run, and the time required to migrate the data it
-requires/produces back and forth, and based on that attempt to
-minimize the time required to perform each Kalman filter iteration.
-In fact, with changing resource simulation requirements (as is the
-case with models that find themselves lagging behind the rest of the
-model pack), a mechanism which can take advantage of of faster,
-cheaper or more powerful machines is even more
+varying the required runtime of different models.  
+% The end-to-end application consists of several stages; in general at
+% each stage the number of models generated varies (each model is solved
+% via a sub-task). The size and granularity of the models also varied
+% within a stage; consequently for any given stage, the resource
+% requirements of each sub-task varied (from 4 processors to 64
+% processors). The run-time of each model was unpredictable and
+% uncorrelated with the run-time of models running on the same number of
+% processors – a truly independent variable.  This is the fundamental
+% reason behind the fact that the individual sub-tasks are heterogeneous
+% with varying run-times and resource requirements (if not very
+% hard-to-predict). 
+Since we need both parameters and results for the
+EnKF, a mechanism to assign models to available resources based on
+their expected time to completion and resource requirement is useful.
+Such a mechanism estimates the time a model will spend in the queue of
+a resource, the time it needs to run, and the time required to migrate
+the data it requires/produces back and forth, and based on that
+attempt to minimize the time required to perform each Kalman filter
+iteration.  In fact, with changing resource simulation requirements
+(as is the case with models that find themselves lagging behind the
+rest of the model pack), a mechanism which can take advantage of
+faster, cheaper or more powerful machines is even more
 advantageous~\cite{escience07}.
 
-We have developed a mechanism whereby EnKF can be
-solved using multiple-resources, using application-level scheduling
-applied dynamically~\cite{saga_tg08}, ie mapping the sub-tasks
-requirement to the resources available at the instant the sub-tasks
-become available and ready to run, as opposed to {\it a priori} static
-method of job submission. For the problem size studied, the sub-tasks
-required mostly less than 32 processors. For this paper we used the
-earlier developed frameworks and deployed it on a single large machine
--- NCSA's Abe~\footnote{We wanted to use Ranger, but BQP was not
+We have developed a mechanism whereby EnKF can be solved using
+multiple-resources, using application-level scheduling applied
+dynamically~\cite{saga_tg08}, ie mapping the sub-tasks requirement to
+the resources available at the instant the sub-tasks become available
+and ready to run, as opposed to {\it a priori} static method of job
+submission.  For the problem size studied, the sub-tasks required
+mostly less than 32 processors. For this paper we used the earlier
+developed frameworks and deployed it on a single large machine --
+NCSA's Abe~\footnote{We wanted to use Ranger, but BQP was not
   available on Ranger, and would not have been before the submission
-  of this paper}. For small physical models where sub-tasks are
-typically small -- both spatially and temporally, overheads in using
-multiple, distributed machines most often result in total
-time-to-solution being higher than if a large monolithic
-single-machine were used. But as shown in
-Ref~\cite{novelsubmissionmode}, as the number of processors requested
-for a sub-task increases, the total wait time in the queueing system,
-often goes up (disproportionately). Thus a mechanism (multiple,
-distributed versus single machine) that is more efficient for physical
-models with sub-tasks that have typically low processor counts, will
-not necessarily be the more efficient as the typical sub-task size
-increases. Therefore it is crucial that any general-purpose solution be
-usable on both single large machines to multiple machines.
-\jhanote{Yaakoub, do you have measure of time-to-completion for the
-  two-cases of the toy-problem?} Ideally we can enhance throughput
-further by applying the Glide-In mechanisms developed to the dynamic
-tasks to aggregate similar sub-tasks. We will report on the results of
-this in future work.
+  of this paper}. %  For small physical models where sub-tasks are
+% typically small -- both spatially and temporally, overheads in using
+% multiple, distributed machines most often result in total
+% time-to-solution being higher than if a large monolithic
+% single-machine were used. But as shown in
+% Ref~\cite{novelsubmissionmode}, as the number of processors requested
+% for a sub-task increases, the total wait time in the queueing system,
+% often goes up (disproportionately). Thus
+A mechanism (multiple, distributed versus single machine) that is more
+efficient for physical models with sub-tasks that have typically low
+processor counts, will not necessarily be the more efficient as the
+typical sub-task size increases. Therefore it is crucial that any
+general-purpose solution be usable on both single large machines to
+multiple machines.  \jhanote{Yaakoub, do you have measure of
+  time-to-completion for the two-cases of the toy-problem?}  We can
+enhance throughput further by applying the Glide-In mechanisms
+discussed in the earlier section, which facilitate dynamic tasks being
+aggregated from similar sub-tasks. We will report on the results of
+this and whether the framework can be used on high-end petascale
+supercomputers in future work.
 
 %that to determine the best resource to use at
 
@@ -685,11 +693,18 @@ running the forward models, it is also more technically challenging
 than running on a single machine.  Authentication, job launching,
 multiple executables in correct paths for different architectures and
 file systems, and of course file transfer across the different
-machines are all possible points of failure. Rigorous fault tolerance
-can be built into application framework using
-SAGA~\cite{Luckow:2008la}; however it can be argued that running all
-the models on a single large machine would be a simpler solution as
-all of the afore-mentioned technical difficulties are eliminated.
+machines are all possible points of failure. % Rigorous fault tolerance
+% can be built into application framework using
+% SAGA~\cite{Luckow:2008la}.
+These are just some of the additional reasons why a high-level
+interface such as SAGA is required to hide the heterogeneity of
+different distributed systems. In spite of that, several challenges
+remain -- technical, sociological as well as policy level, some
+specific examples of relevance we discuss in the next section.
+
+% It can be argued that running all the models on a single large machine
+% would be a simpler solution as the afore-mentioned technical
+% difficulties; however a new range of challenges emerge. We are
 
 \up
 
@@ -801,13 +816,13 @@ explicitly distributed applications.
 
 % Finally, somewhat related to the concept of explicitly distributed
 % applications, is the challenge of optimally scheduling sub-tasks.
-Optimally scheduling sub-tasks remains a challenge of ``many tasks''
-distributed computing; however as demonstrated, for adaptive
-applications, scheduling can often be done effectively at the
-application level.  This is possible because, as shown, adaptive
-applications don't necessarily need tight co-scheduling, but often
-just lightweight-coupling between resources. This is yet another
-advantage of an agile-execution model.
+Optimal scheduling of sub-tasks remains a challenge of distributed
+computing; however as demonstrated, for adaptive applications,
+scheduling can often be done effectively at the application level.
+This is possible because, as shown, adaptive applications don't
+necessarily need tight co-scheduling, but often just
+lightweight-coupling between resources. This is yet another advantage
+of an agile-execution model.
 
 \jhanote{Conclude with the note that the same development framework can be
 used on a single high-end computer.}
@@ -824,14 +839,14 @@ used on a single high-end computer.}
 
 \section*{Acknowledgement}
 
-\up\upp
+\upp
 
-This work would not have been possible without the efforts and support
-of the wider SAGA team. Important funding for SAGA specification and
-development has been provided by the UK EPSRC grant number
-GR/D0766171/1.  SJ acknowledges the e-Science Institute, Edinburgh for
-supporting the research theme, ``Distributed Programming
-Abstractions''.  This work has also been made possible thanks to the
+Important funding for SAGA specification and development has been
+provided by the UK EPSRC grant number GR/D0766171/1.  SJ also
+acknowledges the e-Science Institute, Edinburgh for supporting the
+research theme, ``Distributed Programming Abstractions''. This work
+would not have been possible without the efforts and support of the
+wider SAGA team. This work has also been made possible thanks to the
 internal resources of the Center for Computation \& Technology (CCT)
 at Louisiana State University and computer resources provided by LONI.
 
