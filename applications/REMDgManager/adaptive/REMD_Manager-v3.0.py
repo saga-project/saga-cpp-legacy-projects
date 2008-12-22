@@ -598,7 +598,11 @@ if __name__ == "__main__" :
     
     if options.type != None and options.type in ("REMD"):
         re_manager = ReManager(options.configfile)
-        re_manager.run_REMDg() 
+        try:
+            re_manager.run_REMDg() 
+        except:
+            print "Stop Glide-Ins"
+            re_manager.stop_glidin_jobs()
     else:
         print "Usage : \n python " + sys.argv[0] + " --type=<REMD> --configfile=<configfile> \n"
         print "Example: \n python " + sys.argv[0] + " --type=REMD --configfile=re_manager_v3.conf"
