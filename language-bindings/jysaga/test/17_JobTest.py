@@ -82,7 +82,13 @@ class TestJob(unittest.TestCase):
 
     def test_suspend(self):
         try:
-            pass
+            jd = JobDescription()
+            jd.Executable = test_constants.job_Executable
+            jd.Arguments = test_constants.job_Arguments
+            job = self.js.create_job(jd)
+            job.run()
+            job.suspend()
+            self.failUnless( job.state()==State.SUSPENDED, str(job.state()) )
         except NotImplemented, e:
             if e.saga_object != None: print e.message,"... ",
             test_constants.add_NotImplemented()        
@@ -91,7 +97,14 @@ class TestJob(unittest.TestCase):
  
     def test_resume(self):
         try:
-            pass
+            jd = JobDescription()
+            jd.Executable = test_constants.job_Executable
+            jd.Arguments = test_constants.job_Arguments
+            job = self.js.create_job(jd)
+            job.run()
+            job.suspend()
+            job.resume()
+            self.failUnless( job.state()==State.RUNNING, str(job.state()) )
         except NotImplemented, e:
             if e.saga_object != None: print e.message,"... ",
             test_constants.add_NotImplemented()        
@@ -100,7 +113,12 @@ class TestJob(unittest.TestCase):
 
     def test_checkpoint(self):
         try:
-            pass
+            jd = JobDescription()
+            jd.Executable = test_constants.job_Executable
+            jd.Arguments = test_constants.job_Arguments
+            job = self.js.create_job(jd)
+            job.run()
+            job.checkpoint()
         except NotImplemented, e:
             if e.saga_object != None: print e.message,"... ",
             test_constants.add_NotImplemented()        
@@ -108,7 +126,13 @@ class TestJob(unittest.TestCase):
    
     def test_migrate(self):
         try:
-            pass
+            jd = JobDescription()
+            jd.Executable = test_constants.job_Executable
+            jd.Arguments = test_constants.job_Arguments
+            job = self.js.create_job(jd)
+            job.run()
+            jd.Arguments = test_constants.job_Arguments_alternative
+            job.migrate(jd)
         except NotImplemented, e:
             if e.saga_object != None: print e.message,"... ", 
             test_constants.add_NotImplemented() 
@@ -117,25 +141,20 @@ class TestJob(unittest.TestCase):
 
     def test_signal(self):
         try:
-            pass
+            jd = JobDescription()
+            jd.Executable = test_constants.job_Executable
+            jd.Arguments = test_constants.job_Arguments
+            job = self.js.create_job(jd)
+            job.run()
+            job.signal(9)
         except NotImplemented, e:
             if e.saga_object != None: print e.message,"... ", 
             test_constants.add_NotImplemented() 
         test_constants.add_method_tested()
 
 
-
-    
-
-
-
-
-
-
     def test_Object_Methods(self):
         o = self.job
-        print "Skipping object methods ... ",
-        return
     
         try:
             test = o.get_id() 

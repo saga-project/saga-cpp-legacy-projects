@@ -37,6 +37,7 @@ job_hostname = "localhost"
 job_Executable = "/bin/sleep"
 job_Arguments = ["5"]
 job_Interactive = "True"
+job_Arguments_alternative = ["--version"]
 class Result(object):
     nr_NotImplemented = 0
     nr_methods_tested = 0

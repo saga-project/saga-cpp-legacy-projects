@@ -2214,9 +2214,9 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal suspend()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             try:
-                javaObject = self.delegateObject.suspend()
+                self.delegateObject.suspend()
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)        
     
@@ -2261,9 +2261,9 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal resume()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             try:
-                javaObject = self.delegateObject.resume()
+                self.delegateObject.resume()
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)        
     
@@ -2314,9 +2314,9 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal checkpoint()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             try:
-                javaObject = self.delegateObject.checkpoint()
+                self.delegateObject.checkpoint()
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)        
     
@@ -2376,13 +2376,13 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal migrate()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             if not isinstance(jd, JobDescription):
                 raise BadParameter, "Parameter jd is not a JobDescription, but"\
                     +" a "+ str(jd.__class__)
             
             try:
-                javaObject = self.delegateObject.migrate(jd.delegateObject)
+                self.delegateObject.migrate(jd.delegateObject)
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)        
     
@@ -2440,13 +2440,13 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal signal()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             if not isinstance(signum, int):
                 raise BadParameter, "Parameter signum is not an int, but"\
                     +" a "+ str(signum.__class__)
             
             try:
-                javaObject = self.delegateObject.signal(signum)
+                self.delegateObject.signal(signum)
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)        
     
@@ -2467,7 +2467,35 @@ class Job(Task, Attributes, Permissions, Async):
             return Task(delegateObject=javaObject)                
           except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e) 
-                
+
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.JOB
+    
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = Job(delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)    
 
 class JobSelf(Job, Steerable):
   """

@@ -27,8 +27,8 @@ else
 fi
 
 #Specify where Jython can find the Jython library files. Ubuntu puts
-#them (if installed) in /usr/lib/site-python. Else you specify
-#them yourself in $JYTHON_HOME
+#them (if installed) in /usr/lib/site-python and /usr/share/jython. 
+#Else you specify them yourself in $JYTHON_HOME
 if [ -e "/usr/lib/site-python" ]
 then 
   PPATH=$PPATH:"/usr/lib/site-python"
@@ -39,6 +39,15 @@ then
   PPATH=$PPATH:$JYTHON_HOME
 fi
 
+
+if [ ! -z "$JYTHON_HOME" ]; then
+  HOME=$JYTHON_HOME;
+elif [ -e /usr/share/jython ]; then
+  HOME=/usr/share/jython;
+else HOME= ;
+fi
+
+
 CP=$JAVA_SAGA_LOCATION/lib/log4j-1.2.13.jar
 CP=$CP:$JAVA_SAGA_LOCATION/lib/saga-api-1.1rc1.jar
 CP=$CP:$JAVA_SAGA_LOCATION/lib/saga-impl-1.0.jar
@@ -47,9 +56,11 @@ CP=$CP:$JAVA_SAGA_LOCATION/lib/slf4j-log4j12-1.5.3.jar
 CP=$CP:$JYTHON_JAR
 
 java \
-  -cp $CP \
-  -Dlog4j.configuration="file:$JAVA_SAGA_LOCATION/log4j.properties" \
-  -Djava.endorsed.dirs=$JAVA_SAGA_LOCATION/lib/adaptors/GridsamAdaptor/endorsed \
-  -Dsaga.location="$JAVA_SAGA_LOCATION" \
-  -Dpython.path=$PPATH \
-  'org.python.util.jython' "$@"
+ -cp $CP \
+ -Dlog4j.configuration="file:$JAVA_SAGA_LOCATION/log4j.properties" \
+ -Djava.endorsed.dirs=$JAVA_SAGA_LOCATION/lib/adaptors/GridsamAdaptor/endorsed \
+ -Dsaga.location="$JAVA_SAGA_LOCATION" \
+ -Dpython.path=$PPATH \
+ -Dpython.home=$HOME \
+ -Dpython.cachedir=/tmp/jython/cache/ \
+ 'org.python.util.jython' "$@"
