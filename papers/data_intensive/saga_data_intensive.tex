@@ -123,11 +123,12 @@
 % Grids: Regular perfomance issues
 % \end{enumerate}
 
-The *RIGHT* Abstraction will provide 1. infrastructure independence,
-2. support for decomposing along application patterns, 3. support for
-different and novel programming models. Most if not all of the three
-features /criteria. SAGA is an important useful approach.  To
-demonstrate/provide irrefutable evidence of the above, we:
+\jhanote{The *RIGHT* Abstraction will provide 1. infrastructure
+  independence, 2. support for decomposing along application patterns,
+  3. support for different and novel programming models. Most if not
+  all of the three features /criteria. SAGA is an important useful
+  approach.  To demonstrate/provide irrefutable evidence of the above,
+  we:
 
 \begin{itemize}
 \item {\bf Develop SAGA-MapReduce }
@@ -176,7 +177,7 @@ For each case (where applicable):
 
 Voila! Once we've done all this, we've established SAGA as an
 infrastructure independent and good performing abstraction for
-data-intensive application as outlined in the opening.
+data-intensive application as outlined in the opening.}
 
 \section{Introduction} 
 
@@ -803,12 +804,11 @@ increase.
 \label{grids1}
 \end{figure}
 
-
-\begin{figure}[t]
-\includegraphics[width=0.4\textwidth]{MapReduce_local_executiontimeperworkerdatasize.png}
-\caption{..}
-\label{grids2}
-\end{figure}
+% \begin{figure}[t]
+% \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontimeperworkerdatasize.png}
+% \caption{this plot will probably have to be eliminated}
+% \label{grids2}
+% \end{figure}
 
 We begin with the observation that the efficiency of \sagamapreduce is
 pretty close to 1, actually better than 1.0 -- like any good (data)
@@ -924,43 +924,49 @@ distributed &  4 &  0.5&  912s \\
 
 \subsection{SAGA-MapReduce on Cloud-like infrastructure}
 
+
 Experiment 2, 3 and 4; 
 (Figures ~\ref{saga_mapreduce_1worker.png}, ~\ref{saga_mapreduce_3workers.png})
 
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.25\textwidth]{saga_mapreduce_1worker.png}
-          \caption{Performance figures for SAGA-MapReduce, using one
-            worker (and local to the master). %  and thus not
+Observations: Yahoo's mapreduce takes less time than \sagamapreduce
+implementations, by about a factor of 2. This is not surprising, as
+SAGA based implementations have not been optimised, for example,
+\sagamapreduce is not multi-threaded
+
+% and thus not
 %             distributed, but localised to a single machine,
 %             \jhanote{could the master and worker not be on different
 %               machines? if so, should we call this ``local'' or
 %               ``distributed''?}, 
-            Case I corresponds to the use of the local file system on
-            the Linux clusters we use, while Case II corresponds to
-            the use of HDFS on the cluster.  It is interesting to note
-            that as the data-set sizes get larger HDFS starts
-            outperforming local file systems.  We attribute this to
-            the use of caching and other advanced features in HDFS
-            which proove to be useful even though it is not being used
-            in a distributed fashion. We compare \sagamapreduce to
-            Yahoo's MapReduce implementation. % The three different
+
+\begin{figure}[t]
+      \centering
+          \includegraphics[width=0.25\textwidth]{saga_mapreduce_1worker.png}
+          \caption{\tc for \sagamapreduce using one worker (local to
+            the master).  Case I corresponds to the use of the local
+            FS on used Linux clusters, while Case II corresponds to
+            the use of HDFS on the clusters.  It is interesting to
+            note that as the data-set sizes get larger, HDFS starts
+            outperforming local FS.  We attribute this to the use of
+            caching and other advanced features in HDFS which proove
+            to be useful, even though it is not being used in a
+            distributed fashion. Case III
+            corresponds %to \sagamapreduce
+            to Yahoo's MapReduce implementation. THIS NEEDS TO BE
+            UPDATED!! THIS PLOT SHOULD CAPTURE RESULTS OF EXP. 2 and
+            3.} % The three different
 %             scenarios considered are (i) all infrastructure is local
 %             and thus SAGA's local adapters are invoked, (ii) local job
 %             adaptors are used, but the hadoop file-system (HDFS) is
 %             used, (iii) Yahoo's mapreduce. 
-            Yahoo's mapreduce takes less time than \sagamapreduce
-            implementations, by about a factor of 2. This is not
-            surprising, as SAGA based implementations have not been
-            optimised, for example, \sagamapreduce is not
-            multi-threaded}
+
       \label{saga_mapreduce_1worker.png}
 \end{figure}
 
 \begin{figure}[t]
       \centering
-          \includegraphics[width=0.25\textwidth]{saga_mapreduce_3workers.png}
-          \caption{stuff will come..}
+%          \includegraphics[width=0.25\textwidth]{saga_mapreduce_3workers.png}
+          \caption{The idea is to have a plot that highlights the results of Experiment 4}
       \label{saga_mapreduce_3workers.png}
 \end{figure}
 
@@ -976,15 +982,15 @@ application can use either of the three Clouds systems without any
 changes to the application.  Interestingly SAGA provides this level of
 interoperability quite trivially thanks to the adaptors; by almost
 trivial extension, SAGA provides Grid-Cloud interoperability, as shown
-in Fig 8 and 9, where exactly the same interface and functional calls
-lead to job submission on Grids or on Clouds. Although syntactically
-identical, the semantics of the calls and back-end management are very
-different.  For example, for Grids j.run() leads to the submission of
-a job, whilst for Clouds j.run leads to the instantiation of a virtual
-machine (VM).  It is worth mentioning that using SAGA, or it took us
-45 seconds to instantiate a VM on Eucalyptus, while it took 90 seconds
-on EC2. Once instantiated, it takes about 1sec to assign a job to a VM
-on Eucalyptus.
+in Fig.~\ref{gramjob} and ~\ref{vmjob}, where exactly the same
+interface and functional calls lead to job submission on Grids or on
+Clouds. Although syntactically identical, the semantics of the calls
+and back-end management are very different.  For example, for Grids
+{\tt j.run()} leads to the submission of a job, whilst for Clouds {\tt
+  j.run()} leads to the instantiation of a virtual machine (VM).  It
+takes SAGA 45seconds to instantiate a VM on Eucalyptus, while it took
+90 seconds on EC2. Once instantiated, it takes about 1sec to assign a
+job to a VM on Eucalyptus.
 
 We have also architected \sagamapreduce to work on Cloud platforms. It
 is critical to mention that the \sagamapreduce code did not undergo
@@ -994,11 +1000,9 @@ EC2, the master process resides on one VM, while workers reside on
 different VMs. The VMs hosting the master and workers share the same
 security context and a shared file-system (using FUSE adn sshfs). The
 Master-Worker read/write to either a global/distributed file systems
-or via remote file-adaptors.
-
-Due to space limitations we will not discuss the performance data of
-\sagamapreduce with different data-set sizes and varying worker
-numbers...
+or via remote file-adaptors.  Due to space limitations we will not
+discuss the performance data of \sagamapreduce with different data-set
+sizes and varying worker numbers.
 
 
 % Now compare performance of 1,2..10 Workers with 1,2..10 GB
@@ -1058,8 +1062,6 @@ Sequence Alignment and Gene Search can be implemented using the
 All-Pairs and MapReduce patterns. This provides further motivation for
 abstractions at multiple-levels -- to support basic functionality but
 also data-intensive patterns.
-
-
 
 % \subsection*{SAGA Based MapReduce}
 % Performance figures when using the Advert service -- on one machine,
