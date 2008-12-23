@@ -67,8 +67,8 @@
 \newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
 \fi
 
-\newcommand{\sagamapreduce }[1]{ SAGA-MapReduce }
-\newcommand{\tc }[1]{ $T_c$ }
+\newcommand{\sagamapreduce }{SAGA-MapReduce }
+\newcommand{\tc }{ $T_c$ }
 \begin{document}
 
 \maketitle
@@ -794,29 +794,46 @@ effective programming abstraction layer.
 
 Experiments are:
 \begin{enumerate}
-\item Think Global; Act Local: When both \sagamapreduce` workers
+\item Think Global; Act Local: When both \sagamapreduce workers
   (compute) and data-distribution is local. The number of workers vary
   from 1 to 10, and the data-set sizes varying from 1 to 10GB. Here we
-  will also compare \sagamapreduce` with native MapReduce (using HBase
+  will also compare \sagamapreduce with native MapReduce (using HBase
   and Hadoop)
-\item \sagamapreduce` when workers are locally computed, but using a distributed file system (HDFS); the number of workers varies from 1 to 4
+\item \sagamapreduce when workers are locally computed, but using a distributed file system (HDFS); the number of workers varies from 1 to 4
 % upto 3 workers (upto a data-set size of 10GB).
 \item Same as Exp. \#2, but using a different distributed file system
   (KFS); the number of workers varies from 1-10
-\item \sagamapreduce` using distributed compute (workers) and distributed file-system (KFS)
+\item \sagamapreduce using distributed compute (workers) and distributed file-system (KFS)
 \item Distributed compute (workers) but using local file-systems (using gridftp for transfer)
 \end{enumerate}
 
 We have also distinguished between SAGA All-Pairs using Advert Service
 versus using Hbase for data-store, but due to space constraints we
 will report results of the All-Pairs experiments elsewhere.
+\begin{eqnarray}
+T_c = t_{pp} + t_{comp} + t_{coord}
+\end{eqnarray}
+The total time to completion can be decomposed into three primary
+components: $t_{pp}$ defined as the time for pre-processing -- which
+in this case is the time to chunk into fixed size data units, and to
+possibly distribute them. This is in some ways the overhead of the
+process.  $t_{comp}$ is the time to actually compute the map and
+reduce function on a given worker, whilst $t_{coord}$ is the time
+taken to assign the payload to a worker, update records and to
+possibly move workers to a destination resource.
 
-$T_c = t_{pp} + t_{comp} + t_{coord}$
 
-Observation: the efficiency is pretty close to 1. Like all good (data)
-parallel applications. \tc for 1GB = 659, \tc for 10GB = 6286s.
-This is true even when the compute is distributed over two machines:\\
-(1 worker each): $T_c = $ 672s, $T_c = $ 1081s, $T_c = $ 2051s for
+Observation: The efficiency of \sagamapreduce is pretty close to
+1. Like all good (data) parallel applications. For 1Gb \tc = 659 and
+\tc for 10GB = 6286s.  This is true even when the compute is
+distributed over two machines: 1 worker at each site: \tc = 672s, $T_c
+= $ 1081s, $T_c = $ 2051s for
+1, 2 and 4GB respectively. \\
+(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 1,
+2 and 4GB respectively.
+
+
+(1 worker at each site): $T_c = $ 672s, $T_c = $ 1081s, $T_c = $ 2051s for
 1, 2 and 4GB respectively. \\
 (2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 1, 2
 and 4GB respectively.
@@ -862,11 +879,11 @@ the bottleneck.
 \label{grids1}
 \end{figure}
 
-\begin{figure}[t]
-  \includegraphics[width=0.4\textwidth]{MapReduce_local_datasizeperworker.png}
-\caption{Stuff will go here}
-\label{grids2}
-\end{figure}
+% \begin{figure}[t]
+%   \includegraphics[width=0.4\textwidth]{MapReduce_local_datasizeperworker.png}
+% \caption{Stuff will go here}
+% \label{grids2}
+% \end{figure}
 
 \begin{figure}[t]
   \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime_3d.png}
