@@ -1,6 +1,7 @@
 from org.ogf.saga.url import URLFactory
 from org.ogf.saga.file import FileFactory
 from org.ogf.saga.task import TaskFactory , TaskMode, WaitMode
+from org.ogf.saga.buffer import BufferFactory
 import org.ogf.saga.monitoring.Callback
 from time import sleep 
 
@@ -30,35 +31,71 @@ class CallbackProxy(org.ogf.saga.monitoring.Callback):
         print "End of CallbackProxy.cb call"
         return
 
+def convert(v):
+    return v.toString()
+
 
 print "==================================================="
 print "== Start Test                                    =="
 print "==================================================="
 
-temp_filename = "/tmp/06_TaskContainer.py.temp"
-url = URLFactory.createURL(temp_filename)
-file = FileFactory.createFile(url)
+from saga.file import File
+from saga.url import URL
+from saga.buffer import Buffer
+import time
 
-taskTASK = file.getSize(TaskMode.TASK)
+u = URL("file:/tmp/bla.txt")
+f = File(u)
+b = Buffer( f.get_size() )
+start =  time.time()
+f.read( f.get_size(), b)
+d = b.get_data() 
+end = time.time()
+q = d[-100:]
+print q, len(d), len(q),"\nStart: ", start, "     End:", end
+print "Done in " ,(end-start) , " seconds"
 
-#metric_list = taskTASK.listMetrics()
-#print "=== List metrics", str(metric_list)
-#metr = taskTASK.getMetric('Task.state')
- 
-c = CallbackProxy()
-cookie =  taskTASK.addCallback('Task.state', c)
-print "=== Callback added to taskTask. Cookie was", cookie, "state:",taskTASK.getState()
-print "=== taskTask.run()"
-taskTASK.run()                                
-while taskTASK.getState() == 2:               
-    for i in range(5):
-        sleep(1)
-        print "+",    
-       
-print "=== taskTask.get_state():", taskTASK.getState()
-#print "=== remove callback",
-#taskTASK.removeCallback('Task.state', cookie)
-print taskTASK.getResult()
+
+import java.lang.String
+url = URLFactory.createURL("file:/tmp/bla.txt");
+file = FileFactory.createFile(url);
+buf = BufferFactory.createBuffer(file.getSize()); 
+
+start = time.time()
+file.read(buf);
+data = buf.getData();
+s = java.lang.String(data)       
+b = convert(s)
+end =  time.time()
+print type(b)
+print "\nStart: ", start, "     End:", end
+print "Done in " ,(end-start) , " seconds"           
+
+
+#temp_filename = "/tmp/06_TaskContainer.py.temp"
+#url = URLFactory.createURL(temp_filename)
+#file = FileFactory.createFile(url)
+#
+#taskTASK = file.getSize(TaskMode.TASK)
+#
+##metric_list = taskTASK.listMetrics()
+##print "=== List metrics", str(metric_list)
+##metr = taskTASK.getMetric('Task.state')
+# 
+#c = CallbackProxy()
+#cookie =  taskTASK.addCallback('Task.state', c)
+#print "=== Callback added to taskTask. Cookie was", cookie, "state:",taskTASK.getState()
+#print "=== taskTask.run()"
+#taskTASK.run()                                
+#while taskTASK.getState() == 2:               
+#    for i in range(5):
+#        sleep(1)
+#        print "+",    
+#       
+#print "=== taskTask.get_state():", taskTASK.getState()
+##print "=== remove callback",
+##taskTASK.removeCallback('Task.state', cookie)
+#print taskTASK.getResult()
 
 print "==================================================="
 print "== End Test                                      =="

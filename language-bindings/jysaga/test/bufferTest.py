@@ -27,7 +27,8 @@ def main():
     print "=============================================================="
     print "type data:" + str(type(data))
     print data
-    print data.tostring()
+    print "=============================================================="
+    print "toString()",data.tostring()
     uData = array.array('c')
     for i in range(255):
         if data[i] < 0:
@@ -37,7 +38,8 @@ def main():
     print "=============================================================="            
     print "type uData:" + str(type(uData))
     print uData   
-    print uData.tostring()
+    print "=============================================================="
+    print "toString()", uData.tostring()
 
 if __name__ == "__main__":
     main()

@@ -159,6 +159,7 @@ class Object(object):
             object = e.getObject()
             from saga.file import Directory, File
             from saga.namespace import NSEntry, NSDirectory
+            from saga.job import Job, JobSelf, JobService
             import org.ogf.saga.file.Directory
             import org.ogf.saga.file.File
             import org.ogf.saga.namespace.NSEntry
@@ -174,9 +175,15 @@ class Object(object):
                 object = NSDirectory(name="", delegateObject = object)
             elif isinstance(object, org.ogf.saga.namespace.NSEntry ):
                 object = NSEntry(name="", delegateObject = object) 
-            
+            elif isinstance(object, org.ogf.saga.job.Job ):
+                object = Job(delegateObject=object)
+            elif isinstance(object, org.ogf.saga.job.JobService ):
+                object = JobService(delegateObject=object)    
+            elif isinstance(object, org.ogf.saga.job.JobSelf ):
+                object = JobSelf(delegateObject=object)    
             else:
-                print "convertException: java Exception had an attached sagaObject."\
+                print "convertException: java Exception (",e.__class__,\
+                "had an attached sagaObject."\
                 +"Object is NOT yet translated to a python object. " + \
                 str(object.__class__)
                 object = None

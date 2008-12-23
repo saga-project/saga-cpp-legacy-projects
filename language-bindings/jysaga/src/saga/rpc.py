@@ -463,6 +463,9 @@ class Parameter(Object):
 #            return self.delegateObject.getId()
 #        except org.ogf.saga.error.SagaException, e:
 #           raise self.convertException(e) 
+
+
+    mode = property(get_io_mode, set_io_mode, doc="""The io mode\n@type: int""")
    
 class RPC(Object, Permissions, Async ):
     """

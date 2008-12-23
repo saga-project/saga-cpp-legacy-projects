@@ -35,11 +35,7 @@ class Buffer(Object):
     various SAGA API packages.
 
     """
-    delegateObject = None
-    managedByImp = None
-    array = None
-    applicationBuf = None
-    closed = False
+
 
 #DOCUMENT: Tweak for java specific arrays.
 #DOCUMENT: get data only through get_data with application managed buffer
@@ -74,6 +70,11 @@ class Buffer(Object):
         @raise NoSuccess:
         @see: notes about memory management in GFD-R-P.90 document.
         """
+        self.delegateObject = None
+        self.managedByImp = None
+        self.array = None
+        self.applicationBuf = None
+        self.closed = False
  
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"], org.ogf.saga.buffer.Buffer):

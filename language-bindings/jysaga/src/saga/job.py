@@ -1,4 +1,4 @@
-# Package: saga
+# Package: pysaga
 # Module: job 
 # Description: The module which specifies the classes needed for running jobs
 # Specification and documentation can be found in section 3.2, page 164-194 
@@ -45,8 +45,10 @@ import org.ogf.saga.job.JobSelf
 
 class State(object):
     """
-    The state is equivalent to the inherited saga.task.State, but adds 
-    the SUSPENDED state:
+    The state is equivalent to task.State, but adds the SUSPENDED state:
+    
+    @version: 1.0, designed for Python 2.x
+    
     """
    
     NEW = 1
@@ -94,7 +96,7 @@ class State(object):
 class JobDescription(Object,Attributes):
     """
     This object encapsulates all the attributes which define a job to be run.
-    It has no methods of its own, but implements the saga.attributes.Attributes
+    It has no methods of its own, but implements the L{Attributes}
     interface in order to provide access to the job properties, 
     which are expressed as JSDL keywords.
     
@@ -352,6 +354,8 @@ class JobDescription(Object,Attributes):
      
     @summary: This object encapsulates all the attributes which define a job 
         to be run.            
+    @version: 1.0, designed for Python 2.x
+
     @undocumented: get_Executable
     @undocumented: set_Executable
     @undocumented: del_Executable
@@ -445,14 +449,16 @@ class JobDescription(Object,Attributes):
     @undocumented: del_JobContact
     """
 
+
     def __init__(self, **impl):
-        """ 
-        Initialize the object
-        @summary: initialize the object
+        """Initialize the object.
+        
+        @summary: initialize the object.
         @Raise NotImplemented:
         @raise NoSuccess:
         @Note:    a JobDescription is not associated with a Session, 
             but can be used for JobServices from different sessions.
+        
         """
 		
         self.delegateObject = None
@@ -477,10 +483,12 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("Executable")  
     
     def __del_Executable(self):
-        return self.set_attribute("Executable", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("Executable", "")            
 
     Executable = property(__get_Executable, __set_Executable, __del_Executable, 
-            doc="""The Executable attribute. \n@type:List of strings""")
+            doc="""The Executable attribute. 
+                @type:string""")
 
     def __set_Arguments(self, value):
         self.set_vector_attribute("Arguments", value)
@@ -489,10 +497,12 @@ class JobDescription(Object,Attributes):
         return self.get_vector_attribute("Arguments")  
     
     def __del_Arguments(self):
-        return self.set_vector_attribute("Arguments", [])            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_vector_attribute("Arguments", [])            
 
     Arguments = property(__get_Arguments, __set_Arguments, __del_Arguments, 
-            doc="""The Arguments attribute. \n@type:List of strings""")
+            doc="""The Arguments attribute. 
+                @type:List of strings""")
      
     def __set_SPMDVariation(self, value):
         self.set_attribute("SPMDVariation", value)
@@ -501,11 +511,13 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("SPMDVariation")  
     
     def __del_SPMDVariation(self):
-        return self.set_attribute("SPMDVariation", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("SPMDVariation", "")            
 
     SPMDVariation = property(__get_SPMDVariation, __set_SPMDVariation,
                              __del_SPMDVariation,
-                             """The SPMDVariation attribute. \n@type: string""")
+                             """The SPMDVariation attribute. 
+                             @type: string""")
      
     def __set_TotalCPUCount(self, value):
         self.set_attribute("TotalCPUCount", value)
@@ -514,7 +526,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("TotalCPUCount")  
     
     def __del_TotalCPUCount(self):
-        return self.set_attribute("TotalCPUCount", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("TotalCPUCount", "1")            
 
     TotalCPUCount = property(__get_TotalCPUCount, __set_TotalCPUCount,
                              __del_TotalCPUCount, 
@@ -527,7 +540,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("NumberOfProcesses")  
     
     def __del_NumberOfProcesses(self):
-        return self.set_attribute("NumberOfProcesses", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("NumberOfProcesses", "1")            
 
     NumberOfProcesses = property(__get_NumberOfProcesses,
                                  __set_NumberOfProcesses, 
@@ -542,7 +556,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("ProcessesPerHost")  
     
     def __del_ProcessesPerHost(self):
-        return self.set_attribute("ProcessesPerHost", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("ProcessesPerHost", "1")            
 
     ProcessesPerHost = property(__get_ProcessesPerHost, __set_ProcessesPerHost,
                                 __del_ProcessesPerHost, 
@@ -557,7 +572,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("ThreadsPerProcess")  
     
     def __del_ThreadsPerProcess(self):
-        return self.set_attribute("ThreadsPerProcess", "")            
+        raise NotImplemented("Attribute cannot be deleted")        
+        #self.set_attribute("ThreadsPerProcess", "1")            
 
     ThreadsPerProcess = property(__get_ThreadsPerProcess, 
                                  __set_ThreadsPerProcess, 
@@ -572,7 +588,8 @@ class JobDescription(Object,Attributes):
         return self.get_vector_attribute("Environment")  
     
     def __del_Environment(self):
-        return self.set_vector_attribute("Environment", [])            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_vector_attribute("Environment", [])            
 
     Environment = property(__get_Environment, __set_Environment, 
                            __del_Environment,
@@ -586,7 +603,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("WorkingDirectory")  
     
     def __del_WorkingDirectory(self):
-        return self.set_attribute("WorkingDirectory", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("WorkingDirectory", "")            
 
     WorkingDirectory = property(__get_WorkingDirectory, __set_WorkingDirectory, 
                                 __del_WorkingDirectory, 
@@ -600,7 +618,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("Interactive")  
     
     def __del_Interactive(self):
-        return self.set_attribute("Interactive", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("Interactive", "False")            
 
     Interactive = property(__get_Interactive, __set_Interactive, 
                            __del_Interactive, 
@@ -613,7 +632,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("Input")  
     
     def __del_Input(self):
-        return self.set_attribute("Input", "")            
+        raise NotImplemented("Attribute cannot be deleted")        
+        #self.set_attribute("Input", "")            
 
     Input = property(__get_Input, __set_Input, __del_Input, 
             """The Input attribute. \n@type: string""")
@@ -625,7 +645,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("Output")  
     
     def __del_Output(self):
-        return self.set_attribute("Output", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("Output", "")            
 
     Output = property(__get_Output, __set_Output, __del_Output, 
             doc="""The Output attribute. \n@type: string""")
@@ -637,23 +658,26 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("Error")  
     
     def __del_Error(self):
-        return self.set_attribute("Error", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("Error", "")            
 
     Error = property(__get_Error, __set_Error, __del_Error, 
             doc="""The Error attribute. \n@type: string""")
      
     def __set_FileTransfer(self, value):
-        self.set_attribute("FileTransfer", value)
+        self.set_vector_attribute("FileTransfer", value)
         
     def __get_FileTransfer(self):
-        return self.get_attribute("FileTransfer")  
+        return self.get_vector_attribute("FileTransfer")  
     
     def __del_FileTransfer(self):
-        return self.set_attribute("FileTransfer", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_vector_attribute("FileTransfer", [])            
 
     FileTransfer = property(__get_FileTransfer, __set_FileTransfer, 
                             __del_FileTransfer, 
-                            """The FileTransfer attribute. \n@type: string""")
+                            """The FileTransfer attribute. 
+                                @type: list ofstring""")
     
     def __set_Cleanup(self, value):
         self.set_attribute("Cleanup", value)
@@ -662,7 +686,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("Cleanup")  
     
     def __del_Cleanup(self):
-        return self.set_attribute("Cleanup", "")            
+        raise NotImplemented("Attribute cannot be deleted")        
+        #self.set_attribute("Cleanup", "Default")            
 
     Cleanup = property(__get_Cleanup, __set_Cleanup, __del_Cleanup, 
             doc="""The Cleanup attribute. \n@type: string""")
@@ -674,7 +699,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("JobStartTime")  
     
     def __del_JobStartTime(self):
-        return self.set_attribute("JobStartTime", "")            
+        raise NotImplemented("Attribute cannot be deleted")       
+        #self.set_attribute("JobStartTime", "0")            
 
     JobStartTime = property(__get_JobStartTime, __set_JobStartTime, 
                             __del_JobStartTime, 
@@ -687,7 +713,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("TotalCPUTime")  
     
     def __del_TotalCPUTime(self):
-        return self.set_attribute("TotalCPUTime", "")            
+        raise NotImplemented("Attribute cannot be deleted")        
+        #self.set_attribute("TotalCPUTime", "0")            
 
     TotalCPUTime = property(__get_TotalCPUTime, __set_TotalCPUTime, 
                             __del_TotalCPUTime, 
@@ -699,7 +726,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("TotalPhysicalMemory")  
     
     def __del_TotalPhysicalMemory(self):
-        return self.set_attribute("TotalPhysicalMemory", "")            
+        raise NotImplemented("Attribute cannot be deleted")        
+        #self.set_attribute("TotalPhysicalMemory", "0")            
 
     TotalPhysicalMemory = property(__get_TotalPhysicalMemory, 
                                    __set_TotalPhysicalMemory, 
@@ -709,13 +737,14 @@ class JobDescription(Object,Attributes):
      
                
     def __set_CPUArchitecture(self, value):
-       self. set_vector_attribute("CPUArchitecture", value)
+        self. set_vector_attribute("CPUArchitecture", value)
         
     def __get_CPUArchitecture(self):
         return self.get_vector_attribute("CPUArchitecture")  
     
     def __del_CPUArchitecture(self):
-        return self.set_vector_attribute("CPUArchitecture", [])
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_vector_attribute("CPUArchitecture", [])
 
     CPUArchitecture = property(__get_CPUArchitecture, __set_CPUArchitecture, 
                                __del_CPUArchitecture, 
@@ -729,7 +758,8 @@ class JobDescription(Object,Attributes):
         return self.get_vector_attribute("OperatingSystemType")  
     
     def __del_OperatingSystemType(self):
-        return self.set_vector_attribute("OperatingSystemType", [])
+        raise NotImplemented("Attribute cannot be deleted")       
+        #self.set_vector_attribute("OperatingSystemType", [])
 
     OperatingSystemType = property(__get_OperatingSystemType, 
                                    __set_OperatingSystemType, 
@@ -744,7 +774,8 @@ class JobDescription(Object,Attributes):
         return self.get_vector_attribute("CandidateHosts")  
     
     def __del_CandidateHosts(self):
-        return self.set_vector_attribute("CandidateHosts", [])            
+        raise NotImplemented("Attribute cannot be deleted")       
+        #self.set_vector_attribute("CandidateHosts", [])            
 
     CandidateHosts = property(__get_CandidateHosts, __set_CandidateHosts,
                                __del_CandidateHosts, 
@@ -758,7 +789,8 @@ class JobDescription(Object,Attributes):
         return self.get_attribute("Queue")  
     
     def __del_Queue(self):
-        return self.set_attribute("Queue", "")            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_attribute("Queue", "")            
 
     Queue= property(__get_Queue, __set_Queue, __del_Queue, 
                      """The Queue attribute. \n@type: string""")
@@ -770,7 +802,8 @@ class JobDescription(Object,Attributes):
         return self.get_vector_attribute("JobContact")  
     
     def __del_JobContact(self):
-        return self.set_vector_attribute("JobContact", [])            
+        raise NotImplemented("Attribute cannot be deleted")
+        #self.set_vector_attribute("JobContact", [])            
 
     JobContact = property(__get_JobContact, __set_JobContact, __del_JobContact, 
                           """The JobContact attribute. \n
@@ -907,7 +940,6 @@ class JobService(Object, Async):
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)    
                 
-#todo implement async versions
         
         
     def run_job(self, commandline, host = "", tasktype=TaskType.NORMAL):
@@ -981,13 +1013,13 @@ class JobService(Object, Async):
                 javaJobObject = self.delegateObject.runJob(commandline, host, True)
                 returnJob = Job(delegateObject=javaJobObject)
             
-                javaStdin = tempJob.getStdin() #OutputStream
+                javaStdin = javaJobObject.getStdin() #OutputStream
                 returnStdin = StdIO(delegateObject = javaStdin)
         
-                javaStdout = tempJob.getStdout() #InputStream
+                javaStdout = javaJobObject.getStdout() #InputStream
                 returnStdout = StdIO(delegateObject = javaStdout)
             
-                javaStderr = tempJob.getStderr() #InputStream
+                javaStderr = javaJobObject.getStderr() #InputStream
                 returnStderr = StdIO(delegateObject = javaStderr)            
         
                 return returnJob, returnStdin, returnStdout, returnStderr
@@ -1052,7 +1084,8 @@ class JobService(Object, Async):
                 retval = []
                 javaList = self.delegateObject.list()
                 for i in range(javaList.size()):
-                    retval.append( javaList.get(i).toString() )
+                    #retval.append( javaList.get(i).toString() )
+                    retval.append( javaList.get(i) )
                 return retval
             except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
@@ -1581,7 +1614,7 @@ class StdIO(object):
                             
                 
  
- 
+#TODO: check newline and carriage return 
 #TODO: add the try / except
             
     def readlines(self, size=-1, blocking = True):
@@ -1807,6 +1840,7 @@ class Job(Task, Attributes, Permissions, Async):
 
     @summary: The job provides the manageability interface to a job 
         instance submitted to a resource manager.
+    @version: 1.0, designed for Python 2.x
     @undocumented: __get_JobID
     @undocumented: __get_ExecutionHosts
     @undocumented: __get_Created
@@ -1815,27 +1849,30 @@ class Job(Task, Attributes, Permissions, Async):
     @undocumented: __get_WorkingDirectory
     @undocumented: __get_ExitCode
     @undocumented: __get_Termsig
+
     """
+
 
     def __get_JobID(self):
         return self.get_attribute("JobID")  
 
     JobID = property(__get_JobID,  
-                          doc="""The JobID attribute.\n @type:string""")
+                          doc="""The JobID attribute.
+                              @type:string""")
 
     def __get_ExecutionHosts(self):
         return self.get_vector_attribute("ExecutionHosts")  
            
     ExecutionHosts = property(__get_ExecutionHosts, 
-                          doc="""The ExecutionHosts attribute.\n
-                          @type:list of strings""")
+                          doc="""The ExecutionHosts attribute.
+                              @type:list of strings""")
 
     def __get_Created(self):
         return self.get_attribute("Created")  
 
     Created = property(__get_Created,  
-                          doc="""The Created attribute.\n
-                          @type:string""")
+                          doc="""The Created attribute.
+                              @type:string""")
 
 #TODO: Check type of Created, Timestamp is vague.
 #            - name: Created
@@ -1895,6 +1932,11 @@ class Job(Task, Attributes, Permissions, Async):
             methods which create a Job, and not through j = Job()
         """
         self.delegateObject = None
+        self.fileReadBuffer = None
+        self.taskFailed = False
+        self.failureCause = None
+        self.taskWasRunJob = False
+        self.name = None
         if "delegateObject" in impl:
             if not isinstance(impl["delegateObject"],org.ogf.saga.job.Job):
                 raise BadParameter,"Parameter impl[\"delegateObject\"] is not" \
@@ -2001,7 +2043,7 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
  
         #Normal get_stdin()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             try:
                 javaObject = self.delegateObject.getStdin()
                 return StdIO(delegateObject = javaObject, name= "<stdin>")
@@ -2062,7 +2104,7 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal get_stdout()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             try:
                 javaObject = self.delegateObject.getStdout()
                 return StdIO(delegateObject = javaObject, name = "<stdout>")
@@ -2122,7 +2164,7 @@ class Job(Task, Attributes, Permissions, Async):
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal get_stderr()
-        if typetask == TaskType.NORMAL:
+        if tasktype == TaskType.NORMAL:
             try:
                 javaObject = self.delegateObject.getStderr()
                 return StdIO(delegateObject = javaObject, name = "<stderr>")

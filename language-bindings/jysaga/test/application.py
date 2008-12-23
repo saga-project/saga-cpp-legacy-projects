@@ -60,14 +60,31 @@ class CallbackProxy(org.ogf.saga.monitoring.Callback):
         print "End of CallbackProxy.cb call"
         return
 
-url_source = URLFactory.createURL("file:///tmp/09_NSDirectoryDIRECTORY")
-url_target = URLFactory.createURL("file:///tmp/09_NSDirectoryDIRECTORYcopy")
-nsd = NSFactory.createNSDirectory(url_source)
-try:
-    print "NSDirectory.copy(src,target):"
-    nsd.copy( url_source, url_target, Flags.RECURSIVE.getValue())
-except org.ogf.saga.error.SagaException, e:
-    print "NSDirectory.copy(src,target):" , str(e.__class__), str(e) 
+class C(object):
+
+    def __init__(self):
+        self.__x = 0
+
+    def getx(self):
+        return self.__x
+
+    def setx(self, x):
+        if x < 0: 
+            print "OegaBoega!"
+            x = 0
+        self.__x = x
+
+    x = property(getx, setx)
+
+
+#url_source = URLFactory.createURL("file:///tmp/09_NSDirectoryDIRECTORY")
+#url_target = URLFactory.createURL("file:///tmp/09_NSDirectoryDIRECTORYcopy")
+#nsd = NSFactory.createNSDirectory(url_source)
+#try:
+#    print "NSDirectory.copy(src,target):"
+#    nsd.copy( url_source, url_target, Flags.RECURSIVE.getValue())
+#except org.ogf.saga.error.SagaException, e:
+#    print "NSDirectory.copy(src,target):" , str(e.__class__), str(e) 
 #
 #try:
 #    print "NSDirectory.copy(target):"

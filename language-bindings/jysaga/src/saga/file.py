@@ -280,7 +280,7 @@ class File(NSEntry):
     
     
     def __init__(self, name, session=Session(), flags=Flags.READ, 
-								tasktype=TaskType.NORMAL **impl):
+								tasktype=TaskType.NORMAL, **impl):
         """
         Initialize the File object
         @summary: initialize the File object
@@ -378,7 +378,7 @@ class File(NSEntry):
                 import java.lang.Long
                 temp = java.lang.Long( self.delegateObject.getSize() )
                 return temp.intValue()
-                #DOCUMENT: cast the long to int
+                #DOCUMENT: cast the long to int, if smaller than MAX_INT
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 

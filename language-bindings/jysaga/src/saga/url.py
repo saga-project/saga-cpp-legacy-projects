@@ -29,6 +29,9 @@ class URL(Object):
     URLs are used to reference remote entities.
     @version: 1.0
     """
+    #TODO: remove all global delegateObjects
+    #TODO: is instance ipv is type
+    #TODO: array of strings does not exist in StdIO 
 
     def __init__(self, url="", **impl):
         """

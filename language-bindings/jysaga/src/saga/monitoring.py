@@ -536,7 +536,7 @@ class Monitorable(object):
         """
         try:
             retval = self.delegateObject.listMetrics()
-            return(tuple(retval))
+            return(list(retval))
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
 

@@ -22,8 +22,9 @@ class SagaException(Exception):
 		@type saga_object: L{Object}
 		"""
 		#TODO: wade through erroneous code in here and Pysaga
+		
 		if message is not None:
-			self.message = message
+			self._message = message
 		else:
 			raise BadParameter, "parameter message is None"
 			
@@ -32,10 +33,12 @@ class SagaException(Exception):
 			if not issubclass(saga_object.__class__, Object):
 				raise BadParameter, "parameter saga_object is not an Object"
 			else:
-				self.saga_object = saga_object
+				self._saga_object = saga_object
+		else:
+			self._saga_object = None
 
 	def __str__(self):
-		return repr(self.message)
+		return repr(self._message)
 
 	def get_message(self):
 		"""
@@ -44,7 +47,7 @@ class SagaException(Exception):
 		@return: the message
 		@rtype: string
 		"""
-		return self.message
+		return self._message
 
 	def get_object(self):
 		"""
@@ -53,7 +56,7 @@ class SagaException(Exception):
 		@return: the saga Object
 		@rtype: L{Object}
 		"""
-		return self.saga_object
+		return self._saga_object
 
 	message = property(get_message, 
 		doc="""The message associated with the exception.\n@type: string""")
