@@ -817,7 +817,10 @@ parallel applications should be.  For 1GB data-set, \tc = 659s and for
 the compute is distributed over two machines: 1 worker at each site:
 \tc = 672s, \tc = 1081s and \tc =2051s for 1, 2 and 4GB respectively;
 this trend is valid even when the number of workers per site is more
-than 1.
+than 1. \sagamapreduce is not linear with the number of workers, but in fact
+is linear with the work load per worker (over a large range, but then starts deviating from the linear behaviour as work-load gets smaller, with deviations
+occuring for smaller data-set sizes). See Fig.~\ref{grids2}.
+% MapReduce\_local\_executiontimeperworkerdatasize.png
 
 Fig.~\ref{grids1} plots the \tc for different number of active workers
 on different data-set sizes; the plots can be understood using the
@@ -847,7 +850,7 @@ for this boundary case is very close to 1:5, providing strong evidence
 that the $t_{comp}$ has the bulk contribution, as we expect
 $t_{coord}$ to remain mostly the same, as it scales either with the number 
 of chunks and/or with the number of workers -- which is 
-the same in this case.  Even if that $t_{coord}$ does change, we don't
+the same in this case.  Even if $t_{coord}$ does change, we do not
 expect it to scale by a factor of 5, while we do expect $t_{comp}$ to
 do so.
 
@@ -863,14 +866,9 @@ do so.
 %   \hline
 % \end{tabular}
 
-\sagamapreduce is not linear with the number of workers, but in fact
-is linear with the work load per worker (over a large range, but then starts deviating from the linear behaviour as work-load gets smaller, with deviations
-occuring for smaller data-set sizes). See Fig.~\ref{grids2}.
-% MapReduce\_local\_executiontimeperworkerdatasize.png
-
-Results for the Experiment \# 5 show that for a given dataset size,
-when the same number of workers are available but in case (i) are all
-localized and in case (ii) are split evenly between two (similar)
+Results for Experiment \# 5 show that for a given dataset size,
+when the same number of workers are available but are
+either all localized, or are split evenly between two (similar)
 machines. It shows that to get the fast \tc it is often required to
 both distribute the compute and lower the workload per worker; just
 lowering the workload per worker wont be good enough as there is still
@@ -968,17 +966,45 @@ Experiment 2, 3 and 4;
 
 \subsection{SAGA-MapReduce on Clouds}
 
-\begin{itemize}
-\item  The Three Cloud Systems we play with are:
-\begin{itemize}
-\item AWS
-\item Nimbus
-\item Eucalyptus (GumboCloud -- howzatt!!)
-\end{itemize}
-Now compare performance of 1,2..10 Workers with 1,2..10 GB
-\item Analagous to Grids/LONI We want to do half workers on AWS and half 
-on Nimbus or some combination of the three systems thereof
-\end{itemize}
+Thanks to the low overhead of developing adaptors, SAGA has been deployed
+on  three Cloud Systems -- Amazon, Nimbur and Eucalyptus (we have a local
+installation of Eucalyptus, referred to as GumboCloud).
+
+There are several aspects to Cloud Interoperability. A simple form of
+interoperability -- more akin to inter-changable, is that any
+application can use either of the three Clouds systems without any
+changes to the application.  Interestingly SAGA provides this level of
+interoperability quite trivially thanks to the adaptors; by almost
+trivial extension, SAGA provides Grid-Cloud interoperability, as shown
+in Fig 8 and 9, where exactly the same interface and functional calls
+lead to job submission on Grids or on Clouds. Although syntactically
+identical, the semantics of the calls and back-end management are very
+different.  For example, for Grids j.run() leads to the submission of
+a job, whilst for Clouds j.run leads to the instantiation of a virtual
+machine (VM).  It is worth mentioning that using SAGA, or it took us
+45 seconds to instantiate a VM on Eucalyptus, while it took 90 seconds
+on EC2. Once instantiated, it takes about 1sec to assign a job to a VM
+on Eucalyptus.
+
+We have also architected \sagamapreduce to work on Cloud platforms. It
+is critical to mention that the \sagamapreduce code did not undergo
+any changes whatsoever. The change lies in the run-time system and
+deployment architecture. For example, when running \sagamapreduce on
+EC2, the master process resides on one VM, while workers reside on
+different VMs. The VMs hosting the master and workers share the same
+security context and a shared file-system (using FUSE adn sshfs). The
+Master-Worker read/write to either a global/distributed file systems
+or via remote file-adaptors.
+
+Due to space limitations we will not discuss the performance data of
+\sagamapreduce with different data-set sizes and varying worker
+numbers...
+
+
+% Now compare performance of 1,2..10 Workers with 1,2..10 GB
+% \item Analagous to Grids/LONI We want to do half workers on AWS and half 
+% on Nimbus or some combination of the three systems thereof
+% \end{itemize}
 
 \begin{figure}[!ht]
  \begin{center}
