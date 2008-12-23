@@ -67,8 +67,8 @@
 \newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
 \fi
 
-\newcommand{\sagamapreduce }[1]{SAGA-MapReduce }
-\newcommand{\tc }[1]{$T_c$}
+\newcommand{\sagamapreduce }[1]{ SAGA-MapReduce }
+\newcommand{\tc }[1]{ $T_c$ }
 \begin{document}
 
 \maketitle
@@ -811,12 +811,45 @@ We have also distinguished between SAGA All-Pairs using Advert Service
 versus using Hbase for data-store, but due to space constraints we
 will report results of the All-Pairs experiments elsewhere.
 
+$T_c = t_{pp} + t_{comp} + t_{coord}$
+
+Observation: the efficiency is pretty close to 1. Like all good (data)
+parallel applications. \tc for 1GB = 659, \tc for 10GB = 6286s.
+This is true even when the compute is distributed over two machines:\\
+(1 worker each): $T_c = $ 672s, $T_c = $ 1081s, $T_c = $ 2051s for
+1, 2 and 4GB respectively. \\
+(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 1, 2
+and 4GB respectively.
+
+\sagamapreduce is not linear with the number of workers, but in fact
+is linear with the work load per worker (over a large range, but then starts deviating from the linear behaviour as work-load gets smaller, with deviations
+occuring for smaller data-set sizes). See Fig MapReduce\_local\_executiontimeperworkerdatasize.png
+
 Results for the Experiment \# 5 show that for a given dataset size,
 when the same number of workers are available but in case (i) are all
 localized and in case (ii) are split evenly between two (similar)
-machines. It shows that when data-set per worker gets above a certain
-point, it is beneficial to distribute the workers, as the machine I/0
-becomes the bottleneck.
+machines. It shows that to get the fast \tc` it is often required to
+both distribute the compute and lower the workload per worker; just
+lowering the workload per worker wont be good enough as there is still
+a point of serialization (usually local I/O).  
+
+local:       1GB dataset, workload of 0.5GB/W \tc = 372s \\       
+distributed: 1GB dataset, workload of 0.25GB/W \tc = 372s \\
+
+local:       1GB dataset, workload of 0.1GB/W \tc = 466s\\
+distributed: 1GB dataset, workload of 0.1GB/W \tc = 320s \\
+
+local:       2GB dataset, workload of 0.2GB/W \tc = 709s\\
+distributed: 2GB dataset, workload of 0.2GB/W \tc = 454s \\
+
+local:       4GB dataset, workload of 0.5GB/W \tc =  1083s\\
+distributed: 4GB dataset, workload of 0.5GB/W \tc = 912s \\
+
+It shows that when workload per worker gets to a certain point, point,
+it is beneficial to distribute the workers, as the machine I/0 becomes
+the bottleneck.
+
+
 
 \subsection{SAGA-MapReduce on Grids}
 
