@@ -123,7 +123,7 @@
 % Grids: Regular perfomance issues
 % \end{enumerate}
 
-\jhanote{The *RIGHT* Abstraction will provide 1. infrastructure independence,
+The *RIGHT* Abstraction will provide 1. infrastructure independence,
 2. support for decomposing along application patterns, 3. support for
 different and novel programming models. Most if not all of the three
 features /criteria. SAGA is an important useful approach.  To
@@ -176,7 +176,8 @@ For each case (where applicable):
 
 Voila! Once we've done all this, we've established SAGA as an
 infrastructure independent and good performing abstraction for
-data-intensive application as outlined in the opening.}
+data-intensive application as outlined in the opening.
+
 \section{Introduction} 
 
 The case for effective programming abstractions and patterns is not
@@ -783,12 +784,16 @@ and to possibly distribute them. This is in some ways the overhead of
 the process.  $t_{comp}$ is the time to actually compute the map and
 reduce function on a given worker, whilst $t_{coord}$ is the time
 taken to assign the payload to a worker, update records and to
-possibly move workers to a destination resource.
+possibly move workers to a destination resource. $t_{coord}$ is
+indicative of the time that it takes to assign chunks to workers and
+scales as the number of workers increases. For the same number of
+chunks assigned to a larger number of worker, the value should
+increase.
 
 
+{\bf SAGA-MapReduce on Grids:} (Experiments 1 and
+5) %Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
 
-\subsection{SAGA-MapReduce on Grids}
-Experiments 1 and 5;  Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
 \begin{figure}[t]
   \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
 \caption{Plots showing how the \tc for different data-set sizes
@@ -805,15 +810,46 @@ Experiments 1 and 5;  Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
 \label{grids2}
 \end{figure}
 
-Observation: The efficiency of \sagamapreduce is pretty close to 1,
-actually better than 1.0.
-% Like all good (data) parallel applications. 
+We begin with the observation that the efficiency of \sagamapreduce is
+pretty close to 1, actually better than 1.0 -- like any good (data)
+parallel applications should be.  For 1GB data-set, \tc = 659s and for
+10GB \tc = 6286s.  The efficiency remains at or around 1, even when
+the compute is distributed over two machines: 1 worker at each site:
+\tc = 672s, \tc = 1081s and \tc =2051s for 1, 2 and 4GB respectively;
+this trend is valid even when the number of workers per site is more
+than 1.
 
-For 1GB data-set, \tc = 659s and for 10GB \tc = 6286s.  The efficiency
-remains at or around 1, even when the compute is distributed over two
-machines: 1 worker at each site: \tc = 672s, \tc = 1081s and \tc =2051s for
-1, 2 and 4GB respectively; this trend is valid even when the number of
-workers per site is more than 1.
+Fig.~\ref{grids1} plots the \tc for different number of active workers
+on different data-set sizes; the plots can be understood using the
+framework provided by Equation 1. For each data-set (from 1GB to 10GB)
+there is an overhead associated with chunking the data into 64MB
+pieces; the time required for this scales with the number of chunks
+created.  Thus for a fixed chunk-size (as is the case with our
+set-up), the $t_{pp}$ scales with the data-set size. As the number of
+workers increases, the payload per worker decreases so there is regime
+of decrease, but this is accompanied by a concomittant increase in
+$t_{coord}$. However, we will establish that $t_{coord}$ grows less
+slowly than $t_{comp}$. Thus the curved decrease in \tc can be
+explained by a speedup due to lower payload as the number of workers
+increases whilst at the same time the $t_{coord}$ increases; although
+the former is linear, due to increasing value of the latter, the
+effect is a curve. The plateau is dominated by $t_{pp}$ -- the
+overhead of chunking etc, and so increasing the number of workers
+beyond a point does not lead to a further reduction in \tc.
+
+To take a real example, consider two data-sets, of sizes 1GB and 5GB.
+Vary the chunk size, between 32MB to the maximum size possible, i.e.,
+chunk sizes of 1GB and 5GB respectively. In the configuration where
+there is only one chunk, $t_{pp}$ should be effectively zero, and \tc
+will be dominated by the other two components --$t_{comp}$ and
+$t_{coord}$.  Interestingly however, for 1GB and 5GB, the ratio of \tc
+for this boundary case is very close to 1:5, providing strong evidence
+that the $t_{comp}$ has the bulk contribution, as we expect
+$t_{coord}$ to remain mostly the same, as it scales either with the number 
+of chunks and/or with the number of workers -- which is 
+the same in this case.  Even if that $t_{coord}$ does change, we don't
+expect it to scale by a factor of 5, while we do expect $t_{comp}$ to
+do so.
 
 %(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 
 %1, 2 and 4GB respectively.  
