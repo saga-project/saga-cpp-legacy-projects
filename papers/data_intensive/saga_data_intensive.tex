@@ -31,13 +31,13 @@
 \DefineVerbatimEnvironment{mycode}{Verbatim}
 {
   label=Code Example,
-  fontsize=\small,
+  fontsize=\scriptsize,
   frame=single,
 % framerule=1pt,
-  framesep=1em,
+  framesep=0.25em,
   numbers=right,  %numbers=right,
-  numbersep=2pt,
-  gobble=2,
+  numbersep=0.5pt,
+  gobble=0,
   numberblanklines=false
 }
 
@@ -123,7 +123,7 @@
 % Grids: Regular perfomance issues
 % \end{enumerate}
 
-The *RIGHT* Abstraction will provide 1. infrastructure independence,
+\jhanote{The *RIGHT* Abstraction will provide 1. infrastructure independence,
 2. support for decomposing along application patterns, 3. support for
 different and novel programming models. Most if not all of the three
 features /criteria. SAGA is an important useful approach.  To
@@ -176,8 +176,7 @@ For each case (where applicable):
 
 Voila! Once we've done all this, we've established SAGA as an
 infrastructure independent and good performing abstraction for
-data-intensive application as outlined in the opening.
-
+data-intensive application as outlined in the opening.}
 \section{Introduction} 
 
 The case for effective programming abstractions and patterns is not
@@ -558,43 +557,6 @@ on the SAGA file package, providing a broad range of different file
 systems and transfer protocols, such as local file systems,
 Globus/GridFTP, KFS, and HDFS.
 
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.25\textwidth]{saga_mapreduce_1worker.png}
-          \caption{Performance figures for SAGA-MapReduce, using one
-            worker (and local to the master). %  and thus not
-%             distributed, but localised to a single machine,
-%             \jhanote{could the master and worker not be on different
-%               machines? if so, should we call this ``local'' or
-%               ``distributed''?}, 
-            Case I corresponds to the use of the local file system on
-            the Linux clusters we use, while Case II corresponds to
-            the use of HDFS on the cluster.  It is interesting to note
-            that as the data-set sizes get larger HDFS starts
-            outperforming local file systems.  We attribute this to
-            the use of caching and other advanced features in HDFS
-            which proove to be useful even though it is not being used
-            in a distributed fashion. We compare \sagamapreduce to
-            Yahoo's MapReduce implementation. % The three different
-%             scenarios considered are (i) all infrastructure is local
-%             and thus SAGA's local adapters are invoked, (ii) local job
-%             adaptors are used, but the hadoop file-system (HDFS) is
-%             used, (iii) Yahoo's mapreduce. 
-            Yahoo's mapreduce takes less time than \sagamapreduce
-            implementations, by about a factor of 2. This is not
-            surprising, as SAGA based implementations have not been
-            optimised, for example, \sagamapreduce is not
-            multi-threaded}
-      \label{saga_mapreduce_1worker.png}
-\end{figure}
-
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.25\textwidth]{saga_mapreduce_3workers.png}
-          \caption{stuff will come..}
-      \label{saga_mapreduce_3workers.png}
-\end{figure}
-
 The Master process creates partitions of data (referred to as chunking, analagous to Google's MapReduce), so the data-set does not have to be
 on one machine and can be distributed; this is an important
 mechanism to avoid limitations in network bandwidth and data distribution.
@@ -808,68 +770,25 @@ Experiments are:
 \end{enumerate}
 
 We have also distinguished between SAGA All-Pairs using Advert Service
-versus using Hbase for data-store, but due to space constraints we
-will report results of the All-Pairs experiments elsewhere.
+versus using Hbase or BigTable as distributed data-store, but due to
+space constraints we will report results of the All-Pairs experiments
+elsewhere.
 \begin{eqnarray}
 T_c = t_{pp} + t_{comp} + t_{coord}
 \end{eqnarray}
-The total time to completion can be decomposed into three primary
-components: $t_{pp}$ defined as the time for pre-processing -- which
-in this case is the time to chunk into fixed size data units, and to
-possibly distribute them. This is in some ways the overhead of the
-process.  $t_{comp}$ is the time to actually compute the map and
+The total time to completion ($T_c$) can be decomposed into three
+primary components: $t_{pp}$ defined as the time for pre-processing --
+which in this case is the time to chunk into fixed size data units,
+and to possibly distribute them. This is in some ways the overhead of
+the process.  $t_{comp}$ is the time to actually compute the map and
 reduce function on a given worker, whilst $t_{coord}$ is the time
 taken to assign the payload to a worker, update records and to
 possibly move workers to a destination resource.
 
 
-Observation: The efficiency of \sagamapreduce is pretty close to
-1. Like all good (data) parallel applications. For 1Gb \tc = 659 and
-\tc for 10GB = 6286s.  This is true even when the compute is
-distributed over two machines: 1 worker at each site: \tc = 672s, $T_c
-= $ 1081s, $T_c = $ 2051s for
-1, 2 and 4GB respectively. \\
-(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 1,
-2 and 4GB respectively.
-
-
-(1 worker at each site): $T_c = $ 672s, $T_c = $ 1081s, $T_c = $ 2051s for
-1, 2 and 4GB respectively. \\
-(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 1, 2
-and 4GB respectively.
-
-\sagamapreduce is not linear with the number of workers, but in fact
-is linear with the work load per worker (over a large range, but then starts deviating from the linear behaviour as work-load gets smaller, with deviations
-occuring for smaller data-set sizes). See Fig MapReduce\_local\_executiontimeperworkerdatasize.png
-
-Results for the Experiment \# 5 show that for a given dataset size,
-when the same number of workers are available but in case (i) are all
-localized and in case (ii) are split evenly between two (similar)
-machines. It shows that to get the fast \tc` it is often required to
-both distribute the compute and lower the workload per worker; just
-lowering the workload per worker wont be good enough as there is still
-a point of serialization (usually local I/O).  
-
-local:       1GB dataset, workload of 0.5GB/W \tc = 372s \\       
-distributed: 1GB dataset, workload of 0.25GB/W \tc = 372s \\
-
-local:       1GB dataset, workload of 0.1GB/W \tc = 466s\\
-distributed: 1GB dataset, workload of 0.1GB/W \tc = 320s \\
-
-local:       2GB dataset, workload of 0.2GB/W \tc = 709s\\
-distributed: 2GB dataset, workload of 0.2GB/W \tc = 454s \\
-
-local:       4GB dataset, workload of 0.5GB/W \tc =  1083s\\
-distributed: 4GB dataset, workload of 0.5GB/W \tc = 912s \\
-
-It shows that when workload per worker gets to a certain point, point,
-it is beneficial to distribute the workers, as the machine I/0 becomes
-the bottleneck.
-
-
 
 \subsection{SAGA-MapReduce on Grids}
-
+Experiments 1 and 5;  Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
 \begin{figure}[t]
   \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
 \caption{Plots showing how the \tc for different data-set sizes
@@ -879,19 +798,86 @@ the bottleneck.
 \label{grids1}
 \end{figure}
 
+
+\begin{figure}[t]
+\includegraphics[width=0.4\textwidth]{MapReduce_local_executiontimeperworkerdatasize.png}
+\caption{..}
+\label{grids2}
+\end{figure}
+
+Observation: The efficiency of \sagamapreduce is pretty close to 1,
+actually better than 1.0.
+% Like all good (data) parallel applications. 
+
+For 1GB data-set, \tc = 659s and for 10GB \tc = 6286s.  The efficiency
+remains at or around 1, even when the compute is distributed over two
+machines: 1 worker at each site: \tc = 672s, \tc = 1081s and \tc =2051s for
+1, 2 and 4GB respectively; this trend is valid even when the number of
+workers per site is more than 1.
+
+%(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 
+%1, 2 and 4GB respectively.  
+
+% \begin{tabular}{cccc}
+%   \hline
+%  Num of Workers  &  1GB   & 2GB & 4GB  \\
+%  2 &  372 & 629 & 2051 \\
+%   \hline
+%  2  &  & 0.5 & 372 \\
+%   \hline
+% \end{tabular}
+
+\sagamapreduce is not linear with the number of workers, but in fact
+is linear with the work load per worker (over a large range, but then starts deviating from the linear behaviour as work-load gets smaller, with deviations
+occuring for smaller data-set sizes). See Fig.~\ref{grids2}.
+% MapReduce\_local\_executiontimeperworkerdatasize.png
+
+Results for the Experiment \# 5 show that for a given dataset size,
+when the same number of workers are available but in case (i) are all
+localized and in case (ii) are split evenly between two (similar)
+machines. It shows that to get the fast \tc it is often required to
+both distribute the compute and lower the workload per worker; just
+lowering the workload per worker wont be good enough as there is still
+a point of serialization (usually local I/O).  It shows that when
+workload per worker gets to a certain point, it is beneficial
+to distribute the workers, as the machine I/0 becomes the bottleneck.
+
+
+%\begin{table}
+\begin{tabular}{cccc}
+  \hline
+  Config  &  data size   &   work-load/worker & $T_c$  \\
+  &   (GB)  & (GB/W) & (sec) \\
+  \hline
+%   local   & 1 & 0.5 & 372 \\
+%   \hline
+%   distributed   & 1  & 0.25 & 372 \\
+%   \hline \hline
+  local & 1 & 0.1 & 466 \\
+  \hline
+  distributed & 1 & 0.1 & 320 \\
+  \hline \hline
+  local & 2 & 0.2 & 709 \\
+  \hline 
+  distributed & 2 & 0.2 & 454 \\
+  \hline \hline
+local &  4 & 0.5 & 1083s\\
+\hline
+distributed &  4 &  0.5&  912s \\
+\hline \hline
+\end{tabular}
+% \end{table}
 % \begin{figure}[t]
 %   \includegraphics[width=0.4\textwidth]{MapReduce_local_datasizeperworker.png}
 % \caption{Stuff will go here}
 % \label{grids2}
 % \end{figure}
 
-\begin{figure}[t]
-  \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime_3d.png}
-\caption{Stuff will go here too}
-\label{grids3}
-\end{figure}
-
-Experiments 1 and 3; Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
+% \begin{figure}[t]
+%   \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime_3d.png}
+% \caption{Stuff will go here too}
+% \label{grids3}
+% \end{figure}
 
 % \begin{figure}[t]  \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontimeperworkerdatasize.png}\label{4}
 % \end{figure}
@@ -904,8 +890,45 @@ Experiments 1 and 3; Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
 
 \subsection{SAGA-MapReduce on Cloud-like infrastructure}
 
-Experiment 2 and 4; Figures ~\ref{saga_mapreduce_1worker.png},
-~\ref{saga_mapreduce_3workers.png}
+Experiment 2, 3 and 4; 
+(Figures ~\ref{saga_mapreduce_1worker.png}, ~\ref{saga_mapreduce_3workers.png})
+
+\begin{figure}[t]
+      \centering
+          \includegraphics[width=0.25\textwidth]{saga_mapreduce_1worker.png}
+          \caption{Performance figures for SAGA-MapReduce, using one
+            worker (and local to the master). %  and thus not
+%             distributed, but localised to a single machine,
+%             \jhanote{could the master and worker not be on different
+%               machines? if so, should we call this ``local'' or
+%               ``distributed''?}, 
+            Case I corresponds to the use of the local file system on
+            the Linux clusters we use, while Case II corresponds to
+            the use of HDFS on the cluster.  It is interesting to note
+            that as the data-set sizes get larger HDFS starts
+            outperforming local file systems.  We attribute this to
+            the use of caching and other advanced features in HDFS
+            which proove to be useful even though it is not being used
+            in a distributed fashion. We compare \sagamapreduce to
+            Yahoo's MapReduce implementation. % The three different
+%             scenarios considered are (i) all infrastructure is local
+%             and thus SAGA's local adapters are invoked, (ii) local job
+%             adaptors are used, but the hadoop file-system (HDFS) is
+%             used, (iii) Yahoo's mapreduce. 
+            Yahoo's mapreduce takes less time than \sagamapreduce
+            implementations, by about a factor of 2. This is not
+            surprising, as SAGA based implementations have not been
+            optimised, for example, \sagamapreduce is not
+            multi-threaded}
+      \label{saga_mapreduce_1worker.png}
+\end{figure}
+
+\begin{figure}[t]
+      \centering
+          \includegraphics[width=0.25\textwidth]{saga_mapreduce_3workers.png}
+          \caption{stuff will come..}
+      \label{saga_mapreduce_3workers.png}
+\end{figure}
 
 \subsection{SAGA-MapReduce on Clouds}
 
