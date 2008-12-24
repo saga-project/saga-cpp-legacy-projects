@@ -398,12 +398,12 @@ Alternatively, they store MapReduce results in Bigtable.  % We will
 MapReduce~\cite{mapreduce-paper} is a programming framework which
 supports applications which operate on very large data sets on
 clusters of computers.  MapReduce relies on a number of capabilities
-of the underlying system, most related to file operations.  Others are 
-related to process/data allocation.  The Google File System, and other
-distributed file systems, provide the relevant capabilities, such as atomic
-file renames.  Implementations of MapReduce on these distributed file systems
-are free to focus on implementing the data-flow pipeline, which is the
-algorithmic core of the MapReduce framework.
+of the underlying system, most related to file operations.  Others are
+related to process/data allocation.  The Google File-System, and other
+distributed file-systems (DFS), provide the relevant capabilities,
+such as atomic file renames.  Implementations of MapReduce on these
+DFS are free to focus on implementing the data-flow pipeline, which is
+the algorithmic core of the MapReduce framework.
 
 {\bf SAGA-MapReduce Implementation:} We have recently implemented
 MapReduce in SAGA, targeting general purpose Grid systems, where the
@@ -568,14 +568,15 @@ communication between the master and the worker processes is ensured
 by using the SAGA advert package, abstracting an information database
 in a platform independent way. All file transfer operations are based
 on the SAGA file package, providing a broad range of different file
-systems and transfer protocols, such as local file systems,
+systems and transfer protocols, such as local file systems (FS),
 Globus/GridFTP, KFS, and HDFS.
 
-The Master process creates partitions of data (referred to as chunking, analagous to Google's MapReduce), so the data-set does not have to be
-on one machine and can be distributed; this is an important
-mechanism to avoid limitations in network bandwidth and data distribution.
-These files could then be recognized by a distributed file systems
-such as Hadoop File System.
+The Master process creates partitions of data (referred to as
+chunking, analagous to Google's MapReduce), so the data-set does not
+have to be on one machine and can be distributed; this is an important
+mechanism to avoid limitations in network bandwidth and data
+distribution.  These files could then be recognized by a DFS such as
+Hadoop FS.
 
 % There are a few implementations of MapReduce, most notably Google's and
 % Hadoop's.  These are what our implementation is based on.  It is able
@@ -633,7 +634,7 @@ in the way jobs are ran and how the data are stored.  In
 is a distributed filesystem available, whereas SAGA All-pairs uses the
 database to also store information about the job.  We decided to do
 this because all data must be available to be useful. SAGA All-Pairs
-abstraction is implemented using the Hadoop File System and using
+abstraction is implemented using the Hadoop FS and using
 gridftp to not only show that SAGA allows for many different
 configurations, but also to see how these different configurations
 behave. We have also used a distributed data-store -- specifically
@@ -699,7 +700,7 @@ hierarchical file organization.  % It has been highly successful and is
 % fault-tolerance.  
 Implemented in Java, HDFS is designed to run on commodity hardware
 while providing scalability and optimizations for large files.  The
-file system works by having one or two namenodes, masters, and many
+FS works by having one or two namenodes, masters, and many
 rack-aware datanodes, slaves.  All data requests go through the
 namenode that uses block operations on each data node to properly
 assemble the data for the requesting application.  The goal of
@@ -725,10 +726,10 @@ accessing it does not create a large strain on the network bandwidth.
 There exist many other implementations of both distributed
 file-systems (such as Sector) and of distributed data-store (such as
 Cassandra and Hybertable); for the most part they are variants on the
-same theme technically but different language and performance criteria
-optimizations.  Hypertable is an open-source implementation of
-Bigtable; Cassandra is another Bigtable clone but eschews an explicit
-coordinator (Bigtable's Chubby, HBase's HMaster, Hypertable's
+same theme technically, but with different language and performance
+criteria optimizations.  Hypertable is an open-source implementation
+of Bigtable; Cassandra is another Bigtable clone but eschews an
+explicit coordinator (Bigtable's Chubby, HBase's HMaster, Hypertable's
 Hyperspace) for a P2P/DHT approach for data distribution and location
 and for availability.  In the near future we will be providing
 adaptors for Sector~\footnote{http://sector.sourceforge.net/} and
@@ -768,16 +769,19 @@ effective programming abstraction layer.
 % (HDFS) and HBase to store the metadata similar to what Yahoo! uses.
 % We will call this the native implementation of MapReduce.
 
-Experiments are:
+In order to establish the effectiveness of SAGA as a mechanism to
+develop distributed applications, and the ability of \sagamapreduce to
+be provide flexibility in distributing compute units, we have designed
+the following experiment set to establish:
 \begin{enumerate}
 \item Think Global; Act Local: When both \sagamapreduce workers
   (compute) and data-distribution is local. The number of workers vary
   from 1 to 10, and the data-set sizes varying from 1 to 10GB. Here we
   will also compare \sagamapreduce with native MapReduce (using HBase
   and Hadoop)
-\item \sagamapreduce when workers are locally computed, but using a distributed file system (HDFS); the number of workers varies from 1 to 4
+\item \sagamapreduce when workers are locally computed, but using a distributed FS (HDFS); the number of workers varies from 1 to 4
 % upto 3 workers (upto a data-set size of 10GB).
-\item Same as Exp. \#2, but using a different distributed file system
+\item Same as Exp. \#2, but using a different distributed FS
   (KFS); the number of workers varies from 1-4
 \item \sagamapreduce using distributed compute (workers) and distributed file-system (KFS)
 \item Distributed compute (workers) but using local file-systems (using gridftp for transfer)
@@ -1011,7 +1015,7 @@ deployment architecture. For example, when running \sagamapreduce on
 EC2, the master process resides on one VM, while workers reside on
 different VMs. The VMs hosting the master and workers share the same
 security context and a shared file-system (using FUSE adn sshfs). The
-Master-Worker read/write to either a global/distributed file systems
+Master-Worker read/write to either a global/distributed FS
 or via remote file-adaptors.  Due to space limitations we will not
 discuss the performance data of \sagamapreduce with different data-set
 sizes and varying worker numbers.
