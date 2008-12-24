@@ -990,35 +990,53 @@ SAGA based implementations have not been optimised, for example,
 
 \subsection{SAGA-MapReduce on Clouds}
 
-Thanks to the low overhead of developing adaptors, SAGA has been deployed
-on  three Cloud Systems -- Amazon, Nimbur and Eucalyptus (we have a local
-installation of Eucalyptus, referred to as GumboCloud).
+Thanks to the low overhead of developing adaptors, SAGA has been
+deployed on three Cloud Systems -- Amazon, Nimbus and Eucalyptus (we
+have a local installation of Eucalyptus, referred to as GumboCloud).
+On EC2, we created custom virtual machine (VM) image with preinstalled
+SAGA.  For Eucalyptus and Nimbus, a boot strapping script equipes a
+standard VM instance with SAGA, and SAGA's prerequesites (mainly
+boost).  To us, a mixed approach seemd most favourable, where the bulk
+software installation is statically done via a custom VM image, but
+software configuration and application deployment are done dynamically
+during VM startup.
 
 There are several aspects to Cloud Interoperability. A simple form of
-interoperability -- more akin to inter-changable, is that any
+interoperability -- more akin to inter-changable -- is that any
 application can use either of the three Clouds systems without any
-changes to the application.  Interestingly SAGA provides this level of
-interoperability quite trivially thanks to the adaptors; by almost
-trivial extension, SAGA provides Grid-Cloud interoperability, as shown
+changes to the application: the application simply needs to
+instantiate a different set of security credentials for the respective
+runtime environment, aka cloud.  Interestingly, SAGA provides this level of
+interoperability quite trivially thanks to the adaptors.
+
+By almost
+trivial extension, SAGA also provides Grid-Cloud interoperability, as shown
 in Fig.~\ref{gramjob} and ~\ref{vmjob}, where exactly the same
 interface and functional calls lead to job submission on Grids or on
 Clouds. Although syntactically identical, the semantics of the calls
-and back-end management are very different.  For example, for Grids
-{\tt j.run()} leads to the submission of a job, whilst for Clouds {\tt
-  j.run()} leads to the instantiation of a virtual machine (VM).  It
-takes SAGA 45seconds to instantiate a VM on Eucalyptus, while it took
-90 seconds on EC2. Once instantiated, it takes about 1sec to assign a
-job to a VM on Eucalyptus.
+and back-end management are somewhat different.  For example, for
+Grids, a \texttt{job\_service} instance represents a live job
+submission endpoint, whilst for Clouds it represents a VM
+instance created on the fly.  It takes SAGA about 45 seconds to
+instantiate a VM on Eucalyptus, and about 90 seconds on EC2. Once
+instantiated, it takes about 1 second to assign a job to a VM on
+Eucalyptus, or EC2.  It is a configurable option to tie the VM
+lifetime to the \texttt{job\_service} object lifetime, or not.
 
-We have also architected \sagamapreduce to work on Cloud platforms. It
+We have also architected \sagamapreduce to work on Cloud platforms.  It
 is critical to mention that the \sagamapreduce code did not undergo
 any changes whatsoever. The change lies in the run-time system and
 deployment architecture. For example, when running \sagamapreduce on
 EC2, the master process resides on one VM, while workers reside on
-different VMs. The VMs hosting the master and workers share the same
-security context and a shared file-system (using FUSE adn sshfs). The
-Master-Worker read/write to either a global/distributed FS
-or via remote file-adaptors.  Due to space limitations we will not
+different VMs.
+Depending on the available adaptors, Master and Worker can either 
+perform local I/O on a global/distributed file system, or remote 
+I/O on a remote, non-shared file systems.  In our current implementation, 
+the VMs hosting the master and workers share the same ssh
+credentials and a shared file-system (using sshfs/FUSE).  Application
+deployment and configuration (as discussed above) are also performed
+via taht sshfs.
+Due to space limitations we will not
 discuss the performance data of \sagamapreduce with different data-set
 sizes and varying worker numbers.
 
@@ -1031,17 +1049,17 @@ sizes and varying worker numbers.
 \begin{figure}[!ht]
  \begin{center}
   \begin{mycode}[label=SAGA Job Launch via GRAM gatekeeper]
-   {// finds a GRAM gatekeeper
-    saga::job::service js;
+   { // contact a GRAM gatekeeper
+    saga::job::service     js;
     saga::job::description jd;
-    jd.set_attribute(``Executable'', ``/tmp/my_prog'');
-    //translate job description to RSL
-    saga:job::job j = js.create_job(jd);
-    //submit RSL to gatekeeper, and obtain job handle
-    j.run():
+    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
+    // translate job description to RSL
+    // submit RSL to gatekeeper, and obtain job handle
+    saga:job::job j = js.create_job (jd);
+    j.run ():
     // watch handle until job is finished
-    j.wait();
-   } 
+    j.wait ();
+   } // break contact to GRAM
   \end{mycode}
   \caption{\label{gramjob}Job launch via Gram }
  \end{center}
@@ -1050,18 +1068,18 @@ sizes and varying worker numbers.
 
 \begin{figure}[!ht]
  \begin{center}
-  \begin{mycode}[label=SAGA create a VM instance on Eucalyptus]
-   {// create a VM instance on Eucalyptus
-    saga::job::service js;
+  \begin{mycode}[label=SAGA create a VM instance on a Cloud]
+   {// create a VM instance on Eucalyptus/Nimbus/EC2
+    saga::job::service     js;
     saga::job::description jd;
-    jd.set_attribute(``Executable'', ``/tmp/my_prog'');
-    //translate job description to ssh command
-    saga:job::job j = js.create_job(jd);
-    //run the ssh command on the VM
-    j.run():
+    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
+    // translate job description to ssh command
+    // run the ssh command on the VM
+    saga:job::job j = js.create_job (jd);
+    j.run ():
     // watch command until done
-    j.wait();
-   } 
+    j.wait ();
+   } // shut down VM instance
   \end{mycode}
   \caption{\label{vmjob} Job launch via VM}
  \end{center}
