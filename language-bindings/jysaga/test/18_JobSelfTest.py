@@ -8,32 +8,27 @@ import test_constants
 
 class TestJob(unittest.TestCase):
     js = JobService(test_constants.job_hostname)
-    job = js.get_self()
-
+    jd = JobDescription()
+    jd.Executable = test_constants.job_Executable
+    jd.Arguments = test_constants.job_Arguments
+    jd.WorkingDirectory = test_constants.job_WorkingDirectory
         
     def setUp(self):
-        pass
+        try:
+            self.job = self.js.create_job(self.jd)
+        except NotImplemented, e: 
+            if e.saga_object != None: print e.message,"... ",
+            test_constants.add_NotImplemented()
+            test_constants.add_method_tested()          
 
     def tearDown(self):
-        pass
+        try:
+            self.job.cancel(0)
+        except IncorrectState,e:
+            pass
 
-#Inherited from task.Task: __del__, cancel, get_object, get_result, get_state, rethrow, run, wait
-
-#Inherited from monitoring.Steerable: add_metric, fire_metric, remove_metric
-#Inherited from monitoring.Monitorable: add_callback, get_metric, list_metrics, remove_callback
-#Inherited from attributes.Attributes: attribute_exists, attribute_is_readonly, attribute_is_removable, attribute_is_vector, attribute_is_writable, find_attributes, get_attribute, get_vector_attribute, list_attributes, remove_attribute, set_attribute, set_vector_attribute
-#Inherited from permissions.Permissions: get_group, get_owner, permissions_allow, permissions_check, permissions_deny
-#Properties
-
-#Inherited from task.Task: object, result, state
-#Inherited from object.Object: id, session, type
-#Inherited from monitoring.Monitorable: metrics
-#Inherited from attributes.Attributes: attributes
-#Inherited from permissions.Permissions: group, owner  
-
-
-#Inherited from Job: checkpoint, get_job_description, get_stderr, get_stdin, get_stdout, migrate, resume, signal, suspend
-    def test_Job_description(self):
+        
+    def test_get_job_description(self):
         try:
             test = self.job.get_job_description()
             self.failUnless( isinstance(test, JobDescription) )
@@ -41,6 +36,8 @@ class TestJob(unittest.TestCase):
             if e.saga_object != None: print e.message,"... ", 
             test_constants.add_NotImplemented()
         test_constants.add_method_tested()
+
+
 
     def test_get_stdin(self):
         try:
@@ -98,6 +95,7 @@ class TestJob(unittest.TestCase):
             test_constants.add_NotImplemented()        
         test_constants.add_method_tested()
  
+ 
     def test_resume(self):
         try:
             jd = JobDescription()
@@ -112,6 +110,7 @@ class TestJob(unittest.TestCase):
             if e.saga_object != None: print e.message,"... ",
             test_constants.add_NotImplemented()        
         test_constants.add_method_tested()
+        
 
     def test_checkpoint(self):
         try:
@@ -140,6 +139,7 @@ class TestJob(unittest.TestCase):
             test_constants.add_NotImplemented() 
         test_constants.add_method_tested()
 
+
     def test_signal(self):
         try:
             jd = JobDescription()
@@ -153,7 +153,7 @@ class TestJob(unittest.TestCase):
             test_constants.add_NotImplemented() 
         test_constants.add_method_tested()
 
-#Inherited from object.Object: clone, get_id, get_session, get_type
+
     def test_Object_Methods(self):
         o = self.job
     
@@ -167,7 +167,7 @@ class TestJob(unittest.TestCase):
         try:
             test = o.get_type()
             self.failUnless( (type(test) == int) )
-            self.failUnless( test == ObjectType.JOBSELF )
+            self.failUnless( test == ObjectType.JOB )
         except NotImplemented:
             if e.saga_object != None: print e.message,"... ",
             test_constants.add_NotImplemented()    
@@ -189,7 +189,6 @@ class TestJob(unittest.TestCase):
             test_constants.add_NotImplemented()            
         test_constants.add_method_tested(4)
 
-#Inherited from Job: Created, ExecutionHosts, ExitCode, Finished, JobID, Started, Termsig, WorkingDirectory
     def test_properties(self):
         test_constants.add_method_tested(8)
         print self.job.get_job_description().attributes
@@ -238,6 +237,12 @@ class TestJob(unittest.TestCase):
             test_constants.add_NotImplemented()
         
 
+    def __get_Termsig(self):
+        return self.get_attribute("Termsig")  
+
+    Termsig = property(__get_Termsig, doc="""The Termsig attribute.\n
+                          @type:int""")
+        
 
 
     def test_zzz_nr_NotImplemented(self):

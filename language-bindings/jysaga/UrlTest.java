@@ -29,30 +29,23 @@ class UrlTest{
 
 	int start(String[] argv){
 		URL url = null;
-		URL url2 = null;
-		URL url3 = null;
 		Session session;
+		Buffer buf
 		Directory dir = null;
 		List<URL> lijst;
 		File file = null;
 		
+		
 		try {
-			url = URLFactory.createURL("file:/home/paul/Saga/PySaga/");
-			url2= URLFactory.createURL("file:/home/paul/Saga/PySaga/sagaText.txt");
-			url3= URLFactory.createURL("file:/home/paul/Saga/PySaga/sagaCopy.txt");
-
-
+			url = URLFactory.createURL("file:/tmp/bla");
 			session = SessionFactory.createSession();  //session, 
-			dir = FileFactory.createDirectory(url,Flags.READ.getValue());
+			buf = BufferFactory.createBuffer(); 
+			file = FileFactory.createFile
+
+
 			
-			lijst = dir.list("");
-			for (int i=0; i<lijst.size(); i++){
-				System.out.println(lijst.get(i).getURL());
-				
-			}
 			
-			file = FileFactory.createFile(url2, Flags.READ.getValue() );
-			file.copy(url3, Flags.OVERWRITE.getValue());
+			
 			
 		} catch (NotImplementedException e) {
 			e.printStackTrace();

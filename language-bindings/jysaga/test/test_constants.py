@@ -38,6 +38,8 @@ job_Executable = "/bin/sleep"
 job_Arguments = ["5"]
 job_Interactive = "True"
 job_Arguments_alternative = ["--version"]
+job_WorkingDirectory = "/tmp"
+
 class Result(object):
     nr_NotImplemented = 0
     nr_methods_tested = 0
