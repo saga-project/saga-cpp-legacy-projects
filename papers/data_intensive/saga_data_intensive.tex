@@ -810,8 +810,9 @@ chunks assigned to a larger number of worker, the value should
 increase.
 
 
-{\bf SAGA-MapReduce on Grids:} (Experiments 1 and
-5) %Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
+{\bf SAGA-MapReduce on Grids:}
+%(Experiments 1 and 5)
+%Figures~\ref{grids1}, \ref{grids2}, \ref{grids3}
 
 \begin{figure}[t]
   \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
@@ -884,46 +885,7 @@ do so.
 %   \hline
 % \end{tabular}
 
-Results for Experiment \# 5 show that for a given dataset size,
-when the same number of workers are available but are
-either all localized, or are split evenly between two (similar)
-machines. It shows that to get the fast \tc it is often required to
-both distribute the compute and lower the workload per worker; just
-lowering the workload per worker wont be good enough as there is still
-a point of serialization (usually local I/O).  It shows that when
-workload per worker gets to a certain point, it is beneficial
-to distribute the workers, as the machine I/0 becomes the bottleneck.
 
-
-\begin{table}
-\begin{tabular}{cccc}
-  \hline
-  Config  &  data size   &   work-load/worker & $T_c$  \\
-  compute \& data &   (GB)  & (GB/W) & (sec) \\
-  \hline
-%   local   & 1 & 0.5 & 372 \\
-%   \hline
-%   distributed   & 1  & 0.25 & 372 \\
-%   \hline \hline
-  local \& LFS & 1 & 0.1 & 466 \\
-  \hline
-  local \& KFS & 1 & 0.1 & 320 \\
-  \hline
-  distributed \& KFS & 1 & 0.1 &  273.55 \\
-  \hline \hline
-  local \& LFS & 2 & 0.2 & 709 \\
-  \hline 
-  local \& KFS & 2 & 0.2 & 454 \\
-  \hline \hline
-  local \& LFS&  4 & 0.5 & 1083s\\
-  \hline
-   local \& KFS &  4 &  0.5&  912s \\
-\hline \hline
-\end{tabular}
-\caption{Table showing \tc for different configurations of compute  
-  and data. The two compute configurations are: (all workers are either
-  placed locally or  workers are distributed across two different resources. The data configurations are: either using a single local FS   or distributed FS with 2 data-servers.}
-\end{table}
 % \begin{figure}[t]
 %   \includegraphics[width=0.4\textwidth]{MapReduce_local_datasizeperworker.png}
 % \caption{Stuff will go here}
@@ -947,51 +909,85 @@ to distribute the workers, as the machine I/0 becomes the bottleneck.
 
 \subsection{SAGA-MapReduce on Cloud-like infrastructure}
 
+%Experiment 2, 3 and 4; 
+%(Figures ~\ref{saga_mapreduce_1worker.png}, ~\ref{saga_mapreduce_3workers.png})
 
-Experiment 2, 3 and 4; 
-(Figures ~\ref{saga_mapreduce_1worker.png}, ~\ref{saga_mapreduce_3workers.png})
+\begin{figure}[t]
+      \centering
+          \includegraphics[width=0.40\textwidth]{mapreduce_timing_FS.pdf}
+          \caption{\tc for \sagamapreduce using one worker (local to
+            the master) for different configurations.  The ``SAGA
+            MapReduce + Local FS'' corresponds to the use of the local
+            FS on Linux clusters, while the label ``SAGA + HDFS''
+            corresponds to the use of HDFS on the clusters. 
+            Hadoop represents Yahoo's MapReduce implementation.}
+          % It is interesting to note that as the data-set sizes get
+          % larger, HDFS starts outperforming local FS.  We attribute
+          % this to the use of caching and other advanced features in
+          % HDFS which prove to be useful, even though it is not being
+          % used in a distributed fashion.  scenarios considered are
+          % (i) all infrastructure is local and thus SAGA's local
+          % adapters are invoked, (ii) local job adaptors are used,
+          % but the hadoop file-system (HDFS) is used, (iii) Yahoo's
+          % mapreduce.
+      \label{saga_mapreduce_1worker.png}
+\end{figure}
 
 Observations: Yahoo's MapReduce takes less time than \sagamapreduce
 implementations, by about a factor of 2. This is not surprising, as
 SAGA based implementations have not been optimized, for example,
 \sagamapreduce is not multi-threaded
+Results for Experiment \# 5 show that for a given dataset size,
+when the same number of workers are available but are
+either all localized, or are split evenly between two (similar)
+machines. It shows that to get the fast \tc it is often required to
+both distribute the compute and lower the workload per worker; just
+lowering the workload per worker wont be good enough as there is still
+a point of serialization (usually local I/O).  It shows that when
+workload per worker gets to a certain point, it is beneficial
+to distribute the workers, as the machine I/0 becomes the bottleneck.
 
+\begin{table}
+\begin{tabular}{cccc}
+  \hline
+  Config  &  data size   &   work-load/worker & $T_c$  \\
+  compute \& data &   (GB)  & (GB/W) & (sec) \\
+  \hline
+%   local   & 1 & 0.5 & 372 \\
+%   \hline
+%   distributed   & 1  & 0.25 & 372 \\
+%   \hline \hline
+  local \& local-FS & 1 & 0.1 & 466 \\
+  \hline
+  distributed \& local-FS & 1 & 0.1 & 320 \\
+  \hline
+  distributed \& KFS & 1 & 0.1 &  273.55 \\
+  \hline \hline
+  local \& local-FS & 2 & 0.2 & 709 \\
+  \hline 
+  distributed \& local-FS & 2 & 0.2 & 454 \\
+  \hline \hline
+  local \& local-FS &  4 & 0.5 & 1083s\\
+  \hline
+  distributed \& local-FS &  4 &  0.5&  912s \\
+\hline \hline
+\end{tabular}
+\caption{Table showing \tc for different configurations of compute  
+  and data. The two compute configurations are: (all workers are either
+  placed locally or  workers are distributed across two different resources. The data configurations are: either using a single local FS   or distributed FS with 2 data-servers.}
+\end{table}
 % and thus not
 %             distributed, but localised to a single machine,
 %             \jhanote{could the master and worker not be on different
 %               machines? if so, should we call this ``local'' or
 %               ``distributed''?}, 
 
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.40\textwidth]{mapreduce_timing_FS.pdf}
-          \caption{\tc for \sagamapreduce using one worker (local to
-            the master).  Case I corresponds to the use of the local
-            FS on used Linux clusters, while Case II corresponds to
-            the use of HDFS on the clusters.  It is interesting to
-            note that as the data-set sizes get larger, HDFS starts
-            outperforming local FS.  We attribute this to the use of
-            caching and other advanced features in HDFS which prove
-            to be useful, even though it is not being used in a
-            distributed fashion. Case III
-            corresponds %to \sagamapreduce
-            to Yahoo's MapReduce implementation. THIS NEEDS TO BE
-            UPDATED!! THIS PLOT SHOULD CAPTURE RESULTS OF EXP. 2 and
-            3.} % The three different
-%             scenarios considered are (i) all infrastructure is local
-%             and thus SAGA's local adapters are invoked, (ii) local job
-%             adaptors are used, but the hadoop file-system (HDFS) is
-%             used, (iii) Yahoo's mapreduce. 
-
-      \label{saga_mapreduce_1worker.png}
-\end{figure}
-
-\begin{figure}[t]
-      \centering
-%          \includegraphics[width=0.25\textwidth]{saga_mapreduce_3workers.png}
-          \caption{The idea is to have a plot that highlights the results of Experiment 4}
-      \label{saga_mapreduce_3workers.png}
-\end{figure}
+% \begin{figure}[t]
+%       \centering
+% %          \includegraphics[width=0.25\textwidth]{saga_mapreduce_3workers.png}
+%           \caption{The idea is to have a plot that highlights the results of Experiment 4}
+%       \label{saga_mapreduce_3workers.png}
+% \end{figure}
 
 \subsection{SAGA-MapReduce on Clouds}
 
