@@ -254,9 +254,9 @@ API for Grid Applications, is an {\it effective} abstraction that can
 support different programming models and is usable on traditional
 (Grids) and emerging (Clouds) distributed infrastructure.  Our
 approach is to begin with a well understood data-parallel programming
-pattern (MapReduce) and implement it using a standard programming interface
--- the Simple API for Grid Applications (SAGA).  SAGA has been
-demonstrated to support distributed HPC programming models and
+pattern (MapReduce) and implement it using a standard programming
+interface -- the Simple API for Grid Applications (SAGA).  SAGA has
+been demonstrated to support distributed HPC programming models and
 applications effectively; it is an important aim of this work to
 verify if SAGA has the expressiveness to implement data-parallel
 programming and is capable of supporting acceptable levels of
@@ -334,15 +334,15 @@ multiple sequence alignment can be orchestrated using the
 SAGA-All-pairs implementation, and genome searching can be implemented
 using SAGA-MapReduce.
 
-The implementation of these patterns encapsulates details such as
-latency hiding, performance and other variables (such as cluster
-sizes, and queue sizes).  The user should be able to easily add a few
-function calls without necessarily having to worry about many of the
-non-functional considerations often required by applications using
-distributed environments.  In general, SAGA can shield the application
-developer from many of these considerations, while still providing the
-sophisticated end-user the ability to control these performance and
-cost critical/determining factors.
+% The implementation of these patterns encapsulates details such as
+% latency hiding, performance and other variables (such as cluster
+% sizes, and queue sizes).  The user should be able to easily add a few
+% function calls without necessarily having to worry about many of the
+% non-functional considerations often required by applications using
+% distributed environments.  In general, SAGA can shield the application
+% developer from many of these considerations, while still providing the
+% sophisticated end-user the ability to control these performance and
+% cost critical/determining factors.
 
 \jhanote{Only if space permits: We will discuss other performance
   issues that arise when implementing abstractions specific for
@@ -361,91 +361,94 @@ cost critical/determining factors.
   sophisticated end-user the ability to control these performance and
   cost critical/determining factors.}
 
-{\bf MapReduce: } MapReduce is a programming framework pioneered by
-Google for running data-intensive processes over a large cluster of
-commodity machines.  The main idea is to provide an easy interface for
-users to solve a specific domain of problem with grids without having
-the client worry about the semantics of the grid, for example,
-dispatch latency, machine failure, data distribution, and network
-bandwidth.  All of these are problems that could make some naïve
-implementations on a grid slower than serial implementations.  When
-using a MapReduce implementation, the programmer interacts with only
-two functions: map and reduce.  The map function will go through the
-datasets and create a map of data to some type of output.
+% MapReduce is a programming framework pioneered by
+% Google for running data-intensive processes over a large cluster of
+% commodity machines.  The main idea is to provide an easy interface for
+% users to solve a specific domain of problem with grids without having
+% the client worry about the semantics of the grid, for example,
+% dispatch latency, machine failure, data distribution, and network
+% bandwidth.  All of these are problems that could make some naïve
+% implementations on a grid slower than serial implementations.  When
+% using a MapReduce implementation, the programmer interacts with only
+% two functions: map and reduce.  The map function will go through the
+% datasets and create a map of data to some type of output.
 
-A map is a datatype in computer science that relates one object to
-another, i.e. a name to a phone number.  The reduce function will go
-through all of the maps and combine them to produce another output.
-The de facto example is word count.  Say, one has a large set of
-documents and he wants to find how many of each word is present in all
-the documents.  The map function would go through each document and
-for every word produce a map from the document to a list of 1’s.  An
-example for the word “cat” may look like this cat $\Rightarrow$ 1, 1,
-1, 1, 1.  Then, the reduce function will add up the 1’s to produce a
-final output, i.e. cat $\Rightarrow$ 5.  At first this framework may
-seem limiting, but this is in part what makes it so successful.  Its
-structure is is very easily parallelized.  Also, there have been a
-large number of distinct applications written using it, and its
-popularity has been steadily increasing.  This shows that the
-framework is well suited for solving data-intensive problems.
+% A map is a datatype in computer science that relates one object to
+% another, i.e. a name to a phone number.  The reduce function will go
+% through all of the maps and combine them to produce another output.
+% The de facto example is word count.  Say, one has a large set of
+% documents and he wants to find how many of each word is present in all
+% the documents.  The map function would go through each document and
+% for every word produce a map from the document to a list of 1’s.  An
+% example for the word “cat” may look like this cat $\Rightarrow$ 1, 1,
+% 1, 1, 1.  Then, the reduce function will add up the 1’s to produce a
+% final output, i.e. cat $\Rightarrow$ 5.  At first this framework may
+% seem limiting, but this is in part what makes it so successful.  Its
+% structure is is very easily parallelized.  Also, there have been a
+% large number of distinct applications written using it, and its
+% popularity has been steadily increasing.  This shows that the
+% framework is well suited for solving data-intensive problems.
 
+{\bf MapReduce: } MapReduce~\cite{mapreduce-paper} is a programming
+framework which supports applications which operate on very large data
+sets on clusters of computers.  MapReduce relies on a number of
+capabilities of the underlying system, most related to file
+operations.  Others are related to process/data
+allocation. % The Google File-System, and other
+% distributed file-systems (DFS), provide the relevant capabilities,
+% such as atomic file renames.  Implementations of MapReduce on these
+% DFS are free to focus on implementing the data-flow pipeline, which is
+% the algorithmic core of the MapReduce framework.  
 One feature worth noting in MapReduce is that the ultimate dataset is
 not on one machine, it is partitioned on multiple machines located
 throughout the grid. Google uses their distributed file system (Google
 File System) to keep track of where each file is located.
-Additionally, they coordinate this effort with Bigtable.  % We will
+Additionally, they coordinate this effort with Bigtable.
+
+% We will
 % attempt to imitate this using our implementation of MapReduce over
 % HDFS.  Also, we will use HBase for communication between jobs.
 
-MapReduce~\cite{mapreduce-paper} is a programming framework which
-supports applications which operate on very large data sets on
-clusters of computers.  MapReduce relies on a number of capabilities
-of the underlying system, most related to file operations.  Others are
-related to process/data allocation.  The Google File-System, and other
-distributed file-systems (DFS), provide the relevant capabilities,
-such as atomic file renames.  Implementations of MapReduce on these
-DFS are free to focus on implementing the data-flow pipeline, which is
-the algorithmic core of the MapReduce framework.
+% Instead, a general purpose grid provides a much larger set of lower
+% level operations.
+% Some semantics,
+% such as again the atomic file rename, is provided by the SAGA API
+% layer, others, such as data/compute allocation are not.  
+ %  Note that some
+% of the required capabilities can be provided by higher level grid
+% services -- those are, however, often not standardized, and often not
+% available on general purpose Grids.
 
 {\bf SAGA-MapReduce Implementation:} We have recently implemented
-MapReduce in SAGA, targeting general purpose Grid systems, where the
-system capabilities required by MapReduce are usually not natively
-supported; instead, a general purpose grid provides a much larger set
-of lower level operations.  Some semantics, such as again the atomic
-file rename, is provided by the SAGA API layer, others, such as
-data/compute allocation are not.  Our implementation is thus required
-to interleave the core logic with explicit instructions on where
-processes are to be scheduled.  Note that some of the required
-capabilities can be provided by higher level grid services -- those
-are, however, often not standardized, and often not available on
-general purpose Grids.
+MapReduce in SAGA, where the system capabilities required by MapReduce
+are usually not natively supported. Our implementation interleaves the
+core logic with explicit instructions on where processes are to be
+scheduled.  The advantage of this approach is that our implementation
+is no longer bound to run on a system providing the appropriate
+semantics originally required by MapReduce, and is portable to a
+broader range of generic systems as well.  The drawback is that our
+implementation is relatively more complex -- it needs to add system
+semantic capabilities at some level, and it is inherently slower, as
+it is for these capabilities very difficult or near impossible to
+obtain system level performance on application level.  Critically
+however, none of these complexities are transferred to the end-user,
+and they remain hidden within the framework. Also many of these are
+due to the early-stages of SAGA and incomplete implementation of
+features, and not a fundamental limitation of the design or concept of
+the interface or programming models that it supports.
 
-The advantage of this approach is obviously that our implementation is
-no longer bound to run on a system providing the appropriate semantics
-originally required by MapReduce, but is portable to other, more
-generic systems as well.  The drawback of the approach is obvious as
-well: our implementation is relatively more complex, as it needs to
-add semantic system capabilities at some level or the other, and it is
-inherently slower, as it is for these capabilities very difficult or
-near impossible to obtain system level performance on application
-level.  Critically however, none of these complexities are transferred
-to the end-user, and they remain hidden within the framework. Also
-many of these are due to the early-stages of SAGA and incomplete
-features implemented, and not a fundamental limitation of the design
-or concept of the interface or programming models that it supports.
+% The SAGA based implementation of MapReduce has been developed with the
+% following goals in mind:
 
-The SAGA based implementation of MapReduce has been developed with the
-following goals in mind:
-
-\begin{itemize}
-\item Provide a generic MapReduce framework allowing easy
-  adaptation to the users concrete MapReduce algorithm
-\item Ensure portability of the users MapReduce application over a
-  broad range of Grids and Clouds, filesystems and architectures
-\item Allow fine control over the number of workers, and the
-  placement of data and computation, ensuring to move the work to the
-  data instead of having to move the data to the work
-\end{itemize}
+% \begin{itemize}
+% \item Provide a generic MapReduce framework allowing easy
+%   adaptation to the users concrete MapReduce algorithm
+% \item Ensure portability of the users MapReduce application over a
+%   broad range of Grids and Clouds, filesystems and architectures
+% \item Allow fine control over the number of workers, and the
+%   placement of data and computation, ensuring to move the work to the
+%   data instead of having to move the data to the work
+% \end{itemize}
 
 The overall architecture of the SAGA-MapReduce implementation is shown
 in Fig.~\ref{saga-mapreduce_controlflow}. This simple interface
@@ -477,37 +480,38 @@ processes. The master process is responsible for:
 
 \begin{itemize}
 \item Launching all workers for the map and reduce steps as described
-  in a configuration file provided by the user (defining the number of
-  workers, the systems/batch queues to use for job execution, the
-  input data to use and the output file names to write the results to)
+  in a configuration file provided by the user 
+%(defining the number of
+%  workers, the systems/batch queues to use for job execution, the
+%  input data to use and the output file names to write the results to)
 \item Coordinating all the executed workers, this includes the
   chunking of the data, assigning the input data to the workers of the
-  map step, handling the intermediate data files produced by the map step and
-  passing the names of the sorted output files to
-  the workers of the reduce step, and collecting the generated outputs
-  from the reduce steps.
-\item Relaunching single worker instances in case of failures,
+  map step, handling the intermediate data files produced by the map
+  step and passing the names of the sorted output files to the workers
+  of the reduce step, and collecting the generated outputs from the
+  reduce steps and relaunching single worker instances in case of
+  failures,
 \end{itemize}
 
 The master process is readily available to the user and needs no
-modification for different MapReduce algorithms to execute.  The
+modification for different Map and Reduce functions to execute.  The
 worker processes get assigned work either from the map or the reduce
 step. The functionality for the different steps have to be provided by
 the user, which means the user has to write 2 C++ functions
 implementing the required MapReduce algorithm.
 Fig.\ref{src:saga-mapreduce} shows a very simple example of a
-MapReduce application allowing to count the word frequencies in the
+MapReduce application to count the word frequencies in the
 input data set. The user provided functions |map| (line 14) and
 |reduce| (line 25) are invoked by the MapReduce framework during the
 map and reduce steps. The framework provides the URL of the input data
 chunk file to the |map| function, which should call the function
 |emitIntermediate| for each of the generated output key/value pairs
-(here the word and it's count, i.e. '1', see line 19). During the
+(here the word and it's count, i.e. '1', line 19). During the
 reduce step, after the data has been sorted, this output data is
 passed to the |reduce| function. The framework passes the key and a
 list of all data items which have been associated with this key during
-the map step. The reduce step is expected to call the |emit| function
-(see line 34) for each of the final output elements (here: the word
+the map step. The reduce step calls the |emit| function
+(line 34) for each of the final output elements (here: the word
 and its overall count). All key/value pairs that are passed to |emit|
 will be combined by the framework into a single output file.
 
@@ -970,8 +974,9 @@ advantage.
   \hline \hline
 \end{tabular}
 \caption{Table showing \tc for different configurations of compute  
-  and data. The two compute configurations are: All workers are either
-  placed locally or  workers are distributed across two different resources. The data configurations are: either using a single local FS   or distributed FS with 2 data-servers. It is evident from performance figures that an optimal value arises when distributing both data and compute.}\label{exp4and5}
+  and data. The two compute configurations correspond to the situation
+  where all workers are either
+  placed locally or  workers are distributed across two different resources. The data configurations arise when using a single local FS  or a distributed FS  (KFS) with 2 data-servers. It is evident from performance figures that an optimal value arises when distributing both data and compute.}\label{exp4and5}
 \end{table}
 % and thus not
 %             distributed, but localised to a single machine,
