@@ -670,20 +670,18 @@ HBase, Bigtable, PostgreSQL, \ldots.
 \section{Interfacing SAGA to Cloud-like Infrastructure: The role of
   Adaptors}
 
-\jhanote{talk about Hadoop and Bigtable, KFS}
-
 As alluded to, there is a proliferation of Clouds and Cloud-like
-systems, but it is important to remember that Clouds are not well
-defined systems, or ``what constitutes or does not constitute a Cloud''
-is not universally agreed upon.  However there are several aspects and
-attributes of Cloud systems that are generally agreed
-upon~\cite{buyya_hpcc}. A minimal set of these attributes can be
-considered the use of virtualized machines, support for distributed
-file and structured data storage.  Here we will by necessity limit our
-discussion to two type of distributed file-systems (HDFS and KFS) and
-two types of distributed structured-data store (Bigtable and HBase)
-that we have developed SAGA adaptors for, and over which
-\sagamapreduce and SAGA All-Pairs works seamlessly.
+systems, but it is important to remember that ``what constitutes or
+does not constitute a Cloud'' is not universally agreed upon.  However
+there are several aspects and attributes of Cloud systems that are
+generally agreed upon~\cite{buyya_hpcc}. % A minimal set of these
+% attributes can be considered the use of virtualized machines, support
+% for distributed file and structured data storage.
+Here we will by necessity limit our discussion to two type of
+distributed file-systems (HDFS and KFS) and two types of distributed
+structured-data store (Bigtable and HBase). We have developed SAGA
+adaptors for these, have used \sagamapreduce (and All-Pairs)
+seamlessly on these infrastructure.
 
 % Extended and additional attributes could include AppEngine style
 % environments. 
@@ -705,40 +703,42 @@ hierarchical file organization.  % It has been highly successful and is
 % few.  HDFS also handles replication and striping of data for
 % fault-tolerance.  
 Implemented in Java, HDFS is designed to run on commodity hardware
-while providing scalability and optimizations for large files.  The
-FS works by having one or two namenodes, masters, and many
-rack-aware datanodes, slaves.  All data requests go through the
-namenode that uses block operations on each data node to properly
-assemble the data for the requesting application.  The goal of
-replication and rack-awareness is to improve reliability and data
-retrieval time based on locality.  In data intensive applications,
-these qualities are essential. \jhanote{Michael, can you put in a few
-  words about KFS here please?}
+while providing scalability and optimizations for large files.  The FS
+works by having one or two namenodes, masters, and many rack-aware
+datanodes, slaves.  All data requests go through the namenode that
+uses block operations on each data node to properly assemble the data
+for the requesting application.  The goal of replication and
+rack-awareness is to improve reliability and data retrieval time based
+on locality.  In data intensive applications, these qualities are
+essential. KFS (also called CloudStore) is an open-source
+high-performance distributed FS implemented in C++, with many of the same
+design features as HDFS.
 
-{\it Bigtable and HBase:} Bigtable~\cite{bigtable_small} is a specific
-type of database system created by Google to have better control over
-scalability and performance than other databases.  It is very flexible
-and has many advantages over normal databases.  The main difference is
-that it is meant to store extremely large datasets, into the
-petabytes, over thousands of machines.  Another advantage is the
-ability to be accessed through MapReduce.  Since MapReduce is
-inherently very well parallelized, accessing Bigtable is very
-efficient.  Due to the success of Bigtable, HBase was developed by as
-an open source alternative to Bigtable for use with Hadoop.  Both
-HBase and Bigtable split up large tables and replicate them over many
-machines to avoid node failure.  Also, since the data are partitioned
-accessing it does not create a large strain on the network bandwidth.
+% Another advantage is the ability to be accessed through MapReduce.
+% Since MapReduce is inherently very well parallelized, accessing
+% Bigtable is very efficient.
+% Also, since the data are partitioned
+% accessing it does not create a large strain on the network bandwidth.
 
-There exist many other implementations of both distributed
-file-systems (such as Sector) and of distributed data-store (such as
-Cassandra and Hybertable); for the most part they are variants on the
-same theme technically, but with different language and performance
-criteria optimizations.  Hypertable is an open-source implementation
-of Bigtable; Cassandra is another Bigtable clone but eschews an
-explicit coordinator (Bigtable's Chubby, HBase's HMaster, Hypertable's
-Hyperspace) for a P2P/DHT approach for data distribution and location
-and for availability.  In the near future we will be providing
-adaptors for Sector~\footnote{http://sector.sourceforge.net/} and
+{\it Bigtable and HBase:} Bigtable~\cite{bigtable_small} is a type of
+database system created by Google to have better control over
+scalability and performance than other databases.  The main difference
+is that it is meant to store extremely large datasets, into the
+petabytes, over thousands of machines.  It is well integrated with
+MapReduce.  Due to the success of Bigtable, HBase was developed as an
+open source alternative to Bigtable for use with Hadoop.  Both HBase
+and Bigtable split up large tables and replicate them over many
+machines to avoid node failure.  There exist many other
+implementations of both distributed FS (such as Sector) and of
+distributed data-store (such as Cassandra and Hybertable); for the
+most part they are variants on the same theme technically, but with
+different language and performance criteria optimizations.  Hypertable
+is an open-source implementation of Bigtable; Cassandra is a Bigtable
+clone but eschews an explicit coordinator (Bigtable's Chubby, HBase's
+HMaster, Hypertable's Hyperspace) for a P2P/DHT approach for data
+distribution and location and for availability.  In the near future we
+will be providing adaptors for
+Sector~\footnote{http://sector.sourceforge.net/} and
 Cassandra~\footnote{http://code.google.com/p/the-cassandra-project/}
 And although Fig.~\ref{saga_figure} explicitly maps out different
 functional areas for which SAGA adaptors exist, there can be multiple
@@ -970,7 +970,7 @@ advantage.
   \hline
   distributed \& local-FS &  4 &  0.5&  912 \\
   \hline
-  distributed \& KFS & 4 & 0.5 &  -  \\
+  distributed \& KFS & 4 & 0.5 &  848  \\
   \hline \hline
 \end{tabular}
 \caption{Table showing \tc for different configurations of compute  
