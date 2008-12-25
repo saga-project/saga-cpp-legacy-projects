@@ -489,7 +489,7 @@ processes. The master process is responsible for:
 %(defining the number of
 %  workers, the systems/batch queues to use for job execution, the
 %  input data to use and the output file names to write the results to)
-\item Coordinating all the executed workers, this includes the
+\item Coordinating the executed workers, including the
   chunking of the data, assigning the input data to the workers of the
   map step, handling the intermediate data files produced by the map
   step and passing the names of the sorted output files to the workers
@@ -734,7 +734,9 @@ petabytes, over thousands of machines.  It is well integrated with
 MapReduce.  Due to the success of Bigtable, HBase was developed as an
 open source alternative to Bigtable for use with Hadoop.  Both HBase
 and Bigtable split up large tables and replicate them over many
-machines to avoid node failure.  There exist many other
+machines to avoid node failure.  
+
+There exist many other
 implementations of both distributed FS (such as Sector) and of
 distributed data-store (such as Cassandra and Hybertable); for the
 most part they are variants on the same theme technically, but with
@@ -761,7 +763,7 @@ effective programming abstraction layer.
 % \jhanote{repeat the motivation for using both ``native'' and
 %   non-native infrastructure dependence}
 
-\section{SAGA as an interface to Clouds and Grids}
+\section{SAGA: An interface to Clouds and Grids}
 
 % \jhanote{Describe the native implementation of mapreduce\\
 %   essentially explain how this is yahoo's mapreduce: hadoop + hdfs}
@@ -780,18 +782,39 @@ effective programming abstraction layer.
 % Bigtable available to use, we are going to use the Hadoop File system
 % (HDFS) and HBase to store the metadata similar to what Yahoo! uses.
 % We will call this the native implementation of MapReduce.
+The total time to completion ($T_c$) of a \sagamapreduce job, can be
+decomposed into three primary components: $t_{pp}$ defined as the time
+for pre-processing -- which in this case is the time to chunk into
+fixed size data units, and to possibly distribute them. This is in
+some ways the overhead of the process.  $t_{comp}$ is the time to
+actually compute the map and reduce function on a given worker, whilst
+$t_{coord}$ is the time taken to assign the payload to a worker,
+update records and to possibly move workers to a destination
+resource. $t_{coord}$ is indicative of the time that it takes to
+assign chunks to workers and scales as the number of workers
+increases. In general: %  For the same number of chunks assigned to a larger number
+% of worker, the value should increase.
 
-In order to establish the effectiveness of SAGA as a mechanism to
-develop distributed applications, and the ability of \sagamapreduce to
-be provide flexibility in distributing compute units, we have designed
-the following experiment set to establish:
+\vspace{-1em}
+\begin{eqnarray}
+T_c = t_{pp} + t_{comp} + t_{coord}
+\end{eqnarray}
+
+To establish the effectiveness of SAGA as a mechanism to develop
+distributed applications, and the ability of \sagamapreduce to be
+provide flexibility in distributing compute units, we have designed
+the following experiment set\footnote{We have also distinguished
+  between SAGA All-Pairs using Advert Service versus using HBase or
+  Bigtable as distributed data-store, but due to space constraints we
+  will report results of the All-Pairs experiments elsewhere.}  :
 \begin{enumerate}
-\item When both \sagamapreduce workers
-  (compute) and data-distribution is local. Number of workers vary
+\item Both \sagamapreduce workers
+  (compute) and data-distribution are local. Number of workers vary
   from 1 to 10, and the data-set sizes varying from 1 to 10GB. % Here we
 %   will also compare \sagamapreduce with native MapReduce (using HDFS
 %   and Hadoop)
-\item \sagamapreduce when workers are locally computed, but using a distributed FS (HDFS)
+\item \sagamapreduce workers compute local (to master), but using a
+  distributed FS (HDFS)
 % upto 3 workers (upto a data-set size of 10GB).
 \item Same as Exp. \#2, but using a different distributed FS
   (KFS); the number of workers varies from 1-10
@@ -799,30 +822,9 @@ the following experiment set to establish:
 \item Distributed compute (workers) but using local file-systems (using GridFTP for transfer)
 \end{enumerate}
 
-We have also distinguished between SAGA All-Pairs using Advert Service
-versus using HBase or Bigtable as distributed data-store, but due to
-space constraints we will report results of the All-Pairs experiments
-elsewhere.
-\begin{eqnarray}
-T_c = t_{pp} + t_{comp} + t_{coord}
-\end{eqnarray}
-The total time to completion ($T_c$) can be decomposed into three
-primary components: $t_{pp}$ defined as the time for pre-processing --
-which in this case is the time to chunk into fixed size data units,
-and to possibly distribute them. This is in some ways the overhead of
-the process.  $t_{comp}$ is the time to actually compute the map and
-reduce function on a given worker, whilst $t_{coord}$ is the time
-taken to assign the payload to a worker, update records and to
-possibly move workers to a destination resource. $t_{coord}$ is
-indicative of the time that it takes to assign chunks to workers and
-scales as the number of workers increases. For the same number of
-chunks assigned to a larger number of worker, the value should
-increase.
-
-
 {\bf SAGA-MapReduce on Grids:} We begin with the observation that the
 efficiency of \sagamapreduce is pretty close to 1, actually better
-than 1.0 -- like any good (data) parallel applications should be.  For
+than 1 -- like any good (data) parallel applications should be.  For
 1GB data-set, \tc = 659s and for 10GB \tc = 6286s.  The efficiency
 remains at or around 1, even when the compute is distributed over two
 machines: 1 worker at each site: \tc = 672s, \tc = 1081s and \tc
@@ -858,7 +860,7 @@ framework provided by Equation 1. For each data-set (from 1GB to 10GB)
 there is an overhead associated with chunking the data into 64MB
 pieces; the time required for this scales with the number of chunks
 created.  Thus for a fixed chunk-size (as is the case with our
-set-up), the $t_{pp}$ scales with the data-set size. As the number of
+set-up), $t_{pp}$ scales with the data-set size. As the number of
 workers increases, the payload per worker decreases so there is regime
 of decrease, but this is accompanied by a concomitant increase in
 $t_{coord}$. However, we will establish that $t_{coord}$ grows less
@@ -873,16 +875,16 @@ beyond a point does not lead to a further reduction in \tc.
 To take a real example, consider two data-sets, of sizes 1GB and 5GB.
 Vary the chunk size, between 32MB to the maximum size possible, i.e.,
 chunk sizes of 1GB and 5GB respectively. In the configuration where
-there is only one chunk, $t_{pp}$ should be effectively zero, and \tc
-will be dominated by the other two components --$t_{comp}$ and
-$t_{coord}$.  Interestingly however, for 1GB and 5GB, the ratio of \tc
-for this boundary case is very close to 1:5, providing strong evidence
-that the $t_{comp}$ has the bulk contribution, as we expect
-$t_{coord}$ to remain mostly the same, as it scales either with the number 
-of chunks and/or with the number of workers -- which is 
-the same in this case.  Even if $t_{coord}$ does change, we do not
-expect it to scale by a factor of 5, while we do expect $t_{comp}$ to
-do so.
+there is only one chunk, $t_{pp}$ should be effectively zero (more
+likely a constant), and \tc will be dominated by the other two
+components --$t_{comp}$ and $t_{coord}$.  Interestingly for
+1GB and 5GB, the ratio of \tc for this boundary case is very close to
+1:5, providing strong evidence that the $t_{comp}$ has the bulk
+contribution, as we expect $t_{coord}$ to remain mostly the same, as
+it scales either with the number of chunks and/or with the number of
+workers -- which is the same in this case.  Even if $t_{coord}$ does
+change, we do not expect it to scale by a factor of 5, while we do
+expect $t_{comp}$ to do so.
 
 %(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 
 %1, 2 and 4GB respectively.  
@@ -920,19 +922,23 @@ do so.
 
 {\bf SAGA-MapReduce on Cloud-like infrastructure: } Observations:
 Yahoo's MapReduce takes less time than \sagamapreduce implementations,
-by about a factor of 2. This is not surprising, as SAGA based
-implementations have not been optimized, for example, \sagamapreduce
+by about a factor of 2. This is not surprising, as \sagamapreduce
+implementations have not been optimized. For example, \sagamapreduce
 is not multi-threaded.
 \begin{figure}[t]
 \upp
       \centering
           \includegraphics[width=0.40\textwidth]{mapreduce_timing_FS.pdf}
           \caption{\tc for \sagamapreduce using one worker (local to
-            the master) for different configurations.  The ``SAGA
+            the master) for different configurations.  Hadoop
+            represents Yahoo's MapReduce implementation; figures for
+            Hadoop show data without chunking, which takes several
+            hundred sec for Larger data-sets.  The ``SAGA
             MapReduce + Local FS'' corresponds to the use of the local
             FS on Linux clusters, while the label ``SAGA + HDFS''
-            corresponds to the use of HDFS on the clusters. 
-            Hadoop represents Yahoo's MapReduce implementation.}
+            corresponds to the use of HDFS on the clusters. Due to
+            simplicity, of the Local FS, its performance beats
+            distributed FS when used in local mode.}
           % It is interesting to note that as the data-set sizes get
           % larger, HDFS starts outperforming local FS.  We attribute
           % this to the use of caching and other advanced features in
@@ -945,18 +951,17 @@ is not multi-threaded.
       \label{saga_mapreduce_1worker.png}
 \upp
 \end{figure}
-Experiment 5 (Table~\ref{exp4and5}) provide insight into performance
-advantage, when the same number of workers are available but are
-either all localized, or are split evenly between two (similar)
-machines. It shows that to get the fast \tc it is often required to
-both distribute the compute, and lower the workload per worker; just
-lowering the workload per worker is not good enough as there is still
-a point of serialization (usually local I/O).  It shows that when
-workload per worker gets to a certain point, it is beneficial to
-distribute the workers, as the machine I/0 becomes the bottleneck.
-When coupled with the advantages of a distributed FS, the ability to
-both distribute compute and data provides additional performance
-advantage.
+Experiment 5 (Table~\ref{exp4and5}) provides insight into performance
+figure when the same number of workers are available, but are either
+all localized, or are split evenly between two (similar) machines. It
+shows that to get the fast \tc it is often required to both distribute
+the compute, and lower the workload per worker; just lowering the
+workload per worker is not good enough as there is still a point of
+serialization (usually local I/O).  It shows that when workload per
+worker gets to a certain point, it is beneficial to distribute the
+workers, as the machine I/0 becomes the bottleneck.  When coupled with
+the advantages of a distributed FS, the ability to both distribute
+compute and data provides additional performance advantage.
 
 \begin{table}
 \upp
@@ -1042,20 +1047,18 @@ instantiated, it takes about 1 second to assign a job to a VM on
 Eucalyptus, or EC2.  It is a configurable option to tie the VM
 lifetime to the \texttt{job\_service} object lifetime, or not.
 
-We have also architected \sagamapreduce to work on Cloud platforms.  It
-is critical to mention that the \sagamapreduce code did not undergo
+We have also architected \sagamapreduce to work on Cloud platforms.
+It is critical to mention that the \sagamapreduce code did not undergo
 any changes whatsoever. The change lies in the run-time system and
 deployment architecture. For example, when running \sagamapreduce on
 EC2, the master process resides on one VM, while workers reside on
-different VMs.
-Depending on the available adaptors, Master and Worker can either 
-perform local I/O on a global/distributed file system, or remote 
-I/O on a remote, non-shared file systems.  In our current implementation, 
-the VMs hosting the master and workers share the same ssh
-credentials and a shared file-system (using sshfs/FUSE).  Application
-deployment and configuration (as discussed above) are also performed
-via that sshfs.
-Due to space limitations we will not
+different VMs.  Depending on the available adaptors, Master and Worker
+can either perform local I/O on a global/distributed file system, or
+remote I/O on a remote, non-shared file systems.  In our current
+implementation, the VMs hosting the master and workers share the same
+ssh credentials and a shared file-system (using sshfs/FUSE).
+Application deployment and configuration (as discussed above) are also
+performed via that sshfs.  Due to space limitations we will not
 discuss the performance data of \sagamapreduce with different data-set
 sizes and varying worker numbers.
 
