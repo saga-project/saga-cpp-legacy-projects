@@ -18,6 +18,8 @@
 \usepackage{pdfsync}
 \usepackage{fancyvrb}
 \usepackage{wrapfig}
+\usepackage{multirow} 
+%\usepackage{multicolumn}
 
 \newenvironment{shortlist}{
 	\vspace*{-0.85em}
@@ -47,7 +49,7 @@
 %   Cloud-Grid Interoperability}
 \title{Programming Abstractions for Data Intensive Computing on Clouds and Grids}
 
-\author{Michael Miceli$^{12}$, Chris Miceli$^{12}$, Shantenu
+\author{Chris Miceli$^{12}$, Michael Miceli$^{12}$, Shantenu
   Jha$^{123}$, Hartmut Kaiser$^{1}$, Andre Merzky$^{1}$, \\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
       State University, USA}}\\
@@ -862,30 +864,31 @@ there is an overhead associated with chunking the data into 64MB
 pieces; the time required for this scales with the number of chunks
 created.  Thus for a fixed chunk-size (as is the case with our
 set-up), $t_{pp}$ scales with the data-set size. As the number of
-workers increases, the payload per worker decreases so there is regime
-of decrease, but this is accompanied by a concomitant increase in
-$t_{coord}$. However, we will establish that $t_{coord}$ grows less
-slowly than $t_{comp}$. Thus the curved decrease in \tc can be
-explained by a speedup due to lower payload as the number of workers
-increases whilst at the same time the $t_{coord}$ increases; although
-the former is linear, due to increasing value of the latter, the
-effect is a curve. The plateau is dominated by $t_{pp}$ -- the
-overhead of chunking etc, and so increasing the number of workers
-beyond a point does not lead to a further reduction in \tc.
+workers increases, the payload per worker decreases and this
+contributes to a decrease in time taken, but this is accompanied by a
+concomitant increase in $t_{coord}$. However, we will establish that
+the increase in $t_{coord}$ is less than the decrease in
+$t_{comp}$. Thus the curved decrease in \tc can be explained by a
+speedup due to lower payload as the number of workers increases whilst
+at the same time the $t_{coord}$ increases; although the former is
+linear, due to increasing value of the latter, the effect is a
+curve. The plateau value is dominated by $t_{pp}$ -- the overhead of
+chunking etc, and so increasing the number of workers beyond a point
+does not lead to a further reduction in \tc.
 
-To take a real example, consider two data-sets, of sizes 1GB and 5GB.
-Vary the chunk size, between 32MB to the maximum size possible, i.e.,
-chunk sizes of 1GB and 5GB respectively. In the configuration where
-there is only one chunk, $t_{pp}$ should be effectively zero (more
-likely a constant), and \tc will be dominated by the other two
-components --$t_{comp}$ and $t_{coord}$.  Interestingly for
-1GB and 5GB, the ratio of \tc for this boundary case is very close to
-1:5, providing strong evidence that the $t_{comp}$ has the bulk
-contribution, as we expect $t_{coord}$ to remain mostly the same, as
-it scales either with the number of chunks and/or with the number of
-workers -- which is the same in this case.  Even if $t_{coord}$ does
-change, we do not expect it to scale by a factor of 5, while we do
-expect $t_{comp}$ to do so.
+To take a real example, we consider two data-sets, of sizes 1GB and
+5GB and vary the chunk size, between 32MB to the maximum size
+possible, i.e., chunk sizes of 1GB and 5GB respectively. In the
+configuration where there is only one chunk, $t_{pp}$ should be
+effectively zero (more likely a constant), and \tc will be dominated
+by the other two components -- $t_{comp}$ and $t_{coord}$.
+For 1GB and 5GB, the ratio of \tc for this boundary case
+is very close to 1:5, providing strong evidence that the $t_{comp}$
+has the bulk contribution, as we expect $t_{coord}$ to remain mostly
+the same, as it scales either with the number of chunks and/or with
+the number of workers -- which is the same in this case.  Even if
+$t_{coord}$ does change, we do not expect it to scale by a factor of
+5, while we do expect $t_{comp}$ to do so.
 
 %(2 workers each): $T_c = $ 372s, $T_c = $ 629s, $T_c = $ 1176s for 
 %1, 2 and 4GB respectively.  
@@ -921,11 +924,12 @@ expect $t_{comp}$ to do so.
 % \label{5}
 % \end{figure}
 
-{\bf SAGA-MapReduce on Cloud-like infrastructure: } Observations:
-Yahoo's MapReduce takes less time than \sagamapreduce implementations,
-by about a factor of 2. This is not surprising, as \sagamapreduce
-implementations have not been optimized. For example, \sagamapreduce
-is not multi-threaded.
+{\bf SAGA-MapReduce on Cloud-like infrastructure: } Accounting for the
+fact that time for chunking is not included, Yahoo's MapReduce takes a
+factor of 2 less time than \sagamapreduce
+(Fig.~\ref{mapreduce_timing_FS}). This is not surprising, as
+\sagamapreduce implementations have not been optimized, e.g.,
+\sagamapreduce is not multi-threaded.
 \begin{figure}[t]
 \upp
       \centering
@@ -949,49 +953,53 @@ is not multi-threaded.
           % adapters are invoked, (ii) local job adaptors are used,
           % but the hadoop file-system (HDFS) is used, (iii) Yahoo's
           % mapreduce.
-      \label{saga_mapreduce_1worker.png}
+%      \label{saga_mapreduce_1worker.png}
+          \label{mapreduce_timing_FS}
 \upp
 \end{figure}
 Experiment 5 (Table~\ref{exp4and5}) provides insight into performance
 figure when the same number of workers are available, but are either
-all localized, or are split evenly between two (similar) machines. It
-shows that to get the fast \tc it is often required to both distribute
-the compute, and lower the workload per worker; just lowering the
-workload per worker is not good enough as there is still a point of
-serialization (usually local I/O).  It shows that when workload per
-worker gets to a certain point, it is beneficial to distribute the
-workers, as the machine I/0 becomes the bottleneck.  When coupled with
-the advantages of a distributed FS, the ability to both distribute
-compute and data provides additional performance advantage.
+all localized, or are split evenly between two similar but distributed
+machines. It shows that to get lowest $T_c$, it is often required to
+both distribute the compute and lower the workload per worker; just
+lowering the workload per worker is not good enough as there is still
+a point of serialization (usually local I/O).  % It shows that when
+% workload per worker gets to a certain point, it is beneficial to
+% distribute the workers, as the machine I/0 becomes the bottleneck.
+When coupled with the advantages of a distributed FS, the ability to
+both distribute compute and data provides additional performance
+advantage, as shown by the values of $T_c$ for both distributed
+compute and DFS cases in Table~\ref{exp4and5}.
 
 \begin{table}
 \upp
-\begin{tabular}{cccc}
+\begin{tabular}{ccccc}
   \hline
-  Config  &  data size   &   work-load/worker & $T_c$  \\
-  compute \& data &   (GB)  & (GB/W) & (sec) \\
+  \multicolumn{2}{c}{Configuration}  &  data size   &   work-load/worker & $T_c$  \\
+
+  compute &  data &   (GB)  & (GB/W) & (sec) \\
   \hline
 %   local   & 1 & 0.5 & 372 \\
 %   \hline
 %   distributed   & 1  & 0.25 & 372 \\
 %   \hline \hline
-  local \& local-FS & 1 & 0.1 & 466 \\
+  local & local-FS & 1 & 0.1 & 466 \\
   \hline
-  distributed \& local-FS & 1 & 0.1 & 320 \\
+  distributed & local-FS & 1 & 0.1 & 320 \\
   \hline
-  distributed \& KFS & 1 & 0.1 &  273.55 \\
+  distributed & DFS & 1 & 0.1 &  273.55 \\
   \hline \hline
-  local \& local-FS & 2 & 0.25 & 673 \\
+  local & local-FS & 2 & 0.25 & 673 \\
   \hline 
-  distributed \& local-FS & 2 & 0.25 & 493 \\
+  distributed & local-FS & 2 & 0.25 & 493 \\
   \hline
-  distributed \& KFS & 2 & 0.25 &  466 \\
+  distributed & DFS & 2 & 0.25 &  466 \\
   \hline \hline
-  local \& local-FS &  4 & 0.5 & 1083\\
+  local & local-FS &  4 & 0.5 & 1083\\
   \hline
-  distributed \& local-FS &  4 &  0.5&  912 \\
+  distributed & local-FS &  4 &  0.5&  912 \\
   \hline
-  distributed \& KFS & 4 & 0.5 &  848  \\
+  distributed & DFS & 4 & 0.5 &  848  \\
   \hline \hline
 \end{tabular}
 \upp
@@ -1017,14 +1025,15 @@ compute and data provides additional performance advantage.
 
 {\bf SAGA-MapReduce on Clouds: } Thanks to the low overhead of
 developing adaptors, SAGA has been deployed on three Cloud Systems --
-Amazon, Nimbus and Eucalyptus (we have a local installation of
-Eucalyptus, referred to as GumboCloud).  On EC2, we created custom
-virtual machine (VM) image with preinstalled SAGA.  For Eucalyptus and
-Nimbus, a boot strapping script equips a standard VM instance with
-SAGA, and SAGA's prerequisites (mainly boost).  To us, a mixed
-approach seemed most favourable, where the bulk software installation
-is statically done via a custom VM image, but software configuration
-and application deployment are done dynamically during VM startup.
+Amazon, Nimbus~\cite{nimbus} and Eucalyptus~\cite{eucalyptus} (we have
+a local installation of Eucalyptus, referred to as GumboCloud).  On
+EC2, we created custom virtual machine (VM) image with preinstalled
+SAGA.  For Eucalyptus and Nimbus, a boot strapping script equips a
+standard VM instance with SAGA, and SAGA's prerequisites (mainly
+boost).  To us, a mixed approach seemed most favourable, where the
+bulk software installation is statically done via a custom VM image,
+but software configuration and application deployment are done
+dynamically during VM startup.
 
 There are several aspects to Cloud Interoperability. A simple form of
 interoperability -- more akin to inter-changeable -- is that any
@@ -1034,22 +1043,21 @@ instantiate a different set of security credentials for the respective
 runtime environment, aka cloud.  Interestingly, SAGA provides this level of
 interoperability quite trivially thanks to the adaptors.
 
-By almost
-trivial extension, SAGA also provides Grid-Cloud interoperability, as shown
-in Fig.~\ref{gramjob} and ~\ref{vmjob}, where exactly the same
-interface and functional calls lead to job submission on Grids or on
-Clouds. Although syntactically identical, the semantics of the calls
-and back-end management are somewhat different.  For example, for
-Grids, a \texttt{job\_service} instance represents a live job
-submission endpoint, whilst for Clouds it represents a VM
-instance created on the fly.  It takes SAGA about 45 seconds to
-instantiate a VM on Eucalyptus, and about 90 seconds on EC2. Once
-instantiated, it takes about 1 second to assign a job to a VM on
-Eucalyptus, or EC2.  It is a configurable option to tie the VM
+By almost trivial extension, SAGA also provides Grid-Cloud
+interoperability, as shown in Fig.~\ref{gramjob} and ~\ref{vmjob},
+where exactly the same interface and functional calls lead to job
+submission on Grids or on Clouds. Although syntactically identical,
+the semantics of the calls and back-end management are somewhat
+different.  For example, for Grids, a \texttt{job\_service} instance
+represents a live job submission endpoint, whilst for Clouds it
+represents a VM instance created on the fly.  It takes SAGA about 45
+seconds to instantiate a VM on Eucalyptus, and about 90 seconds on
+EC2. Once instantiated, it takes about 1 second to assign a job to a
+VM on Eucalyptus, or EC2.  It is a configurable option to tie the VM
 lifetime to the \texttt{job\_service} object lifetime, or not.
 
-We have also architected \sagamapreduce to work on Cloud platforms.
-It is critical to mention that the \sagamapreduce code did not undergo
+We have also deployed \sagamapreduce to work on Cloud platforms.  It
+is critical to mention that the \sagamapreduce code did not undergo
 any changes whatsoever. The change lies in the run-time system and
 deployment architecture. For example, when running \sagamapreduce on
 EC2, the master process resides on one VM, while workers reside on
@@ -1118,22 +1126,20 @@ as a mechanism for codifying computational patterns, such as MapReduce
 and All-Pairs.  Patterns capture a dominant and recurring
 computational mode; by providing explicit support for such patterns,
 end-users and domain scientists can reformulate their scientific
-problems/applications so as to use these patterns. For example, we
-have shown how traditional applications such as MSA and Gene Search
-can be implemented using the All-Pairs and MapReduce patterns. This
+problems/applications so as to use these patterns. % For example, we
+% have shown how traditional applications such as MSA and Gene Search
+% can be implemented using the All-Pairs and MapReduce patterns.
+This
 provides further motivation for abstractions at multiple-levels.
 %support basic functionality but also data-intensive patterns.
 We have shown the power of abstractions for data-intensive computing 
 % patterns and
 % abstractions
 % that support such patterns, 
-by demonstrating using SAGA how they can also decouple the development
-of applications from the deployment and run-time.
-
-
-
-
-
+by demonstrating how SAGA, whilst providing the required controls and
+supporting relevant programming models, can decouple the development
+of applications from the deployment and details of the run-time
+environment.
 % \subsection*{SAGA Based MapReduce}
 % Performance figures when using the Advert service -- on one machine,
 % on >1 machine, finding the bottleneck
@@ -1143,16 +1149,16 @@ of applications from the deployment and run-time.
 
 \section{Acknowledgments}
 
-Important funding for SAGA specification and development has been
-provided by the UK EPSRC grant number GR/D0766171/1.  SJ also
-acknowledges the e-Science Institute, Edinburgh for supporting the
-research theme, ``Distributed Programming Abstractions''.  This work
-would not have been possible without the efforts and support of other
-members of the SAGA team. This work has also been made possible thanks
-to the internal resources of the Center for Computation \& Technology
-(CCT) at Louisiana State University and computer resources provided by
-LONI. Michael Miceli was supported by a Google Summer of Code grant.
-\bibliographystyle{plain} \bibliography{saga_data_intensive}
+% Funding for SAGA specification and development has been
+% provided by the 
+SJ acknowledges UK EPSRC grant number GR/D0766171/1 for supporting
+SAGA and the e-Science Institute, Edinburgh for the research theme,
+``Distributed Programming Abstractions''.  This work would not have
+been possible without the efforts and support of other members of the
+SAGA team.  We also acknowledge internal resources of the Center for
+Computation \& Technology (CCT) at LSU and computer resources provided
+by LONI. Michael Miceli was supported by a Google Summer of Code
+grant.  \bibliographystyle{plain} \bibliography{saga_data_intensive}
 \end{document}
 
 %As we shall show, SAGA is an important useful approach.
@@ -1234,3 +1240,46 @@ LONI. Michael Miceli was supported by a Google Summer of Code grant.
   The aim is not to report better or even equivalent performance of
   these ``generalized applications compared to the native
   implementation of these application..}
+
+
+
+\begin{table}
+\upp
+\begin{tabular}{cccc}
+  \hline
+  Configuration  &  data size   &   work-load/worker & $T_c$  \\
+  \hline
+%  {\multicolumn{2}{c|c}  compute & data} &   (GB)  & (GB/W) & (sec) \\
+  compute \& data &   (GB)  & (GB/W) & (sec) \\
+  \hline
+%   local   & 1 & 0.5 & 372 \\
+%   \hline
+%   distributed   & 1  & 0.25 & 372 \\
+%   \hline \hline
+  local \& local-FS & 1 & 0.1 & 466 \\
+  \hline
+  distributed \& local-FS & 1 & 0.1 & 320 \\
+  \hline
+  distributed \& KFS & 1 & 0.1 &  273.55 \\
+  \hline \hline
+  local \& local-FS & 2 & 0.25 & 673 \\
+  \hline 
+  distributed \& local-FS & 2 & 0.25 & 493 \\
+  \hline
+  distributed \& KFS & 2 & 0.25 &  466 \\
+  \hline \hline
+  local \& local-FS &  4 & 0.5 & 1083\\
+  \hline
+  distributed \& local-FS &  4 &  0.5&  912 \\
+  \hline
+  distributed \& KFS & 4 & 0.5 &  848  \\
+  \hline \hline
+\end{tabular}
+\upp
+\caption{Table showing \tc for different configurations of compute  
+  and data. The two compute configurations correspond to the situation
+  where all workers are either
+  placed locally or  workers are distributed across two different resources. The data configurations arise when using a single local FS  or a distributed FS  (KFS) with 2 data-servers. It is evident from performance figures that an optimal value arises when distributing both data and compute.}\label{exp4and5}
+\upp
+\upp
+\end{table}
