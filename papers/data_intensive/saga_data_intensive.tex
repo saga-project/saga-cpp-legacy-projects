@@ -277,9 +277,9 @@ well as between Clouds and Grids.
 \section{SAGA}
 SAGA~\cite{saga-core} is a high level API that provides a simple,
 standard and uniform interface for the most commonly required
-distributed functionality.  SAGA can be used to encode grid
-applications~\cite{saga_escience07_short, saga_tg08}, tool-kits to manage
-distributed applications as well as implement abstractions that
+distributed functionality.  SAGA can be used to encode distributed
+applications~\cite{saga_escience07_short, saga_tg08}, tool-kits to
+manage distributed applications as well as implement abstractions that
 support commonly occurring programming, access and usage patterns.
 
 \begin{figure}[t]
@@ -296,7 +296,7 @@ main functional areas that SAGA provides a standardized interface
 to. Based upon an analysis of more than twenty applications, the most
 commonly required functionality involve job submission across
 different distributed platforms, support for file access and transfer,
-as well as logical file support. Less common, but equally critical
+as well as logical file support. Less common, but equally critical,
 wherever they were required, is the support for Checkpoint and
 Recovery (CPR) and Service Discovery (SD).  The API is written in C++
 with Python, C and Java language support. The {\it engine} is the main
@@ -329,13 +329,13 @@ details of SAGA here; details can be found elsewhere~\cite{saga_url}.
 
 In this paper we will demonstrate the use of SAGA in implementing well
 known programming patterns for data intensive computing.
-Specifically, we have implemented MapReduce and the All-Pairs
-patterns, and have used their implementations in SAGA to to solve
-commonly encountered genomic tasks.  We have also developed real
-scientific applications using these implementations of these patterns:
-multiple sequence alignment can be orchestrated using the
-SAGA-All-pairs implementation, and genome searching can be implemented
-using SAGA-MapReduce.
+Specifically, we have implemented MapReduce and the
+All-Pairs~\cite{allpairs_short} patterns, and have used their
+implementations in SAGA to to solve commonly encountered genomic
+tasks.  We have also developed real scientific applications using SAGA
+based implementations of these patterns: multiple sequence alignment
+can be orchestrated using the SAGA-All-pairs implementation, and
+genome searching can be implemented using SAGA-MapReduce.
 
 % The implementation of these patterns encapsulates details such as
 % latency hiding, performance and other variables (such as cluster
@@ -403,10 +403,10 @@ allocation. % The Google File-System, and other
 % DFS are free to focus on implementing the data-flow pipeline, which is
 % the algorithmic core of the MapReduce framework.  
 One feature worth noting in MapReduce is that the ultimate dataset is
-not on one machine, it is partitioned on multiple machines located
-throughout the grid. Google uses their distributed file system (Google
-File System) to keep track of where each file is located.
-Additionally, they coordinate this effort with Bigtable.
+not on one machine, it is partitioned on multiple machines distributed
+over a Grid. Google uses their distributed file system (Google File
+System) to keep track of where each file is located.  Additionally,
+they coordinate this effort with Bigtable.
 
 % We will
 % attempt to imitate this using our implementation of MapReduce over
@@ -431,14 +431,17 @@ is no longer bound to run on a system providing the appropriate
 semantics originally required by MapReduce, and is portable to a
 broader range of generic systems as well.  The drawback is that our
 implementation is relatively more complex -- it needs to add system
-semantic capabilities at some level, and it is inherently slower, as
-it is for these capabilities very difficult or near impossible to
-obtain system level performance on application level.  Critically
-however, none of these complexities are transferred to the end-user,
-and they remain hidden within the framework. Also many of these are
-due to the early-stages of SAGA and incomplete implementation of
-features, and not a fundamental limitation of the design or concept of
-the interface or programming models that it supports.
+semantic capabilities at some level, and it is inherently slower -- as
+it is difficult to reproduce system-specific optimizations to work
+generically.
+% it is for these capabilities very difficult or near impossible to
+% obtain system level performance on application level. 
+Critically however, none of these complexities are transferred to the
+end-user, and they remain hidden within the framework. Also many of
+these are due to the early-stages of SAGA and incomplete
+implementation of features, and not a fundamental limitation of the
+design or concept of the interface or programming models that it
+supports.
 
 % The SAGA based implementation of MapReduce has been developed with the
 % following goals in mind:
@@ -577,17 +580,16 @@ SAGA job package, allowing to launch the jobs either locally, using
 Globus/GRAM, Amazon Web Services, or on a Condor pool. The
 communication between the master and the worker processes is ensured
 by using the SAGA advert package, abstracting an information database
-in a platform independent way. All file transfer operations are based
-on the SAGA file package, providing a broad range of different file
-systems and transfer protocols, such as local file systems (FS),
-Globus/GridFTP, KFS, and HDFS.
-
-The Master process creates partitions of data (referred to as
-chunking, analogous to Google's MapReduce), so the data-set does not
-have to be on one machine and can be distributed; this is an important
-mechanism to avoid limitations in network bandwidth and data
-distribution.  These files could then be recognized by a DFS such as
-Hadoop FS.
+in a platform independent way (this can also be achieved through
+SAGA-Bigtable adaptors).  The Master process creates partitions of
+data (referred to as chunking, analogous to Google's MapReduce), so
+the data-set does not have to be on one machine and can be
+distributed; this is an important mechanism to avoid limitations in
+network bandwidth and data distribution.  These files could then be
+recognized by a distributed File-System (FS) such as Hadoop-FS
+(HDFS). All file transfer operations are based on the SAGA file
+package, which supports a range of different FS and transfer
+protocols, such as local-FS, Globus/GridFTP, KFS, and HDFS.
 
 % There are a few implementations of MapReduce, most notably Google's and
 % Hadoop's.  These are what our implementation is based on.  It is able
@@ -624,7 +626,7 @@ every element in a set to every element in another set.  Such a
 pattern is pervasive and finds utility in many domains -- including
 testing the validity of an algorithm, or finding an anomaly in a
 configuration.  For example, the accepted method for testing the
-strength of a facial recognition algorithm is to use All-pairs
+strength of a facial recognition algorithm is to use All-Pairs
 testing.  This creates a similarity matrix, and because it is known
 which images are the same person, the matrix can show the accuracy of
 the algorithm.
@@ -640,17 +642,16 @@ the algorithm.
 
 {\bf SAGA All-Pairs Implementation: } SAGA All-pairs implementation is
 very similar to \sagamapreduce implementation.  The main difference is
-in the way jobs are ran and how the data are stored.  In
+in the way jobs are run and how the data are stored.  In
 \sagamapreduce the final data is stored on many machines -- if there
-is a distributed filesystem available, whereas SAGA All-pairs uses the
-database to also store information about the job.  We decided to do
-this because all data must be available to be useful. We demonstrate 
-the SAGA All-Pairs abstraction using the Hadoop FS and GridFTP to not 
-only show that SAGA allows for many different configurations, but also to
-see how these different configurations behave. We have also used a 
-distributed data-store -- specifically HBase 
-(Yahoo's implementation of Bigtable) in lieu of the traditional
-Advert Service to store the end-results.
+is a DFS available, whereas SAGA All-pairs uses the database to also
+store information about the job.  We decided to do this because all
+data must be available to be useful. We demonstrate the SAGA All-Pairs
+abstraction using the HDFS and GridFTP to not only show that SAGA
+allows for many different configurations, but also to see how these
+different configurations behave. We have also used a distributed
+data-store -- specifically HBase (Yahoo's implementation of Bigtable)
+in lieu of the traditional Advert Service to store the end-results.
 
 % We could have used a distributed file system such as HDFS, but we
 % felt that the output was not large enough to constitute this.  This
@@ -701,24 +702,24 @@ seamlessly on these infrastructure.
 % of data to be available at run-time in a reliable and efficient
 % manner. 
 
-{\it HDFS and KFS: }The Hadoop Distributed File System (HDFS) is a
-distributed parallel fault tolerant application that handles the
-details of spreading data across multiple machines in a traditional
-hierarchical file organization.  % It has been highly successful and is
+{\it HDFS and KFS: } HDFS is a distributed parallel fault tolerant
+application that handles the details of spreading data across multiple
+machines in a traditional hierarchical file
+organization.  % It has been highly successful and is
 % currently used by Yahoo!, Facebook, and the New York Times to name a
 % few.  HDFS also handles replication and striping of data for
 % fault-tolerance.  
 Implemented in Java, HDFS is designed to run on commodity hardware
 while providing scalability and optimizations for large files.  The FS
-works by having one or two namenodes, masters, and many rack-aware
-datanodes, slaves.  All data requests go through the namenode that
+works by having one or two namenodes (masters) and many rack-aware
+datanodes (slaves).  All data requests go through the namenode that
 uses block operations on each data node to properly assemble the data
 for the requesting application.  The goal of replication and
 rack-awareness is to improve reliability and data retrieval time based
 on locality.  In data intensive applications, these qualities are
 essential. KFS (also called CloudStore) is an open-source
-high-performance distributed FS implemented in C++, with many of the same
-design features as HDFS.
+high-performance distributed FS implemented in C++, with many of the
+same design features as HDFS.
 
 % Another advantage is the ability to be accessed through MapReduce.
 % Since MapReduce is inherently very well parallelized, accessing
@@ -746,14 +747,14 @@ clone but eschews an explicit coordinator (Bigtable's Chubby, HBase's
 HMaster, Hypertable's Hyperspace) for a P2P/DHT approach for data
 distribution and location and for availability.  In the near future we
 will be providing adaptors for
-Sector~\footnote{http://sector.sourceforge.net/} and
-Cassandra~\footnote{http://code.google.com/p/the-cassandra-project/}
+Sector\footnote{http://sector.sourceforge.net/} and
+Cassandra\footnote{http://code.google.com/p/the-cassandra-project/}.
 And although Fig.~\ref{saga_figure} explicitly maps out different
 functional areas for which SAGA adaptors exist, there can be multiple
-adaptors to different systems that implement that functionality; the
+adaptors (for different systems) that implement that functionality; the
 SAGA run-time dynamically loads the correct adaptor, thus providing
 both an effective abstraction layer as well as an interesting means of
-providing interoperability between different Cloud like
+providing interoperability between different Cloud-like
 infrastructure.  As testimony to the power of SAGA, the ability to
 create the relevant adaptors in a lightweight fashion and thus extend
 applications to different systems with minimal overhead is an
