@@ -506,6 +506,7 @@ class Monitorable(object):
     
     @undocumented: __get_metrics
     """
+    __callbacks = {}
 
     def list_metrics(self):
         """
@@ -610,7 +611,7 @@ class Monitorable(object):
         try:
             delegateCallback = CallbackProxy(pythonCallbackObject=cb)
             cookie = self.delegateObject.addCallback(name, delegateCallback )
-            self.callbacks[cookie] = delegateCallback
+            self.__callbacks[cookie] = delegateCallback
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
         return cookie
@@ -643,7 +644,7 @@ class Monitorable(object):
             self.delegateObject.removeCallback(name, cookie)
         except org.ogf.saga.error.SagaException, e:
             raise self.convertException(e)
-        # del self.callbacks[cookie]
+        del self.__callbacks[cookie]
         #TODO: check if multiple names can exist with same cookie! Remove old proxies!
    
 class Steerable(Monitorable):

@@ -52,7 +52,7 @@ class Session(Object):
         """
         self.delegateObject = None
         if "delegateObject" in impl:
-            if impl["delegateObject"].__class__ is not org.ogf.saga.session.Session:
+            if not isinstance(impl["delegateObject"],org.ogf.saga.session.Session):
                 raise BadParameter, "Parameter impl[\"delegateObject\"] is not a org.ogf.saga.session.Session. Type: " + str(impl["delegateObject"].__class__)
             self.delegateObject = impl["delegateObject"]
         else:

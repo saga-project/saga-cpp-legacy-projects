@@ -160,10 +160,13 @@ class Object(object):
             from saga.file import Directory, File
             from saga.namespace import NSEntry, NSDirectory
             from saga.job import Job, JobSelf, JobService
+            from saga.stream import StreamService, Stream
+            from saga.rpc import RPC
             import org.ogf.saga.file.Directory
             import org.ogf.saga.file.File
             import org.ogf.saga.namespace.NSEntry
             import org.ogf.saga.namespace.NSDirectory
+            
             #TODO: Subclasses first!
          
          
@@ -181,6 +184,12 @@ class Object(object):
                 object = JobService(delegateObject=object)    
             elif isinstance(object, org.ogf.saga.job.JobSelf ):
                 object = JobSelf(delegateObject=object)    
+            elif isinstance(object, org.ogf.saga.stream.StreamService):
+                object = StreamService(delegateObject=object) 
+            elif isinstance(object, org.ogf.saga.stream.Stream):
+                object = Stream(delegateObject=object) 
+            elif isinstance(object, org.ogf.saga.rpc.RPC):
+                object = RPC(funcname="",delegateObject=object)
             else:
                 print "convertException: java Exception (",e.__class__,\
                 "had an attached sagaObject."\

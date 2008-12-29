@@ -564,6 +564,7 @@ class File(NSEntry):
         if size < -1:
             raise BadParameter, "Parameter size < 0"
         #TODO: update internal buffer with data from application
+        #TODO: add string as data
         try:
             if tasktype is TaskType.ASYNC:
                 if size is -1:

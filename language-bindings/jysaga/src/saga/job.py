@@ -40,7 +40,7 @@ import org.ogf.saga.job.JobService
 import org.ogf.saga.job.JobDescription
 import org.ogf.saga.job.Job
 import org.ogf.saga.job.JobSelf
-
+from org.ogf.saga.task import TaskMode
 
 
 class State(object):
@@ -907,9 +907,9 @@ class JobService(Object, Async):
             exception, and why.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         
         #Normal, synchronous create_job()
@@ -996,9 +996,9 @@ class JobService(Object, Async):
         #    python being notable exceptions). If these parameters are omitted, 
         #    the job is to be started non-interactively, and the output I/O 
         #    streams may be discarded.
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal, synchronous run_job()
@@ -1073,9 +1073,9 @@ class JobService(Object, Async):
             cause an 'AuthorizationFailed' exception).
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")" 
         
         #Normal list()
@@ -1137,9 +1137,9 @@ class JobService(Object, Async):
             BadParameter exception is raised.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal get_job()
@@ -1200,9 +1200,9 @@ class JobService(Object, Async):
             error message.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         
         #Normal get_self()
@@ -1288,7 +1288,7 @@ class StdIO(object):
         try:
             self.delagateObject.close()
         except java.io.IOException, e:
-            raise convertException(e)
+            raise self.convertException(e)
     
     def flush(self):
         """
@@ -1299,7 +1299,7 @@ class StdIO(object):
             try:
                 self.delagateObject.flush()
             except java.io.IOException, e:
-                raise convertException(e)
+                raise self.convertException(e)
         else:
             pass
 
@@ -1978,9 +1978,9 @@ class Job(Task, Attributes, Permissions, Async):
             In that case, a 'DoesNotExist' exception is raised, with a 
             descriptive error message.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         
         #Normal get_job_description()
@@ -2037,9 +2037,9 @@ class Job(Task, Attributes, Permissions, Async):
         @Note: if the job is not in 'New' state, it is not guaranteed that the 
             job did not receive other data on its standard input stream before.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
  
         #Normal get_stdin()
@@ -2098,9 +2098,9 @@ class Job(Task, Attributes, Permissions, Async):
             then not returned on the returned stream.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal get_stdout()
@@ -2158,9 +2158,9 @@ class Job(Task, Attributes, Permissions, Async):
             then not returned on the returned stream.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal get_stderr()
@@ -2208,9 +2208,9 @@ class Job(Task, Attributes, Permissions, Async):
             exception is raised.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal suspend()
@@ -2255,9 +2255,9 @@ class Job(Task, Attributes, Permissions, Async):
         @Note:  if the job is not in 'Suspended' state, an 'IncorrectState' 
             exception is raised.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal resume()
@@ -2308,9 +2308,9 @@ class Job(Task, Attributes, Permissions, Async):
             exception is raised.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal checkpoint()
@@ -2370,9 +2370,9 @@ class Job(Task, Attributes, Permissions, Async):
             job_description.
        
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal migrate()
@@ -2434,9 +2434,9 @@ class Job(Task, Attributes, Permissions, Async):
             'IncorrectState' exception is raised.
         
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal signal()

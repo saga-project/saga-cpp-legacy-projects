@@ -12,6 +12,8 @@ from saga.object import Object, ObjectType
 from saga.permissions import Permissions
 from saga.task import Async, TaskType, Task
 from saga.session import Session
+from saga.error import NotImplemented
+from saga.url import URL
 
 import array.array
 import jarray.array
@@ -32,6 +34,7 @@ import org.ogf.saga.error.TimeoutException
 import org.ogf.saga.rpc.IOMode
 import org.ogf.saga.rpc.Parameter
 from org.ogf.saga.rpc import RPCFactory
+from org.ogf.saga.task import TaskMode
 
 class IOMode(object):
     """
@@ -59,7 +62,7 @@ class IOMode(object):
         the invocation of call().
     """
     
-class Parameter(Object):
+class Parameter(Buffer, Object):
     """
     The Parameter class inherits the saga.buffer.Buffer class, and adds one 
     additional state attribute: IOMode, which is read-only. With that addition, 
@@ -238,7 +241,7 @@ class Parameter(Object):
             except OverflowError:
                 raise BadParameter("Parameter data contained contained outside"\
                                    +" domain chr(0) and chr(255)")
-               
+            try:
                 self.delegateObject.setData(self.implementation_data)
 #                self.application_data = data
             except org.ogf.saga.error.SagaException, e:
@@ -246,7 +249,7 @@ class Parameter(Object):
 
         #IF DATA IS LIST
         elif type(data) is list:
-            if len(list) == 0:
+            if len(data) == 0:
                     self.implementation_data = None            
             elif type(data[0]) is int:
                 if(max(data)==1 or max(data)==0)and(min(data)==1 or min(data)==0):
@@ -347,10 +350,11 @@ class Parameter(Object):
                     yet been successfully performed on the buffer,
                     a 'DoesNotExist' exception is raised.
         """
+        temp = None
         try:
             temp = self.delegateObject.getData()
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
 
         if temp == None:
             return None
@@ -358,12 +362,14 @@ class Parameter(Object):
         if type(temp) is int or type(temp) is long or type(temp) is float\
                 or type(temp) is str: 
             return temp
-
-        if type(temp) is jarray.array:
+        
+        arr = jarray.zeros(1, 'c')
+        if temp.__class__ == arr.__class__:
             if len(temp) == 0:
                 return []
  
-            if temp.typecode == 'b':
+            if type(temp[0]) == int:
+                #temp.typecode == 'b':
                 retval = []
                 for i in range(len(temp)):
                     if temp[i] < 0:
@@ -383,6 +389,16 @@ class Parameter(Object):
                 for i in range(len(temp)):
                     retval.append( temp[i].toString() ) 
                 return retval             
+
+    def close(self):
+        raise NotImplemented("close() is not implemented in Parameter")
+    
+    def get_size(self):
+        raise NotImplemented("get_size() is not implemented in Parameter")
+ 
+    def set_size(self, size=-1):
+        raise NotImplemented("set_size() is not implemented in Parameter")
+
 
     def get_type(self):
         """
@@ -458,15 +474,22 @@ class Parameter(Object):
         @rtype: string 
         """
         from saga.error import NotImplemented
-        raise NotImplemented("get_id() is not implemented")
+        raise NotImplemented("get_id is not implemented")
 #        try:
 #            return self.delegateObject.getId()
 #        except org.ogf.saga.error.SagaException, e:
 #           raise self.convertException(e) 
 
 
-    mode = property(get_io_mode, set_io_mode, doc="""The io mode\n@type: int""")
-   
+    mode = property(get_io_mode, set_io_mode, doc="""The io mode
+                                                    @type: int""")
+    data = property(get_data,set_data, doc="""The data
+                                            @type: see set_data()""")
+    size = property(get_size,set_size,
+            doc="""The size of the buffer
+                @type: int""")    
+    
+    
 class RPC(Object, Permissions, Async ):
     """
     This class represents a remote function handle, which can be called 
@@ -515,6 +538,13 @@ class RPC(Object, Permissions, Async ):
             with the semantics on other SAGA object constructors.
 
         """
+        if "delegateObject" in impl:
+            if not isinstance(impl["delegateObject"], org.ogf.saga.rpc.RPC):
+                raise BadParameter("Parameter impl[\"delegateObject\"] is not a "\
+                                   +"org.ogf.saga.rpc.RPC. Type: " \
+                                   + str(impl["delegateObject"].__class__))
+            self.delegateObject = impl["delegateObject"]
+            return
         if not isinstance(funcname, URL):
             raise BadParameter("Parameter funcname is not an URL")
         if not isinstance(session, Session):
@@ -523,7 +553,8 @@ class RPC(Object, Permissions, Async ):
         try:
             self.delegateObject = RPCFactory.createRPC(session.delegateObject, funcname.delegateObject)
         except org.ogf.saga.error.SagaException, e:
-            raise convertException(e)
+            raise self.convertException(e)
+#TODO: gridrpc:// or http:// or any://
 
     def __del__(self):
         """
@@ -578,9 +609,9 @@ class RPC(Object, Permissions, Async ):
             class apply.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
         
         #Normal call()
@@ -595,9 +626,9 @@ class RPC(Object, Permissions, Async ):
                                        "types than Parameter. "+i+": "\
                                         +str(parameters[i].__class__))
             try:           
-                self.delegategateObject.call( temp )
+                self.delegateObject.call( temp )
             except org.ogf.saga.error.SagaException, e:
-                raise convertException(e) 
+                raise self.convertException(e) 
         
         #Asynchronous call()
         else:
@@ -613,14 +644,14 @@ class RPC(Object, Permissions, Async ):
             try:
                 task = None
                 if tasktype is TaskType.ASYNC:
-                    task = self.delegateObject.close(TaskMode.ASYNC, temp)
+                    task = self.delegateObject.call(TaskMode.ASYNC, temp)
                 if tasktype is TaskType.SYNC:
-                    task = self.delegateObject.close(TaskMode.SYNC, temp)
+                    task = self.delegateObject.call(TaskMode.SYNC, temp)
                 if tasktype is TaskType.TASK:
-                    task = self.delegateObject.close(TaskMode.TASK, temp)
+                    task = self.delegateObject.call(TaskMode.TASK, temp)
                 return Task(delegateObject = task)        
             except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)            
+                raise self.convertException(e)            
 
     def close(self, timeout = 0.0, tasktype=TaskType.NORMAL):
         """
@@ -646,9 +677,9 @@ class RPC(Object, Permissions, Async ):
         @see: for timeout semantics, see Section 2 of the GFD-R-P.90 document
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
 
@@ -664,7 +695,7 @@ class RPC(Object, Permissions, Async ):
                 else:
                     self.delegateObject.close(timeout)
             except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
+                raise self.convertException(e)
  
         #Asynchronous close()
         else:
@@ -691,5 +722,71 @@ class RPC(Object, Permissions, Async ):
                         task = self.delegateObject.close(TaskMode.TASK,timeout) 
                 return Task(delegateObject = task)        
             except org.ogf.saga.error.SagaException, e:
-                raise convertException(e)
-                
+                raise self.convertException(e)
+ 
+    def get_id(self):
+        """
+        Query the object ID.
+        @summary: Query the object ID.
+        @return: uuid for the object
+        @rtype: string 
+        """
+        try:
+            return self.delegateObject.getId()
+        except org.ogf.saga.error.SagaException, e:
+           raise self.convertException(e)
+      
+    def get_type(self):
+        """
+        Query the object type.
+        @summary: Query the object type.
+        @return: type of the object as an int from ObjectType
+        @rtype: int
+        """
+        return ObjectType.RPC
+      
+    def get_session(self):
+        """
+        Query the objects session.
+        @summary: Query the objects session.
+        @return: session of the object
+        @rtype: L{Session}
+        @PreCondition: the object was created in a session, either
+            explicitly or implicitly.
+        @PostCondition: the returned session is shallow copied.
+        @raise DoesNotExist:
+        @Note: if no specific session was attached to the object at creation time, 
+            the default SAGA session is returned.
+        @note: some objects do not have sessions attached, such as JobDescription, Task, Metric, and the
+            Session object itself. For such objects, the method raises a 'DoesNotExist' exception.
+        """
+        from saga.session import Session
+        try:
+            tempSession = self.delegateObject.getSession()
+            session = Session(sessionObject=tempSession)
+            return session
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)
+    
+    def clone(self):
+        """
+        @summary: Deep copy the object
+        @return: the deep copied object
+        @rtype: L{Object}
+        @PostCondition: apart from session and callbacks, no other state is shared
+            between the original object and it's copy.
+        @raise NoSuccess:
+        @Note: that method is overloaded by all classes which implement saga.object.Object, and returns
+                 a deep copy of the respective class type.
+        @see: section 2 of the GFD-R-P.90 document for deep copy semantics.
+
+        """
+
+        try:
+            javaClone = self.delegateObject.clone()
+            clone = RPC(funcname="", delegateObject=javaClone)
+            return clone
+        except org.ogf.saga.error.SagaException, e:
+            raise self.convertException(e)               
+        
+        

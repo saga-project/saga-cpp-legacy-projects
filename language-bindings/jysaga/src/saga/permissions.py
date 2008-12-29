@@ -110,9 +110,9 @@ class Permissions(Async):
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
         if type(perm) is not int:
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.permissionsAllow(TaskMode.ASYNC, id, perm)
@@ -157,9 +157,9 @@ class Permissions(Async):
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
         if type(perm) is not int:
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.permissionsDeny(TaskMode.ASYNC, id, perm)
@@ -208,9 +208,9 @@ class Permissions(Async):
             raise BadParameter, "Parameter id is not a string. Type: " + str(type(id))
         if type(perm) is not int:
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.permissionsCheck(TaskMode.ASYNC, id, perm)
@@ -252,9 +252,9 @@ class Permissions(Async):
             owner: this method does not return an empty string, '*' (all), or 
             a group id.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getOwner(TaskMode.ASYNC)
@@ -291,9 +291,9 @@ class Permissions(Async):
         @note: if the implementation does not support groups, the method 
             returns an empty string.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getGroup(TaskMode.ASYNC)

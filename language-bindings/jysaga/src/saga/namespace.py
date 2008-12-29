@@ -185,9 +185,9 @@ class NSEntry(Object, Permissions, Async):
         @raise Timeout:
         @raise NoSuccess:
         """        
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getURL(TaskMode.ASYNC)
@@ -220,9 +220,9 @@ class NSEntry(Object, Permissions, Async):
         @note: returns the directory part of the url path element.
 
         """        
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getCWD(TaskMode.ASYNC)
@@ -253,9 +253,9 @@ class NSEntry(Object, Permissions, Async):
         @raise Timeout:
         @raise NoSuccess:
          """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getName(TaskMode.ASYNC)
@@ -293,9 +293,9 @@ class NSEntry(Object, Permissions, Async):
         @note: returns True if entry is a directory, False otherwise
         @note:  similar to 'test -d' as defined by POSIX.
         """        
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.isDir(TaskMode.ASYNC)
@@ -339,9 +339,9 @@ class NSEntry(Object, Permissions, Async):
         @note:  similar to 'test -f' as defined by POSIX.
 
         """        
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.isEntry(TaskMode.ASYNC)
@@ -383,9 +383,9 @@ class NSEntry(Object, Permissions, Async):
         @note: similar to 'test -L' as defined by POSIX.
 
         """        
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.isLink(TaskMode.ASYNC)
@@ -429,9 +429,9 @@ class NSEntry(Object, Permissions, Async):
             to a link, an 'IncorrectState' exception is raised.
         @note:  similar to 'ls -L' as defined by POSIX.
         """        
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.readLink(TaskMode.ASYNC)
@@ -508,9 +508,9 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             javaObject = None
             if tasktype is TaskType.ASYNC:
@@ -592,9 +592,9 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.link(TaskMode.ASYNC, target.delegateObject, flags)
@@ -669,9 +669,9 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.move(TaskMode.ASYNC, target.delegateObject, flags)
@@ -725,9 +725,9 @@ class NSEntry(Object, Permissions, Async):
         """   
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.remove(TaskMode.ASYNC, flags)
@@ -767,9 +767,9 @@ class NSEntry(Object, Permissions, Async):
         """        
         if type(timeout) is not float and type(timeout) is not int:
             raise BadParameter, "Parameter timeout is wrong type. Type: " + str(type(timeout))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 if timeout is 0.0:
@@ -834,9 +834,9 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.permissionsAllow(TaskMode.ASYNC ,id, perm, flags)
@@ -898,9 +898,9 @@ class NSEntry(Object, Permissions, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.permissionsDeny(TaskMode.ASYNC ,id, perm, flags)
@@ -1038,9 +1038,9 @@ class NSDirectory(NSEntry, Async):
         """
         if type(url) is not URL:
             raise BadParameter, "Parameter url is not a URL. Type: " + str(type(url))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.changeDir(TaskMode.ASYNC, url.delegateObject)
@@ -1110,9 +1110,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name_pattern is not a string. Type: " + str(type(name_pattern))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(int))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.list(TaskMode.ASYNC, name_pattern, flags)
@@ -1179,9 +1179,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name_pattern is not a string. Type: " + str(type(name_pattern))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.find(TaskMode.ASYNC, name_pattern, flags)
@@ -1234,9 +1234,9 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.exists(TaskMode.ASYNC, name.delegateObject)
@@ -1294,9 +1294,9 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.isDir(TaskMode.ASYNC, name.delegateObject)
@@ -1350,9 +1350,9 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.isEntry(TaskMode.ASYNC, name.delegateObject)
@@ -1406,9 +1406,9 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.isLink(TaskMode.ASYNC, name.delegateObject)
@@ -1460,9 +1460,9 @@ class NSDirectory(NSEntry, Async):
         """
         if type(name) is not URL:
             raise BadParameter, "Parameter name is not an URL. Type: " + str(type(name))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.readLink(TaskMode.ASYNC, name.delegateObject)
@@ -1503,9 +1503,9 @@ class NSDirectory(NSEntry, Async):
         @note: vaguely similar to 'opendir'/'readdir' (2) as defined by POSIX.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getNumEntries(TaskMode.ASYNC)
@@ -1556,9 +1556,9 @@ class NSDirectory(NSEntry, Async):
         """       
         if type(entry) is not int:
             raise BadParameter, "Parameter entry is not an int. Type: " + str(type(entry))
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.getEntry(TaskMode.ASYNC, entry)
@@ -1632,9 +1632,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))      
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(source) is str:
             source_parameter = source
         else:
@@ -1720,9 +1720,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(source) is str:
             source_parameter = source
         else:
@@ -1813,9 +1813,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(source) is str:
             source_parameter = source
         else:
@@ -1885,9 +1885,9 @@ class NSDirectory(NSEntry, Async):
             undefined.
 
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
             +"values, but " + str(tasktype)
         if tasktype == TaskType.NORMAL:
             if type(target) is not URL and type(target) is not str:
@@ -1981,9 +1981,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter target is not a URL. Type: " + str(type(target))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.makeDir(TaskMode.ASYNC, target.delegateObject, flags)
@@ -2065,9 +2065,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.open(TaskMode.ASYNC, name.delegateObject, flags)
@@ -2142,9 +2142,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter name is not a URL. Type: " + str(type(name))
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         try:
             if tasktype is TaskType.ASYNC:
                 javaObject = self.delegateObject.openDir(TaskMode.ASYNC, name.delegateObject, flags)
@@ -2207,9 +2207,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(target) is str: 
             target_parameter = target
         else: 
@@ -2275,9 +2275,9 @@ class NSDirectory(NSEntry, Async):
             raise BadParameter, "Parameter perm is not an int. Type: " + str(type(perm)) 
         if type(flags) is not int:
             raise BadParameter, "Parameter flags is not an int. Type: " + str(type(flags)) 
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask values, but " + str(tasktype)
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType values, but " + str(tasktype)
         if type(target) is str: 
             target_parameter = target
         else: 

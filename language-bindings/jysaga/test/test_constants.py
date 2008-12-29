@@ -1,4 +1,16 @@
 
+#For 13_LogicalFile
+logicalfile_plainname = "/tmp/Logicalfile.part1"
+logicalfile_name1 = "file:///tmp/Logicalfile.part1"
+logicalfile_name2 = "file:///tmp/Logicalfile.part2"
+logicalfile_name3 = "file:///tmp/Logicalfile.part3"
+logicalfile_name4 = "file:///tmp/Logicalfile.part4"
+
+logicalDirectory_plainname = "/tmp/LogicalDir1"
+logicalDirectory_name = "file:///tmp/LogicalDir1"
+logicalDirectory_dirname = "file:///tmp"
+
+
 #For 15_JobDescription
 jobdescription_Executable = "/bin/sleep"
 jobdescription_Arguments = ["--help", "--version"]
@@ -39,6 +51,19 @@ job_Arguments = ["5"]
 job_Interactive = "True"
 job_Arguments_alternative = ["--version"]
 job_WorkingDirectory = "/tmp"
+
+#For 19_StreamService
+streamservice_url = "tcp://localhost"
+streamservice_port = 6000
+
+#For 20_Stream
+stream_data = "abcdefghijklmnopqrstuvwxyz"
+
+#For 22_RPC
+rpc_scheme = "any" #"xmlrpc" #"http" #"gridrpc"
+rpc_port = 8080
+rpc_host = "127.0.0.1"
+rpc_path = "/Calculator.add"
 
 class Result(object):
     nr_NotImplemented = 0

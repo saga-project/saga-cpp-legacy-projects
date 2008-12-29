@@ -15,6 +15,7 @@ from saga.context import Context
 from saga.attributes import Attributes
 from saga.error import NotImplemented
 from saga.session import Session
+from saga.buffer import Buffer
 
 import org.ogf.saga.error.AlreadyExistsException
 import org.ogf.saga.error.AuthenticationFailedException 
@@ -32,6 +33,8 @@ import org.ogf.saga.error.TimeoutException
 import org.ogf.saga.stream.Stream
 import org.ogf.saga.stream.StreamService
 from org.ogf.saga.stream import StreamFactory
+from org.ogf.saga.task import TaskMode
+from org.ogf.saga.buffer import BufferFactory
 
 class State(object):
     """
@@ -200,9 +203,9 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @Note: returns a URL which can be passed to the Stream constructor to 
             create a connection to this StreamService.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal get_url()
@@ -252,9 +255,9 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @raise NoSuccess:
         @raise Timeout: if no client connects within the specified timeout
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal serve()
@@ -318,9 +321,9 @@ class StreamService(Object, Monitorable, Permissions, Async):
         @Note: any subsequent method call on the object, besides close(), 
             raises an "IncorrectState" exception.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal close()
@@ -568,9 +571,9 @@ class Stream(Object, Async, Attributes, Monitorable):
             been created with an empty url as parameter to the Stream 
             constructor.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal get_url()
@@ -628,9 +631,9 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: the returned context is authenticated, or is of type 
             "Unknown" as described above.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal get_context()
@@ -679,9 +682,9 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: if the stream instance is not in "NEW" state, an "IncorrectState" 
             exception is raised.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
                 
         #Normal connect()
@@ -737,17 +740,17 @@ class Stream(Object, Async, Attributes, Monitorable):
         @Note: if the stream is not in "OPEN" state, an "IncorrectState" 
             exception is raised.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal wait()
         if tasktype == TaskType.NORMAL:
-            if what is not Activity.READ and what is not Activity.WRITE \
-            and what is not Activity.EXCEPTION:
-                raise BadParameter, "Parameter what is not one of the Activity"\
-                +" values, but "+ str(what)+"("+ str(what.__class__)+")"
+#            if what is not Activity.READ and what is not Activity.WRITE \
+#            and what is not Activity.EXCEPTION:
+#                raise BadParameter, "Parameter what is not one of the Activity"\
+#                +" values, but "+ str(what)+"("+ str(what.__class__)+")"
                 
             if type(timeout) is not int and type(timeout) is not float:
                 raise BadParameter, "Parameter timeout is not a float, but a "\
@@ -767,11 +770,11 @@ class Stream(Object, Async, Attributes, Monitorable):
                     + str(timeout.__class__))
                 return Task(error = bp)
  
-            if what is not Activity.READ and what is not Activity.WRITE \
-            and what is not Activity.EXCEPTION:
-                bp = BadParameter( "Parameter what is not one of the Activity"\
-                +" values, but "+ str(what)+"("+ str(what.__class__)+")" )
-                return Task(error = bp)
+#            if what is not Activity.READ and what is not Activity.WRITE \
+#            and what is not Activity.EXCEPTION:
+#                bp = BadParameter( "Parameter what is not one of the Activity"\
+#                +" values, but "+ str(what)+"("+ str(what.__class__)+")" )
+#                return Task(error = bp)
             
             try:
                 javaObject = None
@@ -813,9 +816,9 @@ class Stream(Object, Async, Attributes, Monitorable):
             raise an exception.
         @Note: close() can be called multiple times, with no side effects.
         """
-        if tasktype is not TaskType.NORMAL and tasktype is not TypeTask.SYNC \
-        and tasktype is not TaskType.ASYNC  and tasktype is not TypeTask.TASK:
-            raise BadParameter, "Parameter tasktype is not one of the TypeTask"\
+        if tasktype is not TaskType.NORMAL and tasktype is not TaskType.SYNC \
+        and tasktype is not TaskType.ASYNC  and tasktype is not TaskType.TASK:
+            raise BadParameter, "Parameter tasktype is not one of the TaskType"\
                 +" values, but "+ str(tasttype)+"("+ str(tasktype.__class__)+")"
 
         #Normal close()
@@ -860,7 +863,7 @@ class Stream(Object, Async, Attributes, Monitorable):
 
                
         
-    def read (self, size = -1, buf = None, tasktype=TaskType.NORMAL):
+    def read (self, size=-1, buf=None, tasktype=TaskType.NORMAL):
         #inout buffer buf, in int len_in = -1, out int len_out
         """
         Read up to size bytes of data from stream.
@@ -949,7 +952,7 @@ class Stream(Object, Async, Attributes, Monitorable):
                     return retval.getData().toString()   
                 elif size == -1 and buf is None:             
                     javaBuffer =  BufferFactory.createBuffer(self.buffer_size)
-                    retval = self.delegateObject.read(javaBuffer)
+                    retval = self.delegateObject.read(javaBuffer, self.buffer_size)
                     return javaBuffer.getData().tostring()   
                 else:
                     raise BadParameter("Correct call is read(size,data), "\
@@ -1056,12 +1059,14 @@ class Stream(Object, Async, Attributes, Monitorable):
             if type (size)is not int:
                 raise BadParameter, "Parameter size is not an int. Type: " \
                     + str(type(size))
-            if buf.__class__ is not Buffer:
-                raise BadParameter, "Parameter buf is not a Buffer. Class: " \
-                    + str(buf.__class__)
-            if size < -1:
-                raise BadParameter, "Parameter size < 0"            
-            
+            if buf.__class__ is not Buffer and type(buf) != str:
+                raise BadParameter, "Parameter buf is not a Buffer or string.\
+                         Class: " + str(buf.__class__)
+            if type(buf) == str:
+                import java.lang.String
+                byte_array = java.lang.String(buf).getBytes()
+                buf = Buffer(delegateObject=BufferFactory.createBuffer(byte_array))
+ 
             if size is -1:
                 return self.delegateObject.write(buf.delegateObject)
             else:
@@ -1072,7 +1077,7 @@ class Stream(Object, Async, Attributes, Monitorable):
                 bp = BadParameter( "Parameter size is not an int. Type: " \
                     + str(type(size)))
                 return Task(error=bp)
-            if buf.__class__ is not Buffer:
+            if buf.__class__ is not Buffer and type(buf) != str:
                 bp = BadParameter("Parameter buf is not a Buffer. Class: " \
                     + str(buf.__class__))
                 return Task(error=bp)
@@ -1102,58 +1107,58 @@ class Stream(Object, Async, Attributes, Monitorable):
         except org.ogf.saga.error.SagaException, e:
                 raise self.convertException(e)
 
-    def __set_Bufsize(value):
-        set_attribute("Bufsize", value)
+    def __set_Bufsize(self, value):
+        self.delegateObject.set_attribute("Bufsize", value)
         
-    def __get_Bufsize():
-        return get_attribute("Bufsize")  
+    def __get_Bufsize(self):
+        return self.delegateObject.get_attribute("Bufsize")  
 
     Bufsize = property(__get_Bufsize, __set_Bufsize,
             doc="""The Bufsize attribute. \n@type: int""")
 
-    def __set_Timeout(value):
-        set_attribute("Timeout", value)
+    def __set_Timeout(self, value):
+        self.delegateObject.set_attribute("Timeout", value)
         
-    def __get_Timeout():
-        return get_attribute("Timeout")  
+    def __get_Timeout(self):
+        return self.delegateObject.get_attribute("Timeout")  
 
     Timeout = property(__get_Timeout, __set_Timeout,
             doc="""The Timeout attribute. \n@type: int""")
 
 
-    def __set_Blocking(value):
-        set_attribute("Blocking", value)
+    def __set_Blocking(self, value):
+        self.delegateObject.set_attribute("Blocking", value)
         
-    def __get_Blocking():
-        return get_attribute("Blocking")  
+    def __get_Blocking(self):
+        return self.delegateObject.get_attribute("Blocking")  
 
     Blocking = property(__get_Blocking, __set_Blocking,
             doc="""The Blocking attribute. \n@type: bool""")
 
-    def __set_Compression(value):
-        set_attribute("Compression", value)
+    def __set_Compression(self, value):
+        self.delegateObject.set_attribute("Compression", value)
         
-    def __get_Compression():
-        return get_attribute("Compression")  
+    def __get_Compression(self):
+        return self.delegateObject.get_attribute("Compression")  
 
     Compression = property(__get_Compression, __set_Compression, 
                            doc="""The Compression attribute. \n@type: bool""")
 
-    def __set_Nodelay(value):
-        set_attribute("Nodelay", value)
+    def __set_Nodelay(self, value):
+        self.delegateObject.set_attribute("Nodelay", value)
         
-    def __get_Nodelay():
-        return get_attribute("Nodelay")  
+    def __get_Nodelay(self):
+        return self.delegateObject.get_attribute("Nodelay")  
     
     Nodelay = property(__get_Nodelay, __set_Nodelay,
             doc="""The Nodelay attribute. \n@type: bool""")
 
 
-    def __set_Reliable(value):
-        set_attribute("Reliable", value)
+    def __set_Reliable(self, value):
+        self.delegateObject.set_attribute("Reliable", value)
         
-    def __get_Reliable():
-        return get_attribute("Reliable")  
+    def __get_Reliable(self):
+        return self.delegateObject.get_attribute("Reliable")  
 
     Reliable = property(__get_Reliable, __set_Reliable, 
             doc="""The Reliable attribute. \n@type: bool""")
