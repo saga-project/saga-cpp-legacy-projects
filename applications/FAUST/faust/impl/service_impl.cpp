@@ -89,6 +89,10 @@ service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs
       sleep(2); // GRAM needs some time otherwise it will reply with an error! 
       //std::cout << j.get_job_id() << std::endl;
       j.cancel();
+      
+      // Host description seems to work properly. Add it to our
+      // internal host list.
+      resources_.insert(resources_pair((*i).contact.get_url(), (*i)));
     }
     catch(saga::exception const & e)
     {
@@ -97,13 +101,8 @@ service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs
       if(DEBUG) log_->write(e.what(), LOGLEVEL_DEBUG);
       std::string msg("Cannot queue a sample job on: " + (*i).contact.get_url());
       msg.append(". Removing entry from resource list." );
-      std::cout << e.what() << std::endl;
       log_->write(msg, LOGLEVEL_ERROR);  
     }
-    
-    // Host description seems to work properly. Add it to our
-    // internal host list.
-    resources_.insert(resources_pair((*i).contact.get_url(), (*i)));
   }
   
   // if we don't have any working execution hosts, abort!
@@ -143,7 +142,8 @@ faust::resource service_impl::get_resource(std::string contact)
 {
   if(resources_.find(contact) == resources_.end())
   {
-    // THROW SOME EXCEPTION
+    throw faust::exception ("Contact string '"+contact+"' doesn't exisit." , 
+                            faust::BadParameter);
   }
   
   return resources_[contact];
@@ -272,9 +272,11 @@ faust::job
 service_impl::get_job(std::string job_id)
 {
   if( joblist_.find(job_id) == joblist_.end())
-    throw faust::exception ("JobID doesn't exisit." , faust::NoSuccess);
+    throw faust::exception ("JobID doesn't exisit." , faust::BadParameter);
+  
   else if( joblist_[job_id].get_type() != faust::object::Job )
-    throw faust::exception ("TODO: Describe error" , faust::NoSuccess);
+    throw faust::exception ("TODO: Describe error" , faust::BadParameter);
+  
   else
     return *static_cast<faust::job *> (boost::addressof(joblist_[job_id]));
 }
@@ -285,9 +287,11 @@ faust::job_group
 service_impl::get_job_group(std::string job_id)
 {
   if( joblist_.find(job_id) == joblist_.end())
-    throw faust::exception ("JobID doesn't exisit." , faust::NoSuccess);
+    throw faust::exception ("JobID doesn't exisit." , faust::BadParameter);
+  
   else if( joblist_[job_id].get_type() != faust::object::JobGroup )
-    throw faust::exception ("TODO: Describe error" , faust::NoSuccess);
+    throw faust::exception ("TODO: Describe error" , faust::BadParameter);
+  
   else
     return *static_cast<faust::job_group *> (boost::addressof(joblist_[job_id]));
 }

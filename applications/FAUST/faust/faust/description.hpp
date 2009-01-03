@@ -19,17 +19,33 @@ namespace faust
 {    
     namespace attributes 
     {
+      /*! \brief FAUST SPECIFIC: */
+      char const* const input_data_volume     = "InputDataVolume";
+      /*! \brief FAUST SPECIFIC: */
+      char const* const output_data_volume    = "OutputDataVolume";
+
+      
+      /*! \brief Same as in saga::job::attributes */
       char const* const executable            = "Executable";
+      /*! \brief Same as in saga::job::attributes */
       char const* const arguments             = "Arguments";
+      /*! \brief Same as in saga::job::attributes */
       char const* const environment           = "Environment";
+      /*! \brief Same as in saga::job::attributes */
       char const* const working_directory     = "WorkingDirectory";
-      char const* const interactive           = "Interactive";
+      /*! \brief Same as in saga::job::attributes */
       char const* const file_transfer         = "FileTransfer";
+      /*! \brief Same as in saga::job::attributes */
       char const* const cleanup               = "Cleanup";
+      /*! \brief Same as in saga::job::attributes */
       char const* const job_start_time        = "JobStartTime";
+      /*! \brief Same as in saga::job::attributes */
       char const* const total_cpu_time        = "TotalCPUTime";
+      /*! \brief Same as in saga::job::attributes */
       char const* const wall_time_limit       = "WallTimeLimit";
+      /*! \brief Same as in saga::job::attributes */
       char const* const total_physical_memory = "TotalPhysicalMemory";
+      /*! \brief Same as in saga::job::attributes */
       char const* const cpu_architecture      = "CPUArchitecture";
     }
     

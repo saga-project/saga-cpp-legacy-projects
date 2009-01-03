@@ -21,7 +21,7 @@ int main (int argc, char* argv[])
   h1.contact = "gram://gatekeeper.lonestar.tacc.teragrid.org:2119/jobmanager-lsf";
   h1.project = "";
   h1.queue   = "";
-  h1.workdir = "";
+  h1.workdir = "/tmp/";
 
   h2.contact = "gram://qb.loni.org:2119/jobmanager-pbs";
   h2.project = "loni_jha_big";
@@ -39,54 +39,27 @@ int main (int argc, char* argv[])
   
   faust::service s(hostlist, 64);
   
-  //////////////////////////////////
-  // test service::create_job_group()
-  faust::description d1, d2;
-  std::vector<faust::description> desc;
-  desc.push_back(d1);
-  desc.push_back(d2);
-  faust::job_group jg1 = s.create_job_group(desc); 
-  std::cout << "group id: " << jg1.get_job_id() << std::endl;
-  faust::job_group jg2 = jg1;
-  std::cout << "copied group id: " << jg2.get_job_id() << std::endl;
-
   
-  //////////////////////////////////
-  // test service::create_job()
-  faust::description d;
-    
-  d.set_attribute(faust::attributes::executable, "test");
-  
-  
-  faust::job j = s.create_job(d); 
-  faust::job j1 = s.create_job(d); 
-  faust::job j2 = s.create_job(d); 
-  
-  //////////////////////////////////
-  // test job.get_job_id()
-  std::cout << j.get_job_id() << std::endl;
-
-  //////////////////////////////////
-  // test job.get_job()
-  faust::job t1 = s.get_job(j.get_job_id());
-  
-  //////////////////////////////////
-  // test service::list_resources()
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  std::cout << "\nTesting: list_resources() & get_resource()" << std::endl;
+  std::cout << "==========================================" << std::endl;
   std::vector<std::string> rl = s.list_resources();
   std::vector<std::string>::const_iterator ci1;
-  for(ci1 = rl.begin(); ci1 != rl.end(); ++ci1)
-    std::cout << (*ci1) << std::endl;
-  
-  //////////////////////////////////
-  // test service::list_jobs()
-  std::vector<std::string> jl = s.list_jobs();
-  std::vector<std::string>::const_iterator ci;
-  for(ci = jl.begin(); ci != jl.end(); ++ci)
-  {
-    faust::job j = s.get_job(*ci);
-    std::cout << j.get_job_id() << std::endl;
+  for(ci1 = rl.begin(); ci1 != rl.end(); ++ci1) {
+    std::cout << s.get_resource(*ci1).contact << " " ;
+    std::cout << s.get_resource(*ci1).workdir << " " ;
+    std::cout << s.get_resource(*ci1).queue   << " " ;
+    std::cout << s.get_resource(*ci1).project << std::endl ;
+  } 
+  try {
+    s.get_resource("non_existing_contact");
   }
-  
+  catch(faust::exception const & e) {
+    std::cerr << "Exception successfully caught: " << e.what() << std::endl;
+  }
+  //
+  //////////////////////////////////////////////////////////////////////////////
   
   return 0;
 }

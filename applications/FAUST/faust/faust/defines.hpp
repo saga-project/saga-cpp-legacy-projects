@@ -17,6 +17,6 @@
 
 #define FW_NAME "FAUST"
 
-#define DEBUG 1
+#define DEBUG 0
 
 #endif /* FAUST_DEFINES_HPP */

@@ -39,7 +39,7 @@ service::~service()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-job service::create_job(description job_desc)
+/*job service::create_job(description job_desc)
 {
   return get_impl()->create_job(job_desc);
 }
@@ -94,7 +94,7 @@ job_group service::create_job_group(std::vector<description> job_descs,
                                     job_group job_group_obj, dependency dep)
 {
   return get_impl()->create_job_group(job_descs, job_group_obj, dep);
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -119,7 +119,15 @@ faust::job service::get_job(std::string job_id)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::job_group service::get_job_group(std::string job_id)
+faust::resource service::get_resource(std::string contact)
+{
+  return get_impl()->get_resource(contact);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+/*faust::job_group service::get_job_group(std::string job_id)
 {
   return get_impl()->get_job_group(job_id);
 }
+*/
