@@ -39,7 +39,7 @@ service::~service()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-/*job service::create_job(description job_desc)
+job service::create_job(description job_desc)
 {
   return get_impl()->create_job(job_desc);
 }
@@ -58,7 +58,7 @@ job service::create_job(description job_desc, job job_obj, dependency dep)
   return get_impl()->create_job(job_desc, job_obj, dep);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+/*////////////////////////////////////////////////////////////////////////////////
 //
 job service::create_job(description job_desc, job_group job_group_obj, dependency dep)
 {
