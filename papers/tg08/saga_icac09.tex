@@ -28,6 +28,7 @@
 
 \newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1 }} }
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
+\newcommand{\yyenote}[1]{ {\textcolor{blue} { ***yye00: #1 }}}
 %\newcommand{\jhanote}[0]{}
 \newcommand{\jitter}[1]{{$\sigma(\alpha)$}}
 
@@ -774,9 +775,17 @@ matching stage.
 \subsection{ResourceMap Thorn}
 The ResourceMap thorn maps the various models to available resources.
 Each reservoir model has its own parameters that influence the size of
-the model and the wall time it will need to finish. \jhanote{In the
+the model and the wall time it will need to finish. Estimates of the required
+wall time and memory footprint of the simulation are obtained from
+benchmarks that mimic the actual models. A simple estimate
+is constructed based on the number of iterations the model will run for
+and other parameters such as the size of the domain, the IO frequency etc...
+The ResourceMap thorn needs to pass this information to BQP to obtain the 
+"confidence" factor for its predictions.
+ \jhanote{In the
   previous line, we need a set of clarifying remarks about how this is
-  derived. Does this help?}. The ResourceMap thorn queries the BQP
+  derived. Does this help?}.
+The ResourceMap thorn queries the BQP
 thorn for the best machine and queue combination that will start the
 model earliest at a high enough confidence (i.e above a specified
 threshold). This is done by iterating over a list of machines and
@@ -1034,6 +1043,17 @@ Actual simulation failures:
 \item{Hitting /scratch or /home too often (because of checkpointing), leading to very low access speeds and exceeding the requested wall clock time}
 \end{itemize}
 
+\subsection{Needs to be Moved}
+One of the recent improvements in deployment is the use of the
+python bindings to the FAUST project \yyenote{I think the name here should change
+as this is not really FAUST yet but loosely labelled FAUST}. Using
+these scripts, a user-specified number of stages each containing
+a user-defined number of models can be launched to the grid. As the
+models of a given stage run to completion, a second set of error-checking
+jobs are launched that ensure all the models ran to completion before
+the Kalman gain calculation is performed. This error-checking mechanism
+attempts to re-submit the failed jobs, and if met with failure a second time, 
+the stage is halted to allow for user intervention. \yyenote{that is what I am implementing at the moment} 
 
 
 \section{Results and Discussion}
