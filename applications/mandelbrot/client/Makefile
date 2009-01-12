@@ -12,9 +12,4 @@ include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 run:: $(SAGA_BIN)
 	$(SAGA_PWD)/$(SAGA_BIN)
-  
-SAGA_CXXFLAGS += -I/opt/local/include/cairo
-
-SAGA_LDFLAGS  += -L/opt/local/lib -lcairo 
-SAGA_LDFLAGS  += -L/usr/X11/lib   -lX11
 
