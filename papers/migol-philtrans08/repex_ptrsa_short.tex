@@ -180,7 +180,7 @@ Most RE implementations are either infrastructure
 specific~\citep{Woods:2005nx}, or if using multiple distributed
 resources, require prior co-scheduling~\citep{repex_mpig}.
 Ref.~\citep{repex_mpig} is an important example of a first-generation
-Grid applications, wherein the effectiveness of coupling multiple
+Grid application, wherein the effectiveness of coupling multiple
 distributed resources for scientific problems has been demonstrated.
 The real power of distributed systems however, arises from adaptive
 algorithms and implementations that provide applications with an agile
@@ -246,12 +246,18 @@ co-scheduled resources.  The unique contribution of this paper is the
 implementation of a RE framework that overcomes the described
 limitations, by being able to adapt at runtime to a change in the
 availability of resources and application resource requirements.  This
-framework builds upon preliminary work in implementing SAGA with
-fault-tolerance~\citep{Luckow:2008la}. % We present data that validates
+framework builds upon preliminary work integrating SAGA and Migol.
+% in implementing SAGA with fault-tolerance.
+While SAGA represents a well-defined, standardized interface for writing
+Grid applications, Migol provides the underlying middleware services
+to guarantee the correct and reliable exe\-cution of applications even
+in the presence of failures~\citep{Luckow:2008la}.
+
+% We present data that validates
 % the claim that as more resources become available our framework can
 % opportunistically employ these resources to lead to a reduction in the
 % time-to-completion of the scientific problem.
-We provide irrefutable evidence that, as more resources become
+We provide evidence that, as more resources become
 available, our framework can opportunistically utilise these resources,
 leading to a reduction in the time-to-completion of the scientific
 problem.  The remainder of the paper is structured as follows: In the
@@ -348,22 +354,43 @@ The fact that one single long-running simulation can be substituted
 for an ensemble of loosely-coupled shorter-running simulations, make
 these ideal candidates for distributed environments.
 
-\begin{figure}[t]
-      \centering
-      \includegraphics[width=0.6\textwidth]{1KP7}   
-      \caption{The internal loop HCV IRES IIIb CA variant of the
-        Hepatatis C virus}
-      \label{fig:1kp7}
-\end{figure}
+RE simulations can be thought of as consisting of
+two distinct components: the underlying simulation engine/mechanism
+used for each replica, and the coupling-mechanism between the
+individual replicas.  
+% It is important to note that RE is in fact a
+% class of algorithms and not a specific
+% algorithm~\citep{dpa-paper}; for example, there can be not only
+% different simulation strategies -- such as the Monte Carlo and the
+% described MD approach -- but also multiple levels-of-coupling.  
+The degree and frequency of coupling and exchange can be either
+regular~\citep{Sugita:1999rm}, or irregular~\citep{SPdynamics}. 
+An example of the latter -- parallel replica dynamics as 
+implemented in Folding@home
+\citep{folding} involves coordination between replicas only when an
+``event'' occurs.  In contrast, for regular RE applications, attempts
+to exchange states between certain pairs occur at fixed intervals. 
+
+% A major challenge common to both types however, is the design,
+% development and deployment of a general purpose RE framework for
+% distributed environments.
+
+% \begin{figure}[t]
+%       \centering
+%       \includegraphics[width=0.6\textwidth]{1KP7}   
+%       \caption{The internal loop HCV IRES IIIb CA variant of the
+%         Hepatatis C virus}
+%       \label{fig:1kp7}
+% \end{figure}
 
 The hepatitis C virus (HCV) internal ribosome entry site (IRES) is
 recognized specifically by the small ribosomal subunit and eukaryotic
 initiation factor 3 (eIF3) before viral translation initiation.  This
-makes it a good candidate for new drugs targeting Hepatatis-C virus.
+makes it a good candidate for new drugs targeting Hepatitis-C virus.
 Our aim is to use REMD to enhance the sampling of the conformational
 flexibility of the internal loop referred to as {\it HCV IRES IIIb CA
   variant}~\citep{Collier:2002wd} as well as the equilibrium
-energetics (see Figure~\ref{fig:1kp7}).  The model of the physical system under investigation in
+energetics.  The model of the physical system under investigation in
 this work is comprised of a RNA system of nucleotides; the total
 number of atoms in the simulating box is 21887 -- including the RNA
 system, explicit water molecules, and ions for neutralization of the
@@ -613,33 +640,23 @@ job, the time-to-completion can be dramatically reduced.
 % \end{figure} 
                       
 \begin{figure}[t]
-  \begin{minipage}[t]{.47\textwidth}
+  % \begin{minipage}[t]{.47\textwidth}
     \begin{center}  
-      \includegraphics[width=0.9\textwidth]{remdmanager_v13}
+      \includegraphics[width=0.6\textwidth]{remdmanager_v12}
       \caption{\footnotesize \bf RE-Manager Abstractions: The BigJob
           abstraction provides the capability to cluster sub-jobs into a
           larger big-job, and is implemented on top of the Glide-In
           abstraction.\vspace*{-3em}}
      \label{fig:abstractions} 
     \end{center}
-  \end{minipage}
-  \hfill
-  \begin{minipage}[t]{.51\textwidth}
-    \begin{center}  
-     
-%      This scenario utilises the capability of the underlying physics
-%      model to
-      \includegraphics[width=\textwidth]{re_bigjob_interactions_v2}
-      \caption{\footnotesize \bf RE-Manager and SAGA-Glide-In Framework:
-        The Glide-In job (\replicaagent\ ) is used as place-holder job
-        for all replica sub-jobs running on a single cluster. The
-        \remanager\ can control both the \replicaagent\ and the replica
-        jobs.}
-        \label{fig:remdmanager_v1.1}   
-    \end{center}
-  \end{minipage}
-  \hfill
+  % \end{minipage}
+  %   \hfill
 \end{figure}
+  % \begin{minipage}[t]{.51\textwidth}
+
+  % \end{minipage}
+  % \hfill
+% \end{figure}
 
 
 
@@ -701,6 +718,21 @@ individual big-job and sub-jobs to physical resources.
 %  are minimized and the time-to-completion can be
 %       dramatically reduced.
 % RE-Manager overall
+
+\begin{figure}[t]
+	    \begin{center}  
+	%      This scenario utilises the capability of the underlying physics
+	%      model to
+	      \includegraphics[width=0.65\textwidth]{re_bigjob_interactions_v2}
+	      \caption{\footnotesize \bf RE-Manager and SAGA-Glide-In Framework:
+	        The Glide-In job (\replicaagent\ ) is used as place-holder job
+	        for all replica sub-jobs running on a single cluster. The
+	        \remanager\ can control both the \replicaagent\ and the replica
+	        jobs.}
+	        \label{fig:remdmanager_v1.1}   
+	    \end{center}
+\end{figure}
+
 {\noindent \it \bf Implementation:} The RE framework presented in section~\ref{sec:remd_impl} has been
 extended to support the management and scheduling of replica jobs.
 BigJob provides the ability to cluster sub-jobs; Glide-In provides the
@@ -728,8 +760,8 @@ Glide-In Manager and Replica Agent.
 
 
 Before running regular jobs, an application, in this case the 
-RE-Manager, must initializes a
-\texttt{big\_job} object. The Glide-In Manager then queues a Glide-In
+RE-Manager, must initialize a \texttt{big\_job} object. 
+The Glide-In Manager then queues a Glide-In
 job, which actually runs a Replica-Agent on the respective resource,
 using the SAGA CPR API.  For this \texttt{big\_job} instance the
 specified number of resources is requested. Subsequently,
@@ -1207,7 +1239,7 @@ a more asynchronous scheme as described by \citet{Gallicchio:2007yq}.
 % such as the Riboswitch problem~\citep{Huang:2008xe}.     
 At the same time, we will improve our RE infrastructure to support
 further adaptive strategies for resource determination and
-utilisation.  While it has been shown, that resources can efficiently
+utilisation.  While it has been shown that resources can efficiently
 be allocated with the BigJob abstraction, a mechanism for dynamic
 resource discovery and for intelligent placements of jobs will be
 beneficial to further decrease the time-to-completion.  Various
