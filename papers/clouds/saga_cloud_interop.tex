@@ -458,65 +458,53 @@ As alluded to, there is a proliferation of Clouds and Cloud-like
 systems, but it is important to remember that ``what constitutes or
 does not constitute a Cloud'' is not universally agreed upon.  However
 there are several aspects and attributes of Cloud systems that are
-generally agreed upon~\cite{buyya_hpcc}.  Here we will by necessity
-limit our discussion to two type of distributed file-systems (HDFS and
-KFS) and two types of distributed structured-data store (Bigtable and
-HBase). We have developed SAGA adaptors for these, have used
-\sagamapreduce (and All-Pairs) seamlessly on these infrastructure.
+generally agreed upon~\cite{buyya_hpcc}...
 
-{\it HDFS and KFS: } HDFS is a distributed parallel fault tolerant
-application that handles the details of spreading data across multiple
-machines in a traditional hierarchical file organization.  Implemented
-in Java, HDFS is designed to run on commodity hardware while providing
-scalability and optimizations for large files.  The FS works by having
-one or two namenodes (masters) and many rack-aware datanodes (slaves).
-All data requests go through the namenode that uses block operations
-on each data node to properly assemble the data for the requesting
-application.  The goal of replication and rack-awareness is to improve
-reliability and data retrieval time based on locality.  In data
-intensive applications, these qualities are essential. KFS (also
-called CloudStore) is an open-source high-performance distributed FS
-implemented in C++, with many of the same design features as HDFS.
+% Here we will by necessity
+% limit our discussion to two type of distributed file-systems (HDFS and
+% KFS) and two types of distributed structured-data store (Bigtable and
+% HBase). We have developed SAGA adaptors for these, have used
+% \sagamapreduce (and All-Pairs) seamlessly on these infrastructure.
 
-% Another advantage is the ability to be accessed through MapReduce.
-% Since MapReduce is inherently very well parallelized, accessing
-% Bigtable is very efficient.
-% Also, since the data are partitioned
-% accessing it does not create a large strain on the network bandwidth.
+% {\it HDFS and KFS: } HDFS is a distributed parallel fault tolerant
+% application that handles the details of spreading data across multiple
+% machines in a traditional hierarchical file organization.  Implemented
+% in Java, HDFS is designed to run on commodity hardware while providing
+% scalability and optimizations for large files.  The FS works by having
+% one or two namenodes (masters) and many rack-aware datanodes (slaves).
+% All data requests go through the namenode that uses block operations
+% on each data node to properly assemble the data for the requesting
+% application.  The goal of replication and rack-awareness is to improve
+% reliability and data retrieval time based on locality.  In data
+% intensive applications, these qualities are essential. KFS (also
+% called CloudStore) is an open-source high-performance distributed FS
+% implemented in C++, with many of the same design features as HDFS.
 
-{\it Bigtable and HBase:} Bigtable~\cite{bigtable_small} is a type of
-database system created by Google to have better control over
-scalability and performance than other databases.  The main difference
-is that it is meant to store extremely large datasets, into the
-petabytes, over thousands of machines.  It is well integrated with
-MapReduce.  Due to the success of Bigtable, HBase was developed as an
-open source alternative to Bigtable for use with Hadoop.  Both HBase
-and Bigtable split up large tables and replicate them over many
-machines to avoid node failure.  
+% There exist many other implementations of both distributed FS (such as
+% Sector) and of distributed data-store (such as Cassandra and
+% Hybertable); for the most part they are variants on the same theme
+% technically, but with different language and performance criteria
+% optimizations.  Hypertable is an open-source implementation of
+% Bigtable; Cassandra is a Bigtable clone but eschews an explicit
+% coordinator (Bigtable's Chubby, HBase's HMaster, Hypertable's
+% Hyperspace) for a P2P/DHT approach for data distribution and location
+% and for availability.  In the near future we will be providing
+% adaptors for Sector\footnote{http://sector.sourceforge.net/} and
+% Cassandra\footnote{http://code.google.com/p/the-cassandra-project/}.
+% And although Fig.~\ref{saga_figure} explicitly maps out different
+% functional areas for which SAGA adaptors exist, there can be multiple
+% adaptors (for different systems) that implement that functionality;
+% the SAGA run-time dynamically loads the correct adaptor, thus
+% providing both an effective abstraction layer as well as an
+% interesting means of providing interoperability between different
+% Cloud-like infrastructure.  As testimony to the power of SAGA, the
+% ability to create the relevant adaptors in a lightweight fashion and
+% thus extend applications to different systems with minimal overhead is
+% an important design feature and a significant requirement so as to be
+% an effective programming abstraction layer.
 
-There exist many other
-implementations of both distributed FS (such as Sector) and of
-distributed data-store (such as Cassandra and Hybertable); for the
-most part they are variants on the same theme technically, but with
-different language and performance criteria optimizations.  Hypertable
-is an open-source implementation of Bigtable; Cassandra is a Bigtable
-clone but eschews an explicit coordinator (Bigtable's Chubby, HBase's
-HMaster, Hypertable's Hyperspace) for a P2P/DHT approach for data
-distribution and location and for availability.  In the near future we
-will be providing adaptors for
-Sector\footnote{http://sector.sourceforge.net/} and
-Cassandra\footnote{http://code.google.com/p/the-cassandra-project/}.
-And although Fig.~\ref{saga_figure} explicitly maps out different
-functional areas for which SAGA adaptors exist, there can be multiple
-adaptors (for different systems) that implement that functionality; the
-SAGA run-time dynamically loads the correct adaptor, thus providing
-both an effective abstraction layer as well as an interesting means of
-providing interoperability between different Cloud-like
-infrastructure.  As testimony to the power of SAGA, the ability to
-create the relevant adaptors in a lightweight fashion and thus extend
-applications to different systems with minimal overhead is an
-important design feature and a significant requirement so as to be an
-effective programming abstraction layer.
+\subsection{Clouds Adaptors: Design and Implementation}
+
 
 \section{SAGA: An interface to Clouds and Grids}
 
@@ -561,7 +549,6 @@ In an earlier paper, we had essentially done the following:
   (KFS); the number of workers varies from 1-10
 \item \sagamapreduce using distributed compute (workers) and distributed file-system (KFS)
 \item Distributed compute (workers) but using local file-systems (using GridFTP for transfer)
-\item {\bf NEEDS MODIFICATION}
 \end{enumerate}
 
 In this paper, we do the following:
@@ -584,51 +571,101 @@ In this paper, we do the following:
   communicate directly with each other.
 \end{enumerate}
 
+{\bf SAGA-MapReduce on Clouds: } Thanks to the low overhead of
+developing adaptors, SAGA has been deployed on three Cloud Systems --
+Amazon, Nimbus~\cite{nimbus} and Eucalyptus~\cite{eucalyptus} (we have
+a local installation of Eucalyptus, referred to as GumboCloud).  On
+EC2, we created custom virtual machine (VM) image with preinstalled
+SAGA.  For Eucalyptus and Nimbus, a boot strapping script equips a
+standard VM instance with SAGA, and SAGA's prerequisites (mainly
+boost).  To us, a mixed approach seemed most favourable, where the
+bulk software installation is statically done via a custom VM image,
+but software configuration and application deployment are done
+dynamically during VM startup.
 
-{\bf SAGA-MapReduce on Grids:} We begin with the observation that the
-efficiency of \sagamapreduce is pretty close to 1, actually better
-than 1 -- like any good (data) parallel applications should be.  For
-1GB data-set, \tc = 659s and for 10GB \tc = 6286s.  The efficiency
-remains at or around 1, even when the compute is distributed over two
-machines: 1 worker at each site: \tc = 672s, \tc = 1081s and \tc
-=2051s for 1, 2 and 4GB respectively; this trend is valid even when
-the number of workers per site is more than 1.
+There are several aspects to Cloud Interoperability. A simple form of
+interoperability -- more akin to inter-changeable -- is that any
+application can use either of the three Clouds systems without any
+changes to the application: the application simply needs to
+instantiate a different set of security credentials for the respective
+runtime environment, aka cloud.  Interestingly, SAGA provides this level of
+interoperability quite trivially thanks to the adaptors.
 
-Fig.~\ref{grids1} plots the \tc for different number of active workers
-on different data-set sizes; the plots can be understood using the
-framework provided by Equation 1. For each data-set (from 1GB to 10GB)
-there is an overhead associated with chunking the data into 64MB
-pieces; the time required for this scales with the number of chunks
-created.  Thus for a fixed chunk-size (as is the case with our
-set-up), $t_{pp}$ scales with the data-set size. As the number of
-workers increases, the payload per worker decreases and this
-contributes to a decrease in time taken, but this is accompanied by a
-concomitant increase in $t_{coord}$. However, we will establish that
-the increase in $t_{coord}$ is less than the decrease in
-$t_{comp}$. Thus the curved decrease in \tc can be explained by a
-speedup due to lower payload as the number of workers increases whilst
-at the same time the $t_{coord}$ increases; although the former is
-linear, due to increasing value of the latter, the effect is a
-curve. The plateau value is dominated by $t_{pp}$ -- the overhead of
-chunking etc, and so increasing the number of workers beyond a point
-does not lead to a further reduction in \tc.
+By almost trivial extension, SAGA also provides Grid-Cloud
+interoperability, as shown in Fig.~\ref{gramjob} and ~\ref{vmjob},
+where exactly the same interface and functional calls lead to job
+submission on Grids or on Clouds. Although syntactically identical,
+the semantics of the calls and back-end management are somewhat
+different.  For example, for Grids, a \texttt{job\_service} instance
+represents a live job submission endpoint, whilst for Clouds it
+represents a VM instance created on the fly.  It takes SAGA about 45
+seconds to instantiate a VM on Eucalyptus, and about 90 seconds on
+EC2. Once instantiated, it takes about 1 second to assign a job to a
+VM on Eucalyptus, or EC2.  It is a configurable option to tie the VM
+lifetime to the \texttt{job\_service} object lifetime, or not.
 
-To take a real example, we consider two data-sets, of sizes 1GB and
-5GB and vary the chunk size, between 32MB to the maximum size
-possible, i.e., chunk sizes of 1GB and 5GB respectively. In the
-configuration where there is only one chunk, $t_{pp}$ should be
-effectively zero (more likely a constant), and \tc will be dominated
-by the other two components -- $t_{comp}$ and $t_{coord}$.
-For 1GB and 5GB, the ratio of \tc for this boundary case
-is very close to 1:5, providing strong evidence that the $t_{comp}$
-has the bulk contribution, as we expect $t_{coord}$ to remain mostly
-the same, as it scales either with the number of chunks and/or with
-the number of workers -- which is the same in this case.  Even if
-$t_{coord}$ does change, we do not expect it to scale by a factor of
-5, while we do expect $t_{comp}$ to do so.
+We have also deployed \sagamapreduce to work on Cloud platforms.  It
+is critical to mention that the \sagamapreduce code did not undergo
+any changes whatsoever. The change lies in the run-time system and
+deployment architecture. For example, when running \sagamapreduce on
+EC2, the master process resides on one VM, while workers reside on
+different VMs.  Depending on the available adaptors, Master and Worker
+can either perform local I/O on a global/distributed file system, or
+remote I/O on a remote, non-shared file systems.  In our current
+implementation, the VMs hosting the master and workers share the same
+ssh credentials and a shared file-system (using sshfs/FUSE).
+Application deployment and configuration (as discussed above) are also
+performed via that sshfs.  Due to space limitations we will not
+discuss the performance data of \sagamapreduce with different data-set
+sizes and varying worker numbers.
 
+\begin{figure}[!ht]
+\upp
+ \begin{center}
+  \begin{mycode}[label=SAGA Job Launch via GRAM gatekeeper]
+   { // contact a GRAM gatekeeper
+    saga::job::service     js;
+    saga::job::description jd;
+    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
+    // translate job description to RSL
+    // submit RSL to gatekeeper, and obtain job handle
+    saga:job::job j = js.create_job (jd);
+    j.run ():
+    // watch handle until job is finished
+    j.wait ();
+   } // break contact to GRAM
+  \end{mycode}
+  \caption{\label{gramjob}Job launch via Gram }
+ \end{center}
+\upp
+\end{figure}
+
+
+\begin{figure}[!ht]
+\upp
+ \begin{center}
+  \begin{mycode}[label=SAGA create a VM instance on a Cloud]
+   {// create a VM instance on Eucalyptus/Nimbus/EC2
+    saga::job::service     js;
+    saga::job::description jd;
+    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
+    // translate job description to ssh command
+    // run the ssh command on the VM
+    saga:job::job j = js.create_job (jd);
+    j.run ():
+    // watch command until done
+    j.wait ();
+   } // shut down VM instance
+  \end{mycode}
+  \caption{\label{vmjob} Job launch via VM}
+ \end{center}
+\upp
+\end{figure}
+
+
+{\bf SAGA-MapReduce on Clouds and Grids:} 
 \begin{figure}[t]
-%  \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
+  % \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
   \caption{Plots showing how the \tc for different data-set sizes
     varies with the number of workers employed.  For example, with
     larger data-set sizes although $t_{pp}$ increases, as the number
@@ -734,96 +771,6 @@ compute and DFS cases in Table~\ref{exp4and5}.
 \upp
 \end{table}
 
-{\bf SAGA-MapReduce on Clouds: } Thanks to the low overhead of
-developing adaptors, SAGA has been deployed on three Cloud Systems --
-Amazon, Nimbus~\cite{nimbus} and Eucalyptus~\cite{eucalyptus} (we have
-a local installation of Eucalyptus, referred to as GumboCloud).  On
-EC2, we created custom virtual machine (VM) image with preinstalled
-SAGA.  For Eucalyptus and Nimbus, a boot strapping script equips a
-standard VM instance with SAGA, and SAGA's prerequisites (mainly
-boost).  To us, a mixed approach seemed most favourable, where the
-bulk software installation is statically done via a custom VM image,
-but software configuration and application deployment are done
-dynamically during VM startup.
-
-There are several aspects to Cloud Interoperability. A simple form of
-interoperability -- more akin to inter-changeable -- is that any
-application can use either of the three Clouds systems without any
-changes to the application: the application simply needs to
-instantiate a different set of security credentials for the respective
-runtime environment, aka cloud.  Interestingly, SAGA provides this level of
-interoperability quite trivially thanks to the adaptors.
-
-By almost trivial extension, SAGA also provides Grid-Cloud
-interoperability, as shown in Fig.~\ref{gramjob} and ~\ref{vmjob},
-where exactly the same interface and functional calls lead to job
-submission on Grids or on Clouds. Although syntactically identical,
-the semantics of the calls and back-end management are somewhat
-different.  For example, for Grids, a \texttt{job\_service} instance
-represents a live job submission endpoint, whilst for Clouds it
-represents a VM instance created on the fly.  It takes SAGA about 45
-seconds to instantiate a VM on Eucalyptus, and about 90 seconds on
-EC2. Once instantiated, it takes about 1 second to assign a job to a
-VM on Eucalyptus, or EC2.  It is a configurable option to tie the VM
-lifetime to the \texttt{job\_service} object lifetime, or not.
-
-We have also deployed \sagamapreduce to work on Cloud platforms.  It
-is critical to mention that the \sagamapreduce code did not undergo
-any changes whatsoever. The change lies in the run-time system and
-deployment architecture. For example, when running \sagamapreduce on
-EC2, the master process resides on one VM, while workers reside on
-different VMs.  Depending on the available adaptors, Master and Worker
-can either perform local I/O on a global/distributed file system, or
-remote I/O on a remote, non-shared file systems.  In our current
-implementation, the VMs hosting the master and workers share the same
-ssh credentials and a shared file-system (using sshfs/FUSE).
-Application deployment and configuration (as discussed above) are also
-performed via that sshfs.  Due to space limitations we will not
-discuss the performance data of \sagamapreduce with different data-set
-sizes and varying worker numbers.
-
-\begin{figure}[!ht]
-\upp
- \begin{center}
-  \begin{mycode}[label=SAGA Job Launch via GRAM gatekeeper]
-   { // contact a GRAM gatekeeper
-    saga::job::service     js;
-    saga::job::description jd;
-    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
-    // translate job description to RSL
-    // submit RSL to gatekeeper, and obtain job handle
-    saga:job::job j = js.create_job (jd);
-    j.run ():
-    // watch handle until job is finished
-    j.wait ();
-   } // break contact to GRAM
-  \end{mycode}
-  \caption{\label{gramjob}Job launch via Gram }
- \end{center}
-\upp
-\end{figure}
-
-
-\begin{figure}[!ht]
-\upp
- \begin{center}
-  \begin{mycode}[label=SAGA create a VM instance on a Cloud]
-   {// create a VM instance on Eucalyptus/Nimbus/EC2
-    saga::job::service     js;
-    saga::job::description jd;
-    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
-    // translate job description to ssh command
-    // run the ssh command on the VM
-    saga:job::job j = js.create_job (jd);
-    j.run ():
-    // watch command until done
-    j.wait ();
-   } // shut down VM instance
-  \end{mycode}
-  \caption{\label{vmjob} Job launch via VM}
- \end{center}
-\upp
-\end{figure}
 
 \section{Conclusion}
 We have demonstrated the power of SAGA as a programming interface and
@@ -859,85 +806,45 @@ Technology (CCT) at LSU and computer resources provided by LONI.
 \bibliographystyle{plain} \bibliography{saga_data_intensive}
 \end{document}
 
-\jhanote{traditional algorithms are OK when data are limited.. but
-  data requirements can change in different ways.. not only will data
-  be greater, but also after a point will also be distributed. This is
-  indicative of the data-gathering process (multiple-resources,
-  replicated?) also indicative of the fact that often data-collection
-  is growing greater than data-analysis (for example exabyte data last
-  year).  Finally, with data-distributed, comes the following (at
-  least challenges): do we move data-to-compute, or compute-to-data,
-  is there a transition point, and can the same application be written
-  to support both modes?}
+\jhanote{We begin with the observation that the efficiency of \sagamapreduce is
+pretty close to 1, actually better than 1 -- like any good (data)
+parallel applications should be.  For 1GB data-set, \tc = 659s and for
+10GB \tc = 6286s.  The efficiency remains at or around 1, even when
+the compute is distributed over two machines: 1 worker at each site:
+\tc = 672s, \tc = 1081s and \tc =2051s for 1, 2 and 4GB respectively;
+this trend is valid even when the number of workers per site is more
+than 1.
 
-\jhanote{From above, we need to write what has been traditionally
-  non-distributed applications, in a distributed fashion. General
-  philosophy on how we write distributed applications... One approach
-  is to use infrastructure independent frameworks.}
+Fig.~\ref{grids1} plots the \tc for different number of active workers
+on different data-set sizes; the plots can be understood using the
+framework provided by Equation 1. For each data-set (from 1GB to 10GB)
+there is an overhead associated with chunking the data into 64MB
+pieces; the time required for this scales with the number of chunks
+created.  Thus for a fixed chunk-size (as is the case with our
+set-up), $t_{pp}$ scales with the data-set size. As the number of
+workers increases, the payload per worker decreases and this
+contributes to a decrease in time taken, but this is accompanied by a
+concomitant increase in $t_{coord}$. However, we will establish that
+the increase in $t_{coord}$ is less than the decrease in
+$t_{comp}$. Thus the curved decrease in \tc can be explained by a
+speedup due to lower payload as the number of workers increases whilst
+at the same time the $t_{coord}$ increases; although the former is
+linear, due to increasing value of the latter, the effect is a
+curve. The plateau value is dominated by $t_{pp}$ -- the overhead of
+chunking etc, and so increasing the number of workers beyond a point
+does not lead to a further reduction in \tc.
 
-\jhanote{Motivation for why this work is important. Applications
-  are developed with specific infrastructure in mind. So in a
-  way are limited by the infrastructure.. so whereas application
-  can be often be written to scale, infrastructure doesn't
-  always..}
+To take a real example, we consider two data-sets, of sizes 1GB and
+5GB and vary the chunk size, between 32MB to the maximum size
+possible, i.e., chunk sizes of 1GB and 5GB respectively. In the
+configuration where there is only one chunk, $t_{pp}$ should be
+effectively zero (more likely a constant), and \tc will be dominated
+by the other two components -- $t_{comp}$ and $t_{coord}$.  For 1GB
+and 5GB, the ratio of \tc for this boundary case is very close to 1:5,
+providing strong evidence that the $t_{comp}$ has the bulk
+contribution, as we expect $t_{coord}$ to remain mostly the same, as
+it scales either with the number of chunks and/or with the number of
+workers -- which is the same in this case.  Even if $t_{coord}$ does
+change, we do not expect it to scale by a factor of 5, while we do
+expect $t_{comp}$ to do so.}
 
-\jhanote{This is a new way of developing applications using high-level
-  abstractions. These high-level abstractions in turn ways to
-  encode/support certain patterns, in this case data-parallel/access
-  patterns. In turn the abstractions are infrastructure independent}.
-
-
-\jhanote{Outline the work in this paper. New concept. Thus one
-  important requirement is to determine how these
-  i) how these patterns work for real scientific applications, \\
-  ii) how well the general-implementations of these patterns work with
-  respect to native implementations of these patterns \\
-  iii) combination of i and ii, i.e. how well these applications
-  behave when encoded using these high-level abstractions
-  in comparison on general purpose infrastructure\\
-  The aim is not to report better or even equivalent performance of
-  these ``generalized applications compared to the native
-  implementation of these application..}
-
-
-
-\begin{table}
-\upp
-\begin{tabular}{cccc}
-  \hline
-  Configuration  &  data size   &   work-load/worker & $T_c$  \\
-  \hline
-%  {\multicolumn{2}{c|c}  compute & data} &   (GB)  & (GB/W) & (sec) \\
-  compute \& data &   (GB)  & (GB/W) & (sec) \\
-  \hline
-%   local   & 1 & 0.5 & 372 \\
-%   \hline
-%   distributed   & 1  & 0.25 & 372 \\
-%   \hline \hline
-  local \& local-FS & 1 & 0.1 & 466 \\
-  \hline
-  distributed \& local-FS & 1 & 0.1 & 320 \\
-  \hline
-  distributed \& KFS & 1 & 0.1 &  273.55 \\
-  \hline \hline
-  local \& local-FS & 2 & 0.25 & 673 \\
-  \hline 
-  distributed \& local-FS & 2 & 0.25 & 493 \\
-  \hline
-  distributed \& KFS & 2 & 0.25 &  466 \\
-  \hline \hline
-  local \& local-FS &  4 & 0.5 & 1083\\
-  \hline
-  distributed \& local-FS &  4 &  0.5&  912 \\
-  \hline
-  distributed \& KFS & 4 & 0.5 &  848  \\
-  \hline \hline
-\end{tabular}
-\upp
-\caption{Table showing \tc for different configurations of compute  
-  and data. The two compute configurations correspond to the situation
-  where all workers are either
-  placed locally or  workers are distributed across two different resources. The data configurations arise when using a single local FS  or a distributed FS  (KFS) with 2 data-servers. It is evident from performance figures that an optimal value arises when distributing both data and compute.}\label{exp4and5}
-\upp
-\upp
-\end{table}
