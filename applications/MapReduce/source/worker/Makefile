@@ -9,7 +9,7 @@ SAGA_SRC          = $(wildcard *.cpp)
 SAGA_ADD_BIN_OBJ  = $(SAGA_SRC:%.cpp=%.o)
 SAGA_ADD_BIN_OBJ += ../utils/LogWriter.o
 #SAGA_ADD_BIN_OBJ += MapReduceBase.o
-SAGA_BIN		      = main
+SAGA_BIN		      = mapreduce_worker
 
 SAGA_USE_BOOST_OPTIONS = "yes"
 
