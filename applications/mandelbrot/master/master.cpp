@@ -10,8 +10,8 @@ int main (int argc, char** argv)
   {
     {
       // create our mandelbrot master, open the x11 
-      // output device, and start 3 client jobs
-      mandelbrot m ("x11", 3); 
+      // output device, and start 5 client jobs
+      mandelbrot m ("x11", 5); 
 
       // compute() distributes the work, gathers the
       // results, and displays the mandelbrot set

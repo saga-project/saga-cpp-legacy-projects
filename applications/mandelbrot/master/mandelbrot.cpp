@@ -30,10 +30,6 @@
 #define LIMIT              256
 #define ESCAPE               4
 
-// for every job service, run that number of jobs.  Sure, job
-// distribution could be more sophosticated, but, see above :-)
-#define JOBS_PER_SERVICE     5
-
 // all job buckets are created under that advert directory, by
 // appending the posix jobid.
 #define ADVERT_DIR         "/applications/mandelbrot/merzky"
@@ -77,6 +73,7 @@ mandelbrot::mandelbrot (std::string odev,
   tmp << ADVERT_DIR << "/" << ::getpid ();
 
   job_bucket_name_ = tmp.str ();
+  std::cout << "job bucket: " << job_bucket_name_ << std::endl;
 
 
   // create the application job bucket.  Fail if it exists
@@ -142,8 +139,7 @@ void mandelbrot::job_startup (void)
 
   // create a job description, which can be reused for all jobs
   saga::job::description jd;
-  jd.set_attribute (saga::job::attributes::description_executable,
-                    "/Users/merzky/links/saga/applications/mandelbrot/client/client");
+  jd.set_attribute (saga::job::attributes::description_executable, "/tmp/mandelbrot_client");
 
   // client parameters:
   // 0: path to advert directory to be used (job bucket)
@@ -151,52 +147,92 @@ void mandelbrot::job_startup (void)
   std::vector <std::string> args (2);
   args[0] = job_bucket_name_;
 
-  int n = 0;
 
-  while ( n < njobs_ )
+  // create a session to create jobs in.  We add a number of credentials the job
+  // service can use.
+  saga::context c_ssh_1 ("ssh"); 
+  saga::context c_ssh_2 ("ssh"); 
+  saga::context c_ec2   ("ec2"); 
+
+  c_ssh_1.set_defaults  (); 
+  c_ssh_2.set_defaults  (); 
+  c_ec2  .set_defaults  (); 
+
+  c_ssh_1.set_attribute (saga::attributes::context_userid, "merzky"); 
+  c_ssh_2.set_attribute (saga::attributes::context_userid, "amerzky"); 
+
+  saga::session s;
+  s.add_context (c_ssh_1);
+  s.add_context (c_ssh_2);
+  s.add_context (c_ec2  );
+
+
+  // create a list of job service URLs to be used.  Ideally, we get those from
+  // service discovery - but for the time being, we just use this static list.
+  std::vector <saga::url> job_service_urls;
+
+  job_service_urls.push_back ("fork://localhost/");
+//job_service_urls.push_back ("ec2://i-3d850354/");
+//job_service_urls.push_back ("ssh://qb.loni.org/");
+//job_service_urls.push_back ("ssh://gg101.cct.lsu.edu/");
+
+
+  // from these URLs, create a set of job services.
+  std::vector <saga::job::service> job_services;
+
+  for ( int k = 0; k < job_service_urls.size (); k++ )
   {
-    // well, this while loop does not make too much sense as
-    // long as we create the same the job service with the same
-    // URL all over again.  So, an excercise for the reader is
-    // to use a _different_ job service on each loop.
-    saga::job::service js ("fork://localhost/");
+    saga::job::service js  (s, job_service_urls[k]);
+    job_services.push_back (js);
+    std::cout << "created job service for " << job_service_urls[k] << std::endl;
+  }
 
-    // for each job service instance, create JOBS_PER_SERVICE
-    // jobs -- as long as we don't have enough jobs
-    for ( int i = 0; n < njobs_ && i < JOBS_PER_SERVICE; i++ )
+
+
+  // create the client jobs
+  for ( int n = 0; n < njobs_; n++ )
+  {
+    // cycle over the job services
+    saga::job::service js = job_services[n % job_services.size ()];
+
+    // set second job parameter is the job's identifier (serial number)
+    std::stringstream ident;
+    ident << n;
+    args[1] = ident.str ();
+
+    jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
+
+    // create and run a client job
+    saga::job::job j = js.create_job (jd);
+    j.run ();
+
+    if ( saga::job::Running != j.get_state () )
     {
-      // set second job parameter is the job's identifier (serial number)
-      std::stringstream ident;
-      ident << i;
-      args[1] = ident.str ();
+      throw "Could not start client\n";
+    }
 
-      jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
-
-      // create and run a client job
-      saga::job::job j = js.create_job (jd);
-      j.run ();
-
+    // make sure clients get up and running
+    std::cout << "waiting for jobs " << ident.str () << " to bootstrap\n";
+    while ( ! job_bucket_.exists (ident.str ()) &&
+            ! job_bucket_.is_dir (ident.str ()) )
+    {
       if ( saga::job::Running != j.get_state () )
       {
         throw "Could not start client\n";
       }
-
-      // make sure clients get up and running
+      ::sleep (1);
       std::cout << "waiting for jobs " << ident.str () << " to bootstrap\n";
-      while ( ! job_bucket_.exists (ident.str ()) &&
-              ! job_bucket_.is_dir (ident.str ()) )
-      {
-        ::sleep (1);
-        std::cout << "waiting for jobs " << ident.str () << " to bootstrap\n";
-      }
-
-
-      // keep job
-      jobs_.push_back (j);
-
-      n++;
-      std::cout << "created job number " << n << " of " << njobs_ << std::endl;
     }
+
+
+    // keep job
+    jobs_.push_back (j);
+
+    std::cout << "created job number " 
+              << n << "/" << njobs_ 
+              << " on " 
+              << job_service_urls[n % job_service_urls.size ()] 
+              << std::endl;
   }
 
   // flag that jobs are running
