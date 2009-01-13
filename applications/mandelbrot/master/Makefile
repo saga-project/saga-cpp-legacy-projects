@@ -6,7 +6,7 @@
 
 SAGA_SRC         = $(wildcard *.cpp)
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
-SAGA_BIN         = master
+SAGA_BIN         = mandelbrot_master
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
