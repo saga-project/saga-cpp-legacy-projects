@@ -11,6 +11,6 @@ include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 install::
 	@$(ECHO) "     installing mapreduce samples"
-	@$(MKDIR) -p            $(SAGA_LOCATION)/share/saga/mapreduce_samples/
-	@$(CP)    *.xml file.txt $(SAGA_LOCATION)/share/saga/mapreduce_samples/
+	@$(MKDIR) -p             $(SAGA_LOCATION)/share/saga/applications/mapreduce/
+	@$(CP)    *.xml file.txt $(SAGA_LOCATION)/share/saga/applications/mapreduce/
 
