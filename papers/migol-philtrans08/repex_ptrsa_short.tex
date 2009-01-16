@@ -166,12 +166,12 @@ RE simulations are used to understand physical phenomena -- ranging
 from protein folding dynamics to binding affinity calculations.
 
 %%%%% RE nature of the problem
-RE simulations involve the concurrent execution of multiple similar
-simulations -- the \emph{replicas}. The coupling between replicas
+The RE method involves the concurrent execution of multiple similar
+simulations -- the \emph{replicas}. The coupling between the replicas
 occurs via periodic exchange attempts between paired replicas. The
 exchange is typically infrequent compared to the run-time of each
 replica, and is small in terms of communication bandwidth
-requirements. Thus RE is {\it prima facie} a perfect algorithm to
+requirements. Thus, RE is {\it prima facie} a perfect algorithm to
 exploit distributed resources. We label such a class of algorithms as
 {\it pleasingly-distributed}.
 
@@ -244,9 +244,10 @@ distributed resources, such as the overall slowdown due to
 synchronisation arising from the light-coupling and the lack of
 co-scheduled resources.  The unique contribution of this paper is the
 implementation of a RE framework that overcomes the described
-limitations, by being able to adapt at runtime to a change in the
-availability of resources and application resource requirements.  This
-framework builds upon preliminary work integrating SAGA and Migol.
+limitations by being able to adapt at runtime to a change in the
+availability of resources and application resource requirements.  The
+framework builds upon preliminary work of integrating SAGA and Migol to
+provide fault-tolerance.
 % in implementing SAGA with fault-tolerance.
 While SAGA represents a well-defined, standardized interface for writing
 Grid applications, Migol provides the underlying middleware services
@@ -263,17 +264,17 @@ leading to a reduction in the time-to-completion of the scientific
 problem.  The remainder of the paper is structured as follows: In the
 next section we provide the basic ideas and advantages of using RE
 simulations to understand physical properties of a RNA system. In
-section~\ref{sec:remd_impl}, we describe the details of a REMD
-application implemented using the SAGA/Mi\-gol
-framework. Section~\ref{sec:glidein} discusses the new BigJob
+section~\ref{sec:remd_impl} we describe the details of the REMD
+framework implementation. Section~\ref{sec:glidein} discusses the new BigJob
 abstraction and the SAGA Glide-In framework.  % We highlight different
 % adaptivity strategies for supporting dynamic applications in
 % section~\ref{sec:adaptivitiy}.
-In section 5 we discuss the deployment and results of experiments
+In section 5 we describe the deployment and results of different experiments
 using the SAGA based RE framework on the TeraGrid, and in section 6 we
 present data establishing the advantages of REMD for the physical
-system under study. Our conclusion will discuss some future
-directions. % We conclude by discussing related work -- which will
+system under study. 
+% Our conclusion will discuss some future
+% directions. % We conclude by discussing related work -- which will
 % highlight the unique features of our implementation, and provide a
 % glimpse of future work in this direction.
 
@@ -346,16 +347,17 @@ experiments. This provides an important motivation for researching ways
 to accelerate sampling and to enhance the ``effective''
 time-scales studied. 
 Generalized ensemble approaches -- of which
-REMD~\citep{Sugita:1999rm} is a prominent example -- represent an
-important and promising attempt to overcome the general limitations of
+REMD~\citep{Sugita:1999rm} is a prominent example -- represent a
+% important and 
+promising attempt to overcome the general limitations of
 insufficient time-scales, as well as specific limitations of
 inadequate conformational sampling arising from kinetic trappings.
 The fact that one single long-running simulation can be substituted
 for an ensemble of loosely-coupled shorter-running simulations, make
 these ideal candidates for distributed environments.
 
-RE simulations can be thought of as consisting of
-two distinct components: the underlying simulation engine/mechanism
+RE simulations consist of
+two distinct components: the underlying simulation engine
 used for each replica, and the coupling-mechanism between the
 individual replicas.  
 % It is important to note that RE is in fact a
@@ -454,22 +456,22 @@ structure (PDB ID: 1PK7).
 framework comprises of three components, the RE-Man\-ag\-er,
 the Replica-Agent and the Migol infrastructure. 
 The  \emph{RE-Manager}, also referred to as task manager,
-is deployed on the user's desktop and provides the user interface 
-to the overall RE run. It orchestrates all replicas, i.\,e.\ the 
-parameterization of replica  tasks, file staging, job spawning 
-and the conduction of the RE itself using the SAGA APIs.                                                                
+is deployed on the user's desktop and provides the interface 
+to the overall RE run. It orchestrates all replicas, which involves
+file staging, job spawning and the conduction of the 
+exchange attempts, using the SAGA APIs.                                                                
 
 The second element is the task agent, the \textit{Replica-Agent},
-that resides on the high performance machines where RE simulations
-are carried out. The \replicaagent\ is launched using SAGA CPR and Migol.
+that resides on the machines where the RE replicas
+are executed. The \replicaagent\ is launched using SAGA CPR and Migol.
 %It is responsible for spawning and monitoring of the replicas. 
 NAMD~\citep{Phillips:2005gd}, a highly scalable, parallel MD code, is
 used to carry out the MD simulation corresponding to each replica
 run. It is important to mention that any other MD or
 Monte Carlo code could be used just as simply and effectively.
-Finally, Migol handles the reliable execution of replicas, i.\,e.\ the
-submission, the monitoring and, if required, the recovery of replicas
-or the application itself.
+Finally, Migol handles the reliable execution of the Replica-Agent and
+the replicas, i.\,e.\ the submission, the monitoring and, 
+if required, the recovery of replicas or the application itself.
 
 % The last component is Migol and the underlying Globus middleware.
 
@@ -478,27 +480,29 @@ or the application itself.
 \jhanote{This part currently conflates architecture and control-flow}
                        
 \noindent                                            
-{\it \bf Replica-Exchange Logic:} RE simulations involve the running of multiple replica jobs to enhance
-the sampling of configuration space. In the case of REMD each replica
-job is assigned a different temperature.  Depending on the number of
-configured processes $n$, the \remanager\ creates $\frac{n}{2}$ pairs
+{\it \bf Replica-Exchange Logic:} RE simulations involve the running 
+of multiple replica jobs.
+% to enhance the sampling of configuration space. In the case of REMD 
+Each replica is assigned a different temperature.  Depending on the number of
+processes $n$, the \remanager\ creates $\frac{n}{2}$ pairs
 of replicas.  Before launching a job the \remanager\ ensures that all
 required input files are transferred to the respective resource. For
 this purpose, the SAGA File API and the GridFTP adaptor are used.  
 The replica jobs are then submitted to the resource using the SAGA CPR API and
 the Migol/GRAM middleware. 
 
-When all replicas reach a pre-determined state (e.\,g., the NAMD job
+When all replicas reach a pre-determined state (e.\,g. the NAMD job
 finishes after a fixed number of steps), the decision as to whether to
 pairwise exchange temperatures between neighbouring replicas is
 determined by the Metropolis scheme. %~\citep{metropolis:1087}.  
 % The state between exchanges -- that is, 
 The run of an ensemble of replicas
-in parallel and the subsequent attempt to pairwise exchange all the
-replicas is referred to as generation. No two replicas can belong to
+in parallel and the subsequent pairwise exchange attempt 
+is referred to as \emph{generation}. No two replicas can belong to
 different generations.  If the exchange attempt is successful, parameters such as the
-temperature, are swapped. Both jobs are then relaunched using the
-mechanisms described above. Often the Metropolis scheme returns a
+temperature, are swapped. Both jobs are then relaunched. 
+%using the mechanisms described above. 
+Often the Metropolis scheme returns a
 negative result, and an exchange is not carried out; thus it is
 difficult to respond to a possible exchange speculatively.
 
@@ -509,24 +513,27 @@ subsubsection level.}
          
 \noindent
 {\it \bf Deploying on Production Environments:} The RE framework has 
-been successfully deployed on production
-environments, such as LONI and the TeraGrid~\citep{Luckow:2008la}.
-The RE-Manager, must periodically obtain the results of all replicas
-to determine the new configurations for the next generation.  As the
-number of replicas increases, the probability of an overall slowdown
-caused by the synchronization after each
-generation increases.  A major reason for such a slowdown is the fact that
-re-started replicas are required to queue again at
-the local scheduler.  In pathological cases, the complete system can
-come to a halt caused by a single crowded or slow resource.
+been successfully deployed on LONI and TeraGrid production 
+resources~\citep{Luckow:2008la}. In these environments a significant
+slowdown was observable, in particular when running a larger number
+of replicas.
+% The RE-Manager must periodically obtain the results of all replicas
+% to determine the new configurations for the next generation.  
+% As the number of replicas increases, the probability of an overall slowdown
+% caused by the synchronization after each
+% generation increases.  
+A major reason for this slowdown was the fact that
+the re-started replicas are required to queue again at
+the local scheduler.  In pathological cases, the complete system 
+came to a halt solely due to a single crowded or slow resource.
 
 To avoid such bottlenecks, the multiple sub-tasks that comprise
 distributed applications need to avoid re-queuing at the system
 batch-queue level.  Additionally, distributed applications that are
 decomposable into sub-tasks should be able to respond to the dynamic
-availability of resources.  Unfortunately, current infrastructure does
-not support such dynamic scheduling directly, thus in order to provide
-this capability to applications we need (i) abstractions that enable
+availability of resources.  Unfortunately, current infrastructures do
+not support such dynamic scheduling directly. To provide
+this capability to applications, we need (i) abstractions that enable
 agile execution models via application-level allocation of resources,
 and (ii) different adaptivity strategies that determine how resources
 are efficiently utilised.  {\it The following section describes the
@@ -642,7 +649,7 @@ job, the time-to-completion can be dramatically reduced.
 \begin{figure}[t]
   % \begin{minipage}[t]{.47\textwidth}
     \begin{center}  
-      \includegraphics[width=0.6\textwidth]{remdmanager_v12}
+      \includegraphics[width=0.68\textwidth]{remdmanager_v12}
       \caption{\footnotesize \bf RE-Manager Abstractions: The BigJob
           abstraction provides the capability to cluster sub-jobs into a
           larger big-job, and is implemented on top of the Glide-In
@@ -672,7 +679,7 @@ job, the time-to-completion can be dramatically reduced.
 % in particular SAGA-CPR and Advert.
 
 Figure~\ref{fig:abstractions} summarizes the abstractions developed
-and used in this work to support the clustering of sub-jobs into a
+and used in this work to support the clustering of sub-jobs into 
 larger big-jobs and the effective dispatching of the sub-jobs.  The
 specific capability to cluster sub-jobs, is provided to the
 application via the \emph{BigJob} abstraction. 
@@ -723,29 +730,28 @@ individual big-job and sub-jobs to physical resources.
 	    \begin{center}  
 	%      This scenario utilises the capability of the underlying physics
 	%      model to
-	      \includegraphics[width=0.65\textwidth]{re_bigjob_interactions_v2}
+	      \includegraphics[width=0.67\textwidth]{re_bigjob_interactions_v2}
 	      \caption{\footnotesize \bf RE-Manager and SAGA-Glide-In Framework:
-	        The Glide-In job (\replicaagent\ ) is used as place-holder job
+	        The Glide-In job (Replica-Agent) is used as place-holder job
 	        for all replica sub-jobs running on a single cluster. The
 	        \remanager\ can control both the \replicaagent\ and the replica
-	        jobs.}
+	        jobs.\vspace*{-3em}}
 	        \label{fig:remdmanager_v1.1}   
 	    \end{center}
 \end{figure}
 
-{\noindent \it \bf Implementation:} The RE framework presented in section~\ref{sec:remd_impl} has been
-extended to support the management and scheduling of replica jobs.
-BigJob provides the ability to cluster sub-jobs; Glide-In provides the
-ability to effectively schedule the sub-jobs.  As illustrated in
+{\noindent \it \bf Implementation:} The RE framework has been
+extended to support the BigJob and Glide-In abstractions.
+BigJob provides the ability to cluster sub-jobs; Glide-In allows the
+effective scheduling of the sub-jobs.  As illustrated in
 Figure~\ref{fig:remdmanager_v1.1}, the RE-Manager uses the
 \texttt{big\_job} and \texttt{sub\_job} objects as replacements for the
 \texttt{job} object defined by SAGA CPR.  The \texttt{big\_job} and
 \texttt{sub\_job} objects behave similarly to regular SAGA CPR job
-objects. Thus the RE-Manager, which is the application in this case,
-does not require any extensive modification to accommodate this
-replacement; all that the RE-Manager has to do additionally, is
-provide a mapping from a \texttt{sub\_job} to a suitable
-\texttt{big\_job} via a jobid.
+objects. Thus, the RE-Manager, which is the application in this case,
+does not require any extensive modification; 
+all that the RE-Manager has to do is to provide a mapping 
+from a \texttt{sub\_job} to a suitable \texttt{big\_job} via a jobid.
 
 % BigJob
 The SAGA Glide-In implementation comprises of three components: 1) The
@@ -756,14 +762,14 @@ the management of both big-job objects and sub-jobs) and 2) The
 \emph{Replica-Agent}, which represents the Glide-In job and thus, the
 application-level resource manager on the respective resource, and 3)
 the \emph{Advert Service}, which is used for communication between the
-Glide-In Manager and Replica Agent.
+Glide-In Manager and Replica-Agent.
 
 
 Before running regular jobs, an application, in this case the 
 RE-Manager, must initialize a \texttt{big\_job} object. 
 The Glide-In Manager then queues a Glide-In
-job, which actually runs a Replica-Agent on the respective resource,
-using the SAGA CPR API.  For this \texttt{big\_job} instance the
+job, which actually runs a Replica-Agent on the respective resource.  
+For this \texttt{big\_job} instance the
 specified number of resources is requested. Subsequently,
 \texttt{sub\_job} objects can be submitted through the Glide-In
 Manager using the jobid of the \texttt{big\_job} as reference.
@@ -774,9 +780,9 @@ of processes.
 Communication between the Replica-Agent and Glide-In Manager is
 carried out using the SAGA Advert Service, a central key/value
 store. For each new job an advert entry is created by the
-RE-Manager. The \replicaagent\ periodically polls for new jobs.  If a
-new job is found and resources are available, the job is directly
-dispatched, otherwise it is queued. Further, the agent encapsulates
+Glide-In Manager. The \replicaagent\ periodically polls for new jobs.  If a
+new job is found and resources are available, the job is dispatched, 
+otherwise it is queued. Further, the agent encapsulates
 local machine-specific settings. The \replicaagent\
 ensures e.\,g.\ that the right combination of compiler, MPI library and NAMD
 executable is used.
@@ -809,36 +815,36 @@ job id, and with the right number of processors.  }
     aspects from the original section could be added. The complete
     section is commented out below.}
 
-  {\noindent \it \bf Adaptive Replica Scheduling:} Distributed applications
-  including RE simulations must be able to deal with time-varying
-  resource availabilities.  An application is referred to as
-  \emph{dynamic} when either the resource requirements of the
-  application, or the availability and utilisation of resources by the
-  application changes during its runtime.  \emph{Adaptivity} is a
-  mechanism to respond to dynamic
-  changes; % as opposed to just ignoring the dynamism of a distributedenvironment.
-  a dynamic application may deploy multiple adaptive strategies or
-  choose between competing adaptive strategies.  For an application to
-  be adaptive, it is necessary for it to be able to effectively
-  utilise an expanded or reduced set of resources; additionally for an
-  adaptive application to be scalable it must also be able to
-  determine which resources to utilise efficiently.
-  For resource determination, our framework currently relies on a
-  static, user-defined mapping of replicas and resources.  In the
-  remainder of this paper, we will focus on dynamic resource
-  utilisation (and not on dynamic resource determination or
-  optimisation).
+{\noindent \it \bf Adaptive Replica Scheduling:} Distributed applications
+including RE simulations must be able to deal with time-varying
+resource availabilities.  An application is referred to as
+\emph{dynamic} when either its resource requirements, 
+or the availability and utilisation of resources 
+changes during its runtime.  \emph{Adaptivity} is a
+mechanism to respond to dynamic
+changes; % as opposed to just ignoring the dynamism of a distributedenvironment.
+a dynamic application may deploy multiple adaptive strategies or
+choose between competing adaptive strategies.  For an application to
+be adaptive, it is necessary for it to be able to effectively
+utilise an expanded or reduced set of resources; additionally for an
+adaptive application to be scalable it must also be able to
+determine which resources to utilise efficiently.
+For resource determination, our framework currently relies on a
+static, user-defined mapping of replicas and resources.  In the
+remainder of this paper, we will focus on dynamic resource
+utilisation (and not on dynamic resource determination or
+optimisation).
 
 For jobs that want to maximise their throughput the ability to adapt
-to dynamically changing resource loads and requirements is
-critical. It is equally important for long-running applications to be
+to dynamically changing resource loads is critical. 
+It is equally important for long-running applications to be
 able to support an agile execution model allowing the effective
 utilisation of resources as they become available.  Specifically,
 there are different ways a RE simulation can respond to a change in
 the number of resources required/available:
 \begin{compactitem}         
 \item {\it Scenario A:} By increasing the number of processes assigned
-  to replicas the time-to-completion can be reduced. In addition,
+  to each replica the time-to-completion can be reduced. In addition,
   resources can be partitioned in a way that balances the different
   speeds of resources.  For example, by adding processes to a 
   delayed replica, bottlenecks due to synchronisation of replicas can
@@ -852,12 +858,12 @@ the number of resources required/available:
     remark: when using SAGA Glide-In the late start effect should not
     exist.}
 
-\item {\it Scenario B:} As resources become dynamically available, the
+\item {\it Scenario B:} As resources become available, the
   number of replicas can be adjusted. Depending on the underlying
   physics model, the additional replicas can be used to either refine
   the temperature range (adaptive sampling) or to extend the
   temperature range (enhanced dynamics). This REMD approach is also
-  referred to as Cool Walking~\citep{coolwalking}.
+  referred to as \emph{Cool Walking}~\citep{coolwalking}.
 \end{compactitem}           
 % Both adaptive strategies have been realized within the RE-Manager, and
 % BigJob and Glide-In are useful abstractions in both scenarios. 
@@ -914,21 +920,18 @@ we did not do a performance study... Thus no data.}
 \label{sec:exp}
         
 To evaluate the performance of the RE-Manager several experiments have
-been conducted on the TeraGrid (TG) and LONI resources. The resources
+been conducted on TeraGrid (TG) and LONI resources. The resources
 used are: Ranger (TG), Abe (TG) and QueenBee (QB; both TG and LONI).
 % We investigated the performance of the SAGA Glide-In mechanism under
 % different adaptivity modes.  
-The RE-Manager was configured to run a MD simulation with up to 16
+The RE-Manager was configured to run a parallel NAMD simulation with up to 16
 replicas sampling a temperature range between 300 and 450\,K. Replica
-exchanges are carried out between pairs of replica processes, thus
-there are up to 8 exchanges in each generation; each test run comprises
-of up to 64 attempted exchanges\jhanote{AndreL: I don't think the
-  numbers add up here!}  \alnote{Yes, they do not add up. I
-  standardized all figures to T\_c for 64 attempted exchanges} Each
-replica is a parallel NAMD simulation, can use up to 24 MPI processes
-and runs for 500 time steps between exchange attempts. The metric of
-performance used in our tests, is the time-to-completion for 64
-attempted exchanges.
+exchanges are carried out between pairs of replicas. Thus,
+there are up to 8 exchanges in each generation. Each test run comprises
+of up to 64 attempted exchanges; each replica can 
+use up to 24 MPI processes and runs for 500 time steps 
+between exchange attempts. The metric used 
+is the time-to-completion for 64 attempted exchanges.
 
 \jhanote{the use of the term cluster should be consistent with the
   resource description :)}
@@ -947,15 +950,15 @@ attempted exchanges.
   single-machine is mentioned here now. Need to mention explicitly
   upfront} \alnote{hopefully mentioned sufficiently often now}
 
-Initially we investigated the effect of the SAGA
+Initially, we investigated the effect of the 
 Glide-In framework on the time-to-completion ($T_{c}$) using 16
 replicas on QB.  Using the Glide-In framework, there was a reduction
-in $T_{c}$ from 52\,minutes to about 26 minutes per average, which
-corresponds to a decrease of about 50\,\% runtime.  In the best case,
-improvements of up to 70\,\% were observed. As described, this effect
-is mainly attributed to the elimination of queuing times for every
-sub-job. Once the Replica-Agent becomes active, replicas can be
-efficiently dispatched without requiring interactions with the local
+in $T_{c}$ from 52\,minutes to 26 minutes per average, which
+corresponds to a decrease of 50\,\%.  In the best case,
+improvements of up to 70\,\% were observed. This effect
+is attributed to the elimination of the queuing times for every
+sub-job. Once the Replica-Agents become active, replicas can be
+dispatched without requiring interactions with the local
 scheduler.
 
 \jhanote{need to clarify what the 80\% means/implies?} \alnote{I
@@ -981,14 +984,13 @@ scheduler.
   sufficient? or should I describe it again down here?}
 \jhanote{AndreL: I think this section reads well now. Thanks.}
 
-Further, we performed tests for the two different adaptive scenarios.
+Further, we performed tests for the two adaptive scenarios.
 In the scenario A, the number of replicas was kept constant
-(conventional REMD) and the \emph{replica size}, i.\,e.\ the number of
+(Conventional REMD) and the \emph{replica size}, i.\,e.\ the number of
 MPI processes assigned to each replica was varied as more resources
-became available.  In scenario B, the \emph{replica number} -- the
-number of replicas participating in a generation was varied (cool
-walking) as the number of resources change.  We compare the runtime of
-the REMD simulation for 64 attempted exchanges on different sets of
+became available.  In scenario B, the \emph{replica number}, i.\,e.\ the
+number of replicas participating in a generation, was varied (Cool
+Walking).  We compare $T_{c}$ for 64 attempted exchanges on different sets of
 distributed resources and Glide-In configurations.
                     
 \begin{figure}[h]
@@ -999,9 +1001,9 @@ distributed resources and Glide-In configurations.
         As the number of resources available increases, the number of
         cores assigned to a replica (a NAMD job) is dynamically
         adjusted, while keeping the number of replicas constant at
-        sixteen.  There are 4~Glide-Ins, and each has 32 core assigned
-        to it.  As more resources become available, more cores can be
-        assigned to each replica (NAMD job) which leads to a reduction
+        sixteen.  There are 4~Glide-Ins with 32 cores each.  
+        As more resources become available, more cores are
+        assigned to each replica, which leads to a reduction
         of $T_{c}$.  }
       \label{fig:performance_perf_distributed_A}
     \end{center}
@@ -1009,9 +1011,6 @@ distributed resources and Glide-In configurations.
   \hfill
   \begin{minipage}[t]{.485\textwidth}
     \begin{center}  
-     
-%      This scenario utilises the capability of the underlying physics
-%      model to
       \includegraphics[width=\textwidth]{performance/perf_distributed_number_replica.pdf}
       \caption{\footnotesize \bf Replica Number Adaptivity (Scenario
         B): In this scenario, the framework dynamically adjusts the
@@ -1030,31 +1029,33 @@ In scenario A, up to 3 different resources are used, the number of
 Glide-Ins varies from 4 up to 12, whilst the number of replicas used is
 fixed at 16. Thus, the size of the individual replicas is varied.
 When a resource is being used, it runs 4 Glide-Ins and each Glide-In
-job has a constant size of 32 cores each.  Although, the number of
+job has a constant size of 32 cores.  Although, the number of
 Glide-In jobs on a resource is fixed at 4 for reasons of simplicity,
-our results will hold for general values of this parameter. If all
+our results will hold for general values. If all
 resources (Abe, QB and Ranger) were being used, there would be 12
-Glide-In jobs with 32 cores each, for a total of 384 cores.  Glide-Ins
-are submitted to one, 2 or 3 statically configured resources. Usually,
-these Glide-Ins are subject to different queueing delays at the local
-scheduler. To reflect these different resource loads, the number of
-MPI processes assigned to each of the replicas is dynamically
-increased as new resources become available (and therefore the number
-of Glide-Ins can be increased). Depending on the number of available
-resources, between 8 (for 4 Glide-Ins) and 24 cores (for 12 Glide-Ins)
+Glide-In jobs with 32 cores each, i.\,e.\ a total of 384 cores would 
+be available.  Glide-Ins
+are submitted to 1, 2 or 3 statically configured resources. After submission
+the Glide-Ins are subject to different queueing delays at the local
+schedulers. To reflect these different loads, the number of
+MPI processes assigned to each replica is dynamically
+increased as new resources become available.
+% (and therefore the number of Glide-Ins can be increased). 
+Depending on the number of available
+resources, between 8 (for 4 Glide-Ins) and 24 MPI processes (for 12 Glide-Ins)
 are used for each replica.
 
 Figure~\ref{fig:performance_perf_distributed_A} shows the results of
 the distributed run. In spite of the overhead for migrating replicas
 to newly available resources, a notable decrease in $T_c$ of up to
 15\,minutes can be observed as the number of resources increases from
-one to three. Although, the efficiency, defined as runtime on 1
+one to three. Although, the efficiency, defined as runtime on one
 resource divided by the runtime on multiple resources scaled by the
 number of resources, is only about 0.5, this is a limitation of the
 used setup rather than a general scalability barrier.  The setup
 comprises of rather short NAMD jobs; in particular during the initial
 phase jobs are often migrated to other resources, which mainly causes
-this overhead. During longer runs this overhead is essentially
+this overhead. During longer runs this overhead is 
 negligible. What is also very important to note is the reduced
 fluctuation in the $T_c$ when multiple resources are used. This is
 indicative of the fact that there is a reduction in the sensitivity to
@@ -1079,7 +1080,7 @@ environments have to battle with.  \jhanote{AndreL: Mention how many
 
 % general setup
 In scenario B, the capability of the RE-Manager to adaptively adjust
-the number of replicas simulated -- in effect adjusting either the
+the number of replicas, in effect adjusting either the
 range of temperature or the specific temperatures simulated, is
 evaluated.  For this scenario, 4 Glide-Ins with 64 cores each
 are distributed across either 1, 2 or 3 different distributed
@@ -1099,8 +1100,9 @@ Glide-In can run exactly 4 replicas when active.
 %  procedure
 At the beginning of the experiment, all 4 Glide-Ins are submitted to
 either 1, 2 or 3 resources (statically configured).  Similar to
-scenario A, queueing delays usually occur; this is true whether using
-1 resource or using 3.  Consequently, not all Glide-Ins start
+scenario A, different queueing delays usually occur.
+%; this is true whether using 1 resource or using 3.  
+Consequently, not all Glide-Ins start
 simultaneously.  Using the adaptive temperature sampling algorithm,
 the number of replicas is dynamically varied as the number of active
 Glide-Ins increases. Depending on the number of running Glide-Ins, the
@@ -1133,7 +1135,7 @@ available.
 \section{Results: Enhanced Sampling of Hepatitis-C Virus}
 In the previous sections we discussed the design and performance of
 the framework and showed how it enables the effective utilisation of
-multiple resources. In Section 2, we provided motivation for why the
+multiple resources. In section 2, we provided motivation for why the
 RE approach is required to understand the energetics and
 conformational flexibility of the internal loop of the Hepatitis-C
 virus. The effectiveness of the RE approach in increasing the rate of
@@ -1152,32 +1154,31 @@ variant using the model described in section 2. The replicas covered a
 temperature range from 300\,K to 450\,K, thus fixing the number of
 replicas to 16.  To demonstrate the effectiveness of our RE framework,
 we analyse a typical time-series of the number of resources used
-(available), and thus the number of active Glide-Ins during a six hour
-run on production infrastructure (green line in
-Figure~\ref{fig:result_A}).  Each Glide-In has 32 cores, thus the
-number of cores for each replica is determined by the numbers of
+(available) and thus, the number of active Glide-Ins during a six hour
+run on a production infrastructure.  Each Glide-In has 32 cores; 
+thus, the number of cores for each replica is determined by the numbers of
 active Glide-In jobs.  Figure~\ref{fig:result_A} shows how the number
-of active Glide-Ins changed during this six hour interval. To start
+of active Glide-Ins changed during the six hour interval. To start
 with, there were only enough processors to support one Glide-In job,
-but after approximately two hours, there were enough to support two
-active Glide-Ins and three Glide-Ins were supported after three
-hours. Eight Glide-Ins were activated before the six hour time
+but after approximately two hours, there were enough to activate two
+Glide-Ins; after three hours three Glide-Ins are running. 
+Eight Glide-Ins were activated before the six hour time
 limit. As the number of Glide-Ins increases, the number of processors
 assigned to each replica increases, with the physically important
 consequence that there is a concomitant decrease in the average time
-between exchange attempts (red line in Figure~\ref{fig:result_A}).
+between exchange attempts (upper line in Figure~\ref{fig:result_A}).
 The average time between exchange attempts as a function of the number
-of active Glide-Ins is shown in red in Figure~\ref{fig:result_B},
-whereas the speedup -- measured as the inverse of the average time
+of active Glide-Ins and
+the speedup -- measured as the inverse of the average time
 normalised by the time taken with one Glide-In (thus the value of 1
-for the one Glide-In case) is shown in green.
+for the one Glide-In case)  -- are shown in Figure~\ref{fig:result_B}.
 
 \begin{figure}[h]
   \begin{minipage}[t]{.495\textwidth}
     \begin{center}  
       \includegraphics[width=\textwidth]{performance/hepatitis/perf_repex.pdf}
       \caption{\footnotesize \bf The plots show the time-series of the
-        average times between exchange attempts (in red and using the
+        average times between exchange attempts (upper line using the
         left-hand y axis) and the number of active Glide-Ins over a
         six-hour run on the TeraGrid.}
       \label{fig:result_A}
@@ -1188,10 +1189,11 @@ for the one Glide-In case) is shown in green.
     \begin{center}  
      % \includegraphics[width=\textwidth]{}
       \includegraphics[width=\textwidth]{performance/hepatitis/perf_repex2.pdf}
-      \caption{\footnotesize \bf The plot in red (using the left-hand
+      \caption{\footnotesize \bf The upper plot (using the left-hand
         y axis) illustrates how the average time between exchange attempts
-        decreases as the number of Glide-Ins increases. The plot in
-        green shows the speedup.}
+        decreases as the number of Glide-Ins increases. At the same time
+        the speedup grows.}
+        % The plot in        green shows the speedup.}
       \label{fig:result_B}
     \end{center}
   \end{minipage}
@@ -1216,25 +1218,25 @@ for the one Glide-In case) is shown in green.
 
 In summary, SAGA provides a well-defined and sufficiently powerful
 interface to develop the required abstraction to support adaptive
-distributed RE applications.  SAGA also allows the simple decoupling
+distributed RE applications.  SAGA allows the simple decoupling
 of the RE orchestration logic from the underlying distributed
 infrastructure. The SAGA \glidein\ framework represents the first
 known instance of creating a runtime, system-level abstraction for
 distributed systems from basic programming interfaces. All this whilst
 remaining general purpose and extensible.  The adaptive RE framework
-has been successfully deployed on the TG and LONI resources.  Using
-the BigJob abstraction, RE sub-jobs could efficiently be dispatched
+has been successfully deployed on TG and LONI resources.  Using
+the BigJob abstraction, RE sub-jobs can efficiently be dispatched
 reducing the time-to-completion up to 70\,\%. The use of different
 adaptivity strategies to dynamically utilise additional resources led
 to a further reduction of the time-to-completion.  Importantly, we
 have shown how our REMD framework has been used to enhance the
-sampling and rate of convergence for a biological system -- the inner
+sampling and rate of convergence for a biological system, the inner
 loop of the HCV IRES IIIb CA variant, which is an important
 drug-delivery target.
 
 In the future, we will refine our RE framework making it
 more adaptive towards dynamic environments, e.\,g.\ by deploying  
-a more asynchronous scheme as described by \citet{Gallicchio:2007yq}.
+an asynchronous RE scheme as described by \citet{Gallicchio:2007yq}.
 % Further, we will utilise our RE framework to study real science problems,
 % such as the Riboswitch problem~\citep{Huang:2008xe}.     
 At the same time, we will improve our RE infrastructure to support
