@@ -16,6 +16,8 @@
 #include "HandleReduces.hpp"
 #include "parseCommand.hpp"
 
+#define JOBS_PER_SERVICE 2
+
 /***********************************
  * This is the Master class that   *
  * handles all details of the      *
@@ -316,9 +318,12 @@ namespace MapReduce {
                         // jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
                         saga::job::service js(hostListIT->rmURL);
-                        saga::job::job agentJob= js.create_job(jd);
-                        agentJob.run();
-                        jobs_.push_back(agentJob); // Hack to prevent destructor of job object from being called
+                        for ( int i = 0; i < JOBS_PER_SERVICE; i++ )
+                        {
+                          saga::job::job agentJob= js.create_job(jd);
+                          agentJob.run();
+                          jobs_.push_back(agentJob); // Hack to prevent destructor of job object from being called
+                        }
                         message += "SUCCESS";
                         log->write(message, LOGLEVEL_INFO);
                         successCounter++;
