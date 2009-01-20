@@ -22,7 +22,7 @@ namespace po = boost::program_options;
 //
 bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
 {
-  po::options_description desc_cmdline ("Usage: "+std::string("0.1")+" [options]");
+  po::options_description desc_cmdline ("Usage: "+std::string("faust_agent")+" [options]");
   try {
     desc_cmdline.add_options()
     ("help,h", "Display this information and exit")
