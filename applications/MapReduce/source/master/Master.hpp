@@ -16,7 +16,7 @@
 #include "HandleReduces.hpp"
 #include "parseCommand.hpp"
 
-#define JOBS_PER_SERVICE 2
+#define JOBS_PER_SERVICE 1
 
 /***********************************
  * This is the Master class that   *
@@ -322,6 +322,7 @@ namespace MapReduce {
                         {
                           saga::job::job agentJob= js.create_job(jd);
                           agentJob.run();
+                          log->write(agentJob.get_job_id (), LOGLEVEL_INFO);
                           jobs_.push_back(agentJob); // Hack to prevent destructor of job object from being called
                         }
                         message += "SUCCESS";
