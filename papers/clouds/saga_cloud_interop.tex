@@ -48,7 +48,7 @@
 % \title{SAGA-MapReduce: Providing Infrastructure Independence and
 %   Cloud-Grid Interoperability}
 \title{Application Level Interoperability between Clouds and Grids}
-\author{Andre Merzky$^{1}$, Kate Stamou, Shantenu Jha$^{123} ......$\\
+\author{Andre Merzky$^{1}$, Shantenu Jha$^{123}$, Kate Stamou$^{1}$\\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
       State University, USA}}\\
   \small{\emph{$^{2}$Department of Computer Science, Louisiana State
@@ -61,11 +61,11 @@
 \ifdraft
 \newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1c }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
-\newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
+\newcommand{\katenotenote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
 \else
 \newcommand{\amnote}[1]{}
 \newcommand{\jhanote}[1]{}
-\newcommand{\michaelnote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
+\newcommand{\katenote}[1]{ {\textcolor{blue} { ***MM: #1 }}}
 \fi
 
 \newcommand{\sagamapreduce }{SAGA-MapReduce }
@@ -80,25 +80,38 @@
 \maketitle
 
 \begin{abstract}
+  The landscape of computing is getting Cloudy.
+  
+  There exist both technical reasons and social engineering problems
+  responsible for low uptake of Grids. One universally accepted reason
+  is the complexity of Grid systems -- the interface, software stack
+  and underlying complexity of deploying distributed application.
+
   SAGA is a high-level programming interface which provides the
   ability to create distributed applications in an infrastructure
-  independent way. In this paper, we show how MapReduce has been
-  implemented using SAGA and demonstrate its interoperability across
-  Clouds and Grids.  We discuss how a range of {\it cloud adapters}
-  have been developed for SAGA.  We discuss the advantages of
-  programmatically developing MapReduce using SAGA, by demonstrating
-  that the SAGA-based implementation is infrastructure independent
-  whilst still providing control over the deployment, distribution and
-  run-time decomposition.  .... The ability to control the
-  distribution and placement of the computation units (workers) is
-  critical in order to implement the ability to move computational
-  work to the data. This is required to keep data network transfer low
-  and in the case of commercial Clouds the monetary cost of computing
-  the solution low...  Using data-sets of size up to 10GB, and up to
-  10 workers, we provide detailed performance analysis of the
-  SAGA-MapReduce implementation, and show how controlling the
-  distribution of computation and the payload per worker helps enhance
-  performance.
+  independent way. 
+
+  In an earlier paper, we discussed how we have developed MapReduce
+  using SAGA, and how  a SAGA-based MapReduce provided 
+  i) infrastructure independence and ii) 
+  could be used to utilize distributed infr
+
+  In this paper, we show how MapReduce has been implemented using SAGA
+  and demonstrate its interoperability across Clouds and Grids.  We
+  discuss how a range of {\it cloud adapters} have been developed for
+  SAGA.  We discuss the advantages of programmatically developing
+  MapReduce using SAGA, by demonstrating that the SAGA-based
+  implementation is infrastructure independent whilst still providing
+  control over the deployment, distribution and run-time
+  decomposition.  .... The ability to control the distribution and
+  placement of the computation units (workers) is critical in order to
+  implement the ability to move computational work to the data. This
+  is required to keep data network transfer low and in the case of
+  commercial Clouds the monetary cost of computing the solution low...
+  Using data-sets of size up to 10GB, and up to 10 workers, we provide
+  detailed performance analysis of the SAGA-MapReduce implementation,
+  and show how controlling the distribution of computation and the
+  payload per worker helps enhance performance.
 \end{abstract}
 
 \section{Introduction} 
@@ -640,7 +653,6 @@ sizes and varying worker numbers.
 \upp
 \end{figure}
 
-
 \begin{figure}[!ht]
 \upp
  \begin{center}
@@ -682,7 +694,6 @@ sizes and varying worker numbers.
 \upp
 \upp
 \end{figure}
-
 
 {\bf SAGA-MapReduce on Cloud-like infrastructure: } Accounting for the
 fact that time for chunking is not included, Yahoo's MapReduce takes a
@@ -731,67 +742,114 @@ both distribute compute and data provides additional performance
 advantage, as shown by the values of $T_c$ for both distributed
 compute and DFS cases in Table~\ref{exp4and5}.
 
-\begin{table}
-\upp
-\begin{tabular}{ccccc}
-  \hline
-  \multicolumn{2}{c}{Configuration}  &  data size   &   work-load/worker & $T_c$  \\
 
-  compute &  data &   (GB)  & (GB/W) & (sec) \\
-  \hline
-%   local   & 1 & 0.5 & 372 \\
+% \begin{table}
+% \upp
+% \begin{tabular}{ccccc}
 %   \hline
-%   distributed   & 1  & 0.25 & 372 \\
+%   \multicolumn{2}{c}{Configuration}  &  data size   &   work-load/worker & $T_c$  \\
+
+%   compute &  data &   (GB)  & (GB/W) & (sec) \\
+%   \hline
+% %   local   & 1 & 0.5 & 372 \\
+% %   \hline
+% %   distributed   & 1  & 0.25 & 372 \\
+% %   \hline \hline
+%   local & local-FS & 1 & 0.1 & 466 \\
+%   \hline
+%   distributed & local-FS & 1 & 0.1 & 320 \\
+%   \hline
+%   distributed & DFS & 1 & 0.1 &  273.55 \\
 %   \hline \hline
-  local & local-FS & 1 & 0.1 & 466 \\
-  \hline
-  distributed & local-FS & 1 & 0.1 & 320 \\
-  \hline
-  distributed & DFS & 1 & 0.1 &  273.55 \\
-  \hline \hline
-  local & local-FS & 2 & 0.25 & 673 \\
-  \hline 
-  distributed & local-FS & 2 & 0.25 & 493 \\
-  \hline
-  distributed & DFS & 2 & 0.25 &  466 \\
-  \hline \hline
-  local & local-FS &  4 & 0.5 & 1083\\
-  \hline
-  distributed & local-FS &  4 &  0.5&  912 \\
-  \hline
-  distributed & DFS & 4 & 0.5 &  848  \\
-  \hline \hline
-\end{tabular}
-\upp
-\caption{Table showing \tc for different configurations of compute  
-  and data. The two compute configurations correspond to the situation
-  where all workers are either
-  placed locally or  workers are distributed across two different resources. The data configurations arise when using a single local FS  or a distributed FS  (KFS) with 2 data-servers. It is evident from performance figures that an optimal value arises when distributing both data and compute.}  \label{exp4and5}
-\upp
-\upp
-\end{table}
+%   local & local-FS & 2 & 0.25 & 673 \\
+%   \hline 
+%   distributed & local-FS & 2 & 0.25 & 493 \\
+%   \hline
+%   distributed & DFS & 2 & 0.25 &  466 \\
+%   \hline \hline
+%   local & local-FS &  4 & 0.5 & 1083\\
+%   \hline
+%   distributed & local-FS &  4 &  0.5&  912 \\
+%   \hline
+%   distributed & DFS & 4 & 0.5 &  848  \\
+%   \hline \hline
+% \end{tabular}
+% \upp
+% \caption{Table showing \tc for different configurations of compute  
+%   and data. The two compute configurations correspond to the situation
+%   where all workers are either
+%   placed locally or  workers are distributed across two different resources. The data configurations arise when using a single local FS  or a distributed FS  (KFS) with 2 data-servers. It is evident from performance figures that an optimal value arises when distributing both data and compute.}  \label{exp4and5}
+% \upp
+% \upp
+% \end{table}
 
 
 \section{Conclusion}
+
 We have demonstrated the power of SAGA as a programming interface and
-as a mechanism for codifying computational patterns, such as MapReduce
-and All-Pairs.  Patterns capture a dominant and recurring
-computational mode; by providing explicit support for such patterns,
-end-users and domain scientists can reformulate their scientific
-problems/applications so as to use these patterns. % For example, we
-% have shown how traditional applications such as MSA and Gene Search
-% can be implemented using the All-Pairs and MapReduce patterns.
-This
-provides further motivation for abstractions at multiple-levels.
-%support basic functionality but also data-intensive patterns.
-We have shown the power of abstractions for data-intensive computing 
-% patterns and
-% abstractions
-% that support such patterns, 
-by demonstrating how SAGA, whilst providing the required controls and
-supporting relevant programming models, can decouple the development
-of applications from the deployment and details of the run-time
-environment.
+as a mechanism for codifying computational patterns, such as
+MapReduce.  We have shown the power of abstractions for data-intensive
+computing by demonstrating how SAGA, whilst providing the required
+controls and supporting relevant programming models, can decouple the
+development of applications from the deployment and details of the
+run-time environment.
+
+We have shown in this work how SAGA can be used to implement mapreduce
+which then can utilize a wide range of underlying infrastructure. This
+is one where how Grids will meet Clouds, though by now means the only
+way. What is critical about this approach is that the application
+remains insulated from any underlying changes in the infrastructure.
+
+Patterns capture a dominant and recurring computational mode; by
+providing explicit support for such patterns, end-users and domain
+scientists can reformulate their scientific problems/applications so
+as to use these patterns.  This provides further motivation for
+abstractions at multiple-levels. 
+
+\section*{Notes}
+
+\subsubsection*{Why Interoperability:}
+
+\begin{itemize}
+\item Intellectual curiosity, what programming challenges does this 
+  bring about?
+\item   
+\item Infrastructure independent programming
+\item Here we discuss homgenous workers, but workers (tasks) can be
+heterogenous and thus may have greater data-compute affinity  or
+data-data affinity, which makes it more prudent to map to Cloud than
+regular grid environments (or vice-versa)
+\item Economic Models of computing, influence programming models and require
+explicity  (already discussed)
+\end{itemize}
+
+
+\subsubsection*{Network, System Configuration and Experiment Details}
+
+GumboGrid 
+
+\subsubsection*{Challenges}
+
+All this is new technology, hence makes sense to try to list some of
+the challenges we faced
+
+
+Discuss affinity: Current Clouds compute-data affinity 
+
+Simplicity of Cloud interface: While certainly not true of all cases,
+consider the following numbers, which we believe represent the above
+points well: the Globus Toolkit Version 4.2 provides, in its Java
+version, approximately 2,000 distinct method calls.  The complete SAGA
+Core API~\cite{saga_gfd90} provides roughly 200 distinct method calls.
+The SOAP rendering of the Amazon EC2 cloud interface provides,
+approximately 30 method calls (and similar for other Amazon Cloud
+interfaces, such as Eucalyptus~\cite{eucalyptus_url}).  The number of
+calls provided by these interfaces is no guarantee of simplicity of
+use, but is a strong indicator of the extent of system semantics
+exposed.
+
+Simplicity vs completeness
+
 
 \section{Acknowledgments}
 
@@ -806,45 +864,45 @@ Technology (CCT) at LSU and computer resources provided by LONI.
 \bibliographystyle{plain} \bibliography{saga_data_intensive}
 \end{document}
 
-\jhanote{We begin with the observation that the efficiency of \sagamapreduce is
-pretty close to 1, actually better than 1 -- like any good (data)
-parallel applications should be.  For 1GB data-set, \tc = 659s and for
-10GB \tc = 6286s.  The efficiency remains at or around 1, even when
-the compute is distributed over two machines: 1 worker at each site:
-\tc = 672s, \tc = 1081s and \tc =2051s for 1, 2 and 4GB respectively;
-this trend is valid even when the number of workers per site is more
-than 1.
+\jhanote{We begin with the observation that the efficiency of
+  \sagamapreduce is pretty close to 1, actually better than 1 -- like
+  any good (data) parallel applications should be.  For 1GB data-set,
+  \tc = 659s and for 10GB \tc = 6286s.  The efficiency remains at or
+  around 1, even when the compute is distributed over two machines: 1
+  worker at each site: \tc = 672s, \tc = 1081s and \tc =2051s for 1, 2
+  and 4GB respectively; this trend is valid even when the number of
+  workers per site is more than 1.
 
-Fig.~\ref{grids1} plots the \tc for different number of active workers
-on different data-set sizes; the plots can be understood using the
-framework provided by Equation 1. For each data-set (from 1GB to 10GB)
-there is an overhead associated with chunking the data into 64MB
-pieces; the time required for this scales with the number of chunks
-created.  Thus for a fixed chunk-size (as is the case with our
-set-up), $t_{pp}$ scales with the data-set size. As the number of
-workers increases, the payload per worker decreases and this
-contributes to a decrease in time taken, but this is accompanied by a
-concomitant increase in $t_{coord}$. However, we will establish that
-the increase in $t_{coord}$ is less than the decrease in
-$t_{comp}$. Thus the curved decrease in \tc can be explained by a
-speedup due to lower payload as the number of workers increases whilst
-at the same time the $t_{coord}$ increases; although the former is
-linear, due to increasing value of the latter, the effect is a
-curve. The plateau value is dominated by $t_{pp}$ -- the overhead of
-chunking etc, and so increasing the number of workers beyond a point
-does not lead to a further reduction in \tc.
+  Fig.~\ref{grids1} plots the \tc for different number of active
+  workers on different data-set sizes; the plots can be understood
+  using the framework provided by Equation 1. For each data-set (from
+  1GB to 10GB) there is an overhead associated with chunking the data
+  into 64MB pieces; the time required for this scales with the number
+  of chunks created.  Thus for a fixed chunk-size (as is the case with
+  our set-up), $t_{pp}$ scales with the data-set size. As the number
+  of workers increases, the payload per worker decreases and this
+  contributes to a decrease in time taken, but this is accompanied by
+  a concomitant increase in $t_{coord}$. However, we will establish
+  that the increase in $t_{coord}$ is less than the decrease in
+  $t_{comp}$. Thus the curved decrease in \tc can be explained by a
+  speedup due to lower payload as the number of workers increases
+  whilst at the same time the $t_{coord}$ increases; although the
+  former is linear, due to increasing value of the latter, the effect
+  is a curve. The plateau value is dominated by $t_{pp}$ -- the
+  overhead of chunking etc, and so increasing the number of workers
+  beyond a point does not lead to a further reduction in \tc.
 
-To take a real example, we consider two data-sets, of sizes 1GB and
-5GB and vary the chunk size, between 32MB to the maximum size
-possible, i.e., chunk sizes of 1GB and 5GB respectively. In the
-configuration where there is only one chunk, $t_{pp}$ should be
-effectively zero (more likely a constant), and \tc will be dominated
-by the other two components -- $t_{comp}$ and $t_{coord}$.  For 1GB
-and 5GB, the ratio of \tc for this boundary case is very close to 1:5,
-providing strong evidence that the $t_{comp}$ has the bulk
-contribution, as we expect $t_{coord}$ to remain mostly the same, as
-it scales either with the number of chunks and/or with the number of
-workers -- which is the same in this case.  Even if $t_{coord}$ does
-change, we do not expect it to scale by a factor of 5, while we do
-expect $t_{comp}$ to do so.}
+  To take a real example, we consider two data-sets, of sizes 1GB and
+  5GB and vary the chunk size, between 32MB to the maximum size
+  possible, i.e., chunk sizes of 1GB and 5GB respectively. In the
+  configuration where there is only one chunk, $t_{pp}$ should be
+  effectively zero (more likely a constant), and \tc will be dominated
+  by the other two components -- $t_{comp}$ and $t_{coord}$.  For 1GB
+  and 5GB, the ratio of \tc for this boundary case is very close to
+  1:5, providing strong evidence that the $t_{comp}$ has the bulk
+  contribution, as we expect $t_{coord}$ to remain mostly the same, as
+  it scales either with the number of chunks and/or with the number of
+  workers -- which icos the same in this case.  Even if $t_{coord}$
+  does change, we do not expect it to scale by a factor of 5, while we
+  do expect $t_{comp}$ to do so.
 
