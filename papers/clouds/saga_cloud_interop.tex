@@ -654,8 +654,8 @@ standard VM instance with SAGA, and SAGA's prerequisites (mainly
 boost).  To us, a mixed approach seemed most favourable, where the
 bulk software installation is statically done via a custom VM image,
 but software configuration and application deployment are done
-dynamically during VM startup.  \jhanote{more details here}
-
+dynamically during VM startup.  \jhanote{more details on how we create
+  VMs, how we launch jobs and transfer files to these backend}
 
 \subsection{Demonstrating Cloud-Grid Interoperabilty}
 
@@ -679,7 +679,9 @@ represents a VM instance created on the fly.
 (Ref~\cite{saga_ccgrid09}), we had carried out the following tests, to
 demonstrate how \sagamapreduce utilizes different infrastructrure and
 control over task-data placement, and gain insight into performance on
-``vanilla'' Grids. Some specific tests we performed are:
+``vanilla'' Grids. Some specific tests we performed and used to
+understand performance of \sagamapreduce in distributed environments
+were:
 \begin{enumerate}
 \item We began by distributing \sagamapreduce workers (compute) and
   the data they operate on locally. We varied the number of workers
@@ -691,67 +693,107 @@ control over task-data placement, and gain insight into performance on
   the underlying distributed-FS (used KFS in lieu of HDFS).
 % \item Same as Exp. \#2, but using a different distributed FS
 %   (KFS); the number of workers varies from 1-10
-\item We then distributed the \sagamapreduce workers distributed compute (workers) and distributed file-system (KFS)
-\item Distributed compute (workers) but using local file-systems (using GridFTP for transfer)
+% \item We then distributed the \sagamapreduce workers distributed compute (workers) and distributed file-system (KFS)
+% \item Distributed compute (workers) but using local file-systems (using GridFTP for transfer)
 \end{enumerate}
 
-In this paper, we do the following:
+Mirroring the same strucuture, in this paper, we perform the following
+experiments:
 \begin{enumerate}
-\item For Clouds the default assumption should be that the VMs are
-  distributed with respect to each other. It should also be assumed
-  that some data is also locally distributed (with respect to a VM).
-  Number of workers vary from 1 to 10, and the data-set sizes varying
-  from 1 to 10GB.  Compare performance of \sagamapreduce when
-  exclusively running in a Cloud to the performance in Grids (both
-  Amazon and GumboCloud) Here we assume that the number of workers per
-  VM is 1, which is treated as the base case.
-\item We then vary the number of workers per VM, such that the ratio
-  is 1:2; we repeat with the ratio at 1:4 -- that is the number of
-  workers per VM is 4.
-\item We then distribute the same number of workers across Grids and
-  Clouds (assuming the base case for Clouds)
-\item Distributed compute (workers) but using GridFTP for
-  transfer. This corresponds to the case where workers are able to
-  communicate directly with each other.
+\item We take \sagamapreduce and compare its performance for the
+  following configurations when exclusively running in Clouds to the
+  performance in Grids: We vary the number of workers vary from 1 to
+  10, and the data-set sizes varying from 1 to 10GB.  In these first
+  set of experiments, we set the number of workers per VM to be 1,
+  which is treated as the base case.  We perform these tests on both
+  EC2 and using Eucalyptus.
+\item For Clouds, we then vary the number of workers per VM, such that
+  the ratio is 1:2; we repeat with the ratio at 1:4 -- that is the
+  number of workers per VM is 4.
+\item We then distribute the same number of workers across two
+  different Clouds - EC2 and Eucalyptus.
+\item Finally, for a single master, we distribute workers across Grids
+  (LONI) and Clouds (EC2, with one job per VM). We compare the
+  performance from the two hybrid (EC2-Grid, EC2-Eucalyptus
+  distribution) cases to the pure distributed case.
+% \item Distributed compute (workers) but using GridFTP for
+%   transfer. This corresponds to the case where workers are able to
+%   communicate directly with each other.  \jhanote{I doubt we will get
+%     to this scenario, hence if we can do the above three, that is more
+%     than enough.}
 \end{enumerate}
 
+It is worth reiterating, that although we have captured concrete
+performance figures, it is not the aim of this work to analyze the
+data and understand performance implications. It is the sole aim of
+this work, to establish via well-structured and designed experiments
+as outlined above, the fact that \sagamapreduce has been used to
+demonstrate Cloud-Cloud interoperabilty and Cloud-Grid
+interoperabilty.  The analysis of the data and understanding
+performance involves the generation of ``system probles'', as there
+are differences in the specific Cloud system implementation and
+deployment. For example, in EC2 Clouds the default scenario is that
+the VMs are distributed with respect to each other. There is notion of
+availability zone, which is really just a control on which
+data-center/cluster the VM is placed. In the absence of explicit
+mention of the availabilty zone, it is difficult to determine or
+assume that the availability zone is the same. However, for ECP and
+GumboCloud, it can be established that the same cluster is used and
+thus it is fair to assume that the VMs are local with respect to each
+other.  Similarly, for data.. it should also be assumed that for
+Eucalpytus based Clouds, data is also locally distributed (with
+respect to a VM), whereas for EC2 clouds this cannot be assumed to be
+true for every experiment/test. \jhanote{Andre, Kate please confirm
+  that you agree with the last statment}
 
 \subsubsection{Results}
 
-.... It takes SAGA about 45 seconds to instantiate a VM on Eucalyptus,
-and about 90 seconds on EC2. Once instantiated, it takes about 1
-second to assign a job to a VM on Eucalyptus, or EC2.  It is a
-configurable option to tie the VM lifetime to the
-\texttt{job\_service} object lifetime, or not.
+Our image size is ... \jhanote{fix and provide details}
 
-... Due to space limitations we will not discuss the
-performance data of \sagamapreduce with different data-set sizes and
-varying worker numbers.
+It takes SAGA about 45 seconds to instantiate a VM on Eucalyptus
+\jhanote{Andre is this still true?}  and about 100 seconds on average
+on EC2.  We find that the size of the image (say 5GB versus 20GB)
+influences the time to instantiate an image EC2 somewhat, but is a
+within instance-to-instance fluctuation.
+
+Once instantiated, it takes about 1 second to assign a job to a VM on
+Eucalyptus, or EC2.  It is a configurable option to tie the VM
+lifetime to the \texttt{job\_service} object lifetime, or not.  It is
+also a matter of simple configuration to determine how many jobs (in
+this case workers) are assigned to a single VM. The default case is 1
+worker per VM, but it is important to be able to vary the number of
+workers per VM (just like in the Grid case we were able to vary the
+number of workers per machine). 
+
+% Due to space limitations we will not discuss the
+% performance data of \sagamapreduce with different data-set sizes and
+% varying worker numbers.
 
 \subsubsection{Performance} The total time to completion ($T_c$) of a
 \sagamapreduce job, can be decomposed into three primary components:
 $t_{pp}$ defined as the time for pre-processing -- which in this case
 is the time to chunk into fixed size data units, and to possibly
 distribute them. This is in some ways the overhead of the process.
-$t_{comp}$ is the time to actually compute the map and reduce function
-on a given worker, whilst $t_{coord}$ is the time taken to assign the
-payload to a worker, update records and to possibly move workers to a
-destination resource. $t_{coord}$ is indicative of the time that it
-takes to assign chunks to workers and scales as the number of workers
+Another component of the overhead is the time it takes to instantiate
+a VM. It is worth mentioning that currently we instantiate VMs
+serially as opposed to doing this concurrently. This is not a design
+decision but just a quirk, with a trivial fix to eliminate it.  Our
+performance figures take the net instantiation time into account and
+thus normalize for multiple VM instantiation -- whether serial or
+concurrent. In other words, we will report figures where specific
+start-up times have been removed and thus numbers indicate relative
+performance and are amenable to direct comparision.  $t_{comp}$ is the
+time to actually compute the map and reduce function on a given
+worker, whilst $t_{coord}$ is the time taken to assign the payload to
+a worker, update records and to possibly move workers to a destination
+resource. $t_{coord}$ is indicative of the time that it takes to
+assign chunks to workers and scales as the number of workers
 increases. In general:
 
 \vspace{-1em}
 \begin{eqnarray}
 T_c = t_{pp} + t_{comp} + t_{coord}
 \end{eqnarray}
-
-To establish the effectiveness of SAGA as a mechanism to develop
-distributed applications, and the ability of \sagamapreduce to be
-provide flexibility in distributing compute units, we have designed
-the following experiment set\footnote{We have also distinguished
-  between SAGA All-Pairs using Advert Service versus using HBase or
-  Bigtable as distributed data-store, but due to space constraints we
-  will report results of the All-Pairs experiments elsewhere.}  :
 
 
 % \subsubsection{}
