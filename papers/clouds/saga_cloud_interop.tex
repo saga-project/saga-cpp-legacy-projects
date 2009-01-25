@@ -276,9 +276,6 @@ with the responsibilty of explicitly determining which resource is
 optimal. Clearly interoperability between Clouds and Grids is an
 important pre-requisite.
 
-
-\section*{Notes}
-
 %\subsubsection*{Why Interoperability:}
 %\begin{itemize}
 % \item Intellectual curiosity, what programming challenges does this 
@@ -293,21 +290,21 @@ important pre-requisite.
 %   require explicity (already discussed)
 % \end{itemize}
 
-\subsubsection*{Grid vs Cloud Interoperabiltiy}
-
-\begin{itemize}
-\item Clouds provide services at different levels (Iaas, PaaS, SaaS);
-  standard interfaces to these different levels do not
-  exist. Immediate Consequence of this is the lack of interoperability
-  between today's Clouds; though there is little buisness motivation
-  for Cloud providers to define, implement and support new/standard
-  interfaces, there is a case to be made that applications would
-  benefit from multiple Cloud interoperability.  Even better if
-  Cloud-Grid interoperabilty came about for free!
-\item How does Interoperabiltiy in Grids differ from interop on
-  Clouds.  Many details, but if taken from the Application level
-  interoperabiltiy the differences are minor and inconsequential.
-\end{itemize}
+% \section*{Notes}
+% \subsubsection*{Grid vs Cloud Interoperabiltiy}
+% \begin{itemize}
+% \item Clouds provide services at different levels (Iaas, PaaS, SaaS);
+%   standard interfaces to these different levels do not
+%   exist. Immediate Consequence of this is the lack of interoperability
+%   between today's Clouds; though there is little buisness motivation
+%   for Cloud providers to define, implement and support new/standard
+%   interfaces, there is a case to be made that applications would
+%   benefit from multiple Cloud interoperability.  Even better if
+%   Cloud-Grid interoperabilty came about for free!
+% \item How does Interoperabiltiy in Grids differ from interop on
+%   Clouds.  Many details, but if taken from the Application level
+%   interoperabiltiy the differences are minor and inconsequential.
+% \end{itemize}
 
 \section{SAGA}  {\textcolor{blue} {SJ}}
 
@@ -347,116 +344,47 @@ library, which provides dynamic support for run-time environment
 decision making through loading relevant adaptors. We will not discuss
 details of SAGA here; details can be found elsewhere~\cite{saga_url}.
 
+\section{Interfacing SAGA to Grids and Clouds}
+
 \subsection{SAGA: An interface to Clouds and Grids}{\bf AM}
 
-\subsection{Maybe  a subsection or a paragraph on the role of Adaptors} {\textcolor{blue} {KS}}
-%Forward reference the section on the role of adaptors.. 
+As mentioned in the previous section SAGA was originally developed for
+Grids and that too mostly for compute intensive application. This was
+as much a design decision as it was user-driven, i.e., the majority of
+applications that motivated the design and formulation of version 1.0
+of the API were HPC applications attempting to utilize distributed
+resources.  Ref~\cite{saga_ccgrid09} demonstrated that in spite of its
+original design constraints, SAGA can be used to control
+data-intensive applications in diverse distributed environments,
+including Clouds.  This in part is due to the fact that the
+``distributed functionality'' required remains the same -- namely the
+ability to submit jobs to different back-ends, the ability to move
+files between distributed resources etc. Admittedly, and as we will
+discuss, the semantics of, say the basic {\texttt job\_submit()}
+changes in going from Grid enviroments to Cloud environments, but the
+application remains oblivious of these changes and does not need to be
+refactored. Specifically, {\texttt job\_submit()} when used in a Cloud
+context results in the creation of a virtual machine instance and the
+assignment of a job to that virtual machine; on the other hand, in the
+context of Grids, {\texttt job\_submit()} results in the creation of a
+job via a service and submission to GRAM style gatekeeper. In the
+former the virtual machine is assigned to the saga::job and ...  In a
+nutshell, this is the power of a high-level interface such as SAGA and
+upon which the capability of interoperability is based.
 
-\section{Interfacing SAGA to Grids and Clouds: The role of Adaptors}
+\subsection{The Role of Adaptors} {\textcolor{blue} {AM}}
 
-\jhanote{The aim of this section is to discuss how SAGA on Clouds
-  differs from SAGA for Grids. Everything from i) job submission ii)
-  file transfer...}
+So how in spite of the significant change of the semantics does SAGA
+keep the application immune to change? The basic feature that enables
+this is a context-aware adaptor that is dynamically loaded....
+\jhanote{The aim of the remainder of this section is to discuss how
+  SAGA on Clouds differs from SAGA for Grids with specifics Everything
+  from i) job submission ii) file transfer...iii) others..}
 
-As alluded to, there is a proliferation of Clouds and Cloud-like
-systems, but it is important to remember that ``what constitutes or
-does not constitute a Cloud'' is not universally agreed upon.  However
-there are several aspects and attributes of Cloud systems that are
-generally agreed upon~\cite{buyya_hpcc}...
-
-% Here we will by necessity
-% limit our discussion to two type of distributed file-systems (HDFS and
-% KFS) and two types of distributed structured-data store (Bigtable and
-% HBase). We have developed SAGA adaptors for these, have used
-% \sagamapreduce (and All-Pairs) seamlessly on these infrastructure.
-
-% {\it HDFS and KFS: } HDFS is a distributed parallel fault tolerant
-% application that handles the details of spreading data across multiple
-% machines in a traditional hierarchical file organization.  Implemented
-% in Java, HDFS is designed to run on commodity hardware while providing
-% scalability and optimizations for large files.  The FS works by having
-% one or two namenodes (masters) and many rack-aware datanodes (slaves).
-% All data requests go through the namenode that uses block operations
-% on each data node to properly assemble the data for the requesting
-% application.  The goal of replication and rack-awareness is to improve
-% reliability and data retrieval time based on locality.  In data
-% intensive applications, these qualities are essential. KFS (also
-% called CloudStore) is an open-source high-performance distributed FS
-% implemented in C++, with many of the same design features as HDFS.
-
-% There exist many other implementations of both distributed FS (such as
-% Sector) and of distributed data-store (such as Cassandra and
-% Hybertable); for the most part they are variants on the same theme
-% technically, but with different language and performance criteria
-% optimizations.  Hypertable is an open-source implementation of
-% Bigtable; Cassandra is a Bigtable clone but eschews an explicit
-% coordinator (Bigtable's Chubby, HBase's HMaster, Hypertable's
-% Hyperspace) for a P2P/DHT approach for data distribution and location
-% and for availability.  In the near future we will be providing
-% adaptors for Sector\footnote{http://sector.sourceforge.net/} and
-% Cassandra\footnote{http://code.google.com/p/the-cassandra-project/}.
-% And although Fig.~\ref{saga_figure} explicitly maps out different
-% functional areas for which SAGA adaptors exist, there can be multiple
-% adaptors (for different systems) that implement that functionality;
-% the SAGA run-time dynamically loads the correct adaptor, thus
-% providing both an effective abstraction layer as well as an
-% interesting means of providing interoperability between different
-% Cloud-like infrastructure.  As testimony to the power of SAGA, the
-% ability to create the relevant adaptors in a lightweight fashion and
-% thus extend applications to different systems with minimal overhead is
-% an important design feature and a significant requirement so as to be
-% an effective programming abstraction layer.
 
 \subsection{Clouds Adaptors: Design and Implementation}
 
 
-{\bf SAGA-MapReduce on Clouds: } Thanks to the low overhead of
-developing adaptors, SAGA has been deployed on three Cloud Systems --
-Amazon, Nimbus~\cite{nimbus} and Eucalyptus~\cite{eucalyptus} (we have
-a local installation of Eucalyptus, referred to as GumboCloud).  On
-EC2, we created custom virtual machine (VM) image with preinstalled
-SAGA.  For Eucalyptus and Nimbus, a boot strapping script equips a
-standard VM instance with SAGA, and SAGA's prerequisites (mainly
-boost).  To us, a mixed approach seemed most favourable, where the
-bulk software installation is statically done via a custom VM image,
-but software configuration and application deployment are done
-dynamically during VM startup.
-
-There are several aspects to Cloud Interoperability. A simple form of
-interoperability -- more akin to inter-changeable -- is that any
-application can use either of the three Clouds systems without any
-changes to the application: the application simply needs to
-instantiate a different set of security credentials for the respective
-runtime environment, aka cloud.  Interestingly, SAGA provides this level of
-interoperability quite trivially thanks to the adaptors.
-
-By almost trivial extension, SAGA also provides Grid-Cloud
-interoperability, as shown in Fig.~\ref{gramjob} and ~\ref{vmjob},
-where exactly the same interface and functional calls lead to job
-submission on Grids or on Clouds. Although syntactically identical,
-the semantics of the calls and back-end management are somewhat
-different.  For example, for Grids, a \texttt{job\_service} instance
-represents a live job submission endpoint, whilst for Clouds it
-represents a VM instance created on the fly.  It takes SAGA about 45
-seconds to instantiate a VM on Eucalyptus, and about 90 seconds on
-EC2. Once instantiated, it takes about 1 second to assign a job to a
-VM on Eucalyptus, or EC2.  It is a configurable option to tie the VM
-lifetime to the \texttt{job\_service} object lifetime, or not.
-
-We have also deployed \sagamapreduce to work on Cloud platforms.  It
-is critical to mention that the \sagamapreduce code did not undergo
-any changes whatsoever. The change lies in the run-time system and
-deployment architecture. For example, when running \sagamapreduce on
-EC2, the master process resides on one VM, while workers reside on
-different VMs.  Depending on the available adaptors, Master and Worker
-can either perform local I/O on a global/distributed file system, or
-remote I/O on a remote, non-shared file systems.  In our current
-implementation, the VMs hosting the master and workers share the same
-ssh credentials and a shared file-system (using sshfs/FUSE).
-Application deployment and configuration (as discussed above) are also
-performed via that sshfs.  Due to space limitations we will not
-discuss the performance data of \sagamapreduce with different data-set
-sizes and varying worker numbers.
 
 \begin{figure}[!ht]
 \upp
@@ -559,40 +487,17 @@ sizes and varying worker numbers.
 % advantage, as shown by the values of $T_c$ for both distributed
 % compute and DFS cases in Table~\ref{exp4and5}.
 
-
-
-
-
 \section{SAGA-based MapReduce}
 
 In this paper we will demonstrate the use of SAGA in implementing well
 known programming patterns for data intensive computing.
-Specifically, we have implemented MapReduce and the
-All-Pairs~\cite{allpairs_short} patterns, and have used their
-implementations in SAGA to to solve commonly encountered genomic
-tasks.  We have also developed real scientific applications using SAGA
-based implementations of these patterns: multiple sequence alignment
-can be orchestrated using the SAGA-All-pairs implementation, and
-genome searching can be implemented using SAGA-MapReduce.
+Specifically, we have implemented MapReduce; we have also developed
+real scientific applications using SAGA based implementations of these
+patterns: multiple sequence alignment can be orchestrated using the
+SAGA-All-pairs implementation, and genome searching can be implemented
+using SAGA-MapReduce.
 
-\jhanote{Only if space permits: We will discuss other performance
-  issues that arise when implementing abstractions specific for
-  data-intensive computing.  A grid application's design should not
-  focus on the bandwidth of the network, the dispatch latency, the
-  number of machines available, and data reliability.  Even something
-  as simple as process size can be a tough challenge to optimize.  If
-  a job is too small, then network traffic becomes a bottleneck and
-  the design is inefficient.  If a job is too large, it is difficult
-  to tell when it is hanging or still computing.  Also, if another job
-  with a higher priority takes a machine over, the application will be
-  waiting on jobs longer.  The main point of this paper is to show how
-  a flexible, extensible implementation of programming data-intensive
-  abstractions using SAGA can shield the application developer from
-  many of these considerations, while still providing the
-  sophisticated end-user the ability to control these performance and
-  cost critical/determining factors.}
-
-{\bf MapReduce: } MapReduce~\cite{mapreduce-paper} is a programming
+{\bf MapReduce:} MapReduce~\cite{mapreduce-paper} is a programming
 framework which supports applications which operate on very large data
 sets on clusters of computers.  MapReduce relies on a number of
 capabilities of the underlying system, most related to file
@@ -686,55 +591,6 @@ output elements (here: the word and its overall count). All key/value
 pairs that are passed to |emit| will be combined by the framework into
 a single output file.
 
-% \begin{figure}[!ht]
-%  \begin{center}
-%   \begin{mycode}[label=SAGA MapReduce Word Count Algorithm]
-%   // Counting words using SAGA-MapReduce
-%   using namespace std;
-%   using namespace boost;
-
-%   class CountWords 
-%     : public MapReduceBase<CountWords> {
-%   public:
-%     CountWords(int argc, char *argv[]) 
-%       : MapReduceBase<CountWords>(argc, argv) 
-%     {}
-
-%     // Separate input into words
-%     // Input:  url of input chunk (chk)
-%     // Output: separated words and associated 
-%     //         data (here: '1')
-%     void map(saga::url chk) {
-%       using namespace boost::iostreams;
-%       stream<saga_file_device> in(chk.str());
-%       string elem;
-%       while(in >> elem) 
-%         emitIntermediate(elem, "1");
-%     } 
-
-%     // Count words
-%     // Input:  word to count (key)
-%     //         list of associated data items
-%     // Output: words and their count
-%     void reduce(string const& key, 
-%       vector<string> const& values) {
-%       typedef vector<string>::iterator iter;
-
-%       int result = 0;
-%       iter end = values.end();
-%       for (iter it = values.begin(); 
-%            it != end; ++it) {
-%         result += lexical_cast<int>(*it);
-%       }
-%       emit(key, lexical_cast<string>(result));
-%     }
-%   };
-%   \end{mycode}
-%   \caption{\label{src:saga-mapreduce} Counting word frequencies using
-%     SAGA-MapReduce. This is the worker-side code.}
-%  \end{center}
-% \end{figure}
-
 As shown in Fig.~\ref{saga-mapreduce_controlflow} both, the master and
 the worker processes use the SAGA-API as an abstract interface to the
 used infrastructure, making the application portable between different
@@ -754,45 +610,18 @@ recognized by a distributed File-System (FS) such as Hadoop-FS
 package, which supports a range of different FS and transfer
 protocols, such as local-FS, Globus/GridFTP, KFS, and HDFS.
 
-% {\bf All-Pairs: } As the name suggests, All-Pairs involve comparing
-% every element in a set to every element in another set.  Such a
-% pattern is pervasive and finds utility in many domains -- including
-% testing the validity of an algorithm, or finding an anomaly in a
-% configuration.  For example, the accepted method for testing the
-% strength of a facial recognition algorithm is to use All-Pairs
-% testing.  This creates a similarity matrix, and because it is known
-% which images are the same person, the matrix can show the accuracy of
-% the algorithm.
 
-% {\bf SAGA All-Pairs Implementation: } SAGA All-pairs implementation
-% is very similar to \sagamapreduce implementation.  The main
-% difference is in the way jobs are run and how the data are stored.
-% In \sagamapreduce the final data is stored on many machines -- if
-% there is a DFS available, whereas SAGA All-pairs uses the database
-% to also store information about the job.  We decided to do this
-% because all data must be available to be useful. We demonstrate the
-% SAGA All-Pairs abstraction using the HDFS and GridFTP to not only
-% show that SAGA allows for many different configurations, but also to
-% see how these different configurations behave. We have also used a
-% distributed data-store -- specifically HBase (Yahoo's implementation
-% of Bigtable) in lieu of the traditional Advert Service to store the
-% end-results.
+\section{SAGA-MapReduce on Clouds and Grids}
 
-% {\it Multiple Sequence Alignment Using All-Pairs:} % All-Pairs is
-% An important problem in Bioinformatics -- Multiple Sequence Alignment
-% (MSA), can be reformulated to use All-Pairs pattern. It uses a
-% comparison matrix as a reference to compare many fragment genes to
-% many base genes.  Each fragment is compared to every base gene to find
-% the smallest distance -- maximum overlap.  Distance is computed by
-% summing up the amount of similarity between each nucleotide of the
-% fragment to each one in the base.  This is done starting at every
-% point possible on the base.
+... Thanks to the low overhead of developing adaptors, SAGA has been
+deployed on three Cloud Systems -- Amazon, Nimbus~\cite{nimbus} and
+Eucalyptus~\cite{eucalyptus} (we have a local installation of
+Eucalyptus, referred to as GumboCloud).  In this paper, we focus on
+EC2 and Eucalyptus.
 
 
-\section{Demonstrating Cloud-Grid Interoperabilty}
-
-\subsection*{Infrastructure Used} We first describe the 
-infrastructure that we employ for the interoperabilty tests.
+\subsection*{Infrastructure Used} We first describe the infrastructure
+that we employ for the interoperabilty tests.
 
 {\it Amazon EC2:}
 
@@ -802,11 +631,55 @@ infrastructure that we employ for the interoperabilty tests.
 
 And describe LONI in a few sentences.  {\textcolor{blue}{KS}}
 
-In an earlier paper (Ref~\cite{saga_ccgrid09}), we had carried out the
-following tests, to demonstrate how \sagamapreduce utilizes different
-infrastructrure and control over task-data placement, and gain insight
-into performance on ``vanilla'' Grids. Some specific tests we
-performed are:
+
+\subsection{Deployment Details}
+
+We have also deployed \sagamapreduce to work on Cloud platforms.  It
+is critical to mention that the \sagamapreduce code did not undergo
+any changes whatsoever. The change lies in the run-time system and
+deployment architecture. For example, when running \sagamapreduce on
+EC2, the master process resides on one VM, while workers reside on
+different VMs.  Depending on the available adaptors, Master and Worker
+can either perform local I/O on a global/distributed file system, or
+remote I/O on a remote, non-shared file systems.  In our current
+implementation, the VMs hosting the master and workers share the same
+ssh credentials and a shared file-system (using sshfs/FUSE).
+Application deployment and configuration (as discussed above) are also
+performed via that sshfs.  \jhanote{Andre, Kate please add on the
+  above..}
+
+On EC2, we created custom virtual machine (VM) image with
+pre-installed SAGA.  For Eucalyptus, a boot strapping script equips a
+standard VM instance with SAGA, and SAGA's prerequisites (mainly
+boost).  To us, a mixed approach seemed most favourable, where the
+bulk software installation is statically done via a custom VM image,
+but software configuration and application deployment are done
+dynamically during VM startup.  \jhanote{more details here}
+
+
+\subsection{Demonstrating Cloud-Grid Interoperabilty}
+
+There are several aspects to Cloud Interoperability. A simple form of
+interoperability -- more akin to inter-changeable -- is that any
+application can use either of the three Clouds systems without any
+changes to the application: the application simply needs to
+instantiate a different set of security credentials for the respective
+runtime environment, aka cloud.  Interestingly, SAGA provides this
+level of interoperability quite trivially thanks to the adaptors.  By
+almost trivial extension, SAGA also provides Grid-Cloud
+interoperability, as shown in Fig.~\ref{gramjob} and ~\ref{vmjob},
+where exactly the same interface and functional calls lead to job
+submission on Grids or on Clouds. Although syntactically identical,
+the semantics of the calls and back-end management are somewhat
+different.  For example, for Grids, a \texttt{job\_service} instance
+represents a live job submission endpoint, whilst for Clouds it
+represents a VM instance created on the fly. 
+
+\subsection{Experiments} In an earlier paper
+(Ref~\cite{saga_ccgrid09}), we had carried out the following tests, to
+demonstrate how \sagamapreduce utilizes different infrastructrure and
+control over task-data placement, and gain insight into performance on
+``vanilla'' Grids. Some specific tests we performed are:
 \begin{enumerate}
 \item We began by distributing \sagamapreduce workers (compute) and
   the data they operate on locally. We varied the number of workers
@@ -843,9 +716,19 @@ In this paper, we do the following:
 \end{enumerate}
 
 
-\subsection*{Results}
+\subsubsection{Results}
 
-\subsection{Performance} The total time to completion ($T_c$) of a
+.... It takes SAGA about 45 seconds to instantiate a VM on Eucalyptus,
+and about 90 seconds on EC2. Once instantiated, it takes about 1
+second to assign a job to a VM on Eucalyptus, or EC2.  It is a
+configurable option to tie the VM lifetime to the
+\texttt{job\_service} object lifetime, or not.
+
+... Due to space limitations we will not discuss the
+performance data of \sagamapreduce with different data-set sizes and
+varying worker numbers.
+
+\subsubsection{Performance} The total time to completion ($T_c$) of a
 \sagamapreduce job, can be decomposed into three primary components:
 $t_{pp}$ defined as the time for pre-processing -- which in this case
 is the time to chunk into fixed size data units, and to possibly
@@ -978,8 +861,6 @@ calls provided by these interfaces is no guarantee of simplicity of
 use, but is a strong indicator of the extent of system semantics
 exposed.
 
-
-
 \section{Conclusion}
 
 We have demonstrated the power of SAGA as a programming interface and
@@ -1000,8 +881,7 @@ Patterns capture a dominant and recurring computational mode; by
 providing explicit support for such patterns, end-users and domain
 scientists can reformulate their scientific problems/applications so
 as to use these patterns.  This provides further motivation for
-abstractions at multiple-levels. 
-
+abstractions at multiple-levels.
 
 \section{Acknowledgments}
 
@@ -1010,10 +890,13 @@ SAGA and the e-Science Institute, Edinburgh for the research theme,
 ``Distributed Programming Abstractions''.  This work would not have
 been possible without the efforts and support of other members of the
 SAGA team.  In particular, \sagamapreduce was written by Chris and
-Michael Miceli with assistance from Hartmut Kaiser.  We also
-acknowledge internal resources of the Center for Computation \&
-Technology (CCT) at LSU and computer resources provided by LONI.
-\bibliographystyle{plain} \bibliography{saga_data_intensive}
+Michael Miceli with assistance from Hartmut Kaiser; we also thank
+Hartmut for great support during the testing and deployment phases of
+this project. We are greatful to Dmitrii Zagorodnov (UCSB) and Archit
+Kulshrestha (CyD group, CCT) for the support in deployment with
+Eucalyptus.  We also acknowledge internal resources of the Center for
+Computation \& Technology (CCT) at LSU and computer resources provided
+by LONI.  \bibliographystyle{plain} \bibliography{saga_data_intensive}
 \end{document}
 
 \jhanote{We begin with the observation that the efficiency of
@@ -1058,3 +941,45 @@ Technology (CCT) at LSU and computer resources provided by LONI.
   does change, we do not expect it to scale by a factor of 5, while we
   do expect $t_{comp}$ to do so.
 
+% Here we will by necessity
+% limit our discussion to two type of distributed file-systems (HDFS and
+% KFS) and two types of distributed structured-data store (Bigtable and
+% HBase). We have developed SAGA adaptors for these, have used
+% \sagamapreduce (and All-Pairs) seamlessly on these infrastructure.
+
+% {\it HDFS and KFS: } HDFS is a distributed parallel fault tolerant
+% application that handles the details of spreading data across multiple
+% machines in a traditional hierarchical file organization.  Implemented
+% in Java, HDFS is designed to run on commodity hardware while providing
+% scalability and optimizations for large files.  The FS works by having
+% one or two namenodes (masters) and many rack-aware datanodes (slaves).
+% All data requests go through the namenode that uses block operations
+% on each data node to properly assemble the data for the requesting
+% application.  The goal of replication and rack-awareness is to improve
+% reliability and data retrieval time based on locality.  In data
+% intensive applications, these qualities are essential. KFS (also
+% called CloudStore) is an open-source high-performance distributed FS
+% implemented in C++, with many of the same design features as HDFS.
+
+% There exist many other implementations of both distributed FS (such as
+% Sector) and of distributed data-store (such as Cassandra and
+% Hybertable); for the most part they are variants on the same theme
+% technically, but with different language and performance criteria
+% optimizations.  Hypertable is an open-source implementation of
+% Bigtable; Cassandra is a Bigtable clone but eschews an explicit
+% coordinator (Bigtable's Chubby, HBase's HMaster, Hypertable's
+% Hyperspace) for a P2P/DHT approach for data distribution and location
+% and for availability.  In the near future we will be providing
+% adaptors for Sector\footnote{http://sector.sourceforge.net/} and
+% Cassandra\footnote{http://code.google.com/p/the-cassandra-project/}.
+% And although Fig.~\ref{saga_figure} explicitly maps out different
+% functional areas for which SAGA adaptors exist, there can be multiple
+% adaptors (for different systems) that implement that functionality;
+% the SAGA run-time dynamically loads the correct adaptor, thus
+% providing both an effective abstraction layer as well as an
+% interesting means of providing interoperability between different
+% Cloud-like infrastructure.  As testimony to the power of SAGA, the
+% ability to create the relevant adaptors in a lightweight fashion and
+% thus extend applications to different systems with minimal overhead is
+% an important design feature and a significant requirement so as to be
+% an effective programming abstraction layer.
