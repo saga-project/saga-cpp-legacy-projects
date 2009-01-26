@@ -371,8 +371,8 @@ decision making through loading relevant adaptors. We will not discuss
 details of SAGA here; details can be found elsewhere~\cite{saga_url}.
 
 \section{Interfacing SAGA to Grids and Clouds}
+%\subsection{SAGA: An interface to Clouds and Grids}
 
-\subsection{SAGA: An interface to Clouds and Grids}
 As mentioned in the previous section SAGA was originally developed for
 Grids and that too mostly for compute intensive application. This was
 as much a design decision as it was user-driven, i.e., the majority of
@@ -397,15 +397,17 @@ former the virtual machine is assigned to the saga::job and ...  In a
 nutshell, this is the power of a high-level interface such as SAGA and
 upon which the capability of interoperability is based.
 
-\subsection{The Role of Adaptors} 
+%\subsection{The Role of Adaptors} 
 
 So how in spite of the significant change of the semantics does SAGA
 keep the application immune to change? The basic feature that enables
 this is a context-aware adaptor that is dynamically loaded....
-\jhanote{The aim of the remainder of this section is to discuss how
-  SAGA on Clouds differs from SAGA for Grids with specifics Everything
-  from i) job submission ii) file transfer...iii) others..}
 
+
+In the remainder of this section, we will describe how, through 
+the creation of a small set of simple {\it adaptors}, the primarly
+functionality of most applications is supported on Clouds. Needless
+to say, there will be Cloud-specific adaptors too.
 
 \subsection{Clouds Adaptors: Design and Implementation}
 
@@ -724,6 +726,31 @@ this is a context-aware adaptor that is dynamically loaded....
 % advantage, as shown by the values of $T_c$ for both distributed
 % compute and DFS cases in Table~\ref{exp4and5}.
 
+ \subsection{Globus Adaptors}
+
+  SAGA's Globus adaptor suite belongs is amongst the most-utilized
+  adaptors.  As with ssh, security credentials are expected to be
+  managed out-of-bounds, but different credentials can be utilized by
+  pointing \T{saga::context} instances to them as needed.  Other than
+  the aws and ssh adaptors, the Globus adaptors do not rely on command
+  line tools, but rather link directly against the respective Globus
+  libraries: the Globus job adaptor is thus a gram client, the Globus
+  file adaptor a gridftp client.
+
+  In the presented experiments, non-cloud jobs have been started
+  either by using gram or ssh.  In either case, file I/O has been
+  performed either via ssh, or via a shared Lustre filesystem -- the
+  gridftp functionality has thus not been tested in these
+  experiments\footnote{For performance comparision between the Lustre
+    FS and GridFTP, see\ref{micelis}.}.
+
+
+In a nutshell, SAGA on clouds differe from SAGA on Grids in the
+following ways.....  \jhanote{The aim of the remainder of this section
+  is to discuss how SAGA on Clouds differs from SAGA for Grids with
+  specifics Everything from i) job submission ii) file transfer...iii)
+  others..}
+
 \section{SAGA-based MapReduce}
 
 In this paper we will demonstrate the use of SAGA in implementing well
@@ -847,7 +874,102 @@ recognized by a distributed File-System (FS) such as Hadoop-FS
 package, which supports a range of different FS and transfer
 protocols, such as local-FS, Globus/GridFTP, KFS, and HDFS.
 
+\subsection{Application Set Up}
+The single most prominent feature of ous SAGA based MapReduce
+implementation is the ability to run the application withoude code
+changes in a wide range of infrastructures, such as clusters, Grids,
+Clouds, and in fact any other local or distributed compute system
+which can be accessed by the respective set of SAGA adaptors.  When
+deploying compute clients on a \I{diverse} set of remote nodes, the
+question arises if and how these clients need to be configured to
+function properly in the overall application scheme.
 
+ Our MapReduce compute clients (aka 'workers') require two 
+ pieces of information to function: (a) the contact address of the
+ advert service used for coordinating the clients, and for
+ distributing work items to them; and (b) a unique worker ID to
+ register with in that advert service, so that the master can start to
+ assign work items.  Both information are provided via command line
+ parameters to the worker, at startup time.
+
+ The master application requires a number of additional information:
+ it needs a set of systems where the workers are supposed to be
+ running, the location of the input data, the location of the output
+ data, and also the contact point for the advert service for
+ coordination and communication.
+
+%  A typical configuration file looks like this (slightly shortened for
+%  presentation):
+
+%  \verb|
+%   <?xml version="1.0" encoding="..."?>
+%   <MRDL version="1.0" xmlns="..." xmlns:xsi="..."
+    
+%     <MapReduceSession name="WordCount" ...>
+  
+%       <OrchestratorDB>
+%         <Host> advert://fortytwo.cct.lsu.edu/ </Host>
+%       </OrchestratorDB>
+  
+%       <TargetHosts>
+%         <Host OS="globus" ...> gram://qb1.loni.org:2119/jobmanager-pbs </Host>
+%         <Host OS="ec2" ...>    ec2://i-760c8c1f/                       </Host>
+%         <Host OS="ec2" ...>    ec2://                                  </Host>
+%       </TargetHosts>
+  
+%       <ApplicationBinaries>
+%         <BinaryImage arch="i386" OS="globus" ...> /lustre/merzky/saga/bin/mapreduce_worker </BinaryImage>
+%         <BinaryImage arch="i386" OS="ec2"    ...> /usr/local/saga/bin/mapreduce_worker     </BinaryImage>
+%       </ApplicationBinaries>
+  
+%       <OutputPrefix>any://qb3.loni.org/lustre/merzky/mapreduce/</OutputPrefix>
+  
+%       <ApplicationFiles>
+%         <File> any://merzky@qb4.loni.org/lustre/merzky/mapreduce/1GB.txt </File>
+%       </ApplicationFiles>
+  
+%     </MapReduceSession>
+  
+%   </MRDL>
+%  |
+
+ In this example, we will create three worker instances: on is started
+ via gram and PBS on qb1.loni.org, one is started on a
+ pre-instantiared ec2 image (instance-id \T{i-760c8c1f}), and one will
+ be running on a dynamically deployed ec2 instance (no instance id
+ given).  Note that the startup times for the individual workers may
+ vary over several orders of magnitutes, depending on the PBS queue
+ waiting time and VM startup time.  The mapreduce master will start to
+ utilize workers as soon as they are able to register themselfs, so
+ will not wait until all workers are available.  That mechanism both
+ minimizes time-to-solution, and maximizes resilience against worker
+ loss.
+
+ The example configuration file above also includes another important
+ feature, in the  URL of the input data set, which is given as
+ \T{any://merzky@qb4.loni.org/lustre/merzky/mapreduce/1GB.txt}.  The
+ scheme \T{any} acts here as a placeholder for SAGA, so that the SAGA
+ engine can choose whatever adaptor fits the task best.  The master
+ would access the file via the default local file adaptor.  The Globus
+ clients may use either the GridFTP or ssh adaptor for remote file
+ success (but in our experimental setup would actually also suceed
+ with using the local file adaptor, as the lustre FS is mounted on the
+ cluster nodes), and the ec2 workers would use the ssh file adaptor
+ for remote access.  Thus, the use of the placeholder scheme frees us
+ from specifying and maintaining a concise list of remote data access
+ mechanisms per worker.  Also, it allows for additional resilience
+ against service errors and changing configurations, as it leaves it
+ up to the SAGA engine's adaptor selection mechanism to fund a
+ suitable access mechanism at runtime -- as we have seen above, the
+ globus nodes can utilize a variety of mechanisms for accessing the
+ data in question.
+
+ % include as needed
+ A parameter not shown in the above configuration example controls the
+ number of workers created on each compute node.  By increasing that
+ number, the chances are good that copute and communication times can
+ be interleaved, and that the overall system utilization can increase.
+ 
 \section{SAGA-MapReduce on Clouds and Grids}
 
 ... Thanks to the low overhead of developing adaptors, SAGA has been
@@ -867,6 +989,61 @@ that we employ for the interoperabilty tests.  \jhanote{Kate}
 {\it Eucalyptus, GumboCloud:}
 
 % And describe in a few sentences. 
+
+ In order to fully utilize cloud infrastructures for SAGA
+ applications, the VM instances need to fullfill a couple or
+ prerequisites: the SAGA libraries and its dependencies need to be
+ deployed, as need some external tools which are used by the SAGA
+ adaptors at runtime, such as ssh, scp, and sshfs.  The latter needs
+ the FUSE kernel module to function -- so if remote access to the
+ cloud compute node's file system is wanted, the respective kernel
+ module needs to be installed as well.
+
+ There are two basic options to achieve the above:  either a
+ customized VM image which includes the respecitve software is used;
+ or the respective packages are installed after VM instantiation, on
+ the fly.  Hybrid approaches are possible as well of course.
+
+ We support the runtime configuration of VM instances by staging a
+ preparation script to the VM after its creation, and executing it
+ with root permissions.  In particular for apt-get linux distribution,
+ the post-instantiation software deployment is actually fairly
+ painless, but naturally adds a significant amount of time to the
+ overall VM startup\footnote{The long VM startup times encourage the
+ use of SAGA's asynchronous operations.}.
+
+ For the presented experiments, we prepared custom VM images with all
+ prerequisites pre-installed.  We utilize the preparation script
+ solely for some fine tuning of parameters: for example, we are able
+ to deploy custom saga.ini files, or ensure the finalization of
+ service startups before application deployment\footnote{For example,
+ when starting SAGA applications are started befor the VM's random
+ generator is initialized, our current uuid generator fails to
+ function properly -- the preperation script checks for the
+ availability of proper uuids, and delays the application deployment
+ as needed.}.
+
+ % as needed:
+ Eucalyptus and Nimbus VM images \amnote{please confirm for Nimbus}
+ are basically customized Xen hypervisor images, as are amazons VM
+ images.  Customized means in this context that the images are
+ accompanied by a set of metadata which tie it to specific kernel and
+ ramdisk images.  Also, the images contain specific configurations and
+ startup services which allow the VM to bootstrap cleanly in the
+ respective Cloud enviroment, e.g. to obtain the enccessary user
+ credentials, and tp perform the wanted firewall setup etc.
+
+ As these systems all use Xen based images, a conversion of these
+ images for the different cloud systems should be straight forward.
+ The sparse documentation and lack of automatic tools, however, amount
+ to a certain challenge to that, at least to the average end user.
+ Compared to that, the derivation of customized images frim existing
+ images is well documented and tool supported, as long as the target
+ image is to be used in the same Cloud system as the original one.
+
+ % add text about gumbo cloud / EPC setup here, if we need / want it
+
+
 
 
 \subsection{Deployment Details}
@@ -1050,6 +1227,7 @@ T_c = t_{over} + t_{comp} + t_{coord}
   0 & 4 & 10 & 169.8 & 106.3 \\
   \hline 
   2 & 2 & 10 & 54.7 & 35.0 \\
+  3 & 3 & 10 & 135.7 & 106.9 \\
   4 & 4 &10 & 188.0 & 135.2 \\
   10 & 10 & 10 & 1037.5 & 830.0 \\
   \hline
@@ -1060,10 +1238,7 @@ T_c = t_{over} + t_{comp} + t_{coord}
   \hline \hline
 \end{tabular}
 \upp
-\caption{Performance data for different configurations of worker placements. The master is always on a desktop, with the choice of workers placed on either Clouds or on the TeraGrid (QueenBee). The configurations can be classified
-  as of three types -- all workers on EC2, all workers on the TeraGrid and workers divied between the TeraGrid and EC2. Every worker is assigned to a unique
-  VM. It is interesting to note the significant
-  spawning times, and its dependence on the number of VM. \jhanote{Andre you'll have to work with me to determine if I've parsed the data-files correctly} }
+\caption{Performance data for different configurations of worker placements. The master is always on a desktop, with the choice of workers placed on either Clouds or on the TeraGrid (QueenBee). The configurations can be classified as of three types -- all workers on EC2, all workers on the TeraGrid and workers divied between the TeraGrid and EC2. Every worker is assigned to a unique  VM. It is interesting to note the significant spawning times, and its dependence on the number of VM. \jhanote{Andre you'll have to work with me to determine if I've parsed the data-files correctly}}
 \label{stuff}
 \upp
 \upp
@@ -1102,10 +1277,12 @@ All this is new technology, hence makes sense to try to list some of
 the challenges we faced. We need to outline the interesting Cloud
 related challenges we encountered.  Not the low-level SAGA problems,
 but all issues related to making SAGA work on Clouds.
-{\textcolor{blue} Kate and Andre}
+\jhanote{Kate and Andre}
+
+\jhanote{we have been having many of andre's jobs fail. insight into
+  why? is it interesting to report?}
 
 \subsubsection*{Programming Models for Clouds}
-
 
 Programming Models Discuss affinity: Current Clouds compute-data
 affinity. How should they look like? What must they have?
