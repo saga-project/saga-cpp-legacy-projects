@@ -297,11 +297,11 @@ how moving prodigious amounts of data across Cloud networks, as
 opposed to moving the compute unit could be expensive; this is an
 example of using a given resource in the right-way. However in the
 absence of autonomic performance models and as current programming
-models don't provide explicit support/control for affinity, in the
-meantime, the end-user is left with performance management, and thus
-with the responsibilty of explicitly determining which resource is
-optimal. Clearly interoperability between Clouds and Grids is an
-important pre-requisite.
+models don't provide explicit support/control for
+affinity~\cite{jha_ccpe09}, in the meantime, the end-user is left with
+performance management, and thus with the responsibilty of explicitly
+determining which resource is optimal. Clearly interoperability
+between Clouds and Grids is an important pre-requisite.
 
 %\subsubsection*{Why Interoperability:}
 %\begin{itemize}
@@ -499,24 +499,50 @@ this is a context-aware adaptor that is dynamically loaded....
 
    For example, the following pseudo code would be possible
 
-   \begin{verbatim}
-   --- local application -------------------
-   saga::context c ("ssh", "$HOME/.ssh/my_ssh_key");
+\begin{figure}[!ht]
+\upp 
+ \begin{center}
+  \begin{mycode}[label=Stuff]
+   { // local application 
+   saga::context c ("ssh", "/home/user/.ssh/my_ssh_key");
    saga::session s (c);
 
    saga::job::service js (s, "ssh://remote.host.net");
-   saga::job::job     j = js.run_job ("saga-ls ssh://local.host.net/data/");
-   -----------------------------------------
+   saga::job::job j = js.run_job 
+                ("saga-ls ssh://local.host.net/data/");
 
-   --- remote application (saga-ls) --------
+   // remote application (saga-ls) --------
    saga::context c ("ssh"); // pick up defaults
    saga::session s (c);
 
    saga::filessystem::directory d (argv[1]);
    std::vector <saga::url> ls = d.list ();
-   ...
-   -----------------------------------------
-\end{verbatim}
+   ... 
+}
+  \end{mycode}
+  \caption{}
+ \end{center}
+\upp
+\end{figure}
+
+%    \begin{verbatim}
+%    --- local application -------------------
+%    saga::context c ("ssh", "$HOME/.ssh/my_ssh_key");
+%    saga::session s (c);
+
+%    saga::job::service js (s, "ssh://remote.host.net");
+%    saga::job::job     j = js.run_job ("saga-ls ssh://local.host.net/data/");
+%    -----------------------------------------
+
+%    --- remote application (saga-ls) --------
+%    saga::context c ("ssh"); // pick up defaults
+%    saga::session s (c);
+
+%    saga::filessystem::directory d (argv[1]);
+%    std::vector <saga::url> ls = d.list ();
+%    ...
+%    -----------------------------------------
+% \end{verbatim}
 
 
    The remote application would ultimately call \sshfs (see above) to
@@ -524,19 +550,17 @@ this is a context-aware adaptor that is dynamically loaded....
    to access that mounted file system for I/O.  The complete key
    management is transparent.
 
-
- 
  \subsection{AWS adaptors}
 
-  SAGA's AWS\footnote{\B{A}mazon \B{W}eb \B{S}ervices} adaptor suite
-  interfaces to services which implement the cloud web service
-  interfaces as specified by Amazon\ref{aws-devel-url}.  These
-  interfaces are not only used by Amazon to allow programmatic access
-  to their Cloud infrastructures EC2 and S3, amongst others, but are
-  also used by several other Cloud service providers, such as
-  Eucalyptus\ref{euca} and Nimbus\ref{nimbus}.  The AWS job adaptor is
-  thus able to interface to a variety of Cloud infrastructures, as
-  long as they adhere to the AWS interfaces.
+ SAGA's AWS\footnote{\B{A}mazon \B{W}eb \B{S}ervices} adaptor suite
+ interfaces to services which implement the cloud web service
+ interfaces as specified by Amazon\ref{aws-devel-url}.  These
+ interfaces are not only used by Amazon to allow programmatic access
+ to their Cloud infrastructures EC2 and S3, amongst others, but are
+ also used by several other Cloud service providers, such as
+ Eucalyptus\ref{euca} and Nimbus.  The AWS job adaptor is thus able to
+ interface to a variety of Cloud infrastructures, as long as they
+ adhere to the AWS interfaces.
 
   The AWS adaptors are not directly communication with the remote
   services, but instead rely on Amazon's set of java based command
@@ -601,7 +625,6 @@ this is a context-aware adaptor that is dynamically loaded....
   Reservation extensions, may have a more direct and explicit notion
   of resource lifetime management.
 
-
 \begin{figure}[!ht]
 \upp 
  \begin{center}
@@ -622,34 +645,6 @@ this is a context-aware adaptor that is dynamically loaded....
  \end{center}
 \upp
 \end{figure}
-
-
-% \begin{figure}[!ht]
-% \upp 
-%  \begin{center}
-%   \begin{mycode}[label=Stuff]
-%    --- local application -------------------
-%    saga::context c ("ssh", "$HOME/.ssh/my_\ssh_\key");
-%    saga::session s (c);
-
-%    saga::job::service js (s, "ssh://remote.host.net");
-%    saga::job::job     j = js.run_\job ("saga-ls ssh://local.host.net/data/");
-%    -----------------------------------------
-
-%    --- remote application (saga-ls) --------
-%    saga::context c ("ssh"); // pick up defaults
-%    saga::session s (c);
-
-%    saga::filessystem::directory d (argv[1]);
-%    std::vector <saga::url> ls = d.list ();
-%    ...
-%    -----------------------------------------
-%   \end{mycode}
-%   \caption{}
-%  \end{center}
-% \upp
-% \end{figure}
-
 
 \begin{figure}[!ht]
 \upp
@@ -865,7 +860,7 @@ EC2 and Eucalyptus.
 
 
 \subsection*{Infrastructure Used} We first describe the infrastructure
-that we employ for the interoperabilty tests.
+that we employ for the interoperabilty tests.  {\textcolor{blue}{KS}}
 
 {\it Amazon EC2:}
 
@@ -873,7 +868,7 @@ that we employ for the interoperabilty tests.
 
 {\it Eucalyptus, GumboCloud:}
 
-And describe LONI in a few sentences.  {\textcolor{blue}{KS}}
+% And describe in a few sentences. 
 
 
 \subsection{Deployment Details}
@@ -957,9 +952,9 @@ experiments:
 \item We then distribute the same number of workers across two
   different Clouds - EC2 and Eucalyptus.
 \item Finally, for a single master, we distribute workers across Grids
-  (LONI) and Clouds (EC2, with one job per VM). We compare the
-  performance from the two hybrid (EC2-Grid, EC2-Eucalyptus
-  distribution) cases to the pure distributed case.
+  (QB/TeraGrid) and Clouds (EC2, with one job per VM). We
+  compare the performance from the two hybrid (EC2-Grid,
+  EC2-Eucalyptus distribution) cases to the pure distributed case.
 % \item Distributed compute (workers) but using GridFTP for
 %   transfer. This corresponds to the case where workers are able to
 %   communicate directly with each other.  \jhanote{I doubt we will get
@@ -1049,14 +1044,21 @@ T_c = t_{pp} + t_{comp} + t_{coord}
   \multicolumn{2}{c}{Number-of-Workers}  &  data size   &  $T_c$  & $T_{spawn}$ \\   
   TeraGrid &  AWS &   (MB)  & (sec) & (sec)  \\
   \hline
-  6 & 0 & 10   &  153.5 & 103  \\
-  10 & 0 & 10  &  433.0  & 299 \\
-  2 & 2 & 10 & 54.76 & 35.0 \\
-  4 & 4 &10 & 188.0 & 135 \\
-  10 & 10 & 10 & 1037.5 & 830 \\
+  6 & 0 & 10   &  153.5 & 103.0  \\
+  10 & 0 & 10  &  433.0  & 299.0 \\
+  \hline 
+  0 & 1 & 10 & 18.5 & 7.7 \\
+  0 & 2 & 10 &  49.2 & 27.0 \\
+  \hline 
+  2 & 2 & 10 & 54.7 & 35.0 \\
+  4 & 4 &10 & 188.0 & 135.2 \\
+  10 & 10 & 10 & 1037.5 & 830.0 \\
   \hline
+  \hline 
+  0 & 2 & 100 & 62.1 & 27.8 \\
   0 & 10 & 100 &  845.0 & 632.0 \\
   1 & 1 & 100 & 29.04 & 9.79 \\
+
   \hline \hline
 \end{tabular}
 \upp
@@ -1106,14 +1108,8 @@ but all issues related to making SAGA work on Clouds.
 
 \subsubsection*{Programming Models for Clouds}
 
-\jhanote{Mention that Amazon and Eucalyptus although distinct are
-  somewhat similar; a very different beast is Google's AppEngine.  We
-  will in the near future be working towards providing \sagamapreduce
-  via Google's AppEngine}
-
   Programming Models Discuss affinity: Current Clouds
   compute-data affinity
-
 
 %Simplicity of Cloud interface:
 
@@ -1136,7 +1132,7 @@ For example, while certainly not true of all cases, consider the
 following numbers, which we believe represent the above points well:
 the Globus Toolkit Version 4.2 provides, in its Java version,
 approximately 2,000 distinct method calls.  The complete SAGA Core
-API~\cite{saga_gfd90} provides roughly 200 distinct method calls.  The
+API~\cite{saga-core} provides roughly 200 distinct method calls.  The
 SOAP rendering of the Amazon EC2 cloud interface provides,
 approximately 30 method calls (and similar for other Amazon Cloud
 interfaces, such as Eucalyptus~\cite{eucalyptus_url}).  The number of
@@ -1146,40 +1142,70 @@ exposed.
 
 \section{Conclusion}
 
-We have demonstrated the power of SAGA as a programming interface and
-as a mechanism for codifying computational patterns, such as
-MapReduce.  We have shown the power of abstractions for data-intensive
-computing by demonstrating how SAGA, whilst providing the required
-controls and supporting relevant programming models, can decouple the
-development of applications from the deployment and details of the
-run-time environment.
+% We have demonstrated the power of SAGA as a programming interface and
+% as a mechanism for codifying computational patterns, such as
+% MapReduce.  We have shown the power of abstractions for data-intensive
+% computing by demonstrating how SAGA, whilst providing the required
+% controls and supporting relevant programming models, 
 
-We have shown in this work how SAGA can be used to implement mapreduce
-which then can utilize a wide range of underlying infrastructure. This
-is one where how Grids will meet Clouds, though by now means the only
-way. What is critical about this approach is that the application
-remains insulated from any underlying changes in the infrastructure.
+% We have shown in this work how SAGA can be used to implement mapreduce
+% which can utilize a wide range of underlying infrastructure; in other
+% words, 
 
-Patterns capture a dominant and recurring computational mode; by
-providing explicit support for such patterns, end-users and domain
-scientists can reformulate their scientific problems/applications so
-as to use these patterns.  This provides further motivation for
-abstractions at multiple-levels.
+\sagamapreduce demonstrates how to decouple the development of
+applications from the deployment and details of the run-time
+environment.  It is critical to reiterate that using this approach the
+application remains insulated from any underlying changes in the
+infrastructure -- not just Grids and different middleware layers, but
+even with different systems with very different semantics and
+characteristics.  SAGA based application and tool development provides
+one way Grids and Clouds will converge.  It can be aruged that
+MapReduce has trivial data-parallelism; in the near future we will
+develop applications with non-trivial data-access, transfer and
+scheduling characteristics and deploy different parts on different
+underlying infrastructure based upon some optimality criteria.  Also,
+it can be argued that EC2 and Eucalyptus although distinct systems
+have similar interfaces, and thus the interoperabilty is somewhat
+contrived. Although we would like to preempt such a point-of-view, we
+will work towards developing a SAGA based applications that can use a
+very different beast -- Google's AppEngine, i.e. \sagamapreduce that
+uses Google's Cloud infrastructure.
+
+
+%   somewhat similar; a very different beast is Google's AppEngine.  We
+%   will in the near future be working towards providing \sagamapreduce
+%   via Google's AppEngine
+
+% {Mention that Amazon and Eucalyptus although distinct are
+%   somewhat similar; a very different beast is Google's AppEngine.  We
+%   will in the near future be working towards providing \sagamapreduce
+%   via Google's AppEngine}
+
+
+% Patterns capture a dominant and recurring computational mode; by
+% providing explicit support for such patterns, end-users and domain
+% scientists can reformulate their scientific problems/applications so
+% as to use these patterns.  This provides further motivation for
+% abstractions at multiple-levels.
+
 
 \section{Acknowledgments}
 
 SJ acknowledges UK EPSRC grant number GR/D0766171/1 for supporting
 SAGA and the e-Science Institute, Edinburgh for the research theme,
-``Distributed Programming Abstractions''.  This work would not have
-been possible without the efforts and support of other members of the
-SAGA team.  In particular, \sagamapreduce was written by Chris and
-Michael Miceli with assistance from Hartmut Kaiser; we also thank
-Hartmut for great support during the testing and deployment phases of
-this project. We are greatful to Dmitrii Zagorodnov (UCSB) and Archit
-Kulshrestha (CyD group, CCT) for the support in deployment with
-Eucalyptus.  We also acknowledge internal resources of the Center for
-Computation \& Technology (CCT) at LSU and computer resources provided
-by LONI.  \bibliographystyle{plain} \bibliography{saga_data_intensive}
+``Distributed Programming Abstractions''.  SJ also acknowledges
+financial support from NSF Grant Cybertools, and NIH INBRE Grant. This
+work would not have been possible without the efforts and support of
+other members of the SAGA team.  In particular, \sagamapreduce was
+originally written by Chris and Michael Miceli, as part of a Google
+Summer of Code Project, with assistance from Hartmut Kaiser. We also
+thank Hartmut for great support during the testing and deployment
+phases of this project. We are greatful to Dmitrii Zagorodnov (UCSB)
+and Archit Kulshrestha (CyD group, CCT) for the support in deployment
+with Eucalyptus.  We also acknowledge internal resources of the Center
+for Computation \& Technology (CCT) at LSU and computer resources
+provided by LONI/TeraGrid (QueenBee).  \bibliographystyle{plain}
+\bibliography{saga_data_intensive}
 \end{document}
 
 \jhanote{We begin with the observation that the efficiency of
