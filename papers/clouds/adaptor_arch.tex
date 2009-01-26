@@ -1,0 +1,216 @@
+
+\newcommand{\T}[1]{\texttt{#1}}\xspace
+\newcommand{\I}[1]{\textit{#1}}\xspace
+\newcommand{\B}[1]{\textbf{#1}}\xspace
+
+\newcommand{\ssh}[1]{\texttt{ssh}}\xspace
+\newcommand{\scp}[1]{\texttt{scp}}\xspace
+\newcommand{\sshfs}[1]{\texttt{sshfs}}\xspace
+
+ % this section describes how the adaptors used for the experiments
+ % have been implemented.  It assumes that the adaptor based
+ % architecture of SAGA has (shortly) been explained before.
+
+ The adaptor implementation for the presented Cloud-Grid
+ interoperabilty experiments is rather straight forward. 
+ 
+ This section describes the various sets of adaptors used for the
+ presented Cloud-Grid interoperabilty experiments.  
+
+
+ \subsection{Local Adaptors}
+
+  Although SAGA's default local adaptors have not much to do with the
+  rpesented experiments, its importance for the used implementation of
+  the various used remote adaptors will become clear later on.
+
+  The local job adaptor is utilizing \T{boost::process} (on Windows)
+  and plain \T{fork/exec} (on Unix derivates) to spawn, control and
+  watch local job instances.  The local file adaptor is using the
+  \T{boost::filesystem} classes for filesystem navigation, and
+  \T{std::fstream} for local file I/O. % 'nuf said? 
+
+
+ \subsection{SSH adaptors}
+
+  The SSH adaptors are based on three different command line tools,
+  namely \Tssh, \Tscp and \Tsshfs.  Further, all ssh adaptors rely on
+  the availability of ssh security credentials for remote operations.
+  The ssh context adaptor implements some mechanisms to (a) discover
+  available keypairs automatically, and (b) to verify the validity and
+  usability of the found and otherwise specified credentials.
+  
+  \ssh is used to spawn remote job instances.  For that, the ssh job
+  adaptor instanciates a \I{local} \T{saga::job::service} instance,
+  and submits the respective ssh command lines to it.  The local job
+  adaptor described above is then taking care of process I/O,
+  detachement, etc.
+
+  A significant drawback of that approach is that several SAGA methods
+  act upon the local ssh process instead of the remote application
+  instance.  That is clearly not wanted.  Some of these operations can
+  be mitigated to the remote hosts, via separate ssh calls, but that
+  process is complicated due to the fact that ssh is not reporting the
+  remote process ID back to the local job adaptor.  We circumvent that
+  problem by setting a uniquely identifying environment variable for
+  the remote process, which allows us to identify that
+  process\footnote{that scheme is not completely implemented, yet}.
+
+  \shfs is used to access remote files via ssh services.  \sshfs is a
+  user space file system driver which uses FUSE\ref{fuse}, and is
+  available for MacOS, Linux, and some other Unix derivates.  It
+  allows to mount a remote file system into the local namespace, and
+  transparently forwards all file access operations via ssh to the
+  remote host.  The ssh file adaptor uses the localo job adaptor to
+  call the sshfs process, to mount the remote filesystem, and then
+  forward all file access requests to the local file adaptor, which
+  operates on the locally mounted file system.  The ssh adaptor is
+  thereby translating URLs from the ssh namespace into the local
+  namespace, and back.
+
+  \scp is used by both the ssh job and file adaptor to transfer
+  utility scripts to the remote host, e.g. to check for remote system
+  configuration, or to distribute ssh credentials.
+
+  
+  \subsubsection{SSH/SSHFS credential management}
+
+   When starting a remote application via ssh, we assume valid SSH
+   credentials (i.e. private/public key pairs, or gsi credentials
+   etc.) to be available.  The type and location of these credentials
+   is specified by the local application, by using respective
+   \T{saga::context} instances.  In order to facilitate home-calling,
+   i.e. the ability of the remotely started application to use the
+   same ssh infrastructure to call back to the original host, e.g. by
+   spawning jobs in the opposite direction, or by accessing the
+   original host's file system via sshfs, we install the originally
+   used ssh credential in a temporary location on the remote host.
+   The remote application is informed about these cedentials, and the
+   ssh context adaptor picks them up by default, so that home-calling
+   is available w/o the need for any application level intervention.
+   Also, a respective entry to the local \T{authorized\_keys} file is
+   added\footnote{ssh key distribution is optional, and disabled by
+   default}.
+
+   For example, the following pseudo code would be possible
+
+   \verb|
+   --- local application -------------------
+   saga::context c ("ssh", "$HOME/.ssh/my_ssh_key");
+   saga::session s (c);
+
+   saga::job::service js (s, "ssh://remote.host.net");
+   saga::job::job     j = js.run_job ("saga-ls ssh://local.host.net/data/");
+   -----------------------------------------
+
+   --- remote application (saga-ls) --------
+   saga::context c ("ssh"); // pick up defaults
+   saga::session s (c);
+
+   saga::filessystem::directory d (argv[1]);
+   std::vector <saga::url> ls = d.list ();
+   ...
+   -----------------------------------------
+   |
+
+   The remote application would ultimately call \sshfs (see above) to
+   mount the original filesystem, and then use the local job adaptor
+   to access that mounted file system for I/O.  The complete key
+   management is transparent.
+
+
+ 
+ \subsection{AWS adaptors}
+
+  SAGA's AWS\footnote{\B{A}mazon \B{W}eb \B{S}ervices} adaptor suite
+  interfaces to services which implement the cloud web service
+  interfaces as specified by Amazon\ref{aws-devel-url}.  These
+  interfaces are not only used by Amazon to allow programmatic access
+  to their Cloud infrastructures EC2 and S3, amongst others, but are
+  also used by several other Cloud service providers, such as
+  Eucalyptus\ref{euca} and Nimbus\ref{nimbus}.  The AWS job adaptor is
+  thus able to interface to a variety of Cloud infrastructures, as
+  long as they adhere to the AWS interfaces.
+
+  The AWS adaptors are not directly communication with the remote
+  services, but instead rely on Amazon's set of java based command
+  line tools.  Those are able to access the different infrastructures,
+  when configured correctly via specific environment variables.
+
+  The aws job adaptor is using the local job adaptor to manage the
+  invocation of the command line tools, e.g. to spawn new virtual
+  machine (VM) instances, to search for existing VM instances, etc.
+  Once a VM instance is found to be available and ready to accept
+  jobs, a ssh job service instance for that VM is created, and is
+  henceforth taking care of all job management operations.  The aws
+  job adaptor is thuse only respnsoble for VM discovery and management
+  -- the actual job creation and operations are performed by the ssh
+  job adaptor (which in turn utilizes the local job adaptor for its
+  operations).
+
+  The security credentials to be used by the internal ssh job service
+  instance are derived from the security credentials used to create or
+  access the VM instance: upon VM instance creation, a aws keypair is
+  used to authenticate the user against her 'cloud account'.  That
+  keypair is automatically registered at the new VM instance to allow
+  for remote ssh access.  The aws context adaptor is collecting both
+  the public and private aws keys\footnote{The public key needs to be
+  collected from the remote instance}, creates a respective ssh context,
+  and thus allows the ssh adaptors to perform job and file based SAGA
+  operations on the VM instance.
+
+  Note that there is an important semantic difference between 'normal'
+  (e.g. grid based) and 'cloud' job services in SAGA: a normal job
+  service is assumed to have a lifetime which is completely
+  independent from the application which accesses that service.  For
+  example, a Gram gatekeeper has a lifetime of days and weeks, and
+  allows a large number of application to utilize it.  A aws job
+  service however points to a potentially  volatile resource, or even
+  to a non-existing resource -- the resource needs then to be created
+  on the fly.
+
+  That has two important implications.  For one, the startup time for
+  a aws job service is typically much larger than for other remote job
+  service, at least in the case where a VM is created on the fly: the
+  VM image needs to be deployed to some remote resource, the image
+  must be booted, and potentially needs to be configured to enable the
+  hosting of custom applications\footnote{The aws job adaptor allows
+  to execute custom startup scripts on newly instantiated VMs, to
+  allow for example to install additional software packages, or to
+  test for the availaility of certain resources.}.
+
+  The second implication is that the \I{end} of the job service
+  lifetime is usually of no consequence for normal remote job
+  services.  For a dynamically provisioned VM instance, however, it
+  raises the question if that instance should be closed down, or if it
+  should automatically shut down after all remote applications
+  finished, or if it should  survive for a specific time, or forever.
+  Ultimately, it is not possible to control these VM lifetime
+  attributes via the current SAGA API (by design).  Instead, we allow
+  to choose one of these policies either implicitely (e.g. by using
+  special URLs to request dynamic provisioning), or explicitely over
+  SAGA config files or environment variables\footnote{only some of
+  these policies are implemented at the moment.}.  Future SAGA
+  extensions, in particular Resource Discovery and Resource
+  Reservation extensions, may have a more direct and explicit notion
+  of resource lifetime management.
+
+
+ \subsection{Globus Adaptors}
+
+  SAGA's Globus adaptor suite belongs is amongst the most-utilized
+  adaptors.  As with ssh, security credentials are expected to be
+  managed out-of-bounds, but different credentials can be utilized by
+  pointing \T{saga::context} instances to them as needed.  Other than
+  the aws and ssh adaptors, the Globus adaptors do not rely on command
+  line tools, but rather link directly against the respective Globus
+  libraries: the Globus job adaptor is thus a gram client, the Globus
+  file adaptor a gridftp client.
+
+  In the presented experiments, non-cloud jobs have been started
+  either by using gram or ssh.  In either case, file I/O has been
+  performed either via ssh, or via a shared Lustre filesystem -- the
+  gridftp functionality has thus not been tested in these
+  experiments\footnote{For performance comparision between the Lustre
+  FS and GridFTP, see\ref{micelis}.}.
+
