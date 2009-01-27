@@ -1157,17 +1157,17 @@ experiments:
 %     than enough.}
 \end{enumerate}
 
-It is worth reiterating, that although we have captured concrete
-performance figures, it is not the aim of this work to analyze the
-data and understand performance implications. It is the sole aim of
-this work, to establish via well-structured and designed experiments
-as outlined above, the fact that \sagamapreduce has been used to
+The primary aim of this work is to establish, via well-structured and
+designed experiments, the fact that \sagamapreduce has been used to
 demonstrate Cloud-Cloud interoperabilty and Cloud-Grid
-interoperabilty.  The analysis of the data and understanding
-performance involves the generation of ``system probles'', as there
-are differences in the specific Cloud system implementation and
-deployment. For example, in EC2 Clouds the default scenario is that
-the VMs are distributed with respect to each other. There is notion of
+interoperabilty.  A detailed analysis of the data and understanding
+performance involves the generation of ``system probes'', as there are
+differences in the specific Cloud system implementation and
+deployment.  It is worth reiterating, that although we have captured
+concrete performance figures, it is not the aim of this work to
+analyze the data and understand performance implications.  For
+example, in EC2 Clouds the default scenario is that the VMs are
+distributed with respect to each other. There is notion of
 availability zone, which is really just a control on which
 data-center/cluster the VM is placed. In the absence of explicit
 mention of the availabilty zone, it is difficult to determine or
@@ -1180,7 +1180,7 @@ respect to a VM), whereas for EC2 clouds this cannot be assumed to be
 true for every experiment/test. \jhanote{Andre, Kate please confirm
   that you agree with the last statment}
 
-\subsubsection{Results}
+\subsection{Results and Analysis}
 
 Our image size is ... \jhanote{fix and provide details}
 
@@ -1199,43 +1199,11 @@ worker per VM, but it is important to be able to vary the number of
 workers per VM (just like in the Grid case we were able to vary the
 number of workers per machine). 
 
-% Due to space limitations we will not discuss the
-% performance data of \sagamapreduce with different data-set sizes and
-% varying worker numbers.
-
-\subsubsection{Performance} The total time to completion ($T_c$) of a
-\sagamapreduce job, can be decomposed into three primary components:
-$t_{over}$ defined as the time for pre-processing -- which in this case
-is the time to chunk into fixed size data units, and to possibly
-distribute them. This is in some ways the overhead of the process.
-Another component of the overhead is the time it takes to instantiate
-a VM. It is worth mentioning that currently we instantiate VMs
-serially as opposed to doing this concurrently. This is not a design
-decision but just a quirk, with a trivial fix to eliminate it.  Our
-performance figures take the net instantiation time into account and
-thus normalize for multiple VM instantiation -- whether serial or
-concurrent. In other words, we will report figures where specific
-start-up times have been removed and thus numbers indicate relative
-performance and are amenable to direct comparision.  $t_{comp}$ is the
-time to actually compute the map and reduce function on a given
-worker, whilst $t_{coord}$ is the time taken to assign the payload to
-a worker, update records and to possibly move workers to a destination
-resource. $t_{coord}$ is indicative of the time that it takes to
-assign chunks to workers and scales as the number of workers
-increases. In general:
-
-\vspace{-1em}
-\begin{eqnarray}
-T_c = t_{over} + t_{comp} + t_{coord}
-\end{eqnarray}
-
-% \subsubsection{}
-
 \begin{table}
 \upp
 \begin{tabular}{ccccc}
   \hline
-  \multicolumn{2}{c}{Number-of-Workers}  &  data size   &  $T_c$  & $T_{spawn}$ \\   
+  \multicolumn{2}{c}{Number-of-Workers}  &  Data size   &  $T_c$  & $T_{spawn}$ \\   
   TeraGrid &  AWS &   (MB)  & (sec) & (sec)  \\
   \hline
   6 & 0 & 10  &  12.4 &  10.2 \\
@@ -1252,6 +1220,7 @@ T_c = t_{over} + t_{comp} + t_{coord}
   10 & 10 & 10 & 32.2 & 28.8 \\
   \hline
   \hline 
+  10 & 0 & 100 & 10.4 & 8.86 \\
   0 & 2 & 100 & 7.9 & 5.3 \\
   0 & 10 & 100 &  29.0 & 25.1 \\
   1 & 1 & 100 & 5.4 & 3.1 \\
@@ -1278,31 +1247,65 @@ T_c = t_{over} + t_{comp} + t_{coord}
 %   \hline \hline
 \end{tabular}
 \upp
-\caption{Performance data for different configurations of worker placements. The master is always on a desktop, with the choice of workers placed on either Clouds or on the TeraGrid (QueenBee). The configurations can be classified as of three types -- all workers on EC2, all workers on the TeraGrid and workers divied between the TeraGrid and EC2. Every worker is assigned to a unique  VM. It is interesting to note the significant spawning times, and its dependence on the number of VM. \jhanote{Andre you'll have to work with me to determine if I've parsed the data-files correctly}}
+\caption{Performance data for different configurations of worker placements. The master is always on a desktop, with the choice of workers placed on either Clouds or on the TeraGrid (QueenBee). The configurations can be classified as of three types -- all workers on EC2, all workers on the TeraGrid and workers divied between the TeraGrid and EC2. Every worker is assigned to a unique  VM. It is interesting to note the significant spawning times, and its dependence on the number of VM.}
 \label{stuff}
 \upp
 \upp
 \end{table}
 
+The total time to completion ($T_c$) of a \sagamapreduce job, can be
+decomposed into three primary components: $t_{over}$ defined as the
+time for pre-processing -- which in this case is the time to chunk
+into fixed size data units, and to possibly distribute them. This is
+in some ways the overhead of the process.  Another component of the
+overhead is the time it takes to instantiate a VM. It is worth
+mentioning that currently we instantiate VMs serially as opposed to
+doing this concurrently. This is not a design decision but just a
+quirk, with a trivial fix to eliminate it.  Our performance figures
+take the net instantiation time into account and thus normalize for
+multiple VM instantiation -- whether serial or concurrent. In other
+words, we will report figures where specific start-up times have been
+removed and thus numbers indicate relative performance and are
+amenable to direct comparision.  $t_{comp}$ is the time to actually
+compute the map and reduce function on a given worker, whilst
+$t_{coord}$ is the time taken to assign the payload to a worker,
+update records and to possibly move workers to a destination
+resource. $t_{coord}$ is indicative of the time that it takes to
+assign chunks to workers and scales as the number of workers
+increases. In general:
+
+\vspace{-1em}
+\begin{eqnarray}
+T_c = t_{over} + t_{comp} + t_{coord}
+\end{eqnarray}
+
+
+% Due to space limitations we will not discuss the
+% performance data of \sagamapreduce with different data-set sizes and
+% varying worker numbers.
+
+% \subsubsection{Performance} 
+
+
 \section{Discussion}
 
-\subsection*{Related Programming Approaches}
+% \subsection*{Related Programming Approaches}
 
-{\it SAGA vs others:} We have chosen SAGA to implement MapReduce and
-control the distributed features. However, in principle there are
-other approaches that could have been used to control the distributed
-nature of the MapReduce workers.  For example, some alternate
-approaches to using MapReduce could have employed Sawzall and
-Pig~\cite{pig}.  Mention Sawzall~\cite{sawzall} as a language that
-builds upon MapReduce; once could build Sawzall using SAGA.
+% {\it SAGA vs others:} We have chosen SAGA to implement MapReduce and
+% control the distributed features. However, in principle there are
+% other approaches that could have been used to control the distributed
+% nature of the MapReduce workers.  For example, some alternate
+% approaches to using MapReduce could have employed Sawzall and
+% Pig~\cite{pig}.  Mention Sawzall~\cite{sawzall} as a language that
+% builds upon MapReduce; once could build Sawzall using SAGA.
 
-Pig is a platform for large data sets that consists of a high-level
-language for expressing data analysis programs, coupled with
-infrastructure for evaluating these programs. The salient property of
-Pig programs is that their structure is amenable to substantial
-parallelization, which in turns enables them to handle very large data
-sets. Contrary to these \sagamapreduce is i) infrastructure independent, 
-ii) provides control to the end-user iii) amenable to extension/modification etc.
+% Pig is a platform for large data sets that consists of a high-level
+% language for expressing data analysis programs, coupled with
+% infrastructure for evaluating these programs. The salient property of
+% Pig programs is that their structure is amenable to substantial
+% parallelization, which in turns enables them to handle very large data
+% sets. Contrary to these \sagamapreduce is i) infrastructure independent, 
+% ii) provides control to the end-user iii) amenable to extension/modification etc.
 
 % Quick comparision of our approach with other approaches, including
 % those involving Google's BigEngine.
@@ -1312,24 +1315,39 @@ ii) provides control to the end-user iii) amenable to extension/modification etc
   Experiment Details}
 
 All this is new technology, hence makes sense to try to list some of
-the challenges we faced. We need to outline the interesting Cloud
-related challenges we encountered.  Not the low-level SAGA problems,
-but all issues related to making SAGA work on Clouds.
-\jhanote{Kate and Andre}
+the challenges we faced. 
 
-\jhanote{we have been having many of andre's jobs fail. insight into
-  why? is it interesting to report?}
+\jhanote{Kate and Andre: We need to outline the interesting Cloud
+related challenges we encountered.  Not the low-level SAGA problems,
+but all issues related to making SAGA work on Clouds.  
+}
+
+% \jhanote{we have been having many of andre's jobs fail. insight into
+%   why? is it interesting to report?}
 
 \subsubsection*{Programming Models for Clouds}
 
-Programming Models Discuss affinity: Current Clouds compute-data
-affinity. How should they look like? What must they have?
-It is important to
-note that, some of the programming models that are common to both
-data-intensive application and Cloud-based computing, where there is
-an explicit cost-model for data-movement, is to develop general
-heuristics on how we handle common considerations such as when to move
-the data to the machine or when to process it locally.
+% Discuss affinity: Current Clouds compute-data affinity. How should
+% they look like? What must they have?  It is important to note that,
+% some of the programming models that are common to both data-intensive
+% application and Cloud-based computing, where there is an explicit
+% cost-model for data-movement, is to develop general heuristics on how
+% we handle common considerations such as when to move the data to the
+% machine or when to process it locally.
+
+We began this paper with a discussion of programming systems/model for
+Cloud computing and the importance of support for relative
+data-compute placement. Ref~\cite{jha_ccpe09} introduced the notion of
+affinity and it is imperative that the any programming system/model be
+cognizant of the notion of affinity. We have implemented the first
+steps in a programming model which provides easy control over relative
+data-compute placement; a possible next step would be to extend SAGA
+to support affinity (data-data, data-compute).  There exist emerging
+programming systems like Sawzall and Pig which could be used in
+principle for these; however we emphasise that the primary strength of
+SAGA is i) infrastructure independence, ii) general-purpose and
+extensible (and not confined to MapReduce), iii) provides greater
+control to the end-user if required.
 
 Complexity versus Completeness: There exist both technical reasons and
 social engineering problems responsible for low uptake of Grids. One
@@ -1405,9 +1423,9 @@ uses Google's Cloud infrastructure.
 SJ acknowledges UK EPSRC grant number GR/D0766171/1 for supporting
 SAGA and the e-Science Institute, Edinburgh for the research theme,
 ``Distributed Programming Abstractions''.  SJ also acknowledges
-financial support from NSF Grant Cybertools, and NIH INBRE Grant. This
-work would not have been possible without the efforts and support of
-other members of the SAGA team.  In particular, \sagamapreduce was
+financial support from NSF-Cybertools and NIH-INBRE Grants. This work
+would not have been possible without the efforts and support of other
+members of the SAGA team.  In particular, \sagamapreduce was
 originally written by Chris and Michael Miceli, as part of a Google
 Summer of Code Project, with assistance from Hartmut Kaiser. We also
 thank Hartmut for great support during the testing and deployment
