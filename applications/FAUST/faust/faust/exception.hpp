@@ -49,7 +49,7 @@ namespace faust
     "Timeout",
     "NoSuccess"
   };
-  ///@endcond - exclude from Doxygen
+ 
   
   
   class FAUST_EXPORT exception : public std::exception
@@ -139,3 +139,5 @@ public:
 }
 
 #endif /* FAUST_EXCEPTION_HPP */
+
+ ///@endcond - exclude from Doxygen
