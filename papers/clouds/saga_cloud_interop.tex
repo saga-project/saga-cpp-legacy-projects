@@ -407,28 +407,30 @@ of the API were HPC applications attempting to utilize distributed
 resources.  Ref~\cite{saga_ccgrid09} demonstrated that in spite of its
 original design constraints, SAGA can be used to control
 data-intensive applications in diverse distributed environments,
-including Clouds.  This in part is due to the fact that the
-``distributed functionality'' required remains the same -- namely the
-ability to submit jobs to different back-ends, the ability to move
-files between distributed resources etc. Admittedly, and as we will
-discuss, the semantics of, say the basic {\texttt job\_submit()}
-changes in going from Grid enviroments to Cloud environments, but the
-application remains oblivious of these changes and does not need to be
-refactored. Specifically, {\texttt job\_submit()} when used in a Cloud
-context results in the creation of a virtual machine instance and the
-assignment of a job to that virtual machine; on the other hand, in the
-context of Grids, {\texttt job\_submit()} results in the creation of a
-job via a service and submission to GRAM style gatekeeper. In the
-former the virtual machine is assigned to the saga::job and ...  In a
-nutshell, this is the power of a high-level interface such as SAGA and
-upon which the capability of interoperability is based.
+including Clouds.  This in part is due to the fact that much of the
+``distributed functionality'' required for data-intensive applications
+remains the same -- namely the ability to submit jobs to different
+back-ends, the ability to move files between distributed resources
+etc. Admittedly, and as we will discuss, the semantics of, say the
+basic {\texttt job\_submit()} changes in going from Grid enviroments
+to Cloud environments, but the application remains oblivious of these
+changes and does not need to be refactored. % Specifically, {\texttt
+%   job\_submit()} when used in a Cloud context results in the creation
+% of a virtual machine instance and the assignment of a job to that
+% virtual machine; on the other hand, in the context of Grids, {\texttt
+%   job\_submit()} results in the creation of a job via a service and
+% submission to GRAM style gatekeeper. In the former the virtual machine
+% is assigned to the saga::job and ...  
+So how, in spite of such significant changes in the semantics does
+SAGA keep the application immune to change? The basic feature that
+enables this capability is a context-aware adaptor that is dynamically
+loaded.  In the remainder of this section, we will describe how,
+through the creation of a set of simple {\it adaptors}, the primary
+functionality of most applications is supported on Clouds and on which
+the interoperability is enabled.
 
-So how in spite of the significant change of the semantics does SAGA
-keep the application immune to change? The basic feature that enables
-this capability is a context-aware adaptor that is dynamically loaded.
-In the remainder of this section, we will describe how, through the
-creation of a set of simple {\it adaptors}, the primarly functionality
-of most applications is supported on Clouds.
+% In a nutshell, this is the power of a high-level interface such as
+% SAGA and upon which the capability of interoperability is based.
 
 \subsection{Clouds Adaptors: Design and Implementation}
 
@@ -436,215 +438,180 @@ of most applications is supported on Clouds.
  % have been implemented.  It assumes that the adaptor based
  % architecture of SAGA has (shortly) been explained before.
 
-The adaptor implementation for the presented Cloud-Grid
-interoperabilty experiments is rather straight forward. 
+% The adaptor implementation for the presented Cloud-Grid
+% interoperabilty experiments is rather straight forward. 
  
-This section describes the various sets of adaptors used for the
-presented Cloud-Grid interoperabilty experiments.
+% This section describes the various sets of adaptors used for the
+% presented Cloud-Grid interoperabilty experiments.
 
+Through a structured discussion of the various adaptors.. 
+it will become clear ..
 
- \subsubsection{Local Adaptors}
+\subsubsection{Local Adaptors}
+Although SAGA's default local adaptors have not much to do with
+interoperability, its importance for the used implementation of the
+various used remote adaptors will become clear later on.  The local
+job adaptor utilizes \T{boost::process} (on Windows) and plain
+\T{fork/exec} (on Unix derivates) to spawn, control and watch local
+job instances.  The local file adaptor uses \T{boost::filesystem}
+classes for filesystem navigation, and \T{std::fstream} for local file
+I/O. % 'nuf said?
 
-  Although SAGA's default local adaptors have not much to do with the
-  rpesented experiments, its importance for the used implementation of
-  the various used remote adaptors will become clear later on.
-
-  The local job adaptor is utilizing \T{boost::process} (on Windows)
-  and plain \T{fork/exec} (on Unix derivates) to spawn, control and
-  watch local job instances.  The local file adaptor is using the
-  \T{boost::filesystem} classes for filesystem navigation, and
-  \T{std::fstream} for local file I/O. % 'nuf said? 
-
-
- \subsubsection{SSH adaptors}
-
- The SSH adaptors are based on three different command line tools,
- namely {\texttt ssh, scp} and {\texttt sshfs}.  Further, all ssh
- adaptors rely on the availability of ssh security credentials for
- remote operations.  The ssh context adaptor implements some
- mechanisms to (a) discover available keypairs automatically, and (b)
- to verify the validity and usability of the found and otherwise
- specified credentials.
+\subsubsection{SSH adaptors}
+The SSH adaptors are based on three different command line tools,
+namely {\texttt ssh, scp} and {\texttt sshfs}.  Further, all ssh
+adaptors rely on the availability of ssh security credentials for
+remote operations.  The ssh context adaptor implements some mechanisms
+to (a) discover available keypairs automatically, and (b) to verify
+the validity and usability of the found and otherwise specified
+credentials.
   
-  \ssh is used to spawn remote job instances.  For that, the ssh job
-  adaptor instanciates a \I{local} \T{saga::job::service} instance,
-  and submits the respective ssh command lines to it.  The local job
-  adaptor described above is then taking care of process I/O,
-  detachement, etc.
+\ssh is used to spawn remote job instances.  For that, the ssh job
+adaptor instantiates a \I{local} \T{saga::job::service} instance, and
+submits the respective ssh command lines to it.  The local job adaptor
+described above then takes care of process I/O, detachement, etc.  A
+significant drawback of this approach is that several SAGA methods act
+upon the local ssh process instead of the remote application instance,
+which is far from ideal. Some of these operations can be migrated to
+the remote hosts, via separate ssh calls, but that process is
+complicated due to the fact that ssh does not report the remote
+process ID back to the local job adaptor.  We circumvent this problem
+by setting a uniquely identifying environment variable for the remote
+process, which allows us to identify process.
 
-  A significant drawback of that approach is that several SAGA methods
-  act upon the local ssh process instead of the remote application
-  instance.  That is clearly not wanted.  Some of these operations can
-  be mitigated to the remote hosts, via separate ssh calls, but that
-  process is complicated due to the fact that ssh is not reporting the
-  remote process ID back to the local job adaptor.  We circumvent that
-  problem by setting a uniquely identifying environment variable for
-  the remote process, which allows us to identify that
-  process\footnote{that scheme is not completely implemented, yet}.
+\sshfs is used to access remote files via ssh services.  \sshfs is a
+user space file system driver which uses FUSE\ref{fuse}, and is
+available for MacOS, Linux, and some other Unix derivates.  It allows
+a remote file system to be mounted into the local namespace, and
+transparently forwards all file access operations via ssh to the
+remote host.  The ssh file adaptor uses the local job adaptor to call
+the sshfs process, to mount the remote filesystem, and then forward
+all file access requests to the local file adaptor, which operates on
+the locally mounted file system.  The ssh adaptor thus translates URLs
+from the ssh namespace into the local namespace, and back.
 
-  \sshfs is used to access remote files via ssh services.  \sshfs is a
-  user space file system driver which uses FUSE\ref{fuse}, and is
-  available for MacOS, Linux, and some other Unix derivates.  It
-  allows to mount a remote file system into the local namespace, and
-  transparently forwards all file access operations via ssh to the
-  remote host.  The ssh file adaptor uses the localo job adaptor to
-  call the sshfs process, to mount the remote filesystem, and then
-  forward all file access requests to the local file adaptor, which
-  operates on the locally mounted file system.  The ssh adaptor is
-  thereby translating URLs from the ssh namespace into the local
-  namespace, and back.
+\scp is used by both the ssh job and file adaptor to transfer utility
+scripts to the remote host, e.g. to check for remote system
+configuration, or to distribute ssh credentials.
 
-  \scp is used by both the ssh job and file adaptor to transfer
-  utility scripts to the remote host, e.g. to check for remote system
-  configuration, or to distribute ssh credentials.
+\subsubsection{SSH/SSHFS credential management}
 
-  
-  \subsubsection{SSH/SSHFS credential management}
+When starting a remote application via ssh, we assume valid SSH
+credentials (i.e. private/public key pairs, or gsi credentials etc.)
+to be available.  The type and location of these credentials is
+specified by the local application, by using respective
+\T{saga::context} instances.  In order to facilitate home-calling,
+i.e. the ability of the remotely started application to use the same
+ssh infrastructure to call back to the original host, e.g. by spawning
+jobs in the opposite direction, or by accessing the original host's
+file system via sshfs, we install the originally used ssh credential
+in a temporary location on the remote host. The remote application is
+informed about these credentials, and the ssh context adaptor picks
+them up by default, so that home-calling is available without the need
+for any application level intervention.  Also, a respective entry to
+the local \T{authorized\_keys} file is added% \footnote{ssh key
+%   distribution is optional, and disabled by default}.
+% For example, the following pseudo code would be possible
 
-   When starting a remote application via ssh, we assume valid SSH
-   credentials (i.e. private/public key pairs, or gsi credentials
-   etc.) to be available.  The type and location of these credentials
-   is specified by the local application, by using respective
-   \T{saga::context} instances.  In order to facilitate home-calling,
-   i.e. the ability of the remotely started application to use the
-   same ssh infrastructure to call back to the original host, e.g. by
-   spawning jobs in the opposite direction, or by accessing the
-   original host's file system via sshfs, we install the originally
-   used ssh credential in a temporary location on the remote host.
-   The remote application is informed about these cedentials, and the
-   ssh context adaptor picks them up by default, so that home-calling
-   is available w/o the need for any application level intervention.
-   Also, a respective entry to the local \T{authorized\_keys} file is
-   added\footnote{ssh key distribution is optional, and disabled by
-   default}.
-
-   For example, the following pseudo code would be possible
-
-\begin{figure}[!ht]
-\upp 
- \begin{center}
-  \begin{mycode}[label=Stuff]
-   { // local application 
-   saga::context c ("ssh", "/home/user/.ssh/my_ssh_key");
-   saga::session s (c);
-
-   saga::job::service js (s, "ssh://remote.host.net");
-   saga::job::job j = js.run_job 
-                ("saga-ls ssh://local.host.net/data/");
-
-   // remote application (saga-ls) --------
-   saga::context c ("ssh"); // pick up defaults
-   saga::session s (c);
-
-   saga::filessystem::directory d (argv[1]);
-   std::vector <saga::url> ls = d.list ();
-   ... 
-}
-  \end{mycode}
-  \caption{}
- \end{center}
-\upp
-\end{figure}
-
-%    \begin{verbatim}
-%    --- local application -------------------
-%    saga::context c ("ssh", "$HOME/.ssh/my_ssh_key");
+% \begin{figure}[!ht]
+% \upp 
+%  \begin{center}
+%   \begin{mycode}[label=Stuff]
+%    { // local application 
+%    saga::context c ("ssh", "/home/user/.ssh/my_ssh_key");
 %    saga::session s (c);
 
 %    saga::job::service js (s, "ssh://remote.host.net");
-%    saga::job::job     j = js.run_job ("saga-ls ssh://local.host.net/data/");
-%    -----------------------------------------
+%    saga::job::job j = js.run_job 
+%                 ("saga-ls ssh://local.host.net/data/");
 
-%    --- remote application (saga-ls) --------
+%    // remote application (saga-ls) --------
 %    saga::context c ("ssh"); // pick up defaults
 %    saga::session s (c);
 
 %    saga::filessystem::directory d (argv[1]);
 %    std::vector <saga::url> ls = d.list ();
-%    ...
-%    -----------------------------------------
-% \end{verbatim}
+%    ... 
+% }
+%   \end{mycode}
+%   \caption{}
+%  \end{center}
+% \upp
+% \end{figure}
+% The remote application would ultimately call \sshfs (see above) to
+% mount the original filesystem, and then use the local job adaptor to
+% access that mounted file system for I/O.  The complete key management
+% is transparent.
 
+\subsubsection{AWS adaptors}
 
-   The remote application would ultimately call \sshfs (see above) to
-   mount the original filesystem, and then use the local job adaptor
-   to access that mounted file system for I/O.  The complete key
-   management is transparent.
+SAGA's AWS\footnote{\B{A}mazon \B{W}eb \B{S}ervices} adaptor suite is
+an interface to services which implement the cloud web service
+interfaces as specified by Amazon\ref{aws-devel-url}.  These
+interfaces are not only used by Amazon to allow programmatic access to
+their Cloud infrastructures -- EC2 and S3, amongst others, but are
+also used by several other Cloud service providers, such as
+Eucalyptus\ref{euca} and Nimbus.  The AWS job adaptor is thus able to
+interface to a variety of Cloud infrastructures, as long as they
+adhere to the AWS interfaces.
 
- \subsubsection{AWS adaptors}
+The AWS adaptors do not directly communication with the remote
+services, but instead rely on Amazon's set of java based command line
+tools.  Those are able to access the different infrastructure, when
+configured correctly via specific environment variables.  The aws job
+adaptor uses the local job adaptor to manage the invocation of the
+command line tools, e.g. to spawn new virtual machine (VM) instances,
+to search for existing VM instances, etc.  Once a VM instance is found
+to be available and ready to accept jobs, a ssh job service instance
+for that VM is created, and henceforth takes care of all job
+management operations.  The aws job adaptor is thus only respnsoble
+for VM discovery and management -- the actual job creation and
+operations are performed by the ssh job adaptor (which in turn
+utilizes the local job adaptor for its operations).
 
- SAGA's AWS\footnote{\B{A}mazon \B{W}eb \B{S}ervices} adaptor suite
- interfaces to services which implement the cloud web service
- interfaces as specified by Amazon\ref{aws-devel-url}.  These
- interfaces are not only used by Amazon to allow programmatic access
- to their Cloud infrastructures EC2 and S3, amongst others, but are
- also used by several other Cloud service providers, such as
- Eucalyptus\ref{euca} and Nimbus.  The AWS job adaptor is thus able to
- interface to a variety of Cloud infrastructures, as long as they
- adhere to the AWS interfaces.
+The security credentials to be used by the internal ssh job service
+instance are derived from the security credentials used to create or
+access the VM instance: upon VM instance creation, an AWS keypair is
+used to authenticate the user against her 'cloud account'.  That
+keypair is automatically registered at the new VM instance to allow
+for remote ssh access.  The aws context adaptor collects both the
+public and private AWS keys\footnote{The public key needs to be
+  collected from the remote instance}, creates a respective ssh
+context, and thus allows the ssh adaptors to perform job and file
+based SAGA operations on the VM instance.
 
-  The AWS adaptors are not directly communication with the remote
-  services, but instead rely on Amazon's set of java based command
-  line tools.  Those are able to access the different infrastructures,
-  when configured correctly via specific environment variables.
+Note that there is an important semantic difference between 'normal'
+(e.g. Grid based) and 'Cloud' job services in SAGA: a normal job
+service is assumed to have a lifetime which is completely independent
+from the application which accesses that service.  For example, a Gram
+gatekeeper has a lifetime of days and weeks, and allows a large number
+of applications to utilize it.  An AWS job service however points to a
+potentially volatile resource, or even to a non-existing resource --
+the resource needs then to be created on the fly.
 
-  The aws job adaptor is using the local job adaptor to manage the
-  invocation of the command line tools, e.g. to spawn new virtual
-  machine (VM) instances, to search for existing VM instances, etc.
-  Once a VM instance is found to be available and ready to accept
-  jobs, a ssh job service instance for that VM is created, and is
-  henceforth taking care of all job management operations.  The aws
-  job adaptor is thuse only respnsoble for VM discovery and management
-  -- the actual job creation and operations are performed by the ssh
-  job adaptor (which in turn utilizes the local job adaptor for its
-  operations).
-
-  The security credentials to be used by the internal ssh job service
-  instance are derived from the security credentials used to create or
-  access the VM instance: upon VM instance creation, a aws keypair is
-  used to authenticate the user against her 'cloud account'.  That
-  keypair is automatically registered at the new VM instance to allow
-  for remote ssh access.  The aws context adaptor is collecting both
-  the public and private aws keys\footnote{The public key needs to be
-  collected from the remote instance}, creates a respective ssh context,
-  and thus allows the ssh adaptors to perform job and file based SAGA
-  operations on the VM instance.
-
-  Note that there is an important semantic difference between 'normal'
-  (e.g. grid based) and 'cloud' job services in SAGA: a normal job
-  service is assumed to have a lifetime which is completely
-  independent from the application which accesses that service.  For
-  example, a Gram gatekeeper has a lifetime of days and weeks, and
-  allows a large number of application to utilize it.  A aws job
-  service however points to a potentially  volatile resource, or even
-  to a non-existing resource -- the resource needs then to be created
-  on the fly.
-
-  That has two important implications.  For one, the startup time for
-  a aws job service is typically much larger than for other remote job
-  service, at least in the case where a VM is created on the fly: the
-  VM image needs to be deployed to some remote resource, the image
-  must be booted, and potentially needs to be configured to enable the
-  hosting of custom applications\footnote{The aws job adaptor allows
-  to execute custom startup scripts on newly instantiated VMs, to
-  allow for example to install additional software packages, or to
-  test for the availaility of certain resources.}.
-
-  The second implication is that the \I{end} of the job service
-  lifetime is usually of no consequence for normal remote job
-  services.  For a dynMICly provisioned VM instance, however, it
-  raises the question if that instance should be closed down, or if it
-  should automatically shut down after all remote applications
-  finished, or if it should  survive for a specific time, or forever.
-  Ultimately, it is not possible to control these VM lifetime
-  attributes via the current SAGA API (by design).  Instead, we
-  allow to choose one of these policies either implicitely (e.g. by
-  using special URLs to request dynamic provisioning), or explicitely
-  over SAGA config files or environment variables\footnote{only some
-  of these polcies are implemented at the moment.}.  Future SAGA
-  extensions, in particular Resource Discovery and Resource
-  Reservation extensions, may have a more direct and explicit notion
-  of resource lifetime management.
+There are two important implications.  Firstly, the startup time for a
+AWS job service is typically much larger than other remote job
+service, at least in the case where a VM is created on the fly: the VM
+image needs to be deployed to some remote resource, the image must be
+booted, and potentially needs to be configured to enable the hosting
+of custom applications\footnote{The AWS job adaptor allows the
+  execution of custom startup scripts on newly instantiated VMs, to
+  allow for example, the installation of additional software packages,
+  or to test for the availaility of certain resources.}.
+The second implication is that the \I{end} of the job service lifetime
+is usually of no consequence for normal remote job services.  For a
+dynamically provisioned VM instance, however, it raises the question
+if that instance should be closed down, or if it should automatically
+shut down after all remote applications finish, or even if it should
+survive for a specific time, or forever.  Ultimately, it is not
+possible to control these VM lifetime attributes via the current SAGA
+API (by design).  Instead, we allow to choose one of these policies
+either implicitly (e.g. by using special URLs to request dynamic
+provisioning), or explicitly over SAGA config files or environment
+variables\footnote{only some of these polcies are implemented at the
+  moment.}.  Future SAGA extensions, in particular Resource Discovery
+and Resource Reservation extensions, may have a more direct and
+explicit notion of resource lifetime management.
 
 \begin{figure}[!ht]
 \upp 
@@ -689,16 +656,16 @@ presented Cloud-Grid interoperabilty experiments.
 \end{figure}
 
 %{\bf SAGA-MapReduce on Clouds and Grids:} 
-\begin{figure}[t]
-  % \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
-  \caption{Plots showing how the \tc for different data-set sizes
-    varies with the number of workers employed.  For example, with
-    larger data-set sizes although $t_{over}$ increases, as the number
-    of workers increases the workload per worker decreases, thus
-    leading to an overall reduction in $T_c$. The advantages of a
-    greater number of workers is manifest for larger data-sets.}
-\label{grids1}
-\end{figure}
+% \begin{figure}[t]
+%   % \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
+%   \caption{Plots showing how the \tc for different data-set sizes
+%     varies with the number of workers employed.  For example, with
+%     larger data-set sizes although $t_{over}$ increases, as the number
+%     of workers increases the workload per worker decreases, thus
+%     leading to an overall reduction in $T_c$. The advantages of a
+%     greater number of workers is manifest for larger data-sets.}
+% \label{grids1}
+% \end{figure}
 
 % {\bf SAGA-MapReduce on Cloud-like infrastructure: } Accounting for the
 % fact that time for chunking is not included, Yahoo's MapReduce takes a
@@ -747,36 +714,31 @@ presented Cloud-Grid interoperabilty experiments.
 % advantage, as shown by the values of $T_c$ for both distributed
 % compute and DFS cases in Table~\ref{exp4and5}.
 
- \subsection{Globus Adaptors}
+\subsection{Globus Adaptors}
+SAGA's Globus adaptor suite is amongst the most-utilized adaptors.  As
+with ssh, security credentials are expected to be managed
+out-of-bounds, but different credentials can be utilized by pointing
+\T{saga::context} instances to them as needed.  Other than the AWS and
+ssh adaptors, the Globus adaptors do not rely on command line tools,
+but rather link directly against the respective Globus libraries: the
+Globus job adaptor is thus a GRAM client, the Globus file adaptor a
+gridftp client.  In experiments, non-cloud jobs have been started
+either by using gram or ssh.  In either case, file I/O has been
+performed either via ssh, or via a shared Lustre filesystem -- the
+gridftp functionality has thus not been tested in these
+experiments\footnote{For performance comparision between the Lustre FS
+  and GridFTP, see Ref~\cite{saga_cc09}}
 
-  SAGA's Globus adaptor suite belongs is amongst the most-utilized
-  adaptors.  As with ssh, security credentials are expected to be
-  managed out-of-bounds, but different credentials can be utilized by
-  pointing \T{saga::context} instances to them as needed.  Other than
-  the aws and ssh adaptors, the Globus adaptors do not rely on command
-  line tools, but rather link directly against the respective Globus
-  libraries: the Globus job adaptor is thus a gram client, the Globus
-  file adaptor a gridftp client.
-
-  In the presented experiments, non-cloud jobs have been started
-  either by using gram or ssh.  In either case, file I/O has been
-  performed either via ssh, or via a shared Lustre filesystem -- the
-  gridftp functionality has thus not been tested in these
-  experiments\footnote{For performance comparision between the Lustre
-    FS and GridFTP, see\ref{micelis}.}.
-
-
-In a nutshell, SAGA on clouds differe from SAGA on Grids in the
+In a nutshell, SAGA on clouds differs from SAGA on Grids in the
 following ways.....  \jhanote{The aim of the remainder of this section
   is to discuss how SAGA on Clouds differs from SAGA for Grids with
   specifics Everything from i) job submission ii) file transfer...iii)
   others..}
 
 \section{SAGA-based MapReduce}
-
 In this paper we will demonstrate the use of SAGA in implementing well
 known programming patterns for data intensive computing.
-Specifically, we have implemented MapReduce; we have also developed
+Specifically, we have implemented MapReduce. We have also developed
 real scientific applications using SAGA based implementations of these
 patterns: multiple sequence alignment can be orchestrated using the
 SAGA-All-pairs implementation, and genome searching can be implemented
@@ -819,29 +781,30 @@ implementation of features, and not a fundamental limitation of the
 design or concept of the interface or programming models that it
 supports.
 
-The overall architecture of the SAGA-MapReduce implementation is shown
-in Fig.~\ref{saga-mapreduce_controlflow}. This simple interface
-provides the complete functionality needed by any MapReduce algorithm,
-while hiding the more complex functionality, such as chunking of the
-input, sorting of the intermediate results, launching and coordinating
-the map and reduce workers, etc. as implemented by the framework.  The
-application consists of two independent processes, a master and worker
-processes. The master process is responsible for:
+% The overall architecture of the SAGA-MapReduce implementation is shown
+% in Fig.~\ref{saga-mapreduce_controlflow}. 
+This simple interface provides the complete functionality needed by
+any MapReduce algorithm, while hiding the more complex functionality,
+such as chunking of the input, sorting of the intermediate results,
+launching and coordinating the map and reduce workers, etc. as
+implemented by the framework.  The application consists of two
+independent processes, a master and worker processes. The master
+process is responsible for:
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.4\textwidth]{saga-mapreduce_controlflow.png}
-\caption{High-level control flow diagram for SAGA-MapReduce. SAGA uses
-  a master-worker paradigm to implement the MapReduce pattern. The
-  diagram shows that there are several different infrastructure
-  options to a SAGA based
-  application; % in particular for MapReduce there
-  \jhanote{I think there should be something between the Map(1) and
-    the Reduce(2) phases.. something that comes back to the Master,
-    non?} \jhanote{We need to provide an arrow parallel to GRAM and
-    Condor saying something like AWS or Eucalyptus}} \vspace{-2em}
-      \label{saga-mapreduce_controlflow}
-\end{figure}
+% \begin{figure}[t]
+% \centering
+% \includegraphics[width=0.4\textwidth]{saga-mapreduce_controlflow.png}
+% \caption{High-level control flow diagram for SAGA-MapReduce. SAGA uses
+%   a master-worker paradigm to implement the MapReduce pattern. The
+%   diagram shows that there are several different infrastructure
+%   options to a SAGA based
+%   application; % in particular for MapReduce there
+%   \jhanote{I think there should be something between the Map(1) and
+%     the Reduce(2) phases.. something that comes back to the Master,
+%     non?} \jhanote{We need to provide an arrow parallel to GRAM and
+%     Condor saying something like AWS or Eucalyptus}} \vspace{-2em}
+%       \label{saga-mapreduce_controlflow}
+% \end{figure}
 
 \begin{itemize}
 \item Launching all workers for the map and reduce steps as described
@@ -1294,16 +1257,14 @@ T_c = t_{over} + t_{comp} + t_{coord}
 % Quick comparision of our approach with other approaches, including
 % those involving Google's BigEngine.
 
-
-\subsubsection*{Challenges: Network, System Configuration and
-  Experiment Details}
+\subsubsection*{Experience}
 
 Images get corrupted if mapreduce does not terminate properly
 
 Networking issues.
 
 All this is new technology, hence makes sense to try to list some of
-the challenges we faced. 
+the challenges we faced.
 
 \jhanote{Kate and Andre: We need to outline the interesting Cloud
 related challenges we encountered.  Not the low-level SAGA problems,
@@ -1331,11 +1292,11 @@ cognizant of the notion of affinity. We have implemented the first
 steps in a programming model which provides easy control over relative
 data-compute placement; a possible next step would be to extend SAGA
 to support affinity (data-data, data-compute).  There exist emerging
-programming systems like Sawzall and Pig which could be used in
-principle for these; however we emphasise that the primary strength of
-SAGA is i) infrastructure independence, ii) general-purpose and
-extensible (and not confined to MapReduce), iii) provides greater
-control to the end-user if required.
+programming systems like Dryad, Sawzall and Pig which could be used in
+principle for these (or parts of these) problems; however we emphasise
+that the primary strength of SAGA is i) infrastructure independence,
+ii) general-purpose and extensible (and not confined to MapReduce),
+iii) provides greater control to the end-user if required.
 
 Complexity versus Completeness: There exist both technical reasons and
 social engineering problems responsible for low uptake of Grids. One
