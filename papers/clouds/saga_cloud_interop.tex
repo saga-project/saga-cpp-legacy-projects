@@ -1161,19 +1161,18 @@ be assumed to be true for every experiment/test. \jhanote{Andre, Kate
 %Our image size is ... \jhanote{fix and provide details}
 
 It takes SAGA about 45 seconds to instantiate a VM on Eucalyptus
-\jhanote{Andre is this still true?}  and about 100 seconds on average
+\jhanote{Andre is this still true?}  and about 200 seconds on average
 on EC2.  We find that the size of the image (say 5GB versus 20GB)
-influences the time to instantiate an image EC2 somewhat, but is a
-within instance-to-instance fluctuation.
-
-Once instantiated, it takes about 1 second to assign a job to a VM on
-Eucalyptus, or EC2.  It is a configurable option to tie the VM
-lifetime to the \texttt{job\_service} object lifetime, or not.  It is
-also a matter of simple configuration to determine how many jobs (in
-this case workers) are assigned to a single VM. The default case is 1
-worker per VM, but it is important to be able to vary the number of
-workers per VM (just like in the Grid case we were able to vary the
-number of workers per machine). 
+influences the time to instantiate an image EC2 somewhat, but is
+within image-to-image start up time fluctuation.  Once instantiated,
+it takes from a 1-10 seconds to assign a job to a VM on Eucalyptus, or
+EC2.  It is a configurable option to tie the VM lifetime to the
+\texttt{job\_service} object lifetime, or not.  It is also a matter of
+simple configuration to determine how many jobs (in this case workers)
+are assigned to a single VM. The default case is 1 worker per VM, but
+it is important to be able to vary the number of workers per VM (akin
+to Grids where we were able to vary the number of workers per
+machine).
 
 \begin{table}
 \upp
@@ -1217,40 +1216,39 @@ number of workers per machine).
 
 The total time to completion ($T_c$) of a \sagamapreduce job, can be
 decomposed into three primary components: $t_{over}$ defined as the
-time for pre-processing -- which in this case is the time to chunk
-into fixed size data units, and to possibly distribute them. This is
-in some ways the overhead of the process.  Another component of the
-overhead is the time it takes to instantiate a VM. It is worth
-mentioning that currently we instantiate VMs serially as opposed to
-doing this concurrently. This is not a design decision but just a
-quirk, with a trivial fix to eliminate it.  Our performance figures
-take the net instantiation time into account and thus normalize for
-multiple VM instantiation -- whether serial or concurrent. In other
-words, we will report figures where specific start-up times have been
-removed and thus numbers indicate relative performance and are
-amenable to direct comparision.  $t_{comp}$ is the time to actually
-compute the map and reduce function on a given worker, whilst
-$t_{coord}$ is the time taken to assign the payload to a worker,
-update records and to possibly move workers to a destination
-resource. $t_{coord}$ is indicative of the time that it takes to
-assign chunks to workers and scales as the number of workers
-increases. In general:
-
+time for pre-processing -- which is the time to chunk into fixed size
+data units, to distribute them and also to spawn the job. This is in
+some ways the overhead of the process (hence the subscript).  Another
+component of the overhead is the time it takes to instantiate a VM. It
+is worth mentioning that currently we instantiate VMs serially as
+opposed to doing this concurrently. This is not a design decision but
+just a quirk, with a trivial fix to eliminate it.  Our performance
+figures take the net instantiation time into account and thus
+normalize for multiple VM instantiation -- whether serial or
+concurrent. But all data we report is for spawning time without
+instantiation i.e., the job is dynamically assigned a VM.  Either way,
+we will report figures where specific spawn times have been removed
+and thus numbers indicate relative performance and are amenable to
+direct comparision.  $t_{comp}$ is the time to actually compute the
+map and reduce function on a given worker, whilst $t_{coord}$ is the
+time taken to assign the payload to a worker, update records and to
+possibly move workers to a destination resource. $t_{coord}$ is
+indicative of the time that it takes to assign chunks to workers and
+scales as the number of workers increases. In general:
 \vspace{-1em}
 \begin{eqnarray}
 T_c = t_{over} + t_{comp} + t_{coord}
 \end{eqnarray}
+We find that $t_{comp}$ is significantly greater than $t_{coord}$.
 
+\jhanote{A paragraph here to describe the results of the experiments}
+
+\section{Discussion}
 
 % Due to space limitations we will not discuss the
 % performance data of \sagamapreduce with different data-set sizes and
 % varying worker numbers.
-
 % \subsubsection{Performance} 
-
-
-\section{Discussion}
-
 % \subsection*{Related Programming Approaches}
 
 % {\it SAGA vs others:} We have chosen SAGA to implement MapReduce and
@@ -1273,18 +1271,14 @@ T_c = t_{over} + t_{comp} + t_{coord}
 % those involving Google's BigEngine.
 
 \subsubsection*{Experience}
-
 Images get corrupted if mapreduce does not terminate properly
+Networking issues.  All this is new technology, hence makes sense to
+try to list some of the challenges we faced.
 
-Networking issues.
-
-All this is new technology, hence makes sense to try to list some of
-the challenges we faced.
-
-\jhanote{Kate and Andre: We need to outline the interesting Cloud
-related challenges we encountered.  Not the low-level SAGA problems,
-but all issues related to making SAGA work on Clouds.  
-}
+% \jhanote{Kate and Andre: We need to outline the interesting Cloud
+% related challenges we encountered.  Not the low-level SAGA problems,
+% but all issues related to making SAGA work on Clouds.  
+% }
 
 % \jhanote{we have been having many of andre's jobs fail. insight into
 %   why? is it interesting to report?}
