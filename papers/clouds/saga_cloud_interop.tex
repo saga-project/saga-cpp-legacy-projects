@@ -737,43 +737,44 @@ following ways.....  \jhanote{The aim of the remainder of this section
 
 \section{SAGA-based MapReduce}
 In this paper we will demonstrate the use of SAGA in implementing well
-known programming patterns for data intensive computing.
-Specifically, we have implemented MapReduce. We have also developed
+known programming patterns for data intensive computing --
+specifically, we have implemented MapReduce. We have also developed
 real scientific applications using SAGA based implementations of these
 patterns: multiple sequence alignment can be orchestrated using the
 SAGA-All-pairs implementation, and genome searching can be implemented
-using SAGA-MapReduce.
+using SAGA-MapReduce (see Ref.~\cite{saga_cc09}).
 
-{\bf MapReduce:} MapReduce~\cite{mapreduce-paper} is a programming
-framework which supports applications which operate on very large data
-sets on clusters of computers.  MapReduce relies on a number of
-capabilities of the underlying system, most related to file
-operations.  Others are related to process/data
-allocation. % The Google File-System, and other
+% {\bf MapReduce:} MapReduce is a programming framework which supports
+% applications which operate on very large data sets on clusters of
+% computers.
+
+% The Google File-System, and other
 % distributed file-systems (DFS), provide the relevant capabilities,
 % such as atomic file renames.  Implementations of MapReduce on these
 % DFS are free to focus on implementing the data-flow pipeline, which is
 % the algorithmic core of the MapReduce framework.  
-One feature worth noting in MapReduce is that the ultimate dataset is
-not on one machine, it is partitioned on multiple machines distributed
-over a Grid. Google uses their distributed file system (Google File
-System) to keep track of where each file is located.  Additionally,
-they coordinate this effort with Bigtable.
 
-{\bf SAGA-MapReduce Implementation:} We have recently implemented
-MapReduce in SAGA, where the system capabilities required by MapReduce
-are usually not natively supported. Our implementation interleaves the
-core logic with explicit instructions on where processes are to be
-scheduled.  The advantage of this approach is that our implementation
-is no longer bound to run on a system providing the appropriate
-semantics originally required by MapReduce, and is portable to a
-broader range of generic systems as well.  The drawback is that our
-implementation is relatively more complex -- it needs to add system
-semantic capabilities at some level, and it is inherently slower -- as
-it is difficult to reproduce system-specific optimizations to work
-generically.
-% it is for these capabilities very difficult or near impossible to
-% obtain system level performance on application level. 
+Google's MapReduce~\cite{mapreduce-paper} relies on a number of
+capabilities of the underlying system, most related to file
+operations.  Others are related to process/data allocation.  A feature
+worth noting in MapReduce is that the ultimate dataset is not on one
+machine, it is partitioned on multiple machines distributed. Google
+uses their distributed file system (Google File System) to keep track
+of where each file is located.  Additionally, they coordinate this
+effort with Bigtable.  
+
+In contrast, in the SAGA-based MapReduce the system capabilities
+required by MapReduce are usually not natively supported. Our
+implementation interleaves the core logic with explicit instructions
+on where processes are to be scheduled.  The advantage of this
+approach is that our implementation is no longer bound to run on a
+system providing the appropriate semantics originally required by
+MapReduce, and is portable to a broader range of generic systems as
+well.  The drawback is that our current implementation is relatively
+more complex -- it needs to add system semantic capabilities at some
+level, and it is inherently slower -- as it is difficult to reproduce
+system-specific optimizations to work generically. The fact that it
+single-threaded currently is a primary factor for slowdown.
 Critically however, none of these complexities are transferred to the
 end-user, and they remain hidden within the framework. Also many of
 these are due to the early-stages of SAGA and incomplete
@@ -839,19 +840,19 @@ output elements (here: the word and its overall count). All key/value
 pairs that are passed to |emit| will be combined by the framework into
 a single output file.
 
-As shown in Fig.~\ref{saga-mapreduce_controlflow} both, the master and
-the worker processes use the SAGA-API as an abstract interface to the
-used infrastructure, making the application portable between different
-architectures and systems. The worker processes are launched using the
-SAGA job package, allowing to launch the jobs either locally, using
-Globus/GRAM, Amazon Web Services, or on a Condor pool. The
-communication between the master and the worker processes is ensured
-by using the SAGA advert package, abstracting an information database
-in a platform independent way (this can also be achieved through
-SAGA-Bigtable adaptors).  The Master process creates partitions of
-data (referred to as chunking, analogous to Google's MapReduce), so
-the data-set does not have to be on one machine and can be
-distributed; this is an important mechanism to avoid limitations in
+%As shown in Fig.~\ref{saga-mapreduce_controlflow} both, 
+Both the master and the worker processes use the SAGA-API as an
+abstract interface to the used infrastructure, making the application
+portable between different architectures and systems. The worker
+processes are launched using the SAGA job package, allowing to launch
+the jobs either locally, using Globus/GRAM, Amazon Web Services, or on
+a Condor pool. The communication between the master and the worker
+processes is ensured by using the SAGA advert package, abstracting an
+information database in a platform independent way (this can also be
+achieved through SAGA-Bigtable adaptors).  The Master process creates
+partitions of data (referred to as chunking, analogous to Google's
+MapReduce), so the data-set does not have to be on one machine and can
+be distributed; this is an important mechanism to avoid limitations in
 network bandwidth and data distribution.  These files could then be
 recognized by a distributed File-System (FS) such as Hadoop-FS
 (HDFS). All file transfer operations are based on the SAGA file
@@ -859,7 +860,7 @@ package, which supports a range of different FS and transfer
 protocols, such as local-FS, Globus/GridFTP, KFS, and HDFS.
 
 \subsection{Application Set Up}
-The single most prominent feature of ous SAGA based MapReduce
+The single most prominent feature of \sagamapreduce
 implementation is the ability to run the application withoude code
 changes in a wide range of infrastructures, such as clusters, Grids,
 Clouds, and in fact any other local or distributed compute system
