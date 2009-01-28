@@ -763,24 +763,24 @@ uses their distributed file system (Google File System) to keep track
 of where each file is located.  Additionally, they coordinate this
 effort with Bigtable.  
 
-In contrast, in the SAGA-based MapReduce the system capabilities
-required by MapReduce are usually not natively supported. Our
-implementation interleaves the core logic with explicit instructions
-on where processes are to be scheduled.  The advantage of this
-approach is that our implementation is no longer bound to run on a
-system providing the appropriate semantics originally required by
-MapReduce, and is portable to a broader range of generic systems as
-well.  The drawback is that our current implementation is relatively
-more complex -- it needs to add system semantic capabilities at some
-level, and it is inherently slower -- as it is difficult to reproduce
-system-specific optimizations to work generically. The fact that it
-single-threaded currently is a primary factor for slowdown.
-Critically however, none of these complexities are transferred to the
-end-user, and they remain hidden within the framework. Also many of
-these are due to the early-stages of SAGA and incomplete
-implementation of features, and not a fundamental limitation of the
-design or concept of the interface or programming models that it
-supports.
+\subsection{\sagamapreduce Implementation} In contrast, in the
+SAGA-based MapReduce the system capabilities required by MapReduce are
+usually not natively supported. Our implementation interleaves the
+core logic with explicit instructions on where processes are to be
+scheduled.  The advantage of this approach is that our implementation
+is no longer bound to run on a system providing the appropriate
+semantics originally required by MapReduce, and is portable to a
+broader range of generic systems as well.  The drawback is that our
+current implementation is relatively more complex -- it needs to add
+system semantic capabilities at some level, and it is inherently
+slower -- as it is difficult to reproduce system-specific
+optimizations to work generically. The fact that it single-threaded
+currently is a primary factor for slowdown.  Critically however, none
+of these complexities are transferred to the end-user, and they remain
+hidden within the framework. Also many of these are due to the
+early-stages of SAGA and incomplete implementation of features, and
+not a fundamental limitation of the design or concept of the interface
+or programming models that it supports.
 
 % The overall architecture of the SAGA-MapReduce implementation is shown
 % in Fig.~\ref{saga-mapreduce_controlflow}. 
@@ -855,41 +855,65 @@ MapReduce), so the data-set does not have to be on one machine and can
 be distributed; this is an important mechanism to avoid limitations in
 network bandwidth and data distribution.  These files could then be
 recognized by a distributed File-System (FS) such as Hadoop-FS
-(HDFS). All file transfer operations are based on the SAGA file
-package, which supports a range of different FS and transfer
-protocols, such as local-FS, Globus/GridFTP, KFS, and HDFS.
+(HDFS). % All file transfer operations are based on the SAGA file
+% package, which supports a range of different FS and transfer
+% protocols, such as local-FS, Globus/GridFTP, KFS, and HDFS.
 
-\subsection{Application Set Up}
-The single most prominent feature of \sagamapreduce
-implementation is the ability to run the application withoude code
-changes in a wide range of infrastructures, such as clusters, Grids,
-Clouds, and in fact any other local or distributed compute system
-which can be accessed by the respective set of SAGA adaptors.  When
-deploying compute clients on a \I{diverse} set of remote nodes, the
+\subsection{\sagamapreduce Set-Up}
+% The single most prominent feature of \sagamapreduce implementation is
+% the ability to run the application without code changes over a wide
+% range of infrastructures, such as clusters, Grids, Clouds, and in fact
+% any other local or distributed compute system which can be accessed by
+% the respective set of SAGA adaptors.  
+When deploying compute clients on a \I{diverse} set of resources, the
 question arises if and how these clients need to be configured to
-function properly in the overall application scheme.
+function properly in the overall application scheme.  \sagamapreduce
+compute clients (workers) require two pieces of information to
+function: (a) the contact address of the advert service used for
+coordinating the clients, and for distributing work items to them; and
+(b) a unique worker ID to register with in that advert service, so
+that the master can start to assign work items.  Both information are
+provided via command line parameters to the worker, at startup time.
 
- Our MapReduce compute clients (aka 'workers') require two 
- pieces of information to function: (a) the contact address of the
- advert service used for coordinating the clients, and for
- distributing work items to them; and (b) a unique worker ID to
- register with in that advert service, so that the master can start to
- assign work items.  Both information are provided via command line
- parameters to the worker, at startup time.
+The master application requires the following additional information:
+i) a set of resources where the workers can execute, ii) location of
+the input data, iii) the location of the output data, and iv) the
+contact point for the advert service for coordination and
+communication.  
+% A typical configuration file looks like this (slightly
+% shortened for presentation):
 
- The master application requires a number of additional information:
- it needs a set of systems where the workers are supposed to be
- running, the location of the input data, the location of the output
- data, and also the contact point for the advert service for
- coordination and communication.
-
-%  A typical configuration file looks like this (slightly shortened for
-%  presentation):
+% \begin{figure}[!ht]
+% \upp 
+%  \begin{center}
+%   \begin{mycode}[label=SAGA Job Launch via GRAM gatekeeper]
+%   { <MapReduceSession name="WordCount" ...>
+%       <OrchestratorDB>
+%         <Host> advert://fortytwo.cct.lsu.edu/ </Host>
+%       </OrchestratorDB>
+%       <TargetHosts>
+%         <Host OS="globus" ...> gram://qb1.loni.org:2119/jobmanager-pbs </Host>
+%         <Host OS="ec2" ...>    ec2://i-760c8c1f/                       </Host>
+%         <Host OS="ec2" ...>    ec2://                                  </Host>
+%       </TargetHosts>
+%       <ApplicationBinaries>
+%         <BinaryImage arch="i386" OS="globus" ...>     /lustre/merzky/saga/bin/mapreduce_worker </BinaryImage>
+%         <BinaryImage arch="i386" OS="ec2"    ...> /usr/local/saga/bin/mapreduce_worker     </BinaryImage>
+%       </ApplicationBinaries>       <OutputPrefix>any://qb3.loni.org/lustre/merzky/mapreduce/</OutputPrefix>
+%       <ApplicationFiles>
+%         <File> any://merzky@qb4.loni.org/lustre/merzky/mapreduce/1GB.txt </File>
+%       </ApplicationFiles>
+%     </MapReduceSession>
+%   }
+%   \end{mycode}
+%   \caption{\label{gramjob} Typical Configuration..}
+%  \end{center}
+% \upp
+% \end{figure}
 
 %  \verb|
 %   <?xml version="1.0" encoding="..."?>
 %   <MRDL version="1.0" xmlns="..." xmlns:xsi="..."
-    
 %     <MapReduceSession name="WordCount" ...>
   
 %       <OrchestratorDB>
@@ -918,43 +942,45 @@ function properly in the overall application scheme.
 %   </MRDL>
 %  |
 
- In this example, we will create three worker instances: on is started
- via gram and PBS on qb1.loni.org, one is started on a
- pre-instantiared ec2 image (instance-id \T{i-760c8c1f}), and one will
- be running on a dynamically deployed ec2 instance (no instance id
- given).  Note that the startup times for the individual workers may
- vary over several orders of magnitutes, depending on the PBS queue
- waiting time and VM startup time.  The mapreduce master will start to
- utilize workers as soon as they are able to register themselfs, so
- will not wait until all workers are available.  That mechanism both
- minimizes time-to-solution, and maximizes resilience against worker
- loss.
+In a typical configuration file, for example, three worker instances
+could be started; first one started via gram and PBS on qb1.loni.org,
+second started on a pre-instantiared ec2 image (instance-id
+\T{i-760c8c1f}), and finally will be running on a dynamically deployed
+ec2 instance (no instance id given).  Note that the startup times for
+the individual workers may vary over several orders of magnitutes,
+depending on the PBS queue waiting time and VM startup time.  The
+mapreduce master will start to utilize workers as soon as they are
+able to register themselves, so will not wait until all workers are
+available.  That mechanism both minimizes time-to-solution, and
+maximizes resilience against worker loss.
 
- The example configuration file above also includes another important
- feature, in the URL of the input data set, which is given as
- {\footnotesize
-   \T{any://merzky@qb4.loni.org/lustre/merzky/mapreduce/1GB.txt}}.
- The scheme \T{any} acts here as a placeholder for SAGA, so that the
- SAGA engine can choose whatever adaptor fits the task best.  The
- master would access the file via the default local file adaptor.  The
- Globus clients may use either the GridFTP or ssh adaptor for remote
- file success (but in our experimental setup would actually also
- suceed with using the local file adaptor, as the lustre FS is mounted
- on the cluster nodes), and the ec2 workers would use the ssh file
- adaptor for remote access.  Thus, the use of the placeholder scheme
- frees us from specifying and maintaining a concise list of remote
- data access mechanisms per worker.  Also, it allows for additional
- resilience against service errors and changing configurations, as it
- leaves it up to the SAGA engine's adaptor selection mechanism to fund
- a suitable access mechanism at runtime -- as we have seen above, the
- globus nodes can utilize a variety of mechanisms for accessing the
- data in question.
+% The example configuration file above also includes another important
+% feature, in the URL of the input data set, which is given as
+% {\footnotesize
+%   \T{any://merzky@qb4.loni.org/lustre/merzky/mapreduce/1GB.txt}}. 
+The scheme \T{any} acts here as a placeholder for SAGA, so that the
+SAGA engine can choose an appropriate adaptor.  The master would
+access the file via the default local file adaptor.  The Globus
+clients may use either the GridFTP or ssh adaptor for remote file
+success (but in our experimental setup would actually also suceed with
+using the local file adaptor, as the lustre FS is mounted on the
+cluster nodes), and the EC2 workers would use the ssh file adaptor for
+remote access.  Thus, the use of the placeholder scheme frees us from
+specifying and maintaining a concise list of remote data access
+mechanisms per worker.  Also, it allows for additional resilience
+against service errors and changing configurations, as it leaves it up
+to the SAGA engine's adaptor selection mechanism to find a suitable
+access mechanism at runtime.
 
- % include as needed
- A parameter not shown in the above configuration example controls the
- number of workers created on each compute node.  By increasing that
- number, the chances are good that copute and communication times can
- be interleaved, and that the overall system utilization can increase.
+% As we have seen above, the globus nodes
+% can utilize a variety of mechanisms for accessing the data in
+% question.
+
+% include as needed
+A parameter not shown in the above configuration example controls the
+number of workers created on each compute node.  By increasing that
+number, the chances are good that copute and communication times can
+be interleaved, and that the overall system utilization can increase.
  
 \section{SAGA-MapReduce on Clouds and Grids}
 
@@ -1192,6 +1218,7 @@ number of workers per machine).
   \hline \hline
   0 & 1 (4) & 10 &  11.3 & 8.6 \\
   0 & 1 (4) & 100 & 16.2 & 8.7 \\ 
+  0 & 1 (8) & 100 & 31.07 & 18.3\\
   \hline \hline
 \end{tabular}
 \upp
