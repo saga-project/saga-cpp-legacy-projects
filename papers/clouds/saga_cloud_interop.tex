@@ -971,36 +971,33 @@ mechanisms per worker.  Also, it allows for additional resilience
 against service errors and changing configurations, as it leaves it up
 to the SAGA engine's adaptor selection mechanism to find a suitable
 access mechanism at runtime.
-
+%A parameter not shown in the above configuration example 
+A simple parameter can control the number of workers created on each
+compute node, by varying which, the chances are good that compute and
+communication times can be interleaved, and that the overall system
+utilization can increase (especially in the absence of precise
+knowledge of the execution system).
+ 
 % As we have seen above, the globus nodes
 % can utilize a variety of mechanisms for accessing the data in
 % question.
-
 % include as needed
-A parameter not shown in the above configuration example controls the
-number of workers created on each compute node.  By increasing that
-number, the chances are good that copute and communication times can
-be interleaved, and that the overall system utilization can increase.
- 
 \section{SAGA-MapReduce on Clouds and Grids}
 
-... Thanks to the low overhead of developing adaptors, SAGA has been
-deployed on three Cloud Systems -- Amazon, Nimbus~\cite{nimbus} and
+% \subsection*{Infrastructure Used} We first describe the infrastructure
+% that we employ for the interoperabilty tests.  \jhanote{Kate}
+% {\it Amazon EC2:} 
+% {\it Eucalyptus, ECP:} 
+% {\it Eucalyptus, GumboCloud:}
+% % And describe in a few sentences. 
+
+Thanks to the low overhead of developing adaptors, SAGA has been
+deployed on three Cloud Systems -- Amazon,
 Eucalyptus~\cite{eucalyptus} (we have a local installation of
-Eucalyptus, referred to as GumboCloud).  In this paper, we focus on
-EC2 and Eucalyptus.
+Eucalyptus at LSU -- named GumboCloud) and Nimbus.  In this paper, we
+focus on EC2 and Eucalyptus.
 
-
-\subsection*{Infrastructure Used} We first describe the infrastructure
-that we employ for the interoperabilty tests.  \jhanote{Kate}
-
-{\it Amazon EC2:} 
-
-{\it Eucalyptus, ECP:} 
-
-{\it Eucalyptus, GumboCloud:}
-
-% And describe in a few sentences. 
+\subsection{Deployment Details}
 
 In order to fully utilize cloud infrastructures for SAGA applications,
 the VM instances need to fullfill a couple or prerequisites: the SAGA
@@ -1019,110 +1016,102 @@ preparation script to the VM after its creation, and executing it with
 root permissions.  In particular for apt-get linux distribution, the
 post-instantiation software deployment is actually fairly painless,
 but naturally adds a significant amount of time to the overall VM
-startup\footnote{The long VM startup times encourage the use of SAGA's
-  asynchronous operations.}.
+startup (which encourages the use of asynchronous operations)
+% \footnote{The long VM startup times encourage the use of SAGA's
+%   asynchronous operations.}. 
+For the experiments in this paper, we prepared custom VM images with
+all prerequisites pre-installed.  We utilize the preparation script
+solely for some fine tuning of parameters: for example, we are able to
+deploy custom saga.ini files, or ensure the finalization of service
+startups before application deployment\footnote{For example, when
+  starting SAGA applications are started befor the VM's random
+  generator is initialized, our current uuid generator failed to
+  function properly -- the preparation script checks for the
+  availability of proper uuids, and delays the application deployment
+  as needed.}.
 
-For the presented experiments, we prepared custom VM images with all
-prerequisites pre-installed.  We utilize the preparation script solely
-for some fine tuning of parameters: for example, we are able to deploy
-custom saga.ini files, or ensure the finalization of service startups
-before application deployment\footnote{For example, when starting SAGA
-  applications are started befor the VM's random generator is
-  initialized, our current uuid generator fails to function properly
-  -- the preperation script checks for the availability of proper
-  uuids, and delays the application deployment as needed.}.
-
- % as needed:
 Eucalyptus VM images are basically customized Xen hypervisor images,
 as are EC2 VM images.  Customized in this context means that the
 images are accompanied by a set of metadata which tie it to a specific
 kernel and ramdisk images.  Also, the images contain specific
 configurations and startup services which allow the VM to bootstrap
 cleanly in the respective Cloud enviroment, e.g. to obtain the
-enccessary user credentials, and to perform the wanted firewall setup
-etc.
-
-As these systems all use Xen based images, a conversion of these
+neccessary user credentials, and to perform the wanted firewall setup
+etc.  As these systems all use Xen based images, a conversion of these
 images for the different cloud systems is in principle
 straight-forward.  But sparse documentation and lack of automatic
-tools however, amount to a certain challenge to that, at least to the
-average end user. Compared to that, the derivation of customized
-images frim existing images is well documented and tool supported, as
+tools however, make it challenging, at least to the average end
+user. Compared to that, the derivation of customized images from
+existing images is well documented with well supported tools -- as
 long as the target image is to be used in the same Cloud system as the
 original one.
 
- % add text about gumbo cloud / EPC setup here, if we need / want it
-
-
-
-
-\subsection{Deployment Details}
-
-We have also deployed \sagamapreduce to work on Cloud platforms.  It
-is critical to mention that the \sagamapreduce code did not undergo
-any changes whatsoever. The change lies in the run-time system and
-deployment architecture. For example, when running \sagamapreduce on
-EC2, the master process resides on one VM, while workers reside on
-different VMs.  Depending on the available adaptors, Master and Worker
-can either perform local I/O on a global/distributed file system, or
-remote I/O on a remote, non-shared file systems.  In our current
-implementation, the VMs hosting the master and workers share the same
-ssh credentials and a shared file-system (using sshfs/FUSE).
+% We have also deployed \sagamapreduce to work on Cloud platforms.  It
+% is critical to mention that the \sagamapreduce code did not undergo
+% any changes whatsoever. 
+In executing \sagamapreduce on different Clouds, the change lies in
+the run-time system and deployment architecture. For example, when
+running \sagamapreduce on EC2, the master process resides on one VM,
+while workers reside on different VMs.  Depending on the available
+adaptors, Master and Worker can either perform local I/O on a
+global/distributed file system, or remote I/O on a remote, non-shared
+file systems.  % In our current implementation, the VMs hosting the
+% master and workers share the same ssh credentials and a shared
+% file-system (using sshfs/FUSE). 
 Application deployment and configuration (as discussed above) are also
-performed via that sshfs.  \jhanote{Andre, Kate please add on the
-  above..}
+performed via that sshfs.  On EC2, we created custom virtual machine
+(VM) image with pre-installed SAGA.  For Eucalyptus, a boot strapping
+script equips a standard VM instance with SAGA, and SAGA's
+prerequisites (mainly boost).  To us, a mixed approach seemed most
+favourable, where the bulk software installation is statically done
+via a custom VM image, but software configuration and application
+deployment are done dynamically during VM startup.
 
-On EC2, we created custom virtual machine (VM) image with
-pre-installed SAGA.  For Eucalyptus, a boot strapping script equips a
-standard VM instance with SAGA, and SAGA's prerequisites (mainly
-boost).  To us, a mixed approach seemed most favourable, where the
-bulk software installation is statically done via a custom VM image,
-but software configuration and application deployment are done
-dynamically during VM startup.  \jhanote{more details on how we create
-  VMs, how we launch jobs and transfer files to these backend}
+%\jhanote{Andre, Kate please add on the above..}
 
-\subsection{Demonstrating Cloud-Grid Interoperabilty}
+\subsection{Demonstrating Interoperabilty}
 
-There are several aspects to Cloud Interoperability. A simple form of
+There are several aspects to Interoperability. A simple form of
 interoperability -- more akin to inter-changeable -- is that any
 application can use either of the three Clouds systems without any
 changes to the application: the application simply needs to
 instantiate a different set of security credentials for the respective
-runtime environment, aka cloud.  Interestingly, SAGA provides this
-level of interoperability quite trivially thanks to the adaptors.  By
-almost trivial extension, SAGA also provides Grid-Cloud
-interoperability, as shown in Fig.~\ref{gramjob} and ~\ref{vmjob},
-where exactly the same interface and functional calls lead to job
-submission on Grids or on Clouds. Although syntactically identical,
-the semantics of the calls and back-end management are somewhat
-different.  For example, for Grids, a \texttt{job\_service} instance
-represents a live job submission endpoint, whilst for Clouds it
-represents a VM instance created on the fly. 
+runtime environment; we refer to this as Cloud-Cloud
+interoperabilty. By almost trivial extension, SAGA also provides
+Grid-Cloud interoperability, as shown in Fig.~\ref{gramjob} and
+~\ref{vmjob}, where exactly the same interface and functional calls
+lead to job submission on Grids or on Clouds. Although syntactically
+identical, the semantics of the calls and back-end management are
+somewhat different.  As discussed, SAGA provides interoperability
+quite trivially thanks to the dynamic loading of adaptors.
 
-\subsection{Experiments} In an earlier paper
-(Ref~\cite{saga_ccgrid09}), we had carried out the following tests, to
-demonstrate how \sagamapreduce utilizes different infrastructrure and
-control over task-data placement, and gain insight into performance on
-``vanilla'' Grids. Some specific tests we performed and used to
-understand performance of \sagamapreduce in distributed environments
-were:
-\begin{enumerate}
-\item We began by distributing \sagamapreduce workers (compute) and
-  the data they operate on locally. We varied the number of workers
-  vary from 1 to 10, and the data-set sizes varying from 1 to
-  10GB. 
-\item We then understood the effect of performance when using a
-  distributed FS, that is we had \sagamapreduce workers compute local
-  (to master), but using a distributed FS (HDFS). We varied
-  the underlying distributed-FS (used KFS in lieu of HDFS).
+% For example, for Grids, a \texttt{job\_service} instance
+% represents a live job submission endpoint, whilst for Clouds it
+% represents a VM instance created on the fly.
+
+% Some specific tests we performed and used to understand performance
+% of \sagamapreduce in distributed environments were:
+% \begin{enumerate}
+% \item We began by distributing \sagamapreduce workers (compute) and
+%   the data they operate on locally. We varied the number of workers
+%   vary from 1 to 10, and the data-set sizes varying from 1 to
+%   10GB. 
+% \item We then understood the effect of performance when using a
+%   distributed FS, that is we had \sagamapreduce workers compute local
+%   (to master), but using a distributed FS (HDFS). We varied
+%   the underlying distributed-FS (used KFS in lieu of HDFS).
+% \end{enumerate}
 % \item Same as Exp. \#2, but using a different distributed FS
 %   (KFS); the number of workers varies from 1-10
 % \item We then distributed the \sagamapreduce workers distributed compute (workers) and distributed file-system (KFS)
 % \item Distributed compute (workers) but using local file-systems (using GridFTP for transfer)
-\end{enumerate}
 
-Mirroring the same strucuture, in this paper, we perform the following
-experiments:
+\subsection{Experiments} In an earlier paper
+(Ref~\cite{saga_ccgrid09}), we performaed tests to demonstrate how
+\sagamapreduce utilizes different infrastructrure and provides control
+over task-data placement; this led to insight into performance on
+``vanilla'' Grids.  Mirroring the same strucuture, in this paper, we
+perform the following experiments:
 \begin{enumerate}
 \item We take \sagamapreduce and compare its performance for the
   following configurations when exclusively running in Clouds to the
@@ -1140,13 +1129,12 @@ experiments:
   (QB/TeraGrid) and Clouds (EC2, with one job per VM). We
   compare the performance from the two hybrid (EC2-Grid,
   EC2-Eucalyptus distribution) cases to the pure distributed case.
+\end{enumerate}
 % \item Distributed compute (workers) but using GridFTP for
 %   transfer. This corresponds to the case where workers are able to
-%   communicate directly with each other.  \jhanote{I doubt we will get
-%     to this scenario, hence if we can do the above three, that is more
-%     than enough.}
-\end{enumerate}
-
+%   communicate directly with each other.  \jhanote{I doubt we will
+%     get to this scenario, hence if we can do the above three, that
+%     is more than enough.}
 The primary aim of this work is to establish, via well-structured and
 designed experiments, the fact that \sagamapreduce has been used to
 demonstrate Cloud-Cloud interoperabilty and Cloud-Grid
@@ -1172,7 +1160,7 @@ true for every experiment/test. \jhanote{Andre, Kate please confirm
 
 \subsection{Results and Analysis}
 
-Our image size is ... \jhanote{fix and provide details}
+%Our image size is ... \jhanote{fix and provide details}
 
 It takes SAGA about 45 seconds to instantiate a VM on Eucalyptus
 \jhanote{Andre is this still true?}  and about 100 seconds on average
