@@ -261,11 +261,11 @@ But first we provide Some defining features of {\it Application-level
 \begin{enumerate}
 \item Other than compiling on a different or new platform, there are no
   further changes required of the application
-\item Automated, scalable and extensible solution to use new resources,
-  and not via  bilateral or customized arrangements
-\item Semantics of any services that an application depends upon are
-  consistent and similar, e.g., consistency of underlying error
-  handling and catching and return
+\item Automated, generalized and extensible solutions to use new resources,
+%  and not via  bilateral or customized arrangements
+% \item Semantics of any services that an application depends upon are
+%   consistent and similar, e.g., consistency of underlying error
+%   handling and catching and return
 \item In some ways, ALI is strong interoperability, whilst
   service-level interoperabilty is weak interoperability.
 \end{enumerate}
@@ -824,29 +824,29 @@ worker processes get assigned work either from the map or the reduce
 step. The functionality for the different steps have to be provided by
 the user, which means the user has to write 2 C++ functions
 implementing the required MapReduce algorithm.
-Fig.\ref{src:saga-mapreduce} shows a very simple example of a
-MapReduce application to count the word frequencies in the input data
-set. The user provided functions |map| (line 14) and |reduce| (line
-25) are invoked by the MapReduce framework during the map and reduce
-steps. The framework provides the URL of the input data chunk file to
-the |map| function, which should call the function |emitIntermediate|
-for each of the generated output key/value pairs (here the word and
-it's count, i.e. '1', line 19). During the reduce step, after the data
-has been sorted, this output data is passed to the |reduce|
-function. The framework passes the key and a list of all data items
-which have been associated with this key during the map step. The
-reduce step calls the |emit| function (line 34) for each of the final
-output elements (here: the word and its overall count). All key/value
-pairs that are passed to |emit| will be combined by the framework into
-a single output file.
+% Fig.\ref{src:saga-mapreduce} shows a very simple example of a
+% MapReduce application to count the word frequencies in the input data
+% set. The user provided functions |map| (line 14) and |reduce| (line
+% 25) are invoked by the MapReduce framework during the map and reduce
+% steps. The framework provides the URL of the input data chunk file to
+% the |map| function, which should call the function |emitIntermediate|
+% for each of the generated output key/value pairs (here the word and
+% it's count, i.e. '1', line 19). During the reduce step, after the data
+% has been sorted, this output data is passed to the |reduce|
+% function. The framework passes the key and a list of all data items
+% which have been associated with this key during the map step. The
+% reduce step calls the |emit| function (line 34) for each of the final
+% output elements (here: the word and its overall count). All key/value
+% pairs that are passed to |emit| will be combined by the framework into
+% a single output file.
 
 %As shown in Fig.~\ref{saga-mapreduce_controlflow} both, 
 Both the master and the worker processes use the SAGA-API as an
 abstract interface to the used infrastructure, making the application
 portable between different architectures and systems. The worker
-processes are launched using the SAGA job package, allowing to launch
-the jobs either locally, using Globus/GRAM, Amazon Web Services, or on
-a Condor pool. The communication between the master and the worker
+processes are launched using the SAGA job package, allowing the jobs
+to launch either locally, using Globus/GRAM, Amazon Web Services, or
+on a Condor pool. The communication between the master and the worker
 processes is ensured by using the SAGA advert package, abstracting an
 information database in a platform independent way (this can also be
 achieved through SAGA-Bigtable adaptors).  The Master process creates
@@ -991,11 +991,25 @@ knowledge of the execution system).
 % {\it Eucalyptus, GumboCloud:}
 % % And describe in a few sentences. 
 
-Thanks to the low overhead of developing adaptors, SAGA has been
-deployed on three Cloud Systems -- Amazon,
-Eucalyptus~\cite{eucalyptus} (we have a local installation of
-Eucalyptus at LSU -- named GumboCloud) and Nimbus.  In this paper, we
-focus on EC2 and Eucalyptus.
+%\subsection{Demonstrating Interoperabilty}
+
+There are several aspects to Interoperability. A simple form of
+interoperability -- more akin to inter-changeable -- is that any
+application can use either of the three Clouds systems without any
+changes to the application: the application simply needs to
+instantiate a different set of security credentials for the respective
+runtime environment; we refer to this as Cloud-Cloud
+interoperabilty. By almost trivial extension, SAGA also provides
+Grid-Cloud interoperability, as shown in Fig.~\ref{gramjob} and
+~\ref{vmjob}, where exactly the same interface and functional calls
+lead to job submission on Grids or on Clouds. Although syntactically
+identical, the semantics of the calls and back-end management are
+somewhat different.  As discussed, SAGA provides interoperability
+quite trivially thanks to the dynamic loading of adaptors.  Thanks to
+the low overhead of developing adaptors, SAGA has been deployed on
+three Cloud Systems -- Amazon, Eucalyptus~\cite{eucalyptus} (we have a
+local installation of Eucalyptus at LSU -- named GumboCloud) and
+Nimbus.  In this paper, we focus on EC2 and Eucalyptus.
 
 \subsection{Deployment Details}
 
@@ -1069,21 +1083,6 @@ deployment are done dynamically during VM startup.
 
 %\jhanote{Andre, Kate please add on the above..}
 
-\subsection{Demonstrating Interoperabilty}
-
-There are several aspects to Interoperability. A simple form of
-interoperability -- more akin to inter-changeable -- is that any
-application can use either of the three Clouds systems without any
-changes to the application: the application simply needs to
-instantiate a different set of security credentials for the respective
-runtime environment; we refer to this as Cloud-Cloud
-interoperabilty. By almost trivial extension, SAGA also provides
-Grid-Cloud interoperability, as shown in Fig.~\ref{gramjob} and
-~\ref{vmjob}, where exactly the same interface and functional calls
-lead to job submission on Grids or on Clouds. Although syntactically
-identical, the semantics of the calls and back-end management are
-somewhat different.  As discussed, SAGA provides interoperability
-quite trivially thanks to the dynamic loading of adaptors.
 
 % For example, for Grids, a \texttt{job\_service} instance
 % represents a live job submission endpoint, whilst for Clouds it
@@ -1106,57 +1105,56 @@ quite trivially thanks to the dynamic loading of adaptors.
 % \item We then distributed the \sagamapreduce workers distributed compute (workers) and distributed file-system (KFS)
 % \item Distributed compute (workers) but using local file-systems (using GridFTP for transfer)
 
-\subsection{Experiments} In an earlier paper
-(Ref~\cite{saga_ccgrid09}), we performaed tests to demonstrate how
-\sagamapreduce utilizes different infrastructrure and provides control
-over task-data placement; this led to insight into performance on
-``vanilla'' Grids.  Mirroring the same strucuture, in this paper, we
+% \item Distributed compute (workers) but using GridFTP for
+%   transfer. This corresponds to the case where workers are able to
+%   communicate directly with each other.  \jhanote{I doubt we will
+%     get to this scenario, hence if we can do the above three, that
+%     is more than enough.}
+
+\subsection{Experiments} 
+In an earlier paper (Ref~\cite{saga_ccgrid09}), we performed tests to
+demonstrate how \sagamapreduce utilizes different infrastructrure and
+provides control over task-data placement; this led to insight into
+performance on ``vanilla'' Grids. The primary aim of this work is to
+establish, via well-structured and designed experiments, the fact that
+\sagamapreduce has been used to demonstrate Cloud-Cloud
+interoperabilty and Cloud-Grid interoperabilty. In this paper, we
 perform the following experiments:
 \begin{enumerate}
-\item We take \sagamapreduce and compare its performance for the
-  following configurations when exclusively running in Clouds to the
-  performance in Grids: We vary the number of workers vary from 1 to
-  10, and the data-set sizes varying from 1 to 10GB.  In these first
-  set of experiments, we set the number of workers per VM to be 1,
-  which is treated as the base case.  We perform these tests on both
-  EC2 and using Eucalyptus.
+\item We compare the performance of \sagamapreduce when exclusively
+  running on a Cloud platform to that when on Grids. We vary the
+  number of workers (1 to 10) and the data-set sizes varying from 10MB
+  to 1GB.
 \item For Clouds, we then vary the number of workers per VM, such that
   the ratio is 1:2; we repeat with the ratio at 1:4 -- that is the
   number of workers per VM is 4.
 \item We then distribute the same number of workers across two
   different Clouds - EC2 and Eucalyptus.
 \item Finally, for a single master, we distribute workers across Grids
-  (QB/TeraGrid) and Clouds (EC2, with one job per VM). We
-  compare the performance from the two hybrid (EC2-Grid,
-  EC2-Eucalyptus distribution) cases to the pure distributed case.
+  (QB/TeraGrid) and Clouds (EC2, with one job per VM). We compare the
+  performance from the two hybrid (EC2-Grid, EC2-Eucalyptus
+  distribution) cases to the pure distributed case.
 \end{enumerate}
-% \item Distributed compute (workers) but using GridFTP for
-%   transfer. This corresponds to the case where workers are able to
-%   communicate directly with each other.  \jhanote{I doubt we will
-%     get to this scenario, hence if we can do the above three, that
-%     is more than enough.}
-The primary aim of this work is to establish, via well-structured and
-designed experiments, the fact that \sagamapreduce has been used to
-demonstrate Cloud-Cloud interoperabilty and Cloud-Grid
-interoperabilty.  A detailed analysis of the data and understanding
-performance involves the generation of ``system probes'', as there are
-differences in the specific Cloud system implementation and
-deployment.  It is worth reiterating, that although we have captured
-concrete performance figures, it is not the aim of this work to
-analyze the data and understand performance implications.  For
-example, in EC2 Clouds the default scenario is that the VMs are
-distributed with respect to each other. There is notion of
-availability zone, which is really just a control on which
-data-center/cluster the VM is placed. In the absence of explicit
-mention of the availabilty zone, it is difficult to determine or
-assume that the availability zone is the same. However, for ECP and
-GumboCloud, it can be established that the same cluster is used and
-thus it is fair to assume that the VMs are local with respect to each
-other.  Similarly, for data.. it should also be assumed that for
-Eucalpytus based Clouds, data is also locally distributed (with
-respect to a VM), whereas for EC2 clouds this cannot be assumed to be
-true for every experiment/test. \jhanote{Andre, Kate please confirm
-  that you agree with the last statment}
+Unless mentioned otherwise, we set the number of workers per VM to be
+1. It is worth reiterating, that although we have captured concrete
+performance figures, it is not the aim of this work to analyze the
+data and understand performance implications.  A detailed analysis of
+the data and understanding performance involves the generation of
+``system probes'', as there are differences in the specific Cloud
+system implementation and deployment.  For example, in EC2 Clouds the
+default scenario is that the VMs are distributed with respect to each
+other. There is notion of availability zone, which is really just a
+control on which data-center/cluster the VM is placed. In the absence
+of explicit mention of the availabilty zone, it is difficult to
+determine or assume that the availability zone is the same. However,
+for ECP and GumboCloud, it can be established that the same cluster is
+used and thus it is fair to assume that the VMs are local with respect
+to each other.  Similarly, without a clear handle on whether data is
+local or distributed it is difficult.  It should also be assumed that
+for Eucalpytus based Clouds, data is also locally distributed (i.e.
+same cluster with respect to a VM), whereas for EC2 clouds this cannot
+be assumed to be true for every experiment/test. \jhanote{Andre, Kate
+  please confirm that you agree with the last statment}
 
 \subsection{Results and Analysis}
 
@@ -1195,6 +1193,7 @@ number of workers per machine).
   2 & 2 & 10 & 7.4 & 5.9 \\
   3 & 3 & 10 & 11.6 & 10.3 \\
   4 & 4 & 10 & 13.7 & 11.6 \\
+  5 & 5 & 10 & 33.2 & 29.4 \\ 
   10 & 10 & 10 & 32.2 & 28.8 \\
   \hline
   \hline 
