@@ -357,7 +357,7 @@ pre-requisite.
 % processing of data, it can be argued that there is a greater premium
 % than ever before on abstractions at multiple levels.
 
-SAGA~\cite{saga-core} programming system constains a high level API
+The SAGA~\cite{saga-core} programming system contains a high level API
 that provides a simple, standard and uniform interface for the most
 commonly required distributed functionality.  SAGA can be used to
 encode distributed applications~\cite{saga_escience07_short,
@@ -389,13 +389,12 @@ details of SAGA here; details can be found elsewhere~\cite{saga_url}.
 
 \section{Interfacing SAGA to Grids and Clouds}
 
-As mentioned in the previous section SAGA was originally developed for
-Grids and that too mostly for compute intensive application. This was
-as much a design decision as it was user-driven, i.e., the majority of
+SAGA was originally developed primarily for compute-intensive
+Grids. This was a user-driven design decision, i.e., the majority of
 applications that motivated the design and formulation of version 1.0
 of the API were HPC applications attempting to utilize distributed
 resources.  Ref~\cite{saga_ccgrid09} demonstrated that in spite of its
-original design constraints, SAGA can be used to control
+original design constraints, SAGA can be used to develop
 data-intensive applications in diverse distributed environments,
 including Clouds.  This in part is due to the fact that much of the
 ``distributed functionality'' required for data-intensive applications
@@ -403,8 +402,10 @@ remains the same -- namely the ability to submit jobs to different
 back-ends, the ability to move files between distributed resources
 etc. Admittedly, and as we will discuss, the semantics of, say the
 basic {\texttt job\_submit()} changes in going from Grid enviroments
-to Cloud environments, but the application remains oblivious of these
-changes and does not need to be refactored. % Specifically, {\texttt
+to Cloud environments.
+%but the application remains oblivious of these
+%changes and does not need to be refactored. 
+% Specifically, {\texttt
 %   job\_submit()} when used in a Cloud context results in the creation
 % of a virtual machine instance and the assignment of a job to that
 % virtual machine; on the other hand, in the context of Grids, {\texttt
@@ -422,7 +423,7 @@ the interoperability is enabled.
 % In a nutshell, this is the power of a high-level interface such as
 % SAGA and upon which the capability of interoperability is based.
 
-\subsection{Clouds Adaptors: Design and Implementation}
+\subsection{Adaptors: Design and Implementation}
 
  % this section describes how the adaptors used for the experiments
  % have been implemented.  It assumes that the adaptor based
@@ -434,62 +435,62 @@ the interoperability is enabled.
 % This section describes the various sets of adaptors used for the
 % presented Cloud-Grid interoperabilty experiments.
 
-Through a structured discussion of the various adaptors.. 
-it will become clear ..
+% Through a structured discussion of the various adaptors.. 
+% it will become clear ..
 
 \subsubsection{Local Adaptors}
-Although SAGA's default local adaptors have not much to do with
-interoperability, its importance for the used implementation of the
-various used remote adaptors will become clear later on.  The local
-job adaptor utilizes \T{boost::process} (on Windows) and plain
-\T{fork/exec} (on Unix derivates) to spawn, control and watch local
-job instances.  The local file adaptor uses \T{boost::filesystem}
-classes for filesystem navigation, and \T{std::fstream} for local file
-I/O. % 'nuf said?
+Although SAGA's default local adaptors do not have much to do with
+interoperability, their importance for the implementation of other
+remote adaptors will become clear later on.  The local job adaptor
+utilizes \T{boost::process} (on Windows) and plain \T{fork/exec} (on
+Unix derivates) to spawn, control and watch local job instances.  The
+local file adaptor uses \T{boost::filesystem} classes for filesystem
+navigation, and \T{std::fstream} for local file I/O. % 'nuf said?
 
 \subsubsection{SSH adaptors}
 The SSH adaptors are based on three different command line tools,
-namely {\texttt ssh, scp} and {\texttt sshfs}.  Further, all ssh
+namely {\texttt{ssh, scp}} and {\texttt{sshfs}}.  Further, all ssh
 adaptors rely on the availability of ssh security credentials for
 remote operations.  The ssh context adaptor implements some mechanisms
 to (a) discover available keypairs automatically, and (b) to verify
 the validity and usability of the found and otherwise specified
 credentials.
   
-\ssh is used to spawn remote job instances.  For that, the ssh job
-adaptor instantiates a \I{local} \T{saga::job::service} instance, and
-submits the respective ssh command lines to it.  The local job adaptor
-described above then takes care of process I/O, detachement, etc.  A
-significant drawback of this approach is that several SAGA methods act
-upon the local ssh process instead of the remote application instance,
-which is far from ideal. Some of these operations can be migrated to
-the remote hosts, via separate ssh calls, but that process is
-complicated due to the fact that ssh does not report the remote
-process ID back to the local job adaptor.  We circumvent this problem
-by setting a uniquely identifying environment variable for the remote
-process, which allows us to identify process.
+{\texttt{\ssh}} is used to spawn remote job instances, for which the
+ssh job adaptor instantiates a \I{local} \T{saga::job::service}
+instance, and submits the respective ssh command lines to it.  The
+local job adaptor described above then takes care of process I/O,
+detachement, etc.  A significant drawback of this approach is that
+several SAGA methods act upon the local ssh process instead of the
+remote application instance, which is far from ideal. Some of these
+operations can be migrated to the remote hosts, via separate ssh
+calls, but that process is complicated due to the fact that ssh does
+not report the remote process ID back to the local job adaptor.  We
+circumvent this problem by setting a uniquely identifying environment
+variable for the remote process, which allows us to identify process.
 
-\sshfs is used to access remote files via ssh services.  \sshfs is a
-user space file system driver which uses FUSE\ref{fuse}, and is
-available for MacOS, Linux, and some other Unix derivates.  It allows
-a remote file system to be mounted into the local namespace, and
-transparently forwards all file access operations via ssh to the
-remote host.  The ssh file adaptor uses the local job adaptor to call
-the sshfs process, to mount the remote filesystem, and then forward
-all file access requests to the local file adaptor, which operates on
-the locally mounted file system.  The ssh adaptor thus translates URLs
-from the ssh namespace into the local namespace, and back.
+{\texttt{\sshfs}} is used to access remote files via ssh services.
+{\texttt{\sshfs}} is a user space file system driver which uses FUSE,
+and is available for MacOS, Linux, and some other Unix derivatives.
+It enables a remote file system to be mounted into the local
+namespace, and transparently forwards all file access operations via
+ssh to the remote host.  The ssh file adaptor uses the local job
+adaptor to call the sshfs process, to mount the remote filesystem, and
+then forward all file access requests to the local file adaptor, which
+operates on the locally mounted file system.  The ssh adaptor thus
+translates URLs from the ssh namespace into the local namespace, and
+back.
 
-\scp is used by both the ssh job and file adaptor to transfer utility
-scripts to the remote host, e.g. to check for remote system
-configuration, or to distribute ssh credentials.
+{\texttt{\scp}} is used by both the ssh job and file adaptor to
+transfer utility scripts to the remote host, e.g. to check for remote
+system configuration, or to distribute ssh credentials.
 
 \subsubsection{SSH/SSHFS credential management}
 
 When starting a remote application via ssh, we assume valid SSH
 credentials (i.e. private/public key pairs, or gsi credentials etc.)
-to be available.  The type and location of these credentials is
-specified by the local application, by using respective
+are available.  The type and location of these credentials is
+specified by the local application, by using the respective
 \T{saga::context} instances.  In order to facilitate home-calling,
 i.e. the ability of the remotely started application to use the same
 ssh infrastructure to call back to the original host, e.g. by spawning
@@ -1208,7 +1209,7 @@ details of the VM can differ.
   \multicolumn{3}{c}{Number-of-Workers}  &  Size   &  $T_s$  & $T_{spawn}$ & $T_s - T_{spawn}$\\   
   TG &  AWS & Eucalyptus &  (MB)  & (sec) & (sec) & (sec) \\
   \hline
-  - & 1 & 1 & 100  & 6.2 & 3.6 & 2.6\\
+  - & 1 & 1 & 100  & 6.7 & 3.8 & 2.9\\
   \hline 
   \textcolor{blue}{2} &   \textcolor{blue}{2} & - & 10 & 7.4 & 5.9 & 1.5 \\
   3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
