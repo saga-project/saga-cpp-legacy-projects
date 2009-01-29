@@ -1178,22 +1178,26 @@ details of the VM can differ.
 \upp
 \begin{tabular}{cccccc}
   \hline
-  \multicolumn{2}{c}{Number-of-Workers}  &  Data size   &  $T_c$  & $T_{spawn}$ & $T_c - T_{spawn}$\\   
+  \multicolumn{2}{c}{Number-of-Workers}  &  Data size   &  $T_s$  & $T_{spawn}$ & $T_s - T_{spawn}$\\   
   TeraGrid &  AWS &   (MB)  & (sec) & (sec)  & (sec) \\
   \hline
-  10 & - & 10  & 20.8 & 17.3 & 3.5 \\  
+  \textcolor{blue}{4} & - & 10  &  8.8 &  6.8 & 2.0 \\
+%  \textcolor{blue}{6} & - & 10  &  12.4 &  10.2 & 2.2 \\
+%  10 & -  & 100 & 10.4 & 8.86 \\
+%  \textcolor{blue}{10} & - & 10  & 20.8 & 17.3 & 3.5 \\  
   \hline 
   - & 1 & 10 & 4.3 & 2.8 & 1.5 \\
   - & 2 & 10 & 7.8 & 5.3 & 2.5 \\ 
   - & 3 & 10 & 8.7 & 7.7 & 1.0 \\
-  - & 4 & 10 & 13.0 & 10.3 & 2.7 \\
+  - & \textcolor{blue}{4} & 10 & 13.0 & 10.3 & 2.7 \\
+  - & 4 (1) & 10 & 11.3 & 8.6 & 2.7 \\
 \hline \hline
   -  & 2  & 100 & 7.9  & 5.3 & 2.6 \\
-  -  & 4  & 100 & 12.4 & 9.2 & 3.2 \\
+   -  & \textcolor{red}{4}  & 100 & 12.4 & 9.2 & 3.2\\
   -  & 10 & 100 & 29.0 & 25.1 & 3.9 \\
  \hline \hline
-  - & 4 (1) & 100 & 16.2 & 8.7 & 7.5 \\ 
-  - & 4 (2) & 100 & 12.3 & 8.5 & 3.8 \\
+  - & \textcolor{red}{4 (1)} & 100 & 16.2 & 8.7 & 7.5 \\ 
+ - & \textcolor{red}{4 (2)} & 100 & 12.3 & 8.5 & 3.8 \\
   - & 6 (3) & 100 & 18.7 & 13.5 & 5.2\\
   - & 8 (1) & 100 & 31.1 & 18.3 & 12.8 \\
   - & 8 (2) & 100 & 27.9 & 19.8 & 8.1\\
@@ -1208,22 +1212,20 @@ details of the VM can differ.
 \upp
 \end{table}
 
-%  6 & - & 10  &  12.4 &  10.2 \\
-%  - & 4 (1) & 10 &  11.3 & 8.6 \\
-%  10 & -  & 100 & 10.4 & 8.86 \\
 \begin{table}
 \upp
 \begin{tabular}{ccccccc}
   \hline
-  \multicolumn{3}{c}{Number-of-Workers}  &  Size   &  $T_c$  & $T_{spawn}$ & $T_c - T_{spawn}$\\   
+  \multicolumn{3}{c}{Number-of-Workers}  &  Size   &  $T_s$  & $T_{spawn}$ & $T_s - T_{spawn}$\\   
   TG &  AWS & Eucalyptus &  (MB)  & (sec) & (sec) & (sec) \\
   \hline
   - & 1 & 1 & 100  & 6.2 & 3.6 & 2.6\\
   \hline 
-  2 & 2 & - & 10 & 7.4 & 5.9 & 1.5 \\
+  \textcolor{blue}{2} &   \textcolor{blue}{2} & - & 10 & 7.4 & 5.9 & 1.5 \\
   3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
   4 & 4 & - & 10 & 13.7 & 11.6 & 2.1 \\
   5 & 5 & - & 10 & 33.2 & 29.4 & 3.8 \\ 
+%\textcolor{blue}{5} & \textcolor{blue}{5} & - & 10 & 33.2 & 29.4 & 3.8 \\ 
   10 & 10 & - & 10 & 32.2 & 28.8 & 2.4 \\
   \hline
   \hline 
@@ -1261,14 +1263,36 @@ a worker, update records and to possibly move workers to a destination
 resource and in general, $t_{coord}$ scales as the number of workers
 increases. In general: \vspace{-1em}
 \begin{eqnarray}
-T_c = t_{over} + t_{comp} + t_{coord}
+T_s = t_{over} + t_{comp} + t_{coord} 
 \end{eqnarray}
-We find that $t_{comp}$ is typically greater than $t_{coord}$, where
-$t_{coord}$, but where the number of workers gets large and/or the
-computational load per worker small, $t_{coord}$ can dominate
-(internet-scale communication) and the overall $T_c$ can increase for
-the same data-set size even though the number of independent workers
-increases.
+We will define $t_{comp} + t_{coord} = T_c = T_s - T_{spawn}$; we find
+that $t_{comp}$ is typically greater than $t_{coord}$, but when the
+number of workers gets large, and/or the computational load per worker
+small, $t_{coord}$ can dominate (internet-scale communication), and
+the overall $T_s$ can increase for the same data-set size even though
+the number of independent workers increases.  The number of workers
+associated with a single VM also influences the performance, as well
+as the time to spawn; for example, as shown by the three entries in
+red, although 4 identical workers are used, the $T_c$ can be
+different, depending upon the number of VMs used. In this case, when 4
+workers are spread across 4 VMs, $T_c$ is lowest; when all four are
+clustered onto 1 VM the $T_c$ is highest. When exactly the same
+experiment is performed but for 10MB $T_c$ is interestingly the same
+for 4 workers using 1 VM as it is for 4VMs, with 2VMs beating both. 
+% Interestingly for 100MB and 8 workers -- although the $T_s$ is larger
+% than when 4 workers are used, the $T_c$ is lower when 4VMs
+% are use
+
+Table 2 shows performance figures when equal number of workers are
+spread across two different systems -- for the first row workers are
+distributed on EC2 and Eucalyptus; for subsequent data workers are
+distributed over the TG and AWS. Given the ability to distribute
+at will, we compare performance when 6 workers are distributed
+across TG and EC2 compared to the just the TG. By comparing the entries in
+blue across Table 1 and 2, we find that
+
+%$t_{comp} + t_{coord}$ is 
+
 
 % is indicative of the time that it takes to assign chunks to workers
 % and
