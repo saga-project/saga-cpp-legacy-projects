@@ -230,18 +230,19 @@ helps enhance performance.
 % keep data network transfer low and in the case of commercial Clouds
 % the monetary cost of computing the solution low. 
 
-Having established the effectiveness of the SAGA PS for data-intensive
-computing, the primary focus of this paper is to now use SAGA-based
+Having established the effectiveness of SAGA for data-intensive
+computing, the primary focus of this paper is to use SAGA-based
 MapReduce as an exemplar to establish the interoperabilty aspects of
 the SAGA programming system.  Specifically, we will demonstrate that
 \sagamapreduce is usable on traditional (Grids) and emerging (Clouds)
 distributed infrastructure {\it concurrently and cooperatively towards
-  a solution of the same problem}.  Specifically, our approach is to
-take \sagamapreduce and to use the {\it same} implementation of
-\sagamapreduce to solve the same instance of the word counting
-problem, by using different configurations of Cloud and Grid systems,
-and test for inter-operability between different flavours of Clouds as
-well as between Clouds and Grids.
+  a solution of the same problem instance}.  Specifically, our
+approach is to take \sagamapreduce and to use the {\it same}
+implementation of \sagamapreduce to solve the same instance of the
+word counting problem, by using different worker distribution
+configurations overs Clouds and Grid systems, and thereby also test
+for inter-operability between different flavours of Clouds as well as
+between Clouds and Grids.
 
 Interoperability amongst Clouds and Grids can be achieved at different
 levels. For example, service-level interoperability amongt Grids has
@@ -1157,22 +1158,20 @@ same cluster with respect to a VM), whereas for EC2 clouds this cannot
 be assumed to be true for every experiment/test. \jhanote{Andre, Kate
   please confirm that you agree with the last statment}
 
-\subsection{Results and Analysis}
-
-%Our image size is ... \jhanote{fix and provide details}
-
-It takes SAGA about 45 seconds to instantiate a VM on Eucalyptus
-\jhanote{Andre is this still true?}  and about 200 seconds on average
+It takes SAGA about 45s to instantiate a VM on Eucalyptus
+\jhanote{Andre is this still true?}  and about 200s on average
 on EC2.  We find that the size of the image (say 5GB versus 10GB)
 influences the time to instantiate an image, but is within
 image-to-image instantiation time fluctuation.  Once instantiated, it
-takes from a 1-10 seconds to assign a job to a VM on Eucalyptus, or
+takes from 1-10 seconds to assign a job to a VM on Eucalyptus, or
 EC2.  It is a configurable option to tie the VM lifetime to the
 \texttt{job\_service} object lifetime, or not.  It is also a matter of
 simple configuration to determine how many jobs (in this case workers)
 are assigned to a single VM. The default case is 1 worker per VM; it
 is important to be able to vary the number of workers per VM -- as
 details of the VM can differ.
+
+\subsection{Results and Analysis}
 
 \begin{table}
 \upp
@@ -1242,7 +1241,7 @@ details of the VM can differ.
 \upp
 \end{table}
 
-The total time to completion ($T_c$) of a \sagamapreduce job, can be
+The total time to solution ($T_s$) of a \sagamapreduce job, can be
 decomposed into three primary components: $t_{over}$ defined as the
 time for pre-processing -- which is the time to chunk into fixed size
 data units, to distribute them and also to spawn the job. This is in
@@ -1261,24 +1260,29 @@ the time to actually compute the map and reduce function on a given
 worker, whilst $t_{coord}$ is the time taken to assign the payload to
 a worker, update records and to possibly move workers to a destination
 resource and in general, $t_{coord}$ scales as the number of workers
-increases. In general: \vspace{-1em}
-\begin{eqnarray}
-T_s = t_{over} + t_{comp} + t_{coord} 
-\end{eqnarray}
-We will define $t_{comp} + t_{coord} = T_c = T_s - T_{spawn}$; we find
-that $t_{comp}$ is typically greater than $t_{coord}$, but when the
-number of workers gets large, and/or the computational load per worker
-small, $t_{coord}$ can dominate (internet-scale communication), and
-the overall $T_s$ can increase for the same data-set size even though
-the number of independent workers increases.  The number of workers
+increases. 
+% In general: \vspace{-1em}
+% \begin{eqnarray}
+% T_s = t_{over} + t_{comp} + t_{coord} 
+% \end{eqnarray}
+
+% We will define $t_{comp} + t_{coord} = T_c = T_s - T_{spawn}$; 
+We find that $t_{comp}$ is typically greater than $t_{coord}$, but
+when the number of workers gets large, and/or the computational load
+per worker small, $t_{coord}$ can dominate (internet-scale
+communication) and increase faster than $T_{comp}$ decreases, thus
+overall $T_s$ can increase for the same data-set size, even though the
+number of independent workers increases.  The number of workers
 associated with a single VM also influences the performance, as well
 as the time to spawn; for example, as shown by the three entries in
-red, although 4 identical workers are used, the $T_c$ can be
-different, depending upon the number of VMs used. In this case, when 4
-workers are spread across 4 VMs, $T_c$ is lowest; when all four are
-clustered onto 1 VM the $T_c$ is highest. When exactly the same
-experiment is performed but for 10MB $T_c$ is interestingly the same
-for 4 workers using 1 VM as it is for 4VMs, with 2VMs beating both. 
+red, although 4 identical workers are used, $T_c$ (defined as $T_S -
+T_{spawn} $) can be different, depending upon the number of VMs
+used. In this case, when 4 workers are spread across 4 VMs, $T_c$ is
+lowest, even though $T_{spawn}$ is the highest; $T_c$ is highest when
+all four are clustered onto 1 VM. When exactly the same experiment is
+performed using data-set of size 10MB, $T_c$ is interestingly the same
+for 4 workers using 1 VM as it is for 4VMs, with 2VMs out-performing
+both.
 % Interestingly for 100MB and 8 workers -- although the $T_s$ is larger
 % than when 4 workers are used, the $T_c$ is lower when 4VMs
 % are use
@@ -1286,10 +1290,21 @@ for 4 workers using 1 VM as it is for 4VMs, with 2VMs beating both.
 Table 2 shows performance figures when equal number of workers are
 spread across two different systems -- for the first row workers are
 distributed on EC2 and Eucalyptus; for subsequent data workers are
-distributed over the TG and AWS. Given the ability to distribute
-at will, we compare performance when 6 workers are distributed
-across TG and EC2 compared to the just the TG. By comparing the entries in
-blue across Table 1 and 2, we find that
+distributed over the TG and AWS. Given the ability to distribute at
+will, we compare performance when 4 workers are distributed equally
+(i.e., 2 each) across a TG machine and on EC2, compared to when all 4
+workers are either exclusively on EC2 (2.7s) or on the TG machine
+(2.0s) (see Table 1 in blue). It is {\it interesting} that in this
+case $T_c$ is lower in the distributed case than when run locally on
+either EC2 or TG; we urge that not too much be read into this, as it
+is just a coincidence that a {\it sweet spot} was found where on EC2 4
+workers had a large spawning overhead compared to spawning 2 workers,
+and an increase was in place for 2 workers on the TG. Also it is worth
+reiterating that there are experiment-to-experiment fluctuations for
+the same configuration. The ability to enhance performance by
+distributed (heterogenous) work-loads across different systems remains
+a distinct possibility, however, we believe more systematic studies
+are required.
 
 %$t_{comp} + t_{coord}$ is 
 
@@ -1326,9 +1341,13 @@ blue across Table 1 and 2, we find that
 % those involving Google's BigEngine.
 
 \subsubsection*{Experience}
-Images get corrupted if mapreduce does not terminate properly
-Networking issues.  All this is new technology, hence makes sense to
-try to list some of the challenges we faced.
+% All this is new technology, hence it is not surprising it took us a
+% while to get try to list some of
+We outline two challenges we faced. We found that the images get
+corrupted if for some reason \sagamapreduce does not terminate
+properly. Also given local firewall and networking policies, we
+encountered problems in initially accessing/addressing the VMs
+directly.
 
 % \jhanote{Kate and Andre: We need to outline the interesting Cloud
 % related challenges we encountered.  Not the low-level SAGA problems,
@@ -1338,7 +1357,7 @@ try to list some of the challenges we faced.
 % \jhanote{we have been having many of andre's jobs fail. insight into
 %   why? is it interesting to report?}
 
-\subsubsection*{Programming Models for Clouds}
+%\subsubsection*{Programming Models for Clouds}
 
 % Discuss affinity: Current Clouds compute-data affinity. How should
 % they look like? What must they have?  It is important to note that,
@@ -1348,18 +1367,20 @@ try to list some of the challenges we faced.
 % we handle common considerations such as when to move the data to the
 % machine or when to process it locally.
 
-We began this paper with a discussion of programming systems/model for
-Cloud computing and the importance of support for relative
-data-compute placement. Ref~\cite{jha_ccpe09} introduced the notion of
-affinity and it is imperative that the any programming system/model be
-cognizant of the notion of affinity. We have implemented the first
-steps in a programming model which provides easy control over relative
-data-compute placement; a possible next step would be to extend SAGA
-to support affinity (data-data, data-compute).  There exist emerging
-programming systems like Dryad, Sawzall and Pig which could be used in
-principle for these (or parts of these) problems; however we emphasise
-that the primary strength of SAGA is i) infrastructure independence,
-ii) general-purpose and extensible (and not confined to MapReduce),
+\subsubsection*{Programming Models for Clouds} We began this paper
+with a discussion of programming systems/model for Clouds, and the
+importance of support for relative data-compute
+placement. Ref~\cite{jha_ccpe09} introduced the notion of {\it
+  affinity} for Clouds, and it is imperative that the any programming
+system/model be cognizant of the notion of affinity. We have
+implemented the first steps in a PM which provides easy control over
+relative data-compute placement; a possible next step would be to
+extend SAGA to support affinity (data-data, data-compute).  There
+exist other emerging programming systems like Dryad, Sawzall and Pig,
+which could be used in principle to support the notion of affinity;
+however we re-emphasise that the primary strength of SAGA in addition
+to supporting affinity, is i) infrastructure independence, ii)
+general-purpose and extensible % (and not confined to MapReduce),
 iii) provides greater control to the end-user if required.
 
 Complexity versus Completeness: There exist both technical reasons and
@@ -1382,7 +1403,7 @@ exposed.  (Simplicity) To a first approximation, interface determines
 the programming models that can be supported. Thus there is the
 classical trade-off between simplicity and completeness.
 
-\section{Conclusion}
+\section{Conclusion and Some Future Directions}
 
 % We have demonstrated the power of SAGA as a programming interface and
 % as a mechanism for codifying computational patterns, such as
@@ -1396,24 +1417,23 @@ classical trade-off between simplicity and completeness.
 
 \sagamapreduce demonstrates how to decouple the development of
 applications from the deployment and details of the run-time
-environment.  It is critical to reiterate that using this approach the
-application remains insulated from any underlying changes in the
+environment.  It is critical to reiterate that using this approach
+applications remain insulated from any underlying changes in the
 infrastructure -- not just Grids and different middleware layers, but
-even with different systems with very different semantics and
+also different systems with very different semantics and
 characteristics.  SAGA based application and tool development provides
-one way Grids and Clouds will converge.  It can be aruged that
-MapReduce has trivial data-parallelism; in the near future we will
-develop applications with non-trivial data-access, transfer and
-scheduling characteristics and deploy different parts on different
-underlying infrastructure based upon some optimality criteria.  Also,
-it can be argued that EC2 and Eucalyptus although distinct systems
-have similar interfaces, and thus the interoperabilty is somewhat
-contrived. Although we would like to preempt such a point-of-view, we
-will work towards developing a SAGA based applications that can use a
-very different beast -- Google's AppEngine, i.e. \sagamapreduce that
-uses Google's Cloud infrastructure.  Finally, it is worth mentioning
-that while we were computing in the Clouds (i.e., `` scuse me while I
-kiss the sky''\cite{purplehaze}, or at least the clouds), it cost us
+one way Grids and Clouds will converge.  MapReduce has trivial
+data-parallelism, so in the near future we will develop applications
+with non-trivial data-access, transfer and scheduling characteristics
+and requirements, and deploy different parts on different underlying
+infrastructure for optimality.  
+EC2 and Eucalyptus although distinct systems have similar interfaces;
+%Although we would like to preempt such a point-of-view, 
+we will work towards developing a SAGA based applications that can use
+a very different beast, e.g., Google's AppEngine, such that
+\sagamapreduce uses Google's Cloud infrastructure.  Finally, it is
+worth mentioning that computing in the Clouds -- ``Scuse me while I
+kiss the sky''\cite{purplehaze} (or at least the Clouds), cost us
 upwards of \$150 to perform these experiments on EC2.
 
 %   somewhat similar; a very different beast is Google's AppEngine.  We
