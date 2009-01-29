@@ -538,31 +538,31 @@ the local \T{authorized\_keys} file is added% \footnote{ssh key
 
 SAGA's AWS\footnote{\B{A}mazon \B{W}eb \B{S}ervices} adaptor suite is
 an interface to services which implement the cloud web service
-interfaces as specified by Amazon\ref{aws-devel-url}.  These
-interfaces are not only used by Amazon to allow programmatic access to
-their Cloud infrastructures -- EC2 and S3, amongst others, but are
-also used by several other Cloud service providers, such as
-Eucalyptus\ref{euca} and Nimbus.  The AWS job adaptor is thus able to
+interfaces as specified by Amazon. %\ref{aws-devel-url}.
+These interfaces are not only used by Amazon to allow programmatic
+access to their Cloud infrastructures -- EC2 and S3, amongst others,
+but are also used by several other Cloud service providers, such as
+Eucalyptus\cite{eucalyptus} and Nimbus.  The AWS job adaptor is thus able to
 interface to a variety of Cloud infrastructures, as long as they
 adhere to the AWS interfaces.
 
-The AWS adaptors do not directly communication with the remote
-services, but instead rely on Amazon's set of java based command line
-tools.  Those are able to access the different infrastructure, when
-configured correctly via specific environment variables.  The aws job
-adaptor uses the local job adaptor to manage the invocation of the
-command line tools, e.g. to spawn new virtual machine (VM) instances,
-to search for existing VM instances, etc.  Once a VM instance is found
-to be available and ready to accept jobs, a ssh job service instance
-for that VM is created, and henceforth takes care of all job
-management operations.  The aws job adaptor is thus only respnsoble
-for VM discovery and management -- the actual job creation and
-operations are performed by the ssh job adaptor (which in turn
-utilizes the local job adaptor for its operations).
+The AWS adaptors do not directly communicate with the remote services,
+but instead rely on Amazon's set of java based command line tools.
+Those are able to access the different infrastructure, when configured
+correctly via specific environment variables.  The aws job adaptor
+uses the local job adaptor to manage the invocation of the command
+line tools, e.g. to spawn new virtual machine (VM) instances, to
+search for existing VM instances, etc.  Once a VM instance is found to
+be available and ready to accept jobs, a ssh job service instance for
+that VM is created, and henceforth takes care of all job management
+operations.  The aws job adaptor is thus only responsible for VM
+discovery and management -- the actual job creation and operations are
+performed by the ssh job adaptor (which in turn utilizes the local job
+adaptor).
 
-The security credentials to be used by the internal ssh job service
+The security credentials used by the internal ssh job service
 instance are derived from the security credentials used to create or
-access the VM instance: upon VM instance creation, an AWS keypair is
+access the VM instance; upon VM instance creation, an AWS keypair is
 used to authenticate the user against her 'cloud account'.  That
 keypair is automatically registered at the new VM instance to allow
 for remote ssh access.  The aws context adaptor collects both the
@@ -578,31 +578,30 @@ from the application which accesses that service.  For example, a Gram
 gatekeeper has a lifetime of days and weeks, and allows a large number
 of applications to utilize it.  An AWS job service however points to a
 potentially volatile resource, or even to a non-existing resource --
-the resource needs then to be created on the fly.
-
-There are two important implications.  Firstly, the startup time for a
-AWS job service is typically much larger than other remote job
-service, at least in the case where a VM is created on the fly: the VM
-image needs to be deployed to some remote resource, the image must be
-booted, and potentially needs to be configured to enable the hosting
-of custom applications\footnote{The AWS job adaptor allows the
-  execution of custom startup scripts on newly instantiated VMs, to
-  allow for example, the installation of additional software packages,
-  or to test for the availaility of certain resources.}.
-The second implication is that the \I{end} of the job service lifetime
-is usually of no consequence for normal remote job services.  For a
-dynamically provisioned VM instance, however, it raises the question
-if that instance should be closed down, or if it should automatically
-shut down after all remote applications finish, or even if it should
+the resource needs then to be created on the fly.  There are two
+important implications.  Firstly, the startup time for a AWS job
+service is typically much larger than other remote job service, at
+least in the case where a VM is created on the fly: the VM image needs
+to be deployed to some remote resource, the image must be booted, and
+potentially needs to be configured to enable the hosting of custom
+applications\footnote{The AWS job adaptor allows the execution of
+  custom startup scripts on newly instantiated VMs, to allow for
+  example, the installation of additional software packages, or to
+  test for the availaility of certain resources.}.  The second
+implication is that the \I{end} of the job service lifetime is usually
+of no consequence for normal remote job services.  For a dynamically
+provisioned VM instance, however, it raises the question if that
+instance should be closed down, or if it should automatically shut
+down after all remote applications finish, or even if it should
 survive for a specific time, or forever.  Ultimately, it is not
 possible to control these VM lifetime attributes via the current SAGA
-API (by design).  Instead, we allow to choose one of these policies
-either implicitly (e.g. by using special URLs to request dynamic
-provisioning), or explicitly over SAGA config files or environment
-variables\footnote{only some of these polcies are implemented at the
-  moment.}.  Future SAGA extensions, in particular Resource Discovery
-and Resource Reservation extensions, may have a more direct and
-explicit notion of resource lifetime management.
+API (by design).  Instead, we allow the one of these policies to be
+chosen either implicitly (e.g. by using special URLs to request
+dynamic provisioning), or explicitly over SAGA config files or
+environment variables\footnote{only some of these polcies are
+  implemented at the moment.}.  Future SAGA extensions, in particular
+Resource Discovery and Resource Reservation extensions, may have a
+more direct and explicit notion of resource lifetime management.
 
 \begin{figure}[!ht]
 \upp 
@@ -708,15 +707,15 @@ explicit notion of resource lifetime management.
 \subsection{Globus Adaptors}
 SAGA's Globus adaptor suite is amongst the most-utilized adaptors.  As
 with ssh, security credentials are expected to be managed
-out-of-bounds, but different credentials can be utilized by pointing
+out-of-bound, but different credentials can be utilized by pointing
 \T{saga::context} instances to them as needed.  Other than the AWS and
 ssh adaptors, the Globus adaptors do not rely on command line tools,
 but rather link directly against the respective Globus libraries: the
 Globus job adaptor is thus a GRAM client, the Globus file adaptor a
-gridftp client.  In experiments, non-cloud jobs were started using
-either gram or ssh.  In either case, file I/O has been performed
-either via ssh, or via a shared Lustre filesystem -- the gridftp
-functionality has thus not been tested in these experiments.
+gridftp client.  In experiments, non-Cloud jobs were started using
+either gram or ssh.  In either case, file I/O was performed either via
+ssh, or via a shared Lustre filesystem -- the gridftp functionality
+were not used for experiments in this paper.
 
 % \footnote{For performance comparision between the Lustre FS
 %   and GridFTP, see Ref~\cite{saga_cc09}}
@@ -728,13 +727,15 @@ functionality has thus not been tested in these experiments.
 %   others..}
 
 \section{SAGA-based MapReduce}
-In this paper we will demonstrate the use of SAGA in implementing well
-known programming patterns for data intensive computing --
-specifically, we have implemented MapReduce. We have also developed
-real scientific applications using SAGA based implementations of these
-patterns: multiple sequence alignment can be orchestrated using the
-SAGA-All-pairs implementation, and genome searching can be implemented
-using SAGA-MapReduce (see Ref.~\cite{saga_ccgrid09}).
+% In this paper we will demonstrate the use of SAGA in implementing well
+% known programming patterns for data intensive computing --
+% specifically, we have implemented MapReduce. 
+Having developed \sagamapreduce, we have also developed real
+scientific applications using SAGA based implementations of patterns
+for data-intensive computing: multiple sequence alignment can be
+orchestrated using the SAGA-All-pairs implementation, and genome
+searching can be implemented using SAGA-MapReduce (see
+Ref.~\cite{saga_ccgrid09}).
 
 % {\bf MapReduce:} MapReduce is a programming framework which supports
 % applications which operate on very large data sets on clusters of
@@ -745,15 +746,6 @@ using SAGA-MapReduce (see Ref.~\cite{saga_ccgrid09}).
 % such as atomic file renames.  Implementations of MapReduce on these
 % DFS are free to focus on implementing the data-flow pipeline, which is
 % the algorithmic core of the MapReduce framework.  
-
-Google's MapReduce~\cite{mapreduce-paper} relies on a number of
-capabilities of the underlying system, most related to file
-operations.  Others are related to process/data allocation.  A feature
-worth noting in MapReduce is that the ultimate dataset is not on one
-machine, it is partitioned on multiple machines distributed. Google
-uses their distributed file system (Google File System) to keep track
-of where each file is located.  Additionally, they coordinate this
-effort with Bigtable.  
 
 \subsection{\sagamapreduce Implementation} In contrast, in the
 SAGA-based MapReduce the system capabilities required by MapReduce are
@@ -1209,8 +1201,13 @@ details of the VM can differ.
   \multicolumn{3}{c}{Number-of-Workers}  &  Size   &  $T_s$  & $T_{spawn}$ & $T_s - T_{spawn}$\\   
   TG &  AWS & Eucalyptus &  (MB)  & (sec) & (sec) & (sec) \\
   \hline
+  - & 1 & 1 & 10   & 5.3 & 3.8 & 1.5\\
   - & 1 & 1 & 100  & 6.7 & 3.8 & 2.9\\
+  - & 2 & 2 & 10   & - & - & - \\
+  - & 2 & 2 & 100  & 10.3 & 7.3 & 3.0\\
   \hline 
+  1 & - & 1 & 10   & 4.7 & 3.3 & 1.4\\
+  1 & - & 1 & 100  & 6.4 & 3.4 & 3.0\\
   \textcolor{blue}{2} &   \textcolor{blue}{2} & - & 10 & 7.4 & 5.9 & 1.5 \\
   3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
   4 & 4 & - & 10 & 13.7 & 11.6 & 2.1 \\
@@ -1218,15 +1215,16 @@ details of the VM can differ.
 %\textcolor{blue}{5} & \textcolor{blue}{5} & - & 10 & 33.2 & 29.4 & 3.8 \\ 
   10 & 10 & - & 10 & 32.2 & 28.8 & 2.4 \\
   \hline
-  \hline 
-  1 & 1 & - & 100 & 5.4 & 3.1 & 2.3\\
-  3 & 3 & - & 100 & 11.1 & 8.7 & 2.4 \\
+%   \hline 
+%   1 & 1 & - & 100 & 5.4 & 3.1 & 2.3\\
+%   3 & 3 & - & 100 & 11.1 & 8.7 & 2.4 \\
 \end{tabular}
 \upp
 \caption{Performance data for different configurations of worker placements
-  on TeraGrid, Eucalyptus-Cloud and EC2. The first row of data
-  establishes Cloud-Cloud interoperability. The second set (rows 2- 6)    represent  interoperability between Grids-Clouds (EC2). The experimental 
-  conditions and measurements are similar to Table 1.}
+  on TeraGrid, Eucalyptus-Cloud and EC2. The first set of data
+  establishes Cloud-Cloud interoperability. The second set 
+  (rows 5- 11) represent  interoperability between Grids-Clouds (EC2). 
+  The experimental conditions and measurements are similar to Table 1.}
 \label{stuff}
 \upp
 \upp
@@ -1372,7 +1370,17 @@ which could be used in principle to support the notion of affinity;
 however we re-emphasise that the primary strength of SAGA in addition
 to supporting affinity, is i) infrastructure independence, ii)
 general-purpose and extensible % (and not confined to MapReduce),
-iii) provides greater control to the end-user if required.
+iii) provides greater control to the end-user if required.  Contrast
+the infrastructure independence of \sagamapreduce, with Google's
+MapReduce~\cite{mapreduce-paper} reliance on a number of capabilities
+of the underlying system, most related to file operations.  Others are
+related to process/data allocation.  % A feature
+% worth noting in MapReduce is that the ultimate dataset is not on one
+% machine, it is partitioned on multiple machines distributed. 
+Google uses their distributed file system (Google File System) to keep
+track of where each file is located.  Additionally, they coordinate
+this effort with Bigtable.
+
 
 Complexity versus Completeness: There exist both technical reasons and
 social engineering problems responsible for low uptake of Grids. One
