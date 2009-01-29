@@ -730,9 +730,9 @@ were not used for experiments in this paper.
 % In this paper we will demonstrate the use of SAGA in implementing well
 % known programming patterns for data intensive computing --
 % specifically, we have implemented MapReduce. 
-Having developed \sagamapreduce, we have also developed real
-scientific applications using SAGA based implementations of patterns
-for data-intensive computing: multiple sequence alignment can be
+After \sagamapreduce we have also developed real scientific
+applications using SAGA based implementations of patterns for
+data-intensive computing: multiple sequence alignment can be
 orchestrated using the SAGA-All-pairs implementation, and genome
 searching can be implemented using SAGA-MapReduce (see
 Ref.~\cite{saga_ccgrid09}).
@@ -747,18 +747,20 @@ Ref.~\cite{saga_ccgrid09}).
 % DFS are free to focus on implementing the data-flow pipeline, which is
 % the algorithmic core of the MapReduce framework.  
 
-\subsection{\sagamapreduce Implementation} In contrast, in the
-SAGA-based MapReduce the system capabilities required by MapReduce are
-usually not natively supported. Our implementation interleaves the
-core logic with explicit instructions on where processes are to be
-scheduled.  The advantage of this approach is that our implementation
-is no longer bound to run on a system providing the appropriate
-semantics originally required by MapReduce, and is portable to a
-broader range of generic systems as well.  The drawback is that our
-current implementation is relatively more complex -- it needs to add
-system semantic capabilities at some level, and it is inherently
-slower -- as it is difficult to reproduce system-specific
-optimizations to work generically. The fact that it single-threaded
+\subsection{\sagamapreduce Implementation} % In contrast, to the
+% SAGA-based MapReduce the system capabilities required by MapReduce are
+% usually not natively supported. 
+Our implementation of \sagamapreduce interleaves the core logic with
+explicit instructions on where processes are to be scheduled.  The
+advantage of this approach is that our implementation is no longer
+bound to run on a system providing the appropriate semantics
+originally required by MapReduce, and is portable to a broader range
+of generic systems as well.  The drawback is that it is relatively
+more complicated to extract performance.% -- for there is a need to add system
+% semantic capabilities at some level, and it is inherently slower -- as
+% it is difficult to reproduce system-specific optimizations to work
+% generically.
+The fact that it the current implementation is single-threaded
 currently is a primary factor for slowdown.  Critically however, none
 of these complexities are transferred to the end-user, and they remain
 hidden within the framework. Also many of these are due to the
@@ -770,11 +772,11 @@ or programming models that it supports.
 % in Fig.~\ref{saga-mapreduce_controlflow}. 
 This simple interface provides the complete functionality needed by
 any MapReduce algorithm, while hiding the more complex functionality,
-such as chunking of the input, sorting of the intermediate results,
-launching and coordinating the map and reduce workers, etc. as
-implemented by the framework.  The application consists of two
-independent processes, a master and worker processes. The master
-process is responsible for:
+such as chunking of the input, sorting the intermediate results,
+launching and coordinating the workers, etc. as these are implemented
+by the framework.  The application consists of two independent
+processes, a master and worker processes. The master process is
+responsible for:
 
 % \begin{figure}[t]
 % \centering
@@ -927,16 +929,16 @@ communication.
 %  |
 
 In a typical configuration file, for example, three worker instances
-could be started; first one started via gram and PBS on qb1.loni.org,
-second started on a pre-instantiared ec2 image (instance-id
-\T{i-760c8c1f}), and finally will be running on a dynamically deployed
-ec2 instance (no instance id given).  Note that the startup times for
-the individual workers may vary over several orders of magnitutes,
-depending on the PBS queue waiting time and VM startup time.  The
-mapreduce master will start to utilize workers as soon as they are
-able to register themselves, so will not wait until all workers are
-available.  That mechanism both minimizes time-to-solution, and
-maximizes resilience against worker loss.
+could be started; the first could be started via gram and PBS on
+qb1.loni.org, second started on a pre-instantiared EC2 image
+(instance-id \T{i-760c8c1f}), and finally will be running on a
+dynamically deployed EC2 instance (no instance id given).  Note that
+the startup times for the individual workers may vary over several
+orders of magnitutes, depending on the PBS queue waiting time and VM
+startup time.  The mapreduce master will start to utilize workers as
+soon as they are able to register themselves, so will not wait until
+all workers are available.  That mechanism both minimizes
+time-to-solution, and maximizes resilience against worker loss.
 
 % The example configuration file above also includes another important
 % feature, in the URL of the input data set, which is given as
@@ -946,21 +948,21 @@ The scheme \T{any} acts here as a placeholder for SAGA, so that the
 SAGA engine can choose an appropriate adaptor.  The master would
 access the file via the default local file adaptor.  The Globus
 clients may use either the GridFTP or ssh adaptor for remote file
-success (but in our experimental setup would actually also suceed with
+success (but in our experimental setup would also succeed 
 using the local file adaptor, as the lustre FS is mounted on the
 cluster nodes), and the EC2 workers would use the ssh file adaptor for
 remote access.  Thus, the use of the placeholder scheme frees us from
 specifying and maintaining a concise list of remote data access
-mechanisms per worker.  Also, it allows for additional resilience
+mechanisms per worker.  Also, it facilitates additional resilience
 against service errors and changing configurations, as it leaves it up
 to the SAGA engine's adaptor selection mechanism to find a suitable
 access mechanism at runtime.
 %A parameter not shown in the above configuration example 
 A simple parameter can control the number of workers created on each
-compute node, by varying which, the chances are good that compute and
-communication times can be interleaved, and that the overall system
-utilization can increase (especially in the absence of precise
-knowledge of the execution system).
+compute node; as we will see by varying this parameter, the chances
+are good that compute and communication times can be interleaved, and
+that the overall system utilization can increase (especially in the
+abscence of precise knowledge of the execution system).
  
 % As we have seen above, the globus nodes
 % can utilize a variety of mechanisms for accessing the data in
@@ -977,12 +979,11 @@ knowledge of the execution system).
 
 %\subsection{Demonstrating Interoperabilty}
 
-There are several aspects to Interoperability. A simple form of
-interoperability -- more akin to inter-changeable -- is that any
-application can use either of the three Clouds systems without any
-changes to the application: the application simply needs to
+There are several aspects to interoperability. A simple form of
+interoperability is that any application can use any Clouds systems
+without changes to the application: the application simply needs to
 instantiate a different set of security credentials for the respective
-runtime environment; we refer to this as Cloud-Cloud
+runtime environment. We refer to this as Cloud-Cloud
 interoperabilty. By almost trivial extension, SAGA also provides
 Grid-Cloud interoperability, as shown in Fig.~\ref{gramjob} and
 ~\ref{vmjob}, where exactly the same interface and functional calls
@@ -992,15 +993,16 @@ somewhat different.  As discussed, SAGA provides interoperability
 quite trivially thanks to the dynamic loading of adaptors.  Thanks to
 the low overhead of developing adaptors, SAGA has been deployed on
 three Cloud Systems -- Amazon, Eucalyptus~\cite{eucalyptus} (we have a
-local installation of Eucalyptus at LSU -- named GumboCloud) and
-Nimbus.  In this paper, we focus on EC2 and Eucalyptus.
+local installation of Eucalyptus at LSU -- GumboCloud) and
+Nimbus.  In this paper, we focus on EC2, Eucalyptus and the TeraGrid
+(TG).
 
 \subsection{Deployment Details}
 
 In order to fully utilize cloud infrastructures for SAGA applications,
 the VM instances need to fullfill a couple or prerequisites: the SAGA
 libraries and its dependencies need to be deployed, need some external
-tools which are used by the SAGA adaptors at runtime, such as ssh,
+tools which are used by the SAGA adaptors at runtime -- such as ssh,
 scp, and sshfs.  The latter needs the FUSE kernel module to function
 -- so if remote access to the cloud compute node's file system is
 wanted, the respective kernel module needs to be installed as well.
@@ -1014,19 +1016,18 @@ preparation script to the VM after its creation, and executing it with
 root permissions.  In particular for apt-get linux distribution, the
 post-instantiation software deployment is actually fairly painless,
 but naturally adds a significant amount of time to the overall VM
-startup (which encourages the use of asynchronous operations)
+startup (which encourages the use of asynchronous operations).
 % \footnote{The long VM startup times encourage the use of SAGA's
 %   asynchronous operations.}. 
-For the experiments in this paper, we prepared custom VM images with
-all prerequisites pre-installed.  We utilize the preparation script
-solely for some fine tuning of parameters: for example, we are able to
-deploy custom saga.ini files, or ensure the finalization of service
-startups before application deployment\footnote{For example, when
-  starting SAGA applications are started befor the VM's random
-  generator is initialized, our current uuid generator failed to
-  function properly -- the preparation script checks for the
-  availability of proper uuids, and delays the application deployment
-  as needed.}.
+For experiments in this paper, we prepared custom VM images with all
+prerequisites pre-installed.  We utilize the preparation script solely
+for some fine tuning of parameters: for example, we are able to deploy
+custom saga.ini files, or ensure the finalization of service startups
+before application deployment\footnote{For example, when starting SAGA
+  applications are started before the VM's random generator is
+  initialized, our current uuid generator failed to function properly
+  -- the preparation script checks for the availability of proper
+  uuids, and delays the application deployment as needed.}.
 
 Eucalyptus VM images are basically customized Xen hypervisor images,
 as are EC2 VM images.  Customized in this context means that the
@@ -1041,7 +1042,7 @@ straight-forward.  But sparse documentation and lack of automatic
 tools however, make it challenging, at least to the average end
 user. Compared to that, the derivation of customized images from
 existing images is well documented with well supported tools -- as
-long as the target image is to be used in the same Cloud system as the
+long as the target image is to be used on the same Cloud system as the
 original one.
 
 % We have also deployed \sagamapreduce to work on Cloud platforms.  It
@@ -1057,7 +1058,7 @@ file systems.  % In our current implementation, the VMs hosting the
 % master and workers share the same ssh credentials and a shared
 % file-system (using sshfs/FUSE). 
 Application deployment and configuration (as discussed above) are also
-performed via that sshfs.  On EC2, we created custom virtual machine
+performed via sshfs.  On EC2, we created custom virtual machine
 (VM) image with pre-installed SAGA.  For Eucalyptus, a boot strapping
 script equips a standard VM instance with SAGA, and SAGA's
 prerequisites (mainly boost).  To us, a mixed approach seemed most
@@ -1115,30 +1116,34 @@ perform the following experiments:
 \item We then distribute the same number of workers across two
   different Clouds - EC2 and Eucalyptus.
 \item Finally, for a single master, we distribute workers across Grids
-  (QB/TeraGrid) and Clouds (EC2, with one job per VM). We compare the
-  performance from the two hybrid (EC2-Grid, EC2-Eucalyptus
-  distribution) cases to the pure distributed case.
+  (QueenBee on the TG) and Clouds (EC2 and Eucalyptus) with one job
+  per VM.
+  % We provide selected performance data.  performance from the two
+  % hybrid (EC2-Grid, EC2-Eucalyptus
+  % distribution) cases to the pure distributed case.
 \end{enumerate}
-Unless mentioned otherwise, we set the number of workers per VM to be
-1. It is worth reiterating, that although we have captured concrete
+% Unless mentioned otherwise, we set the number of workers per VM to be
+% 1. 
+It is worth reiterating, that although we have captured concrete
 performance figures, it is not the aim of this work to analyze the
 data and understand performance implications.  A detailed analysis of
 the data and understanding performance involves the generation of
 ``system probes'', as there are differences in the specific Cloud
 system implementation and deployment.  For example, in EC2 Clouds the
-default scenario is that the VMs are distributed with respect to each
-other. There is notion of availability zone, which is really just a
-control on which data-center/cluster the VM is placed. In the absence
-of explicit mention of the availabilty zone, it is difficult to
-determine or assume that the availability zone is the same. However,
-for ECP and GumboCloud, it can be established that the same cluster is
-used and thus it is fair to assume that the VMs are local with respect
-to each other.  Similarly, without a clear handle on whether data is
-local or distributed it is difficult.  It should also be assumed that
-for Eucalpytus based Clouds, data is also locally distributed (i.e.
-same cluster with respect to a VM), whereas for EC2 clouds this cannot
-be assumed to be true for every experiment/test. \jhanote{Andre, Kate
-  please confirm that you agree with the last statment}
+default scenario is probably that the VMs are distributed with respect
+to each other. There exists the notion of availability zone, which is
+really just a control on which data-center/cluster the VM is
+placed. In the absence of explicit mention of the availabilty zone, it
+is difficult to determine or assume that the availability zone is the
+same. However, for GumboCloud, it can be established that the same
+cluster is used and thus it is fair to assume that the VMs are local
+with respect to each other.  Similarly, without explicit tests, it is
+often unclear whether data is local or distributed.  It should also be
+assumed that for Eucalpytus based Clouds, data is also locally
+distributed (i.e.  same cluster with respect to a VM), whereas for EC2
+clouds this cannot be assumed to be true for every
+experiment/test. \jhanote{Andre, Kate please confirm that you agree
+  with the last statment}
 
 It takes SAGA about 45s to instantiate a VM on Eucalyptus
 \jhanote{Andre is this still true?}  and about 200s on average
@@ -1173,11 +1178,11 @@ details of the VM can differ.
   - & \textcolor{blue}{4} & 10 & 13.0 & 10.3 & 2.7 \\
   - & 4 (1) & 10 & 11.3 & 8.6 & 2.7 \\
   - & 4 (2) & 10 & 11.6 & 9.5 & 2.1 \\
-\hline \hline
+\hline 
   -  & 2  & 100 & 7.9  & 5.3 & 2.6 \\
    -  & \textcolor{red}{4}  & 100 & 12.4 & 9.2 & 3.2\\
   -  & 10 & 100 & 29.0 & 25.1 & 3.9 \\
- \hline \hline
+ \hline
   - & \textcolor{red}{4 (1)} & 100 & 16.2 & 8.7 & 7.5 \\ 
  - & \textcolor{red}{4 (2)} & 100 & 12.3 & 8.5 & 3.8 \\
   - & 6 (3) & 100 & 18.7 & 13.5 & 5.2\\
@@ -1202,12 +1207,13 @@ details of the VM can differ.
   TG &  AWS & Eucalyptus &  (MB)  & (sec) & (sec) & (sec) \\
   \hline
   - & 1 & 1 & 10   & 5.3 & 3.8 & 1.5\\
+  - & 2 & 2 & 10   & 10.7 & 8.8 & 1.9 \\
   - & 1 & 1 & 100  & 6.7 & 3.8 & 2.9\\
-  - & 2 & 2 & 10   & - & - & - \\
   - & 2 & 2 & 100  & 10.3 & 7.3 & 3.0\\
   \hline 
   1 & - & 1 & 10   & 4.7 & 3.3 & 1.4\\
   1 & - & 1 & 100  & 6.4 & 3.4 & 3.0\\
+  \hline 
   \textcolor{blue}{2} &   \textcolor{blue}{2} & - & 10 & 7.4 & 5.9 & 1.5 \\
   3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
   4 & 4 & - & 10 & 13.7 & 11.6 & 2.1 \\
@@ -1215,7 +1221,7 @@ details of the VM can differ.
 %\textcolor{blue}{5} & \textcolor{blue}{5} & - & 10 & 33.2 & 29.4 & 3.8 \\ 
   10 & 10 & - & 10 & 32.2 & 28.8 & 2.4 \\
   \hline
-%   \hline 
+   \hline 
 %   1 & 1 & - & 100 & 5.4 & 3.1 & 2.3\\
 %   3 & 3 & - & 100 & 11.1 & 8.7 & 2.4 \\
 \end{tabular}
@@ -1277,18 +1283,20 @@ both (2.1s).
 % are use
 
 Table 2 shows performance figures when equal number of workers are
-spread across two different systems -- for the first row workers are
-distributed on EC2 and Eucalyptus; for subsequent data workers are
-distributed over the TG and AWS. Given the ability to distribute at
-will, we compare performance when 4 workers are distributed equally
-(i.e., 2 each) across a TG machine and on EC2, compared to when all 4
-workers are either exclusively on EC2 (2.7s) or on the TG machine
-(2.0s) (see Table 1 in blue). It is {\it interesting} that in this
-case $T_c$ is lower in the distributed case than when run locally on
-either EC2 or TG; we urge that not too much be read into this, as it
-is just a coincidence that a {\it sweet spot} was found where on EC2 4
-workers had a large spawning overhead compared to spawning 2 workers,
-and an increase was in place for 2 workers on the TG. Also it is worth
+spread across two different systems; for the first set of rows,
+workers are distributed on EC2 and Eucalyptus. For the next set of
+rows, workers are distributed over the TeraGrid and Eucalyptus, and in
+the final set of rows, workers are distributed between the TeraGrid
+and EC2.  Given the ability to distribute at will, we compare
+performance when 4 workers are distributed equally (i.e., 2 each)
+across a TG machine and on EC2, compared to when all 4 workers are
+either exclusively on EC2 (2.7s) or on the TG machine (2.0s) (see
+Table 1 in blue). It is {\it interesting} that in this case $T_c$ is
+lower in the distributed case than when run locally on either EC2 or
+TG; we urge that not too much be read into this, as it is just a
+coincidence that a {\it sweet spot} was found where on EC2 4 workers
+had a large spawning overhead compared to spawning 2 workers, and an
+increase was in place for 2 workers on the TG. Also it is worth
 reiterating that there are experiment-to-experiment fluctuations for
 the same configuration. The ability to enhance performance by
 distributed (heterogenous) work-loads across different systems remains
