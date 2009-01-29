@@ -1163,45 +1163,41 @@ be assumed to be true for every experiment/test. \jhanote{Andre, Kate
 
 It takes SAGA about 45 seconds to instantiate a VM on Eucalyptus
 \jhanote{Andre is this still true?}  and about 200 seconds on average
-on EC2.  We find that the size of the image (say 5GB versus 20GB)
-influences the time to instantiate an image EC2 somewhat, but is
-within image-to-image start up time fluctuation.  Once instantiated,
-it takes from a 1-10 seconds to assign a job to a VM on Eucalyptus, or
+on EC2.  We find that the size of the image (say 5GB versus 10GB)
+influences the time to instantiate an image, but is within
+image-to-image instantiation time fluctuation.  Once instantiated, it
+takes from a 1-10 seconds to assign a job to a VM on Eucalyptus, or
 EC2.  It is a configurable option to tie the VM lifetime to the
 \texttt{job\_service} object lifetime, or not.  It is also a matter of
 simple configuration to determine how many jobs (in this case workers)
-are assigned to a single VM. The default case is 1 worker per VM, but
-it is important to be able to vary the number of workers per VM (akin
-to Grids, where the number of workers per
-machine was varied).
+are assigned to a single VM. The default case is 1 worker per VM; it
+is important to be able to vary the number of workers per VM -- as
+details of the VM can differ.
 
 \begin{table}
 \upp
-\begin{tabular}{ccccc}
+\begin{tabular}{cccccc}
   \hline
-  \multicolumn{2}{c}{Number-of-Workers}  &  Data size   &  $T_c$  & $T_{spawn}$ \\   
-  TeraGrid &  AWS &   (MB)  & (sec) & (sec)  \\
+  \multicolumn{2}{c}{Number-of-Workers}  &  Data size   &  $T_c$  & $T_{spawn}$ & $T_c - T_{spawn}$\\   
+  TeraGrid &  AWS &   (MB)  & (sec) & (sec)  & (sec) \\
   \hline
-%  6 & - & 10  &  12.4 &  10.2 \\
-  10 & - & 10  & 20.8 & 17.3 \\  
+  10 & - & 10  & 20.8 & 17.3 & 3.5 \\  
   \hline 
-  - & 1 & 10 & 4.3 & 2.8 \\
-  - & 2 & 10 & 7.8 & 5.3 \\ 
-  - & 3 & 10 & 8.7 & 7.7 \\
-  - & 4 & 10 & 13.0 & 10.3 \\
-%  - & 4 (1) & 10 &  11.3 & 8.6 \\
+  - & 1 & 10 & 4.3 & 2.8 & 1.5 \\
+  - & 2 & 10 & 7.8 & 5.3 & 2.5 \\ 
+  - & 3 & 10 & 8.7 & 7.7 & 1.0 \\
+  - & 4 & 10 & 13.0 & 10.3 & 2.7 \\
 \hline \hline
-%  10 & -  & 100 & 10.4 & 8.86 \\
-  -  & 2  & 100 & 7.9  & 5.3 \\
-  -  & 4  & 100 & 12.4 & 9.2 \\
-  -  & 10 & 100 & 29.0 & 25.1 \\
+  -  & 2  & 100 & 7.9  & 5.3 & 2.6 \\
+  -  & 4  & 100 & 12.4 & 9.2 & 3.2 \\
+  -  & 10 & 100 & 29.0 & 25.1 & 3.9 \\
  \hline \hline
-  - & 4 (1) & 100 & 16.2 & 8.7 \\ 
-  - & 4 (2) & 100 & 12.3 & 8.5 \\
-  - & 6 (3) & 100 & 18.7 & 13.5 \\
-  - & 8 (1) & 100 & 31.07 & 18.3\\
-  - & 8 (2) & 100 & 27.9 & 19.8 \\
-  - & 8 (4) & 100 & 27.4 & 19.9 \\
+  - & 4 (1) & 100 & 16.2 & 8.7 & 7.5 \\ 
+  - & 4 (2) & 100 & 12.3 & 8.5 & 3.8 \\
+  - & 6 (3) & 100 & 18.7 & 13.5 & 5.2\\
+  - & 8 (1) & 100 & 31.1 & 18.3 & 12.8 \\
+  - & 8 (2) & 100 & 27.9 & 19.8 & 8.1\\
+  - & 8 (4) & 100 & 27.4 & 19.9 & 7.5\\
   \hline \hline
 \end{tabular}
 \upp
@@ -1212,24 +1208,27 @@ machine was varied).
 \upp
 \end{table}
 
+%  6 & - & 10  &  12.4 &  10.2 \\
+%  - & 4 (1) & 10 &  11.3 & 8.6 \\
+%  10 & -  & 100 & 10.4 & 8.86 \\
 \begin{table}
 \upp
-\begin{tabular}{cccccc}
+\begin{tabular}{ccccccc}
   \hline
-  \multicolumn{3}{c}{Number-of-Workers}  &  Data size   &  $T_c$  & $T_{spawn}$ \\   
-  TeraGrid &  AWS & Eucalyptus &  (MB)  & (sec) & (sec)  \\
+  \multicolumn{3}{c}{Number-of-Workers}  &  Size   &  $T_c$  & $T_{spawn}$ & $T_c - T_{spawn}$\\   
+  TG &  AWS & Eucalyptus &  (MB)  & (sec) & (sec) & (sec) \\
   \hline
-  - & 1 & 1 & 100  & 6.2 & 3.6 \\
+  - & 1 & 1 & 100  & 6.2 & 3.6 & 2.6\\
   \hline 
-  2 & 2 & - & 10 & 7.4 & 5.9 \\
-  3 & 3 & - & 10 & 11.6 & 10.3 \\
-  4 & 4 & - & 10 & 13.7 & 11.6 \\
-  5 & 5 & - & 10 & 33.2 & 29.4 \\ 
-  10 & 10 & - & 10 & 32.2 & 28.8 \\
+  2 & 2 & - & 10 & 7.4 & 5.9 & 1.5 \\
+  3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
+  4 & 4 & - & 10 & 13.7 & 11.6 & 2.1 \\
+  5 & 5 & - & 10 & 33.2 & 29.4 & 3.8 \\ 
+  10 & 10 & - & 10 & 32.2 & 28.8 & 2.4 \\
   \hline
   \hline 
-  1 & 1 & - & 100 & 5.4 & 3.1 \\
-  3 & 3 & - & 100 & 11.1 & 8.7 \\
+  1 & 1 & - & 100 & 5.4 & 3.1 & 2.3\\
+  3 & 3 & - & 100 & 11.1 & 8.7 & 2.4 \\
 \end{tabular}
 \upp
 \caption{Performance data for different configurations of worker placements
@@ -1241,35 +1240,38 @@ machine was varied).
 \upp
 \end{table}
 
-
-
 The total time to completion ($T_c$) of a \sagamapreduce job, can be
 decomposed into three primary components: $t_{over}$ defined as the
 time for pre-processing -- which is the time to chunk into fixed size
 data units, to distribute them and also to spawn the job. This is in
 some ways the overhead of the process (hence the subscript).  Another
-component of the overhead is the time it takes to instantiate a VM. It
-is worth mentioning that currently we instantiate VMs serially as
-opposed to doing this concurrently. This is not a design decision but
-just a quirk, with a trivial fix to eliminate it.  Our performance
-figures take the net instantiation time into account and thus
-normalize for multiple VM instantiation -- whether serial or
-concurrent. But all data we report is for spawning time without
-instantiation i.e., the job is dynamically assigned a VM.  Either way,
-we will report figures where specific spawn times have been removed
-and thus numbers indicate relative performance and are amenable to
-direct comparision.  $t_{comp}$ is the time to actually compute the
-map and reduce function on a given worker, whilst $t_{coord}$ is the
-time taken to assign the payload to a worker, update records and to
-possibly move workers to a destination resource. $t_{coord}$ is
-indicative of the time that it takes to assign chunks to workers and
-scales as the number of workers increases. In general:
-\vspace{-1em}
+component of the overhead is the time it takes to instantiate a VM. % It
+% is worth mentioning that currently we instantiate VMs serially as
+% opposed to doing this concurrently. This is not a design decision but
+% just a quirk, with a trivial fix to eliminate it. 
+Our performance figures take the net instantiation time into account
+and thus normalize for multiple VM instantiation -- whether serial or
+concurrent; in fact, for data we report in Table 1 and 2, the spawning
+time is without instantiation, i.e., the job is dynamically assigned a
+VM, and thus numbers indicate relative performance and are amenable to
+direct comparision irrespective of the number of VMs.  $t_{comp}$ is
+the time to actually compute the map and reduce function on a given
+worker, whilst $t_{coord}$ is the time taken to assign the payload to
+a worker, update records and to possibly move workers to a destination
+resource and in general, $t_{coord}$ scales as the number of workers
+increases. In general: \vspace{-1em}
 \begin{eqnarray}
 T_c = t_{over} + t_{comp} + t_{coord}
 \end{eqnarray}
-We find that $t_{comp}$ is significantly greater than $t_{coord}$.
+We find that $t_{comp}$ is typically greater than $t_{coord}$, where
+$t_{coord}$, but where the number of workers gets large and/or the
+computational load per worker small, $t_{coord}$ can dominate
+(internet-scale communication) and the overall $T_c$ can increase for
+the same data-set size even though the number of independent workers
+increases.
 
+% is indicative of the time that it takes to assign chunks to workers
+% and
 \jhanote{A paragraph here to describe the results of the experiments}
 
 \section{Discussion}
