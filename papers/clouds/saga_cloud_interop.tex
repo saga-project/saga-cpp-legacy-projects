@@ -90,26 +90,26 @@
 
 \begin{abstract}
 %  The landscape of computing is getting Cloudy.
-
   SAGA is a high-level programming interface which provides the
   ability to develop distributed applications in an infrastructure
   independent way. In an earlier paper, we discussed how SAGA was used
-  to develop a version of MapReduce which
-  had the ability to control the relative placement
-  of compute and data,  whilst utilizing different distributed
-  infrastructure. In this paper, we use a SAGA-based implementation of
-  MapReduce, and demonstrate its interoperability across Clouds and
-  Grids.  We discuss how a range of {\it cloud adapters} have been
-  developed for SAGA.  The major contribution of this paper is the
-  demonstration -- possibly the first ever, of interoperability
-  between different Clouds and Grids, without any changes to the
-  application. Interestingly \sagamapreduce uses multiple, different,
-  heterogenous infrastructure concurrently and for the same
-  application, and not different Clouds and Grids at different
-  instances of time.  We do not focus on performance, but a
-  proof-of-concept of application-level interoperabilty and work to
-  illustrate the importance and power of application-level
-  interoperabilty.
+  to develop a version of MapReduce which provided the user with the
+  ability to control the relative placement of compute and data,
+  whilst utilizing different distributed infrastructure. In this
+  paper, we use the SAGA-based implementation of MapReduce, and
+  demonstrate its interoperability across Clouds and Grids.  We
+  discuss how a range of {\it cloud adapters} have been developed for
+  SAGA.  The major contribution of this paper is the demonstration --
+  possibly the first ever, of interoperability between different
+  Clouds and Grids, without any changes to the application. We analyse
+  the performance of \sagamapreduce when using multiple, different,
+  heterogenous infrastructure concurrently for the same problem
+  instance;
+  % application, and not different Clouds and Grids at different
+  % instances of time.
+  However, we do not strive to provide a rigorous performance model, but to
+  provide a proof-of-concept of application-level interoperabilty and
+  illustrate its importance.
 \end{abstract}
 
 \section{Introduction} 
@@ -131,88 +131,86 @@
 
 Although Clouds are a nascent infrastructure, there is a ground swell
 in interest to adapt these emerging powerful infrastructure for
-large-scale scienctific applications [provide some references here].
-Inevitably, and as with any emerging technology, the unified concept
-of a Cloud -- if ever there was one, is evolving into different
-flavours and implementations, with distinct underlying system
-interfaces, semantics and infrastructure. For example, the operating
-environment of Amazon's Cloud (EC2) is very different from that of
-Google's Cloud. Specifically for the latter, there already exist
-multiple implementations of Google's Bigtable, such as HyberTable,
-Cassandara and HBase. There is bound to be a continued proliferation
-of such Cloud based infrastructure; this is reminiscent of the
-plethora of Grid middleware distributions. The complication arising
-from proliferation of Cloud infrastructure arises, over and above the
-existing complexity of the transition from Grids. Thus
+large-scale scienctific applications~\cite{montagecloud}.  Inevitably,
+and as with any emerging technology, the unified concept of a Cloud --
+if ever there was one, is evolving into different flavours and
+implementations, with distinct underlying system interfaces, semantics
+and infrastructure. For example, the operating environment of Amazon's
+Cloud (EC2) is very different from that of Google's
+Cloud. Specifically for the latter, there already exist multiple
+implementations of Google's Bigtable, such as HyberTable, Cassandara
+and HBase. There is bound to be a continued proliferation of such
+Cloud based infrastructure; this is reminiscent of the plethora of
+Grid middleware distributions. % The complication emanating from the
+% proliferation of Cloud infrastructure arises, over and above the
+% complexity for applications to transition from Grids. 
+Thus to safeguard against the proliferation of Cloud infrastructure,
 application-level support and inter-operability for different
-applications on different Cloud infrastructure is critical if Clouds
-are not have the same limited impact on Scientific Computing of
-Grids. And issues of scale aside, the transition of existing
-distributed programming models and styles, must be as seamless and as
-least disruptive as possible; all these factors must be addressed,
-else the Cloud Project risks engendering technical and political
-horror stories reminiscent of Globus, which became a disastrous
-by-word for everything wrong with the complexity of Grids.  A
-fundamental question at the heart of all these important
+applications on different Clouds is critical if they are not have the
+same limited impact on Scientific Computing of Grids. And issues of
+scale aside, the transition of existing distributed programming models
+and styles, must be as seamless and as least disruptive as possible;
+all these factors must be addressed in order to avoid the technical
+and political horror stories reminiscent of Globus, which became a
+disastrous by-word for everything wrong with the complexity of Grids.
+A fundamental question at the heart of all these important
 considerations, is the question of how scientific applications can be
 developed so as to utilize as broad a range of distributed systems as
 possible, without vendor lock-in, yet with the flexibility and
 performance that scientific applications demand?
 
-Related to the above, it is unclear what kind of programming models
-(PM) and programming systems (PS) will emerge for Clouds; this in turn
-will depend, amongst other things, on the kinds of applications that
-will come forward to try to utilise Clouds and system-level interfaces
-that are exposed by Cloud providers.  Additionally, there are
+Currently, it is unclear what kind of programming models (PM) and
+programming systems (PS) will emerge for Clouds; this in turn will
+depend, amongst other things, on the kinds of applications that will
+come forward to try to utilise Clouds and system-level interfaces that
+are exposed by Cloud providers.  Additionally, there are
 infrastructure specific features -- technical and policy, that might
 influence the design of PM and PS. For example, EC2 -- the archetypal
 Cloud System, has a well-defined cost model for data transfer across
 {\it its} network. Hence, any PM for Clouds must be cognizant of the
 requirement to programmatically control the placement of compute and
 data relative to each other -- both statically (pre-run time) and at
-run-time.
+run-time.  In general, for most Cloud applications the same
+computational task can be priced very differently for possibly the
+same performance.  It is important for effective scientific
+application development on Clouds that, any PM or PS should not be
+constrained to a specific infrastructure, i.e., will support
+infrastructure interoperabilty at the application-level.
+
 % It is not that traditional Grids applications do not have this
 % interesting requirement, but that, such explicit support is
 % typically required for very large-scale and high-performing
 % applications.
-In general, for most Cloud applications such control is required in
-order to ensure basic cost minimization, i.e., the same computational
-task can be priced very differently for possibly the same performance.
+% such control is required in
+% order to ensure basic cost minimization, i.e., 
 % These factors and trends place a critical importance on effective
 % programming abstractions for data-intensive applications for both
 % Clouds and Grids and importantly in bridging the gap between the
 % two.
-Any {\it effective} abstraction will be cognizant and support the
-above capabilities, viz., relative compute-data placement,
-application-level patterns. 
+% Any {\it effective} abstraction will be cognizant and support the
+% above capabilities, viz., relative compute-data placement,
+% application-level patterns. 
 % But the importance of {\it application-level} programming and
 % data-access patterns remain essentially invariant on different
 % infrastructure. Thus the ability to support application specific
 % data-access patterns is both useful and important~\cite{dpa-paper}.
-In spite of the above considerations, any PM or PS will not be
-constrained to any given infrastructure, i.e., will support
-infrastructure interoperabilty at the application-level.  And at least
-as important a consideration associated with the issue of developing
-scientific applications for Clouds, is the notion of interoperabiltiy,
-i.e., avoiding vendor lock-in and utilizing multiple Clouds...
 
-In Ref~\cite{saga_ccgrid09}, we established  that
-SAGA -- the Simple API for Grid Applications provides 
-a PS with a standard interface, % is an {\it
+In Ref~\cite{saga_ccgrid09}, we established that SAGA programming
+system provides a standard interface, % is an {\it
 %   effective} abstraction that
-that can support simple, yet powerful programming models -- data
-parallel execution.  Specifically, we impelemented a simple data
-parallel programming task (MapReduce) using SAGA; this involved the
-parallel execution of simple, embarassingly parallel data-analysis
-task.  We demonstrated that the SAGA-based implementation is
-infrastructure independent whilst still providing control over the
-deployment, distribution and run-time decomposition.  Work is underway
-to extend our SAGA based approach in the near future to involve tasks
-with complex and interrelated dependencies.  Using data-sets of size
-up to 10GB, and up to 10 workers, we provide detailed performance
-analysis of the SAGA-MapReduce implementation, and show how
-controlling the distribution of computation and the payload per worker
-helps enhance performance.
+that can support simple, yet powerful programming models.
+Specifically, we impelemented a simple data parallel programming task
+(MapReduce) using SAGA; this involved the parallel execution of
+simple, embarassingly parallel data-analysis task.  We demonstrated
+that the SAGA-based implementation is infrastructure independent
+whilst still providing control over the deployment, distribution and
+run-time decomposition.  Work is underway to extend our SAGA based
+approach in the near future to involve tasks with complex and
+interrelated dependencies.  Using data-sets of size up to 10GB, and up
+to 10 workers, we provided detailed performance analysis of the
+SAGA-MapReduce implementation, and showed how controlling the
+distribution of computation and the payload per worker helped enhance
+performance.
 
 % In general, SAGA has been demonstrated to support a
 % range of distributed HPC programming models and applications
@@ -230,70 +228,59 @@ helps enhance performance.
 % keep data network transfer low and in the case of commercial Clouds
 % the monetary cost of computing the solution low. 
 
-Having established the effectiveness of SAGA for data-intensive
-computing, the primary focus of this paper is to use SAGA-based
-MapReduce as an exemplar to establish the interoperabilty aspects of
-the SAGA programming system.  Specifically, we will demonstrate that
-\sagamapreduce is usable on traditional (Grids) and emerging (Clouds)
-distributed infrastructure {\it concurrently and cooperatively towards
-  a solution of the same problem instance}.  Specifically, our
-approach is to take \sagamapreduce and to use the {\it same}
-implementation of \sagamapreduce to solve the same instance of the
-word counting problem, by using different worker distribution
-configurations overs Clouds and Grid systems, and thereby also test
-for inter-operability between different flavours of Clouds as well as
-between Clouds and Grids.
+Having thus established the effectiveness of SAGA, the primary focus
+of this paper is to use SAGA-based MapReduce as an exemplar to
+establish the interoperabilty aspects of the SAGA programming system.
+Specifically, we will demonstrate that \sagamapreduce is usable on
+traditional (Grids) and emerging (Clouds) distributed infrastructure
+{\it concurrently and cooperatively towards a solution of the same
+  problem instance}.  Specifically, our approach is to take
+\sagamapreduce and to use the {\it same} implementation of
+\sagamapreduce to solve the same instance of the word counting
+problem, by using different worker distribution configurations overs
+Clouds and Grid systems, and thereby also test for inter-operability
+between different flavours of Clouds as well as between Clouds and
+Grids.
 
 Interoperability amongst Clouds and Grids can be achieved at different
 levels. For example, service-level interoperability amongt Grids has
 been demonstrated by the OGF-GIN group; application-level
-interoperability remains a harder goal to achieve.  Clouds provide
-services at different levels (Iaas, PaaS, SaaS); standard interfaces
-to these different levels do not exist. An immediate consequence of
-this is the lack of interoperability between today's Clouds; though
-there is little buisness motivation for Cloud providers to define,
-implement and support new/standard interfaces, there is a case to be
-made that applications would benefit from multiple Cloud
-interoperability.  And it is a desirable situation if Cloud-Grid
-interoperabilty came about for free; we argue that by addressing
-interoperability at the application-level this can be easily achieved.
-But first we provide Some defining features of {\it Application-level
-  Interoperability (ALI):}
-\begin{enumerate}
-\item Other than compiling on a different or new platform, there are no
-  further changes required of the application
-\item Automated, generalized and extensible solutions to use new resources,
-%  and not via  bilateral or customized arrangements
-% \item Semantics of any services that an application depends upon are
-%   consistent and similar, e.g., consistency of underlying error
-%   handling and catching and return
-\item In some ways, ALI is strong interoperability, whilst
-  service-level interoperabilty is weak interoperability.
-\end{enumerate}
-
-The complexity of providing ALI is non-uniform and depends upon the
-application under consideration. For example, it is somewhat easier
-for simple ``execution unaware'' applications to utilize heterogenous
-multiple distributed environments, than for applications with multiple
-distinct and possibly distributed components.
+interoperability (ALI) remains a harder goal to achieve.  Clouds
+provide services at different levels (Iaas, PaaS, SaaS); standard
+interfaces to these different levels do not exist. Though there is
+little buisness motivation for Cloud providers to define, implement
+and support new/standard interfaces, there is a case to be made that
+applications would benefit from multiple Cloud interoperability.  We
+argue that by addressing interoperability at the application-level
+this can be easily achieved.  % But first we provide some features of
+ALI arises when, say other than compiling on a different or new
+platform, there are no further changes required of the
+application. Also, ALI provides automated, generalized and extensible
+solutions to use new resources; in some ways, ALI is strong
+interoperability, whilst service-level interoperabilty is weak
+interoperability.  The complexity of providing ALI is non-uniform and
+depends upon the application under consideration. For example, it is
+somewhat easier for simple ``execution unaware'' applications to
+utilize heterogenous multiple distributed environments, than for
+applications with multiple distinct and possibly distributed
+components.
 
 It can be asked if the emphasis on utilising multiple Clouds/Grids is
-premature, given that programming models/systems or Clouds are just
+premature, given that programming models/systems for Clouds are just
 emerging? In many ways the emphasis on interoperabilty is an
 appreciation and acknowledgement of an application-centric perspective
 -- that is, as infrastructure changes and evolves it is critical to
 provide seamless transition and development pathways for applications
-and application developers. Directed effort towards application-level
-interoperabilty on Clouds/Grids in addition to satisfying basic
-curiosity of ``if and how to interoperate'', might also possibly
-provide a different insight into the programming challenges and
-requirements are?  A pre-requisite for application-level
-interoperabilty is infrastructure independent programming. Google's
-MapReduce is tied to Google's file-system; Hadoop is intrinsically
-linked to HDFS, as is PiG.  So rather than defend the emphasis on
-interoperability, we outline briefly the motivation/importance for
-interoperabilty. In particular we will provide application-level
-motivation for interoperability.
+and application developers. Directed effort towards ALI on
+Clouds/Grids in addition to satisfying basic curiosity of ``if and how
+to interoperate'', might also possibly provide different insight into
+the programming challenges and requirements. A pre-requisite for ALI
+is infrastructure independent programming. Google's MapReduce is tied
+to Google's file-system; Hadoop is intrinsically linked to HDFS, as is
+PiG.  So rather than defend the emphasis on interoperability, we
+outline briefly the motivation/importance for interoperabilty. 
+% In particular we will provide application-level motivation for
+% interoperability.
 
 % \jhanote{Mention how we have motivated the need to control
 %   relative compute-date placement. This does not really change
@@ -304,30 +291,32 @@ application with multiple homogenous workers (although the data-load
 per worker can vary); however, it is easy to conceive of an
 application where workers (tasks) can be heterogenous, i.e., each
 worker is different and may have different data-compute ratios.
-\jhanote{Example} Additionally due to different data-compute affinity
-amongst the tasks, some workers might be better placed on a Grid
-whilst some may optimally be located on regular Grids.  In general
-varying data-compute affinity or data-data affinity, may make it more
-prudent to map to Clouds than regular grid environments (or
-vice-versa).  Complex dependencies and inter-relationship between
-sub-tasks make this often difficult to determine before run-time and
-require run-time mapping. It is worth mentioning that most
-data-intensive scientific applications fall into this category e.g.,
-high-energy and LIGO data-analysis.  \jhanote{Specific Example}
-
-Additionally, with Clouds -- and different Clouds providers, fronting
-different Economic Models of computing, it is important to be able to
-utilise the ``right resource'', in the right way. We briefly discussed
-how moving prodigious amounts of data across Cloud networks, as
-opposed to moving the compute unit could be expensive; this is an
-example of using a given resource in the right-way. However in the
-absence of autonomic performance models and as current programming
-models don't provide explicit support/control for
-affinity~\cite{jha_ccpe09}, in the meantime, the end-user is left with
-performance management, and thus with the responsibilty of explicitly
-determining which resource is optimal. Clearly interoperability
-between different flavours of Clouds, and Clouds and Grids is an
-important pre-requisite.
+% \jhanote{Example} 
+Additionally due to different data-compute affinity requirement
+amongst the tasks, some workers might be better placed on a
+Cloud~\cite{jha_ccpe09} whilst some may optimally be located on
+regular Grids. 
+% In general varying data-compute affinity or data-data affinity, may
+% make it more prudent to map to Clouds than regular grid environments
+% (or vice-versa).
+Complex dependencies and inter-relationship between sub-tasks make
+this often difficult to determine before run-time and require run-time
+mapping. It is worth mentioning that most data-intensive scientific
+applications fall into this category e.g., high-energy and LIGO
+data-analysis.  Additionally, with different Clouds
+providers, fronting different Economic Models of computing, it is
+important to be able to utilise the ``right resource'', in the right
+way. We briefly discussed how moving prodigious amounts of data across
+Cloud networks, as opposed to moving the compute unit could be
+expensive. % this is an example of using a given resource in the
+% right-way. 
+As current programming models don't provide explicit support or
+control for affinity~\cite{jha_ccpe09}, and in the absence of
+autonomic performance models, the end-user is left with performance
+management, and with the responsibilty of explicitly determining which
+resource is optimal. Clearly interoperability between different
+flavours of Clouds, and Clouds and Grids is an important
+pre-requisite.
 
 %\subsubsection*{Why Interoperability:}
 %\begin{itemize}
@@ -1467,11 +1456,11 @@ Summer of Code Project, with assistance from Hartmut Kaiser. We also
 thank Hartmut for great support during the testing and deployment
 phases of this project. We are greatful to Dmitrii Zagorodnov (UCSB)
 and Archit Kulshrestha (CyD group, CCT) for the support in deployment
-with Eucalyptus.  Kate Stamou would like to acknowledge the support
-Network Infrastructure Team and Antonios Iliopoulos.  We also
-acknowledge internal resources of the Center for Computation \&
-Technology (CCT) at LSU and computer resources provided by
-LONI/TeraGrid.  \bibliographystyle{plain}
+with Eucalyptus.  KS would like to acknowledge the LSU
+Networking Infrastructure \& Research IT Enablement team for their help
+and support.  We also acknowledge internal resources of the Center for
+Computation \& Technology (CCT) at LSU and computer resources provided
+by LONI/TeraGrid.  \bibliographystyle{plain}
 \bibliography{saga_data_intensive}
 \end{document}
 
