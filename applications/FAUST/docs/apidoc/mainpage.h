@@ -2,7 +2,7 @@
 /**
   * @mainpage FAUST - A Framework for Adaptive Ubiquitous Scalable Tasks  
   * 
-  * <p align="center"><img  src="./murnau_faust.jpg"></p>
+  * <p align="center"><img  src="./faust_agents_01.jpg"></p>
   *
   * <hr>
   * @section introduction Introduction
