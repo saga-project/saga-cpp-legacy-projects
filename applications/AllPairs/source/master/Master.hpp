@@ -7,9 +7,7 @@
 #define MR_MASTER_HPP
 
 #include <saga/saga.hpp>
-#include <boost/program_options.hpp>
 #include "ConfigFileParser.hpp"
-#include "../xmlParser/xmlParser.h"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
 #include "version.hpp"
@@ -158,8 +156,9 @@ namespace AllPairs {
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
                saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),   mode);      //workersDir_
                saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES),  mode);      //binariesDir_
-               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_BASE_DIR_FILES), mode);     //baseDir_
-               saga::task t3 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_FRAGMENT_DIR_FILES), mode); //fragmentDir_
+               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BASE_FILES), mode);     //baseDir_
+               saga::task t3 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_FRAGMENT_FILES), mode); //fragmentDir_
+               saga::task t4 = sessionBaseDir_.open<saga::task_base::ASync>(saga::url(ADVERT_ENTRY_SERVER), mode); //server address for worker
                tc.add_task(t0);
                tc.add_task(t1);
                tc.add_task(t2);
@@ -169,6 +168,8 @@ namespace AllPairs {
                binariesDir_      = t1.get_result<saga::advert::directory>();
                baseFilesDir_     = t2.get_result<saga::advert::directory>();
                fragmentFilesDir_ = t3.get_result<saga::advert::directory>();
+               saga::advert::entry address = t4.get_result<saga::advert::entry>();
+               address.store_string("tcp://localhost:8000");
             }
             catch(saga::exception const & e) {
                message += e.what();
@@ -226,11 +227,9 @@ namespace AllPairs {
             std::vector<FileDescription> fileListBase                       = cfgFileParser_.getFileListBase();
             std::vector<FileDescription>::const_iterator fileListBaseIT     = fileListBase.begin();
             std::vector<FileDescription>::const_iterator fileListFragmentIT = fileListFragment.begin();
-            int mode = saga::advert::ReadWrite | saga::advert::Create;  
-            unsigned int successCounter = 0;
+            //int mode = saga::advert::ReadWrite | saga::advert::Create;  
+            //unsigned int successCounter = 0;
 
-            //int mode = saga::advert::ReadWrite | saga::advert::Create;
-            
             // Translate FileDescriptions returned by getFileList
             // into names to be chunked by chunker
             while(fileListBaseIT != fileListBase.end()) {
@@ -241,8 +240,7 @@ namespace AllPairs {
                fragmentFiles_.push_back(saga::url(fileListFragmentIT->name));
                fileListFragmentIT++;
             }
-            std::vector<saga::url>::const_iterator baseFiles_IT     = baseFiles_.begin();
-            // Advertise chunks
+/*            std::vector<saga::url>::const_iterator baseFiles_IT     = baseFiles_.begin();
             while(baseFiles_IT != baseFiles_.end()) {
                std::string message("Adding new chunk base " + (baseFiles_IT->get_string()) + "...");
                try {
@@ -262,8 +260,7 @@ namespace AllPairs {
                log->write("No base files added for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
             }
-            /*successCounter=0;
-            // Advertise chunks
+            successCounter=0;
             while(fragmentFiles_IT != fragmentFiles_.end()) {
                std::string message("Adding new chunk fragment " + (fragmentFiles_IT->get_string()) + "...");
                try {
@@ -344,10 +341,9 @@ namespace AllPairs {
             }
          }
          void runComparisons_(void) {
-            HandleComparisons comparisonHandler(fragmentFiles_, workersDir_, log);
+            HandleComparisons comparisonHandler(fragmentFiles_, log);
             std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
-            sleep(5); //In here temporarily to allow time for all jobs to create advert entries
             comparisonHandler.assignWork();
             log->write("Success", LOGLEVEL_INFO);
          }

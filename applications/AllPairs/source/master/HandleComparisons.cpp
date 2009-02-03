@@ -10,16 +10,17 @@ namespace AllPairs
 {
  // fileCount is the total number of files possibly outputted by
  // the map function (NUM_MAPS)
- HandleComparisons::HandleComparisons(std::vector<saga::url> &fragmentFiles, saga::advert::directory workerDir,
-                                      LogWriter *log)
-    :  fragmentFiles_(fragmentFiles), workerDir_(workerDir), log_(log)
+ HandleComparisons::HandleComparisons(std::vector<saga::url> &fragmentFiles, LogWriter *log)
+    :  fragmentFiles_(fragmentFiles), log_(log)
  {
-    candidateIT_ = fragmentFiles_.begin();
-    workers_     = workerDir_.list("*");
-    while(workers_.size() == 0)
+    unassigned_ = std::vector<saga::url>(fragmentFiles);
+    saga::url url("tcp://localhost:8000");
+    try
     {
-       sleep(1);
-       workers_ = workerDir_.list("*");
+       service_ = saga::stream::server(url);
+    }
+    catch(saga::exception const& e) {
+       std::cerr << "saga::exception caught: " << e.what() << std::endl;
     }
  }
 /*********************************************************
@@ -40,89 +41,146 @@ namespace AllPairs
  * ******************************************************/
  void HandleComparisons::issue_command_(saga::url fragmentFile) {
    int mode = saga::advert::ReadWrite;
-   static std::vector<saga::url>::iterator workers_IT = workers_.begin();
    bool assigned = false; //Describes status of current file
    while(assigned == false) {
       try {
-         saga::advert::directory possibleWorker(*workers_IT, mode);
-         std::string state = possibleWorker.get_attribute("STATE");
-         if(state == WORKER_STATE_IDLE) {
-            if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_COMPARE) {
+         saga::stream::stream worker = service_.serve();
+         std::string message("Established connection to ");
+         message += worker.get_url().get_string();
+         log_->write(message, LOGLEVEL_INFO);
+
+         //Ask worker for state
+         worker.write(saga::buffer(MASTER_QUESTION_STATE));
+         char buff[255];
+         saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+         std::string state(buff);
+         if(state == WORKER_STATE_IDLE)
+         {
+            //Worker is idle
+            message.clear();
+            message = "Issuing worker ";
+            message += worker.get_url().get_string();
+            message += " to map " + fragmentFile.get_string();
+            log_->write(message, LOGLEVEL_INFO); 
+
+            //Ask where their advert is
+            worker.write(saga::buffer(MASTER_QUESTION_ADVERT));
+            char buff[255];
+            saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+            saga::url advert = saga::url(std::string(buff));
+
+            //Write chunk to worker
+            saga::advert::directory possibleWorker(advert, mode);
+            saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode | saga::advert::Create));
+            adv.store_string<saga::task_base::Sync>(fragmentFile.get_string());
+
+            //Tell worker about data
+            worker.write(saga::buffer(WORKER_COMMAND_COMPARE));
+            read_bytes = worker.read(saga::buffer(buff));
+            if(std::string(buff) != WORKER_RESPONSE_ACKNOLEDGE)
+            {
+               std::cerr << "Worker did not accept chunk!" << std::endl;
                break;
             }
-            saga::task_container tc;
-            tc.add_task(possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND",  WORKER_COMMAND_COMPARE));
-            saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode | saga::advert::Create));
-            tc.add_task(adv.store_string<saga::task_base::Sync>(fragmentFile.get_string()));
+
             std::string message("Assigned worker");
             message += possibleWorker.get_url().get_path() + " to compare fragment: " + fragmentFile.get_string();
-            assigned_.push_back(fragmentFile);
-            tc.wait();
             log_->write(message, LOGLEVEL_INFO);
+            assigned_.push_back(fragmentFile);
+
+            //If from unassigned, remove it
+            std::vector<saga::url>::iterator end = unassigned_.end();
+            std::vector<saga::url>::iterator unassigned_fileIT = unassigned_.end();
+            bool found = false;
+            for(std::vector<saga::url>::iterator unassigned_IT = unassigned_.begin();
+                unassigned_IT != end;
+                ++unassigned_IT)
+            {
+               if(fragmentFile == *unassigned_IT)
+               {
+                  found = true;
+                  break;
+               }
+            }
+            if(found == true)
+            {
+               unassigned_.erase(unassigned_fileIT);
+            }
             assigned = true;
          }
-         else if(state == WORKER_STATE_DONE) {
-            try{
-               saga::task_container tc;
-               tc.add_task(possibleWorker.set_attribute<saga::task_base::Sync>("STATE",    WORKER_STATE_IDLE));
-               tc.add_task(possibleWorker.set_attribute<saga::task_base::Sync>("COMMAND",  ""));
-               // ./fragmentFile is the fragmentFile the worker has just finished with
-               saga::advert::entry adv(possibleWorker.open(saga::url("./fragmentFile"), mode));
-               std::string finished_work(adv.retrieve_string());
-               finished_.push_back(saga::url(finished_work));
-               std::string message("Worker ");
-               message += possibleWorker.get_url().get_path() + " finished fragment " + finished_work;
-               log_->write(message, LOGLEVEL_INFO);
-               //finishedFile is the data of the comparison
-             }
-             catch(saga::exception const &e) {
-                std::cerr << "SAGA EXCEPTION:  " << e.what() << std::endl;
-             }
-          }
+         else if(state == WORKER_STATE_DONE)
+         {
+            worker.write(saga::buffer(MASTER_QUESTION_RESULT));
+            char buff[255];
+            saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+            saga::url result = saga::url(std::string(buff));
+
+            std::string message("Worker ");
+            message += worker.get_url().get_string() + " finished fragment " + result.get_string();
+            log_->write(message, LOGLEVEL_INFO);
+
+            //If in assigned, remove it
+            std::vector<saga::url>::iterator end = assigned_.end();
+            std::vector<saga::url>::iterator assigned_fileIT = assigned_.end();
+            bool found = false;
+            for(std::vector<saga::url>::iterator assigned_IT = assigned_.begin();
+                assigned_IT != end;
+                ++assigned_IT)
+            {
+               if(result == *assigned_IT)
+               {
+                  found = true;
+                  break;
+               }
+            }
+            if(found == true)
+            {
+               assigned_.erase(assigned_fileIT);
+            }
+
+            //Make sure not already inserted into finished list
+            end = finished_.end();
+            std::vector<saga::url>::iterator finished_fileIT = finished_.end();
+            found = false;
+            for(std::vector<saga::url>::iterator finished_IT = finished_.begin();
+                finished_IT != end;
+                ++finished_IT)
+            {
+               if(result == *finished_IT)
+               {
+                  found = true;
+                  break;
+               }
+            }
+            if(found == false)
+            {
+               finished_.push_back(result);
+            }
+         }
        }
        catch(saga::exception const & e) {
           std::string message(e.what());
           //log->write(message, LOGLEVEL_ERROR);
        }
-       workers_IT++;
-       if(workers_IT == workers_.end()) {
-          //Update list in case more workers joined in
-          workers_ = workerDir_.list("*");
-          workers_IT = workers_.begin();
-       }
     }
  }
  saga::url HandleComparisons::get_file_() {
-    for(unsigned int count = 0; count < fragmentFiles_.size(); count++) {
-       bool finished = false;
-       bool assigned = false;
-       std::string candidate = candidateIT_->get_string();
-       std::vector<saga::url>::iterator finished_IT = finished_.begin();
-       while(finished_IT != finished_.end()) {
-          if(candidate == *finished_IT) {
-             finished = true;
-             break;
-          }
-          finished_IT++;
-       }
-       std::vector<saga::url>::iterator assigned_IT = assigned_.begin();
-       while(assigned_IT != assigned_.end()) {
-          if(candidate == *assigned_IT) {
-             assigned = true;
-             break;
-          }
-          assigned_IT++;
-       }
-       if(finished == false && assigned == false) {
-          return candidateIT_->get_string();
-       }
-       else if(finished == false && assigned == true) {
-          candidateIT_++;
-          if(candidateIT_ == fragmentFiles_.end()) {
-             candidateIT_ = fragmentFiles_.begin();
-          }
-       }
+    if(unassigned_.size() > 0)
+    {
+       //Return anything on this list
+       return unassigned_[0];
     }
-    return candidateIT_->get_string();
+    else if(assigned_.size() > 0)
+    {
+       //No more unassigned ones
+       //Return anything on this list
+       return assigned_[rand() % assigned_.size()];
+    }
+    else
+    {
+       //No more assigned ones
+       //Just give a finished one from finished
+       return finished_[rand() % finished_.size()];
+    }
  }
 } // namespace AllPairs

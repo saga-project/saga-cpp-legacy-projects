@@ -38,7 +38,7 @@ namespace AllPairs {
          database_    = (vm["database"].as<std::string>());
          logURL_      = (vm["log"].as<std::string>());
          uuid_        = saga::uuid().string();
-         logWriter_ = new LogWriter(AP_WORKER_EXE_NAME, logURL_);
+         logWriter_   = new LogWriter(AP_WORKER_EXE_NAME, logURL_);
       }
       /*********************************************************
        * starts the worker and begins all neccessary setup with*
@@ -47,7 +47,7 @@ namespace AllPairs {
       int run(void) {
          try {
            registerWithDB(); //Connect and create directories in database
-           mainLoop(5); //sleep interval of 5
+           mainLoop(5);      //sleep interval of 5
          }
          catch (saga::exception const & e) {
             std::cerr << "AllPairs::run : Exception caught : " << e.what() << std::endl;
@@ -80,6 +80,8 @@ namespace AllPairs {
       time_t startupTime_;
       SystemInfo systemInfo_;
    
+      std::string state_;
+      saga::stream::stream server_;
       saga::advert::directory workerDir_;
       saga::advert::directory sessionBaseDir_;
       std::vector<saga::url>  baseFiles_;
@@ -130,13 +132,11 @@ namespace AllPairs {
          std::string advertKey(database_ + "//" + sessionUUID_ + "/");
          try {
             sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-
             //(2a) create a directory for this agent
             advertKey += ADVERT_DIR_WORKERS;
             advertKey += "/" + uuid_ + "/";
             workerDir_    = saga::advert::directory(advertKey, mode | saga::advert::Create);
-            workerDir_.set_attribute("COMMAND", "");
-            workerDir_.set_attribute("STATE", WORKER_STATE_IDLE);
+
             //(3) add some initial system information
             workerDir_.set_attribute(ATTR_CPU_COUNT, 
               boost::lexical_cast<std::string>(systemInfo_.hardwareInfo().nCpu));
@@ -151,11 +151,15 @@ namespace AllPairs {
             workerDir_.set_attribute(ATTR_HOST_NAME,     systemInfo_.hostName());
             workerDir_.set_attribute(ATTR_HOST_TYPE,     systemInfo_.hostType());
             workerDir_.set_attribute(ATTR_HOST_LOAD_AVG, systemInfo_.hostLoadAverage());
+
             //(4) set the last seen (keep alive) timestamp
             time_t timestamp; time(&timestamp);
-            workerDir_.set_attribute(ATTR_LAST_SEEN, 
-            boost::lexical_cast<std::string>(timestamp));
-            saga::advert::directory baseFilesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_BASE_DIR_FILES), saga::advert::ReadWrite));
+            workerDir_.set_attribute(ATTR_LAST_SEEN, boost::lexical_cast<std::string>(timestamp));
+
+            saga::advert::entry server_name(sessionBaseDir_.open(ADVERT_ENTRY_SERVER, mode));
+            server_ = saga::stream::stream(saga::url(server_name.retrieve_string()));
+
+            saga::advert::directory baseFilesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_BASE_FILES), saga::advert::ReadWrite));
             std::vector<saga::url> baseFilesAdv(baseFilesDir_.list());
             std::vector<saga::url>::iterator baseFilesAdvIT = baseFilesAdv.begin();
             //Real code
@@ -192,7 +196,7 @@ namespace AllPairs {
             saga::url currentFragmentFile;
             // read command from orchestrator
             if(command == WORKER_COMMAND_COMPARE) {
-               workerDir_.set_attribute("STATE", WORKER_STATE_COMPARING);
+               state_ = WORKER_STATE_COMPARING;
                saga::advert::entry adv(workerDir_.open(saga::url("./fragmentFile"), saga::advert::ReadWrite));
                currentFragmentFile = adv.retrieve_string();
                RunComparison ComparisonHandler = RunComparison(workerDir_, baseFiles_, logWriter_);
@@ -215,9 +219,7 @@ namespace AllPairs {
                saga::advert::entry fin_adv(resultsDir.open(saga::url("./" + result_entry), mode));
                //finished, now write data to advert
                fin_adv.store_string(boost::lexical_cast<std::string>(min));
-               std::cout << workerDir_.get_attribute("STATE") << " is the worker state" << std::endl;
-               workerDir_.set_attribute("COMMAND","");
-               workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
+               state_ = WORKER_STATE_DONE;
             }
             else if(command == WORKER_COMMAND_QUIT) {
                cleanup_();
@@ -225,8 +227,6 @@ namespace AllPairs {
             }
             // write some statistics + ping signal 
             updateStatus_();
-            //(3) sleep for a while*/
-            sleep(updateInterval);
          }
       }
       /*********************************************************
@@ -238,12 +238,44 @@ namespace AllPairs {
        * ******************************************************/
       std::string getFrontendCommand_(void) {
          std::string commandString;
+         char buff[255];
          try {
-           commandString = workerDir_.get_attribute("COMMAND");
+            server_.connect();
+            saga::ssize_t read_bytes = server_.read(saga::buffer(buff));
+            std::string question(buff);
+            if(question == MASTER_QUESTION_STATE)
+            {
+               server_.write(saga::buffer(state_));
+               read_bytes = server_.read(saga::buffer(buff));
+               question = std::string(buff);
+               if(question == MASTER_QUESTION_ADVERT)
+               {
+                  server_.write(saga::buffer(workerDir_.get_url().get_string()));
+                  read_bytes = server_.read(saga::buffer(buff));
+                  question = std::string(buff);
+                  if(question == WORKER_COMMAND_COMPARE)
+                  {
+                     return WORKER_COMMAND_COMPARE;
+                  }
+                  else if(question == WORKER_COMMAND_QUIT)
+                  {
+                     return WORKER_COMMAND_QUIT;
+                  }
+               }
+               else
+               {
+                  APPLICATION_ABORT;
+               }
+            }
+            else
+            {
+               APPLICATION_ABORT;
+            }
          }
          catch(saga::exception const & e) {
-           std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
-           throw;
+            sleep(5);
+            std::cout << "Couldn't connect, try again" << std::endl;
+            return getFrontendCommand_();
          }
          // get command number & reset the attribute to "" 
          return commandString;
