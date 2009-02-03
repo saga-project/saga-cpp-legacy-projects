@@ -32,7 +32,7 @@ namespace faust
      *         It can't be instanciated directly, only thourgh the 
      *         service::create_job factory methods.
      */
-    class FAUST_EXPORT job : public faust::object
+    class  job : public faust::object
     {
     
       // service impl. class needs to be friend to call private c'tor 

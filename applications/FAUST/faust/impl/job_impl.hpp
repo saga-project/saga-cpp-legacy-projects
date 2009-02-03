@@ -25,7 +25,7 @@ namespace faust
   {
     //////////////////////////////////////////////////////////////////////////
     //
-    class FAUST_EXPORT job : public faust::impl::object
+    class  job : public faust::impl::object
     {
       
       private:

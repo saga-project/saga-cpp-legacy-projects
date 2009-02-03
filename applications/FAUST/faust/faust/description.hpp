@@ -55,7 +55,7 @@ namespace faust
      *         saga::attributes interface.
      *
      */
-    class FAUST_EXPORT description : public saga::job::description
+    class description : public saga::job::description
     {
     public:
       

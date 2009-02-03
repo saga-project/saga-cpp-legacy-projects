@@ -50,7 +50,7 @@ namespace faust
      *         create and schedule %job instances.
      * 
      */
-    class FAUST_EXPORT service : public faust::object
+    class  service : public faust::object
     {
       
     private:

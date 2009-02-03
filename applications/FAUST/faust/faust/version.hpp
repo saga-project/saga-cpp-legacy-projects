@@ -64,7 +64,7 @@ namespace faust
    *
    *
    */
-  FAUST_EXPORT unsigned long get_faust_version (void);
+   unsigned long get_faust_version (void);
   
   ///@cond - exclude from Doxygen
   extern char const FAUST_CHECK_VERSION[];

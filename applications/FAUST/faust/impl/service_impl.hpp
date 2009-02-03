@@ -39,7 +39,7 @@ namespace faust
     
     //////////////////////////////////////////////////////////////////////////
     //
-    class FAUST_EXPORT service_impl : public faust::impl::object
+    class  service_impl : public faust::impl::object
     {
       
     private:

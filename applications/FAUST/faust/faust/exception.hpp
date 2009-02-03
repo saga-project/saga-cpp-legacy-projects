@@ -52,7 +52,7 @@ namespace faust
  
   
   
-  class FAUST_EXPORT exception : public std::exception
+  class  exception : public std::exception
   {
 private:
   

@@ -35,7 +35,7 @@ namespace faust
      *         A %job_group can't be instanciated directly, only thourgh the 
      *         service::create_job_group factory methods.
      */
-    class FAUST_EXPORT job_group : public faust::object
+    class  job_group : public faust::object
     {
       // service impl. class needs to be friend to call private c'tor 
       friend class faust::impl::service_impl;
