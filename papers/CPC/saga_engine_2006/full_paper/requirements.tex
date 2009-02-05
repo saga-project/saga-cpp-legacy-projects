@@ -1,0 +1,214 @@
+% $Header: /projects/VU-SAGA/Papers/saga_engine_2006/requirements.tex,v 1.9 2006/08/13 18:01:00 hkaiser Exp $
+
+ As already indicated in the introduction, the SAGA C++ reference
+ implementation has to cope with a number of very dynamic boundary
+ conditions.  Additionally, it has to provide the simple and
+ easy-to-use API the SAGA specification is intended to specify.  This
+ section describes the resulting requirements in some detail, and
+ motivates the SAGA implementation design which is described in the
+ next section.
+
+ \subsection{Dynamic Specification Landscape}
+ \label{ssec:ogf}
+
+   The Open Grid Forum (OGF)~\cite{ogf_website} is a international standardization
+   body whose primary objective is to define a set of standards in the
+   emerging field of grid computing.  OGF specifications are supposed
+   to cover grid architectures, protocols, interfaces, and APIs.
+   However, the whole field is young, and in its complexity not yet
+   completely understood, neither in terms of academic research, nor
+   in terms of industrial and commercial applicability and impact.
+   That and the complexity of the problem itself causes the
+   grid specification landscape to evolve rather slowly: it has
+   several significant gaps, and it is widely expected that existing
+   specifications will change.  The time required for grid standards
+   to stabilize is expected to be in the order of 5 to 10 
+   years~\cite{ogsa_roadmap}.
+
+   Owed to the hyping of grid computing, and to the frustration of end
+   users with distributed environments in general (scalability and
+   interoperability is still, after many years, a very difficult
+   problem on many layers), the expectations to grids to solve real
+   world problems still are very high.  These observations imply the
+   necessity of an interface abstraction for early adopters which
+   shields the implementers of grid applications from the evolving
+   grid standardization landscape, and allows for a migration path to
+   later grid systems with assessable effort.  
+   
+   \IB{A SAGA implementation should therefore be able to cope with evolving
+   grid standards, and changing grid environments.}
+
+
+ \subsection{Evolving SAGA Specification}
+
+   The SAGA specification itself is currently limited, and
+   intended to expand, in scope over time.  In particular in
+   respect to new emerging grid service standards it is expected that
+   new SAGA extension will be required to provide the respective 
+   programming paradigms to the application developers.  The general
+   look and feel of the SAGA specification is, however, thought to be
+   somewhat more stable, and there is hope that extensions are merely
+   semantically (new objects, new method calls), but with limited or
+   no syntactical additions (no new object model, or task model etc.).
+   
+   \IB{A SAGA implementation must be able to cope with future SAGA
+   extensions easily, without breaking support and backward
+   compatibility for early SAGA adop\-ters and applications.}
+
+
+ \subsection{Evolving Grid Middleware}
+
+   The evolution of grid standards as described in~\ref{ssec:ogf}
+   implies that implementations of these standards are
+   evolving as well, and very much so.  In fact, the major Grid
+   middleware system used over the last 8 years or so,
+   Globus~\cite{globus}, went from version 1.0 to 4.0, thereby
+   undergoing significantly more interoperability breaking updates
+   than the major version numbers suggest.  Evolutions of other grid
+   middlewares does not differ in that respect significantly, unless it
+   was developed for very specific environments and purposes.
+   
+   These systems are, on the other hand, large projects and well
+   funded, and invest significant effort in training and support.
+   Smaller systems, research developments, and standard reference
+   implementations have, in general, the same problem, but much less
+   resources to limit the impact of that development for the end user.
+   Industrial/commercial implementations with the usually accompanying
+   professional support and well defined migration paths are, in
+   reality, to be counted on the fingers of one hand.
+
+   \IB{Any high level grid API implementation, such as a SAGA
+   implementation, must be able to shield the application programmer
+   from the evolving middleware implementations, and in particular
+   should allow various incarnations of grid middleware to co-exist.}
+
+
+ \subsection{Dynamic Grid Environment}
+
+   As grid middleware evolves, deployed grid environments face constant
+   changes of middleware deployments (new versions and new services
+   get enrolled frequently, often with unclear migration paths).
+   Also, grid environments are dynamic by design, in respect to the
+   availability of services and other resources.  Any application
+   designed to run on grids must ideally be aware of that property of
+   grids, and should implement fail safety mechanisms, and should not
+   rely on the static availability or resources.  Very much of that
+   flexibility however can (and should, in our opinion) be hidden from
+   the application programmer.  For example, an upgrade in a services
+   protocol version should be handled in the client libraries talking
+   to the service, if possible, and not on application level.
+   Resource discovery, fail safety on service failures and simple fall
+   backs as the utilization of redundant service deployments are other
+   examples of mechanisms which are vital for grid applications, but
+   do not need any explicit reflection in the application code. 
+   
+   \IB{A SAGA implementation should therefore allow for and, where
+   possible, actively support fail safety mechanisms, and should hide
+   the dynamic nature of grid resource availability from the
+   application.}
+
+
+ \subsection{Heterogeneous Grid Environment}
+
+   The dynamicity of grid environments is also reflected in their (at
+   least potential) heterogeneous nature: although most deployed grids
+   focus on Linux based clusters, grids are designed to cope with any
+   OS (real or virtual), on any resource.  The predominance of Linux is
+   rather a indication of the prematurity of grid middleware
+   developments than an intentional design artifact. 
+
+   \IB{A SAGA implementation must be portable and, both
+   syntactically and semantically, platform independent.}
+
+
+ \subsection{Distributed Grid Applications}
+
+   With the use of distributed computing, and hence the
+   use of remote communication within the application domain, the
+   impact of the communications latency playes a major role in the
+   design and applicability of distributed concepts.  Grid
+   environments do not pose any exception.  
+   
+   A number of application domains have emerged though, which can, by
+   loosely coupling distributed components, or by utilizing
+   various latency hiding techniques, cope very well with latencies of
+   distributed environments.  Latency hiding techniques (such as
+   caches, bulk operations, interleave of computation and
+   communication, and asynchronous communication) do often require
+   application level information to be effective (e.g. concurrency
+   information of operations).  
+   
+   \IB{A library designed for distributed
+   applications must allow these and other latency hiding techniques
+   to be implemented} -- otherwise its applicability to real world
+   problems will be severely limited.
+
+
+ \subsection{End User Requirements}
+
+   The SAGA API is, by definition, designed to meet end user
+   requirements.  In fact the current SAGA specification was developed
+   based on the responses to a call for use cases to the grid 
+   community~\cite{saga_req, saga_uc}.
+   
+   \IB{An API implementation must, however, meet other end user
+   requirements which are outside the scope of the actual API
+   specification, such as ease of deployment, ease of configuration,
+   documentation, and support of multiple language bindings.}
+   
+   If any of these properties is missing in an implementation, its
+   acceptance in the targeted user community will be severely limited.
+
+
+% As the scope of the SAGA specification is to extent over time, 
+% we use API packages allowing to extend the API scope horizontally, 
+% at compile time.  Package creation is greatly simplified by 
+% generic call routing, and by using Macros, which resemble the 
+% IDL specification.
+% \F{We need to define that term later, or use a different
+% descrition -- AM}
+%
+% The API implementation is also extensible vertically, at
+% runtime, as it can dynamically load adaptors binding teh SAGA API
+% to the respective Grid middleware environment. 
+% 
+% The API implementation has a third orthogonal dimension of 
+% extensibility: it provides a synchronous, an asynchronous and a task
+% oriented version of every operation, it allows to transparently bundle
+% several tasks into bulks, and in the future it will provide means
+% of building graphs of tasks to build workflows.
+%
+% The dynamically loaded adaptors are selected at run time, on
+% a call-by-call basis (late binding) -- the implementation of an 
+% API object can hence be provided by multiple, partially complete 
+% adaptors.
+%
+% The late binding requires to maintain object state on client
+% side, and independent from the adaptors.  The implementation
+% includes a generic class state repository ensuring thread safety 
+% of the stored data items while maintaining easy data access.
+%
+% The core of the SAGA C++ implementation, the SAGA engine, provides
+% common functionality for all API packages such as generic call routing,
+% appropriate adaptor selection, common error recovery mechanisms etc.
+% Additionally it implements common Grid oriented functionality as 
+% security contexts, debug helper functions, generic monitoring etc.
+% 
+% As for any other distributed environment latencies are a
+% major performance concern for Grid applications, too.  Our
+% implementation allows any operation to be performed
+% asynchroneously, for both - synchronous and asynchronous
+% adaptors. Missing functionality is provided by the SAGA engine.
+% Latency hiding schemes (such as combining operations into bulks) 
+% can be applied generically and transparently with regard to the API.
+% 
+% Grid environments are, by definition, heterogeneous.
+% Portability and platform independence, and multiple language
+% bindings are thus crucial for user acceptance.  Extensive 
+% utilization of Boost~\cite{boost_website}, strict adherence to standard C++ 
+% features, and thin wrappers for other programming languages 
+% ensure these properties for our implementation.  
+
+
+
+

@@ -1,0 +1,205 @@
+% $Header: /projects/VU-SAGA/Papers/saga_engine_2006/saga_engine.tex,v 1.15 2006/08/13 18:01:00 hkaiser Exp $
+
+\documentclass{acm_proc_article-sp}
+
+\usepackage{ifpdf}
+\usepackage{srcltx}
+\usepackage{fancyvrb}
+
+\ifpdf
+  \usepackage{graphicx}
+  \usepackage[pdftex]{hyperref}
+  \DeclareGraphicsExtensions{.pdf, .png, .jpg, .JPG}
+\else
+  \usepackage{graphicx}
+  \usepackage[hypertex]{hyperref}
+  \DeclareGraphicsExtensions{.ps, .eps}
+\fi
+  
+\newcommand{\I}{\textit}
+\newcommand{\B}{\textbf}
+\newcommand{\T}{\texttt}
+
+\newcommand{\IB}[1]{\textbf{\textit{#1}}}
+
+\newcommand{\F}[1]{\B{FIXME: #1}}
+
+\newcommand{\up}{\vspace*{-1em}}
+\newcommand{\down}{\vspace*{1em}}
+
+\newenvironment{shortlist}{
+  \begin{itemize}
+  \setlength{\itemsep}{-0.2em}
+}{
+  \end{itemize}
+}
+
+\setlength{\floatsep}{1em}
+\setlength{\textfloatsep}{1em}
+\setlength{\intextsep}{1.3em}
+
+\DefineShortVerb{\|}
+\DefineVerbatimEnvironment{mycode}{Verbatim}
+{
+  label=Code Example,
+  fontsize=\small,
+  frame=single,
+% framerule=1pt,
+  framesep=1em,
+% numbers=left,
+  gobble=2
+}
+
+
+\pagestyle{plain}
+
+% -------------------------------------------------------------------
+
+\begin{document}
+
+\title{The SAGA C++ Reference Implementation}
+\subtitle{Lessons Learnt from Juggling with Seemingly Contradictory Goals}
+
+\numberofauthors{4}
+\author{
+  \alignauthor Hartmut Kaiser\\
+  \affaddr{Center for Computation \& Technology}\\
+  \affaddr{Louisiana State University}\\
+  \affaddr{Baton Rouge, Louisiana, USA}\\
+  \email{\normalsize\T{hkaiser@cct.lsu.edu}}
+  \alignauthor Andre Merzky\\
+  \affaddr{Vrije Universiteit, Amsterdam}\\
+  \affaddr{Amsterdam, The Netherlands}\\
+  \email{\normalsize\T{andre@merzky.net}}
+  \alignauthor Stephan Hirmer\\
+  \affaddr{Center for Computation \& Technology}\\
+  \affaddr{Louisiana State University}\\
+  \affaddr{Baton Rouge, Louisiana, USA}\\
+  \email{\normalsize\T{shirmer@cct.lsu.edu}}
+}
+\additionalauthors{
+  \B{Gabriele Allen}\\
+  \hspace*{2em}Center for Computation \& Technology\\
+  \hspace*{2em}Louisiana State University\\
+  \hspace*{2em}Baton Rouge, Louisiana, USA\\
+  \hspace*{2em}email: \texttt{gallen@cct.lsu.edu}
+  }
+
+\date{}
+
+\maketitle
+
+\begin{abstract} 
+
+  The Simple API for Grid Applications (SAGA)~\cite{saga_spec} is an ongoing API
+  standardization effort within the Open Grid Forum (OGF)~\cite{ogf_website}.  
+  The OGF strives to standardize grid middleware, meaning grid service
+  interfaces, grid enabled protocols, and grid architecture in
+  general.  As of now, most grid standard specifications are in flux,
+  and furthermore there exist multiple, incompatible grid middleware
+  systems which are deployed in large research or production
+  environments.  SAGA is supposed to provide a simple API to
+  programmers of scientific applications, allowing them to use higher
+  level grid computing paradigms, and thus shielding the programmer
+  and the application from the diversity and dynamicity of Grid
+  environments.
+  
+  The SAGA specification itself is expected to extend in scope over
+  the next couple of years, in sync with the maturing service
+  specifications.  Also, SAGA is defined in SIDL (a language
+  independent interface description language~\cite{sidl}), and language bindings for 
+  FORTRAN, Java, Python and C are planned, but do not yet exist.
+
+  These 'dynamic' (one could say chaotic) boundary conditions
+  make an implementation of the SAGA API specification ... interesting.
+  Nevertheless, the perceived need of the grid community for a high
+  level API is great enough to tackle that problem \I{now}, and not to
+  wait until the standardization landscape settles.
+
+  This paper describes how the C++ SAGA reference implementation tries
+  to cope with these boundary conditions -- we think there are lessons
+  to learn for other API implementations.  
+    
+\end{abstract}
+
+% -------------------------------------------------------------------
+
+% \begin{verbatim}
+%   - generic API (sync, async, task)
+%   - layered architecture (pimpl/facade pattern): 
+%     lightweight API objects: API/CPI
+%   - sync/async dispatching, asynchronous adaptors
+%   - futures
+%   - monitoring
+%   - trial and error handling
+%   - dynamic loading (runtime extensibility): vertical extensibility
+%   - static linking possible
+%   - packages: horizotal extensibility
+%   - macro API definition, adaptor registration
+%   - simple but not restricting CPI
+%   - adaptor data concept (synchronization of data access)
+%   - object persistance
+%   - Boost, C++ Std library, portability: cross platform
+% \end{verbatim}
+
+  \section{Introduction}
+    \label{sec:intro}
+    \input{intro.tex}
+
+  \section{Requirements}
+    \label{sec:requirements}
+    \input{requirements.tex}
+
+  \section{General Design}
+    \label{sec:generaldesign}
+    \input{generaldesign.tex}
+
+  \section{Implementation Challenges\\ and Details}
+    \label{sec:details}
+    \input{details.tex}
+
+  \section{Lessons Learnt --\\ Implementation Properties}
+    \label{sec:props}
+    \input{properties.tex}
+
+	\section{Future Work}
+		\label{sec:futurework}
+		
+	 As repeatedly said, the work on appropriate middleware adaptors will
+	 undoubtedly require significant resources in the future -- but
+	 without those, the SAGA API will not be usable in real grid
+	 environments.  We will work on simplifying adaptor creation,
+	 integration and maintenance, and hope for support from the OpenSource
+	 community, and from grid middleware vendors.  We deem adaptor
+	 development and support more important than the API development
+	 itself.
+	
+	 In parallel, we will strive to provide other language bindings to our
+	 implementation, as motivated in section~\ref{ssec:lang}, and want also
+	 allow adaptors in various programming languages.  Finally, we plan to
+	 apply further generic latency hiding techniques, and to experiment
+	 with other API implementations in our framework.
+
+  \section{Conclusion}
+    \label{sec:Conclusion}
+    \input{conclusion.tex}
+
+% -------------------------------------------------------------------
+
+  \section{Acknowledgments}
+  \label{sec:ack}
+  
+  We thank Thorsten Sch\"utt for his work on Futures; Michel Zsandstra
+  and Vladimir Prus for their initial work on dynamic loading; the SAGA 
+  groups in OGF for their work on the SAGA specification; the
+  Lousisiana State University, the Vrije Universiteit Amsterdam, and
+  the XtreemOS project for funding our work.
+  % I have to mention XtreemOS from now on...
+
+% -------------------------------------------------------------------
+
+\bibliographystyle{unsrt}
+\bibliography{saga_engine}
+
+\end{document}
+

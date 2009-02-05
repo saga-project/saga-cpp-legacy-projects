@@ -1,0 +1,274 @@
+% $Header: /projects/VU-SAGA/Papers/saga_engine_2006/properties.tex,v 1.4 2006/08/13 18:01:00 hkaiser Exp $
+
+The paper so far motivated the design objectives of the SAGA C++
+Reference implementation, and described several implementation
+techniques used to meet these design objectives.  This section will
+summarize the resulting properties of the SAGA implementation from an
+end user perspective, and will motivate further developments and
+extensions.
+
+
+\subsection{Uniformity over Programming Languages}
+\label{ssec:lang}
+
+ The SAGA API specification is language independent -- however, it is
+ a declared goal to define language bindings which both, if possible,
+ provide a language-native look\,\&\,feel to the user of the API, and
+ strive for syntactic and semantic similarity over all SAGA language
+ bindings.  One of the consequences of that goal is that the API
+ specification does not use templates, as that was thought too
+ difficult to express uniformly over many languages.  Also, the
+ specification tries to be concise about object state management, and
+ hence also expresses semantics for shallow and deep copies.
+
+ Our implementation follows the specification closely, naturally.  Furthermore,
+ it is designed to accommodate wrappers in other languages, so as to
+ provide the same semantics, and similar look\,\&\,feel to other
+ language bindings.  In fact, a Python wrapper for our library is in
+ alpha stadium, and we consider similar thin wrappers to provide
+ bindings to C, Fortran, Perl, and possibly others.
+
+ From a different point of view, we find it extremely convenient to be
+ able to implement \I{adaptors} in different languages as well.  The
+ Grid Application Toolkit (GAT, \cite{gat}), a C-based API predecessor
+ of SAGA,  already allows adaptors in different languages, and we
+ consider to implement similar mechanisms to allow Python or C based
+ adaptors for our implementation as well.  In particular Python based
+ adaptors have shown to be extremely useful for rapid prototyping of
+ middleware bindings for GAT.
+
+\newpage
+\subsection{Genericity in respect to Middleware, and
+            Adaptability to Dynamic Environments}
+
+ The dynamicity of grid middleware was mentioned a number of times
+ already, as it \I{is} a very central and dominating property of grid
+ environments.  The described adaptor mechanism used in our
+ implementation to bind to diverse middleware binding addresses that
+ point.  Additionally, late binding, fall back mechanisms, and
+ flexible adaptor selection allows for additional resilience against
+ an dynamic and evolving run time environment.  It must be noted,
+ however, that adaptors need to deploy mechanism like resource
+ discovery, and need to implement fully asynchronous operations, if
+ the complete software stack is to be able to cope with dynamic grids
+ -- our SAGA implementation usability will be severely impacted if the
+ quality of adaptors undermines the libraries mechanisms.
+
+
+\subsection{Modularity makes the Implementation \\Extensible}
+
+ Section~\ref{ssec:macros} has shown in some detail that our SAGA
+ implementation is well able to cope with the expected evolution and
+ extension of the SAGA API.  On the other hand, the adaptor mechanism
+ allows for easy extensions of the library, to provide additional
+ middleware bindings.  In fact, the major future work for our SAGA
+ implementation will be to provide multiple sets of stable adaptors
+ for the major grid environments.  We expect, however, that that task
+ requires massively more effort than the implementation of the
+ presented library, and we very much hope for the support of grid
+ middleware vendors to provide, and (above all) maintain these
+ adaptors.  Ideally we would actually wish that middleware vendors
+ \I{implement} adaptors to our SAGA implementation, and deliver them
+ as part of their client side software stack.  If that scenario will
+ ever come to pass remains to be seen -- it would certainly help to
+ get the SAGA API a very wide user community.
+
+
+\subsection{Portability and Scalability}
+
+ Heterogeneous distributed systems naturally require por\-table code
+ bases.  We think that our library implementation is in fact very
+ portable, as we strictly adhere to the C++ standard and portable 
+ libraries.  In fact,
+ we currently develop the library on Windows and Linux concurrently,
+ so we are confident that we are able to cover the two
+ major target platforms without any problems -- but we don't expect
+ (and currently don't encounter) any problems on other platforms.  It
+ must be noted, however, that the portability of our SAGA implementation
+ depends on the portability of the adaptors, and hence on the portability 
+ of the grid middleware client interfaces, being the much greater problem 
+ if compared to the library code itself.
+
+ Distributed applications are quite often sensitive to sca\-lability
+ issues, in particular in respect to remote communications.  As SAGA
+ introduces a number of communication mechanisms, scalability concerns
+ are naturally also raised in respect to SAGA implementations.
+ Firstly it must be said, that the SAGA API is not targeting
+ high performance communication schemes, but rather tries to stick to
+ simple communication paradigms -- in no sense does SAGA intent to
+ replace MPI or other distributed communication libraries.  Having
+ said that, our design allows for zero-copy implementations of the
+ SAGA communication APIs, and also allows for fast asynchronous
+ notification on events -- both are deemed critical for implementing
+ scalable distributed applications.  
+ 
+ %Again, our library depends on
+ %hi-quality adaptor implementations to utilize these features.
+
+
+\subsection{Simplicity for the End User}
+
+ SAGA is \I{designed} to be simple to use.  However,
+ simplicity of use of an API is not only determined by its API
+ specification, but also by its implementation: simple deployment 
+ and configuration, resilience against lower level failures,
+ adaptability to diverse environments, stability, correctness, and
+ peaceful coexistence with programming paradigms, tools and libraries
+ are some of the characteristics which need attention while
+ implementing the SAGA API.  
+ 
+ It is a challenging task to keep a library implementation as this one
+ simple in itself, meaning to have readable code, with a limited
+ amount of magic.  Again, a very modular approach helps here very
+ much, in out opinion.  For example, it is very simple to hide the
+ generic call routing, or the adaptor selection, in the engine module,
+ as these features are not usually exposed to the user or adaptor
+ programmer.  However, we think that modeling these central properties
+ as modules increases the readability and maintainability of the code
+ significantly.  
+
+ The SAGA API implicitly introduces a concurrent programming model,
+ due to its notion of asynchronous operations, or tasks.  The C++
+ language binding of the API, and our implementation, allows to combine
+ that model with arbitrary mechanisms for managing concurrent program
+ elements (i.e. to ensure object state consistency in all
+ circumstances, to ensure thread safety, and to allow for application
+ level semaphores and mutexes).
+
+
+% \subsection{Meeting the Design Objectives}
+% 
+% Our most important objective was to design a state-of-the-art grid application 
+% framework satisfying the majority of user-needs while staying as flexible 
+% as possible, both towards further API extensions (due to extensions of the SAGA API), 
+% towards emerging grid middleware frameworks, services, and standards, as well as 
+% towards its usability in different usage scenarios as synchronous, asynchronous,
+% task based etc.
+% 
+% %Simplicity: easy to use, install, administer and maintain 
+% \subsubsection{Simplicity for the End User}
+% A major design goal of our implementation was \emph{simplicity} -- not
+% for the implementation itself, but for the users of this
+% implementation. In particular, this SAGA implementation should,
+% be easy to install, use, administer and maintain, especially and even by 
+% non-computer scientists. In our experience, this kind of simplicity is 
+% a major precondition for a broad acceptance amongst grid users. 
+% 
+% The interfaces exposed towards the user of our library are defined by the
+% SAGA strawman API~\cite{saga_spec} and hence by definition very simple, compared
+% to complicated grid middleware interfaces, hidden by our implementation.
+% 
+% The SAGA C++ reference implementation potentially provides access to every
+% possible grid middleware, by abstracting from middleware specific details.
+% Only relevant details are defined in the SAGA API specification and our implementation 
+% links the abstract and middleware independent specification to lower level
+% middleware frameworks. Our implementation meets this requirement by extensively using
+% the adaptor pattern~\F{cite Gamma et al.}. Middleware frameworks make their functionality
+% available through adaptor libraries used by the SAGA C++ core on the fly
+% by using a plug in mechanism.
+% 
+% During compile time it is normally not known which grid middleware frameworks will be 
+% available at runtime. Furthermore, because of the highly dynamic nature of 
+% distributed systems we cannot rely on the existence of required middleware services. 
+% The only way to deal with this kind of dynamics is to implement trial and error 
+% mechanisms ensuring a maximum of coverage of potential functionality: i.e. the only way 
+% to ensure a certain middleware service is available is to try a required operation and
+% verify it actually succeeded.
+% 
+% A dynamic middleware recognition and selection was required. Our implementation
+% analyses available grid middleware frameworks and their adaptors and loads them dynamically
+% at the moment of function execution. The most suitable
+% adaptor is chosen to execute a given operation. As grid environments are dynamically
+% changing, execution failures may occur frequently. If a given grid middleware fails to
+% execute a given operation, the next most suitable adaptor is selected and executes the
+% operation of interest. 
+% 
+% This whole mechanism is absolutely transparent for the library user, only the failure
+% of all available frameworks to execute a given operation is reported to the invoking
+% application.
+% 
+% The same dynamic plug-in mechanism provides also the means for simplicity in terms
+% of maintenance and administration. As new middleware framework can be added dynamically
+% -- even during runtime of an application -- no recompilation is required. The same holds
+% for SAGA scope extensions. In both cases additional shared libraries are copied into
+% the current installation and recognized and used by the SAGA core on the fly.
+% 
+% 
+% % should this go into this paper? Is more a SAGA feature, than a feature of this impl? --STH
+% %\subsubsection{Uniformity over Programming Languages}
+% %As every scientist should potentially be able to use our
+% %implementation, the target user group originates from a large variety
+% %of research domains, each with their own programming habits and
+% %language preferences. Hence it is highly desirable to provide the
+% %widest possible range of \emph{uniformly} supported programming
+% %language bindings. So far, our implementation provides bindings for
+% %C++ and Python.  Language bindings for FORTRAN, Perl and others are
+% %planned.  A separate Java reference implementation is currently
+% %developed by the Open Middleware Infrastructure Institute (OMII-UK).
+% 
+% 
+% %Uniformity: provides support for different application programming languages 
+% \subsubsection{Uniformity over Programming Languages}
+% \F{Explain constraints resulting from this SAGA requirement: no templates in the API,
+% shallow copy semantics of API objects, ...anything else? -- HK}
+% 
+% %Genericity: adds support for different grid middleware, even
+% %concurrent ones
+% \subsubsection{Genericity in respect to grid Middleware}
+% As different user groups use different grid middleware frameworks, another objective was 
+% to enable the usage of these different middleware frameworks of choice through the means 
+% of SAGA, while benefiting from its simplified and easy to use API in a \emph{generic}
+% way.  Our implementation allows to use multiple grid middleware frameworks in parallel, 
+% and even to chose the most appropriate one on the fly, to execute any required operation.
+% 
+% As already outlined in the above paragraph, our implementation is able to deal with
+% every kind of middleware, if an appropriate adaptor (as shared library) exists, which
+% is then used dynamically.
+% 
+% The adaptor loading and selection is of generic nature, both in terms of high-level
+% functionality (file transfer as well as job submission etc.) as well as in terms of
+% middleware support. This leads hence to a mapping of $n$ sets of API functionality
+% to $m$ different middleware frameworks.
+% 
+% %Transparency: contains mechanisms for the same application (source)
+% %code to run on a variety of systems ranging from laptops to HPC
+% %resources Adaptability: orientation towards dynamic and adaptive
+% %grid-aware applications Modularity: provides a framework easily
+% %extendable 
+% %\newpage
+% 
+% %Adaptability: orientation towards dynamic and adaptive grid-aware applications 
+% \subsubsection{Adaptability to Dynamic Environments}
+% 
+% grid computing is defined as distributed computing with a focus on
+% highly dynamic environments~\cite{CS_Foster01a}: any application running in grids
+% must be aware of the volatile and dynamic nature of the environment.  Our
+% implementation hides that behavior from the application layer as far as
+% possible, and provides dynamically loadable extensions to cope with the changing
+% middleware representation. That plug in mechanism is present on different layers
+% of the implementations architecture:  new API packages can be added at compile
+% time, new middleware bindings can be added at runtime, and the implementation
+% can switch these middleware bindings between any two calls, for flexibility and
+% fail safety.
+% 
+% %Modularity: provides a framework easily extendable 
+% \subsubsection{Modularity makes the implementation Extensible}
+% These plug in mechanisms have well defined interfaces, which allow middleware
+% vendors and research projects to easily extend the reference implementation in 
+% a \emph{modular} way, with both domain specific API packages, and with additional 
+% middleware bindings.
+% 
+% \subsubsection{Portability and Scalability}
+% The overall implementation is highly \emph{portable and platform independent}.  All
+% operations are inherently asynchronous, even if this is not supported by the
+% underlying middleware.  Bulk operations are automatically optimized, but need
+% middleware support. The overall overhead introduced by the library is
+% neglect able to any overhead introduced by the inherent latencies of grid
+% environments.
+% 
+% In order to keep the implementation as portable and platform independent as possible, 
+% we mainly rely on the strict usage of Standard C++ language features only, the usage 
+% of Boost libraries wherever possible as well as the C++ Standard Library.
+% 
+% 
+% 
