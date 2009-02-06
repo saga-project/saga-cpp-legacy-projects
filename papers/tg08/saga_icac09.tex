@@ -55,11 +55,13 @@
   Applications: A Case Study From Resorvoir Modelling}
   
 \author{\authorblockN{Shantenu Jha\authorrefmark{1}\authorrefmark{2},
-    Yaakoub El Khamra\authorrefmark{1}, Ole Weidner\authorrefmark{1},
+    Yaakoub El Khamra\authorrefmark{3}\authorrefmark{1}, Ole Weidner\authorrefmark{1},
     Hartmut Kaiser~\authorrefmark{1}} \authorblockA{\authorrefmark{1}
     Center for Computation and Technology, Louisiana State University,
     Baton Rouge, 70803} \authorblockA{\authorrefmark{2} Department of
     Computer Science, Louisiana State University, Baton Rouge, 70803}
+    \authorblockA{\authorrefmark{3} Texas Advanced Computing Center, 
+    University of Texas, Austin, 78758}
 }
 \maketitle
 
@@ -92,7 +94,8 @@
  \begin{keywords}
    eScience Application, Middleware Inter-operation, Distributed
    Infrastructure Deployment, Distributed Application Programming,
-   Cactus, Performance, SAGA, Programming Abstractions
+   Cactus, Performance, SAGA, Programming Abstractions, Batch Queue
+   Prediction BQP
  \end{keywords}
 
 \section*{Notes}
@@ -668,6 +671,24 @@ ability to do so is a very useful feature.
 %   such as task-farm and parameter sweeps; Ole a need to get a proper
 %   reference for this!}
 
+\yyenote{Need a section about many/big-job, we use it and better talk about it}
+
+
+\yyenote{I am adding sections about Lazarus and its fault tolerance}
+\subsection{Lazarus}
+Lazarus is a small, portable python script that handles job-launching and data migration.
+Lazarus uses the bigjob abstraction ~\cite{ICCS_paper} to launch simulations, the
+SAGA file adaptor python bindings to move files from one machine to another
+and BQP data from the BQP command line tool to retrieve the optimal location and number
+of bigjobs required to satisfy the computation power required. Lazarus also has a self healing ability
+that allows it to run a user-defined test on the data to make sure it is
+not corrupt, missing, or otherwise defective. If a simulation is found to be defective
+it is resubmitted to be run again. This self resurrection ability overcomes some
+of the catastrophic errors encountered when running large numbers of jobs such
+exceeding wall clock time, running out of diskspace (resubmit on a different machine)
+and of course node failure.
+
+
 \subsubsection{BQP}
 BQP: Batch Queue Predictor ~\cite{bqp} is a tool that is available
 on a number of TeraGrid resources that allows users to make bound predictions of
@@ -675,31 +696,33 @@ how much time a job of a giving size and duration will spend in the queue.
 This prediction is given with a degree of confidence (probability)
 that the job will start before a certain deadline (i.e. the time in the queue).
 This information is vital when submitting jobs to various machines
-as the longer a job sits in the queue, the longer the delay for the entire stage.
-For our application we use the C-API to BQP, and interface it to a BQP thorn that
-retrieves the predicted time in queue for jobs of given sizes and estimated durations.
+as the longer a job sits in the queue, the longer the delay for the entire stage. 
+For our application we use the BQP command line tools, that are called
+from the Lazarus script.
+\yyenote{I am have BQP data in table form, do you want it that way
+or in a 3D chart (height is wait time, x and y axes are size and duration)}
 
-To better predict ensemble behavior we have collected (using the same
-BQP Thorn but in a different configuration) detailed BQP data for four
-major teragrid machines. The collected data \yaakoub{Need to put in
-  tables and histograms} indicates that there are machines where
-confidence factors vary significantly over a given run-time. While the
-collected data requires detailed statistical and stochastic analysis,
-some useful information can be infered by observation. For example,
-the confidence of running a job of size XXX lasting YYY seconds varies
-by ZZZ with a deadline that varies from WWW to VVVV.  \yaakoub{Need to
-  pick a good example of a large variation, so far cobalt seems good,
-  lonestar perhaps....}  Suden jumps in the confidence factor or
-expected deadline given a minimum confidence factor can indicate a
-favorable or unfavorable machine/queue/job-size/job-duration
-combination. Further analysis is required, particularly considering
-that the application that is run as a job is a parallel-scalable
-application and can be resized to run on more nodes for a smaller
-time.
+%To better predict ensemble behavior we have collected (using the same
+%BQP Thorn but in a different configuration) detailed BQP data for four
+%major teragrid machines. The collected data \yaakoub{Need to put in
+%  tables and histograms} indicates that there are machines where
+%confidence factors vary significantly over a given run-time. While the
+%collected data requires detailed statistical and stochastic analysis,
+%some useful information can be infered by observation. For example,
+%the confidence of running a job of size XXX lasting YYY seconds varies
+%by ZZZ with a deadline that varies from WWW to VVVV.  \yaakoub{Need to
+%  pick a good example of a large variation, so far cobalt seems good,
+%  lonestar perhaps....}  Suden jumps in the confidence factor or
+%expected deadline given a minimum confidence factor can indicate a
+%favorable or unfavorable machine/queue/job-size/job-duration
+%combination. Further analysis is required, particularly considering
+%that the application that is run as a job is a parallel-scalable
+%application and can be resized to run on more nodes for a smaller
+%time.
 
-\yaakoub{Shantenu this is what you meant by preventative/predictive}
-\jhanote{Yes, this conveys the flavour. I will go through the
-data and stick up an example or two of the ``preventive'' example}
+%\yaakoub{Shantenu this is what you meant by preventative/predictive}
+%\jhanote{Yes, this conveys the flavour. I will go through the
+%data and stick up an example or two of the ``preventive'' example}
 
 % \subsection{Talk about additional 'irregular execution' applications}
 % Having determined which M resources to use, the way forward could be
@@ -754,6 +777,9 @@ thorn in Cactus.
 % discretization for the implicit pressure equation which we then solve
 % by an iterative solver (PETSc) ~\cite{PETSc}.
 
+
+\yyenote{We don't use the BQP thorn for this one, this section should go
+}
 \subsection{BQP Thorn}
 The BQP thorn is a module in Cactus responsible for retrieving the BQP
 information using the BQP API. The thorn iterates over all resources
