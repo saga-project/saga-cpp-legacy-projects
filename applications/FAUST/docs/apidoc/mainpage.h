@@ -1,7 +1,8 @@
 
 /**
-  * @mainpage FAUST - A Framework for Adaptive Ubiquitous Scalable Tasks  
+  * @mainpage Overview  
   * 
+  * <h2 align="center"> FAUST - A Framework for Adaptive Ubiquitous Scalable Tasks </h2>
   * <p align="center"><img  src="./faust_agents_01.jpg"></p>
   *
   * <hr>
