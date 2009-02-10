@@ -44,7 +44,7 @@
 #define WORKER_STATE_IDLE          "IDLE"       // Ready to Map or Reduce
 #define WORKER_STATE_DONE          "DONE"       // Done with assigned task
 #define WORKER_STATE_FAIL          "FAIL"       // Assigned task failed 
-#define WORKER_STATE_COMPARING     "COMPARING"  // Done with assigned task
+#define WORKER_STATE_COMPARING     "COMPARING\0"  // Done with assigned task
 
 #define LOGLEVEL_FATAL             0x2   
 #define LOGLEVEL_ERROR             0x4  

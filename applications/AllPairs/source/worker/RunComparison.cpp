@@ -11,26 +11,13 @@ namespace AllPairs {
                   std::vector<saga::url> files, LogWriter *log) :
       workerDir_(workerDir), files_(files), log_(log)
    {
-      try {
-         filesIT_ = files_.begin();
-         workerDir_.set_attribute("STATE", WORKER_STATE_COMPARING);
-      }
-      catch(saga::exception const & e) {
-         throw;
-      }
+      filesIT_ = files_.begin();
    }
 /*********************************************************
  * ~RunComparison destructor returns the state of the worker to *
  * what is expected by the master after a mapping is done*
  * ******************************************************/
    RunComparison::~RunComparison() {
-      try {
-         workerDir_.set_attribute("STATE", WORKER_STATE_DONE);
-         workerDir_.set_attribute("COMMAND", "");
-      }
-      catch(saga::exception const & e) {
-         throw;
-      }
    }
 
 /*********************************************************

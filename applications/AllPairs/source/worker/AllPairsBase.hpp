@@ -39,6 +39,8 @@ namespace AllPairs {
          logURL_      = (vm["log"].as<std::string>());
          uuid_        = saga::uuid().string();
          logWriter_   = new LogWriter(AP_WORKER_EXE_NAME, logURL_);
+         state_       = WORKER_STATE_IDLE;
+         lastFinishedFragment_ = std::string("");
       }
       /*********************************************************
        * starts the worker and begins all neccessary setup with*
@@ -52,10 +54,7 @@ namespace AllPairs {
          catch (saga::exception const & e) {
             std::cerr << "AllPairs::run : Exception caught : " << e.what() << std::endl;
             std::string advertKey(database_ + "//" + sessionUUID_ + "/");
-            advertKey += ADVERT_DIR_WORKERS;
-            advertKey += "/" + uuid_ + "/";
-            workerDir_    = saga::advert::directory(advertKey, saga::advert::ReadWrite| saga::advert::Create);
-            workerDir_.set_attribute("STATE", WORKER_STATE_FAIL);
+            state_ = WORKER_STATE_FAIL;
             throw;
          }   
          catch (...) {
@@ -81,7 +80,7 @@ namespace AllPairs {
       SystemInfo systemInfo_;
    
       std::string state_;
-      saga::stream::stream server_;
+      std::string lastFinishedFragment_;
       saga::advert::directory workerDir_;
       saga::advert::directory sessionBaseDir_;
       std::vector<saga::url>  baseFiles_;
@@ -157,15 +156,18 @@ namespace AllPairs {
             workerDir_.set_attribute(ATTR_LAST_SEEN, boost::lexical_cast<std::string>(timestamp));
 
             saga::advert::entry server_name(sessionBaseDir_.open(ADVERT_ENTRY_SERVER, mode));
-            server_ = saga::stream::stream(saga::url(server_name.retrieve_string()));
+//            server_ = saga::stream::stream(saga::url("tcp://localhost:8000"));
 
             saga::advert::directory baseFilesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_BASE_FILES), saga::advert::ReadWrite));
             std::vector<saga::url> baseFilesAdv(baseFilesDir_.list());
+            std::cerr << "size of baseFiles: " << baseFilesAdv.size() << std::endl;
             std::vector<saga::url>::iterator baseFilesAdvIT = baseFilesAdv.begin();
             //Real code
             while(baseFilesAdvIT != baseFilesAdv.end())
             {
-               saga::advert::entry adv(*baseFilesAdvIT, saga::advert::ReadWrite);
+               std::cerr << "*basefileadvit = " << baseFilesAdvIT->get_string() << std::endl;
+               saga::advert::entry adv(baseFilesDir_.open(*baseFilesAdvIT, saga::advert::ReadWrite));
+               //saga::advert::entry adv(*baseFilesAdvIT, saga::advert::ReadWrite);
                std::cout << "Adding " << adv.retrieve_string() << std::endl;
                baseFiles_.push_back(saga::url(adv.retrieve_string()));
                baseFilesAdvIT++;
@@ -196,14 +198,20 @@ namespace AllPairs {
             saga::url currentFragmentFile;
             // read command from orchestrator
             if(command == WORKER_COMMAND_COMPARE) {
+               std::cerr << "about to compare now" << std::endl;
                state_ = WORKER_STATE_COMPARING;
                saga::advert::entry adv(workerDir_.open(saga::url("./fragmentFile"), saga::advert::ReadWrite));
+               std::cerr << "opened entry" << std::endl;
                currentFragmentFile = adv.retrieve_string();
+               std::cerr << "our string is" << currentFragmentFile << std::endl;
                RunComparison ComparisonHandler = RunComparison(workerDir_, baseFiles_, logWriter_);
+               std::cerr << "opening directory session base" << std::endl;
                saga::advert::directory resultsDir = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_RESULTS), mode);
+               std::cerr << "opened" << std::endl;
                double val;
                double min = -1;
                while(ComparisonHandler.hasComparisons()) {
+                  std::cerr << "has comparisons" << std::endl;
                   saga::url temp_base(ComparisonHandler.getComparisons());
                   val = compare(currentFragmentFile, temp_base);
                   if(val < min || min == -1) {
@@ -216,9 +224,13 @@ namespace AllPairs {
                if (p != std::string::npos) {
                   result_entry = currentFragmentFile.get_string().substr(p);
                }
-               saga::advert::entry fin_adv(resultsDir.open(saga::url("./" + result_entry), mode));
+               result_entry = std::string(".") + result_entry;
+               std::cerr << "result_entry: " << result_entry << std::endl;
+               saga::advert::entry fin_adv(resultsDir.open(saga::url(result_entry), mode));
                //finished, now write data to advert
                fin_adv.store_string(boost::lexical_cast<std::string>(min));
+               std::cerr << "DONE NOW" << std::endl;
+               lastFinishedFragment_ = std::string(currentFragmentFile.get_string());
                state_ = WORKER_STATE_DONE;
             }
             else if(command == WORKER_COMMAND_QUIT) {
@@ -240,26 +252,49 @@ namespace AllPairs {
          std::string commandString;
          char buff[255];
          try {
+            saga::stream::stream server_(saga::stream::stream(saga::url("tcp://localhost:8000")));
+            std::cerr << "about to attemp to connect to server" << std::endl;
             server_.connect();
+            memset(buff, 0, 255);
             saga::ssize_t read_bytes = server_.read(saga::buffer(buff));
-            std::string question(buff);
+            std::string question(buff, read_bytes);
+            std::cerr << "bytesread: " << read_bytes << std::endl;
+            std::cerr << "1: MASTER JUST ASKED: " << question << std::endl;
+            std::cerr << "question[bytesread-2] = " << question[read_bytes-2] << std::endl;
+            std::cerr << "question[bytesread-1] = " << question[read_bytes-1] << std::endl;
+            std::cerr << "question[bytesread] = " << question[read_bytes] << std::endl;
+            std::cerr << "question[bytesread+1] = " << question[read_bytes+1] << std::endl;
             if(question == MASTER_QUESTION_STATE)
             {
-               server_.write(saga::buffer(state_));
+               std::cerr << "STATE?!: ours: " << state_ << std::endl;
+               server_.write(saga::buffer(state_), sizeof(state_));
+               std::cerr << "about to ask again what up: " << state_ << std::endl;
+               memset(buff, 0, 255);
                read_bytes = server_.read(saga::buffer(buff));
-               question = std::string(buff);
+               std::cerr << "asked" << state_ << std::endl;
+               question = std::string(buff, read_bytes);
+               std::cerr << "2: MASTER JUST ASKED: " << question << std::endl;
                if(question == MASTER_QUESTION_ADVERT)
                {
-                  server_.write(saga::buffer(workerDir_.get_url().get_string()));
+                  std::string advert(workerDir_.get_url().get_string());
+                  server_.write(saga::buffer(advert, advert.size()));
+                  memset(buff, 0, 255);
                   read_bytes = server_.read(saga::buffer(buff));
-                  question = std::string(buff);
+                  question = std::string(buff, read_bytes);
+                  std::cerr << "3: MASTER JUST ASKED: " << question << std::endl;
                   if(question == WORKER_COMMAND_COMPARE)
                   {
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
                      return WORKER_COMMAND_COMPARE;
                   }
                   else if(question == WORKER_COMMAND_QUIT)
                   {
                      return WORKER_COMMAND_QUIT;
+                  }
+                  else if(question == MASTER_QUESTION_RESULT)
+                  {
+                     server_.write(saga::buffer(lastFinishedFragment_, lastFinishedFragment_.size()));
+                     return getFrontendCommand_();
                   }
                }
                else
@@ -269,6 +304,7 @@ namespace AllPairs {
             }
             else
             {
+               std::cerr << "went to else clause" << std::endl;
                APPLICATION_ABORT;
             }
          }

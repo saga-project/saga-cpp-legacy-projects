@@ -32,8 +32,11 @@
    double compare(saga::url fragmentUrl, saga::url baseUrl) {
       saga::size_t const KB64 = 1024*64; //64KB
       saga::size_t bytesRead;
+      std::cerr << "about to open files (" << fragmentUrl.get_string() << ", " << baseUrl.get_string() << ")" << std::endl;
       saga::filesystem::file fragment(fragmentUrl, saga::filesystem::Read);
+      std::cerr << "1opened!" << std::endl;
       saga::filesystem::file base    (baseUrl    , saga::filesystem::Read);
+      std::cerr << "2opened!" << std::endl;
       std::string fragment_string;
       std::string base_string;
       char data[KB64+1];
@@ -41,9 +44,11 @@
       while((bytesRead = fragment.read(saga::buffer(data,KB64)))!=0) {
          fragment_string += data;
       }
+      std::cerr << "read fragment: " << fragment_string << std::endl;
       while((bytesRead = base.read(saga::buffer(data,KB64)))!=0) {
          base_string += data;
       }
+      std::cerr << "read base: " << base_string << std::endl;
       //go through every substring of base_string
       for(std::string::size_type x = 0;x<base_string.size()-fragment_string.size()+1;x++) {
         //get part of base to compare against
@@ -72,8 +77,8 @@
  * ******************************************************/
 int main(int argc,char **argv) {
    putenv("SAGA_VERBOSE=100");
-   std::freopen("/home/michael/worker-stderr.txt", "w", stderr);
-   std::freopen("/home/michael/worker-stdout.txt", "w", stdout);
+   std::freopen("/tmp/worker-stderr.txt", "w", stderr);
+   std::freopen("/tmp/worker-stdout.txt", "w", stdout);
    try {
       AllPairsImpl allPairs(argc, argv);
       allPairs.run();

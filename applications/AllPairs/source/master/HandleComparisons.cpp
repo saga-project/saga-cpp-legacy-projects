@@ -14,10 +14,10 @@ namespace AllPairs
     :  fragmentFiles_(fragmentFiles), log_(log)
  {
     unassigned_ = std::vector<saga::url>(fragmentFiles);
-    saga::url url("tcp://localhost:8000");
     try
     {
-       service_ = saga::stream::server(url);
+       saga::url url("tcp://localhost:8000");
+       service_ = new saga::stream::server(url);
     }
     catch(saga::exception const& e) {
        std::cerr << "saga::exception caught: " << e.what() << std::endl;
@@ -44,16 +44,19 @@ namespace AllPairs
    bool assigned = false; //Describes status of current file
    while(assigned == false) {
       try {
-         saga::stream::stream worker = service_.serve();
+         saga::stream::stream worker = service_->serve();
          std::string message("Established connection to ");
          message += worker.get_url().get_string();
          log_->write(message, LOGLEVEL_INFO);
 
          //Ask worker for state
-         worker.write(saga::buffer(MASTER_QUESTION_STATE));
+         worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
          char buff[255];
+         std::cerr << "about to read" << std::endl;
          saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-         std::string state(buff);
+         std::cerr << "read" << std::endl;
+         std::string state(buff, read_bytes);
+         std::cerr << "WORKER STATE IS: " << state << std::endl;
          if(state == WORKER_STATE_IDLE)
          {
             //Worker is idle
@@ -64,10 +67,19 @@ namespace AllPairs
             log_->write(message, LOGLEVEL_INFO); 
 
             //Ask where their advert is
-            worker.write(saga::buffer(MASTER_QUESTION_ADVERT));
-            char buff[255];
-            saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-            saga::url advert = saga::url(std::string(buff));
+            std::cerr << "about to write" << std::endl;
+            worker.write(saga::buffer(MASTER_QUESTION_ADVERT, 7));
+            std::cerr << "write" << std::endl;
+            std::cerr << "about to read" << std::endl;
+            memset(buff, 0, 255);
+            read_bytes = worker.read(saga::buffer(buff));
+            std::cerr << "read: " << std::string(buff, read_bytes) << std::endl;
+            saga::url advert = saga::url(std::string(buff, read_bytes));
+
+            message.clear();
+            message += worker.get_url().get_string();
+            message += " has advert" + std::string(buff);
+            log_->write(message, LOGLEVEL_INFO); 
 
             //Write chunk to worker
             saga::advert::directory possibleWorker(advert, mode);
@@ -75,9 +87,10 @@ namespace AllPairs
             adv.store_string<saga::task_base::Sync>(fragmentFile.get_string());
 
             //Tell worker about data
-            worker.write(saga::buffer(WORKER_COMMAND_COMPARE));
+            worker.write(saga::buffer(WORKER_COMMAND_COMPARE, 7));
+            memset(buff, 0, 255);
             read_bytes = worker.read(saga::buffer(buff));
-            if(std::string(buff) != WORKER_RESPONSE_ACKNOLEDGE)
+            if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
             {
                std::cerr << "Worker did not accept chunk!" << std::endl;
                break;
@@ -111,9 +124,9 @@ namespace AllPairs
          else if(state == WORKER_STATE_DONE)
          {
             worker.write(saga::buffer(MASTER_QUESTION_RESULT));
-            char buff[255];
-            saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-            saga::url result = saga::url(std::string(buff));
+            memset(buff, 0, 255);
+            read_bytes = worker.read(saga::buffer(buff));
+            saga::url result = saga::url(std::string(buff, read_bytes));
 
             std::string message("Worker ");
             message += worker.get_url().get_string() + " finished fragment " + result.get_string();

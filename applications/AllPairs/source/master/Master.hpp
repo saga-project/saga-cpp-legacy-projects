@@ -223,6 +223,8 @@ namespace AllPairs {
           * of the database.                                      *
           ********************************************************/
          void populateFileList_(void) {
+            int successCounter = 0;
+            int mode = saga::advert::Create | saga::advert::ReadWrite;
             std::vector<FileDescription> fileListFragment                   = cfgFileParser_.getFileListFragment();
             std::vector<FileDescription> fileListBase                       = cfgFileParser_.getFileListBase();
             std::vector<FileDescription>::const_iterator fileListBaseIT     = fileListBase.begin();
@@ -233,53 +235,49 @@ namespace AllPairs {
             // Translate FileDescriptions returned by getFileList
             // into names to be chunked by chunker
             while(fileListBaseIT != fileListBase.end()) {
-               baseFiles_.push_back(saga::url(fileListBaseIT->name));
-               fileListBaseIT++;
-            }
-            while(fileListFragmentIT != fileListFragment.end()) {
-               fragmentFiles_.push_back(saga::url(fileListFragmentIT->name));
-               fileListFragmentIT++;
-            }
-/*            std::vector<saga::url>::const_iterator baseFiles_IT     = baseFiles_.begin();
-            while(baseFiles_IT != baseFiles_.end()) {
-               std::string message("Adding new chunk base " + (baseFiles_IT->get_string()) + "...");
-               try {
+               try
+               {
+                  std::cerr << "baselist not empty: " << fileListBaseIT->name << std::endl;
+                  std::string message("Adding new chunk base" + fileListBaseIT->name + "...");
+                  std::cout << message << std::endl;
                   saga::advert::entry adv = baseFilesDir_.open(saga::url("base-" + boost::lexical_cast<std::string>(successCounter)), mode);
-                  adv.store_string(baseFiles_IT->get_string());
+                  adv.store_string(fileListBaseIT->name);
                   message += "SUCCESS";
+                  baseFiles_.push_back(saga::url(fileListBaseIT->name));
                   log->write(message, LOGLEVEL_INFO);
                   successCounter++;
+                  ++fileListBaseIT;
                }
-               catch(saga::exception const & e) {
-                  message += e.what();
-                  log->write(message, LOGLEVEL_ERROR);
+               catch(saga::exception const &e) {
+                  log->write(e.what(), LOGLEVEL_ERROR);
+                  APPLICATION_ABORT;
                }
-               baseFiles_IT++;
             }
             if(successCounter == 0) {
                log->write("No base files added for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
             }
             successCounter=0;
-            while(fragmentFiles_IT != fragmentFiles_.end()) {
-               std::string message("Adding new chunk fragment " + (fragmentFiles_IT->get_string()) + "...");
+            while(fileListFragmentIT != fileListFragment.end()) {
                try {
+                  std::cerr << "fragment not empty:" << fileListFragmentIT->name << std::endl;
+                  std::string message("Adding new chunk fragment " + fileListFragmentIT->name + "...");
                   saga::advert::entry adv = fragmentFilesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
-                  adv.store_string(fragmentFiles_IT->get_string());
+                  adv.store_string(fileListFragmentIT->name);
                   message += "SUCCESS";
+                  fragmentFiles_.push_back(saga::url(fileListFragmentIT->name));
                   log->write(message, LOGLEVEL_INFO);
                   successCounter++;
+                  fileListFragmentIT++;
                }
                catch(saga::exception const & e) {
-                  message += e.what();
-                  log->write(message, LOGLEVEL_ERROR);
+                  log->write(e.what(), LOGLEVEL_ERROR);
                }
-               fragmentFiles_IT++;
             }
             if(successCounter == 0) {
                log->write("No fragment files added for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
-            }*/
+            }
          }
          /*********************************************************
           * spawnAgents_ takes the host list and the binary list  *
@@ -315,7 +313,7 @@ namespace AllPairs {
                         args.push_back("-l");
                         args.push_back(logURL_.get_string());
                         jd.set_attribute(saga::job::attributes::description_executable, command);
-                        jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_false);
+                        //jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_false);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
                         saga::job::service js(hostListIT->rmURL);
                         saga::job::job agentJob= js.create_job(jd);

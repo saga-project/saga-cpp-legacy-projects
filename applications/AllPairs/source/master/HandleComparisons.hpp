@@ -25,7 +25,7 @@ namespace AllPairs {
       std::vector<saga::url> assigned_;
       std::vector<saga::url> unassigned_;
       std::vector<saga::url> fragmentFiles_;
-      saga::stream::server service_;
+      saga::stream::server *service_;
       saga::advert::directory workerDir_;
       LogWriter *log_;
    };
