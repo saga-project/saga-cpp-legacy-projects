@@ -30,9 +30,8 @@ namespace faust
   {
     namespace resource {
       /*! \brief FAUST SPECIFIC: */
-      char const* const input_data_volume_1     = "InputDataVolume";
-      /*! \brief FAUST SPECIFIC: */
-      char const* const output_data_volume_1    = "OutputDataVolume";
+      char const* const desc01     = "desc01";
+      char const* const desc02     = "desc02";
     }
   }
   
@@ -67,16 +66,6 @@ namespace faust
      *
      */
     ~resource();
-    
-    /*! \brief Sets the value for the attribute identified by key.
-     *
-     */
-    //void set_attribute(std::string key, std::string value);
-    
-    /*! \brief Returns the value of the attribute identified by key.
-     *
-     */
-    //std::string get_attribute(std::string key);
     
   };
 }

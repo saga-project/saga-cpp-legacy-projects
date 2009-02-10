@@ -15,14 +15,17 @@
 /**** FAUST defines ****/
 #include <faust/faust/defines.hpp>
 
-/**** FAUST job interface ****/
+/**** FAUST look & feel *****/
 #include <faust/faust/exception.hpp>
 #include <faust/faust/object.hpp>
+#include <faust/faust/state.hpp>
+
+/**** FAUST job interface ****/
 #include <faust/faust/job.hpp>
 #include <faust/faust/job_group.hpp>
 #include <faust/faust/description.hpp>
-#include <faust/faust/dependency.hpp>
-#include <faust/faust/state.hpp>
+#include <faust/faust/resource.hpp>
+
 #include <faust/faust/service.hpp>
 
 #endif /* FAUST_HPP */

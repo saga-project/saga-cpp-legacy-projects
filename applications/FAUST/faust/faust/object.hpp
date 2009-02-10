@@ -43,10 +43,12 @@ namespace faust {
     
     enum type 
     {
-      Unknown    =   -1,
-      Service    =    1,
-      Job        =    2,
-      JobGroup   =    4
+      Unknown     =   -1,
+      Service     =    1,
+      Job         =    2,
+      JobGroup    =    4,
+      Description =    5,
+      Resource    =    6
     };
     
     explicit object() {};

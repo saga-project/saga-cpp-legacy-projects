@@ -9,7 +9,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <saga/impl/exception.hpp>
+#include <boost/assign/list_inserter.hpp>
+#include <boost/assign/std/vector.hpp>
 
 #include <faust/faust/description.hpp>
 #include <faust/impl/description_impl.hpp>
@@ -26,22 +27,43 @@ boost::shared_ptr <faust::impl::description> description::get_impl (void) const
   <faust::impl::description> (this->base_type::get_impl ());
 }
 
-description::description() //: saga::job::description()
+////////////////////////////////////////////////////////////////////////////////
+//
+description::description() 
+: faust::object (new faust::impl::description(), object::Description)
 {
+  using namespace boost::assign;
+  std::vector<std::string> valid_keys;
+  valid_keys += 
+  attributes::description::desc01,
+  attributes::description::desc02
+  ;
+  
+  // initialize list of valid keys          
+  this->init_keynames(valid_keys);
+  
+  strmap_type attributes_scalar_rw;
+  insert(attributes_scalar_rw)
+  (attributes::description::desc01, "")
+  ;
+  
+  strmap_type attributes_vector_rw;
+  insert(attributes_vector_rw)
+  (attributes::description::desc02, "")
+  ;
+  
+  
+  // initialize attribute implementation
+  this->init (strmap_type(), attributes_scalar_rw, 
+              strmap_type(), attributes_vector_rw);
+  this->init (false, true);   // cache only implementation
   
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
 description::~description() 
 {
   
 }
 
-/*void description::set_attribute(std::string key, std::string value)
-{
-  //saga::job::description::set_attribute(key, value);
-}
-
-std::string description::get_attribute(std::string key)
-{
-  //return saga::job::description::get_attribute(key);
-}*/
