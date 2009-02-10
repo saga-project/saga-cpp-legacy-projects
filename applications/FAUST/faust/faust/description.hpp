@@ -56,6 +56,7 @@ namespace faust
   private:
     
     boost::shared_ptr <faust::impl::description> get_impl (void) const;
+    void setupAttributes();
     
   public:
     
@@ -64,21 +65,15 @@ namespace faust
      */
     description();
     
+    /*! \brief Creates a new %description instance from an XML file
+     *
+     */    
+    description(std::string XMLFile);
+    
     /*! \brief Destroys this %description instance.
      *
      */
     ~description();
-    
-    /*! \brief Sets the value for the attribute identified by key.
-     *
-     */
-    //void set_attribute(std::string key, std::string value);
-    
-    /*! \brief Returns the value of the attribute identified by key.
-     *
-     */
-    //std::string get_attribute(std::string key);
-    
   };
 }
 

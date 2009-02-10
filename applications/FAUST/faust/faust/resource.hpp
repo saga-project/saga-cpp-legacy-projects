@@ -35,8 +35,8 @@ namespace faust
     }
   }
   
-  /*! \brief The %description encapsulates all the attributes which define a 
-   *         %job. It has no methods of its own, but implements the 
+  /*! \brief The %resource encapsulates all the attributes which define a 
+   *         physical %resource. It has no methods of its own, but implements the 
    *         saga::attributes interface.
    *
    */
@@ -54,13 +54,19 @@ namespace faust
   private:
     
     boost::shared_ptr <faust::impl::resource> get_impl (void) const;
+    void setupAttributes();
     
   public:
     
-    /*! \brief Creates a new %description instance.
+    /*! \brief Creates a new %resource instance.
      *
      */
     resource();
+
+    /*! \brief Creates a new %resource instance from an XML file
+     *
+     */
+    resource(std::string XMLFileName);
     
     /*! \brief Destroys this %description instance.
      *

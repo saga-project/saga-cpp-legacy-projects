@@ -29,8 +29,7 @@ boost::shared_ptr <faust::impl::description> description::get_impl (void) const
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-description::description() 
-: faust::object (new faust::impl::description(), object::Description)
+void description::setupAttributes()
 {
   using namespace boost::assign;
   std::vector<std::string> valid_keys;
@@ -56,8 +55,23 @@ description::description()
   // initialize attribute implementation
   this->init (strmap_type(), attributes_scalar_rw, 
               strmap_type(), attributes_vector_rw);
-  this->init (false, true);   // cache only implementation
-  
+  this->init (false, true);   // cache only implementation  
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+description::description() 
+: faust::object (new faust::impl::description(), object::Description)
+{
+  this->setupAttributes();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+description::description(std::string XMLFile) 
+: faust::object (new faust::impl::description(XMLFile), object::Description)
+{
+  this->setupAttributes();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
