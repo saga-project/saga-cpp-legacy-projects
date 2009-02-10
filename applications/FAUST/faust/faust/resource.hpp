@@ -13,18 +13,43 @@
 #define FAUST_RESOURCE_HPP
 
 namespace faust
-{      
-    /*! \brief This structure defines a computing %resource. It contains attributes
-     *         like a contact string, queue and project names. A list of 
-     *         resources is used to create a %faust %service instance.
-     *  
-     */
-    struct resource {
-      saga::url    contact;
-      saga::url    workdir;
-      std::string  queue;
-      std::string  project;
-    };
+{    
+	namespace attributes 
+	{
+		namespace resource {
+			/*! \brief FAUST SPECIFIC: */
+			char const* const contact     = "Contact";
+			/*! \brief FAUST SPECIFIC: */
+			char const* const workdir    = "Workdir";
+		}
+		
+	}
+	
+	class resource // : public saga::job::resource
+	{
+	public:
+		
+		/*! \brief Creates a new %resource instance.
+		 *
+		 */
+		resource();
+		
+		/*! \brief Creates a new %resource instance from an %resourceXML file 
+		 *         stored at the location described by the URL parameter. 
+		 *
+		 */
+		resource(std::string url);
+		
+		/*! \brief Destroys this %description instance.
+		 *
+		 */
+		~resource();
+		
+	};
 }
+
+
+
+
 
 #endif /* FAUST_RESOURCE_HPP */
