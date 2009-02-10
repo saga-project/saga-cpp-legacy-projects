@@ -3,7 +3,7 @@
  *  FAUST
  *
  *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 12/10/08.
- *  Copyright 2008 Center for Computation & Technology. All rights reserved.
+ *  Copyright 2008-2009 Center for Computation & Technology. 
  *
  */
 

@@ -3,7 +3,7 @@
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
  *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
- *  Copyright 2008 Center for Computation & Technology. All rights reserved.
+ *  Copyright 2008-2009 Center for Computation & Technology. 
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -47,7 +47,7 @@ service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs
   std::vector<faust::resource>::iterator i;
   for(i = resources.begin(); i != resources.end(); ++i)
   {
-    saga::url contact((*i).contact);
+    saga::url contact((*i).get_attribute("resource"));
     saga::job::service sjs;
     
     // Try to initialize the job service - if it fails, remove this entry
