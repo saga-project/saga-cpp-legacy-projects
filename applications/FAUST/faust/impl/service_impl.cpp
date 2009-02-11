@@ -28,7 +28,7 @@ using namespace faust::impl;
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 //
-service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs)
+service_impl::service_impl (std::vector<faust::resource_description> resource_descriptions, int num_jobs)
 : object(faust::object::Service)
 {
   using namespace saga::job;
@@ -44,16 +44,16 @@ service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs
   // check if the given hosts, queues, projects are valid!
   unsigned int fails = 0;
   
-  std::vector<faust::resource>::iterator i;
-  for(i = resources.begin(); i != resources.end(); ++i)
+  std::vector<faust::resource_description>::iterator i;
+  for(i = resource_descriptions.begin(); i != resource_descriptions.end(); ++i)
   {
-    saga::url contact((*i).get_attribute("resource"));
+    saga::url contact((*i).get_attribute("resource_description"));
     saga::job::service sjs;
     
     // Try to initialize the job service - if it fails, remove this entry
     // from the list.
     try {
-      std::string msg("Checking resource availability: " + contact.get_url());
+      std::string msg("Checking resource_description availability: " + contact.get_url());
       log_->write(msg, LOGLEVEL_INFO);
       
       sjs = saga::job::service(contact);
@@ -63,8 +63,8 @@ service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs
       ++fails;
       
       if(DEBUG) log_->write(e.what(), LOGLEVEL_DEBUG);
-      std::string msg("Cannot connect with resource: " + contact.get_url());
-      msg.append(". Removing entry from resource list." );
+      std::string msg("Cannot connect with resource_description: " + contact.get_url());
+      msg.append(". Removing entry from resource_description list." );
       log_->write(msg, LOGLEVEL_ERROR); 
       
       continue; // we don't want to try queueing if this stage already fails!
@@ -92,7 +92,7 @@ service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs
       
       // Host description seems to work properly. Add it to our
       // internal host list.
-      resources_.insert(resources_pair((*i).contact.get_url(), (*i)));
+      resource_descriptions_.insert(resource_descriptions_pair((*i).contact.get_url(), (*i)));
     }
     catch(saga::exception const & e)
     {
@@ -100,14 +100,14 @@ service_impl::service_impl (std::vector<faust::resource> resources, int num_jobs
       
       if(DEBUG) log_->write(e.what(), LOGLEVEL_DEBUG);
       std::string msg("Cannot queue a sample job on: " + (*i).contact.get_url());
-      msg.append(". Removing entry from resource list." );
+      msg.append(". Removing entry from resource_description list." );
       log_->write(msg, LOGLEVEL_ERROR);  
     }
   }
   
   // if we don't have any working execution hosts, abort!
-  if(fails == resources.size()) {
-    log_->write("No usable resources available. Aborting.", LOGLEVEL_FATAL); 
+  if(fails == resource_descriptions.size()) {
+    log_->write("No usable resource_descriptions available. Aborting.", LOGLEVEL_FATAL); 
     exit(-1);
     // FATAL -> THROW Exception! 
   }
@@ -138,25 +138,25 @@ std::vector<std::string> service_impl::list_jobs(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-faust::resource service_impl::get_resource(std::string contact)
+faust::resource_description service_impl::get_resource_description(std::string contact)
 {
-  if(resources_.find(contact) == resources_.end())
+  if(resource_descriptions_.find(contact) == resource_descriptions_.end())
   {
     throw faust::exception ("Contact string '"+contact+"' doesn't exisit." , 
                             faust::BadParameter);
   }
   
-  return resources_[contact];
+  return resource_descriptions_[contact];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-std::vector<std::string> service_impl::list_resources(void)
+std::vector<std::string> service_impl::list_resource_descriptions(void)
 {
   std::vector<std::string> res;
   
-  resources_map::const_iterator ci;
-  for(ci = resources_.begin(); ci != resources_.end(); ++ci)
+  resource_descriptions_map::const_iterator ci;
+  for(ci = resource_descriptions_.begin(); ci != resource_descriptions_.end(); ++ci)
   {
     res.push_back(ci->first);
   }
@@ -167,7 +167,7 @@ std::vector<std::string> service_impl::list_resources(void)
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job_group 
-service_impl::create_job_group(std::vector<faust::description> job_descs)
+service_impl::create_job_group(std::vector<faust::job_description> job_descs)
 {
   faust::job_group ret;
   insert_job_into_job_list(ret.get_job_id(), ret);
@@ -177,7 +177,7 @@ service_impl::create_job_group(std::vector<faust::description> job_descs)
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job_group 
-service_impl::create_job_group(std::vector<faust::description> job_descs, 
+service_impl::create_job_group(std::vector<faust::job_description> job_descs, 
                                std::string dep_job_id, 
                                dependency dep)
 {
@@ -189,7 +189,7 @@ service_impl::create_job_group(std::vector<faust::description> job_descs,
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job_group 
-service_impl::create_job_group(std::vector<faust::description> job_descs, 
+service_impl::create_job_group(std::vector<faust::job_description> job_descs, 
                                faust::job job_obj, 
                                dependency dep)
 {
@@ -201,7 +201,7 @@ service_impl::create_job_group(std::vector<faust::description> job_descs,
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job_group 
-service_impl::create_job_group(std::vector<faust::description> job_descs, 
+service_impl::create_job_group(std::vector<faust::job_description> job_descs, 
                                faust::job_group job_group_obj, 
                                dependency dep)
 {
@@ -214,7 +214,7 @@ service_impl::create_job_group(std::vector<faust::description> job_descs,
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job
-service_impl::create_job(faust::description job_descs)
+service_impl::create_job(faust::job_description job_descs)
 {
   faust::job ret;  
   insert_job_into_job_list(ret.get_job_id(), ret);
@@ -224,7 +224,7 @@ service_impl::create_job(faust::description job_descs)
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job
-service_impl::create_job(faust::description job_descs,
+service_impl::create_job(faust::job_description job_descs,
                          std::string dep_job_id, 
                          faust::dependency dep)
 {
@@ -236,7 +236,7 @@ service_impl::create_job(faust::description job_descs,
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job
-service_impl::create_job(faust::description job_descs,
+service_impl::create_job(faust::job_description job_descs,
                          faust::job job_obj, 
                          faust::dependency dep)
 {
@@ -248,7 +248,7 @@ service_impl::create_job(faust::description job_descs,
 ////////////////////////////////////////////////////////////////////////////////
 // 
 faust::job
-service_impl::create_job(faust::description job_descs,
+service_impl::create_job(faust::job_description job_descs,
                          faust::job_group job_group_obj, 
                          faust::dependency dep)
 {

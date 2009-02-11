@@ -23,12 +23,12 @@ namespace faust
 {    
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
-  namespace impl { class description; }
+  namespace impl { class job_description; }
   ///@endcond - exclude from Doxygen
   
   namespace attributes 
   {
-    namespace description {
+    namespace job_description {
     /*! \brief FAUST SPECIFIC: */
     char const* const desc01     = "desc01";
     /*! \brief FAUST SPECIFIC: */
@@ -42,20 +42,20 @@ namespace faust
    *         saga::attributes interface.
    *
    */
-  class description : public faust::object,
-                      public saga::detail::attribute<faust::description>
+  class job_description : public faust::object,
+                      public saga::detail::attribute<faust::job_description>
   {
     
   protected:
     /// @cond
     /** These methods are not within API scope */
-    friend struct saga::detail::attribute<faust::description>;
-    friend class faust::impl::description;
+    friend struct saga::detail::attribute<faust::job_description>;
+    friend class faust::impl::job_description;
     /// @endcond
     
   private:
     
-    boost::shared_ptr <faust::impl::description> get_impl (void) const;
+    boost::shared_ptr <faust::impl::job_description> get_impl (void) const;
     void setupAttributes();
     
   public:
@@ -63,17 +63,17 @@ namespace faust
     /*! \brief Creates a new %description instance.
      *
      */
-    description();
+    job_description();
     
     /*! \brief Creates a new %description instance from an XML file
      *
      */    
-    description(std::string XMLFile);
+    job_description(std::string XMLFile);
     
     /*! \brief Destroys this %description instance.
      *
      */
-    ~description();
+    ~job_description();
   };
 }
 

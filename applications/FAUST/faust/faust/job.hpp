@@ -84,7 +84,7 @@ namespace faust
       /*! \brief Returns this %job instance's description.
        *
        */
-      faust::description get_description();
+      faust::job_description get_description();
 
     };
 }

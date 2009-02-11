@@ -34,8 +34,8 @@ namespace faust
     typedef std::map<std::string,  faust::object> joblist_map_t;
     typedef std::pair<std::string, faust::object> joblist_pair_t;
     
-    typedef std::map<std::string,  faust::resource> resources_map;
-    typedef std::pair<std::string, faust::resource> resources_pair;
+    typedef std::map<std::string,  faust::resource_description> resource_descriptions_map;
+    typedef std::pair<std::string, faust::resource_description> resource_descriptions_pair;
     
     //////////////////////////////////////////////////////////////////////////
     //
@@ -45,46 +45,46 @@ namespace faust
     private:
       faust::detail::logwriter * log_;
       
-      resources_map              resources_;
+      resource_descriptions_map              resource_descriptions_;
       joblist_map_t                joblist_;
       
       void insert_job_into_job_list(std::string jobid, faust::object obj);
       
     public:
       
-      explicit service_impl (std::vector<faust::resource> resources, 
+      explicit service_impl (std::vector<faust::resource_description> resource_descriptions, 
                              int num_jobs);
       ~service_impl();
       
-      faust::job create_job(faust::description job_desc);
-      faust::job create_job(faust::description job_desc, 
+      faust::job create_job(faust::job_description job_desc);
+      faust::job create_job(faust::job_description job_desc, 
                             std::string dep_job_id, 
                             faust::dependency dep);
-      faust::job create_job(faust::description job_desc, 
+      faust::job create_job(faust::job_description job_desc, 
                             faust::job job_obj, 
                             faust::dependency dep);
-      faust::job create_job(faust::description job_desc, 
+      faust::job create_job(faust::job_description job_desc, 
                             faust::job_group job_group_obj, 
                             faust::dependency dep);
       
       
-      faust::job_group create_job_group(std::vector<faust::description> job_descs);
-      faust::job_group create_job_group(std::vector<faust::description> job_descs, 
+      faust::job_group create_job_group(std::vector<faust::job_description> job_descs);
+      faust::job_group create_job_group(std::vector<faust::job_description> job_descs, 
                                         std::string dep_job_id, 
                                         faust::dependency dep);
-      faust::job_group create_job_group(std::vector<faust::description> job_descs, 
+      faust::job_group create_job_group(std::vector<faust::job_description> job_descs, 
                                         faust::job job_obj, 
                                         faust::dependency dep);
-      faust::job_group create_job_group(std::vector<faust::description> job_descs, 
+      faust::job_group create_job_group(std::vector<faust::job_description> job_descs, 
                                         faust::job_group job_group_obj, 
                                         faust::dependency dep);        
       
       std::vector<std::string> list_jobs(void); 
-      std::vector<std::string> list_resources(void); 
+      std::vector<std::string> list_resource_descriptions(void); 
       
       faust::job get_job(std::string job_id);
       faust::job_group get_job_group(std::string job_id);
-      faust::resource get_resource(std::string contact);
+      faust::resource_description get_resource_description(std::string contact);
       
     };
   }

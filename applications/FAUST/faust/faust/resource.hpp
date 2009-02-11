@@ -1,5 +1,5 @@
 /*
- *  resource.hpp
+ *  resource_description.hpp
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
  *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/22/08.
@@ -23,55 +23,92 @@ namespace faust
 {    
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
-  namespace impl { class resource; }
+  namespace impl { class resource_description; }
   ///@endcond - exclude from Doxygen
   
   namespace attributes 
   {
-    namespace resource {
-      /*! \brief FAUST SPECIFIC: */
-      char const* const desc01     = "desc01";
-      char const* const desc02     = "desc02";
+    namespace resource_description 
+    {
+      /*! \brief Your own identifier for this directory
+       *         <br>(example: <code>mydir1</code>) */
+      char const* const dir_id                  = "dir_id"; 
+      
+      /*! \brief Path to the directory
+       *         <br>(example: <code>/scratch/</code>) */
+      char const* const dir_path                = "dir_path";
+      
+      /*! \brief Command to retrieve the amount of total space on this device (in kB)
+       *         <br>(example: <code>df . | awk '/\// {print $2}'</code>) */
+      char const* const dir_dev_space_total_cmd = "dir_dev_space_total_cmd";
+      
+      /*! \brief Command to retrieve the amount of used space on this device (in kB)
+       *         <br>(example: <code>df . | awk '/\// {print $3}'</code>) */
+      char const* const dir_dev_space_used_cmd  = "dir_dev_space_used_cmd";
+      
+      /*! \brief Command to retrieve the amount of total quota in this directory (in kB)
+       *         <br>(example: <code>quota | awk '/home/ {print $4}'</code>) */
+      char const* const dir_quota_total_cmd     = "dir_quota_total_cmd";
+      
+      /*! \brief Command to retrieve the amount of used quota in this directory (in kB)
+       *         <br>(example: <code>quota | awk '/home/ {print $2}</code>'</code>) */
+      char const* const dir_quota_used_cmd      = "dir_quota_used_cmd";
+      
+      /*! \brief Your own identifier for this queue
+       *         <br>(example: <code>queue1) */
+      char const* const queue_id                = "queue_id";
+      
+      /*! \brief Name of the queue
+       *         <br>(example: <code>workq) */
+      char const* const queue_name              = "queue_name";
+      
+      /*! \brief Command to retrieve the total number of nodes for this queue
+       *         <br>(example: <code>qfree | awk '/workq/ {print $4}</code>' | tr -d ,)*/
+      char const* const queue_nodes_total_cmd   = "queue_nodes_total_cmd";
+      
+      /*! \brief Command to retrieve the number of currently free nodes for this queue
+       *         <br>(example: <code>qfree | awk '/workq/ {print $6}</code>' | tr -d ,)*/
+      char const* const queue_nodes_free_cmd    = "queue_nodes_free_cmd";
     }
   }
   
-  /*! \brief The %resource encapsulates all the attributes which define a 
-   *         physical %resource. It has no methods of its own, but implements the 
+  /*! \brief The %resource_description encapsulates all the attributes which define a 
+   *         physical %resource_description. It has no methods of its own, but implements the 
    *         saga::attributes interface.
    *
    */
-  class resource : public faust::object,
-  public saga::detail::attribute<faust::resource>
+  class resource_description : public faust::object,
+  public saga::detail::attribute<faust::resource_description>
   {
     
   protected:
     /// @cond
     /** These methods are not within API scope */
-    friend struct saga::detail::attribute<faust::resource>;
-    friend class faust::impl::resource;
+    friend struct saga::detail::attribute<faust::resource_description>;
+    friend class faust::impl::resource_description;
     /// @endcond
     
   private:
     
-    boost::shared_ptr <faust::impl::resource> get_impl (void) const;
+    boost::shared_ptr <faust::impl::resource_description> get_impl (void) const;
     void setupAttributes();
     
   public:
     
-    /*! \brief Creates a new %resource instance.
+    /*! \brief Creates a new %resource_description instance.
      *
      */
-    resource();
+    resource_description();
 
-    /*! \brief Creates a new %resource instance from an XML file
+    /*! \brief Creates a new %resource_description instance from an XML file
      *
      */
-    resource(std::string XMLFileName);
+    resource_description(std::string XMLFileName);
     
     /*! \brief Destroys this %description instance.
      *
      */
-    ~resource();
+    ~resource_description();
     
   };
 }

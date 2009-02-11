@@ -1,5 +1,5 @@
 /*
- *  resource_impl.hpp 
+ *  resource_description_impl.hpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
  *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
@@ -24,14 +24,14 @@ namespace faust
   {
     //////////////////////////////////////////////////////////////////////////
     //
-    class resource : public faust::impl::object, 
+    class resource_description : public faust::impl::object, 
     public saga::impl::attribute
     {
       
     public:
       
-      resource();
-      resource(std::string XMLFileName);
+      resource_description();
+      resource_description(std::string XMLFileName);
       
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }

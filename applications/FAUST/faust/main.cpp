@@ -15,8 +15,8 @@
 
 int main (int argc, char* argv[])
 {
-  std::vector<faust::resource> hostlist;
-  faust::resource h1, h2, h3;
+  std::vector<faust::resource_description> hostlist;
+  faust::resource_description h1, h2, h3;
   
   h1.contact = "gram://gatekeeper.lonestar.tacc.teragrid.org:2119/jobmanager-lsf";
   h1.project = "";
@@ -42,18 +42,18 @@ int main (int argc, char* argv[])
   
   //////////////////////////////////////////////////////////////////////////////
   //
-  std::cout << "\nTesting: list_resources() & get_resource()" << std::endl;
+  std::cout << "\nTesting: list_resource_descriptions() & get_resource_description()" << std::endl;
   std::cout << "==========================================" << std::endl;
-  std::vector<std::string> rl = s.list_resources();
+  std::vector<std::string> rl = s.list_resource_descriptions();
   std::vector<std::string>::const_iterator ci1;
   for(ci1 = rl.begin(); ci1 != rl.end(); ++ci1) {
-    std::cout << s.get_resource(*ci1).contact << " " ;
-    std::cout << s.get_resource(*ci1).workdir << " " ;
-    std::cout << s.get_resource(*ci1).queue   << " " ;
-    std::cout << s.get_resource(*ci1).project << std::endl ;
+    std::cout << s.get_resource_description(*ci1).contact << " " ;
+    std::cout << s.get_resource_description(*ci1).workdir << " " ;
+    std::cout << s.get_resource_description(*ci1).queue   << " " ;
+    std::cout << s.get_resource_description(*ci1).project << std::endl ;
   } 
   try {
-    s.get_resource("non_existing_contact");
+    s.get_resource_description("non_existing_contact");
   }
   catch(faust::exception const & e) {
     std::cerr << "Exception successfully caught: " << e.what() << std::endl;

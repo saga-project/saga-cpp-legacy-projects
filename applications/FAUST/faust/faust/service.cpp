@@ -26,8 +26,8 @@ boost::shared_ptr <faust::impl::service_impl> service::get_impl (void) const
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-service::service (std::vector<resource> resources, int num_jobs)
-: faust::object (new faust::impl::service_impl(resources, num_jobs), object::Service)
+service::service (std::vector<resource_description> resource_descriptions, int num_jobs)
+: faust::object (new faust::impl::service_impl(resource_descriptions, num_jobs), object::Service)
 {
 }
 
@@ -39,21 +39,21 @@ service::~service()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-job service::create_job(description job_desc)
+job service::create_job(job_description job_desc)
 {
   return get_impl()->create_job(job_desc);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-job service::create_job(description job_desc, std::string job_id, dependency dep)
+job service::create_job(job_description job_desc, std::string job_id, dependency dep)
 {
   return get_impl()->create_job(job_desc, job_id, dep);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-job service::create_job(description job_desc, job job_obj, dependency dep)
+job service::create_job(job_description job_desc, job job_obj, dependency dep)
 {
   return get_impl()->create_job(job_desc, job_obj, dep);
 }
@@ -105,9 +105,9 @@ std::vector<std::string> service::list_jobs()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-std::vector<std::string> service::list_resources()
+std::vector<std::string> service::list_resource_descriptions()
 {
-  return get_impl()->list_resources();
+  return get_impl()->list_resource_descriptions();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -119,9 +119,9 @@ faust::job service::get_job(std::string job_id)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::resource service::get_resource(std::string contact)
+faust::resource_description service::get_resource_description(std::string contact)
 {
-  return get_impl()->get_resource(contact);
+  return get_impl()->get_resource_description(contact);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

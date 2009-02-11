@@ -1,5 +1,5 @@
 /*
- *  resource_impl.cpp 
+ *  resource_description_impl.cpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *
  *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.

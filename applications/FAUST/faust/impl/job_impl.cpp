@@ -73,7 +73,7 @@ faust::state job::get_state()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-faust::description job::get_description()
+faust::job_description job::get_description()
 {
   return description_;
 }

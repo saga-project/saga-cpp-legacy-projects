@@ -19,23 +19,23 @@ using namespace faust;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-boost::shared_ptr <faust::impl::description> description::get_impl (void) const
+boost::shared_ptr <faust::impl::job_description> job_description::get_impl (void) const
 { 
   typedef faust::object base_type;
   
   return boost::static_pointer_cast 
-  <faust::impl::description> (this->base_type::get_impl ());
+  <faust::impl::job_description> (this->base_type::get_impl ());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void description::setupAttributes()
+void job_description::setupAttributes()
 {
   using namespace boost::assign;
   std::vector<std::string> valid_keys;
   valid_keys += 
-  attributes::description::desc01,
-  attributes::description::desc02
+  attributes::job_description::desc01,
+  attributes::job_description::desc02
   ;
   
   // initialize list of valid keys          
@@ -43,12 +43,12 @@ void description::setupAttributes()
   
   strmap_type attributes_scalar_rw;
   insert(attributes_scalar_rw)
-  (attributes::description::desc01, "")
+  (attributes::job_description::desc01, "")
   ;
   
   strmap_type attributes_vector_rw;
   insert(attributes_vector_rw)
-  (attributes::description::desc02, "")
+  (attributes::job_description::desc02, "")
   ;
   
   
@@ -60,23 +60,23 @@ void description::setupAttributes()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-description::description() 
-: faust::object (new faust::impl::description(), object::Description)
+job_description::job_description() 
+: faust::object (new faust::impl::job_description(), object::Description)
 {
   this->setupAttributes();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-description::description(std::string XMLFile) 
-: faust::object (new faust::impl::description(XMLFile), object::Description)
+job_description::job_description(std::string XMLFile) 
+: faust::object (new faust::impl::job_description(XMLFile), object::Description)
 {
   this->setupAttributes();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-description::~description() 
+job_description::~job_description() 
 {
   
 }

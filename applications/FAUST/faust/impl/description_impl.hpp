@@ -24,14 +24,14 @@ namespace faust
   {
     //////////////////////////////////////////////////////////////////////////
     //
-    class description : public faust::impl::object, 
+    class job_description : public faust::impl::object, 
                         public saga::impl::attribute
     {
       
     public:
       
-      description();
-      description(std::string XMLFileName);
+      job_description();
+      job_description(std::string XMLFileName);
       
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }

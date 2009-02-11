@@ -32,7 +32,7 @@ namespace faust
         
         std::string        jobid_;
         faust::state       state_;
-        faust::description description_;
+        faust::job_description description_;
         
       public:
         
@@ -44,7 +44,7 @@ namespace faust
         bool resume();
         std::string get_job_id();        
         faust::state get_state();
-        faust::description get_description();        
+        faust::job_description get_description();        
     };
     //
     //////////////////////////////////////////////////////////////////////////

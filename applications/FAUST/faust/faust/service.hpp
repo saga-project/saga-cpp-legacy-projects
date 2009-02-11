@@ -31,12 +31,12 @@ namespace faust
   ///@endcond - exclude from Doxygen
 
    
-    /*! \brief This structure defines a computing %resource. A list of 
-     *         resources is used to create a %faust %job 
+    /*! \brief This structure defines a computing %resource_description. A list of 
+     *         resource_descriptions is used to create a %faust %job 
      *         %service instance.
      *  
      */
-    struct resource {
+    struct resource_description {
       saga::url    contact;
       saga::url    workdir;
       std::string  queue;
@@ -45,7 +45,7 @@ namespace faust
     
     class job; class job_group;
     
-    /*! \brief A %job %service represents a %faust %resource manager that
+    /*! \brief A %job %service represents a %faust %resource_description manager that
      *         uses a set of hosts an scheduling strategies to efficiently 
      *         create and schedule %job instances.
      * 
@@ -60,33 +60,33 @@ namespace faust
     public:
       
       /*! \brief  Creates a new %faust %service instance that schedules 
-       *          jobs on the hosts decribed in the provided list of resources.
+       *          jobs on the hosts decribed in the provided list of resource_descriptions.
        *
        *          Detailed %description goes here ...
        *
        *          <b>Example:</b><br>
        *          <code> 
-       *          std::vector<faust::resource> resources;<br>
+       *          std::vector<faust::resource_description> resource_descriptions;<br>
        *
-       *          faust::resource rd;<br>
+       *          faust::resource_description rd;<br>
        *          rd.contact = "gram://qb.loni.org:2119/jobmanager-pbs";<br>
        *          rd.project = "sample_project";<br>
        *          rd.queue   = "workq";<br>
        *          rd.workdir = "/tmp/";<br>
        * 
-       *          resources.push_back(rd);<br>
+       *          resource_descriptions.push_back(rd);<br>
        * 
-       *          faust::service s(resources);
+       *          faust::service s(resource_descriptions);
        *
        *          </code> 
        *
-       *  \param  resources List of resource objects this %service instance
+       *  \param  resource_descriptions List of resource_description objects this %service instance
        *                    should work with.
        *  \param  num_jobs Total number of jobs this %service instance can
        *                   expect to run (scheduling hint).
        *  
        */
-      explicit service (std::vector<resource> resources, int num_jobs);
+      explicit service (std::vector<resource_description> resource_descriptions, int num_jobs);
       
       /*! \brief  Shuts down this %faust %service instance.
        *
@@ -103,7 +103,7 @@ namespace faust
        *  \return A new %job object. 
        * 
        */
-      job create_job(description job_desc);
+      job create_job(job_description job_desc);
 
       /*! \brief  Creates a new %job instance which depends on the execution
        *          state of the %job identified by job_id. The %job_id can
@@ -112,7 +112,7 @@ namespace faust
        *  \return A new %job object. 
        * 
        */
-      job create_job(description job_desc, std::string job_id, dependency dep);
+      job create_job(job_description job_desc, std::string job_id, dependency dep);
 
       /*! \brief  Creates a new %job instance which depends on the execution
        *          state of the provided %job object.
@@ -120,7 +120,7 @@ namespace faust
        *  \return A new %job object. 
        * 
        */
-      job create_job(description job_desc, job job_obj, dependency dep);
+      job create_job(job_description job_desc, job job_obj, dependency dep);
       
 //      /* \brief  Creates a new %job instance which depends on the execution
 //       *          state of the provided %job_group object.
@@ -143,7 +143,7 @@ namespace faust
 //       *          desc.push_back(jd2);<br>
 //       *          desc.push_back(jd3);<br>
 //       *          <br>
-//       *          faust::service s(resources);<br> 
+//       *          faust::service s(resource_descriptions);<br> 
 //       *          faust::job_group jg = s.create_job_group(desc);<br>
 //       *          </code>
 //       *
@@ -167,7 +167,7 @@ namespace faust
 //       *          desc.push_back(jd2);<br>
 //       *          desc.push_back(jd3);<br>
 //       *          <br>
-//       *          faust::service s(resources);<br> <br>
+//       *          faust::service s(resource_descriptions);<br> <br>
 //       *          //Creates a job_group that can't be scheduled before <br>
 //       *          //j1 has reached DONE state.<br>
 //       *          faust::job_group jg = s.create_job_group(desc, j1, Data);<br>
@@ -204,18 +204,18 @@ namespace faust
        */
       std::vector<std::string> list_jobs(void); 
 
-      /*! \brief  Lists the contact strings of all resources that 
+      /*! \brief  Lists the contact strings of all resource_descriptions that 
        *          are associated with this %service instance.
        *
        *   When the %faust %service starts up, it iterates over the list
        *   of given %resouces and validates them. If validation 
-       *   fails for a %resource, the %resource is removed from the internal
-       *   list and hence won't show up in the %list_resources vector.  
+       *   fails for a %resource_description, the %resource_description is removed from the internal
+       *   list and hence won't show up in the %list_resource_descriptions vector.  
        *
        *         <b>Usage example:</b><br><br>
        *         <code>
-       *         faust::service s(resources);<br>
-       *         std::vector<std::string> rl = s.list_resources();<br>
+       *         faust::service s(resource_descriptions);<br>
+       *         std::vector<std::string> rl = s.list_resource_descriptions();<br>
        *         std::vector<std::string>::const_iterator ci;<br>
        *         for(ci = rl.begin(); ci != rl.end(); ++ci) <br>
        *         {<br>
@@ -223,10 +223,10 @@ namespace faust
        *         }
        *
        *         </code> 
-       *  \return List of %resource contact strings.
+       *  \return List of %resource_description contact strings.
        * 
        */
-      std::vector<std::string> list_resources(void); 
+      std::vector<std::string> list_resource_descriptions(void); 
       
       /*! \brief  Returns a %job object for a given %job ID.
        *         
@@ -242,12 +242,12 @@ namespace faust
        */
 //    faust::job_group get_job_group(std::string job_id);
       
-      /*! \brief  Returns a %resource %description for a given contact string.
+      /*! \brief  Returns a %resource_description %description for a given contact string.
        *         
        *  \return The job object.
        *
        */
-      faust::resource get_resource(std::string contact);
+      faust::resource_description get_resource_description(std::string contact);
       
     };
 }
