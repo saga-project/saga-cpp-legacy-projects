@@ -30,8 +30,7 @@ namespace AllPairs
  void HandleComparisons::assignWork()
  {
     while(finished_.size() < fragmentFiles_.size()) {
-       saga::url fragmentFile(get_file_());
-       issue_command_(fragmentFile);  // Try to assign the chunk to someone
+       issue_command_();  // Try to assign the chunk to someone
     }
  }
 /*********************************************************
@@ -39,7 +38,7 @@ namespace AllPairs
  * assign them to an idel worker.  If a worker is done,  *
  * the results are recorded                              *
  * ******************************************************/
- void HandleComparisons::issue_command_(saga::url fragmentFile) {
+ void HandleComparisons::issue_command_() {
    int mode = saga::advert::ReadWrite;
    bool assigned = false; //Describes status of current file
    while(assigned == false) {
@@ -52,13 +51,17 @@ namespace AllPairs
          //Ask worker for state
          worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
          char buff[255];
-         std::cerr << "about to read" << std::endl;
          saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-         std::cerr << "read" << std::endl;
          std::string state(buff, read_bytes);
          std::cerr << "WORKER STATE IS: " << state << std::endl;
          if(state == WORKER_STATE_IDLE)
          {
+            if(finished_.size() == fragmentFiles_.size())
+            {
+               //Prevent unneccessary work assignments
+               return;
+            }
+            saga::url fragmentFile(get_file_());
             //Worker is idle
             message.clear();
             message = "Issuing worker ";
@@ -67,13 +70,9 @@ namespace AllPairs
             log_->write(message, LOGLEVEL_INFO); 
 
             //Ask where their advert is
-            std::cerr << "about to write" << std::endl;
             worker.write(saga::buffer(MASTER_QUESTION_ADVERT, 7));
-            std::cerr << "write" << std::endl;
-            std::cerr << "about to read" << std::endl;
             memset(buff, 0, 255);
             read_bytes = worker.read(saga::buffer(buff));
-            std::cerr << "read: " << std::string(buff, read_bytes) << std::endl;
             saga::url advert = saga::url(std::string(buff, read_bytes));
 
             message.clear();
@@ -103,30 +102,31 @@ namespace AllPairs
 
             //If from unassigned, remove it
             std::vector<saga::url>::iterator end = unassigned_.end();
-            std::vector<saga::url>::iterator unassigned_fileIT = unassigned_.end();
+            std::vector<saga::url>::iterator unassigned_IT = unassigned_.begin();
             bool found = false;
-            for(std::vector<saga::url>::iterator unassigned_IT = unassigned_.begin();
-                unassigned_IT != end;
-                ++unassigned_IT)
+            while(unassigned_IT != end)
             {
                if(fragmentFile == *unassigned_IT)
                {
                   found = true;
                   break;
                }
+                ++unassigned_IT;
             }
             if(found == true)
             {
-               unassigned_.erase(unassigned_fileIT);
+               unassigned_.erase(unassigned_IT);
             }
             assigned = true;
+            return;
          }
          else if(state == WORKER_STATE_DONE)
          {
-            worker.write(saga::buffer(MASTER_QUESTION_RESULT));
+            worker.write(saga::buffer(MASTER_QUESTION_RESULT, 7));
             memset(buff, 0, 255);
             read_bytes = worker.read(saga::buffer(buff));
             saga::url result = saga::url(std::string(buff, read_bytes));
+            worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
 
             std::string message("Worker ");
             message += worker.get_url().get_string() + " finished fragment " + result.get_string();
@@ -181,18 +181,21 @@ namespace AllPairs
     if(unassigned_.size() > 0)
     {
        //Return anything on this list
+       std::cerr << "returning from unassigned list" << std::endl;
        return unassigned_[0];
     }
     else if(assigned_.size() > 0)
     {
        //No more unassigned ones
        //Return anything on this list
+       std::cerr << "returning from assigned list" << std::endl;
        return assigned_[rand() % assigned_.size()];
     }
     else
     {
        //No more assigned ones
        //Just give a finished one from finished
+       std::cerr << "returning from finished list" << std::endl;
        return finished_[rand() % finished_.size()];
     }
  }

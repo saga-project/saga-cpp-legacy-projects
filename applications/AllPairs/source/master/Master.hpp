@@ -347,14 +347,14 @@ namespace AllPairs {
          }
 
          void sendQuit_(void) {
-            std::vector<saga::url> workers = workersDir_.list("*");
+            /*std::vector<saga::url> workers = workersDir_.list("*");
             std::vector<saga::url>::iterator workersIT = workers.begin();
             while(workersIT != workers.end())
             {
                saga::advert::directory indWorker(*workersIT, saga::advert::ReadWrite);
                indWorker.set_attribute("COMMAND", WORKER_COMMAND_QUIT);
                workersIT++;
-            }
+            }*/
          }
 
       };

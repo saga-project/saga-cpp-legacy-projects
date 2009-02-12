@@ -18,7 +18,7 @@ namespace AllPairs {
       HandleComparisons(std::vector<saga::url> &fragmentFiles, LogWriter *log);
       void assignWork();
      private:
-      void issue_command_(saga::url file);
+      void issue_command_();
       saga::url get_file_();
     
       std::vector<saga::url> finished_;
