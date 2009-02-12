@@ -1,6 +1,7 @@
 /*
  *  main.cpp
- *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
+  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
+ *  Website: https://macpro01.cct.lsu.edu/trac/faust
  *
  *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 01/10/09.
  *  Copyright 2008-2009 Center for Computation & Technology. 
