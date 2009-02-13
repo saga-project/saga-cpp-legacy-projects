@@ -1,17 +1,17 @@
 /*
- *  resource_description_impl.hpp 
+ *  resource_monitor_impl.hpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *  Website: https://macpro01.cct.lsu.edu/trac/faust
  *
- *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 11/30/08.
+ *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 02/13/09.
  *  Copyright 2008-2009 Center for Computation & Technology. 
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying 
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_IMPL_RESOURCE_IMPL_HPP
-#define FAUST_IMPL_RESOURCE_IMPL_HPP
+#ifndef FAUST_IMPL_RESOURCE_MONITOR_IMPL_HPP
+#define FAUST_IMPL_RESOURCE_MONITOR_IMPL_HPP
 
 #include <faust/faust/exports.hpp>
 #include <faust/faust/description.hpp>
@@ -25,21 +25,18 @@ namespace faust
   {
     //////////////////////////////////////////////////////////////////////////
     //
-    class resource_description : public faust::impl::object, 
+    class resource_monitor : public faust::impl::object, 
     public saga::impl::attribute
     {
-		private:
-			std::string xmlfilename_;
-      
+
     public:
-      resource_description();
-      resource_description(std::string XMLFileName);
-      
+			resource_monitor();
+
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }
       
       // Generate a exact deep copy of this object
-      // saga::object clone() const;
+      //saga::object clone() const;
     };
     //
     //////////////////////////////////////////////////////////////////////////

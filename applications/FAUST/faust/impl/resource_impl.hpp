@@ -15,6 +15,7 @@
 
 #include <faust/faust/exports.hpp>
 #include <faust/faust/resource_description.hpp>
+#include <faust/faust/resource_monitor.hpp>
 
 #include <faust/impl/object_impl.hpp>
 
@@ -30,16 +31,17 @@ namespace faust
     private:
       std::string xmlfilename_;
       faust::resource_description description_;
+			faust::resource_monitor monitor_;
+			
+			resource() : object(faust::object::Resource) {};
       
     public:
-      
       explicit resource(faust::resource_description RD);
-      
       explicit resource(std::string XMLFileName);
-      
       ~resource();
       
-      faust::resource_description get_description();       
+      faust::resource_description get_description(); 
+			faust::resource_monitor get_monitor();
     };
     //
     //////////////////////////////////////////////////////////////////////////

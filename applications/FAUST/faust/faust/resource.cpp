@@ -50,3 +50,10 @@ faust::resource_description resource::get_description()
 {
   return get_impl()->get_description();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//
+faust::resource_monitor resource::get_monitor()
+{
+	return get_impl()->get_monitor();
+}

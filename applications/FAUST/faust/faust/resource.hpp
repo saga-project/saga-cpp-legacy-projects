@@ -17,7 +17,8 @@
 
 #include <faust/faust/object.hpp>
 #include <faust/faust/exports.hpp>
-#include <faust/faust/state.hpp>
+
+#include <faust/faust/resource_monitor.hpp>
 #include <faust/faust/resource_description.hpp>
 
 namespace faust
@@ -30,24 +31,17 @@ namespace faust
     class  resource : public faust::object
     {
     private:
-      
-      resource(); 
-      
-      boost::shared_ptr <faust::impl::resource> get_impl (void) const;
-          
+			resource() {}; // No default constructor
+			boost::shared_ptr <faust::impl::resource> get_impl (void) const;
+			
     public:
-      
       explicit resource(faust::resource_description RD);
-      
-      explicit resource(std::string XMLFileName);
-      
+			explicit resource(std::string XMLFileName);
       ~resource();
       
       faust::resource_description get_description();
-      
-      //faust::resource_monitor get_monitor();
-      
+      faust::resource_monitor get_monitor();      
     };
 }
 
-#endif /* FAUST_JOB_HPP */
+#endif /* FAUST_RESOURCE_HPP */

@@ -17,19 +17,24 @@ using namespace faust::impl;
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 resource::resource(faust::resource_description RD) 
-: object(faust::object::Job)
+: object(faust::object::Resource)
 {
-  description_ = RD;   
+  description_ = RD;  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 resource::resource(std::string XMLFileName) 
-: object(faust::object::Job)
+: object(faust::object::Resource)
 {
   xmlfilename_ = XMLFileName; 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+resource::~resource() 
+{
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -38,3 +43,9 @@ faust::resource_description resource::get_description()
   return description_;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+faust::resource_monitor resource::get_monitor()
+{
+  return monitor_;
+}

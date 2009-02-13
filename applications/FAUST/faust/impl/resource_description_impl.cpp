@@ -12,3 +12,18 @@
 
 #include <faust/impl/resource_description_impl.hpp>
 
+using namespace faust::impl;
+
+////////////////////////////////////////////////////////////////////////////////
+// CONSTRUCTOR
+resource_description::resource_description()
+: object(faust::object::ResourceDescription)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CONSTRUCTOR
+resource_description::resource_description(std::string XMLFileName)
+: object(faust::object::ResourceDescription), xmlfilename_(XMLFileName)
+{
+}

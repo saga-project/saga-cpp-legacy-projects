@@ -49,7 +49,10 @@ namespace faust {
       Job         =    2,
       JobGroup    =    4,
       Description =    5,
-      Resource    =    6
+      Resource    =    6,
+			ResourceDescription    =    7,
+			ResourceMonitor    =    8
+
     };
     
     explicit object() {};
