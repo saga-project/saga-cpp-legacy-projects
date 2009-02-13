@@ -14,8 +14,8 @@
 #include <boost/assign/list_inserter.hpp>
 #include <boost/assign/std/vector.hpp>
 
-#include <faust/faust/resource.hpp>
-#include <faust/impl/resource_impl.hpp>
+#include <faust/faust/resource_description.hpp>
+#include <faust/impl/resource_description_impl.hpp>
 
 using namespace faust;
 

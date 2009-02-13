@@ -10,8 +10,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_RESOURCE_HPP
-#define FAUST_RESOURCE_HPP
+#ifndef FAUST_RESOURCE_DESCRIPTION_HPP
+#define FAUST_RESOURCE_DESCRIPTION_HPP
 
 #include <boost/shared_ptr.hpp>
 
@@ -114,4 +114,4 @@ namespace faust
   };
 }
 
-#endif /* FAUST_DESCRIPTION_HPP */
+#endif /* FAUST_RESOURCE_DESCRIPTION_HPP */
