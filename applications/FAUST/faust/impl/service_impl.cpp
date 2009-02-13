@@ -74,7 +74,7 @@ service_impl::service_impl (std::vector<faust::resource_description> resource_de
     // Try to queue a sample dummy job to see if the queue and project 
     // informations a valid. If it fails, remove this entry from the list.
     try {
-      std::string msg("Queuing sample job on: " + (*i).contact.get_url());
+      /*std::string msg("Queuing sample job on: " + (*i).contact.get_url());
       msg.append(" (queue="+(*i).queue+", project="+(*i).project+")");
       log_->write(msg, LOGLEVEL_INFO);
       
@@ -93,16 +93,16 @@ service_impl::service_impl (std::vector<faust::resource_description> resource_de
       
       // Host description seems to work properly. Add it to our
       // internal host list.
-      resource_descriptions_.insert(resource_descriptions_pair((*i).contact.get_url(), (*i)));
+      resource_descriptions_.insert(resource_descriptions_pair((*i).contact.get_url(), (*i)));*/
     }
     catch(saga::exception const & e)
     {
-      ++fails;
+     /* ++fails;
       
       if(DEBUG) log_->write(e.what(), LOGLEVEL_DEBUG);
       std::string msg("Cannot queue a sample job on: " + (*i).contact.get_url());
       msg.append(". Removing entry from resource_description list." );
-      log_->write(msg, LOGLEVEL_ERROR);  
+      log_->write(msg, LOGLEVEL_ERROR);  */
     }
   }
   
