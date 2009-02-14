@@ -1,4 +1,3 @@
-%\documentclass{tg}
 \documentclass[conference,final]{IEEEtran}
 
 \usepackage{graphicx}
@@ -52,11 +51,10 @@
 \begin{document}
 
 \title{\large Developing and Deploying Autonomic Scientific
-  Applications: A Case Study From Resorvoir Modelling}
+  Applications: A Case Study From Resorvoir Modelling Using SAGA}
   
-\author{\authorblockN{Shantenu Jha\authorrefmark{1}\authorrefmark{2},
-    Yaakoub El Khamra\authorrefmark{3}\authorrefmark{1}, Ole Weidner\authorrefmark{1},
-    Hartmut Kaiser~\authorrefmark{1}} \authorblockA{\authorrefmark{1}
+\author{\authorblockN{Yaakoub El Khamra\authorrefmark{3}\authorrefmark{1}, Shantenu Jha\authorrefmark{1}\authorrefmark{2}, Andre Luckow\authorrefmark{1}, Ole Weidner\authorrefmark{1}},
+   \authorblockA{\authorrefmark{1}
     Center for Computation and Technology, Louisiana State University,
     Baton Rouge, 70803} \authorblockA{\authorrefmark{2} Department of
     Computer Science, Louisiana State University, Baton Rouge, 70803}
@@ -74,21 +72,13 @@
    as a consequence of irregular execution characteristics dynamic
    resource requirements are difficult to predict a priori thus
    rendering static resource mapping techniques such as workflows
-   ineffective.  This paper discusses the design and development of an
-   prototype ensemble Kalman filter application, which has varying
-   resource requirements and execution characteristics. Even for
-   relatively small input problem sizes at each stage, up to several
-   hundred models are generated which require from one to sixteen
-   processors to solve efficiently; the distribution of the number of
-   jobs and the run time-to-completion for a given processor count
-   varies by up to an order of magnitude.  Such hard to predict
-   run-time characteristics render static, data-flow independent
-   scheduling techniques difficult to use. We demonstrate how the use
-   of appropriate programming abstractions like SAGA and Cactus enable
-   the effective development of applications with non-trivial
-   requirements, e.g., run-time resource selection based upon the
-   application specific characteristics.  As proof of concept we
-   deploy our application on the TeraGrid and show the effective
+   ineffective.  \jhanote{So what does this have to do with
+     autonomics} \jhanote{Needs serious rewriting. This needs to have
+     autonomics on Grid focus} This paper discusses the design and
+   development of an prototype ensemble Kalman filter application,
+   which has varying resource requirements and execution
+   characteristics.  As proof of concept we deploy our application on
+   several different machines on the TeraGrid, and show the effective
    utilization of several heterogeneous resources.
  \end{abstract}
  \begin{keywords}
@@ -99,7 +89,21 @@
  \end{keywords}
 
 \section*{Notes}
-To deal with the increasing complexiyt of large-scale computing
+
+\jhanote{Part of Abstract: Even for relatively small input problem
+  sizes at each stage, up to several hundred models are generated
+  which require from one to sixteen processors to solve efficiently;
+  the distribution of the number of jobs and the run
+  time-to-completion for a given processor count varies by up to an
+  order of magnitude.  Such hard to predict run-time characteristics
+  render static, data-flow independent scheduling techniques difficult
+  to use.  We demonstrate how the use of appropriate programming
+  abstractions like SAGA and Cactus enable the effective development
+  of applications with non-trivial requirements, e.g., run-time
+  resource selection based upon the application specific
+  characteristics.}
+
+To deal with the increasing complexity of large-scale computing
 systems, computers and applications must learn to manage themselves in
 accordance with high-level guidance from humans -- a vision that has
 been referred to as autonomic computing.
@@ -109,8 +113,9 @@ Provides generarlised, extensible mechanisms  for:
 \begin{itemize}
 \item  Resource Selection
 \item  Placement
-\item  Fault Tolerance
-\item  Ability to plug-into decision support and Information Services systems
+\item  Fault Tolerance -- what are we going to say? Manual implementation
+\item Ability to plug-into decision support and Information Services
+  systems
 \end{itemize}
 
 And we apply this to an application that is a "prototypical"
@@ -120,10 +125,11 @@ application
 \item Dynamic requirement
 \item Highly-irregular and  difficult to plan/predict
 \begin{itemize} 
-  \item  number of jobs
+  \item number of jobs
   \item distribution of the size of jobs
   \item time to completion between stages
 \end{itemize} 
+\item checkpoint and self-migrating 
 \item Need for performance 
 \end{itemize} 
 
@@ -134,12 +140,16 @@ $\rightarrow$ Resource Selection
 \item Performance Measures:
   \begin{itemize}
 \item Define a workload and the time to complete 
-\item  Define a time and the number of jobs completed (throughput)
+\item Define a time and the number of jobs completed (throughput)
 \item Scalability (number of systems utilised)
 \end{itemize} 
 \end{itemize} 
 
 \section{Introduction}
+
+\jhanote{What are the fault-tolerance issues that are encountered?
+  How do we solve them? How could they be solved by using SAGA-CPR
+  (just sketch out changes that need to be undertaken)}
 
 A key impediment to accelerated development of Grid applications and
 consequently the uptake of Grids is the scarcity of high-level
@@ -672,35 +682,43 @@ ability to do so is a very useful feature.
 %   reference for this!}
 
 \yyenote{Need a section about many/big-job, we use it and better talk about it}
-
-
 \yyenote{I am adding sections about Lazarus and its fault tolerance}
+
 \subsection{Lazarus}
-Lazarus is a small, portable python script that handles job-launching and data migration.
-Lazarus uses the bigjob abstraction ~\cite{ICCS_paper} to launch simulations, the
-SAGA file adaptor python bindings to move files from one machine to another
-and BQP data from the BQP command line tool to retrieve the optimal location and number
-of bigjobs required to satisfy the computation power required. Lazarus also has a self healing ability
-that allows it to run a user-defined test on the data to make sure it is
-not corrupt, missing, or otherwise defective. If a simulation is found to be defective
-it is resubmitted to be run again. This self resurrection ability overcomes some
-of the catastrophic errors encountered when running large numbers of jobs such
-exceeding wall clock time, running out of diskspace (resubmit on a different machine)
+For the current application, we started off using simple, portable
+python scripts -- based upon SAGA, that handles job-launching and data
+migration. This forms the beginnings of Lazarus which is a modular,
+scalable and extensible framework for autonomic application based upon
+the SAGA programming system.  Lazarus uses the bigjob
+abstraction~\cite{ICCS_paper, saga_royalsoc} to launch simulations,
+the SAGA file adaptor python bindings to move files from one machine
+to another and BQP data from the BQP command line tool to retrieve the
+optimal location and number of bigjobs required to satisfy the
+computation power required. Lazarus also has a self healing ability
+that allows it to run a user-defined test on the data to make sure it
+is not corrupt, missing, or otherwise defective. If a simulation is
+found to be defective it is resubmitted to be run again. This self
+resurrection ability overcomes some of the catastrophic errors
+encountered when running large numbers of jobs such exceeding wall
+clock time, running out of diskspace (resubmit on a different machine)
 and of course node failure.
 
+\jhanote{Yaakoub: What the most commonly required self-* attributes?
+  What self-* attributes does Lazarus support/address?}
 
 \subsubsection{BQP}
-BQP: Batch Queue Predictor ~\cite{bqp} is a tool that is available
-on a number of TeraGrid resources that allows users to make bound predictions of
-how much time a job of a giving size and duration will spend in the queue.
-This prediction is given with a degree of confidence (probability)
-that the job will start before a certain deadline (i.e. the time in the queue).
-This information is vital when submitting jobs to various machines
-as the longer a job sits in the queue, the longer the delay for the entire stage. 
-For our application we use the BQP command line tools, that are called
-from the Lazarus script.
-\yyenote{I am have BQP data in table form, do you want it that way
-or in a 3D chart (height is wait time, x and y axes are size and duration)}
+BQP: Batch Queue Predictor ~\cite{bqp} is a tool that is available on
+a number of TeraGrid resources that allows users to make bound
+predictions of how much time a job of a giving size and duration will
+spend in the queue.  This prediction is given with a degree of
+confidence (probability) that the job will start before a certain
+deadline (i.e. the time in the queue).  This information is vital when
+submitting jobs to various machines as the longer a job sits in the
+queue, the longer the delay for the entire stage.  For our application
+we use the BQP command line tools, that are called from the Lazarus
+script.  \yyenote{I am have BQP data in table form, do you want it
+  that way or in a 3D chart (height is wait time, x and y axes are
+  size and duration)}
 
 %To better predict ensemble behavior we have collected (using the same
 %BQP Thorn but in a different configuration) detailed BQP data for four
@@ -1070,16 +1088,56 @@ Actual simulation failures:
 \end{itemize}
 
 \subsection{Needs to be Moved}
-One of the recent improvements in deployment is the use of the
-python bindings to the FAUST project \yyenote{I think the name here should change
-as this is not really FAUST yet but loosely labelled FAUST}. Using
-these scripts, a user-specified number of stages each containing
-a user-defined number of models can be launched to the grid. As the
-models of a given stage run to completion, a second set of error-checking
-jobs are launched that ensure all the models ran to completion before
-the Kalman gain calculation is performed. This error-checking mechanism
-attempts to re-submit the failed jobs, and if met with failure a second time, 
-the stage is halted to allow for user intervention. \yyenote{that is what I am implementing at the moment} 
+One of the recent improvements in deployment is the use of the python
+bindings to the SAGA-based bigjob abstraction \yyenote{I think the
+  name here should change as this is not really FAUST yet but loosely
+  labelled FAUST}. \jhanote{Yes, I agree. Dunnit} Using these scripts,
+a user-specified number of stages each containing a user-defined
+number of models can be launched to the grid. As the models of a given
+stage run to completion, a second set of error-checking jobs are
+launched that ensure all the models ran to completion before the
+Kalman gain calculation is performed. This error-checking mechanism
+attempts to re-submit the failed jobs, and if met with failure a
+second time, the stage is halted to allow for user
+intervention. \yyenote{that is what I am implementing at the moment}
+
+\jhanote{Mapping: Need discussion on the two-levels of decision
+  making. I thought we had done this!}
+
+\begin{itemize}
+\item Mapping of physical-model requirements into compute-resource requirements
+\item Mapping compute-resource requirements into available resources
+\end{itemize}
+\jhanote{The latter could be done via BigJob Abstraction or without
+  (statically map to an available resource, with or without the aid of
+  BQP).  The advantage of BigJob abstraction (and ultimately FAUST) is
+  the flexibility it provides -- wanna call is late binding? or
+  loose-coupling..  call it what you may.}
+
+\jhanote{there is the following blurb from the ICCS paper whcih we
+  should either incorporate or acknowledge} We have developed a
+mechanism whereby EnKF can be solved using multiple-resources, using
+application-level scheduling applied dynamically~\cite{saga_tg08}, ie
+mapping the sub-tasks requirement to the resources available at the
+instant the sub-tasks become available and ready to run, as opposed to
+{\it a priori} static method of job submission.  For the problem size
+studied, the sub-tasks required mostly less than 32 processors. For
+this paper we used the earlier developed frameworks and deployed it on
+a single large machine -- NCSA's Abe~\footnote{We wanted to use
+  Ranger, but BQP was not available on Ranger, and would not have been
+  before the submission of this paper}.  A mechanism (multiple,
+distributed versus single machine) that is more efficient for physical
+models with sub-tasks that have typically low processor counts, will
+not necessarily be the more efficient as the typical sub-task size
+increases. Therefore it is crucial that any general-purpose solution
+be usable on both single large machines to multiple machines.
+\jhanote{Yaakoub, do you have measure of time-to-completion for the
+  two-cases of the toy-problem?}  We can enhance throughput further by
+applying the Glide-In mechanisms discussed in the earlier section,
+which facilitate dynamic tasks being aggregated from similar
+sub-tasks. We will report on the results of this and whether the
+framework can be used on high-end petascale supercomputers in future
+work.
 
 
 \section{Results and Discussion}
@@ -1133,9 +1191,9 @@ factors of 4 difference if not more.  It is important to note that to
 actually impact reservoir simulations, we would have to scale up
 details and thus size of our input model by factors of 10 or more.
 this would lead to much more complex.%; the shit will hit the fan buddy!
-This is proof-of-concept, {\it toy problem} yet took greater than
-20,000 CPU hours; any {\it real problem} would require several orders
-of magnitude greater resources
+\jhanote{following needs updating:} This is proof-of-concept, {\it toy
+  problem} yet took greater than 20,000 CPU hours; any {\it real
+  problem} would require several orders of magnitude greater resources
 
 % (\jha{yaakoub: check! Anser: yes, we want to run on hundreds of
 %   processors per job and the jobs that take a factor of 2 longer may
@@ -1143,6 +1201,19 @@ of magnitude greater resources
 % (\jha{yaakoub: are these fair estimates? Answer: yes, you will run
 %   into this quite easily if we are doing a real, industry standard
 %   study}.
+
+\section{Challenges and Discussion}
+
+\begin{itemize}
+\item Talk about the fixed granularity of BQP and the problems that this
+engenders
+\item Talk about fault-tolerance
+\end{itemize}
+
+
+\jhanote{need to reference prior work done by Manish on autonomics and
+  on oil resorvoir in particular. What makes our work different?  Can
+  the two converge? SAGA-Accord?}
 
 \section{Future Work and Conclusion}
 
@@ -1181,6 +1252,10 @@ possibly quicker for some instances will not be as scalable and
 extensible. Motivated by the scalability and general purpose solution
 we have discussed in this paper, we will go on to generalise to other
 applications that exhibit similar characteristics~\cite{nature99}.
+
+\jhanote{Need to make connection, or announce the arrival of FAUST}
+
+
 
 % We created a single set of Globus adaptors and deployed them on
 % distinct Grids. Our application successfully utilized these
