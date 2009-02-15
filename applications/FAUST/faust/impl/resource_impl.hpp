@@ -29,7 +29,6 @@ namespace faust
     {
       
     private:
-      std::string xmlfilename_;
       faust::resource_description description_;
 			faust::resource_monitor monitor_;
 			
@@ -37,7 +36,6 @@ namespace faust
       
     public:
       explicit resource(faust::resource_description RD);
-      explicit resource(std::string XMLFileName);
       ~resource();
       
       faust::resource_description get_description(); 

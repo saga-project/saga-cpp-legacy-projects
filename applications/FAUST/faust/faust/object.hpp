@@ -32,6 +32,8 @@ namespace faust {
       
   protected:
     
+		///@cond - exclude from Doxygen
+
     typedef boost::shared_ptr<faust::impl::object> impl_ptr;
     impl_ptr impl_;
     
@@ -39,9 +41,12 @@ namespace faust {
     { 
       return impl_;
     }
+		///@endcond - exclude from Doxygen
+
     
   public:
     
+		/// @cond - Exclude from Doxygen
     enum type 
     {
       Unknown     =   -1,
@@ -54,6 +59,7 @@ namespace faust {
 			ResourceMonitor    =    8
 
     };
+		/// @endcond - Exclude from Doxygen
     
     explicit object() {};
     explicit object(faust::impl::object *obj, faust::object::type tp);

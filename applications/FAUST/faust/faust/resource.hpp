@@ -23,8 +23,8 @@
 
 namespace faust
 {
-  // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
+  // fwd. decl. implementation class 
   namespace impl { class resource; } 
   ///@endcond - exclude from Doxygen
 
@@ -35,12 +35,25 @@ namespace faust
 			boost::shared_ptr <faust::impl::resource> get_impl (void) const;
 			
     public:
+			/*! \brief Creates a new %resource %object for a pysical %resource
+			 *         described by a %resource_description.
+			 */
       explicit resource(faust::resource_description RD);
-			explicit resource(std::string XMLFileName);
+						
+			///@cond - exclude from Doxygen
       ~resource();
+			///@endcond - exclude from Doxygen
       
+			/*! \brief Returns the resource_description object that was used to 
+			 *         construct this %resource instance.
+			 */ 
       faust::resource_description get_description();
-      faust::resource_monitor get_monitor();      
+
+			/*! \brief Returns the resource_monitor object that contains informations
+			 *         about the physical %resource this %resource instance is 
+			 *	   		 associated with.
+			 */ 
+			faust::resource_monitor get_monitor();      
     };
 }
 

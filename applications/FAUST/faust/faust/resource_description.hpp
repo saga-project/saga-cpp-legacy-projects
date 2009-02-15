@@ -96,21 +96,21 @@ namespace faust
     
   public:
     
-    /*! \brief Creates a new %resource_description instance.
+    /*! \brief Creates a new %resource_description for a physical %resource.
      *
      */
     resource_description();
 
-    /*! \brief Creates a new %resource_description instance from an XML file
+    /*! \brief Creates a new %resource_description for a pysical %resource
+		 *         from an XML file.
      *
      */
     resource_description(std::string XMLFileName);
     
-    /*! \brief Destroys this %description instance.
-     *
-     */
+    /// @cond - Exclude from Doxygen
     ~resource_description();
-    
+    /// @endcond - Exclude from Doxygen
+		
   };
 }
 

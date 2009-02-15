@@ -10,6 +10,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include <saga/saga.hpp>
+#include <saga/saga/detail/attribute_impl.hpp>
 
 #include <boost/assign/list_inserter.hpp>
 #include <boost/assign/std/vector.hpp>
@@ -91,4 +93,13 @@ resource_description::~resource_description()
 {
   
 }
+
+/////////////////////////////////////////////////////////////////////////////
+//  implement the attribute functions (we need to explicitly specialize 
+//  the template because the functions are not implemented inline)
+template struct /*SAGA_ADVERT_PACKAGE_EXPORT_REPEAT*/ saga::detail::attribute<faust::resource_description>;
+
+template struct SAGA_ADVERT_PACKAGE_EXPORT saga::detail::attribute_priv<faust::resource_description, saga::task_base::Sync>;
+template struct SAGA_ADVERT_PACKAGE_EXPORT saga::detail::attribute_priv<faust::resource_description, saga::task_base::Async>;
+template struct SAGA_ADVERT_PACKAGE_EXPORT saga::detail::attribute_priv<faust::resource_description, saga::task_base::Task>;
 
