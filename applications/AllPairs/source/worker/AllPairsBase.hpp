@@ -286,6 +286,11 @@ namespace AllPairs {
                   APPLICATION_ABORT;
                }
             }
+            else if(question == WORKER_COMMAND_QUIT)
+            {
+               server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+               return WORKER_COMMAND_QUIT;
+            }
             else
             {
                APPLICATION_ABORT;

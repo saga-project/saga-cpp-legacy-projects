@@ -347,14 +347,23 @@ namespace AllPairs {
          }
 
          void sendQuit_(void) {
-            /*std::vector<saga::url> workers = workersDir_.list("*");
-            std::vector<saga::url>::iterator workersIT = workers.begin();
-            while(workersIT != workers.end())
-            {
-               saga::advert::directory indWorker(*workersIT, saga::advert::ReadWrite);
-               indWorker.set_attribute("COMMAND", WORKER_COMMAND_QUIT);
-               workersIT++;
-            }*/
+            saga::url url("tcp://localhost:8000");
+            char buff[255];
+            try {
+               saga::stream::server *service = new saga::stream::server(url);
+               saga::stream::stream worker = service->serve();
+               std::string message("Established connection to ");
+               message += worker.get_url().get_string();
+               log->write(message, LOGLEVEL_INFO);
+               worker.write(saga::buffer(WORKER_COMMAND_QUIT, 4));
+               saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+               if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
+               {
+                  log->write(std::string("Misbehaving worker!"), LOGLEVEL_WARNING);
+               }
+            }
+            catch(saga::exception const & e) {
+            }
          }
 
       };
