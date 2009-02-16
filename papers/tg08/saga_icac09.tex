@@ -482,6 +482,7 @@ required to solve the system of equations.
 %to solve the system of equations, which would vary the runtime as well
 %as memory cost.
 
+\yye00{This needs rework, we have a new motivation now}
 Hence a mechanism to assign models to available resources based on
 their expected time to completion and resource requirement is useful.
 Such a mechanism would estimate the time a model will spend in the
@@ -714,6 +715,31 @@ and of course node failure.
 
 \jhanote{Yaakoub: What the most commonly required self-* attributes?
   What self-* attributes does Lazarus support/address?}
+\yyenote{Just added, please go over the following 2 subsections}
+
+\subsubsection{Autonomy}
+The Lazarus framework contains several aspects of autonomy: it has self-configuration (deployment on resources), self optimization (using BQP data), self monitoring (checking
+its own output) and of course self healing (resubmission of faulty simulations). These
+aspects have been implemented with varying level of intelligence: the self optimization
+for example is a basic algorithm that uses BQP data to assign big-jobs to resources,
+but does not take into consideration bandwidth requirement and the cost of copying files
+across machines. The self-healing on another hand can typically resurrect jobs
+that fail due to node failure as opposed to software failure. Many autonomic features
+of Lazarus will find their way into the FAUST framework, where they will be improved to
+incorporate sophisticated inherent intelligence.
+
+\subsubsection{Fault Tolerance}
+Lazarus has built in self-healing capabilities. These capabilities rely on
+a tool-check/calibration test and output file checks. After all simulations
+have finished and their output files are copied over, Lazarus proceeds to
+perform a tool-check on a sane file. The purpose of the tool-check is to make sure
+the tools that will be used in checking the output files from the simulations
+are available and behave according to expectations. Once the tools are verified,
+they are used to check the output of all the simulations. If a simulation is found
+to have missing, incomplete or otherwise faulty output, it is flagged for resubmission.
+After all output is checked, the faulty simulations are resubmitted and upon termination,
+all output is checked again. Upon success, Lazarus proceeds to the next stage.
+
 
 \subsubsection{BQP}
 BQP: Batch Queue Predictor ~\cite{bqp} is a tool that is available on
@@ -758,6 +784,7 @@ script.  \yyenote{I am have BQP data in table form, do you want it
 % perspective, we leave the co-scheduling of these M resources to HARC
 % which is an implementation of Paxos (two-phase) Commit Algorithm. We
 % will report on the interfacing of HARC with SAGA in the future.
+
 
 \section{Application Implementation and Control Flow} 
 
