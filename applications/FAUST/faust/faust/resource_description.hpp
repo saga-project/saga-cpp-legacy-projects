@@ -96,8 +96,10 @@ namespace faust
     
   public:
 
+		/// @cond - Exclude from Doxygen
     typedef faust::impl::object implementation_base_type;
-
+		/// @endcond
+		
     /*! \brief Creates a new %resource_description for a physical %resource.
      *
      */
@@ -109,7 +111,7 @@ namespace faust
      */
     resource_description(std::string XMLFileName);
     
-    /*! \brief Destroys this %resource_description.
+    /*! \brief Destroys this %object.
      *
      */
     ~resource_description();

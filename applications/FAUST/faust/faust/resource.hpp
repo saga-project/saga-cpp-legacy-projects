@@ -38,23 +38,24 @@ namespace faust
     boost::shared_ptr <faust::impl::resource> get_impl (void) const;
     
   public:
-    /*! \brief Creates a new %resource %object for a pysical %resource
-     *         described by a %resource_description.
+    /*! \brief Creates a new %resource %object representing a pysical %resource
+     *         described by the %resource_description RD.
      */
     explicit resource(faust::resource_description RD);
     
-    /*! \brief Destroys this %resource.
+    /*! \brief Shuts down the faust agent associated with this %resource and 
+		 *         destroys this %object.
      *
      */
     ~resource();
     
-    /*! \brief Returns the resource_description object that was used to 
+    /*! \brief Returns the resource_description %object that was used to 
      *         construct this %resource instance.
      */ 
     faust::resource_description get_description();
     
-    /*! \brief Returns the resource_monitor object that contains informations
-     *         about the physical %resource this %resource instance is 
+    /*! \brief Returns the resource_monitor %object that contains informations
+     *         about the physical %resource this %resource %object is 
      *	   		 associated with.
      */ 
     faust::resource_monitor get_monitor();      

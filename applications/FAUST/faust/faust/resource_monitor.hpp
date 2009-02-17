@@ -90,8 +90,8 @@ namespace faust
     /** These methods are not within API scope */
     friend struct saga::detail::attribute<faust::resource_monitor>;
     friend class faust::impl::resource_monitor;
+		resource_monitor(); // No public default constructor
     /// @endcond
-		resource_monitor(); // No default constructor
     
   private:
     
@@ -99,8 +99,14 @@ namespace faust
     void setupAttributes();
 
   public:
+		
+		/// @cond - Exclude from Doxygen
     typedef faust::impl::object implementation_base_type;
-
+		/// @endcond
+		
+		/*! \brief Destroys this %object.
+     *
+     */
     ~resource_monitor();
     
   };
