@@ -13,6 +13,8 @@
 #ifndef FAUST_IMPL_OBJECT_HPP
 #define FAUST_IMPL_OBJECT_HPP
 
+#include <saga/saga.hpp>
+
 #include <boost/noncopyable.hpp>
 
 #include <faust/faust/object.hpp>
@@ -37,6 +39,12 @@ namespace faust
       virtual ~object (void) {}
       
       faust::object::type get_type() const;
+      
+      // get_attributes returns the internal implementation of the 
+      // impl::attributes interface
+      
+      virtual saga::impl::attribute* get_attributes();
+      virtual saga::impl::attribute const* get_attributes() const;
       
     };
     //

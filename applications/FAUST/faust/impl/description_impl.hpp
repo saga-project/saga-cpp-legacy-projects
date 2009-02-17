@@ -31,8 +31,8 @@ namespace faust
       
     public:
       
-      job_description();
-      job_description(std::string XMLFileName);
+      job_description() : object(faust::object::Description) {};
+      job_description(std::string XMLFileName) : object(faust::object::Description) {};
       
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }

@@ -52,23 +52,23 @@ namespace faust
       char const* const dir_quota_total_cmd     = "dir_quota_total_cmd";
       
       /*! \brief Command to retrieve the amount of used quota in this directory (in kB)
-       *         <br>(example: <code>quota | awk '/home/ {print $2}</code>'</code>) */
+       *         <br>(example: <code>quota | awk '/home/ {print $2}'</code>) */
       char const* const dir_quota_used_cmd      = "dir_quota_used_cmd";
       
       /*! \brief Your own identifier for this queue
-       *         <br>(example: <code>queue1) */
+       *         <br>(example: <code>queue1</code>) */
       char const* const queue_id                = "queue_id";
       
       /*! \brief Name of the queue
-       *         <br>(example: <code>workq) */
+       *         <br>(example: <code>workq</code>) */
       char const* const queue_name              = "queue_name";
       
       /*! \brief Command to retrieve the total number of nodes for this queue
-       *         <br>(example: <code>qfree | awk '/workq/ {print $4}</code>' | tr -d ,)*/
+       *         <br>(example: <code>qfree | awk '/workq/ {print $4}' | tr -d ,</code>)*/
       char const* const queue_nodes_total_cmd   = "queue_nodes_total_cmd";
       
       /*! \brief Command to retrieve the number of currently free nodes for this queue
-       *         <br>(example: <code>qfree | awk '/workq/ {print $6}</code>' | tr -d ,)*/
+       *         <br>(example: <code>qfree | awk '/workq/ {print $6}' | tr -d ,</code>)*/
       char const* const queue_nodes_free_cmd    = "queue_nodes_free_cmd";
     }
   }
@@ -95,7 +95,9 @@ namespace faust
     void setupAttributes();
     
   public:
-    
+
+    typedef faust::impl::object implementation_base_type;
+
     /*! \brief Creates a new %resource_description for a physical %resource.
      *
      */
@@ -107,9 +109,10 @@ namespace faust
      */
     resource_description(std::string XMLFileName);
     
-    /// @cond - Exclude from Doxygen
+    /*! \brief Destroys this %resource_description.
+     *
+     */
     ~resource_description();
-    /// @endcond - Exclude from Doxygen
 		
   };
 }

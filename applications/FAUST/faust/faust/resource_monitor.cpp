@@ -10,6 +10,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include <saga/saga.hpp>
+#include <saga/saga/detail/attribute_impl.hpp>
 
 #include <boost/assign/list_inserter.hpp>
 #include <boost/assign/std/vector.hpp>
@@ -84,3 +86,11 @@ resource_monitor::~resource_monitor()
   
 }
 
+/////////////////////////////////////////////////////////////////////////////
+//  implement the attribute functions (we need to explicitly specialize 
+//  the template because the functions are not implemented inline)
+template struct saga::detail::attribute<faust::resource_monitor>;
+
+template struct saga::detail::attribute_priv<faust::resource_monitor, saga::task_base::Sync>;
+template struct saga::detail::attribute_priv<faust::resource_monitor, saga::task_base::Async>;
+template struct saga::detail::attribute_priv<faust::resource_monitor, saga::task_base::Task>;

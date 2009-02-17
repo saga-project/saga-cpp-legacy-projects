@@ -10,6 +10,9 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include <saga/saga.hpp>
+#include <saga/saga/detail/attribute_impl.hpp>
+
 #include <boost/assign/list_inserter.hpp>
 #include <boost/assign/std/vector.hpp>
 
@@ -81,4 +84,13 @@ job_description::~job_description()
 {
   
 }
+
+/////////////////////////////////////////////////////////////////////////////
+//  implement the attribute functions (we need to explicitly specialize 
+//  the template because the functions are not implemented inline)
+template struct saga::detail::attribute<faust::job_description>;
+
+template struct saga::detail::attribute_priv<faust::job_description, saga::task_base::Sync>;
+template struct saga::detail::attribute_priv<faust::job_description, saga::task_base::Async>;
+template struct saga::detail::attribute_priv<faust::job_description, saga::task_base::Task>;
 

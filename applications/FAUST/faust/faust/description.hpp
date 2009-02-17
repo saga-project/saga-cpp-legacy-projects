@@ -61,6 +61,9 @@ namespace faust
     
   public:
     
+    typedef faust::impl::object implementation_base_type;
+
+    
     /*! \brief Creates a new %description instance.
      *
      */

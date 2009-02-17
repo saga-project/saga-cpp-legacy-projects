@@ -28,3 +28,19 @@ faust::object::type object::get_type() const
 {
   return type_;
 }
+
+///////////////////////////////////////////////////////////////////////////
+//
+saga::impl::attribute* object::get_attributes()
+{
+  // TODO throw exception  
+  return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////
+//
+saga::impl::attribute const* object::get_attributes() const
+{
+  // TODO throw exception
+  return NULL;
+}
