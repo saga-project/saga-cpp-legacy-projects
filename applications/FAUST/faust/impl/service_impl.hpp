@@ -22,6 +22,8 @@
 #include <faust/faust/state.hpp>
 #include <faust/faust/dependency.hpp>
 #include <faust/faust/job.hpp>
+#include <faust/faust/resource.hpp>
+
 
 #include <faust/impl/logwriter.hpp>
 #include <faust/impl/object_impl.hpp>
@@ -53,7 +55,7 @@ namespace faust
       
     public:
       
-      explicit service_impl (std::vector<faust::resource_description> resource_descriptions, 
+      explicit service_impl (std::vector<faust::resource> resource_descriptions, 
                              int num_jobs);
       ~service_impl();
       

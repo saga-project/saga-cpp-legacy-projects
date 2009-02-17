@@ -20,7 +20,7 @@
 #include <faust/faust/state.hpp>
 #include <faust/faust/job.hpp>
 #include <faust/faust/job_group.hpp>
-#include <faust/faust/description.hpp>
+#include <faust/faust/resource.hpp>
 #include <faust/faust/dependency.hpp>
 
 
@@ -30,19 +30,6 @@ namespace faust
   ///@cond - exclude from Doxygen
   namespace impl { class service_impl; }
   ///@endcond - exclude from Doxygen
-
-   
-    /*! \brief This structure defines a computing %resource_description. A list of 
-     *         resource_descriptions is used to create a %faust %job 
-     *         %service instance.
-     *  
-     */
-    struct resource_description {
-      saga::url    contact;
-      saga::url    workdir;
-      std::string  queue;
-      std::string  project;
-    };
     
     class job; class job_group;
     
@@ -87,7 +74,7 @@ namespace faust
        *                   expect to run (scheduling hint).
        *  
        */
-      explicit service (std::vector<resource_description> resource_descriptions, int num_jobs);
+      explicit service (std::vector<faust::resource> resource_descriptions, int num_jobs);
       
       /*! \brief  Shuts down this %faust %service instance.
        *

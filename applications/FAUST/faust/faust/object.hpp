@@ -65,6 +65,9 @@ namespace faust {
     explicit object(faust::impl::object *obj, faust::object::type tp);
     explicit object (boost::shared_ptr<faust::impl::object> init, faust::object::type tp);
   
+    /*! \brief Returns the type of this %object.
+     *
+     */
     faust::object::type get_type() const;
         
   private:

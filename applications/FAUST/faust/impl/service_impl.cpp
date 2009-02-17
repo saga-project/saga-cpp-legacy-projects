@@ -29,12 +29,12 @@ using namespace faust::impl;
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 //
-service_impl::service_impl (std::vector<faust::resource_description> resource_descriptions, int num_jobs)
+service_impl::service_impl (std::vector<faust::resource> resource_descriptions, int num_jobs)
 : object(faust::object::Service)
 {
   using namespace saga::job;
   
-  // Initialize log service for this instance
+ /* // Initialize log service for this instance
   std::string identifier(FW_NAME);
   identifier.append(" faust::service");
   log_ = new detail::logwriter(identifier, std::cout);
@@ -45,7 +45,7 @@ service_impl::service_impl (std::vector<faust::resource_description> resource_de
   // check if the given hosts, queues, projects are valid!
   unsigned int fails = 0;
   
-  std::vector<faust::resource_description>::iterator i;
+  std::vector<faust::resource>::iterator i;
   for(i = resource_descriptions.begin(); i != resource_descriptions.end(); ++i)
   {
     saga::url contact((*i).get_attribute("resource_description"));
@@ -69,11 +69,11 @@ service_impl::service_impl (std::vector<faust::resource_description> resource_de
       log_->write(msg, LOGLEVEL_ERROR); 
       
       continue; // we don't want to try queueing if this stage already fails!
-    }
+    }*/
     
     // Try to queue a sample dummy job to see if the queue and project 
     // informations a valid. If it fails, remove this entry from the list.
-    try {
+  //  try {
       /*std::string msg("Queuing sample job on: " + (*i).contact.get_url());
       msg.append(" (queue="+(*i).queue+", project="+(*i).project+")");
       log_->write(msg, LOGLEVEL_INFO);
@@ -94,7 +94,7 @@ service_impl::service_impl (std::vector<faust::resource_description> resource_de
       // Host description seems to work properly. Add it to our
       // internal host list.
       resource_descriptions_.insert(resource_descriptions_pair((*i).contact.get_url(), (*i)));*/
-    }
+ /*   }
     catch(saga::exception const & e)
     {
      /* ++fails;
@@ -103,15 +103,15 @@ service_impl::service_impl (std::vector<faust::resource_description> resource_de
       std::string msg("Cannot queue a sample job on: " + (*i).contact.get_url());
       msg.append(". Removing entry from resource_description list." );
       log_->write(msg, LOGLEVEL_ERROR);  */
-    }
-  }
+    //}
+  //}
   
   // if we don't have any working execution hosts, abort!
-  if(fails == resource_descriptions.size()) {
+ /* if(fails == resource_descriptions.size()) {
     log_->write("No usable resource_descriptions available. Aborting.", LOGLEVEL_FATAL); 
     exit(-1);
     // FATAL -> THROW Exception! 
-  }
+  }*/
   
 }
 

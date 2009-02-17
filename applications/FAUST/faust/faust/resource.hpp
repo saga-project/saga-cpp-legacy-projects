@@ -27,34 +27,38 @@ namespace faust
   // fwd. decl. implementation class 
   namespace impl { class resource; } 
   ///@endcond - exclude from Doxygen
-
-    class  resource : public faust::object
-    {
-    private:
-			resource() {}; // No default constructor
-			boost::shared_ptr <faust::impl::resource> get_impl (void) const;
-			
-    public:
-			/*! \brief Creates a new %resource %object for a pysical %resource
-			 *         described by a %resource_description.
-			 */
-      explicit resource(faust::resource_description RD);
-						
-			///@cond - exclude from Doxygen
-      ~resource();
-			///@endcond - exclude from Doxygen
-      
-			/*! \brief Returns the resource_description object that was used to 
-			 *         construct this %resource instance.
-			 */ 
-      faust::resource_description get_description();
-
-			/*! \brief Returns the resource_monitor object that contains informations
-			 *         about the physical %resource this %resource instance is 
-			 *	   		 associated with.
-			 */ 
-			faust::resource_monitor get_monitor();      
-    };
+  
+  /*! \brief Class description
+   *
+   */
+  class  resource : public faust::object
+  {
+  private:
+    resource() {}; // No default constructor
+    boost::shared_ptr <faust::impl::resource> get_impl (void) const;
+    
+  public:
+    /*! \brief Creates a new %resource %object for a pysical %resource
+     *         described by a %resource_description.
+     */
+    explicit resource(faust::resource_description RD);
+    
+    /*! \brief Destroys this %resource.
+     *
+     */
+    ~resource();
+    
+    /*! \brief Returns the resource_description object that was used to 
+     *         construct this %resource instance.
+     */ 
+    faust::resource_description get_description();
+    
+    /*! \brief Returns the resource_monitor object that contains informations
+     *         about the physical %resource this %resource instance is 
+     *	   		 associated with.
+     */ 
+    faust::resource_monitor get_monitor();      
+  };
 }
 
 #endif /* FAUST_RESOURCE_HPP */

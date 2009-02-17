@@ -27,8 +27,8 @@ boost::shared_ptr <faust::impl::service_impl> service::get_impl (void) const
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-service::service (std::vector<resource_description> resource_descriptions, int num_jobs)
-: faust::object (new faust::impl::service_impl(resource_descriptions, num_jobs), object::Service)
+service::service (std::vector<faust::resource> resource_vector, int num_jobs)
+: faust::object (new faust::impl::service_impl(resource_vector, num_jobs), object::Service)
 {
 }
 

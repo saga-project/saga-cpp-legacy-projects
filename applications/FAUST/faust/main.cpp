@@ -16,7 +16,7 @@
 
 int main (int argc, char* argv[])
 {
-  std::vector<faust::resource_description> hostlist;
+/*  std::vector<faust::resource_description> hostlist;
   faust::resource_description h1, h2, h3;
   
   h1.contact = "gram://gatekeeper.lonestar.tacc.teragrid.org:2119/jobmanager-lsf";
@@ -61,6 +61,6 @@ int main (int argc, char* argv[])
   }
   //
   //////////////////////////////////////////////////////////////////////////////
-  
+  */
   return 0;
 }
