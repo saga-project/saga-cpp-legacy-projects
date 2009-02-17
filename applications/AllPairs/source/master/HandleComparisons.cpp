@@ -97,7 +97,8 @@ namespace AllPairs
             read_bytes = worker.read(saga::buffer(buff));
             if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
             {
-               std::cerr << "Worker did not accept chunk!" << std::endl;
+               message = std::string("Worker did not accept chunk!");
+               log_->write(message, LOGLEVEL_WARNING);
                break;
             }
 
@@ -179,7 +180,7 @@ namespace AllPairs
        }
        catch(saga::exception const & e) {
           std::string message(e.what());
-          //log->write(message, LOGLEVEL_ERROR);
+          log_->write(message, LOGLEVEL_ERROR);
        }
     }
  }

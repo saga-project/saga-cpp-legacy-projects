@@ -237,9 +237,7 @@ namespace AllPairs {
             while(fileListBaseIT != fileListBase.end()) {
                try
                {
-                  std::cerr << "baselist not empty: " << fileListBaseIT->name << std::endl;
                   std::string message("Adding new chunk base" + fileListBaseIT->name + "...");
-                  std::cout << message << std::endl;
                   saga::advert::entry adv = baseFilesDir_.open(saga::url("base-" + boost::lexical_cast<std::string>(successCounter)), mode);
                   adv.store_string(fileListBaseIT->name);
                   message += "SUCCESS";
@@ -260,7 +258,6 @@ namespace AllPairs {
             successCounter=0;
             while(fileListFragmentIT != fileListFragment.end()) {
                try {
-                  std::cerr << "fragment not empty:" << fileListFragmentIT->name << std::endl;
                   std::string message("Adding new chunk fragment " + fileListFragmentIT->name + "...");
                   saga::advert::entry adv = fragmentFilesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
                   adv.store_string(fileListFragmentIT->name);
