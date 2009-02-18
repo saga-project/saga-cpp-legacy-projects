@@ -29,6 +29,10 @@ vector<BinaryDescription> ConfigFileParser::getExecutableList() {
    return binDescList_;
 }
 
+vector<CompareDescription> ConfigFileParser::getCompareList() {
+   return compareDescList_;
+}
+
 vector<FileDescription> ConfigFileParser::getFileListBase() {
    return fileDescListBase_;
 }
@@ -47,7 +51,7 @@ void ConfigFileParser::parse_(void) {
       XMLNode xMainNode=XMLNode::openFileHelper(cfgFilePath_.c_str(),"APDL");
       xMainNode = xMainNode.getChildNode("AllPairsSession");
       // parse the TaskFarmingSession node
-      if( NULL != xMainNode.getAttribute("name") )		
+      if( NULL != xMainNode.getAttribute("name") )    
          sessionDesc_.name = xMainNode.getAttribute("name");
       if( NULL != xMainNode.getAttribute("version") )
          sessionDesc_.version = xMainNode.getAttribute("version");
@@ -78,7 +82,7 @@ void ConfigFileParser::parse_(void) {
          if(NULL != tmpNode.getAttribute("OS"))
             hd.hostOS=tmpNode.getAttribute("OS"); else complete = false;
          if(NULL != tmpNode.getText())
-            hd.rmURL = tmpNode.getText(); else complete = false;	
+            hd.rmURL = tmpNode.getText(); else complete = false;  
          if(complete)
             targetHostList_.push_back(hd);
          else {
@@ -143,6 +147,25 @@ void ConfigFileParser::parse_(void) {
          }
          else
             fileDescListFragment_.push_back(fd);
+      }
+      int x = 0;
+      while(1) {
+         XMLNode xCompareNode = xMainNode.getChildNode("Compare", x);
+         if(xCompareNode.isEmpty()) break;
+         if( NULL != xCompareNode.getAttribute("fragments")) {
+            CompareDescription compareTemp;
+            compareTemp.fragments = xCompareNode.getAttribute("fragments");
+            if( NULL != xCompareNode.getAttribute("bases")) {
+               compareTemp.bases = xCompareNode.getAttribute("bases");
+            }
+            else {
+               std::string message("XML Parser: Incomplete Compare section found \n Example <Compare fragments=\"file://..\" bases=\"file?..\"/>");
+               log_->write(message, LOGLEVEL_ERROR);
+               break;
+            }
+            compareDescList_.push_back(compareTemp);
+            x++;
+         }
       }
    }
    catch(xmlParser::exception const &e) {

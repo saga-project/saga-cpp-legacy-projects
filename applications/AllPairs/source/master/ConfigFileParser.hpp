@@ -42,6 +42,11 @@ namespace AllPairs {
       struct FileDescription {
          std::string name;
       };
+      
+      struct CompareDescription {
+         std::string fragments;
+         std::string bases;
+      };
    
       // Parses a Task Farming config file 
       class ConfigFileParser {
@@ -50,22 +55,23 @@ namespace AllPairs {
          LogWriter*  log_;
       
          SessionDescription        sessionDesc_;
-         std::vector<HostDescription>   targetHostList_;
-         std::vector<BinaryDescription> binDescList_;
-         std::vector<FileDescription>   fileDescListBase_;
-         std::vector<FileDescription>   fileDescListFragment_;
-        
+         std::vector<HostDescription>    targetHostList_;
+         std::vector<BinaryDescription>  binDescList_;
+         std::vector<FileDescription>    fileDescListBase_;
+         std::vector<FileDescription>    fileDescListFragment_;
+         std::vector<CompareDescription> compareDescList_;
          void parse_(void);
 
         public:
          ConfigFileParser();
          ConfigFileParser(std::string cfgFilePath, LogWriter &log);
         
-         SessionDescription             getSessionDescription(void);
-         std::vector<BinaryDescription> getExecutableList(void);
-         std::vector<HostDescription>   getTargetHostList(void);
-         std::vector<FileDescription>   getFileListBase(void);
-         std::vector<FileDescription>   getFileListFragment(void);
+         SessionDescription              getSessionDescription(void);
+         std::vector<BinaryDescription>  getExecutableList(void);
+         std::vector<HostDescription>    getTargetHostList(void);
+         std::vector<FileDescription>    getFileListBase(void);
+         std::vector<FileDescription>    getFileListFragment(void);
+         std::vector<CompareDescription> getCompareList(void);
         
       };
    } //namespace Master
