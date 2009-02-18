@@ -18,8 +18,7 @@ int main (int argc, char* argv[])
 {
   std::vector<std::string> dir_ids, dir_path, dir_dev_space_total_cmd;
   
-  
-  faust::resource_description rd;
+  faust::resource_description queenbee_rd;
 
   // A directory description
   dir_ids.push_back("my_work_dir");
@@ -31,12 +30,11 @@ int main (int argc, char* argv[])
   dir_path.push_back("/work/");
   dir_dev_space_total_cmd.push_back("df . | awk '/\// {print $2}'");
 
-  rd.set_vector_attribute("dir_id", dir_ids);
-  rd.set_vector_attribute("dir_path", dir_path);
-  rd.set_vector_attribute("dir_dev_space_total_cmd", dir_dev_space_total_cmd);
+  queenbee_rd.set_vector_attribute("dir_id", dir_ids);
+  queenbee_rd.set_vector_attribute("dir_path", dir_path);
+  queenbee_rd.set_vector_attribute("dir_dev_space_total_cmd", dir_dev_space_total_cmd);
   
-  
-  std::cout << rd.get_vector_attribute("dir_id").size() << std::endl;
+  faust::resource queenbee(queenbee_rd);
   
 /*  std::vector<faust::resource_description> hostlist;
   faust::resource_description h1, h2, h3;
