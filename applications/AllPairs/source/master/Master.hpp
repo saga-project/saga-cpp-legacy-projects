@@ -47,8 +47,8 @@ namespace AllPairs {
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
             
             // create a UUID for this agent
-            //uuid_ = uuid().string();  //Temporarily disabled
-            uuid_ = "DUMMY-UUID";
+            uuid_ = saga::uuid().string();  //Temporarily disabled
+            //uuid_ = "DUMMY-UUID";
             
             saga::url advertKey(std::string(database_ + "//" + uuid_ + "/log"));
             logURL_ = advertKey;
@@ -346,20 +346,37 @@ namespace AllPairs {
          void sendQuit_(void) {
             saga::url url("tcp://localhost:8000");
             char buff[255];
+            int successCounter = 0;
+            int workersSize = workersDir_.list("*").size();
+            std::vector<saga::url> list = workersDir_.list("*");
+            for(std::vector<saga::url>::iterator it = list.begin();it != list.end(); ++it) {
+               std::cerr << "elem: " << it->get_string() << std::endl;
+            }
+            std::cerr << "got size: " << workersSize << std::endl;
             try {
-               saga::stream::server *service = new saga::stream::server(url);
-               saga::stream::stream worker = service->serve();
-               std::string message("Established connection to ");
-               message += worker.get_url().get_string();
-               log->write(message, LOGLEVEL_INFO);
-               worker.write(saga::buffer(WORKER_COMMAND_QUIT, 4));
-               saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-               if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
+               while(successCounter < workersSize)
                {
-                  log->write(std::string("Misbehaving worker!"), LOGLEVEL_WARNING);
+                  saga::stream::server *service = new saga::stream::server(url);
+                  saga::stream::stream worker = service->serve(10);
+                  std::string message("Established connection to ");
+                  message += worker.get_url().get_string();
+                  log->write(message, LOGLEVEL_INFO);
+                  worker.write(saga::buffer(WORKER_COMMAND_QUIT, 4));
+                  saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+                  if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
+                  {
+                     log->write(std::string("Misbehaving worker!"), LOGLEVEL_WARNING);
+                  }
+                  else
+                  {
+                     successCounter++;
+                  }
+                  service->close();
+                  delete service;
                }
             }
             catch(saga::exception const & e) {
+               std::cerr << e.what() << std::endl;
             }
          }
 

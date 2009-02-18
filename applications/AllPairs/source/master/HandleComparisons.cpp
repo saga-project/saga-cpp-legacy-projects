@@ -23,6 +23,12 @@ namespace AllPairs
        std::cerr << "saga::exception caught: " << e.what() << std::endl;
     }
  }
+
+ HandleComparisons::~HandleComparisons()
+ {
+    service_->close();
+    delete service_;
+ }
 /*********************************************************
  * assignReduces is the only public function that tries  *
  * to assign reduce files to idle workers                *
@@ -63,6 +69,12 @@ namespace AllPairs
             if(finished_.size() == fragmentFiles_.size())
             {
                //Prevent unneccessary work assignments
+               worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
+               saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+               if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
+               {
+                  log_->write(std::string("Misbehaving worker!"), LOGLEVEL_WARNING);
+               }
                return;
             }
             saga::url fragmentFile(get_file_());

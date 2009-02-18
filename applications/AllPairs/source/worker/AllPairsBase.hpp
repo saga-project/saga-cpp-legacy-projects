@@ -49,7 +49,7 @@ namespace AllPairs {
       int run(void) {
          try {
            registerWithDB(); //Connect and create directories in database
-           mainLoop(5);      //sleep interval of 5
+           mainLoop();
          }
          catch (saga::exception const & e) {
             std::cerr << "AllPairs::run : Exception caught : " << e.what() << std::endl;
@@ -187,7 +187,7 @@ namespace AllPairs {
        * for commands and begins working when a proper command *
        * discovered.                                           *
        * ******************************************************/
-      void mainLoop(unsigned int updateInterval) {
+      void mainLoop() {
          int mode = saga::advert::ReadWrite | saga::advert::Create;
          while(1) {
             std::string command(getFrontendCommand_());
@@ -281,6 +281,12 @@ namespace AllPairs {
                   }
                   return getFrontendCommand_();
                }
+               if(question == MASTER_REQUEST_IDLE)
+               {
+                  state_ = WORKER_STATE_IDLE;
+                  server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                  return getFrontendCommand_();
+               }
                else
                {
                   APPLICATION_ABORT;
@@ -297,10 +303,12 @@ namespace AllPairs {
             }
          }
          catch(saga::exception const & e) {
-            sleep(5);
+            sleep(1);
             std::cout << "Couldn't connect, try again" << std::endl;
             if(depth > 20)
+            {
                return WORKER_COMMAND_QUIT;
+            }
             return getFrontendCommand_();
          }
          // get command number & reset the attribute to "" 

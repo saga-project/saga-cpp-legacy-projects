@@ -16,6 +16,7 @@ namespace AllPairs {
    class HandleComparisons {
      public:
       HandleComparisons(std::vector<saga::url> &fragmentFiles, LogWriter *log);
+      ~HandleComparisons();
       void assignWork();
      private:
       void issue_command_();
