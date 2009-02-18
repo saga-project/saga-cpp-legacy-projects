@@ -202,8 +202,9 @@ class many_job_service():
         self.print_stats(self.submisssion_times, "Submission Times")
 
     def print_stats(self, times, description):
+        n = len(times)
         sum = reduce(operator.add, times)
-        mean = sum/len(times)
+        mean = sum/n
         variance=0
         for i in times:
             variance += (i - mean)**2
