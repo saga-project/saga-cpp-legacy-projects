@@ -10,9 +10,9 @@
 #include "../xmlParser/xmlParser.h"
 
 using namespace AllPairs::Master;
-using namespace std;
 
 ConfigFileParser::ConfigFileParser() {
+   //compareDescList_ = new std::vector<std::vector <CompareDescription> >();
 }
 
 ConfigFileParser::ConfigFileParser(std::string cfgFilePath, AllPairs::LogWriter &log)
@@ -25,23 +25,23 @@ SessionDescription ConfigFileParser::getSessionDescription() {
    return sessionDesc_;
 }
 
-vector<BinaryDescription> ConfigFileParser::getExecutableList() {
+std::vector<BinaryDescription> ConfigFileParser::getExecutableList() {
    return binDescList_;
 }
 
-vector<CompareDescription> ConfigFileParser::getCompareList() {
+std::vector<std::vector<CompareDescription> > ConfigFileParser::getCompareList() {
    return compareDescList_;
 }
 
-vector<FileDescription> ConfigFileParser::getFileListBase() {
+std::vector<FileDescription> ConfigFileParser::getFileListBase() {
    return fileDescListBase_;
 }
 
-vector<FileDescription> ConfigFileParser::getFileListFragment() {
+std::vector<FileDescription> ConfigFileParser::getFileListFragment() {
    return fileDescListFragment_;
 }
 
-vector<HostDescription> ConfigFileParser::getTargetHostList() {
+std::vector<HostDescription> ConfigFileParser::getTargetHostList() {
    return targetHostList_;
 }
 
@@ -148,24 +148,27 @@ void ConfigFileParser::parse_(void) {
          else
             fileDescListFragment_.push_back(fd);
       }
-      int x = 0;
-      while(1) {
-         XMLNode xCompareNode = xMainNode.getChildNode("Compare", x);
-         if(xCompareNode.isEmpty()) break;
-         if( NULL != xCompareNode.getAttribute("fragments")) {
+      int numCompares = xMainNode.nChildNode("CompareAssignment");
+      for(int i = 0; i < numCompares; ++i) {
+         xNode = xMainNode.getChildNode("CompareAssignment", i);
+         k = xNode.nChildNode("Compare");
+         std::vector<CompareDescription> comparisons;
+         for(int j = 0; j < k; ++j) {
             CompareDescription compareTemp;
-            compareTemp.fragments = xCompareNode.getAttribute("fragments");
-            if( NULL != xCompareNode.getAttribute("bases")) {
-               compareTemp.bases = xCompareNode.getAttribute("bases");
+            XMLNode xCompareNode = xNode.getChildNode("Compare", j);
+
+            if((NULL != xCompareNode.getAttribute("fragments")) && (NULL != xCompareNode.getAttribute("bases"))) {
+                compareTemp.fragments = xCompareNode.getAttribute("fragments");
+                compareTemp.bases = xCompareNode.getAttribute("bases");
             }
             else {
                std::string message("XML Parser: Incomplete Compare section found \n Example <Compare fragments=\"file://..\" bases=\"file?..\"/>");
                log_->write(message, LOGLEVEL_ERROR);
-               break;
+               APPLICATION_ABORT;
             }
-            compareDescList_.push_back(compareTemp);
-            x++;
+            comparisons.push_back(compareTemp);
          }
+         compareDescList_.push_back(comparisons);
       }
    }
    catch(xmlParser::exception const &e) {
