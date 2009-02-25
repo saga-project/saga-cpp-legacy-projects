@@ -14,22 +14,25 @@
 #include "version.hpp"
 
 namespace AllPairs {
+   typedef std::pair<std::string, std::string> assignment;
+   typedef std::vector<assignment> assignmentChunk;
+   typedef std::vector<assignmentChunk> assignmentChunksVector;
    class RunComparison {
      public:
-      RunComparison(saga::advert::directory workerDir,
-             std::vector<saga::url> files, AllPairs::LogWriter *log);
+      RunComparison(saga::stream::stream server, AllPairs::LogWriter *log);
       ~RunComparison();
-      saga::url getComparisons();
-      bool hasComparisons();
-     private:
-      saga::advert::directory sessionBaseDir_;
+      assignment getAssignment();
+      assignmentChunk getAssignmentChunk();
+      int getChunkID();
+      bool hasAssignment();
 
-      saga::advert::directory workerDir_;
-      std::vector<saga::url> files_;
-      std::vector<saga::url>::iterator filesIT_;
+     private:
+      assignmentChunk::iterator chunk_IT;
+      assignmentChunk           chunk_;
+      int                       chunkID_;
+      saga::stream::stream      server_;
 
       AllPairs::LogWriter *log_;
-
    }; // class RunComparison
 } // namespace AllPairs
 

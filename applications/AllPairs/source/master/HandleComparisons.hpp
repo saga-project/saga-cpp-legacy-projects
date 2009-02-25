@@ -7,27 +7,31 @@
 #define AP_HANDLE_COMPARISONS_HPP
 
 #include <string>
-#include <vector>
 #include <saga/saga.hpp>
 #include "../utils/LogWriter.hpp"
 #include "version.hpp"
+#include <vector>
 
 namespace AllPairs {
+   typedef std::pair<std::string, std::string> assignment;
+   typedef std::vector<assignment> assignmentChunk;
+   typedef std::vector<assignmentChunk> assignmentChunksVector;
    class HandleComparisons {
      public:
-      HandleComparisons(std::vector<saga::url> &fragmentFiles, LogWriter *log);
+      HandleComparisons(assignmentChunksVector &assignments, saga::url serverURL_, LogWriter *log);
       ~HandleComparisons();
       void assignWork();
      private:
-      void issue_command_();
-      saga::url get_file_();
+      void issueCommand_();
+      assignmentChunk getChunk_();
     
-      std::vector<saga::url> finished_;
-      std::vector<saga::url> assigned_;
-      std::vector<saga::url> unassigned_;
-      std::vector<saga::url> fragmentFiles_;
-      saga::stream::server *service_;
-      saga::advert::directory workerDir_;
+      std::vector<int> finished_;
+      std::vector<int> assigned_;
+      std::vector<int> unassigned_;
+      assignmentChunksVector   assignments_;
+      saga::stream::server    *service_;
+      saga::advert::directory  workerDir_;
+      saga::url serverURL_;
       LogWriter *log_;
    };
 } //Namespace AllPairs

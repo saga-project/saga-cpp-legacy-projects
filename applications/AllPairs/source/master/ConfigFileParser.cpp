@@ -45,6 +45,10 @@ std::vector<HostDescription> ConfigFileParser::getTargetHostList() {
    return targetHostList_;
 }
 
+std::string ConfigFileParser::getMasterAddress() {
+   return masterAddress_;
+}
+
 void ConfigFileParser::parse_(void) {
    std::string tmp("");
    try {
@@ -90,6 +94,17 @@ void ConfigFileParser::parse_(void) {
             log_->write(message, LOGLEVEL_ERROR);
          }
       }
+
+      // parse MasterAddress information
+      xNode = xMainNode.getChildNode("MasterAddress");
+      if(NULL != xNode.getText()) {
+         masterAddress_ = xNode.getText();
+      }
+      else {
+         std::string message("XML Parser: Incomplete MasterAddress section!");
+         log_->write(message, LOGLEVEL_ERROR);
+      }
+      
       // parse the ApplicationBinaries section
       xNode = xMainNode.getChildNode("ApplicationBinaries");
       int m=xNode.nChildNode("BinaryImage");

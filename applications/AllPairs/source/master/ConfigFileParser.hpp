@@ -59,7 +59,8 @@ namespace AllPairs {
          std::vector<BinaryDescription>                  binDescList_;
          std::vector<FileDescription>                    fileDescListBase_;
          std::vector<FileDescription>                    fileDescListFragment_;
-         std::vector<std::vector <CompareDescription> > compareDescList_;
+         std::vector<std::vector <CompareDescription> >  compareDescList_;
+         std::string                                     masterAddress_;
          void parse_(void);
 
         public:
@@ -71,7 +72,8 @@ namespace AllPairs {
          std::vector<HostDescription>                   getTargetHostList(void);
          std::vector<FileDescription>                   getFileListBase(void);
          std::vector<FileDescription>                   getFileListFragment(void);
-         std::vector<std::vector<CompareDescription> > getCompareList(void);
+         std::vector<std::vector<CompareDescription> >  getCompareList(void);
+         std::string                                    getMasterAddress(void);
         
       };
    } //namespace Master

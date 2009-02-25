@@ -31,6 +31,8 @@
 
 #define WORKER_RESPONSE_ACKNOLEDGE "ACKNOLEDGE"
 #define WORKER_RESPONSE_REJECT     "REJECT"
+#define START_CHUNK                "START"
+#define END_CHUNK                  "END" 
 
 #define ADVERT_DIR_WORKERS         "WORKERS"
 #define ADVERT_DIR_BINARIES        "BINARIES"

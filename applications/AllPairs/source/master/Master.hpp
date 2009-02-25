@@ -43,8 +43,10 @@ namespace AllPairs {
                throw;
             }
             std::string configFilePath (vm["config"].as<std::string>());
-            cfgFileParser_ = ConfigFileParser(configFilePath, *log);
+            AllPairs::LogWriter *initialLogger = new AllPairs::LogWriter(std::string(AP_MASTER_EXE_NAME), *(new saga::url("")));
+            cfgFileParser_ = ConfigFileParser(configFilePath, *initialLogger);
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
+            serverURL_     = cfgFileParser_.getMasterAddress();
             
             // create a UUID for this agent
             uuid_ = saga::uuid().string();  //Temporarily disabled
@@ -98,15 +100,17 @@ namespace AllPairs {
          time_t startupTime_;
          std::string uuid_;
          std::string database_;
-         saga::url logURL_;
-        
-         saga::advert::directory sessionBaseDir_;
-         saga::advert::directory workersDir_;
-         saga::advert::directory binariesDir_;
-         saga::advert::directory baseFilesDir_;
-         saga::advert::directory fragmentFilesDir_;
-         std::vector<saga::url> fragmentFiles_;
-         std::vector<saga::url> baseFiles_;
+         std::string serverURL_;
+         saga::url   logURL_;
+
+         assignmentChunksVector      assignments_;
+         saga::advert::directory     sessionBaseDir_;
+         saga::advert::directory     workersDir_;
+         saga::advert::directory     binariesDir_;
+         saga::advert::directory     baseFilesDir_;
+         saga::advert::directory     fragmentFilesDir_;
+         std::vector<saga::url>      fragmentFiles_;
+         std::vector<saga::url>      baseFiles_;
          std::vector<saga::job::job> jobs_;
          
          AllPairs::LogWriter * log;
@@ -158,7 +162,7 @@ namespace AllPairs {
                saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES),  mode);      //binariesDir_
                saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BASE_FILES), mode);     //baseDir_
                saga::task t3 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_FRAGMENT_FILES), mode); //fragmentDir_
-               saga::task t4 = sessionBaseDir_.open<saga::task_base::ASync>(saga::url(ADVERT_ENTRY_SERVER), mode); //server address for worker
+               saga::task t4 = sessionBaseDir_.open<saga::task_base::ASync>(saga::url(ADVERT_ENTRY_SERVER), mode);           //server address for worker
                tc.add_task(t0);
                tc.add_task(t1);
                tc.add_task(t2);
@@ -169,7 +173,7 @@ namespace AllPairs {
                baseFilesDir_     = t2.get_result<saga::advert::directory>();
                fragmentFilesDir_ = t3.get_result<saga::advert::directory>();
                saga::advert::entry address = t4.get_result<saga::advert::entry>();
-               address.store_string("tcp://localhost:8000");
+               address.store_string(serverURL_);
             }
             catch(saga::exception const & e) {
                message += e.what();
@@ -271,6 +275,41 @@ namespace AllPairs {
                   log->write(e.what(), LOGLEVEL_ERROR);
                }
             }
+            std::vector<std::vector<CompareDescription> > compareDescriptions = cfgFileParser_.getCompareList();
+            std::vector<std::vector<CompareDescription> >::iterator it = compareDescriptions.begin();
+            std::vector<std::vector<CompareDescription> >::iterator end = compareDescriptions.end();
+            int assignmentChunkID = 0;
+            while(it != end)
+            {
+               std::string message("Reading assignment " + boost::lexical_cast<std::string>(assignmentChunkID) + "...");
+               log->write(message, LOGLEVEL_INFO);
+               assignmentChunk temp;
+
+               //Give the id to the first assignment in the list
+               //Just to save comparison time later
+               assignment idAssignment;
+               idAssignment.first  = boost::lexical_cast<std::string>(assignmentChunkID);
+               idAssignment.second = boost::lexical_cast<std::string>(assignmentChunkID);
+               ++assignmentChunkID;
+               temp.push_back(idAssignment);
+
+               std::vector<CompareDescription>::iterator innerIt = it->begin();
+               std::vector<CompareDescription>::iterator innerEnd = it->end();
+               while(innerIt != innerEnd)
+               {
+                  assignment assignmentTemp;
+                  message.clear();
+                  message =  "    (" + innerIt->fragments + ", ";
+                  message += innerIt->bases + ")";
+                  assignmentTemp.first  = innerIt->fragments;
+                  assignmentTemp.second = innerIt->bases;
+                  temp.push_back(assignmentTemp);
+                  log->write(message, LOGLEVEL_INFO);
+                  ++innerIt;
+               }
+               assignments_.push_back(temp);
+               ++it;
+            }
             if(successCounter == 0) {
                log->write("No fragment files added for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
@@ -336,7 +375,7 @@ namespace AllPairs {
             }
          }
          void runComparisons_(void) {
-            HandleComparisons comparisonHandler(fragmentFiles_, log);
+            HandleComparisons comparisonHandler(assignments_, serverURL_, log);
             std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
             comparisonHandler.assignWork();
@@ -349,15 +388,11 @@ namespace AllPairs {
             int successCounter = 0;
             int workersSize = workersDir_.list("*").size();
             std::vector<saga::url> list = workersDir_.list("*");
-            for(std::vector<saga::url>::iterator it = list.begin();it != list.end(); ++it) {
-               std::cerr << "elem: " << it->get_string() << std::endl;
-            }
-            std::cerr << "got size: " << workersSize << std::endl;
             try {
                while(successCounter < workersSize)
                {
                   saga::stream::server *service = new saga::stream::server(url);
-                  saga::stream::stream worker = service->serve(10);
+                  saga::stream::stream worker = service->serve(25);
                   std::string message("Established connection to ");
                   message += worker.get_url().get_string();
                   log->write(message, LOGLEVEL_INFO);
