@@ -31,6 +31,8 @@ namespace faust
     private:
       faust::resource_description description_;
 			faust::resource_monitor monitor_;
+      
+      //faust::detail::logwriter * log_;
 			
 			resource() : object(faust::object::Resource) {};
       

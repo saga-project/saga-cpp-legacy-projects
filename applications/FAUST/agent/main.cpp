@@ -30,7 +30,7 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
     
     ("version,v", "Print version information and exit")
     
-    ("session,s", po::value<std::string>(), 
+    ("endpoint,s", po::value<std::string>(), 
      "Session UUID this agent should register with")
     
     ("database,d", po::value<std::string>(), 
@@ -52,8 +52,8 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
       return false;
     }
     
-    if (!vm.count("session")) {
-      std::cerr << "Missing session UUID: use --session" 
+    if (!vm.count("endpoint")) {
+      std::cerr << "Missing endpoint path: use --endpoint" 
       << std::endl;
       return false;
     }
@@ -82,10 +82,10 @@ int main( int argc, char** argv )
     return -2;
   
   // extract command line arguments 
-  std::string session  (vm["session"].as<std::string>());
+  std::string endpoint  (vm["endpoint"].as<std::string>());
   std::string database (vm["database"].as<std::string>());
   
-  // start the main application loop
+  // main application loop
   
   return 0;
 }

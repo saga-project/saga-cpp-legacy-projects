@@ -19,7 +19,7 @@ using namespace faust::impl;
 object::object (faust::object::type type)
 : type_(type)
 {
-  
+  uuid_ = saga::uuid().string();
 }
 
 ////////////////////////////////////////////////////////////////////////////

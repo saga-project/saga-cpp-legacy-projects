@@ -19,4 +19,33 @@ using namespace faust::impl;
 resource_monitor::resource_monitor()
 : object(faust::object::ResourceMonitor)
 {
+  // Initialize the logwriter
+  std::string identifier(FW_NAME); std::string msg("");
+  identifier.append(" faust::resource_monitor ("+uuid_+")"); 
+  log_ = new detail::logwriter(identifier, std::cout);
+  
+  msg = "Trying to connect to advert endpoint: (timeout: XXX)";
+  try {
+    // DO ADVERT STUFF (use uuid_ as key)
+    // IF OK log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
+  }
+  
+  msg = "Check if agent is still alive (timeout: XXX)";
+  try {
+    // DO ADVERT STUFF (use uuid_ as key)
+    // IF OK log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
+  }  
+  
+  // CACHING SHOULD HAPPEN ON A PER-ATTRIBUTE BASE. IF AN ATTRIBUTE IS 
+  // REQUESTED DO:
+  //   * CHECK IF EXISTS IN CACHE. IF NOT - RETRIEVE FROM DB
+  //                               IF - CHECK TIMESTAMP RETRIEVE FROM DB
+  //                                    ONLY IF POTENTIALLY NEW! 
+  
 }

@@ -20,6 +20,58 @@ resource::resource(faust::resource_description RD)
 : object(faust::object::Resource)
 {
   description_ = RD;  
+  
+  // Initialize the logwriter
+  std::string identifier(FW_NAME); std::string msg("");
+  identifier.append(" faust::resource ("+uuid_+")"); 
+  log_ = new detail::logwriter(identifier, std::cout);
+  
+  msg = ("Checking faust::resource_description for completeness: ");
+  // iterate over attributes and check for completeness
+  // IF OK log_->write(msg, LOGLEVEL_INFO);
+  // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
+                  
+  msg = "Creating advert endpoint at: ";
+  try {
+    // DO ADVERT STUFF (use uuid_ as key)
+    // IF OK log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
+  }
+  
+  msg = "Populating advert endpoint: ";
+  try {
+    // DO ADVERT STUFF (use uuid_ as key)
+    // IF OK log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
+  }
+  
+  msg = "Launching FAUST agent on: ";
+  try {
+    // DO JOB LAUNCH STUFF
+    // IF OK log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
+  }
+
+  msg = "Waiting for FAUST agent to connect to endpoint (timeout: XXX): ";
+  // WAIT FOR AGENT TO WRITE PING TO ADVERT DB
+  // IF OK log_->write(msg, LOGLEVEL_INFO);
+  // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
+  
+  
+  // AT THIS POINT EVERYTHING SHOULD BE OK - WE HAVE A RUNNING AGENT
+  // ON THE HOST DESCRIBED BY (RD) WHICH SUCCESSFULLY RECONNECTED TO
+  // THE ADVERT DATABASE. IT SHOULD START TO ADVERTISE ITS COLLECTED
+  // MONITORING INFO IMMEDIATELY 
+  
+  // NOTE: IMPLEMENT TIMESTAMP + CACHING FOR RESOURCE_MONITORS TO 
+  //       AVOID UNNECCESSARY TRAFFIC
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////

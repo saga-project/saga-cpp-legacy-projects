@@ -31,6 +31,7 @@ namespace faust
 		private:
 			std::string xmlfilename_;
       
+      
     public:
       resource_description();
       resource_description(std::string XMLFileName);

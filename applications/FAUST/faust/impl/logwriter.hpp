@@ -40,6 +40,8 @@ namespace faust
       logwriter(std::string appName);
       logwriter(std::string appName, std::ostream& logStream);
       
+      void setIdentifier(std::string identifier) {appName_ = identifier;};
+      
       ~logwriter();
       
       void write(std::string, unsigned int logLevel);

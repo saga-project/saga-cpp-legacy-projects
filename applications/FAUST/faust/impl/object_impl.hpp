@@ -18,6 +18,7 @@
 #include <boost/noncopyable.hpp>
 
 #include <faust/faust/object.hpp>
+#include <faust/impl/logwriter.hpp>
 
 namespace faust 
 {
@@ -33,10 +34,15 @@ namespace faust
       
       faust::object::type type_;
       
+    protected:
+      
+      std::string uuid_;
+      faust::detail::logwriter * log_;
+      
     public:
       
       object (faust::object::type type);
-      virtual ~object (void) {}
+      virtual ~object (void) { delete log_; }
       
       faust::object::type get_type() const;
       
