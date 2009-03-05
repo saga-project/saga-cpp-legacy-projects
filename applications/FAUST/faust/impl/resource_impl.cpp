@@ -10,9 +10,12 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include <faust/exception.hpp>
+#include <faust/resource_description.hpp>
 #include <faust/impl/resource_impl.hpp>
 
 using namespace faust::impl;
+namespace FAR = faust::attributes::resource_description;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
@@ -26,11 +29,19 @@ resource::resource(faust::resource_description RD)
   identifier.append(" faust::resource ("+uuid_+")"); 
   log_ = new detail::logwriter(identifier, std::cout);
   
+  // CHECK IF ALL REQUIRED ATTRIBUTES ARE AVAILABLE
   msg = ("Checking faust::resource_description for completeness: ");
-  // iterate over attributes and check for completeness
-  // IF OK log_->write(msg, LOGLEVEL_INFO);
-  // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
-                  
+  if(!description_.attribute_exists(FAR::agent_submit_url)) {
+    msg += "FAILED. Missing required attribute 'agent_submit_url'.";
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::BadParameter);
+  }
+  else {
+    msg += "SUCCESS.";
+    log_->write(msg, LOGLEVEL_INFO);
+  }
+                
+  // TRY TO CREATE ADVERT ENTRY FOR THIS RESOURCE
   msg = "Creating advert endpoint at: ";
   try {
     // DO ADVERT STUFF (use uuid_ as key)

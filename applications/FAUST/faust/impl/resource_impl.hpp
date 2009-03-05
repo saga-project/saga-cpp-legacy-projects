@@ -32,7 +32,9 @@ namespace faust
       faust::resource_description description_;
 			faust::resource_monitor monitor_;
       
-      //faust::detail::logwriter * log_;
+      // Persistent advert instance - used by the monitor as well!
+      friend class faust::impl::resource_monitor;
+      saga::advert::directory advert_;
 			
 			resource() : object(faust::object::Resource) {};
       

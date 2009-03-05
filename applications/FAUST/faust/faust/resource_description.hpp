@@ -31,6 +31,10 @@ namespace faust
   {
     namespace resource_description 
     {
+      /*! \brief URL for the resource manager that executes the agent
+       *         <br>(example: <code>gram://gg101.cct.lsu.edu/jobamanger-fork</code>) */
+      char const* const agent_submit_url        = "agent_submit_url";
+      
       /*! \brief Your own identifier for this directory
        *         <br>(example: <code>mydir1</code>) */
       char const* const dir_id                  = "dir_id"; 
