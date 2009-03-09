@@ -33,11 +33,15 @@ namespace faust
     private:
       
       faust::object::type type_;
+      std::string uuid_;
+      
+      static bool faust_initialized_;
+      static void initialize_faust();
       
     protected:
       
-      std::string uuid_;
       faust::detail::logwriter * log_;
+      static std::string faust_root_namesapce_;
       
     public:
       
@@ -45,6 +49,7 @@ namespace faust
       virtual ~object (void) { delete log_; }
       
       faust::object::type get_type() const;
+      std::string get_uuid() {return uuid_;}
       
       // get_attributes returns the internal implementation of the 
       // impl::attributes interface

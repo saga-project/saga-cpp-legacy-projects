@@ -38,6 +38,8 @@ void resource_description::setupAttributes()
   using namespace boost::assign;
   std::vector<std::string> valid_keys;
   valid_keys += 
+  attributes::resource_description::identifier,
+  attributes::resource_description::agent_submit_url,
   attributes::resource_description::dir_id,
   attributes::resource_description::dir_path,
   attributes::resource_description::dir_dev_space_total_cmd,
@@ -50,9 +52,10 @@ void resource_description::setupAttributes()
   this->init_keynames(valid_keys);
   
   strmap_type attributes_scalar_rw;
-  //insert(attributes_scalar_rw)
-  //(attributes::resource_description::desc01, "")
-  //;
+  insert(attributes_scalar_rw)
+  (attributes::resource_description::identifier, "")
+  (attributes::resource_description::agent_submit_url, "")
+  ;
   
   strmap_type attributes_vector_rw;
   insert(attributes_vector_rw)

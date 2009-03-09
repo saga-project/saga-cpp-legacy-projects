@@ -31,6 +31,10 @@ namespace faust
   {
     namespace resource_description 
     {
+      /*! \brief Unique identifier for this resource - usually the hostnameb
+       *         <br>(example: <code>queenbee.loni.org</code>) */
+      char const* const identifier              = "identifier";
+
       /*! \brief URL for the resource manager that executes the agent
        *         <br>(example: <code>gram://gg101.cct.lsu.edu/jobamanger-fork</code>) */
       char const* const agent_submit_url        = "agent_submit_url";

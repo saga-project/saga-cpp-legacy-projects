@@ -14,12 +14,30 @@
 
 using namespace faust::impl;
 
+// STATIC MEMBERS ///////////////////////////////////////////////////////////
+//
+std::string object::faust_root_namesapce_ = "";
+bool object::faust_initialized_ = false;
+
+void object::initialize_faust()
+{
+  if(faust_initialized_)
+    return;
+  else {
+    // INITIALIZE FAUST
+    faust_root_namesapce_ = "advert://fortytwo.cct.lsu.edu:5432//FAUST/";
+    faust_initialized_ = true;
+    return;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //
 object::object (faust::object::type type)
 : type_(type)
 {
   uuid_ = saga::uuid().string();
+  initialize_faust();
 }
 
 ////////////////////////////////////////////////////////////////////////////

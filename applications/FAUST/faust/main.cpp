@@ -30,6 +30,8 @@ int main (int argc, char* argv[])
   dir_path.push_back("/work/");
   dir_dev_space_total_cmd.push_back("df . | awk '/\// {print $2}'");
 
+  queenbee_rd.set_attribute("identifier", "queenbee.loni.org");
+  queenbee_rd.set_attribute("agent_submit_url", "gram://qb1.loni.org:2119/jobmanager-fork");
   queenbee_rd.set_vector_attribute("dir_id", dir_ids);
   queenbee_rd.set_vector_attribute("dir_path", dir_path);
   queenbee_rd.set_vector_attribute("dir_dev_space_total_cmd", dir_dev_space_total_cmd);

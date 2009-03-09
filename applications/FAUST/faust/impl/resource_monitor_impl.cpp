@@ -21,7 +21,7 @@ resource_monitor::resource_monitor()
 {
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
-  identifier.append(" faust::resource_monitor ("+uuid_+")"); 
+  identifier.append(" faust::resource_monitor ("+get_uuid()+")"); 
   log_ = new detail::logwriter(identifier, std::cout);
   
   msg = "Trying to connect to advert endpoint: (timeout: XXX)";
