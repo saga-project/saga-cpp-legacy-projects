@@ -679,19 +679,36 @@ specified characteristics is most likely to run first.  {\it The
   quickly why autonomics is the solution to the specific problem and
   then talk about the solution -- first the primitive (ie scripts)
   then the Lazarus (using BigJob and BQP).}
+\yyenote{Addressed, please have a look}  
+To reliably launch hundreds of reservoir simulations and collect the data
+they produce repeatedly across different machines,
+we needed a fast, easy to use abstraction, this lead to the use
+of BigJob abstraction ~\cite{ICCS_paper, saga_royalsoc}.
+After losing many jobs to various errors
+such as running out of allocated diskspace, hardware failure
+and file-copy failure, we quickly came to the conclusion that autonomy
+and self healing are important features that we needed to incorporate 
+in Lazarus to ensure all large scale history matching runs
+complete successfully. With fault tolerance, we no longer wasted
+thousands of SUs running simulations with missing/corrupt ensemble members.
+On the other hand, the autonomy incorporated in Lazarus, while basic,
+ensures that we optimize the job sizes to have a higher chance of getting
+through the queue without delay and that simulations
+that ran into issues or simply failed to run, are resurrected.
 
-
-For the current application, we started off using simple, portable
+For the current implementation, we started off using simple, portable
 python scripts -- based upon SAGA, that handles job-launching and data
-migration. This forms the beginnings of Lazarus which is a modular,
-scalable and extensible framework for autonomic application based upon
+migration. This makes Lazarus a modular,
+scalable and extensible framework for autonomic applications based upon
 the SAGA programming system.  Lazarus uses the bigjob
-abstraction~\cite{ICCS_paper, saga_royalsoc} to launch simulations,
+abstraction to launch simulations,
 the SAGA file adaptor python bindings to move files from one machine
-to another and BQP data from the BQP command line tool to retrieve the
-optimal location and number of bigjobs required to satisfy the
-computation power required. Lazarus also has a self healing ability
-that allows it to run a user-defined test on the data to make sure it
+to another and BQP data from a small python wrapper around the BQP command line tool
+to retrieve the optimal location and number of bigjobs required to satisfy the
+computation power required.
+
+Lazarus's healing ability depends on
+user-defined tests on the data to make sure it
 is not corrupt, missing, or otherwise defective. If a simulation is
 found to be defective it is resubmitted to be run again. This self
 resurrection ability overcomes some of the catastrophic errors
@@ -739,28 +756,40 @@ number of TeraGrid resources that allows users to make bound
 predictions of how much time a job of a giving size and duration will
 spend in the queue.  This prediction is given with a degree of
 confidence (probability) that the job will start before a certain
-deadline (i.e. the time in the queue).  This information is vital when
+deadline (i.e. the time in the queue) and quantile. Quantile value is
+in effect repeatability, that jobs of similar sizes and durations will
+have the same wait time. This information is vital when
 submitting jobs to various machines as the longer a job sits in the
 queue, the longer the delay for the entire stage.  For our application
-we use the BQP command line tools, that are called from the Lazarus
-script.
+we use the BQP command line tools, that are called through a python wrapper
+from the Lazarus script.
 
-\jhanote{Refine: } ... In a given resource list, finds the resource and
-  queue where if submitted, a reservoir simulation (or model) of a
-  given size and expected run time, will have a good chance (or high
-  confidence) of getting through the queue and start running the
-  earliest. Confidence is in essence the probability that the job will
-  run, and to obtain a confidence of 1.0, a high queue time is
-  required. For our application, we found that a confidence of 0.75
-  works well enough.  \jhanote{sensitivity analysis!! Can't just put
-    0.75 out there!}  The information from the BQP thorn is retrieved
-  for all simulations that need to be run, particularly the time in
-  queue. The time in queue is added to the time required to run the
-  simulator (which is a function of the number of nodes and resource
-  used and is retrieved from regular application benchmarks) and the
-  time required to transfer data (that is obtained from the PerfMatrix
-  thorn).  That time would be the estimated time to completion a given
-  models in a given history matching stage.
+
+\jhanote{Refine: } \yyenote{Fixed}
+In a given resource list, the python wrapper around the BQP executable
+finds the resource and queue where if submitted, a BigJob of a
+given size and expected run time, will have a good chance (or high
+confidence) of getting through the queue and start running the
+earliest. Confidence is in essence the probability that the job will
+run, and to obtain a confidence of 1.0, an unpractically high queue time is
+required. In our applications, not knowing the granularity of the
+available BQP data, we opted to use a confidence of 0.75
+and a quantile of 0.75. The choices are logical but require, as planned,
+a more detailed statistical analysis for effectiveness.
+
+\jhanote{sensitivity analysis!! Can't just put
+  0.75 out there!}  \yyenote{fixed, alternatively we can fix it by removing
+  the mention of 0.75}
+ 
+% This applied to the BQP thorn, we do not want this here anymore
+%The information from the BQP thorn is retrieved
+%for all simulations that need to be run, particularly the time in
+%queue. The time in queue is added to the time required to run the
+%simulator (which is a function of the number of nodes and resource
+%used and is retrieved from regular application benchmarks) and the
+%time required to transfer data (that is obtained from the PerfMatrix
+%thorn).  That time would be the estimated time to completion a given
+%models in a given history matching stage.
 
 %To better predict ensemble behavior we have collected (using the same
 %BQP Thorn but in a different configuration) detailed BQP data for four
@@ -794,6 +823,8 @@ script.
 
 
 \section{Application Implementation and Control Flow} 
+\yyenote{This entire section is bad, we probably should move
+its bits about but as it stands it is meaningless}
 
 \jhanote{Place in a suitable place...}  Lazarus is distinct to other
 well established and successful approaches such as Accord for
@@ -901,6 +932,7 @@ thorn in Cactus.
 % throughput performance matrix along with a timestamp which is
 % available to other thorns as well as other applications.
 
+\yyenote{Why do we have the advert DB section here?}
 \subsubsection{Advert-service database} SAGA's advert-service package
 describes a key-value based hierarchical attribute interface for
 storing arbitrary application level information. The currently available adaptor is
@@ -925,7 +957,7 @@ also contains the data collected from BQP and from NetPerf.
   (resource mapping strategy).  \jhanote{Color different, for
     different layers. (ii) put 'introduce C bindings for BQP'. (iii)
     clarify what the arrows mean in the text. (iv) break figure into
-    side-by-side (v) explain arrows}}
+    side-by-side (v) explain arrows}\yyenote{Fixed, check out the pimped out color gradients} } 
 \end{center}
 
 \label{fig:application_architecture}
@@ -1004,46 +1036,14 @@ repeated.
 % \end{figure}
 
 \section{Infrastructure Used \& Deployment Details}
-
 \jhanote{this needs major rewrite. Yaakoub to work on this.}
+\yyenote{Fixed. Why do we have this section again? It really be removed, we dont use the features that were here}
 
-\subsection{Infrastructure}
-For this trial run we used a pool of TeraGrid machines: Abe, QB,
-Ranger ...  runs the model generator and retrieves the BQP data for
-all 3 machines.  Since QB is a new and big machine and the least
-loaded machine among the three, it was not surprising when almost all
-the jobs were submitted there.  Initially, the application code based
-the decision on where to run the Kalman filter on netperf data
-gathered by the thorn PerfMatrix. After our initial runs showed that
-most jobs will be mapped to QB, the Kalman filter launch code was
-modified to take into account where most of the jobs are being run,
-i.e. running the Kalman filter on a different machine than 75\% of the
-jobs would add more bandwidth cost to the entire stage. Once the jobs
-are finished running on QB, the Kalman filter reads in the output data
-and modifies the model parameters. These new model parameters form the
-basis of the second stage, where the entire process is repeated as in
-stage I.
-
-With changing resource requirements during a simulation (as is the
-case with adaptive mesh refinement) a mechanism which can take
-advantage of faster, cheaper or more powerful machines is even more
-advantageous than blind migration. As the primary Cactus simulation
-starts, it progresses through the schedule of the routines in the
-configuration. One of these routines regularly checks for the time
-left for the simulation as well as the the time left for other
-simulations, as this information is kept at the advert service. If a
-simulation finds itself lagging from the pack, it attempts to migrate
-to a resource where it has a better chance of catching up. While most
-of this infrastructure is available in the code, it has not been
-enabled for these trial runs as it adds more complexity and possible
-points of failure.
-
-% See:\\
-% {\tt http://fortytwo.cct.lsu.edu/teragrid/teragrid.html}
-
-\subsection{Deployment}
-The deployment of applications across a pool of heterogeneous machines
-belonging to different Grids and organizations can be a difficult
+For our runs we chose three large Teragrid machines: Ranger, QueenBee
+and Abe. Those machines were chosen because of their large size, extensive software
+stack and of course the fact that BQP has data on all three machines. The 
+deployment of applications across these three heterogeneous machines
+belonging to different organizations can be a difficult
 task. Different versions and availability of libraries and compilers
 makes every single machine a unique environment. Although it is
 technically possible to stage-in all required applications and
@@ -1051,50 +1051,13 @@ libraries and even to compile the application sources on the fly using
 SAGA, we decided to deploy pre-build binaries on all machines since
 this exercise is not part of this work's focus.
 
-% SAGA uses a \texttt{autoconf/automake}-based build and installation
-% system which explicitly tests for available compilers and external
-% library requirements.  Although the SAGA engine itself only depends on
-% the \textit{Boost C++ Libraries} the available middleware adaptors may
-% require additional prerequisites which can range from
-% \textit{PostgreSQL} to the \textit{Globus Toolkit} libraries. The
-% initial attempt to build and deploy SAGA binaries on TeraGrid
-% resources greatly helped us to realize that our initial requirements
-% were too progressive and did not work well with the rather
-% conservative software deployment strategies in HPC environments.
-% Based on this experience we started to modify both, the build-system
-% and the C++ code to allow for more relaxed prerequisites which now
-% comprise:
 
-% \begin{itemize}
-% \item{gcc $\geq$ 3.4 (32 \& 64 bit on i386, x86\_64, and IA64)}
-% \item{Boost C++ Libraries $\geq$ 1.33}
-% \item{Globus Toolkit $\geq$ 3.2 (optional)}
-% \item{PostgreSQL $\geq$ 8.0 (optional)}
-% \end{itemize}
+\yyenote{Made this into its own section}
 
-% Currently SAGA is deployed in user space, but should ideally be supported at
-% the system level due to the limited persistent disk space in the
-% home directories and to make SAGA transparently available to every user. 
-% Due to SAGA's latest improvements a system-wide deployment should be a trivial
-% task which has already been started on the joint LONI/TeraGrid resources.
-
-
-% Since both, the Cactus framework and SAGA aim to be as
-% platform-independent as possible, the deployment process was rather
-% straightforward - the only noteworthy problems occurred during the
-% initial attempt to build SAGA on LONI's 64bit AIX 5L nodes. \jha{not
-%   using LONI! This is TeraGrid}. The problems were mainly caused by the
-% IBM's xlC++ compiler's inability to handle C++ partial template
-% instantiation, a broken AIX pthread implementation and the absence of
-% usable debugging tools. Although the deployment process on AIX was
-% very time consuming it eventually led to a vastly improved SAGA build
-% system and a more conservative use of C++ template mechanisms which
-% ensures the support of other non-standard compilers.
-
-\subsection{Failure Modes}
+\section{Failure Modes}
 
 \jhanote{Which failure modes are relevant here? Remove those that are
-  not}
+  not}\yyenote{Fixed}
 
 As expected we ran into various problems when deploying this
 framework, many were errors that are irrecoverable and resulted in a
@@ -1106,6 +1069,11 @@ Hardware failure:
 \item{Lost a network connection to a machine, BQP or the advert service}
 \item{Could not write to /scratch because it was taken down for maintenance}
 \end{itemize}
+From all of these modes of failure, we found that we reliably recover
+from node failure and failure to write data to disk, but not network failure. The
+status of any given job is reported in a one-way poll for current state. This
+has obvious limitations so we will also be using the "heart-beat" monitor in FAUST
+once it is available.
 
 Software environment failures:
 \begin{itemize}
@@ -1114,8 +1082,14 @@ Software environment failures:
 \item{Run out of quota on disk, wrote too many files to the same directory}
 \item{Run out of SU's in the allocation}
 \item{No internet connection to the compute nodes (no BQP, no advert service)}
-\item{MPI error that causes a simulation to hang (this happened because of a faulty installation and was corrected)}
+\item{MPI error that causes a simulation to stall (this happened because of a faulty installation and was corrected)}
 \end{itemize}
+In software environment failures, typically jobs terminate with errors or 
+are killed, before the simulations results are written to disk. Unsurprisingly we ran
+into all of these failures while developing Lazarus, and were able
+to recover from all of them except for the network connectivity in the compute
+nodes, as this would register the job's state as "unknown". This would be solved
+with the aforementioned heart-beat monitoring system in FAUST.
 
 Actual simulation failures:
 \begin{itemize}
@@ -1125,6 +1099,9 @@ Actual simulation failures:
 \item{Under-estimation of the required wall clock time}
 \item{Hitting /scratch or /home too often (because of checkpointing), leading to very low access speeds and exceeding the requested wall clock time}
 \end{itemize}
+Some of the simulation failures are relatively easy to guard against,
+namely the wrong parameter file or missing executable. The other errors
+however are harder to detect and rectify.
 
 \subsection{Needs to be Moved}
 One of the recent improvements in deployment is the use of the python
@@ -1329,7 +1306,10 @@ would not have been possible without the efforts and support of other
 members of the SAGA team.  Additionally, we would like to acknowledge
 help from the LONI support team and CyberInfrastructure Develompent
 group. Y. El-Khamra would like to acknowledge Prof. Chris White,
-Prof. Mayank Tyagi and Dr. Xin. This work has been made possible
+Prof. Mayank Tyagi and Dr. Xin. The authors acknowledge the Texas Advanced Computing Center (TACC)
+at The University of Texas at Austin, The LONI institute and NCSA
+for providing HPC resources that have contributed to the research 
+results reported within this paper. This work has been made possible
 thanks to the internal resources of the Center for Computation \&
 Technology (CCT) at Louisiana State University.
 \bibliographystyle{IEEEtran}
