@@ -52,7 +52,8 @@
 \begin{document}
 
 \title{\large Developing Autonomic Distributed Scientific
-  Applications: A Case Study From Resorvoir Modelling}
+  Applications: A Case Study From History Matching Using Enemble
+  Kalman-Filters}
   
 \author{\authorblockN{Yaakoub El Khamra\authorrefmark{3}\authorrefmark{1}, Shantenu Jha\authorrefmark{1}\authorrefmark{2}, Andre Luckow\authorrefmark{1}},
    \authorblockA{\authorrefmark{1}
@@ -457,18 +458,17 @@ required to solve the system of equations.
 %to solve the system of equations, which would vary the runtime as well
 %as memory cost.
 
-\yyenote{This needs rework, we have a new motivation now} Hence a
-mechanism to assign models to available resources based on their
-expected time to completion and resource requirement is useful.  Such
-a mechanism would estimate the time a model will spend in the queue of
-a resource, the time it needs to run, and the time required to migrate
-the data it requires/produces back and forth, and based on that
-attempt to minimize the time required to perform each history matching
-iteration.  In fact, with changing resource simulation requirements
-(as is the case with models that find themselves lagging behind the
-rest of the model pack), a mechanism which can take advantage of of
-faster, cheaper or more powerful machines is even more advantageous
-~\cite{escience07}.
+Hence a mechanism to assign models to available resources based on
+their expected time to completion and resource requirement is useful.
+Such a mechanism would estimate the time a model will spend in the
+queue of a resource, the time it needs to run, and the time required
+to migrate the data it requires/produces back and forth, and based on
+that attempt to minimize the time required to perform each history
+matching iteration.  In fact, with changing resource simulation
+requirements (as is the case with models that find themselves lagging
+behind the rest of the model pack), a mechanism which can take
+advantage of of faster, cheaper or more powerful machines is even more
+advantageous ~\cite{escience07}.
 
 \begin{figure}
 \begin{center}
@@ -662,17 +662,25 @@ specified characteristics is most likely to run first.  {\it The
   static queries) and automatically (the logic of how to process BQP
   information is embedded in the application).}
 
-
 \yyenote{Need a section about many/big-job, we use it and better talk
   about it} \jhanote{Yes, I agree -- we need a brief
   description. However we will need to be brief as space is limited
   and we can reference earlier work}
+
+\jhanote{SJ to take from ICCS paper and add here..}
 
 \yyenote{I am adding sections about Lazarus and its fault tolerance}
 
 \jhanote{add stuff on bigjob}
 
 \subsection{Lazarus}
+
+\jhanote{Need to say, what the requirements are, establish very
+  quickly why autonomics is the solution to the specific problem and
+  then talk about the solution -- first the primitive (ie scripts)
+  then the Lazarus (using BigJob and BQP).}
+
+
 For the current application, we started off using simple, portable
 python scripts -- based upon SAGA, that handles job-launching and data
 migration. This forms the beginnings of Lazarus which is a modular,
@@ -690,10 +698,6 @@ resurrection ability overcomes some of the catastrophic errors
 encountered when running large numbers of jobs such exceeding wall
 clock time, running out of diskspace (resubmit on a different machine)
 and of course node failure.
-
-\jhanote{Yaakoub: What the most commonly required self-* attributes?
-  What self-* attributes does Lazarus support/address?}
-\yyenote{Just added, please go over the following 2 subsections}
 
 \subsubsection{Autonomy}
 The Lazarus framework contains several aspects of autonomy: it has
@@ -715,9 +719,6 @@ abstractions, we did not have to develop most of the tuning
 mechanisms, but were able to write suitable interfaces to these
 mechanisms.
 
-\jhanote{this is a very good paragraph. well done!}
-
-
 \subsubsection{Fault Tolerance}
 Lazarus has built in self-healing capabilities. These capabilities
 rely on a tool-check/calibration test and output file checks. After
@@ -732,10 +733,9 @@ flagged for resubmission.  After all output is checked, the faulty
 simulations are resubmitted and upon termination, all output is
 checked again. Upon success, Lazarus proceeds to the next stage.
 
-
 \subsubsection{BQP}
-BQP: Batch Queue Predictor ~\cite{bqp} is a tool that is available on
-a number of TeraGrid resources that allows users to make bound
+Batch Queue Predictor ~\cite{bqp} is a tool that is available on a
+number of TeraGrid resources that allows users to make bound
 predictions of how much time a job of a giving size and duration will
 spend in the queue.  This prediction is given with a degree of
 confidence (probability) that the job will start before a certain
@@ -743,9 +743,24 @@ deadline (i.e. the time in the queue).  This information is vital when
 submitting jobs to various machines as the longer a job sits in the
 queue, the longer the delay for the entire stage.  For our application
 we use the BQP command line tools, that are called from the Lazarus
-script.  \yyenote{I am have BQP data in table form, do you want it
-  that way or in a 3D chart (height is wait time, x and y axes are
-  size and duration)}
+script.
+
+\jhanote{Refine: } ... In a given resource list, finds the resource and
+  queue where if submitted, a reservoir simulation (or model) of a
+  given size and expected run time, will have a good chance (or high
+  confidence) of getting through the queue and start running the
+  earliest. Confidence is in essence the probability that the job will
+  run, and to obtain a confidence of 1.0, a high queue time is
+  required. For our application, we found that a confidence of 0.75
+  works well enough.  \jhanote{sensitivity analysis!! Can't just put
+    0.75 out there!}  The information from the BQP thorn is retrieved
+  for all simulations that need to be run, particularly the time in
+  queue. The time in queue is added to the time required to run the
+  simulator (which is a function of the number of nodes and resource
+  used and is retrieved from regular application benchmarks) and the
+  time required to transfer data (that is obtained from the PerfMatrix
+  thorn).  That time would be the estimated time to completion a given
+  models in a given history matching stage.
 
 %To better predict ensemble behavior we have collected (using the same
 %BQP Thorn but in a different configuration) detailed BQP data for four
@@ -780,30 +795,12 @@ script.  \yyenote{I am have BQP data in table form, do you want it
 
 \section{Application Implementation and Control Flow} 
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.34]{./figures/Figure2.jpeg}
-\end{center}
-
-\caption{Block Diagram outlining the basic structure of Lazarus. The
-  initial version of Lazarus has different components to assist with
-  various autonomic functionality, such as: (i) selection of {\it
-    optimal} resources, (ii) management of fault-tolerance that arise
-  in Grid context, (iii) Application level resource requirement
-  determination (resource mapping strategy) Lazarus is distinct to
-  other well established and successful approaches such as Accord for
-  autonomic computing, in that it is not a component-based programming
-  system but it is a framework already composed of multiple
-  components. Importantly the programming system that is used is SAGA
-  -- both for the application and the Lazarus framework.
-  \jhanote{Need new figure!}  \jhanote{I would say have two
-    figures. One for the architecture and one for the Lazarus
-    framework/abstractions. Say what?}  \jhanote{Can we get another
-    diagram -- a layered diagram akin to an architecture diagram}}
-\label{fig:application_architecture}
-\end{figure}
-
-
+\jhanote{Place in a suitable place...}  Lazarus is distinct to other
+well established and successful approaches such as Accord for
+autonomic computing, in that it is not a component-based programming
+system but it is a framework already composed of multiple
+components. Importantly the programming system that is used is SAGA --
+both for the application and the Lazarus framework.
 
 \begin{figure}
 \begin{center}
@@ -811,8 +808,8 @@ script.  \yyenote{I am have BQP data in table form, do you want it
 %\includegraphics[scale=0.34]{./figures/kalmanfilterlayer.png}
 \includegraphics[scale=0.25]{./figures/Lazarus_01.jpeg}
 \end{center}
-\caption{\jhanote{Need new figure!}  Lazarus -- An Autonomic
-  framework}
+\caption{\jhanote{Need to increase resolution!}  Lazarus -- An
+  Autonomic framework}
 
 \label{fig:application_architecture}
 \end{figure}
@@ -841,93 +838,68 @@ thorn in Cactus.
 % discretization for the implicit pressure equation which we then solve
 % by an iterative solver (PETSc) ~\cite{PETSc}.
 
+% \subsection{ResourceMap Thorn}
+% The ResourceMap thorn maps the various models to available resources.
+% Each reservoir model has its own parameters that influence the size of
+% the model and the wall time it will need to finish. Estimates of the
+% required wall time and memory footprint of the simulation are obtained
+% from benchmarks that mimic the actual models. A simple estimate is
+% constructed based on the number of iterations the model will run for
+% and other parameters such as the size of the domain, the IO frequency
+% etc...  The ResourceMap thorn needs to pass this information to BQP to
+% obtain the "confidence" factor for its predictions.  \jhanote{In the
+%   previous line, we need a set of clarifying remarks about how this is
+%   derived. Does this help?}.  The ResourceMap thorn queries the BQP
+% thorn for the best machine and queue combination that will start the
+% model earliest at a high enough confidence (i.e above a specified
+% threshold). This is done by iterating over a list of machines and
+% their queues, with a constant expected run time and node count and an
+% increasing ''deadline``, and retrieving the confidence factor of
+% running before the ''deadline`` from the BQP thorn. If the confidence
+% is greater than the threshold, the job is submitted. If after
+% iterating over all machines and queues, we do not get a confidence
+% factor higher than the specified threshold, the ResourceMap thorn
+% submits the job to the machine/queue combination that had the highest
+% confidence factor.
 
-\yyenote{We don't use the BQP thorn for this one, this section should go
-}
-\subsection{BQP Thorn}
-The BQP thorn is a module in Cactus responsible for retrieving the BQP
-information using the BQP API. The thorn iterates over all resources
-in a given resource list, finds the resource and queue where if
-submitted, a reservoir simulation (or model) of a given size and
-expected run time, will have a good chance (or high confidence) of
-getting through the queue and start running the earliest. Confidence
-is in essence the probability that the job will run, and to obtain a
-confidence of 1.0, a high queue time is required. For our application,
-we found that a confidence of 0.75 works well enough.
-\jhanote{sensitivity analysis!! Can't just put 0.75 out there!}
-The information from the BQP thorn is retrieved for all simulations
-that need to be run, particularly the time in queue. The time in queue
-is added to the time required to run the simulator (which is a
-function of the number of nodes and resource used and is retrieved
-from regular application benchmarks) and the time required to transfer
-data (that is obtained from the PerfMatrix thorn).  That time would be
-the estimated time to completion a given models in a given history
-matching stage.
+% \subsection{Submit Thorn} 
+% The Submit thorn, as its name suggests, submits a job described by the
+% ResourceMap thorn to a given resource. A parameter file for the
+% reservoir simulator and submission script are created at the resource
+% using SAGA. A SAGA job is then launched that performs the actual
+% submission (e.g qsub job\_1701.pbs).
 
-\subsection{ResourceMap Thorn}
-The ResourceMap thorn maps the various models to available resources.
-Each reservoir model has its own parameters that influence the size of
-the model and the wall time it will need to finish. Estimates of the required
-wall time and memory footprint of the simulation are obtained from
-benchmarks that mimic the actual models. A simple estimate
-is constructed based on the number of iterations the model will run for
-and other parameters such as the size of the domain, the IO frequency etc...
-The ResourceMap thorn needs to pass this information to BQP to obtain the 
-"confidence" factor for its predictions.
- \jhanote{In the
-  previous line, we need a set of clarifying remarks about how this is
-  derived. Does this help?}.
-The ResourceMap thorn queries the BQP
-thorn for the best machine and queue combination that will start the
-model earliest at a high enough confidence (i.e above a specified
-threshold). This is done by iterating over a list of machines and
-their queues, with a constant expected run time and node count and an
-increasing ''deadline``, and retrieving the confidence factor of
-running before the ''deadline`` from the BQP thorn. If the confidence
-is greater than the threshold, the job is submitted. If after
-iterating over all machines and queues, we do not get a confidence
-factor higher than the specified threshold, the ResourceMap thorn
-submits the job to the machine/queue combination that had the highest
-confidence factor.
+% \jhanote{Are we using PerfMatrix?}
+% The PerfMatrix thorn takes care of the intrinsic network performance
+% measurement and persistent storage of the results. Currently, the
+% implementation uses netperf~\cite{netperf_web} to measure
+% unidirectional end-to-end throughput. Netperf is implemented as a
+% simple client-server model consisting of two executables:
+% \begin{itemize}
+% \item{netserver: the measurement endpoint waiting for incoming connections}
+% \item{netperf: the initiator of a measurement connecting to a netserver endpoint}
+% \end{itemize}
 
-\subsection{Submit Thorn} 
-The Submit thorn, as its name suggests, submits a job described by the
-ResourceMap thorn to a given resource. A parameter file for the
-reservoir simulator and submission script are created at the resource
-using SAGA. A SAGA job is then launched that performs the actual
-submission (e.g qsub job\_1701.pbs).
-
-\jhanote{Are we using PerfMatrix?}
-The PerfMatrix thorn takes care of the intrinsic network performance
-measurement and persistent storage of the results. Currently, the
-implementation uses netperf~\cite{netperf_web} to measure
-unidirectional end-to-end throughput. Netperf is implemented as a
-simple client-server model consisting of two executables:
-\begin{itemize}
-\item{netserver: the measurement endpoint waiting for incoming connections}
-\item{netperf: the initiator of a measurement connecting to a netserver endpoint}
-\end{itemize}
-
-The PerfMatrix algorithm uses a list of computational resources which
-are potential migration targets for the application. After starting
-up, the initial application spawns itself onto all available hosts.
-\footnote{This approach is different from the original non-centralized
-  spawning scheme shown in Fig.~\ref{fig:controlflow} The reason for
-  our implementation using centralized spawning is the Globus
-  Toolkit's (4.0.5) inability of full credential forwarding.} Once all
-jobs have been launched, the original spawning application first
-establishes netperf connections with all the spawned applications;
-this is followed by the spawned applications establishing netperf
-connections amongst each other, following the scheme shown in
-Fig.~\ref{fig:controlflow}.  The job spawning, control, and I/O
-redirection is done entirely using SAGA's job management package.
-Once a netperf process returns a throughput result, the PerfMatrix
-thorn uses the SAGA advert-service package to announce the result to a
-central PostgreSQL database which is also used as a centralized
-logging facility. After all netperf processes have finished and
-published their results, the database contains a host-to-host
-throughput performance matrix along with a timestamp which is
-available to other thorns as well as other applications.
+% The PerfMatrix algorithm uses a list of computational resources which
+% are potential migration targets for the application. After starting
+% up, the initial application spawns itself onto all available hosts.
+% \footnote{This approach is different from the original non-centralized
+%   spawning scheme shown in Fig.~\ref{fig:controlflow} The reason for
+%   our implementation using centralized spawning is the Globus
+%   Toolkit's (4.0.5) inability of full credential forwarding.} Once all
+% jobs have been launched, the original spawning application first
+% establishes netperf connections with all the spawned applications;
+% this is followed by the spawned applications establishing netperf
+% connections amongst each other, following the scheme shown in
+% Fig.~\ref{fig:controlflow}.  The job spawning, control, and I/O
+% redirection is done entirely using SAGA's job management package.
+% Once a netperf process returns a throughput result, the PerfMatrix
+% thorn uses the SAGA advert-service package to announce the result to a
+% central PostgreSQL database which is also used as a centralized
+% logging facility. After all netperf processes have finished and
+% published their results, the database contains a host-to-host
+% throughput performance matrix along with a timestamp which is
+% available to other thorns as well as other applications.
 
 \subsubsection{Advert-service database} SAGA's advert-service package
 describes a key-value based hierarchical attribute interface for
@@ -944,6 +916,24 @@ also contains the data collected from BQP and from NetPerf.
 
 \begin{figure}
 \begin{center}
+\includegraphics[scale=0.34]{./figures/Figure2.jpeg}
+\caption{Block Diagram outlining the basic structure of Lazarus. The
+  initial version of Lazarus has different components to assist with
+  various autonomic functionality, such as: (i) selection of
+  resources, (ii) management of fault-tolerance that arise in Grid
+  context, (iii) Application level resource requirement determination
+  (resource mapping strategy).  \jhanote{Color different, for
+    different layers. (ii) put 'introduce C bindings for BQP'. (iii)
+    clarify what the arrows mean in the text. (iv) break figure into
+    side-by-side (v) explain arrows}}
+\end{center}
+
+\label{fig:application_architecture}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
  %  \includegraphics[scale=0.5]{./figures/SequenceDiagram}
 \includegraphics[scale=0.16]{./yaakoubs_inspiring_art.jpeg}
 \end{center}
@@ -953,16 +943,7 @@ also contains the data collected from BQP and from NetPerf.
   to appropriate resources. This is done based upon the number of grid
   points in the model (which in turn determines the number of
   processors and memory) and the projected run-time (which is based
-  upon estimated number of iterations). To a first approximation the
-  data from BQP is utilized to determine the optimal resource --
-  defined as that resource with the highest chances of finishing a job
-  with the prescribed characteristics (number of processors, duration)
-  first. Obviously this is just a best effort guesstimate, as the
-  actual run-time (number of iterations) is difficult to get correct
-  (as it depends upon convergence to a value). After all models (n
-  instances) in a given stage have finished there is a global
-  synchronization point which in turn is the basis for providing
-  models for the next stage (m iterations). \jhanote{caption needs
+  upon estimated number of iterations). \jhanote{caption needs
     adjustment}}
 \label{fig:controlflow}
 \end{figure}
@@ -1012,7 +993,6 @@ repeated.
 % script. The returned html is displayed in the Google Maps info window
 % pointing to the marker or line the user clicked on.
 
-
 % \begin{figure}
 % \begin{center}
 % \includegraphics*[scale=0.34, trim=15mm 33mm 15mm 33mm]{./figures/gmaps_bqp}
@@ -1025,23 +1005,24 @@ repeated.
 
 \section{Infrastructure Used \& Deployment Details}
 
+\jhanote{this needs major rewrite. Yaakoub to work on this.}
+
 \subsection{Infrastructure}
-For this trial run we used a pool of TeraGrid machines: Cobalt, SDSC
-IA-64 and Queen Bee (QB). The main application starts on Cobalt, runs the
-model generator and retrieves the BQP data for all 3 machines.  Since
-QB is a new and big machine and the least loaded machine among
-the three, it was not surprising when almost all the jobs were
-submitted there.  Initially, the application code based the decision
-on where to run the Kalman filter on netperf data gathered by the
-thorn PerfMatrix. After our initial runs showed that most jobs will be
-mapped to QB, the Kalman filter launch code was modified to
-take into account where most of the jobs are being run, i.e. running
-the Kalman filter on a different machine than 75\% of the jobs would
-add more bandwidth cost to the entire stage. Once the jobs are
-finished running on QB, the Kalman filter reads in the output
-data and modifies the model parameters. These new model parameters
-form the basis of the second stage, where the entire process is
-repeated as in stage I.
+For this trial run we used a pool of TeraGrid machines: Abe, QB,
+Ranger ...  runs the model generator and retrieves the BQP data for
+all 3 machines.  Since QB is a new and big machine and the least
+loaded machine among the three, it was not surprising when almost all
+the jobs were submitted there.  Initially, the application code based
+the decision on where to run the Kalman filter on netperf data
+gathered by the thorn PerfMatrix. After our initial runs showed that
+most jobs will be mapped to QB, the Kalman filter launch code was
+modified to take into account where most of the jobs are being run,
+i.e. running the Kalman filter on a different machine than 75\% of the
+jobs would add more bandwidth cost to the entire stage. Once the jobs
+are finished running on QB, the Kalman filter reads in the output data
+and modifies the model parameters. These new model parameters form the
+basis of the second stage, where the entire process is repeated as in
+stage I.
 
 With changing resource requirements during a simulation (as is the
 case with adaptive mesh refinement) a mechanism which can take
@@ -1200,7 +1181,7 @@ work.
 
 \section{Results and Discussion}
 
-\jhanote{Needs fresh start to reflect new advances}
+\jhanote{Jha to do!}
 
 \begin{itemize}
 \item Define workload.
@@ -1222,9 +1203,9 @@ work.
 \begin{table}
 \begin{tabular}{|c|c|c|c|c|}
 \hline Sample \# & Machine & Queue & Num. Cores & Duration (hrs) \\ 
-\hline 1 & Ranger & development & 64 & 1:30 \\ 
-\hline 1 & QueenBee & checkpt & 128 & 2:00 \\ 
-\hline 1 & Abe & normal & 64 & 2:00 \\ 
+\hline 1-3 & Ranger & development & 64 & 1:30 \\ 
+\hline 1-3 & QueenBee & checkpt & 128 & 2:00 \\ 
+\hline 1-3 & Abe & normal & 64 & 2:00 \\ 
 \hline 
 \end{tabular} 
 \caption{A table with the results of the resources used and in
@@ -1237,65 +1218,9 @@ work.
     can say that BQP selects differently}}
 \end{table}
 
-% To validate our approach we present our results for a three stage
-% simulation for a {\it reduced input model} ie. a model with limited
-% granularity. The model generator produces 200 models of varying size,
-% which are really models of different requirements -- memory and
-% run-time duration. These models are mapped to jobs of varying node
-% counts.  For example, in Stage I of the pipeline the 200 models are
-% mapped so that 173 of them are run on 2 nodes (8 processors), 21
-% models are mapped to 4 nodes and 6 models are mapped to 8 nodes.
-% Interestingly the 173 simulations running on say 2 nodes have a wide
-% variation in the duration that they need to run for (ie determined by
-% a convergence criterion). For Stage I the fluctuation of 2 nodes jobs
-% was more than a factor of 2 (min run was 1.68hrs and max run time was
-% 3.5hours). The fluctuations in run-time are not limited to a set of
-% models for a given processor count in a single stage; there are
-% significant fluctuations between the maximum time that models need
-% between different stages too.  For example the longest running 4 node
-% job in Stage 1 was 5.99 hours, in stage 2 was 6.18 hours and in Stage
-% 3 was 3.99 hours, which is indicative of the almost factor of 2
-% difference in run-time (to convergence) between different stages.
-
-% \jha{yaakoub, is this true for all machines? either way, shouldn't we
-%   then just use processors are the basis/unit? Answer: yes and no, I
-%   keep the ppn information local to the machine, so it varies. However
-%   you are right on QB 1 node=4 procs and you can use that as the unit
-%   of measurement},
-% (\jha{Yaakoub: Are you sure this isn't a consequence of the max-time
-%   specified in the job-submission script?, the x.99 makes me
-%   suspicious!! Answer: I cannot dig up the hdf5 files to be sure as
-%   these were over-written, but you do raise a valid point})
-
-% Simplified as the above may seem there are a few important salient
-% points that need to be highlighted: The models above were mapped onto
-% jobs with different resource requirements; here the lower bound and
-% upper bound are 2 and 8 nodes respectively. However as the granularity
-% of the input model (problem being studied) is increased, the variation
-% will get much larger ie upper bound would be of several hundred, if
-% not thousands of processors 
-% These in turn will lead to greater variation between individual jobs
-% for a given processor count in a given Stage, as well as between
-% different Stages!  The overall fluctuation would be even greater if
-% the difference between the shortest running job (which might be say a
-% 2 nodes job) and the longest run job (which might be a say a 8 node
-% job) were considered; even for this reduced model we are looking at
-% factors of 4 difference if not more.  It is important to note that to
-% actually impact reservoir simulations, we would have to scale up
-% details and thus size of our input model by factors of 10 or more.
-% this would lead to much more complex.%; the shit will hit the fan buddy!
-% \jhanote{following needs updating:} This is proof-of-concept, {\it toy
-%   problem} yet took greater than 20,000 CPU hours; any {\it real
-%   problem} would require several orders of magnitude greater resources
-
-% (\jha{yaakoub: check! Anser: yes, we want to run on hundreds of
-%   processors per job and the jobs that take a factor of 2 longer may
-%   well run into thousands range}).
-% (\jha{yaakoub: are these fair estimates? Answer: yes, you will run
-%   into this quite easily if we are doing a real, industry standard
-%   study}.
-
 \section{Challenges and Discussion}
+
+\jhanote{Yaakoub to do}
 
 \begin{itemize}
 \item Talk about the fixed granularity of BQP and the problems that this
