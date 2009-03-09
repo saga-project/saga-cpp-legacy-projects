@@ -21,15 +21,19 @@
 \newcommand{\fix}[1]{\textcolor{red}{\bf #1}}
 \newcommand{\tc}{$T_c$}
 
-\newcommand{\jha}[0]{}
-\newcommand{\hartmut}[0]{}
-\newcommand{\yaakoub}[0]{}
-\newcommand{\ole}[0]{}
+\newif\ifdraft
+\drafttrue
 
+\ifdraft
 \newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1 }} }
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
 \newcommand{\yyenote}[1]{ {\textcolor{blue} { ***yye00: #1 }}}
-%\newcommand{\jhanote}[0]{}
+\else
+\newcommand{\jhanote}[1]{}
+\newcommand{\yyenote}[1]{}
+\newcommand{\fixme}[1]{}
+\fi
+
 \newcommand{\jitter}[1]{{$\sigma(\alpha)$}}
 
 \newif\ifpdf
@@ -191,15 +195,17 @@ resource mapping is not an option.  It can be argued that the logic
 for adapting to resource requirement changes from within the
 application are best addressed at the application level.
 
-\yyenote{Feel free to move this, this is what I want to say about Manish}
-This certainly is not the first time autonomic frameworks have
-been used to launch and manage reservoir simulations. Bangerth et al \cite{Manish}
-used an autonomic framework to manage reservoir simulations for well-placement
-optimization. At the moment, our work is focused on history matching
-and reservoir characterization, however the next logical step
-is to adapt Lazarus to run well/perforation placement studies. This might lead
-to a convergence of SAGA and Accord in terms of common functionality
-through different approach. 
+\yyenote{Feel free to move this, this is what I want to say about
+  Manish} \jhanote{this is perfect. thanks. its both technically
+  correct and strategically good} This certainly is not the first time
+autonomic frameworks have been used to launch and manage reservoir
+simulations. Bangerth et al \cite{Manish} used an autonomic framework
+to manage reservoir simulations for well-placement optimization. At
+the moment, our work is focused on history matching and reservoir
+characterization, however the next logical step is to adapt Lazarus to
+run well/perforation placement studies. This might lead to a
+convergence of SAGA and Accord~\cite{accord} in terms of common
+functionality through different approach.
 
 \jhanote{needs to be shortened} A key impediment to accelerated
 development of Grid applications and consequently the uptake of Grids
@@ -776,7 +782,7 @@ we use the BQP command line tools, that are called through a python wrapper
 from the Lazarus script.
 
 
-\jhanote{Refine: } \yyenote{Fixed}
+% \jhanote{Refine: } \yyenote{Fixed}
 In a given resource list, the python wrapper around the BQP executable
 finds the resource and queue where if submitted, a BigJob of a
 given size and expected run time, will have a good chance (or high
@@ -833,9 +839,10 @@ a more detailed statistical analysis for effectiveness.
 % will report on the interfacing of HARC with SAGA in the future.
 
 
-\section{Application Implementation and Control Flow} 
-\yyenote{This entire section is bad, we probably should move
-its bits about but as it stands it is meaningless}
+\section{Application Implementation, Control Flow and Deployment}
+
+\yyenote{This entire section is bad, we probably should move its bits
+  about but as it stands it is meaningless} \jhanote{lets chat}
 
 \jhanote{Place in a suitable place...}  Lazarus is distinct to other
 well established and successful approaches such as Accord for
@@ -944,22 +951,24 @@ thorn in Cactus.
 % available to other thorns as well as other applications.
 
 \yyenote{Why do we have the advert DB section here?}
-\subsubsection{Advert-service database} SAGA's advert-service package
-describes a key-value based hierarchical attribute interface for
-storing arbitrary application level information. The currently available adaptor is
-capable to map these structures to an relational SQL schema and store
-them in local (SQLite) and remote (PostgreSQL) RDBMS. SAGA's advert-service offers a convenient way to simplify the
-difficult task of centralized data collection and logging within
-distributed applications. The location of all the reservoir
-simulations, the start and finish time as well as the paths to the
-output files are all stored in the advert-service. The advert-service
-also contains the data collected from BQP and from NetPerf.
+\jhanote{removed advert DB section. OK?}
+% \subsubsection{Advert-service database} SAGA's advert-service package
+% describes a key-value based hierarchical attribute interface for
+% storing arbitrary application level information. The currently
+% available adaptor is capable to map these structures to an relational
+% SQL schema and store them in local (SQLite) and remote (PostgreSQL)
+% RDBMS. SAGA's advert-service offers a convenient way to simplify the
+% difficult task of centralized data collection and logging within
+% distributed applications. The location of all the reservoir
+% simulations, the start and finish time as well as the paths to the
+% output files are all stored in the advert-service. The advert-service
+% also contains the data collected from BQP and from NetPerf.
 
 \subsection{Control Flow}
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.34]{./figures/BreakdownDiagram.png}
+\includegraphics[scale=0.29]{./figures/BreakdownDiagram.png}
 \caption{Block Diagram outlining the basic structure of Lazarus. The
   initial version of Lazarus has different components to assist with
   various autonomic functionality, such as: (i) selection of
@@ -968,7 +977,10 @@ also contains the data collected from BQP and from NetPerf.
   (resource mapping strategy).  \jhanote{Color different, for
     different layers. (ii) put 'introduce C bindings for BQP'. (iii)
     clarify what the arrows mean in the text. (iv) break figure into
-    side-by-side (v) explain arrows}\yyenote{Fixed, check out the pimped out color gradients} } 
+    side-by-side (v) explain arrows} \yyenote{Fixed, check out the
+    pimped out color gradients} \jhanote{arrows need to be
+    explained.. sorry but still difficult to understnad what this is
+    all about}}
 \end{center}
 
 \label{fig:application_architecture}
@@ -1046,7 +1058,7 @@ repeated.
 % \label{fig:gmaps_bqp}
 % \end{figure}
 
-\section{Infrastructure Used \& Deployment Details}
+%\section{Infrastructure Used \& Deployment Details}
 \jhanote{this needs major rewrite. Yaakoub to work on this.}
 \yyenote{Fixed. Why do we have this section again? It really ought to be removed, we dont use the features that were here}
 
@@ -1348,13 +1360,15 @@ would not have been possible without the efforts and support of other
 members of the SAGA team.  Additionally, we would like to acknowledge
 help from the LONI support team and CyberInfrastructure Develompent
 group. Y. El-Khamra would like to acknowledge Prof. Chris White,
-Prof. Mayank Tyagi and Dr. Xin. The authors acknowledge the Texas Advanced Computing Center (TACC)
-at The University of Texas at Austin, The LONI institute and NCSA
-for providing HPC resources that have contributed to the research 
-results reported within this paper. This work has been made possible
-thanks to the internal resources of the Center for Computation \&
-Technology (CCT) at Louisiana State University.
-\bibliographystyle{IEEEtran}
+Prof. Mayank Tyagi and Dr. Xin. The authors acknowledge the Texas
+Advanced Computing Center (TACC) at The University of Texas at Austin,
+The LONI institute and NCSA for providing HPC resources that have
+contributed to the research results reported within this paper. This
+work has been made possible thanks to the internal resources of the
+Center for Computation \& Technology (CCT) at Louisiana State
+University.  
+
+\bibliographystyle{IEEEtran} 
 \bibliography{saga_tg08}
 \end{document}
 
