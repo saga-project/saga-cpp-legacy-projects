@@ -904,105 +904,67 @@ both for the application and the Lazarus framework.
 \end{figure}
 
 
-
 %\subsection {Application Architecture} 
 
-\subsection{Simulation Thorn}
+\subsection{Simulation Components}
+The simulation component in the Lazarus framework is based on the Cactus
+framework and employs two Cactus builds: a reservoir simulation build
+that uses the reservoir simulation thorns and an EnKF build that
+uses the EnkF thorns. Both builds use the Cactus IO thorns and functionality
+from third party libraries such as PETSc~\cite{PETSc} and HDF5.
 
-This thorn implements the simulation routines for the various models.
-Our models are mostly non-linear partial differential equations that
-are discretized using finite difference methods and solved with a
-Krylov subspace solver using PETSc. ~\cite{PETSc}. For a prototype
+The reservoir simulation thorn solves a system of non-linear partial differential
+equations for compressible mulitphase flow through porous media. The
+simulator is in effect a black-oil reservoir simulator that uses
+the implicit-pressure, explicit-saturation formulation and a
+finite difference discretization. The system of equations is solved
+using a Krylov subspace solver using PETSc. For a prototype
 implementation we chose a multiphase, multicomponent fluid flow
 through porous media simulator and implemented it in the Simulation
 thorn in Cactus.
-% Is an implementation of the IMPES: implicit pressure explicit saturation 
-% method designed to solve two phase flow through porous media problems.
-% This thorn requires the thorn {\tt IDBlackOil} to perform the quiescent
-% initialization to ensure a balance between gravity and capillary forces 
 
-% The equations we solve are the water and oil mass conservation
-% equations with Darcy's law using the IMPES formulation as outlined by
-% Aziz and Settari ~\cite{AzizSettari}.  We use a finite difference
-% discretization for the implicit pressure equation which we then solve
-% by an iterative solver (PETSc) ~\cite{PETSc}.
+The EnKF thorn is a recently implemented ensemble Kalman filter
+thorn that requires, as input, the state vectors of the various
+ensembles at regular intervals. These are effectively the checkpoint
+files of the simulations (forecasts) in addition to their production
+data. Once the EnKF has all the state vectors from all the ensembles, 
+it performs the analysis and a new set of ensembles with now modified
+state vectors need to be run. This process is repeated until there
+are is no more historical data to match against. Typically,
+production history is averaged on a monthly basis, sometimes on weekly
+or even daily basis, over a period of a few years. For this reason,
+a typical production run of Lazarus will involve hundreds of stages.
 
-% \subsection{ResourceMap Thorn}
-% The ResourceMap thorn maps the various models to available resources.
-% Each reservoir model has its own parameters that influence the size of
-% the model and the wall time it will need to finish. Estimates of the
-% required wall time and memory footprint of the simulation are obtained
-% from benchmarks that mimic the actual models. A simple estimate is
-% constructed based on the number of iterations the model will run for
-% and other parameters such as the size of the domain, the IO frequency
-% etc...  The ResourceMap thorn needs to pass this information to BQP to
-% obtain the "confidence" factor for its predictions.  \jhanote{In the
-%   previous line, we need a set of clarifying remarks about how this is
-%   derived. Does this help?}.  The ResourceMap thorn queries the BQP
-% thorn for the best machine and queue combination that will start the
-% model earliest at a high enough confidence (i.e above a specified
-% threshold). This is done by iterating over a list of machines and
-% their queues, with a constant expected run time and node count and an
-% increasing ''deadline``, and retrieving the confidence factor of
-% running before the ''deadline`` from the BQP thorn. If the confidence
-% is greater than the threshold, the job is submitted. If after
-% iterating over all machines and queues, we do not get a confidence
-% factor higher than the specified threshold, the ResourceMap thorn
-% submits the job to the machine/queue combination that had the highest
-% confidence factor.
+\subsection{Lazarus Components}
+As mentioned earlier, Lazarus in its current incarnation is a set
+of small, fast, portable and modular python scripts. These scripts
+make extensive use of the SAGA python adators directly (such as the
+file adaptors) and indirectly (through the BigJob abstraction).
 
-% \subsection{Submit Thorn} 
-% The Submit thorn, as its name suggests, submits a job described by the
-% ResourceMap thorn to a given resource. A parameter file for the
-% reservoir simulator and submission script are created at the resource
-% using SAGA. A SAGA job is then launched that performs the actual
-% submission (e.g qsub job\_1701.pbs).
+Lazarus uses the BigJob abstraction to submit jobs to various resources.
+Because the BigJob abstraction is a high-level abstraction, the user
+will not need to have more knowledge than what is required to run their
+application, specifically executable name, parameter file, and working directory, all of which is automated in the case of Lazarus for easier record keeping.
 
-% \jhanote{Are we using PerfMatrix?}
-% The PerfMatrix thorn takes care of the intrinsic network performance
-% measurement and persistent storage of the results. Currently, the
-% implementation uses netperf~\cite{netperf_web} to measure
-% unidirectional end-to-end throughput. Netperf is implemented as a
-% simple client-server model consisting of two executables:
-% \begin{itemize}
-% \item{netserver: the measurement endpoint waiting for incoming connections}
-% \item{netperf: the initiator of a measurement connecting to a netserver endpoint}
-% \end{itemize}
+For runs distributed across several machines, Lazarus needs to gather
+the data from all different machines into one location where the EnKF
+can run. To that end, the python bindings to the SAGA file adaptors are used
+to copy files over to the resource where the EnKF will run, and copied
+back to all other resources after the analysis stage. Since we are not working
+with a large scale production history matching run, the amount
+of data transfer involved does not impose any noticable performance issues. Naturally,
+investigating the optimal location for placing the EnKF application
+as discussed in \cite{escience07} will find its way into the next iteration
+of Lazarus implementation and of course FAUST.
 
-% The PerfMatrix algorithm uses a list of computational resources which
-% are potential migration targets for the application. After starting
-% up, the initial application spawns itself onto all available hosts.
-% \footnote{This approach is different from the original non-centralized
-%   spawning scheme shown in Fig.~\ref{fig:controlflow} The reason for
-%   our implementation using centralized spawning is the Globus
-%   Toolkit's (4.0.5) inability of full credential forwarding.} Once all
-% jobs have been launched, the original spawning application first
-% establishes netperf connections with all the spawned applications;
-% this is followed by the spawned applications establishing netperf
-% connections amongst each other, following the scheme shown in
-% Fig.~\ref{fig:controlflow}.  The job spawning, control, and I/O
-% redirection is done entirely using SAGA's job management package.
-% Once a netperf process returns a throughput result, the PerfMatrix
-% thorn uses the SAGA advert-service package to announce the result to a
-% central PostgreSQL database which is also used as a centralized
-% logging facility. After all netperf processes have finished and
-% published their results, the database contains a host-to-host
-% throughput performance matrix along with a timestamp which is
-% available to other thorns as well as other applications.
+Lazarus also uses non-SAGA components, such as a small python wrapper
+for BQP. This allows Lazarus, namely its resoruce management function, to query
+BQP for the ``optimal'' job size and duration for any given resource. Lazarus
+also uses a user specified check for the integrity of the simulation data. In our
+case, this is done through various system and HDF5 calls to make sure the files exist,
+are not sized zero, and a user specified command using HDF5 tools (h5ls) returns successfully.
 
-\yyenote{Why do we have the advert DB section here?}
-\jhanote{removed advert DB section. OK?}
-% \subsubsection{Advert-service database} SAGA's advert-service package
-% describes a key-value based hierarchical attribute interface for
-% storing arbitrary application level information. The currently
-% available adaptor is capable to map these structures to an relational
-% SQL schema and store them in local (SQLite) and remote (PostgreSQL)
-% RDBMS. SAGA's advert-service offers a convenient way to simplify the
-% difficult task of centralized data collection and logging within
-% distributed applications. The location of all the reservoir
-% simulations, the start and finish time as well as the paths to the
-% output files are all stored in the advert-service. The advert-service
-% also contains the data collected from BQP and from NetPerf.
+
 
 \subsection{Control Flow}
 
@@ -1059,63 +1021,36 @@ used in the reservoir simulation. The modified models are then
 submitted again as a second stage and the entire processes is
 repeated.
 
-% \subsection{Interfacing with Google Maps}
+To preapre for launching Lazarus, a model generator is required to create
+the initial data (initial state vectors) for all the ensembles. This is typically
+done a priori to running Lazarus, and performed on one resource then synrhonised
+against all others to ensure consistency.
 
-% The application level information about the collected BQP and Netperf
-% data is stored in a central location using the SAGA advert service
-% facilities. The stored information is usable not only by the
-% application itself, but is accessible from separate tools allowing to
-% monitor the application progress. To make this information readily
-% available to the user we developed a Google Maps~\cite{google_maps}
-% based user interface presenting the live BQP data for each of the
-% resources as shown on the map (Figure \ref{fig:gmaps_bqp} shows a
-% screen shot of this web interface displaying BQP data for the {\tt
-%   datastar} machine at SDSC). We will add support for displaying the
-% Netperf based network performance information for each of the network
-% interconnects as shown on the map as well, as well as extend to show
-% the physical distribution of sites where jobs are running and the
-% number of jobs at a site.
+Before launching Lazarus, some input parameters need to be specified.
+These are the executable names, working root directory, simulation directories,
+number of simulations per stage, number of stages and so on. Given 
+the number of jobs per stage, and historical benchmark information on various
+machines, an estimate for the total SUs required is sent to the Lazarus
+resource manager. The resource manager queries BQP for the optimal sizes and durations
+and creates a list of BigJobs, their sizes, durations and the resrouce/queue
+where they will be submitted. If we have more than one resource available, the SU
+requirement is satisfied based on a round-robin algorithm, iterating over
+resources and adding bigjobs until no more BigJobs need to be submitted.
 
-% Our Google Maps application architecturally consists of two parts.
-% The client (browser based) side is implemented using Java scripts,
-% which is the standard way of using the Google Maps API. The server
-% side (generating the html as requested by the client) is implemented
-% as a Python based CGI application. We use the SAGA Python API bindings
-% to access the BQP data stored in the advert service and to generate
-% the html to display at client side. Whenever the user clicks on one of
-% the markers or lines in the map we request the corresponding
-% information from the server by invoking a server side Python CGI
-% script. The returned html is displayed in the Google Maps info window
-% pointing to the marker or line the user clicked on.
-
-% \begin{figure}
-% \begin{center}
-% \includegraphics*[scale=0.34, trim=15mm 33mm 15mm 33mm]{./figures/gmaps_bqp}
-% \end{center}
-% \caption{Google maps application showing the live BQP data retrieved
-%   from the central advert service using the SAGA Python bindings
-%   (\url{http://fortytwo.cct.lsu.edu/teragrid/teragrid.html}).}
-% \label{fig:gmaps_bqp}
-% \end{figure}
-
-%\section{Infrastructure Used \& Deployment Details}
-\jhanote{this needs major rewrite. Yaakoub to work on this.}
-\yyenote{Fixed. Why do we have this section again? It really ought to be removed, we dont use the features that were here}
-
-For our runs we chose three large Teragrid machines: Ranger, QueenBee
-and Abe. Those machines were chosen because of their large size, extensive software
-stack and of course the fact that BQP has data on all three machines. The 
-deployment of applications across these three heterogeneous machines
-belonging to different organizations can be a difficult
-task. Different versions and availability of libraries and compilers
-makes every single machine a unique environment. Although it is
-technically possible to stage-in all required applications and
-libraries and even to compile the application sources on the fly using
-SAGA, we decided to deploy pre-build binaries on all machines since
-this exercise is not part of this work's focus.
+Once the resource list is formulated, Lazarus uses the BigJob abstraction to submit
+jobs to all BigJobs in the resource list. The status of the jobs and BigJobs
+is reported on regular intervals through a logging mechanism. Upon completion
+of all the subjobs, Lazarus performs a calibration test where it runs
+the user-specified output-check on a pre-validated file, to ensure all the tools
+are in place and in working order. It then proceeds to check the output from all simulations to ensure sanity of output. Simulations that have faulty output are then
+collected into a list and resubmitted. The output is again checked for sanity: if
+all is well we proceed with the EnKF run (i.e. the analysis) and if not
+Lazarus will abort with a detailed log file of the error. This is mainly to safeguard
+against wasting SUs on corrupt runs. Once the analysis is complete,
+Lazarus repeates the forecast iteration with the newly modified state vectors and
+the history matching continues.
 
 
-\yyenote{Made this into its own section}
 
 \section{Failure Modes}
 
@@ -1298,7 +1233,7 @@ elementary, can lead to signficantly improved performance.
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.34]{./figures/ErrorBarPlot.png}
+\includegraphics[scale=0.5]{./figures/ErrorBarPlot_02.png}
 \end{center}
 \caption{From Left to Right: (i) Ranger, (ii) Queen Bee,
   (iii)Ranger+QueenBee, (iv) Ranger+QB+Abe, (v) BQP-All
