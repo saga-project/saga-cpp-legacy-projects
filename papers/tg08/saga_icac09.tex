@@ -970,19 +970,11 @@ are not sized zero, and a user specified command using HDF5 tools (h5ls) returns
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.29]{./figures/BreakdownDiagram.png}
-\caption{Block diagrams outlining the basic structure of lazarus.
-Left: from a user perspective, Lazarus launches ensembles with
-Cactus simulation thorns and Cactus EnKF thorns. From a development
-viewpoint (right) Lazarus is a small collection of python scripts built
-on top of the BigJob abstration, the SAGA file-adaptor, a small
-BQP python wrapper and fault tolerance scripts. Both BigJob
-and File Adaptor are built on top of the SAGA Python bindings, BQP
-is built on top of the BQP C interface and the fault tolerance uses
-hdf5 tools to verify simulation data.
-\jhanote{arrows need to be
-    explained.. sorry but still difficult to understnad what this is
-    all about}}
+\includegraphics[scale=0.5]{./figures/Architecture.png}
+\caption{Block diagrams outlining the basic structure of lazarus. Lazarus is built on
+several components: BigJob abstraction, SAGA file adaptor, BQP python wrappers and fault tolerance
+functions that are based on SAGA python bindings, BQP command line tools and HDF5 tools respectively
+}
 \end{center}
 
 \label{fig:application_architecture}
@@ -991,35 +983,42 @@ hdf5 tools to verify simulation data.
 
 \begin{figure}
 \begin{center}
- %  \includegraphics[scale=0.5]{./figures/SequenceDiagram}
-\includegraphics[scale=0.18]{./figures/Lazarus_Workflow_Alternate.png}
+\includegraphics[scale=0.5]{./figures/Simulations.png}
+\caption{Lazarus as it is being used for history matching: Cactus
+built with reservoir  simulation and IO thorns for forecasting, Cactus
+built with EnKF and IO thorns for analysis
+}
 \end{center}
-\caption{\jhanote{I would put a simpler diagram here} A high-level
-  overview of the control flow for the SAGA-Cactus based ensemble
-  Kalman filter application. Models are generated and these are mapped
-  to appropriate resources. This is done based upon the number of grid
-  points in the model (which in turn determines the number of
-  processors and memory) and the projected run-time (which is based
-  upon estimated number of iterations). \jhanote{caption needs
-    adjustment}}
+
+\label{fig:application_usage}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+ %  \includegraphics[scale=0.5]{./figures/SequenceDiagram}
+\includegraphics[scale=0.35]{./figures/Diagram1.jpeg}
+\end{center}
+\caption{A high-level
+  overview of the control flow in Lazarus}
 \label{fig:controlflow}
 \end{figure}
 
-The application starts by getting BQP data for a list of candidate
-machines, assigns simulations to machines and submits the jobs to the
-respective machine scheduler. Once all the simulations are submitted,
-the history matching application (in our case a Kalman filter) is
-submitted to run. The Kalman filter application is run on the
-machine that will run 50\% or more of the entire simulations or the
-machine that has the highest bandwidth amongst the machines used for
-the simulations.  Once the simulations start, they notify the advert
-service of their starting time and location; upon successful
-completion, they also notify the advert service of the path of the
-files they output.  Meanwhile the history matching application is
-notified of the completion of the simulations and modifies the models
-used in the reservoir simulation. The modified models are then
-submitted again as a second stage and the entire processes is
-repeated.
+%The application starts by getting BQP data for a list of candidate
+%machines, assigns simulations to machines and submits the jobs to the
+%respective machine scheduler. Once all the simulations are submitted,
+%the history matching application (in our case a Kalman filter) is
+%submitted to run. The Kalman filter application is run on the
+%machine that will run 50\% or more of the entire simulations or the
+%machine that has the highest bandwidth amongst the machines used for
+%the simulations.  Once the simulations start, they notify the advert
+%service of their starting time and location; upon successful
+%completion, they also notify the advert service of the path of the
+%files they output.  Meanwhile the history matching application is
+%notified of the completion of the simulations and modifies the models
+%used in the reservoir simulation. The modified models are then
+%submitted again as a second stage and the entire processes is
+%repeated.
 
 To preapre for launching Lazarus, a model generator is required to create
 the initial data (initial state vectors) for all the ensembles. This is typically
@@ -1233,7 +1232,7 @@ elementary, can lead to signficantly improved performance.
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.5]{./figures/ErrorBarPlot_02.png}
+\includegraphics[scale=0.5]{./figures/ErrorBarPlot_03.png}
 \end{center}
 \caption{From Left to Right: (i) Ranger, (ii) Queen Bee,
   (iii)Ranger+QueenBee, (iv) Ranger+QB+Abe, (v) BQP-All
