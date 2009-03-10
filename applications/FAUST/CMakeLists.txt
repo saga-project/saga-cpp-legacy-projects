@@ -1,5 +1,5 @@
 #  CMakeLists.txt
-#  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
+#  faust - Framework for Adaptive Ubiquitous Scalable Tasks
 #
 #  Created by Ole Weidner <oweidner@cct.lsu.edu> on 01/16/09.
 #  Copyright 2009 Center for Computation & Technology. All rights reserved.
@@ -13,21 +13,21 @@ cmake_minimum_required(VERSION 2.6.2 FATAL_ERROR)
 # allow more human readable "if then else" constructs
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 
-# The name of our project is "hpx".  CMakeLists files in this project can
-# refer to the root source directory of the project as ${FAUST_SOURCE_DIR} and
-# to the root binary directory of the project as ${hpx_BINARY_DIR}.
-project(FAUST CXX C)
+# The name of our project is "faust".  CMakeLists files in this project can
+# refer to the root source directory of the project as ${faust_SOURCE_DIR} and
+# to the root binary directory of the project as ${faust_BINARY_DIR}.
+project(faust CXX C)
 
 # project version
-set(FAUST_MAJOR_VERSION 0)
-set(FAUST_MINOR_VERSION 1)
-set(FAUST_PATCH_LEVEL   0)
-set(FAUST_VERSION "${FAUST_MAJOR_VERSION}.${FAUST_MINOR_VERSION}.${FAUST_PATCH_LEVEL}")
-set(FAUST_SOVERSION ${FAUST_MAJOR_VERSION})
+set(faust_MAJOR_VERSION 0)
+set(faust_MINOR_VERSION 1)
+set(faust_PATCH_LEVEL   0)
+set(faust_VERSION "${faust_MAJOR_VERSION}.${faust_MINOR_VERSION}.${faust_PATCH_LEVEL}")
+set(faust_SOVERSION ${faust_MAJOR_VERSION})
 
-
-# include additional macro definitions
-#include(HpxUtils)
+# We have a patched BoostFIND module, and other files to include, look for 
+# these in our misc directory
+list(APPEND CMAKE_MODULE_PATH ${faust_SOURCE_DIR}/misc)
 
 # set default cmake build type to RelWithDebInfo (None Debug Release RelWithDebInfo MinSizeRel)
 if(NOT CMAKE_BUILD_TYPE)
@@ -35,15 +35,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # We need to use Boost, namely the following Boost libraries
-set(Boost_FIND_VERSION_EXACT ON)
+set(Boost_FIND_VERSION_EXACT OFF)
 set(Boost_FIND_VERSION_MAJOR 1)
-set(Boost_FIND_VERSION_MINOR 35)
+set(Boost_FIND_VERSION_MINOR 38)
 set(Boost_FIND_VERSION_PATCH 0)
 
 set(Boost_COMPONENTS_NEEDED
     date_time
     filesystem
-    graph
     program_options
     regex
     serialization
@@ -52,23 +51,23 @@ set(Boost_COMPONENTS_NEEDED
     thread)
 set(Boost_USE_STATIC_LIBS OFF)
 
-find_package(Boost 1.35.0 COMPONENTS ${Boost_COMPONENTS_NEEDED})
+find_package(Boost 1.38.0 COMPONENTS ${Boost_COMPONENTS_NEEDED})
 
 if(Boost_FOUND)
     message(STATUS "Boost version found: " 
         ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}
         " (${Boost_INCLUDE_DIR})")
 else()
-    message(FATAL "Boost installation not found. Please specify the Boost"
-        "installation directory using -DBOOST_ROOT=...")
+    message("FATAL Boost installation not found. Please specify the Boost
+            installation directory using -DBOOST_ROOT=...")
 endif()
 
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-# We need to include several hpx directories for header files
-include_directories(${FAUST_SOURCE_DIR})
-#include_directories(${FAUST_SOURCE_DIR}/external/cache)
+# We need to include several faust directories for header files
+include_directories(${faust_SOURCE_DIR})
+#include_directories(${faust_SOURCE_DIR}/external/cache)
 
 # initialize installation directory (can be changed via ccmake or 
 # 'cmake -DCMAKE_PREFIX=...')
@@ -90,12 +89,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}"
     CACHE PATH "Path to custom CMake Modules" 
     FORCE)
 
-message(STATUS "HPX will be installed to: " ${CMAKE_INSTALL_PREFIX})
+message(STATUS "faust will be installed to: " ${CMAKE_INSTALL_PREFIX})
 
 # global library configuration
-add_definitions(-DHPX_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
-add_definitions(-DHPX_USE_LOCKFREE=1)
-add_definitions(-DHPX_USE_TBB=0)
+add_definitions(-Dfaust_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
+add_definitions(-Dfaust_USE_LOCKFREE=1)
+add_definitions(-Dfaust_USE_TBB=0)
 
 # the Boost serialization library needs to be linked as a shared library
 add_definitions(-DBOOST_SERIALIZATION_DYN_LINK)
@@ -129,7 +128,7 @@ if(MSVC)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-DHPX_GCC_HAVE_VISIBILITY)
+    add_definitions(-Dfaust_GCC_HAVE_VISIBILITY)
     add_definitions(-DBOOST_COROUTINE_GCC_HAVE_VISIBILITY)
 
     # check for availability of pthread_setaffinity_np()
@@ -151,12 +150,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_definitions(-D_XOPEN_SOURCE=1)
 endif()
 
-# hpx_LIBRARIES lists all libraries a HPX module needs to be linked with by 
+# faust_LIBRARIES lists all libraries a faust module needs to be linked with by 
 # default, there may be more for individual modules, but this is the mandatory
 # set
-set(hpx_LIBRARIES hpx hpx_serialization)
+set(faust_LIBRARIES faust faust_serialization)
 if(UNIX)
-    set(hpx_LIBRARIES ${hpx_LIBRARIES} dl)
+    set(faust_LIBRARIES ${faust_LIBRARIES} dl)
 endif()
 
 # set variable helping in naming the target library names
@@ -164,68 +163,70 @@ if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
 endif()
 if(UNIX)
-    set(component_LIBRARY_PREFIX "hpx_component_")
+    set(component_LIBRARY_PREFIX "faust_component_")
 endif()
 
 # Recurse into some subdirectories. This does not actually cause another cmake 
 # executable to run. The same process will walk through the project's entire 
 # directory structure.
-add_subdirectory(src)
+add_subdirectory(faust)
+add_subdirectory(faust/faust/)
+add_subdirectory(faust/impl/)
 
 # Components are to build separately
-add_subdirectory(hpx/components)
+#add_subdirectory(faust/components)
 
 # executables depend on libraries above
-add_subdirectory(tests)
-add_subdirectory(examples)
-add_subdirectory(runtime)
+#add_subdirectory(tests)
+#add_subdirectory(examples)
+#add_subdirectory(runtime)
 
 # installation instructions
 install(
-    DIRECTORY hpx/                    # install all hpx header files
-    DESTINATION include/hpx 
+    DIRECTORY faust/                    # install all faust header files
+    DESTINATION include/faust 
     FILES_MATCHING PATTERN "*.hpp"
     REGEX ".svn" EXCLUDE
     REGEX "CMakeFiles" EXCLUDE)
 
 # install external dependencies
-install(
-    DIRECTORY external/cache/boost
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
-    REGEX ".svn" EXCLUDE)
-install(
-    DIRECTORY external/coroutine/boost
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
-    REGEX ".svn" EXCLUDE)
-install(
-    DIRECTORY external/endian/boost
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
-    REGEX ".svn" EXCLUDE)
-if(${Boost_MINOR_VERSION} LESS 36)
-    install(
-        DIRECTORY external/exception/boost
-        DESTINATION include
-        FILES_MATCHING PATTERN "*.hpp"
-        REGEX ".svn" EXCLUDE)
-endif()
-install(
-    DIRECTORY external/lockfree/boost
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
-    REGEX ".svn" EXCLUDE)
-install(
-    DIRECTORY external/logging/boost
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
-    REGEX ".svn" EXCLUDE)
-install(
-    DIRECTORY external/plugin/boost
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
-    REGEX ".svn" EXCLUDE)
+#install(
+#    DIRECTORY external/cache/boost
+#    DESTINATION include
+#    FILES_MATCHING PATTERN "*.hpp"
+#    REGEX ".svn" EXCLUDE)
+#install(
+#    DIRECTORY external/coroutine/boost
+#    DESTINATION include
+#    FILES_MATCHING PATTERN "*.hpp"
+#    REGEX ".svn" EXCLUDE)
+#install(
+#    DIRECTORY external/endian/boost
+#    DESTINATION include
+#    FILES_MATCHING PATTERN "*.hpp"
+#    REGEX ".svn" EXCLUDE)
+#if(${Boost_MINOR_VERSION} LESS 36)
+#    install(
+#        DIRECTORY external/exception/boost
+#        DESTINATION include
+#        FILES_MATCHING PATTERN "*.hpp"
+#        REGEX ".svn" EXCLUDE)
+#endif()
+#install(
+#    DIRECTORY external/lockfree/boost
+#    DESTINATION include
+#    FILES_MATCHING PATTERN "*.hpp"
+#    REGEX ".svn" EXCLUDE)
+#install(
+#    DIRECTORY external/logging/boost
+#    DESTINATION include
+#    FILES_MATCHING PATTERN "*.hpp"
+#   REGEX ".svn" EXCLUDE)
+#install(
+#    DIRECTORY external/plugin/boost
+#    DESTINATION include
+#    FILES_MATCHING PATTERN "*.hpp"
+#    REGEX ".svn" EXCLUDE)
 
 # export build settings
 include(CMakeExportBuildSettings)
