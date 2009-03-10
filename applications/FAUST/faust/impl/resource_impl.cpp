@@ -10,8 +10,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <faust/exception.hpp>
-#include <faust/resource_description.hpp>
+#include <faust/faust/exception.hpp>
+#include <faust/faust/resource_description.hpp>
 #include <faust/impl/resource_impl.hpp>
 
 using namespace saga;
@@ -20,8 +20,71 @@ namespace FAR = faust::attributes::resource_description;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
+resource::resource(std::string resource_id)
+: object(faust::object::Resource), init_from_id_(true), resource_id_(resource_id)
+{
+  // Initialize the logwriter
+  std::string identifier(FW_NAME); std::string msg("");
+  identifier.append(" faust::resource ("+get_uuid()+")"); 
+  log_ = new detail::logwriter(identifier, std::cout);
+  
+  // TRY TO CONNECT TO THE ADVERT ENTRY FOR THIS RESOURCE
+  //
+  std::string advert_key = object::faust_root_namesapce_ 
+                         + "RESOURCES/" + resource_id_ + "/";
+  
+  msg = "Re-connecting to advert endpoint " + advert_key;
+  try {
+    int mode = advert::ReadWrite;
+    advert_base_ = advert::directory(advert_key, mode);
+    
+    msg += ". SUCCESS ";
+    log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    msg += ". FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
+  
+  // RETRIEVE ATTRIBUTES OF THE ADVERT ENTRY AND GENERATE RESOURCE_DESCRIPTION
+  //
+  msg = "Retrieving resource description for " + resource_id_;
+
+  try {
+    //description_ = faust::resource_description();
+    
+    std::vector<std::string> attr_ = advert_base_.list_attributes();
+    std::vector<std::string>::const_iterator it;
+    for(it = attr_.begin(); it != attr_.end(); ++it)
+    {
+      // exclude these advert-specific attributes
+      if((*it) == "utime" || (*it) == "ctime") continue;
+      
+      if(advert_base_.attribute_is_vector(*it)) {
+        description_.set_vector_attribute((*it), advert_base_.get_vector_attribute((*it)));
+        //std::cout << "vector " << *it << std::endl;
+      }
+      else {
+        description_.set_attribute((*it), advert_base_.get_attribute((*it)));
+        //std::cout << "scalar " << *it << std::endl;
+      }
+    }
+    msg += ". SUCCESS ";
+    log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    msg += ". FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
+  
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CONSTRUCTOR
 resource::resource(faust::resource_description RD) 
-: object(faust::object::Resource)
+: object(faust::object::Resource), init_from_id_(false)
 {
   description_ = RD;  
   

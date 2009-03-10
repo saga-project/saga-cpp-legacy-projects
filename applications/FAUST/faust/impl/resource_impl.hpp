@@ -36,11 +36,16 @@ namespace faust
       friend class faust::impl::resource_monitor;
       saga::advert::directory advert_base_;
       std::string resource_id_;
+      bool init_from_id_;
 			
 			resource() : object(faust::object::Resource) {};
       
     public:
+      
+      explicit resource(std::string resource_identifier);
+      
       explicit resource(faust::resource_description RD);
+      
       ~resource();
       
       faust::resource_description get_description(); 

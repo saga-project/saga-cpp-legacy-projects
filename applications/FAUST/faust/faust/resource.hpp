@@ -39,9 +39,14 @@ namespace faust
     
   public:
     /*! \brief Creates a new %resource %object representing a pysical %resource
-     *         described by the %resource_description RD.
+     *         described by the %resource_description (RD) argument.
      */
     explicit resource(faust::resource_description RD);
+    
+    /*! \brief Creates a new %resource %object that reconnects to an existing
+     *         %resource in the database identified by resource_id argument.
+     */
+    explicit resource(std::string resource_id);
     
     /*! \brief Shuts down the faust agent associated with this %resource and 
 		 *         destroys this %object.

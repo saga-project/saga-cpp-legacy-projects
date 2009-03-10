@@ -38,6 +38,9 @@ int main (int argc, char* argv[])
   
   faust::resource queenbee(queenbee_rd);
   
+  // test re-connect
+  faust::resource qb_reconnect("queenbee.loni.org");
+  
 /*  std::vector<faust::resource_description> hostlist;
   faust::resource_description h1, h2, h3;
   
