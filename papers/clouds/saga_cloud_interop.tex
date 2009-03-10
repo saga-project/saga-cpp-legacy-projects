@@ -21,7 +21,8 @@
 \usepackage{multirow} 
 %\usepackage{multicolumn}
 
-\setlength\parskip{-0.075em}
+\setlength\parskip{-0.015em}
+\setlength\parsep{-0.15em}
 
 \newenvironment{shortlist}{
 	\vspace*{-0.85em}
@@ -46,7 +47,7 @@
   numberblanklines=false
 }
 
-% \title{pplication-level Interoperability between Clouds and Grids}
+% \title{pplication-level Interoperability between Clouds and GriTPs}
 % \title{SAGA-MapReduce: Providing Infrastructure Independence and
 %   Cloud-Grid Interoperability}
 \title{Application Level Interoperability between Clouds and Grids}
@@ -73,9 +74,9 @@
 \newcommand{\sagamapreduce }{SAGA-MapReduce }
 \newcommand{\tc }{ $T_c$ }
 
-\newcommand{\upup}{\vspace*{-0.5em}}
-\newcommand{\upp}{\vspace*{-0.5em}}
-\newcommand{\up}{\vspace*{-0.25em}}
+\newcommand{\upup}{\vspace*{-0.6em}}
+\newcommand{\upp}{\vspace*{-0.6em}}
+\newcommand{\up}{\vspace*{-0.3em}}
 
 \newcommand{\T}[1]{\texttt{#1}}
 \newcommand{\I}[1]{\textit{#1}}
@@ -277,8 +278,7 @@ application.  Additionally, due to different data-compute affinity
 requirement amongst the tasks, some workers might be better placed on
 a Cloud~\cite{jha_ccpe09}, whilst some may optimally be located on
 regular Grids.  Complex dependencies and inter-relationship between
-sub-tasks make this often difficult to determine before run-time and
-require run-time mapping.
+sub-tasks make this often difficult to determine before run-time.
 
 Effort directed towards ALI on Clouds/Grids in addition to satisfying
 basic curiosity of ``if and how to interoperate'', might also possibly
@@ -383,6 +383,7 @@ run-time environment decision making through loading relevant
 adaptors. We will not discuss details of SAGA here; details can be
 found elsewhere~\cite{saga_url}.
 
+\upup
 \section{Interfacing SAGA to Grids and Clouds}
 
 SAGA was originally developed primarily for compute-intensive
@@ -406,7 +407,7 @@ to Cloud environments.
 % of a virtual machine instance and the assignment of a job to that
 % virtual machine; on the other hand, in the context of Grids, {\texttt
 %   job\_submit()} results in the creation of a job via a service and
-% submission to GRAM style gatekeeper. In the former the virtual machine
+% submission to GAM style gatekeeper. In the former the virtual machine
 % is assigned to the saga::job and ...  
 So how, in spite of such significant changes in the semantics does
 SAGA keep the application immune to change? The basic feature that
@@ -419,6 +420,7 @@ interoperability is predicated.
 % In a nutshell, this is the power of a high-level interface such as
 % SAGA and upon which the capability of interoperability is based.
 
+\upup
 \subsection{Adaptors: Design and Implementation}
 
 \subsubsection{Local Adaptors}
@@ -433,15 +435,15 @@ navigation, and \T{std::fstream} for local file I/O. % 'nuf said?
 \subsubsection{SSH adaptors}
 The SSH adaptors are based on three different command line tools,
 namely {\texttt{ssh, scp}} and {\texttt{sshfs}}.  Further, all ssh
-adaptors rely on the availability of ssh security credentials for
-remote operations.  The ssh context adaptor implements some mechanisms
+adaptors rely on the availability of SSH security credentials for
+remote operations.  The SSH context adaptor implements some mechanisms
 to (a) discover available key-pairs automatically, and (b) to verify
 the validity and usability of the found and otherwise specified
 credentials.
   
 {\texttt{\ssh}} is used to spawn remote job instances, for which the
-ssh job adaptor instantiates a \I{local} \T{saga::job::service}
-instance, and submits the respective ssh command lines to it.  The
+SSH job adaptor instantiates a \I{local} \T{saga::job::service}
+instance, and submits the respective SSH command lines to it.  The
 local job adaptor described above then takes care of process I/O,
 detachment, etc.  A significant drawback of this approach is that
 several SAGA methods act upon the local ssh process instead of the
@@ -482,7 +484,7 @@ in a temporary location on the remote host. The remote application is
 informed about these credentials, and the ssh context adaptor picks
 them up by default, so that home-calling is available without the need
 for any application level intervention.  Also, a respective entry to
-the local \T{authorized\_keys} file is added% \footnote{ssh key
+the local \T{authorized\_keys} file is added. % \footnote{ssh key
 %   distribution is optional, and disabled by default}.
 % For example, the following pseudo code would be possible
 
@@ -516,9 +518,10 @@ the local \T{authorized\_keys} file is added% \footnote{ssh key
 % access that mounted file system for I/O.  The complete key management
 % is transparent.
 
+\upp
 \subsubsection{AWS adaptors}
 
-SAGA's AWS\footnote{\B{A}mazon \B{W}eb \B{S}ervices} adaptor suite is
+SAGA's AWS (Amazon Web Service) adaptor suite is
 an interface to services which implement the cloud web service
 interfaces as specified by Amazon. %\ref{aws-devel-url}.
 These interfaces are not only used by Amazon to allow programmatic
@@ -556,7 +559,7 @@ based SAGA operations on the VM instance.
 Note that there is an important semantic difference between 'normal'
 (e.g. Grid based) and 'Cloud' job services in SAGA: a normal job
 service is assumed to have a lifetime which is completely independent
-from the application which accesses that service.  For example, a Gram
+from the application which accesses that service.  For example, a GRAM
 gatekeeper has a lifetime of days and weeks, and allows a large number
 of applications to utilize it.  An AWS job service however points to a
 potentially volatile resource, or even to a non-existing resource --
@@ -601,7 +604,7 @@ more direct and explicit notion of resource lifetime management.
     j.wait ();
    } // break contact to GRAM
   \end{mycode}
-  \caption{\label{gramjob}Job launch on a Grid via Gram\vspace*{-2em}}
+  \caption{\label{gramjob}Job launch on a Grid via GRAM\vspace*{-2em}}
  \end{center}
 \upp
 \end{figure}
@@ -627,76 +630,19 @@ more direct and explicit notion of resource lifetime management.
 \upp
 \end{figure}
 
-%{\bf SAGA-MapReduce on Clouds and Grids:} 
-% \begin{figure}[t]
-%   % \includegraphics[width=0.4\textwidth]{MapReduce_local_executiontime.png}
-%   \caption{Plots showing how the \tc for different data-set sizes
-%     varies with the number of workers employed.  For example, with
-%     larger data-set sizes although $t_{over}$ increases, as the number
-%     of workers increases the workload per worker decreases, thus
-%     leading to an overall reduction in $T_c$. The advantages of a
-%     greater number of workers is manifest for larger data-sets.}
-% \label{grids1}
-% \end{figure}
-
-% {\bf SAGA-MapReduce on Cloud-like infrastructure: } Accounting for the
-% fact that time for chunking is not included, Yahoo's MapReduce takes a
-% factor of 2 less time than \sagamapreduce
-% (Fig.~\ref{mapreduce_timing_FS}). This is not surprising, as
-% \sagamapreduce implementations have not been optimized, e.g.,
-% \sagamapreduce is not multi-threaded.
-% \begin{figure}[t]
-% \upp
-%       \centering
-% %          \includegraphics[width=0.40\textwidth]{mapreduce_timing_FS.pdf}
-%           \caption{\tc for \sagamapreduce using one worker (local to
-%             the master) for different configurations.  The label
-%             ``Hadoop'' represents Yahoo's MapReduce implementation;
-%             \tc for Hadoop is without chunking, which takes
-%             several hundred sec for larger data-sets.  The ``SAGA
-%             MapReduce + Local FS'' corresponds to the use of the local
-%             FS on Linux clusters, while the label ``SAGA + HDFS''
-%             corresponds to the use of HDFS on the clusters. Due to
-%             simplicity, of the Local FS, its performance beats
-%             distributed FS when used in local mode.}
-%           % It is interesting to note that as the data-set sizes get
-%           % larger, HDFS starts outperforming local FS.  We attribute
-%           % this to the use of caching and other advanced features in
-%           % HDFS which prove to be useful, even though it is not being
-%           % used in a distributed fashion.  scenarios considered are
-%           % (i) all infrastructure is local and thus SAGA's local
-%           % adapters are invoked, (ii) local job adaptors are used,
-%           % but the hadoop file-system (HDFS) is used, (iii) Yahoo's
-%           % mapreduce.
-% %      \label{saga_mapreduce_1worker.png}
-%           \label{mapreduce_timing_FS}
-% \upp
-% \end{figure}
-% Experiment 5 (Table~\ref{exp4and5}) provides insight into performance
-% figure when the same number of workers are available, but are either
-% all localized, or are split evenly between two similar but distributed
-% machines. It shows that to get lowest $T_c$, it is often required to
-% both distribute the compute and lower the workload per worker; just
-% lowering the workload per worker is not good enough as there is still
-% a point of serialization (usually local I/O).  % It shows that when
-% % workload per worker gets to a certain point, it is beneficial to
-% % distribute the workers, as the machine I/0 becomes the bottleneck.
-% When coupled with the advantages of a distributed FS, the ability to
-% both distribute compute and data provides additional performance
-% advantage, as shown by the values of $T_c$ for both distributed
-% compute and DFS cases in Table~\ref{exp4and5}.
-
+\upup
+\upup
 \subsection{Globus Adaptors}
 SAGA's Globus adaptor suite is amongst the most-utilized adaptors.  As
-with ssh, security credentials are expected to be managed
+with SSH, security credentials are expected to be managed
 out-of-bound, but different credentials can be utilized by pointing
 \T{saga::context} instances to them as needed.  Other than the AWS and
 ssh adaptors, the Globus adaptors do not rely on command line tools,
 but rather link directly against the respective Globus libraries: the
 Globus job adaptor is thus a GRAM client, the Globus file adaptor a
-gridftp client.  In experiments, non-Cloud jobs were started using
-either gram or ssh.  In either case, file I/O was performed either via
-ssh, or via a shared Lustre filesystem -- the gridftp functionality
+GridFTP client.  In experiments, non-Cloud jobs were started using
+either GRAM or SSH.  In either case, file I/O was performed either via
+ssh, or via a shared Lustre filesystem -- the GridFTP functionality
 were not used for experiments in this paper.
 
 % \footnote{For performance comparision between the Lustre FS
@@ -708,10 +654,8 @@ were not used for experiments in this paper.
 %   specifics Everything from i) job submission ii) file transfer...iii)
 %   others..}
 
+\upup
 \section{SAGA-based MapReduce}
-% In this paper we will demonstrate the use of SAGA in implementing well
-% known programming patterns for data intensive computing --
-% specifically, we have implemented MapReduce. 
 After \sagamapreduce we have also developed real scientific
 applications using SAGA based implementations of patterns for
 data-intensive computing: multiple sequence alignment can be
@@ -719,19 +663,9 @@ orchestrated using the SAGA-All-pairs implementation, and genome
 searching can be implemented using SAGA-MapReduce (see
 Ref.~\cite{saga_ccgrid09}).
 
-% {\bf MapReduce:} MapReduce is a programming framework which supports
-% applications which operate on very large data sets on clusters of
-% computers.
 
-% The Google File-System, and other
-% distributed file-systems (DFS), provide the relevant capabilities,
-% such as atomic file renames.  Implementations of MapReduce on these
-% DFS are free to focus on implementing the data-flow pipeline, which is
-% the algorithmic core of the MapReduce framework.  
-
-\subsection{\sagamapreduce Implementation} % In contrast, to the
-% SAGA-based MapReduce the system capabilities required by MapReduce are
-% usually not natively supported. 
+\upup
+\subsection{\sagamapreduce Implementation}
 Our implementation of \sagamapreduce interleaves the core logic with
 explicit instructions on where processes are to be scheduled.  The
 advantage of this approach is that our implementation is no longer
@@ -928,7 +862,7 @@ time-to-solution, and maximizes resilience against worker loss.
 The scheme \T{any} acts here as a placeholder for SAGA, so that the
 SAGA engine can choose an appropriate adaptor.  The master would
 access the file via the default local file adaptor.  The Globus
-clients may use either the GridFTP or ssh adaptor for remote file
+clients may use either the GridFTP or SSH adaptor for remote file
 success (but in our experimental setup would also succeed 
 using the local file adaptor, as the lustre FS is mounted on the
 cluster nodes), and the EC2 workers would use the ssh file adaptor for
@@ -978,13 +912,14 @@ local installation of Eucalyptus at LSU -- GumboCloud) and
 Nimbus.  In this paper, we focus on EC2, Eucalyptus and the TeraGrid
 (TG).
 
+\upup
 \subsection{Deployment Details}
 
 In order to fully utilize cloud infrastructures for SAGA applications,
 the VM instances need to fulfill a couple or prerequisites: the SAGA
 libraries and its dependencies need to be deployed, need some external
 tools which are used by the SAGA adaptors at runtime -- such as ssh,
-scp, and sshfs.  The latter needs the FUSE kernel module to function
+SCP, and sshfs.  The latter needs the FUSE kernel module to function
 -- so if remote access to the cloud compute node's file system is
 wanted, the respective kernel module needs to be installed as well.
 There are two basic options to achieve the above, either a customized
@@ -1156,7 +1091,8 @@ can differ as well as useful for our experiments.
   \multicolumn{2}{c}{Number-of-Workers}  &  Data size   &  $T_s$  & $T_{spawn}$ & $T_s - T_{spawn}$\\   
   TeraGrid &  AWS &   (MB)  & (sec) & (sec)  & (sec) \\
   \hline
-  \textcolor{blue}{4} & - & 10  &  8.8 &  6.8 & 2.0 \\
+%  \textcolor{blue}{4} & - & 10  &  8.8 &  6.8 & 2.0 \\
+  { {\bf 4}} & - & 10  &  8.8 &  6.8 & 2.0 \\
 %  \textcolor{blue}{6} & - & 10  &  12.4 &  10.2 & 2.2 \\
 %  10 & -  & 100 & 10.4 & 8.86 \\
 %  \textcolor{blue}{10} & - & 10  & 20.8 & 17.3 & 3.5 \\  
@@ -1164,16 +1100,16 @@ can differ as well as useful for our experiments.
   - & 1 & 10 & 4.3 & 2.8 & 1.5 \\
   - & 2 & 10 & 7.8 & 5.3 & 2.5 \\ 
   - & 3 & 10 & 8.7 & 7.7 & 1.0 \\
-  - & \textcolor{blue}{4} & 10 & 13.0 & 10.3 & 2.7 \\
+  - & {\bf 4} & 10 & 13.0 & 10.3 & 2.7 \\
   - & 4 (1) & 10 & 11.3 & 8.6 & 2.7 \\
   - & 4 (2) & 10 & 11.6 & 9.5 & 2.1 \\
-\hline 
+  \hline 
   -  & 2  & 100 & 7.9  & 5.3 & 2.6 \\
-   -  & \textcolor{red}{4}  & 100 & 12.4 & 9.2 & 3.2\\
+  -  & {\bf 4}  & 100 & 12.4 & 9.2 & 3.2\\
   -  & 10 & 100 & 29.0 & 25.1 & 3.9 \\
- \hline
-  - & \textcolor{red}{4 (1)} & 100 & 16.2 & 8.7 & 7.5 \\ 
- - & \textcolor{red}{4 (2)} & 100 & 12.3 & 8.5 & 3.8 \\
+  \hline
+  - & {\bf 4 (1)} & 100 & 16.2 & 8.7 & 7.5 \\ 
+  - & {\bf 4 (2)} & 100 & 12.3 & 8.5 & 3.8 \\
   - & 6 (3) & 100 & 18.7 & 13.5 & 5.2\\
   - & 8 (1) & 100 & 31.1 & 18.3 & 12.8 \\
   - & 8 (2) & 100 & 27.9 & 19.8 & 8.1\\
@@ -1181,7 +1117,7 @@ can differ as well as useful for our experiments.
   \hline \hline
 \end{tabular}
 \upp
-\caption{Performance data for different configurations of worker placements. The master places the workers on either Clouds or on the TeraGrid (QueenBee). The configurations -- separated by horizontal lines, are classified as either all workers on the TeraGrid or having all workers on EC2. For the latter, unless otherwise explicitly indicated
+\caption{Performance data for different configurations of worker placements. The master places the workers on either Clouds or on the TeraGrid (TG). The configurations -- separated by horizontal lines, are classified as either all workers on the TG or having all workers on EC2. For the latter, unless otherwise explicitly indicated
   by a number in parenthesis, every worker is assigned to a unique VM. In the
   final set of rows, the number  in parenthesis indicates the number of VMs used. It is interesting to note the significant spawning times, and its dependence on the number of VM, which typically increase with the number of VMs. $T_{spawn}$ does not include instantiation of the VM.}
 \label{stuff-1}
@@ -1204,7 +1140,7 @@ can differ as well as useful for our experiments.
   1 & - & 1 & 10   & 4.7 & 3.3 & 1.4\\
   1 & - & 1 & 100  & 6.4 & 3.4 & 3.0\\
   \hline 
-  \textcolor{blue}{2} &   \textcolor{blue}{2} & - & 10 & 7.4 & 5.9 & 1.5 \\
+  {\bf 2} &   {\bf 2} & - & 10 & 7.4 & 5.9 & 1.5 \\
   3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
   4 & 4 & - & 10 & 13.7 & 11.6 & 2.1 \\
   5 & 5 & - & 10 & 33.2 & 29.4 & 3.8 \\ 
@@ -1217,7 +1153,7 @@ can differ as well as useful for our experiments.
 \end{tabular}
 \upp
 \caption{Performance data for different configurations of worker placements
-  on TeraGrid, Eucalyptus-Cloud and EC2. The first set of data
+  on TG, Eucalyptus-Cloud and EC2. The first set of data
   establishes Cloud-Cloud interoperability. The second set 
   (rows 5- 11) represent  interoperability between Grids-Clouds (EC2). 
   The experimental conditions and measurements are similar to Table 1.\vspace*{-1em}}
@@ -1227,14 +1163,16 @@ can differ as well as useful for our experiments.
 \end{table}
 
 The total time to solution ($T_s$) of a \sagamapreduce job, can be
-decomposed into three primary components: $t_{over}$ defined as the
-time for pre-processing -- which is the time to chunk into fixed size
-data units, to distribute them and also to spawn the job. This is in
-some ways the overhead of the process (hence the subscript).  Another
-component of the overhead is the time it takes to instantiate a VM. % It
-% is worth mentioning that currently we instantiate VMs serially as
-% opposed to doing this concurrently. This is not a design decision but
-% just a quirk, with a trivial fix to eliminate it. 
+decomposed as the sum of three primary components -- $t_{over},
+t_{comp}$ and $t_{coord}$.  The first term $t_{over}$, is defined as
+the time for pre-processing -- which is the time to chunk into fixed
+size data units, to distribute them and also to spawn the job. This is
+in some ways the overhead of the process (hence the subscript).
+Another component of the overhead is the time it takes to instantiate
+a VM ($T_{spawn}$).
+% It is worth mentioning that currently we instantiate VMs serially as
+% opposed to doing this concurrently. This is not a design decision
+% but just a quirk, with a trivial fix to eliminate it.
 Our performance figures take the net instantiation time into account
 and thus normalize for multiple VM instantiation -- whether serial or
 concurrent started-up. In fact, for data we report in Table 1 and 2,
@@ -1244,7 +1182,7 @@ performance and are amenable to direct comparison irrespective of the
 number of VMs.  $t_{comp}$ is the time to actually compute the map and
 reduce function on a given worker, whilst $t_{coord}$ is the time
 taken to assign the payload to a worker, update records and to
-possibly move workers to a destination resource and in general,
+possibly move workers to a destination resource; in general,
 $t_{coord}$ scales as the number of workers increases.
 % In general: \vspace{-1em}
 % \begin{eqnarray}
@@ -1259,16 +1197,16 @@ communication) and increase faster than $t_{comp}$ decreases, thus
 overall $T_s$ can increase for the same data-set size, even though the
 number of independent workers increases.  The number of workers
 associated with a VM also influences the performance, as well as the
-time to spawn; for example, as shown by the three entries in red,
-although 4 identical workers are used, $T_c$ (defined as $T_S -
-T_{spawn} $) can be different, depending upon the number of VMs
-used. In this case, when 4 workers are spread across 4 VMs
+time to spawn; for example -- as shown by the three lower boldface
+entries in Table 1, although 4 identical workers are used depending
+upon the number of VMs used, $T_c$ (defined as $T_S - T_{spawn} $) can
+be different.  In this case, when 4 workers are spread across 4 VMs
 (i.e. default case), $T_c$ is lowest, even though $T_{spawn}$ is the
 highest; $T_c$ is highest when all four are clustered onto 1 VM. When
 exactly the same experiment is performed using data-set of size 10MB,
 it is interesting to observe that $T_c$ is the same for 4 workers
-distributed over 1 VM as it is for 4VMs, whilst the case when 4 workers
-are spread-over 2VMs out-perform both (2.1s).
+distributed over 1 VM as it is for 4 VMs, whilst when the performance
+for the case when  4 workers are spread-over 2 VMs out-perform both (2.1s).
 % Interestingly for 100MB and 8 workers -- although the $T_s$ is larger
 % than when 4 workers are used, the $T_c$ is lower when 4VMs
 % are use
@@ -1276,24 +1214,25 @@ are spread-over 2VMs out-perform both (2.1s).
 Table 2 shows performance figures when equal number of workers are
 spread across two different systems; for the first set of rows,
 workers are distributed on EC2 and Eucalyptus. For the next set of
-rows, workers are distributed over the TeraGrid and Eucalyptus, and in
-the final set of rows, workers are distributed between the TeraGrid
-and EC2.  Given the ability to distribute at will, we compare
-performance for the following scenarios: (i) when 4 workers are
-distributed equally (i.e., 2 each) across a TG machine and on EC2,
-with the scenario when all 4 workers are either exclusively on (ii)
-EC2 (2.7s), or on the (iii) TG machine (2.0s) (see Table 1 in
-blue). It is {\it interesting} that in this case $T_c$ is lower in the
-distributed case than when all workers are executed local to each, on
-either EC2 or TG; we urge that not too much be read into this, as it
-is just a coincidence that a {\it sweet spot} was found where on EC2 4
-workers had a large spawning overhead compared to spawning 2 workers,
-and an increase was in place for 2 workers on the TG. Also it is worth
-reiterating that there are experiment-to-experiment fluctuations for
-the same configuration (typically less that 1s).  The ability to
-enhance performance by distributed (heterogeneous) work-loads across
-different systems remains a distinct possibility, however, we believe
-more systematic studies are required.
+rows, workers are distributed over the TG and Eucalyptus, and in the
+final set of rows, workers are distributed between the TG and EC2.
+Given the ability to distribute at will, we compare performance for
+the following scenarios: (i) when 4 workers are distributed equally
+(i.e., 2 each) across a TG machine and on EC2 (1.5s), with the
+scenarios when, (ii) all 4 workers are either exclusively on EC2
+(2.7s), (iii) or all workers are on the TG machine (2.0s) (see Table
+1, boldface entries on the first and fifth line). It is {\it
+  interesting} that in this case $T_c$ is lower in the distributed
+case than when all workers are executed locally on either EC2 or TG;
+we urge that not too much be read into this, as it is just a
+coincidence that a {\it sweet spot} was found where on EC2, 4 workers
+had a large spawning overhead compared to spawning 2 workers, and an
+increase was in place for 2 workers on the TG. Also it is worth
+reiterating that for the same configuration there are
+experiment-to-experiment fluctuations (typically less than 1s).  The
+ability to enhance performance by distributed (heterogeneous)
+work-loads across different systems remains a distinct possibility,
+however, we believe more systematic studies are required.
 
 %$t_{comp} + t_{coord}$ is 
 
@@ -1304,31 +1243,6 @@ more systematic studies are required.
 
 \section{Discussion}
 
-% Due to space limitations we will not discuss the
-% performance data of \sagamapreduce with different data-set sizes and
-% varying worker numbers.
-% \subsubsection{Performance} 
-% \subsection*{Related Programming Approaches}
-
-% {\it SAGA vs others:} We have chosen SAGA to implement MapReduce and
-% control the distributed features. However, in principle there are
-% other approaches that could have been used to control the distributed
-% nature of the MapReduce workers.  For example, some alternate
-% approaches to using MapReduce could have employed Sawzall and
-% Pig~\cite{pig}.  Mention Sawzall~\cite{sawzall} as a language that
-% builds upon MapReduce; once could build Sawzall using SAGA.
-
-% Pig is a platform for large data sets that consists of a high-level
-% language for expressing data analysis programs, coupled with
-% infrastructure for evaluating these programs. The salient property of
-% Pig programs is that their structure is amenable to substantial
-% parallelization, which in turns enables them to handle very large data
-% sets. Contrary to these \sagamapreduce is i) infrastructure independent, 
-% ii) provides control to the end-user iii) amenable to extension/modification etc.
-
-% Quick comparision of our approach with other approaches, including
-% those involving Google's BigEngine.
-
 \subsubsection*{Experience}
 % All this is new technology, hence it is not surprising it took us a
 % while to get try to list some of
@@ -1338,23 +1252,6 @@ some reason \sagamapreduce does not terminate properly. Also given
 local firewall and networking policies, we encountered problems in
 initially accessing/addressing the VMs directly.
 
-% \jhanote{Kate and Andre: We need to outline the interesting Cloud
-% related challenges we encountered.  Not the low-level SAGA problems,
-% but all issues related to making SAGA work on Clouds.  
-% }
-
-% \jhanote{we have been having many of andre's jobs fail. insight into
-%   why? is it interesting to report?}
-
-%\subsubsection*{Programming Models for Clouds}
-
-% Discuss affinity: Current Clouds compute-data affinity. How should
-% they look like? What must they have?  It is important to note that,
-% some of the programming models that are common to both data-intensive
-% application and Cloud-based computing, where there is an explicit
-% cost-model for data-movement, is to develop general heuristics on how
-% we handle common considerations such as when to move the data to the
-% machine or when to process it locally.
 
 \subsubsection*{Programming Models for Clouds} We began this paper
 with a discussion of programming systems/model for Clouds, and the
@@ -1466,11 +1363,11 @@ Summer of Code Project, with assistance from Hartmut Kaiser. We also
 thank Hartmut for great support during the testing and deployment
 phases of this project. We are greatful to Dmitrii Zagorodnov (UCSB)
 and Archit Kulshrestha (CyD group, CCT) for the support in deployment
-with Eucalyptus.  KS would like to acknowledge the LSU
-Networking Infrastructure \& Research IT Enablement team for their help
-and support.  We also acknowledge internal resources of the Center for
+with Eucalyptus.  KS would like to acknowledge the LSU Networking
+Infrastructure \& Research IT Enablement team for their help and
+support.  We also acknowledge internal resources of the Center for
 Computation \& Technology (CCT) at LSU and computer resources provided
-by LONI/TeraGrid.  \bibliographystyle{plain}
+by LONI/TeraGrid for QueenBee.  \bibliographystyle{plain}
 \bibliography{saga_data_intensive}
 \end{document}
 
@@ -1558,3 +1455,47 @@ by LONI/TeraGrid.  \bibliographystyle{plain}
 % thus extend applications to different systems with minimal overhead is
 % an important design feature and a significant requirement so as to be
 % an effective programming abstraction layer.
+
+
+
+
+
+% Due to space limitations we will not discuss the
+% performance data of \sagamapreduce with different data-set sizes and
+% varying worker numbers.
+% \subsubsection{Performance} 
+% \subsection*{Related Programming Approaches}
+
+% {\it SAGA vs others:} We have chosen SAGA to implement MapReduce and
+% control the distributed features. However, in principle there are
+% other approaches that could have been used to control the distributed
+% nature of the MapReduce workers.  For example, some alternate
+% approaches to using MapReduce could have employed Sawzall and
+% Pig~\cite{pig}.  Mention Sawzall~\cite{sawzall} as a language that
+% builds upon MapReduce; once could build Sawzall using SAGA.
+
+% Pig is a platform for large data sets that consists of a high-level
+% language for expressing data analysis programs, coupled with
+% infrastructure for evaluating these programs. The salient property of
+% Pig programs is that their structure is amenable to substantial
+% parallelization, which in turns enables them to handle very large data
+% sets. Contrary to these \sagamapreduce is i) infrastructure independent, 
+% ii) provides control to the end-user iii) amenable to extension/modification etc.
+
+% Quick comparision of our approach with other approaches, including
+% those involving Google's BigEngine.
+% \jhanote{Kate and Andre: We need to outline the interesting Cloud
+% related challenges we encountered.  Not the low-level SAGA problems,
+% but all issues related to making SAGA work on Clouds.  
+% }
+
+% \jhanote{we have been having many of andre's jobs fail. insight into
+%   why? is it interesting to report?}%\subsubsection*{Programming Models for Clouds}
+
+% Discuss affinity: Current Clouds compute-data affinity. How should
+% they look like? What must they have?  It is important to note that,
+% some of the programming models that are common to both data-intensive
+% application and Cloud-based computing, where there is an explicit
+% cost-model for data-movement, is to develop general heuristics on how
+% we handle common considerations such as when to move the data to the
+% machine or when to process it locally.
