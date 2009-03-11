@@ -1,6 +1,6 @@
 /*
  *  main.cpp
-  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
+ *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *  Website: https://macpro01.cct.lsu.edu/trac/faust
  *
  *  Created by Ole Weidner <oweidner@cct.lsu.edu> on 01/10/09.
@@ -17,6 +17,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
+#include "agent.hpp"
+
 namespace po = boost::program_options;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,15 +28,14 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
   po::options_description desc_cmdline ("Usage: "+std::string("faust_agent")+" [options]");
   try {
     desc_cmdline.add_options()
-    ("help,h", "Display this information and exit")
+    ("help, h", 
+     "Display this information and exit")
     
-    ("version,v", "Print version information and exit")
+    ("version, v", 
+     "Print version information and exit")
     
-    ("endpoint,s", po::value<std::string>(), 
-     "Session UUID this agent should register with")
-    
-    ("database,d", po::value<std::string>(), 
-     "Hostname of the orchestrator database")
+    ("endpoint, e", po::value<std::string>(), 
+     "Advert endpoint this agent should register with")
     ;
     
     po::positional_options_description p;
@@ -57,13 +58,6 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
       << std::endl;
       return false;
     }
-    
-    else if (!vm.count("database")) {
-      std::cerr << "Missing orchestrator database hostname: use --database" 
-      << std::endl;
-      return false;
-    }
-    
   }
   catch (std::exception const& e) {
     std::cerr << std::endl << e.what() << std::endl 
@@ -83,9 +77,10 @@ int main( int argc, char** argv )
   
   // extract command line arguments 
   std::string endpoint  (vm["endpoint"].as<std::string>());
-  std::string database (vm["database"].as<std::string>());
   
   // main application loop
+  faust::agent faust_agent(endpoint);
+  faust_agent.run();
   
   return 0;
 }
