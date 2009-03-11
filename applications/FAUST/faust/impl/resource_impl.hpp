@@ -37,19 +37,23 @@ namespace faust
       saga::advert::directory advert_base_;
       std::string resource_id_;
       bool init_from_id_;
+      bool persistent_;
 			
 			resource() : object(faust::object::Resource) {};
       
     public:
       
-      explicit resource(std::string resource_identifier);
+      explicit resource(std::string resource_identifier, bool persistent);
       
-      explicit resource(faust::resource_description RD);
+      explicit resource(faust::resource_description resource_desc, bool persistent);
       
       ~resource();
       
       faust::resource_description get_description(); 
 			faust::resource_monitor get_monitor();
+      
+      bool is_persistent(void);
+      void set_persistent(bool yesno);
     };
     //
     //////////////////////////////////////////////////////////////////////////

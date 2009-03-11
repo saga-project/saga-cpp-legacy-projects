@@ -26,15 +26,17 @@ boost::shared_ptr <faust::impl::resource> resource::get_impl (void) const
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-resource::resource(std::string resource_id) 
-: faust::object (new faust::impl::resource(resource_id), object::Resource)
+resource::resource(std::string resource_id, bool persistent) 
+: faust::object (new faust::impl::resource(resource_id, persistent), 
+                 object::Resource)
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-resource::resource(faust::resource_description RD) 
-: faust::object (new faust::impl::resource(RD), object::Resource)
+resource::resource(faust::resource_description resource_desc, bool persistent) 
+: faust::object (new faust::impl::resource(resource_desc, persistent), 
+                 object::Resource)
 {
 }
 
@@ -56,4 +58,18 @@ faust::resource_description resource::get_description()
 faust::resource_monitor resource::get_monitor()
 {
 	return get_impl()->get_monitor();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+bool resource::is_persistent(void) 
+{
+  return get_impl()->is_persistent();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource::set_persistent(bool yesno)
+{
+  get_impl()->set_persistent(yesno);
 }

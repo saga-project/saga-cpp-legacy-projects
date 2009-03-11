@@ -41,12 +41,12 @@ namespace faust
     /*! \brief Creates a new %resource %object representing a pysical %resource
      *         described by the %resource_description (RD) argument.
      */
-    explicit resource(faust::resource_description RD);
+    explicit resource(faust::resource_description resource_desc, bool persistent=true);
     
     /*! \brief Creates a new %resource %object that reconnects to an existing
      *         %resource in the database identified by resource_id argument.
      */
-    explicit resource(std::string resource_id);
+    explicit resource(std::string resource_id, bool persistent=true);
     
     /*! \brief Shuts down the faust agent associated with this %resource and 
 		 *         destroys this %object.
@@ -63,7 +63,11 @@ namespace faust
      *         about the physical %resource this %resource %object is 
      *	   		 associated with.
      */ 
-    faust::resource_monitor get_monitor();      
+    faust::resource_monitor get_monitor();   
+    
+    bool is_persistent(void);
+    
+    void set_persistent(bool yesno);
   };
 }
 

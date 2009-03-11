@@ -20,8 +20,9 @@ namespace FAR = faust::attributes::resource_description;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
-resource::resource(std::string resource_id)
-: object(faust::object::Resource), init_from_id_(true), resource_id_(resource_id)
+resource::resource(std::string resource_id, bool persistent)
+: object(faust::object::Resource), init_from_id_(true), 
+  resource_id_(resource_id), persistent_(persistent)
 {
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
@@ -37,6 +38,12 @@ resource::resource(std::string resource_id)
   try {
     int mode = advert::ReadWrite;
     advert_base_ = advert::directory(advert_key, mode);
+    
+    // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
+    if( true == persistent_ )
+      advert_base_.set_attribute("persistent", "TRUE");
+    else
+      advert_base_.set_attribute("persistent", "FALSE");
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -59,7 +66,8 @@ resource::resource(std::string resource_id)
     for(it = attr_.begin(); it != attr_.end(); ++it)
     {
       // exclude these advert-specific attributes
-      if((*it) == "utime" || (*it) == "ctime") continue;
+      if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
+        continue;
       
       if(advert_base_.attribute_is_vector(*it)) {
         description_.set_vector_attribute((*it), advert_base_.get_vector_attribute((*it)));
@@ -83,11 +91,10 @@ resource::resource(std::string resource_id)
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
-resource::resource(faust::resource_description RD) 
-: object(faust::object::Resource), init_from_id_(false)
+resource::resource(faust::resource_description resource_desc, bool persistent) 
+: object(faust::object::Resource), 
+  description_(resource_desc), init_from_id_(false), persistent_(persistent)
 {
-  description_ = RD;  
-  
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
   identifier.append(" faust::resource ("+get_uuid()+")"); 
@@ -107,7 +114,7 @@ resource::resource(faust::resource_description RD)
     throw faust::exception (msg, faust::BadParameter);
   }
   else {
-    msg += "OK";
+    msg += "SUCCESS";
     log_->write(msg, LOGLEVEL_INFO);
   }
   
@@ -119,19 +126,35 @@ resource::resource(faust::resource_description RD)
     resource_id_ = description_.get_attribute(FAR::identifier);
     
     std::string advert_key = object::faust_root_namesapce_;
-    msg += advert_key + "RESOURCES/" + resource_id_ + "/";
+    msg += "'"+advert_key + "RESOURCES/" + resource_id_ + "/'";
     
-    advert_base_ = advert::directory(advert_key, mode);
-    advert_key += "RESOURCES/";
-    advert_base_ = advert::directory(advert_key, mode);
-    advert_key += resource_id_ + "/";
-    advert_base_ = advert::directory(advert_key, mode);
+    advert_base_ = advert::directory(advert_key, advert::ReadWrite);
+    
+    // don't overwrite an existing entry if it has the persistency flag set!
+    if(advert_base_.exists("RESOURCES/" + resource_id_ + "/")) {
+      saga::advert::directory tmp = advert_base_.open_dir("RESOURCES/" + resource_id_ + "/");
+      
+      if(tmp.attribute_exists("persistent")) {
+        std::string dbg(tmp.get_attribute("persistent"));
+        if(tmp.get_attribute("persistent") == "TRUE") {
+          msg += ". FAILED: endpoint '"+resource_id_+"' already exists and set to 'persistent'!";
+          log_->write(msg, LOGLEVEL_ERROR);
+          throw faust::exception (msg, faust::NoSuccess);
+        }
+      }
+    }
+    else {
+      advert_key += "RESOURCES/";
+      advert_base_ = advert::directory(advert_key, mode);
+      advert_key += resource_id_ + "/";
+      advert_base_ = advert::directory(advert_key, mode);
+    }
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
   }
   catch(saga::exception const & e) {
-    msg += ". FAILED " + std::string(e.what());
+    msg += ". FAILED: " + std::string(e.what());
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
@@ -147,13 +170,18 @@ resource::resource(faust::resource_description RD)
     {
       if(description_.attribute_is_vector(*it)) {
         advert_base_.set_vector_attribute((*it), description_.get_vector_attribute((*it)));
-        //std::cout << "vector " << *it << std::endl;
       }
       else {
         advert_base_.set_attribute((*it), description_.get_attribute((*it)));
-        //std::cout << "scalar " << *it << std::endl;
       }
     }
+    
+    // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
+    if( true == persistent_ )
+      advert_base_.set_attribute("persistent", "TRUE");
+    else
+      advert_base_.set_attribute("persistent", "FALSE");
+    
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
   }
@@ -192,6 +220,20 @@ resource::resource(faust::resource_description RD)
 //
 resource::~resource() 
 {
+  if(false == persistent_) {
+    std::string msg = "Removing advert endpoint ";
+    msg += object::faust_root_namesapce_ + "RESOURCES/" + resource_id_ + "/";
+    try {
+      advert_base_.remove(saga::advert::Recursive);
+      msg += ". SUCCESS ";
+      log_->write(msg, LOGLEVEL_INFO);
+    }
+    catch(saga::exception const & e) {
+      msg += ". FAILED " + std::string(e.what());
+      log_->write(msg, LOGLEVEL_ERROR);
+      throw faust::exception (msg, faust::NoSuccess);
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -206,4 +248,36 @@ faust::resource_description resource::get_description()
 faust::resource_monitor resource::get_monitor()
 {
   return monitor_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+bool resource::is_persistent(void)
+{
+  return persistent_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource::set_persistent(bool yesno)
+{
+  std::string msg = "Setting persistentcy for endpoint '"+resource_id_+"' to ";
+  if(true == yesno) msg += "true"; else msg += "false";
+
+  try {
+    // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
+    if( true == yesno )
+      advert_base_.set_attribute("persistent", "TRUE");
+    else
+      advert_base_.set_attribute("persistent", "FALSE");
+    
+    msg += ". SUCCESS ";
+    log_->write(msg, LOGLEVEL_INFO);
+    persistent_ = yesno;
+  }
+  catch(saga::exception const & e) {
+    msg += ". FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
 }

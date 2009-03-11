@@ -46,7 +46,7 @@ namespace faust
     public:
       
       object (faust::object::type type);
-      virtual ~object (void) { delete log_; }
+      virtual ~object (void) { /*delete log_;*/ }
       
       faust::object::type get_type() const;
       std::string get_uuid() {return uuid_;}
