@@ -1,5 +1,5 @@
 #  CMakeLists.txt
-#  faust - Framework for Adaptive Ubiquitous Scalable Tasks
+#  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
 #
 #  Created by Ole Weidner <oweidner@cct.lsu.edu> on 01/16/09.
 #  Copyright 2009 Center for Computation & Technology. All rights reserved.
@@ -8,50 +8,44 @@
 #  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 # We require at least CMake V2.6.2
-cmake_minimum_required(VERSION 2.6.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
-# allow more human readable "if then else" constructs
+# Allow more human readable "if then else" constructs
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 
-# The name of our project is "faust".  CMakeLists files in this project can
-# refer to the root source directory of the project as ${faust_SOURCE_DIR} and
-# to the root binary directory of the project as ${faust_BINARY_DIR}.
-project(faust CXX C)
+# Project name
+project(FAUST CXX C)
 
-# project version
-set(faust_MAJOR_VERSION 0)
-set(faust_MINOR_VERSION 1)
-set(faust_PATCH_LEVEL   0)
-set(faust_VERSION "${faust_MAJOR_VERSION}.${faust_MINOR_VERSION}.${faust_PATCH_LEVEL}")
-set(faust_SOVERSION ${faust_MAJOR_VERSION})
+# Project version
+set(FAUST_MAJOR_VERSION 0)
+set(FAUST_MINOR_VERSION 1)
+set(FAUST_PATCH_LEVEL   0)
+set(FAUST_VERSION "${FAUST_MAJOR_VERSION}.${FAUST_MINOR_VERSION}.${FAUST_PATCH_LEVEL}")
+set(FAUST_SOVERSION ${FAUST_MAJOR_VERSION})
 
-# We have a patched BoostFIND module, and other files to include, look for 
-# these in our misc directory
-list(APPEND CMAKE_MODULE_PATH ${faust_SOURCE_DIR}/misc)
+# We have a patched BoostFIND modulelook for it in the misc directory
+list(APPEND CMAKE_MODULE_PATH ${FAUST_SOURCE_DIR}/misc)
 
-# set default cmake build type to RelWithDebInfo (None Debug Release RelWithDebInfo MinSizeRel)
+# set default cmake build type (None Debug Release RelWithDebInfo MinSizeRel)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
-# We need to use Boost, namely the following Boost libraries
+# We need to use Boost >= 1.35, namely the following Boost libraries
 set(Boost_FIND_VERSION_EXACT OFF)
 set(Boost_FIND_VERSION_MAJOR 1)
-set(Boost_FIND_VERSION_MINOR 38)
+set(Boost_FIND_VERSION_MINOR 35)
 set(Boost_FIND_VERSION_PATCH 0)
 
 set(Boost_COMPONENTS_NEEDED
     date_time
-    filesystem
     program_options
-    regex
-    serialization
     system
-    signals
     thread)
-set(Boost_USE_STATIC_LIBS OFF)
 
-find_package(Boost 1.38.0 COMPONENTS ${Boost_COMPONENTS_NEEDED})
+#set(BOOST_USE_STATIC_LIBS OFF)
+
+find_package(Boost 1.35 COMPONENTS ${Boost_COMPONENTS_NEEDED})
 
 if(Boost_FOUND)
     message(STATUS "Boost version found: " 
@@ -65,14 +59,10 @@ endif()
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-# We need to include several faust directories for header files
-include_directories(${faust_SOURCE_DIR})
-#include_directories(${faust_SOURCE_DIR}/external/cache)
-
 # initialize installation directory (can be changed via ccmake or 
 # 'cmake -DCMAKE_PREFIX=...')
 if(UNIX)
-    SET(CMAKE_PREFIX "/usr/lib" 
+    SET(CMAKE_PREFIX "/usr/local/" 
         CACHE PATH "Prefix prepended to install directories")
 endif()
 
@@ -89,12 +79,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}"
     CACHE PATH "Path to custom CMake Modules" 
     FORCE)
 
-message(STATUS "faust will be installed to: " ${CMAKE_INSTALL_PREFIX})
+message(STATUS "FAUST will be installed to: " ${CMAKE_INSTALL_PREFIX})
 
 # global library configuration
-add_definitions(-Dfaust_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
-add_definitions(-Dfaust_USE_LOCKFREE=1)
-add_definitions(-Dfaust_USE_TBB=0)
+add_definitions(-DFAUST_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
+add_definitions(-DFAUST_USE_LOCKFREE=1)
+add_definitions(-DFAUST_USE_TBB=0)
 
 # the Boost serialization library needs to be linked as a shared library
 add_definitions(-DBOOST_SERIALIZATION_DYN_LINK)
@@ -128,7 +118,7 @@ if(MSVC)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-Dfaust_GCC_HAVE_VISIBILITY)
+    add_definitions(-DFAUST_GCC_HAVE_VISIBILITY)
     add_definitions(-DBOOST_COROUTINE_GCC_HAVE_VISIBILITY)
 
     # check for availability of pthread_setaffinity_np()
@@ -150,12 +140,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_definitions(-D_XOPEN_SOURCE=1)
 endif()
 
-# faust_LIBRARIES lists all libraries a faust module needs to be linked with by 
+# FAUST_LIBRARIES lists all libraries a FAUST module needs to be linked with by 
 # default, there may be more for individual modules, but this is the mandatory
 # set
-set(faust_LIBRARIES faust faust_serialization)
+set(FAUST_LIBRARIES FAUST FAUST_serialization)
 if(UNIX)
-    set(faust_LIBRARIES ${faust_LIBRARIES} dl)
+    set(FAUST_LIBRARIES ${FAUST_LIBRARIES} dl)
 endif()
 
 # set variable helping in naming the target library names
@@ -163,16 +153,19 @@ if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
 endif()
 if(UNIX)
-    set(component_LIBRARY_PREFIX "faust_component_")
+    set(component_LIBRARY_PREFIX "FAUST_component_")
 endif()
 
 # Recurse into some subdirectories. This does not actually cause another cmake 
 # executable to run. The same process will walk through the project's entire 
 # directory structure.
-add_subdirectory(${faust_SOURCE_DIR}/agent)
+add_subdirectory(${FAUST_SOURCE_DIR}/faust)
+add_subdirectory(${FAUST_SOURCE_DIR}/agent)
+
+
 
 # Components are to build separately
-#add_subdirectory(faust/components)
+#add_subdirectory(FAUST/components)
 
 # executables depend on libraries above
 #add_subdirectory(tests)
@@ -181,8 +174,8 @@ add_subdirectory(${faust_SOURCE_DIR}/agent)
 
 # installation instructions
 install(
-    DIRECTORY faust/                    # install all faust header files
-    DESTINATION include/faust 
+    DIRECTORY FAUST/                    # install all FAUST header files
+    DESTINATION include/FAUST 
     FILES_MATCHING PATTERN "*.hpp"
     REGEX ".svn" EXCLUDE
     REGEX "CMakeFiles" EXCLUDE)
