@@ -182,6 +182,14 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
     else
       advert_base_.set_attribute("persistent", "FALSE");
     
+    // create "CMD" entry
+    cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite | saga::advert::Create);
+    cmd_.store_string("");
+
+    // create "STATUS" entry
+    status_ = advert_base_.open("STATUS", saga::advert::ReadWrite | saga::advert::Create);
+    status_.store_string("");
+    
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
   }
@@ -200,19 +208,29 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
     // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
   }
   
-  msg = "Waiting for FAUST agent to connect to endpoint (timeout: XXX): ";
-  // WAIT FOR AGENT TO WRITE PING TO ADVERT DB
-  // IF OK log_->write(msg, LOGLEVEL_INFO);
-  // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
-  
-  
-  // AT THIS POINT EVERYTHING SHOULD BE OK - WE HAVE A RUNNING AGENT
-  // ON THE HOST DESCRIBED BY (RD) WHICH SUCCESSFULLY RECONNECTED TO
-  // THE ADVERT DATABASE. IT SHOULD START TO ADVERTISE ITS COLLECTED
-  // MONITORING INFO IMMEDIATELY 
-  
-  // NOTE: IMPLEMENT TIMESTAMP + CACHING FOR RESOURCE_MONITORS TO 
-  //       AVOID UNNECCESSARY TRAFFIC
+  msg = "Waiting for faust_agent instance to connect (timeout 30s)";
+  try {
+    int to = 0;
+    std::string status("");
+    while(status != "CONNECTED") {
+      if(to > 30) {
+        msg += ". FAILED (Timeout)";
+        log_->write(msg, LOGLEVEL_ERROR);
+        throw faust::exception (msg, faust::Timeout);
+      }        
+        
+      status = status_.retrieve_string();
+      sleep(1); ++to;
+    }
+    msg += ". SUCCESS ";
+    log_->write(msg, LOGLEVEL_INFO);
+
+  }
+  catch(saga::exception const & e) {
+    msg += ". FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
   
 }
 
@@ -234,6 +252,52 @@ resource::~resource()
       throw faust::exception (msg, faust::NoSuccess);
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+bool resource::send_command(std::string cmd, unsigned int timeout)
+{
+  // sends a command and waits for an acknowledgement. 
+  std::string msg("Writing command to endpoint ");
+  msg += object::faust_root_namesapce_ + "RESOURCES/" + resource_id_ + "/";
+  try {
+    cmd_.store_string(cmd);
+    msg += ". SUCCESS ";
+  }
+  catch(saga::exception const & e) {
+    msg += ". FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
+  
+  msg += "Waiting for ACK... ";
+  try {
+    int to = 0; std::string result;
+    while(to < timeout) {
+      sleep(1); ++to;
+      result = cmd_.retrieve_string();
+      if(result == std::string("ACK "+cmd))
+        break;
+    }
+      
+    if(result == std::string("ACK "+cmd)) {
+      msg += "SUCCESS ";
+      log_->write(msg, LOGLEVEL_INFO);
+      return true;
+    }
+    else {
+      msg += " FAILED (Timeout) " ;
+      log_->write(msg, LOGLEVEL_ERROR);
+      return false;
+    }
+  }
+  catch(saga::exception const & e) {
+    msg += " FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }  
+    
 }
 
 ////////////////////////////////////////////////////////////////////////////////

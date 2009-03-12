@@ -34,12 +34,19 @@ namespace faust
       
       // Persistent advert instance - used by the monitor as well!
       friend class faust::impl::resource_monitor;
+      
       saga::advert::directory advert_base_;
+      saga::advert::entry cmd_;
+      saga::advert::entry status_;
+      
       std::string resource_id_;
       bool init_from_id_;
       bool persistent_;
 			
+      bool send_command(std::string cmd, unsigned int timeout=0); // timeout in seconds
+      
 			resource() : object(faust::object::Resource) {};
+      
       
     public:
       

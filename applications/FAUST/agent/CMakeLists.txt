@@ -1,4 +1,4 @@
-include_directories(${faust_SOURCE_DIR}/)
+include_directories(${FAUST_SOURCE_DIR}/)
 
 ## TODO: needs to be replaced by saga detection!
 include_directories(/usr/local/saga-1.1/include/)
@@ -12,9 +12,20 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(${Boost_LIBRARY_DIR})
 
 ## Create agent executable
-set (AGENT_SOURCE_FILES ${faust_SOURCE_DIR}/agent/main.cpp
-                        ${faust_SOURCE_DIR}/agent/agent.cpp
-                        ${faust_SOURCE_DIR}/faust/impl/logwriter.cpp )
+set (AGENT_SOURCE_FILES 
+	${FAUST_SOURCE_DIR}/agent/main.cpp
+	${FAUST_SOURCE_DIR}/agent/agent.cpp
+)
 
-add_executable(faust_agent ${AGENT_SOURCE_FILES})
+set (FAUST_SOURCE_FILES
+	${FAUST_SOURCE_DIR}/faust/faust/version.cpp
+	${FAUST_SOURCE_DIR}/faust/faust/object.cpp
+	${FAUST_SOURCE_DIR}/faust/faust/resource_description.cpp
+	${FAUST_SOURCE_DIR}/faust/impl/object_impl.cpp
+	${FAUST_SOURCE_DIR}/faust/impl/resource_description_impl.cpp
+	${FAUST_SOURCE_DIR}/faust/impl/logwriter.cpp 
+)
+
+add_executable(faust_agent ${AGENT_SOURCE_FILES} ${FAUST_SOURCE_FILES})
 target_link_libraries(faust_agent ${Boost_LIBRARIES})
+target_link_libraries(faust_agent saga_engine saga_package_namespace saga_package_advert)

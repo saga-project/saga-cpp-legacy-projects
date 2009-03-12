@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
   faust::resource queenbee(queenbee_rd);
   
   // test re-connect
-  faust::resource qb_reconnect("queenbee.loni.org");
+  /*faust::resource qb_reconnect("queenbee.loni.org");
   qb_reconnect.set_persistent(false); 
   faust::resource_description qb_rec = qb_reconnect.get_description();
   std::vector<std::string> attr_ = qb_rec.list_attributes();
@@ -50,7 +50,7 @@ int main (int argc, char* argv[])
   for(it = attr_.begin(); it != attr_.end(); ++it)
   {
     std::cout << "attribute: " << (*it) << std::endl;
-  }
+  }*/
   
 /*  std::vector<faust::resource_description> hostlist;
   faust::resource_description h1, h2, h3;

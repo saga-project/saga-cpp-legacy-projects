@@ -15,6 +15,7 @@
 
 #include <saga/saga.hpp>
 #include <faust/impl/logwriter.hpp>
+#include <faust/faust/resource_description.hpp>
 
 namespace faust
 {
@@ -28,9 +29,16 @@ namespace faust
     std::string uuid_;
     
     saga::advert::directory advert_base_;
+    saga::advert::entry status_;
+    
+    faust::resource_description description_;
+    
+    bool recv_command();
     
   public:
     agent(std::string endpoint);
+    ~agent();
+    
     void run(void);
       
   };
