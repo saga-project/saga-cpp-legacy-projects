@@ -1,5 +1,5 @@
 /*
- *  agent.hpp 
+ *  agent.cpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *  Website: https://macpro01.cct.lsu.edu/trac/faust
  *
@@ -12,7 +12,7 @@
 
 #include <faust/faust/exception.hpp>
 
-#include "agent.hpp"
+#include <agent/agent.hpp>
 
 using namespace saga;
 using namespace faust;

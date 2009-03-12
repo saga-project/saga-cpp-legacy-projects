@@ -17,7 +17,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
-#include "agent.hpp"
+#include <agent/agent.hpp>
 
 namespace po = boost::program_options;
 

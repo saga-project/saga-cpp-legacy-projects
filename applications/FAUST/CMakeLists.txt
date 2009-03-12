@@ -169,9 +169,7 @@ endif()
 # Recurse into some subdirectories. This does not actually cause another cmake 
 # executable to run. The same process will walk through the project's entire 
 # directory structure.
-add_subdirectory(faust)
-add_subdirectory(faust/faust/)
-add_subdirectory(faust/impl/)
+add_subdirectory(${faust_SOURCE_DIR}/agent)
 
 # Components are to build separately
 #add_subdirectory(faust/components)
