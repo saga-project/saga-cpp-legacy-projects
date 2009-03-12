@@ -49,3 +49,25 @@ resource_monitor::resource_monitor()
   //                                    ONLY IF POTENTIALLY NEW! 
   
 }
+
+
+std::string resource_monitor::get_attribute (std::string key) const
+{
+//	attr
+}
+
+void resource_monitor::set_attribute (std::string key, std::string value)
+{
+	
+}
+
+std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
+{
+	
+}
+
+void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
+{
+	
+}
+

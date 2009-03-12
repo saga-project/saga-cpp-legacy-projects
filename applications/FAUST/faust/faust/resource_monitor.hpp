@@ -104,6 +104,12 @@ namespace faust
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 		
+		std::string get_attribute (std::string key) const;
+		void set_attribute (std::string key, std::string value);
+		
+		std::vector<std::string> get_vector_attribute (std::string key) const;
+		void set_vector_attribute (std::string key, strvec_type value);
+		
 		/*! \brief Destroys this %object.
      *
      */
