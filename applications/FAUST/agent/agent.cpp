@@ -106,5 +106,5 @@ bool agent::recv_command()
 
 void agent::run(void)
 {
-  while(1) sleep(10);
+  sleep(60);
 }

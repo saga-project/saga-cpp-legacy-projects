@@ -43,7 +43,9 @@ namespace faust
       bool init_from_id_;
       bool persistent_;
 			
-      bool send_command(std::string cmd, unsigned int timeout=0); // timeout in seconds
+      void launch_agent(unsigned int timeout=30) {} ;
+      void wait_for_agent_connect(unsigned int timeout=30);
+      bool send_command(std::string cmd, unsigned int timeout=30); 
       
 			resource() : object(faust::object::Resource) {};
       

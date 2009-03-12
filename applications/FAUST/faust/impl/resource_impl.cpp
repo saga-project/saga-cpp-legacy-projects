@@ -22,7 +22,7 @@ namespace FAR = faust::attributes::resource_description;
 // CONSTRUCTOR
 resource::resource(std::string resource_id, bool persistent)
 : object(faust::object::Resource), init_from_id_(true), 
-  resource_id_(resource_id), persistent_(persistent)
+resource_id_(resource_id), persistent_(persistent)
 {
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
@@ -32,18 +32,25 @@ resource::resource(std::string resource_id, bool persistent)
   // TRY TO CONNECT TO THE ADVERT ENTRY FOR THIS RESOURCE
   //
   std::string advert_key = object::faust_root_namesapce_ 
-                         + "RESOURCES/" + resource_id_ + "/";
+  + "RESOURCES/" + resource_id_ + "/";
   
   msg = "Re-connecting to advert endpoint " + advert_key;
   try {
     int mode = advert::ReadWrite;
     advert_base_ = advert::directory(advert_key, mode);
     
+    
     // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
     if( true == persistent_ )
       advert_base_.set_attribute("persistent", "TRUE");
     else
       advert_base_.set_attribute("persistent", "FALSE");
+    
+    // open "CMD" entry
+    cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite);
+    
+    // open "STATUS" entry
+    status_ = advert_base_.open("STATUS", saga::advert::ReadWrite);
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -54,10 +61,31 @@ resource::resource(std::string resource_id, bool persistent)
     throw faust::exception (msg, faust::NoSuccess);
   }
   
+  msg = "Checking if faust agent instance is still alive:";
+  try {
+    std::string status = status_.retrieve_string();
+    if(status != "CONNECTED") {
+      msg += " NO. Restart triggered.";
+      log_->write(msg, LOGLEVEL_INFO);
+      launch_agent();
+      wait_for_agent_connect();
+    }
+    else {
+      msg += " YES.";
+      log_->write(msg, LOGLEVEL_INFO);
+    }    
+  }
+  catch(saga::exception const & e) {
+    msg += ". FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
+  
+  
   // RETRIEVE ATTRIBUTES OF THE ADVERT ENTRY AND GENERATE RESOURCE_DESCRIPTION
   //
   msg = "Retrieving resource description for " + resource_id_;
-
+  
   try {
     //description_ = faust::resource_description();
     
@@ -93,7 +121,7 @@ resource::resource(std::string resource_id, bool persistent)
 // CONSTRUCTOR
 resource::resource(faust::resource_description resource_desc, bool persistent) 
 : object(faust::object::Resource), 
-  description_(resource_desc), init_from_id_(false), persistent_(persistent)
+description_(resource_desc), init_from_id_(false), persistent_(persistent)
 {
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
@@ -185,7 +213,7 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
     // create "CMD" entry
     cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite | saga::advert::Create);
     cmd_.store_string("");
-
+    
     // create "STATUS" entry
     status_ = advert_base_.open("STATUS", saga::advert::ReadWrite | saga::advert::Create);
     status_.store_string("");
@@ -199,16 +227,17 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
     throw faust::exception (msg, faust::NoSuccess);
   }
   
-  msg = "Launching FAUST agent on: ";
-  try {
-    // DO JOB LAUNCH STUFF
-    // IF OK log_->write(msg, LOGLEVEL_INFO);
-  }
-  catch(saga::exception const & e) {
-    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
-  }
+  launch_agent();
   
-  msg = "Waiting for faust_agent instance to connect (timeout 30s)";
+  wait_for_agent_connect();
+  
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource::wait_for_agent_connect(unsigned int timeout) 
+{
+  std::string msg = "Waiting for faust_agent instance to connect (timeout 30s)";
   try {
     int to = 0;
     std::string status("");
@@ -218,20 +247,19 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
         log_->write(msg, LOGLEVEL_ERROR);
         throw faust::exception (msg, faust::Timeout);
       }        
-        
+      
       status = status_.retrieve_string();
       sleep(1); ++to;
     }
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
-
+    
   }
   catch(saga::exception const & e) {
     msg += ". FAILED " + std::string(e.what());
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
-  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -239,6 +267,7 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
 resource::~resource() 
 {
   if(false == persistent_) {
+    // TODO: SEND "TERMINATE" COMMAND TO AGENT 
     std::string msg = "Removing advert endpoint ";
     msg += object::faust_root_namesapce_ + "RESOURCES/" + resource_id_ + "/";
     try {
@@ -280,7 +309,7 @@ bool resource::send_command(std::string cmd, unsigned int timeout)
       if(result == std::string("ACK "+cmd))
         break;
     }
-      
+    
     if(result == std::string("ACK "+cmd)) {
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
@@ -297,7 +326,7 @@ bool resource::send_command(std::string cmd, unsigned int timeout)
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }  
-    
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -327,7 +356,7 @@ void resource::set_persistent(bool yesno)
 {
   std::string msg = "Setting persistentcy for endpoint '"+resource_id_+"' to ";
   if(true == yesno) msg += "true"; else msg += "false";
-
+  
   try {
     // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
     if( true == yesno )
