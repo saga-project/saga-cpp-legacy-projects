@@ -6,6 +6,7 @@
 \usepackage[hypertex]{hyperref}
 \usepackage{subfigure}  
 \usepackage{color}
+\usepackage{pdfsync}
 % \usepackage{draftcopy}
 
 \usepackage[small,it]{caption}
@@ -357,27 +358,6 @@ performance). The correct abstractions and programming approach
 enables the simple codification of an application that can determine
 best resource to migrate to based upon all of the above.
 
-
-\noindent {\it Effective Deployment of a non-trivial coupled resources
-  on the TeraGrid:} 
-
-% Our application is able to use multiple TeraGrid resources.  Based
-% upon presentations by TeraGrid Directors (Catlett and Skow), the
-% distribution of applications usage modes on the TeraGrid indicate
-% approximately 10 (ie less than 1\% of all applications) actually use
-% the resources in any sense of coupled fashion (either as MPICH-G2
-% jobs, or explicitly marshalling more than 1 resource during the
-% course of a simulation~\footnote{It is important to note that this
-%   number has essentially remained frozen for several years,
-%   indicating the lack of new applications and usage modes. A
-%   significant fraction uses Gateways (portals) and a large number of
-%   applications use workflow tools}. Our application is a high-end
-% scientific application which uses SAGA to provide the ability to
-% couple resources -- either at the application level (via common
-% namespace, logical files etc) or at the infrastructure level (ie
-% middleware distribution specific adaptors enable the same
-% functionality across different distributions).
-
 The outline of the paper is as follows: In the next section we outline
 the scientific motivation and then describe the details of the
 components of the application that we have developed to use SAGA and
@@ -385,7 +365,9 @@ Cactus.  \jhanote{to finish..}
 
 \section{Application: Description and Motivation} 
 
-\subsection{Motivation: Ensemble Kalman Filters}
+
+\subsection{Ensemble Kalman Filters}
+
 
 The specific application that we investigate -- a prototype
 implementation of a ensemble Kalman filter using SAGA and Cactus -- is
@@ -393,7 +375,7 @@ a particularly interesting case of 'irregular, hard-to-predict run
 time characteristics'.  The model needs to run to completion which is
 defined as convergence to within a certain value.  The run time of
 each model was unpredictable and uncorrelated with the run-time of
-models on running on the same number of processors -- a truly
+models running on the same number of processors -- a truly
 independent variable.  As at every stage, each model must converge to
 within a specified value before the next stage can begin, hence
 dynamically load-balancing so as to ensure that all models complete as
@@ -418,8 +400,7 @@ e.g., run-time resource selection based upon the application specific
 characteristics.
 
 
-% Modern reservoir simulators are in essence computer programs that are
-% used to model fluid flow in porous media. Reservoir flow modeling
+% Modern reservoir simulators  Reservoir flow modeling
 % exists in the context of of the reservoir management function, a
 % process that optimizes the interaction between data and decision
 % making during the life cycle of a field.  One of the more popular
@@ -509,10 +490,11 @@ advantageous ~\cite{escience07}.
 \label{fig:irregular_execution}
 \end{figure}
 
-\subsection{Application Outline}
+\subsection{Programming Systems and Abstractions}
 
-The aim of our model application is to show the potential and ease of
-use of a SAGA-enabled Cactus framework application. Our application
+\jhanote{I think this section ought to be: i)SAGA ii) bigjob and iii) BQP }
+
+... Our application
 consists of a exemplary distributed simulation that uses the added
 SAGA functionality to dynamically determine its ideal migration target
 based on ad-hoc and statistical network characteristics and to migrate
@@ -680,6 +662,37 @@ specified characteristics is most likely to run first.  {\it The
   static queries) and automatically (the logic of how to process BQP
   information is embedded in the application).}
 
+\jhanote{merge..} 
+\subsubsection{BQP}
+Batch Queue Predictor ~\cite{bqp} is a tool that is available on a
+number of TeraGrid resources that allows users to make bound
+predictions of how much time a job of a giving size and duration will
+spend in the queue.  This prediction is given with a degree of
+confidence (probability) that the job will start before a certain
+deadline (i.e. the time in the queue) and quantile. Quantile value is
+in effect repeatability, that jobs of similar sizes and durations will
+have the same wait time. This information is vital when
+submitting jobs to various machines as the longer a job sits in the
+queue, the longer the delay for the entire stage.  For our application
+we use the BQP command line tools, that are called through a python wrapper
+from the Lazarus script.
+
+In a given resource list, the python wrapper around the BQP executable
+finds the resource and queue where if submitted, a BigJob of a
+given size and expected run time, will have a good chance (or high
+confidence) of getting through the queue and start running the
+earliest. Confidence is in essence the probability that the job will
+run, and to obtain a confidence of 1.0, an impractically high queue time is
+required. In our applications, not knowing the granularity of the
+available BQP data, we opted to use a confidence of 0.75
+and a quantile of 0.75. The choices are logical but require, as planned,
+a more detailed statistical analysis for effectiveness.
+
+\jhanote{sensitivity analysis!! Can't just put
+  0.75 out there!}  \yyenote{fixed, alternatively we can fix it by removing
+  the mention of 0.75}
+ 
+
 % \yyenote{Need a section about many/big-job, we use it and better talk
 %   about it} \jhanote{Yes, I agree -- we need a brief
 %   description. However we will need to be brief as space is limited
@@ -729,11 +742,15 @@ Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used
 within the RE framework.
 \subsection{Lazarus}
 
-\jhanote{Need to say, what the requirements are, establish very
-  quickly why autonomics is the solution to the specific problem and
-  then talk about the solution -- first the primitive (ie scripts)
-  then the Lazarus (using BigJob and BQP).}
-\yyenote{Addressed, please have a look}  
+% \jhanote{Need to say, what the requirements are, establish very
+%   quickly why autonomics is the solution to the specific problem and
+%   then talk about the solution -- first the primitive (ie scripts)
+%   then the Lazarus (using BigJob and BQP).}
+% \yyenote{Addressed, please have a look}  
+
+\jhanote{Lazarus: builds upon earlier work. Integrates BigJob with BQP
+  and with Fault Tolerance}
+
 To reliably launch hundreds of reservoir simulations and collect the data
 they produce repeatedly across different machines,
 we needed a fast, easy to use abstraction, this lead to the use
@@ -804,85 +821,10 @@ flagged for resubmission.  After all output is checked, the faulty
 simulations are resubmitted and upon termination, all output is
 checked again. Upon success, Lazarus proceeds to the next stage.
 
-\subsubsection{BQP}
-Batch Queue Predictor ~\cite{bqp} is a tool that is available on a
-number of TeraGrid resources that allows users to make bound
-predictions of how much time a job of a giving size and duration will
-spend in the queue.  This prediction is given with a degree of
-confidence (probability) that the job will start before a certain
-deadline (i.e. the time in the queue) and quantile. Quantile value is
-in effect repeatability, that jobs of similar sizes and durations will
-have the same wait time. This information is vital when
-submitting jobs to various machines as the longer a job sits in the
-queue, the longer the delay for the entire stage.  For our application
-we use the BQP command line tools, that are called through a python wrapper
-from the Lazarus script.
 
-
-% \jhanote{Refine: } \yyenote{Fixed}
-In a given resource list, the python wrapper around the BQP executable
-finds the resource and queue where if submitted, a BigJob of a
-given size and expected run time, will have a good chance (or high
-confidence) of getting through the queue and start running the
-earliest. Confidence is in essence the probability that the job will
-run, and to obtain a confidence of 1.0, an impractically high queue time is
-required. In our applications, not knowing the granularity of the
-available BQP data, we opted to use a confidence of 0.75
-and a quantile of 0.75. The choices are logical but require, as planned,
-a more detailed statistical analysis for effectiveness.
-
-\jhanote{sensitivity analysis!! Can't just put
-  0.75 out there!}  \yyenote{fixed, alternatively we can fix it by removing
-  the mention of 0.75}
- 
-% This applied to the BQP thorn, we do not want this here anymore
-%The information from the BQP thorn is retrieved
-%for all simulations that need to be run, particularly the time in
-%queue. The time in queue is added to the time required to run the
-%simulator (which is a function of the number of nodes and resource
-%used and is retrieved from regular application benchmarks) and the
-%time required to transfer data (that is obtained from the PerfMatrix
-%thorn).  That time would be the estimated time to completion a given
-%models in a given history matching stage.
-
-%To better predict ensemble behavior we have collected (using the same
-%BQP Thorn but in a different configuration) detailed BQP data for four
-%major teragrid machines. The collected data \yaakoub{Need to put in
-%  tables and histograms} indicates that there are machines where
-%confidence factors vary significantly over a given run-time. While the
-%collected data requires detailed statistical and stochastic analysis,
-%some useful information can be infered by observation. For example,
-%the confidence of running a job of size XXX lasting YYY seconds varies
-%by ZZZ with a deadline that varies from WWW to VVVV.  \yaakoub{Need to
-%  pick a good example of a large variation, so far cobalt seems good,
-%  lonestar perhaps....}  Suden jumps in the confidence factor or
-%expected deadline given a minimum confidence factor can indicate a
-%favorable or unfavorable machine/queue/job-size/job-duration
-%combination. Further analysis is required, particularly considering
-%that the application that is run as a job is a parallel-scalable
-%application and can be resized to run on more nodes for a smaller
-%time.
-
-%\yaakoub{Shantenu this is what you meant by preventative/predictive}
-%\jhanote{Yes, this conveys the flavour. I will go through the
-%data and stick up an example or two of the ``preventive'' example}
-
-% \subsection{Talk about additional 'irregular execution' applications}
-% Having determined which M resources to use, the way forward could be
-% using a Grid co-allocator such as HARC~\cite{harc_url}; that is,
-% having identified the best M resources from a network performance
-% perspective, we leave the co-scheduling of these M resources to HARC
-% which is an implementation of Paxos (two-phase) Commit Algorithm. We
-% will report on the interfacing of HARC with SAGA in the future.
-
-
-\section{Application Architecture,  Control Flow and Workflow}
+\section{Lazarus Architecture and Application Control Flow}
 
 \jhanote{we need to discuss in words figures 3, 4 and 5..}
-
-
-% \yyenote{This entire section is bad, we probably should move its bits
-%   about but as it stands it is meaningless} \jhanote{lets chat}
 
 \jhanote{Place in a suitable place...}  Lazarus is distinct to other
 well established and successful approaches such as Accord for
@@ -903,8 +845,6 @@ both for the application and the Lazarus framework.
 \label{fig:application_architecture}
 \end{figure}
 
-
-%\subsection {Application Architecture} 
 
 \subsection{Simulation Components}
 The simulation component in the Lazarus framework is based on the Cactus
@@ -936,10 +876,12 @@ or even daily basis, over a period of a few years. For this reason,
 a typical production run of Lazarus will involve hundreds of stages.
 
 \subsection{Lazarus Components}
-As mentioned earlier, Lazarus in its current incarnation is a set
-of small, fast, portable and modular python scripts. These scripts
-make extensive use of the SAGA python adaptors directly (such as the
-file adaptors) and indirectly (through the BigJob abstraction).
+
+\jhanote{The following is both misleading and inelegant} s mentioned
+earlier, Lazarus in its current incarnation is a set of small, fast,
+portable and modular python scripts. These scripts make extensive use
+of the SAGA python adaptors directly (such as the file adaptors) and
+indirectly (through the BigJob abstraction).
 
 Lazarus uses the BigJob abstraction to submit jobs to various resources.
 Because the BigJob abstraction is a high-level abstraction, the user
@@ -1220,7 +1162,7 @@ framework and make use of it through autonomic behaviour.  As the
 right most datapoint shows, the utilization of BQP to determine which
 resources and which configuration are used leads to a drastic
 reduction in \tc compared to the simple case where Lazarus framework
-was used with autonomic behaviour. This is a very powerful
+was used without autonomic behaviour. This is a very powerful
 demonstration of the fact that autonomic behaviour -- however
 elementary, can lead to significantly improved performance.
 
@@ -1288,9 +1230,6 @@ ii) duration chosen for the Ranger only BQP submission.}
 
 \section{Challenges and Discussion}
 
-\jhanote{Yaakoub to do}
-\yyenote{Doing, have a look}
-
 \begin{itemize}
 \item Talk about the fixed granularity of BQP and the problems that this
 engenders
@@ -1300,18 +1239,17 @@ engenders
   system to understand the non-public policy and adapt irrespective.
 \end{itemize}
 
+% \jhanote{What are the fault-tolerance issues that are encountered?
+%   How do we solve them? How could they be solved by using SAGA-CPR
+%   (just sketch out changes that need to be undertaken)}
 
-\jhanote{What are the fault-tolerance issues that are encountered?
-  How do we solve them? How could they be solved by using SAGA-CPR
-  (just sketch out changes that need to be undertaken)}
-
-\jhanote{need to reference prior work done by Manish on autonomics and
-  on oil reservoir in particular. What makes our work different?  Can
-  the two converge? SAGA-Accord?}
-\yyenote{Yes and no, physics and problems we are solving are different, 
-but yes we can converge. I would not say interchangeable, because well 
-optimization studies do not require a global sync like we have in the EnKF
-Added stuff in the intro about Manish, hope he likes it}  
+% \jhanote{need to reference prior work done by Manish on autonomics and
+%   on oil reservoir in particular. What makes our work different?  Can
+%   the two converge? SAGA-Accord?}
+% \yyenote{Yes and no, physics and problems we are solving are different, 
+% but yes we can converge. I would not say interchangeable, because well 
+% optimization studies do not require a global sync like we have in the EnKF
+% Added stuff in the intro about Manish, hope he likes it}  
 
 The advantages of constantly running jobs on machines is the
 development of an intuition to the state of the machine through
@@ -1325,13 +1263,14 @@ A major issue in our use of the BQP is the confidence and quantile
 numbers. A detailed analysis is required to better quantify what those
 numbers mean when submitting many BigJobs across different machines,
 and how the choice of confidence and quantile ultimately affect the
-total wall clock time to completion.
+total wall clock time to completion. \jhanote{needs explaination}
 
 Since we collected data from BQP without knowing it's granularity, we
 tend to oversample the data to avoid undersampling and obtaining a
 misrepresentative view.  This obviously leads to a small (order of
 minutes) computational cost but is an issue that needs to be
-addressed.
+addressed. \jhanote{what is oversampling? why is it misrepresentative?
+  please elaborate}
 
 Perhaps the biggest challenge we encountered, and most frustrating,
 was failure that went undetected, and lead us to waste SUs, hours in
@@ -1342,7 +1281,10 @@ allows the simulation to register its current state, current
 iteration, progress rate, state of data, convergence data from the
 solver etc... This will be implemented using the SAGA C++ API in
 Cactus as a heartbeat thorn, and the monitoring service will be
-implemented as a functionality in FAUST.
+implemented as a functionality in FAUST.  \jhanote{Similar failures,
+  but different machines and different solutions. Therefore need to
+  make the case for FT service i.e., generalise FT}
+
 
 \section{Future Work and Conclusion}
 
@@ -1382,48 +1324,14 @@ composed of multiple components. Importantly the programming system
 that is used is SAGA -- both for the application and the Lazarus
 framework.
 
-for autonomic computing such as Accord, in that is not really 
+\jhanote{some points to elaborate in the discussion}
 
-
-
-Developing both applications and tools using SAGA is an effective
-mechanism for ensuring inter-interoperability across different middleware
-distributions -- even at the application level -- something that is
-arguably missing in current Grid Interoperation
-efforts~\cite{gin_paper} Many challenges remain, but the main are,
-program environment heterogeneity -- development, deployment and run
-time across resources.  With grids there is the additional
-complications of cross-administrative or virtual organizations; as our
-paper exclusively uses the TeraGrid, which can for all practical
-purposes and intent be considered a single virtual organization, we
-are not encumbered by any additional burden. These are serious
-challenges for all applications even those that would like to utilize
-more than one resource in a decoupled fashion (for example parameter
-sweep).  However the seriousness of the heterogeneity problem is
-highly aggravated when an application needs to utilize resources in a
-coupled manner.
-
-The widespread availability of SAGA (and SAGA adaptors) is an
-important step towards the creation of distributed applications that
-can be universally deployed (i.e.  independent of the details of the
-resource's middleware and configuration detail).  Our experience
-should serve as useful input to the community -- resource providers
-and middleware developers - to support the development and deployment
-of SAGA.  We hope to motivate  resource providers such as the TeraGrid
-(as well as middleware developers) to support the SAGA programming
-abstractions and thereby help engender applications, as well as
-contribute to the development of SAGA , SAGA adaptors as well as
-deploying these SAGA adaptors.
-
-We will in the future compare the performance of the execution of such
-applications using a meta-scheduler such as GridWay, which although
-possibly quicker for some instances will not be as scalable and
-extensible. Motivated by the scalability and general purpose solution
-we have discussed in this paper, we will go on to generalise to other
-applications that exhibit similar characteristics~\cite{nature99}.
-
+\begin{itemize}
+\item Lazarus will evolve to utilize more sophisticated Information Services.
+\item Lazarus in of itself will utilize other frameworks (e.g., FAUST)
 \jhanote{Need to make connection, or announce the arrival of FAUST}
-
+\item Lazarus and its uptake by other applications.
+\end{itemize}
 
 
 % We created a single set of Globus adaptors and deployed them on
@@ -1451,24 +1359,22 @@ applications that exhibit similar characteristics~\cite{nature99}.
 % believe SAGA is an important first step in this direction.
 
 \section{Acknowledgments}
-SJ acknowledges UK EPSRC grant number GR/D0766171/1 for supporting
-SAGA and the e-Science Institute, Edinburgh for the research theme,
-``Distributed Programming Abstractions''.  SJ also acknowledges
-financial support from NSF-Cybertools and NIH-INBRE Grants. YE
-acknowledges the Department of Energy and Louisiana Board of 
-Regents (award No. DE-FG02- 04ER46136) for providing funding 
-and support. YE would like to acknowledge Prof. Chris White,
-Prof. Mayank Tyagi and Dr. Xin Li. This work would not have 
-been possible without the efforts and support of other
-members of the SAGA team. Additionally, we would like to acknowledge
-help from the LONI support team and CyberInfrastructure Development
-group. The authors acknowledge the Texas
-Advanced Computing Center (TACC) at The University of Texas at Austin,
-The LONI institute and NCSA for providing HPC resources that have
-contributed to the research results reported within this paper. This
-work has been made possible thanks to the internal resources of the
-Texas Advanced Computing Center (TACC) and 
-Center for Computation \& Technology (CCT) at Louisiana State University.
+We acknowledge Andre Luckow, who should have been an author on this
+paper, had it not been for bureaucratic hurdles.  SJ acknowledges UK
+EPSRC grant number GR/D0766171/1 for supporting SAGA and the e-Science
+Institute, Edinburgh for the research theme, ``Distributed Programming
+Abstractions''.  SJ also acknowledges financial support from
+NSF-Cybertools and NIH-INBRE Grants. YE acknowledges the Department of
+Energy and Louisiana Board of Regents (award No. DE-FG02- 04ER46136)
+for providing funding and support. YE would like to acknowledge
+Prof. Chris White, Prof. Mayank Tyagi and Dr. Xin Li. This work would
+not have been possible without the efforts and support of other
+members of the SAGA team. The authors acknowledge the Texas Advanced
+Computing Center (TACC) at The University of Texas at Austin, LONI and
+NCSA for providing HPC resources that have contributed to the research
+results reported within this paper. This work has been made possible
+thanks to the internal resources of the Center for Computation \&
+Technology (CCT) at Louisiana State University.
 
 \bibliographystyle{IEEEtran} 
 \bibliography{saga_tg08}
