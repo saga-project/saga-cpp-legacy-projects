@@ -235,6 +235,14 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+void resource::launch_agent(unsigned int timeout)
+{
+  saga::job::description jd;
+  jd.set_attribute("descript
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
 void resource::wait_for_agent_connect(unsigned int timeout) 
 {
   std::string msg = "Waiting for faust_agent instance to connect (timeout 30s)";
