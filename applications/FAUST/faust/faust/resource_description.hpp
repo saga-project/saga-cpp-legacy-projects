@@ -37,8 +37,16 @@ namespace faust
 
       /*! \brief URL for the resource manager that executes the agent
        *         <br>(example: <code>gram://gg101.cct.lsu.edu/jobamanger-fork</code>) */
-      char const* const agent_submit_url        = "agent_submit_url";
-      
+      char const* const faust_agent_submit_url  = "faust_agent_submit_url";
+
+			/*! \brief Path to the faust_agent executable
+       *         <br>(example: <code>/usr/local/faust/bin/faust_agent</code>) */
+      char const* const faust_agent_binary_path = "faust_agent_binary_path";
+
+			/*! \brief Path to the SAGA installation
+       *         <br>(example: <code>/usr/local/saga-1.1/</code>) */
+      char const* const saga_root_path          = "saga_root_path";
+			
       /*! \brief Your own identifier for this directory
        *         <br>(example: <code>mydir1</code>) */
       char const* const dir_id                  = "dir_id"; 

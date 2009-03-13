@@ -131,16 +131,28 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
   // CHECK IF ALL REQUIRED ATTRIBUTES ARE AVAILABLE
   //
   msg = ("Checking faust::resource_description for completeness. ");
-  if(!description_.attribute_exists(FAR::agent_submit_url)) {
-    msg += "FAILED. Missing required attribute 'agent_submit_url'.";
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::BadParameter);
-  }
-  else if(!description_.attribute_exists(FAR::identifier)) {
+	
+	if(!description_.attribute_exists(FAR::identifier)) {
     msg += "FAILED Missing required attribute 'identifier'.";
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::BadParameter);
+	}
+  else if(!description_.attribute_exists(FAR::faust_agent_submit_url)) {
+    msg += "FAILED. Missing required attribute 'faust_agent_submit_url'.";
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::BadParameter);
   }
+  else if(!description_.attribute_exists(FAR::faust_agent_binary_path)) {
+    msg += "FAILED Missing required attribute 'faust_agent_binary_path'.";
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::BadParameter);
+  }
+	else if(!description_.attribute_exists(FAR::saga_root_path)) {
+    msg += "FAILED Missing required attribute 'saga_root_path'.";
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::BadParameter);
+  }
+
   else {
     msg += "SUCCESS";
     log_->write(msg, LOGLEVEL_INFO);
@@ -237,8 +249,43 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
 //
 void resource::launch_agent(unsigned int timeout)
 {
-  saga::job::description jd;
-  jd.set_attribute("descript
+	namespace SJR = saga::job::attributes;
+	
+	std::vector<std::string> env;
+	env.push_back("SAGA_LOCATION="+
+								description_.get_attribute(FAR::saga_root_path));
+	env.push_back("LD_LIBRARY_PATH="+
+								description_.get_attribute(FAR::saga_root_path) +"/lib"); // Linux
+	env.push_back("DYLD_LIBRARY_PATH="+
+								description_.get_attribute(FAR::saga_root_path)+"/lib");  // MacOS 
+	
+	std::vector<std::string> args;
+	args.push_back("--endpoint="+object::faust_root_namesapce_ 
+								+"RESOURCES/"+resource_id_+"/");
+	
+	std::string msg = "Trying to launch agent via " + 
+										description_.get_attribute(FAR::faust_agent_submit_url);
+	
+	try {
+		saga::job::description jd;
+		jd.set_vector_attribute(SJR::description_environment, env);
+		jd.set_vector_attribute(SJR::description_arguments, args);
+		jd.set_attribute(SJR::description_executable, 
+										 description_.get_attribute(FAR::faust_agent_binary_path));
+		
+		saga::job::service js(description_.get_attribute(FAR::faust_agent_submit_url));
+		saga::job::job j = js.create_job(jd);
+		j.run();
+		
+		msg += ". SUCCESS ";
+		log_->write(msg, LOGLEVEL_INFO);
+	}
+	catch(saga::exception const & e) {
+		msg += ". FAILED " + std::string(e.what());
+		log_->write(msg, LOGLEVEL_ERROR);
+		throw faust::exception (msg, faust::NoSuccess);
+	}
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
