@@ -246,27 +246,30 @@ will discuss these performance advantages.
 % \item Demonstrate performance advantages..
 % \end{itemize}
 
-This work provides further confirmation of the ability of the right
-abstractions to enable the development of applications that can
-utilize the individual resources of the TeraGrid in a coupled and
-coordination fashion, and not just a single piece of big-iron.
+Interestingly, ws we will see in the Results section, this work also
+provides further confirmation of the ability of the right abstractions
+to enable the development of applications that can utilize the
+individual resources of the TeraGrid in a coupled and coordination
+fashion, and not just a single piece of big-iron.
 
-This certainly is not the first time autonomic frameworks have been
-used to launch and manage reservoir simulations. Bangerth et al
-\cite{Manish} used an autonomic framework to manage reservoir
-simulations for well-placement optimization. At the moment, our work
-is focused on history matching and reservoir characterization, however
-the next logical step is to adapt Lazarus to run well/perforation
-placement studies. This might lead to a convergence of SAGA and
-Accord~\cite{accord} in terms of common functionality through
-different approach.
+But first we begin with a discussion of the application and
+understanding of its characteristics, which will help motivate the
+need for an autonomic framework. We should mention, this is certainly
+is not the first time autonomic frameworks have been used to launch
+and manage reservoir simulations. Bangerth et al \cite{Manish} used an
+autonomic framework to manage reservoir simulations for well-placement
+optimization. At the moment, our work is focused on history matching
+and reservoir characterization, however the next logical step is to
+adapt Lazarus to run well/perforation placement studies. This might
+lead to a convergence of SAGA and Accord~\cite{accord} in terms of
+common functionality through different approach.
 
-The outline of the paper is as follows: In the next section we outline
-the scientific motivation and then describe the details of the
-components of the application that we have developed to use SAGA and
-Cactus.  \jhanote{to finish..}
+% The outline of the paper is as follows: In the next section we outline
+% the scientific motivation and then describe the details of the
+% components of the application that we have developed to use SAGA and
+% Cactus.  \jhanote{to finish..}
 
-\jhanote{Possibly earlier and related work section?}
+% \jhanote{Possibly earlier and related work section?}
 
 \section{Application: Description and Motivation} 
 
@@ -369,6 +372,27 @@ correct abstractions and programming approach enables the simple
 codification of an application that can determine best resource to
 migrate to based upon all of the above.
 
+\begin{figure}
+\begin{center}
+\includegraphics*[scale=0.36,]{./figures/3StageKalmanFilter}
+\end{center}
+\caption{Schematic illustrating the irregular execution or
+  hard-to-predict run-time characteristics of a prototype
+  implementation of an ensemble kalman filter. The end-to-end
+  application consists of several stages; in general at each stage the
+  number of models generated varies. In the specific case studied in
+  this paper, the size and granularity of the models varied within a
+  stage. Consequently for any given stage the resource requirements
+  varied from 8 processors to 64 processors.  The run time of each
+  model was unpredictable and uncorrelated with the run-time of models
+  on running on the same number of processors -- a truly independent
+  variable. At every stage, each model must converge to within a
+  specified value before the next stage can begin, hence dynamically
+  load-balancing so as to ensure that all models complete as close to
+  each other as possible is the desired aim.}
+\label{fig:irregular_execution}
+\end{figure}
+
 Even for relatively small input problem sizes at each stage, up to
 several hundred models are generated which require from one to sixteen
 processors to solve efficiently; the distribution of the number of
@@ -400,46 +424,19 @@ Thus for such applications, it is difficult to statically
 (re-)schedule or manually control the execution of the jobs through
 the application life-time.
 
-\begin{figure}
-\begin{center}
-\includegraphics*[scale=0.36,]{./figures/3StageKalmanFilter}
-\end{center}
-\caption{Schematic illustrating the irregular execution or
-  hard-to-predict run-time characteristics of a prototype
-  implementation of an ensemble kalman filter. The end-to-end
-  application consists of several stages; in general at each stage the
-  number of models generated varies. In the specific case studied in
-  this paper, the size and granularity of the models varied within a
-  stage. Consequently for any given stage the resource requirements
-  varied from 8 processors to 64 processors.  The run time of each
-  model was unpredictable and uncorrelated with the run-time of models
-  on running on the same number of processors -- a truly independent
-  variable. At every stage, each model must converge to within a
-  specified value before the next stage can begin, hence dynamically
-  load-balancing so as to ensure that all models complete as close to
-  each other as possible is the desired aim.}
-\label{fig:irregular_execution}
-\end{figure}
 
 \subsection{SAGA: Programming Systems and Abstractions}
 
-Our application consists of a exemplary distributed simulation that
-uses the added SAGA functionality to dynamically determine its ideal
-migration target based on ad-hoc and statistical network
-characteristics and to migrate itself in a heterogeneous Grid
-environment.  Although this a model application it can be easily
-adapted to more complex scientific applications.  Furthermore, our
-model application can be used as an autonomous benchmarking agent for
-Grid resources. In this section we briefly describe SAGA and the
-Cactus framework and discuss our motivation to use SAGA to incorporate
-high-level Grid functionality into Cactus.
-
-\begin{itemize}
-\item Performance Measures:
-\item Define a workload and the time to complete 
-\item Define a time and the number of jobs completed (throughput)
-\item Scalability (number of systems utilized)
-\end{itemize} 
+% Our application consists of a exemplary distributed simulation that
+% uses the added SAGA functionality to dynamically determine its ideal
+% migration target based on ad-hoc and statistical network
+% characteristics and to migrate itself in a heterogeneous Grid
+% environment.  Although this a model application it can be easily
+% adapted to more complex scientific applications.  Furthermore, our
+% model application can be used as an autonomous benchmarking agent for
+% Grid resources. In this section we briefly describe SAGA and the
+% Cactus framework and discuss our motivation to use SAGA to incorporate
+% high-level Grid functionality into Cactus.
 
 \subsubsection{SAGA}
 
@@ -452,6 +449,17 @@ high-level of abstraction so as to be able to be independent of the
 diverse and dynamic Grid environments. The SAGA specification defines
 interfaces for the most common Grid-programming functions grouped as a
 set of functional packages.
+
+\begin{figure}[!ht]
+  \begin{center}
+      \includegraphics[width=0.40\textwidth]{stci_saga_figures-1.pdf}
+  \end{center}
+  \caption{\small Layered schematic of the different components
+    of the SAGA landscape.  Middleware specific adaptors applications
+    developed using SAGA make applications developed using SAGA grid
+    portable.}
+ \label{sagalayer}
+\end{figure}
 
 \begin{itemize}
 \item File package - provides methods for accessing local and remote
@@ -493,27 +501,9 @@ important step in merging two programming abstractions to achieve an
 effect that is greater that sum of the parts. 
 
 
-\begin{figure}[!ht]
-  \begin{center}
-      \includegraphics[width=0.40\textwidth]{stci_saga_figures-1.pdf}
-  \end{center}
-  \caption{\small Layered schematic of the different components
-    of the SAGA landscape.  Middleware specific adaptors applications
-    developed using SAGA make applications developed using SAGA grid
-    portable.}
- \label{sagalayer}
-\end{figure}
 
-\begin{figure}[!ht]
-  \begin{center}
-\includegraphics[width=0.43\textwidth]{saga_platform_figures.pdf}
-\end{center}
-  \caption{\small(Right) Schematic showing the different ways in which
-    SAGA can be used to develop distributed applications}
- \label{sagapps}
-\end{figure}
 
-SAGA has been used to develop system-level tools and applications from
+{\it Developing Distributed Applications: }SAGA has been used to develop system-level tools and applications from
 each of the three different types as shown in Fig~\ref{sagaapps}: (i)
 Applications where local functionality is swapped for distributed
 functionality, or where distributed execution models are provided;
@@ -524,13 +514,16 @@ SAGA. These frameworks support specific application-level and system
 functionality and can be used by multiple applications (hence a
 framework and not an application-level solution).
 
-{\it SAGA: BigJob Abstraction:}
-\begin{figure}[t]
-      \centering
-      \includegraphics[width=0.50\textwidth]{./figures/enkf_bigjob.pdf}
-      \caption{\footnotesize \bf stuff }
-      \label{fig:abstractions}
+
+\begin{figure}[!ht]
+  \begin{center}
+\includegraphics[width=0.43\textwidth]{saga_platform_figures.pdf}
+\end{center}
+  \caption{\small(Right) Schematic showing the different ways in which
+    SAGA can be used to develop distributed applications}
+ \label{sagapps}
 \end{figure}
+
 Figure~\ref{fig:abstractions} summarizes the abstractions developed
 and used in this work to support the clustering of sub-jobs into a
 larger big-jobs and the effective dispatching of the sub-jobs.  The
@@ -538,12 +531,26 @@ specific capability to cluster sub-jobs, is provided to the
 application via the \emph{BigJob} abstraction. This abstraction
 enhances the SAGA job model with the capability to allocate larger
 chunks of resource for a single job.
-
-.. A common principle to prevent this is the usage of Glide-In jobs,
-which represent a placeholder for a set of sub-tasks (see
-Ref.~\cite{citeulike:291860}).  For a Glide-In job, a sufficiently
-large chunk of resources is requested. Smaller sub-tasks can then
-rapidly be executed through the Glide-In job.
+{\it SAGA: BigJob Abstraction:}
+\begin{figure}[t]
+      \centering
+      \includegraphics[width=0.50\textwidth]{./figures/enkf_bigjob.pdf}
+      \caption{\footnotesize The {\it BigJob} abstraction originally
+        developed in Reference~\cite{saga_royalsoc} for simulations of
+        biological systems, but has been generalized and extended to
+        the History Matching problem. Specifically the BigJob
+        abstractions has been added with fault-tolerance capability
+        and the ability to effectively place the BigJob using
+        autonomic information. These capabilities form the basis of
+        the Lazarus autonomic framework for computational science
+        applications.}
+      \label{fig:abstractions}
+\end{figure}
+Additionally, a common principle to prevent this is the usage of
+Glide-In jobs, which represent a placeholder for a set of sub-tasks
+(see Ref.~\cite{citeulike:291860}).  For a Glide-In job, a
+sufficiently large chunk of resources is requested. Smaller sub-tasks
+can then rapidly be executed through the Glide-In job.
 Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used
 within the RE framework.  Another abstraction -- the SAGA Glide-In
 abstraction is used to support the commonly occurring requirement to
@@ -557,6 +564,8 @@ using the jobid as reference. It is helpful to reiterate that although
 there is a big\_job object, it is submitted as a Glide-In job, and
 that BigJob abstraction in turn utilises the Glide-In abstraction to
 map the individual big-job and sub-jobs to physical resources.
+Details of the \emph{BigJob} abstraction can be found in
+Ref.~\cite{saga_royalsoc}.
 
 {\it Developing Applications using SAGA and Cactus:} Cactus provides
 the support and features required to implement adaptivity e.g.,
@@ -571,66 +580,49 @@ within a Cactus application.  The result is an application that uses
 these two important application-level frameworks and abstractions to
 create a truly distributed application.  SAGA provides the capability
 for the the distributed aspects. SAGA provides a high-level
-programming interface to Grid functionality, and thus presents
-arguably, for the first time ever, the ability to develop complete and
-sophisticated applications using simple Grid function calls.  This
-paper demonstrates the utility of SAGA for creating applications that
-can perform across dynamic and heterogeneous infrastructure.
-Importantly, although we focus on a prototype of a specific
-application -- Kalman filtering -- thanks to the architecture and
-abstractions used, similar functionality can be trivially incorporated
-in more sophisticated and complex applications.
-\noindent {\it Utilize the advantages of proper programming
-  abstractions, by integrating SAGA and Cactus and demonstrate the
-  usefulness for Grid application development:}
+programming interface to Grid functionality. By utilizing the
+advantages of proper programming abstractions, by integrating SAGA and
+Cactus and demonstrate the usefulness for Grid application development
 
-\subsubsection{Batch Queue Predictor:} 
-
-\noindent {\it Automated Resource Selection at Runtime:} The Batch
-Queue Predictor (BQP)~\cite{bqp, bqp_url}, is traditionally used for
-determining the status of the queue resources available and static
-resource mapping. What is enticing about BQP is that it provides
-information that is of importance to the class of applications that we
-are interested in, namely, the ability to predict with given
-probability which resource and when a job (with a specified number of
-processors and estimated run-time) is most likely to finish.  This is
-typically harder to predict correctly than which resource a job with
-specified characteristics is most likely to run first.  {\it The
-  application uses BQP internally within an application to make
-  resource selection decisions dynamically (at run-time, as opposed to
-  static queries) and automatically (the logic of how to process BQP
-  information is embedded in the application).}
-
-\jhanote{merge..} 
-\subsubsection{BQP}
-Batch Queue Predictor ~\cite{bqp} is a tool that is available on a
-number of TeraGrid resources that allows users to make bound
+\subsubsection{Autonomic Resource Selection at Runtime Using Batch
+  Queue Predictor: }
+Batch Queue Predictor ~\cite{bqp, bqp_url} is a tool that is available
+on a number of TeraGrid resources that allows users to make bound
 predictions of how much time a job of a giving size and duration will
-spend in the queue.  This prediction is given with a degree of
+spend in the queue.  BQP is traditionally
+used for determining the status of the queue resources available and
+static resource mapping. This prediction is given with a degree of
 confidence (probability) that the job will start before a certain
 deadline (i.e. the time in the queue) and quantile. Quantile value is
 in effect repeatability, that jobs of similar sizes and durations will
-have the same wait time. This information is vital when
-submitting jobs to various machines as the longer a job sits in the
-queue, the longer the delay for the entire stage.  For our application
-we use the BQP command line tools, that are called through a python wrapper
-from the Lazarus script.
+have the same wait time. This information is vital when submitting
+jobs to various machines as the longer a job sits in the queue, the
+longer the delay for the entire stage.
 
-In a given resource list, the python wrapper around the BQP executable
-finds the resource and queue where if submitted, a BigJob of a
-given size and expected run time, will have a good chance (or high
-confidence) of getting through the queue and start running the
-earliest. Confidence is in essence the probability that the job will
-run, and to obtain a confidence of 1.0, an impractically high queue time is
-required. In our applications, not knowing the granularity of the
-available BQP data, we opted to use a confidence of 0.75
-and a quantile of 0.75. The choices are logical but require, as planned,
-a more detailed statistical analysis for effectiveness.
+What is enticing about BQP is that it
+provides information that is of importance to the class of
+applications that we are interested in, namely, the ability to predict
+with given probability which resource and when a job (with a specified
+number of processors and estimated run-time) is most likely to finish.
+This is typically harder to predict correctly than which resource a
+job with specified characteristics is most likely to run first.  The
+application uses BQP internally within an application to make resource
+selection decisions dynamically (at run-time, as opposed to static
+queries) and automatically (the logic of how to process BQP
+information is embedded in the application).
 
-\jhanote{sensitivity analysis!! Can't just put
-  0.75 out there!}  \yyenote{fixed, alternatively we can fix it by removing
-  the mention of 0.75}
- 
+For our application we use the BQP command line tools, that are called
+through a python wrapper from the Lazarus script.  In a given resource
+list, the python wrapper around the BQP executable finds the resource
+and queue where if submitted, a BigJob of a given size and expected
+run time, will have a good chance (or high confidence) of getting
+through the queue and start running the earliest. Confidence is in
+essence the probability that the job will run, and to obtain a
+confidence of 1.0, an impractically high queue time is required. In
+our applications, not knowing the granularity of the available BQP
+data, we opted to use a confidence of 0.75 and a quantile of 0.75. The
+choices are logical but require, as planned, a more detailed
+statistical analysis for effectiveness.
 
 \subsection{Lazarus}
 
@@ -640,13 +632,17 @@ a more detailed statistical analysis for effectiveness.
 %   then the Lazarus (using BigJob and BQP).}
 % \yyenote{Addressed, please have a look}  
 
-\jhanote{Lazarus: builds upon earlier work. Integrates BigJob with BQP
-  and with Fault Tolerance}
 
 To reliably launch hundreds of reservoir simulations and collect the data
 they produce repeatedly across different machines,
 we needed a fast, easy to use abstraction, this lead to the use
 of BigJob abstraction ~\cite{ICCS_paper, saga_royalsoc}.
+Lazarus builds upon earlier work, and extends the BigJob abstraction
+to explicitly utilize autonomic decision making based upon 
+BQP as well as support for fault-tolerance. This is the basis of 
+the general purpose autonomic framework Lazarus.
+
+
 After losing many jobs to various errors
 such as running out of allocated diskspace, hardware failure
 and file-copy failure, we quickly came to the conclusion that autonomy
@@ -661,14 +657,13 @@ that ran into issues or simply failed to run, are resurrected.
 
 For the current implementation, we started off using simple, portable
 python scripts -- based upon SAGA, that handles job-launching and data
-migration. This makes Lazarus a modular,
-scalable and extensible framework for autonomic applications based upon
-the SAGA programming system.  Lazarus uses the BigJob
-abstraction to launch simulations,
+migration. This makes Lazarus a modular, scalable and extensible
+framework for autonomic applications based upon the SAGA programming
+system.  Lazarus uses the BigJob abstraction to launch simulations,
 the SAGA file adaptor python bindings to move files from one machine
-to another and BQP data from a small python wrapper around the BQP command line tool
-to retrieve the optimal location and number of BigJobs required to satisfy the
-computation power required.
+to another and BQP data from a small python wrapper around the BQP
+command line tool to retrieve the optimal location and number of
+BigJobs required to satisfy the computation power required.
 
 Lazarus's healing ability depends on
 user-defined tests on the data to make sure it
@@ -729,7 +724,7 @@ both for the application and the Lazarus framework.
 \begin{center}
 %\includegraphics[scale=0.34]{./figures/ApplicationArchitecture}
 %\includegraphics[scale=0.34]{./figures/kalmanfilterlayer.png}
-\includegraphics[scale=0.3]{./figures/Lazarus_01.jpeg}
+\includegraphics[scale=0.4]{./figures/Lazarus_01.jpeg}
 \end{center}
 \caption{\jhanote{Need to increase resolution!}  Lazarus -- An
   Autonomic framework}
@@ -859,6 +854,8 @@ These points need to be made clear in this sub-section? \newline
   Mapping compute-resource requirements into available
   resources}\newline
 
+\jhanote{Mapping: Need discussion on the two-levels of decision
+  making. I thought we had done this!}
 
 To prepare for launching Lazarus, a model generator is required to create
 the initial data (initial state vectors) for all the ensembles. This is typically
@@ -943,22 +940,18 @@ Some of the simulation failures are relatively easy to guard against,
 namely the wrong parameter file or missing executable. The other errors
 however are harder to detect and rectify.
 
-\subsection{Needs to be Moved}
+\jhanote{Needs to be refined}
 One of the recent improvements in deployment is the use of the python
-bindings to the SAGA-based BigJob abstraction % \yyenote{I think the
-%   name here should change as this is not really FAUST yet but loosely
-%   labelled FAUST}. \jhanote{Yes, I agree. Dunnit} 
-Using these scripts, a user-specified number of stages each containing
-a user-defined number of models can be launched to the grid. As the
-models of a given stage run to completion, a second set of
-error-checking jobs are launched that ensure all the models ran to
-completion before the Kalman gain calculation is performed. This
-error-checking mechanism attempts to re-submit the failed jobs, and if
-met with failure a second time, the stage is halted to allow for user
-intervention. \yyenote{that is what I am implementing at the moment}
+bindings to the SAGA-based BigJob abstraction Using these scripts, a
+user-specified number of stages each containing a user-defined number
+of models can be launched to the grid. As the models of a given stage
+run to completion, a second set of error-checking jobs are launched
+that ensure all the models ran to completion before the Kalman gain
+calculation is performed. This error-checking mechanism attempts to
+re-submit the failed jobs, and if met with failure a second time, the
+stage is halted to allow for user intervention.
 
-\jhanote{Mapping: Need discussion on the two-levels of decision
-  making. I thought we had done this!}
+%\yyenote{that is what I am implementing at the moment}
 
 \jhanote{The latter could be done via BigJob Abstraction or without
   (statically map to an available resource, with or without the aid of
@@ -991,6 +984,14 @@ instant the sub-tasks become available and ready to run, as opposed to
 
 
 \section{Experiments: Results and Discussion}
+
+
+% \begin{itemize}
+% \item Performance Measures:
+% \item Define a workload and the time to complete 
+% \item Define a time and the number of jobs completed (throughput)
+% \item Scalability (number of systems utilized)
+% \end{itemize} 
 
 In this section, we discuss the Experiments we performed, but first
 we discuss the design of the experiments.
@@ -1073,24 +1074,23 @@ elementary, can lead to significantly improved performance.
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.35]{./figures/Figure7.png}
+\includegraphics[scale=0.40]{./figures/Figure7.png}
 \end{center}
-\caption{From Left to Right: (i) Ranger, (ii) Queen Bee,
-  (iii)Ranger+QueenBee, (iv) Ranger+QB+Abe, (v) BQP-All
-  Machines. \jhanote{ Need to refine... Need higher resolution graph!!}}
+\caption{From Left to Right: (i) Ranger, (ii) Queen Bee, (iii)
+  Ranger+QueenBee, (iv) Ranger+QB+Abe, (v) BQP-All Machines. \jhanote{correct caption}}
 \label{fig:application_architecture}
 \end{figure}
 
 \begin{table}
 \begin{tabular}{|c|c|c|c|c|}
 \hline Sample \# & Machine & Queue & Num. Cores & Duration (hrs) \\ 
-\hline 1 & Ranger & normal & 64 & 2:00 \\ 
-\hline 1 & Ranger-BQP & development & 128 & 1:00 \\ 
+\hline 1-4& Ranger & normal & 64 & 2:00 \\ 
+\hline 1-4& Ranger-BQP & development & 128 & 1:00 \\ 
 \hline 
 \end{tabular} 
 \caption{A table with the results for Ranger with and without BQP. While the
-    total number of SUs consumed remains constant, the queue, size and duration
-    of the BigJob changes}
+  total number of SUs consumed remains constant, the queue, size and duration
+  of the BigJob changes. }
 \end{table}
 
 
@@ -1115,21 +1115,13 @@ elementary, can lead to significantly improved performance.
     can say that BQP selects differently}}
 \end{table}
 
-\jhanote{Did we get data for sample 4? was it different?}
+% \jhanote{Did we get data for sample 4? was it different?}
 
-\jhanote{In Table I, can you also elaborate the results of i) number
-  of cores and ii) duration chosen for the Ranger only BQP
-  submission.}
-
-
+% \jhanote{In Table I, can you also elaborate the results of i) number
+%   of cores and ii) duration chosen for the Ranger only BQP
+%   submission.}
 
 \section{Challenges and Discussion}
-
-\jhanote{(i) Talk about the fixed granularity of BQP and the problems
-  that this engenders, (ii), Talk about fault-tolerance, (iii) Talk
-  about how different machines have different queuing policies and how
-  an autonomic system like Lazarus can ``probe'' the queuing, system
-  to understand the non-public policy and adapt irrespective.}
 
 The advantages of constantly running jobs on machines is the
 development of an intuition to the state of the machine through
@@ -1137,22 +1129,24 @@ constant use. This is quantified in confidence numbers from
 BQP. Interestingly enough, we could discern a higher chance of running
 before deadlines during weekends than weekdays, and how some machines
 favor larger jobs that have short durations and how other machines
-favor the opposite.
+favor the opposite. In general, different machines can have different
+queuing policies and autonomic approaches such as those provided by
+Lazarus can ``probe'' the queuing system to understand the non-public
+policy and adapt accordingly.
 
-A major issue in our use of the BQP is the choice of confidence and quantile
-numbers. A detailed analysis is required to better assess our choice
-of confidence and quantil numbers, and the impact
-these choices make on overall performance. \jhanote{needs explaination}\yyenote{fixed}
+A major issue in our use of the BQP is the choice of confidence and
+quantile numbers. A detailed analysis is required to better assess our
+choice of confidence and quantil numbers, and the impact these choices
+make on overall performance.
 
 Since we collected data from BQP without knowing it's granularity, we
-tend to oversample the data. For example, if we sample
-BQP for jobs lasting 1, 2 and 4 hours we might miss
-better configurations that last 3 hours. To avoid this
-incomplete and therefore misrepresentative view, we mine
-BQP data at a fine grained level. This obviously leads to a small (order of
-minutes) computational cost and is an issue that needs to be
-addressed. \jhanote{what is oversampling? why is it misrepresentative?
-  please elaborate} \yyenote{Fixed}
+tend to oversample the data. For example, if we sample BQP for jobs
+lasting 1, 2 and 4 hours we might miss better configurations that last
+3 hours. To avoid this incomplete and therefore misrepresentative
+view, we mine BQP data at a fine grained level. This obviously leads
+to a small (order of minutes) computational cost and is an issue that
+needs to be addressed. Unfortunately, BQP results do not typically
+vary at the level of granularity below 30 minutes.
 
 Perhaps the biggest challenge we encountered, and most frustrating,
 was failure that went undetected, and lead us to waste SUs, hours in
@@ -1161,11 +1155,11 @@ corrupt. Many of these modes of failure can be solved using a
 heart-beat from the actual simulation to a monitoring service that
 allows the simulation to register its current state, current
 iteration, progress rate, state of data, convergence data from the
-solver etc... This will be implemented using the SAGA C++ API in
+solver etc. This will be implemented using the SAGA C++ API in
 Cactus as a heartbeat thorn, and the monitoring service will be
-implemented as a functionality in FAUST.  \jhanote{Similar failures,
-  but different machines and different solutions. Therefore need to
-  make the case for FT service i.e., generalise FT}
+implemented as a functionality in FAUST.  Similar failures,
+  but different machines and different solutions, thus there is a case
+to be made that FT should be provided as a general-service..
 
 
 \section{Future Work and Conclusion}
@@ -1176,10 +1170,11 @@ implemented as a functionality in FAUST.  \jhanote{Similar failures,
   best resource/resource configuration and then adapt the workload to
   the best resource/resource configuration. BQP based autonomics,
   enables this to happen}
-\yyenote{Let me know what you think of the recent addition}
 
-\jhanote{Need a paragraph about how BQP based Autonomics can be used
-  in additional ways (possibly)? Set the case for grid2009/faust..}
+
+% \jhanote{Need a paragraph about how BQP based Autonomics can be used
+%   in additional ways (possibly)? Set the case for grid2009/faust..}
+% \yyenote{Let me know what you think of the recent addition}
 
 One of the planned extensions to Lazarus is the addition of adaptive
 queuing systems. As it stands, Lazarus will submit optimized BigJobs
