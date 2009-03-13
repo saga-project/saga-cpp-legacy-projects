@@ -38,6 +38,8 @@ agent::agent(std::string endpoint)
     status_ = advert_base_.open("STATUS", saga::advert::ReadWrite);
     status_.store_string("CONNECTED");
     
+    cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite);
+    
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
   }
@@ -86,8 +88,7 @@ agent::~agent()
     status_.store_string("DISCONNECTED");
     status_.close();
     advert_base_.close();
-    
-    
+        
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
   }
@@ -99,12 +100,48 @@ agent::~agent()
   
 }
 
-bool agent::recv_command()
+std::string agent::recv_command()
 {
+  std::string cmd_str("");
+  std::string msg("Checking if a new command is waiting");
+  try {
+    cmd_str = cmd_.retrieve_string();
+    if(cmd_str.length() >= 1)
+      msg += ". YES: CMD='"+cmd_str+"'";
+    else
+      msg += ". NO";
+    
+    log_->write(msg, LOGLEVEL_INFO);
+  }
+  catch(saga::exception const & e) {
+    msg += ". FAILED " + std::string(e.what());
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
   
+  if(cmd_str.length() >= 1) 
+  {
+    msg += "Sending acknowledgement for command '"+cmd_str+"'";
+    try {
+      cmd_.store_string("ACK:"+cmd_str);
+      
+      msg += ". SUCCESS ";
+      log_->write(msg, LOGLEVEL_INFO);
+    }
+    catch(saga::exception const & e) {
+      msg += " FAILED " + std::string(e.what());
+      log_->write(msg, LOGLEVEL_ERROR);
+      throw faust::exception (msg, faust::NoSuccess);
+    }  
+  }
+  return cmd_str;
 }
 
 void agent::run(void)
 {
-  sleep(60);
+  while(1) {
+    std::string cmd = recv_command();
+    if(cmd == "TERMINATE") exit(0);
+    sleep(1);
+  }
 }

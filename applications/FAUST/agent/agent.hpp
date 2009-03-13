@@ -30,10 +30,11 @@ namespace faust
     
     saga::advert::directory advert_base_;
     saga::advert::entry status_;
+    saga::advert::entry cmd_;
     
     faust::resource_description description_;
     
-    bool recv_command();
+    std::string recv_command();
     
   public:
     agent(std::string endpoint);

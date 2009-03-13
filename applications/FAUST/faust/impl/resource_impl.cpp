@@ -29,7 +29,7 @@ resource_id_(resource_id), persistent_(persistent)
 	
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
-  identifier.append(" faust::resource ("+get_uuid()+")"); 
+  identifier.append(" faust::resource ("+resource_id_+")"); 
   log_ = new detail::logwriter(identifier, std::cout);
   
   // TRY TO CONNECT TO THE ADVERT ENTRY FOR THIS RESOURCE
@@ -121,15 +121,16 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
 : object(faust::object::Resource), 
 description_(resource_desc), init_from_id_(false), persistent_(persistent)
 {
-	std::string endpoint_str_(object::faust_root_namesapce_ + 
-														"RESOURCES/" + resource_id_ + "/");
-
-  // Initialize the logwriter
+  //// INITIALIZE THE LOGWRITER
+  //
+  if(description_.attribute_exists(FAR::identifier))
+     resource_id_ = description_.get_attribute(FAR::identifier);
+  else resource_id_ = "";
   std::string identifier(FW_NAME); std::string msg("");
-  identifier.append(" faust::resource ("+get_uuid()+")"); 
+  identifier.append(" faust::resource ("+resource_id_+")"); 
   log_ = new detail::logwriter(identifier, std::cout);
   
-  // CHECK IF ALL REQUIRED ATTRIBUTES ARE AVAILABLE
+  //// CHECK IF ALL REQUIRED ATTRIBUTES ARE AVAILABLE
   //
   msg = ("Checking faust::resource_description for completeness. ");
 	
@@ -159,12 +160,15 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
     log_->write(msg, LOGLEVEL_INFO);
   }
   
+  resource_id_ = description_.get_attribute(FAR::identifier);
+  std::string endpoint_str_(object::faust_root_namesapce_ + 
+														"RESOURCES/" + resource_id_ + "/");
+  
   // TRY TO CREATE ADVERT ENTRY FOR THIS RESOURCE
   //
   msg = "Creating advert endpoint '"+endpoint_str_+"'";
   try {
     int mode = advert::ReadWrite | advert::Create | advert::Recursive;
-    resource_id_ = description_.get_attribute(FAR::identifier);
     
     std::string advert_key = object::faust_root_namesapce_;
     
@@ -321,7 +325,9 @@ void resource::wait_for_agent_connect(unsigned int timeout)
 resource::~resource() 
 {
   if(false == persistent_) {
-    // TODO: SEND "TERMINATE" COMMAND TO AGENT 
+    
+    send_command("TERMINATE");
+    
     std::string msg("Removing advert endpoint '"+endpoint_str_+"'");
     try {
       advert_base_.remove(saga::advert::Recursive);
@@ -338,10 +344,10 @@ resource::~resource()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-bool resource::send_command(std::string cmd, unsigned int timeout)
+void resource::send_command(std::string cmd, unsigned int timeout)
 {
   // sends a command and waits for an acknowledgement. 
-	std::string msg("Removing advert endpoint '"+endpoint_str_+"'");
+	std::string msg("Sending command '"+cmd+"' to faust_agent instance");
   try {
     cmd_.store_string(cmd);
     msg += ". SUCCESS ";
@@ -352,25 +358,24 @@ bool resource::send_command(std::string cmd, unsigned int timeout)
     throw faust::exception (msg, faust::NoSuccess);
   }
   
-  msg += "Waiting for ACK... ";
+  msg += "Waiting for acknowledgement ";
   try {
     int to = 0; std::string result;
     while(to < timeout) {
       sleep(1); ++to;
       result = cmd_.retrieve_string();
-      if(result == std::string("ACK "+cmd))
+      if(result == std::string("ACK:"+cmd))
         break;
     }
     
-    if(result == std::string("ACK "+cmd)) {
+    if(result == std::string("ACK:"+cmd)) {
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
-      return true;
     }
     else {
       msg += " FAILED (Timeout) " ;
       log_->write(msg, LOGLEVEL_ERROR);
-      return false;
+      throw faust::exception (msg, faust::Timeout);
     }
   }
   catch(saga::exception const & e) {
