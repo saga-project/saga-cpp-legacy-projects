@@ -426,7 +426,7 @@ the application life-time.
 \label{fig:irregular_execution}
 \end{figure}
 
-\subsection{Programming Systems and Abstractions}
+\subsection{SAGA: Programming Systems and Abstractions}
 
 Our application consists of a exemplary distributed simulation that
 uses the added SAGA functionality to dynamically determine its ideal
@@ -776,21 +776,24 @@ of high level abstractions such as BigJob and SAGA.
 
 For runs distributed across several machines, Lazarus needs to gather
 the data from all different machines into one location where the EnKF
-can run. To that end, the python bindings to the SAGA file adaptors are used
-to copy files over to the resource where the EnKF will run, and copied
-back to all other resources after the analysis stage. Since we are not working
-with a large scale production history matching run, the amount
-of data transfer involved does not impose any noticeable performance issues. Naturally,
-investigating the optimal location for placing the EnKF application
-as discussed in \cite{escience07} will find its way into the next iteration
-of Lazarus implementation and of course FAUST.
+can run. To that end, the python bindings to the SAGA file adaptors
+are used to copy files over to the resource where the EnKF will run,
+and copied back to all other resources after the analysis stage. Since
+we are not working with a large scale production history matching run,
+the amount of data transfer involved does not impose any noticeable
+performance issues. Naturally, investigating the optimal location for
+placing the EnKF application as discussed in \cite{escience07} will
+find its way into the next iteration of Lazarus implementation and of
+course FAUST.
 
 Lazarus also uses non-SAGA components, such as a small python wrapper
-for BQP. This allows Lazarus, namely its resource management function, to query
-BQP for the ``optimal'' job size and duration for any given resource. Lazarus
-also uses a user specified check for the integrity of the simulation data. In our
-case, this is done through various system and HDF5 calls to make sure the files exist,
-are not sized zero, and a user specified command using HDF5 tools (h5ls) returns successfully.
+for BQP. This allows Lazarus, namely its resource management function,
+to query BQP for the ``optimal'' job size and duration for any given
+resource. Lazarus also uses a user specified check for the integrity
+of the simulation data. In our case, this is done through various
+system and HDF5 calls to make sure the files exist, are not sized
+zero, and a user specified command using HDF5 tools (h5ls) returns
+successfully.
 
 
 
@@ -904,10 +907,10 @@ Hardware failure:
 \item{Could not write to /scratch because it was taken down for maintenance}
 \end{itemize}
 From all of these modes of failure, we found that we reliably recover
-from node failure and failure to write data to disk, but not network failure. The
-status of any given job is reported in a one-way poll for current state. This
-has obvious limitations so we will also be using the "heart-beat" monitor in FAUST
-once it is available.
+from node failure and failure to write data to disk, but not network
+failure. The status of any given job is reported in a one-way poll for
+current state. This has obvious limitations so we will also be using
+the "heart-beat" monitor in FAUST once it is available.
 
 Software environment failures:
 \begin{itemize}
@@ -918,12 +921,13 @@ Software environment failures:
 \item{No internet connection to the compute nodes (no BQP, no advert service)}
 \item{MPI error that causes a simulation to stall (this happened because of a faulty installation and was corrected)}
 \end{itemize}
-In software environment failures, typically jobs terminate with errors or 
-are killed, before the simulations results are written to disk. Unsurprisingly we ran
-into all of these failures while developing Lazarus, and were able
-to recover from all of them except for the network connectivity in the compute
-nodes, as this would register the job's state as "unknown". This would be solved
-with the aforementioned heart-beat monitoring system in FAUST.
+In software environment failures, typically jobs terminate with errors
+or are killed, before the simulations results are written to
+disk. Unsurprisingly we ran into all of these failures while
+developing Lazarus, and were able to recover from all of them except
+for the network connectivity in the compute nodes, as this would
+register the job's state as "unknown". This would be solved with the
+aforementioned heart-beat monitoring system in FAUST.
 
 Actual simulation failures:
 \begin{itemize}
@@ -966,20 +970,22 @@ mechanism whereby EnKF can be solved using multiple-resources, using
 application-level scheduling applied dynamically~\cite{saga_tg08}, ie
 mapping the sub-tasks requirement to the resources available at the
 instant the sub-tasks become available and ready to run, as opposed to
-{\it a priori} static method of job submission.  For the problem size
-studied, the sub-tasks required mostly less than 32 processors. For
-this paper we used the earlier developed frameworks and deployed it on
-a single large machine -- NCSA's Abe. A mechanism (multiple,
-distributed versus single machine) that is more efficient for physical
-models with sub-tasks that have typically low processor counts, will
-not necessarily be the more efficient as the typical sub-task size
-increases. Therefore it is crucial that any general-purpose solution
-be usable on both single large machines to multiple machines.  We can
-enhance throughput further by applying the Glide-In mechanisms
-discussed in the earlier section, which facilitate dynamic tasks being
-aggregated from similar sub-tasks. We will report on the results of
-this and whether the framework can be used on high-end petascale
-supercomputers in future work.
+{\it a priori} static method of job submission.  
+
+% For the problem size studied, the sub-tasks required mostly less
+% than 32 processors. For this paper we used the earlier developed
+% frameworks and deployed it on a single large machine -- NCSA's
+% Abe. A mechanism (multiple, distributed versus single machine) that
+% is more efficient for physical models with sub-tasks that have
+% typically low processor counts, will not necessarily be the more
+% efficient as the typical sub-task size increases. Therefore it is
+% crucial that any general-purpose solution be usable on both single
+% large machines to multiple machines.  We can enhance throughput
+% further by applying the Glide-In mechanisms discussed in the earlier
+% section, which facilitate dynamic tasks being aggregated from
+% similar sub-tasks. We will report on the results of this and whether
+% the framework can be used on high-end petascale supercomputers in
+% future work.
 
 
 \section{Experiments: Results and Discussion}
@@ -1188,20 +1194,23 @@ implemented as a functionality in FAUST.  \jhanote{Similar failures,
   in additional ways (possibly)? Set the case for grid2009/faust..}
 
 One of the planned extensions to Lazarus is the addition of adaptive
-queuing systems. As it stands, Lazarus will submit optimized BigJobs to
-resources and wait for them to get through the queue, run and terminate.
- When the number and size of subjobs is
-sufficiently large and the resources considerably congested,
-this will be a considerable amount of time
-during which larger, less congested resources may have come online or better BQP
-BigJob configurations have emerged; all of this
-while the original BigJobs have not started to run. A BigJob can then be scheduled
-on a new resource or another BigJob of different size and duration
-can be submitted to the queue and existing BigJobs that are in the queue
-can be deleted. This adaptive ability in Lazarus will be implemented
-in a rudimentary level using python scripts, SAGA-python bindings and of
-course BQP interfaces; however a more robust, service based implementation
-will be part of the FAUST framework.
+queuing systems. As it stands, Lazarus will submit optimized BigJobs
+to resources and wait for them to get through the queue, run and
+terminate.  When the number and size of subjobs is sufficiently large
+and the resources considerably congested, there will be a considerable
+amount of time during which larger, less congested resources may have
+come online or better BQP BigJob configurations have emerged; all of
+this while the original BigJobs have not started to run. A BigJob can
+then be scheduled on a new resource or another BigJob of different
+size and duration can be submitted to the queue and existing BigJobs
+that are in the queue can be deleted.  Such adaptive scheduling will
+be implemented in the Lazarus framework using the upcoming FAUST
+framework.
+
+% This adaptive ability in Lazarus will be implemented in a rudimentary
+% level using python scripts, SAGA-python bindings and of course BQP
+% interfaces; however a more robust, service based implementation will
+% be part of the FAUST framework.
 
 In this paper we have demonstrated the very first beginnings of the
 SAGA-based framework (Lazarus) that can be utilized by a broad range
