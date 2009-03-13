@@ -24,6 +24,9 @@ resource::resource(std::string resource_id, bool persistent)
 : object(faust::object::Resource), init_from_id_(true), 
 resource_id_(resource_id), persistent_(persistent)
 {
+	std::string endpoint_str_(object::faust_root_namesapce_ + 
+														"RESOURCES/" + resource_id_ + "/");
+	
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
   identifier.append(" faust::resource ("+get_uuid()+")"); 
@@ -31,8 +34,7 @@ resource_id_(resource_id), persistent_(persistent)
   
   // TRY TO CONNECT TO THE ADVERT ENTRY FOR THIS RESOURCE
   //
-  std::string advert_key = object::faust_root_namesapce_ 
-  + "RESOURCES/" + resource_id_ + "/";
+  std::string advert_key(endpoint_str_);
   
   msg = "Re-connecting to advert endpoint " + advert_key;
   try {
@@ -86,9 +88,7 @@ resource_id_(resource_id), persistent_(persistent)
   //
   msg = "Retrieving resource description for " + resource_id_;
   
-  try {
-    //description_ = faust::resource_description();
-    
+  try {    
     std::vector<std::string> attr_ = advert_base_.list_attributes();
     std::vector<std::string>::const_iterator it;
     for(it = attr_.begin(); it != attr_.end(); ++it)
@@ -99,11 +99,9 @@ resource_id_(resource_id), persistent_(persistent)
       
       if(advert_base_.attribute_is_vector(*it)) {
         description_.set_vector_attribute((*it), advert_base_.get_vector_attribute((*it)));
-        //std::cout << "vector " << *it << std::endl;
       }
       else {
         description_.set_attribute((*it), advert_base_.get_attribute((*it)));
-        //std::cout << "scalar " << *it << std::endl;
       }
     }
     msg += ". SUCCESS ";
@@ -118,11 +116,14 @@ resource_id_(resource_id), persistent_(persistent)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// CONSTRUCTOR
+// 
 resource::resource(faust::resource_description resource_desc, bool persistent) 
 : object(faust::object::Resource), 
 description_(resource_desc), init_from_id_(false), persistent_(persistent)
 {
+	std::string endpoint_str_(object::faust_root_namesapce_ + 
+														"RESOURCES/" + resource_id_ + "/");
+
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
   identifier.append(" faust::resource ("+get_uuid()+")"); 
@@ -160,13 +161,12 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
   
   // TRY TO CREATE ADVERT ENTRY FOR THIS RESOURCE
   //
-  msg = "Creating advert endpoint ";
+  msg = "Creating advert endpoint '"+endpoint_str_+"'";
   try {
     int mode = advert::ReadWrite | advert::Create | advert::Recursive;
     resource_id_ = description_.get_attribute(FAR::identifier);
     
     std::string advert_key = object::faust_root_namesapce_;
-    msg += "'"+advert_key + "RESOURCES/" + resource_id_ + "/'";
     
     advert_base_ = advert::directory(advert_key, advert::ReadWrite);
     
@@ -201,8 +201,7 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
   
   // COPY ALL ATTRIBUTES TO THE ADVERT ENTRY
   //
-  msg = "Populating advert endpoint ";
-  msg += object::faust_root_namesapce_ + "RESOURCES/" + resource_id_ + "/";
+  msg = "Populating advert endpoint '"+endpoint_str_+"'";
   try {
     std::vector<std::string> attr_ = description_.list_attributes();
     std::vector<std::string>::const_iterator it;
@@ -323,8 +322,7 @@ resource::~resource()
 {
   if(false == persistent_) {
     // TODO: SEND "TERMINATE" COMMAND TO AGENT 
-    std::string msg = "Removing advert endpoint ";
-    msg += object::faust_root_namesapce_ + "RESOURCES/" + resource_id_ + "/";
+    std::string msg("Removing advert endpoint '"+endpoint_str_+"'");
     try {
       advert_base_.remove(saga::advert::Recursive);
       msg += ". SUCCESS ";
@@ -343,8 +341,7 @@ resource::~resource()
 bool resource::send_command(std::string cmd, unsigned int timeout)
 {
   // sends a command and waits for an acknowledgement. 
-  std::string msg("Writing command to endpoint ");
-  msg += object::faust_root_namesapce_ + "RESOURCES/" + resource_id_ + "/";
+	std::string msg("Removing advert endpoint '"+endpoint_str_+"'");
   try {
     cmd_.store_string(cmd);
     msg += ". SUCCESS ";

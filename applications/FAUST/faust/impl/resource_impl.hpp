@@ -40,6 +40,7 @@ namespace faust
       saga::advert::entry status_;
       
       std::string resource_id_;
+			std::string endpoint_str_;
       bool init_from_id_;
       bool persistent_;
 			
