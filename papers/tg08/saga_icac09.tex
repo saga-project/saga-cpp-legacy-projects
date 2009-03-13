@@ -567,6 +567,20 @@ map the individual big-job and sub-jobs to physical resources.
 Details of the \emph{BigJob} abstraction can be found in
 Ref.~\cite{saga_royalsoc}.
 
+\jhanote{there is the following blurb from the ICCS paper which we
+  should either incorporate or acknowledge. Merge..}
+
+The latter could be done via BigJob Abstraction or without (statically
+map to an available resource, with or without the aid of BQP).  The
+advantage of BigJob abstraction (and ultimately FAUST) is the
+flexibility it provides -- wanna call is late binding? or
+loose-coupling..  call it what you may.  ... We have developed a
+mechanism whereby EnKF can be solved using multiple-resources, using
+application-level scheduling applied dynamically~\cite{saga_tg08}, ie
+mapping the sub-tasks requirement to the resources available at the
+instant the sub-tasks become available and ready to run, as opposed to
+{\it a priori} static method of job submission.
+
 {\it Developing Applications using SAGA and Cactus:} Cactus provides
 the support and features required to implement adaptivity e.g.,
 checkpoint, restart and migrate thorns. SAGA provides the ability to
@@ -585,31 +599,32 @@ advantages of proper programming abstractions, by integrating SAGA and
 Cactus and demonstrate the usefulness for Grid application development
 
 \subsubsection{Autonomic Resource Selection at Runtime Using Batch
-  Queue Predictor: }
+  Queue Predictor} 
 Batch Queue Predictor ~\cite{bqp, bqp_url} is a tool that is available
 on a number of TeraGrid resources that allows users to make bound
 predictions of how much time a job of a giving size and duration will
-spend in the queue.  BQP is traditionally
-used for determining the status of the queue resources available and
-static resource mapping. This prediction is given with a degree of
-confidence (probability) that the job will start before a certain
-deadline (i.e. the time in the queue) and quantile. Quantile value is
-in effect repeatability, that jobs of similar sizes and durations will
-have the same wait time. This information is vital when submitting
-jobs to various machines as the longer a job sits in the queue, the
-longer the delay for the entire stage.
+spend in the queue.  BQP is traditionally used for determining the
+status of the queue resources available and static resource
+mapping. This prediction is given with a degree of confidence
+(probability) that the job will start before a certain deadline
+(i.e. the time in the queue) and quantile. Quantile value is a measure
+of repeatability; more precisely it is an indication of the
+probability that jobs of similar sizes and durations will have the
+same wait time. This information is vital when submitting jobs to
+various machines as the longer a job sits in the queue, the longer the
+delay for the entire stage.
 
-What is enticing about BQP is that it
-provides information that is of importance to the class of
-applications that we are interested in, namely, the ability to predict
-with given probability which resource and when a job (with a specified
-number of processors and estimated run-time) is most likely to finish.
-This is typically harder to predict correctly than which resource a
-job with specified characteristics is most likely to run first.  The
-application uses BQP internally within an application to make resource
-selection decisions dynamically (at run-time, as opposed to static
-queries) and automatically (the logic of how to process BQP
-information is embedded in the application).
+What is enticing about BQP is that it provides information that is of
+importance to the class of applications that we are interested in,
+namely, the ability to predict with given probability which resource
+and when a job (with a specified number of processors and estimated
+run-time) is most likely to finish.  This is typically harder to
+predict correctly than which resource a job with specified
+characteristics is most likely to run first.  The application uses BQP
+internally within an application to make resource selection decisions
+dynamically (at run-time, as opposed to static queries) and
+automatically (the logic of how to process BQP information is embedded
+in the application).
 
 For our application we use the BQP command line tools, that are called
 through a python wrapper from the Lazarus script.  In a given resource
@@ -617,12 +632,21 @@ list, the python wrapper around the BQP executable finds the resource
 and queue where if submitted, a BigJob of a given size and expected
 run time, will have a good chance (or high confidence) of getting
 through the queue and start running the earliest. Confidence is in
-essence the probability that the job will run, and to obtain a
-confidence of 1.0, an impractically high queue time is required. In
-our applications, not knowing the granularity of the available BQP
-data, we opted to use a confidence of 0.75 and a quantile of 0.75. The
-choices are logical but require, as planned, a more detailed
-statistical analysis for effectiveness.
+essence the probability that the job will run within the specified
+deadline; to obtain a confidence of 1.0, an impractically high
+queue time would be required. For our applications, not knowing the
+granularity of the available BQP data, we opted to use a confidence of
+0.75 (and the default value of quantile to be 0.75.)  The choice of
+0.75 is jua good first approximateion -- as the bias in our results due
+to the choice of confidence to be 0.75 is minimal. We will elaborate
+on this in the Challenges section.
+
+e did simple experiments to the test the dependence on the
+confidence and quantile values; we find that the output is not very
+sensitive to the confidence
+
+are logical but require a more detailed sensitivity
+analysis for completeness.
 
 \subsection{Lazarus}
 
@@ -711,14 +735,6 @@ checked again. Upon success, Lazarus proceeds to the next stage.
 
 \section{Lazarus Architecture and Application Control Flow}
 
-\jhanote{we need to discuss in words figures 3, 4 and 5..}
-
-\jhanote{Place in a suitable place...}  Lazarus is distinct to other
-well established and successful approaches such as Accord for
-autonomic computing, in that it is not a component-based programming
-system but it is a framework already composed of multiple
-components. Importantly the programming system that is used is SAGA --
-both for the application and the Lazarus framework.
 
 \begin{figure}
 \begin{center}
@@ -765,11 +781,9 @@ a typical production run of Lazarus will involve hundreds of stages.
 
 \subsection{Lazarus Components}
 
-\jhanote{The following is both misleading and inelegant} \yyenote{Is this better?}
-As mentioned
-earlier, Lazarus in its current incarnation is a set of small, fast,
-portable and modular interfaces. These interfaces make extensive use
-of high level abstractions such as BigJob and SAGA.
+As mentioned earlier, Lazarus in its current incarnation is a set of
+small, fast, portable and modular interfaces. These interfaces make
+extensive use of high level abstractions such as BigJob and SAGA.
 
 For runs distributed across several machines, Lazarus needs to gather
 the data from all different machines into one location where the EnKF
@@ -792,7 +806,12 @@ system and HDF5 calls to make sure the files exist, are not sized
 zero, and a user specified command using HDF5 tools (h5ls) returns
 successfully.
 
-
+Lazarus is distinct to other well established and successful
+approaches such as Accord for autonomic computing, in that it is not a
+component-based programming system but it is a framework already
+composed of multiple components. Importantly the programming system
+that is used is SAGA -- both for the application and the Lazarus
+framework.
 
 \subsection{Control Flow}
 
@@ -848,45 +867,45 @@ built with EnKF and IO thorns for analysis
 %submitted again as a second stage and the entire processes is
 %repeated.
 
-These points need to be made clear in this sub-section? \newline
- {\it Mapping of physical-model
-  requirements into compute-resource requirements} \newline {\it
-  Mapping compute-resource requirements into available
-  resources}\newline
-
 \jhanote{Mapping: Need discussion on the two-levels of decision
-  making. I thought we had done this!}
+  making. I thought we had done this!}  {\it Mapping of physical-model
+  requirements into compute-resource requirements} {\it Mapping
+  compute-resource requirements into available resources}
 
-To prepare for launching Lazarus, a model generator is required to create
-the initial data (initial state vectors) for all the ensembles. This is typically
-done a priori to running Lazarus, and performed on one resource then synchronized
-against all others to ensure consistency.
+To prepare for launching Lazarus, a model generator is required to
+create the initial data (initial state vectors) for all the
+ensembles. This is typically done a priori to running Lazarus, and
+performed on one resource then synchronized against all others to
+ensure consistency.
 
 Before launching Lazarus, some input parameters need to be specified.
-These are the executable names, working root directory, simulation directories,
-number of simulations per stage, number of stages and so on. Given 
-the number of jobs per stage, and historical benchmark information on various
-machines, an estimate for the total SUs required is sent to the Lazarus
-resource manager. The resource manager queries BQP for the optimal sizes and durations
-and creates a list of BigJobs, their sizes, durations and the resource/queue
-where they will be submitted. If we have more than one resource available, the SU
-requirement is satisfied based on a round-robin algorithm, iterating over
-resources and adding BigJobs until no more BigJobs need to be submitted.
+These are the executable names, working root directory, simulation
+directories, number of simulations per stage, number of stages and so
+on. Given the number of jobs per stage, and historical benchmark
+information on various machines, an estimate for the total SUs
+required is sent to the Lazarus resource manager. The resource manager
+queries BQP for the optimal sizes and durations and creates a list of
+BigJobs, their sizes, durations and the resource/queue where they will
+be submitted. If we have more than one resource available, the SU
+requirement is satisfied based on a round-robin algorithm, iterating
+over resources and adding BigJobs until no more BigJobs need to be
+submitted.
 
-Once the resource list is formulated, Lazarus uses the BigJob abstraction to submit
-jobs to all BigJobs in the resource list. The status of the jobs and BigJobs
-is reported on regular intervals through a logging mechanism. Upon completion
-of all the subjobs, Lazarus performs a calibration test where it runs
-the user-specified output-check on a pre-validated file, to ensure all the tools
-are in place and in working order. It then proceeds to check the output from all simulations to ensure sanity of output. Simulations that have faulty output are then
-collected into a list and resubmitted. The output is again checked for sanity: if
-all is well we proceed with the EnKF run (i.e. the analysis) and if not
-Lazarus will abort with a detailed log file of the error. This is mainly to safeguard
-against wasting SUs on corrupt runs. Once the analysis is complete,
-Lazarus repeats the forecast iteration with the newly modified state vectors and
-the history matching continues.
-
-
+Once the resource list is formulated, Lazarus uses the BigJob
+abstraction to submit jobs to all BigJobs in the resource list. The
+status of the jobs and BigJobs is reported on regular intervals
+through a logging mechanism. Upon completion of all the subjobs,
+Lazarus performs a calibration test where it runs the user-specified
+output-check on a pre-validated file, to ensure all the tools are in
+place and in working order. It then proceeds to check the output from
+all simulations to ensure sanity of output. Simulations that have
+faulty output are then collected into a list and resubmitted. The
+output is again checked for sanity: if all is well we proceed with the
+EnKF run (i.e. the analysis) and if not Lazarus will abort with a
+detailed log file of the error. This is mainly to safeguard against
+wasting SUs on corrupt runs. Once the analysis is complete, Lazarus
+repeats the forecast iteration with the newly modified state vectors
+and the history matching continues.
 
 \section{Failure Modes}
 
@@ -940,32 +959,15 @@ Some of the simulation failures are relatively easy to guard against,
 namely the wrong parameter file or missing executable. The other errors
 however are harder to detect and rectify.
 
-\jhanote{Needs to be refined}
-One of the recent improvements in deployment is the use of the python
-bindings to the SAGA-based BigJob abstraction Using these scripts, a
-user-specified number of stages each containing a user-defined number
-of models can be launched to the grid. As the models of a given stage
-run to completion, a second set of error-checking jobs are launched
-that ensure all the models ran to completion before the Kalman gain
-calculation is performed. This error-checking mechanism attempts to
-re-submit the failed jobs, and if met with failure a second time, the
-stage is halted to allow for user intervention.
-
-%\yyenote{that is what I am implementing at the moment}
-
-\jhanote{The latter could be done via BigJob Abstraction or without
-  (statically map to an available resource, with or without the aid of
-  BQP).  The advantage of BigJob abstraction (and ultimately FAUST) is
-  the flexibility it provides -- wanna call is late binding? or
-  loose-coupling..  call it what you may.}
-
-\jhanote{there is the following blurb from the ICCS paper which we
-  should either incorporate or acknowledge} We have developed a
-mechanism whereby EnKF can be solved using multiple-resources, using
-application-level scheduling applied dynamically~\cite{saga_tg08}, ie
-mapping the sub-tasks requirement to the resources available at the
-instant the sub-tasks become available and ready to run, as opposed to
-{\it a priori} static method of job submission.  
+To facilitate deployment we use python bindings to the SAGA-based
+BigJob abstraction. Using these scripts, a user-specified number of
+stages each containing a user-defined number of models can be launched
+to the grid. As the models of a given stage run to completion, a
+second set of error-checking jobs are launched that ensure all the
+models ran to completion before the Kalman gain calculation is
+performed. This error-checking mechanism attempts to re-submit the
+failed jobs, and if met with failure a second time, the stage is
+halted to allow for user intervention.
 
 % For the problem size studied, the sub-tasks required mostly less
 % than 32 processors. For this paper we used the earlier developed
@@ -985,7 +987,6 @@ instant the sub-tasks become available and ready to run, as opposed to
 
 \section{Experiments: Results and Discussion}
 
-
 % \begin{itemize}
 % \item Performance Measures:
 % \item Define a workload and the time to complete 
@@ -993,8 +994,8 @@ instant the sub-tasks become available and ready to run, as opposed to
 % \item Scalability (number of systems utilized)
 % \end{itemize} 
 
-In this section, we discuss the Experiments we performed, but first
-we discuss the design of the experiments.
+In this section, we discuss the Experiments we performed, but first we
+discuss the design of the experiments.
 
 As alluded to Grids are dynamic and in principle provide an effective
 infrastructure for applications with dynamic resource requirements, as
@@ -1006,8 +1007,25 @@ this case, the ability to use system-level information to decide which
 resources to use dynamically, as opposed to the manual
 intervention/decision, can lead to performance gains.
 
-% \jhanote{Yaakoub, please put in a paragraph about the workload}
-% \yyenote{Done}
+Thus, we first define the workload that we will use for our
+experiments and performance tests. We will explicitly determine the
+\tc when using one machine and compare that to the time when using
+that machine over a 5 day period. We then extend our experiments to
+use multiple machines working concurrently towards a solution of the
+same application instance.  We will establish performance increases
+upto three machines.  We will find that although there is fluctuation
+in both the wait-time in queue and the time to complete the work-load,
+fluctuations are dominated by the former.
+
+%machine in conjunction with other machines
+% \item Determine  \tc when using 1 machine 
+% \item Determine \tc when using same machine over 5 day average i.e. repeat 5    times, at least 3 times
+% \item Determine \tc when scaling up to 2 machines, 3 machines 
+%\item point out fluctuation in work-load and response time
+% \item point out that the experiment was repeated 4 times for non-BQP
+%   cases and repeated 3 for the BQP case (with experiment ongoing on
+%   the 4th experiment).
+% \end{itemize}
 
 The workload is defined as reduced version of a typical history
 matching run. We start with an ensemble of one hundred members and we
@@ -1061,16 +1079,6 @@ was used without autonomic behaviour. This is a very powerful
 demonstration of the fact that autonomic behaviour -- however
 elementary, can lead to significantly improved performance.
 
-\begin{itemize}
-\item Define workload.
-\item Determine  \tc when using 1 machine 
-\item Determine \tc when using same machine over 5 day average i.e. repeat 5    times, at least 3 times
-\item Determine \tc when scaling up to 2 machines, 3 machines 
-\item point out fluctuation in work-load and response time
-\item point out that the experiment was repeated 4 times for non-BQP
-  cases and repeated 3 for the BQP case (with experiment ongoing on
-  the 4th experiment).
-\end{itemize}
 
 \begin{figure}
 \begin{center}
