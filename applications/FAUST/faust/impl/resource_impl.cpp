@@ -10,6 +10,7 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include <faust/faust/protocol.hpp>
 #include <faust/faust/exception.hpp>
 #include <faust/faust/resource_description.hpp>
 #include <faust/impl/resource_impl.hpp>
@@ -326,7 +327,7 @@ resource::~resource()
 {
   if(false == persistent_) {
     
-    send_command("TERMINATE");
+    send_command(PROTO_V1_TERMINATE);
     
     std::string msg("Removing advert endpoint '"+endpoint_str_+"'");
     try {
@@ -364,11 +365,11 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     while(to < timeout) {
       sleep(1); ++to;
       result = cmd_.retrieve_string();
-      if(result == std::string("ACK:"+cmd))
+      if(result == std::string("ACK:"+std::string(PROTO_V1_TERMINATE)))
         break;
     }
     
-    if(result == std::string("ACK:"+cmd)) {
+    if(result == std::string("ACK:"+std::string(PROTO_V1_TERMINATE))) {
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
     }
