@@ -20,7 +20,8 @@
 \newcommand{\C}{\comment}
 \newcommand{\CC}{\ccomment}
 \newcommand{\fix}[1]{\textcolor{red}{\bf #1}}
-\newcommand{\tc}{$T_c$}
+\newcommand{\tc}{$T_c$ }
+\newcommand{\tcnsp}{$T_c$}
 
 \newif\ifdraft
 \drafttrue
@@ -394,8 +395,8 @@ predict run time characteristics of the simulations.
 Even for relatively small input problem sizes at each stage, up to
 several hundred models are generated which require from one to sixteen
 processors to solve efficiently; the distribution of the number of
-jobs and the run time-to-completion for a given processor count varies
-by up to an order of magnitude.  Such hard to predict run-time
+jobs and the run time-to-completion (\tc) for a given processor count
+varies by up to an order of magnitude.  Such hard to predict run-time
 characteristics render static, data-flow independent scheduling
 techniques difficult to use.  % We demonstrate how the use of
 % appropriate programming abstractions like SAGA and Cactus enable the
@@ -915,10 +916,10 @@ functions that are based on SAGA python bindings, BQP command line tools and HDF
 %submitted again as a second stage and the entire processes is
 %repeated.
 
-\jhanote{Mapping: Need discussion on the two-levels of decision
-  making. I thought we had done this!}  {\it Mapping of physical-model
-  requirements into compute-resource requirements} {\it Mapping
-  compute-resource requirements into available resources}
+% \jhanote{Mapping: Need discussion on the two-levels of decision
+%   making. I thought we had done this!}  {\it Mapping of physical-model
+%   requirements into compute-resource requirements} {\it Mapping
+%   compute-resource requirements into available resources}
 
 To prepare for launching Lazarus, a model generator is required to
 create the initial data (initial state vectors) for all the
@@ -936,15 +937,15 @@ for simplicity, as the load-varying, adaptive mesh
 refinement reservoir simulator is still under development.
 
 
- Given the number of jobs per stage, and historical benchmark
+Given the number of jobs per stage, and historical benchmark
 information on various machines, an estimate for the total SUs
-required is computed and sent to the Lazarus resource manager. The resource manager
-queries BQP for the optimal sizes and durations and creates a list of
-BigJobs, their sizes, durations and the resource/queue where they will
-be submitted. If we have more than one resource available, the SU
-requirement is satisfied based on a round-robin algorithm, iterating
-over resources and adding BigJobs until no more BigJobs need to be
-submitted.
+required is computed and sent to the Lazarus resource manager. The
+resource manager queries BQP for the optimal sizes and durations and
+creates a list of BigJobs, their sizes, durations and the
+resource/queue where they will be submitted. If we have more than one
+resource available, the SU requirement is satisfied based on a
+round-robin algorithm, iterating over resources and adding BigJobs
+until no more BigJobs need to be submitted.
 
 Once the resource list is formulated, Lazarus uses the BigJob
 abstraction to submit jobs to all BigJobs in the resource list. The
@@ -977,110 +978,111 @@ and the history matching continues.
 % the framework can be used on high-end petascale supercomputers in
 % future work.
 
-
 \section{Experiments: Results and Discussion}
 
-% \begin{itemize}
-% \item Performance Measures:
-% \item Define a workload and the time to complete 
-% \item Define a time and the number of jobs completed (throughput)
-% \item Scalability (number of systems utilized)
-% \end{itemize} 
+In this section, we discuss the experiments we performed and the
+design motivation behind these experiments.  As alluded to Grids are
+dynamic and in principle provide an effective infrastructure for
+applications with dynamic and hard-to-predict resource requirements.
+The underlying motivation for these experiments is to first establish
+that the Lazarus framework enables the effective utilization of Grid
+resources. The second, design decision for experiments is to determine
+if autonomic behaviour -- in this case, the ability to use
+system-level information to decide which resources to use dynamically,
+as opposed to the manual intervention and decision, can lead to
+performance gains.
 
-In this section, we discuss the Experiments we performed, but first we
-discuss the design of the experiments.
-
-As alluded to Grids are dynamic and in principle provide an effective
-infrastructure for applications with dynamic resource requirements, as
-well as hard-to-predict resources. The underlying motivation for these
-experiments is to first establish that the Lazarus framework enables
-the effective utilization of Grid resources. The second, design
-decision for experiments is to determine if autonomic behaviour -- in
-this case, the ability to use system-level information to decide which
-resources to use dynamically, as opposed to the manual
-intervention/decision, can lead to performance gains.
-
-Thus, we first define the workload that we will use for our
-experiments and performance tests. We will explicitly determine the
-\tc when using one machine and compare that to the time when using
-that machine over a 5 day period. We then extend our experiments to
-use multiple machines working concurrently towards a solution of the
-same application instance.  We will establish performance increases
-upto three machines.  We will find that although there is fluctuation
-in both the wait-time in queue and the time to complete the work-load,
-fluctuations are dominated by the former.
-
-%machine in conjunction with other machines
-% \item Determine  \tc when using 1 machine 
-% \item Determine \tc when using same machine over 5 day average i.e. repeat 5    times, at least 3 times
-% \item Determine \tc when scaling up to 2 machines, 3 machines 
-%\item point out fluctuation in work-load and response time
-% \item point out that the experiment was repeated 4 times for non-BQP
-%   cases and repeated 3 for the BQP case (with experiment ongoing on
-%   the 4th experiment).
-% \end{itemize}
+We first define the workload that we will use for our experiments and
+performance tests. We will first explicitly determine the \tc when
+using one machine and compare it to the time when using that machine
+over a 5 day period. We then extend our experiments to use multiple
+machines working concurrently towards a solution of the same
+application instance.  We will establish an increase in performance as
+measured by a reduced \tc for upto three machines.  We will find that
+although there are fluctuations in both the wait-time in queue and the
+time to complete the work-load, fluctuations are dominated by the
+former.
 
 The workload is defined as reduced version of a typical history
 matching run. We start with an ensemble of one hundred members and we
-need to perform five analysis/Kalman-filter runs. Since this sample
+need to perform five stages/Kalman-filter runs. Since this sample
 workload is representative of the size of a typical large history
 matching run and a reduced form of its duration, any consistent
 reduction in the total time to completion will eventually have a
 larger impact on larger runs with more stages.
 
 We define the \tc as the time in seconds it takes to complete the
-workload. There are several components to the \tc. First, is the time
-that it takes to submit to the queuing system, file-transfer (in and
-out). In a way this is overhead, and we label this as $t_{overhead}$.
-The second component is the time that the submitted jobs wait in queue
-for resources requested to become available. We label this as
-$t_{wait}$; the final component is the time the runtime that
-simulations actually take to complete, which we label as
-$t_{run}$. Thus: \tc = $t_{overhead}$ + $t_{wait}$ + $t_{run}$.
-
-In the first stage of experiments, we determine the \tc for a single
-TG machine, but repeat the experiment for different TG machines and
-repeat 4-5 times at different times of the week, so as to get
-uncorrelated data.  This provides a measure of base-line performance.
-
-We then, repeat experiments using more than one computational resource
-on the TG. To be precise, we employ more than one computational
-resource towards the solution of a single instance of the problem.
-Given that are experiments are capable of utilizing three different TG
-resources, using two-resources at a time, gives us three different
-combinations. As the results from the single-resource configuration
-show, the individual resources have somewhat different intrinsic
-performance, which should be factored when taking into account the
-combined performance. As a logical extension, we perform an experiment
-wherein we utilize all three different TG resources.  An important
-result, that holds in general, but also for the specific instances
-investigated here, is that on average, as the number of resources
-increases the \tc to solution decreases. This is evidenced from the
-fact \tc for (R,Q) is lower than \tc (R) or \tc (Q). The large error
-bars are due to the fluctuations in the waiting times; it is important
-to point out that the $t_{run}$ decreases, but the overall number of
-CPU hours utilized does not increase. This is a reconfirmation of
-the use of higher-level abstractions for enhanced performance.
-
-In the final experiment, we utilize a type of information service --
-BQP (for queue prediction) and incorporate it into the Lazarus
-framework and make use of it through autonomic behaviour.  As the
-right most datapoint shows, the utilization of BQP to determine which
-resources and which configuration are used leads to a drastic
-reduction in \tc compared to the simple case where Lazarus framework
-was used without autonomic behaviour. This is a very powerful
-demonstration of the fact that autonomic behaviour -- however
-elementary, can lead to significantly improved performance.
-
+workload. There are several components to the \tcnsp. First, is the
+time that it takes to submit to the queuing system and time for
+file-transfers (in and out). In a way this is overhead, and we label
+this as $t_{overhead}$.  The second component is the time that the
+submitted jobs wait in queue for resources requested to become
+available. We label this as $t_{wait}$; the final component is the
+time the runtime that simulations actually take to complete, which we
+label as $t_{run}$. Thus, \tc = $t_{overhead}$ + $t_{wait}$ +
+$t_{run}$.
 
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.40]{./figures/Figure7.png}
 \end{center}
-\caption{From Left to Right: (i) Ranger, (ii) Queen Bee, (iii)
-  Ranger+QueenBee, (iv) Ranger+QB+Abe, (v) BQP-All Machines. \jhanote{correct caption}}
-\label{fig:application_architecture}
+\caption{\tc for different configurations.  From Left to Right: (i)
+  Ranger, (ii) Ranger when using BQP, (iii) Queen Bee, (iii) Ranger
+  and QueenBee, (iv) Ranger, QB and Abe, (v) Range, QB and Abe when
+  using BQP.}
+\label{fig:results}
 \end{figure}
+
+In the first stage of experiments, we determine the \tc for a single
+TG machine, but repeat the experiment for different TG machines and
+repeat 4-5 times at different times of the week, so as to get
+uncorrelated data.  This provides a measure of base-line performance.
+We then, repeat experiments using more than one computational resource
+on the TG. To be precise, we employ more than one computational
+resource towards the solution of a single instance of the problem.
+Given that are experiments are capable of utilizing three different TG
+resources, using two-resources at a time, gives us three different
+combinations. 
+
+Our results are plotted in Figure.~\ref{fig:results}.  As the results
+from the single-resource configuration show, the individual resources
+have somewhat different intrinsic performance, which should be
+factored when taking into account the combined performance. As a
+logical extension, we perform an experiment wherein we utilize all
+three different TG resources. An important result, that holds in
+general, but also for the specific instances investigated here, is
+that on average, as the number of resources increases the \tc to
+solution decreases. This is evidenced from the fact \tc for (R,Q) is
+lower than \tc (R) or \tc (Q). It is worth mentioning that the
+fluctuation in \tc for (R, Q, A) (as well as the mean) is higher than
+that for (R,Q) because of a single anamolous point in (R, Q, A).  In
+general the large fluctuations are due to fluctuations in the waiting
+times. Finally, it is also important to point out that although
+$t_{run}$ decreases, the overall number of CPU hours utilized does not
+increase. % This is a reconfirmation of the use of higher-level
+% abstractions for enhanced performance.
+
+In the final experiment, we utilize BQP to autonomically decide which
+resources to utilize and incorporate it into the Lazarus framework.
+As the second data-point from the left and the right-most data-point
+show, the utilization of BQP to determine which resources and which
+configuration are used, leads to a drastic reduction in \tc compared
+to the simple case where Lazarus framework was used without autonomic
+behaviour. This is a very powerful demonstration of the fact that
+autonomic behaviour -- however elementary, can lead to significantly
+improved performance.
+
+This leads to the question, why does the use of autonomics result in
+better performance figures? In a nutshell, the answer lies in the fact
+that any decision relating to which resources to utilize is postponed
+till run-time, which along with the capability to match better the
+resource requirement to the resources available, leads to overall
+performance enhancements. Specifically, as Tables I and II show, the
+resource configurations -- number of cores assigned to a BigJob and
+the queue duration requested, differ significantly between the
+BQP-guided resource selection versus the unaided configuration.
+Having established the power of autonomics in improving performance,
+we now establish the mechanism behind the performance enhancement.
 
 \begin{table}
 \begin{tabular}{|c|c|c|c|c|}
@@ -1089,8 +1091,9 @@ elementary, can lead to significantly improved performance.
 \hline 1-4& Ranger-BQP & development & 128 & 1:00 \\ 
 \hline 
 \end{tabular} 
-\caption{A table with the results for Ranger with and without BQP. While the
-  total number of SUs consumed remains constant, the queue, size and duration
+\caption{A table with the results for the configurations used
+  on Ranger with and without BQP. Notice how the use
+  of BQP has small but significant changes in the queue, size and duration
   of the BigJob changes. }
 \end{table}
 
@@ -1106,14 +1109,22 @@ elementary, can lead to significantly improved performance.
 \hline 4 & Abe & dque & 64 & 1:00 \\ 
 \hline 
 \end{tabular} 
-\caption{A table with the results of the resources used and in
-  the configuration of the resources -- as determined, by the
-  number of cores, duration and queue. The decision on
-  resource and resource configuration is aided by BQP -- which 
-  makes a locally optimal decision. \jhanote{we need to repeat
-    this experiment a few times; based upon the outcome we should either
-    mention that BQP always gives us this configuration, or hopefully we
-    can say that BQP selects differently}}
+\caption{
+  A table with the BQP results for the resources selected and 
+  the configuration of the resources as determined, by the
+  number of cores (for the BigJob), duration and queue.
+  The decision on resource and resource configuration is guided by BQP.
+  Data in this table is for four identical experiments involving
+  machines Ranger, QB and Abe, but repeated
+  four different times. The configuration chosen the first three times
+  in spite of BQP ended up being similar for the different 
+  experiments (although difference across the resources), 
+  with the fourth experiment generating different results from the previous two. In contrast, when BQP is not used, 
+  the default choice for the BigJob size is always 64 with a duration fixed
+  at 2:00hours (although the chosen queue varies). So although there is not 
+  much change between different BQP-guided runs,  there is significant
+  difference between BQP-guided and manual (unassisted) resource configurations
+}
 \end{table}
 
 % \jhanote{Did we get data for sample 4? was it different?}
