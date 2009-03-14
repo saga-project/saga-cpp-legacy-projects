@@ -709,19 +709,82 @@ abstractions, we did not have to develop most of the tuning
 mechanisms, but were able to write suitable interfaces to these
 mechanisms.
 
+
+\subsection{Failure Modes}
+As early as the first non-trivial Lazarus run we encountered failures. They
+varied in nature (hardware/environment) and severity. As Lazarus progressively
+used more resources, many more failure modes were encountered.
+Many were errors that are irrecoverable and resulted in a
+cold restart from scratch; others were recoverable with a simple simulation 
+result-check fault tolerant component built into Lazarus.
+
+Represnetative hardware failures encountered:
+\begin{itemize}
+\item{Lost a compute node from the pool}
+\item{Lost a network connection to a machine, BQP or the advert service}
+\item{Could not write to /scratch because it was taken down for maintenance}
+\end{itemize}
+From all of these modes of failure, we found that we reliably recover
+from node failure and failure to write data to disk, but not network
+failure. The status of any given job is reported in a one-way poll for
+current state. This has obvious limitations so we will also be using
+the "heart-beat" monitor in FAUST once it is available.
+
+Represntative software environment failures encountered:
+\begin{itemize}
+\item{Missing or wrong shared libraries}
+\item{Wrong or inadequate environment variables}
+\item{Run out of quota on disk, wrote too many files to the same directory}
+\item{Run out of SU's in the allocation}
+\item{No internet connection to the compute nodes (no BQP, no advert service)}
+\item{MPI error that causes a simulation to stall (this happened because of a faulty installation and was corrected)}
+\end{itemize}
+In software environment failures, typically jobs terminate with errors
+or are killed, before the simulations results are written to
+disk. Unsurprisingly we ran into all of these failures while
+developing Lazarus, and were able to recover from all of them except
+for the network connectivity in the compute nodes, as this would
+register the job's state as "unknown". This would be solved with the
+aforementioned heart-beat monitoring system in FAUST.
+
+Representative simulation failures encountered:
+\begin{itemize}
+\item{Missing parameter files or executable}
+\item{Wrong parameter files, or erroneous setup of parameter files}
+\item{Divergence in the solver, causing NaN shuffling and leading to exceeding the requested wall clock time}
+\item{Under-estimation of the required wall clock time}
+\item{Hitting /scratch or /home too often (because of checkpointing), leading to very low access speeds and exceeding the requested wall clock time}
+\end{itemize}
+Some of the simulation failures are relatively easy to guard against,
+namely the wrong parameter file or missing executable. The other errors
+however are harder to detect and rectify.
+
+To facilitate deployment we use python bindings to the SAGA-based
+BigJob abstraction. Using these scripts, a user-specified number of
+stages each containing a user-defined number of models can be launched
+to the grid. As the models of a given stage run to completion, a
+second set of error-checking jobs are launched that ensure all the
+models ran to completion before the Kalman gain calculation is
+performed. This error-checking mechanism attempts to re-submit the
+failed jobs, and if met with failure a second time, the stage is
+halted to allow for user intervention.
+
+
 \subsection{Fault Tolerance}
-Lazarus has built in self-healing capabilities. These capabilities
-rely on a tool-check/calibration test and output file checks. After
-all simulations have finished and their output files are copied over,
-Lazarus proceeds to perform a tool-check on a sane file. The purpose
-of the tool-check is to make sure the tools that will be used in
-checking the output files from the simulations are available and
-behave according to expectations. Once the tools are verified, they
-are used to check the output of all the simulations. If a simulation
-is found to have missing, incomplete or otherwise faulty output, it is
-flagged for resubmission.  After all output is checked, the faulty
-simulations are resubmitted and upon termination, all output is
-checked again. Upon success, Lazarus proceeds to the next stage.
+Given the many, different failure modes, it is only natural to support
+fault-tolerance so as to provide Lazarus with a built in self-healing
+capabilities. These capabilities rely on a tool-check/calibration test
+and output file checks. After all simulations have finished and their
+output files are copied over, Lazarus proceeds to perform a tool-check
+on a sane file. The purpose of the tool-check is to make sure the
+tools that will be used in checking the output files from the
+simulations are available and behave according to expectations. Once
+the tools are verified, they are used to check the output of all the
+simulations. If a simulation is found to have missing, incomplete or
+otherwise faulty output, it is flagged for resubmission.  After all
+output is checked, the faulty simulations are resubmitted and upon
+termination, all output is checked again. Upon success, Lazarus
+proceeds to the next stage.
 
 
 \begin{figure}
@@ -901,68 +964,6 @@ detailed log file of the error. This is mainly to safeguard against
 wasting SUs on corrupt runs. Once the analysis is complete, Lazarus
 repeats the forecast iteration with the newly modified state vectors
 and the history matching continues.
-
-\section{Failure Modes}
-
-% \jhanote{Which failure modes are relevant here? Remove those that are
-%   not}\yyenote{Fixed}
-As early as the first non-trivial Lazarus run we encountered failures. They
-varied in nature (hardware/environment) and severity. As Lazarus progressively
-used more resources, many more failure modes were encountered.
-Many were errors that are irrecoverable and resulted in a
-cold restart from scratch; others were recoverable with a simple simulation 
-result-check fault tolerant component built into Lazarus.
-
-Represnetative hardware failures encountered:
-\begin{itemize}
-\item{Lost a compute node from the pool}
-\item{Lost a network connection to a machine, BQP or the advert service}
-\item{Could not write to /scratch because it was taken down for maintenance}
-\end{itemize}
-From all of these modes of failure, we found that we reliably recover
-from node failure and failure to write data to disk, but not network
-failure. The status of any given job is reported in a one-way poll for
-current state. This has obvious limitations so we will also be using
-the "heart-beat" monitor in FAUST once it is available.
-
-Represnetative software environment failures encountered:
-\begin{itemize}
-\item{Missing or wrong shared libraries}
-\item{Wrong or inadequate environment variables}
-\item{Run out of quota on disk, wrote too many files to the same directory}
-\item{Run out of SU's in the allocation}
-\item{No internet connection to the compute nodes (no BQP, no advert service)}
-\item{MPI error that causes a simulation to stall (this happened because of a faulty installation and was corrected)}
-\end{itemize}
-In software environment failures, typically jobs terminate with errors
-or are killed, before the simulations results are written to
-disk. Unsurprisingly we ran into all of these failures while
-developing Lazarus, and were able to recover from all of them except
-for the network connectivity in the compute nodes, as this would
-register the job's state as "unknown". This would be solved with the
-aforementioned heart-beat monitoring system in FAUST.
-
-Represnetative simulation failures encountered:
-\begin{itemize}
-\item{Missing parameter files or executable}
-\item{Wrong parameter files, or erroneous setup of parameter files}
-\item{Divergence in the solver, causing NaN shuffling and leading to exceeding the requested wall clock time}
-\item{Under-estimation of the required wall clock time}
-\item{Hitting /scratch or /home too often (because of checkpointing), leading to very low access speeds and exceeding the requested wall clock time}
-\end{itemize}
-Some of the simulation failures are relatively easy to guard against,
-namely the wrong parameter file or missing executable. The other errors
-however are harder to detect and rectify.
-
-To facilitate deployment we use python bindings to the SAGA-based
-BigJob abstraction. Using these scripts, a user-specified number of
-stages each containing a user-defined number of models can be launched
-to the grid. As the models of a given stage run to completion, a
-second set of error-checking jobs are launched that ensure all the
-models ran to completion before the Kalman gain calculation is
-performed. This error-checking mechanism attempts to re-submit the
-failed jobs, and if met with failure a second time, the stage is
-halted to allow for user intervention.
 
 % For the problem size studied, the sub-tasks required mostly less
 % than 32 processors. For this paper we used the earlier developed
@@ -1253,7 +1254,7 @@ Specifically, Lazarus will evolve to utilize more sophisticated
 Information Services -- but this is currently restricted by the
 widespread availability of information services. Last but not least,
 Lazarus in of itself will utilize other specialized frameworks -- such
-as FAUST.
+as FAUST~\cite{faust_url}.
 
 % dynamically adapt mechanisms, and We created a single set of Globus
 % adaptors and deployed them on distinct Grids. Our application
