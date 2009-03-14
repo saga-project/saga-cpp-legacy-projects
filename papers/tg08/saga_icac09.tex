@@ -1,6 +1,7 @@
 \documentclass[conference,final]{IEEEtran}
 
-\usepackage[pdftex]{graphicx}
+%\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
 % \usepackage{epsfig}
 \usepackage{subfigure}
 \usepackage[hypertex]{hyperref}
@@ -82,28 +83,30 @@
    for autonomic properties and behaviour.  For example, many
    applications have irregular and highly variable resource
    requirements which are very difficult to predict in advance.  As a
-   consequence of irregular execution characteristics dynamic resource
+   consequence of irregular execution characteristics, dynamic resource
    requirements are difficult to predict a priori thus rendering
    static resource mapping techniques such as workflows ineffective;
    in general the resource utilization problem can be addressed more
    efficiently using autonomic approaches.  This paper discusses the
    design and development of a prototype framework that can support
    many of the requirements of Autonomic applications that desire to
-   use Computational Grids.  The development and deployment of such
-   applications on Grids is difficult in general.  We provide here an
-   initial description of the features and the architecture of the
-   Lazarus framework developed using SAGA and integrate it with an
-   Ensemble Kalman Filter application, and demonstrate the advantages
-   -- performance and lower development cost, of the framework.  As
-   proof of concept we deploy Lazarus on several different machines on
-   the TeraGrid, and show the effective utilization of several
-   heterogeneous resources and distinct performance enhancements that
-   autonomics provides.
+   use Computational Grids.  % The development and deployment of such
+%    applications on Grids is difficult in general.  
+   We provide here an initial description of the features and the
+   architecture of the Lazarus framework developed using SAGA, 
+   integrate it with an Ensemble Kalman Filter application, and
+   demonstrate the advantages -- performance and lower development
+   cost, of the framework.  As proof of concept we deploy Lazarus on
+   several different machines on the TeraGrid, and show the effective
+   utilization of several heterogeneous resources and distinct
+   performance enhancements that autonomics provides. Careful analysis
+   provides insight into the primary reason underlying the performance
+   improvements, namely a late-binding and an optimal choice of the
+   configuration of resources selected.
  \end{abstract}
  \begin{keywords}
-   Distributed Applications, Autonomic Applications, Distributed
-   Infrastructure Deployment, Distributed Application Programming,
-   SAGA, Information Services, Batch Queue Prediction, Cactus
+   Distributed and Autonomic Applications, Distributed Application
+   Programming, SAGA
  \end{keywords}
 
 \section{Introduction}
@@ -257,7 +260,7 @@ But first we begin with a discussion of the application and
 understanding of its characteristics, which will help motivate the
 need for an autonomic framework. We should mention, this is certainly
 is not the first time autonomic frameworks have been used to launch
-and manage reservoir simulations. Bangerth et al \cite{Manish} used an
+and manage reservoir simulations. Bangerth~\cite{bangerth}, used an
 autonomic framework to manage reservoir simulations for well-placement
 optimization. At the moment, our work is focused on history matching
 and reservoir characterization, however the next logical step is to
@@ -794,12 +797,14 @@ proceeds to the next stage.
 %\includegraphics[scale=0.34]{./figures/kalmanfilterlayer.png}
 \includegraphics[scale=0.4]{./figures/Lazarus_01.jpeg}
 \end{center}
-\caption{\jhanote{Need to increase resolution!}  Lazarus -- An
-  Autonomic framework}
-
+\caption{Architecture of Lazarus -- a Framework for Developing
+  Autonomic Computational Science Applications. The ``Resource
+  Mapping'' Strategy input is provided by BQP. Given the size of the
+  individual tasks, the ``Historial Benchmarks'' help determine the
+  size of the sub-jobs. (For the specific workload chosen, it so
+  happens that the size of each sub-job is 16).}
 \label{fig:application_architecture}
 \end{figure}
-
 
 \subsection{Simulation Components}
 The simulation component in the Lazarus framework is based on the
@@ -1158,23 +1163,27 @@ lasting 1, 2 and 4 hours we might miss better configurations that last
 view, we mine BQP data at a fine grained level. This obviously leads
 to a small (order of minutes) computational cost and is an issue that
 needs to be addressed. Unfortunately, BQP results do not typically
-vary at the level of granularity below 30 minutes. The granularity
-issue in BQP is two fold: we do not know the refresh rate of
-the BQP data (how often it is collected and analyzed) and the granularity
-of the BQP data itself is also unknown.
+vary at the level of granularity below 30 minutes.  The granularity
+issue in BQP has two components: first, it is not known what the
+refresh rate of the BQP data is (that is, how often it is collected
+and analyzed; also this is not user-definable).  Secondly, the BQP's
+sensitivity is also quite coarse-grained. For example, changing the
+confidence level from 0.75 to say 0.90 or to 0.60 typically did not
+lead to different outputs.  Whether this is due to finite
+time-sampling or other reasons is difficult to discern.
 
-Perhaps the biggest challenge we encountered, and most frustrating,
-was failure that went undetected, and lead us to waste SUs, hours in
-the queue and of course hours waiting for results that were
-corrupt. Many of these modes of failure can be solved using a
-heart-beat from the actual simulation to a monitoring service that
+Perhaps the biggest challenge we encountered, and undoubtedly the most
+frustrating, were the failures that went undetected, and lead us to
+waste SUs, hours in the queue and of course hours waiting for results
+that were corrupt. Many of these modes of failure can be solved using
+a heart-beat from the actual simulation to a monitoring service that
 allows the simulation to register its current state, current
 iteration, progress rate, state of data, convergence data from the
 solver etc. This will be implemented using the SAGA C++ API in Cactus
 as a heartbeat thorn, and the monitoring service will be implemented
-as a functionality in FAUST.  Similar failures, but different machines
-and different solutions, thus there is a case to be made that FT
-should be provided as a general-service..
+as a functionality in FAUST~\cite{faust_url}.  Similar failures, but
+different machines and different solutions, thus there is a case to be
+made that FT should be provided as a general-service..
 
 
 \section{Future Work and Conclusion}
