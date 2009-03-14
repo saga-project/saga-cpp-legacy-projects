@@ -25,14 +25,14 @@
 \newcommand{\tcnsp}{$T_c$}
 
 \setlength\parskip{-0.15em}
-\setlength\parsep{-0.15em}
+\setlength\parsep{-0.0em}
 \newcommand{\upup}{\vspace*{-0.6em}}
 \newcommand{\upp}{\vspace*{-0.6em}}
 \newcommand{\up}{\vspace*{-0.3em}}
 
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 
 \ifdraft
 \newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1 }} }
@@ -230,13 +230,13 @@ applications from technological, version changes and other low-level
 implementation details that regularly occur in the lower layers of the
 software stack.
 
-The underlying motivation for this work is to understand how autonomic
-behaviour can be applied to Grids and Grid applications. We will try
-to understand which autonomic mechanisms are general and thus can be
-encapsulated within a framework and which are best left accessed
-directly at the application level. This is the first step in the
-direction of understanding how an autonomic framework can be developed
-that provides in a general, extensible way the ability to fulfill
+A motivation for this work is to understand how autonomic behaviour
+can be applied to Grids and Grid applications. We will understand
+which autonomic mechanisms are general, and thus can be encapsulated
+within a framework and which are accessed directly at the
+application-level. This is the first step in the direction of
+understanding how an autonomic framework can be developed that
+provides in a general, extensible way the ability to fulfill
 application level objectives such as improved throughput and lower
 time-to-solution. We will demonstrate the advantages of providing a
 general framework, such that it can be generalized to support a range
@@ -305,18 +305,18 @@ required to solve the system of equations.
 % The specific application that we investigate -- a prototype
 % implementation of a 
 The ensemble Kalman filter (EnKF) is a particularly interesting case
-of 'irregular, hard-to-predict run time characteristics'.  The model
-needs to run to completion which is defined as convergence to within a
-certain value.  The run time of each model was unpredictable and
-uncorrelated with the run-time of models running on the same number of
-processors -- a truly independent variable.  As at every stage, each
-model must converge to within a specified value before the next stage
-can begin, hence dynamically load-balancing so as to ensure that all
-models complete as close to each other as possible is the desired aim.
-The number of stages that will be required is not determined a
-priori. In the general case the number of jobs required varies between
-stages.  Figure 1 shows a schematic of the irregular and hard to
-predict run time characteristics of the simulations.
+of irregular, hard-to-predict run time characteristics.  The forecast
+model needs to run to completion which is defined as convergence to
+within a certain value.  The run time of each model was unpredictable
+and uncorrelated with the run-time of models running on the same
+number of processors.  As at every stage, each model must converge,
+before the next stage can begin, hence dynamically load-balancing so
+as to ensure that all models complete as close to each other as
+possible is the desired aim.  The number of stages that will be
+required is not determined a priori. In the general case the number of
+jobs required varies between stages.  Figure 1 shows a schematic of
+the irregular and hard to predict run time characteristics of the
+simulations.
 
 \subsection{Ensemble Kalman Filters: Runtime Characteristics}
 
@@ -405,7 +405,7 @@ predict run time characteristics of the simulations.
 Even for relatively small input problem sizes at each stage, up to
 several hundred models are generated which require from one to sixteen
 processors to solve efficiently; the distribution of the number of
-jobs and the run time-to-completion (\tc) for a given processor count
+jobs and the run time-to-completion (\tcnsp) for a given processor count
 varies by up to an order of magnitude.  Such hard to predict run-time
 characteristics render static, data-flow independent scheduling
 techniques difficult to use.  % We demonstrate how the use of
@@ -556,7 +556,7 @@ chunks of resource for a single job.
 
 {\it SAGA: BigJob Abstraction:} A common system-level abstraction is
 the support for Glide-In jobs, which represent a placeholder for a
-set of sub-tasks (see Ref.~\cite{citeulike:291860}).  For a Glide-In
+set of sub-tasks (see Ref.~\cite{saga_royalsoc}).  For a Glide-In
 job, a sufficiently large chunk of resources is requested. Smaller
 sub-tasks can then rapidly be executed through the Glide-In job.
 %Figure~\ref{fig:remdmanager_v11} summarizes the abstractions used
@@ -577,14 +577,14 @@ found in Ref.~\cite{saga_royalsoc}.
 
 By using the BigJob abstraction, Lazarus enables using
 multiple-resources, using application-level scheduling applied
-dynamically~\cite{saga_tg08}, i.e., mapping the sub-tasks requirement
-to the resources available at the instant the sub-tasks become
-available and ready to run, as opposed to {\it a priori} static method
-of job submission.  In other words, an advantage of the Lazarus
-framework (currently based upon the BigJob abstraction but soon to use
-FAUST) is the flexibility it provides -- which can be referred to
-either as late binding or loose-coupling between application resource
-requirement and resource assignment.
+dynamically, i.e., mapping the sub-tasks requirement to the resources
+available at the instant the sub-tasks become available and ready to
+run, as opposed to {\it a priori} static method of job submission.  In
+other words, an advantage of the Lazarus framework (currently based
+upon the BigJob abstraction but soon to use FAUST) is the flexibility
+it provides -- which can be referred to either as late binding or
+loose-coupling between application resource requirement and resource
+assignment.
 
 {\it Developing Applications using SAGA and Cactus:} Cactus provides
 the support and features required to implement adaptivity e.g.,
@@ -666,23 +666,23 @@ on this in the Challenges section.
 To reliably launch hundreds of reservoir simulations and collect the
 data they produce repeatedly across different machines, we needed a
 fast, easy to use abstraction, this lead to the use of BigJob
-abstraction ~\cite{ICCS_paper, saga_royalsoc}.  Lazarus builds upon
-earlier work, and extends the BigJob abstraction to explicitly utilize
-autonomic decision making based upon BQP as well as support for
+abstraction~\cite{saga_royalsoc}.  Lazarus builds upon earlier work,
+and extends the BigJob abstraction to explicitly utilize autonomic
+decision making based upon BQP as well as support for
 fault-tolerance. This is the basis of the general purpose autonomic
 framework Lazarus.
 
-After losing many jobs to various errors
-such as running out of allocated diskspace, hardware failure
-and file-copy failure, we quickly came to the conclusion that autonomy
-and self healing are important features that we needed to incorporate 
-in Lazarus to ensure all large scale history matching runs
-complete successfully. With fault tolerance, we no longer wasted
-thousands of SUs running simulations with missing/corrupt ensemble members.
-On the other hand, the autonomy incorporated in Lazarus, while basic,
-ensures that we optimize the job sizes to have a higher chance of getting
-through the queue without delay and that simulations
-that ran into issues or simply failed to run, are resurrected.
+After losing many jobs to various errors such as running out of
+allocated diskspace, hardware failure and file-copy failure, we
+quickly came to the conclusion that autonomy and self healing are
+important features that we needed to incorporate in Lazarus to ensure
+all large scale history matching runs complete successfully. With
+fault tolerance, we no longer wasted thousands of SUs running
+simulations with missing/corrupt ensemble members.  On the other hand,
+the autonomy incorporated in Lazarus, while basic, ensures that we
+optimize the job sizes to have a higher chance of getting through the
+queue without delay and that simulations that ran into issues or
+simply failed to run, are resurrected.
 
 For the current implementation, we started off using simple, portable
 python scripts -- based upon SAGA, that handles job-launching and data
@@ -1172,7 +1172,7 @@ issue in BQP has two components: first, it is not known what the
 refresh rate of the BQP data is (that is, how often it is collected
 and analyzed; also this is not user-definable).  Secondly, the BQP's
 sensitivity is also quite coarse-grained. For example, changing the
-confidence level from 0.75 to say 0.90 or to 0.60 typically did not
+confidence level from 0.75 to 0.90 or to 0.60 typically did not
 lead to different outputs.  Whether this is due to finite
 time-sampling or other reasons is difficult to discern.
 
@@ -1187,7 +1187,7 @@ solver etc. This will be implemented using the SAGA C++ API in Cactus
 as a heartbeat thorn, and the monitoring service will be implemented
 as a functionality in FAUST~\cite{faust_url}.  Similar failures, but
 different machines and different solutions, thus there is a case to be
-made that FT should be provided as a general-service..
+made that FT should be provided as a general-service.
 
 
 \section{Future Work and Conclusion}
@@ -1229,20 +1229,6 @@ scheduling. This is a fine example of how the right abstractions can
 be combined to support application-level requirements and provide
 advanced functionality that might not be easily available otherwise.
 
-One of the planned extensions to Lazarus is the addition of adaptive
-queuing systems. As it stands, Lazarus will submit optimized BigJobs
-to resources and wait for them to get through the queue, run and
-terminate.  When the number and size of subjobs is sufficiently large
-and the resources considerably congested, there will be a considerable
-amount of time during which larger, less congested resources may have
-come online or better BQP BigJob configurations have emerged; all of
-this while the original BigJobs have not started to run. A BigJob can
-then be scheduled on a new resource or another BigJob of different
-size and duration can be submitted to the queue and existing BigJobs
-that are in the queue can be deleted.  Such adaptive scheduling will
-be implemented in the Lazarus framework using the upcoming FAUST
-framework.
-
 We have captured the primary run-time characteristics of an
 interesting and common class of applications and implemented a
 solution to effectively manage this run-time complexity at the {\it
@@ -1276,6 +1262,21 @@ Information Services -- but this is currently restricted by the
 widespread availability of information services. Last but not least,
 Lazarus in of itself will utilize other specialized frameworks -- such
 as FAUST~\cite{faust_url}.
+
+One of the planned extensions to Lazarus is the addition of adaptive
+queuing systems. As it stands, Lazarus will submit optimized BigJobs
+to resources and wait for them to get through the queue, run and
+terminate.  When the number and size of subjobs is sufficiently large
+and the resources considerably congested, there will be a considerable
+amount of time during which larger, less congested resources may have
+come online or better BQP BigJob configurations have emerged; all of
+this while the original BigJobs have not started to run. A BigJob can
+then be scheduled on a new resource or another BigJob of different
+size and duration can be submitted to the queue and existing BigJobs
+that are in the queue can be deleted.  Such adaptive scheduling will
+be implemented in the Lazarus framework using the upcoming FAUST
+framework.
+
 
 % dynamically adapt mechanisms, and We created a single set of Globus
 % adaptors and deployed them on distinct Grids. Our application
