@@ -24,6 +24,13 @@
 \newcommand{\tc}{$T_c$ }
 \newcommand{\tcnsp}{$T_c$}
 
+\setlength\parskip{-0.15em}
+\setlength\parsep{-0.15em}
+\newcommand{\upup}{\vspace*{-0.6em}}
+\newcommand{\upp}{\vspace*{-0.6em}}
+\newcommand{\up}{\vspace*{-0.3em}}
+
+
 \newif\ifdraft
 \drafttrue
 
@@ -93,7 +100,7 @@
    use Computational Grids.  % The development and deployment of such
 %    applications on Grids is difficult in general.  
    We provide here an initial description of the features and the
-   architecture of the Lazarus framework developed using SAGA, 
+   architecture of the Lazarus framework developed using SAGA,
    integrate it with an Ensemble Kalman Filter application, and
    demonstrate the advantages -- performance and lower development
    cost, of the framework.  As proof of concept we deploy Lazarus on
@@ -452,6 +459,7 @@ diverse and dynamic Grid environments. The SAGA specification defines
 interfaces for the most common Grid-programming functions grouped as a
 set of functional packages.
 
+%\up\up\up 
 \begin{figure}[!ht]
   \begin{center}
       \includegraphics[width=0.40\textwidth]{stci_saga_figures-1.pdf}
@@ -595,6 +603,7 @@ programming interface to Grid functionality. By utilizing the
 advantages of proper programming abstractions, by integrating SAGA and
 Cactus and demonstrate the usefulness for Grid application development
 
+\up\up\up
 \subsection{Autonomic Resource Selection at Runtime Using Batch Queue
   Predictor}
 Batch Queue Predictor~\cite{bqp, bqp_url} (BQP) is a tool that is
@@ -624,19 +633,19 @@ automatically (the logic of how to process BQP information is embedded
 in the application).
 
 For our application we use the BQP command line tools, that are called
-through a python wrapper from the Lazarus script.  In a given resource
-list, the python wrapper around the BQP executable finds the resource
-and queue where if submitted, a BigJob of a given size and expected
-run time, will have a good chance (or high confidence) of getting
-through the queue and start running the earliest. Confidence is in
-essence the probability that the job will run within the specified
-deadline; to obtain a confidence of 1.0, an impractically high queue
-time would be required. For our applications, not knowing the
-granularity of the available BQP data, we opted to use a confidence of
-0.75 (and the default value of quantile to be 0.75.)  The choice of
-0.75 is a justified good first approximation -- as the bias in our
-results due to the choice of confidence to be 0.75 is minimal. We will
-elaborate on this in the Challenges section.
+through a python wrapper from the Lazarus.  For a given resource list,
+the python wrapper around the BQP executable finds the resource and
+queue where if submitted, a BigJob of a given size and expected run
+time, will have a good chance (or high confidence) of getting through
+the queue and start running the earliest. Confidence is the
+probability that the job will run within the specified deadline; to
+obtain a confidence of 1.0, an impractically high queue time would be
+required. For our applications, not knowing the granularity of the
+available BQP data, we opted to use a confidence of 0.75 (and the
+default value of quantile to be 0.75.)  The choice of 0.75 is a
+justified good first approximation -- as the bias in our results due
+to the choice of confidence to be 0.75 is minimal. We will elaborate
+on this in the Challenges section.
 
 % e did simple experiments to the test the dependence on the confidence
 % and quantile values; we find that the output is not very sensitive to
@@ -677,9 +686,10 @@ that ran into issues or simply failed to run, are resurrected.
 
 For the current implementation, we started off using simple, portable
 python scripts -- based upon SAGA, that handles job-launching and data
-migration. This makes Lazarus a modular, scalable and extensible
-framework for autonomic applications based upon the SAGA programming
-system.  Lazarus uses the BigJob abstraction to launch simulations,
+migration. % This makes Lazarus a modular, scalable and extensible
+% framework for autonomic applications based upon the SAGA programming
+% system.  
+Lazarus uses the BigJob abstraction to launch simulations,
 the SAGA file adaptor python bindings to move files from one machine
 to another and BQP data from a small python wrapper around the BQP
 command line tool to retrieve the optimal location and number of
@@ -749,7 +759,7 @@ disk. Unsurprisingly we ran into all of these failures while
 developing Lazarus, and were able to recover from all of them except
 for the network connectivity in the compute nodes, as this would
 register the job's state as "unknown". This would be solved with the
-aforementioned heart-beat monitoring system in FAUST.
+aforementioned heart-beat monitoring system.
 
 Representative simulation failures encountered:
 \begin{itemize}
@@ -760,8 +770,8 @@ Representative simulation failures encountered:
 \item{Hitting /scratch or /home too often (because of checkpointing), leading to very low access speeds and exceeding the requested wall clock time}
 \end{itemize}
 Some of the simulation failures are relatively easy to guard against,
-namely the wrong parameter file or missing executable. The other errors
-however are harder to detect and rectify.
+namely the wrong parameter file or missing executable. The other
+errors are harder to detect and rectify.
 
 To facilitate deployment we use python bindings to the SAGA-based
 BigJob abstraction. Using these scripts, a user-specified number of
@@ -821,8 +831,8 @@ uses the implicit-pressure, explicit-saturation formulation and a
 finite difference discretization. The system of equations is solved
 using a Krylov subspace solver using PETSc. For a prototype
 implementation we chose a multiphase, multicomponent fluid flow
-through porous media simulator and implemented it in the Simulation
-thorn in Cactus.
+through porous media simulator.
+%and implemented it in the Simulation thorn in Cactus.
 
 The EnKF thorn is a recently implemented ensemble Kalman filter
 thorn that requires, as input, the state vectors of the various
@@ -834,7 +844,7 @@ state vectors need to be run. This process is repeated until there
 are is no more historical data to match against. Typically,
 production history is averaged on a monthly basis, sometimes on weekly
 or even daily basis, over a period of a few years. For this reason,
-a typical production run of Lazarus will involve hundreds of stages.
+a typical production run will involve hundreds of stages.
 
 \subsection{Lazarus Components}
 
@@ -1077,18 +1087,6 @@ behaviour. This is a very powerful demonstration of the fact that
 autonomic behaviour -- however elementary, can lead to significantly
 improved performance.
 
-This leads to the question, why does the use of autonomics result in
-better performance figures? In a nutshell, the answer lies in the fact
-that any decision relating to which resources to utilize is postponed
-till run-time, which along with the capability to match better the
-resource requirement to the resources available, leads to overall
-performance enhancements. Specifically, as Tables I and II show, the
-resource configurations -- number of cores assigned to a BigJob and
-the queue duration requested, differ significantly between the
-BQP-guided resource selection versus the unaided configuration.
-Having established the power of autonomics in improving performance,
-we now establish the mechanism behind the performance enhancement.
-
 \begin{table}
 \begin{tabular}{|c|c|c|c|c|}
 \hline Sample \# & Machine & Queue & Num. Cores & Duration (hrs) \\ 
@@ -1102,7 +1100,19 @@ we now establish the mechanism behind the performance enhancement.
   of the BigJob changes. }
 \end{table}
 
+This leads to the question, why does the use of autonomics result in
+better performance figures? In a nutshell, the answer lies in the fact
+that any decision relating to which resources to utilize is postponed
+till run-time, which along with the capability to match better the
+resource requirement to the resources available, leads to overall
+performance enhancements. Specifically, as Tables I and II show, the
+resource configurations -- number of cores assigned to a BigJob and
+the queue duration requested, differ significantly between the
+BQP-guided resource selection versus the unaided configuration.
+Having established the power of autonomics in improving performance,
+we now establish the mechanism behind the performance enhancement.
 
+\up\up
 \begin{table}
 \begin{tabular}{|c|c|c|c|c|}
 \hline Sample \# & Machine & Queue & Num. Cores & Duration (hrs) \\ 
@@ -1131,12 +1141,6 @@ we now establish the mechanism behind the performance enhancement.
   difference between BQP-guided and manual (unassisted) resource configurations
 }
 \end{table}
-
-% \jhanote{Did we get data for sample 4? was it different?}
-
-% \jhanote{In Table I, can you also elaborate the results of i) number
-%   of cores and ii) duration chosen for the Ranger only BQP
-%   submission.}
 
 \section{Challenges and Discussion}
 
