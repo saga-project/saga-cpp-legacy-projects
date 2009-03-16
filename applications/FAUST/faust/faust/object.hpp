@@ -79,3 +79,4 @@ namespace faust {
 }
 
 #endif /* FAUST_OBJECT_HPP */
+

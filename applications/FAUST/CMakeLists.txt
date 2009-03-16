@@ -31,29 +31,21 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
-# We need to use Boost >= 1.35, namely the following Boost libraries
-set(Boost_FIND_VERSION_EXACT OFF)
-set(Boost_FIND_VERSION_MAJOR 1)
-set(Boost_FIND_VERSION_MINOR 35)
-set(Boost_FIND_VERSION_PATCH 0)
-
 set(Boost_COMPONENTS_NEEDED
     date_time
     program_options
-    system
+    #system
     thread)
 
 #set(BOOST_USE_STATIC_LIBS OFF)
 
+message(STATUS "Detecting Boost C++ Libraries:")
 find_package(Boost 1.35 COMPONENTS ${Boost_COMPONENTS_NEEDED})
 
 if(Boost_FOUND)
-    message(STATUS "Boost version found: " 
-        ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}
-        " (${Boost_INCLUDE_DIR})")
+  message(STATUS "Boost version found: ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
 else()
-    message("FATAL Boost installation not found. Please specify the Boost
-            installation directory using -DBOOST_ROOT=...")
+  message(FATAL " ${Boost_INCLUDE_DIR} - not found ${Boost_ERROR_REASON}")
 endif()
 
 include_directories(${Boost_INCLUDE_DIR})

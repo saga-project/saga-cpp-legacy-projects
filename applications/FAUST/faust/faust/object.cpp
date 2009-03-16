@@ -51,3 +51,4 @@ faust::object::type faust::object::get_type() const
 {
   return type_;
 }
+

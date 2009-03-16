@@ -64,3 +64,4 @@ namespace faust
 }
 
 #endif /* FAUST_IMPL_OBJECT_HPP */
+

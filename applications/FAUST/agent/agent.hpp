@@ -48,3 +48,4 @@ namespace faust
 }
 
 #endif /* FAUST_AGENT_HPP */
+

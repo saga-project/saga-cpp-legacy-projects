@@ -1,8 +1,8 @@
 include_directories(${FAUST_SOURCE_DIR}/)
 
 ## TODO: needs to be replaced by saga detection!
-include_directories(/usr/local/saga-1.1/include/)
-link_directories(/usr/local/saga-1.1/lib/)
+include_directories(/work/oweidner/megajobs/include/)
+link_directories(/work/oweidner/megajobs/lib/)
 
 ## Required boost libraries
 set (Boost_COMPONENTS_NEEDED program_options)
