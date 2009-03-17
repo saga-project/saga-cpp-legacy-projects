@@ -29,13 +29,16 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
   try {
     desc_cmdline.add_options()
     ("help, h", 
-     "Display this information and exit")
+     "Display this information and exit.")
     
     ("version, v", 
-     "Print version information and exit")
+     "Print version information and exit.")
     
     ("endpoint, e", po::value<std::string>(), 
-     "Advert endpoint this agent should register with")
+     "Advert endpoint this agent should register with.")
+
+    ("identifier, i", po::value<std::string>(), 
+     "Unique identifier for this agent.")
     ;
     
     po::positional_options_description p;

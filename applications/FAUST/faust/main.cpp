@@ -38,7 +38,7 @@ int main (int argc, char* argv[])
   queenbee_rd.set_attribute("faust_agent_binary_path", "/work/oweidner/FAUST/agent/faust_agent");	
   queenbee_rd.set_attribute("saga_root_path",          "/work/oweidner/megajobs");
   
-  env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
+  env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/home/packages/globus/globus-4.0.8-r2/lib");
   queenbee_rd.set_vector_attribute("environment", env);
   
   queenbee_rd.set_vector_attribute("dir_id", dir_ids);

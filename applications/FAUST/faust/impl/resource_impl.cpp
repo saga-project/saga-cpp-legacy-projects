@@ -301,7 +301,7 @@ void resource::launch_agent(unsigned int timeout)
 //
 void resource::wait_for_agent_connect(unsigned int timeout) 
 {
-  std::string msg = "Waiting for faust_agent instance to connect";
+  std::string msg("Waiting for faust_agent instance to connect");
   try {
     int to = 0;
     std::string status("");
