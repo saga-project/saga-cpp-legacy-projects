@@ -50,10 +50,10 @@ resource_id_(resource_id), persistent_(persistent)
       advert_base_.set_attribute("persistent", "FALSE");
     
     // open "CMD" entry
-    cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite);
+    cmd_ = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
     
     // open "STATUS" entry
-    status_ = advert_base_.open("STATUS", saga::advert::ReadWrite);
+    status_ = advert_base_.open(endpoint_str_+"STATUS", saga::advert::ReadWrite);
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -71,7 +71,9 @@ resource_id_(resource_id), persistent_(persistent)
       msg += " NO. Restart triggered.";
       log_->write(msg, LOGLEVEL_INFO);
       launch_agent();
-      wait_for_agent_connect();
+      
+    // TODO: send PING
+      //wait_for_agent_connect();
     }
     else {
       msg += " YES.";
@@ -229,12 +231,12 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
       advert_base_.set_attribute("persistent", "FALSE");
     
     // create "CMD" entry
-    cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite | saga::advert::Create);
-    cmd_.store_string("");
+    cmd_ = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite | saga::advert::Create);
+    cmd_.store_string(""); 
     
     // create "STATUS" entry
-    status_ = advert_base_.open("STATUS", saga::advert::ReadWrite | saga::advert::Create);
-    status_.store_string("");
+    status_ = advert_base_.open(endpoint_str_+"STATUS", saga::advert::ReadWrite | saga::advert::Create);
+    status_.store_string("");  
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -246,8 +248,9 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
   }
   
   launch_agent();
+  send_command(PROTO_V1_PING, 60);
   
-  wait_for_agent_connect();
+  //wait_for_agent_connect();
   
 }
 
@@ -270,8 +273,8 @@ void resource::launch_agent(unsigned int timeout)
                  +"RESOURCES/"+resource_id_+"/");
 	args.push_back("--identifier="+agent_uuid_);
   
-	std::string msg = "Trying to launch agent via " + 
-										description_.get_attribute(FAR::faust_agent_submit_url);
+	std::string msg("Trying to launch agent "+agent_uuid_+" via " + 
+										description_.get_attribute(FAR::faust_agent_submit_url));
 	
 	try {
 		saga::job::description jd;
@@ -299,7 +302,7 @@ void resource::launch_agent(unsigned int timeout)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void resource::wait_for_agent_connect(unsigned int timeout) 
+/*void resource::wait_for_agent_connect(unsigned int timeout) 
 {
   std::string msg("Waiting for faust_agent instance to connect");
   try {
@@ -325,7 +328,7 @@ void resource::wait_for_agent_connect(unsigned int timeout)
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -371,11 +374,11 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     while(to < timeout) {
       sleep(1); ++to;
       result = cmd_.retrieve_string();
-      if(result == std::string(agent_uuid_+":ACK:"+std::string(PROTO_V1_TERMINATE)))
+      if(result == std::string("ACK:"+agent_uuid_+":"+cmd))
         break;
     }
     
-    if(result == std::string(agent_uuid_+":ACK:"+std::string(PROTO_V1_TERMINATE))) {
+    if(result == std::string("ACK:"+agent_uuid_+":"+cmd)) {
       cmd_.store_string(""); // Reset CMD
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);

@@ -15,5 +15,6 @@
 #define FAUST_PROTOCOL_HPP
 
 #define PROTO_V1_TERMINATE     "TERMINATE"
+#define PROTO_V1_PING          "PING"
 
 #endif /*FAUST_PROTOCOL_HPP*/

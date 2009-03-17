@@ -34,9 +34,13 @@ int main (int argc, char* argv[])
   
   queenbee_rd.set_attribute("identifier", "queenbee.loni.org");
   
-  queenbee_rd.set_attribute("faust_agent_submit_url",  "gram://qb1.loni.org/jobmanager-fork");
-  queenbee_rd.set_attribute("faust_agent_binary_path", "/work/oweidner/FAUST/agent/faust_agent");	
-  queenbee_rd.set_attribute("saga_root_path",          "/work/oweidner/megajobs");
+  //queenbee_rd.set_attribute("faust_agent_submit_url",  "gram://qb1.loni.org/jobmanager-fork");
+  //queenbee_rd.set_attribute("faust_agent_binary_path", "/work/oweidner/FAUST/agent/faust_agent");	
+  //queenbee_rd.set_attribute("saga_root_path",          "/work/oweidner/megajobs");
+    
+  queenbee_rd.set_attribute("faust_agent_submit_url",  "fork://localhost/");
+  queenbee_rd.set_attribute("faust_agent_binary_path", "/Users/oweidner/Work/FAUST/build/Debug/faust_agent");	
+  queenbee_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.1/");
   
   env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/home/packages/globus/globus-4.0.8-r2/lib");
   queenbee_rd.set_vector_attribute("environment", env);
