@@ -370,6 +370,10 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     }
     
     if(result == std::string("ACK:"+std::string(PROTO_V1_TERMINATE))) {
+      // TODO: Reset CMD entry - otherwise things might go terribly wrong!
+      // Also, the agent needs to check if CMD starts with "ACK:". If so,
+      // the timestamp of that entry needs to be checked and the entry might
+      // have to be removed, since it probably comes from a dead resource instance.
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
     }
