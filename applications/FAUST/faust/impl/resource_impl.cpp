@@ -122,6 +122,8 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
 : object(faust::object::Resource), 
 description_(resource_desc), init_from_id_(false), persistent_(persistent)
 {
+  agent_uuid_ = saga::uuid().string();
+  
   //// INITIALIZE THE LOGWRITER
   //
   if(description_.attribute_exists(FAR::identifier))
@@ -265,8 +267,9 @@ void resource::launch_agent(unsigned int timeout)
 	
 	std::vector<std::string> args;
 	args.push_back("--endpoint="+object::faust_root_namesapce_ 
-								+"RESOURCES/"+resource_id_+"/");
-	
+                 +"RESOURCES/"+resource_id_+"/");
+	args.push_back("--identifier="+agent_uuid_);
+  
 	std::string msg = "Trying to launch agent via " + 
 										description_.get_attribute(FAR::faust_agent_submit_url);
 	
@@ -276,6 +279,8 @@ void resource::launch_agent(unsigned int timeout)
 		jd.set_vector_attribute(SJR::description_arguments, args);
 		jd.set_attribute(SJR::description_executable, 
 										 description_.get_attribute(FAR::faust_agent_binary_path));
+    jd.set_attribute(SJR::description_error,  "/tmp/faust_agent-"+agent_uuid_+".err"); 
+    jd.set_attribute(SJR::description_output, "/tmp/faust_agent-"+agent_uuid_+".out"); 
 		
 		saga::job::service js(description_.get_attribute(FAR::faust_agent_submit_url));
 		saga::job::job j = js.create_job(jd);
@@ -296,13 +301,14 @@ void resource::launch_agent(unsigned int timeout)
 //
 void resource::wait_for_agent_connect(unsigned int timeout) 
 {
-  std::string msg = "Waiting for faust_agent instance to connect (timeout 30s)";
+  std::string msg = "Waiting for faust_agent instance to connect";
   try {
     int to = 0;
     std::string status("");
-    while(status != "CONNECTED") {
-      if(to > 30) {
-        msg += ". FAILED (Timeout)";
+    while(status != agent_uuid_+":CONNECTED") {
+      if(to > timeout) {
+        std::stringstream out; out << timeout;
+        msg += std::string(" FAILED (Timeout - "+out.str()+" sec) ") ;
         log_->write(msg, LOGLEVEL_ERROR);
         throw faust::exception (msg, faust::Timeout);
       }        
@@ -350,7 +356,7 @@ void resource::send_command(std::string cmd, unsigned int timeout)
   // sends a command and waits for an acknowledgement. 
 	std::string msg("Sending command '"+cmd+"' to faust_agent instance");
   try {
-    cmd_.store_string(cmd);
+    cmd_.store_string(agent_uuid_+":"+cmd);
     msg += ". SUCCESS ";
   }
   catch(saga::exception const & e) {
@@ -365,20 +371,19 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     while(to < timeout) {
       sleep(1); ++to;
       result = cmd_.retrieve_string();
-      if(result == std::string("ACK:"+std::string(PROTO_V1_TERMINATE)))
+      if(result == std::string(agent_uuid_+":ACK:"+std::string(PROTO_V1_TERMINATE)))
         break;
     }
     
-    if(result == std::string("ACK:"+std::string(PROTO_V1_TERMINATE))) {
-      // TODO: Reset CMD entry - otherwise things might go terribly wrong!
-      // Also, the agent needs to check if CMD starts with "ACK:". If so,
-      // the timestamp of that entry needs to be checked and the entry might
-      // have to be removed, since it probably comes from a dead resource instance.
+    if(result == std::string(agent_uuid_+":ACK:"+std::string(PROTO_V1_TERMINATE))) {
+      cmd_.store_string(""); // Reset CMD
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
     }
     else {
-      msg += " FAILED (Timeout) " ;
+      cmd_.store_string(""); // Reset CMD
+      std::stringstream out; out << timeout;
+      msg += std::string(" FAILED (Timeout - "+out.str()+" sec) ") ;
       log_->write(msg, LOGLEVEL_ERROR);
       throw faust::exception (msg, faust::Timeout);
     }
@@ -388,7 +393,6 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }  
-  
 }
 
 ////////////////////////////////////////////////////////////////////////////////

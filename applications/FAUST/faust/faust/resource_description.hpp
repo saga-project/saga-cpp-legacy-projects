@@ -46,7 +46,11 @@ namespace faust
 			/*! \brief Path to the SAGA installation
        *         <br>(example: <code>/usr/local/saga-1.1/</code>) */
       char const* const saga_root_path          = "saga_root_path";
-			
+
+      /*! \brief (VECTOR) Environment variables to be set 
+       *         <br>(example: <code>/usr/local/saga-1.1/</code>) */
+      char const* const environment             = "environment";
+      
       /*! \brief Your own identifier for this directory
        *         <br>(example: <code>mydir1</code>) */
       char const* const dir_id                  = "dir_id"; 

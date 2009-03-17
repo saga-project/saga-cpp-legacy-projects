@@ -41,6 +41,7 @@ namespace faust
       
       std::string resource_id_;
 			std::string endpoint_str_;
+      std::string agent_uuid_;
       bool init_from_id_;
       bool persistent_;
 			

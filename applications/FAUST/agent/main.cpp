@@ -54,8 +54,14 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
     }
     
     if (!vm.count("endpoint")) {
-      std::cerr << "Missing endpoint path: use --endpoint" 
-      << std::endl;
+      std::cerr << "Missing endpoint URL: use --endpoint=" 
+      << std::endl << std::endl << desc_cmdline << std::endl;
+      return false;
+    }
+    
+    if (!vm.count("identifier")) {
+      std::cerr << "Missing unique identifier: use --identifier=" 
+      << std::endl << std::endl << desc_cmdline << std::endl;
       return false;
     }
   }
@@ -76,10 +82,11 @@ int main( int argc, char** argv )
     return -2;
   
   // extract command line arguments 
-  std::string endpoint  (vm["endpoint"].as<std::string>());
+  std::string endpoint   (vm["endpoint"].as<std::string>());
+  std::string identifier (vm["identifier"].as<std::string>());
   
   // main application loop
-  faust::agent faust_agent(endpoint);
+  faust::agent faust_agent(endpoint, identifier);
   faust_agent.run();
   
   return 0;

@@ -37,7 +37,7 @@ namespace faust
     std::string recv_command();
     
   public:
-    agent(std::string endpoint);
+    agent(std::string endpoint, std::string uuid);
     ~agent();
     
     void run(void);

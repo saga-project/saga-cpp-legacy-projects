@@ -18,7 +18,7 @@
 int main (int argc, char* argv[])
 {
   
-  std::vector<std::string> dir_ids, dir_path, dir_dev_space_total_cmd;
+  std::vector<std::string> dir_ids, dir_path, dir_dev_space_total_cmd, env;
   
   faust::resource_description queenbee_rd;
   
@@ -34,9 +34,12 @@ int main (int argc, char* argv[])
   
   queenbee_rd.set_attribute("identifier", "queenbee.loni.org");
   
-  queenbee_rd.set_attribute("faust_agent_submit_url",  "fork://localhost/");
-  queenbee_rd.set_attribute("faust_agent_binary_path", "/Users/oweidner/Work/FAUST/agent/faust_agent");	
-  queenbee_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.1/");
+  queenbee_rd.set_attribute("faust_agent_submit_url",  "gram://qb1.loni.org/jobmanager-fork");
+  queenbee_rd.set_attribute("faust_agent_binary_path", "/work/oweidner/FAUST/agent/faust_agent");	
+  queenbee_rd.set_attribute("saga_root_path",          "/work/oweidner/megajobs");
+  
+  env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
+  queenbee_rd.set_vector_attribute("environment", env);
   
   queenbee_rd.set_vector_attribute("dir_id", dir_ids);
   queenbee_rd.set_vector_attribute("dir_path", dir_path);
@@ -45,7 +48,7 @@ int main (int argc, char* argv[])
   while(1) {
     sleep(5);
     std::cout << std::endl;
-    faust::resource queenbee(queenbee_rd);
+    faust::resource queenbee(queenbee_rd, false);
     queenbee.set_persistent(false);
     
     sleep(5);

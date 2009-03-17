@@ -17,13 +17,12 @@
 using namespace saga;
 using namespace faust;
 
-agent::agent(std::string endpoint)
-: endpoint_(endpoint)
+//////////////////////////////////////////////////////////////////////////
+//
+agent::agent(std::string endpoint, std::string uuid)
+: endpoint_(endpoint), uuid_(uuid)
 {
   faust::resource_description rd;
-  
-  // create unique identifier
-  uuid_ = saga::uuid().string();
   
   // Initialize the logwriter
   std::string identifier("faust_agent ("+uuid_+")"); std::string msg("");
@@ -36,7 +35,7 @@ agent::agent(std::string endpoint)
     
     // write status bit to announce availablility 
     status_ = advert_base_.open("STATUS", saga::advert::ReadWrite);
-    status_.store_string("CONNECTED");
+    status_.store_string(uuid_+":CONNECTED");
     
     cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite);
     
@@ -78,14 +77,15 @@ agent::agent(std::string endpoint)
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
-  
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
 agent::~agent()
 {
   std::string msg("Disconnecting from advert endpoint " + endpoint_);
   try {    
-    status_.store_string("DISCONNECTED");
+    status_.store_string(uuid_+":DISCONNECTED");
     status_.close();
     advert_base_.close();
         
@@ -100,6 +100,8 @@ agent::~agent()
   
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
 std::string agent::recv_command()
 {
   std::string cmd_str("");
@@ -123,7 +125,7 @@ std::string agent::recv_command()
   {
     msg += "Sending acknowledgement for command '"+cmd_str+"'";
     try {
-      cmd_.store_string("ACK:"+cmd_str);
+      cmd_.store_string(uuid_+":ACK:"+cmd_str);
       
       msg += ". SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
@@ -137,11 +139,13 @@ std::string agent::recv_command()
   return cmd_str;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
 void agent::run(void)
 {
   while(1) {
     std::string cmd = recv_command();
-    if(cmd == "TERMINATE") exit(0);
+    if(cmd == uuid_+":TERMINATE") exit(0);
     sleep(1);
   }
 }

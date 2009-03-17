@@ -39,6 +39,7 @@ void resource_description::setupAttributes()
   std::vector<std::string> valid_keys;
   valid_keys += 
   attributes::resource_description::identifier,
+  attributes::resource_description::environment,
   attributes::resource_description::faust_agent_submit_url,
 	attributes::resource_description::faust_agent_binary_path,
 	attributes::resource_description::saga_root_path,
@@ -63,6 +64,7 @@ void resource_description::setupAttributes()
   
   strmap_type attributes_vector_rw;
   insert(attributes_vector_rw)
+  (attributes::resource_description::environment, "")
   (attributes::resource_description::dir_id, "")
   (attributes::resource_description::dir_path, "")
   (attributes::resource_description::dir_dev_space_total_cmd, "")
