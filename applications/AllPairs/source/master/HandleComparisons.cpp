@@ -17,7 +17,8 @@ namespace AllPairs
     for(assignmentChunksVector::iterator it = assignments.begin();
         it != end; ++it)
     {
-       unassigned_.push_back(boost::lexical_cast<int>((*it)[0].first));
+       unassigned_.push_back(it->getId());
+       //unassigned_.push_back(boost::lexical_cast<int>((*it)[0].first));
     }
     try
     {
@@ -80,13 +81,20 @@ namespace AllPairs
                }
                return;
             }
-            assignmentChunk chunk(getChunk_());
-            std::string currentChunkID = chunk[0].first;
+            //Ask worker for location, then try to assign closest available assignment chunk
+            worker.write(saga::buffer(MASTER_QUESTION_LOCATION, 9));
+            memset(buff, 0, 255);
+            saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+            std::string location(buff, read_bytes);
+
+            AssignmentChunk chunk(getChunk_(saga::url(location)));
+            int currentChunkID = chunk.getId();
             //Worker is idle
             message.clear();
             message = "Attempting to issue worker ";
             message += worker.get_url().get_string();
-            message += " to handle Assignment Chunk " + chunk[0].first;
+            message += " to handle Assignment Chunk ";
+            message += boost::lexical_cast<std::string>(currentChunkID);
             message += " ...";
             log_->write(message, LOGLEVEL_INFO); 
 
@@ -109,8 +117,8 @@ namespace AllPairs
             if(std::string(buff, read_bytes) == WORKER_RESPONSE_ACKNOLEDGE)
             {
                //Write chunk to worker
-               assignmentChunk::iterator it  = chunk.begin();
-               assignmentChunk::iterator end = chunk.end();
+               std::vector<Assignment>::iterator it  = chunk.getBegin();
+               std::vector<Assignment>::iterator end = chunk.getEnd();
                worker.write(saga::buffer(START_CHUNK, 5));
 
                memset(buff, 0, 255);
@@ -119,7 +127,8 @@ namespace AllPairs
                if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
 
                //Give the id first
-               worker.write(saga::buffer(currentChunkID, currentChunkID.size()));
+               std::string stringID = boost::lexical_cast<std::string>(currentChunkID);
+               worker.write(saga::buffer(stringID, stringID.size()));
                memset(buff, 0, 255);
                read_bytes = worker.read(saga::buffer(buff));
                if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
@@ -127,14 +136,14 @@ namespace AllPairs
                ++it; //Handled sending id to worker, now tell them actual work;
                while(it != end)
                {
-
-                  worker.write(saga::buffer(it->first, it->first.size()));
+                  std::string to   = it->getTo();
+                  std::string from = it->getFrom();
+                  worker.write(saga::buffer(to, to.size()));
                   read_bytes = worker.read(saga::buffer(buff));
                   if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
-                  worker.write(saga::buffer(it->second, it->second.size()));
+                  worker.write(saga::buffer(from, from.size()));
                   read_bytes = worker.read(saga::buffer(buff));
                   if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
-
                   ++it;
                }
                worker.write(saga::buffer(END_CHUNK, 3));
@@ -150,16 +159,16 @@ namespace AllPairs
             }
 
             std::string message("Success: ");
-            message += advert.get_string() + " is comparing chunk " + currentChunkID;
+            message += advert.get_string() + " is comparing chunk ";
+            message += boost::lexical_cast<std::string>(currentChunkID);
             log_->write(message, LOGLEVEL_INFO);
             //If not in assigned, add it
             std::vector<int>::iterator end = assigned_.end();
             std::vector<int>::iterator assigned_IT = assigned_.begin();
-            int chunkID = boost::lexical_cast<int>(chunk[0].first);
             bool found = false;
             while(assigned_IT != end)
             {
-               if(chunkID == (*assigned_IT))
+               if(currentChunkID == (*assigned_IT))
                {
                   found = true;
                   break;
@@ -168,7 +177,7 @@ namespace AllPairs
             }
             if(found == false)
             {
-               assigned_.push_back(boost::lexical_cast<int>(chunk[0].first));
+               assigned_.push_back(currentChunkID);
             }
 
             //If from unassigned, remove it
@@ -176,7 +185,7 @@ namespace AllPairs
             std::vector<int>::iterator unassigned_IT = unassigned_.begin();
             while(unassigned_IT != end)
             {
-               if(chunkID == (*unassigned_IT))
+               if(currentChunkID == (*unassigned_IT))
                {
                   unassigned_.erase(unassigned_IT);
                   break;
@@ -239,22 +248,52 @@ namespace AllPairs
        }
     }
  }
- assignmentChunk HandleComparisons::getChunk_() {
+ AssignmentChunk HandleComparisons::getChunk_(const saga::url location) {
+    std::string hostname = location.get_host();
     if(unassigned_.size() > 0)
     {
-       //Return anything on this list
+       //Return element on list whose should correspond to a close data set
+       std::vector<int>::iterator it  = unassigned_.begin();
+       std::vector<int>::iterator end = unassigned_.end();
+       while(it != end) {
+          if(assignments_[unassigned_[*it]].getLocation() == location) {
+             std::cerr << "FOUND EXACT MATCH FOR LOCATION: " << location;
+             std::cerr << " to assignmentchunk with location: " << assignments_[unassigned_[*it]].getLocation() << std::endl;
+             return assignments_[unassigned_[*it]];
+          }
+          ++it;
+       }
+       //Couldn't Find an exact location, just give one out.
        return assignments_[unassigned_[0]];
     }
     else if(assigned_.size() > 0)
     {
        //No more unassigned ones
-       //Return anything on this list
+       //These will be redundant, but possibly improve runtime.
+       std::vector<int>::iterator it  = assigned_.begin();
+       std::vector<int>::iterator end = assigned_.end();
+       while(it != end) {
+          if(assignments_[assigned_[*it]].getLocation() == location) {
+             return assignments_[assigned_[*it]];
+          }
+          ++it;
+       }
+       //Couldn't find exact location, just give one out
+       //Random so not to give out same assigned one every time
        return assignments_[assigned_[rand() % assigned_.size()]];
     }
     else if(finished_.size() > 0)
     {
        //No more assigned ones
        //No one should be asking!
+       std::vector<int>::iterator it  = finished_.begin();
+       std::vector<int>::iterator end = finished_.end();
+       while(it != end) {
+          if(assignments_[finished_[*it]].getLocation() == location) {
+             return assignments_[finished_[*it]];
+          }
+          ++it;
+       }
        return assignments_[finished_[rand() % finished_.size()]];
     }
     else

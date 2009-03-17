@@ -37,6 +37,7 @@ namespace AllPairs {
          sessionUUID_ = (vm["session"].as<std::string>());
          database_    = (vm["database"].as<std::string>());
          logURL_      = (vm["log"].as<std::string>());
+         location_    = (vm["hostname"].as<std::string>());
          uuid_        = saga::uuid().string();
          logWriter_   = new LogWriter(AP_WORKER_EXE_NAME, logURL_);
          state_       = WORKER_STATE_IDLE;
@@ -76,6 +77,7 @@ namespace AllPairs {
       std::string logURL_;
       std::string database_;
       std::string state_;
+      std::string location_;
       int lastFinishedChunk_;
       saga::url   serverURL_;
    
@@ -198,6 +200,7 @@ namespace AllPairs {
                double val;
                while(runComparison_->hasAssignment()) {
                   assignment asn(runComparison_->getAssignment());
+                  //TODO insert try catch, proper FAIL state handling
                   val = compare(asn.first, asn.second);
                   resultString += "(" + asn.first;
                   resultString += + ", " + asn.second + "): ";
@@ -243,23 +246,29 @@ namespace AllPairs {
                memset(buff, 0, 255);
                read_bytes = server_.read(saga::buffer(buff));
                question = std::string(buff, read_bytes);
-               if(question == MASTER_QUESTION_ADVERT)
-               {
-                  std::string advert(workerDir_.get_url().get_string());
-                  server_.write(saga::buffer(advert, advert.size()));
+               if(question == MASTER_QUESTION_LOCATION) {
+                  server_.write(saga::buffer(location_, location_.size()));
                   memset(buff, 0, 255);
                   read_bytes = server_.read(saga::buffer(buff));
                   question = std::string(buff, read_bytes);
-                  if(question == WORKER_COMMAND_COMPARE)
+                  if(question == MASTER_QUESTION_ADVERT)
                   {
-                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
-                     runComparison_ = new RunComparison(server_, logWriter_);
-                     chunk_ = runComparison_->getAssignmentChunk();
-                     return WORKER_COMMAND_COMPARE;
-                  }
-                  else if(question == WORKER_COMMAND_QUIT)
-                  {
-                     return WORKER_COMMAND_QUIT;
+                     std::string advert(workerDir_.get_url().get_string());
+                     server_.write(saga::buffer(advert, advert.size()));
+                     memset(buff, 0, 255);
+                     read_bytes = server_.read(saga::buffer(buff));
+                     question = std::string(buff, read_bytes);
+                     if(question == WORKER_COMMAND_COMPARE)
+                     {
+                        server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                        runComparison_ = new RunComparison(server_, logWriter_);
+                        chunk_ = runComparison_->getAssignmentChunk();
+                        return WORKER_COMMAND_COMPARE;
+                     }
+                     else if(question == WORKER_COMMAND_QUIT)
+                     {
+                        return WORKER_COMMAND_QUIT;
+                     }
                   }
                }
                else if(question == MASTER_QUESTION_RESULT)

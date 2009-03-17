@@ -283,31 +283,24 @@ namespace AllPairs {
             {
                std::string message("Reading assignment " + boost::lexical_cast<std::string>(assignmentChunkID) + "...");
                log->write(message, LOGLEVEL_INFO);
-               assignmentChunk temp;
-
-               //Give the id to the first assignment in the list
-               //Just to save comparison time later
-               assignment idAssignment;
-               idAssignment.first  = boost::lexical_cast<std::string>(assignmentChunkID);
-               idAssignment.second = boost::lexical_cast<std::string>(assignmentChunkID);
-               ++assignmentChunkID;
-               temp.push_back(idAssignment);
+               AssignmentChunk temp(assignmentChunkID);
 
                std::vector<CompareDescription>::iterator innerIt = it->begin();
                std::vector<CompareDescription>::iterator innerEnd = it->end();
                while(innerIt != innerEnd)
                {
-                  assignment assignmentTemp;
                   message.clear();
                   message =  "    (" + innerIt->fragments + ", ";
                   message += innerIt->bases + ")";
-                  assignmentTemp.first  = innerIt->fragments;
-                  assignmentTemp.second = innerIt->bases;
+                  Assignment assignmentTemp(innerIt->fragments, innerIt->bases);
                   temp.push_back(assignmentTemp);
                   log->write(message, LOGLEVEL_INFO);
                   ++innerIt;
                }
+               //Try to describe chunk by best location
+               temp.guessLocation();
                assignments_.push_back(temp);
+               ++assignmentChunkID;
                ++it;
             }
             if(successCounter == 0) {
@@ -341,12 +334,15 @@ namespace AllPairs {
                      && hostListIT->hostOS   == binaryListIT->targetOS) {
                         // Found one, now try to launch it with proper arguments
                         std::string command(binaryListIT->URL);
+                        std::string loc(saga::url(hostListIT->rmURL).get_host());
                         std::vector<std::string> args;
-                        args.push_back("-s");
+                        args.push_back("--session");
                         args.push_back(uuid_);
-                        args.push_back("-d");
+                        args.push_back("--hostname");
+                        args.push_back(loc);
+                        args.push_back("--database");
                         args.push_back(database_);
-                        args.push_back("-l");
+                        args.push_back("--log");
                         args.push_back(logURL_.get_string());
                         jd.set_attribute(saga::job::attributes::description_executable, command);
                         //jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_false);

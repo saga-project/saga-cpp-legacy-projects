@@ -10,20 +10,18 @@
 #include <saga/saga.hpp>
 #include "../utils/LogWriter.hpp"
 #include "version.hpp"
+#include "Assignment.hpp"
 #include <vector>
 
 namespace AllPairs {
-   typedef std::pair<std::string, std::string> assignment;
-   typedef std::vector<assignment> assignmentChunk;
-   typedef std::vector<assignmentChunk> assignmentChunksVector;
    class HandleComparisons {
      public:
-      HandleComparisons(assignmentChunksVector &assignments, saga::url serverURL_, LogWriter *log);
+      HandleComparisons(assignmentChunksVector &assignments, const saga::url serverURL_, LogWriter *log);
       ~HandleComparisons();
       void assignWork();
      private:
       void issueCommand_();
-      assignmentChunk getChunk_();
+      AssignmentChunk getChunk_(const saga::url location);
     
       std::vector<int> finished_;
       std::vector<int> assigned_;
