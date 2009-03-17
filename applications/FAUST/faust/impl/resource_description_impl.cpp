@@ -27,3 +27,4 @@ resource_description::resource_description(std::string XMLFileName)
 : object(faust::object::ResourceDescription), xmlfilename_(XMLFileName)
 {
 }
+
