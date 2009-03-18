@@ -20,7 +20,8 @@ using namespace faust::impl;
 namespace FAR = faust::attributes::resource_description;
 
 ////////////////////////////////////////////////////////////////////////////////
-// CONSTRUCTOR
+//
+//
 resource::resource(std::string resource_id, bool persistent)
 : object(faust::object::Resource), init_from_id_(true), 
 resource_id_(resource_id), persistent_(persistent)
@@ -64,24 +65,32 @@ resource_id_(resource_id), persistent_(persistent)
     throw faust::exception (msg, faust::NoSuccess);
   }
   
-  msg = "Checking if faust agent instance is still alive:";
   try {
-    std::string status = status_.retrieve_string();
-    if(status != "CONNECTED") {
-      msg += " NO. Restart triggered.";
-      log_->write(msg, LOGLEVEL_INFO);
-      launch_agent();
-      
-    // TODO: send PING
-      //wait_for_agent_connect();
-    }
-    else {
-      msg += " YES.";
-      log_->write(msg, LOGLEVEL_INFO);
-    }    
+		saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", saga::advert::Read);
+    agent_uuid_ = auuid.retrieve_string();  
+		if(agent_uuid_.length() == 0)
+		{
+			// something is wrong with the entry. Generating new UUID
+			agent_uuid_ = saga::uuid().string();
+			msg = "Something seems to be wrong with the 'AGENT_UUID' entry. Generating new one: "+agent_uuid_+".";
+			log_->write(msg, LOGLEVEL_WARNING);
+		}
+		send_command(PROTO_V1_PING, 60);
+		
   }
+	catch(faust::exception const & e) {
+		if(e.get_error() == faust::Timeout) {
+			msg = "faust_agent instance'"+agent_uuid_+"'seems to be dead. RESTARTING ";
+			log_->write(msg, LOGLEVEL_INFO);
+			launch_agent();
+			send_command(PROTO_V1_PING, 60);
+		}
+		else {
+			throw;
+		}
+	}
   catch(saga::exception const & e) {
-    msg += ". FAILED " + std::string(e.what());
+    msg += "Checking if faust_agent instance is still alive. FAILED " + std::string(e.what());
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
@@ -120,16 +129,17 @@ resource_id_(resource_id), persistent_(persistent)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
+//
 resource::resource(faust::resource_description resource_desc, bool persistent) 
-: object(faust::object::Resource), 
-description_(resource_desc), init_from_id_(false), persistent_(persistent)
+: object(faust::object::Resource), description_(resource_desc), 
+init_from_id_(false), persistent_(persistent)
 {
   agent_uuid_ = saga::uuid().string();
   
   //// INITIALIZE THE LOGWRITER
   //
   if(description_.attribute_exists(FAR::identifier))
-     resource_id_ = description_.get_attribute(FAR::identifier);
+		resource_id_ = description_.get_attribute(FAR::identifier);
   else resource_id_ = "";
   std::string identifier(FW_NAME); std::string msg("");
   identifier.append(" faust::resource ("+resource_id_+")"); 
@@ -159,7 +169,7 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::BadParameter);
   }
-
+	
   else {
     msg += "SUCCESS";
     log_->write(msg, LOGLEVEL_INFO);
@@ -169,11 +179,12 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
   std::string endpoint_str_(object::faust_root_namesapce_ + 
 														"RESOURCES/" + resource_id_ + "/");
   
-  // TRY TO CREATE ADVERT ENTRY FOR THIS RESOURCE
+  int mode = advert::ReadWrite | advert::Create;
+	
+	// TRY TO CREATE ADVERT ENTRY FOR THIS RESOURCE
   //
   msg = "Creating advert endpoint '"+endpoint_str_+"'";
   try {
-    int mode = advert::ReadWrite | advert::Create | advert::Recursive;
     
     std::string advert_key = object::faust_root_namesapce_;
     
@@ -231,13 +242,17 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
       advert_base_.set_attribute("persistent", "FALSE");
     
     // create "CMD" entry
-    cmd_ = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite | saga::advert::Create);
+    cmd_ = advert_base_.open(endpoint_str_+"CMD", mode);
     cmd_.store_string(""); 
     
     // create "STATUS" entry
-    status_ = advert_base_.open(endpoint_str_+"STATUS", saga::advert::ReadWrite | saga::advert::Create);
+    status_ = advert_base_.open(endpoint_str_+"STATUS", mode);
     status_.store_string("");  
     
+		// create "AGENT_UUID" entry
+		saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", mode);
+    auuid.store_string(agent_uuid_);  
+		
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
   }
@@ -255,6 +270,7 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//
 //
 void resource::launch_agent(unsigned int timeout)
 {
@@ -274,7 +290,7 @@ void resource::launch_agent(unsigned int timeout)
 	args.push_back("--identifier="+agent_uuid_);
   
 	std::string msg("Trying to launch agent "+agent_uuid_+" via " + 
-										description_.get_attribute(FAR::faust_agent_submit_url));
+									description_.get_attribute(FAR::faust_agent_submit_url));
 	
 	try {
 		saga::job::description jd;
@@ -299,36 +315,6 @@ void resource::launch_agent(unsigned int timeout)
 	}
 	
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//
-/*void resource::wait_for_agent_connect(unsigned int timeout) 
-{
-  std::string msg("Waiting for faust_agent instance to connect");
-  try {
-    int to = 0;
-    std::string status("");
-    while(status != agent_uuid_+":CONNECTED") {
-      if(to > timeout) {
-        std::stringstream out; out << timeout;
-        msg += std::string(" FAILED (Timeout - "+out.str()+" sec) ") ;
-        log_->write(msg, LOGLEVEL_ERROR);
-        throw faust::exception (msg, faust::Timeout);
-      }        
-      
-      status = status_.retrieve_string();
-      sleep(1); ++to;
-    }
-    msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
-    
-  }
-  catch(saga::exception const & e) {
-    msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
-  }
-}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //

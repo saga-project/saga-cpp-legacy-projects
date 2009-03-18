@@ -13,6 +13,8 @@
 #ifndef FAUST_IMPL_RESOURCE_IMPL_HPP
 #define FAUST_IMPL_RESOURCE_IMPL_HPP
 
+#include <boost/thread/thread.hpp>
+
 #include <faust/faust/exports.hpp>
 #include <faust/faust/resource_description.hpp>
 #include <faust/faust/resource_monitor.hpp>
@@ -29,12 +31,12 @@ namespace faust
     {
       
     private:
+			// everything that is needed for the resource api
+      friend class faust::impl::resource_monitor;
       faust::resource_description description_;
 			faust::resource_monitor monitor_;
       
-      // Persistent advert instance - used by the monitor as well!
-      friend class faust::impl::resource_monitor;
-      
+			// advert service handles that are used quite frequently
       saga::advert::directory advert_base_;
       saga::advert::entry cmd_;
       saga::advert::entry status_;
@@ -45,18 +47,23 @@ namespace faust
       bool init_from_id_;
       bool persistent_;
 			
+			// outsourced functions that are used in multiple places
       void launch_agent(unsigned int timeout=30);
       //void wait_for_agent_connect(unsigned int timeout=30);
-      void send_command(std::string cmd, unsigned int timeout=30); 
+      void send_command(std::string cmd, unsigned int timeout=30);
+			
+			// the main eventloop thread & entry-point fucntion
+			boost::thread service_thread_;
+			void main_event_loop() {} ;
       
+			// private default constructor 
 			resource() : object(faust::object::Resource) {};
       
     public:
       
+			// c'tors d'tor
       explicit resource(std::string resource_identifier, bool persistent);
-      
       explicit resource(faust::resource_description resource_desc, bool persistent);
-      
       ~resource();
       
       faust::resource_description get_description(); 
