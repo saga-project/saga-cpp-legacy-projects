@@ -177,7 +177,7 @@ description_(resource_desc), init_from_id_(false), persistent_(persistent)
     
     std::string advert_key = object::faust_root_namesapce_;
     
-    advert_base_ = advert::directory(advert_key, advert::ReadWrite);
+    advert_base_ = advert::directory(advert_key, mode);
     
     // don't overwrite an existing entry if it has the persistency flag set!
     if(advert_base_.exists("RESOURCES/" + resource_id_ + "/")) {
