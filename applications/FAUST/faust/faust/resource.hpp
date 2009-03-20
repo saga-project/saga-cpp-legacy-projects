@@ -46,7 +46,7 @@ namespace faust
     /*! \brief Creates a new %resource %object that reconnects to an existing
      *         %resource in the database identified by resource_id argument.
      */
-    explicit resource(std::string resource_id, bool persistent=true);
+    explicit resource(std::string resource_id);
     
     /*! \brief Shuts down the faust agent associated with this %resource and 
 		 *         destroys this %object.

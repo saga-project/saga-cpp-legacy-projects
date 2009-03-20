@@ -22,9 +22,9 @@ namespace FAR = faust::attributes::resource_description;
 ////////////////////////////////////////////////////////////////////////////////
 //
 //
-resource::resource(std::string resource_id, bool persistent)
+resource::resource(std::string resource_id)
 : object(faust::object::Resource), init_from_id_(true), 
-resource_id_(resource_id), persistent_(persistent)
+resource_id_(resource_id)
 {
 	std::string endpoint_str_(object::faust_root_namesapce_ + 
 														"RESOURCES/" + resource_id_ + "/");
@@ -42,13 +42,6 @@ resource_id_(resource_id), persistent_(persistent)
   try {
     int mode = advert::ReadWrite;
     advert_base_ = advert::directory(advert_key, mode);
-    
-    
-    // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
-    if( true == persistent_ )
-      advert_base_.set_attribute("persistent", "TRUE");
-    else
-      advert_base_.set_attribute("persistent", "FALSE");
     
     // open "CMD" entry
     cmd_ = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
@@ -261,12 +254,10 @@ init_from_id_(false), persistent_(persistent)
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
-  
-  launch_agent();
+	
+	launch_agent();
   send_command(PROTO_V1_PING, 60);
-  
-  //wait_for_agent_connect();
-  
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////

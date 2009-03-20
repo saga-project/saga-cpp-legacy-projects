@@ -26,9 +26,8 @@ boost::shared_ptr <faust::impl::resource> resource::get_impl (void) const
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-resource::resource(std::string resource_id, bool persistent) 
-: faust::object (new faust::impl::resource(resource_id, persistent), 
-                 object::Resource)
+resource::resource(std::string resource_id) 
+: faust::object (new faust::impl::resource(resource_id), object::Resource)
 {
 }
 

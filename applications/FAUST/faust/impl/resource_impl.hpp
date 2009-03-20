@@ -62,7 +62,7 @@ namespace faust
     public:
       
 			// c'tors d'tor
-      explicit resource(std::string resource_identifier, bool persistent);
+      explicit resource(std::string resource_identifiers);
       explicit resource(faust::resource_description resource_desc, bool persistent);
       ~resource();
       

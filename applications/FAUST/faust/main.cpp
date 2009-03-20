@@ -17,7 +17,6 @@
 
 int main (int argc, char* argv[])
 {
-  
   std::vector<std::string> dir_ids, dir_path, dir_dev_space_total_cmd, env;
   
   faust::resource_description queenbee_rd, localhost_rd;
@@ -40,29 +39,48 @@ int main (int argc, char* argv[])
   env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
   queenbee_rd.set_vector_attribute("environment", env);
   
+  localhost_rd.set_attribute("identifier", "localhost");
   localhost_rd.set_attribute("faust_agent_submit_url",  "fork://localhost/");
   localhost_rd.set_attribute("faust_agent_binary_path", "/Users/oweidner/Work/FAUST/build/Debug/faust_agent");	
   localhost_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.1/");
-    
+	
   while(1) {
-    sleep(5);
-    std::cout << std::endl;
-    
-    faust::resource queenbee  (queenbee_rd, false);
-    //faust::resource localhost (localhost_rd, false);
-    
-    sleep(5);
-    
-    // test re-connect
-    /*faust::resource qb_reconnect("queenbee.loni.org");
-     //qb_reconnect.set_persistent(false); 
-     faust::resource_description qb_rec = qb_reconnect.get_description();
-     std::vector<std::string> attr_ = qb_rec.list_attributes();
-     std::vector<std::string>::const_iterator it;
-     for(it = attr_.begin(); it != attr_.end(); ++it)
-     {
-     std::cout << "attribute: " << (*it) << std::endl;
-     }*/
+		try {
+			
+			std::cout << std::endl;
+			
+			faust::resource queenbee  (queenbee_rd, true);
+			faust::resource localhost (localhost_rd, true);
+				
+			sleep(1);
+			
+			// test re-connect
+			faust::resource localhost_reconnect(localhost_rd.get_attribute("identifier"));
+			faust::resource_description localhost_rd_rec = localhost_reconnect.get_description();
+			std::vector<std::string> attr_ = localhost_rd_rec.list_attributes();
+			std::vector<std::string>::const_iterator it;
+			for(it = attr_.begin(); it != attr_.end(); ++it)
+			{
+				std::cout << "localhost attribute: " << (*it) << std::endl;
+			}
+			
+			faust::resource queenbee_reconnect(queenbee_rd.get_attribute("identifier"));
+			faust::resource_description queenbee_rd_rec = queenbee_reconnect.get_description();
+			std::vector<std::string> attr2_ = queenbee_rd_rec.list_attributes();
+			std::vector<std::string>::const_iterator it2;
+			for(it2 = attr2_.begin(); it2 != attr2_.end(); ++it2)
+			{
+				std::cout << "queenbee attribute: " << (*it2) << std::endl;
+			}
+			
+			queenbee_reconnect.set_persistent(false);
+			localhost_reconnect.set_persistent(false);
+		}
+		catch(faust::exception const & e) {
+			std::cout << "FAUST EXCEPTION: " << e.what() << std::endl;
+			exit(1);
+		}
+		
   }
   return 0;
 }
