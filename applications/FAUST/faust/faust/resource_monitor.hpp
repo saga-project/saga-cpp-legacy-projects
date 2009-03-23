@@ -31,45 +31,44 @@ namespace faust
   {
     namespace resource_monitor 
     {
-      /*! \brief Your own identifier for this directory
-       *         <br>(example: <code>mydir1</code>) */
-      char const* const dir_id                  = "dir_id"; 
+      /*! \brief  */
+      char const* const dir_id              = "dir_id"; 
       
-      /*! \brief Path to the directory
-       *         <br>(example: <code>/scratch/</code>) */
-      char const* const dir_path                = "dir_path";
+      /*! \brief  */
+      char const* const dir_path            = "dir_path";
       
-      /*! \brief Command to retrieve the amount of total space on this device (in kB)
-       *         <br>(example: <code>df . | awk '/\// {print $2}'</code>) */
-      char const* const dir_dev_space_total_cmd = "dir_dev_space_total_cmd";
+      /*! \brief  */
+      char const* const dir_dev_space_total = "dir_dev_space_total";
       
-      /*! \brief Command to retrieve the amount of used space on this device (in kB)
-       *         <br>(example: <code>df . | awk '/\// {print $3}'</code>) */
-      char const* const dir_dev_space_used_cmd  = "dir_dev_space_used_cmd";
+      /*! \brief  */
+      char const* const dir_dev_space_used  = "dir_dev_space_used";
       
-      /*! \brief Command to retrieve the amount of total quota in this directory (in kB)
-       *         <br>(example: <code>quota | awk '/home/ {print $4}'</code>) */
-      char const* const dir_quota_total_cmd     = "dir_quota_total_cmd";
+      /*! \brief  */
+      char const* const dir_dev_space_free  = "dir_dev_space_free";
       
-      /*! \brief Command to retrieve the amount of used quota in this directory (in kB)
-       *         <br>(example: <code>quota | awk '/home/ {print $2}'</code>) */
-      char const* const dir_quota_used_cmd      = "dir_quota_used_cmd";
+      /*! \brief  */
+      char const* const dir_quota_total     = "dir_quota_total";
       
-      /*! \brief Your own identifier for this queue
-       *         <br>(example: <code>queue1</code>) */
-      char const* const queue_id                = "queue_id";
+      /*! \brief  */
+      char const* const dir_quota_used      = "dir_quota_used";
+
+      /*! \brief  */
+      char const* const dir_quota_free      = "dir_quota_free";
       
-      /*! \brief Name of the queue
-       *         <br>(example: <code>workq</code>) */
-      char const* const queue_name              = "queue_name";
+      /*! \brief  */
+      char const* const queue_id            = "queue_id";
       
-      /*! \brief Command to retrieve the total number of nodes for this queue
-       *         <br>(example: <code>qfree | awk '/workq/ {print $4}' | tr -d ,</code>)*/
-      char const* const queue_nodes_total_cmd   = "queue_nodes_total_cmd";
+      /*! \brief  */
+      char const* const queue_name          = "queue_name";
       
-      /*! \brief Command to retrieve the number of currently free nodes for this queue
-       *         <br>(example: <code>qfree | awk '/workq/ {print $6}</code>' | tr -d ,)*/
-      char const* const queue_nodes_free_cmd    = "queue_nodes_free_cmd";
+      /*! \brief  */
+      char const* const queue_nodes_total   = "queue_nodes_total";
+
+      /*! \brief  */
+      char const* const queue_nodes_used    = "queue_nodes_used";
+      
+      /*! \brief  */
+      char const* const queue_nodes_free    = "queue_nodes_free";
     }
   }
   
@@ -104,11 +103,11 @@ namespace faust
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 		
-		std::string get_attribute (std::string key) const;
-		void set_attribute (std::string key, std::string value);
+		//std::string get_attribute (std::string key) const;
+		//void set_attribute (std::string key, std::string value);
 		
-		std::vector<std::string> get_vector_attribute (std::string key) const;
-		void set_vector_attribute (std::string key, strvec_type value);
+		//std::vector<std::string> get_vector_attribute (std::string key) const;
+		//void set_vector_attribute (std::string key, strvec_type value);
 		
 		/*! \brief Destroys this %object.
      *

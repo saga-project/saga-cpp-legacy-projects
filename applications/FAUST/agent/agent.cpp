@@ -11,7 +11,6 @@
  */
 
 #include <faust/faust/exception.hpp>
-
 #include <agent/agent.hpp>
 
 using namespace saga;

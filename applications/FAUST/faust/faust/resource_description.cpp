@@ -38,17 +38,23 @@ void resource_description::setupAttributes()
   using namespace boost::assign;
   std::vector<std::string> valid_keys;
   valid_keys += 
-  attributes::resource_description::identifier,
-  attributes::resource_description::environment,
-  attributes::resource_description::faust_agent_submit_url,
-	attributes::resource_description::faust_agent_binary_path,
-	attributes::resource_description::saga_root_path,
-  attributes::resource_description::dir_id,
-  attributes::resource_description::dir_path,
-  attributes::resource_description::dir_dev_space_total_cmd,
-  attributes::resource_description::dir_dev_space_used_cmd,
-  attributes::resource_description::dir_quota_total_cmd,
-  attributes::resource_description::dir_quota_used_cmd
+  /*SCALAR*/ attributes::resource_description::identifier,
+  /*VECTOR*/ attributes::resource_description::environment,
+  /*SCALAR*/ attributes::resource_description::faust_agent_submit_url,
+	/*SCALAR*/ attributes::resource_description::faust_agent_binary_path,
+	/*SCALAR*/ attributes::resource_description::saga_root_path,
+  
+  /*VECTOR*/ attributes::resource_description::dir_id,
+  /*VECTOR*/ attributes::resource_description::dir_path,
+  /*VECTOR*/ attributes::resource_description::dir_dev_space_total_cmd,
+  /*VECTOR*/ attributes::resource_description::dir_dev_space_used_cmd,
+  /*VECTOR*/ attributes::resource_description::dir_quota_total_cmd,
+  /*VECTOR*/ attributes::resource_description::dir_quota_used_cmd,
+
+  /*VECTOR*/ attributes::resource_description::queue_id,
+  /*VECTOR*/ attributes::resource_description::queue_name,
+  /*VECTOR*/ attributes::resource_description::queue_nodes_total_cmd,
+  /*VECTOR*/ attributes::resource_description::queue_nodes_free_cmd
   ;
   
   // initialize list of valid keys          
@@ -65,12 +71,18 @@ void resource_description::setupAttributes()
   strmap_type attributes_vector_rw;
   insert(attributes_vector_rw)
   (attributes::resource_description::environment, "")
+
   (attributes::resource_description::dir_id, "")
   (attributes::resource_description::dir_path, "")
   (attributes::resource_description::dir_dev_space_total_cmd, "")
   (attributes::resource_description::dir_dev_space_used_cmd, "")
   (attributes::resource_description::dir_quota_total_cmd, "")
   (attributes::resource_description::dir_quota_used_cmd, "")
+  
+  (attributes::resource_description::queue_id, "")
+  (attributes::resource_description::queue_name, "")
+  (attributes::resource_description::queue_nodes_total_cmd, "")
+  (attributes::resource_description::queue_nodes_free_cmd, "")  
   ;
   
   

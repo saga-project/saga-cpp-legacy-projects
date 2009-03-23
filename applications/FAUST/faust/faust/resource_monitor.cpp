@@ -38,12 +38,20 @@ void resource_monitor::setupAttributes()
   using namespace boost::assign;
   std::vector<std::string> valid_keys;
   valid_keys += 
-  attributes::resource_monitor::dir_id,
-  attributes::resource_monitor::dir_path,
-  attributes::resource_monitor::dir_dev_space_total_cmd,
-  attributes::resource_monitor::dir_dev_space_used_cmd,
-  attributes::resource_monitor::dir_quota_total_cmd,
-  attributes::resource_monitor::dir_quota_used_cmd
+  /*VECTOR*/ attributes::resource_monitor::dir_id,
+  /*VECTOR*/ attributes::resource_monitor::dir_path,
+  /*VECTOR*/ attributes::resource_monitor::dir_dev_space_total,
+  /*VECTOR*/ attributes::resource_monitor::dir_dev_space_used,
+  /*VECTOR*/ attributes::resource_monitor::dir_dev_space_free,
+  /*VECTOR*/ attributes::resource_monitor::dir_quota_total,
+  /*VECTOR*/ attributes::resource_monitor::dir_quota_used,
+  /*VECTOR*/ attributes::resource_monitor::dir_quota_free,
+  
+  /*VECTOR*/ attributes::resource_monitor::queue_id,
+  /*VECTOR*/ attributes::resource_monitor::queue_name,
+  /*VECTOR*/ attributes::resource_monitor::queue_nodes_total,
+  /*VECTOR*/ attributes::resource_monitor::queue_nodes_used,
+  /*VECTOR*/ attributes::resource_monitor::queue_nodes_free
   ;
   
   // initialize list of valid keys          
@@ -58,10 +66,17 @@ void resource_monitor::setupAttributes()
   insert(attributes_vector_rw)
   (attributes::resource_monitor::dir_id, "")
   (attributes::resource_monitor::dir_path, "")
-  (attributes::resource_monitor::dir_dev_space_total_cmd, "")
-  (attributes::resource_monitor::dir_dev_space_used_cmd, "")
-  (attributes::resource_monitor::dir_quota_total_cmd, "")
-  (attributes::resource_monitor::dir_quota_used_cmd, "")
+  (attributes::resource_monitor::dir_dev_space_total, "")
+  (attributes::resource_monitor::dir_dev_space_used, "")
+  (attributes::resource_monitor::dir_quota_total, "")
+  (attributes::resource_monitor::dir_quota_used, "")
+  
+  (attributes::resource_monitor::queue_id, "")
+  (attributes::resource_monitor::queue_name, "")
+  (attributes::resource_monitor::queue_nodes_total, "")
+  (attributes::resource_monitor::queue_nodes_used, "")
+  (attributes::resource_monitor::queue_nodes_free, "")
+  
   ;
   
   
@@ -81,31 +96,31 @@ resource_monitor::resource_monitor() :
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-std::string resource_monitor::get_attribute (std::string key) const
-{
-	return get_impl()->get_attribute(key);
-}
+//std::string resource_monitor::get_attribute (std::string key) const
+//{
+//	return get_impl()->get_attribute(key);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void resource_monitor::set_attribute (std::string key, std::string value)
-{
-	get_impl()->set_attribute(key, value);
-}
+//void resource_monitor::set_attribute (std::string key, std::string value)
+//{
+//	get_impl()->set_attribute(key, value);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
-{
-	return get_impl()->get_vector_attribute(key);
-}
+//std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
+//{
+//	return get_impl()->get_vector_attribute(key);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
-{
-	get_impl()->set_vector_attribute(key, value);
-}
+//void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
+//{
+//	get_impl()->set_vector_attribute(key, value);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
