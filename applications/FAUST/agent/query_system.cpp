@@ -11,6 +11,7 @@
  */
 #include <boost/process.hpp>
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <faust/faust/exception.hpp>
 #include <agent/query_system.hpp>
@@ -100,6 +101,9 @@ bool faust::agent::query_system::check_directory_attributes()
 
 void faust::agent::query_system::query_directories()
 {
+  using boost::lexical_cast;
+  using boost::bad_lexical_cast;
+  
   // check attribute persistency 
   if(directory_attributes_checked_ == false) {
     directory_attributes_ok_ = check_directory_attributes();
@@ -140,23 +144,43 @@ void faust::agent::query_system::query_directories()
     rm_.set_vector_attribute(FAM::dir_id, dir_id);
     rm_.set_vector_attribute(FAM::dir_path, dir_path);
     
-    /*for(int i=0; i< rd_.get_vector_attribute(FAR::dir_id).size(); ++i) {
-   rm_.set_vector_attribute(FAM::dir_id, rd_.get_vector_attribute(FAR::dir_id).at(i));
+    boost::process::child child;
+    
+    for(int i=0; i< dir_dev_space_total_cmd.size(); ++i) 
+    {
+      std::vector<std::string> dev_space_total;
+      std::vector<std::string> dev_space_used;
       
+      std::vector<std::string> quota_total;
+      std::vector<std::string> quota_used;
       
-      boost::process::child child = run_bash_script("/bin/bash", "/bin/df /Users/oweidner | awk '/\\// {print $4}'");
-      boost::process::pistream & out = child.get_stdout();
-      
-      std::string line;
-      
-      while (getline(out, line))
-      {
-        
-        std::cerr << "Output: " << line << std::endl;
-      }
-      
+      child = run_bash_script("/bin/bash", dir_dev_space_total_cmd.at(i));
+      boost::process::pistream & out1 = child.get_stdout();
+      getline(out1, dev_space_total[i]);
       boost::process::status status = child.wait();
-    }*/
+      
+      child = run_bash_script("/bin/bash", dir_dev_space_used_cmd.at(i));
+      boost::process::pistream & out2 = child.get_stdout();
+      getline(out2, dev_space_used[i]);
+      status = child.wait();
+      
+      
+      
+      child = run_bash_script("/bin/bash", dir_quota_total_cmd.at(i));
+      boost::process::pistream & out3 = child.get_stdout();
+      getline(out3, dir_quota_total_cmd[i]);
+      status = child.wait();
+      
+      child = run_bash_script("/bin/bash", dir_quota_used_cmd.at(i));
+      boost::process::pistream & out4 = child.get_stdout();
+      getline(out4, dir_quota_used_cmd[i]);
+      status = child.wait();
+      
+      rm_.set_vector_attribute(FAM::dir_dev_space_total, dev_space_total);
+      rm_.set_vector_attribute(FAM::dir_dev_space_used,  dev_space_used);
+      rm_.set_vector_attribute(FAM::dir_quota_total,     quota_total);
+      rm_.set_vector_attribute(FAM::dir_quota_used,      quota_used);
+    }
   }
   
 }

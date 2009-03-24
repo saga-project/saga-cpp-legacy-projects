@@ -21,8 +21,10 @@ set (FAUST_SOURCE_FILES
 	${FAUST_SOURCE_DIR}/faust/faust/version.cpp
 	${FAUST_SOURCE_DIR}/faust/faust/object.cpp
 	${FAUST_SOURCE_DIR}/faust/faust/resource_description.cpp
+	${FAUST_SOURCE_DIR}/faust/faust/resource_monitor.cpp
 	${FAUST_SOURCE_DIR}/faust/impl/object_impl.cpp
 	${FAUST_SOURCE_DIR}/faust/impl/resource_description_impl.cpp
+	${FAUST_SOURCE_DIR}/faust/impl/resource_monitor_impl.cpp
 	${FAUST_SOURCE_DIR}/faust/impl/logwriter.cpp 
 )
 
