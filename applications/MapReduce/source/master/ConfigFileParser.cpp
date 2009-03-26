@@ -11,22 +11,19 @@
 
 using namespace MapReduce::Master;
 
-ConfigFileParser::ConfigFileParser()
-{
+ConfigFileParser::ConfigFileParser() {
 }
 
-ConfigFileParser::ConfigFileParser(std::string cfgFilePath)
-: cfgFilePath_(cfgFilePath)
-{
+ConfigFileParser::ConfigFileParser(std::string cfgFilePath, MapReduce::LogWriter &log)
+: cfgFilePath_(cfgFilePath), log_(&log) {
+   parse_();
 }
 
-SessionDescription ConfigFileParser::getSessionDescription()
-{
-  return sessionDesc_;
+SessionDescription ConfigFileParser::getSessionDescription() {
+   return sessionDesc_;
 }
 
-std::vector<BinaryDescription> ConfigFileParser::getExecutableList()
-{
+std::vector<BinaryDescription> ConfigFileParser::getExecutableList() {
   return binDescList_;
 }
 
@@ -45,7 +42,11 @@ std::string ConfigFileParser::getOutputPrefix()
   return outputPrefix_;
 }
 
-void ConfigFileParser::parse(void)
+std::string ConfigFileParser::getMasterAddress() {
+   return masterAddress_;
+}
+
+void ConfigFileParser::parse_(void)
 {
   std::string tmp("");
   
@@ -98,7 +99,15 @@ void ConfigFileParser::parse(void)
     }
   }
           
-  // parse the ApplicationBinaries section
+  xNode = xMainNode.getChildNode("MasterAddress");
+  if(NULL != xNode.getText()) {
+     masterAddress_ = xNode.getText();
+  }
+  else {
+     std::string message("XML Parser: Incomplete MasterAddress section!");
+     log_->write(message, LOGLEVEL_ERROR);
+  }
+
   xNode = xMainNode.getChildNode("ApplicationBinaries");
   int m=xNode.nChildNode("BinaryImage");
   for(int i=0; i<m; ++i) {

@@ -15,21 +15,23 @@
 namespace MapReduce {
    class HandleMaps {
      public:
-      HandleMaps(std::vector<saga::url> &chunks, saga::advert::directory workerDir,
+      HandleMaps(std::vector<saga::url> &chunks,
+                 saga::url serverURL,
                  LogWriter *log);
+     ~HandleMaps();
       bool assignMaps();
 
      private:
-      void issue_command_(std::string file);
+      void issue_command_();
       std::string getCandidate_();
 
-      std::vector<std::string> finished_;
+      saga::stream::server    *service_;
+      std::vector<std::string> unassigned_;
       std::vector<std::string> assigned_;
-      std::vector<saga::url>::const_iterator candidateIT_;
-      std::vector<saga::url> chunks_;
-      std::vector<saga::url> workers_;
-      saga::advert::directory workerDir_;
-      LogWriter *log_;
+      std::vector<std::string> finished_;
+      saga::url                serverURL_;
+      LogWriter               *log_;
+      std::vector<std::string>::size_type totalChunks_;
    };
 } //Namespace MapReduce
 

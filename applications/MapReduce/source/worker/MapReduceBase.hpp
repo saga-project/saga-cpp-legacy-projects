@@ -11,23 +11,12 @@
 #include <time.h>
 #include <saga/saga.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/program_options.hpp>
-
-#include "parseCommand.hpp"
 #include "unorderedMap.hpp"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
-#include "../utils/block_profiler.hpp"
-#include "RunMap.hpp"
 #include "RunReduce.hpp"
 #include "SystemInfo.hpp"
-
-struct start_up {};
-struct write_intermediate {};
-struct emit_intermediate {};
-struct emit_type {};
-struct update_status {};
-struct hash_type {};
+#include "parseCommand.hpp"
 
 namespace MapReduce {
    template<typename Derived>
@@ -38,21 +27,21 @@ namespace MapReduce {
        * to use and the session to use.                        *
        * ******************************************************/
       MapReduceBase(int argCount, char **argList) {
-         block_profiler<start_up> su = block_profiler<start_up>("startup");
          boost::program_options::variables_map vm;
          try {
             if(!parseCommand(argCount, argList, vm))
                throw saga::exception("Incorrect command line arguments", saga::BadParameter);
          }
-         catch(saga::exception const & e) {
-            throw;
+         catch(saga::exception const& e) {
+           throw;
          }
          sessionUUID_  = (vm["session"].as<std::string>());
          database_     = (vm["database"].as<std::string>());
          logURL_       = (vm["log"].as<std::string>());
          outputPrefix_ = (vm["output"].as<std::string>());
-         uuid_         = saga::uuid().string();//"MICHAELCHRIS";
+         uuid_         = saga::uuid().string();
          logWriter_    = new LogWriter(MR_WORKER_EXE_NAME, logURL_);
+         state_        = WORKER_STATE_IDLE;
          int mode = saga::filesystem::Write | saga::filesystem::Create;
          for(int x=0;x<NUM_MAPS;x++) {
             saga::url mapFile(outputPrefix_ + "/mapFile_" + boost::lexical_cast<std::string>(x) + "_" + uuid_);
@@ -72,15 +61,17 @@ namespace MapReduce {
       int run(void) {
          try {
            registerWithDB(); //Connect and create directories in database
-           mainLoop(2); //sleep interval of 5
+           mainLoop();
          }
          catch (saga::exception const & e) {
             std::cerr << "MapReduceBase::init : Exception caught : " << e.what() << std::endl;
-            return -1;
+            std::string advertKey(database_ + "//" + sessionUUID_ + "/");
+            state_ = WORKER_STATE_FAIL;
+            throw;
          }   
          catch (...) {
             std::cerr << "MapReduceBase::init : Unknown exception occurred" << std::endl;
-            return -1;
+            throw;
          }
          return 0;
       }
@@ -90,7 +81,6 @@ namespace MapReduce {
        * but it does the job.                                  *
        * ******************************************************/
       int hash(std::string const &input, unsigned int limit) {
-         block_profiler<hash_type> hash_timer = block_profiler<hash_type>("hash timer");
          int sum = 0, retval;
          std::size_t length = input.length();
          for(std::size_t count = 0; count < length; count++) {
@@ -101,7 +91,6 @@ namespace MapReduce {
       }
 
       void writeIntermediate(void) {
-         block_profiler<write_intermediate> write_timer = block_profiler<write_intermediate>("write intermediate");
          unorderedMap::iterator mapIt = intermediate_.begin();
          unorderedMap::iterator end = intermediate_.end();
          std::string intermediateData[NUM_MAPS];
@@ -131,7 +120,6 @@ namespace MapReduce {
        * and advertising these files.                          *
        * ******************************************************/
       void emitIntermediate(std::string const &key, std::string const &value) {
-         block_profiler<emit_intermediate> emit_timer = block_profiler<emit_intermediate>("emitIntermediate");
          unorderedMap::iterator mapIt = intermediate_.begin();
          unorderedMap::iterator end   = intermediate_.end();
 
@@ -158,7 +146,6 @@ namespace MapReduce {
        * to the proper file.                                   *
        * ******************************************************/
       void emit(std::string const &key, std::string const& value) {
-         block_profiler<emit_type> emit_timer = block_profiler<emit_type>("emit (reduce");
          int hash_value = hash(key, NUM_MAPS);
          reduceValueMessages_[hash_value] += key;
          reduceValueMessages_[hash_value] += " " + value + "\n";
@@ -171,27 +158,31 @@ namespace MapReduce {
          }
       }
      private:
-      Derived& derived() {
-         return static_cast<Derived&>(*this);
-      }
-      std::string uuid_;
-      std::string sessionUUID_;
-      std::string database_;
-      std::string outputPrefix_;
-      std::string reduceValueMessages_[3];
-      saga::url   logURL_;
+      std::string  uuid_;
+      std::string  sessionUUID_;
+      saga::url    logURL_;
+      std::string  database_;
+      std::string  state_;
+      std::string  chunk_;  //File to map, set in getFrontendCommand
+      int          lastReduce_;
+      std::string  outputPrefix_;
+      std::string  reduceValueMessages_[NUM_MAPS];
+      saga::url    serverURL_;
+      unorderedMap intermediate_;
+      MapReduce::LogWriter *logWriter_;
    
       time_t startupTime_;
       SystemInfo systemInfo_;
    
-      std::vector<saga::filesystem::file> mapFiles_;
-      std::vector<saga::filesystem::file> reduceFiles_;
-      unorderedMap intermediate_;
       saga::advert::directory workerDir_;
       saga::advert::directory intermediateDir_;
       saga::advert::directory chunksDir_;
       saga::advert::directory reduceInputDir_;
-      MapReduce::LogWriter * logWriter_;
+      std::vector<saga::filesystem::file> mapFiles_;
+      std::vector<saga::filesystem::file> reduceFiles_;
+      Derived& derived() {
+         return static_cast<Derived&>(*this);
+      }
    
       /*********************************************************
        * updateStatus_ updates the attributes in the database  *
@@ -199,7 +190,6 @@ namespace MapReduce {
        * ******************************************************/
       void updateStatus_(void) {
          //(1) update the last seen (keep alive) timestamp 
-         block_profiler<update_status> update_timer = block_profiler<update_status>("update status");
          time_t timestamp; time(&timestamp);
          try {
            workerDir_.set_attribute(ATTR_LAST_SEEN, 
@@ -233,21 +223,19 @@ namespace MapReduce {
        * attributes describing this session.                   *
        * ******************************************************/
       void registerWithDB(void) {
-         block_profiler<start_up> su = block_profiler<start_up>("startup");
          int mode = saga::advert::ReadWrite;
          //(1) connect to the orchestrator database
          std::string advertKey(database_ + "//" + sessionUUID_ + "/");
          try {
-            saga::advert::directory(advertKey, mode);
+            saga::advert::directory master = saga::advert::directory(advertKey, mode);
             //(2a) create a directory for this agent
             advertKey += ADVERT_DIR_WORKERS;
             advertKey += "/" + uuid_ + "/";
-            workerDir_    = saga::advert::directory(advertKey, mode | saga::advert::Create);
+            workerDir_       = saga::advert::directory(advertKey, mode | saga::advert::Create);
             intermediateDir_ = workerDir_.open_dir(saga::url(ADVERT_DIR_INTERMEDIATE), mode | saga::advert::Create);
             chunksDir_       = workerDir_.open_dir(saga::url(ADVERT_DIR_CHUNKS)      , mode | saga::advert::Create);
             reduceInputDir_  = workerDir_.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode | saga::advert::Create);
-            workerDir_.set_attribute("COMMAND", "");
-            workerDir_.set_attribute("STATE", WORKER_STATE_IDLE);
+            state_ = WORKER_STATE_IDLE;
             //(3) add some initial system information
             workerDir_.set_attribute(ATTR_CPU_COUNT, 
               boost::lexical_cast<std::string>(systemInfo_.hardwareInfo().nCpu));
@@ -262,10 +250,15 @@ namespace MapReduce {
             workerDir_.set_attribute(ATTR_HOST_NAME,     systemInfo_.hostName());
             workerDir_.set_attribute(ATTR_HOST_TYPE,     systemInfo_.hostType());
             workerDir_.set_attribute(ATTR_HOST_LOAD_AVG, systemInfo_.hostLoadAverage());
+
             //(4) set the last seen (keep alive) timestamp
             time_t timestamp; time(&timestamp);
             workerDir_.set_attribute(ATTR_LAST_SEEN, 
-            boost::lexical_cast<std::string>(timestamp));
+              boost::lexical_cast<std::string>(timestamp));
+
+            saga::advert::entry server_name(master.open(ADVERT_ENTRY_SERVER, mode));
+            serverURL_ = saga::url(server_name.retrieve_string());
+            std::cerr << "SERVER_URL = " << serverURL_.get_string() << std::endl;
          }
          catch(saga::exception const & e) {
             std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
@@ -277,18 +270,27 @@ namespace MapReduce {
        * for commands and begins working when a proper command *
        * discovered.                                           *
        * ******************************************************/
-      void mainLoop(unsigned int updateInterval) {
+      void mainLoop() {
          Derived& d = derived();
          while(1) {
             std::string command(getFrontendCommand_());
             //(1) read command from orchestrator
             if(command == WORKER_COMMAND_MAP) {
-               // Use the RunMap class to handle details of getting
-               // and retrieving necessary information from the master.
                try {
-                  RunMap mapHandler(workerDir_, chunksDir_, intermediateDir_, outputPrefix_, uuid_);
-                  d.map(mapHandler.getFile()); // Map the file given from the master
+                  d.map(chunk_); // Map the file given from the master
                   writeIntermediate();
+                  try {
+                     int mode = saga::advert::Create | saga::advert::ReadWrite;
+                     for(int count = 0; count < NUM_MAPS; count++) {
+                        saga::advert::entry adv = intermediateDir_.open(saga::url("mapFile-"+boost::lexical_cast<std::string>(count)), mode);
+                        saga::url fileurl(outputPrefix_ + "mapFile_" + boost::lexical_cast<std::string>(count) + "_" + uuid_);
+                        adv.store_string(fileurl.get_string());
+                     }
+                     state_ = WORKER_STATE_DONE_MAP;
+                  }
+                  catch(saga::exception const & e) {
+                     throw;
+                  }
                }
                catch(saga::exception const& e) {
                   std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
@@ -318,18 +320,15 @@ namespace MapReduce {
                      reduceFiles_[counter].write(saga::buffer(reduceValueMessages_[counter], reduceValueMessages_[counter].length()));
                      reduceValueMessages_[counter].clear();
                   }
+                  state_ = WORKER_STATE_DONE_REDUCE;
                }
                catch(saga::exception const& e) {
                   std::cerr << "FAILED (" << e.get_message() << ")" << std::endl;
-                  workerDir_.set_attribute("STATE", WORKER_STATE_FAIL);
+                  state_ = WORKER_STATE_FAIL;
                }
             }
             else if(command == WORKER_COMMAND_DISCARD) {
                cleanup_();
-            }
-            else if(command == WORKER_COMMAND_RESUME) {
-            }
-            else if(command == WORKER_COMMAND_PAUSE) {
             }
             else if(command == WORKER_COMMAND_QUIT)
             {
@@ -338,7 +337,6 @@ namespace MapReduce {
                return;
             }
             updateStatus_();
-            sleep(updateInterval);
          }
       }
       /*********************************************************
@@ -349,16 +347,118 @@ namespace MapReduce {
        * master, such as input files, etc.                     *
        * ******************************************************/
       std::string getFrontendCommand_(void) {
-         std::string commandString;
+         static int depth = 0;
+         char buff[255];
          try {
-           commandString = workerDir_.get_attribute("COMMAND");
+            saga::stream::stream server_(serverURL_);
+            server_.connect();
+            saga::ssize_t read_bytes = server_.read(saga::buffer(buff));
+            std::string question(buff, read_bytes);
+            std::cerr << "QUESTION = " << question << std::endl;
+            if(question == MASTER_QUESTION_STATE) {
+               server_.write(saga::buffer(state_, state_.size()));
+               if(state_ == WORKER_STATE_IDLE) {
+                  memset(buff, 0, 255);
+                  read_bytes = server_.read(saga::buffer(buff));
+                  question = std::string(buff, read_bytes);
+                  if(question == MASTER_REQUEST_IDLE) {
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     state_ = WORKER_STATE_IDLE;
+                     //server_.close();
+                     return std::string("");
+                  }
+                  else if(question == MASTER_QUESTION_ADVERT) {
+                     std::string advert(workerDir_.get_url().get_string());
+                     server_.write(saga::buffer(advert, advert.size()));
+                     memset(buff, 0, 255);
+                     read_bytes = server_.read(saga::buffer(buff));
+                     question = std::string(buff, read_bytes);
+                     if(question == WORKER_COMMAND_MAP) {
+                        server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                        memset(buff, 0, 255);
+                        read_bytes = server_.read(saga::buffer(buff));
+                        question = std::string(buff, read_bytes);
+                        if(question == WORKER_CHUNK) {
+                           server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                           memset(buff, 0, 255);
+                           read_bytes = server_.read(saga::buffer(buff));
+                           //This is the actual chunk to read!
+                           chunk_ = std::string(buff, read_bytes);
+                           std::cerr << "just set chunk to " << chunk_ << std::endl;
+                           server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                           //server_.close();
+                           std::cerr << "Returning command map" << std::endl;
+                           return WORKER_COMMAND_MAP;
+                        }
+                     }
+                     else if(question == WORKER_COMMAND_REDUCE) {
+                        server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                        memset(buff, 0, 255);
+                        read_bytes = server_.read(saga::buffer(buff));
+                        lastReduce_ = boost::lexical_cast<int>(std::string(buff, read_bytes));
+                        server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                        //server_.close();
+                        std::cerr << "Returning command reduce" << std::endl;
+                        return WORKER_COMMAND_REDUCE;
+                     }
+                  }
+               }
+               else if(state_ == WORKER_STATE_DONE_MAP) {
+                  memset(buff, 0, 255);
+                  read_bytes = server_.read(saga::buffer(buff));
+                  question = std::string(buff, read_bytes);
+                  if(question == MASTER_QUESTION_RESULT) {
+                     server_.write(saga::buffer(chunk_, chunk_.size()));
+                     memset(buff, 0, 255);
+                     read_bytes = server_.read(saga::buffer(buff));
+                     question = std::string(buff, read_bytes);
+                     if(question == MASTER_REQUEST_IDLE) {
+                        state_ = WORKER_STATE_IDLE;
+                        //server_.close();
+                        return std::string("");
+                     }
+                  }
+                  else if(question == MASTER_REQUEST_IDLE) {
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     state_ = WORKER_STATE_IDLE;
+                     return std::string("");
+                  }
+               }
+               else if(state_ == WORKER_STATE_DONE_REDUCE) {
+                  memset(buff, 0, 255);
+                  read_bytes = server_.read(saga::buffer(buff));
+                  question = std::string(buff, read_bytes);
+                  if(question == MASTER_QUESTION_RESULT) {
+                     std::string last(boost::lexical_cast<std::string>(lastReduce_));
+                     server_.write(saga::buffer(last, last.size()));
+                     memset(buff, 0, 255);
+                     read_bytes = server_.read(saga::buffer(buff));
+                     question = std::string(buff, read_bytes);
+                     if(question == MASTER_REQUEST_IDLE) {
+                        //server_.close();
+                        state_ = WORKER_STATE_IDLE;
+                        return std::string("");
+                     }
+                  }
+               }
+            }
+            if(question == WORKER_COMMAND_QUIT) {
+               std::cerr << "GOT COMMAND TO QUIT, YIP YIP!" << std::endl;
+               server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+               return WORKER_COMMAND_QUIT;
+            }
          }
          catch(saga::exception const & e) {
-           std::cerr << "FAILED (" << e.get_error() << ")" << std::endl;
-           throw;
+            //Hope it was couldn't connect to stream server, then just wait and try again...
+            sleep(1);
+            if(depth < 20) {
+               depth++;
+               return getFrontendCommand_();
+            }
+            else throw;
          }
+         return std::string("");
          // get command number & reset the attribute to "" 
-         return commandString;
       }
       void closeMapFiles(void) {
          static bool closed = false;

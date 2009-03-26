@@ -10,8 +10,7 @@
 #include "ConfigFileParser.hpp"
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
-#include "../xmlParser/xmlParser.h"
-#include "../utils/block_profiler.hpp"
+#include "version.hpp"
 #include "HandleMaps.hpp"
 #include "HandleReduces.hpp"
 #include "parseCommand.hpp"
@@ -24,17 +23,7 @@
  * framework.                      *
  * ********************************/
 namespace MapReduce {
-      /* block Profiler Tags */
    namespace Master {
-      struct bp_tag_quit {};
-      struct bp_tag_reduce {};
-      struct bp_tag_map {};
-      struct bp_tag_spawn {};
-      struct bp_tag_pop_files {};
-      struct bp_tag_pop_bins {};
-      struct bp_tag_session {};
-      struct bp_tag_register {};
-      struct bp_tag_log_write {};
       template <class Derived>
       class Master {
         public:
@@ -47,18 +36,26 @@ namespace MapReduce {
          ***************************************/
          Master(int argC, char **argV) {
             boost::program_options::variables_map vm;
-            parseCommand(argC, argV, vm);
+            try {
+               if (!parseCommand(argC, argV, vm))
+                  throw saga::exception("Incorrect command line arguments", saga::BadParameter);
+            }
+            catch(saga::exception const& e) {
+               throw;
+            }
             std::string configFilePath (vm["config"].as<std::string>());
-            cfgFileParser_ = ConfigFileParser(configFilePath);
-            cfgFileParser_.parse();
+            MapReduce::LogWriter *initialLogger = new MapReduce::LogWriter(std::string(MR_MASTER_EXE_NAME), *(new saga::url("")));
+            cfgFileParser_ = ConfigFileParser(configFilePath, *initialLogger);
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
+            serverURL_     = cfgFileParser_.getMasterAddress();
             outputPrefix_  =  cfgFileParser_.getOutputPrefix();
             // create a UUID for this agent
             uuid_ = std::string("MapReduce-") + saga::uuid().string();
+
             saga::url advertKey(std::string(database_ + "//" + uuid_ + "/log"));
             logURL_ = advertKey;
-            //create new LogWriter instance that writes to stdout
-            log = new MapReduce::LogWriter(std::string(MR_MASTER_EXE_NAME), logURL_);
+            //create new LogWriter instance that writes to advert
+            log = new MapReduce::LogWriter(std::string(MR_MASTER_EXE_NAME), advertKey);
          }
          void run() {
             // generate a startup timestamp 
@@ -82,11 +79,9 @@ namespace MapReduce {
             // advertise them
             populateBinariesList_();
             
-            // Take input files from xml and pass
-            // them to be chunked into smaller files,
             // then advertise the chunk on the DB
             populateFileList_();
-            
+
             // Launch all worker command on all
             // host defined in config file
             spawnAgents_();
@@ -102,7 +97,7 @@ namespace MapReduce {
 
             //Send quit to all workers
             sendQuit_();
-            
+
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
          ~Master(void) {
@@ -112,17 +107,17 @@ namespace MapReduce {
          time_t startupTime_;
          std::string uuid_;
          std::string database_;
+         std::string serverURL_;
          saga::url   logURL_;
-        
+
          std::vector<saga::url>      fileChunks_;
+         saga::advert::directory     sessionBaseDir_;
+         saga::advert::directory     workersDir_;
+         saga::advert::directory     binariesDir_;
+         saga::advert::directory     chunksDir_;
+         std::string                 outputPrefix_;
          std::vector<saga::job::job> jobs_;
          
-         saga::advert::directory sessionBaseDir_;
-         saga::advert::directory workersDir_;
-         saga::advert::directory binariesDir_;
-         saga::advert::directory chunksDir_;
-         std::string outputPrefix_;
-        
          MapReduce::LogWriter * log;
          ConfigFileParser cfgFileParser_;
          
@@ -135,7 +130,6 @@ namespace MapReduce {
           * create anything.                                      *
           * ******************************************************/
          void registerWithDB_(void) {
-            block_profiler<bp_tag_register> profiler = block_profiler<bp_tag_register>("Register with DB");
             int mode = saga::advert::ReadWrite;  
             std::string message("Connecting to Orchestrator Database (");
             message += (database_) + ")... ";
@@ -161,29 +155,31 @@ namespace MapReduce {
           * session (MapReduce instance).                         *
           * ******************************************************/
          void createNewSession_(void) {
-            block_profiler<bp_tag_session> profiler = block_profiler<bp_tag_session>("Create Session");
             int mode = saga::advert::ReadWrite | saga::advert::Create;
-            std::string message("Creating a new session (" + uuid_ + ")... ");
             saga::task_container tc;
-           
+
+            std::string message("Creating a new session (");
             message += uuid_ + ")... ";
-            std::string advertKey(database_ + "//" + uuid_ + "//");
+            std::string advertKey(database_ + "//" + uuid_ + "/");
             try {
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-               sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("name",    cfgFileParser_.getSessionDescription().name));
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("user",    cfgFileParser_.getSessionDescription().user));
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Sync>("version", cfgFileParser_.getSessionDescription().version));
-               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
-               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
-               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::Sync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
+               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
+               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
+               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
+               saga::task t3 = sessionBaseDir_.open<saga::task_base::ASync>(saga::url(ADVERT_ENTRY_SERVER), mode);           //server address for worker
                tc.add_task(t0);
                tc.add_task(t1);
                tc.add_task(t2);
+               tc.add_task(t3);
                tc.wait();
-               workersDir_  = t0.get_result<saga::advert::directory>();
-               binariesDir_ = t1.get_result<saga::advert::directory>();
-               chunksDir_   = t2.get_result<saga::advert::directory>();
+               workersDir_       = t0.get_result<saga::advert::directory>();
+               binariesDir_      = t1.get_result<saga::advert::directory>();
+               chunksDir_        = t2.get_result<saga::advert::directory>();
+               saga::advert::entry address = t3.get_result<saga::advert::entry>();
+               address.store_string(serverURL_);
             }
             catch(saga::exception const & e) {
                message += e.what();
@@ -199,20 +195,19 @@ namespace MapReduce {
           * the database under the directory ADVERT_DIR_BINARIES  *
           * ******************************************************/
          void populateBinariesList_(void) {
-            block_profiler<bp_tag_pop_bins> profiler = block_profiler<bp_tag_pop_bins>("Populate Binaries");
             std::vector<BinaryDescription> binaryList                   = cfgFileParser_.getExecutableList();
             std::vector<BinaryDescription>::const_iterator binaryListIT = binaryList.begin();
             unsigned int successCounter = 0;
             int mode = saga::advert::ReadWrite | saga::advert::Create;
-   
+
             while(binaryListIT != binaryList.end()) {
-               std::string message("Adding new binary for "+ (*binaryListIT).targetOS + "/" 
-                                   + (*binaryListIT).targetArch + " to session... ");
+               std::string message("Adding new binary for "+ binaryListIT->targetOS + "/" 
+                                   + binaryListIT->targetArch + " to session... ");
                try {
-                 saga::advert::entry adv = binariesDir_.open((*binaryListIT).targetOS+"_"+(*binaryListIT).targetArch, mode);
+                 saga::advert::entry adv = binariesDir_.open(binaryListIT->targetOS+"_"+binaryListIT->targetArch, mode);
                  //Now set some properties of the binaries
-                 saga::task t0 = adv.set_attribute<saga::task_base::Sync>(ATTR_EXE_ARCH,    (*binaryListIT).targetArch);
-                 saga::task t1 = adv.set_attribute<saga::task_base::Sync>(ATTR_EXE_LOCATION,(*binaryListIT).URL);
+                 saga::task t0 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_ARCH,    binaryListIT->targetArch);
+                 saga::task t1 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_LOCATION,binaryListIT->URL);
                  t0.wait();
                  t1.wait();
                  message += "SUCCESS";
@@ -238,13 +233,12 @@ namespace MapReduce {
           * of the database.                                      *
           ********************************************************/
          void populateFileList_(void) {
-            block_profiler<bp_tag_pop_files> profiler = block_profiler<bp_tag_pop_files>("Populate Files");
+            unsigned int successCounter = 0;
+            int mode = saga::advert::Create | saga::advert::ReadWrite;
             std::vector<FileDescription> fileList                   = cfgFileParser_.getFileList();
             std::vector<FileDescription>::const_iterator fileListIT = fileList.begin();
-            unsigned int successCounter = 0;
             Derived& d = derived();
 
-            int mode = saga::advert::ReadWrite | saga::advert::Create;
             
             // Translate FileDescriptions returned by getFileList
             // into names to be chunked by chunker
@@ -254,6 +248,7 @@ namespace MapReduce {
                for(std::vector<saga::url>::const_iterator tempIT = temp.begin();tempIT!=temp.end();tempIT++) {
                   fileChunks_.push_back(*tempIT);
                }
+               std::cerr << "Number of chunks: " << temp.size() << std::endl;
                fileListIT++;
             }
             std::vector<saga::url>::const_iterator fileChunks_IT = fileChunks_.begin();
@@ -288,34 +283,32 @@ namespace MapReduce {
           * the master                                            *
           * ******************************************************/
          void spawnAgents_(void) {
-            block_profiler<bp_tag_spawn> profiler = block_profiler<bp_tag_spawn>("Spawn Agents");
             std::vector<BinaryDescription> binaryList               = cfgFileParser_.getExecutableList();
             std::vector<HostDescription>  hostList                  = cfgFileParser_.getTargetHostList();
             std::vector<HostDescription>::const_iterator hostListIT = hostList.begin();
             unsigned int successCounter = 0;
-   
+
             while(hostListIT != hostList.end()) {
-               std::string message("Launching agent on host " + (*hostListIT).rmURL + "... ");
+               std::string message("Launching agent on host " + hostListIT->rmURL + "... ");
                saga::job::description jd;
                std::vector<BinaryDescription>::const_iterator binaryListIT = binaryList.begin();
                try {
                   while(binaryListIT != binaryList.end()) {
                      // Now try to find a matching binary for this host
-                     if((*hostListIT).hostArch == (*binaryListIT).targetArch
-                     && (*hostListIT).hostOS   == (*binaryListIT).targetOS) {
+                     if(hostListIT->hostArch == binaryListIT->targetArch
+                     && hostListIT->hostOS   == binaryListIT->targetOS) {
                         // Found one, now try to launch it with proper arguments
                         std::string command(binaryListIT->URL);
                         std::vector<std::string> args;
-                        args.push_back("-s");
+                        args.push_back("--session");
                         args.push_back(uuid_);
-                        args.push_back("-d");
+                        args.push_back("--database");
                         args.push_back(database_);
-                        args.push_back("-l");
+                        args.push_back("--log");
                         args.push_back(logURL_.get_string());
-                        args.push_back("-o");
+                        args.push_back("--output");
                         args.push_back(outputPrefix_);
                         jd.set_attribute(saga::job::attributes::description_executable, command);
-                        // jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_true);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
                         saga::job::service js(hostListIT->rmURL);
                         for ( int i = 0; i < JOBS_PER_SERVICE; i++ )
@@ -350,9 +343,8 @@ namespace MapReduce {
           * begin working                                         *
           * ******************************************************/
          void runMaps_(void) {
-            block_profiler<bp_tag_map> profiler = block_profiler<bp_tag_map>("Mapping");
-            HandleMaps mapHandler(fileChunks_, workersDir_, log);
             std::string message("Launching maps...");
+            HandleMaps mapHandler(fileChunks_, serverURL_, log);
    
             log->write(message, LOGLEVEL_INFO);
             mapHandler.assignMaps();
@@ -364,25 +356,44 @@ namespace MapReduce {
           * master                                                *
           * ******************************************************/
          void runReduces_(void) {
-            block_profiler<bp_tag_reduce> profiler = block_profiler<bp_tag_reduce>("Reducing");
-            HandleReduces reduceHandler(NUM_MAPS, workersDir_, log);
             std::string message("Beginning Reduces...");
+            HandleReduces reduceHandler(NUM_MAPS, workersDir_, serverURL_, log);
    
             log->write(message, LOGLEVEL_INFO);
             reduceHandler.assignReduces();
          }
          void sendQuit_(void) {
-            block_profiler<bp_tag_quit> profiler = block_profiler<bp_tag_quit>("Quit Command");
-            std::vector<saga::url> workers = workersDir_.list("*");
-            std::vector<saga::url>::iterator workersIT = workers.begin();
-            while(workersIT != workers.end())
-            {
-               saga::advert::directory indWorker(*workersIT, saga::advert::ReadWrite);
-               indWorker.set_attribute("COMMAND", WORKER_COMMAND_QUIT);
-               workersIT++;
+            char buff[255];
+            int successCounter = 0;
+            int workersSize = workersDir_.list("*").size();
+            std::vector<saga::url> list = workersDir_.list("*");
+            try {
+               while(successCounter < workersSize)
+               {
+                  saga::stream::server *service = new saga::stream::server(serverURL_);
+                  saga::stream::stream worker = service->serve(25);
+                  std::string message("Established connection to ");
+                  message += worker.get_url().get_string();
+                  log->write(message, LOGLEVEL_INFO);
+                  worker.write(saga::buffer(WORKER_COMMAND_QUIT, 4));
+                  saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+                  if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
+                  {
+                     log->write(std::string("Misbehaving worker!"), LOGLEVEL_WARNING);
+                  }
+                  else
+                  {
+                     successCounter++;
+                  }
+                  service->close();
+                  delete service;
+               }
+            }
+            catch(saga::exception const & e) {
+               std::cerr << e.what() << std::endl;
             }
          }
-      }; 
+      };
    } // namespace Master
 } // namespace MapReduce
 

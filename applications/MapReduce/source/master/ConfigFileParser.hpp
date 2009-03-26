@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include "../utils/LogWriter.hpp"
 
 namespace MapReduce {
    namespace Master {
@@ -45,25 +46,27 @@ namespace MapReduce {
       // Parses a Task Farming config file 
       class ConfigFileParser {
         private:
-         std::string      cfgFilePath_;
-      
-         SessionDescription        sessionDesc_;
+         std::string                    cfgFilePath_;
+         SessionDescription             sessionDesc_;
          std::vector<HostDescription>   targetHostList_;
          std::vector<BinaryDescription> binDescList_;
          std::vector<FileDescription>   fileDescList_;
          std::string                    outputPrefix_;
+         std::string                    masterAddress_;
+         MapReduce::LogWriter          *log_;
         
 
         public:
          ConfigFileParser();
-         ConfigFileParser(std::string cfgFilePath);
-         void parse(void);
+         ConfigFileParser(std::string cfgFilePath, MapReduce::LogWriter &log);
+         void parse_(void);
         
          SessionDescription             getSessionDescription(void);
          std::vector<BinaryDescription> getExecutableList(void);
          std::vector<HostDescription>   getTargetHostList(void);
          std::vector<FileDescription>   getFileList(void);
          std::string                    getOutputPrefix(void);
+         std::string                    getMasterAddress();
         
       };
    } //namespace Master

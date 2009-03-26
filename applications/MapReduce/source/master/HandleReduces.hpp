@@ -16,19 +16,25 @@
 namespace MapReduce {
    class HandleReduces {
      public:
-      HandleReduces(int fileCount, saga::advert::directory workerDir,
+      HandleReduces(int fileCount,
+                    saga::advert::directory workerDir,
+                    saga::url serverURL_,
                     LogWriter *log);
+     ~HandleReduces();
       bool assignReduces();
      private:
-      void issue_command_(std::vector<std::string> &inputs, int count);
+      void issue_command_();
       std::vector<std::string> groupFiles_(int counter);
       void wait_for_results_();
     
+      int                      fileCount_;
+      saga::advert::directory  workerDir_;
+      saga::url                serverURL_;
+      LogWriter               *log_;
       std::vector<std::string> finished_;
-      int fileCount_;
-      std::vector<saga::url> workers_;
-      saga::advert::directory workerDir_;
-      LogWriter *log_;
+      std::vector<saga::url>   workers_;
+      saga::stream::server    *service_;
+      int                      currentCount;
    };
 } //Namespace MapReduce
 

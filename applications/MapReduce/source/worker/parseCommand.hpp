@@ -14,10 +14,10 @@ bool parseCommand(int argc, char *argv[], po::variables_map& vm) {
     desc_cmdline.add_options()
       ("help,h", "Display this information and exit")
       ("version,v", "Print version information and exit")
-      ("session,s", po::value<std::string>(), 
-       "Session UUID this agent should register with")
       ("log,l", po::value<std::string>(), 
        "Advert url to log all information to")
+      ("session,s", po::value<std::string>(), 
+       "Session UUID this agent should register with")
       ("output,o", po::value<std::string>(), 
        "File url output to")
       ("database,d", po::value<std::string>(), 

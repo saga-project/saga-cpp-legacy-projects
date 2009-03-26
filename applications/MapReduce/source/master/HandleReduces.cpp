@@ -10,35 +10,39 @@ namespace MapReduce
 {
  // fileCount is the total number of files possibly outputted by
  // the map function (NUM_MAPS)
- HandleReduces::HandleReduces(int fileCount, saga::advert::directory workerDir, 
+ HandleReduces::HandleReduces(int fileCount,
+                              saga::advert::directory workerDir, 
+                              saga::url serverURL,
                               LogWriter *log)
-    : fileCount_(fileCount), workerDir_(workerDir), log_(log)
+    : fileCount_(fileCount), workerDir_(workerDir), 
+      serverURL_(serverURL), log_(log)
  {
+    try
+    {
+       service_ = new saga::stream::server(serverURL_);
+    }
+    catch(saga::exception const& e) {
+       std::cerr << "saga::execption caught: " << e.what () << std::endl;
+    }
+    currentCount = 0;
     workers_ = workerDir_.list("*");
     while(workers_.size() == 0) {
        sleep(1);
        workers_ = workerDir_.list("*");
     }
-   std::vector<saga::url>::iterator it = workers_.begin();
-   while(it != workers_.end()) {
-      saga::advert::directory possibleWorker(*it, saga::advert::ReadWrite);
-      possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
-      it++;
-   }
+ }
+
+ HandleReduces::~HandleReduces() {
+    service_->close();
+    delete service_;
  }
 /*********************************************************
  * assignReduces is the only public function that tries  *
  * to assign reduce files to idle workers                *
  * ******************************************************/
  bool HandleReduces::assignReduces() {
-    for(int counter = 0; counter < fileCount_; counter++) {
-       // group all files that were mapped to this counter
-       std::vector<std::string> reduceInput(groupFiles_(counter));
-       issue_command_(reduceInput, counter);
-    }
-    //All were assigned, now wait for everyone to finish
     while(finished_.size() != (unsigned)fileCount_) {
-       wait_for_results_();
+       issue_command_();
     }
     return true;
  }
@@ -47,79 +51,122 @@ namespace MapReduce
  * assign them to an idel worker.  If a worker is done,  *
  * the results are recorded                              *
  * ******************************************************/
- void HandleReduces::issue_command_(std::vector<std::string> &inputs, int count)
+ void HandleReduces::issue_command_()
  {
-   int mode = saga::advert::ReadWrite | saga::advert::Create;
-   static std::vector<saga::url>::iterator workers_IT = workers_.begin();
    bool assigned = false;
    while(assigned == false) {
-      sleep(1);
       try {
-         saga::advert::directory possibleWorker(*workers_IT, mode);
-         std::string state =   possibleWorker.get_attribute("STATE");
-         std::string command = possibleWorker.get_attribute("COMMAND");
-         std::string message(workers_IT->get_path());
-         message += (" state is " + state);
+         int mode = saga::advert::Create | saga::advert::ReadWrite;
+         saga::stream::stream worker = service_->serve();
+         std::string message("Established connection to ");
+         message += worker.get_url().get_string();
          log_->write(message, LOGLEVEL_INFO);
-         if(state == WORKER_STATE_IDLE || state == WORKER_STATE_DONE_MAP) {
-            if(possibleWorker.get_attribute("COMMAND") == WORKER_COMMAND_REDUCE) {
-               //Assigned but never started working
-               workers_IT++;
-               if(workers_IT == workers_.end()) {
-                  workers_ = workerDir_.list("*");
-                  workers_IT = workers_.begin();
-               }
-               continue;
-            }
+
+         //Ask worker for state
+         worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
+         char buff[255];
+         saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
+         std::string state(buff, read_bytes);
+
+         if(state == WORKER_STATE_IDLE) {
+            // group all files that were mapped to this counter
+            std::vector<std::string> reduceInput(groupFiles_(currentCount));
+
+            message.clear();
             std::string message("Issuing worker ");
-            message += workers_IT->get_path();
+            message += worker.get_url().get_string();
             message = message + " to reduce hash number ";
-            message += boost::lexical_cast<std::string>(count);
+            message += boost::lexical_cast<std::string>(currentCount);
             log_->write(message, LOGLEVEL_INFO);
-            saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
-            for(unsigned int counter = 0; counter < inputs.size(); counter++) {
-              saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
-               adv.store_string(inputs[count]);
+
+            //ask where their advert is
+            worker.write(saga::buffer(MASTER_QUESTION_ADVERT, 7));
+            memset(buff, 0, 255);
+            read_bytes = worker.read(saga::buffer(buff));
+            saga::url advert = saga::url(std::string(buff, read_bytes));
+
+            message.clear();
+            message += worker.get_url().get_string();
+            message += " <==> " + std::string(buff);
+            message += " ... ";
+            log_->write(message, LOGLEVEL_INFO);
+
+            worker.write(saga::buffer(WORKER_COMMAND_REDUCE, 6));
+            memset(buff, 0, 255);
+            read_bytes = worker.read(saga::buffer(buff));
+            if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) {
+                message = std::string("Worker did not accept chore!");
+                log_->write(message, LOGLEVEL_WARNING);
+                break;
             }
-            possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
-            possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
+            std::string count(boost::lexical_cast<std::string>(currentCount));
+            worker.write(saga::buffer(count, count.size()));
+            memset(buff, 0, 255);
+            read_bytes = worker.read(saga::buffer(buff));
+            if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) {
+                message = std::string("Worker did not accept chunk!");
+                log_->write(message, LOGLEVEL_WARNING);
+                break;
+            }
+
+            saga::advert::directory workerAdvert(advert, mode);
+            saga::advert::directory workerChunkDir(workerAdvert.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
+            for(unsigned int counter = 0; counter < reduceInput.size(); counter++) {
+              saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
+               adv.store_string(reduceInput[counter]);
+            }
             assigned = true;
+            if(currentCount == fileCount_) {
+               currentCount = 0; //Allows reduces to be re-issued
+            }
+            else {
+               currentCount++;
+            }
+            message.clear();
+            message += "Success!";
+            log_->write(message, LOGLEVEL_INFO);
          }
          else if(state == WORKER_STATE_DONE_REDUCE) {
-            std::string message("Worker ");
-            message += workers_IT->get_path();
-            message = message + " finished reducing with output ";
-            saga::url temp(workers_IT->get_string() + "/output");
-            saga::advert::entry output(temp, mode);
-            std::string finishedFile = output.retrieve_string();
-            message += finishedFile;
-            log_->write(message, LOGLEVEL_INFO);
-            finished_.push_back(finishedFile);
+            worker.write(saga::buffer(MASTER_QUESTION_RESULT, 7));
+            memset(buff, 0, 255);
+            read_bytes = worker.read(saga::buffer(buff));
+            std::string result(buff, read_bytes);
+            worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
+
             message.clear();
-            message = "Issuing worker ";
-            message += workers_IT->get_string();
-            message = message + " to reduce hash number ";
-            message += boost::lexical_cast<std::string>(count);
+            message += "Worker ";
+            message += " finished reducing with output ";
+            message += result;
             log_->write(message, LOGLEVEL_INFO);
-            saga::advert::directory workerChunkDir(possibleWorker.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
-            for(unsigned int count = 0; count < inputs.size(); count++) {
-               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(count)), mode | saga::advert::Create));
-               adv.store_string(inputs[count]);
+
+            //If not finished, already, push back
+            std::vector<std::string>::iterator finished_IT = finished_.begin();
+            std::vector<std::string>::iterator end         = finished_.end();
+            bool found = false;
+            while(finished_IT != end) {
+               if(*finished_IT == result) {
+                  found = true;
+                  break;
+               }
+               ++finished_IT;
             }
-            possibleWorker.set_attribute("STATE", WORKER_STATE_IDLE);
-            possibleWorker.set_attribute("COMMAND", WORKER_COMMAND_REDUCE);
-            assigned = true;
+            if(found == false) {
+               finished_.push_back(result);
+            }
          }
-         sleep(1);
+         else if(state == WORKER_STATE_DONE_MAP) {
+            worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
+            memset(buff, 0, 255);
+            read_bytes = worker.read(saga::buffer(buff));
+            std::string result(buff, read_bytes);
+            if(result != WORKER_RESPONSE_ACKNOLEDGE) {
+               //error here
+            }
+         }
       }
       catch(saga::exception const & e) {
-         std::cerr << "error in reduce stuf" << std::endl;
+         std::cerr << "error in reduce" << std::endl;
          throw;
-      }
-      workers_IT++;
-      if(workers_IT == workers_.end()) {
-         workers_ = workerDir_.list("*");
-         workers_IT = workers_.begin();
       }
    }
  }
@@ -136,7 +183,7 @@ namespace MapReduce
     int mode = saga::advert::ReadWrite;
     while(workers_IT != workers_.end()) {
        try {
-          saga::advert::directory worker(*workers_IT, mode);
+          saga::advert::directory worker(workerDir_.open_dir(*workers_IT));
           saga::advert::directory data(worker.open_dir(saga::url(ADVERT_DIR_INTERMEDIATE), mode));
           if(data.exists(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)))) {
              saga::advert::entry adv(data.open(saga::url("./mapFile-" + boost::lexical_cast<std::string>(counter)), mode));
@@ -154,43 +201,4 @@ namespace MapReduce
     }
     return intermediateFiles;
  }
- 
- /*********************************************************
- * wait_for_results waits for results :)
- * ******************************************************/
- void HandleReduces::wait_for_results_()
- {
-   int mode = saga::advert::ReadWrite;
-   static std::vector<saga::url>::iterator workers_IT = workers_.begin();
-   while(workers_IT != workers_.end()) {
-      try {
-         sleep(1);
-         saga::advert::directory possibleWorker(*workers_IT, mode);
-         std::string state = possibleWorker.get_attribute("STATE");
-         std::string message(workers_IT->get_path());
-         message += (" state is " + state);
-         log_->write(message, LOGLEVEL_INFO);
-         if(state == WORKER_STATE_DONE_REDUCE) {
-            std::string message("Worker ");
-            message += workers_IT->get_string();
-            message = message + " finished reducing with output ";
-            saga::advert::entry output(possibleWorker.open(saga::url("./output"), mode));
-            std::string finishedFile = output.retrieve_string();
-            message += finishedFile;
-            log_->write(message, LOGLEVEL_INFO);
-            finished_.push_back(finishedFile);
-            return;
-         }
-      }
-      catch(saga::exception const & e) {
-         throw;
-      }
-      workers_IT++;
-      if(workers_IT == workers_.end()) {
-         workers_ = workerDir_.list("*");
-         workers_IT = workers_.begin();
-      }
-   }
- }
-
 } // Namespace MapReduce

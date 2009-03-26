@@ -19,6 +19,7 @@ namespace MapReduce {
                 std::string outputPrefix);
       ~RunReduce();
       void getLines(unorderedMap &keyValues);
+      int  getCurrent(void);
      private:
       std::vector<std::string> files_;
       saga::advert::directory workerDir_;
