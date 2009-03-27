@@ -5,60 +5,118 @@
  
 #include "AllPairsBase.hpp"
 //#include "../utils/type.hpp"
- 
+#include <fstream>
+#include <wand/MagickWand.h>
+
+
+ using namespace std;
  using namespace AllPairs;
  
  class AllPairsImpl : public AllPairsBase<AllPairsImpl> {
    public:
     AllPairsImpl(int argCount, char **argList)
       : AllPairsBase<AllPairsImpl>(argCount, argList) {
-      dna_distances.insert(std::pair<std::string,double>("aa", 0.0));
-      dna_distances.insert(std::pair<std::string,double>("at", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("ac", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("ag", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("ta", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("tt", 0.0));
-      dna_distances.insert(std::pair<std::string,double>("tc", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("tg", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("ca", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("ct", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("cc", 0.0));
-      dna_distances.insert(std::pair<std::string,double>("cg", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("ga", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("gt", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("gc", 2.0));
-      dna_distances.insert(std::pair<std::string,double>("gg", 0.0));
    }
-   double compare(saga::url fragmentUrl, saga::url baseUrl) {
-      saga::size_t const KB64 = 1024*64; //64KB
-      saga::size_t bytesRead;
-      saga::filesystem::file fragment(fragmentUrl, saga::filesystem::Read);
-      saga::filesystem::file base    (baseUrl    , saga::filesystem::Read);
-      std::string fragment_string;
-      std::string base_string;
-      char data[KB64+1];
-      double minimum = -1.0;
-      while((bytesRead = fragment.read(saga::buffer(data,KB64)))!=0) {
-         fragment_string += data;
-      }
-      while((bytesRead = base.read(saga::buffer(data,KB64)))!=0) {
-         base_string += data;
-      }
-      //go through every substring of base_string
-      for(std::string::size_type x = 0;x<base_string.size()-fragment_string.size()+1;x++) {
-        //get part of base to compare against
-        std::string compare_string = base_string.substr(x,fragment_string.size());
-        double distance = 0;
-        //calculate the distance
-        for(std::string::size_type y = 0;y<compare_string.size();y++) {
-           std::string elements = compare_string.substr(y,1) + fragment_string.substr(y,1);
-           distance += dna_distances[elements];
-        }
-        if(minimum == -1.0 || minimum > distance) {
-           minimum = distance;
-        }
-      }
-      return minimum;
+   double compare(saga::url testUrl, saga::url baseUrl) {
+	   
+	   
+	   // Need to create tmp names, since I need ImageMagick to understand the names
+	   // therefore I need to copy the images to those files
+	   // If I can get imagemagick to read directly from the url, I woudn't waste
+	   // the time in copying files...  
+	   
+	   char *testName = tempnam(NULL, "testImg.");
+	   char *baseName = tempnam(NULL, "baseImg.");
+	   
+	   std::cerr << "About to open files (" << testName << ", " << baseName << ")" << std::endl;
+	   
+	   ofstream testFile(testName, ios::out);
+	   ofstream baseFile(baseName, ios::out);
+	   
+	   std::cerr << "Before copying the files... " << std::endl; 
+	   
+	   saga::size_t const KB64 = 1024*64; //64KB
+	   saga::size_t bytesRead;
+	   std::cerr << "about to open files (" << testUrl.get_string() << ", " << baseUrl.get_string() << ")" << std::endl;
+	   saga::filesystem::file test(testUrl, saga::filesystem::Read);
+	   std::cerr << "1opened!" << std::endl;
+	   saga::filesystem::file base    (baseUrl    , saga::filesystem::Read);
+	   std::cerr << "2opened!" << std::endl;
+	   
+	   char data[KB64+1];
+	   double ImageDifferencePcnt = -1.0;
+	   while((bytesRead = test.read(saga::buffer(data,KB64)))!=0) {
+		   testFile.write(data, bytesRead);
+	   }
+	   while((bytesRead = base.read(saga::buffer(data,KB64)))!=0) {
+		   baseFile.write(data, bytesRead);
+	   }
+	   
+	   std::cerr << "Before closing files" << std::endl;
+	   
+	   // Need to close them before I can actually do something
+	   
+	   testFile.close();
+	   baseFile.close();
+	   
+	   std::cerr << "Just before Image magick" << std::endl;
+	   
+#define ThrowWandException(wand) \
+{ \
+char \
+*description; \
+\
+ExceptionType \
+severity; \
+\
+description=MagickGetException(wand,&severity); \
+(void) fprintf(stderr,"%s %s %lu %s\n",GetMagickModule(),description); \
+description=(char *) MagickRelinquishMemory(description); \
+exit(-1); \
+}
+	   
+	   MagickWand *magick_wand_1;
+	   MagickWand *magick_wand_2;
+	   MagickWand *compare_wand;
+	   double difference;
+	   MagickBooleanType status_1, status_2;
+	   
+	   MagickWandGenesis();
+	   magick_wand_1=NewMagickWand();
+	   status_1=MagickReadImage(magick_wand_1,baseName);
+	   if (status_1 == MagickFalse)
+		   ThrowWandException(magick_wand_1);
+	   
+	   MagickWandGenesis();
+	   magick_wand_2=NewMagickWand();
+	   status_2=MagickReadImage(magick_wand_2,testName);
+	   if (status_2 == MagickFalse)
+		   ThrowWandException(magick_wand_2);
+	   
+	   compare_wand = NewMagickWand();
+	   compare_wand=MagickCompareImages(magick_wand_1,magick_wand_2, AbsoluteErrorMetric, &difference);
+	   std::cerr << "Difference is: " << difference << std::endl;
+	   
+	   unsigned long rows, cols;
+	   cols = MagickGetImageWidth(compare_wand);
+	   rows = MagickGetImageHeight(compare_wand);
+	   std::cerr << "Size baseimage (rows,cols): " << rows << "x" << cols << std::endl;
+	   
+	   double numPixels;
+	   
+	   numPixels=1.0*rows*cols;
+	   std::cerr << "Total num pixels: " << numPixels << std::endl;
+	   
+	   ImageDifferencePcnt = difference*100.0/numPixels;	   
+	   std::cerr << "Image differ in (%): " << ImageDifferencePcnt << std::endl;
+	   
+	   DestroyMagickWand(compare_wand);
+	   
+	   DestroyMagickWand(magick_wand_1);
+	   DestroyMagickWand(magick_wand_2);
+	   MagickWandTerminus();
+	   
+	   return ImageDifferencePcnt;
    }
   private:
    std::map<std::string,double> dna_distances;

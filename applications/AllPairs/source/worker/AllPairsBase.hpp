@@ -206,7 +206,7 @@ namespace AllPairs {
                   resultString += + ", " + asn.second + "): ";
                   resultString += boost::lexical_cast<std::string>(val) + '\n';
                }
-               std::cout << resultString;
+               std::cerr << "RESULT: " << resultString << std::endl;
                lastFinishedChunk_ = runComparison_->getChunkID();
                saga::url result(std::string("result-") + boost::lexical_cast<std::string>(lastFinishedChunk_));
                delete runComparison_;

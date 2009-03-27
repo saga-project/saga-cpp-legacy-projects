@@ -34,8 +34,10 @@ namespace AllPairs {
             communication = std::string(buff, read_bytes);
             if(communication == END_CHUNK)
             {
+               std::cerr << "MASTER JUST TOLD ME TO STOP!" << std::endl;
                break;
             }
+            std::cerr << "JUST GOT FROM MASTER FOR CUNK: " << communication << std::endl;
             std::string url1(communication);
             server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
             
