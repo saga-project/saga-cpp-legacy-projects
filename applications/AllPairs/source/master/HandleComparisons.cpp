@@ -133,7 +133,6 @@ namespace AllPairs
                read_bytes = worker.read(saga::buffer(buff));
                if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
 
-               ++it; //Handled sending id to worker, now tell them actual work;
                while(it != end)
                {
                   std::string to   = it->getTo();
