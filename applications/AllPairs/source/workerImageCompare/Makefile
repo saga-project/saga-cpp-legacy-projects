@@ -15,3 +15,11 @@ SAGA_USE_BOOST_OPTIONS = "yes"
 # include the application helper make file
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
+SAGA_CXXFLAGS += $(shell Magick++-config --cppflags --cxxflags)
+SAGA_LDFLAGS   += -L/sw/lib $(shell Magick++-config --ldflags --libs)
+
+
+
+
+
+

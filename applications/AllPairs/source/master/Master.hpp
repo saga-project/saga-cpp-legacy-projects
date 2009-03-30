@@ -64,30 +64,29 @@ namespace AllPairs {
             std::string message(std::string(AP_MASTER_EXE_NAME));
             message = message + " " + AP_MASTER_VERSION_FULL + " - creating new session.";
             log->write(message, LOGLEVEL_INFO);
-            
             // register with the db
             // Just connect to see if it exists
-            registerWithDB_();
+            //registerWithDB_();
             
             // create a new session
             // create all necessary directories
-            createNewSession_();
+            //createNewSession_();
             
             // add binaries to the Orchestrator DB
             // Take binaries from config file and
             // advertise them
-            populateBinariesList_();
+            //populateBinariesList_();
             
             // Take input files from xml and 
             // then advertise the chunk on the DB
-            populateFileList_();
+            //populateFileList_();
 
             // Launch all worker command on all
             // host defined in config file
-            spawnAgents_();
+            //spawnAgents_();
 
             // Start comparing fragments to bases
-            runComparisons_();
+            //runComparisons_();
 
             //Tell all workers to quit
             sendQuit_();

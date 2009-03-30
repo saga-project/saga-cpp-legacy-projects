@@ -37,11 +37,10 @@ namespace AllPairs {
          sessionUUID_ = (vm["session"].as<std::string>());
          database_    = (vm["database"].as<std::string>());
          logURL_      = (vm["log"].as<std::string>());
-         location_    = (vm["hostname"].as<std::string>());
          uuid_        = saga::uuid().string();
          logWriter_   = new LogWriter(AP_WORKER_EXE_NAME, logURL_);
          state_       = WORKER_STATE_IDLE;
-         lastFinishedChunk_ = -1;
+         lastFinishedFragment_ = std::string("");
       }
       /*********************************************************
        * starts the worker and begins all neccessary setup with*
@@ -76,21 +75,16 @@ namespace AllPairs {
       std::string sessionUUID_;
       std::string logURL_;
       std::string database_;
-      std::string state_;
-      std::string location_;
-      int lastFinishedChunk_;
-      saga::url   serverURL_;
    
       time_t startupTime_;
       SystemInfo systemInfo_;
    
+      std::string state_;
+      std::string lastFinishedFragment_;
       saga::advert::directory workerDir_;
-      saga::advert::directory resultDir_;
       saga::advert::directory sessionBaseDir_;
       std::vector<saga::url>  baseFiles_;
       AllPairs::LogWriter*    logWriter_;
-      RunComparison*          runComparison_;
-      assignmentChunk         chunk_;
       Derived& derived() {
          return static_cast<Derived&>(*this);
       }
@@ -104,7 +98,7 @@ namespace AllPairs {
          time_t timestamp;
          time(&timestamp);
          try {
-             workerDir_.set_attribute(ATTR_LAST_SEEN, 
+           workerDir_.set_attribute(ATTR_LAST_SEEN, 
              boost::lexical_cast<std::string>(timestamp)); 
          }
          catch(saga::exception const & e) {
@@ -137,12 +131,12 @@ namespace AllPairs {
          std::string advertKey(database_ + "//" + sessionUUID_ + "/");
          try {
             sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-            advertKey  += ADVERT_DIR_WORKERS;
-            advertKey  += "/" + uuid_ + "/";
-            workerDir_ = saga::advert::directory(advertKey, mode | saga::advert::Create);
-            resultDir_ = workerDir_.open_dir(saga::url(ADVERT_DIR_RESULTS), mode | saga::advert::Create);
+            //(2a) create a directory for this agent
+            advertKey += ADVERT_DIR_WORKERS;
+            advertKey += "/" + uuid_ + "/";
+            workerDir_    = saga::advert::directory(advertKey, mode | saga::advert::Create);
 
-            // add some initial system information
+            //(3) add some initial system information
             workerDir_.set_attribute(ATTR_CPU_COUNT, 
               boost::lexical_cast<std::string>(systemInfo_.hardwareInfo().nCpu));
             workerDir_.set_attribute(ATTR_CPU_TYPE, 
@@ -157,27 +151,31 @@ namespace AllPairs {
             workerDir_.set_attribute(ATTR_HOST_TYPE,     systemInfo_.hostType());
             workerDir_.set_attribute(ATTR_HOST_LOAD_AVG, systemInfo_.hostLoadAverage());
 
-            // set the last seen (keep alive) timestamp
+            //(4) set the last seen (keep alive) timestamp
             time_t timestamp; time(&timestamp);
             workerDir_.set_attribute(ATTR_LAST_SEEN, boost::lexical_cast<std::string>(timestamp));
 
             saga::advert::entry server_name(sessionBaseDir_.open(ADVERT_ENTRY_SERVER, mode));
-            serverURL_ = saga::url(server_name.retrieve_string());
-            std::cerr << "SERVER_URL = " << serverURL_.get_string() << std::endl;
+//            server_ = saga::stream::stream(saga::url("tcp://localhost:8000"));
 
             saga::advert::directory baseFilesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_BASE_FILES), saga::advert::ReadWrite));
             std::vector<saga::url> baseFilesAdv(baseFilesDir_.list());
             std::vector<saga::url>::iterator baseFilesAdvIT = baseFilesAdv.begin();
-
-            int counter = 0;
+            //Real code
             while(baseFilesAdvIT != baseFilesAdv.end())
             {
                saga::advert::entry adv(baseFilesDir_.open(*baseFilesAdvIT, saga::advert::ReadWrite));
                baseFiles_.push_back(saga::url(adv.retrieve_string()));
-               std::cerr << "Added file: " << baseFiles_[counter] << std::endl;
                baseFilesAdvIT++;
-               counter++;
             }
+            //Fake Code
+            /*for(int counter = 0; counter < 100; counter++)
+            {
+               baseFiles_.push_back(saga::url("file://localhost//home/michael/saga/saga-projects/applications/AllPairs/samples/bases/base-"+
+                                           boost::lexical_cast<std::string>(counter) + ".txt"));
+               std::cerr << "Added file: " << baseFiles_[counter] << std::endl;
+            }*/
+            //End fake code
          }
          catch(saga::exception const & e) {
             std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
@@ -190,29 +188,37 @@ namespace AllPairs {
        * discovered.                                           *
        * ******************************************************/
       void mainLoop() {
-         int mode = saga::advert::ReadWrite;
+         int mode = saga::advert::ReadWrite | saga::advert::Create;
          while(1) {
             std::string command(getFrontendCommand_());
+            saga::url currentFragmentFile;
             // read command from orchestrator
             if(command == WORKER_COMMAND_COMPARE) {
                state_ = WORKER_STATE_COMPARING;
-               std::string resultString;
+               saga::advert::entry adv(workerDir_.open(saga::url("./fragmentFile"), saga::advert::ReadWrite));
+               currentFragmentFile = adv.retrieve_string();
+               RunComparison ComparisonHandler = RunComparison(workerDir_, baseFiles_, logWriter_);
+               saga::advert::directory resultsDir = sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_RESULTS), mode);
                double val;
-               while(runComparison_->hasAssignment()) {
-                  assignment asn(runComparison_->getAssignment());
-                  //TODO insert try catch, proper FAIL state handling
-                  val = compare(asn.first, asn.second);
-                  resultString += "(" + asn.first;
-                  resultString += + ", " + asn.second + "): ";
-                  resultString += boost::lexical_cast<std::string>(val) + '\n';
+               double min = -1;
+               while(ComparisonHandler.hasComparisons()) {
+                  saga::url temp_base(ComparisonHandler.getComparisons());
+                  val = compare(currentFragmentFile, temp_base);
+                  if(val < min || min == -1) {
+                     min = val;
+                  }
+                  std::cout << "Compared " << std::endl << "   " << currentFragmentFile.get_string() << " to" <<  std::endl << "   " << temp_base << std::endl << std::endl;
                }
-               std::cout << resultString;
-               lastFinishedChunk_ = runComparison_->getChunkID();
-               saga::url result(std::string("result-") + boost::lexical_cast<std::string>(lastFinishedChunk_));
-               delete runComparison_;
-               saga::advert::entry fin_adv(resultDir_.open(result, mode | saga::advert::Create));
+               std::string::size_type p = currentFragmentFile.get_string().find_last_of('/');
+               std::string result_entry(currentFragmentFile.get_string());
+               if (p != std::string::npos) {
+                  result_entry = currentFragmentFile.get_string().substr(p);
+               }
+               result_entry = std::string(".") + result_entry;
+               saga::advert::entry fin_adv(resultsDir.open(saga::url(result_entry), mode));
                //finished, now write data to advert
-               fin_adv.store_string(boost::lexical_cast<std::string>(resultString));
+               fin_adv.store_string(boost::lexical_cast<std::string>(min));
+               lastFinishedFragment_ = std::string(currentFragmentFile.get_string());
                state_ = WORKER_STATE_DONE;
             }
             else if(command == WORKER_COMMAND_QUIT) {
@@ -235,7 +241,7 @@ namespace AllPairs {
          std::string commandString;
          char buff[255];
          try {
-            saga::stream::stream server_(serverURL_);
+            saga::stream::stream server_(saga::stream::stream(saga::url("tcp://localhost:8000")));
             server_.connect();
             memset(buff, 0, 255);
             saga::ssize_t read_bytes = server_.read(saga::buffer(buff));
@@ -246,35 +252,26 @@ namespace AllPairs {
                memset(buff, 0, 255);
                read_bytes = server_.read(saga::buffer(buff));
                question = std::string(buff, read_bytes);
-               if(question == MASTER_QUESTION_LOCATION) {
-                  server_.write(saga::buffer(location_, location_.size()));
+               if(question == MASTER_QUESTION_ADVERT)
+               {
+                  std::string advert(workerDir_.get_url().get_string());
+                  server_.write(saga::buffer(advert, advert.size()));
                   memset(buff, 0, 255);
                   read_bytes = server_.read(saga::buffer(buff));
                   question = std::string(buff, read_bytes);
-                  if(question == MASTER_QUESTION_ADVERT)
+                  if(question == WORKER_COMMAND_COMPARE)
                   {
-                     std::string advert(workerDir_.get_url().get_string());
-                     server_.write(saga::buffer(advert, advert.size()));
-                     memset(buff, 0, 255);
-                     read_bytes = server_.read(saga::buffer(buff));
-                     question = std::string(buff, read_bytes);
-                     if(question == WORKER_COMMAND_COMPARE)
-                     {
-                        server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
-                        runComparison_ = new RunComparison(server_, logWriter_);
-                        chunk_ = runComparison_->getAssignmentChunk();
-                        return WORKER_COMMAND_COMPARE;
-                     }
-                     else if(question == WORKER_COMMAND_QUIT)
-                     {
-                        return WORKER_COMMAND_QUIT;
-                     }
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     return WORKER_COMMAND_COMPARE;
+                  }
+                  else if(question == WORKER_COMMAND_QUIT)
+                  {
+                     return WORKER_COMMAND_QUIT;
                   }
                }
                else if(question == MASTER_QUESTION_RESULT)
                {
-                  std::string lastString = boost::lexical_cast<std::string>(lastFinishedChunk_);
-                  server_.write(saga::buffer(lastString, lastString.size()));
+                  server_.write(saga::buffer(lastFinishedFragment_, lastFinishedFragment_.size()));
                   memset(buff, 0, 255);
                   read_bytes = server_.read(saga::buffer(buff));
                   question = std::string(buff, read_bytes);
