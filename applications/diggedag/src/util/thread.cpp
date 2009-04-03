@@ -28,11 +28,11 @@ namespace diggedag
     // copy c'tor
     //
     // NOTE that this is a shallow copy: all actions on the new instance work on
-    // the same thread from the source instance.  However, this implementation
+    // the same thread created in the source instance.  However, this implementation
     // does NOT ensure that the state of the two instances does not diverge
     // after copy.  In particular, only one instance will ever be able to call
     // thread_wait() successfully.  The user is responsible to ensure that all
-    // state changing actions occure on one copy of this class instance.
+    // state changing actions occure on *one* copy of this class instance.
     //
     // We provide this copy c'tor to allow this class to be used in standard
     // containers.

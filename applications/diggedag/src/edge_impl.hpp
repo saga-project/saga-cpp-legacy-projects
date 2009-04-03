@@ -7,7 +7,6 @@
 #include <saga/saga.hpp>
 
 #include "enum.hpp"
-#include "util/uid.hpp"
 #include "util/thread.hpp"
 
 namespace diggedag
@@ -16,10 +15,7 @@ namespace diggedag
 
   namespace impl
   {
-    // FIXME: think about async
-    // FIXME: think about data renaming
-    class edge : public diggedag::util::uid, 
-                 public diggedag::util::thread
+    class edge : public diggedag::util::thread
     {
       private:
         saga::url       src_;   // src location of data

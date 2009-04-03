@@ -3,27 +3,26 @@
 #include "util/thread.hpp"
 
 class test : public diggedag::util::thread
-           , public diggedag::util::uid
 {
   public:
     test (void) 
     {
-      std::cout << "1 thread id for " << uid_get () << " is " << ::pthread_self () << std::endl;
+      std::cout << "1 thread id is " << ::pthread_self () << std::endl;
     }
     
     ~test (void) 
     {
-      std::cout << "4 thread id for " << uid_get () << " is " << ::pthread_self () << std::endl;
+      std::cout << "4 thread id is " << ::pthread_self () << std::endl;
     }
 
     void thread_work (void)
     {
-      std::cout << "2 thread id for " << uid_get () << " is " << ::pthread_self () << std::endl;
+      std::cout << "2 thread id is " << ::pthread_self () << std::endl;
     }
 
     void thread_cb (void)
     {
-      std::cout << "3 thread id for " << uid_get () << " is " << ::pthread_self () << std::endl;
+      std::cout << "3 thread id is " << ::pthread_self () << std::endl;
     }
 };
 
@@ -33,7 +32,7 @@ int main (int argc, char** argv)
 {
   try
   {
-    if ( 0 )
+    if ( 1 )
     {
       test t1;
       test t2;

@@ -11,7 +11,7 @@ namespace diggedag
 {
   namespace impl
   {
-    class dag : public diggedag::util::uid
+    class dag 
     {
       private:
         std::vector <diggedag::node> nodes_; // dag nodes
@@ -22,12 +22,12 @@ namespace diggedag
         dag (void) 
           : state_ (Pending)
         { 
-          // std::cout << "create dag  " << uid_get () << std::endl;
+          // std::cout << "create dag " << std::endl;
         }
 
         ~dag (void) 
         {
-          // std::cout << "delete dag  " << uid_get () << std::endl;
+          // std::cout << "delete dag " << std::endl;
         }
 
         void add_node (diggedag::node & n)
@@ -89,7 +89,9 @@ namespace diggedag
           state_ = Ready;
           return state_;
         }
+    
     };
+
   } // namespace impl
 
 } // namespace diggedag

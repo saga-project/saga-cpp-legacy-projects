@@ -12,8 +12,7 @@ namespace diggedag
 {
   namespace impl
   {
-    class node : public diggedag::util::uid, 
-                 public diggedag::util::thread
+    class node : public diggedag::util::thread
     {
       private:
         saga::job::description       jd_;       // node application to run
@@ -31,12 +30,12 @@ namespace diggedag
           , name_  (name)
           , state_ (diggedag::Pending)
         {
-          // std::cout << "create node " << uid_get () << std::endl;
+          // std::cout << "create node " << std::endl;
         }
 
         ~node (void)
         {
-          // std::cout << "delete node " << uid_get () << std::endl;
+          // std::cout << "delete node " << std::endl;
         }
 
         void add_edge_in (const diggedag::edge & e)
@@ -111,7 +110,7 @@ namespace diggedag
           // FIXME: for now, we simply fake work by sleeping for some amount of
           // time
           ::sleep (1);
-          // std::cout << " ===== after  sleep " << uid_get () << std::endl;
+          // std::cout << " ===== after  sleep " << std::endl;
 
 
           // get data staged out, e.g. fire outgoing edges

@@ -7,7 +7,7 @@
 
 namespace diggedag
 {
-  class dag : public util::uid
+  class dag 
   {
     private:
       util::shared_ptr <impl::dag> impl_;

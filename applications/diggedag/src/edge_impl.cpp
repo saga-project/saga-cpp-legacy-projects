@@ -12,12 +12,12 @@ namespace diggedag
       , src_   (src)
       , tgt_   (tgt)
     {
-      // std::cout << "create edge " << uid_get () << std::endl;
+      // std::cout << "create edge " << std::endl;
     }
 
     edge::~edge (void)
     {
-      // std::cout << "delete edge " << uid_get () << std::endl;
+      // std::cout << "delete edge " << std::endl;
     }
 
     void edge::add_node (const diggedag::node & n)
