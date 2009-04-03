@@ -45,7 +45,7 @@ int main (int argc, char** argv)
       t2.thread_wait ();
     }
 
-    if ( 1 )
+    if ( 0 )
     {
       diggedag::dag d;
 
@@ -63,18 +63,18 @@ int main (int argc, char** argv)
 
       d.fire ();
 
-      std::cout << "running..." << std::endl;
+      std::cout << "dag    running..." << std::endl;
       // wait til the dag had a chance to finish
       while ( diggedag::Running == d.get_state () )
       {
         ::sleep (1);
-        std::cout << "waiting..." << std::endl;
+        std::cout << "dag    waiting..." << std::endl;
       }
 
       ::sleep (3);
     }
 
-    if ( 0 )
+    if ( 1 )
     {
       diggedag::dag d1;
 
@@ -122,7 +122,7 @@ int main (int argc, char** argv)
       // wait til the dag had a chance to finish
       while ( diggedag::Running == d2.get_state () )
       {
-        std::cout << "waiting..." << std::endl;
+        std::cout << "dag    waiting..." << std::endl;
         ::sleep (1);
       }
     }

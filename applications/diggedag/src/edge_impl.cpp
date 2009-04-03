@@ -60,7 +60,7 @@ namespace diggedag
     {
       // FIXME: perform the real remote saga file copy from src to tgt here
       // (if both are not identical)
-      ::sleep (10);
+      ::sleep (1);
 
       {
         // signal that we are done

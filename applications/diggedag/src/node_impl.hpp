@@ -67,10 +67,16 @@ namespace diggedag
           // check if all input data are ready
           for ( unsigned int i = 0; i < edge_in_.size (); i++ )
           {
-            if ( Pending == edge_in_[i].get_state () )
+            if ( Ready != edge_in_[i].get_state () )
             {
-              std::cout << "fire   node " << name_ << " canceled" << std::endl;
+              std::cout << "       node " << name_ << " canceled" << std::endl;
               return;
+            }
+            else
+            {
+              std::cout << "       node " << name_ << " : edge " 
+                << edge_in_[i].get_src () << "->" 
+                << edge_in_[i].get_tgt () << " is ready" << std::endl;
             }
           }
 
@@ -104,8 +110,8 @@ namespace diggedag
 
           // FIXME: for now, we simply fake work by sleeping for some amount of
           // time
-          ::sleep (5);
-          std::cout << " ===== after  sleep " << uid_get () << std::endl;
+          ::sleep (1);
+          // std::cout << " ===== after  sleep " << uid_get () << std::endl;
 
 
           // get data staged out, e.g. fire outgoing edges
@@ -131,6 +137,15 @@ namespace diggedag
 
         diggedag::state get_state (void)
         {
+          // check if all input data are ready
+          for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+          {
+            if ( Ready != edge_in_[i].get_state () )
+            {
+              return Incomplete;
+            }
+          }
+
           return state_;
         }
     };

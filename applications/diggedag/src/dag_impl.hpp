@@ -43,6 +43,7 @@ namespace diggedag
           src.add_edge_out (e);
 
           // edge needs to know what node to fire after completion
+          tgt.add_edge_in  (e);
           e.add_node       (tgt);
         }
 
@@ -76,13 +77,13 @@ namespace diggedag
           {
             if ( Ready != nodes_[i].get_state () )
             {
-              std::cout << "node " << nodes_[i].get_name () << " is ! ready" << std::endl;
+              // std::cout << "node " << nodes_[i].get_name () << " is ! ready" << std::endl;
               state_ = Running;
               return state_;
             }
           }
 
-          std::cout << "nodes are ready" << std::endl;
+          // std::cout << "nodes are ready" << std::endl;
 
           // if all are Ready, the DAG is done.
           state_ = Ready;

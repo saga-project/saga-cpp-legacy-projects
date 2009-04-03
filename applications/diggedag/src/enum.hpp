@@ -8,9 +8,10 @@ namespace diggedag
 {
   enum state
   {
-    Pending = 0,
-    Running = 1, 
-    Ready   = 2
+    Incomplete = 0,
+    Pending    = 1,
+    Running    = 2, 
+    Ready      = 3
   };
 
   std::string state_to_string (state s);
