@@ -54,6 +54,7 @@ resource_monitor::resource_monitor()
 std::string resource_monitor::get_attribute (std::string key) const
 {
 //	attr
+  
 }
 
 void resource_monitor::set_attribute (std::string key, std::string value)
