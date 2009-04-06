@@ -21,6 +21,8 @@
 
 namespace po = boost::program_options;
 
+bool test_mode = false;
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
@@ -67,6 +69,11 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
       << std::endl << std::endl << desc_cmdline << std::endl;
       return false;
     }
+    
+    if(vm.count("testmode")) {
+      std::cout << "Entering test mode" << std::endl;
+      test_mode = true;
+    }
   }
   catch (std::exception const& e) {
     std::cerr << std::endl << e.what() << std::endl 
@@ -90,7 +97,12 @@ int main( int argc, char** argv )
   
   // main application loop
   faust::agent faust_agent(endpoint, identifier);
-  faust_agent.run();
+  if(test_mode) {
+    faust_agent.run_tests();
+  }
+  else {
+    faust_agent.run();
+  }
   
   return 0;
 }

@@ -195,3 +195,12 @@ void agent::run(void)
     sleep(1);
   }
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+void agent::run_tests(void)
+{
+  query_system("/usr/bin/, faust::resource_description & rd, 
+               faust::resource_monitor & rm);
+}
+

@@ -27,6 +27,7 @@ namespace faust
     faust::detail::logwriter * log_;
     std::string endpoint_;
     std::string uuid_;
+
     
     saga::advert::directory advert_base_;
     saga::advert::entry status_;
@@ -41,7 +42,8 @@ namespace faust
     ~agent();
     
     void run(void);
-      
+    void run_tests(void);
+    
   };
   //
   //////////////////////////////////////////////////////////////////////////
