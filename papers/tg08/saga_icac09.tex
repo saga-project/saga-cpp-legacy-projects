@@ -605,7 +605,7 @@ programming interface to Grid functionality. By utilizing the
 advantages of proper programming abstractions, by integrating SAGA and
 Cactus and demonstrate the usefulness for Grid application development
 
-\up\up\up
+\up\up
 \subsection{Autonomic Resource Selection at Runtime Using Batch Queue
   Predictor}
 Batch Queue Predictor~\cite{bqp, bqp_url} (BQP) is a tool that is
@@ -705,6 +705,22 @@ catastrophic errors encountered when running large numbers of jobs
 such exceeding wall clock time, running out of diskspace (resubmit on
 a different machine) and of course node failure.
 
+\begin{figure}
+\begin{center}
+%\includegraphics[scale=0.34]{./figures/ApplicationArchitecture}
+%\includegraphics[scale=0.34]{./figures/kalmanfilterlayer.png}
+\includegraphics[scale=0.4]{./figures/Lazarus_01.jpeg}
+\end{center}
+\caption{Architecture of Lazarus -- a Framework for Developing
+  Autonomic Computational Science Applications. The ``Resource
+  Mapping'' Strategy input is provided by BQP. Given the size of the
+  individual tasks, the ``Historial Benchmarks'' help determine the
+  size of the sub-jobs. (For the specific workload chosen, it so
+  happens that the size of each sub-job is 16).}\up\up\up \up\up\up
+\label{fig:application_architecture}
+\end{figure}
+
+
 \subsection{Autonomy}
 The Lazarus framework contains several aspects of autonomy: it has
 self-configuration (deployment on resources), self optimization (using
@@ -786,7 +802,6 @@ performed. This error-checking mechanism attempts to re-submit the
 failed jobs, and if met with failure a second time, the stage is
 halted to allow for user intervention.
 
-
 \subsection{Fault Tolerance}
 Given the many, different failure modes, it is only natural to support
 fault-tolerance so as to provide Lazarus with a built in self-healing
@@ -804,28 +819,18 @@ termination, all output is checked again. Upon success, Lazarus
 proceeds to the next stage.
 
 
+\subsection{Simulation Components}
 \begin{figure}
 \begin{center}
-%\includegraphics[scale=0.34]{./figures/ApplicationArchitecture}
-%\includegraphics[scale=0.34]{./figures/kalmanfilterlayer.png}
-\includegraphics[scale=0.4]{./figures/Lazarus_01.jpeg}
-\end{center}
-\caption{Architecture of Lazarus -- a Framework for Developing
-  Autonomic Computational Science Applications. The ``Resource
-  Mapping'' Strategy input is provided by BQP. Given the size of the
-  individual tasks, the ``Historial Benchmarks'' help determine the
-  size of the sub-jobs. (For the specific workload chosen, it so
-  happens that the size of each sub-job is 16).}\up\up\up \up\up\up
-\label{fig:application_architecture}
+\includegraphics[scale=0.5]{./figures/Simulations.png}
+\caption{Schematic diagram illustrating the different simulation components, and and that the application (a Cactus-based Reservoir
+  simulation) utilizes Lazarus.}\label{fig:application_usage} 
+\up\up\up \up\up\up \up\up\up \up\up\up \up\up\up \up\up\up 
+\end{center} 
 \end{figure}
+ 
+The simulation component in the Lazarus framework is based on the Cactus framework and employs two Cactus builds: a reservoir simulation build that uses the reservoir simulation thorns and an EnKF build that uses the EnKF thorns. Both builds use the Cactus IO thorns and functionality from third party libraries such as PETSc~\cite{PETSc} and HDF5 (see Figure ~\ref{fig:application_usage}).
 
-\subsection{Simulation Components}
-The simulation component in the Lazarus framework is based on the
-Cactus framework and employs two Cactus builds: a reservoir simulation
-build that uses the reservoir simulation thorns and an EnKF build that
-uses the EnKF thorns. Both builds use the Cactus IO thorns and
-functionality from third party libraries such as PETSc~\cite{PETSc}
-and HDF5.
 
 The reservoir simulation thorn solves a system of non-linear partial
 differential equations for compressible multiphase flow through porous
@@ -837,35 +842,18 @@ implementation we chose a multiphase, multicomponent fluid flow
 through porous media simulator.
 %and implemented it in the Simulation thorn in Cactus.
 
-The EnKF thorn is a recently implemented ensemble Kalman filter
-thorn that requires, as input, the state vectors of the various
-ensembles at regular intervals. These are effectively the checkpoint
-files of the simulations (forecasts) in addition to their production
-data. Once the EnKF has all the state vectors from all the ensembles, 
-it performs the analysis and a new set of ensembles with now modified
-state vectors need to be run. This process is repeated until there
-are is no more historical data to match against. Typically,
-production history is averaged on a monthly basis, sometimes on weekly
-or even daily basis, over a period of a few years. For this reason,
-a typical production run will involve hundreds of stages.
+The EnKF thorn is an ensemble Kalman filter thorn that requires, as input, the state vectors of the various ensembles at regular intervals. These are effectively the checkpoint files of the simulations (forecasts) in addition to their production data. Once the EnKF has all the state vectors from all the ensembles, it performs the analysis and a new set of ensembles with now modified state vectors need to be run. This process is repeated until there are is no more historical data to match against. Typically, production history is averaged on a monthly basis, sometimes on weekly or even daily basis, over a period of a few years. For this reason, a typical production run will involve hundreds of stages.
 
 \subsection{Lazarus Components}
 
-As mentioned earlier, Lazarus in its current incarnation is a set of
-small, fast, portable and modular interfaces. These interfaces make
-extensive use of high level abstractions such as BigJob and SAGA.
+The various components that are utilized by Lazarus are shown in Fig.~\ref{fig:application_architecture}.  As mentioned earlier, Lazarus in its current incarnation is a set of small, fast, portable and modular interfaces. These interfaces make extensive use of high level abstractions such as BigJob and SAGA.
 
-For runs distributed across several machines, Lazarus needs to gather
-the data from all different machines into one location where the EnKF
-can run. To that end, the python bindings to the SAGA file adaptors
-are used to copy files over to the resource where the EnKF will run,
-and copied back to all other resources after the analysis stage. Since
-we are not working with a large scale production history matching run,
-the amount of data transfer involved does not impose any noticeable
-performance issues. Naturally, investigating the optimal location for
-placing the EnKF application as discussed in \cite{escience07} will
-find its way into the next iteration of Lazarus implementation and of
-course FAUST.
+\begin{figure} 
+  \begin{center} \includegraphics[scale=0.5]{./figures/Architecture.png} \caption{Block diagrams outlining how Lazarus relates to other SAGA components. Lazarus is built on several components: BigJob abstraction, SAGA file adaptor, BQP python wrappers and fault tolerance functions that are based on SAGA python bindings, BQP command line tools and HDF5 tools respectively.}\label{fig:application_architecture}
+\end{center}
+\end{figure}
+ 
+For runs distributed across several machines, Lazarus needs to gather the data from all different machines into one location where the EnKF can run. To that end, the python bindings to the SAGA file adaptors are used to copy files over to the resource where the EnKF will run, and copied back to all other resources after the analysis stage. Since we are not working with a large scale production history matching run, the amount of data transfer involved does not impose any noticeable performance issues. Naturally, investigating the optimal location for placing the EnKF application, based upon network performance and real-time performance as discussed in Ref.~\cite{escience07}, will find its way into the next iteration of Lazarus implementation (and of course FAUST).
 
 Lazarus also uses non-SAGA components, such as a small python wrapper
 for BQP. This allows Lazarus, namely its resource management function,
@@ -876,32 +864,10 @@ system and HDF5 calls to make sure the files exist, are not sized
 zero, and a user specified command using HDF5 tools (h5ls) returns
 successfully.
 
-Lazarus is distinct to other well established and successful
-approaches such as Accord for autonomic computing, in that it is not a
-component-based programming system but it is a framework already
-composed of multiple components. Importantly the programming system
-that is used is SAGA -- both for the application and the Lazarus
-framework.
+Lazarus is distinct to other well established and successful approaches such as Accord~\cite{accord} for autonomic computing, in that it is not a component-based programming system but it is a framework already composed of multiple components. Importantly the programming system that is used is SAGA -- both for the application and the Lazarus framework.
 
 \up\up\up
 \subsection{Control Flow}
-
-\begin{figure} \begin{center} \includegraphics[scale=0.5]{./figures/Architecture.png} \caption{Block diagrams outlining the basic structure of Lazarus. Lazarus is built on several components: BigJob abstraction, SAGA file adaptor, BQP python wrappers and fault tolerance functions that are based on SAGA python bindings, BQP command line tools and HDF5 tools respectively }
-\end{center}
-
-\label{fig:application_architecture}
-\end{figure}
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{./figures/Simulations.png}
-\caption{Schematic diagram illustrating how a Cactus-based Reservoir
-  simulation utilize Lazarus.}\up\up\up \up\up\up \up\up\up \up\up\up \up\up\up \up\up\up
-\end{center}
-\label{fig:application_usage}
-\end{figure}
-
 
 \begin{figure}
 \begin{center}
@@ -1036,7 +1002,7 @@ $t_{run}$.
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.25]{./figures/Figure7.png}
+\includegraphics[scale=0.28]{./figures/Figure7.png}
 \end{center}
 \caption{\tc for different configurations.  From Left to Right: (i)
   Ranger, (ii) Ranger when using BQP, (iii) Queen Bee, (iii) Ranger
