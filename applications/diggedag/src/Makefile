@@ -8,10 +8,11 @@ SAGA_SUBDIRS     = util
 
 SAGA_SRC         = $(wildcard *.cpp)
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
-SAGA_ADD_BIN_OBJ+= util/thread.o
+SAGA_ADD_BIN_OBJ+= util/thread.o util/split.o
 SAGA_BIN         = diggedag
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 SAGA_CPPINCS    += -I./
+SAGA_CXXFLAGS   += -Wall -ansi -std=c++98
 

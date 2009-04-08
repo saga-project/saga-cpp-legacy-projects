@@ -27,7 +27,9 @@ class test : public diggedag::util::thread
 };
 
 
-
+// FIXME: we should use thread callbacks for state changes, everywhere.  Just
+// for the beauty of it ;-)
+//
 int main (int argc, char** argv)
 {
   try
@@ -48,12 +50,12 @@ int main (int argc, char** argv)
     {
       diggedag::dag d;
 
-      diggedag::node::description nd;
+      diggedag::node_description nd;
 
-      diggedag::node n1 (nd, "1");
-      diggedag::node n2 (nd, "2");
+      diggedag::node n1 ("1", nd);
+      diggedag::node n2 ("2", nd);
 
-      diggedag::edge e1 ("s1", "t2");
+      diggedag::edge e1 ("/tmp/s1", "/tmp/t2");
 
       d.add_node (n1);
       d.add_node (n2);
@@ -77,23 +79,53 @@ int main (int argc, char** argv)
     {
       diggedag::dag d1;
 
-      diggedag::node::description nd;
-      diggedag::node n1 (nd, "1");
-      diggedag::node n2 (nd, "2");
-      diggedag::node n3 (nd, "3");
-      diggedag::node n4 (nd, "4");
-      diggedag::node n5 (nd, "5");
-      diggedag::node n6 (nd, "6");
-      diggedag::node n7 (nd, "7");
+      diggedag::node n1   ("node_1", "/tmp/node_job.sh node_1"
+                                     " -i /tmp/in_1"
+                                     " -o /tmp/out_1_a"
+                                     " -o /tmp/out_1_b");
 
-      diggedag::edge e1 ("s1", "t4");
-      diggedag::edge e2 ("s1", "t3");
-      diggedag::edge e3 ("s2", "t3");
-      diggedag::edge e4 ("s2", "t3");
-      diggedag::edge e5 ("s2", "t5");
-      diggedag::edge e6 ("s3", "t4");
-      diggedag::edge e7 ("s3", "t4");
-      diggedag::edge e8 ("s6", "t7");
+      diggedag::node n2   ("node_2", "/tmp/node_job.sh node_2"
+                                     " -i /tmp/in_2" 
+                                     " -o /tmp/out_2_a"
+                                     " -o /tmp/out_2_b"
+                                     " -o /tmp/out_2_c");
+
+      diggedag::node n3   ("node_3", "/tmp/node_job.sh node_3"
+                                     " -i /tmp/in_3_a" 
+                                     " -i /tmp/in_3_b" 
+                                     " -i /tmp/in_3_c" 
+                                     " -o /tmp/out_3_a"
+                                     " -o /tmp/out_3_b"
+                                     " -o /tmp/out_3_c");
+
+      diggedag::node n4   ("node_4", "/tmp/node_job.sh node_4"
+                                     " -i /tmp/in_4_a" 
+                                     " -i /tmp/in_4_b" 
+                                     " -i /tmp/in_4_c" 
+                                     " -o /tmp/out_4");
+
+      diggedag::node n5   ("node_5", "/tmp/node_job.sh node_5"
+                                     " -i /tmp/in_5_a" 
+                                     " -i /tmp/in_5_b" 
+                                     " -o /tmp/out_5");
+
+      diggedag::node n6   ("node_6", "/tmp/node_job.sh node_6"
+                                     " -i /tmp/in_6" 
+                                     " -o /tmp/out_6_a");
+
+      diggedag::node n7   ("node_7", "/tmp/node_job.sh node_7"
+                                     " -i /tmp/in_7_a" 
+                                     " -o /tmp/out_7");
+
+      diggedag::edge e1 ("/tmp/out_1_a", "/tmp/in_4_a");
+      diggedag::edge e2 ("/tmp/out_1_b", "/tmp/in_3_a");
+      diggedag::edge e3 ("/tmp/out_2_a", "/tmp/in_3_b");
+      diggedag::edge e4 ("/tmp/out_2_b", "/tmp/in_3_c");
+      diggedag::edge e5 ("/tmp/out_2_c", "/tmp/in_5_b");
+      diggedag::edge e6 ("/tmp/out_3_a", "/tmp/in_4_b");
+      diggedag::edge e7 ("/tmp/out_3_b", "/tmp/in_4_c");
+      diggedag::edge e8 ("/tmp/out_3_c", "/tmp/in_5_a");
+      diggedag::edge e9 ("/tmp/out_6_a", "/tmp/in_7_a");
 
       d1.add_node (n1);
       d1.add_node (n2);
@@ -101,7 +133,6 @@ int main (int argc, char** argv)
       d1.add_node (n4);
       d1.add_node (n5);
       d1.add_node (n6);
-      d1.add_node (n7);
 
       d1.add_edge (e1, n1, n4);
       d1.add_edge (e2, n1, n3);
@@ -110,7 +141,8 @@ int main (int argc, char** argv)
       d1.add_edge (e5, n2, n5);
       d1.add_edge (e6, n3, n4);
       d1.add_edge (e7, n3, n4);
-      d1.add_edge (e8, n6, n7);
+      d1.add_edge (e8, n3, n5);
+      d1.add_edge (e9, n6, n7);
 
       diggedag::dag d2 = d1;
 

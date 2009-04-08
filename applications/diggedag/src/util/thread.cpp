@@ -43,12 +43,13 @@ namespace diggedag
       this->mtx_           = t.mtx_;
     }
 
-    // the d'tor cancels the thread forcefully, to avoid dangling threads which
-    // bever finish.  Thus, if one wants to have long running threads, then one
-    // needs to keep this instance alive for that amount of time.
+    // Note that the d'tor does not wait for the thread to finish.  Thus, we
+    // expect the worker thread to continue as long as the application is alive
+    // FIXME: a clean thread_cancel should be used.  pthread_kill has trouble if
+    // the thread is owning locks.  boost.thread.kill only works for often
+    // irrelevant cancelation points.
     thread::~thread () 
     {
-      thread_cancel ();
     }
 
 
@@ -113,21 +114,6 @@ namespace diggedag
       pthread_join (thread_, NULL);
     }
 
-
-    // thread_cancel() cn be called by the inheriting classes, or by other 
-    // consumers, to cancel the (running) thread.  If thread is not in Running 
-    // state, this call does nothing.
-    void thread::thread_cancel (void)
-    {
-      scoped_lock l (mtx_);
-
-      if ( thread_state_ != ThreadRunning )
-        return;
-
-      pthread_cancel (thread_);
-
-      thread_state_ = ThreadCancelled;
-    }
 
     // allow the consumer to do some explicit locking
     void thread::thread_lock (void)

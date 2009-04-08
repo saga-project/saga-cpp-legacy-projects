@@ -8,9 +8,9 @@ namespace diggedag
   {
     edge::edge (const saga::url & src, 
                 const saga::url & tgt) 
-      : state_ (Pending)
-      , src_   (src)
+      : src_   (src)
       , tgt_   (tgt)
+      , state_ (Pending)
     {
       // std::cout << "create edge " << std::endl;
     }
@@ -60,7 +60,15 @@ namespace diggedag
     {
       // FIXME: perform the real remote saga file copy from src to tgt here
       // (if both are not identical)
-      ::sleep (1);
+      {
+        ::sleep (1);
+
+        saga::url u_src (src_);
+        saga::url u_tgt (tgt_);
+
+        saga::filesystem::file f_src (u_src);
+        f_src.copy (u_tgt, saga::filesystem::Overwrite);
+      }
 
       {
         // signal that we are done

@@ -7,6 +7,9 @@
 #include <saga/saga.hpp>
 
 #include "edge.hpp"
+#include "node_description.hpp"
+#include "util/split.hpp"
+
 
 namespace diggedag
 {
@@ -15,7 +18,7 @@ namespace diggedag
     class node : public diggedag::util::thread
     {
       private:
-        saga::job::description       jd_;       // node application to run
+        diggedag::node_description   nd_;       // node application to run
 
         std::vector <diggedag::edge> edge_in_;  // input  data
         std::vector <diggedag::edge> edge_out_; // output data
@@ -24,13 +27,32 @@ namespace diggedag
         diggedag::state              state_;    // instance state
 
       public:
-        node (const saga::job::description & jd, 
-              const std::string name)
-          : jd_    (jd)
+        node (const std::string                  name, 
+              const diggedag::node_description & nd) 
+              
+          : nd_    (nd)
           , name_  (name)
           , state_ (diggedag::Pending)
         {
           // std::cout << "create node " << std::endl;
+        }
+
+        node (const std::string name, 
+              const std::string cmd)
+              
+          : name_  (name)
+          , state_ (diggedag::Pending)
+        {
+          // std::cout << "create node " << std::endl;
+          
+          // parse cmd into node description
+          std::vector <std::string> elems = diggedag::split (cmd);
+
+          nd_.set_attribute ("Executable", elems[0]);
+          
+          elems.erase (elems.begin ());
+
+          nd_.set_vector_attribute ("Arguments", elems);
         }
 
         ~node (void)
@@ -68,7 +90,9 @@ namespace diggedag
           {
             if ( Ready != edge_in_[i].get_state () )
             {
-              std::cout << "       node " << name_ << " canceled" << std::endl;
+              std::cout << "       node " << name_ << " : edge " 
+                << edge_in_[i].get_src () << "->" 
+                << edge_in_[i].get_tgt () << " is not ready - cancel fire" << std::endl;
               return;
             }
             else
@@ -109,7 +133,40 @@ namespace diggedag
 
           // FIXME: for now, we simply fake work by sleeping for some amount of
           // time
-          ::sleep (1);
+          {
+            try {
+              saga::job::description jd (nd_);
+
+              saga::job::service js;
+              saga::job::job j = js.create_job (jd);
+
+              j.run  ();
+              j.wait ();
+
+              if ( j.get_state () != saga::job::Done )
+              {
+                std::cout << "       node " << name_ 
+                          << " : job failed - cancel" << std::endl;
+
+                state_ = Failed;
+                return;
+              }
+              else
+              {
+                std::cout << "       node " << name_ 
+                  << " : job done" << std::endl;
+              }
+            }
+            catch ( const saga::exception & e )
+            {
+              std::cout << "       node " << name_ 
+                        << " : job execution threw exception - cancel\n" <<
+                        e.what () << std::endl;
+
+              state_ = Failed;
+              return;
+            }
+          }
           // std::cout << " ===== after  sleep " << std::endl;
 
 
@@ -129,7 +186,7 @@ namespace diggedag
           thread_unlock ();
         }
 
-        std::string node::get_name (void) const
+        std::string get_name (void) const
         {
           return name_;
         }

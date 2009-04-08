@@ -48,7 +48,7 @@ namespace diggedag
       public:
         thread (void);
         thread (const thread & t);
-       ~thread (void);
+        virtual ~thread (void);
 
 
       private:
@@ -71,7 +71,6 @@ namespace diggedag
         // public thread management calls
         void          thread_run         (void);
         void          thread_wait        (void);
-        void          thread_cancel      (void);
         void          thread_lock        (void);
         void          thread_unlock      (void);
         scoped_lock   thread_scoped_lock (void);

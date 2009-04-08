@@ -13,6 +13,8 @@ namespace diggedag
       return "Running";
     else if ( s == Ready )
       return "Ready";
+    else if ( s == Failed )
+      return "Failed";
     else
       return "Unknown";
   }

@@ -11,7 +11,8 @@ namespace diggedag
     Incomplete = 0,
     Pending    = 1,
     Running    = 2, 
-    Ready      = 3
+    Ready      = 3,
+    Failed     = 4
   };
 
   std::string state_to_string (state s);
