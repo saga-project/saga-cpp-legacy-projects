@@ -968,26 +968,7 @@ queuing policies and autonomic approaches such as those provided by
 Lazarus can ``probe'' the queuing system to understand the non-public
 policy and adapt accordingly.
 
-A major issue in our use of the BQP is the choice of confidence and
-quantile numbers. A detailed analysis is required to better assess our
-choice of confidence and quantile numbers, and the impact these choices
-make on overall performance.
-
-Since we collected data from BQP without knowing it's granularity, we
-tend to oversample the data. For example, if we sample BQP for jobs
-lasting 1, 2 and 4 hours we might miss better configurations that last
-3 hours. To avoid this incomplete and therefore misrepresentative
-view, we mine BQP data at a fine grained level. This obviously leads
-to a small (order of minutes) computational cost and is an issue that
-needs to be addressed. Unfortunately, BQP results do not typically
-vary at the level of granularity below 30 minutes.  The granularity
-issue in BQP has two components: first, it is not known what the
-refresh rate of the BQP data is (that is, how often it is collected
-and analyzed; also this is not user-definable).  Secondly, the BQP's
-sensitivity is also quite coarse-grained. For example, changing the
-confidence level from 0.75 to 0.90 or to 0.60 typically did not
-lead to different outputs.  Whether this is due to finite
-time-sampling or other reasons is difficult to discern.
+Also, since we collected data without knowing BQP's granularity, we tend to oversample the data. For example, if we sample BQP for jobs lasting 1, 2 and 4 hours we might miss better configurations that last 3 hours. To avoid this incomplete and therefore misrepresentative view, we mine BQP data at a fine grained level. This obviously leads to a small (order of minutes) computational cost and is an issue that needs to be addressed. Unfortunately, BQP results do not typically vary at the level of granularity below 30 minutes.  The granularity issue in BQP has two components: first, it is not known what the refresh rate of the BQP data is (that is, how often it is collected and analyzed; also this is not user-definable).  Secondly, the BQP's sensitivity is also quite coarse-grained. For example, changing the confidence level from 0.75 to 0.90 or 0.60 typically did not lead to different outputs.  Whether this is due to finite time-sampling or other reasons is difficult to discern.  Another issue in using  BQP is the choice of confidence and quantile numbers. A detailed analysis is required to better assess our choice of confidence and quantile numbers, and the impact these choices make on overall performance.
 
 Perhaps the biggest challenge we encountered, and undoubtedly the most
 frustrating, were the failures that went undetected, and lead us to
@@ -1023,24 +1004,7 @@ composed of multiple components. Importantly the programming system
 that is used is SAGA -- both for the application and the Lazarus
 framework.
 
-In addition to a clear performance advantage, the use of abstractions
-based framework provides support for advanced features that would be
-highly non-trivial to support otherwise.  For example, normally we
-define a workload and/or a computational requirement and then map that
-to the best available resource at that instant.  This is usually
-referred to as {\it forward scheduling}.  An alternative approach
-would be to first find the best resource and/or resource
-configuration, and then adapt the workload to the best
-resource/resource configuration; such an approach is often referred to
-as {\it reverse scheduling}.  Thanks to a combination of BQP-based
-autonomics (which enables the determination of the optimal resource)
-and the BigJob abstraction (which by decoupling the details of
-the computational resources available from the computational
-requirement provides the dynamic agility to utilize whatever resource
-are made available), Lazarus is capable of supporting reverse
-scheduling. This is a fine example of how the right abstractions can
-be combined to support application-level requirements and provide
-advanced functionality that might not be easily available otherwise.
+In addition to a clear performance advantage, the use of abstractions based framework provides support for advanced features that would be highly non-trivial to support otherwise.  For example, normally we define a workload and/or a computational requirement and then map that to the best available resource at that instant.  This is usually referred to as {\it forward scheduling}.  An alternative approach would be to first find the best resource and/or resource configuration, and then adapt the workload to the best resource/resource configuration; such an approach is often referred to as {\it reverse scheduling}.  Thanks to a combination of BQP-based autonomics (which enables the determination of the optimal resource) and the BigJob abstraction (which by decoupling the details of the computational resources available from the computational requirement provides the dynamic agility to utilize whatever resource are made available), Lazarus is capable of supporting reverse scheduling. This is a fine example of how the right abstractions can be combined to support application-level requirements and provide advanced functionality that might not be easily available otherwise.  An interesting corollary of the previous statement, is the demonstrations of an unexpected convergence in issues and methods between HPC grids and high-throughput grids.
 
 We have captured the primary run-time characteristics of an
 interesting and common class of applications and implemented a
@@ -1067,21 +1031,7 @@ approach to support high-level formulation of strategy and its
 translation into specific mechanism and parameters to support
 autonomic behaviour.
 
-And although Lazarus in its current incarnation can support multiple applications and application classes, there is scope for additional developments and increased sophisticated capabilities within Lazarus.  Specifically, Lazarus will evolve to utilize more sophisticated Information Services -- but this is currently restricted by the lack of widespread availability of information services. Last but not least, Lazarus in of itself will utilize other specialized frameworks -- such as FAUST~\cite{faust_url}.
-
-One of the planned extensions to Lazarus is the addition of adaptive
-queuing systems. As it stands, Lazarus will submit optimized BigJobs
-to resources and wait for them to get through the queue, run and
-terminate.  When the number and size of subjobs is sufficiently large
-and the resources considerably congested, there will be a considerable
-amount of time during which larger, less congested resources may have
-come online or better BQP BigJob configurations have emerged; all of
-this while the original BigJobs have not started to run. A BigJob can
-then be scheduled on a new resource or another BigJob of different
-size and duration can be submitted to the queue and existing BigJobs
-that are in the queue can be deleted.  Such adaptive scheduling will
-be implemented in the Lazarus framework using the upcoming FAUST
-framework.
+And although Lazarus in its current incarnation can support multiple applications and application classes, there is scope for additional developments and increased sophisticated capabilities within Lazarus.  Specifically, Lazarus will evolve to utilize more sophisticated Information Services -- but this is currently restricted by the lack of widespread availability of information services. Last but not least, Lazarus in of itself will utilize other specialized frameworks (e.g. FAUST~\cite{faust_url}).  Another planned extensions to Lazarus is the addition of adaptive queuing systems. As it stands, Lazarus will submit optimized BigJobs to resources and wait for them to get through the queue, run and terminate.  When the number and size of subjobs is sufficiently large and the resources considerably congested, there will be a considerable amount of time during which larger, less congested resources may have come online or better BQP BigJob configurations have emerged; all of this while the original BigJobs have not started to run. A BigJob can then be scheduled on a new resource or another BigJob of different size and duration can be submitted to the queue and existing BigJobs that are in the queue can be deleted.  Such adaptive scheduling will be implemented in the Lazarus framework using the upcoming FAUST framework.
 
 One of the proposed features of the FAUST framework that we will be making extensive use of is the heartbeat monitor. This consists of a client-side service that is called from the actual simulation and a server-side service that is called from Lazarus. The client-side service, effectively a library function, will update the SAGA advert database entry of that particular simulation with vital information and statistics, including the current iteration, the amount of memory allocated, the convergence rate and so on. The current design allows for the application to register a key-value pair of entries to the advert database, making it flexible and application independent. The server-side service is called by Lazarus to check on the status of running simulations, make sure the allocated memory is within tolerance, the convergence rate is acceptable and the time elapsed between iterations does not vary greatly between simulations. 
 
@@ -1108,6 +1058,7 @@ One of the proposed features of the FAUST framework that we will be making exten
 % technology that can effectively utilize this new infrastructure. We
 % believe SAGA is an important first step in this direction.
 
+\up \up
 \section{Acknowledgments}
 We acknowledge Andre Luckow, who should have been an author on this
 paper, had it not been for bureaucratic hurdles.  SJ acknowledges UK
@@ -1123,7 +1074,8 @@ not have been possible without the efforts and support of other
 members of the SAGA team. The authors acknowledge the Texas Advanced
 Computing Center (TACC) at The University of Texas at Austin, LONI, CCT and
 NCSA for providing HPC resources that have contributed to the research
-results reported within this paper.
+results reported within this paper. We thank the anonymous referee for pointing out a
+convergence in issues and methods between HPC grids and high-throughput grids.
 
 \bibliographystyle{IEEEtran} 
 \bibliography{saga_tg08}
