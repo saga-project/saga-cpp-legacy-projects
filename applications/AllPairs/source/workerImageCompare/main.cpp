@@ -25,8 +25,8 @@
 	   // If I can get imagemagick to read directly from the url, I woudn't waste
 	   // the time in copying files...  
 	   
-	   char *testName = tempnam(NULL, "testImg.");
-	   char *baseName = tempnam(NULL, "baseImg.");
+	   char *testName = mkdtemp("testImg.");
+	   char *baseName = mkdtemp("baseImg.");
 	   
 	   std::cerr << "About to open files (" << testName << ", " << baseName << ")" << std::endl;
 	   
