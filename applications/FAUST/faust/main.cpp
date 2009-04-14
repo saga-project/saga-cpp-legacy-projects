@@ -17,14 +17,19 @@
 
 int main (int argc, char* argv[])
 {
-  std::vector<std::string> dir_ids, dir_path, dir_dev_space_total_cmd, env;
+  std::vector<std::string> dir_ids, dir_path, dir_dev_space_total_cmd, env,
+  dir_dev_space_used_cmd, dir_quota_total_cmd, dir_quota_used_cmd;
   
   faust::resource_description queenbee_rd, localhost_rd;
   
   // A directory description
-  //dir_ids.push_back("my_work_dir");
-  //dir_path.push_back("/home/");
-  //dir_dev_space_total_cmd.push_back("df . | awk '/\// {print $2}'");
+  dir_ids.push_back("my_work_dir");
+  dir_path.push_back("/home/");
+  dir_dev_space_total_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $2}'` * 512/1024/1024\" | bc");
+  dir_dev_space_used_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $3}'` * 512/1024/1024\" | bc");
+  
+  dir_quota_total_cmd.push_back("echo \"0\"");
+  dir_quota_used_cmd.push_back("echo \"0\"");
   
   // Another directory description
   //dir_ids.push_back("my_home_dir");
@@ -44,18 +49,26 @@ int main (int argc, char* argv[])
   localhost_rd.set_attribute("faust_agent_binary_path", "/Users/oweidner/Work/FAUST/build/Debug/faust_agent");	
   localhost_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.1/");
 	
-  while(1) {
+  localhost_rd.set_vector_attribute("dir_id", dir_ids);
+  localhost_rd.set_vector_attribute("dir_path", dir_path);
+  localhost_rd.set_vector_attribute("dir_dev_space_total_cmd", dir_dev_space_total_cmd);
+  localhost_rd.set_vector_attribute("dir_dev_space_used_cmd", dir_dev_space_used_cmd);
+  
+  localhost_rd.set_vector_attribute("dir_quota_total_cmd", dir_quota_total_cmd);
+  localhost_rd.set_vector_attribute("dir_quota_used_cmd", dir_quota_used_cmd);
+  
+  //while(1) {
 		try {
 			
 			std::cout << std::endl;
 			
-			faust::resource queenbee  (queenbee_rd, true);
+			//faust::resource queenbee  (queenbee_rd, true);
 			faust::resource localhost (localhost_rd, true);
 				
 			sleep(1);
 			
 			// test re-connect
-			faust::resource localhost_reconnect(localhost_rd.get_attribute("identifier"));
+			/*faust::resource localhost_reconnect(localhost_rd.get_attribute("identifier"));
 			faust::resource_description localhost_rd_rec = localhost_reconnect.get_description();
 			std::vector<std::string> attr_ = localhost_rd_rec.list_attributes();
 			std::vector<std::string>::const_iterator it;
@@ -74,13 +87,13 @@ int main (int argc, char* argv[])
 			}
 			
 			queenbee_reconnect.set_persistent(false);
-			localhost_reconnect.set_persistent(false);
+			localhost_reconnect.set_persistent(false);*/
 		}
 		catch(faust::exception const & e) {
 			std::cout << "FAUST EXCEPTION: " << e.what() << std::endl;
 			exit(1);
 		}
 		
-  }
+  //}
   return 0;
 }

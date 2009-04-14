@@ -1,5 +1,5 @@
 /*
- *  query_system.hpp 
+ *  system_monitor.hpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *  Website: https://macpro01.cct.lsu.edu/trac/faust
  *
@@ -33,9 +33,11 @@ namespace faust
     };
     
     
-  class query_system   
+  class system_monitor   
     {
     private:
+      faust::detail::logwriter * log_;
+      
       std::string sp_;
       faust::resource_description rd_;
       faust::resource_monitor rm_;
@@ -53,10 +55,10 @@ namespace faust
       void query_queues();
       
     public:
-      query_system(std::string shell_path, faust::resource_description & rd, 
-                   faust::resource_monitor & rm);
-      
-      ~query_system();
+      system_monitor() {}
+      system_monitor(std::string shell_path, faust::resource_description & rd, 
+                     faust::resource_monitor & rm, std::string uuid, faust::detail::logwriter * lw);
+      ~system_monitor() {}
       
       void query(query_type=QueryAll); // executes a query on all rd attributes
     };

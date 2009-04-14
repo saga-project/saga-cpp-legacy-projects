@@ -15,36 +15,44 @@
 
 #include <saga/saga.hpp>
 #include <faust/impl/logwriter.hpp>
+#include <agent/system_monitor.hpp>
 #include <faust/faust/resource_description.hpp>
+#include <faust/faust/resource_monitor.hpp>
 
 namespace faust
 {
   //////////////////////////////////////////////////////////////////////////
   //
-  class agent   
+  namespace agent
+  {
+  class app   
   {
   private:
     faust::detail::logwriter * log_;
     std::string endpoint_;
     std::string uuid_;
-
     
     saga::advert::directory advert_base_;
     saga::advert::entry status_;
     saga::advert::entry cmd_;
     
+    system_monitor m_;
     faust::resource_description description_;
+    faust::resource_monitor     monitor_;
     
     std::string recv_command();
     
+    void query();
+    
   public:
-    agent(std::string endpoint, std::string uuid);
-    ~agent();
+    app(std::string endpoint, std::string uuid);
+    ~app();
     
     void run(void);
     void run_tests(void);
     
   };
+  }
   //
   //////////////////////////////////////////////////////////////////////////
 }

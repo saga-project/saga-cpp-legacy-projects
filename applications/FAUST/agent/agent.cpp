@@ -14,7 +14,7 @@
 #include <agent/agent.hpp>
 
 using namespace saga;
-using namespace faust;
+using namespace faust::agent;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -43,14 +43,16 @@ namespace {
 
 //////////////////////////////////////////////////////////////////////////
 //
-agent::agent(std::string endpoint, std::string uuid)
+app::app(std::string endpoint, std::string uuid)
 : endpoint_(endpoint), uuid_(uuid)
 {
-  faust::resource_description rd;
+
   
   // Initialize the logwriter
   std::string identifier("faust_agent ("+uuid_+")"); std::string msg("");
   log_ = new detail::logwriter(identifier, std::cout);
+ 
+  m_ = system_monitor("", description_, monitor_, uuid_, log_);
   
   msg = "Connecting to advert endpoint " + endpoint_;
   try {
@@ -87,6 +89,7 @@ agent::agent(std::string endpoint, std::string uuid)
         continue;
       
       if(advert_base_.attribute_is_vector(*it)) {
+        std::cout << "VA: " << (*it) << std::endl;
         description_.set_vector_attribute((*it), advert_base_.get_vector_attribute((*it)));
       }
       else {
@@ -105,7 +108,7 @@ agent::agent(std::string endpoint, std::string uuid)
 
 //////////////////////////////////////////////////////////////////////////
 //
-agent::~agent()
+app::~app()
 {
   std::string msg("Disconnecting from advert endpoint " + endpoint_);
   try {    
@@ -126,7 +129,17 @@ agent::~agent()
 
 //////////////////////////////////////////////////////////////////////////
 //
-std::string agent::recv_command()
+void app::query()
+{
+  while(1) {
+  m_.query();
+    sleep(1);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+std::string app::recv_command()
 {
   std::string cmd_str("");
   std::string msg("Checking if a new command is waiting");
@@ -136,7 +149,7 @@ std::string agent::recv_command()
       std::vector<std::string> tokens;
       ::tokenize(cmd_str, tokens, ":");
       
-      if(tokens.at(0) == "ACK") { std::cout << "ACK" << std::endl;
+      if(tokens.at(0) == "ACK") { 
         msg += ". NO";
         log_->write(msg, LOGLEVEL_INFO);
       }
@@ -186,21 +199,20 @@ std::string agent::recv_command()
 
 //////////////////////////////////////////////////////////////////////////
 //
-void agent::run(void)
+void app::run(void)
 {
   while(1) {
     std::string cmd = recv_command();
     if(cmd == uuid_+":TERMINATE") return;
-    if(cmd == uuid_+":PING") std::cout << "PONG!" << std::endl;
+    else if(cmd == uuid_+":UPDATE") { query(); }
+    
     sleep(1);
   }
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-void agent::run_tests(void)
+void app::run_tests(void)
 {
-  query_system("/usr/bin/, faust::resource_description & rd, 
-               faust::resource_monitor & rm);
 }
 

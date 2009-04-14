@@ -88,7 +88,6 @@ resource_id_(resource_id)
     throw faust::exception (msg, faust::NoSuccess);
   }
   
-  
   // RETRIEVE ATTRIBUTES OF THE ADVERT ENTRY AND GENERATE RESOURCE_DESCRIPTION
   //
   msg = "Retrieving resource description for " + resource_id_;

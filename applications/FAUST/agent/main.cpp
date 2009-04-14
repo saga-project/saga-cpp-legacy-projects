@@ -87,6 +87,8 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
 //
 int main( int argc, char** argv )
 {
+  using namespace faust::agent;
+  
   po::variables_map vm;
   if (!parse_commandline(argc, argv, vm))
     return -2;
@@ -96,7 +98,7 @@ int main( int argc, char** argv )
   std::string identifier (vm["identifier"].as<std::string>());
   
   // main application loop
-  faust::agent faust_agent(endpoint, identifier);
+  app faust_agent(endpoint, identifier);
   if(test_mode) {
     faust_agent.run_tests();
   }
