@@ -4,12 +4,14 @@
 \usepackage{graphicx}
 \usepackage{url}
 \usepackage{color}
+\usepackage{hyperref}
 
 \newcommand{\projectnamefull}{\textit{Programming Abstractions for
     Large-Scale Distributed Applications} }
 
 \newcommand{\upup}{\vspace*{-0.5em}}
 \newcommand{\up}{\vspace*{-0.25em}}
+\newcommand{\sagamapreduce }{SAGA-MapReduce }
 
 \newcommand{\I}[1]{\textit{#1}}
 \newcommand{\B}[1]{\textbf{#1}}
@@ -31,15 +33,17 @@
 \newcommand{\yes}{$\bullet$}
 
 \newif\ifdraft
-
+\drafttrue
 \ifdraft
  \newcommand{\amnote}[1]{   {\textcolor{magenta} { ***Andre:    #1 }}}
  \newcommand{\hknote}[1]{ {\textcolor{blue}    { ***Hartmut:   #1 }}}
  \newcommand{\jhanote}[1]{  {\textcolor{red}     { ***Shantenu: #1 }}}
+ \newcommand{\note}[1]{ {\textcolor{red}    { #1 }}}
 \else
  \newcommand{\amnote}[1]{}
  \newcommand{\jhanote}[1]{}
  \newcommand{\hknote}[1]{}
+ \newcommand{\note}[1]{}
 \fi
 
 % \markboth{Shantenu Jha et al}{Abstractions for Large-Scale Distributed
@@ -47,35 +51,31 @@
 
 \begin{document}
 
-\title{SAGA..} 
-% \author{Shantenu Jha$^{1,2,3}$, Murray Cole$^{4}$, Daniel
-%   S. Katz$^{1,5}$, \\ Manish Parashar$^{6,7}$, Omer Rana$^{8}$,
-%   Jon Weissman$^{9}$ \\[1em]
-%   \small $^1$Center for Computation \& Technology,
-%   Louisiana State University\\[-0.3em]
-%   \small $^2$Department of Computer Science,
-%   Louisiana State University\\[-0.3em]
-%   \small $^3$e-Science Institute,   University of Edinburgh\\[-0.3em]
-%   \small $^4$School of Informatics, University of Edinburgh\\[-0.3em]
-%   \small $^5$Department of Electrical and Computer Engineering,
-%   Louisiana State University\\[-0.3em]
-%   \small $^6$NSF Center for Autonomic Computing, Rutgers University\\[-0.3em]
-%   \small $^7$Department of  Electrical and Computer Engineering, Rutgers University\\[-0.3em]
-%   \small $^8$Department of Computer Science,
-%   Cardiff University\\[-0.3em]
-%   \small $^9$Department of Computer Science,
-%   University of Minnesota\\[-0.3em]
-% }
-
-% \category{J.2}{Computer Applications}{Physical Sciences and Engineering}
-% \terms{A.1 INTRODUCTORY AND SURVEY, C.2.4 DISTRIBUTED SYSTEMS, D.1.3 Concurrent Programming}
-% \keywords{Distributed Applications, Distributed Systems,
-%   CyberInfrastructure, Abstractions, Scientific Applications}
-%\tableofcontents
+\title{SAGA: A Programming System for Distributed Applications} 
 
 \begin{abstract}
-  And this is how we changed the world..
+  
+  In the strictest sense, SAGA is the {\it Simple API for Grid Applications}. 
+  For the purposes of this paper, we will refer to SAGA -- as a Programming
+  System for Distributed Applications, and which consists of an implementation
+  of the API, an core library and a set of adaptors which bind specific
+  functionality to a specific middleware....
+  As we will show, it is designed for a broad range of applications
+  that aim to use a variety of distributed systems.
+   
+  A large number of applications motivated the design of SAGA.
+  Admittedly these were applications that were
+  first generation grid/distributed application, in that
+  they were simple generalizations of legacy parallel/cluster
+  applications.
+  Notwithstanding, SAGA has been utilized to develop distributed
+  applications that are significantly more complex and sophisticated
+  (SAGA Montge, EnKF, Distributed Adaptive Replica Exchange)
+  Software designed close to application, yet with sufficient
+  degree of abstraction so as to enable broad uptake and general
+  usability....
 
+  Now say something about the implementation..
 \end{abstract}
 
 \maketitle
@@ -147,6 +147,7 @@ paper + MCS Paper is Interface Paper, this is a mege of the two using
 a consistent vocabulary along with applications.
 
 \end{verbatim}
+\newpage
 
 \section{Introduction} {\bf SJ}
 
@@ -156,13 +157,97 @@ researchers and developers working at the intersection of computer
 science, computational science and a diverse range of application
 areas. 
 
-\section{Applications}\label{application}{\bf SJ with HK and AM}
+\note{Discuss briefly power of standards. Mention that C++ (our) Implementation follow standards. As does JAVA (Vrije). JSAGA; mostly independent complete implementations, but also implementations of convenience}
 
-Introduce applications -- motivate SAGA
+\section{Applications}\label{application}{\bf SJ }
+
+\note{Introduce applications -- motivate SAGA}
+\note{In this section we discuss a design philosophy of distributed applications}
+
+\subsubsection*{Power of Abstractions}
+
+\noindent \I{Distributed Applications and Tools:} SAGA has been used
+to develop system-level tools and applications from each of the three
+different types as shown in Fig 1(b): (i) Applications where local
+functionality is swapped for distributed functionality, or where
+distributed execution models are provided; (ii) Applications that are
+developed using well known patterns, for example MapReduce, which in
+turn is implemented using SAGA; (iii) Finally, applications based upon
+frameworks that are developed using SAGA. These frameworks support
+specific application-level and system functionality and can be used by
+multiple applications (hence a framework and not an application-level
+solution).  In this proposal we will discuss the latter two
+categories; numerous examples of the first type can be found in papers
+at ~\cite{saga_papers}.
+
+\begin{figure}[!ht]
+  \up\up
+  \begin{center}
+      \includegraphics[width=0.45\textwidth]{../figures/stci_saga_figures-1.pdf}
+      \includegraphics[width=0.48\textwidth]{../figures/stci_saga_figures.pdf}
+  \end{center}
+  \up\up\up\up\up\up\up\up\up\up
+  \caption{\small (Left) Layered schematic of the different components
+    of the SAGA landscape.  Middleware specific adaptors applications
+    developed using SAGA make applications developed using SAGA grid
+    portable. (Right) Schematic showing the different ways in which
+    SAGA can be used to develop distributed applications}
+ \label{sagalayer}
+\end{figure}
+
+\subsubsection*{Compute Intensive Applications}
+
+We have developed a framework that facilitates the use of multiple heterogeneous resources for a range of applications. The framework is general purpose, and can overcome traditional limitations and can be used over a wide-range of production environments~\cite{saga_royalsoc}. Interestingly the same framework can be used to marshall different types and sizes of resources. For example the BigJob abstraction that we first employed on 512-node Linux Clusters can also be used for monolithic usage on Ranger -- a 64000 node machine~\cite{saga_iccs09}. It is also important to mention that the SAGA-based framework discussed is extensible, in that it can be used to implement many other application in addition to those it was initially developed for (molecular modelling). The power to do so arises from simple design decisions: the use of standard interfaces on the one hand, and the use of appropriate programmatic and system-level abstractions.
+
+In a series of recent publications (Ref~\cite{saga_escience08}\cite{saga_royalsoc}\cite{saga_iccs09}), we have have shown how SAGA can be gradually used to develop the capabilities required by applications to effectively utilize heterogeneous infrastructure. As a first step, we demonstrated that the time-to-solution (i.e. wall-clock time) goes down as the number of resources increases.  It is important to note that for the end-user, the complexity of using one resource is the same as using multiple resources.  Initially in Ref~\cite{saga_escience08} we demonstrated a simple but effective coupling of SAGA with a molecular modelling package (NAMD) to create the basic infrastructure to establish the capability to utilize multiple distributed resources and a concomitant reduced time-to-solution.  Interestingly, this was possible in spite of the primitive infrastructure employed. In the second publication~\cite{saga_royalsoc} (three months later) we showed how we used SAGA to develop ``system-level'' abstractions (bigjob, manyjob) to enhance scalability and flexibility in resource utilization (and thus overcoming a specific performance bottleneck); the same system-level abstractions also eased application deployment and run-time management somewhat.  Finally, in Ref~\cite{saga_iccs09} (after a further two months) we showed how a framework that implements the abstractions when developed for one application was utilized by another application (Petroleum Engineering Application), and in general how it could be utilized for a large-class of applications (multiple loosely-coupled components).  In addition to distributed resources, the framework was shown to increase throughput and decrease time-to-solution on a single large machine (a 64,000 core machine at TACC) -- compared to the situation when the system-level abstractions were not used.  This incremental, modular but relatively speedy development provides testimony to the power of application and system-level abstractions and a general-purpose programming system that can support their development.
+
+\note{Talk about Distributed Autonomic Applications..}
+
+\subsubsection*{Data Intensive Applications for Grids and Clouds:}
+MapReduce has emerged as a very successful and popular data-parallel
+programming model. However, the question arises as to whether
+MapReduce and other programming models for data-intensive computing
+are viable independent of the underlying infrastructure?  What are the
+limitations of the data-parallel programming model? To address these
+questions, as well as to validate the abstractions that the SAGA
+interface supports, we established in Ref~\cite{saga_ccgrid09}, that
+the SAGA programming system provides a standard interface, that can
+support simple, yet powerful programming models for data-intensive
+applications.  Specifically, we implemented a simple data parallel
+programming task (MapReduce) using SAGA; this involved the parallel
+execution of simple, embarrassingly parallel data-analysis tasks.  We
+demonstrated that the SAGA-based implementation is infrastructure
+independent, whilst still providing control over the deployment,
+distribution and run-time decomposition. We have written adaptors to
+HDFS and to BigTable, thus providing the ability to use SAGA-based
+MapReduce framework in native infrastructure as well.  We are now
+developing applications (Genome Sequencing) that have not
+traditionally been written using MapReduce, and are understanding
+their performance.  This is an illustrative example of the kind of
+empirical testing that is made possible using SAGA: one can build
+infrastructure independent frameworks upon which applications can be
+developed, tested and then improved upon. The ability to experiment
+with the development of distributed applications and gain empirical
+understanding of what works -- from infrastructure, to abstractions,
+to specific optimizations, has been noticeable by its absence. SAGA
+provides the ability to do so in a general purpose, extensible way --
+possibly for the first time.
+
+Although Clouds are a nascent infrastructure, there is a ground swell
+of interest to adapt these emerging powerful infrastructure for
+large-scale scientific applications. Inevitably, and as with any
+emerging technology, the unified concept of a Cloud will evolve into
+different flavors and implementations, with distinct underlying system
+interfaces, semantics and infrastructure. 
+
+% For example, the operating % environment of Amazon's Cloud (EC2) is very different from that of % Google's Cloud. Specifically for the latter, there already exist % multiple implementations of Google's Bigtable, such as HyberTable, % Cassandra and HBase. There is bound to be a continued proliferation of % such Cloud based infrastructure; this is reminiscent of the plethora % of Grid middleware distributions.  
+
+A fundamental question at the heart of all these important considerations, is the question of how scientific applications can be developed so as to utilize as broad a range of distributed systems as possible, but with the flexibility and performance that large-scale scientific applications demand.  Having established the effectiveness of SAGA in Ref.~\cite{saga_ccgrid09}, the focus of Ref.~\cite{saga_interop09} was to use SAGA-based MapReduce as an exemplar to establish the interoperability aspects of the SAGA programming system.  Specifically, it demonstrated that \sagamapreduce is usable on traditional (Grids) and emerging (Clouds) distributed infrastructure {\it concurrently and cooperatively towards a solution of the same problem instance}.  It established how to use the {\it same} implementation of \sagamapreduce to solve the same instance of the word counting problem, by using different worker distributions over Clouds and Grid systems, and thereby also test for interoperability between different flavors of Clouds as well as between Clouds and Grids.
+
 
 \section{An Overview of SAGA} {\bf AM}
 
-or {\it SAGA in a Nutshell}
+{\it SAGA in a Nutshell}
 
 \section{Design of the API} {\bf AM}
 
@@ -170,16 +255,16 @@ or {\it SAGA in a Nutshell}
 
 \subsection{Design Philosophy}
 
-A lot of the contact will be similar to the OOPSLA paper, however, we
+\note{A lot of the contact will be similar to the OOPSLA paper, however, we
 will have to consistently i) make connections with ``principles of
 distributed computing'', ii) make connections with our ``design
 decisions'' and (not just objectives), express the tradeoffs and iii)
-challenges..
+challenges..}
 
-Also discuss PIMPL..  and explain why (critical) it is required
+\note{Also discuss PIMPL..  and explain why (critical) it is required
 for these (distributed) systems.. (hide implementation details - extensibility,
 lightweight facade objects - well integrated with host language,
-easy injection of engines functionality)
+easy injection of engines functionality)}
 
 \subsection{SAGA Engine}
 
@@ -255,10 +340,29 @@ Show how SAGA helps the problems outlined in Section\ref{application}
  
 The Kind of Applications that can be developed..
 
+\section{RoadMap} \note{SJ, AM, HK}
+
+\subsection*{Roadmap from an implementation point of view}
+\begin{itemize}
+\item CPI for adaptors
+\item Upcoming package extension
+\item Frameworks/patterns/
+\item Other extensions and generalizations
+\end{itemize}
+
+\subsection*{Roadmap from a standardization point of view}
+
+\begin{itemize}
+\item Packages.. 
+\item Functionality
+\end{itemize}
+
+\subsection*{Roadmap: Ready for the Next-generation Distributed Application}
+
 \section*{Acknowledgements}
+
 
 %\bibliographystyle{unsrt}
 \bibliographystyle{phcpc}
 \bibliography{saga_cpc}
 \end{document}
-
