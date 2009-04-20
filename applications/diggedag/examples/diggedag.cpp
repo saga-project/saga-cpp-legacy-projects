@@ -52,13 +52,13 @@ int main (int argc, char** argv)
 
       diggedag::node_description nd;
 
-      diggedag::node n1 ("1", nd);
-      diggedag::node n2 ("2", nd);
+      diggedag::node n1 (nd);
+      diggedag::node n2 (nd);
 
       diggedag::edge e1 ("/tmp/s1", "/tmp/t2");
 
-      d.add_node (n1);
-      d.add_node (n2);
+      d.add_node ("1", n1);
+      d.add_node ("2", n2);
 
       d.add_edge (e1, n1, n2);
 
@@ -71,51 +71,49 @@ int main (int argc, char** argv)
         ::sleep (1);
         std::cout << "dag    waiting..." << std::endl;
       }
-
-      ::sleep (3);
     }
 
     if ( 1 )
     {
       diggedag::dag d1;
 
-      diggedag::node n1   ("node_1", "/tmp/node_job.sh node_1"
-                                     " -i /tmp/in_1"
-                                     " -o /tmp/out_1_a"
-                                     " -o /tmp/out_1_b");
+      diggedag::node n1   ("/tmp/node_job.sh node_1"
+                           " -i /tmp/in_1"
+                           " -o /tmp/out_1_a"
+                           " -o /tmp/out_1_b");
 
-      diggedag::node n2   ("node_2", "/tmp/node_job.sh node_2"
-                                     " -i /tmp/in_2" 
-                                     " -o /tmp/out_2_a"
-                                     " -o /tmp/out_2_b"
-                                     " -o /tmp/out_2_c");
+      diggedag::node n2   ("/tmp/node_job.sh node_2"
+                           " -i /tmp/in_2" 
+                           " -o /tmp/out_2_a"
+                           " -o /tmp/out_2_b"
+                           " -o /tmp/out_2_c");
 
-      diggedag::node n3   ("node_3", "/tmp/node_job.sh node_3"
-                                     " -i /tmp/in_3_a" 
-                                     " -i /tmp/in_3_b" 
-                                     " -i /tmp/in_3_c" 
-                                     " -o /tmp/out_3_a"
-                                     " -o /tmp/out_3_b"
-                                     " -o /tmp/out_3_c");
+      diggedag::node n3   ("/tmp/node_job.sh node_3"
+                           " -i /tmp/in_3_a" 
+                           " -i /tmp/in_3_b" 
+                           " -i /tmp/in_3_c" 
+                           " -o /tmp/out_3_a"
+                           " -o /tmp/out_3_b"
+                           " -o /tmp/out_3_c");
 
-      diggedag::node n4   ("node_4", "/tmp/node_job.sh node_4"
-                                     " -i /tmp/in_4_a" 
-                                     " -i /tmp/in_4_b" 
-                                     " -i /tmp/in_4_c" 
-                                     " -o /tmp/out_4");
+      diggedag::node n4   ("/tmp/node_job.sh node_4"
+                           " -i /tmp/in_4_a" 
+                           " -i /tmp/in_4_b" 
+                           " -i /tmp/in_4_c" 
+                           " -o /tmp/out_4");
 
-      diggedag::node n5   ("node_5", "/tmp/node_job.sh node_5"
-                                     " -i /tmp/in_5_a" 
-                                     " -i /tmp/in_5_b" 
-                                     " -o /tmp/out_5");
+      diggedag::node n5   ("/tmp/node_job.sh node_5"
+                           " -i /tmp/in_5_a" 
+                           " -i /tmp/in_5_b" 
+                           " -o /tmp/out_5");
 
-      diggedag::node n6   ("node_6", "/tmp/node_job.sh node_6"
-                                     " -i /tmp/in_6" 
-                                     " -o /tmp/out_6_a");
+      diggedag::node n6   ("/tmp/node_job.sh node_6"
+                           " -i /tmp/in_6" 
+                           " -o /tmp/out_6_a");
 
-      diggedag::node n7   ("node_7", "/tmp/node_job.sh node_7"
-                                     " -i /tmp/in_7_a" 
-                                     " -o /tmp/out_7");
+      diggedag::node n7   ("/tmp/node_job.sh node_7"
+                           " -i /tmp/in_7_a" 
+                           " -o /tmp/out_7");
 
       diggedag::edge e1 ("/tmp/out_1_a", "/tmp/in_4_a");
       diggedag::edge e2 ("/tmp/out_1_b", "/tmp/in_3_a");
@@ -127,12 +125,12 @@ int main (int argc, char** argv)
       diggedag::edge e8 ("/tmp/out_3_c", "/tmp/in_5_a");
       diggedag::edge e9 ("/tmp/out_6_a", "/tmp/in_7_a");
 
-      d1.add_node (n1);
-      d1.add_node (n2);
-      d1.add_node (n3);
-      d1.add_node (n4);
-      d1.add_node (n5);
-      d1.add_node (n6);
+      d1.add_node ("node_1", n1);
+      d1.add_node ("node_2", n2);
+      d1.add_node ("node_3", n3);
+      d1.add_node ("node_4", n4);
+      d1.add_node ("node_5", n5);
+      d1.add_node ("node_6", n6);
 
       d1.add_edge (e1, n1, n4);
       d1.add_edge (e2, n1, n3);
@@ -148,13 +146,11 @@ int main (int argc, char** argv)
 
       d2.fire ();
 
-      ::sleep (3);
-      
       // wait til the dag had a chance to finish
       while ( diggedag::Running == d2.get_state () )
       {
-        std::cout << "dag    waiting..." << std::endl;
         ::sleep (1);
+        std::cout << "dag    waiting..." << std::endl;
       }
     }
 

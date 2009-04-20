@@ -35,9 +35,14 @@ namespace diggedag
         impl_->fire ();
       }
 
-      void add_node (const node & n)
+      void add_src_node (const node & src)
       {
-        impl_->add_node (n);
+        impl_->add_src_node (src);
+      }
+
+      void add_tgt_node (const node & tgt)
+      {
+        impl_->add_tgt_node (tgt);
       }
 
       void erase_src (void)
@@ -63,6 +68,16 @@ namespace diggedag
       saga::url get_tgt (void) const
       {
         return impl_->get_tgt (); 
+      }
+
+      diggedag::node get_src_node (void) const 
+      {
+        return impl_->get_src_node ();
+      }
+      
+      diggedag::node get_tgt_node (void) const 
+      { 
+        return impl_->get_tgt_node ();
       }
   };
 

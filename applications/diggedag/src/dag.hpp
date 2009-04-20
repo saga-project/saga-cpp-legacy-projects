@@ -29,12 +29,24 @@ namespace diggedag
       {
       }
 
-      void add_node (node & n)
+      void add_node (const std::string & name, 
+                     node              & node)
       {
-        impl_->add_node (n);
+        node.set_name (name);
+        impl_->add_node (name, node);
       }
 
-      void add_edge (edge & e, node & src, node & tgt)
+      void add_edge (edge & e, 
+                     node & src, 
+                     node & tgt)
+      {
+        impl_->add_edge (e, src, tgt);
+      }
+
+      // add edges to named nodes
+      void add_edge (edge              & e, 
+                     const std::string & src, 
+                     const std::string & tgt)
       {
         impl_->add_edge (e, src, tgt);
       }
@@ -47,6 +59,11 @@ namespace diggedag
       state get_state (void)
       {
         return impl_->get_state ();
+      }
+
+      void dump (void)
+      {
+        impl_->dump ();
       }
 
   };

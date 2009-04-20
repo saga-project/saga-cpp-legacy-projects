@@ -6,11 +6,12 @@
 
 namespace diggedag
 {
-  std::vector <std::string> split (std::string line)
+  std::vector <std::string> split (std::string line, 
+                                   std::string delim)
   {
     std::vector <std::string> list;
     
-    boost::split (list, line, boost::is_any_of (" \t")); 
+    boost::split (list, line, boost::is_any_of (delim)); 
     
     return list;
   }

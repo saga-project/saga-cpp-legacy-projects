@@ -20,9 +20,14 @@ namespace diggedag
       // std::cout << "delete edge " << std::endl;
     }
 
-    void edge::add_node (const diggedag::node & n)
+    void edge::add_src_node (const diggedag::node & src)
     {
-      nodes_.push_back (n);
+      src_node_ = src;
+    }
+
+    void edge::add_tgt_node (const diggedag::node & tgt)
+    {
+      tgt_node_ = tgt;
     }
 
     // fire() checks if there is still work to do, and if so, starts
@@ -61,8 +66,6 @@ namespace diggedag
       // FIXME: perform the real remote saga file copy from src to tgt here
       // (if both are not identical)
       {
-        ::sleep (1);
-
         saga::url u_src (src_);
         saga::url u_tgt (tgt_);
 
@@ -76,16 +79,13 @@ namespace diggedag
         state_ = Ready;
       }
 
-      // if we are done copying data, we fire all dependend nodes
-      for ( unsigned int i = 0; i < nodes_.size (); i++ )
-      {
-        // this fire may succeed or not - that depends on the availability
-        // of _other_ input data to that node.  Only if all data are Ready,
-        // the fire will actually do anything.  Thus, only the last fire
-        // called on a node (i.e. called from its last Pending Edge) will
-        // result in a Running node.
-        nodes_[i].fire ();
-      }
+      // if we are done copying data, we fire the dependend node
+      // this fire may succeed or not - that depends on the availability
+      // of _other_ input data to that node.  Only if all data are Ready,
+      // the fire will actually do anything.  Thus, only the last fire
+      // called on a node (i.e. called from its last Pending Edge) will
+      // result in a Running node.
+      tgt_node_.fire ();
     }
 
 
