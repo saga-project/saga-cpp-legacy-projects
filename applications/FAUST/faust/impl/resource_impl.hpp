@@ -39,7 +39,7 @@ namespace faust
 			// advert service handles that are used quite frequently
       saga::advert::directory advert_base_;
       saga::advert::entry cmd_;
-      saga::advert::entry status_;
+      saga::advert::entry args_;
       
       std::string resource_id_;
 			std::string endpoint_str_;

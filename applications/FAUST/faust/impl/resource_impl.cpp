@@ -45,10 +45,8 @@ resource_id_(resource_id)
     
     // open "CMD" entry
     cmd_ = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
-    
-    // open "STATUS" entry
-    status_ = advert_base_.open(endpoint_str_+"STATUS", saga::advert::ReadWrite);
-    
+    args_ = advert_base_.open(endpoint_str_+"ARGS", saga::advert::ReadWrite);
+        
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
   }
@@ -237,9 +235,8 @@ init_from_id_(false), persistent_(persistent)
     cmd_ = advert_base_.open(endpoint_str_+"CMD", mode);
     cmd_.store_string(""); 
     
-    // create "STATUS" entry
-    status_ = advert_base_.open(endpoint_str_+"STATUS", mode);
-    status_.store_string("");  
+    args_ = advert_base_.open(endpoint_str_+"ARGS", mode);
+    args_.store_string(""); 
     
 		// create "AGENT_UUID" entry
 		saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", mode);
@@ -361,11 +358,13 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     
     if(result == std::string("ACK:"+agent_uuid_+":"+cmd)) {
       cmd_.store_string(""); // Reset CMD
+      args_.store_string(""); // Reset ARGS
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
     }
     else {
       cmd_.store_string(""); // Reset CMD
+      args_.store_string(""); // Reset ARGS
       std::stringstream out; out << timeout;
       msg += std::string(" FAILED (Timeout - "+out.str()+" sec) ") ;
       log_->write(msg, LOGLEVEL_ERROR);

@@ -58,12 +58,9 @@ app::app(std::string endpoint, std::string uuid)
   try {
     int mode = advert::ReadWrite;
     advert_base_ = advert::directory(endpoint_, mode);
-    
-    // write status bit to announce availablility 
-    status_ = advert_base_.open("STATUS", saga::advert::ReadWrite);
-    status_.store_string(uuid_+":CONNECTED");
-    
+        
     cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite);
+    args_ = advert_base_.open("ARGS", saga::advert::ReadWrite);
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -112,8 +109,6 @@ app::~app()
 {
   std::string msg("Disconnecting from advert endpoint " + endpoint_);
   try {    
-    status_.store_string(uuid_+":DISCONNECTED");
-    status_.close();
     advert_base_.close();
     
     msg += ". SUCCESS ";
@@ -139,12 +134,15 @@ void app::query()
 
 //////////////////////////////////////////////////////////////////////////
 //
-std::string app::recv_command()
+std::string app::recv_command(std::string & cmd, std::string & args)
 {
   std::string cmd_str("");
+  std::string args_str("");
   std::string msg("Checking if a new command is waiting");
   try {
     cmd_str = cmd_.retrieve_string();
+    args_str = args_.retrieve_string();
+    
     if(cmd_str.length() >= 1) {
       std::vector<std::string> tokens;
       ::tokenize(cmd_str, tokens, ":");
@@ -154,12 +152,12 @@ std::string app::recv_command()
         log_->write(msg, LOGLEVEL_INFO);
       }
       else {
-        msg += ". YES: CMD='"+cmd_str+"'";
+        msg += ". YES: CMD='"+cmd_str+"' ARGS='"+args_str+"'";
         log_->write(msg, LOGLEVEL_INFO);
         
         if(tokens.at(0) != uuid_) {
           // IF UUID doesn't match, I'm definitely a ZOMBIE agent and 
-          // I want to kill myself!
+          // I should really kill myself!
           msg = "UUID of received command "+cmd_str+" is INVALID. TERMINATING!";
           log_->write(msg, LOGLEVEL_ERROR);
           throw faust::exception (msg, faust::NoSuccess);
@@ -191,9 +189,9 @@ std::string app::recv_command()
     throw faust::exception (msg, faust::NoSuccess);
   }  
   
-  if(cmd_str.length() >= 1) 
-  {
-      }
+  cmd = cmd_str;
+  args = args_str;
+  
   return cmd_str;
 }
 
@@ -201,8 +199,10 @@ std::string app::recv_command()
 //
 void app::run(void)
 {
+  std::string a("");
+  std::string b("");
   while(1) {
-    std::string cmd = recv_command();
+    std::string cmd = recv_command(a, b);
     if(cmd == uuid_+":TERMINATE") return;
     else if(cmd == uuid_+":UPDATE") { query(); }
     

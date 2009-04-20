@@ -25,7 +25,7 @@ void object::initialize_faust()
     return;
   else {
     // INITIALIZE FAUST
-    faust_root_namesapce_ = "advert://fortytwo.cct.lsu.edu:5432//FAUST/";
+    faust_root_namesapce_ = "advert://macpro01.cct.lsu.edu:5432//FAUST/";
     faust_initialized_ = true;
     return;
   }

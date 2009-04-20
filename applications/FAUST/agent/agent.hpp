@@ -33,14 +33,14 @@ namespace faust
     std::string uuid_;
     
     saga::advert::directory advert_base_;
-    saga::advert::entry status_;
     saga::advert::entry cmd_;
+    saga::advert::entry args_;
     
     system_monitor m_;
     faust::resource_description description_;
     faust::resource_monitor     monitor_;
     
-    std::string recv_command();
+    std::string recv_command(std::string & cmd, std::string & args);
     
     void query();
     
