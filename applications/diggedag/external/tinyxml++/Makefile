@@ -5,7 +5,7 @@
 
 SAGA_SRC         = $(wildcard tinyxml*.cpp) ticpp.cpp
 SAGA_LIB_OBJ     = $(SAGA_SRC:%.cpp=%.o)
-SAGA_LIB         = saga_tinyxml
+SAGA_LIB         = saga_tinyxml++
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 

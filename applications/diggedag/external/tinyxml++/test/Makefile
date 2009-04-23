@@ -13,5 +13,5 @@ include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 SAGA_CXXFLAGS   += -DTIXML_USE_TICPP
 SAGA_CPPINCS    += -I..
-SAGA_LDFLAGS    += -L.. -lsaga_tinyxml
+SAGA_LDFLAGS    += -L.. -lsaga_tinyxml++
 

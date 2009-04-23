@@ -18,23 +18,40 @@ int main (int argc, char** argv)
     ticpp::Document doc (file);
     doc.LoadFile ();
 
-    // get the ToDO child
-    ticpp::Element * top = doc.FirstChildElement ("ToDo");
-
-    std::cout << (*top) << std::endl;
+    // get the top adag element
+    ticpp::Element * top = doc.FirstChildElement ("adag");
 
 
-    ticpp::Iterator <ticpp::Element> child ("Item"); 
+    // list nodes
+    ticpp::Iterator <ticpp::Element> job ("job"); 
+
+    for ( job = job.begin (top); job != job.end (); job++ )
+    {
+      std::cout << (*job) << std::endl;
+    }
+    
+
+    // list edges
+    ticpp::Iterator <ticpp::Element> child ("child"); 
 
     for ( child = child.begin (top); child != child.end (); child++ )
     {
-      std::cout << (*child) << std::endl;
+      std::cout << "job" << std::endl;
+
+      ticpp::Iterator <ticpp::Attribute> a;
+
+      for ( a = a.begin (element) ; a != a.end (); a++ )
+      {
+        std::cout << " \t " << (*a) << std::endl;
+      }
+      
+      std::cout << std::endl;
     }
     
   }
   catch ( const ticpp::Exception & e )
   {
-    std::cout << e.what ();
+    std::cout << e.what () << std::endl;
   }
 
   return 0;
