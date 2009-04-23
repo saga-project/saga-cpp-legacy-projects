@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "util/split.hpp"
-#include "pegasus/parser.hpp"
+#include "parser/dax/parser_dax.hpp"
 
 namespace diggedag
 {
