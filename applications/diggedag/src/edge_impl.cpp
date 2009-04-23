@@ -12,6 +12,9 @@ namespace diggedag
       , tgt_   (tgt)
       , state_ (Pending)
     {
+      if ( tgt_ == "" )
+        tgt_ = src_;
+
       // std::cout << "create edge " << std::endl;
     }
 

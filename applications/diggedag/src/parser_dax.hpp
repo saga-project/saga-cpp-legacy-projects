@@ -11,24 +11,17 @@
 
 namespace diggedag
 {
-  namespace pegasus
+  namespace dax
   {
     class parser
     {
       private:
-        diggedag::dag             dag_;
+        diggedag::dag dag_;
+        std::string   filename_;
 
-        std::string               filename_;
-        std::string               basename_;
-        std::string               basedir_;
-        std::vector <std::string> files_;
-
-        void        parse_dag  (void);
-        void        parse_node (const std::string spec);
-        void        parse_edge (const std::string spec);
-
-        std::string get_name   (const std::string filename);
-        std::string get_dir    (const std::string filename);
+        void parse_dag  (void);
+        void parse_node (const std::string spec);
+        void parse_edge (const std::string spec);
 
 
       public:
@@ -37,7 +30,9 @@ namespace diggedag
 
         diggedag::dag get_dag (void) { return dag_; }
     };
-  }
+
+  } // namespace dax
+
 } // namespace diggedag
 
 #endif // DIGGEDAG_PEGASUS_PARSER_HPP

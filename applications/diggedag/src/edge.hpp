@@ -16,7 +16,7 @@ namespace diggedag
 
     public:
       edge (const saga::url & src, 
-            const saga::url & tgt) 
+            const saga::url & tgt = "") 
         : impl_ (new impl::edge (src, tgt)) 
       {
       }

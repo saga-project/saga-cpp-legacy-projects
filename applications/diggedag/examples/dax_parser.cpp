@@ -1,11 +1,11 @@
- 
-#include "parser_pegasus.hpp"
+
+#include "parser_dax.hpp"
 
 int main (int argc, char** argv)
 {
   try
   {
-    diggedag::pegasus::parser p ("../src/parser_pegasus_example/black-diamond-0.dag");
+    diggedag::dax::parser p ("../src/parser_dax_example/Montage_25.xml");
 
     diggedag::dag d = p.get_dag ();
 
