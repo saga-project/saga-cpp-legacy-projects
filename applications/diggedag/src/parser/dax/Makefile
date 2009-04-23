@@ -6,10 +6,9 @@
 
 SAGA_SRC         = $(wildcard *.cpp)
 SAGA_OBJ         = $(SAGA_SRC:%.cpp=%.o)
+SAGA_LIB         = diggedag_parser_dax
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 SAGA_CXXFLAGS   += -Wall -ansi -std=c++98
-SAGA_CPPINCS    += -I../../
-SAGA_LDFLAGS    += -L../../ -ldiggedag
 
