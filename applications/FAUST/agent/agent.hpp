@@ -35,6 +35,8 @@ namespace faust
     saga::advert::directory advert_base_;
     saga::advert::entry cmd_;
     saga::advert::entry args_;
+    saga::advert::entry rd_;
+    saga::advert::entry rm_;
     
     system_monitor m_;
     faust::resource_description description_;

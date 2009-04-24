@@ -40,10 +40,13 @@ namespace faust
       saga::advert::directory advert_base_;
       saga::advert::entry cmd_;
       saga::advert::entry args_;
+      saga::advert::entry rm_;
+      saga::advert::entry rd_;
       
       std::string resource_id_;
 			std::string endpoint_str_;
       std::string agent_uuid_;
+      
       bool init_from_id_;
       bool persistent_;
 			

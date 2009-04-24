@@ -59,8 +59,10 @@ app::app(std::string endpoint, std::string uuid)
     int mode = advert::ReadWrite;
     advert_base_ = advert::directory(endpoint_, mode);
         
-    cmd_ = advert_base_.open("CMD", saga::advert::ReadWrite);
+    cmd_  = advert_base_.open("CMD", saga::advert::ReadWrite);
     args_ = advert_base_.open("ARGS", saga::advert::ReadWrite);
+    rd_   = advert_base_.open("RD", saga::advert::ReadWrite);
+    rm_   = advert_base_.open("RM", saga::advert::ReadWrite);
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -77,7 +79,7 @@ app::app(std::string endpoint, std::string uuid)
   msg = "Retrieving resource description";
   
   try {    
-    std::vector<std::string> attr_ = advert_base_.list_attributes();
+    std::vector<std::string> attr_ = rd_.list_attributes();
     std::vector<std::string>::const_iterator it;
     for(it = attr_.begin(); it != attr_.end(); ++it)
     {
@@ -85,12 +87,12 @@ app::app(std::string endpoint, std::string uuid)
       if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
         continue;
       
-      if(advert_base_.attribute_is_vector(*it)) {
+      if(rd_.attribute_is_vector(*it)) {
         std::cout << "VA: " << (*it) << std::endl;
-        description_.set_vector_attribute((*it), advert_base_.get_vector_attribute((*it)));
+        description_.set_vector_attribute((*it), rd_.get_vector_attribute((*it)));
       }
       else {
-        description_.set_attribute((*it), advert_base_.get_attribute((*it)));
+        description_.set_attribute((*it), rd_.get_attribute((*it)));
       }
     }
     msg += ". SUCCESS ";

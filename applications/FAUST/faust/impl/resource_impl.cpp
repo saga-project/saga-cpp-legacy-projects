@@ -44,8 +44,10 @@ resource_id_(resource_id)
     advert_base_ = advert::directory(advert_key, mode);
     
     // open "CMD" entry
-    cmd_ = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
+    cmd_  = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
     args_ = advert_base_.open(endpoint_str_+"ARGS", saga::advert::ReadWrite);
+    rd_   = advert_base_.open(endpoint_str_+"RD", saga::advert::ReadWrite);
+    rm_   = advert_base_.open(endpoint_str_+"RM", saga::advert::ReadWrite);
         
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -100,10 +102,10 @@ resource_id_(resource_id)
         continue;
       
       if(advert_base_.attribute_is_vector(*it)) {
-        description_.set_vector_attribute((*it), advert_base_.get_vector_attribute((*it)));
+        description_.set_vector_attribute((*it), rd_.get_vector_attribute((*it)));
       }
       else {
-        description_.set_attribute((*it), advert_base_.get_attribute((*it)));
+        description_.set_attribute((*it), rd_.get_attribute((*it)));
       }
     }
     msg += ". SUCCESS ";
@@ -211,6 +213,29 @@ init_from_id_(false), persistent_(persistent)
   
   // COPY ALL ATTRIBUTES TO THE ADVERT ENTRY
   //
+  // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
+  if( true == persistent_ )
+    advert_base_.set_attribute("persistent", "TRUE");
+  else
+    advert_base_.set_attribute("persistent", "FALSE");
+  
+  // create "CMD" entry
+  cmd_ = advert_base_.open(endpoint_str_+"CMD", mode);
+  cmd_.store_string(""); 
+  
+  args_ = advert_base_.open(endpoint_str_+"ARGS", mode);
+  args_.store_string(""); 
+
+  rd_ = advert_base_.open(endpoint_str_+"RD", mode);
+  rd_.store_string(""); 
+
+  rm_ = advert_base_.open(endpoint_str_+"RM", mode);
+  rm_.store_string(""); 
+  
+  // create "AGENT_UUID" entry
+  saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", mode);
+  auuid.store_string(agent_uuid_);  
+  
   msg = "Populating advert endpoint '"+endpoint_str_+"'";
   try {
     std::vector<std::string> attr_ = description_.list_attributes();
@@ -218,29 +243,12 @@ init_from_id_(false), persistent_(persistent)
     for(it = attr_.begin(); it != attr_.end(); ++it)
     {
       if(description_.attribute_is_vector(*it)) {
-        advert_base_.set_vector_attribute((*it), description_.get_vector_attribute((*it)));
+        rd_.set_vector_attribute((*it), description_.get_vector_attribute((*it)));
       }
       else {
-        advert_base_.set_attribute((*it), description_.get_attribute((*it)));
+        rd_.set_attribute((*it), description_.get_attribute((*it)));
       }
     }
-    
-    // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
-    if( true == persistent_ )
-      advert_base_.set_attribute("persistent", "TRUE");
-    else
-      advert_base_.set_attribute("persistent", "FALSE");
-    
-    // create "CMD" entry
-    cmd_ = advert_base_.open(endpoint_str_+"CMD", mode);
-    cmd_.store_string(""); 
-    
-    args_ = advert_base_.open(endpoint_str_+"ARGS", mode);
-    args_.store_string(""); 
-    
-		// create "AGENT_UUID" entry
-		saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", mode);
-    auuid.store_string(agent_uuid_);  
 		
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -252,7 +260,7 @@ init_from_id_(false), persistent_(persistent)
   }
 	
 	launch_agent();
-  send_command(PROTO_V1_PING, 60);
+  send_command(PROTO_V1_PING, 120);
 	
 }
 
@@ -292,13 +300,64 @@ void resource::launch_agent(unsigned int timeout)
 										 description_.get_attribute(FAR::faust_agent_binary_path));
     jd.set_attribute(SJR::description_error,  "/tmp/faust_agent-"+agent_uuid_+".err"); 
     jd.set_attribute(SJR::description_output, "/tmp/faust_agent-"+agent_uuid_+".out"); 
+    //jd.set_attribute (saga::job::attributes::description_interactive, 
+    //                  saga::attributes::common_true);
 		
 		saga::job::service js(description_.get_attribute(FAR::faust_agent_submit_url));
 		saga::job::job j = js.create_job(jd);
+    
+    //saga::job::ostream in;
+    //saga::job::istream out;
+    //saga::job::istream err;
+    
 		j.run();
-		
-		msg += ". SUCCESS ";
-		log_->write(msg, LOGLEVEL_INFO);
+    saga::job::state state = j.get_state ();
+    
+    if ( state != saga::job::Running && state != saga::job::Done    )
+    {
+      msg += ". FAILED ";
+      log_->write(msg, LOGLEVEL_INFO);
+    }
+    else
+    {
+      msg += ". SUCCESS ";
+      log_->write(msg, LOGLEVEL_INFO);
+    }
+    
+    
+    // INTERACTIVE... 
+		/*in  = j.get_stdin  ();
+    out = j.get_stdout ();
+    err = j.get_stderr ();
+    
+    
+    while ( true ) 
+    {
+      char buffer[1024*64];
+      
+      // get stdout
+      out.read (buffer, sizeof (buffer));
+      if ( out.gcount () > 0 )
+      {
+        std::cout <<  std::string (buffer, out.gcount ()) << std::flush;
+      }
+      
+      
+      // get stderr
+      err.read (buffer, sizeof (buffer));
+      if ( err.gcount () > 0 )
+      {
+        std::cerr <<  std::string (buffer, err.gcount ()) << std::flush;
+      }
+      
+      
+      if ( out.fail () || err.fail () ) 
+      {
+        break;
+      }
+    }*/
+    
+
 	}
 	catch(saga::exception const & e) {
 		msg += ". FAILED " + std::string(e.what());
@@ -350,7 +409,8 @@ void resource::send_command(std::string cmd, unsigned int timeout)
   try {
     int to = 0; std::string result;
     while(to < timeout) {
-      sleep(1); ++to;
+      ++to;
+      sleep(1);
       result = cmd_.retrieve_string();
       if(result == std::string("ACK:"+agent_uuid_+":"+cmd))
         break;

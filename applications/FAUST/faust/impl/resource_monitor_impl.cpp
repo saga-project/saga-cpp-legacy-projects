@@ -19,6 +19,7 @@ using namespace faust::impl;
 resource_monitor::resource_monitor()
 : object(faust::object::ResourceMonitor)
 {
+  std::cout << "NEW MONITOR INSTANCE" << std::endl;
   // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
   identifier.append(" faust::resource_monitor ("+get_uuid()+")"); 
@@ -50,25 +51,4 @@ resource_monitor::resource_monitor()
   
 }
 
-
-std::string resource_monitor::get_attribute (std::string key) const
-{
-//	attr
-  
-}
-
-void resource_monitor::set_attribute (std::string key, std::string value)
-{
-	
-}
-
-std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
-{
-	
-}
-
-void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
-{
-	
-}
 
