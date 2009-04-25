@@ -29,12 +29,23 @@ namespace faust
     public saga::impl::attribute
     {
 
+    private:
+      saga::advert::entry monitor_adv_;
+      
     public:
-			resource_monitor();
-
+      resource_monitor(saga::advert::entry & monitor_adv);
+      
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }
 			
+      std::vector<std::string> list_attributes();
+      
+      std::string get_attribute (std::string key) const;
+      void set_attribute (std::string key, std::string value);
+      
+      std::vector<std::string> get_vector_attribute (std::string key) const;
+      void set_vector_attribute (std::string key, strvec_type value);
+      
       // Generate a exact deep copy of this object
       //saga::object clone() const;
     };

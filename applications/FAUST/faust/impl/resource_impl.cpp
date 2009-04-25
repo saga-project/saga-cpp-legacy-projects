@@ -48,6 +48,9 @@ resource_id_(resource_id)
     args_ = advert_base_.open(endpoint_str_+"ARGS", saga::advert::ReadWrite);
     rd_   = advert_base_.open(endpoint_str_+"RD", saga::advert::ReadWrite);
     rm_   = advert_base_.open(endpoint_str_+"RM", saga::advert::ReadWrite);
+    
+    // pass the resource monitor advert to the monitor
+    monitor_ = faust::resource_monitor(rm_);
         
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -93,15 +96,15 @@ resource_id_(resource_id)
   msg = "Retrieving resource description for " + resource_id_;
   
   try {    
-    std::vector<std::string> attr_ = advert_base_.list_attributes();
+    std::vector<std::string> attr_ = rd_.list_attributes();
     std::vector<std::string>::const_iterator it;
     for(it = attr_.begin(); it != attr_.end(); ++it)
     {
       // exclude these advert-specific attributes
       if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
         continue;
-      
-      if(advert_base_.attribute_is_vector(*it)) {
+            
+      if(rd_.attribute_is_vector(*it)) {
         description_.set_vector_attribute((*it), rd_.get_vector_attribute((*it)));
       }
       else {
@@ -117,6 +120,22 @@ resource_id_(resource_id)
     throw faust::exception (msg, faust::NoSuccess);
   }
   
+  //// STARTING THE SERVICE THREAD
+  //
+  msg = "Starting service thread";
+  try {
+    service_thread_ = boost::thread(&main_event_loop);
+  }
+  catch(...)
+  {
+    msg += ". FAILED ";
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
+  msg += ". SUCCESS ";
+  log_->write(msg, LOGLEVEL_INFO);
+  //
+  ////
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -261,7 +280,23 @@ init_from_id_(false), persistent_(persistent)
 	
 	launch_agent();
   send_command(PROTO_V1_PING, 120);
-	
+  
+  //// STARTING THE SERVICE THREAD
+  //
+  msg = "Starting service thread";
+  try {
+    service_thread_ = boost::thread(&main_event_loop);
+  }
+  catch(...)
+  {
+    msg += ". FAILED ";
+    log_->write(msg, LOGLEVEL_ERROR);
+    throw faust::exception (msg, faust::NoSuccess);
+  }
+  msg += ". SUCCESS ";
+  log_->write(msg, LOGLEVEL_INFO);
+  //
+  ////	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -300,15 +335,9 @@ void resource::launch_agent(unsigned int timeout)
 										 description_.get_attribute(FAR::faust_agent_binary_path));
     jd.set_attribute(SJR::description_error,  "/tmp/faust_agent-"+agent_uuid_+".err"); 
     jd.set_attribute(SJR::description_output, "/tmp/faust_agent-"+agent_uuid_+".out"); 
-    //jd.set_attribute (saga::job::attributes::description_interactive, 
-    //                  saga::attributes::common_true);
 		
 		saga::job::service js(description_.get_attribute(FAR::faust_agent_submit_url));
 		saga::job::job j = js.create_job(jd);
-    
-    //saga::job::ostream in;
-    //saga::job::istream out;
-    //saga::job::istream err;
     
 		j.run();
     saga::job::state state = j.get_state ();
@@ -324,40 +353,6 @@ void resource::launch_agent(unsigned int timeout)
       log_->write(msg, LOGLEVEL_INFO);
     }
     
-    
-    // INTERACTIVE... 
-		/*in  = j.get_stdin  ();
-    out = j.get_stdout ();
-    err = j.get_stderr ();
-    
-    
-    while ( true ) 
-    {
-      char buffer[1024*64];
-      
-      // get stdout
-      out.read (buffer, sizeof (buffer));
-      if ( out.gcount () > 0 )
-      {
-        std::cout <<  std::string (buffer, out.gcount ()) << std::flush;
-      }
-      
-      
-      // get stderr
-      err.read (buffer, sizeof (buffer));
-      if ( err.gcount () > 0 )
-      {
-        std::cerr <<  std::string (buffer, err.gcount ()) << std::flush;
-      }
-      
-      
-      if ( out.fail () || err.fail () ) 
-      {
-        break;
-      }
-    }*/
-    
-
 	}
 	catch(saga::exception const & e) {
 		msg += ". FAILED " + std::string(e.what());
@@ -387,6 +382,19 @@ resource::~resource()
       throw faust::exception (msg, faust::NoSuccess);
     }
   }
+  
+  std::string msg = "Shutting down service thread";
+  try {
+    service_thread_.join();
+  }
+  catch(...)
+  {
+    msg += ". FAILED ";
+    log_->write(msg, LOGLEVEL_ERROR);
+  }
+  msg += ". SUCCESS ";
+  log_->write(msg, LOGLEVEL_INFO);
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -436,6 +444,15 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     log_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }  
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource::main_event_loop()
+{
+  // This is the entry point for the service thread. The service thread's job
+  // is it to periodically poll the advert database and retreive informations
+  // that are required by the scheduling framework.
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -92,7 +92,9 @@ namespace faust
     /** These methods are not within API scope */
     friend struct saga::detail::attribute<faust::resource_monitor>;
     friend class faust::impl::resource_monitor;
-		resource_monitor(); // No public default constructor
+    
+    resource_monitor() {};
+		resource_monitor(saga::advert::entry & monitor_adv); // No public default constructor
     /// @endcond
     
   private:
@@ -106,11 +108,13 @@ namespace faust
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 		
-		//std::string get_attribute (std::string key) const;
-		//void set_attribute (std::string key, std::string value);
+    std::vector<std::string> list_attributes();
+    
+		std::string get_attribute (std::string key) const;
+		void set_attribute (std::string key, std::string value);
 		
-		//std::vector<std::string> get_vector_attribute (std::string key) const;
-		//void set_vector_attribute (std::string key, strvec_type value);
+		std::vector<std::string> get_vector_attribute (std::string key) const;
+		void set_vector_attribute (std::string key, strvec_type value);
 		
 		/*! \brief Destroys this %object.
      *

@@ -16,39 +16,36 @@ using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
-resource_monitor::resource_monitor()
-: object(faust::object::ResourceMonitor)
+resource_monitor::resource_monitor(saga::advert::entry & monitor_adv)
+: object(faust::object::ResourceMonitor), monitor_adv_(monitor_adv)
 {
-  std::cout << "NEW MONITOR INSTANCE" << std::endl;
-  // Initialize the logwriter
   std::string identifier(FW_NAME); std::string msg("");
   identifier.append(" faust::resource_monitor ("+get_uuid()+")"); 
   log_ = new detail::logwriter(identifier, std::cout);
-  
-  msg = "Trying to connect to advert endpoint: (timeout: XXX)";
-  try {
-    // DO ADVERT STUFF (use uuid_ as key)
-    // IF OK log_->write(msg, LOGLEVEL_INFO);
-  }
-  catch(saga::exception const & e) {
-    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
-  }
-  
-  msg = "Check if agent is still alive (timeout: XXX)";
-  try {
-    // DO ADVERT STUFF (use uuid_ as key)
-    // IF OK log_->write(msg, LOGLEVEL_INFO);
-  }
-  catch(saga::exception const & e) {
-    // IF FAILED log_->write(msg, LOGLEVEL_ERROR); and THROW
-  }  
-  
-  // CACHING SHOULD HAPPEN ON A PER-ATTRIBUTE BASE. IF AN ATTRIBUTE IS 
-  // REQUESTED DO:
-  //   * CHECK IF EXISTS IN CACHE. IF NOT - RETRIEVE FROM DB
-  //                               IF - CHECK TIMESTAMP RETRIEVE FROM DB
-  //                                    ONLY IF POTENTIALLY NEW! 
-  
 }
 
+std::vector<std::string> resource_monitor::list_attributes()
+{
+  std::cout << "list" << std::endl;
+  return monitor_adv_.list_attributes();
+}
+
+std::string resource_monitor::get_attribute (std::string key) const
+{
+  return monitor_adv_.get_attribute(key);
+}
+
+void resource_monitor::set_attribute (std::string key, std::string value)
+{
+  return monitor_adv_.set_attribute(key, value);
+}
+
+std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
+{
+  return monitor_adv_.get_vector_attribute(key);
+}
+void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
+{
+  return monitor_adv_.set_vector_attribute(key, value);
+}
 

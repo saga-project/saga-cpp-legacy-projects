@@ -206,7 +206,7 @@ void app::run(void)
   while(1) {
     std::string cmd = recv_command(a, b);
     if(cmd == uuid_+":TERMINATE") return;
-    else if(cmd == uuid_+":UPDATE") { query(); }
+    //query();
     
     sleep(1);
   }

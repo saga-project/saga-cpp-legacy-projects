@@ -52,12 +52,11 @@ namespace faust
 			
 			// outsourced functions that are used in multiple places
       void launch_agent(unsigned int timeout=30);
-      //void wait_for_agent_connect(unsigned int timeout=30);
       void send_command(std::string cmd, unsigned int timeout=30);
 			
 			// the main eventloop thread & entry-point fucntion
 			boost::thread service_thread_;
-			void main_event_loop() {} ;
+			static void main_event_loop();
       
 			// private default constructor 
 			resource() : object(faust::object::Resource) {};

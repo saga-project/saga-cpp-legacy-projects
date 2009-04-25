@@ -88,39 +88,47 @@ void resource_monitor::setupAttributes()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-resource_monitor::resource_monitor() :
-  faust::object (new faust::impl::resource_monitor(), object::Resource)
+resource_monitor::resource_monitor(saga::advert::entry & monitor_adv) :
+  faust::object (new faust::impl::resource_monitor(monitor_adv), object::Resource)
 {
   this->setupAttributes();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-//std::string resource_monitor::get_attribute (std::string key) const
-//{
-//	return get_impl()->get_attribute(key);
-//}
+std::vector<std::string> resource_monitor::list_attributes ()
+{
+	return get_impl()->list_attributes();
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-//void resource_monitor::set_attribute (std::string key, std::string value)
-//{
-//	get_impl()->set_attribute(key, value);
-//}
+std::string resource_monitor::get_attribute (std::string key) const
+{
+	return get_impl()->get_attribute(key);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-//std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
-//{
-//	return get_impl()->get_vector_attribute(key);
-//}
+void resource_monitor::set_attribute (std::string key, std::string value)
+{
+	get_impl()->set_attribute(key, value);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-//void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
-//{
-//	get_impl()->set_vector_attribute(key, value);
-//}
+std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
+{
+	return get_impl()->get_vector_attribute(key);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
+{
+	get_impl()->set_vector_attribute(key, value);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
