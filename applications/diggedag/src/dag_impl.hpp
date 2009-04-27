@@ -18,12 +18,13 @@ namespace diggedag
         std::map    <std::string, diggedag::node> nodes_; // dag node names and instances
         std::vector <diggedag::edge>              edges_; // dag edge instances
 
+        diggedag::dag       dag_;
         diggedag::scheduler scheduler_;
         state               state_;
 
 
       public:
-        dag (void);
+        dag  (diggedag::dag & d);
         ~dag (void); 
 
         void  add_node  (const std::string & name, 
@@ -38,7 +39,9 @@ namespace diggedag
         void  wait      (void);
         state get_state (void);
         void  dump      (void);
-        void  schedule  (diggedag::dag     & d);
+        void  schedule  (void);
+
+        diggedag::scheduler get_scheduler (void);
     };
 
   } // namespace impl

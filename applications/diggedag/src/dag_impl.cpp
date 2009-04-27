@@ -5,15 +5,22 @@ namespace diggedag
 {
   namespace impl
   {
-    dag::dag (void)
-      : state_ (Pending)
+    dag::dag (diggedag::dag & d)
+      : dag_   (d)
+      , state_ (Pending)
     { 
       // std::cout << "create dag " << std::endl;
+
+      // ### scheduler hook
+      scheduler_.hook_dag_create (dag_);
     }
 
 
     dag::~dag (void) 
     {
+      // ### scheduler hook
+      scheduler_.hook_dag_destroy (dag_);
+
       // std::cout << "delete dag " << std::endl;
     }
 
@@ -22,6 +29,11 @@ namespace diggedag
                         diggedag::node    & node)
     {
       nodes_[name] = node;
+
+      node.set_dag (dag_);
+
+      // ### scheduler hook
+      scheduler_.hook_node_add (dag_, node);
     }
 
 
@@ -39,6 +51,11 @@ namespace diggedag
       e.add_tgt_node   (tgt);
 
       edges_.push_back (e);
+
+      e.set_dag (dag_);
+
+      // ### scheduler hook
+      scheduler_.hook_edge_add (dag_, e);
     }
 
 
@@ -51,9 +68,10 @@ namespace diggedag
            nodes_.find (tgt) == nodes_.end () )
       {
         std::cerr << " cannot add edge between " << src 
-          << " and " << tgt << std::endl;
+                  << " and " << tgt << std::endl;
         throw "No such node";
       }
+
       add_edge (e, nodes_[src], nodes_[tgt]);
     }
 
@@ -69,6 +87,10 @@ namespace diggedag
       state_ = Running;
 
       std::cout << "fire   dag  " << std::endl;
+
+
+      // ### scheduler hook
+      scheduler_.hook_dag_run_pre (dag_);
 
 
       // search for nodes which have resolved inputs (no peding edges), and
@@ -98,13 +120,23 @@ namespace diggedag
       if ( cyclic )
       {
         state_ = Failed;
+
+        // ### scheduler hook
+        scheduler_.hook_dag_run_fail (dag_);
+
         throw "can't find pending nodes.  cyclic or empty graph?";
       }
+
+      // ### scheduler hook
+      scheduler_.hook_dag_run_post (dag_);
     }
 
 
     void dag::wait (void)
     {
+      // ### scheduler hook
+      scheduler_.hook_dag_wait (dag_);
+
       while ( diggedag::Running == get_state () )
       {
         ::sleep (1);
@@ -116,6 +148,7 @@ namespace diggedag
     state dag::get_state (void)
     {
       if ( Pending == state_ ||
+           Failed  == state_ ||
            Ready   == state_ )
       {
         return state_;
@@ -159,6 +192,10 @@ namespace diggedag
         if ( ! ok )
         {
           state_ = Failed;
+
+          // ### scheduler hook
+          scheduler_.hook_dag_run_fail (dag_);
+
           return state_;
         }
       }
@@ -168,6 +205,10 @@ namespace diggedag
 
       // if all are Ready, the DAG is done.
       state_ = Ready;
+
+      // ### scheduler hook
+      scheduler_.hook_dag_run_done (dag_);
+
       return state_;
     }
 
@@ -222,10 +263,17 @@ namespace diggedag
     }
 
 
-    void dag::schedule (diggedag::dag & d)
+    void dag::schedule (void)
     {
-      scheduler_.run (d);
+      // ### scheduler hook
+      scheduler_.hook_dag_schedule (dag_);
     }
+
+    diggedag::scheduler dag::get_scheduler (void)
+    {
+      return scheduler_;
+    }
+
   } // namespace impl
 
 } // namespace diggedag

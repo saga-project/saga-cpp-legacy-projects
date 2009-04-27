@@ -8,14 +8,15 @@
 
 #include "util/thread.hpp"
 
-#include "node_description.hpp"
 #include "enum.hpp"
+#include "dag.hpp"
+#include "node.hpp"
 #include "edge.hpp"
+#include "node_description.hpp"
 
 
 namespace diggedag
 {
-  class edge;
   namespace impl
   {
     class node : public diggedag::util::thread
@@ -29,10 +30,16 @@ namespace diggedag
         std::string                  name_;     // instance name
         diggedag::state              state_;    // instance state
 
+        diggedag::dag                dag_;
+        diggedag::node               node_;
+        diggedag::scheduler          scheduler_;
+
 
       public:
-         node (const diggedag::node_description & nd);
-         node (const std::string                  cmd);
+         node (const diggedag::node_description & nd, 
+                     diggedag::node             & n);
+         node (const std::string                  cmd,
+                     diggedag::node             & n);
         ~node (void);
 
         void            set_name        (const std::string    & name);
@@ -45,6 +52,8 @@ namespace diggedag
         diggedag::node_description 
                         get_description (void) const;
         diggedag::state get_state       (void);
+
+        void set_dag (diggedag::dag & d);
     };
 
   } // namespace impl

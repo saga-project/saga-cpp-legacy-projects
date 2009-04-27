@@ -106,6 +106,12 @@ namespace diggedag
       return state_;
     }
 
+    void edge::set_dag (diggedag::dag & d)
+    {
+      dag_       = d;
+      scheduler_ = dag_.get_scheduler ();
+    }
+
   } // namespace impl
 
 } // namespace diggedag

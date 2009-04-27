@@ -8,19 +8,29 @@
 
 #include "enum.hpp"
 
+
 namespace diggedag
 {
   namespace impl
   {
+    class dag;
     class edge;
   }
 
+  class dag;
   class node;
+  class scheduler;
   class edge
   {
     private:
       boost::shared_ptr <impl::edge> impl_;
       boost::shared_ptr <impl::edge> get_impl (void) const { return impl_; } 
+
+
+    protected:
+      void set_dag (dag & d);
+      friend class diggedag::impl::dag;
+
 
     public:
       edge (const saga::url & src, 

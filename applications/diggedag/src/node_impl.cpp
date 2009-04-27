@@ -12,18 +12,21 @@ namespace diggedag
 {
   namespace impl
   {
-    node::node (const diggedag::node_description & nd) 
-
+    node::node (const diggedag::node_description & nd, 
+                      diggedag::node             & n) 
       : nd_    (nd)
       , name_  ("")
       , state_ (diggedag::Pending)
+      , node_  (n)
       {
         // std::cout << "create node " << std::endl;
       }
 
-    node::node (const std::string cmd)
+    node::node (const std::string      cmd,
+                      diggedag::node & n) 
       : name_  ("")
       , state_ (diggedag::Pending)
+      , node_  (n)
     {
       // std::cout << "create node " << std::endl;
 
@@ -72,6 +75,9 @@ namespace diggedag
     {
       std::cout << "fire   node " << name_ << std::endl;
 
+      // ### scheduler hook
+      /// scheduler_.hook_node_run_pre (dag_, node_);
+
       // check if all input data are ready
       for ( unsigned int i = 0; i < edge_in_.size (); i++ )
       {
@@ -116,6 +122,9 @@ namespace diggedag
     // staged out.
     void node::thread_work (void)
     {
+      // ### scheduler hook
+      /// scheduler_.hook_node_run_pre (dag_, node_);
+
       // TODO: run the saga job for the job description here
 
       // FIXME: for now, we simply fake work by sleeping for some amount of
@@ -136,6 +145,10 @@ namespace diggedag
               << " : job failed - cancel" << std::endl;
 
             state_ = Failed;
+            
+            // ### scheduler hook
+            /// scheduler_.hook_node_run_fail (dag_, node_);
+
             return;
           }
           else
@@ -147,10 +160,14 @@ namespace diggedag
         catch ( const saga::exception & e )
         {
           std::cout << "       node " << name_ 
-            << " : job execution threw exception - cancel\n" <<
-            e.what () << std::endl;
+                    << " : job execution threw exception - cancel\n"
+                    << e.what () << std::endl;
 
           state_ = Failed;
+
+          // ### scheduler hook
+          /// scheduler_.hook_node_run_fail (dag_, node_);
+
           return;
         }
       }
@@ -170,6 +187,9 @@ namespace diggedag
       thread_lock ();
       state_ = Ready;
       thread_unlock ();
+
+      // ### scheduler hook
+      /// scheduler_.hook_node_run_done (dag_, node_);
     }
 
     std::string node::get_name (void) const
@@ -195,6 +215,15 @@ namespace diggedag
 
       return state_;
     }
+
+
+    void node::set_dag (diggedag::dag & d)
+    {
+      dag_       = d;
+      scheduler_ = dag_.get_scheduler ();
+    }
+
+
   } // namespace impl
 
 } // namespace diggedag

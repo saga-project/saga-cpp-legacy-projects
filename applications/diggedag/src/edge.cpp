@@ -69,5 +69,10 @@ namespace diggedag
     return impl_->get_tgt_node ();
   }
 
+  void edge::set_dag (dag & d)
+  {
+    impl_->set_dag (d);
+  }
+
 } // namespace diggedag
 

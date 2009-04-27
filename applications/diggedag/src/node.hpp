@@ -11,10 +11,12 @@ namespace diggedag
 {
   namespace impl 
   {
+    class dag;
     class node;
   }
 
   class edge;
+  class dag;
   class node 
   {
     private:
@@ -23,6 +25,12 @@ namespace diggedag
 
       bool  has_impl_;
       void  check_ (void) const;
+
+
+    protected:
+      void set_dag (dag & d);
+      friend class diggedag::impl::dag;
+
 
     public:
       node (void);
@@ -39,6 +47,7 @@ namespace diggedag
       std::string      get_name        (void) const;
       node_description get_description (void) const;
       state            get_state       (void) const;
+
   };
 
 } // namespace diggedag

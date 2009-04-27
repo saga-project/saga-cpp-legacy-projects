@@ -6,7 +6,7 @@
 namespace diggedag
 {
   dag::dag (void) 
-    : impl_ (new impl::dag ())
+    : impl_ (new impl::dag (*this))
   { 
   }
 
@@ -63,7 +63,12 @@ namespace diggedag
 
   void dag::schedule (void)
   {
-    impl_->schedule (*this);
+    impl_->schedule ();
+  }
+
+  scheduler dag::get_scheduler (void)
+  {
+    return impl_->get_scheduler ();
   }
 
 } // namespace diggedag

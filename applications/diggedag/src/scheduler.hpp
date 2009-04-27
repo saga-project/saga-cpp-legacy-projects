@@ -13,6 +13,8 @@ namespace diggedag
   }
 
   class dag;
+  class node;
+  class edge;
   class scheduler 
   {
     private:
@@ -25,27 +27,26 @@ namespace diggedag
       scheduler  (const scheduler & src);
       ~scheduler (void);
 
-      void run   (diggedag::dag & d);
-
+      void hook_dag_create    (dag & d);
+      void hook_dag_destroy   (dag & d);
+      void hook_dag_schedule  (dag & d);
+      void hook_dag_run_pre   (dag & d);
+      void hook_dag_run_post  (dag & d);
+      void hook_dag_run_done  (dag & d);
+      void hook_dag_run_fail  (dag & d);
+      void hook_dag_wait      (dag & d);
+      
       void hook_node_add      (dag & d, node & n);
-      void hook_node_add_in   (dag & d, node & n, edge & e);
-      void hook_node_add_out  (dag & d, node & n, edge & e);
-      void hook_node_del_in   (dag & d, node & n, edge & e);
-      void hook_node_del_out  (dag & d, node & n, edge & e);
+      void hook_node_remove   (dag & d, node & n);
       void hook_node_run_pre  (dag & d, node & n);
       void hook_node_run_done (dag & d, node & n);
       void hook_node_run_fail (dag & d, node & n);
-      void hook_node_remove   (dag & d, node & n);
 
-      void hook_edge_add      (dag & d, edge & n);
-      void hook_edge_add_src  (dag & d, edge & n, node & e);
-      void hook_edge_add_tgt  (dag & d, edge & n, node & e);
-      void hook_edge_del_src  (dag & d, edge & n, node & e);
-      void hook_edge_del_tgt  (dag & d, edge & n, node & e);
-      void hook_edge_run_pre  (dag & d, edge & n);
-      void hook_edge_run_done (dag & d, edge & n);
-      void hook_edge_run_fail (dag & d, edge & n);
-      void hook_node_remove   (dag & d, edge & n);
+      void hook_edge_add      (dag & d, edge & e);
+      void hook_node_remove   (dag & d, edge & e);
+      void hook_edge_run_pre  (dag & d, edge & e);
+      void hook_edge_run_done (dag & d, edge & e);
+      void hook_edge_run_fail (dag & d, edge & e);
   };
 
 } // namespace diggedag

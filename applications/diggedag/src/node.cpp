@@ -10,20 +10,20 @@ namespace diggedag
   }
 
   node::node (const diggedag::node_description & nd)
-    : impl_  (new impl::node (nd))
+    : impl_  (new impl::node (nd, *this))
     , has_impl_ (true)
   {
   }
 
   node::node (const std::string cmd)
-    : impl_ (new impl::node (cmd))
+    : impl_ (new impl::node (cmd, *this))
     , has_impl_ (true)
   {
   }
 
   node::node (const node & src)
     : impl_ (src.get_impl ())
-      , has_impl_ (true)
+    , has_impl_ (true)
   {
   }
 
@@ -79,6 +79,12 @@ namespace diggedag
   {
     check_ ();
     return impl_->get_state ();
+  }
+
+  void node::set_dag (dag & d)
+  {
+    check_ ();
+    impl_->set_dag (d);
   }
 
 } // namespace diggedag

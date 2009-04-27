@@ -9,8 +9,10 @@
 #include "util/thread.hpp"
 
 #include "enum.hpp"
+#include "dag.hpp"
 #include "edge.hpp"
 #include "node.hpp"
+#include "scheduler.hpp"
 
 
 
@@ -27,6 +29,9 @@ namespace diggedag
 
         diggedag::node  src_node_;
         diggedag::node  tgt_node_;
+
+        diggedag::dag       dag_;
+        diggedag::scheduler scheduler_;
 
 
       public:
@@ -47,6 +52,8 @@ namespace diggedag
 
         diggedag::node  get_src_node (void) const { return src_node_; }
         diggedag::node  get_tgt_node (void) const { return tgt_node_; }
+
+        void set_dag (diggedag::dag & d);
     };
 
   } // namespace impl

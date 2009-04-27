@@ -9,11 +9,16 @@ int main (int argc, char** argv)
 
     diggedag::dag d = p.get_dag ();
 
+    // allow for pre-run scheduling
+    d.schedule (); 
+
+    // run the dag.  This also performs scheduling on-the-fly
     d.fire ();
    
     std::cout << "dag    running..." << std::endl;
 
     // wait til the dag had a chance to finish
+    // TODO: implement d.wait ();
     while ( diggedag::Running == d.get_state () )
     {
       ::sleep (1);

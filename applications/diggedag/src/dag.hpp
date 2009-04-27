@@ -9,6 +9,7 @@
 #include "enum.hpp"
 #include "node.hpp"
 #include "edge.hpp"
+#include "scheduler.hpp"
 
 
 namespace diggedag
@@ -43,6 +44,8 @@ namespace diggedag
       state get_state (void);
       void  dump      (void);
       void  schedule  (void);
+
+      scheduler get_scheduler (void);
   };
 
 } // namespace diggedag
