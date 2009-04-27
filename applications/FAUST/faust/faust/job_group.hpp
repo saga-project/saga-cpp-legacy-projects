@@ -88,3 +88,4 @@ namespace faust
 }
 
 #endif /* FAUST_JOB_GROUP_HPP */
+

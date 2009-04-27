@@ -196,7 +196,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 INSTALL(
 		FILES faust/libfaust.dylib
 		DESTINATION lib)
-elseif()
+else()
 INSTALL(
 		FILES faust/libfaust.so
 		DESTINATION lib)

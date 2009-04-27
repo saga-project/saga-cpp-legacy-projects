@@ -94,3 +94,4 @@ namespace faust
 }
 
 #endif /* FAUST_IMPL_SERVICE_IMPL_HPP */
+
