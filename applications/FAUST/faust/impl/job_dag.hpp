@@ -56,3 +56,4 @@ namespace faust { namespace detail {
 } }
 
 #endif /* FAUST_IMPL_JOB_DAG_HPP */
+

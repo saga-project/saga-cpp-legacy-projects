@@ -39,3 +39,4 @@ namespace faust
 }
 
 #endif /*FAUST_STATE_HPP*/
+

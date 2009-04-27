@@ -37,3 +37,4 @@ namespace faust
 }
 
 #endif /*FAUST_DEPENDENCY_HPP*/
+

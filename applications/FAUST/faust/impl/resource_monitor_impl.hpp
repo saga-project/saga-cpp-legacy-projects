@@ -55,3 +55,4 @@ namespace faust
 }
 
 #endif /* FAUST_IMPL_JOB_IMPL_HPP */
+
