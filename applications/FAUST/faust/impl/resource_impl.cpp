@@ -480,7 +480,7 @@ bool resource::is_persistent(void)
 //
 void resource::set_persistent(bool yesno)
 {
-  std::string msg = "Setting persistentcy for endpoint '"+resource_id_+"' to ";
+  std::string msg = "Setting persistency for endpoint '"+resource_id_+"' to ";
   if(true == yesno) msg += "true"; else msg += "false";
   
   try {
