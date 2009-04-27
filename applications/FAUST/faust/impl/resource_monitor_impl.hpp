@@ -46,6 +46,8 @@ namespace faust
       std::vector<std::string> get_vector_attribute (std::string key) const;
       void set_vector_attribute (std::string key, strvec_type value);
       
+      bool attribute_is_vector (std::string key) const;
+      
       // Generate a exact deep copy of this object
       //saga::object clone() const;
     };

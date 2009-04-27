@@ -43,9 +43,7 @@ namespace faust
     faust::resource_monitor     monitor_;
     
     std::string recv_command(std::string & cmd, std::string & args);
-    
-    void query();
-    
+        
   public:
     app(std::string endpoint, std::string uuid);
     ~app();

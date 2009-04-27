@@ -293,8 +293,10 @@ void system_monitor::query_directories()
     
     rm_.set_vector_attribute(FAM::dir_dev_space_total, dev_space_total);
     rm_.set_vector_attribute(FAM::dir_dev_space_used,  dev_space_used);
+    rm_.set_vector_attribute(FAM::dir_dev_space_free,  dev_space_free);
     rm_.set_vector_attribute(FAM::dir_quota_total,     quota_total);
     rm_.set_vector_attribute(FAM::dir_quota_used,      quota_used);
+    rm_.set_vector_attribute(FAM::dir_quota_free,      quota_free);
     
   }
   

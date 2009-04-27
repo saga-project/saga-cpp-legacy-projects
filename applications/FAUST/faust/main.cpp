@@ -50,6 +50,8 @@ int main (int argc, char* argv[])
   env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
   queenbee_rd.set_vector_attribute("environment", env);
   
+  //faust::resource localhost (localhost_rd, true);
+  
   while(1) {
 		try {
 			
@@ -76,6 +78,7 @@ int main (int argc, char* argv[])
 			for(it1 = attr1_.begin(); it1 != attr1_.end(); ++it1)
 			{
 				std::cout << "localhost monitor attribute: " << (*it1) << std::endl;
+        if(rm_rec.attribute_is_vector(*it1));
 			}
 			
 			//faust::resource queenbee_reconnect(queenbee_rd.get_attribute("identifier"));

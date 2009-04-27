@@ -51,8 +51,6 @@ app::app(std::string endpoint, std::string uuid)
   // Initialize the logwriter
   std::string identifier("faust_agent ("+uuid_+")"); std::string msg("");
   log_ = new detail::logwriter(identifier, std::cout);
- 
-  m_ = system_monitor("", description_, monitor_, uuid_, log_);
   
   msg = "Connecting to advert endpoint " + endpoint_;
   try {
@@ -63,6 +61,9 @@ app::app(std::string endpoint, std::string uuid)
     args_ = advert_base_.open("ARGS", saga::advert::ReadWrite);
     rd_   = advert_base_.open("RD", saga::advert::ReadWrite);
     rm_   = advert_base_.open("RM", saga::advert::ReadWrite);
+    
+    monitor_ = faust::resource_monitor(rm_);
+    m_ = system_monitor("", description_, monitor_, uuid_, log_);
     
     msg += ". SUCCESS ";
     log_->write(msg, LOGLEVEL_INFO);
@@ -124,15 +125,6 @@ app::~app()
   
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-void app::query()
-{
-  while(1) {
-  m_.query();
-    sleep(1);
-  }
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -206,8 +198,7 @@ void app::run(void)
   while(1) {
     std::string cmd = recv_command(a, b);
     if(cmd == uuid_+":TERMINATE") return;
-    //query();
-    
+    m_.query();
     sleep(1);
   }
 }

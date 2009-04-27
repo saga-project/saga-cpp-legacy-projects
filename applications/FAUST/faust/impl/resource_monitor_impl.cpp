@@ -25,8 +25,7 @@ resource_monitor::resource_monitor(saga::advert::entry & monitor_adv)
 }
 
 std::vector<std::string> resource_monitor::list_attributes()
-{
-  std::cout << "list" << std::endl;
+{  
   return monitor_adv_.list_attributes();
 }
 
@@ -49,3 +48,8 @@ void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
   return monitor_adv_.set_vector_attribute(key, value);
 }
 
+bool resource_monitor::attribute_is_vector (std::string key) const
+{
+  std::cout << "IS V" << std::endl;
+  return monitor_adv_.attribute_is_vector(key);
+}
