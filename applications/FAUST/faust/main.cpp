@@ -64,21 +64,31 @@ int main (int argc, char* argv[])
 			
 			// test re-connect
 			faust::resource localhost_reconnect(localhost_rd.get_attribute("identifier"));
-			faust::resource_description localhost_rd_rec = localhost_reconnect.get_description();
+			
+      
+      /*faust::resource_description localhost_rd_rec = localhost_reconnect.get_description();
 			std::vector<std::string> attr_ = localhost_rd_rec.list_attributes();
 			std::vector<std::string>::const_iterator it;
 			for(it = attr_.begin(); it != attr_.end(); ++it)
 			{
 				std::cout << "localhost description attribute: " << (*it) << std::endl;
 			}
+      */
       
       faust::resource_monitor rm_rec = localhost_reconnect.get_monitor();
       std::vector<std::string> attr1_ = rm_rec.list_attributes();
 			std::vector<std::string>::const_iterator it1;
 			for(it1 = attr1_.begin(); it1 != attr1_.end(); ++it1)
 			{
-				std::cout << "localhost monitor attribute: " << (*it1) << std::endl;
-        if(rm_rec.attribute_is_vector(*it1));
+				std::cout << "monitor attribute: " << (*it1) << ": " << std::flush;
+        if(rm_rec.attribute_is_vector(*it1)) {
+          std::vector<std::string> tmp(rm_rec.get_vector_attribute(*it1));
+          for(int i=0; i < tmp.size(); ++i)
+            std::cout << tmp.at(i) << ", " << std::flush;
+          std::cout << std::endl;
+        }
+        else
+          std::cout << rm_rec.get_attribute(*it1) << std::endl;
 			}
 			
 			//faust::resource queenbee_reconnect(queenbee_rd.get_attribute("identifier"));

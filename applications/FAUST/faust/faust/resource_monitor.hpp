@@ -88,6 +88,11 @@ namespace faust
     friend class faust::agent::system_monitor;
     
   protected:
+    
+    void readFromDB (std::string key = "");
+    void writeToDB  (std::string key = "");
+    
+  protected:
     /// @cond
     /** These methods are not within API scope */
     friend struct saga::detail::attribute<faust::resource_monitor>;
@@ -108,13 +113,13 @@ namespace faust
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 		
-    std::vector<std::string> list_attributes();
+   /* std::vector<std::string> list_attributes();
     
 		std::string get_attribute (std::string key) const;
 		void set_attribute (std::string key, std::string value);
 		
 		std::vector<std::string> get_vector_attribute (std::string key) const;
-		void set_vector_attribute (std::string key, strvec_type value);
+		void set_vector_attribute (std::string key, strvec_type value);*/
 		
 		/*! \brief Destroys this %object.
      *

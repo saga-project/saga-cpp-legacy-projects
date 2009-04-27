@@ -298,6 +298,8 @@ void system_monitor::query_directories()
     rm_.set_vector_attribute(FAM::dir_quota_used,      quota_used);
     rm_.set_vector_attribute(FAM::dir_quota_free,      quota_free);
     
+    rm_.writeToDB();
+    
   }
   
 }

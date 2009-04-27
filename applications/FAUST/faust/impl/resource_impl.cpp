@@ -466,6 +466,7 @@ faust::resource_description resource::get_description()
 //
 faust::resource_monitor resource::get_monitor()
 {
+  monitor_.readFromDB();
   return monitor_;
 }
 

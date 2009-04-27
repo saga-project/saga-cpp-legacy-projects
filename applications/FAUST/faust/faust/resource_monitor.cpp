@@ -68,8 +68,10 @@ void resource_monitor::setupAttributes()
   (attributes::resource_monitor::dir_path, "")
   (attributes::resource_monitor::dir_dev_space_total, "")
   (attributes::resource_monitor::dir_dev_space_used, "")
+  (attributes::resource_monitor::dir_dev_space_free, "")
   (attributes::resource_monitor::dir_quota_total, "")
   (attributes::resource_monitor::dir_quota_used, "")
+  (attributes::resource_monitor::dir_quota_free, "")
   
   (attributes::resource_monitor::queue_id, "")
   (attributes::resource_monitor::queue_name, "")
@@ -94,7 +96,17 @@ resource_monitor::resource_monitor(saga::advert::entry & monitor_adv) :
   this->setupAttributes();
 }
 
-////////////////////////////////////////////////////////////////////////////////
+void resource_monitor::readFromDB(std::string key)
+{
+  get_impl()->readFromDB(key); 
+}
+
+void resource_monitor::writeToDB(std::string key)
+{
+  get_impl()->writeToDB(key); 
+}
+
+/*////////////////////////////////////////////////////////////////////////////////
 //
 std::vector<std::string> resource_monitor::list_attributes ()
 {
@@ -128,7 +140,7 @@ std::vector<std::string> resource_monitor::get_vector_attribute (std::string key
 void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
 {
 	get_impl()->set_vector_attribute(key, value);
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //
