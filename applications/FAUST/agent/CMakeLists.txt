@@ -1,8 +1,8 @@
 include_directories(${FAUST_SOURCE_DIR}/)
 
 ## TODO: needs to be replaced by saga detection!
-include_directories(/usr/local/saga-1.1/include/)
-link_directories(/usr/local/saga-1.1/lib/)
+include_directories(${SAGA_ROOT}/include/ ${SAGA_ROOT}/include/saga/)
+link_directories(${SAGA_ROOT}/lib/)
 
 ## Required boost libraries
 set (Boost_COMPONENTS_NEEDED program_options)
@@ -15,6 +15,7 @@ include_directories(${Boost_LIBRARY_DIR})
 set (AGENT_SOURCE_FILES 
 	${FAUST_SOURCE_DIR}/agent/main.cpp
 	${FAUST_SOURCE_DIR}/agent/agent.cpp
+	${FAUST_SOURCE_DIR}/agent/system_monitor.cpp
 )
 
 set (FAUST_SOURCE_FILES
@@ -22,6 +23,7 @@ set (FAUST_SOURCE_FILES
 	${FAUST_SOURCE_DIR}/faust/faust/object.cpp
 	${FAUST_SOURCE_DIR}/faust/faust/resource_description.cpp
 	${FAUST_SOURCE_DIR}/faust/faust/resource_monitor.cpp
+	
 	${FAUST_SOURCE_DIR}/faust/impl/object_impl.cpp
 	${FAUST_SOURCE_DIR}/faust/impl/resource_description_impl.cpp
 	${FAUST_SOURCE_DIR}/faust/impl/resource_monitor_impl.cpp

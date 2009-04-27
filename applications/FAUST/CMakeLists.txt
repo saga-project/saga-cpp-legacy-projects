@@ -31,10 +31,20 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
+
+if(NOT SAGA_ROOT)
+  message(STATUS "##########################################################")
+  message(STATUS "# ERROR: You have to specify the path to your SAGA       #")
+  message(STATUS "# installation via  cmake -DSAGA_ROOT=...'.              #")
+  message(STATUS "##########################################################")
+else()  
+  message(STATUS "Using SAGA installation at: ${SAGA_ROOT}                  ")
+endif()
+
 set(Boost_COMPONENTS_NEEDED
     date_time
     program_options
-    #system
+    system # PROBLEM
     thread)
 
 #set(BOOST_USE_STATIC_LIBS OFF)
@@ -51,10 +61,9 @@ endif()
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-# initialize installation directory (can be changed via ccmake or 
-# 'cmake -DCMAKE_PREFIX=...')
+# initialize installation directory (can be changed via ccmake or 'cmake -DCMAKE_PREFIX=...')
 if(UNIX)
-    SET(CMAKE_PREFIX "/usr/local/" 
+    SET(CMAKE_PREFIX "/usr/local/faust/" 
         CACHE PATH "Prefix prepended to install directories")
 endif()
 
@@ -165,51 +174,35 @@ add_subdirectory(${FAUST_SOURCE_DIR}/agent)
 #add_subdirectory(runtime)
 
 # installation instructions
-install(
-    DIRECTORY FAUST/                    # install all FAUST header files
-    DESTINATION include/FAUST 
+
+
+INSTALL(
+    DIRECTORY faust/                    # install all FAUST header files
+    DESTINATION include 
     FILES_MATCHING PATTERN "*.hpp"
     REGEX ".svn" EXCLUDE
     REGEX "CMakeFiles" EXCLUDE)
 
-# install external dependencies
-#install(
-#    DIRECTORY external/cache/boost
-#    DESTINATION include
-#    FILES_MATCHING PATTERN "*.hpp"
-#    REGEX ".svn" EXCLUDE)
-#install(
-#    DIRECTORY external/coroutine/boost
-#    DESTINATION include
-#    FILES_MATCHING PATTERN "*.hpp"
-#    REGEX ".svn" EXCLUDE)
-#install(
-#    DIRECTORY external/endian/boost
-#    DESTINATION include
-#    FILES_MATCHING PATTERN "*.hpp"
-#    REGEX ".svn" EXCLUDE)
-#if(${Boost_MINOR_VERSION} LESS 36)
-#    install(
-#        DIRECTORY external/exception/boost
-#        DESTINATION include
-#        FILES_MATCHING PATTERN "*.hpp"
-#        REGEX ".svn" EXCLUDE)
-#endif()
-#install(
-#    DIRECTORY external/lockfree/boost
-#    DESTINATION include
-#    FILES_MATCHING PATTERN "*.hpp"
-#    REGEX ".svn" EXCLUDE)
-#install(
-#    DIRECTORY external/logging/boost
-#    DESTINATION include
-#    FILES_MATCHING PATTERN "*.hpp"
-#   REGEX ".svn" EXCLUDE)
-#install(
-#    DIRECTORY external/plugin/boost
-#    DESTINATION include
-#    FILES_MATCHING PATTERN "*.hpp"
-#    REGEX ".svn" EXCLUDE)
+INSTALL(								
+     PROGRAMS agent/faust_agent
+     DESTINATION bin/     
+)
+
+
+INSTALL(
+		FILES faust/libfaust.a
+		DESTINATION lib)          
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+INSTALL(
+		FILES faust/libfaust.dylib
+		DESTINATION lib)
+elseif()
+INSTALL(
+		FILES faust/libfaust.so
+		DESTINATION lib)
+endif()
+
+
 
 # export build settings
 include(CMakeExportBuildSettings)
