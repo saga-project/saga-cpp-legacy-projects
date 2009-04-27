@@ -3,9 +3,9 @@
 
 #include <saga/saga.hpp>
 
-#include "edge.hpp"
-#include "node_impl.hpp"
 #include "util/split.hpp"
+
+#include "node_impl.hpp"
 
 
 namespace diggedag
@@ -23,7 +23,7 @@ namespace diggedag
 
     node::node (const std::string cmd)
       : name_  ("")
-        , state_ (diggedag::Pending)
+      , state_ (diggedag::Pending)
     {
       // std::cout << "create node " << std::endl;
 

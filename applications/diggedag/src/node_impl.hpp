@@ -6,8 +6,11 @@
 
 #include <saga/saga.hpp>
 
-#include "node_description.hpp"
 #include "util/thread.hpp"
+
+#include "node_description.hpp"
+#include "enum.hpp"
+#include "edge.hpp"
 
 
 namespace diggedag

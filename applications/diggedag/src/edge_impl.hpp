@@ -6,9 +6,12 @@
 
 #include <saga/saga.hpp>
 
-#include "enum.hpp"
-#include "node.hpp"
 #include "util/thread.hpp"
+
+#include "enum.hpp"
+#include "edge.hpp"
+#include "node.hpp"
+
 
 
 namespace diggedag

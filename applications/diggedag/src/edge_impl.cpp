@@ -1,6 +1,5 @@
 
 #include "edge_impl.hpp"
-#include "node.hpp"
 
 namespace diggedag
 {

@@ -1,8 +1,8 @@
 
 #ifndef DIGGEDAG_NODEDESC_HPP
-#define DIGGEDAG_NODDESCE_HPP
+#define DIGGEDAG_NODEDESC_HPP 
 
-#include "node_impl.hpp"
+#include <saga/saga.hpp>
 
 namespace diggedag
 {
@@ -34,5 +34,5 @@ namespace diggedag
 
 } // namespace diggedag
 
-#endif // DIGGEDAG_NODDESCE_HPP
+#endif // DIGGEDAG_NODEDESC_HPP
 
