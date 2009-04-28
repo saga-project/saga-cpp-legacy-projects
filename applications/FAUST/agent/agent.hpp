@@ -15,7 +15,7 @@
 
 #include <saga/saga.hpp>
 #include <faust/impl/logwriter.hpp>
-#include <agent/system_monitor.hpp>
+#include <agent/monitor/monitor.hpp>
 #include <faust/faust/resource_description.hpp>
 #include <faust/faust/resource_monitor.hpp>
 

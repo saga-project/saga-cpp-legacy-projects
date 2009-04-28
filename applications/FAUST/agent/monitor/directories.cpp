@@ -17,10 +17,12 @@ using namespace faust::agent::monitor;
 namespace FAR = faust::attributes::resource_description;
 namespace FAM = faust::attributes::resource_monitor;
 
-directories::directories (faust::resource_description & rd, 
-                          faust::resource_monitor     & rm)
+directories::directories( boost::shared_ptr <faust::agent::monitor::monitor> mon,
+                          boost::shared_ptr <faust::resource_description>    rd, 
+                          boost::shared_ptr <faust::resource_monitor>        rm)
+: mon_(mon)
 {
-  
+  mon_ = mon;
 }
 
 directories::~directories()

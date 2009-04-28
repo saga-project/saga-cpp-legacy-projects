@@ -20,6 +20,8 @@
 #include <faust/faust/resource_description.hpp>
 #include <faust/faust/resource_monitor.hpp>
 
+#include <agent/monitor/monitor.hpp>
+
 ////////////////////////////////////////////////////////////////////////////
 //
 namespace faust
@@ -31,8 +33,9 @@ namespace faust
     class directories {
       
     private:
-      boost::shared_ptr <faust::resource_description> rd_;
-      boost::shared_ptr <faust::resource_monitor>     rm_;
+      boost::shared_ptr <faust::agent::monitor::monitor> mon_;
+      boost::shared_ptr <faust::resource_description>    rd_;
+      boost::shared_ptr <faust::resource_monitor>        rm_;
       
       faust::detail::logwriter * log_;
       
@@ -42,8 +45,9 @@ namespace faust
       
     public:
       
-      directories (faust::resource_description & rd, 
-                    faust::resource_monitor     & rm);
+      directories ( boost::shared_ptr <faust::agent::monitor::monitor> mon,
+                    boost::shared_ptr <faust::resource_description>    rd, 
+                    boost::shared_ptr <faust::resource_monitor>        rm);
       ~directories( );
     };
     
