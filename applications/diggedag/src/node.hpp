@@ -7,6 +7,7 @@
 #include "enum.hpp"
 #include "node_description.hpp"
 
+
 namespace diggedag
 {
   namespace impl 
@@ -19,18 +20,19 @@ namespace diggedag
   class dag;
   class node 
   {
-    private:
-      boost::shared_ptr <impl::node> impl_;
-      boost::shared_ptr <impl::node> get_impl (void) const { return impl_; } 
+    protected:
+      my_shared_ptr <impl::node> impl_;
+   // my_shared_ptr <impl::node> get_impl (void) const { return impl_; } 
 
+    private:
       bool  has_impl_;
       void  check_ (void) const;
 
 
-    protected:
-      void set_dag (dag & d);
-      friend class diggedag::impl::dag;
-
+      protected:
+        void set_dag (dag & d);
+        friend class diggedag::impl::dag;
+  
 
     public:
       node (void);
@@ -47,7 +49,6 @@ namespace diggedag
       std::string      get_name        (void) const;
       node_description get_description (void) const;
       state            get_state       (void) const;
-
   };
 
 } // namespace diggedag

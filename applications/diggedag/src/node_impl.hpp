@@ -12,6 +12,7 @@
 #include "dag.hpp"
 #include "node.hpp"
 #include "edge.hpp"
+#include "scheduler.hpp"
 #include "node_description.hpp"
 
 
@@ -30,16 +31,14 @@ namespace diggedag
         std::string                  name_;     // instance name
         diggedag::state              state_;    // instance state
 
-        diggedag::dag                dag_;
-        diggedag::node               node_;
-        diggedag::scheduler          scheduler_;
+         diggedag::dag                dag_;
+         diggedag::node               node_;
+         diggedag::scheduler          scheduler_;
 
 
       public:
-         node (const diggedag::node_description & nd, 
-                     diggedag::node             & n);
-         node (const std::string                  cmd,
-                     diggedag::node             & n);
+         node (const diggedag::node_description & nd);
+         node (const std::string                  cmd);
         ~node (void);
 
         void            set_name        (const std::string    & name);
@@ -53,7 +52,8 @@ namespace diggedag
                         get_description (void) const;
         diggedag::state get_state       (void);
 
-        void set_dag (diggedag::dag & d);
+        void            set_node        (diggedag::node & n);
+        void            set_dag         (diggedag::dag  & d);
     };
 
   } // namespace impl

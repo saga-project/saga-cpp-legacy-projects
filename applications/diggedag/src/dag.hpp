@@ -2,8 +2,6 @@
 #ifndef DIGGEDAG_DAG_HPP
 #define DIGGEDAG_DAG_HPP
 
-#include <tr1/memory>
-
 #include "util/shared_ptr.hpp"
 
 #include "enum.hpp"
@@ -21,12 +19,21 @@ namespace diggedag
 
   class dag 
   {
+    protected:
+      my_shared_ptr <impl::dag> impl_;
+   // my_shared_ptr <impl::dag> get_impl (void) const { return impl_; } 
+
     private:
-      boost::shared_ptr <impl::dag> impl_;
-      boost::shared_ptr <impl::dag> get_impl (void) const { return impl_; } 
+      bool  has_impl_;
+      void  check_ (void) const;
+
+    protected:
+      void set_state (state s);
+      friend class diggedag::impl::scheduler;
 
 
     public:
+      dag (bool flag);
       dag (void);
       dag (const dag & src);
      ~dag (void);

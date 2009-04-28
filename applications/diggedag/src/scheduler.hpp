@@ -17,9 +17,9 @@ namespace diggedag
   class edge;
   class scheduler 
   {
-    private:
-      boost::shared_ptr <impl::scheduler> impl_;
-      boost::shared_ptr <impl::scheduler> get_impl (void) const { return impl_; } 
+    protected:
+      my_shared_ptr <impl::scheduler> impl_;
+      // my_shared_ptr <impl::scheduler> get_impl (void) const { return impl_; } 
 
 
     public:
@@ -41,7 +41,7 @@ namespace diggedag
       void hook_node_run_pre  (dag & d, node & n);
       void hook_node_run_done (dag & d, node & n);
       void hook_node_run_fail (dag & d, node & n);
-
+   
       void hook_edge_add      (dag & d, edge & e);
       void hook_node_remove   (dag & d, edge & e);
       void hook_edge_run_pre  (dag & d, edge & e);

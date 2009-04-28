@@ -22,10 +22,13 @@ namespace diggedag
   class scheduler;
   class edge
   {
-    private:
-      boost::shared_ptr <impl::edge> impl_;
-      boost::shared_ptr <impl::edge> get_impl (void) const { return impl_; } 
+    protected:
+      my_shared_ptr <impl::edge> impl_;
+   // my_shared_ptr <impl::edge> get_impl (void) const { return impl_; } 
 
+    private:
+      bool  has_impl_;
+      void  check_ (void) const;
 
     protected:
       void set_dag (dag & d);
@@ -33,6 +36,7 @@ namespace diggedag
 
 
     public:
+      edge (void);
       edge (const saga::url & src, 
             const saga::url & tgt = "");
       edge (const edge      & src);

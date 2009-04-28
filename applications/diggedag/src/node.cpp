@@ -10,19 +10,21 @@ namespace diggedag
   }
 
   node::node (const diggedag::node_description & nd)
-    : impl_  (new impl::node (nd, *this))
+    : impl_  (new impl::node (nd))
     , has_impl_ (true)
   {
+    impl_->set_node (*this);
   }
 
   node::node (const std::string cmd)
-    : impl_ (new impl::node (cmd, *this))
+    : impl_ (new impl::node (cmd))
     , has_impl_ (true)
   {
+    impl_->set_node (*this);
   }
 
   node::node (const node & src)
-    : impl_ (src.get_impl ())
+    : impl_ (src.impl_)
     , has_impl_ (true)
   {
   }

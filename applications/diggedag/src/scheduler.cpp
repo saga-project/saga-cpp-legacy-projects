@@ -13,7 +13,7 @@ namespace diggedag
 
 
   scheduler::scheduler (const scheduler & src)
-    : impl_ (src.get_impl ())
+    : impl_ (src.impl_ )
   {
   }
 

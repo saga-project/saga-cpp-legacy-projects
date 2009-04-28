@@ -98,7 +98,8 @@ namespace diggedag
               std::cout << "adding edge " << o_node << " - " << i_node << " : " << file << std::endl;
 
               // add edge
-              diggedag::edge e (file);
+              saga::url loc (file);
+              diggedag::edge e (loc);
               dag_.add_edge (e, o_node, i_node);
 
               // stop loop

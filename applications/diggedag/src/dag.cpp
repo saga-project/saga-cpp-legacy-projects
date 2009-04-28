@@ -5,18 +5,35 @@
 
 namespace diggedag
 {
-  dag::dag (void) 
-    : impl_ (new impl::dag (*this))
+  dag::dag (bool flag) 
+    : has_impl_ (false)
   { 
   }
 
-  dag::dag (const dag & src) 
-    : impl_ (src.get_impl ())
+  dag::dag (void) 
+    : impl_     (new impl::dag ())
+    , has_impl_ (true)
   { 
+    impl_->set_dag (*this);
+  }
+
+  dag::dag (const dag & src) 
+    : impl_     (src.impl_)
+    , has_impl_ (true)
+  { 
+    impl_->set_dag (*this);
   }
 
   dag::~dag (void) 
   {
+  }
+
+  void dag::check_ (void) const
+  {
+    if ( ! has_impl_ )
+    {
+      throw "Cannot call methods on an empty dag";
+    }
   }
 
   void dag::add_node (const std::string & name, 
@@ -69,6 +86,11 @@ namespace diggedag
   scheduler dag::get_scheduler (void)
   {
     return impl_->get_scheduler ();
+  }
+
+  void dag::set_state (state s)
+  {
+    impl_->set_state (s);
   }
 
 } // namespace diggedag

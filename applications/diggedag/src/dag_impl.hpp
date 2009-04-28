@@ -24,7 +24,7 @@ namespace diggedag
 
 
       public:
-        dag  (diggedag::dag & d);
+        dag  (void);
         ~dag (void); 
 
         void  add_node  (const std::string & name, 
@@ -38,9 +38,11 @@ namespace diggedag
         void  fire      (void);
         void  wait      (void);
         state get_state (void);
+        void  set_state (state s);
         void  dump      (void);
         void  schedule  (void);
 
+        void  set_dag   (diggedag::dag & d);
         diggedag::scheduler get_scheduler (void);
     };
 

@@ -5,8 +5,8 @@ namespace diggedag
 {
   namespace impl
   {
-    dag::dag (diggedag::dag & d)
-      : dag_   (d)
+    dag::dag (void)
+      : dag_   (false) // create empty dag (no impl), to avoid recusrion
       , state_ (Pending)
     { 
       // std::cout << "create dag " << std::endl;
@@ -53,7 +53,7 @@ namespace diggedag
       edges_.push_back (e);
 
       e.set_dag (dag_);
-
+   
       // ### scheduler hook
       scheduler_.hook_edge_add (dag_, e);
     }
@@ -156,6 +156,23 @@ namespace diggedag
 
 
       {
+        // if any job is Failed, report failed
+        std::map <std::string, diggedag::node> :: const_iterator it;
+        std::map <std::string, diggedag::node> :: const_iterator begin = nodes_.begin ();
+        std::map <std::string, diggedag::node> :: const_iterator end   = nodes_.end ();
+
+        for ( it = begin; it != end; it++ )
+        {
+          if ( Failed == (*it).second.get_state () )
+          {
+            std::cout << "node " << (*it).second.get_name () << " is Failed" << std::endl;
+            state_ = Failed;
+            return state_;
+          }
+        }
+      }
+
+      {
         // if any job is s till running, report Running
         std::map <std::string, diggedag::node> :: const_iterator it;
         std::map <std::string, diggedag::node> :: const_iterator begin = nodes_.begin ();
@@ -163,7 +180,7 @@ namespace diggedag
 
         for ( it = begin; it != end; it++ )
         {
-          if ( Ready != (*it).second.get_state () )
+          if ( Running == (*it).second.get_state () )
           {
             // std::cout << "node " << (*it).second.get_name () << " is ! ready" << std::endl;
             state_ = Running;
@@ -172,36 +189,7 @@ namespace diggedag
         }
       }
 
-      {
-        // if we find only pending and failed jobs, report Failed
-        std::map <std::string, diggedag::node> :: const_iterator it;
-        std::map <std::string, diggedag::node> :: const_iterator begin = nodes_.begin ();
-        std::map <std::string, diggedag::node> :: const_iterator end   = nodes_.end ();
-
-        bool ok = false;
-
-        for ( it = begin; it != end; it++ )
-        {
-          if ( Pending != (*it).second.get_state () &&
-               Failed  != (*it).second.get_state () )
-          {
-            ok = true;
-          }
-        }
-
-        if ( ! ok )
-        {
-          state_ = Failed;
-
-          // ### scheduler hook
-          scheduler_.hook_dag_run_fail (dag_);
-
-          return state_;
-        }
-      }
-
-
-      // std::cout << "nodes are ready" << std::endl;
+      std::cout << "nodes are ready" << std::endl;
 
       // if all are Ready, the DAG is done.
       state_ = Ready;
@@ -212,12 +200,19 @@ namespace diggedag
       return state_;
     }
 
+    void dag::set_state (state s)
+    {
+      std::cout << " ============================ setting state to " 
+                << diggedag::state_to_string (s) << std::endl;
+      state_ = s;
+    }
 
     void dag::dump (void)
     {
       std::map <std::string, diggedag::node> :: const_iterator it;
       std::map <std::string, diggedag::node> :: const_iterator begin = nodes_.begin ();
       std::map <std::string, diggedag::node> :: const_iterator end   = nodes_.end ();
+
 
       for ( it = begin; it != end; it++ )
       {
@@ -263,12 +258,18 @@ namespace diggedag
     }
 
 
+    void dag::set_dag (diggedag::dag & d)
+    {
+      dag_ = d;
+    }
+
+
     void dag::schedule (void)
     {
       // ### scheduler hook
       scheduler_.hook_dag_schedule (dag_);
     }
-
+   
     diggedag::scheduler dag::get_scheduler (void)
     {
       return scheduler_;

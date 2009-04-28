@@ -10,7 +10,7 @@ int main (int argc, char** argv)
     diggedag::dag d = p.get_dag ();
 
     // allow for pre-run scheduling
-    d.schedule (); 
+    /// d.schedule (); 
 
     // run the dag.  This also performs scheduling on-the-fly
     d.fire ();

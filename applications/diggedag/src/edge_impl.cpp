@@ -106,6 +106,11 @@ namespace diggedag
       return state_;
     }
 
+    void edge::set_edge (diggedag::edge & e)
+    {
+      edge_ = e;
+    }
+
     void edge::set_dag (diggedag::dag & d)
     {
       dag_       = d;

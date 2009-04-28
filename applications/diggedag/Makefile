@@ -8,3 +8,7 @@ SAGA_SUBDIRS      = external src examples
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
+# directory dependencies:
+src:      external
+examples: src
+
