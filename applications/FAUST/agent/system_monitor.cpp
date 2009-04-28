@@ -26,7 +26,6 @@ namespace FAM = faust::attributes::resource_monitor;
 //
 namespace {
   
-  
   inline boost::process::child 
   run_bash_script(std::string bash_path, std::string const & shell_command)
   {
