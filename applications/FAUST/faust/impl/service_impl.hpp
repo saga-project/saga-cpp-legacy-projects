@@ -46,7 +46,7 @@ namespace faust
     {
       
     private:
-      faust::detail::logwriter * log_;
+      faust::detail::logwriter monitor;
       
       resource_descriptions_map              resource_descriptions_;
       joblist_map_t                joblist_;

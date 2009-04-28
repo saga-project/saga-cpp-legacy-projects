@@ -501,3 +501,4 @@ void resource::set_persistent(bool yesno)
     throw faust::exception (msg, faust::NoSuccess);
   }
 }
+

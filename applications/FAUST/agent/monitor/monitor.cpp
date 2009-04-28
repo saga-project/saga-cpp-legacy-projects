@@ -1,5 +1,5 @@
 /*
- *  system_monitor.cpp 
+ *  monitor.cpp 
  *  FAUST - Framework for Adaptive Ubiquitous Scalable Tasks
  *  Website: https://macpro01.cct.lsu.edu/trac/faust
  *
@@ -14,10 +14,10 @@
 #include <boost/lexical_cast.hpp>
 
 #include <faust/faust/exception.hpp>
-#include <agent/system_monitor.hpp>
+#include <agent/monitor/monitor.hpp>
 
 using namespace saga;
-using namespace faust::agent;
+using namespace faust::agent::monitor;
 
 namespace FAR = faust::attributes::resource_description;
 namespace FAM = faust::attributes::resource_monitor;
@@ -25,6 +25,7 @@ namespace FAM = faust::attributes::resource_monitor;
 //////////////////////////////////////////////////////////////////////////
 //
 namespace {
+  
   
   inline boost::process::child 
   run_bash_script(std::string bash_path, std::string const & shell_command)
@@ -45,7 +46,7 @@ namespace {
 }
 //////////////////////////////////////////////////////////////////////////
 //
-system_monitor::system_monitor(std::string shell_path, faust::resource_description & rd, 
+monitor::monitor(std::string shell_path, faust::resource_description & rd, 
                                faust::resource_monitor & rm, std::string uuid, faust::detail::logwriter * lw)
 : sp_(shell_path), rd_(rd), rm_(rm)
 {
@@ -58,7 +59,7 @@ system_monitor::system_monitor(std::string shell_path, faust::resource_descripti
 
 //////////////////////////////////////////////////////////////////////////
 //  
-void system_monitor::query(query_type qt)
+void monitor::query(query_type qt)
 {
   if(qt == QueryAll || qt == QueryDir) {
     query_directories();
@@ -67,7 +68,7 @@ void system_monitor::query(query_type qt)
 
 //////////////////////////////////////////////////////////////////////////
 //
-bool system_monitor::check_directory_attributes()
+bool monitor::check_directory_attributes()
 {
   std::string msg("Checking directory attributes for consitency");
   
@@ -154,7 +155,7 @@ bool system_monitor::check_directory_attributes()
   }
 }
 
-void system_monitor::query_directories()
+void monitor::query_directories()
 {
   using boost::lexical_cast;
   using boost::bad_lexical_cast;

@@ -20,7 +20,7 @@ int main (int argc, char* argv[])
   
   // A directory description
   dir_ids.push_back("my_work_dir");
-  dir_path.push_back("/home/");
+  dir_path.push_back("/home/oweidner");
   dir_dev_space_total_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $2}'` * 512/1024/1024\" | bc");
   dir_dev_space_used_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $3}'` * 512/1024/1024\" | bc");
   dir_quota_total_cmd.push_back("echo \"0\"");
@@ -50,19 +50,17 @@ int main (int argc, char* argv[])
   env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
   queenbee_rd.set_vector_attribute("environment", env);
   
-  //faust::resource localhost (localhost_rd, true);
-  
-  while(1) {
-		try {
-			
-			std::cout << std::endl;
-			
-			//faust::resource queenbee  (queenbee_rd, true);
+  while(1) 
+  {
+		try 
+    {
+      //// two new persitent faust instances
+      //
+			faust::resource queenbee  (queenbee_rd, true);
 			faust::resource localhost (localhost_rd, true);
-				
-			//sleep(1);
-			
-			// test re-connect
+							
+			//// test reconnect
+      //
 			faust::resource localhost_reconnect(localhost_rd.get_attribute("identifier"));
 			
       
@@ -91,7 +89,9 @@ int main (int argc, char* argv[])
           std::cout << rm_rec.get_attribute(*it1) << std::endl;
 			}
 			
-			//faust::resource queenbee_reconnect(queenbee_rd.get_attribute("identifier"));
+      //// test reconnect
+      //
+			faust::resource queenbee_reconnect(queenbee_rd.get_attribute("identifier"));
 			//faust::resource_description queenbee_rd_rec = queenbee_reconnect.get_description();
 			//std::vector<std::string> attr2_ = queenbee_rd_rec.list_attributes();
 			//std::vector<std::string>::const_iterator it2;
@@ -101,7 +101,7 @@ int main (int argc, char* argv[])
 			//}
        
 			
-			//queenbee_reconnect.set_persistent(false);
+			queenbee_reconnect.set_persistent(false);
 			localhost_reconnect.set_persistent(false);
 		}
 		catch(faust::exception const & e) {
