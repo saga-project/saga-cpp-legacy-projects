@@ -2,6 +2,11 @@
 #ifndef DIGGEDAG_UTIL_MUTEX_HPP
 #define DIGGEDAG_UTIL_MUTEX_HPP
 
+#ifdef USE_BOOST
+# include <boost/thread.hpp>
+# define my_mutex boost::mutex
+#else
+
 #include <pthread.h>
 
 // FIXME: check mutex call return values
@@ -46,11 +51,18 @@ namespace diggedag
         {
           pthread_mutex_unlock (mtx_);
         } 
+
+        pthread_mutex_t get (void)
+        {
+          return *mtx_;
+        }
     };
 
   } // namespace util
 
 } // namespace diggedag
+
+#endif // USE_BOOST
 
 #endif // DIGGEDAG_UTIL_MUTEX_HPP
 

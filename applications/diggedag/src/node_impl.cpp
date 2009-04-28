@@ -4,6 +4,8 @@
 #include <saga/saga.hpp>
 
 #include "util/split.hpp"
+#include "util/thread.hpp"
+#include "util/scoped_lock.hpp"
 
 #include "node_impl.hpp"
 
@@ -95,7 +97,7 @@ namespace diggedag
       // check if node was started before (!Pending).  
       // If not, mark that we start the work (Running)
       {
-        util::scoped_lock l = thread_scoped_lock ();
+        my_scoped_lock l = thread_scoped_lock ();
 
         if ( Pending != state_ )
           return;

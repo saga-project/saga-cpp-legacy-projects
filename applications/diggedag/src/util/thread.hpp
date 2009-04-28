@@ -1,10 +1,18 @@
+
 #ifndef DIGGEDAG_UTIL_THREAD_HPP
 #define DIGGEDAG_UTIL_THREAD_HPP
 
 #include <iostream>
-#include <pthread.h>
 
-#include "util/scoped_lock.hpp"
+#ifdef USE_BOOST
+# include "boost/thread.hpp"
+# define PREFIX boost::mutex
+#else
+# include <pthread.h>
+# include "util/scoped_lock.hpp"
+# define PREFIX util
+#endif
+
 
 
 namespace diggedag 
@@ -41,13 +49,18 @@ namespace diggedag
       private:
         // state management
         thread::thread_state thread_state_;
-        pthread_t    thread_;
-        mutex        mtx_;
+#ifdef USE_BOOST
+        boost::shared_ptr <boost::thread> thread_;
+        boost::mutex  mtx_;
+#else
+        pthread_t     thread_;
+        util::mutex   mtx_;
+#endif
         
 
       public:
         thread (void);
-        thread (const thread & t);
+      //thread (thread & t);
         virtual ~thread (void);
 
 
@@ -73,7 +86,7 @@ namespace diggedag
         void          thread_wait        (void);
         void          thread_lock        (void);
         void          thread_unlock      (void);
-        scoped_lock   thread_scoped_lock (void);
+        PREFIX::scoped_lock thread_scoped_lock (void);
         thread_state  thread_state       (void) const
         {
           return thread_state_; 
@@ -83,6 +96,7 @@ namespace diggedag
   } // namespace util
 
 } // namespace diggedag
+
 
 #endif // DIGGEDAG_UTIL_THREAD_HPP
 

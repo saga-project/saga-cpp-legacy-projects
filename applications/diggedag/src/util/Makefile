@@ -10,5 +10,6 @@ SAGA_OBJ         = $(SAGA_SRC:%.cpp=%.o)
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 SAGA_CPPINCS    += -I../
+SAGA_CXXFLAGS   += -DUSE_BOOST 
 SAGA_CXXFLAGS   += -Wall -ansi -std=c++98
 

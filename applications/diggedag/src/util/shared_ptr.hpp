@@ -2,8 +2,6 @@
 #ifndef DIGGEDAG_UTIL_SHAREDPTR_HPP
 #define DIGGEDAG_UTIL_SHAREDPTR_HPP
 
-// #define USE_BOOST
-
 #ifdef USE_BOOST
 # define  my_shared_ptr boost::shared_ptr
 #else

@@ -3,6 +3,12 @@
 
 #include "util/mutex.hpp"
 
+
+#ifdef USE_BOOST
+# include <boost/thread.hpp>
+# define my_scoped_lock boost::mutex::scoped_lock
+#else
+
 namespace diggedag 
 {
   namespace util
@@ -12,7 +18,7 @@ namespace diggedag
     class scoped_lock 
     {
       private:
-        mutex mtx_;
+        util::mutex mtx_;
 
       public:
         scoped_lock (void)
@@ -21,7 +27,7 @@ namespace diggedag
         }
 
         // sometimes, the user provides its own mutex for lokking
-        scoped_lock (mutex & mtx)
+        scoped_lock (util::mutex & mtx)
         {
           mtx_ = mtx;
           mtx_.lock ();
@@ -36,6 +42,8 @@ namespace diggedag
   } // namespace util
 
 } // namespace diggedag
+
+#endif // USE_BOOST
 
 #endif // DIGGEDAG_UTIL_SCOPEDLOCK_HPP
 

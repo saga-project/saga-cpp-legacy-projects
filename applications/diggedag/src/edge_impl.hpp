@@ -23,14 +23,14 @@ namespace diggedag
     class edge : public diggedag::util::thread
     {
       private:
-        saga::url       src_;   // src location of data
-        saga::url       tgt_;   // tgt location of data
-        diggedag::state state_; // state of instance
+        saga::url           src_;   // src location of data
+        saga::url           tgt_;   // tgt location of data
+        diggedag::state     state_; // state of instance
 
-        diggedag::node  src_node_;
-        diggedag::node  tgt_node_;
+        diggedag::node      src_node_;
+        diggedag::node      tgt_node_;
 
-        diggedag::edge  edge_;
+        diggedag::edge      edge_;
 
         diggedag::dag       dag_;
         diggedag::scheduler scheduler_;

@@ -1,5 +1,8 @@
 
+#include <boost/bind.hpp>
+
 #include "util/thread.hpp"
+
 
 namespace diggedag 
 {
@@ -36,12 +39,12 @@ namespace diggedag
     //
     // We provide this copy c'tor to allow this class to be used in standard
     // containers.
-    thread::thread (const thread & t)
-    {
-      this->thread_state_  = t.thread_state_;
-      this->thread_        = t.thread_;
-      this->mtx_           = t.mtx_;
-    }
+    /// thread::thread (thread & t)
+    /// {
+    ///   this->thread_state_  = t.thread_state_;
+    ///   this->thread_        = t.thread_;
+    ///   this->mtx_           = t.mtx_;
+    /// }
 
     // Note that the d'tor does not wait for the thread to finish.  Thus, we
     // expect the worker thread to continue as long as the application is alive
@@ -59,17 +62,23 @@ namespace diggedag
     // is changed to Running.
     void thread::thread_run (void)
     {
-      scoped_lock l (mtx_);
+      PREFIX::scoped_lock l (mtx_);
 
       if ( thread_state_ != ThreadNew )
         return;
 
       thread_state_ = ThreadRunning;
 
+#ifdef USE_BOOST
+      thread_ = boost::shared_ptr <boost::thread> (new boost::thread
+                                                   (boost::bind
+                                                    (&diggedag::util::thread_startup_, this)));
+#else
       if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
       }
+#endif
     }
 
 
@@ -81,7 +90,7 @@ namespace diggedag
       // First, try get the mutex.  run() is locking the mutex to set the state
       // to Running - we wait 'til this is done, to ensure correct state.
       {
-        scoped_lock l (mtx_);
+        PREFIX::scoped_lock l (mtx_);
       }
 
       // now startup is completed - call the (custom) workload
@@ -89,7 +98,7 @@ namespace diggedag
 
       // the thread workload is done - update state
       {
-        scoped_lock l (mtx_);
+        PREFIX::scoped_lock l (mtx_);
         
         thread_state_ = ThreadDone;
       }
@@ -101,7 +110,12 @@ namespace diggedag
       this->thread_cb ();
 
       // nothing more to do: close thread
+#ifdef USE_BOOST
+#else
       pthread_exit (NULL);
+#endif
+
+      return NULL;
     }
 
 
@@ -111,25 +125,35 @@ namespace diggedag
     // wait() returns
     void thread::thread_wait (void)
     {
+#ifdef USE_BOOST
+      thread_.reset ();
+#else
       pthread_join (thread_, NULL);
+#endif
     }
 
 
     // allow the consumer to do some explicit locking
     void thread::thread_lock (void)
     {
+#ifdef USE_BOOST
+#else
       mtx_.lock ();
+#endif
     }
 
     void thread::thread_unlock (void)
     {
+#ifdef USE_BOOST
+#else
       mtx_.unlock ();
+#endif
     }
 
-    scoped_lock thread::thread_scoped_lock (void)
+    PREFIX::scoped_lock thread::thread_scoped_lock (void)
     {
       // FIXME!!!!
-      return scoped_lock (mtx_);
+      return PREFIX::scoped_lock (mtx_);
     }
 
   } // namespace util

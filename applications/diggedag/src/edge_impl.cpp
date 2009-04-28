@@ -1,4 +1,5 @@
 
+#include "util/scoped_lock.hpp"
 #include "edge_impl.hpp"
 
 namespace diggedag
@@ -41,7 +42,7 @@ namespace diggedag
       // check if copy was done, or started, before (!Pending).  
       // If not, mark that we start the work (Running)
       {
-        util::scoped_lock l = thread_scoped_lock ();
+       my_scoped_lock l = thread_scoped_lock ();
 
         if ( Pending != state_ )
           return;
@@ -77,7 +78,7 @@ namespace diggedag
 
       {
         // signal that we are done
-        util::scoped_lock l = thread_scoped_lock ();
+        my_scoped_lock l = thread_scoped_lock ();
         state_ = Ready;
       }
 
