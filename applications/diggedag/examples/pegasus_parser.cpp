@@ -7,14 +7,14 @@ int main (int argc, char** argv)
   {
     diggedag::pegasus::parser p ("../src/parser_pegasus_example/black-diamond-0.dag");
 
-    diggedag::dag d = p.get_dag ();
+    diggedag::dag * d = p.get_dag ();
 
-    d.fire ();
+    d->fire ();
    
     std::cout << "dag    running..." << std::endl;
 
     // wait til the dag had a chance to finish
-    while ( diggedag::Running == d.get_state () )
+    while ( diggedag::Running == d->get_state () )
     {
       ::sleep (1);
       std::cout << "dag    waiting..." << std::endl;

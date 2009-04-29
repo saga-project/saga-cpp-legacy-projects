@@ -1,4 +1,6 @@
 
+#include <iostream>
+
 #include "parser_dax.hpp"
 
 int main (int argc, char** argv)
@@ -7,19 +9,19 @@ int main (int argc, char** argv)
   {
     diggedag::dax::parser p ("../src/parser_dax_example/Montage_25.xml");
 
-    diggedag::dag d = p.get_dag ();
+    diggedag::dag * d = p.get_dag ();
 
     // allow for pre-run scheduling
-    /// d.schedule (); 
+    /// d->schedule (); 
 
     // run the dag.  This also performs scheduling on-the-fly
-    d.fire ();
+    d->fire ();
    
     std::cout << "dag    running..." << std::endl;
 
     // wait til the dag had a chance to finish
-    // TODO: implement d.wait ();
-    while ( diggedag::Running == d.get_state () )
+    // TODO: implement d->wait ();
+    while ( diggedag::Running == d->get_state () )
     {
       ::sleep (1);
       std::cout << "dag    waiting..." << std::endl;
@@ -32,6 +34,10 @@ int main (int argc, char** argv)
   catch ( const std::string & s )
   {
     std::cerr << "string exception: " << s << std::endl;
+  }
+  catch ( ... )
+  {
+    std::cerr << "oops exception: " << std::endl;
   }
 
   return 0;

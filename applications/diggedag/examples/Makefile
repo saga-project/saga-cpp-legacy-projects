@@ -10,6 +10,7 @@ SAGA_BIN         = $(SAGA_SRC:%.cpp=%)
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
+SAGA_CXXFLAGS   += -DUSE_BOOST
 SAGA_CXXFLAGS   += -Wall -ansi -std=c++98
 SAGA_CPPINCS    += -I../src/
 SAGA_LDFLAGS    += -L../src/ -ldiggedag
