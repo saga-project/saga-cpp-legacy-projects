@@ -108,6 +108,17 @@ resource_description::resource_description(std::string XMLFileName) :
   this->setupAttributes();
 }
 
+
+void resource_description::readFromDB(std::string key)
+{
+  get_impl()->readFromDB(key); 
+}
+
+void resource_description::writeToDB(std::string key)
+{
+  get_impl()->writeToDB(key); 
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 resource_description::~resource_description() 

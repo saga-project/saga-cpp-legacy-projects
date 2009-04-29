@@ -31,6 +31,10 @@ namespace faust
 		private:
 			std::string xmlfilename_;
       
+    public:
+      
+      void readFromDB (std::string key = "") {}
+      void writeToDB  (std::string key = "") {}
       
     public:
       resource_description();

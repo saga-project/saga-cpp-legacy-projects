@@ -24,7 +24,7 @@ namespace faust
 {    
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
-  namespace agent {class app; class system_monitor; }
+  namespace agent {class app; }
   namespace impl { class resource_monitor; class resource; }
   ///@endcond - exclude from Doxygen
   
@@ -85,7 +85,7 @@ namespace faust
 		// service impl. class needs to be friend to call private c'tor 
 		friend class faust::impl::resource;
     friend class faust::agent::app;
-    friend class faust::agent::system_monitor;
+    //friend class faust::agent::system_monitor;
     
   protected:
     

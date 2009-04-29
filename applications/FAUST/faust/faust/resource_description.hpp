@@ -24,6 +24,7 @@ namespace faust
 {    
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
+  namespace agent {class app; }
   namespace impl { class resource_description; }
   ///@endcond - exclude from Doxygen
   
@@ -108,6 +109,15 @@ namespace faust
     friend struct saga::detail::attribute<faust::resource_description>;
     friend class faust::impl::resource_description;
     /// @endcond
+    
+    // service impl. class needs to be friend to call private c'tor 
+    friend class faust::agent::app;
+    //friend class faust::agent::system_monitor;
+    
+  protected:
+    
+    void readFromDB (std::string key = "");
+    void writeToDB  (std::string key = "");
     
   private:
     
