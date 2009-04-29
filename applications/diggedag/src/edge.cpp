@@ -41,7 +41,7 @@ namespace diggedag
     // check if copy was done, or started, before (!Pending).  
     // If not, mark that we start the work (Running)
     {
-      my_scoped_lock l = thread_scoped_lock ();
+      my_scoped_lock l (mtx_);
 
       if ( Pending != state_ )
         return;
@@ -77,7 +77,7 @@ namespace diggedag
 
     {
       // signal that we are done
-      my_scoped_lock l = thread_scoped_lock ();
+      my_scoped_lock l (mtx_);
       state_ = Ready;
     }
 

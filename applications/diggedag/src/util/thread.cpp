@@ -153,12 +153,6 @@ namespace diggedag
 #endif
     }
 
-    PREFIX::scoped_lock thread::thread_scoped_lock (void)
-    {
-      // FIXME!!!!
-      return PREFIX::scoped_lock (mtx_);
-    }
-
   } // namespace util
 
 } // namespace diggedag

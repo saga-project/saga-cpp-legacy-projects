@@ -95,7 +95,7 @@ namespace diggedag
     // check if node was started before (!Pending).  
     // If not, mark that we start the work (Running)
     {
-      my_scoped_lock l = thread_scoped_lock ();
+      my_scoped_lock l (mtx_);
 
       if ( Pending != state_ )
         return;

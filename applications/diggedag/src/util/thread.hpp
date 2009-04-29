@@ -86,7 +86,6 @@ namespace diggedag
         void          thread_wait        (void);
         void          thread_lock        (void);
         void          thread_unlock      (void);
-        PREFIX::scoped_lock thread_scoped_lock (void);
         thread_state  thread_state       (void) const
         {
           return thread_state_; 
