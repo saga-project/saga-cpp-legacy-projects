@@ -50,7 +50,7 @@ namespace diggedag
         // state management
         thread::thread_state thread_state_;
 #ifdef USE_BOOST
-        boost::shared_ptr <boost::thread> thread_;
+        boost::thread thread_;
         boost::mutex  mtx_;
 #else
         pthread_t     thread_;

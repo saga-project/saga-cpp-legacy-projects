@@ -53,6 +53,11 @@ namespace diggedag
     // irrelevant cancelation points.
     thread::~thread () 
     {
+#ifdef USE_BOOST
+      thread_.join ();
+#else
+      pthread_join (thread_, NULL);
+#endif
     }
 
 
@@ -70,9 +75,7 @@ namespace diggedag
       thread_state_ = ThreadRunning;
 
 #ifdef USE_BOOST
-      thread_ = boost::shared_ptr <boost::thread> (new boost::thread
-                                                   (boost::bind
-                                                    (&diggedag::util::thread_startup_, this)));
+      thread_ = boost::thread (boost::bind (&diggedag::util::thread_startup_, this));
 #else
       if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
       {
@@ -126,7 +129,7 @@ namespace diggedag
     void thread::thread_wait (void)
     {
 #ifdef USE_BOOST
-      thread_.reset ();
+      thread_.join ();
 #else
       pthread_join (thread_, NULL);
 #endif
