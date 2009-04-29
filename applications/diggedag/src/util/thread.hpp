@@ -51,9 +51,11 @@ namespace diggedag
         thread::thread_state thread_state_;
 #ifdef USE_BOOST
         boost::thread thread_;
+      protected:
         boost::mutex  mtx_;
 #else
         pthread_t     thread_;
+      protected:
         util::mutex   mtx_;
 #endif
         
