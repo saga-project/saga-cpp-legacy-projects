@@ -15,7 +15,13 @@ namespace diggedag
       , basename_ (get_name (filename))
       , basedir_  (get_dir  (filename))
     {
+      dag_ = new diggedag::dag ();
       parse_dag ();
+    }
+
+    parser::~parser (void)
+    {
+      delete dag_;
     }
 
     void parser::parse_dag (void)
@@ -63,7 +69,7 @@ namespace diggedag
         throw "file read error";
       }
 
-      dag_.dump ();
+      dag_->dump ();
     }
 
 
@@ -170,8 +176,8 @@ namespace diggedag
 
         }
 
-        diggedag::node n (nd);
-        dag_.add_node (name, n);
+        diggedag::node * n = new diggedag::node (nd);
+        dag_->add_node (name, n);
       }
       catch ( ... )
       {
@@ -185,9 +191,9 @@ namespace diggedag
     {
       std::vector <std::string> elems = diggedag::split (spec);
 
-      diggedag::edge e ("file://localhost/TODO", 
-                        "file://localhost/FIXME");
-      dag_.add_edge (e, elems[1], elems[3]);
+      diggedag::edge * e = new diggedag::edge ("file://localhost/TODO", 
+                                               "file://localhost/FIXME");
+      dag_->add_edge (e, elems[1], elems[3]);
     }
 
 

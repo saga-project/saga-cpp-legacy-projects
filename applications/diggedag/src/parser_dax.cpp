@@ -14,6 +14,7 @@ namespace diggedag
     parser::parser (const std::string & filename)
       : filename_ (filename)
     {
+      dag_ = new diggedag::dag ();
       parse_dag ();
     }
 
@@ -41,8 +42,8 @@ namespace diggedag
 
           std::cout << "job [" << s_id << " - " << s_name << "] - create node" << std::endl;
 
-          diggedag::node n (s_name);
-          dag_.add_node (s_id, n);
+          diggedag::node * n = new diggedag::node (s_name);
+          dag_->add_node (s_id, n);
         }
 
 
@@ -99,8 +100,8 @@ namespace diggedag
 
               // add edge
               saga::url loc (file);
-              diggedag::edge e (loc);
-              dag_.add_edge (e, o_node, i_node);
+              diggedag::edge * e = new diggedag::edge (loc);
+              dag_->add_edge (e, o_node, i_node);
 
               // stop loop
               j = inputs.size ();

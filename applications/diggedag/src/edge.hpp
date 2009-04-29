@@ -2,56 +2,54 @@
 #ifndef DIGGEDAG_EDGE_HPP
 #define DIGGEDAG_EDGE_HPP
 
+#include <vector>
+
 #include <saga/saga.hpp>
 
-#include "util/shared_ptr.hpp"
+#include "util/thread.hpp"
 
 #include "enum.hpp"
+#include "dag.hpp"
+#include "node.hpp"
+#include "scheduler.hpp"
 
 
 namespace diggedag
 {
-  namespace impl
+  class edge : public diggedag::util::thread
   {
-    class dag;
-    class edge;
-  }
-
-  class dag;
-  class node;
-  class scheduler;
-  class edge
-  {
-    protected:
-      my_shared_ptr <impl::edge> impl_;
-   // my_shared_ptr <impl::edge> get_impl (void) const { return impl_; } 
-
     private:
-      bool  has_impl_;
-      void  check_ (void) const;
+      saga::url             src_;   // src location of data
+      saga::url             tgt_;   // tgt location of data
+      diggedag::state       state_; // state of instance
 
-    protected:
-      void set_dag (dag & d);
-      friend class diggedag::impl::dag;
+      diggedag::node      * src_node_;
+      diggedag::node      * tgt_node_;
+
+      diggedag::dag       * dag_;
+      diggedag::scheduler * scheduler_;
 
 
     public:
-      edge (void);
-      edge (const saga::url & src, 
-            const saga::url & tgt = "");
-      edge (const edge      & src);
+      edge  (const saga::url & src, 
+             const saga::url & tgt = "");
       ~edge (void);
 
-      void            fire         (void);
-      void            add_src_node (const node & src);
-      void            add_tgt_node (const node & tgt);
-      void            erase_src    (void);
-      void            erase_tgt    (void);
-      diggedag::state get_state    (void) const;
-      saga::url       get_src      (void) const;
-      saga::url       get_tgt      (void) const;
-      diggedag::node  get_src_node (void) const;
-      diggedag::node  get_tgt_node (void) const;
+      void             fire         (void);
+      void             thread_work  (void);
+      void             erase_src    (void);
+      void             erase_tgt    (void);
+      void             add_src_node (diggedag::node * src);
+      void             add_tgt_node (diggedag::node * tgt);
+      diggedag::state  get_state    (void) const;
+
+      saga::url        get_src      (void) const { return src_; }
+      saga::url        get_tgt      (void) const { return tgt_; }
+
+      diggedag::node * get_src_node (void) const { return src_node_; }
+      diggedag::node * get_tgt_node (void) const { return tgt_node_; }
+
+      void             set_dag      (diggedag::dag  * d);
   };
 
 } // namespace diggedag
