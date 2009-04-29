@@ -8,16 +8,30 @@
 
 #include "util/thread.hpp"
 
-#include "enum.hpp"
-#include "dag.hpp"
 #include "node.hpp"
-#include "edge.hpp"
-#include "scheduler.hpp"
 #include "node_description.hpp"
 
 
 namespace diggedag
 {
+  enum state
+  {
+    Incomplete = 0,
+    Pending    = 1,
+    Running    = 2, 
+    Ready      = 3,
+    Failed     = 4
+  };
+
+  std::string state_to_string (state s)
+  {
+    if      ( s == Incomplete ) return "Incomplete";
+    else if ( s == Pending    ) return "Pending"   ;
+    else if ( s == Running    ) return "Running"   ;
+    else if ( s == Ready      ) return "Ready"     ;
+    else if ( s == Failed     ) return "Failed"    ;
+    else                        return "Unknown"   ;
+  }
   class node : public diggedag::util::thread
   {
     private:
