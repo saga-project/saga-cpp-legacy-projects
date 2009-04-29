@@ -4,8 +4,6 @@
 #include <saga/saga.hpp>
 
 #include "util/split.hpp"
-#include "util/thread.hpp"
-#include "util/scoped_lock.hpp"
 
 #include "node.hpp"
 
@@ -95,8 +93,6 @@ namespace diggedag
     // check if node was started before (!Pending).  
     // If not, mark that we start the work (Running)
     {
-      my_scoped_lock l = thread_scoped_lock ();
-
       if ( Pending != state_ )
         return;
 
@@ -106,86 +102,89 @@ namespace diggedag
 
     // all input edges are Ready, i.e. all input data are available.  We
     // can thus really execute the node application.
-    //
-    // So: run the application, in extra thread
-    thread_run ();
+    // First we execute the node's application, then we fire all outgoing edges,
+    // to get data staged out.
+
+    // ### scheduler hook
+    scheduler_->hook_node_run_pre (dag_, this);
+    
+    try 
+    {
+      saga::job::description jd (nd_);
+
+      saga::job::service js;
+      job_ = js.create_job (jd);
+
+      job_.run  ();
+
+      // now we add a callback to get notified when the job is done.  
+      job_.add_callback (saga::metrics::task_state, 
+                         boost::bind (&node::cb, this, _1, _2, _3));
+
+      std::cout << "       node " << name_ 
+                << " : job done" << std::endl; 
+    }
+    catch ( const saga::exception & e )
+    {
+      std::cout << "       node " << name_ 
+                << " : job execution threw exception - cancel\n"
+                << e.what () << std::endl;
+
+      state_ = Failed;
+
+      // ### scheduler hook
+      scheduler_->hook_node_run_fail (dag_, this);
+
+      return;
+    }
   }
 
 
-  // thread_work is called when the node is fired, and all prerequesites
-  // are fullfilled, i.e. all input data are available.  First we execute
-  // the node's application, then we fire all outgoing edges, to get data
-  // staged out.
-  void node::thread_work (void)
+  bool node::cb (saga::monitorable o, 
+                 saga::metric      m, 
+                 saga::context     c)
   {
-    // ### scheduler hook
-    scheduler_->hook_node_run_pre (dag_, this);
+    std::cout << " --------------- node cb " << name_ << std::endl; 
 
-    // TODO: run the saga job for the job description here
-
-    // FIXME: for now, we simply fake work by sleeping for some amount of
-    // time
+    switch ( job_.get_state () )
     {
-      try {
-        saga::job::description jd (nd_);
-
-        saga::job::service js;
-        saga::job::job j = js.create_job (jd);
-
-        j.run  ();
-        j.wait ();
-
-        if ( j.get_state () != saga::job::Done )
+      case saga::job::Done :
         {
-          std::cout << "       node " << name_ 
-                    << " : job failed - cancel" << std::endl;
+          // If we are done, we get data staged out, e.g. fire outgoing edges
+          for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+          {
+            // std::cout << "       node " << name_ << " fires edge "
+            //           << edge_out_[i].get_src () << "->" 
+            //           << edge_out_[i].get_tgt () << std::endl;
+            edge_out_[i]->fire ();
+          }
 
-          state_ = Failed;
+          state_ = Ready;
+
+          // ### scheduler hook
+          scheduler_->hook_node_run_done (dag_, this);
+
+          return false;
+        }
+
+      case saga::job::Running :
+        {
+          // why did we get called???
+          state_ = Running;
+          return true; // stay registered
+        }
+
+      // all other cases are errors...
+      default:
+        {
+          state_ = Failed; // unknown state...
 
           // ### scheduler hook
           scheduler_->hook_node_run_fail (dag_, this);
 
-          return;
+          return false;
         }
-        else
-        {
-          std::cout << "       node " << name_ 
-                    << " : job done" << std::endl;
-        }
-      }
-      catch ( const saga::exception & e )
-      {
-        std::cout << "       node " << name_ 
-          << " : job execution threw exception - cancel\n"
-          << e.what () << std::endl;
-
-        state_ = Failed;
-
-        // ### scheduler hook
-        scheduler_->hook_node_run_fail (dag_, this);
-
-        return;
-      }
     }
-
-
-    // get data staged out, e.g. fire outgoing edges
-    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
-    {
-      // std::cout << "       node " << name_ << " fires edge "
-      //   << edge_out_[i].get_src () << "->" 
-      //   << edge_out_[i].get_tgt () << std::endl;
-      edge_out_[i]->fire ();
-    }
-
-
-    // when all is done, we can update the state
-    thread_lock ();
-    state_ = Ready;
-    thread_unlock ();
-
-    // ### scheduler hook
-    scheduler_->hook_node_run_done (dag_, this);
   }
 
   std::string node::get_name (void) const

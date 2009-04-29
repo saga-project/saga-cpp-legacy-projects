@@ -6,8 +6,6 @@
 
 #include <saga/saga.hpp>
 
-#include "util/thread.hpp"
-
 #include "enum.hpp"
 #include "dag.hpp"
 #include "node.hpp"
@@ -16,7 +14,7 @@
 
 namespace diggedag
 {
-  class edge : public diggedag::util::thread
+  class edge
   {
     private:
       saga::url             src_;   // src location of data
@@ -29,14 +27,18 @@ namespace diggedag
       diggedag::dag       * dag_;
       diggedag::scheduler * scheduler_;
 
+      saga::task            task_;  // workload
+
 
     public:
       edge  (const saga::url & src, 
              const saga::url & tgt = "");
       ~edge (void);
 
+      bool             cb           (saga::monitorable o, 
+                                     saga::metric      m, 
+                                     saga::context     c);
       void             fire         (void);
-      void             thread_work  (void);
       void             erase_src    (void);
       void             erase_tgt    (void);
       void             add_src_node (diggedag::node * src);

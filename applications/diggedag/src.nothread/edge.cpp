@@ -1,8 +1,6 @@
 
 #include "edge.hpp"
 
-#include "util/scoped_lock.hpp"
-
 namespace diggedag
 {
   edge::edge (const saga::url & src, 
@@ -33,7 +31,7 @@ namespace diggedag
   }
 
   // fire() checks if there is still work to do, and if so, starts
-  // a thread to do it.
+  // to do it, asynchronously
   void edge::fire (void)
   {
     std::cout << "fire   edge " << src_ << "->" << tgt_ <<  std::endl;
@@ -41,8 +39,6 @@ namespace diggedag
     // check if copy was done, or started, before (!Pending).  
     // If not, mark that we start the work (Running)
     {
-      my_scoped_lock l = thread_scoped_lock ();
-
       if ( Pending != state_ )
         return;
 
@@ -57,37 +53,64 @@ namespace diggedag
       state_ = Running;
     }
 
-    // start the threaded operation
-    thread_run ();
-  }
-
-
-  // thread_work is the workload, i.e. the data copy operation
-  void edge::thread_work (void)
-  {
     // FIXME: perform the real remote saga file copy from src to tgt here
     // (if both are not identical)
     {
-      saga::url u_src (src_);
-      saga::url u_tgt (tgt_);
-
-      saga::filesystem::file f_src (u_src);
-      f_src.copy (u_tgt, saga::filesystem::Overwrite);
+      saga::filesystem::file f_src (src_);
+      task_ = f_src.copy <saga::task::Async> (tgt_, saga::filesystem::Overwrite);
     }
 
+    // now we add a callback to get notified when the copy is done.  
+    task_.add_callback (saga::metrics::task_state, 
+                        boost::bind (&edge::cb, this, _1, _2, _3));
+  }
+
+
+  bool edge::cb (saga::monitorable o, 
+                 saga::metric      m, 
+                 saga::context     c)
+  {
+    std::cout << " --------------- edge cb " 
+              << src_ << " " << tgt_ << std::endl; 
+
+    switch ( task_.get_state () )
     {
-      // signal that we are done
-      my_scoped_lock l = thread_scoped_lock ();
-      state_ = Ready;
-    }
+      // if we are done copying data, we fire the dependend node
+      // this fire may succeed or not - that depends on the availability
+      // of _other_ input data to that node.  Only if all data are Ready,
+      // the fire will actually do anything.  Thus, only the last fire
+      // called on a node (i.e. called from its last Pending Edge) will
+      // result in a Running node.
+      case saga::task::Done :
+        {
+          tgt_node_->fire ();
 
-    // if we are done copying data, we fire the dependend node
-    // this fire may succeed or not - that depends on the availability
-    // of _other_ input data to that node.  Only if all data are Ready,
-    // the fire will actually do anything.  Thus, only the last fire
-    // called on a node (i.e. called from its last Pending Edge) will
-    // result in a Running node.
-    tgt_node_->fire ();
+          state_ = Ready;
+
+          // ### scheduler hook
+          scheduler_->hook_edge_run_done (dag_, this);
+
+          return false;
+        }
+
+      case saga::task::Running :
+        {
+          // why did we get called???
+          state_ = Running;
+          return true; // stay registered
+        }
+
+        // all other cases are errors...
+      default:
+        {
+          state_ = Failed; // unknown state...
+
+          // ### scheduler hook
+          scheduler_->hook_edge_run_fail (dag_, this);
+
+          return false;
+        }
+    }
   }
 
 
