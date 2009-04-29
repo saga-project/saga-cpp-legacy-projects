@@ -41,8 +41,9 @@ namespace faust
         faust::detail::logwriter * log_;
         
         std::string sp_;
-        faust::resource_description rd_;
-        faust::resource_monitor rm_;
+        boost::shared_ptr <faust::detail::logwriter> log_sptr_;
+        boost::shared_ptr <faust::resource_description> desc_obj_sptr_;
+        boost::shared_ptr <faust::resource_monitor> mon_obj_sptr_;
         
         /* directory attributes related stuff */
         bool directory_attributes_checked_;
@@ -57,9 +58,11 @@ namespace faust
         void query_queues();
         
       public:
-        monitor() {}
-        monitor(std::string shell_path, faust::resource_description & rd, 
-                       faust::resource_monitor & rm, std::string uuid, faust::detail::logwriter * lw);
+        //monitor() {}
+        monitor (boost::shared_ptr <faust::resource_description> rd,
+                 boost::shared_ptr <faust::resource_monitor>     rm,
+                 boost::shared_ptr <faust::detail::logwriter>    lw);
+        
         ~monitor() {}
         
         void query(query_type=QueryAll); // executes a query on all rd attributes

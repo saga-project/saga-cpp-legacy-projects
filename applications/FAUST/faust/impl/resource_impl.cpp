@@ -44,8 +44,8 @@ resource_id_(resource_id)
     advert_base_ = advert::directory(advert_key, mode);
     
     // open "CMD" entry
-    cmd_  = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
-    args_ = advert_base_.open(endpoint_str_+"ARGS", saga::advert::ReadWrite);
+    cmd_adv_  = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
+    args_adv_ = advert_base_.open(endpoint_str_+"ARGS", saga::advert::ReadWrite);
     rd_   = advert_base_.open(endpoint_str_+"RD", saga::advert::ReadWrite);
     rm_   = advert_base_.open(endpoint_str_+"RM", saga::advert::ReadWrite);
     
@@ -239,11 +239,11 @@ init_from_id_(false), persistent_(persistent)
     advert_base_.set_attribute("persistent", "FALSE");
   
   // create "CMD" entry
-  cmd_ = advert_base_.open(endpoint_str_+"CMD", mode);
-  cmd_.store_string(""); 
+  cmd_adv_ = advert_base_.open(endpoint_str_+"CMD", mode);
+  cmd_adv_.store_string(""); 
   
-  args_ = advert_base_.open(endpoint_str_+"ARGS", mode);
-  args_.store_string(""); 
+  args_adv_ = advert_base_.open(endpoint_str_+"ARGS", mode);
+  args_adv_.store_string(""); 
 
   rd_ = advert_base_.open(endpoint_str_+"RD", mode);
   rd_.store_string(""); 
@@ -404,7 +404,7 @@ void resource::send_command(std::string cmd, unsigned int timeout)
   // sends a command and waits for an acknowledgement. 
 	std::string msg("Sending command '"+cmd+"' to faust_agent instance");
   try {
-    cmd_.store_string(agent_uuid_+":"+cmd);
+    cmd_adv_.store_string(agent_uuid_+":"+cmd);
     msg += ". SUCCESS ";
   }
   catch(saga::exception const & e) {
@@ -419,20 +419,20 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     while(to < timeout) {
       ++to;
       sleep(1);
-      result = cmd_.retrieve_string();
+      result = cmd_adv_.retrieve_string();
       if(result == std::string("ACK:"+agent_uuid_+":"+cmd))
         break;
     }
     
     if(result == std::string("ACK:"+agent_uuid_+":"+cmd)) {
-      cmd_.store_string(""); // Reset CMD
-      args_.store_string(""); // Reset ARGS
+      cmd_adv_.store_string(""); // Reset CMD
+      args_adv_.store_string(""); // Reset ARGS
       msg += "SUCCESS ";
       log_->write(msg, LOGLEVEL_INFO);
     }
     else {
-      cmd_.store_string(""); // Reset CMD
-      args_.store_string(""); // Reset ARGS
+      cmd_adv_.store_string(""); // Reset CMD
+      args_adv_.store_string(""); // Reset ARGS
       std::stringstream out; out << timeout;
       msg += std::string(" FAILED (Timeout - "+out.str()+" sec) ") ;
       log_->write(msg, LOGLEVEL_ERROR);

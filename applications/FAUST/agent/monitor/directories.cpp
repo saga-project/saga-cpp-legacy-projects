@@ -17,19 +17,25 @@ using namespace faust::agent::monitor;
 namespace FAR = faust::attributes::resource_description;
 namespace FAM = faust::attributes::resource_monitor;
 
+////////////////////////////////////////////////////////////////////////////////
+//
 directories::directories( boost::shared_ptr <faust::agent::monitor::monitor> mon,
                           boost::shared_ptr <faust::resource_description>    rd, 
                           boost::shared_ptr <faust::resource_monitor>        rm)
-: mon_(mon)
+: mon_(mon), rd_(rd), rm_(rm)
 {
-  mon_ = mon;
+
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
 directories::~directories()
 {
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
 bool directories::check_attributes()
 {
   std::string msg("Checking directory attributes for consitency");

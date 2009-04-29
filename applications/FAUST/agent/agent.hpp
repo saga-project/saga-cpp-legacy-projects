@@ -21,40 +21,36 @@
 
 namespace faust
 {
-  //////////////////////////////////////////////////////////////////////////
-  //
   namespace agent
   {
-  class app   
-  {
-  private:
-    faust::detail::logwriter * log_;
-    std::string endpoint_;
-    std::string uuid_;
-    
-    saga::advert::directory advert_base_;
-    saga::advert::entry cmd_;
-    saga::advert::entry args_;
-    saga::advert::entry rd_;
-    saga::advert::entry rm_;
-    
-    system_monitor m_;
-    faust::resource_description description_;
-    faust::resource_monitor     monitor_;
-    
-    std::string recv_command(std::string & cmd, std::string & args);
+    class app   
+      {
+      private:
         
-  public:
-    app(std::string endpoint, std::string uuid);
-    ~app();
-    
-    void run(void);
-    void run_tests(void);
-    
-  };
+        std::string endpoint_;
+        std::string uuid_;
+        
+        saga::advert::entry cmd_adv_;
+        saga::advert::entry args_adv_;
+        saga::advert::entry desc_adv_;
+        saga::advert::entry mon_adv_;
+        
+        boost::shared_ptr <faust::detail::logwriter> log_sptr_;
+        boost::shared_ptr <faust::agent::monitor::monitor> sysmon_obj_sptr_;
+        boost::shared_ptr <faust::resource_description> desc_obj_sptr_;
+        boost::shared_ptr <faust::resource_monitor> mon_obj_sptr_;
+        
+        std::string recv_command(std::string & cmd, std::string & args);
+        
+      public:
+        app(std::string endpoint, std::string uuid);
+        ~app();
+        
+        void run(void);
+        void run_tests(void);
+        
+      };
   }
-  //
-  //////////////////////////////////////////////////////////////////////////
 }
 
 #endif /* FAUST_AGENT_HPP */

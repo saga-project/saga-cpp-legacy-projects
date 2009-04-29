@@ -46,31 +46,33 @@ namespace {
 app::app(std::string endpoint, std::string uuid)
 : endpoint_(endpoint), uuid_(uuid)
 {
-
-  
-  // Initialize the logwriter
+  // Initialize logwrite instance 
   std::string identifier("faust_agent ("+uuid_+")"); std::string msg("");
-  log_ = new detail::logwriter(identifier, std::cout);
+  log_sptr_ = boost::shared_ptr <faust::detail::logwriter>
+    (new detail::logwriter(identifier, std::cout));
   
   msg = "Connecting to advert endpoint " + endpoint_;
   try {
     int mode = advert::ReadWrite;
-    advert_base_ = advert::directory(endpoint_, mode);
+    saga::advert::directory base(endpoint_, mode);
         
-    cmd_  = advert_base_.open("CMD", saga::advert::ReadWrite);
-    args_ = advert_base_.open("ARGS", saga::advert::ReadWrite);
-    rd_   = advert_base_.open("RD", saga::advert::ReadWrite);
-    rm_   = advert_base_.open("RM", saga::advert::ReadWrite);
+    cmd_adv_  = base.open("CMD", mode);
+    args_adv_ = base.open("ARGS", mode);
+    desc_adv_ = base.open("RD", mode);
+    mon_adv_  = base.open("RM", mode);
     
-    monitor_ = faust::resource_monitor(rm_);
-    m_ = system_monitor("", description_, monitor_, uuid_, log_);
+    mon_obj_sptr_ = boost::shared_ptr <faust::resource_monitor>
+      (new faust::resource_monitor(mon_adv_));
+    
+    sysmon_obj_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
+      (new faust::agent::monitor::monitor(desc_obj_sptr_, mon_obj_sptr_, log_sptr_));
     
     msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
+    log_sptr_->write(msg, LOGLEVEL_INFO);
   }
   catch(saga::exception const & e) {
     msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
   
@@ -80,7 +82,7 @@ app::app(std::string endpoint, std::string uuid)
   msg = "Retrieving resource description";
   
   try {    
-    std::vector<std::string> attr_ = rd_.list_attributes();
+    std::vector<std::string> attr_ = desc_adv_.list_attributes();
     std::vector<std::string>::const_iterator it;
     for(it = attr_.begin(); it != attr_.end(); ++it)
     {
@@ -88,20 +90,20 @@ app::app(std::string endpoint, std::string uuid)
       if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
         continue;
       
-      if(rd_.attribute_is_vector(*it)) {
+      if(desc_adv_.attribute_is_vector(*it)) {
         std::cout << "VA: " << (*it) << std::endl;
-        description_.set_vector_attribute((*it), rd_.get_vector_attribute((*it)));
+        desc_obj_sptr_->set_vector_attribute((*it), desc_adv_.get_vector_attribute((*it)));
       }
       else {
-        description_.set_attribute((*it), rd_.get_attribute((*it)));
+        desc_obj_sptr_->set_attribute((*it), desc_adv_.get_attribute((*it)));
       }
     }
     msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
+    log_sptr_->write(msg, LOGLEVEL_INFO);
   }
   catch(saga::exception const & e) {
     msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
 }
@@ -112,14 +114,17 @@ app::~app()
 {
   std::string msg("Disconnecting from advert endpoint " + endpoint_);
   try {    
-    advert_base_.close();
+    cmd_adv_.close();
+    args_adv_.close();
+    desc_adv_.close();
+    mon_adv_.close();
     
     msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
+    log_sptr_->write(msg, LOGLEVEL_INFO);
   }
   catch(saga::exception const & e) {
     msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
   
@@ -130,43 +135,43 @@ app::~app()
 //
 std::string app::recv_command(std::string & cmd, std::string & args)
 {
-  std::string cmd_str("");
-  std::string args_str("");
+  std::string cmd_adv_str("");
+  std::string args_adv_str("");
   std::string msg("Checking if a new command is waiting");
   try {
-    cmd_str = cmd_.retrieve_string();
-    args_str = args_.retrieve_string();
+    cmd_adv_str = cmd_adv_.retrieve_string();
+    args_adv_str = args_adv_.retrieve_string();
     
-    if(cmd_str.length() >= 1) {
+    if(cmd_adv_str.length() >= 1) {
       std::vector<std::string> tokens;
-      ::tokenize(cmd_str, tokens, ":");
+      ::tokenize(cmd_adv_str, tokens, ":");
       
       if(tokens.at(0) == "ACK") { 
         msg += ". NO";
-        log_->write(msg, LOGLEVEL_INFO);
+        log_sptr_->write(msg, LOGLEVEL_INFO);
       }
       else {
-        msg += ". YES: CMD='"+cmd_str+"' ARGS='"+args_str+"'";
-        log_->write(msg, LOGLEVEL_INFO);
+        msg += ". YES: CMD='"+cmd_adv_str+"' ARGS='"+args_adv_str+"'";
+        log_sptr_->write(msg, LOGLEVEL_INFO);
         
         if(tokens.at(0) != uuid_) {
           // IF UUID doesn't match, I'm definitely a ZOMBIE agent and 
           // I should really kill myself!
-          msg = "UUID of received command "+cmd_str+" is INVALID. TERMINATING!";
-          log_->write(msg, LOGLEVEL_ERROR);
+          msg = "UUID of received command "+cmd_adv_str+" is INVALID. TERMINATING!";
+          log_sptr_->write(msg, LOGLEVEL_ERROR);
           throw faust::exception (msg, faust::NoSuccess);
         }
         else {
-          msg = "Sending acknowledgement for command '"+cmd_str+"'";
+          msg = "Sending acknowledgement for command '"+cmd_adv_str+"'";
           try {
-            cmd_.store_string("ACK:"+cmd_str);
+            cmd_adv_.store_string("ACK:"+cmd_adv_str);
             
             msg += ". SUCCESS ";
-            log_->write(msg, LOGLEVEL_INFO);
+            log_sptr_->write(msg, LOGLEVEL_INFO);
           }
           catch(saga::exception const & e) {
             msg += " FAILED " + std::string(e.what());
-            log_->write(msg, LOGLEVEL_ERROR);
+            log_sptr_->write(msg, LOGLEVEL_ERROR);
             throw faust::exception (msg, faust::NoSuccess);
           }  
         }
@@ -174,19 +179,19 @@ std::string app::recv_command(std::string & cmd, std::string & args)
     }
     else {
       msg += ". NO";
-      log_->write(msg, LOGLEVEL_INFO);
+      log_sptr_->write(msg, LOGLEVEL_INFO);
     }
   }
   catch(saga::exception const & e) {
     msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }  
   
-  cmd = cmd_str;
-  args = args_str;
+  cmd = cmd_adv_str;
+  args = args_adv_str;
   
-  return cmd_str;
+  return cmd_adv_str;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,7 +203,7 @@ void app::run(void)
   while(1) {
     std::string cmd = recv_command(a, b);
     if(cmd == uuid_+":TERMINATE") return;
-    m_.query();
+    //m_.query();
     sleep(1);
   }
 }

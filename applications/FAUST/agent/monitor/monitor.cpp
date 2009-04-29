@@ -30,34 +30,32 @@ namespace {
   inline boost::process::child 
   run_bash_script(std::string bash_path, std::string const & shell_command)
   {
-    boost::process::launcher cmd_launcher_;
-    cmd_launcher_.set_stdin_behavior(boost::process::redirect_stream);
-    cmd_launcher_.set_stdout_behavior(boost::process::redirect_stream);
-    cmd_launcher_.set_stderr_behavior(boost::process::close_stream);
-    cmd_launcher_.set_merge_out_err(true);
+    boost::process::launcher cmd_adv_launcher_;
+    cmd_adv_launcher_.set_stdin_behavior(boost::process::redirect_stream);
+    cmd_adv_launcher_.set_stdout_behavior(boost::process::redirect_stream);
+    cmd_adv_launcher_.set_stderr_behavior(boost::process::close_stream);
+    cmd_adv_launcher_.set_merge_out_err(true);
     
     boost::process::command_line cl(bash_path, "", "/usr/bin/");
     cl.argument("-c");
     cl.argument(shell_command);
     
-    return cmd_launcher_.start(cl);  
+    return cmd_adv_launcher_.start(cl);  
   }
   
 }
 //////////////////////////////////////////////////////////////////////////
 //
-monitor::monitor(std::string shell_path, faust::resource_description & rd, 
-                               faust::resource_monitor & rm, std::string uuid, faust::detail::logwriter * lw)
-: sp_(shell_path), rd_(rd), rm_(rm)
+monitor::monitor(boost::shared_ptr <faust::resource_description> rd,
+                 boost::shared_ptr <faust::resource_monitor>     rm,
+                 boost::shared_ptr <faust::detail::logwriter>    lw)
+
+: desc_obj_sptr_(rd), mon_obj_sptr_(rm), log_sptr_(lw)
 {
-  // Initialize the logwriter
-  std::string identifier("faust_agent ("+uuid+")"); std::string msg("");
-  log_ = new detail::logwriter(identifier, std::cout);
-  
   directory_attributes_checked_ = false;
 }
 
-//////////////////////////////////////////////////////////////////////////
+/*//////////////////////////////////////////////////////////////////////////
 //  
 void monitor::query(query_type qt)
 {
@@ -302,4 +300,4 @@ void monitor::query_directories()
     
   }
   
-}
+}*/

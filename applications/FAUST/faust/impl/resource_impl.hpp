@@ -38,8 +38,8 @@ namespace faust
       
 			// advert service handles that are used quite frequently
       saga::advert::directory advert_base_;
-      saga::advert::entry cmd_;
-      saga::advert::entry args_;
+      saga::advert::entry cmd_adv_;
+      saga::advert::entry args_adv_;
       saga::advert::entry rm_;
       saga::advert::entry rd_;
       
