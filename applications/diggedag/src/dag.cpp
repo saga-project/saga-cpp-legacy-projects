@@ -24,26 +24,43 @@ namespace diggedag
     std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
 
 
-    // FIXME: nodes fire edges, edges fire nodes.  No matter which we delete
+    // Nodes fire edges, edges fire nodes.  No matter which we delete
     // first, we are in trouble.  Thus, we need to *stop* them all, before we
     // start deleting
-    for ( it = begin; it != end; it++ )
     {
-      std::cout << "deleting node " << (*it).first << std::endl;
-      delete (*it).second;
-      std::cout << "deleted  node " << (*it).first << std::endl;
+      for ( it = begin; it != end; it++ )
+      {
+        (*it).second->stop ();
+        std::cout << "deleted  node " << (*it).first << std::endl;
+      }
+
+      for ( unsigned int i = 0; i < edges_.size (); i++ )
+      {
+        edges_[i]->stop ();
+        std::cout << "deleted  edge " << i << std::endl;
+      }
     }
 
-    for ( unsigned int i = 0; i < edges_.size (); i++ )
+
+    // ok, everything is stopped, now destroy
     {
-      std::cout << "deleting edge " << i << std::endl;
-      delete edges_[i];
+      for ( it = begin; it != end; it++ )
+      {
+        delete (*it).second;
+        std::cout << "deleted  node " << (*it).first << std::endl;
+      }
+
+      for ( unsigned int i = 0; i < edges_.size (); i++ )
+      {
+        delete edges_[i];
+        std::cout << "deleted  edge " << i << std::endl;
+      }
     }
 
     // delete scheduler, nodes and edges
     delete scheduler_;
 
-    std::cout << "delete dag " << std::endl;
+    std::cout << "deleted  scheduler " << std::endl;
   }
 
 
@@ -225,8 +242,6 @@ namespace diggedag
 
   void dag::set_state (state s)
   {
-    std::cout << " ============================ setting state to " 
-      << diggedag::state_to_string (s) << std::endl;
     state_ = s;
   }
 

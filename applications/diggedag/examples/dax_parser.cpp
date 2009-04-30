@@ -12,7 +12,7 @@ int main (int argc, char** argv)
     diggedag::dag * d = p.get_dag ();
 
     // allow for pre-run scheduling
-    /// d->schedule (); 
+    d->schedule (); 
 
     // run the dag.  This also performs scheduling on-the-fly
     d->fire ();
@@ -26,6 +26,8 @@ int main (int argc, char** argv)
       ::sleep (1);
       std::cout << "dag    waiting..." << std::endl;
     }
+
+    delete d;
   }
   catch ( const char * s )
   {

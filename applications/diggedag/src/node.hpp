@@ -43,6 +43,7 @@ namespace diggedag
       void            add_edge_out    (diggedag::edge * e);
 
       void            fire            (void);
+      void            stop            (void);
       void            thread_work     (void);
       std::string     get_name        (void) const;
       diggedag::node_description 

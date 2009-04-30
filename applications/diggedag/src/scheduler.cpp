@@ -17,68 +17,68 @@ namespace diggedag
 {
   scheduler::scheduler (void)
   {
-    // std::cout << "scheduler ctor" << std::endl;
+    std::cout << "scheduler ctor" << std::endl;
   }
 
   scheduler::~scheduler (void)
   {
-    // std::cout << "scheduler dtor" << std::endl;
+    std::cout << "scheduler dtor" << std::endl;
   }
 
 
   void scheduler::hook_dag_create (diggedag::dag  * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_create" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_create" << std::endl;
   }
 
 
   void scheduler::hook_dag_destroy (diggedag::dag * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_destroy" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_destroy" << std::endl;
   }
 
 
   void scheduler::hook_dag_schedule (diggedag::dag * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_schedule" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_schedule" << std::endl;
   }
 
 
   void scheduler::hook_dag_run_pre (diggedag::dag * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_pre" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_run_pre" << std::endl;
   }
 
 
   void scheduler::hook_dag_run_post (diggedag::dag * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_post" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_run_post" << std::endl;
   }
 
 
   void scheduler::hook_dag_run_done (diggedag::dag * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_done" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_run_done" << std::endl;
   }
 
 
   void scheduler::hook_dag_run_fail (diggedag::dag * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_fail" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_run_fail" << std::endl;
   }
 
 
   void scheduler::hook_dag_wait (diggedag::dag * d)                     
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_wait" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_dag_wait" << std::endl;
   }
 
 
@@ -86,40 +86,40 @@ namespace diggedag
   void scheduler::hook_node_add (diggedag::dag  * d,
                                  diggedag::node * n)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_add" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_node_add" << std::endl;
   }
 
 
   void scheduler::hook_node_remove (diggedag::dag  * d,
                                     diggedag::node * n)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_remove" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_node_remove" << std::endl;
   }
 
 
   void scheduler::hook_node_run_pre (diggedag::dag  * d,
                                      diggedag::node * n)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_run_pre" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_node_run_pre" << std::endl;
   }
 
 
   void scheduler::hook_node_run_done (diggedag::dag  * d,
                                       diggedag::node * n)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_run_done" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_node_run_done" << std::endl;
   }
 
 
   void scheduler::hook_node_run_fail (diggedag::dag  * d,
                                       diggedag::node * n)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_run_fail" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_node_run_fail" << std::endl;
 
     // tell the dag that a node failed
     // FIXME
@@ -131,40 +131,40 @@ namespace diggedag
   void scheduler::hook_edge_add (diggedag::dag  * d,
                                  diggedag::edge * e)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_add" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_edge_add" << std::endl;
   }
 
 
   void scheduler::hook_node_remove (diggedag::dag  * d,
                                     diggedag::edge * e)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_remove" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_node_remove" << std::endl;
   }
 
 
   void scheduler::hook_edge_run_pre (diggedag::dag  * d,
                                      diggedag::edge * e)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_run_pre" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_edge_run_pre" << std::endl;
   }
 
 
   void scheduler::hook_edge_run_done (diggedag::dag  * d,
                                       diggedag::edge * e)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_run_done" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_edge_run_done" << std::endl;
   }
 
 
   void scheduler::hook_edge_run_fail (diggedag::dag  * d,
                                       diggedag::edge * e)           
   {
-    my_scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_run_fail" << std::endl;
+    util::scoped_lock sl (mtx_);
+    std::cout << "scheduler hook_edge_run_fail" << std::endl;
   }
 
 } // namespace diggedag

@@ -67,6 +67,7 @@ namespace diggedag
   // application.  If they are not ready, fire has no effect.
   void node::fire (void)
   {
+    std::cout << " >> ============ state" << std::endl;
     std::cout << "fire   node " << name_ << std::endl;
 
     // ### scheduler hook
@@ -78,8 +79,9 @@ namespace diggedag
       if ( Ready != edge_in_[i]->get_state () )
       {
         std::cout << "       node " << name_ << " : edge " 
-          << edge_in_[i]->get_src () << "->" 
-          << edge_in_[i]->get_tgt () << " is not ready - cancel fire" << std::endl;
+                  << edge_in_[i]->get_src () << "->" 
+                  << edge_in_[i]->get_tgt () << " is not ready - cancel fire" << std::endl;
+        std::cout << " << 1 ========== state" << std::endl;
         return;
       }
       else
@@ -94,7 +96,10 @@ namespace diggedag
     // If not, mark that we start the work (Running)
     {
       if ( Pending != state_ )
+      {
+        std::cout << " << 2 ========== state" << std::endl;
         return;
+      }
 
       // we have work to do...
       state_ = Running;
@@ -118,7 +123,8 @@ namespace diggedag
       job_.run  ();
 
       // now we add a callback to get notified when the job is done.  
-      job_.add_callback (saga::metrics::task_state, 
+      std::cout << "adding state cb for " << name_ << std::endl;
+      job_.add_callback (saga::job::metrics::state, 
                          boost::bind (&node::cb, this, _1, _2, _3));
 
       std::cout << "       node " << name_ 

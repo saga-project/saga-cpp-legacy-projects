@@ -1,6 +1,4 @@
 
-#include <boost/bind.hpp>
-
 #include "util/thread.hpp"
 
 
@@ -53,11 +51,7 @@ namespace diggedag
     // irrelevant cancelation points.
     thread::~thread () 
     {
-#ifdef USE_BOOST
-      thread_.join ();
-#else
       pthread_join (thread_, NULL);
-#endif
     }
 
 
@@ -67,21 +61,17 @@ namespace diggedag
     // is changed to Running.
     void thread::thread_run (void)
     {
-      PREFIX::scoped_lock l (mtx_);
+      util::scoped_lock l (mtx_);
 
       if ( thread_state_ != ThreadNew )
         return;
 
       thread_state_ = ThreadRunning;
 
-#ifdef USE_BOOST
-      thread_ = boost::thread (boost::bind (&diggedag::util::thread_startup_, this));
-#else
       if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
       }
-#endif
     }
 
 
@@ -93,7 +83,7 @@ namespace diggedag
       // First, try get the mutex.  run() is locking the mutex to set the state
       // to Running - we wait 'til this is done, to ensure correct state.
       {
-        PREFIX::scoped_lock l (mtx_);
+        util::scoped_lock l (mtx_);
       }
 
       // now startup is completed - call the (custom) workload
@@ -101,67 +91,29 @@ namespace diggedag
 
       // the thread workload is done - update state
       {
-        PREFIX::scoped_lock l (mtx_);
+        util::scoped_lock l (mtx_);
         
         thread_state_ = ThreadDone;
       }
 
-      // only if the thread finishes on its own, i.e. if it enters the Done
-      // state, the callback is called to signal thus to the consumer.  All
-      // other state transitions are triggered explicitely by the consumer,
-      // and thus do not require notification.
-      this->thread_cb ();
-
       // nothing more to do: close thread
-#ifdef USE_BOOST
-#else
       pthread_exit (NULL);
-#endif
 
       return NULL;
     }
 
 
-    // thread_wait allows to simply wait 'til the thread finishes on its own.
-    // All state setting etc is done by the thread.  Note that the
-    // notification callback is invoked when the thread finishes, before
-    // wait() returns
+    // thread_join allows to simply wait 'til the thread finishes on its own.
+    // All state setting etc is done by the thread.  
     void thread::thread_wait (void)
     {
-#ifdef USE_BOOST
-      thread_.join ();
-#else
       pthread_join (thread_, NULL);
-#endif
-    }
-
-
-    // allow the consumer to do some explicit locking
-    void thread::thread_lock (void)
-    {
-#ifdef USE_BOOST
-#else
-      mtx_.lock ();
-#endif
     }
 
     // allow the consumer to wait for thread completion
     void thread::thread_join (void)
     {
-#ifdef USE_BOOST
-      thread_.join();
-#else
       pthread_join (thread_, NULL);
-#endif
-    }
-
-
-    void thread::thread_unlock (void)
-    {
-#ifdef USE_BOOST
-#else
-      mtx_.unlock ();
-#endif
     }
 
   } // namespace util

@@ -39,10 +39,13 @@ namespace diggedag
   {
     std::cout << "fire   edge " << src_ << "->" << tgt_ <<  std::endl;
 
+    // ### scheduler hook
+    scheduler_->hook_edge_run_pre (dag_, this);
+
     // check if copy was done, or started, before (!Pending).  
     // If not, mark that we start the work (Running)
     {
-      my_scoped_lock l (mtx_);
+      util::scoped_lock l (mtx_);
 
       if ( Pending != state_ )
         return;
@@ -51,6 +54,10 @@ namespace diggedag
       if ( src_ == tgt_ )
       {
         state_ = Ready;
+
+        // ### scheduler hook
+        scheduler_->hook_edge_run_done (dag_, this);
+
         return;
       }
 
@@ -68,18 +75,20 @@ namespace diggedag
   {
     // FIXME: perform the real remote saga file copy from src to tgt here
     // (if both are not identical)
+    try 
     {
-      saga::url u_src (src_);
-      saga::url u_tgt (tgt_);
-
-      saga::filesystem::file f_src (u_src);
-      f_src.copy (u_tgt, saga::filesystem::Overwrite);
+      saga::filesystem::file f_src (src_);
+      f_src.copy (tgt_, saga::filesystem::Overwrite);
     }
-
+    catch ( const saga::exception & e ) 
     {
-      // signal that we are done
-      my_scoped_lock l (mtx_);
-      state_ = Ready;
+      std::cerr << "edge failed to copy data " 
+                << src_ << "->" << tgt_ <<  std::endl;
+
+      // ### scheduler hook
+      scheduler_->hook_edge_run_fail (dag_, this);
+
+      return;
     }
 
     // if we are done copying data, we fire the dependend node
@@ -88,7 +97,32 @@ namespace diggedag
     // the fire will actually do anything.  Thus, only the last fire
     // called on a node (i.e. called from its last Pending Edge) will
     // result in a Running node.
-    tgt_node_->fire ();
+    
+    {
+      util::scoped_lock l (mtx_);
+
+      if ( state_ != Stopped )
+      {
+        tgt_node_->fire ();
+
+        // done
+        state_ = Ready;
+      }
+    }
+
+    // ### scheduler hook
+    scheduler_->hook_edge_run_done (dag_, this);
+
+    std::cout << "       edge " << src_ << " -> " << tgt_ << " done" << std::endl;
+    return;
+  }
+
+
+  void edge::stop (void)
+  {
+    util::scoped_lock l (mtx_);
+
+    state_ = Stopped;
   }
 
 

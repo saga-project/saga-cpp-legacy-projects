@@ -36,6 +36,7 @@ namespace diggedag
       ~edge (void);
 
       void             fire         (void);
+      void             stop         (void);
       void             thread_work  (void);
       void             erase_src    (void);
       void             erase_tgt    (void);

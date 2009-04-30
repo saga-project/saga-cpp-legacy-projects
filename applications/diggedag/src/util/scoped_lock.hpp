@@ -4,12 +4,6 @@
 #include "util/mutex.hpp"
 
 
-#ifdef USE_BOOST
-# include <boost/thread.hpp>
-# define my_scoped_lock boost::mutex::scoped_lock
-#else
-# define my_scoped_lock diggedag::util::scoped_lock
-
 namespace diggedag 
 {
   namespace util
@@ -44,7 +38,6 @@ namespace diggedag
 
 } // namespace diggedag
 
-#endif // USE_BOOST
 
 #endif // DIGGEDAG_UTIL_SCOPEDLOCK_HPP
 

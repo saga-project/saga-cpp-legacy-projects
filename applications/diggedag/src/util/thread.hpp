@@ -4,15 +4,8 @@
 
 #include <iostream>
 
-#ifdef USE_BOOST
-# include "boost/thread.hpp"
-# define PREFIX boost::mutex
-#else
-# include <pthread.h>
-# include "util/scoped_lock.hpp"
-# define PREFIX util
-#endif
-
+#include <pthread.h>
+#include "util/scoped_lock.hpp"
 
 
 namespace diggedag 
@@ -49,15 +42,10 @@ namespace diggedag
       private:
         // state management
         thread::thread_state thread_state_;
-#ifdef USE_BOOST
-        boost::thread thread_;
-      protected:
-        boost::mutex  mtx_;
-#else
         pthread_t     thread_;
+
       protected:
         util::mutex   mtx_;
-#endif
         
 
       public:

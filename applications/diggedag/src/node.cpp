@@ -30,6 +30,7 @@ namespace diggedag
     std::vector <std::string> elems = diggedag::split (cmd);
 
     nd_.set_attribute ("Executable", elems[0]);
+    std::cout << "Exe: " << elems[0] << std::endl;
 
     elems.erase (elems.begin ());
 
@@ -96,7 +97,7 @@ namespace diggedag
     // check if node was started before (!Pending).  
     // If not, mark that we start the work (Running)
     {
-      my_scoped_lock l (mtx_);
+      util::scoped_lock l (mtx_);
 
       if ( Pending != state_ )
         return;
@@ -172,27 +173,38 @@ namespace diggedag
     }
 
 
-    // get data staged out, e.g. fire outgoing edges
-    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
     {
-      // std::cout << "       node " << name_ << " fires edge "
-      //   << edge_out_[i].get_src () << "->" 
-      //   << edge_out_[i].get_tgt () << std::endl;
-      edge_out_[i]->fire ();
+      util::scoped_lock l (mtx_);
+
+      if ( state_ != Stopped )
+      {
+        // get data staged out, e.g. fire outgoing edges
+        for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+        {
+          std::cout << "       node " << name_ << " fires edge "
+                    << edge_out_[i]->get_src () << "->" 
+                    << edge_out_[i]->get_tgt () << std::endl;
+          edge_out_[i]->fire ();
+        }
+
+        // done
+        state_ = Ready;
+      }
     }
-
-
-    // when all is done, we can update the state
-    thread_lock ();
-    state_ = Ready;
-    thread_unlock ();
 
     // ### scheduler hook
     scheduler_->hook_node_run_done (dag_, this);
 
-
     std::cout << "       node " << name_ << " done" << std::endl;
     return;
+  }
+
+
+  void node::stop (void)
+  {
+    util::scoped_lock l (mtx_);
+
+    state_ = Stopped;
   }
 
 

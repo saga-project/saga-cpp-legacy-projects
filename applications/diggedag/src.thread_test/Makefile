@@ -5,6 +5,7 @@
 #  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 SAGA_SRC          = $(wildcard *.cpp)
+SAGA_ADD_BIN_OBJ  = node.o
 SAGA_BIN          = thread_test
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk

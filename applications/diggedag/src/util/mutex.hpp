@@ -2,12 +2,6 @@
 #ifndef DIGGEDAG_UTIL_MUTEX_HPP
 #define DIGGEDAG_UTIL_MUTEX_HPP
 
-#ifdef USE_BOOST
-# include <boost/thread.hpp>
-# define my_mutex boost::mutex
-#else
-# define my_mutex diggedag::util::mutex
-
 #include <pthread.h>
 
 // FIXME: check mutex call return values
@@ -62,8 +56,6 @@ namespace diggedag
   } // namespace util
 
 } // namespace diggedag
-
-#endif // USE_BOOST
 
 #endif // DIGGEDAG_UTIL_MUTEX_HPP
 

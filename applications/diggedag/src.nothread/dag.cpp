@@ -217,8 +217,8 @@ namespace diggedag
 
   void dag::set_state (state s)
   {
-    std::cout << " ============================ setting state to " 
-      << diggedag::state_to_string (s) << std::endl;
+    std::cout << " ============================ setting dag state to " 
+              << diggedag::state_to_string (s) << std::endl;
     state_ = s;
   }
 

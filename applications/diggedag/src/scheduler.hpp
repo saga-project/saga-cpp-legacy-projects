@@ -17,7 +17,7 @@ namespace diggedag
   class scheduler 
   {
     private:
-      my_mutex mtx_;
+      util::mutex mtx_;
 
     public:
       scheduler (void);
