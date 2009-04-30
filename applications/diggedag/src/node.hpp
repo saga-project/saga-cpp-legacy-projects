@@ -34,8 +34,10 @@ namespace diggedag
 
 
     public:
-      node  (diggedag::node_description & nd);
-      node  (std::string                  cmd);
+      node  (diggedag::node_description & nd, 
+             std::string                  name = "");
+      node  (std::string                  cmd,
+             std::string                  name = "");
       ~node (void);
 
       void            set_name        (std::string      name);

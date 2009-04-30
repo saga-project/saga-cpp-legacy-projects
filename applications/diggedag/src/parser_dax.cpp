@@ -37,12 +37,43 @@ namespace diggedag
         // second run, we add all edges (connected nodes are known now).
         for ( job = job.begin (adag); job != job.end (); job++ )
         {
+          diggedag::node_description nd;
+
           std::string s_id   = job->GetAttributeOrDefault ("id",   "Unknown");
           std::string s_name = job->GetAttributeOrDefault ("name", "Unknown");
 
+          nd.set_attribute ("Executable", s_name);
+
           std::cout << "job [" << s_id << " - " << s_name << "] - create node" << std::endl;
 
-          diggedag::node * n = new diggedag::node (s_name);
+
+          // get args
+          ticpp::Element * arg = job->FirstChildElement ("argument");
+
+          if ( arg )
+          {
+            std::string val = arg->GetText ();
+            std::cout << " ---------- \n" << val << std::endl;
+
+            std::vector <std::string> s_args = split (val);
+
+            // iterate over args, if we have them
+            ticpp::Iterator <ticpp::Element> args ("filename"); 
+
+            for ( args = args.begin (arg); args != args.end (); args++ )
+            {
+              std::string s_file = args->GetAttribute ("file");
+              s_args.push_back (s_file);
+              std::cout << " ---------- \n" << s_file << std::endl;
+            }
+            
+            nd.set_vector_attribute ("Arguments", s_args);
+          }
+
+
+
+          diggedag::node * n = new diggedag::node (nd, s_name);
+
           dag_->add_node (s_id, n);
         }
 

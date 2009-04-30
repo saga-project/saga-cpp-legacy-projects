@@ -12,16 +12,18 @@
 
 namespace diggedag
 {
-  node::node (diggedag::node_description & nd)
+  node::node (diggedag::node_description & nd, 
+              std::string                  name)
     : nd_    (nd)
-    , name_  ("")
+    , name_  (name)
     , state_ (diggedag::Pending)
   {
     // std::cout << "create node " << std::endl;
   }
 
-  node::node (std::string cmd)
-    : name_  ("")
+  node::node (std::string cmd, 
+              std::string name)
+    : name_  (name)
     , state_ (diggedag::Pending)
   {
     // std::cout << "create node " << std::endl;
