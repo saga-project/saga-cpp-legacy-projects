@@ -88,6 +88,8 @@ namespace diggedag
         void          thread_wait        (void);
         void          thread_lock        (void);
         void          thread_unlock      (void);
+        void          thread_join        (void);
+        void          thread_exit        (void);
         thread_state  thread_state       (void) const
         {
           return thread_state_; 

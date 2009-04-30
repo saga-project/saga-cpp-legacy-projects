@@ -20,6 +20,7 @@ namespace diggedag
   edge::~edge (void)
   {
     // std::cout << "delete edge " << std::endl;
+    thread_join ();
   }
 
   void edge::add_src_node (diggedag::node * src)

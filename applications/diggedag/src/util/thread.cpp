@@ -145,6 +145,17 @@ namespace diggedag
 #endif
     }
 
+    // allow the consumer to wait for thread completion
+    void thread::thread_join (void)
+    {
+#ifdef USE_BOOST
+      thread_.join();
+#else
+      pthread_join (thread_, NULL);
+#endif
+    }
+
+
     void thread::thread_unlock (void)
     {
 #ifdef USE_BOOST

@@ -19,22 +19,29 @@ namespace diggedag
     // ### scheduler hook
     scheduler_->hook_dag_destroy (this);
 
-    // delete scheduler, nodes and edges
-    delete scheduler_;
-
     std::map <std::string, diggedag::node *> :: iterator it;
     std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
     std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
 
+
+    // FIXME: nodes fire edges, edges fire nodes.  No matter which we delete
+    // first, we are in trouble.  Thus, we need to *stop* them all, before we
+    // start deleting
     for ( it = begin; it != end; it++ )
     {
+      std::cout << "deleting node " << (*it).first << std::endl;
       delete (*it).second;
+      std::cout << "deleted  node " << (*it).first << std::endl;
     }
 
     for ( unsigned int i = 0; i < edges_.size (); i++ )
     {
+      std::cout << "deleting edge " << i << std::endl;
       delete edges_[i];
     }
+
+    // delete scheduler, nodes and edges
+    delete scheduler_;
 
     std::cout << "delete dag " << std::endl;
   }
@@ -45,7 +52,8 @@ namespace diggedag
   {
     nodes_[name] = node;
 
-    node->set_dag (this);
+    node->set_dag  (this);
+    node->set_name (name);
 
     // ### scheduler hook
     scheduler_->hook_node_add (this, node);

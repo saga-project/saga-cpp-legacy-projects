@@ -8,6 +8,7 @@
 # include <boost/thread.hpp>
 # define my_scoped_lock boost::mutex::scoped_lock
 #else
+# define my_scoped_lock diggedag::util::scoped_lock
 
 namespace diggedag 
 {

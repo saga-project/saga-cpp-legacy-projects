@@ -39,6 +39,7 @@ namespace diggedag
   node::~node (void)
   {
     // std::cout << "delete node " << std::endl;
+    thread_join ();
   }
 
   void node::set_name (const std::string name)
@@ -145,6 +146,7 @@ namespace diggedag
           // ### scheduler hook
           scheduler_->hook_node_run_fail (dag_, this);
 
+          std::cout << "       node " << name_ << " done" << std::endl;
           return;
         }
         else
@@ -156,14 +158,15 @@ namespace diggedag
       catch ( const saga::exception & e )
       {
         std::cout << "       node " << name_ 
-          << " : job execution threw exception - cancel\n"
-          << e.what () << std::endl;
+                  << " : job execution threw exception - cancel\n"
+                  << e.what () << std::endl;
 
         state_ = Failed;
 
         // ### scheduler hook
         scheduler_->hook_node_run_fail (dag_, this);
 
+        std::cout << "       node " << name_ << " done" << std::endl;
         return;
       }
     }
@@ -186,7 +189,12 @@ namespace diggedag
 
     // ### scheduler hook
     scheduler_->hook_node_run_done (dag_, this);
+
+
+    std::cout << "       node " << name_ << " done" << std::endl;
+    return;
   }
+
 
   std::string node::get_name (void) const
   {

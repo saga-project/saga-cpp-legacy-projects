@@ -6,6 +6,7 @@
 # include <boost/thread.hpp>
 # define my_mutex boost::mutex
 #else
+# define my_mutex diggedag::util::mutex
 
 #include <pthread.h>
 
