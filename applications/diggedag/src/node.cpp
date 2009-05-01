@@ -32,6 +32,8 @@ namespace diggedag
     std::vector <std::string> elems = diggedag::split (cmd);
 
     nd_.set_attribute ("Executable", elems[0]);
+    nd_.set_attribute ("Interactive", saga::attributes::common_false);
+
     std::cout << "Exe: " << elems[0] << std::endl;
 
     elems.erase (elems.begin ());
@@ -142,7 +144,17 @@ namespace diggedag
         if ( j.get_state () != saga::job::Done )
         {
           std::cout << "       node " << name_ 
-                    << " : job failed - cancel" << std::endl;
+                    << " : job failed - cancel"
+                    << jd.get_attribute ("Executable");
+
+          std::vector <std::string> args = jd.get_vector_attribute ("Arguments");
+
+          for ( unsigned int i = 0; i < args.size (); i++ )
+          {
+            std::cout << " " << args[i];
+          }
+         
+          std::cout << std::endl;
 
           state_ = Failed;
 

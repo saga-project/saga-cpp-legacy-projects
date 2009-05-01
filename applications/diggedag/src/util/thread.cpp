@@ -26,24 +26,6 @@ namespace diggedag
     {
     }
 
-    // copy c'tor
-    //
-    // NOTE that this is a shallow copy: all actions on the new instance work on
-    // the same thread created in the source instance.  However, this implementation
-    // does NOT ensure that the state of the two instances does not diverge
-    // after copy.  In particular, only one instance will ever be able to call
-    // thread_wait() successfully.  The user is responsible to ensure that all
-    // state changing actions occure on *one* copy of this class instance.
-    //
-    // We provide this copy c'tor to allow this class to be used in standard
-    // containers.
-    /// thread::thread (thread & t)
-    /// {
-    ///   this->thread_state_  = t.thread_state_;
-    ///   this->thread_        = t.thread_;
-    ///   this->mtx_           = t.mtx_;
-    /// }
-
     // Note that the d'tor does not wait for the thread to finish.  Thus, we
     // expect the worker thread to continue as long as the application is alive
     // FIXME: a clean thread_cancel should be used.  pthread_kill has trouble if
@@ -51,7 +33,9 @@ namespace diggedag
     // irrelevant cancelation points.
     thread::~thread () 
     {
+#ifdef DO_THREADS
       pthread_join (thread_, NULL);
+#endif
     }
 
 
@@ -68,10 +52,14 @@ namespace diggedag
 
       thread_state_ = ThreadRunning;
 
+#ifdef DO_THREADS
       if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
       }
+#else
+      thread_start ();
+#endif
     }
 
 
@@ -97,7 +85,9 @@ namespace diggedag
       }
 
       // nothing more to do: close thread
+#ifdef DO_THREADS
       pthread_exit (NULL);
+#endif
 
       return NULL;
     }
@@ -107,13 +97,17 @@ namespace diggedag
     // All state setting etc is done by the thread.  
     void thread::thread_wait (void)
     {
+#ifdef DO_THREADS
       pthread_join (thread_, NULL);
+#endif
     }
 
     // allow the consumer to wait for thread completion
     void thread::thread_join (void)
     {
+#ifdef DO_THREADS
       pthread_join (thread_, NULL);
+#endif
     }
 
   } // namespace util

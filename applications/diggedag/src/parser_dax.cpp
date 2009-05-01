@@ -20,6 +20,8 @@ namespace diggedag
 
     void parser::parse_dag (void)
     {
+      std::string prefix ("/Users/merzky/Downloads/Montage/inputdata/");
+
       try
       {
         ticpp::Document doc (filename_);
@@ -39,37 +41,61 @@ namespace diggedag
         {
           diggedag::node_description nd;
 
-          std::string s_id   = job->GetAttributeOrDefault ("id",   "Unknown");
-          std::string s_name = job->GetAttributeOrDefault ("name", "Unknown");
+          std::string s_id   = job->GetAttribute ("id");
+          std::string s_name = job->GetAttribute ("name");
 
           nd.set_attribute ("Executable", s_name);
 
-          std::cout << "job [" << s_id << " - " << s_name << "] - create node" << std::endl;
+          // std::cout << "job [" << s_id << " - " << s_name << "] - create node" << std::endl;
+          std::cout << "### " << s_name << " ";
 
 
           // get args
-          ticpp::Element * arg = job->FirstChildElement ("argument");
+          ticpp::Element * args = job->FirstChildElement ("argument");
 
-          if ( arg )
+          if ( args )
           {
-            std::string val = arg->GetText ();
-            std::cout << " ---------- \n" << val << std::endl;
-
-            std::vector <std::string> s_args = split (val);
-
             // iterate over args, if we have them
-            ticpp::Iterator <ticpp::Element> args ("filename"); 
+            ticpp::Iterator <ticpp::Node> arg; 
 
-            for ( args = args.begin (arg); args != args.end (); args++ )
+            std::vector <std::string> s_args;
+
+            for ( arg = arg.begin (args); arg != arg.end (); arg++ )
             {
-              std::string s_file = args->GetAttribute ("file");
-              s_args.push_back (s_file);
-              std::cout << " ---------- \n" << s_file << std::endl;
+              if ( arg->Type () == TiXmlNode::ELEMENT )
+              {
+                ticpp::Element * elem   = arg->ToElement ();
+                std::string      s_file = elem->GetAttribute ("file");
+
+                std::cout << " " << s_file << std::flush;
+
+                s_args.push_back (prefix + s_file);
+              }
+              else if ( arg->Type () == TiXmlNode::TEXT )
+              {
+                std::stringstream ss;
+                ss << *arg;
+                std::string tmp  = ss.str ();
+
+                std::cout << " " << tmp << std::flush;
+
+                if ( tmp.size () )
+                {
+                  std::vector <std::string> s_tmp = split (tmp);
+
+                  for ( unsigned int j = 0; j < s_tmp.size (); j++ )
+                  {
+                    s_args.push_back (s_tmp[j]);
+                  }
+                }
+              }
             }
             
             nd.set_vector_attribute ("Arguments", s_args);
           }
 
+          std::cout << std::endl;
+          std::cout << std::flush;
 
 
           diggedag::node * n = new diggedag::node (nd, s_name);
@@ -85,8 +111,8 @@ namespace diggedag
 
         for ( job = job.begin (adag); job != job.end (); job++ )
         {
-          std::string s_id   = job->GetAttributeOrDefault ("id",   "Unknown");
-          std::string s_name = job->GetAttributeOrDefault ("name", "Unknown");
+          std::string s_id   = job->GetAttribute ("id");
+          std::string s_name = job->GetAttribute ("name");
 
           std::cout << "job [" << s_id << " - " << s_name << "] - check edges" << std::endl;
 
@@ -94,8 +120,8 @@ namespace diggedag
 
           for ( uses = uses.begin (job.Get ()); uses != uses.end (); uses++ )
           {
-            std::string s_file = uses->GetAttributeOrDefault ("file", "Unknown");
-            std::string s_link = uses->GetAttributeOrDefault ("link", "Unknown");
+            std::string s_file = uses->GetAttribute ("file");
+            std::string s_link = uses->GetAttribute ("link");
 
             if ( s_link == "input" )
             {
@@ -130,7 +156,7 @@ namespace diggedag
               std::cout << "adding edge " << o_node << " - " << i_node << " : " << file << std::endl;
 
               // add edge
-              saga::url loc (file);
+              saga::url loc (prefix + file);
               diggedag::edge * e = new diggedag::edge (loc);
               dag_->add_edge (e, o_node, i_node);
 
