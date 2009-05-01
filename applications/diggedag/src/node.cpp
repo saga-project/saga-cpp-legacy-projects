@@ -70,6 +70,20 @@ namespace diggedag
     edge_out_.push_back (e);
   }
 
+
+  void node::dryrun (void)
+  {
+      std::cout << "         node : " << name_ << std::endl;
+      for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+      {
+        std::cout << "                fire " 
+                  << edge_out_[i]->get_src_node ()->get_name () << " \t -> "
+                  << edge_out_[i]->get_tgt_node ()->get_name () << std::endl;
+        edge_out_[i]->dryrun ();
+      }
+  }
+
+
   // ensure the node application is run.  Before doing that, the input data
   // edges need to be Ready, to ensure that input data are available for the
   // application.  If they are not ready, fire has no effect.

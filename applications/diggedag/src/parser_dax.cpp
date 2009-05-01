@@ -18,10 +18,11 @@ namespace diggedag
       parse_dag ();
     }
 
+
+    // Note that, when parsing file names and arguments, paths are interpreted
+    // to be relative to the applications working directory.
     void parser::parse_dag (void)
     {
-      std::string prefix ("/Users/merzky/Downloads/Montage/inputdata/");
-
       try
       {
         ticpp::Document doc (filename_);
@@ -69,7 +70,7 @@ namespace diggedag
 
                 std::cout << " " << s_file << std::flush;
 
-                s_args.push_back (prefix + s_file);
+                s_args.push_back (s_file);
               }
               else if ( arg->Type () == TiXmlNode::TEXT )
               {
@@ -85,11 +86,9 @@ namespace diggedag
 
                   for ( unsigned int j = 0; j < s_tmp.size (); j++ )
                   {
-                    // sometimes, the working directory is given as '.'.  In
-                    // that case, replace by prefix.
                     if ( s_tmp [j] == "." )
                     {
-                      s_args.push_back (prefix + s_tmp[j]);
+                      s_args.push_back (s_tmp[j]);
                     }
                     else
                     {
@@ -161,12 +160,16 @@ namespace diggedag
             if ( outputs[j].first == file )
             {
               o_node = outputs[j].second;
-              std::cout << "adding edge " << o_node << " - " << i_node << " : " << file << std::endl;
 
-              // add edge
-              saga::url loc (prefix + file);
-              diggedag::edge * e = new diggedag::edge (loc);
-              dag_->add_edge (e, o_node, i_node);
+              if ( o_node != i_node )
+              {
+                std::cout << "adding edge " << o_node << " - " << i_node << " : " << file << std::endl;
+
+                // add edge
+                saga::url loc (file);
+                diggedag::edge * e = new diggedag::edge (loc);
+                dag_->add_edge (e, o_node, i_node);
+              }
 
               // stop loop
               j = inputs.size ();

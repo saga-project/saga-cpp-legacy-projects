@@ -5,26 +5,43 @@
 
 int main (int argc, char** argv)
 {
+  bool dryrun = false;
+
   try
   {
-    diggedag::dax::parser p ("../src/parser_dax_example/Montage_25.xml");
+    if ( argc != 2 )
+    {
+      std::cerr << "\n\tusage: " << argv[0] << " <dag.xml>\n\n";
+      return -1;
+    }
+
+    diggedag::dax::parser p (argv[1]);
 
     diggedag::dag * d = p.get_dag ();
+
+    d->dump ();
 
     // allow for pre-run scheduling
     d->schedule (); 
 
     // run the dag.  This also performs scheduling on-the-fly
-    d->fire ();
-   
-    std::cout << "dag    running..." << std::endl;
-
-    // wait til the dag had a chance to finish
-    // TODO: implement d->wait ();
-    while ( diggedag::Running == d->get_state () )
+    if ( dryrun )
     {
-      ::sleep (1);
-      std::cout << "dag    waiting..." << std::endl;
+      d->dryrun ();
+    }
+    else
+    {
+      d->fire ();
+
+      std::cout << "dag    running..." << std::endl;
+
+      // wait til the dag had a chance to finish
+      // TODO: implement d->wait ();
+      while ( diggedag::Running == d->get_state () )
+      {
+        ::sleep (1);
+        std::cout << "dag    waiting..." << std::endl;
+      }
     }
 
     delete d;

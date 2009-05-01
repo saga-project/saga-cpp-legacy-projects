@@ -31,13 +31,11 @@ namespace diggedag
       for ( it = begin; it != end; it++ )
       {
         (*it).second->stop ();
-        std::cout << "deleted  node " << (*it).first << std::endl;
       }
 
       for ( unsigned int i = 0; i < edges_.size (); i++ )
       {
         edges_[i]->stop ();
-        std::cout << "deleted  edge " << i << std::endl;
       }
     }
 
@@ -47,13 +45,11 @@ namespace diggedag
       for ( it = begin; it != end; it++ )
       {
         delete (*it).second;
-        std::cout << "deleted  node " << (*it).first << std::endl;
       }
 
       for ( unsigned int i = 0; i < edges_.size (); i++ )
       {
         delete edges_[i];
-        std::cout << "deleted  edge " << i << std::endl;
       }
     }
 
@@ -113,6 +109,24 @@ namespace diggedag
     }
 
     add_edge (e, nodes_[src], nodes_[tgt]);
+  }
+
+
+  void dag::dryrun (void)
+  {
+    std::cout << " dryun:  dag" << std::endl;
+
+    std::map <std::string, diggedag::node *> :: iterator it;
+    std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
+
+    std::cout << "         dag : " << std::endl;
+
+    for ( it = begin; it != end; it++ )
+    {
+      std::cout << "             fire " << (*it).first << std::endl;
+      (*it).second->dryrun ();
+    }
   }
 
 

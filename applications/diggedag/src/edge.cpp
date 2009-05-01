@@ -33,6 +33,18 @@ namespace diggedag
     tgt_node_ = tgt;
   }
 
+  void edge::dryrun (void)
+  {
+    std::cout << "         edge : " 
+              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
+              << "[" << src_            << "\t -> " << tgt_  << "]"
+              << std::endl;
+    std::cout << "                fire " << tgt_node_->get_name () << std::endl;
+
+    tgt_node_->dryrun ();
+  }
+
+
   // fire() checks if there is still work to do, and if so, starts
   // a thread to do it.
   void edge::fire (void)

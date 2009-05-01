@@ -44,6 +44,7 @@ namespace diggedag
       void            add_edge_in     (diggedag::edge * e);
       void            add_edge_out    (diggedag::edge * e);
 
+      void            dryrun          (void);
       void            fire            (void);
       void            stop            (void);
       void            thread_work     (void);

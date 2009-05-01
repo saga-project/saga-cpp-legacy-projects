@@ -34,6 +34,7 @@ namespace diggedag
       void  add_edge  (diggedag::edge    * e, 
                        const std::string & src, 
                        const std::string & tgt);
+      void  dryrun    (void);
       void  fire      (void);
       void  wait      (void);
       state get_state (void);
