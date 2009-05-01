@@ -144,7 +144,7 @@ namespace diggedag
         if ( j.get_state () != saga::job::Done )
         {
           std::cout << "       node " << name_ 
-                    << " : job failed - cancel"
+                    << " : job failed - cancel: "
                     << jd.get_attribute ("Executable");
 
           std::vector <std::string> args = jd.get_vector_attribute ("Arguments");
@@ -195,9 +195,9 @@ namespace diggedag
         // get data staged out, e.g. fire outgoing edges
         for ( unsigned int i = 0; i < edge_out_.size (); i++ )
         {
-          std::cout << "       node " << name_ << " fires edge "
-                    << edge_out_[i]->get_src () << "->" 
-                    << edge_out_[i]->get_tgt () << std::endl;
+          // std::cout << "       node " << name_ << " fires edge "
+          //           << edge_out_[i]->get_src () << "->" 
+          //           << edge_out_[i]->get_tgt () << std::endl;
           edge_out_[i]->fire ();
         }
 

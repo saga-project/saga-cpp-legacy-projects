@@ -151,7 +151,7 @@ namespace diggedag
     {
       if ( Pending == (*it).second->get_state () )
       {
-        std::cout << "       dag fires node " << (*it).second->get_name () << std::endl;
+        // std::cout << "       dag fires node " << (*it).second->get_name () << std::endl;
         (*it).second->fire ();
         cyclic = false;
       }

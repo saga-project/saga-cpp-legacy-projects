@@ -37,7 +37,7 @@ namespace diggedag
   // a thread to do it.
   void edge::fire (void)
   {
-    std::cout << "fire   edge " << src_ << "->" << tgt_ <<  std::endl;
+    std::cout << "fire   edge " << src_ << " \t -> " << tgt_ <<  std::endl;
 
     // ### scheduler hook
     scheduler_->hook_edge_run_pre (dag_, this);

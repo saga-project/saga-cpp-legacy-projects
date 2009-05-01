@@ -85,7 +85,16 @@ namespace diggedag
 
                   for ( unsigned int j = 0; j < s_tmp.size (); j++ )
                   {
-                    s_args.push_back (s_tmp[j]);
+                    // sometimes, the working directory is given as '.'.  In
+                    // that case, replace by prefix.
+                    if ( s_tmp [j] == "." )
+                    {
+                      s_args.push_back (prefix + s_tmp[j]);
+                    }
+                    else
+                    {
+                      s_args.push_back (s_tmp[j]);
+                    }
                   }
                 }
               }
@@ -95,7 +104,6 @@ namespace diggedag
           }
 
           std::cout << std::endl;
-          std::cout << std::flush;
 
 
           diggedag::node * n = new diggedag::node (nd, s_name);
@@ -114,7 +122,7 @@ namespace diggedag
           std::string s_id   = job->GetAttribute ("id");
           std::string s_name = job->GetAttribute ("name");
 
-          std::cout << "job [" << s_id << " - " << s_name << "] - check edges" << std::endl;
+          // std::cout << "job [" << s_id << " - " << s_name << "] - check edges" << std::endl;
 
           ticpp::Iterator <ticpp::Element> uses ("uses"); 
 
@@ -125,12 +133,12 @@ namespace diggedag
 
             if ( s_link == "input" )
             {
-              std::cout << "  input :   " << s_id << " - " << s_file << std::endl;
+              // std::cout << "  input :   " << s_id << " - " << s_file << std::endl;
               inputs.push_back (std::pair <std::string, std::string> (s_file, s_id));
             }
             else if ( s_link == "output" )
             {
-              std::cout << "  output:   " << s_id << " - " << s_file << std::endl;
+              // std::cout << "  output:   " << s_id << " - " << s_file << std::endl;
               outputs.push_back (std::pair <std::string, std::string> (s_file, s_id));
             }
             else
@@ -167,8 +175,8 @@ namespace diggedag
 
           if ( o_node == "" )
           {
-              std::cout << "WARNING: cannot find source node for " << file 
-                        << " required by node " << i_node << std::endl;
+            // std::cout << "WARNING: cannot find source node for " << file 
+            //           << " required by node " << i_node << std::endl;
           }
         }
       }
