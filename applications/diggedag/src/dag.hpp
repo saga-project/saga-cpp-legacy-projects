@@ -42,6 +42,7 @@ namespace diggedag
       void  dump      (void);
       void  schedule  (void);
 
+      void                  set_scheduler (std::string s);
       diggedag::scheduler * get_scheduler (void);
   };
 

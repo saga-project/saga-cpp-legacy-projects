@@ -1,6 +1,7 @@
 
 #include "util/thread.hpp"
 
+#define DO_THREADS 1
 
 namespace diggedag 
 {

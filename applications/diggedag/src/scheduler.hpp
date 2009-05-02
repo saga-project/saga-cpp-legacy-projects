@@ -18,10 +18,13 @@ namespace diggedag
   {
     private:
       util::mutex mtx_;
+      std::string policy_; // scheduling policy
 
     public:
       scheduler (void);
       ~scheduler (void);
+
+      void set_scheduler      (std::string s);
 
       void hook_dag_create    (diggedag::dag * d);
       void hook_dag_destroy   (diggedag::dag * d);

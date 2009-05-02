@@ -39,7 +39,7 @@ namespace diggedag
               << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
               << "[" << src_            << "\t -> " << tgt_  << "]"
               << std::endl;
-    std::cout << "                fire " << tgt_node_->get_name () << std::endl;
+    std::cout << "                run  " << tgt_node_->get_name () << std::endl;
 
     tgt_node_->dryrun ();
   }
@@ -49,8 +49,11 @@ namespace diggedag
   // a thread to do it.
   void edge::fire (void)
   {
-    std::cout << "fire   edge " << src_ << " \t -> " << tgt_ <<  std::endl;
-
+    std::cout << "         edge : " 
+              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
+              << "[" << src_            << "\t -> " << tgt_  << "] "
+              << state_to_string (state_) 
+              << std::endl;
     // ### scheduler hook
     scheduler_->hook_edge_run_pre (dag_, this);
 
@@ -65,7 +68,14 @@ namespace diggedag
       // check if there is anything to do, at all
       if ( src_ == tgt_ )
       {
+        std::cout << "         edge : "
+                  << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
+                  << " fire node " << tgt_node_->get_name () << std::endl;
+        
         state_ = Ready;
+
+        // fire dependent node
+        tgt_node_->fire ();
 
         // ### scheduler hook
         scheduler_->hook_edge_run_done (dag_, this);
@@ -85,6 +95,11 @@ namespace diggedag
   // thread_work is the workload, i.e. the data copy operation
   void edge::thread_work (void)
   {
+    std::cout << "         edge : " 
+              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
+              << "[" << src_            << "\t -> " << tgt_  << "]"
+              << std::endl;
+    
     // FIXME: perform the real remote saga file copy from src to tgt here
     // (if both are not identical)
     try 
@@ -115,17 +130,24 @@ namespace diggedag
 
       if ( state_ != Stopped )
       {
-        tgt_node_->fire ();
-
+        std::cout << "         edge : "
+                  << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
+                  << " fire node " << tgt_node_->get_name () << std::endl;
+        
         // done
         state_ = Ready;
+
+        // fire dependent node
+        tgt_node_->fire ();
       }
     }
 
     // ### scheduler hook
     scheduler_->hook_edge_run_done (dag_, this);
 
-    std::cout << "       edge " << src_ << " -> " << tgt_ << " done" << std::endl;
+    std::cout << "         edge : "
+              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
+              << "done" << std::endl;
     return;
   }
 

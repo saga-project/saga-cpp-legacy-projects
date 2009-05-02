@@ -1,5 +1,6 @@
 
 #include <vector>
+#include <fstream>
 
 #include <saga/saga.hpp>
 
@@ -25,6 +26,10 @@ namespace diggedag
     // std::cout << "scheduler dtor" << std::endl;
   }
 
+  void scheduler::set_scheduler (std::string s)
+  {
+    policy_ = s;
+  }
 
   void scheduler::hook_dag_create (diggedag::dag  * d)                     
   {
@@ -43,6 +48,25 @@ namespace diggedag
   void scheduler::hook_dag_schedule (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
+
+    // open the policy file
+    std::fstream fin;
+    std::string  line;
+
+    fin.open (policy_.c_str (), std::ios::in);
+
+    if ( fin.fail () )
+    {
+      std::cerr << "opening " << policy_ << " failed\n";
+      throw "Cannot open file";
+    }
+
+    while ( std::getline (fin, line) )
+    {
+      std::vector <std::string> words = diggedag::split (line);
+
+
+    }
     // std::cout << "scheduler hook_dag_schedule" << std::endl;
   }
 

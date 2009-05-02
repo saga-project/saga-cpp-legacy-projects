@@ -1,6 +1,5 @@
 
 #include <string>
-#include <fstream>
 #include <iostream>
 
 #include "util/split.hpp"

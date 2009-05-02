@@ -9,9 +9,9 @@ int main (int argc, char** argv)
 
   try
   {
-    if ( argc != 2 )
+    if ( argc != 3 )
     {
-      std::cerr << "\n\tusage: " << argv[0] << " <dag.xml>\n\n";
+      std::cerr << "\n\tusage: " << argv[0] << " <dag.xml> <scheduler.txt>\n\n";
       return -1;
     }
 
@@ -20,6 +20,7 @@ int main (int argc, char** argv)
     diggedag::dag * d = p.get_dag ();
 
     d->dump ();
+    d->set_scheduler (argv[2]);
 
     // allow for pre-run scheduling
     d->schedule (); 
@@ -36,12 +37,7 @@ int main (int argc, char** argv)
       std::cout << "dag    running..." << std::endl;
 
       // wait til the dag had a chance to finish
-      // TODO: implement d->wait ();
-      while ( diggedag::Running == d->get_state () )
-      {
-        ::sleep (1);
-        std::cout << "dag    waiting..." << std::endl;
-      }
+      d->wait ();
     }
 
     delete d;

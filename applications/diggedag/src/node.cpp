@@ -76,7 +76,7 @@ namespace diggedag
       std::cout << "         node : " << name_ << std::endl;
       for ( unsigned int i = 0; i < edge_out_.size (); i++ )
       {
-        std::cout << "                fire " 
+        std::cout << "                run  " 
                   << edge_out_[i]->get_src_node ()->get_name () << " \t -> "
                   << edge_out_[i]->get_tgt_node ()->get_name () << std::endl;
         edge_out_[i]->dryrun ();
@@ -89,7 +89,7 @@ namespace diggedag
   // application.  If they are not ready, fire has no effect.
   void node::fire (void)
   {
-    std::cout << "fire   node " << name_ << std::endl;
+    std::cout << "         node : " << name_ << std::endl;
 
     // ### scheduler hook
     scheduler_->hook_node_run_pre (dag_, this);
@@ -100,15 +100,15 @@ namespace diggedag
       if ( Ready != edge_in_[i]->get_state () )
       {
         std::cout << "       node " << name_ << " : edge " 
-          << edge_in_[i]->get_src () << "->" 
-          << edge_in_[i]->get_tgt () << " is not ready - cancel fire" << std::endl;
+                  << edge_in_[i]->get_src () << "->" 
+                  << edge_in_[i]->get_tgt () << " is not ready - cancel fire" << std::endl;
         return;
       }
       else
       {
         std::cout << "       node " << name_ << " : edge " 
-          << edge_in_[i]->get_src () << "->" 
-          << edge_in_[i]->get_tgt () << " is ready" << std::endl;
+                  << edge_in_[i]->get_src () << "->" 
+                  << edge_in_[i]->get_tgt () << " is ready" << std::endl;
       }
     }
 
@@ -175,13 +175,8 @@ namespace diggedag
           // ### scheduler hook
           scheduler_->hook_node_run_fail (dag_, this);
 
-          std::cout << "       node " << name_ << " done" << std::endl;
+          std::cout << "       node " << name_ << " failed" << std::endl;
           return;
-        }
-        else
-        {
-          std::cout << "       node " << name_ 
-                    << " : job done" << std::endl;
         }
       }
       catch ( const saga::exception & e )
@@ -195,7 +190,7 @@ namespace diggedag
         // ### scheduler hook
         scheduler_->hook_node_run_fail (dag_, this);
 
-        std::cout << "       node " << name_ << " done" << std::endl;
+        std::cout << "       node " << name_ << " failed" << std::endl;
         return;
       }
     }
@@ -206,17 +201,18 @@ namespace diggedag
 
       if ( state_ != Stopped )
       {
+        // done
+        state_ = Ready;
+
         // get data staged out, e.g. fire outgoing edges
         for ( unsigned int i = 0; i < edge_out_.size (); i++ )
         {
-          // std::cout << "       node " << name_ << " fires edge "
-          //           << edge_out_[i]->get_src () << "->" 
-          //           << edge_out_[i]->get_tgt () << std::endl;
+          std::cout << "       node " << name_ << " fires edge "
+                    << edge_out_[i]->get_src () << "->" 
+                    << edge_out_[i]->get_tgt () << std::endl;
+
           edge_out_[i]->fire ();
         }
-
-        // done
-        state_ = Ready;
       }
     }
 
