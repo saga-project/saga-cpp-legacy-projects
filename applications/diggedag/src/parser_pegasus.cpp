@@ -69,7 +69,7 @@ namespace diggedag
         throw "file read error";
       }
 
-      dag_->dump ();
+      // dag_->dump ();
     }
 
 

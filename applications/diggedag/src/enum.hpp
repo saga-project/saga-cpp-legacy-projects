@@ -12,7 +12,7 @@ namespace diggedag
     Stopped    = 1,
     Pending    = 2,
     Running    = 3, 
-    Ready      = 4,
+    Done       = 4,
     Failed     = 5
   };
 

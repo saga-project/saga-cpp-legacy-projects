@@ -1,6 +1,7 @@
 
 #include <string>
 #include <iostream>
+#include <unistd.h>
 
 #include "util/split.hpp"
 #include "ticpp.hpp"
@@ -47,7 +48,7 @@ namespace diggedag
           nd.set_attribute ("Executable", s_name);
 
           // std::cout << "job [" << s_id << " - " << s_name << "] - create node" << std::endl;
-          std::cout << "### " << s_name << " ";
+          // std::cout << "adding node " << s_id << ": " << s_name << " ";
 
 
           // get args
@@ -67,7 +68,7 @@ namespace diggedag
                 ticpp::Element * elem   = arg->ToElement ();
                 std::string      s_file = elem->GetAttribute ("file");
 
-                std::cout << " " << s_file << std::flush;
+                // std::cout << " " << s_file << std::flush;
 
                 s_args.push_back (s_file);
               }
@@ -77,7 +78,7 @@ namespace diggedag
                 ss << *arg;
                 std::string tmp  = ss.str ();
 
-                std::cout << " " << tmp << std::flush;
+                // std::cout << " " << tmp << std::flush;
 
                 if ( tmp.size () )
                 {
@@ -101,7 +102,7 @@ namespace diggedag
             nd.set_vector_attribute ("Arguments", s_args);
           }
 
-          std::cout << std::endl;
+          // std::cout << std::endl;
 
 
           diggedag::node * n = new diggedag::node (nd, s_name);
@@ -126,8 +127,9 @@ namespace diggedag
 
           for ( uses = uses.begin (job.Get ()); uses != uses.end (); uses++ )
           {
-            std::string s_file = uses->GetAttribute ("file");
-            std::string s_link = uses->GetAttribute ("link");
+            std::string s_file     = uses->GetAttribute ("file");
+            std::string s_link     = uses->GetAttribute ("link");
+            std::string s_transfer = uses->GetAttribute ("transfer");
 
             if ( s_link == "input" )
             {
@@ -136,17 +138,27 @@ namespace diggedag
             }
             else if ( s_link == "output" )
             {
-              // std::cout << "  output:   " << s_id << " - " << s_file << std::endl;
               outputs.push_back (std::pair <std::string, std::string> (s_file, s_id));
             }
             else
             {
               std::cerr << "cannot handle link type " << s_link << std::endl;
             }
+            
           }
         }
 
 
+        // iterate over inputs, and find outputs which produce them.
+        // inputs not produced by some outputting node are assumed to be staged
+        // in from a data src.  Also, data which are produced but not consumed
+        // by another node are to be staged to an output data sink.  In both
+        // cases, we simply add edges with emoty src/tgt nodes, and leave it to
+        // the scheduler to interprete that correctly.
+
+        // first, iterate over inputs, and add edges for those inputs which are
+        // produced by another node, and also for those which need to be staged
+        // in.
         for ( unsigned int i = 0; i < inputs.size (); i++ )
         {
           std::string file   = inputs[i].first;
@@ -160,16 +172,6 @@ namespace diggedag
             {
               o_node = outputs[j].second;
 
-              if ( o_node != i_node )
-              {
-                std::cout << "adding edge " << o_node << " - " << i_node << " : " << file << std::endl;
-
-                // add edge
-                saga::url loc (file);
-                diggedag::edge * e = new diggedag::edge (loc);
-                dag_->add_edge (e, o_node, i_node);
-              }
-
               // stop loop
               j = inputs.size ();
             }
@@ -177,8 +179,57 @@ namespace diggedag
 
           if ( o_node == "" )
           {
+            // std::cout << "adding edge " << "INPUT" << " - " << i_node << " : " << file << std::endl;
+            // // need to stage data in from data src
             // std::cout << "WARNING: cannot find source node for " << file 
             //           << " required by node " << i_node << std::endl;
+          }
+          else
+          {
+            // std::cout << "adding edge " << o_node << " - " << i_node << " : " << file << std::endl;
+          }
+
+          if ( o_node != i_node )
+          {
+            saga::url loc (file);
+            loc.set_scheme ("any");
+            diggedag::edge * e = new diggedag::edge (loc);
+            dag_->add_edge (e, o_node, i_node);
+          }
+        }
+
+        // inputs have been iterated above - now iterate over outputs, and look
+        // for remaining ones which do not have a partner.
+        for ( unsigned int k = 0; k < outputs.size (); k++ )
+        {
+          std::string file   = outputs[k].first;
+          std::string i_node = "";
+          std::string o_node = outputs[k].second;
+
+          // for each output node, find the input node
+          for ( unsigned int l = 0; l < inputs.size (); l++ )
+          {
+            if ( inputs[l].first == file )
+            {
+              i_node = inputs[l].second;
+
+              // stop loop
+              l = inputs.size ();
+            }
+          }
+
+          if ( i_node == "" )
+          {
+            // // will stage data out to data sink
+            // std::cout << "WARNING: cannot find target node for " << file 
+            //           << " required by node " << o_node << std::endl;
+
+            // std::cout << "adding edge " << o_node << " - " << "OUTPUT" << " : " << file << std::endl;
+
+            saga::url loc (file);
+            loc.set_scheme ("any");
+            diggedag::edge * e = new diggedag::edge (loc);
+            dag_->add_edge (e, o_node, i_node);
           }
         }
       }

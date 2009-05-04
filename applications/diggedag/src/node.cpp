@@ -14,17 +14,19 @@ namespace diggedag
 {
   node::node (diggedag::node_description & nd, 
               std::string                  name)
-    : nd_    (nd)
-    , name_  (name)
-    , state_ (diggedag::Pending)
+    : nd_      (nd)
+    , name_    (name)
+    , state_   (diggedag::Pending)
+    , is_void_ (false)
   {
     // std::cout << "create node " << std::endl;
   }
 
   node::node (std::string cmd, 
               std::string name)
-    : name_  (name)
-    , state_ (diggedag::Pending)
+    : name_    (name)
+    , state_   (diggedag::Pending)
+    , is_void_ (false)
   {
     // std::cout << "create node " << std::endl;
 
@@ -39,6 +41,13 @@ namespace diggedag
     elems.erase (elems.begin ());
 
     nd_.set_vector_attribute ("Arguments", elems);
+  }
+
+  node::node (void)
+    : name_    ("void")
+    , state_   (diggedag::Pending)
+    , is_void_ (true)
+  {
   }
 
   node::~node (void)
@@ -85,7 +94,7 @@ namespace diggedag
 
 
   // ensure the node application is run.  Before doing that, the input data
-  // edges need to be Ready, to ensure that input data are available for the
+  // edges need to be Done, to ensure that input data are available for the
   // application.  If they are not ready, fire has no effect.
   void node::fire (void)
   {
@@ -94,10 +103,23 @@ namespace diggedag
     // ### scheduler hook
     scheduler_->hook_node_run_pre (dag_, this);
 
+    // if an incoming edge failed, we can give up
+    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    {
+      if ( Failed == edge_in_[i]->get_state () )
+      {
+        util::scoped_lock l (mtx_);
+
+        state_ = Failed;
+
+        return;
+      }
+    }
+
     // check if all input data are ready
     for ( unsigned int i = 0; i < edge_in_.size (); i++ )
     {
-      if ( Ready != edge_in_[i]->get_state () )
+      if ( Done != edge_in_[i]->get_state () )
       {
         std::cout << "       node " << name_ << " : edge " 
                   << edge_in_[i]->get_src () << "->" 
@@ -106,14 +128,14 @@ namespace diggedag
       }
       else
       {
-        std::cout << "       node " << name_ << " : edge " 
-                  << edge_in_[i]->get_src () << "->" 
-                  << edge_in_[i]->get_tgt () << " is ready" << std::endl;
+        // std::cout << "       node " << name_ << " : edge " 
+        //           << edge_in_[i]->get_src () << "->" 
+        //           << edge_in_[i]->get_tgt () << " is ready" << std::endl;
       }
     }
 
-    // check if node was started before (!Pending).  
-    // If not, mark that we start the work (Running)
+    // Check if node was started before (!Pending).  
+    // If not, mark that we start the work (Running).
     {
       util::scoped_lock l (mtx_);
 
@@ -124,7 +146,7 @@ namespace diggedag
       state_ = Running;
     }
 
-    // all input edges are Ready, i.e. all input data are available.  We
+    // all input edges are Done, i.e. all input data are available.  We
     // can thus really execute the node application.
     //
     // So: run the application, in extra thread
@@ -145,7 +167,13 @@ namespace diggedag
 
     // FIXME: for now, we simply fake work by sleeping for some amount of
     // time
+    if ( is_void_ )
     {
+      // do nothing
+    }
+    else
+    {
+      // not void: there is work to do
       try {
         saga::job::description jd (nd_);
 
@@ -202,14 +230,15 @@ namespace diggedag
       if ( state_ != Stopped )
       {
         // done
-        state_ = Ready;
+        state_ = Done;
 
         // get data staged out, e.g. fire outgoing edges
         for ( unsigned int i = 0; i < edge_out_.size (); i++ )
         {
           std::cout << "       node " << name_ << " fires edge "
                     << edge_out_[i]->get_src () << "->" 
-                    << edge_out_[i]->get_tgt () << std::endl;
+                    << edge_out_[i]->get_tgt () 
+                    << " [" << state_to_string (edge_out_[i]->get_state ()) << "]" << std::endl;
 
           edge_out_[i]->fire ();
         }
@@ -231,6 +260,27 @@ namespace diggedag
     state_ = Stopped;
   }
 
+  void node::dump (bool deep)
+  {
+    std::cout << "       node " << name_ << "(" << host_ << ", " << pwd_ << ")" 
+              << " (" << state_to_string (get_state ()) << ")"
+              << std::endl;
+
+    if ( deep )
+    {
+      std::cout << " edges in:" << std::endl;
+      for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+      {
+        edge_in_[i]->dump ();
+      }
+
+      std::cout << " edges OUT:" << std::endl;
+      for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+      {
+        edge_out_[i]->dump ();
+      }
+    }
+  }
 
   std::string node::get_name (void) const
   {
@@ -247,7 +297,7 @@ namespace diggedag
     // check if all input data are ready
     for ( unsigned int i = 0; i < edge_in_.size (); i++ )
     {
-      if ( Ready != edge_in_[i]->get_state () )
+      if ( Done != edge_in_[i]->get_state () )
       {
         return Incomplete;
       }
@@ -256,6 +306,43 @@ namespace diggedag
     return state_;
   }
 
+  void node::set_pwd (std::string pwd)
+  {
+    pwd_ = pwd;
+    saga::url u_pwd (pwd_);
+    nd_.set_attribute ("WorkingDirectory", u_pwd.get_path ());
+
+    // set pwd for all incoming and outgoing edges
+    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    {
+      edge_in_[i]->set_pwd_tgt (pwd);
+    }
+
+    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    {
+      edge_out_[i]->set_pwd_src (pwd);
+    }
+  }
+
+  void node::set_host (std::string host)
+  {
+    host_ = host;
+
+    std::vector <std::string> chosts;
+    chosts.push_back (host);
+    nd_.set_vector_attribute ("CandidateHosts", chosts);
+
+    // set host for all incoming and outgoing edges
+    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    {
+      edge_in_[i]->set_host_tgt (host);
+    }
+
+    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    {
+      edge_out_[i]->set_host_src (host);
+    }
+  }
 
   void node::set_dag (diggedag::dag * d)
   {

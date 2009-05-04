@@ -8,7 +8,7 @@ namespace diggedag
     if      ( s == Incomplete ) return "Incomplete";
     else if ( s == Pending    ) return "Pending"   ;
     else if ( s == Running    ) return "Running"   ;
-    else if ( s == Ready      ) return "Ready"     ;
+    else if ( s == Done       ) return "Done"      ;
     else if ( s == Failed     ) return "Failed"    ;
     else                        return "Unknown"   ;
   }

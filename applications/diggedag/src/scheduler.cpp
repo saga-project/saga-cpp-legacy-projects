@@ -19,6 +19,7 @@ namespace diggedag
   scheduler::scheduler (void)
   {
     // std::cout << "scheduler ctor" << std::endl;
+    pthread_mutex_t m = mtx_.get ();
   }
 
   scheduler::~scheduler (void)
@@ -29,6 +30,65 @@ namespace diggedag
   void scheduler::set_scheduler (std::string s)
   {
     policy_ = s;
+
+    // open the policy file
+    std::fstream fin;
+    std::string  line;
+
+    fin.open (policy_.c_str (), std::ios::in);
+
+    if ( fin.fail () )
+    {
+      std::cerr << "opening " << policy_ << " failed\n";
+      throw "Cannot open file";
+    }
+
+    unsigned int lnum = 1;
+
+    while ( std::getline (fin, line) )
+    {
+      std::vector <std::string> words = diggedag::split (line);
+
+      if ( words.size () < 1 )
+      {
+        std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+      }
+      else if ( words[0] == "data" )
+      {
+        if ( words.size () != 4 )
+        {
+          std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+        }
+        else if ( words[1] == "src" )
+        {
+          data_src_host_ = words[2];
+          data_src_pwd_  = words[3];
+        }
+        else if ( words[1] == "tgt" )
+        {
+          data_tgt_host_ = words[2];
+          data_tgt_pwd_  = words[3];
+        }
+        else
+        {
+          std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+        }
+      }
+      else if ( words[0] == "job" )
+      {
+        if ( words.size () != 4 )
+        {
+          std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+        }
+        else
+        {
+          job_info_[words[1]].host = words[2];
+          job_info_[words[1]].pwd  = words[3];
+        }
+      }
+
+      lnum++;
+    }
   }
 
   void scheduler::hook_dag_create (diggedag::dag  * d)                     
@@ -48,26 +108,71 @@ namespace diggedag
   void scheduler::hook_dag_schedule (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
+    std::cout << " ### scheduler hook_dag_schedule" << std::endl;
+    
+    // walk throgh the dag, and assign execution host for nodes, and data
+    // prefixes for edges
+    std::map    <std::string, diggedag::node *> nodes = d->get_nodes ();
+    std::vector <diggedag::edge *>              edges = d->get_edges ();
 
-    // open the policy file
-    std::fstream fin;
-    std::string  line;
+    // first, fix pwd and host for INPUT and OUTPUT nodes
+    node * input  = nodes["INPUT"];
+    node * output = nodes["OUTPUT"];
 
-    fin.open (policy_.c_str (), std::ios::in);
+    std::cout << "input->set_pwd   " << data_src_pwd_  << std::endl;
+    std::cout << "input->set_host  " << data_src_host_ << std::endl;
+    std::cout << "output->set_pwd  " << data_tgt_pwd_  << std::endl;
+    std::cout << "output->set_host " << data_tgt_host_ << std::endl;
 
-    if ( fin.fail () )
+    input->set_pwd   (data_src_pwd_);
+    input->set_host  (data_src_host_);
+    output->set_pwd  (data_tgt_pwd_);
+    output->set_host (data_tgt_host_);
+
+
+    // now fix all other nodes, too
+    std::map <std::string, diggedag::node *> :: const_iterator it;
+    std::map <std::string, diggedag::node *> :: const_iterator begin = nodes.begin ();
+    std::map <std::string, diggedag::node *> :: const_iterator end   = nodes.end ();
+
+    for ( it = begin; it != end; it++ )
     {
-      std::cerr << "opening " << policy_ << " failed\n";
-      throw "Cannot open file";
+      std::string id = (*it).first;
+      node *      n  = (*it).second;
+
+      if ( job_info_.find (id) != job_info_.end () )
+      {
+        n->set_host (job_info_[id].host);
+        n->set_pwd  (job_info_[id].pwd);
+      }
     }
 
-    while ( std::getline (fin, line) )
+
+    for ( unsigned int i = 0; i < edges.size (); i++ )
     {
-      std::vector <std::string> words = diggedag::split (line);
+      node * src = edges[i]->get_src_node ();
+      node * tgt = edges[i]->get_tgt_node ();
 
+      if ( src != NULL )
+      {
+        std::string id = src->get_name ();
 
+        if ( job_info_.find (id) != job_info_.end () )
+        {
+          src->set_pwd (job_info_[id].pwd);
+        }
+      }
+
+      if ( tgt != NULL )
+      {
+        std::string id = tgt->get_name ();
+
+        if ( job_info_.find (id) != job_info_.end () )
+        {
+          tgt->set_pwd (job_info_[id].pwd);
+        }
+      }
     }
-    // std::cout << "scheduler hook_dag_schedule" << std::endl;
   }
 
 
@@ -110,6 +215,7 @@ namespace diggedag
   void scheduler::hook_node_add (diggedag::dag  * d,
                                  diggedag::node * n)           
   {
+    pthread_mutex_t m = mtx_.get ();
     util::scoped_lock sl (mtx_);
     // std::cout << "scheduler hook_node_add" << std::endl;
   }
@@ -157,6 +263,13 @@ namespace diggedag
   {
     util::scoped_lock sl (mtx_);
     // std::cout << "scheduler hook_edge_add" << std::endl;
+
+    // an edge may have an empty src or tgt node.  An empty src node implies
+    // that data need to be staged in, from the data_src_ directory .  An empty
+    // tgt node implies that data need to be staged out, to the data_tgt_
+    // directory.  The latter may need to be created.
+    
+
   }
 
 

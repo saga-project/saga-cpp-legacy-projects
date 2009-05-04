@@ -5,8 +5,6 @@
 #include <iostream>
 
 #include <pthread.h>
-#include "util/scoped_lock.hpp"
-
 
 namespace diggedag 
 {
@@ -44,9 +42,6 @@ namespace diggedag
         thread::thread_state thread_state_;
         pthread_t     thread_;
 
-      protected:
-        util::mutex   mtx_;
-        
 
       public:
         thread (void);
@@ -74,8 +69,6 @@ namespace diggedag
         // public thread management calls
         void          thread_run         (void);
         void          thread_wait        (void);
-        void          thread_lock        (void);
-        void          thread_unlock      (void);
         void          thread_join        (void);
         void          thread_exit        (void);
         thread_state  thread_state       (void) const

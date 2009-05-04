@@ -7,6 +7,7 @@
 #include <saga/saga.hpp>
 
 #include "util/thread.hpp"
+#include "util/scoped_lock.hpp"
 
 #include "enum.hpp"
 #include "dag.hpp"
@@ -26,11 +27,18 @@ namespace diggedag
       std::vector <diggedag::edge *> edge_in_;  // input  data
       std::vector <diggedag::edge *> edge_out_; // output data
 
+      std::string                    pwd_;
+      std::string                    host_;
       std::string                    name_;     // instance name
       diggedag::state                state_;    // instance state
 
       diggedag::dag                * dag_;
       diggedag::scheduler          * scheduler_;
+
+      bool                           is_void_;  // void node?
+
+      util::mutex                    mtx_;
+
 
 
     public:
@@ -38,6 +46,7 @@ namespace diggedag
              std::string                  name = "");
       node  (std::string                  cmd,
              std::string                  name = "");
+      node  (void); //  a void node does nothing, and just fires its edges.
       ~node (void);
 
       void            set_name        (std::string      name);
@@ -47,11 +56,14 @@ namespace diggedag
       void            dryrun          (void);
       void            fire            (void);
       void            stop            (void);
+      void            dump            (bool deep = false);
       void            thread_work     (void);
       std::string     get_name        (void) const;
       diggedag::node_description 
                       get_description (void) const;
       diggedag::state get_state       (void);
+      void            set_pwd         (std::string pwd);
+      void            set_host        (std::string host);
 
       void            set_dag         (diggedag::dag  * d);
   };

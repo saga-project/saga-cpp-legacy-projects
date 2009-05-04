@@ -15,6 +15,7 @@ namespace diggedag
       // and calls its thread_start method.
       void * thread_startup_ (void * arg)
       {
+        std::cout << "starting thread" << std::endl;
         diggedag::util::thread * t = (diggedag::util::thread *) arg;
         return t->thread_start ();
       }
@@ -46,19 +47,19 @@ namespace diggedag
     // is changed to Running.
     void thread::thread_run (void)
     {
-      util::scoped_lock l (mtx_);
-
       if ( thread_state_ != ThreadNew )
         return;
 
       thread_state_ = ThreadRunning;
 
 #ifdef DO_THREADS
+      std::cout << "creating thread" << std::endl;
       if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
       }
 #else
+      std::cout << "no thread" << std::endl;
       thread_start ();
 #endif
     }
@@ -69,21 +70,13 @@ namespace diggedag
     // which holds the threads workload.
     void * thread::thread_start (void)
     {
-      // First, try get the mutex.  run() is locking the mutex to set the state
-      // to Running - we wait 'til this is done, to ensure correct state.
-      {
-        util::scoped_lock l (mtx_);
-      }
+      std::cout << "thread is started, run work ()" << std::endl;
 
-      // now startup is completed - call the (custom) workload
+      // startup is completed - call the (custom) workload
       this->thread_work ();
 
       // the thread workload is done - update state
-      {
-        util::scoped_lock l (mtx_);
-        
         thread_state_ = ThreadDone;
-      }
 
       // nothing more to do: close thread
 #ifdef DO_THREADS

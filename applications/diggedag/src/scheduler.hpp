@@ -20,6 +20,20 @@ namespace diggedag
       util::mutex mtx_;
       std::string policy_; // scheduling policy
 
+      std::string data_src_pwd_;
+      std::string data_tgt_pwd_;
+
+      std::string data_src_host_;
+      std::string data_tgt_host_;
+
+      struct job_info_t 
+      { 
+        std::string host; 
+        std::string pwd; 
+      };
+
+      std::map <std::string, job_info_t> job_info_;
+
     public:
       scheduler (void);
       ~scheduler (void);

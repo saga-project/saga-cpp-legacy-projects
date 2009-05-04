@@ -11,7 +11,7 @@ namespace diggedag
   {
     std::vector <std::string> list;
     
-    boost::split (list, line, boost::is_any_of (delim)); 
+    boost::split (list, line, boost::is_any_of (delim), boost::token_compress_on); 
     
     return list;
   }
