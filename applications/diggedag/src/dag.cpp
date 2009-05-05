@@ -443,56 +443,8 @@ namespace diggedag
     // ### scheduler hook
     scheduler_->hook_dag_schedule (this);
 
-    // clean up
-    log ("#################################");
-    dump ();
-    log ("#################################");
-    prune ();
-    log ("#################################");
-    dump ();
-    log ("#################################");
-  }
-
-
-  // prune removes edges which exist twice.  Depending on the DAG, that may be
-  // correct or not, but let's do that _significant_ optimization, and deal with
-  // special cases as they arrive.
-  //
-  // don't do that for nodes: most likely, nodes are expected to run multiple
-  // times...
-  void dag::prune (void)
-  {
-    std::vector <diggedag::edge *> new_edges;
-
-    for ( unsigned int i = 0; i < edges_.size (); i++ )
-    {
-      bool unique = true;
-
-      for ( unsigned int j = i + 1; j < edges_.size (); j++ )
-      {
-        if ( *edges_[i] == *edges_[j] )
-        {
-          unique = false;
-          log ("pruning edge");
-          edges_[i]->dump ();
-
-          break;
-        }
-      }
-
-      if ( unique )
-      {
-        new_edges.push_back (edges_[i]);
-      }
-    }
-
-    std::stringstream ss;
-    ss << " ##### old n: " << edges_.size () << "\n";
-    ss << " ##### new n: " << new_edges.size ();
-
-    log (ss.str ());
-
-    edges_ = new_edges;
+    // FIXME: data transfers may end up to be redundant, and ch=should be
+    // pruned.
   }
 
   void dag::set_scheduler (std::string s)

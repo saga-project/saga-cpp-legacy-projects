@@ -136,10 +136,9 @@ namespace diggedag
       // FIXME: the local adaptor is not doing nicely in multithreaded
       // environments.  Thus, we ignore all errors for now, and rely on the
       // ability of the nodes to flag any missing data files.
-#if  0
+#if  1
       dag_->log (std::string ("edge failed to copy data ")
-                + src_url_ + "->" + tgt_url_ 
-                +  std::endl
+                + src_url_.get_string () + "->" + tgt_url_.get_string () + "\n" 
                 + e.what ());
 
       {

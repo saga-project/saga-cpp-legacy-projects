@@ -57,7 +57,6 @@ namespace diggedag
       void  dump      (void);
       void  dump_node (std::string name);
       void  schedule  (void);
-      void  prune     (void);
       void  log       (std::string msg = "", 
                        bool        eol = true);
 
