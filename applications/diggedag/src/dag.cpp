@@ -6,7 +6,6 @@ namespace diggedag
   dag::dag (void)
     : state_ (Pending)
   { 
-    // std::cout << "create dag " << std::endl;
     scheduler_ = new diggedag::scheduler ();
 
     // create special nodes
@@ -70,7 +69,7 @@ namespace diggedag
   {
     if ( node == NULL )
     {
-      std::cout << "NULL node: " << name << std::endl;
+      log (std::string ("NULL node: ") + name);
       return;
     }
 
@@ -143,35 +142,51 @@ namespace diggedag
   }
 
 
+  void dag::reset (void)
+  {
+    std::map <std::string, diggedag::node *> :: iterator it;
+    std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
+
+    state_ = Pending;
+
+    for ( it = begin; it != end; it++ )
+    {
+      (*it).second->reset ();
+    }
+  }
+
+
   void dag::dryrun (void)
   {
-    std::cout << " dryun:  dag" << std::endl;
+    if ( Pending != state_ )
+      return;
+
+    log (" dryun:  dag");
 
     std::map <std::string, diggedag::node *> :: iterator it;
     std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
     std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
 
-    std::cout << "         dag : " << std::endl;
-
     for ( it = begin; it != end; it++ )
     {
-      std::cout << "             fire " << (*it).first << std::endl;
-      (*it).second->dryrun ();
+      if ( it->second->get_state () == Pending )
+      {
+        (*it).second->dryrun ();
+      }
     }
   }
 
 
   void dag::fire (void)
   {
-    std::cout << "fire   dag  " << std::endl;
+    log ("fire   dag  ");
 
     // dump_node ("INPUT");
     // dump_node ("OUTPUT");
 
     if ( Pending != state_ )
-    {
       return;
-    }
 
     state_ = Running;
 
@@ -197,8 +212,8 @@ namespace diggedag
     {
       if ( Pending == (*it).second->get_state () )
       {
-        std::cout << "       dag fires node " << (*it).second->get_name () << std::endl;
-        (*it).second->fire ();
+        log (std::string ("       dag fires node ") + it->second->get_name ());
+        it->second->fire ();
         cyclic = false;
       }
     }
@@ -229,12 +244,12 @@ namespace diggedag
     while ( s != Done   && 
             s != Failed )
     {
-      std::cout << "dag    waiting..." << std::endl;
+      log ("dag    waiting...");
       ::sleep (1);
       s = get_state ();
     }
 
-    std::cout << "dag state is final - exit wait\n";
+    log ("dag state is final - exit wait");
   }
 
 
@@ -266,13 +281,13 @@ namespace diggedag
     {
       if ( ! (i++ % 10) )
       {
-        // std::cout << std::endl;
+        // log ();
       }
 
       state_total++;
 
       state s = (*it).second->get_state ();
-      // std::cout << (*it).first << ":" << state_to_string (s) <<  "\t" << std::flush;
+      // log (it->first + ":" + state_to_string (s) +  "\t", false);
 
       switch ( s )
       {
@@ -296,19 +311,13 @@ namespace diggedag
           break;
       }
     }
-    // std::cout << std::endl;
+    log ();
 
     for ( unsigned int i = 0; i < edges_.size (); i++ )
     {
-      if ( ! (i % 10) )
-      {
-        // std::cout << std::endl;
-      }
-
       state_total++;
 
       state s = edges_[i]->get_state ();
-      // std::cout << "edge[" << i << "] :" << state_to_string (s) <<  "\t" << std::flush;
 
       switch ( s )
       {
@@ -332,7 +341,6 @@ namespace diggedag
           break;
       }
     }
-    // std::cout << std::endl;
 
     // if any job failed, dag is considered to have failed
     if ( state_failed > 0 )
@@ -372,8 +380,6 @@ namespace diggedag
       throw "inconsistent dag state";
     }
     
-    std::cout << "dag    state is " << state_to_string (state_) << std::endl;
-
     return state_;
   }
 
@@ -388,23 +394,23 @@ namespace diggedag
     std::map <std::string, diggedag::node *> :: const_iterator begin = nodes_.begin ();
     std::map <std::string, diggedag::node *> :: const_iterator end   = nodes_.end ();
 
-    std::cout << " -  DAG    ----------------------------------\n";
-    std::cout << " state: " << state_to_string (get_state ()) << " \n";
+    log (" -  DAG    ----------------------------------\n");
+    log (std::string (" state: ") + state_to_string (get_state ()));
 
-    std::cout << " -  NODES  ----------------------------------\n";
+    log (" -  NODES  ----------------------------------\n");
     for ( it = begin; it != end; it++ )
     {
       (*it).second->dump ();
     }
-    std::cout << " -  NODES  ----------------------------------\n";
+    log (" -  NODES  ----------------------------------\n");
 
-    std::cout << " -  EDGES  ----------------------------------\n";
+    log (" -  EDGES  ----------------------------------\n");
     for ( unsigned int i = 0; i < edges_.size (); i++ )
     {
       edges_[i]->dump ();
     }
-    std::cout << " -  EDGES  ----------------------------------\n";
-    std::cout << " -  DAG    ----------------------------------\n";
+    log (" -  EDGES  ----------------------------------\n");
+    log (" -  DAG    ----------------------------------\n");
   }
 
 
@@ -417,15 +423,34 @@ namespace diggedag
   }
 
 
+  void dag::log (std::string msg, bool eol)
+  {
+    mtx_.lock ();
+
+    std::cout << msg;
+    
+    if ( eol )
+    {
+      std::cout << std::endl;
+    }
+
+    mtx_.unlock ();
+  }
+
+
   void dag::schedule (void)
   {
-    std::cout << " ### dag::schedule" << std::endl;
-
     // ### scheduler hook
     scheduler_->hook_dag_schedule (this);
 
     // clean up
+    log ("#################################");
+    dump ();
+    log ("#################################");
     prune ();
+    log ("#################################");
+    dump ();
+    log ("#################################");
   }
 
 
@@ -437,7 +462,6 @@ namespace diggedag
   // times...
   void dag::prune (void)
   {
-    std::cout << " ### pruning graph" << std::endl;
     std::vector <diggedag::edge *> new_edges;
 
     for ( unsigned int i = 0; i < edges_.size (); i++ )
@@ -449,6 +473,9 @@ namespace diggedag
         if ( *edges_[i] == *edges_[j] )
         {
           unique = false;
+          log ("pruning edge");
+          edges_[i]->dump ();
+
           break;
         }
       }
@@ -458,6 +485,12 @@ namespace diggedag
         new_edges.push_back (edges_[i]);
       }
     }
+
+    std::stringstream ss;
+    ss << " ##### old n: " << edges_.size () << "\n";
+    ss << " ##### new n: " << new_edges.size ();
+
+    log (ss.str ());
 
     edges_ = new_edges;
   }

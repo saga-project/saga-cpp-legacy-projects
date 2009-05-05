@@ -52,6 +52,7 @@ namespace diggedag
       
 
       void             dryrun        (void);
+      void             reset         (void);
       void             fire          (void);
       void             stop          (void);
       void             dump          (void);

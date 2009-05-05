@@ -47,9 +47,6 @@ namespace diggedag
 
           nd.set_attribute ("Executable", s_name);
 
-          // std::cout << "job [" << s_id << " - " << s_name << "] - create node" << std::endl;
-          // std::cout << "adding node " << s_id << ": " << s_name << " ";
-
 
           // get args
           ticpp::Element * args = job->FirstChildElement ("argument");
@@ -68,8 +65,6 @@ namespace diggedag
                 ticpp::Element * elem   = arg->ToElement ();
                 std::string      s_file = elem->GetAttribute ("file");
 
-                // std::cout << " " << s_file << std::flush;
-
                 s_args.push_back (s_file);
               }
               else if ( arg->Type () == TiXmlNode::TEXT )
@@ -77,8 +72,6 @@ namespace diggedag
                 std::stringstream ss;
                 ss << *arg;
                 std::string tmp  = ss.str ();
-
-                // std::cout << " " << tmp << std::flush;
 
                 if ( tmp.size () )
                 {
@@ -102,9 +95,6 @@ namespace diggedag
             nd.set_vector_attribute ("Arguments", s_args);
           }
 
-          // std::cout << std::endl;
-
-
           diggedag::node * n = new diggedag::node (nd, s_name);
 
           dag_->add_node (s_id, n);
@@ -121,8 +111,6 @@ namespace diggedag
           std::string s_id   = job->GetAttribute ("id");
           std::string s_name = job->GetAttribute ("name");
 
-          // std::cout << "job [" << s_id << " - " << s_name << "] - check edges" << std::endl;
-
           ticpp::Iterator <ticpp::Element> uses ("uses"); 
 
           for ( uses = uses.begin (job.Get ()); uses != uses.end (); uses++ )
@@ -133,7 +121,6 @@ namespace diggedag
 
             if ( s_link == "input" )
             {
-              // std::cout << "  input :   " << s_id << " - " << s_file << std::endl;
               inputs.push_back (std::pair <std::string, std::string> (s_file, s_id));
             }
             else if ( s_link == "output" )
@@ -184,10 +171,6 @@ namespace diggedag
             // std::cout << "WARNING: cannot find source node for " << file 
             //           << " required by node " << i_node << std::endl;
           }
-          else
-          {
-            // std::cout << "adding edge " << o_node << " - " << i_node << " : " << file << std::endl;
-          }
 
           if ( o_node != i_node )
           {
@@ -220,11 +203,7 @@ namespace diggedag
 
           if ( i_node == "" )
           {
-            // // will stage data out to data sink
-            // std::cout << "WARNING: cannot find target node for " << file 
-            //           << " required by node " << o_node << std::endl;
-
-            // std::cout << "adding edge " << o_node << " - " << "OUTPUT" << " : " << file << std::endl;
+            // will stage data out to data sink
 
             saga::url loc (file);
             loc.set_scheme ("any");

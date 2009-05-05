@@ -4,6 +4,8 @@
 
 #include <map>
 
+#include "util/scoped_lock.hpp"
+
 #include "enum.hpp"
 #include "node.hpp"
 #include "edge.hpp"
@@ -25,6 +27,9 @@ namespace diggedag
       node                * input_;
       node                * output_;      
 
+      util::mutex           mtx_;
+
+
     protected:
       std::map    <std::string, diggedag::node *> get_nodes (void) { return nodes_; }
       std::vector <diggedag::edge *>              get_edges (void) { return edges_; }
@@ -44,6 +49,7 @@ namespace diggedag
                        const std::string & src, 
                        const std::string & tgt);
       void  dryrun    (void);
+      void  reset     (void);
       void  fire      (void);
       void  wait      (void);
       state get_state (void);
@@ -52,6 +58,8 @@ namespace diggedag
       void  dump_node (std::string name);
       void  schedule  (void);
       void  prune     (void);
+      void  log       (std::string msg = "", 
+                       bool        eol = true);
 
       void                  set_scheduler (std::string s);
       diggedag::scheduler * get_scheduler (void);

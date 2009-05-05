@@ -18,13 +18,11 @@ namespace diggedag
 {
   scheduler::scheduler (void)
   {
-    // std::cout << "scheduler ctor" << std::endl;
     pthread_mutex_t m = mtx_.get ();
   }
 
   scheduler::~scheduler (void)
   {
-    // std::cout << "scheduler dtor" << std::endl;
   }
 
   void scheduler::set_scheduler (std::string s)
@@ -39,7 +37,7 @@ namespace diggedag
 
     if ( fin.fail () )
     {
-      std::cerr << "opening " << policy_ << " failed\n";
+      std::cerr << "opening " << policy_ << " failed" << std::endl;
       throw "Cannot open file";
     }
 
@@ -51,34 +49,34 @@ namespace diggedag
 
       if ( words.size () < 1 )
       {
-        std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+        std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
       }
       else if ( words[0] == "data" )
       {
         if ( words.size () != 4 )
         {
-          std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
         }
-        else if ( words[1] == "src" )
+        else if ( words[1] == "INPUT" )
         {
           data_src_host_ = words[2];
           data_src_pwd_  = words[3];
         }
-        else if ( words[1] == "tgt" )
+        else if ( words[1] == "OUTPUT" )
         {
           data_tgt_host_ = words[2];
           data_tgt_pwd_  = words[3];
         }
         else
         {
-          std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
         }
       }
       else if ( words[0] == "job" )
       {
         if ( words.size () != 4 )
         {
-          std::cout << "parser error in " << policy_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
         }
         else
         {
@@ -94,21 +92,18 @@ namespace diggedag
   void scheduler::hook_dag_create (diggedag::dag  * d)                     
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_create" << std::endl;
   }
 
 
   void scheduler::hook_dag_destroy (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_destroy" << std::endl;
   }
 
 
   void scheduler::hook_dag_schedule (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
-    std::cout << " ### scheduler hook_dag_schedule" << std::endl;
     
     // walk throgh the dag, and assign execution host for nodes, and data
     // prefixes for edges
@@ -118,11 +113,6 @@ namespace diggedag
     // first, fix pwd and host for INPUT and OUTPUT nodes
     node * input  = nodes["INPUT"];
     node * output = nodes["OUTPUT"];
-
-    std::cout << "input->set_pwd   " << data_src_pwd_  << std::endl;
-    std::cout << "input->set_host  " << data_src_host_ << std::endl;
-    std::cout << "output->set_pwd  " << data_tgt_pwd_  << std::endl;
-    std::cout << "output->set_host " << data_tgt_host_ << std::endl;
 
     input->set_pwd   (data_src_pwd_);
     input->set_host  (data_src_host_);
@@ -179,35 +169,30 @@ namespace diggedag
   void scheduler::hook_dag_run_pre (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_pre" << std::endl;
   }
 
 
   void scheduler::hook_dag_run_post (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_post" << std::endl;
   }
 
 
   void scheduler::hook_dag_run_done (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_done" << std::endl;
   }
 
 
   void scheduler::hook_dag_run_fail (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_run_fail" << std::endl;
   }
 
 
   void scheduler::hook_dag_wait (diggedag::dag * d)                     
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_dag_wait" << std::endl;
   }
 
 
@@ -217,7 +202,6 @@ namespace diggedag
   {
     pthread_mutex_t m = mtx_.get ();
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_add" << std::endl;
   }
 
 
@@ -225,7 +209,6 @@ namespace diggedag
                                     diggedag::node * n)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_remove" << std::endl;
   }
 
 
@@ -233,7 +216,6 @@ namespace diggedag
                                      diggedag::node * n)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_run_pre" << std::endl;
   }
 
 
@@ -241,7 +223,6 @@ namespace diggedag
                                       diggedag::node * n)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_run_done" << std::endl;
   }
 
 
@@ -249,10 +230,9 @@ namespace diggedag
                                       diggedag::node * n)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_run_fail" << std::endl;
 
     // tell the dag that a node failed
-    // FIXME
+    // FIXME: should cancel dag
     d->set_state (Failed);
   }
 
@@ -262,7 +242,6 @@ namespace diggedag
                                  diggedag::edge * e)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_add" << std::endl;
 
     // an edge may have an empty src or tgt node.  An empty src node implies
     // that data need to be staged in, from the data_src_ directory .  An empty
@@ -277,7 +256,6 @@ namespace diggedag
                                     diggedag::edge * e)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_node_remove" << std::endl;
   }
 
 
@@ -285,7 +263,6 @@ namespace diggedag
                                      diggedag::edge * e)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_run_pre" << std::endl;
   }
 
 
@@ -293,7 +270,6 @@ namespace diggedag
                                       diggedag::edge * e)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_run_done" << std::endl;
   }
 
 
@@ -301,7 +277,6 @@ namespace diggedag
                                       diggedag::edge * e)           
   {
     util::scoped_lock sl (mtx_);
-    // std::cout << "scheduler hook_edge_run_fail" << std::endl;
   }
 
 } // namespace diggedag

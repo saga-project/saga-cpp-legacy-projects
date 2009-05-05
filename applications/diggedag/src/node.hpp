@@ -27,6 +27,7 @@ namespace diggedag
       std::vector <diggedag::edge *> edge_in_;  // input  data
       std::vector <diggedag::edge *> edge_out_; // output data
 
+      std::string                    cmd_;
       std::string                    pwd_;
       std::string                    host_;
       std::string                    name_;     // instance name
@@ -54,6 +55,7 @@ namespace diggedag
       void            add_edge_out    (diggedag::edge * e);
 
       void            dryrun          (void);
+      void            reset           (void);
       void            fire            (void);
       void            stop            (void);
       void            dump            (bool deep = false);

@@ -19,11 +19,11 @@ int main (int argc, char** argv)
 
     diggedag::dag * d = p.get_dag ();
 
-    d->dump ();
     d->set_scheduler (argv[2]);
 
     // allow for pre-run scheduling
     d->schedule (); 
+    // d->dump ();
 
     // run the dag.  This also performs scheduling on-the-fly
     if ( dryrun )
@@ -33,8 +33,6 @@ int main (int argc, char** argv)
     else
     {
       d->fire ();
-
-      std::cout << "dag    running..." << std::endl;
 
       // wait til the dag had a chance to finish
       d->wait ();
@@ -50,9 +48,9 @@ int main (int argc, char** argv)
   {
     std::cerr << "string exception: " << s << std::endl;
   }
-  catch ( ... )
+  catch ( const saga::exception & e )
   {
-    std::cerr << "oops exception: " << std::endl;
+    std::cerr << "oops exception: " << e.what () << std::endl;
   }
 
   return 0;

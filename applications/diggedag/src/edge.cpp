@@ -20,13 +20,10 @@ namespace diggedag
       tgt_url_ = src_url_;
       tgt_path_ = tgt_url_.get_path ();
     }
-
-    // std::cout << "create edge " << std::endl;
   }
 
   edge::~edge (void)
   {
-    // std::cout << "delete edge " << std::endl;
     thread_join ();
   }
 
@@ -62,13 +59,24 @@ namespace diggedag
 
   void edge::dryrun (void)
   {
-    std::cout << "         edge : " 
-              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-              << "[" << src_url_        << "\t -> " << tgt_url_  << "]"
-              << std::endl;
-    std::cout << "                run  " << tgt_node_->get_name () << std::endl;
+    if ( Pending != state_ )
+      return;
+
+    if ( ! (src_url_ == tgt_url_) )
+    {
+      dump ();
+    }
+
+    state_ = Done;
 
     tgt_node_->dryrun ();
+  }
+
+
+  void edge::reset (void)
+  {
+    state_ = Pending;
+    tgt_node_->reset ();
   }
 
 
@@ -76,33 +84,18 @@ namespace diggedag
   // a thread to do it.
   void edge::fire (void)
   {
-    std::cout << "         edge : " 
-              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-              << "[" << src_url_        << "\t -> " << tgt_url_  << "] "
-              << state_to_string (state_) 
-              << std::endl;
-
     // ### scheduler hook
     scheduler_->hook_edge_run_pre (dag_, this);
 
     // check if copy was done, or started, before (!Pending).  
     // If not, mark that we start the work (Running)
     {
-      util::scoped_lock l (mtx_);
-
       if ( Pending != state_ )
-      {
-        std::cout << "edge is ! pending - fire canceled" << std::endl;
         return;
-      }
 
       // check if there is anything to do, at all
       if ( src_url_ == tgt_url_ )
       {
-        std::cout << "         edge : copy not needed. "
-                  << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-                  << " fire node " << tgt_node_->get_name () << std::endl;
-        
         state_ = Done;
 
         // fire dependent node
@@ -115,10 +108,6 @@ namespace diggedag
       }
       else
       {
-        std::cout << "         edge : copy needed, starting thread "
-                  << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-                  << std::endl;
-
         // we have work to do...
         state_ = Running;
 
@@ -132,16 +121,11 @@ namespace diggedag
   // thread_work is the workload, i.e. the data copy operation
   void edge::thread_work (void)
   {
-    std::cout << " ###     edge : " 
-              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-              << "[" << src_url_        << "\t -> " << tgt_url_  << "]"
-              << std::endl << std::flush;
-
     // FIXME: perform the real remote saga file copy from src to tgt here
     // (if both are not identical)
     try 
     {
-      std::cout << " ### trying to copy " << src_url_ << " to " << tgt_url_ << std::endl;
+      dump ();
 
       saga::filesystem::file f_src (src_url_);
       f_src.copy (tgt_url_, saga::filesystem::Overwrite
@@ -149,32 +133,30 @@ namespace diggedag
     }
     catch ( const saga::exception & e ) 
     {
+      // FIXME: the local adaptor is not doing nicely in multithreaded
+      // environments.  Thus, we ignore all errors for now, and rely on the
+      // ability of the nodes to flag any missing data files.
 #if  0
-      std::cerr << "edge failed to copy data " 
-                << src_url_ << "->" << tgt_url_ 
-                <<  std::endl
-                << e.what () << std::endl;
+      dag_->log (std::string ("edge failed to copy data ")
+                + src_url_ + "->" + tgt_url_ 
+                +  std::endl
+                + e.what ());
 
       {
-        util::scoped_lock l (mtx_);
-
         state_ = Failed;
       }
 
       // ### scheduler hook
       scheduler_->hook_edge_run_fail (dag_, this);
-#else
-      {
-        util::scoped_lock l (mtx_);
 
-        state_ = Done;
-      }
+      return;
+#else
+
+      state_ = Done;
 
       // ### scheduler hook
       scheduler_->hook_edge_run_done (dag_, this);
 #endif
-
-      return;
     }
 
     // if we are done copying data, we fire the dependend node
@@ -187,11 +169,6 @@ namespace diggedag
     {
       if ( state_ != Stopped )
       {
-
-        std::cout << "         edge : "
-                  << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-                  << " fire node " << tgt_node_->get_name () << std::endl;
-        
         // done
         state_ = Done;
 
@@ -203,27 +180,22 @@ namespace diggedag
     // ### scheduler hook
     scheduler_->hook_edge_run_done (dag_, this);
 
-    std::cout << "         edge : "
-              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-              << "done" << std::endl;
     return;
   }
 
 
   void edge::stop (void)
   {
-    util::scoped_lock l (mtx_);
-
     state_ = Stopped;
   }
 
   void edge::dump (void)
   {
-    std::cout << "         edge : " 
-              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
-              << "[" << src_url_        << "\t -> " << tgt_url_  << "] "
-              << "(" << state_to_string (get_state ()) << ")"
-              << std::endl;
+    dag_->log (std::string ("         edge : ")
+              + src_node_->get_name () + "\t -> " + tgt_node_->get_name () 
+              + "[" + src_url_.get_string ()         + "\t -> " 
+              + tgt_url_.get_string ()  + "] "
+              + "(" + state_to_string (get_state ()) + ")");
   }
 
   void edge::erase_src (void)
@@ -244,34 +216,22 @@ namespace diggedag
 
   void edge::set_pwd_src (std::string pwd)
   {
-    // if ( src_node_->get_name () == "INPUT" ) std::cout << "edge sets src pwd to: " << pwd << std::endl;
-    // if ( src_node_->get_name () == "INPUT" ) std::cout << "     - " << src_url_ << std::endl;
     src_url_.set_path (pwd  + src_path_);
-    // if ( src_node_->get_name () == "INPUT" ) std::cout << "     + " << src_url_ << std::endl;
   }
 
   void edge::set_pwd_tgt (std::string pwd)
   {
-    // if ( tgt_node_->get_name () == "OUTPUT" ) std::cout << "edge sets tgt pwd to: " << pwd << std::endl;
-    // if ( tgt_node_->get_name () == "OUTPUT" ) std::cout << "     - " << tgt_url_ << std::endl;
     tgt_url_.set_path (pwd  + tgt_path_);
-    // if ( tgt_node_->get_name () == "OUTPUT" ) std::cout << "     + " << tgt_url_ << std::endl;
   }
 
   void edge::set_host_src (std::string host) 
   {
-    // if ( src_node_->get_name () == "INPUT" ) std::cout << "edge sets src host to: " << host << std::endl;
-    // if ( src_node_->get_name () == "INPUT" ) std::cout << "     - " << src_url_ << std::endl;
     src_url_.set_host (host);
-    // if ( src_node_->get_name () == "INPUT" ) std::cout << "     + " << src_url_ << std::endl;
   }
 
   void edge::set_host_tgt (std::string host) 
   {
-    // if ( tgt_node_->get_name () == "OUTPUT" ) std::cout << "edge sets tgt host to: " << host << std::endl;
-    // if ( tgt_node_->get_name () == "OUTPUT" ) std::cout << "     - " << tgt_url_ << std::endl;
     tgt_url_.set_host (host);
-    // if ( tgt_node_->get_name () == "OUTPUT" ) std::cout << "     + " << tgt_url_ << std::endl;
   }
 
 

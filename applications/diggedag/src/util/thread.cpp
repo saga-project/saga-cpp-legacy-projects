@@ -1,7 +1,7 @@
 
 #include "util/thread.hpp"
 
-#define DO_THREADS 1
+#define DO_THREADS 
 
 namespace diggedag 
 {
@@ -15,7 +15,6 @@ namespace diggedag
       // and calls its thread_start method.
       void * thread_startup_ (void * arg)
       {
-        std::cout << "starting thread" << std::endl;
         diggedag::util::thread * t = (diggedag::util::thread *) arg;
         return t->thread_start ();
       }
@@ -53,13 +52,11 @@ namespace diggedag
       thread_state_ = ThreadRunning;
 
 #ifdef DO_THREADS
-      std::cout << "creating thread" << std::endl;
       if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
       }
 #else
-      std::cout << "no thread" << std::endl;
       thread_start ();
 #endif
     }
@@ -70,8 +67,6 @@ namespace diggedag
     // which holds the threads workload.
     void * thread::thread_start (void)
     {
-      std::cout << "thread is started, run work ()" << std::endl;
-
       // startup is completed - call the (custom) workload
       this->thread_work ();
 

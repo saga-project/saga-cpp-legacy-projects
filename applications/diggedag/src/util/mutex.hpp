@@ -22,7 +22,7 @@ namespace diggedag
       public:
         mutex (void)
         {
-          mtx_    = new pthread_mutex_t;
+          mtx_ = new pthread_mutex_t;
           pthread_mutex_init (mtx_, NULL);
         }
 

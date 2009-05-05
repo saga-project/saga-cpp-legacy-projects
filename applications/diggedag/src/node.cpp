@@ -1,5 +1,6 @@
 
 #include <vector>
+#include <sstream>
 
 #include <saga/saga.hpp>
 
@@ -19,24 +20,32 @@ namespace diggedag
     , state_   (diggedag::Pending)
     , is_void_ (false)
   {
-    // std::cout << "create node " << std::endl;
+    std::stringstream ss;
+
+    ss << nd.get_attribute ("Executable");
+
+    std::vector <std::string> args = nd.get_vector_attribute ("Arguments");
+
+    for ( unsigned int i = 0; i < args.size (); i++ )
+    {
+      ss << " " << args[i];
+    }
+
+    cmd_ = ss.str ();
   }
 
   node::node (std::string cmd, 
               std::string name)
-    : name_    (name)
+    : cmd_     (cmd)
+    , name_    (name)
     , state_   (diggedag::Pending)
     , is_void_ (false)
   {
-    // std::cout << "create node " << std::endl;
-
     // parse cmd into node description
-    std::vector <std::string> elems = diggedag::split (cmd);
+    std::vector <std::string> elems = diggedag::split (cmd_);
 
     nd_.set_attribute ("Executable", elems[0]);
     nd_.set_attribute ("Interactive", saga::attributes::common_false);
-
-    std::cout << "Exe: " << elems[0] << std::endl;
 
     elems.erase (elems.begin ());
 
@@ -44,7 +53,8 @@ namespace diggedag
   }
 
   node::node (void)
-    : name_    ("void")
+    : cmd_     ("-")
+    , name_    ("void")
     , state_   (diggedag::Pending)
     , is_void_ (true)
   {
@@ -52,7 +62,6 @@ namespace diggedag
 
   node::~node (void)
   {
-    // std::cout << "delete node " << std::endl;
     thread_join ();
   }
 
@@ -63,33 +72,48 @@ namespace diggedag
 
   void node::add_edge_in (diggedag::edge * e)
   {
-    // std::cout << "edge-i node " << name_ 
-    //           << " : "  << e.get_src () 
-    //           << " -> " << e.get_tgt () << std::endl;
-
     edge_in_.push_back (e);
   }
 
   void node::add_edge_out (diggedag::edge * e)
   {
-    // std::cout << "edge-o node " << name_ 
-    //           << " : "  << e.get_src () 
-    //           << " -> " << e.get_tgt () << std::endl;
-
     edge_out_.push_back (e);
   }
 
 
   void node::dryrun (void)
   {
-      std::cout << "         node : " << name_ << std::endl;
-      for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    // check if all input data are ready
+    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    {
+      if ( Done != edge_in_[i]->get_state () )
       {
-        std::cout << "                run  " 
-                  << edge_out_[i]->get_src_node ()->get_name () << " \t -> "
-                  << edge_out_[i]->get_tgt_node ()->get_name () << std::endl;
-        edge_out_[i]->dryrun ();
+        return;
       }
+    }
+
+    if ( Pending != state_ )
+      return;
+
+    dag_->log (std::string ("         node : ") + name_ + "   \t -> " + cmd_);
+
+    state_ = Done;
+
+    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    {
+      edge_out_[i]->dryrun ();
+    }
+  }
+
+
+  void node::reset (void)
+  {
+    state_ = Pending;
+
+    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    {
+      edge_out_[i]->reset ();
+    }
   }
 
 
@@ -98,8 +122,6 @@ namespace diggedag
   // application.  If they are not ready, fire has no effect.
   void node::fire (void)
   {
-    std::cout << "         node : " << name_ << std::endl;
-
     // ### scheduler hook
     scheduler_->hook_node_run_pre (dag_, this);
 
@@ -108,8 +130,6 @@ namespace diggedag
     {
       if ( Failed == edge_in_[i]->get_state () )
       {
-        util::scoped_lock l (mtx_);
-
         state_ = Failed;
 
         return;
@@ -121,24 +141,15 @@ namespace diggedag
     {
       if ( Done != edge_in_[i]->get_state () )
       {
-        std::cout << "       node " << name_ << " : edge " 
-                  << edge_in_[i]->get_src () << "->" 
-                  << edge_in_[i]->get_tgt () << " is not ready - cancel fire" << std::endl;
         return;
       }
-      else
-      {
-        // std::cout << "       node " << name_ << " : edge " 
-        //           << edge_in_[i]->get_src () << "->" 
-        //           << edge_in_[i]->get_tgt () << " is ready" << std::endl;
-      }
     }
+
+    dag_->log (std::string ("         node : ") + name_ + "   \t -> " + cmd_);
 
     // Check if node was started before (!Pending).  
     // If not, mark that we start the work (Running).
     {
-      util::scoped_lock l (mtx_);
-
       if ( Pending != state_ )
         return;
 
@@ -185,48 +196,34 @@ namespace diggedag
 
         if ( j.get_state () != saga::job::Done )
         {
-          std::cout << "       node " << name_ 
-                    << " : job failed - cancel: "
-                    << jd.get_attribute ("Executable");
-
-          std::vector <std::string> args = jd.get_vector_attribute ("Arguments");
-
-          for ( unsigned int i = 0; i < args.size (); i++ )
-          {
-            std::cout << " " << args[i];
-          }
-         
-          std::cout << std::endl;
+          dag_->log (std::string ("       node ") + name_ 
+                    + " : job failed - cancel: "  + cmd_);
 
           state_ = Failed;
+          exit (1);
 
           // ### scheduler hook
           scheduler_->hook_node_run_fail (dag_, this);
 
-          std::cout << "       node " << name_ << " failed" << std::endl;
           return;
         }
       }
       catch ( const saga::exception & e )
       {
-        std::cout << "       node " << name_ 
-                  << " : job execution threw exception - cancel\n"
-                  << e.what () << std::endl;
+          dag_->log (std::string ("       node ") + name_ 
+                    + " : job threw - cancel: "  + e.what ());
 
         state_ = Failed;
 
         // ### scheduler hook
         scheduler_->hook_node_run_fail (dag_, this);
 
-        std::cout << "       node " << name_ << " failed" << std::endl;
         return;
       }
     }
 
 
     {
-      util::scoped_lock l (mtx_);
-
       if ( state_ != Stopped )
       {
         // done
@@ -235,11 +232,6 @@ namespace diggedag
         // get data staged out, e.g. fire outgoing edges
         for ( unsigned int i = 0; i < edge_out_.size (); i++ )
         {
-          std::cout << "       node " << name_ << " fires edge "
-                    << edge_out_[i]->get_src () << "->" 
-                    << edge_out_[i]->get_tgt () 
-                    << " [" << state_to_string (edge_out_[i]->get_state ()) << "]" << std::endl;
-
           edge_out_[i]->fire ();
         }
       }
@@ -248,33 +240,29 @@ namespace diggedag
     // ### scheduler hook
     scheduler_->hook_node_run_done (dag_, this);
 
-    std::cout << "       node " << name_ << " done" << std::endl;
     return;
   }
 
 
   void node::stop (void)
   {
-    util::scoped_lock l (mtx_);
-
     state_ = Stopped;
   }
 
   void node::dump (bool deep)
   {
-    std::cout << "       node " << name_ << "(" << host_ << ", " << pwd_ << ")" 
-              << " (" << state_to_string (get_state ()) << ")"
-              << std::endl;
+    dag_->log (std::string ("       node ") + name_ + "(" + host_ + ", " 
+               + pwd_ +")" + " (" + state_to_string (get_state ()) + ")");
 
     if ( deep )
     {
-      std::cout << " edges in:" << std::endl;
+      dag_->log (" edges in:");
       for ( unsigned int i = 0; i < edge_in_.size (); i++ )
       {
         edge_in_[i]->dump ();
       }
 
-      std::cout << " edges OUT:" << std::endl;
+      dag_->log (" edges out:");
       for ( unsigned int i = 0; i < edge_out_.size (); i++ )
       {
         edge_out_[i]->dump ();
