@@ -56,7 +56,7 @@ int main (int argc, char* argv[])
     {
       //// two new persitent faust instances
       //
-			faust::resource queenbee  (queenbee_rd, true);
+			//faust::resource queenbee  (queenbee_rd, true);
 			faust::resource localhost (localhost_rd, true);
 							
 			//// test reconnect
@@ -101,7 +101,7 @@ int main (int argc, char* argv[])
 			//}
        
 			
-			queenbee_reconnect.set_persistent(false);
+			//queenbee_reconnect.set_persistent(false);
 			localhost_reconnect.set_persistent(false);
 		}
 		catch(faust::exception const & e) {

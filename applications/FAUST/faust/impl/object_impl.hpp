@@ -40,7 +40,6 @@ namespace faust
       
     protected:
       
-      faust::detail::logwriter * log_;
       static std::string faust_root_namesapce_;
       
     public:

@@ -15,69 +15,199 @@
 #include <faust/faust/resource_description.hpp>
 #include <faust/impl/resource_impl.hpp>
 
+#include <faust/impl/resource_monitor_impl.hpp>
+#include <faust/impl/resource_description_impl.hpp>
+
 using namespace saga;
 using namespace faust::impl;
 namespace FAR = faust::attributes::resource_description;
 
+#define LOG_WRITE_SUCCESS(S)      { S << "SUCCESS"; log_sptr_->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_INFO); S.str(""); }
+#define LOG_WRITE_FAILED_AND_THROW(S, M, E) { S << "FAILED: " << M; log_sptr_->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_ERROR); throw faust::exception (SAGA_OSSTREAM_GETSTRING(S), E); S.str("");}
+
+namespace faust { namespace impl { namespace detail {
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  template<class T> void writeAttributesToDB(T obj, saga::advert::entry ae,
+      boost::shared_ptr <faust::detail::logwriter> lw, std::string key="")
+  {
+    SAGA_OSSTREAM strm;
+    strm << "Updating description";
+    
+    try 
+    {
+      if( key.empty() )
+      {
+        std::vector<std::string> attribs = obj.list_attributes();
+        std::vector<std::string>::const_iterator it;
+        for(it = attribs.begin(); it != attribs.end(); ++it)
+        {
+          std::cout << "ATTR: " << *it << std::endl;
+          if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
+            continue;
+          
+          if(obj.attribute_is_vector(*it)) {
+            ae.set_vector_attribute((*it), obj.get_vector_attribute((*it)));
+          }
+          else {
+            ae.set_attribute((*it), obj.get_attribute((*it)));
+          }
+        }
+      }
+      else
+      {
+        if(obj.attribute_is_vector(key))
+        {
+          ae.set_vector_attribute(key, obj.get_vector_attribute(key));
+        }
+        else
+        {
+          ae.set_attribute(key, obj.get_attribute(key));
+        }
+      }
+      strm << ". SUCCESS ";
+      lw->write(SAGA_OSSTREAM_GETSTRING(strm), LOGLEVEL_INFO);
+    }
+    catch(saga::exception const & e) 
+    {
+      SAGA_OSSTREAM strm;
+      strm << ". FAILED " << std::string(__FILE__) 
+      << ":" << __LINE__ << " " << e.what();
+      
+      lw->write(SAGA_OSSTREAM_GETSTRING(strm), LOGLEVEL_ERROR);
+      throw faust::exception (SAGA_OSSTREAM_GETSTRING(strm), faust::NoSuccess);
+    }    
+  };
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  template<class T> void readAttributesFromDB(T obj, saga::advert::entry ae,
+      boost::shared_ptr <faust::detail::logwriter> lw, std::string key="")
+  {
+    SAGA_OSSTREAM strm;
+    strm << "Updating database ";
+    
+    try 
+    {
+      if( key.empty() )
+      {
+        std::vector<std::string> attribs = ae.list_attributes();
+        std::vector<std::string>::const_iterator it;
+        for(it = attribs.begin(); it != attribs.end(); ++it)
+        {
+          std::cout << "ATTR: " << *it << std::endl;
+          if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
+            continue;
+          
+          if(ae.attribute_is_vector(*it)) {
+            obj.set_vector_attribute((*it), ae.get_vector_attribute((*it)));
+          }
+          else {
+            obj.set_attribute((*it), ae.get_attribute((*it)));
+          }
+        }
+      }
+      else
+      {
+        if(ae.attribute_is_vector(key))
+        {
+          obj.set_vector_attribute(key, ae.get_vector_attribute(key));
+        }
+        else
+        {
+          obj.set_attribute(key, ae.get_attribute(key));
+        }
+      }
+      strm << ". SUCCESS ";
+      lw->write(SAGA_OSSTREAM_GETSTRING(strm), LOGLEVEL_INFO);
+    }
+    catch(saga::exception const & e) 
+    {
+      SAGA_OSSTREAM strm;
+      strm << ". FAILED " << std::string(__FILE__) 
+      << ":" << __LINE__ << " " << e.what();
+      
+      lw->write(SAGA_OSSTREAM_GETSTRING(strm), LOGLEVEL_ERROR);
+      throw faust::exception (SAGA_OSSTREAM_GETSTRING(strm), faust::NoSuccess);
+    }  
+  };
+  
+}}};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //
+void resource::init()
+{
+  // Initialize the logwriter
+  std::string identifier(FW_NAME);
+  identifier.append(" faust::resource ("+resource_id_+")"); 
+  
+  log_sptr_ = boost::shared_ptr <faust::detail::logwriter> 
+    (new faust::detail::logwriter(identifier, std::cout));
+  
+  // Set the root namespace string
+  std::string endpoint_str_(object::faust_root_namesapce_ + 
+                            "RESOURCES/" + resource_id_ + "/");
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 //
 resource::resource(std::string resource_id)
 : object(faust::object::Resource), init_from_id_(true), 
 resource_id_(resource_id)
 {
-	std::string endpoint_str_(object::faust_root_namesapce_ + 
-														"RESOURCES/" + resource_id_ + "/");
-	
-  // Initialize the logwriter
-  std::string identifier(FW_NAME); std::string msg("");
-  identifier.append(" faust::resource ("+resource_id_+")"); 
-  log_ = new detail::logwriter(identifier, std::cout);
+  init();
+  SAGA_OSSTREAM msg;
   
-  // TRY TO CONNECT TO THE ADVERT ENTRY FOR THIS RESOURCE
-  //
-  std::string advert_key(endpoint_str_);
+  msg << "Re-connecting to advert endpoint. " << endpoint_str_;
   
-  msg = "Re-connecting to advert endpoint " + advert_key;
-  try {
+  try 
+  {
     int mode = advert::ReadWrite;
-    advert_base_ = advert::directory(advert_key, mode);
+    advert_base_ = advert::directory(endpoint_str_, mode);
     
-    // open "CMD" entry
-    cmd_adv_  = advert_base_.open(endpoint_str_+"CMD", saga::advert::ReadWrite);
-    args_adv_ = advert_base_.open(endpoint_str_+"ARGS", saga::advert::ReadWrite);
-    rd_   = advert_base_.open(endpoint_str_+"RD", saga::advert::ReadWrite);
-    rm_   = advert_base_.open(endpoint_str_+"RM", saga::advert::ReadWrite);
+    cmd_adv_  = advert_base_.open(endpoint_str_+"CMD",  mode);
+    args_adv_ = advert_base_.open(endpoint_str_+"ARGS", mode);
+    desc_adv_ = advert_base_.open(endpoint_str_+"RD",   mode);
+    mon_adv_  = advert_base_.open(endpoint_str_+"RM",   mode);
     
-    // pass the resource monitor advert to the monitor
-    monitor_ = faust::resource_monitor(rm_);
-        
-    msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
+    detail::readAttributesFromDB<faust::resource_description>
+      (description_, desc_adv_, log_sptr_);    
+
+    detail::readAttributesFromDB<faust::resource_monitor>
+      (monitor_, mon_adv_, log_sptr_);    
+    
+    LOG_WRITE_SUCCESS(msg);
   }
-  catch(saga::exception const & e) {
-    msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
+  catch(saga::exception const & e) 
+  {
+    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
   }
   
-  try {
+  try 
+  {
 		saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", saga::advert::Read);
-    agent_uuid_ = auuid.retrieve_string();  
+    agent_uuid_ = auuid.retrieve_string(); 
+    
 		if(agent_uuid_.length() == 0)
 		{
 			// something is wrong with the entry. Generating new UUID
 			agent_uuid_ = saga::uuid().string();
-			msg = "Something seems to be wrong with the 'AGENT_UUID' entry. Generating new one: "+agent_uuid_+".";
-			log_->write(msg, LOGLEVEL_WARNING);
+			msg << "Something seems to be wrong with the 'AGENT_UUID' entry. Generating new one: " << agent_uuid_ << ".";
+			log_sptr_->write(SAGA_OSSTREAM_GETSTRING(msg), LOGLEVEL_WARNING);
 		}
 		send_command(PROTO_V1_PING, 60);
 		
   }
-	catch(faust::exception const & e) {
-		if(e.get_error() == faust::Timeout) {
-			msg = "faust_agent instance'"+agent_uuid_+"'seems to be dead. RESTARTING ";
-			log_->write(msg, LOGLEVEL_INFO);
+	catch(faust::exception const & e) 
+  {
+		if(e.get_error() == faust::Timeout) 
+    {
+			msg << "faust_agent instance'" << agent_uuid_ << "'seems to be dead. RESTARTING ";
+			log_sptr_->write(SAGA_OSSTREAM_GETSTRING(msg), LOGLEVEL_INFO);
 			launch_agent();
 			send_command(PROTO_V1_PING, 60);
 		}
@@ -85,57 +215,26 @@ resource_id_(resource_id)
 			throw;
 		}
 	}
-  catch(saga::exception const & e) {
-    msg += "Checking if faust_agent instance is still alive. FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
+  catch(saga::exception const & e) 
+  {
+    msg << "Checking if faust_agent instance is still alive. ";
+    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
   }
   
-  // RETRIEVE ATTRIBUTES OF THE ADVERT ENTRY AND GENERATE RESOURCE_DESCRIPTION
-  //
-  msg = "Retrieving resource description for " + resource_id_;
+  /* starting the service thread */
+  msg << "Starting service thread";
   
-  try {    
-    std::vector<std::string> attr_ = rd_.list_attributes();
-    std::vector<std::string>::const_iterator it;
-    for(it = attr_.begin(); it != attr_.end(); ++it)
-    {
-      // exclude these advert-specific attributes
-      if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
-        continue;
-            
-      if(rd_.attribute_is_vector(*it)) {
-        description_.set_vector_attribute((*it), rd_.get_vector_attribute((*it)));
-      }
-      else {
-        description_.set_attribute((*it), rd_.get_attribute((*it)));
-      }
-    }
-    msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
-  }
-  catch(saga::exception const & e) {
-    msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
-  }
-  
-  //// STARTING THE SERVICE THREAD
-  //
-  msg = "Starting service thread";
-  try {
+  try 
+  {
     service_thread_ = boost::thread(&main_event_loop);
   }
   catch(...)
   {
-    msg += ". FAILED ";
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW(msg, "Unknown Reson", faust::NoSuccess);
   }
-  msg += ". SUCCESS ";
-  log_->write(msg, LOGLEVEL_INFO);
-  //
-  ////
+  
+  LOG_WRITE_SUCCESS(msg);
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -145,94 +244,73 @@ resource::resource(faust::resource_description resource_desc, bool persistent)
 : object(faust::object::Resource), description_(resource_desc), 
 init_from_id_(false), persistent_(persistent)
 {
+  init();
+  SAGA_OSSTREAM msg;
   agent_uuid_ = saga::uuid().string();
   
-  //// INITIALIZE THE LOGWRITER
-  //
-  if(description_.attribute_exists(FAR::identifier))
-		resource_id_ = description_.get_attribute(FAR::identifier);
-  else resource_id_ = "";
-  std::string identifier(FW_NAME); std::string msg("");
-  identifier.append(" faust::resource ("+resource_id_+")"); 
-  log_ = new detail::logwriter(identifier, std::cout);
   
-  //// CHECK IF ALL REQUIRED ATTRIBUTES ARE AVAILABLE
-  //
-  msg = ("Checking faust::resource_description for completeness. ");
+  /* check if the mandatory attributes to launch a faust_agent
+   * are available */
+  msg << "Checking faust::resource_description for completeness. ";
 	
 	if(!description_.attribute_exists(FAR::identifier)) {
-    msg += "FAILED Missing required attribute 'identifier'.";
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'identifier'", faust::BadParameter);
 	}
   else if(!description_.attribute_exists(FAR::faust_agent_submit_url)) {
-    msg += "FAILED. Missing required attribute 'faust_agent_submit_url'.";
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'faust_agent_submit_url'", faust::BadParameter);
   }
   else if(!description_.attribute_exists(FAR::faust_agent_binary_path)) {
-    msg += "FAILED Missing required attribute 'faust_agent_binary_path'.";
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'faust_agent_binary_path'", faust::BadParameter);
   }
 	else if(!description_.attribute_exists(FAR::saga_root_path)) {
-    msg += "FAILED Missing required attribute 'saga_root_path'.";
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'saga_root_path'", faust::BadParameter);
   }
 	
   else {
-    msg += "SUCCESS";
-    log_->write(msg, LOGLEVEL_INFO);
+    LOG_WRITE_SUCCESS(msg);
   }
   
   resource_id_ = description_.get_attribute(FAR::identifier);
   std::string endpoint_str_(object::faust_root_namesapce_ + 
 														"RESOURCES/" + resource_id_ + "/");
   
-  int mode = advert::ReadWrite | advert::Create;
-	
-	// TRY TO CREATE ADVERT ENTRY FOR THIS RESOURCE
-  //
-  msg = "Creating advert endpoint '"+endpoint_str_+"'";
-  try {
-    
-    std::string advert_key = object::faust_root_namesapce_;
-    
-    advert_base_ = advert::directory(advert_key, mode);
+  int mode = advert::ReadWrite | advert::Create | advert::Recursive;
+	  
+	/* create advert entry for this resource instance 
+   */
+  msg << "Creating advert endpoint '" << endpoint_str_ << "' ";
+  try 
+  {    
+    advert_base_ = advert::directory(object::faust_root_namesapce_, mode);
     
     // don't overwrite an existing entry if it has the persistency flag set!
-    if(advert_base_.exists("RESOURCES/" + resource_id_ + "/")) {
+    if(advert_base_.exists("./"+resource_id_ + "/")) 
+    {
       saga::advert::directory tmp = advert_base_.open_dir("RESOURCES/" + resource_id_ + "/");
       
-      if(tmp.attribute_exists("persistent")) {
+      if(tmp.attribute_exists("persistent")) 
+      {
         std::string dbg(tmp.get_attribute("persistent"));
-        if(tmp.get_attribute("persistent") == "TRUE") {
-          msg += ". FAILED: endpoint '"+resource_id_+"' already exists and set to 'persistent'!";
-          log_->write(msg, LOGLEVEL_ERROR);
-          throw faust::exception (msg, faust::NoSuccess);
+        if(tmp.get_attribute("persistent") == "TRUE") 
+        {
+          LOG_WRITE_FAILED_AND_THROW(msg, "endpoint '"+resource_id_+"' already exists and set to 'persistent'!", faust::NoSuccess);
         }
       }
     }
-    else {
-      advert_key += "RESOURCES/";
-      advert_base_ = advert::directory(advert_key, mode);
-      advert_key += resource_id_ + "/";
-      advert_base_ = advert::directory(advert_key, mode);
+    else 
+    {
+      advert_base_ = advert::directory(faust_root_namesapce_, mode);
+      advert_base_ = advert::directory(faust_root_namesapce_+"/RESOURCES/", mode);
+      advert_base_ = advert::directory(faust_root_namesapce_+"/RESOURCES/"+resource_id_+"/", mode);
     }
-    
-    msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
+    LOG_WRITE_SUCCESS(msg);
   }
-  catch(saga::exception const & e) {
-    msg += ". FAILED: " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
+  catch(saga::exception const & e) 
+  {
+    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
   }
   
-  // COPY ALL ATTRIBUTES TO THE ADVERT ENTRY
-  //
-  // SET THE PERSISTENT BIT FOR THIS RESOURCE ENTRY
+  // set the persistency bit
   if( true == persistent_ )
     advert_base_.set_attribute("persistent", "TRUE");
   else
@@ -244,63 +322,38 @@ init_from_id_(false), persistent_(persistent)
   
   args_adv_ = advert_base_.open(endpoint_str_+"ARGS", mode);
   args_adv_.store_string(""); 
-
-  rd_ = advert_base_.open(endpoint_str_+"RD", mode);
-  rd_.store_string(""); 
-
-  rm_ = advert_base_.open(endpoint_str_+"RM", mode);
-  rm_.store_string(""); 
+  
+  desc_adv_ = advert_base_.open(endpoint_str_+"RD", mode);
+  desc_adv_.store_string(""); 
+  
+  mon_adv_ = advert_base_.open(endpoint_str_+"RM", mode);
+  mon_adv_.store_string(""); 
   
   // create "AGENT_UUID" entry
   saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", mode);
   auuid.store_string(agent_uuid_);  
   
-  msg = "Populating advert endpoint '"+endpoint_str_+"'";
-  try {
-    std::vector<std::string> attr_ = description_.list_attributes();
-    std::vector<std::string>::const_iterator it;
-    for(it = attr_.begin(); it != attr_.end(); ++it)
-    {
-      if(description_.attribute_is_vector(*it)) {
-        rd_.set_vector_attribute((*it), description_.get_vector_attribute((*it)));
-      }
-      else {
-        rd_.set_attribute((*it), description_.get_attribute((*it)));
-      }
-    }
-		
-    msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
-  }
-  catch(saga::exception const & e) {
-    msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
-  }
-	
+  detail::writeAttributesToDB<faust::resource_description>
+  (description_, desc_adv_, log_sptr_); 
+  
 	launch_agent();
   send_command(PROTO_V1_PING, 120);
   
-  //// STARTING THE SERVICE THREAD
-  //
-  msg = "Starting service thread";
+  /* launching service thread
+   */
+  msg << "Starting service thread";
   try {
     service_thread_ = boost::thread(&main_event_loop);
+    LOG_WRITE_SUCCESS(msg);
   }
   catch(...)
   {
-    msg += ". FAILED ";
-    log_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW(msg, "Unknown Reson", faust::NoSuccess);
   }
-  msg += ". SUCCESS ";
-  log_->write(msg, LOGLEVEL_INFO);
-  //
-  ////	
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
-//
 //
 void resource::launch_agent(unsigned int timeout)
 {
@@ -311,7 +364,7 @@ void resource::launch_agent(unsigned int timeout)
   
   if(description_.attribute_exists(FAR::environment))
     env = description_.get_vector_attribute(FAR::environment);
-
+  
 	env.push_back("SAGA_LOCATION="+
 								description_.get_attribute(FAR::saga_root_path));
 	//env.push_back("LD_LIBRARY_PATH="+
@@ -345,22 +398,23 @@ void resource::launch_agent(unsigned int timeout)
     if ( state != saga::job::Running && state != saga::job::Done    )
     {
       msg += ". FAILED ";
-      log_->write(msg, LOGLEVEL_INFO);
+      log_sptr_->write(msg, LOGLEVEL_INFO);
     }
     else
     {
       msg += ". SUCCESS ";
-      log_->write(msg, LOGLEVEL_INFO);
+      log_sptr_->write(msg, LOGLEVEL_INFO);
     }
     
 	}
 	catch(saga::exception const & e) {
 		msg += ". FAILED " + std::string(e.what());
-		log_->write(msg, LOGLEVEL_ERROR);
+		log_sptr_->write(msg, LOGLEVEL_ERROR);
 		throw faust::exception (msg, faust::NoSuccess);
 	}
 	
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -374,11 +428,11 @@ resource::~resource()
     try {
       advert_base_.remove(saga::advert::Recursive);
       msg += ". SUCCESS ";
-      log_->write(msg, LOGLEVEL_INFO);
+      log_sptr_->write(msg, LOGLEVEL_INFO);
     }
     catch(saga::exception const & e) {
       msg += ". FAILED " + std::string(e.what());
-      log_->write(msg, LOGLEVEL_ERROR);
+      log_sptr_->write(msg, LOGLEVEL_ERROR);
       throw faust::exception (msg, faust::NoSuccess);
     }
   }
@@ -390,12 +444,13 @@ resource::~resource()
   catch(...)
   {
     msg += ". FAILED ";
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
   }
   msg += ". SUCCESS ";
-  log_->write(msg, LOGLEVEL_INFO);
+  log_sptr_->write(msg, LOGLEVEL_INFO);
   
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -409,7 +464,7 @@ void resource::send_command(std::string cmd, unsigned int timeout)
   }
   catch(saga::exception const & e) {
     msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
   
@@ -428,23 +483,24 @@ void resource::send_command(std::string cmd, unsigned int timeout)
       cmd_adv_.store_string(""); // Reset CMD
       args_adv_.store_string(""); // Reset ARGS
       msg += "SUCCESS ";
-      log_->write(msg, LOGLEVEL_INFO);
+      log_sptr_->write(msg, LOGLEVEL_INFO);
     }
     else {
       cmd_adv_.store_string(""); // Reset CMD
       args_adv_.store_string(""); // Reset ARGS
       std::stringstream out; out << timeout;
       msg += std::string(" FAILED (Timeout - "+out.str()+" sec) ") ;
-      log_->write(msg, LOGLEVEL_ERROR);
+      log_sptr_->write(msg, LOGLEVEL_ERROR);
       throw faust::exception (msg, faust::Timeout);
     }
   }
   catch(saga::exception const & e) {
     msg += " FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }  
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -466,7 +522,6 @@ faust::resource_description resource::get_description()
 //
 faust::resource_monitor resource::get_monitor()
 {
-  monitor_.readFromDB();
   return monitor_;
 }
 
@@ -492,12 +547,12 @@ void resource::set_persistent(bool yesno)
       advert_base_.set_attribute("persistent", "FALSE");
     
     msg += ". SUCCESS ";
-    log_->write(msg, LOGLEVEL_INFO);
+    log_sptr_->write(msg, LOGLEVEL_INFO);
     persistent_ = yesno;
   }
   catch(saga::exception const & e) {
     msg += ". FAILED " + std::string(e.what());
-    log_->write(msg, LOGLEVEL_ERROR);
+    log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
 }

@@ -59,6 +59,7 @@ void resource_description::setupAttributes()
   
   // initialize list of valid keys          
   this->init_keynames(valid_keys);
+  get_impl()->init_keynames(valid_keys);
   
   strmap_type attributes_scalar_rw;
   insert(attributes_scalar_rw)
@@ -89,7 +90,11 @@ void resource_description::setupAttributes()
   // initialize attribute implementation
   this->init (strmap_type(), attributes_scalar_rw, 
               strmap_type(), attributes_vector_rw);
+  get_impl()->init (strmap_type(), attributes_scalar_rw, 
+                    strmap_type(), attributes_vector_rw);
+  
   this->init (false, true);   // cache only implementation  
+  get_impl()->init (false, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -100,24 +105,6 @@ resource_description::resource_description() :
   this->setupAttributes();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//
-resource_description::resource_description(std::string XMLFileName) :
-  faust::object (new faust::impl::resource_description(XMLFileName), object::Resource)
-{
-  this->setupAttributes();
-}
-
-
-void resource_description::readFromDB(std::string key)
-{
-  get_impl()->readFromDB(key); 
-}
-
-void resource_description::writeToDB(std::string key)
-{
-  get_impl()->writeToDB(key); 
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 //

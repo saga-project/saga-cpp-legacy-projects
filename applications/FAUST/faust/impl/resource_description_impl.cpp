@@ -10,14 +10,16 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include <faust/faust/exception.hpp>
 #include <faust/impl/resource_description_impl.hpp>
 
 using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
-resource_description::resource_description()
-: object(faust::object::ResourceDescription)
+resource_description::resource_description(boost::shared_ptr <faust::detail::logwriter> log_sptr,
+                                           saga::advert::entry & desc_adv)
+: object(faust::object::ResourceDescription), log_sptr_(log_sptr), desc_adv_(desc_adv)
 {
 }
 
@@ -27,4 +29,3 @@ resource_description::resource_description(std::string XMLFileName)
 : object(faust::object::ResourceDescription), xmlfilename_(XMLFileName)
 {
 }
-

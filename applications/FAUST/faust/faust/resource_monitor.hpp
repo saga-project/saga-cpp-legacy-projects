@@ -81,46 +81,23 @@ namespace faust
   class resource_monitor : public faust::object,
   public saga::detail::attribute<faust::resource_monitor>
   {
-		
-		// service impl. class needs to be friend to call private c'tor 
-		friend class faust::impl::resource;
-    friend class faust::agent::app;
-    //friend class faust::agent::system_monitor;
-    
-  protected:
-    
-    void readFromDB (std::string key = "");
-    void writeToDB  (std::string key = "");
-    
-  protected:
-    /// @cond
-    /** These methods are not within API scope */
+
+  private: 
+
     friend struct saga::detail::attribute<faust::resource_monitor>;
     friend class faust::impl::resource_monitor;
+		friend class faust::impl::resource;
     
-    resource_monitor() {};
-		resource_monitor(saga::advert::entry & monitor_adv); // No public default constructor
-    /// @endcond
-    
-  private:
-    
-    boost::shared_ptr <faust::impl::resource_monitor> get_impl (void) const;
     void setupAttributes();
+    resource_monitor() {} ;
 
   public:
 		
-		/// @cond - Exclude from Doxygen
+		/// @cond - hide from Doxygen
+    boost::shared_ptr <faust::impl::resource_monitor> get_impl (void) const;
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
-		
-   /* std::vector<std::string> list_attributes();
-    
-		std::string get_attribute (std::string key) const;
-		void set_attribute (std::string key, std::string value);
-		
-		std::vector<std::string> get_vector_attribute (std::string key) const;
-		void set_vector_attribute (std::string key, strvec_type value);*/
-		
+
 		/*! \brief Destroys this %object.
      *
      */

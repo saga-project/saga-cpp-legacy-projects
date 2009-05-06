@@ -88,59 +88,6 @@ void resource_monitor::setupAttributes()
   this->init (false, true);   // cache only implementation  
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//
-resource_monitor::resource_monitor(saga::advert::entry & monitor_adv) :
-  faust::object (new faust::impl::resource_monitor(monitor_adv), object::Resource)
-{
-  this->setupAttributes();
-}
-
-void resource_monitor::readFromDB(std::string key)
-{
-  get_impl()->readFromDB(key); 
-}
-
-void resource_monitor::writeToDB(std::string key)
-{
-  get_impl()->writeToDB(key); 
-}
-
-/*////////////////////////////////////////////////////////////////////////////////
-//
-std::vector<std::string> resource_monitor::list_attributes ()
-{
-	return get_impl()->list_attributes();
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-std::string resource_monitor::get_attribute (std::string key) const
-{
-	return get_impl()->get_attribute(key);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-void resource_monitor::set_attribute (std::string key, std::string value)
-{
-	get_impl()->set_attribute(key, value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-std::vector<std::string> resource_monitor::get_vector_attribute (std::string key) const
-{
-	return get_impl()->get_vector_attribute(key);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-void resource_monitor::set_vector_attribute (std::string key, strvec_type value)
-{
-	get_impl()->set_vector_attribute(key, value);
-}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //

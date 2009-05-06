@@ -10,8 +10,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <faust/faust/exception.hpp>
 #include <agent/agent.hpp>
+#include <faust/faust/exception.hpp>
 
 using namespace saga;
 using namespace faust::agent;
@@ -61,8 +61,11 @@ app::app(std::string endpoint, std::string uuid)
     desc_adv_ = base.open("RD", mode);
     mon_adv_  = base.open("RM", mode);
     
-    mon_obj_sptr_ = boost::shared_ptr <faust::resource_monitor>
-      (new faust::resource_monitor(mon_adv_));
+    mon_obj_sptr_ = boost::shared_ptr <faust::impl::resource_monitor>
+    (new faust::impl::resource_monitor(log_sptr_, mon_adv_));
+
+    desc_obj_sptr_ = boost::shared_ptr <faust::impl::resource_description>
+    (new faust::impl::resource_description(log_sptr_, desc_adv_));
     
     sysmon_obj_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
       (new faust::agent::monitor::monitor(desc_obj_sptr_, mon_obj_sptr_, log_sptr_));
@@ -76,36 +79,8 @@ app::app(std::string endpoint, std::string uuid)
     throw faust::exception (msg, faust::NoSuccess);
   }
   
+  desc_obj_sptr_->readFromDB();
   
-  // RETRIEVING ATTRIBUTES FROM THE ADVERT SERVICE AND GENERATE RESOURCE_DESCRIPTION
-  //
-  msg = "Retrieving resource description";
-  
-  try {    
-    std::vector<std::string> attr_ = desc_adv_.list_attributes();
-    std::vector<std::string>::const_iterator it;
-    for(it = attr_.begin(); it != attr_.end(); ++it)
-    {
-      // exclude these advert-specific attributes
-      if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
-        continue;
-      
-      if(desc_adv_.attribute_is_vector(*it)) {
-        std::cout << "VA: " << (*it) << std::endl;
-        desc_obj_sptr_->set_vector_attribute((*it), desc_adv_.get_vector_attribute((*it)));
-      }
-      else {
-        desc_obj_sptr_->set_attribute((*it), desc_adv_.get_attribute((*it)));
-      }
-    }
-    msg += ". SUCCESS ";
-    log_sptr_->write(msg, LOGLEVEL_INFO);
-  }
-  catch(saga::exception const & e) {
-    msg += ". FAILED " + std::string(e.what());
-    log_sptr_->write(msg, LOGLEVEL_ERROR);
-    throw faust::exception (msg, faust::NoSuccess);
-  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -154,7 +129,8 @@ std::string app::recv_command(std::string & cmd, std::string & args)
         msg += ". YES: CMD='"+cmd_adv_str+"' ARGS='"+args_adv_str+"'";
         log_sptr_->write(msg, LOGLEVEL_INFO);
         
-        if(tokens.at(0) != uuid_) {
+        if(tokens.at(0) != uuid_) 
+        {
           // IF UUID doesn't match, I'm definitely a ZOMBIE agent and 
           // I should really kill myself!
           msg = "UUID of received command "+cmd_adv_str+" is INVALID. TERMINATING!";

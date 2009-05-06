@@ -16,6 +16,9 @@
 #include <faust/faust/exception.hpp>
 #include <agent/monitor/monitor.hpp>
 
+#include <faust/faust/resource_monitor.hpp>
+#include <faust/faust/resource_description.hpp>
+
 using namespace saga;
 using namespace faust::agent::monitor;
 
@@ -46,9 +49,9 @@ namespace {
 }
 //////////////////////////////////////////////////////////////////////////
 //
-monitor::monitor(boost::shared_ptr <faust::resource_description> rd,
-                 boost::shared_ptr <faust::resource_monitor>     rm,
-                 boost::shared_ptr <faust::detail::logwriter>    lw)
+monitor::monitor(boost::shared_ptr <faust::impl::resource_description> rd,
+                 boost::shared_ptr <faust::impl::resource_monitor>     rm,
+                 boost::shared_ptr <faust::detail::logwriter>          lw)
 
 : desc_obj_sptr_(rd), mon_obj_sptr_(rm), log_sptr_(lw)
 {

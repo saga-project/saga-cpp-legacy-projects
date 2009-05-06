@@ -31,21 +31,24 @@ namespace faust
     {
       
     private:
-			// everything that is needed for the resource api
-      friend class faust::impl::resource_monitor;
-      faust::resource_description description_;
-			faust::resource_monitor monitor_;
+      void init();
       
 			// advert service handles that are used quite frequently
       saga::advert::directory advert_base_;
       saga::advert::entry cmd_adv_;
       saga::advert::entry args_adv_;
-      saga::advert::entry rm_;
-      saga::advert::entry rd_;
+      saga::advert::entry desc_adv_;
+      saga::advert::entry mon_adv_;
       
       std::string resource_id_;
 			std::string endpoint_str_;
       std::string agent_uuid_;
+      
+      boost::shared_ptr <faust::detail::logwriter> log_sptr_;
+      
+      
+      faust::resource_description description_;
+      faust::resource_monitor     monitor_;
       
       bool init_from_id_;
       bool persistent_;
@@ -64,7 +67,7 @@ namespace faust
     public:
       
 			// c'tors d'tor
-      explicit resource(std::string resource_identifiers);
+      explicit resource(std::string resource_identifier);
       explicit resource(faust::resource_description resource_desc, bool persistent);
       ~resource();
       

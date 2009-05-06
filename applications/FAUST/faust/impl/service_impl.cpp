@@ -119,7 +119,7 @@ service_impl::service_impl (std::vector<faust::resource> resource_descriptions, 
 // DESTRUCTOR
 service_impl::~service_impl ()
 {
-  delete log_;
+  //delete log_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,7 +264,7 @@ void service_impl::insert_job_into_job_list(std::string jobid, faust::object obj
 {
   joblist_.insert(joblist_pair_t(jobid, obj));
   std::string msg("Registering new " + faust::get_object_type_name(obj) + " instance: " + jobid);
-  log_->write(msg, LOGLEVEL_INFO);  
+  //log_->write(msg, LOGLEVEL_INFO);  
 }
 
 ////////////////////////////////////////////////////////////////////////////////

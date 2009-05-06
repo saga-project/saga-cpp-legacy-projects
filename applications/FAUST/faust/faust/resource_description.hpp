@@ -103,30 +103,17 @@ namespace faust
   public saga::detail::attribute<faust::resource_description>
   {
     
-  protected:
-    /// @cond
-    /** These methods are not within API scope */
+  private:
+
     friend struct saga::detail::attribute<faust::resource_description>;
     friend class faust::impl::resource_description;
-    /// @endcond
     
-    // service impl. class needs to be friend to call private c'tor 
-    friend class faust::agent::app;
-    //friend class faust::agent::system_monitor;
-    
-  protected:
-    
-    void readFromDB (std::string key = "");
-    void writeToDB  (std::string key = "");
-    
-  private:
-    
-    boost::shared_ptr <faust::impl::resource_description> get_impl (void) const;
     void setupAttributes();
     
   public:
 
-		/// @cond - Exclude from Doxygen
+		/// @cond - hide from Doxygen
+    boost::shared_ptr <faust::impl::resource_description> get_impl (void) const;
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 		
@@ -134,12 +121,6 @@ namespace faust
      *
      */
     resource_description();
-
-    /*! \brief Creates a new %resource_description for a pysical %resource
-		 *         from an XML file.
-     *
-     */
-    resource_description(std::string XMLFileName);
     
     /*! \brief Destroys this %object.
      *

@@ -15,10 +15,8 @@
 
 #include <saga/saga.hpp>
 #include <faust/impl/logwriter.hpp>
-#include <faust/faust/resource_description.hpp>
-
-#include <faust/faust/resource_description.hpp>
-#include <faust/faust/resource_monitor.hpp>
+#include <faust/impl/resource_description_impl.hpp>
+#include <faust/impl/resource_monitor_impl.hpp>
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -40,10 +38,9 @@ namespace faust
       private:
         faust::detail::logwriter * log_;
         
-        std::string sp_;
         boost::shared_ptr <faust::detail::logwriter> log_sptr_;
-        boost::shared_ptr <faust::resource_description> desc_obj_sptr_;
-        boost::shared_ptr <faust::resource_monitor> mon_obj_sptr_;
+        boost::shared_ptr <faust::impl::resource_description> desc_obj_sptr_;
+        boost::shared_ptr <faust::impl::resource_monitor> mon_obj_sptr_;
         
         /* directory attributes related stuff */
         bool directory_attributes_checked_;
@@ -59,9 +56,9 @@ namespace faust
         
       public:
         //monitor() {}
-        monitor (boost::shared_ptr <faust::resource_description> rd,
-                 boost::shared_ptr <faust::resource_monitor>     rm,
-                 boost::shared_ptr <faust::detail::logwriter>    lw);
+        monitor (boost::shared_ptr <faust::impl::resource_description> rd,
+                 boost::shared_ptr <faust::impl::resource_monitor>     rm,
+                 boost::shared_ptr <faust::detail::logwriter>          lw);
         
         ~monitor() {}
         

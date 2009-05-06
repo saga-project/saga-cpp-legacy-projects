@@ -16,8 +16,9 @@
 #include <saga/saga.hpp>
 #include <faust/impl/logwriter.hpp>
 #include <agent/monitor/monitor.hpp>
-#include <faust/faust/resource_description.hpp>
-#include <faust/faust/resource_monitor.hpp>
+
+#include <faust/impl/resource_description_impl.hpp>
+#include <faust/impl/resource_monitor_impl.hpp>
 
 namespace faust
 {
@@ -37,8 +38,9 @@ namespace faust
         
         boost::shared_ptr <faust::detail::logwriter> log_sptr_;
         boost::shared_ptr <faust::agent::monitor::monitor> sysmon_obj_sptr_;
-        boost::shared_ptr <faust::resource_description> desc_obj_sptr_;
-        boost::shared_ptr <faust::resource_monitor> mon_obj_sptr_;
+        
+        boost::shared_ptr <faust::faust::resource_description> desc_obj_sptr_;
+        boost::shared_ptr <faust::faust::resource_monitor> mon_obj_sptr_;
         
         std::string recv_command(std::string & cmd, std::string & args);
         

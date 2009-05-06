@@ -23,10 +23,10 @@
 
 namespace faust
 {
-  ///@cond - exclude from Doxygen
+  ///@cond - hide from Doxygen
   // fwd. decl. implementation class 
   namespace impl { class resource; } 
-  ///@endcond - exclude from Doxygen
+  ///@endcond 
   
   /*! \brief Class description
    *
@@ -41,7 +41,7 @@ namespace faust
     /*! \brief Creates a new %resource %object representing a pysical %resource
      *         described by the %resource_description (RD) argument.
      */
-    explicit resource(faust::resource_description resource_desc, bool persistent=true);
+    explicit resource(faust::resource_description resource_desc, bool persistent=false);
     
     /*! \brief Creates a new %resource %object that reconnects to an existing
      *         %resource in the database identified by resource_id argument.

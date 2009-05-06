@@ -10,8 +10,8 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef FAUST_IMPL_RESOURCE_IMPL_HPP
-#define FAUST_IMPL_RESOURCE_IMPL_HPP
+#ifndef FAUST_IMPL_RESOURCE_DESCRIPTION_IMPL_HPP
+#define FAUST_IMPL_RESOURCE_DESCRIPTION_IMPL_HPP
 
 #include <faust/faust/exports.hpp>
 #include <faust/faust/description.hpp>
@@ -31,17 +31,22 @@ namespace faust
 		private:
 			std::string xmlfilename_;
       
-    public:
-      
-      void readFromDB (std::string key = "") {}
-      void writeToDB  (std::string key = "") {}
+      saga::advert::entry desc_adv_;
+      boost::shared_ptr <faust::detail::logwriter> log_sptr_;
       
     public:
-      resource_description();
+      resource_description() : object(faust::object::ResourceDescription) {} ;
+      
+      
+      resource_description(boost::shared_ptr <faust::detail::logwriter> log_sptr,
+                           saga::advert::entry & desc_adv);
+      
       resource_description(std::string XMLFileName);
       
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }
+      
+      saga::impl::attribute_cache get_cache() {return attributes_;}
       
       // Generate a exact deep copy of this object
       // saga::object clone() const;
