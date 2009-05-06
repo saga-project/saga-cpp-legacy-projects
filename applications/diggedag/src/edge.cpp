@@ -127,12 +127,20 @@ namespace diggedag
     {
       dump ();
 
+      dag_->lock ();
+
+      // the local file adaptor is not thread save if operating on the same
+      // directory structure
+
       saga::filesystem::file f_src (src_url_);
       f_src.copy (tgt_url_, saga::filesystem::Overwrite
                           | saga::filesystem::CreateParents);
+      dag_->unlock ();
     }
     catch ( const saga::exception & e ) 
     {
+      dag_->unlock ();
+
       // FIXME: the local adaptor is not doing nicely in multithreaded
       // environments.  Thus, we ignore all errors for now, and rely on the
       // ability of the nodes to flag any missing data files.
@@ -205,6 +213,11 @@ namespace diggedag
   void edge::erase_tgt (void)
   {
     // FIXME: remove the tgt data
+  }
+
+  void edge::set_state (state s)
+  {
+    state_ = s;
   }
 
   diggedag::state edge::get_state (void) const

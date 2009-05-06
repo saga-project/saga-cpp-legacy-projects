@@ -17,6 +17,7 @@ namespace diggedag
   class dag 
   {
     private:
+      typedef std::pair <std::string, std::string> edge_id;
       std::map    <std::string, diggedag::node *> nodes_; // dag node names and instances
       std::vector <diggedag::edge *>              edges_; // dag edge instances
 
@@ -57,6 +58,8 @@ namespace diggedag
       void  dump      (void);
       void  dump_node (std::string name);
       void  schedule  (void);
+      void  lock      (void);
+      void  unlock    (void);
       void  log       (std::string msg = "", 
                        bool        eol = true);
 

@@ -61,6 +61,7 @@ namespace diggedag
       void             erase_tgt     (void);
       void             add_src_node  (diggedag::node * src);
       void             add_tgt_node  (diggedag::node * tgt);
+      void             set_state     (state s);
       diggedag::state  get_state     (void) const;
 
       saga::url        get_src       (void) const { return src_url_; }

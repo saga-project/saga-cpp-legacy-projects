@@ -13,6 +13,7 @@
 #include "edge.hpp"
 #include "scheduler.hpp"
 
+#define RETRY_MAX 10
 
 namespace diggedag
 {
@@ -226,14 +227,38 @@ namespace diggedag
   }
 
 
+  // NOTE that this implementation is recursive!  no locks, please...
   void scheduler::hook_node_run_fail (diggedag::dag  * d,
                                       diggedag::node * n)           
   {
     util::scoped_lock sl (mtx_);
 
-    // tell the dag that a node failed
-    // FIXME: should cancel dag
-    d->set_state (Failed);
+    // std::string name = n->get_name ();
+
+    // if ( retry_nodes_.find (name) != retry_nodes_.end () )
+    // {
+    //   if ( retry_nodes_[name] >= RETRY_MAX )
+    //   {
+    //     // don't retry again - dag just failed
+    //     d->set_state (Failed);
+    //     // FIXME: should cancel dag
+    //   }
+    //   else
+    //   {
+    //     // retry node
+    //     retry_nodes_[name]++;
+    //     n->set_state (Pending);
+    //     std::cout << "retry " << name << std::endl;
+    //     n->fire ();
+    //   }
+    // }
+    // else
+    // {
+    //   // retry the first time
+    //   retry_nodes_[name] = 1;
+    //   n->set_state (Pending);
+    //   n->fire ();
+    // }
   }
 
 

@@ -425,7 +425,7 @@ namespace diggedag
 
   void dag::log (std::string msg, bool eol)
   {
-    mtx_.lock ();
+    lock ();
 
     std::cout << msg;
     
@@ -434,7 +434,7 @@ namespace diggedag
       std::cout << std::endl;
     }
 
-    mtx_.unlock ();
+    unlock ();
   }
 
 
@@ -445,6 +445,16 @@ namespace diggedag
 
     // FIXME: data transfers may end up to be redundant, and ch=should be
     // pruned.
+  }
+
+  void dag::lock (void)
+  {
+    mtx_.lock ();
+  }
+
+  void dag::unlock (void)
+  {
+    mtx_.unlock ();
   }
 
   void dag::set_scheduler (std::string s)

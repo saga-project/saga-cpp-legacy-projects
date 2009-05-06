@@ -200,7 +200,6 @@ namespace diggedag
                     + " : job failed - cancel: "  + cmd_);
 
           state_ = Failed;
-          exit (1);
 
           // ### scheduler hook
           scheduler_->hook_node_run_fail (dag_, this);
@@ -210,8 +209,8 @@ namespace diggedag
       }
       catch ( const saga::exception & e )
       {
-          dag_->log (std::string ("       node ") + name_ 
-                    + " : job threw - cancel: "  + e.what ());
+        dag_->log (std::string ("       node ") + name_ 
+                   + " : job threw - cancel: "  + e.what ());
 
         state_ = Failed;
 
@@ -278,6 +277,11 @@ namespace diggedag
   diggedag::node_description node::get_description (void) const
   {
     return nd_;
+  }
+
+  void node::set_state (state s)
+  {
+    state_ = s;
   }
 
   diggedag::state node::get_state (void)

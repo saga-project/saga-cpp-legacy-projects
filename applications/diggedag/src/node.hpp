@@ -63,6 +63,7 @@ namespace diggedag
       std::string     get_name        (void) const;
       diggedag::node_description 
                       get_description (void) const;
+      void            set_state       (state s);
       diggedag::state get_state       (void);
       void            set_pwd         (std::string pwd);
       void            set_host        (std::string host);

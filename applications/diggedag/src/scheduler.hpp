@@ -26,6 +26,8 @@ namespace diggedag
       std::string data_src_host_;
       std::string data_tgt_host_;
 
+      std::map <std::string, int> retry_nodes_;
+
       struct job_info_t 
       { 
         std::string host; 
