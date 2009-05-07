@@ -31,7 +31,7 @@ int main (int argc, char* argv[])
   localhost_rd.set_attribute("identifier", "localhost");
   localhost_rd.set_attribute("faust_agent_submit_url",  "fork://localhost/");
   localhost_rd.set_attribute("faust_agent_binary_path", "/Users/oweidner/Work/FAUST/build/Debug/faust_agent");	
-  localhost_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.2/");
+  localhost_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.2.1/");
   
   localhost_rd.set_vector_attribute("dir_id", dir_ids);
   localhost_rd.set_vector_attribute("dir_path", dir_path);

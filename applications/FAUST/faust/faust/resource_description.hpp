@@ -94,7 +94,7 @@ namespace faust
     }
   }
   
-  /*! \brief The %resource_description encapsulates all the attributes which define a 
+  /*! \brief The %resource_description encapsulates all the attributes::resource_description which define a 
    *         physical %resource_description. It has no methods of its own, but implements the 
    *         saga::attributes interface.
    *
@@ -117,16 +117,88 @@ namespace faust
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 		
-    /*! \brief Creates a new %resource_description for a physical %resource.
+    /*! \brief C'TOR: Creates a empty description %object that can be 
+     *         used to describe a physical %resource.
      *
      */
     resource_description();
+
+    /*! \brief C'TOR: Creates a description %object from the key/value pairs defined
+     *         in the ASCII file located at 'filename'.
+     *
+     */
+    resource_description(std::string filename) {};
     
-    /*! \brief Destroys this %object.
+    
+    /*! \brief D'TOR: Properly destroys this %object instance.
      *
      */
     ~resource_description();
-		
+
+    /*! \brief Writes all scalar/vector %attributes to the ASCI file located
+     *         at 'filename'.
+     *
+     */
+    void write_to_file(std::string filename) 
+    {
+      // TODO implement
+    }
+    
+    /*! \brief Returns TRUE if the %attribute identified by 'key' exists. FALSE otherwise.
+     *
+     */
+    bool attribute_exists(std::string key) const 
+    {
+      return saga::detail::attribute<faust::resource_description> ::attribute_exists(key); 
+    }
+    
+    /*! \brief Returns TRUE if the %attribute identified by 'key' is a vector %attribute. FALSE otherwise. 
+     *
+     */
+    bool attribute_is_vector(std::string key) const 
+    {
+      return saga::detail::attribute<faust::resource_description> ::attribute_is_vector(key); 
+    }
+    
+    /*! \brief Returns the value of the scalar %attribute identified by 'key'.
+     *
+     */
+    std::string get_attribute(std::string key) const
+    {
+      return saga::detail::attribute<faust::resource_description> ::get_attribute(key);
+    }
+    
+    /*! \brief Sets the value of the skalar %attribute identified by 'key' to 'value'.
+     *
+     */
+    void set_attribute(std::string key, std::string value) 
+    {
+      saga::detail::attribute<faust::resource_description> ::set_attribute(key, value); 
+    }
+
+    /*! \brief Returns the value of the vector %attribute identified by 'key'.
+     *
+     */
+    std::vector<std::string> get_vector_attribute(std::string key) const
+    {
+      return saga::detail::attribute<faust::resource_description> ::get_vector_attribute(key);
+    }
+    
+    /*! \brief Sets the value of the vecture %attribute identified by 'key' to 'value'.
+     *
+     */
+    void set_vector_attribute(std::string key, std::vector<std::string> value) 
+    {
+      saga::detail::attribute<faust::resource_description> ::set_vector_attribute(key, value); 
+    }
+
+    /*! \brief Returns a list of all defined attribute key.
+     *
+     */
+    std::vector<std::string> list_attributes() const 
+    {
+      return saga::detail::attribute<faust::resource_description> ::list_attributes(); 
+    }
   };
 }
 

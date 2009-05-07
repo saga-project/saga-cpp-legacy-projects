@@ -98,10 +98,65 @@ namespace faust
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 
-		/*! \brief Destroys this %object.
+		/*! \brief D'TOR: Properly destroys this %object instance. 
      *
      */
     ~resource_monitor();
+    
+    /*! \brief Returns TRUE if the %attribute identified by 'key' exists. FALSE otherwise.
+     *
+     */
+    bool attribute_exists(std::string key) const 
+    {
+      return saga::detail::attribute<faust::resource_monitor> ::attribute_exists(key); 
+    }
+    
+    /*! \brief Returns TRUE if the %attribute identified by 'key' is a vector %attribute. FALSE otherwise. 
+     *
+     */
+    bool attribute_is_vector(std::string key) const 
+    {
+      return saga::detail::attribute<faust::resource_monitor> ::attribute_is_vector(key); 
+    }
+    
+    /*! \brief Returns the value of the scalar %attribute identified by 'key'.
+     *
+     */
+    std::string get_attribute(std::string key) const
+    {
+      return saga::detail::attribute<faust::resource_monitor> ::get_attribute(key);
+    }
+    
+    /// @cond 
+    void set_attribute(std::string key, std::string value) 
+    {
+      // THROW EXCEPTION
+    }
+    /// @endcond
+    
+    /*! \brief Returns the value of the vector %attribute identified by 'key'.
+     *
+     */
+    std::vector<std::string> get_vector_attribute(std::string key) const
+    {
+      return saga::detail::attribute<faust::resource_monitor> ::get_vector_attribute(key);
+    }
+    
+    /// @cond
+    void set_vector_attribute(std::string key, std::vector<std::string> value) 
+    {
+      // THROW EXCEPTION
+    }
+    /// @endcond
+    
+    /*! \brief Returns a list of all defined attribute key.
+     *
+     */
+    std::vector<std::string> list_attributes() const 
+    {
+      return saga::detail::attribute<faust::resource_monitor> ::list_attributes(); 
+    }
+    
     
   };
 }
