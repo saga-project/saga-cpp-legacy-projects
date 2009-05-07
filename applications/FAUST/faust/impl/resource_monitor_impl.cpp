@@ -17,10 +17,9 @@ using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
-resource_monitor::resource_monitor(boost::shared_ptr <faust::detail::logwriter> log_sptr,
-                                   saga::advert::entry & monitor_adv)
+resource_monitor::resource_monitor(saga::advert::entry & monitor_adv)
 
-: object(faust::object::ResourceMonitor), log_sptr_(log_sptr), monitor_adv_(monitor_adv)
+: object(faust::object::ResourceMonitor),  monitor_adv_(monitor_adv)
 {
 
 }

@@ -29,12 +29,12 @@ namespace faust
     public saga::impl::attribute
     {
 		private:
+      
       saga::advert::entry desc_adv_;
       
     public:
-      resource_description() : object(faust::object::ResourceDescription) {} ;
       
-      
+      resource_description();
       resource_description(saga::advert::entry & desc_adv);
       resource_description(std::string filename);
       

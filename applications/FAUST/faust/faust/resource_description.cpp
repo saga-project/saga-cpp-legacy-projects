@@ -105,7 +105,7 @@ void resource_description::setupAttributes()
 ////////////////////////////////////////////////////////////////////////////////
 //
 resource_description::resource_description() :
-  faust::object (new faust::impl::resource_description(), object::Resource)
+  faust::object (new faust::impl::resource_description(), object::ResourceDescription)
 {
   this->setupAttributes();
 }

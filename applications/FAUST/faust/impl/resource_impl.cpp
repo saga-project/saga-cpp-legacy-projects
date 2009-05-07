@@ -33,7 +33,7 @@ void resource::init()
   std::string identifier(FW_NAME);
   identifier.append(" faust::resource ("+resource_id_+")"); 
   
-  log_sptr_ = object::get_log();
+  //log_sptr_ = object::get_log();
   
   // Set the root namespace string
   std::string endpoint_str_(object::faust_root_namesapce_ + 
@@ -63,16 +63,16 @@ resource_id_(resource_id)
     mon_adv_  = advert_base_.open(endpoint_str_+"RM",   mode);
     
     detail::readAttributesFromDB<faust::resource_description>
-      (description_, "faust::resource_description", desc_adv_, log_sptr_);    
+      (description_, "faust::resource_description", desc_adv_, get_log());    
 
     detail::readAttributesFromDB<faust::resource_monitor>
-      (monitor_, "faust::resource_monitor", mon_adv_, log_sptr_);    
+      (monitor_, "faust::resource_monitor", mon_adv_, get_log());    
     
-    LOG_WRITE_SUCCESS(msg);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
   catch(saga::exception const & e) 
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
   }
   
   try 
@@ -85,7 +85,7 @@ resource_id_(resource_id)
 			// something is wrong with the entry. Generating new UUID
 			agent_uuid_ = saga::uuid().string();
 			msg << "Something seems to be wrong with the 'AGENT_UUID' entry. Generating new one: " << agent_uuid_ << ".";
-			log_sptr_->write(SAGA_OSSTREAM_GETSTRING(msg), LOGLEVEL_WARNING);
+			get_log()->write(SAGA_OSSTREAM_GETSTRING(msg), LOGLEVEL_WARNING);
 		}
 		send_command(PROTO_V1_PING, 60);
 		
@@ -95,7 +95,7 @@ resource_id_(resource_id)
 		if(e.get_error() == faust::Timeout) 
     {
 			msg << "faust_agent instance'" << agent_uuid_ << "'seems to be dead. RESTARTING ";
-			log_sptr_->write(SAGA_OSSTREAM_GETSTRING(msg), LOGLEVEL_INFO);
+			get_log()->write(SAGA_OSSTREAM_GETSTRING(msg), LOGLEVEL_INFO);
 			launch_agent();
 			send_command(PROTO_V1_PING, 60);
 		}
@@ -106,7 +106,7 @@ resource_id_(resource_id)
   catch(saga::exception const & e) 
   {
     msg << "Checking if faust_agent instance is still alive. ";
-    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
   }
   
   /* starting the service thread */
@@ -118,10 +118,10 @@ resource_id_(resource_id)
   }
   catch(...)
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, "Unknown Reson", faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Unknown Reson", faust::NoSuccess);
   }
   
-  LOG_WRITE_SUCCESS(msg);
+  LOG_WRITE_SUCCESS_2(get_log(),msg);
 }
 
 
@@ -141,20 +141,20 @@ init_from_id_(false), persistent_(persistent)
   msg << "Checking faust::resource_description for completeness. ";
 	
 	if(!description_.attribute_exists(FAR::identifier)) {
-    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'identifier'", faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Missing required attribute 'identifier'", faust::BadParameter);
 	}
   else if(!description_.attribute_exists(FAR::faust_agent_submit_url)) {
-    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'faust_agent_submit_url'", faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Missing required attribute 'faust_agent_submit_url'", faust::BadParameter);
   }
   else if(!description_.attribute_exists(FAR::faust_agent_binary_path)) {
-    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'faust_agent_binary_path'", faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Missing required attribute 'faust_agent_binary_path'", faust::BadParameter);
   }
 	else if(!description_.attribute_exists(FAR::saga_root_path)) {
-    LOG_WRITE_FAILED_AND_THROW(msg, "Missing required attribute 'saga_root_path'", faust::BadParameter);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Missing required attribute 'saga_root_path'", faust::BadParameter);
   }
 	
   else {
-    LOG_WRITE_SUCCESS(msg);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
   
   resource_id_ = description_.get_attribute(FAR::identifier);
@@ -180,7 +180,7 @@ init_from_id_(false), persistent_(persistent)
         std::string dbg(tmp.get_attribute("persistent"));
         if(tmp.get_attribute("persistent") == "TRUE") 
         {
-          LOG_WRITE_FAILED_AND_THROW(msg, "endpoint '"+resource_id_+"' already exists and set to 'persistent'!", faust::NoSuccess);
+          LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "endpoint '"+resource_id_+"' already exists and set to 'persistent'!", faust::NoSuccess);
         }
       }
     }
@@ -190,11 +190,11 @@ init_from_id_(false), persistent_(persistent)
       advert_base_ = advert::directory(faust_root_namesapce_+"/RESOURCES/", mode);
       advert_base_ = advert::directory(faust_root_namesapce_+"/RESOURCES/"+resource_id_+"/", mode);
     }
-    LOG_WRITE_SUCCESS(msg);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
   catch(saga::exception const & e) 
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
   }
   
   // set the persistency bit
@@ -221,7 +221,7 @@ init_from_id_(false), persistent_(persistent)
   auuid.store_string(agent_uuid_);  
   
   detail::writeAttributesToDB<faust::resource_description>
-  (description_, "faust::resource_description", desc_adv_, log_sptr_); 
+  (description_, "faust::resource_description", desc_adv_, get_log()); 
   
 	launch_agent();
   send_command(PROTO_V1_PING, 120);
@@ -231,11 +231,11 @@ init_from_id_(false), persistent_(persistent)
   msg << "Starting service thread";
   try {
     service_thread_ = boost::thread(&main_event_loop);
-    LOG_WRITE_SUCCESS(msg);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
   catch(...)
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, "Unknown Reson", faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Unknown Reson", faust::NoSuccess);
   }
 }
 
@@ -285,17 +285,17 @@ void resource::launch_agent(unsigned int timeout)
     
     if ( state != saga::job::Running && state != saga::job::Done    )
     {
-      LOG_WRITE_FAILED_AND_THROW(msg, "Job is not running.", faust::NoSuccess);
+      LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Job is not running.", faust::NoSuccess);
     }
     else
     {
-      LOG_WRITE_SUCCESS(msg);
+      LOG_WRITE_SUCCESS_2(get_log(),msg);
     }
     
 	}
 	catch(saga::exception const & e) 
   {
-		LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+		LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
 	}
 }
 
@@ -313,11 +313,11 @@ resource::~resource()
     try 
     {
       advert_base_.remove(saga::advert::Recursive);
-      LOG_WRITE_SUCCESS(msg);
+      LOG_WRITE_SUCCESS_2(get_log(),msg);
     }
     catch(saga::exception const & e) 
     {
-      LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+      LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
     }
   }
   
@@ -326,11 +326,11 @@ resource::~resource()
   try 
   {
     service_thread_.join();
-    LOG_WRITE_SUCCESS(msg);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
   catch(...)
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, "Unknown Reason", faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Unknown Reason", faust::NoSuccess);
   }
 }
 
@@ -347,11 +347,11 @@ void resource::send_command(std::string cmd, unsigned int timeout)
   try 
   {
     cmd_adv_.store_string(agent_uuid_+":"+cmd);
-    LOG_WRITE_SUCCESS(msg);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
   catch(saga::exception const & e) 
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
   }
   
   msg <<  "Waiting for acknowledgement ";
@@ -371,7 +371,7 @@ void resource::send_command(std::string cmd, unsigned int timeout)
     if(result == std::string("ACK:"+agent_uuid_+":"+cmd)) {
       cmd_adv_.store_string("");  // Reset CMD
       args_adv_.store_string(""); // Reset ARGS
-      LOG_WRITE_SUCCESS(msg);
+      LOG_WRITE_SUCCESS_2(get_log(),msg);
     }
     else 
     {
@@ -379,12 +379,12 @@ void resource::send_command(std::string cmd, unsigned int timeout)
       args_adv_.store_string(""); // Reset ARGS
       std::stringstream out; out << timeout;
       
-      LOG_WRITE_FAILED_AND_THROW(msg, "(Timeout - "+out.str()+" sec)", faust::NoSuccess);
+      LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "(Timeout - "+out.str()+" sec)", faust::NoSuccess);
     }
   }
   catch(saga::exception const & e) 
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
   }  
 }
 
@@ -405,12 +405,12 @@ void resource::set_persistent(bool yesno)
     else
       advert_base_.set_attribute("persistent", "FALSE");
     
-    LOG_WRITE_SUCCESS(msg);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
     persistent_ = yesno;
   }
   catch(saga::exception const & e) 
   {
-    LOG_WRITE_FAILED_AND_THROW(msg, e.what(), faust::NoSuccess);
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, e.what(), faust::NoSuccess);
   }
 }
 

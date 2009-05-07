@@ -38,7 +38,7 @@ void object::initialize_faust()
     faust_initialized_ = true;
     
     log_sptr_ = boost::shared_ptr <faust::detail::logwriter> 
-    (new faust::detail::logwriter("No ID set", std::cout));;
+    (new faust::detail::logwriter("FAUST Framework", std::cout));;
     
     return;
   }

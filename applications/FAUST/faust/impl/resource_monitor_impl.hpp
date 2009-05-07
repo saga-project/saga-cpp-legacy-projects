@@ -32,12 +32,10 @@ namespace faust
     private:
       
       saga::advert::entry monitor_adv_;
-      boost::shared_ptr <faust::detail::logwriter> log_sptr_;
       
     public:
       
-      resource_monitor(boost::shared_ptr <faust::detail::logwriter> log_sptr,
-                       saga::advert::entry & monitor_adv);
+      resource_monitor(saga::advert::entry & monitor_adv);
       
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }

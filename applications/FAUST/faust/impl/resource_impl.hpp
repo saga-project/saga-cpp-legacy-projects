@@ -48,10 +48,7 @@ namespace faust
       std::string resource_id_;
 			std::string endpoint_str_;
       std::string agent_uuid_;
-      
-      boost::shared_ptr <faust::detail::logwriter> log_sptr_;
-      
-      
+            
       faust::resource_description description_;
       faust::resource_monitor     monitor_;
       

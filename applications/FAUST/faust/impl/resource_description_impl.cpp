@@ -20,10 +20,19 @@ using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
+resource_description::resource_description()
+: object(faust::object::ResourceDescription)
+{
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// CONSTRUCTOR
 resource_description::resource_description(saga::advert::entry & desc_adv)
 : object(faust::object::ResourceDescription), desc_adv_(desc_adv)
 {
-
+  
 }
 
 
