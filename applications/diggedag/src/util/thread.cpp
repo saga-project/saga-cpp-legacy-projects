@@ -24,7 +24,7 @@ namespace diggedag
     // the c'tor does nothing than setting the state to 'New'
     thread::thread (void)
       : thread_state_ (ThreadNew)
-      , joined_ (false)
+      , joined_ (true)
     {
     }
 
@@ -55,6 +55,10 @@ namespace diggedag
       {
         thread_state_ = ThreadFailed;
         joined_       = true;
+      }
+      else
+      {
+        joined_         = false;
       }
 #else
       thread_start ();
