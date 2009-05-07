@@ -54,6 +54,7 @@ namespace diggedag
       if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
+        joined_       = true;
       }
 #else
       thread_start ();
