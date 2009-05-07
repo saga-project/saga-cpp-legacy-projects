@@ -24,6 +24,7 @@ namespace diggedag
     // the c'tor does nothing than setting the state to 'New'
     thread::thread (void)
       : thread_state_ (ThreadNew)
+      , joined_ (false)
     {
     }
 
@@ -34,9 +35,7 @@ namespace diggedag
     // irrelevant cancelation points.
     thread::~thread () 
     {
-#ifdef DO_THREADS
-      pthread_join (thread_, NULL);
-#endif
+      thread_join ();
     }
 
 
@@ -86,17 +85,17 @@ namespace diggedag
     // All state setting etc is done by the thread.  
     void thread::thread_wait (void)
     {
-#ifdef DO_THREADS
-      pthread_join (thread_, NULL);
-#endif
+      thread_join ();
     }
 
     // allow the consumer to wait for thread completion
     void thread::thread_join (void)
     {
+      if ( joined_ ) return;
 #ifdef DO_THREADS
       pthread_join (thread_, NULL);
 #endif
+      joined_ = true;
     }
 
   } // namespace util

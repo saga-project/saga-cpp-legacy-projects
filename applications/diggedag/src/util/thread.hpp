@@ -39,8 +39,9 @@ namespace diggedag
 
       private:
         // state management
-        thread::thread_state thread_state_;
+        thread_state  thread_state_;
         pthread_t     thread_;
+        bool          joined_;
 
 
       public:
