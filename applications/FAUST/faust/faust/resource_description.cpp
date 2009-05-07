@@ -10,6 +10,9 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
+#include <iostream>
+#include <fstream>
+
 #include <saga/saga.hpp>
 #include <saga/saga/detail/attribute_impl.hpp>
 
@@ -18,6 +21,8 @@
 
 #include <faust/faust/resource_description.hpp>
 #include <faust/impl/resource_description_impl.hpp>
+
+#include <faust/impl/detail/serialize.hpp>
 
 using namespace faust;
 
@@ -111,6 +116,13 @@ resource_description::resource_description() :
 resource_description::~resource_description() 
 {
   
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource_description::write_to_file(std::string filename)
+{
+  get_impl()->write_to_file(filename);
 }
 
 /////////////////////////////////////////////////////////////////////////////

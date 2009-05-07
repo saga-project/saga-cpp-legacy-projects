@@ -139,10 +139,7 @@ namespace faust
      *         at 'filename'.
      *
      */
-    void write_to_file(std::string filename) 
-    {
-      // TODO implement
-    }
+    void write_to_file(std::string filename);
     
     /*! \brief Returns TRUE if the %attribute identified by 'key' exists. FALSE otherwise.
      *

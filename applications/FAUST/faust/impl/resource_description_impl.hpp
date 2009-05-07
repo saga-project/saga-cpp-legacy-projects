@@ -29,19 +29,16 @@ namespace faust
     public saga::impl::attribute
     {
 		private:
-			std::string xmlfilename_;
-      
       saga::advert::entry desc_adv_;
-      boost::shared_ptr <faust::detail::logwriter> log_sptr_;
       
     public:
       resource_description() : object(faust::object::ResourceDescription) {} ;
       
       
-      resource_description(boost::shared_ptr <faust::detail::logwriter> log_sptr,
-                           saga::advert::entry & desc_adv);
+      resource_description(saga::advert::entry & desc_adv);
+      resource_description(std::string filename);
       
-      resource_description(std::string XMLFileName);
+      void write_to_file(std::string filename);
       
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }

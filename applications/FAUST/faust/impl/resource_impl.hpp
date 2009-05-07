@@ -13,13 +13,18 @@
 #ifndef FAUST_IMPL_RESOURCE_IMPL_HPP
 #define FAUST_IMPL_RESOURCE_IMPL_HPP
 
+#include <iostream>
+#include <fstream>
+
 #include <boost/thread/thread.hpp>
+#include <faust/faust/exception.hpp>
 
 #include <faust/faust/exports.hpp>
 #include <faust/faust/resource_description.hpp>
 #include <faust/faust/resource_monitor.hpp>
 
 #include <faust/impl/object_impl.hpp>
+
 
 namespace faust
 {

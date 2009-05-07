@@ -40,6 +40,8 @@ int main (int argc, char* argv[])
   localhost_rd.set_vector_attribute("dir_quota_total_cmd", dir_quota_total_cmd);
   localhost_rd.set_vector_attribute("dir_quota_used_cmd", dir_quota_used_cmd);
   
+  localhost_rd.write_to_file("/tmp/test.faust");
+  
   faust::resource_description queenbee_rd;
   
   queenbee_rd.set_attribute("identifier", "queenbee.loni.org");

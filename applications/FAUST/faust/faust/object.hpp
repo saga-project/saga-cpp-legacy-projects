@@ -67,7 +67,7 @@ namespace faust {
     explicit object() {};
     explicit object(faust::impl::object *obj, faust::object::type tp);
     explicit object (boost::shared_ptr<faust::impl::object> init, faust::object::type tp);
-          
+    
   private:
     
     faust::object::type type_;

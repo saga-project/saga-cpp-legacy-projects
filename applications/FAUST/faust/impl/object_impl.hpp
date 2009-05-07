@@ -38,6 +38,8 @@ namespace faust
       static bool faust_initialized_;
       static void initialize_faust();
       
+      static boost::shared_ptr <faust::detail::logwriter> log_sptr_;
+      
     protected:
       
       static std::string faust_root_namesapce_;
@@ -50,11 +52,10 @@ namespace faust
       faust::object::type get_type() const;
       std::string get_uuid() {return uuid_;}
       
-      // get_attributes returns the internal implementation of the 
-      // impl::attributes interface
-      
       virtual saga::impl::attribute* get_attributes();
       virtual saga::impl::attribute const* get_attributes() const;
+      
+      boost::shared_ptr <faust::detail::logwriter> get_log() { return log_sptr_; }
       
     };
     //

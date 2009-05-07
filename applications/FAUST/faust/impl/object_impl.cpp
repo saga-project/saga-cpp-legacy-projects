@@ -19,15 +19,27 @@ using namespace faust::impl;
 std::string object::faust_root_namesapce_ = "";
 bool object::faust_initialized_ = false;
 
+boost::shared_ptr <faust::detail::logwriter> object::log_sptr_ = 
+  log_sptr_ = boost::shared_ptr <faust::detail::logwriter> 
+    (new faust::detail::logwriter("No ID set", std::cout));;
+
 void object::initialize_faust()
 {
   if(faust_initialized_)
+  {
     return;
-  else {
+  }
+  else 
+  {
     // INITIALIZE FAUST
     faust_root_namesapce_ = "advert://macpro01.cct.lsu.edu:5432//FAUST/";
     //faust_root_namesapce_ = "advert://fortytwo.cct.lsu.edu:5432//FAUST/";
+    
     faust_initialized_ = true;
+    
+    log_sptr_ = boost::shared_ptr <faust::detail::logwriter> 
+    (new faust::detail::logwriter("No ID set", std::cout));;
+    
     return;
   }
 }
