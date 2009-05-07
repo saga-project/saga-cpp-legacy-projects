@@ -87,6 +87,7 @@ namespace faust
     friend struct saga::detail::attribute<faust::resource_monitor>;
     friend class faust::impl::resource_monitor;
 		friend class faust::impl::resource;
+    friend class faust::agent::app;
     
     void setupAttributes();
     resource_monitor() {} ;
@@ -152,10 +153,10 @@ namespace faust
     /*! \brief Returns a list of all defined attribute key.
      *
      */
-    std::vector<std::string> list_attributes() const 
-    {
-      return saga::detail::attribute<faust::resource_monitor> ::list_attributes(); 
-    }
+    //std::vector<std::string> list_attributes() const 
+    //{
+    //  return saga::detail::attribute<faust::resource_monitor> ::list_attributes(); 
+    //}
     
     
   };

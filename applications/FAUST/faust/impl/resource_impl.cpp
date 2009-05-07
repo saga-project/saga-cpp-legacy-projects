@@ -43,6 +43,8 @@ void resource::init()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// C'TOR RECONNECT
+//
 resource::resource(std::string resource_id)
 : object(faust::object::Resource), init_from_id_(true), 
 resource_id_(resource_id)
@@ -50,7 +52,10 @@ resource_id_(resource_id)
   init();
   SAGA_OSSTREAM msg;
   
-  msg << "Re-connecting to advert endpoint. " << endpoint_str_;
+  endpoint_str_ = std::string(object::faust_root_namesapce_ + 
+                              "RESOURCES/" + resource_id_ + "/");
+  
+  msg << "Re-connecting to advert endpoint " << endpoint_str_;
   
   try 
   {
@@ -115,17 +120,18 @@ resource_id_(resource_id)
   try 
   {
     service_thread_ = boost::thread(&main_event_loop);
+    LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
   catch(...)
   {
     LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Unknown Reson", faust::NoSuccess);
   }
-  
-  LOG_WRITE_SUCCESS_2(get_log(),msg);
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// C'TOR NEW INSTANCE
 //
 resource::resource(faust::resource_description resource_desc, bool persistent) 
 : object(faust::object::Resource), description_(resource_desc), 
@@ -280,14 +286,14 @@ void resource::launch_agent(unsigned int timeout)
 		saga::job::service js(description_.get_attribute(FAR::faust_agent_submit_url));
 		saga::job::job j = js.create_job(jd);
     
-		j.run();
+		/*j.run();
     saga::job::state state = j.get_state ();
     
     if ( state != saga::job::Running && state != saga::job::Done    )
     {
       LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Job is not running.", faust::NoSuccess);
     }
-    else
+    else*/
     {
       LOG_WRITE_SUCCESS_2(get_log(),msg);
     }

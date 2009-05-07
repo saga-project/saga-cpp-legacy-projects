@@ -75,7 +75,7 @@ int main (int argc, char* argv[])
 			}
       */
       
-      faust::resource_monitor rm_rec = localhost_reconnect.get_monitor();
+      faust::resource_description rm_rec = localhost_reconnect.get_description();
       std::vector<std::string> attr1_ = rm_rec.list_attributes();
 			std::vector<std::string>::const_iterator it1;
 			for(it1 = attr1_.begin(); it1 != attr1_.end(); ++it1)

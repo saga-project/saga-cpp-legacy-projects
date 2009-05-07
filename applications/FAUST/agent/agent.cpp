@@ -13,6 +13,8 @@
 #include <agent/agent.hpp>
 #include <faust/faust/exception.hpp>
 
+#include <faust/impl/detail/serialize.hpp>
+
 using namespace saga;
 using namespace faust::agent;
 
@@ -61,14 +63,14 @@ app::app(std::string endpoint, std::string uuid)
     desc_adv_ = base.open("RD", mode);
     mon_adv_  = base.open("RM", mode);
     
-    mon_obj_sptr_ = boost::shared_ptr <faust::impl::resource_monitor>
-    (new faust::impl::resource_monitor(log_sptr_, mon_adv_));
-
-    desc_obj_sptr_ = boost::shared_ptr <faust::impl::resource_description>
-    (new faust::impl::resource_description(log_sptr_, desc_adv_));
+    faust::impl::detail::readAttributesFromDB<faust::resource_description>
+    (description_, "faust::resource_description", desc_adv_, log_sptr_);    
     
-    sysmon_obj_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
-      (new faust::agent::monitor::monitor(desc_obj_sptr_, mon_obj_sptr_, log_sptr_));
+    faust::impl::detail::readAttributesFromDB<faust::resource_monitor>
+    (monitor_, "faust::resource_monitor", mon_adv_, log_sptr_);     
+    
+    /*sysmon_obj_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
+      (new faust::agent::monitor::monitor(desc_obj_sptr_, mon_obj_sptr_, log_sptr_));*/
     
     msg += ". SUCCESS ";
     log_sptr_->write(msg, LOGLEVEL_INFO);
@@ -78,8 +80,6 @@ app::app(std::string endpoint, std::string uuid)
     log_sptr_->write(msg, LOGLEVEL_ERROR);
     throw faust::exception (msg, faust::NoSuccess);
   }
-  
-  desc_obj_sptr_->readFromDB();
   
 }
 
