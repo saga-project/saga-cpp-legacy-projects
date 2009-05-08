@@ -173,7 +173,7 @@ namespace diggedag
             //           << " required by node " << i_node << std::endl;
           }
 
-          if ( o_node != i_node )
+          else if ( o_node != i_node )
           {
             saga::url loc (file);
             loc.set_scheme ("any");

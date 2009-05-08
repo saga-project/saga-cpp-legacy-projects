@@ -112,33 +112,21 @@ namespace diggedag
                       diggedag::node * src, 
                       diggedag::node * tgt)
   {
-    // src need to know what edge to fire after completion
-    if ( src != NULL )
-    {
-      src->add_edge_out (e);
-      e->add_src_node   (src);
-    }
-    else
-    {
-      input_->add_edge_out (e);
-      e->add_src_node (input_);
-    }
+    node * s = src;
+    node * t = tgt;
 
-    // edge needs to know what node to fire after completion
-    if ( tgt != NULL )
-    {
-      tgt->add_edge_in  (e);
-      e->add_tgt_node   (tgt);
-    }
-    else
-    {
-      output_->add_edge_in  (e);
-      e->add_tgt_node (output_);
-    }
+    if ( src == NULL ) { s = input_ ; } 
+    if ( tgt == NULL ) { t = output_; }
+
+    s->add_edge_out (e);
+    t->add_edge_in  (e);
+
+    e->add_src_node (s);
+    e->add_tgt_node (t);
 
     e->set_dag (this);
 
-    edges_[edge_id_t (src->get_name (), tgt->get_name ())] = e;
+    edges_[edge_id_t (s->get_name (), t->get_name ())] = e;
 
     // ### scheduler hook
     scheduler_->hook_edge_add (this, e);
