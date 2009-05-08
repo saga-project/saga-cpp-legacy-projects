@@ -171,6 +171,11 @@ namespace diggedag
             // // need to stage data in from data src
             // std::cout << "WARNING: cannot find source node for " << file 
             //           << " required by node " << i_node << std::endl;
+
+            saga::url loc (file);
+            loc.set_scheme ("any");
+            diggedag::edge * e = new diggedag::edge (loc);
+            dag_->add_edge (e, "INPUT", i_node);
           }
 
           else if ( o_node != i_node )

@@ -17,8 +17,8 @@ namespace diggedag
   class dag 
   {
     private:
-      std::map <node_id_t, diggedag::node *> nodes_; // dag node names and instances
-      std::map <edge_id_t, diggedag::edge *> edges_;  // dag edge names and instances
+      std::map <node_id_t, node_map_t> nodes_;  // dag node names and instances
+      std::map <edge_id_t, edge_map_t> edges_;  // dag edge names and instances
 
       diggedag::scheduler * scheduler_;
       state                 state_;
@@ -31,8 +31,8 @@ namespace diggedag
 
 
     protected:
-      std::map <node_id_t, diggedag::node *> get_nodes (void) { return nodes_; }
-      std::map <edge_id_t, diggedag::edge *> get_edges (void) { return edges_; }
+      std::map <node_id_t, node_map_t> get_nodes (void) { return nodes_; }
+      std::map <edge_id_t, edge_map_t> get_edges (void) { return edges_; }
       friend class scheduler;
 
 

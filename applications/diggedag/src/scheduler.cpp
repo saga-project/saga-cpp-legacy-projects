@@ -125,8 +125,8 @@ namespace diggedag
     
     // walk throgh the dag, and assign execution host for nodes, and data
     // prefixes for edges
-    std::map <node_id_t, diggedag::node *> nodes = d->get_nodes ();
-    std::map <edge_id_t, diggedag::edge *> edges = d->get_edges ();
+    std::map <node_id_t, node_map_t> nodes = d->get_nodes ();
+    std::map <edge_id_t, edge_map_t> edges = d->get_edges ();
 
     // first, fix pwd and host for INPUT and OUTPUT nodes
     node * input  = nodes["INPUT"];
@@ -140,9 +140,9 @@ namespace diggedag
 
     // now fix all other nodes, too
     {
-      std::map <node_id_t, diggedag::node *> :: const_iterator it;
-      std::map <node_id_t, diggedag::node *> :: const_iterator begin = nodes.begin ();
-      std::map <node_id_t, diggedag::node *> :: const_iterator end   = nodes.end ();
+      std::map <node_id_t, node_map_t> :: const_iterator it;
+      std::map <node_id_t, node_map_t> :: const_iterator begin = nodes.begin ();
+      std::map <node_id_t, node_map_t> :: const_iterator end   = nodes.end ();
 
       for ( it = begin; it != end; it++ )
       {

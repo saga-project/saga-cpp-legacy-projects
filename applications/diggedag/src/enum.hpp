@@ -3,11 +3,17 @@
 #define DIGGEDAG_ENUM_HPP
 
 #include <string>
+#include <vector>
 
 namespace diggedag
 {
+  class edge;
+  class node;
+
   typedef std::string                          node_id_t;
   typedef std::pair <std::string, std::string> edge_id_t;
+  typedef std::vector <diggedag::edge *>       edge_map_t;
+  typedef              diggedag::node *        node_map_t;
 
   enum state
   {

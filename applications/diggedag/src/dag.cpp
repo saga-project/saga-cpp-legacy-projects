@@ -45,13 +45,16 @@ namespace diggedag
 
     // stop edges
     {
-      std::map <edge_id_t, diggedag::edge *> :: iterator it;
-      std::map <edge_id_t, diggedag::edge *> :: iterator begin = edges_.begin ();
-      std::map <edge_id_t, diggedag::edge *> :: iterator end   = edges_.end ();
+      std::map <edge_id_t, edge_map_t> :: iterator it;
+      std::map <edge_id_t, edge_map_t> :: iterator begin = edges_.begin ();
+      std::map <edge_id_t, edge_map_t> :: iterator end   = edges_.end ();
 
       for ( it = begin; it != end; it++ )
       {
-        it->second->stop ();
+        for ( unsigned int i = 0; i < it->second.size (); i++ )
+        {
+          it->second[i]->stop ();
+        }
       }
     }
     
@@ -73,13 +76,16 @@ namespace diggedag
 
     // delete edges
     {
-      std::map <edge_id_t, diggedag::edge *> :: iterator it;
-      std::map <edge_id_t, diggedag::edge *> :: iterator begin = edges_.begin ();
-      std::map <edge_id_t, diggedag::edge *> :: iterator end   = edges_.end ();
+      std::map <edge_id_t, edge_map_t> :: iterator it;
+      std::map <edge_id_t, edge_map_t> :: iterator begin = edges_.begin ();
+      std::map <edge_id_t, edge_map_t> :: iterator end   = edges_.end ();
 
       for ( it = begin; it != end; it++ )
       {
-        delete it->second;
+        for ( unsigned int i = 0; i < it->second.size (); i++ )
+        {
+          delete it->second[i];
+        }
       }
     }
 
@@ -126,7 +132,7 @@ namespace diggedag
 
     e->set_dag (this);
 
-    edges_[edge_id_t (s->get_name (), t->get_name ())] = e;
+    edges_[edge_id_t (s->get_name (), t->get_name ())].push_back (e);
 
     // ### scheduler hook
     scheduler_->hook_edge_add (this, e);
@@ -165,7 +171,7 @@ namespace diggedag
 
     for ( it = begin; it != end; it++ )
     {
-      (*it).second->reset ();
+      it->second->reset ();
     }
   }
 
@@ -195,10 +201,13 @@ namespace diggedag
   {
     log ("fire   dag  ");
 
-    // dump_node ("INPUT");
-    // dump_node ("OUTPUT");
+    dump_node ("INPUT");
+    dump_node ("OUTPUT");
 
-    if ( Pending != state_ )
+    log (std::string ("state: ") + state_to_string (state_));
+
+    if ( Incomplete != state_ &&
+         Pending    != state_ )
       return;
 
     state_ = Running;
@@ -223,7 +232,9 @@ namespace diggedag
 
     for ( it = begin; it != end; it++ )
     {
-      if ( Pending == (*it).second->get_state () )
+      log (std::string ("       dag checks ") + it->second->get_name () 
+           + ": " + state_to_string (it->second->get_state ()));
+      if ( Pending == it->second->get_state () )
       {
         log (std::string ("       dag fires node ") + it->second->get_name ());
         it->second->fire ();
@@ -295,13 +306,13 @@ namespace diggedag
       {
         if ( ! (i++ % 10) )
         {
-          // log ();
+          log ();
         }
 
         state_total++;
 
-        state s = (*it).second->get_state ();
-        // log (it->first + ":" + state_to_string (s) +  "\t", false);
+        state s = it->second->get_state ();
+        log (it->first + ":" + state_to_string (s) +  "\t", false);
 
         switch ( s )
         {
@@ -330,43 +341,46 @@ namespace diggedag
 
     {
       // count edge states
-      std::map <edge_id_t, diggedag::edge *> :: const_iterator it;
-      std::map <edge_id_t, diggedag::edge *> :: const_iterator begin = edges_.begin ();
-      std::map <edge_id_t, diggedag::edge *> :: const_iterator end   = edges_.end ();
+      std::map <edge_id_t, edge_map_t> :: const_iterator it;
+      std::map <edge_id_t, edge_map_t> :: const_iterator begin = edges_.begin ();
+      std::map <edge_id_t, edge_map_t> :: const_iterator end   = edges_.end ();
 
-      int i = 0;
+      int cnt = 0;
       for ( it = begin; it != end; it++ )
       {
-        if ( ! (i++ % 5) )
+        for ( unsigned int i = 0; i < it->second.size (); i++ )
         {
-          // log ();
-        }
+          if ( ! (cnt++ % 5) )
+          {
+            // log ();
+          }
 
-        state_total++;
+          state_total++;
 
-        state s = it->second->get_state ();
-        // log (it->first + ":" + state_to_string (s) +  "\t", false);
+          state s = it->second[i]->get_state ();
+          // log (it->first + ":" + state_to_string (s) +  "\t", false);
 
-        switch ( s )
-        {
-          case Incomplete:
-            state_incomplete++;
-            break;
-          case Stopped:
-            state_stopped++;
-            break;
-          case Pending:
-            state_pending++;
-            break;
-          case Running:
-            state_running++;
-            break;
-          case Done:
-            state_done++;
-            break;
-          case Failed:
-            state_failed++;
-            break;
+          switch ( s )
+          {
+            case Incomplete:
+              state_incomplete++;
+              break;
+            case Stopped:
+              state_stopped++;
+              break;
+            case Pending:
+              state_pending++;
+              break;
+            case Running:
+              state_running++;
+              break;
+            case Done:
+              state_done++;
+              break;
+            case Failed:
+              state_failed++;
+              break;
+          }
         }
       }
     }
@@ -439,13 +453,16 @@ namespace diggedag
 
     log (" -  EDGES  ----------------------------------\n");
     {
-      std::map <edge_id_t, diggedag::edge *> :: const_iterator it;
-      std::map <edge_id_t, diggedag::edge *> :: const_iterator begin = edges_.begin ();
-      std::map <edge_id_t, diggedag::edge *> :: const_iterator end   = edges_.end ();
+      std::map <edge_id_t, edge_map_t> :: const_iterator it;
+      std::map <edge_id_t, edge_map_t> :: const_iterator begin = edges_.begin ();
+      std::map <edge_id_t, edge_map_t> :: const_iterator end   = edges_.end ();
 
       for ( it = begin; it != end; it++ )
       {
-        it->second->dump ();
+        for ( unsigned int i = 0; i < it->second.size (); i++ )
+        {
+          it->second[i]->dump ();
+        }
       }
     }
     log (" -  DAG    ----------------------------------\n");
