@@ -6,6 +6,9 @@
 
 namespace diggedag
 {
+  typedef std::string                          node_id_t;
+  typedef std::pair <std::string, std::string> edge_id_t;
+
   enum state
   {
     Incomplete = 0,

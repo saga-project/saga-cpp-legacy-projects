@@ -63,6 +63,7 @@ namespace diggedag
       void             add_tgt_node  (diggedag::node * tgt);
       void             set_state     (state s);
       diggedag::state  get_state     (void) const;
+      edge_id_t        get_name      (void) const;
 
       saga::url        get_src       (void) const { return src_url_; }
       saga::url        get_tgt       (void) const { return tgt_url_; }

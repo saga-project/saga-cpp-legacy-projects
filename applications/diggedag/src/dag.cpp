@@ -25,47 +25,72 @@ namespace diggedag
     // ### scheduler hook
     scheduler_->hook_dag_destroy (this);
 
-    std::map <std::string, diggedag::node *> :: iterator it;
-    std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
-
-
     // Nodes fire edges, edges fire nodes.  No matter which we delete
     // first, we are in trouble.  Thus, we need to *stop* them all, before we
     // start deleting
+
+    scheduler_->stop ();
+
+    // stop nodes
     {
+      std::map <node_id_t, diggedag::node *> :: iterator it;
+      std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
+      std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
+
       for ( it = begin; it != end; it++ )
       {
-        (*it).second->stop ();
-      }
-
-      for ( unsigned int i = 0; i < edges_.size (); i++ )
-      {
-        edges_[i]->stop ();
+        it->second->stop ();
       }
     }
+
+    // stop edges
+    {
+      std::map <edge_id_t, diggedag::edge *> :: iterator it;
+      std::map <edge_id_t, diggedag::edge *> :: iterator begin = edges_.begin ();
+      std::map <edge_id_t, diggedag::edge *> :: iterator end   = edges_.end ();
+
+      for ( it = begin; it != end; it++ )
+      {
+        it->second->stop ();
+      }
+    }
+    
 
 
     // ok, everything is stopped, now destroy
+    
+    // delete nodes
     {
+      std::map <node_id_t, diggedag::node *> :: iterator it;
+      std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
+      std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
+
       for ( it = begin; it != end; it++ )
       {
-        delete (*it).second;
-      }
-
-      for ( unsigned int i = 0; i < edges_.size (); i++ )
-      {
-        delete edges_[i];
+        delete it->second;
       }
     }
 
-    // delete scheduler, nodes and edges
+    // delete edges
+    {
+      std::map <edge_id_t, diggedag::edge *> :: iterator it;
+      std::map <edge_id_t, diggedag::edge *> :: iterator begin = edges_.begin ();
+      std::map <edge_id_t, diggedag::edge *> :: iterator end   = edges_.end ();
+
+      for ( it = begin; it != end; it++ )
+      {
+        delete it->second;
+      }
+    }
+
+
+    // delete scheduler
     delete scheduler_;
   }
 
 
-  void dag::add_node (const std::string & name, 
-                      diggedag::node    * node)
+  void dag::add_node (const node_id_t & name, 
+                      diggedag::node  * node)
   {
     if ( node == NULL )
     {
@@ -113,7 +138,7 @@ namespace diggedag
 
     e->set_dag (this);
 
-    edges_.push_back (e);
+    edges_[edge_id_t (src->get_name (), tgt->get_name ())] = e;
 
     // ### scheduler hook
     scheduler_->hook_edge_add (this, e);
@@ -121,9 +146,9 @@ namespace diggedag
 
 
   // add edges to named nodes
-  void dag::add_edge (diggedag::edge    * e, 
-                      const std::string & src, 
-                      const std::string & tgt)
+  void dag::add_edge (diggedag::edge  * e, 
+                      const node_id_t & src, 
+                      const node_id_t & tgt)
   {
     node * n_src = NULL;
     node * n_tgt = NULL;
@@ -144,9 +169,9 @@ namespace diggedag
 
   void dag::reset (void)
   {
-    std::map <std::string, diggedag::node *> :: iterator it;
-    std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, diggedag::node *> :: iterator it;
+    std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
 
     state_ = Pending;
 
@@ -164,15 +189,15 @@ namespace diggedag
 
     log (" dryun:  dag");
 
-    std::map <std::string, diggedag::node *> :: iterator it;
-    std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, diggedag::node *> :: iterator it;
+    std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
       if ( it->second->get_state () == Pending )
       {
-        (*it).second->dryrun ();
+        it->second->dryrun ();
       }
     }
   }
@@ -204,9 +229,9 @@ namespace diggedag
     // if no nodes can be fired, complain.  Graph is probably cyclic.
     bool cyclic = true;
 
-    std::map <std::string, diggedag::node *> :: iterator it;
-    std::map <std::string, diggedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <std::string, diggedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, diggedag::node *> :: iterator it;
+    std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
@@ -271,76 +296,94 @@ namespace diggedag
     int state_total      = 0;
 
 
-    // count node states
-    std::map <std::string, diggedag::node *> :: const_iterator it;
-    std::map <std::string, diggedag::node *> :: const_iterator begin = nodes_.begin ();
-    std::map <std::string, diggedag::node *> :: const_iterator end   = nodes_.end ();
-
-    int i = 0;
-    for ( it = begin; it != end; it++ )
     {
-      if ( ! (i++ % 10) )
+      // count node states
+      std::map <node_id_t, diggedag::node *> :: const_iterator it;
+      std::map <node_id_t, diggedag::node *> :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, diggedag::node *> :: const_iterator end   = nodes_.end ();
+
+      int i = 0;
+      for ( it = begin; it != end; it++ )
       {
-        // log ();
-      }
+        if ( ! (i++ % 10) )
+        {
+          // log ();
+        }
 
-      state_total++;
+        state_total++;
 
-      state s = (*it).second->get_state ();
-      // log (it->first + ":" + state_to_string (s) +  "\t", false);
+        state s = (*it).second->get_state ();
+        // log (it->first + ":" + state_to_string (s) +  "\t", false);
 
-      switch ( s )
-      {
-        case Incomplete:
-          state_incomplete++;
-          break;
-        case Stopped:
-          state_stopped++;
-          break;
-        case Pending:
-          state_pending++;
-          break;
-        case Running:
-          state_running++;
-          break;
-        case Done:
-          state_done++;
-          break;
-        case Failed:
-          state_failed++;
-          break;
+        switch ( s )
+        {
+          case Incomplete:
+            state_incomplete++;
+            break;
+          case Stopped:
+            state_stopped++;
+            break;
+          case Pending:
+            state_pending++;
+            break;
+          case Running:
+            state_running++;
+            break;
+          case Done:
+            state_done++;
+            break;
+          case Failed:
+            state_failed++;
+            break;
+        }
       }
     }
     log ();
 
-    for ( unsigned int i = 0; i < edges_.size (); i++ )
     {
-      state_total++;
+      // count edge states
+      std::map <edge_id_t, diggedag::edge *> :: const_iterator it;
+      std::map <edge_id_t, diggedag::edge *> :: const_iterator begin = edges_.begin ();
+      std::map <edge_id_t, diggedag::edge *> :: const_iterator end   = edges_.end ();
 
-      state s = edges_[i]->get_state ();
-
-      switch ( s )
+      int i = 0;
+      for ( it = begin; it != end; it++ )
       {
-        case Incomplete:
-          state_incomplete++;
-          break;
-        case Stopped:
-          state_stopped++;
-          break;
-        case Pending:
-          state_pending++;
-          break;
-        case Running:
-          state_running++;
-          break;
-        case Done:
-          state_done++;
-          break;
-        case Failed:
-          state_failed++;
-          break;
+        if ( ! (i++ % 5) )
+        {
+          // log ();
+        }
+
+        state_total++;
+
+        state s = it->second->get_state ();
+        // log (it->first + ":" + state_to_string (s) +  "\t", false);
+
+        switch ( s )
+        {
+          case Incomplete:
+            state_incomplete++;
+            break;
+          case Stopped:
+            state_stopped++;
+            break;
+          case Pending:
+            state_pending++;
+            break;
+          case Running:
+            state_running++;
+            break;
+          case Done:
+            state_done++;
+            break;
+          case Failed:
+            state_failed++;
+            break;
+        }
       }
     }
+    log ();
+
 
     // if any job failed, dag is considered to have failed
     if ( state_failed > 0 )
@@ -390,26 +433,33 @@ namespace diggedag
 
   void dag::dump (void)
   {
-    std::map <std::string, diggedag::node *> :: const_iterator it;
-    std::map <std::string, diggedag::node *> :: const_iterator begin = nodes_.begin ();
-    std::map <std::string, diggedag::node *> :: const_iterator end   = nodes_.end ();
-
     log (" -  DAG    ----------------------------------\n");
     log (std::string (" state: ") + state_to_string (get_state ()));
 
     log (" -  NODES  ----------------------------------\n");
-    for ( it = begin; it != end; it++ )
     {
-      (*it).second->dump ();
+      std::map <node_id_t, diggedag::node *> :: const_iterator it;
+      std::map <node_id_t, diggedag::node *> :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, diggedag::node *> :: const_iterator end   = nodes_.end ();
+
+      for ( it = begin; it != end; it++ )
+      {
+        it->second->dump ();
+      }
     }
     log (" -  NODES  ----------------------------------\n");
 
     log (" -  EDGES  ----------------------------------\n");
-    for ( unsigned int i = 0; i < edges_.size (); i++ )
     {
-      edges_[i]->dump ();
+      std::map <edge_id_t, diggedag::edge *> :: const_iterator it;
+      std::map <edge_id_t, diggedag::edge *> :: const_iterator begin = edges_.begin ();
+      std::map <edge_id_t, diggedag::edge *> :: const_iterator end   = edges_.end ();
+
+      for ( it = begin; it != end; it++ )
+      {
+        it->second->dump ();
+      }
     }
-    log (" -  EDGES  ----------------------------------\n");
     log (" -  DAG    ----------------------------------\n");
   }
 

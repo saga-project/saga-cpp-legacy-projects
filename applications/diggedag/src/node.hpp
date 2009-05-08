@@ -30,6 +30,7 @@ namespace diggedag
       std::string                    cmd_;
       std::string                    pwd_;
       std::string                    host_;
+      std::string                    path_;
       std::string                    name_;     // instance name
       diggedag::state                state_;    // instance state
 
@@ -67,6 +68,7 @@ namespace diggedag
       diggedag::state get_state       (void);
       void            set_pwd         (std::string pwd);
       void            set_host        (std::string host);
+      void            set_path        (std::string path);
 
       void            set_dag         (diggedag::dag  * d);
   };

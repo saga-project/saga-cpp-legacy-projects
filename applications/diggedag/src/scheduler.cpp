@@ -18,6 +18,7 @@
 namespace diggedag
 {
   scheduler::scheduler (void)
+    :stopped_ (false)
   {
     pthread_mutex_t m = mtx_.get ();
   }
@@ -26,8 +27,15 @@ namespace diggedag
   {
   }
 
+  void scheduler::stop (void)
+  {
+    stopped_ = true;
+  }
+
   void scheduler::set_scheduler (std::string s)
   {
+    if ( stopped_ ) return;
+
     policy_ = s;
 
     // open the policy file
@@ -52,6 +60,10 @@ namespace diggedag
       {
         std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
       }
+      else if ( words[0] == "#" )
+      {
+        // ignore comments
+      }
       else if ( words[0] == "data" )
       {
         if ( words.size () != 4 )
@@ -75,7 +87,7 @@ namespace diggedag
       }
       else if ( words[0] == "job" )
       {
-        if ( words.size () != 4 )
+        if ( words.size () != 5 )
         {
           std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
         }
@@ -83,8 +95,10 @@ namespace diggedag
         {
           job_info_[words[1]].host = words[2];
           job_info_[words[1]].pwd  = words[3];
+          job_info_[words[1]].path = words[4];
         }
       }
+      
 
       lnum++;
     }
@@ -92,24 +106,27 @@ namespace diggedag
 
   void scheduler::hook_dag_create (diggedag::dag  * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
   void scheduler::hook_dag_destroy (diggedag::dag * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
   void scheduler::hook_dag_schedule (diggedag::dag * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
     
     // walk throgh the dag, and assign execution host for nodes, and data
     // prefixes for edges
-    std::map    <std::string, diggedag::node *> nodes = d->get_nodes ();
-    std::vector <diggedag::edge *>              edges = d->get_edges ();
+    std::map <node_id_t, diggedag::node *> nodes = d->get_nodes ();
+    std::map <edge_id_t, diggedag::edge *> edges = d->get_edges ();
 
     // first, fix pwd and host for INPUT and OUTPUT nodes
     node * input  = nodes["INPUT"];
@@ -122,45 +139,21 @@ namespace diggedag
 
 
     // now fix all other nodes, too
-    std::map <std::string, diggedag::node *> :: const_iterator it;
-    std::map <std::string, diggedag::node *> :: const_iterator begin = nodes.begin ();
-    std::map <std::string, diggedag::node *> :: const_iterator end   = nodes.end ();
-
-    for ( it = begin; it != end; it++ )
     {
-      std::string id = (*it).first;
-      node *      n  = (*it).second;
+      std::map <node_id_t, diggedag::node *> :: const_iterator it;
+      std::map <node_id_t, diggedag::node *> :: const_iterator begin = nodes.begin ();
+      std::map <node_id_t, diggedag::node *> :: const_iterator end   = nodes.end ();
 
-      if ( job_info_.find (id) != job_info_.end () )
+      for ( it = begin; it != end; it++ )
       {
-        n->set_host (job_info_[id].host);
-        n->set_pwd  (job_info_[id].pwd);
-      }
-    }
-
-
-    for ( unsigned int i = 0; i < edges.size (); i++ )
-    {
-      node * src = edges[i]->get_src_node ();
-      node * tgt = edges[i]->get_tgt_node ();
-
-      if ( src != NULL )
-      {
-        std::string id = src->get_name ();
+        std::string id = it->first;
+        node *      n  = it->second;
 
         if ( job_info_.find (id) != job_info_.end () )
         {
-          src->set_pwd (job_info_[id].pwd);
-        }
-      }
-
-      if ( tgt != NULL )
-      {
-        std::string id = tgt->get_name ();
-
-        if ( job_info_.find (id) != job_info_.end () )
-        {
-          tgt->set_pwd (job_info_[id].pwd);
+          n->set_host (job_info_[id].host);
+          n->set_pwd  (job_info_[id].pwd);
+          n->set_path (job_info_[id].path);
         }
       }
     }
@@ -169,30 +162,35 @@ namespace diggedag
 
   void scheduler::hook_dag_run_pre (diggedag::dag * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
   void scheduler::hook_dag_run_post (diggedag::dag * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
   void scheduler::hook_dag_run_done (diggedag::dag * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
   void scheduler::hook_dag_run_fail (diggedag::dag * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
   void scheduler::hook_dag_wait (diggedag::dag * d)                     
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
@@ -201,6 +199,7 @@ namespace diggedag
   void scheduler::hook_node_add (diggedag::dag  * d,
                                  diggedag::node * n)           
   {
+    if ( stopped_ ) return;
     pthread_mutex_t m = mtx_.get ();
     util::scoped_lock sl (mtx_);
   }
@@ -209,6 +208,7 @@ namespace diggedag
   void scheduler::hook_node_remove (diggedag::dag  * d,
                                     diggedag::node * n)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
@@ -216,6 +216,7 @@ namespace diggedag
   void scheduler::hook_node_run_pre (diggedag::dag  * d,
                                      diggedag::node * n)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
@@ -223,6 +224,7 @@ namespace diggedag
   void scheduler::hook_node_run_done (diggedag::dag  * d,
                                       diggedag::node * n)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
@@ -231,6 +233,7 @@ namespace diggedag
   void scheduler::hook_node_run_fail (diggedag::dag  * d,
                                       diggedag::node * n)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
 
     // std::string name = n->get_name ();
@@ -266,6 +269,7 @@ namespace diggedag
   void scheduler::hook_edge_add (diggedag::dag  * d,
                                  diggedag::edge * e)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
 
     // an edge may have an empty src or tgt node.  An empty src node implies
@@ -280,6 +284,7 @@ namespace diggedag
   void scheduler::hook_node_remove (diggedag::dag  * d,
                                     diggedag::edge * e)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
@@ -287,6 +292,7 @@ namespace diggedag
   void scheduler::hook_edge_run_pre (diggedag::dag  * d,
                                      diggedag::edge * e)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
@@ -294,6 +300,7 @@ namespace diggedag
   void scheduler::hook_edge_run_done (diggedag::dag  * d,
                                       diggedag::edge * e)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
@@ -301,9 +308,9 @@ namespace diggedag
   void scheduler::hook_edge_run_fail (diggedag::dag  * d,
                                       diggedag::edge * e)           
   {
+    if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 } // namespace diggedag
-
 

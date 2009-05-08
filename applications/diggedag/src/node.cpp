@@ -336,6 +336,49 @@ namespace diggedag
     }
   }
 
+
+  void node::set_path (std::string path)
+  {
+    path_ = path;
+
+    std::vector <std::string> new_env;
+
+    if ( nd_.attribute_exists ("Environment") )
+    {
+      std::vector <std::string> old_env = nd_.get_vector_attribute ("Environment");
+
+      for ( unsigned int i = 0; i < old_env.size (); i++ )
+      {
+        std::vector <std::string> words = split (old_env[i], "=");
+
+        if ( words[0] == "PATH" )
+        {
+          if ( words.size () == 1 )
+          {
+            new_env.push_back (words[0] + "=" + path);
+          }
+          else // assume we have 2 words
+          {
+            new_env.push_back (words[0] + "=" + words[1] + ":" + path);
+          }
+        }
+        else 
+        {
+          // not PATH
+          new_env.push_back (old_env[i]);
+        }
+      }
+    }
+    else
+    {
+      // no env at all
+      new_env.push_back (std::string ("PATH=") + path);
+    }
+
+    // replace env
+    nd_.set_vector_attribute ("Environment", new_env);
+  }
+
   void node::set_dag (diggedag::dag * d)
   {
     dag_       = d;

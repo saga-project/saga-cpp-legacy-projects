@@ -17,6 +17,8 @@ namespace diggedag
   class scheduler 
   {
     private:
+      bool stopped_;
+
       util::mutex mtx_;
       std::string policy_; // scheduling policy
 
@@ -32,6 +34,7 @@ namespace diggedag
       { 
         std::string host; 
         std::string pwd; 
+        std::string path; 
       };
 
       std::map <std::string, job_info_t> job_info_;
@@ -39,6 +42,8 @@ namespace diggedag
     public:
       scheduler (void);
       ~scheduler (void);
+
+      void stop               (void);
 
       void set_scheduler      (std::string s);
 

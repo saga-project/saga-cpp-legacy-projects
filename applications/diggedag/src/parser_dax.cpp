@@ -23,6 +23,7 @@ namespace diggedag
     // to be relative to the applications working directory.
     void parser::parse_dag (void)
     {
+      std::cout << "parsing " << filename_ << std::endl;
       try
       {
         ticpp::Document doc (filename_);
@@ -216,6 +217,7 @@ namespace diggedag
       {
         std::cout << e.what () << std::endl;
       }
+      std::cout << "parsing " << filename_ << " done" << std::endl;
     }
 
   } // namespace dax
