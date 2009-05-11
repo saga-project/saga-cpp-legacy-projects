@@ -64,7 +64,6 @@ void resource_description::setupAttributes()
   
   // initialize list of valid keys          
   this->init_keynames(valid_keys);
-  get_impl()->init_keynames(valid_keys);
   
   strmap_type attributes_scalar_rw;
   insert(attributes_scalar_rw)
@@ -95,11 +94,8 @@ void resource_description::setupAttributes()
   // initialize attribute implementation
   this->init (strmap_type(), attributes_scalar_rw, 
               strmap_type(), attributes_vector_rw);
-  get_impl()->init (strmap_type(), attributes_scalar_rw, 
-                    strmap_type(), attributes_vector_rw);
-  
+   
   this->init (false, true);   // cache only implementation  
-  get_impl()->init (false, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

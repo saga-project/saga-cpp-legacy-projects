@@ -43,6 +43,8 @@ int main (int argc, char* argv[])
   localhost_rd.write_to_file("/tmp/test.faust");
   
   faust::resource_description queenbee_rd;
+  queenbee_rd.set_attribute("idedfsdfsdfntifier", "queenbee.loni.org");
+
   
   queenbee_rd.set_attribute("identifier", "queenbee.loni.org");
   queenbee_rd.set_attribute("faust_agent_submit_url",  "gram://qb1.loni.org/jobmanager-fork");
@@ -60,6 +62,13 @@ int main (int argc, char* argv[])
       //
 			//faust::resource queenbee  (queenbee_rd, true);
 			faust::resource localhost (localhost_rd, true);
+      
+      faust::resource_description rm_recx = localhost.get_description();
+      std::vector<std::string> attr1x_ = rm_recx.list_attributes();
+      
+      faust::resource_monitor rm_rec2x = localhost.get_monitor();
+      std::vector<std::string> attr2x_ = rm_rec2x.list_attributes();
+      
 							
 			//// test reconnect
       //
@@ -77,7 +86,11 @@ int main (int argc, char* argv[])
       
       faust::resource_description rm_rec = localhost_reconnect.get_description();
       std::vector<std::string> attr1_ = rm_rec.list_attributes();
-			std::vector<std::string>::const_iterator it1;
+
+      faust::resource_monitor rm_rec2 = localhost_reconnect.get_monitor();
+      std::vector<std::string> attr2_ = rm_rec2.list_attributes();
+      
+      /*std::vector<std::string>::const_iterator it1;
 			for(it1 = attr1_.begin(); it1 != attr1_.end(); ++it1)
 			{
 				std::cout << "monitor attribute: " << (*it1) << ": " << std::flush;
@@ -89,7 +102,7 @@ int main (int argc, char* argv[])
         }
         else
           std::cout << rm_rec.get_attribute(*it1) << std::endl;
-			}
+			}*/
 			
       //// test reconnect
       //

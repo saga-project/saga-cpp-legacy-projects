@@ -17,6 +17,7 @@
 
 #include <saga/saga.hpp>
 
+#include <faust/faust/exception.hpp>
 #include <faust/faust/object.hpp>
 #include <faust/faust/defines.hpp>
 
@@ -90,7 +91,7 @@ namespace faust
     friend class faust::agent::app;
     
     void setupAttributes();
-    resource_monitor() {} ;
+    resource_monitor() ;
 
   public:
 		
@@ -131,7 +132,7 @@ namespace faust
     /// @cond 
     void set_attribute(std::string key, std::string value) 
     {
-      // THROW EXCEPTION
+      throw faust::exception("faust::resource_monitor is read-only.", faust::NoSuccess);
     }
     /// @endcond
     
@@ -146,17 +147,17 @@ namespace faust
     /// @cond
     void set_vector_attribute(std::string key, std::vector<std::string> value) 
     {
-      // THROW EXCEPTION
+      throw faust::exception("faust::resource_monitor is read-only.", faust::NoSuccess);
     }
     /// @endcond
     
     /*! \brief Returns a list of all defined attribute key.
      *
      */
-    //std::vector<std::string> list_attributes() const 
-    //{
-    //  return saga::detail::attribute<faust::resource_monitor> ::list_attributes(); 
-    //}
+    std::vector<std::string> list_attributes() const 
+    {
+      return saga::detail::attribute<faust::resource_monitor> ::list_attributes(); 
+    }
     
     
   };

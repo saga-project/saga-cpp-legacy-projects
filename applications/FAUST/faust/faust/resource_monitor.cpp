@@ -91,6 +91,14 @@ void resource_monitor::setupAttributes()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+resource_monitor::resource_monitor() :
+faust::object (new faust::impl::resource_monitor(), object::ResourceMonitor)
+{
+  this->setupAttributes();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
 resource_monitor::~resource_monitor() 
 {
   

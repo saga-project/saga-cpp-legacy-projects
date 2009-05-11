@@ -16,7 +16,15 @@
 using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
-// CONSTRUCTOR
+// 
+resource_monitor::resource_monitor() : object(faust::object::ResourceMonitor)
+{
+  
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 
 resource_monitor::resource_monitor(saga::advert::entry & monitor_adv)
 
 : object(faust::object::ResourceMonitor),  monitor_adv_(monitor_adv)

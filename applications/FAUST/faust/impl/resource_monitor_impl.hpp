@@ -35,6 +35,7 @@ namespace faust
       
     public:
       
+      resource_monitor();
       resource_monitor(saga::advert::entry & monitor_adv);
       
       saga::impl::attribute* get_attributes() { return this; }
