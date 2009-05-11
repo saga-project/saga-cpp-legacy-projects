@@ -25,7 +25,7 @@ namespace faust
 {    
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
-  namespace agent {class app; }
+  namespace agent {class app; namespace monitor { class monitor_group; }}
   namespace impl { class resource_monitor; class resource; }
   ///@endcond - exclude from Doxygen
   
@@ -89,6 +89,7 @@ namespace faust
     friend class faust::impl::resource_monitor;
 		friend class faust::impl::resource;
     friend class faust::agent::app;
+    friend class faust::agent::monitor::monitor_group;
     
     void setupAttributes();
     resource_monitor() ;

@@ -50,7 +50,7 @@ namespace faust
       std::string agent_uuid_;
             
       faust::resource_description description_;
-      faust::resource_monitor     monitor_;
+      faust::resource_monitor monitor_;
       
       bool init_from_id_;
       bool persistent_;
