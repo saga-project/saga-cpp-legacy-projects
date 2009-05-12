@@ -42,16 +42,13 @@ void resource_monitor::setupAttributes()
   /*VECTOR*/ attributes::resource_monitor::dir_path,
   /*VECTOR*/ attributes::resource_monitor::dir_dev_space_total,
   /*VECTOR*/ attributes::resource_monitor::dir_dev_space_used,
-  /*VECTOR*/ attributes::resource_monitor::dir_dev_space_free,
   /*VECTOR*/ attributes::resource_monitor::dir_quota_total,
   /*VECTOR*/ attributes::resource_monitor::dir_quota_used,
-  /*VECTOR*/ attributes::resource_monitor::dir_quota_free,
   
   /*VECTOR*/ attributes::resource_monitor::queue_id,
   /*VECTOR*/ attributes::resource_monitor::queue_name,
   /*VECTOR*/ attributes::resource_monitor::queue_nodes_total,
-  /*VECTOR*/ attributes::resource_monitor::queue_nodes_used,
-  /*VECTOR*/ attributes::resource_monitor::queue_nodes_free
+  /*VECTOR*/ attributes::resource_monitor::queue_nodes_used
   ;
   
   // initialize list of valid keys          
@@ -68,16 +65,13 @@ void resource_monitor::setupAttributes()
   (attributes::resource_monitor::dir_path, "")
   (attributes::resource_monitor::dir_dev_space_total, "")
   (attributes::resource_monitor::dir_dev_space_used, "")
-  (attributes::resource_monitor::dir_dev_space_free, "")
   (attributes::resource_monitor::dir_quota_total, "")
   (attributes::resource_monitor::dir_quota_used, "")
-  (attributes::resource_monitor::dir_quota_free, "")
   
   (attributes::resource_monitor::queue_id, "")
   (attributes::resource_monitor::queue_name, "")
   (attributes::resource_monitor::queue_nodes_total, "")
   (attributes::resource_monitor::queue_nodes_used, "")
-  (attributes::resource_monitor::queue_nodes_free, "")
   
   ;
   

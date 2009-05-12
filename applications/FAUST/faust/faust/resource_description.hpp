@@ -90,7 +90,7 @@ namespace faust
       
       /*! \brief Command to retrieve the number of currently free nodes for this queue
        *         <br>(example: <code>qfree | awk '/workq/ {print $6}' | tr -d ,</code>)*/
-      char const* const queue_nodes_free_cmd    = "queue_nodes_free_cmd";
+      char const* const queue_nodes_free_cmd    = "queue_nodes_used_cmd";
     }
   }
   

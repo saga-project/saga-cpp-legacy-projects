@@ -44,18 +44,12 @@ namespace faust
       
       /*! \brief  */
       char const* const dir_dev_space_used  = "dir_dev_space_used";
-      
-      /*! \brief  */
-      char const* const dir_dev_space_free  = "dir_dev_space_free";
-      
+            
       /*! \brief  */
       char const* const dir_quota_total     = "dir_quota_total";
       
       /*! \brief  */
       char const* const dir_quota_used      = "dir_quota_used";
-
-      /*! \brief  */
-      char const* const dir_quota_free      = "dir_quota_free";
       
       /*! \brief  */
       char const* const queue_id            = "queue_id";
@@ -68,10 +62,7 @@ namespace faust
 
       /*! \brief  */
       char const* const queue_nodes_used    = "queue_nodes_used";
-      
-      /*! \brief  */
-      char const* const queue_nodes_free    = "queue_nodes_free";
-    }
+          }
   }
   
   /*! \brief The %resource_monitor encapsulates all the attributes which define a 

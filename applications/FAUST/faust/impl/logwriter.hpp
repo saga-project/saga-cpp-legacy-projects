@@ -15,6 +15,7 @@
 
 #define LOG_WRITE_SUCCESS_2(L, S)      { S << "SUCCESS"; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_INFO); S.str(""); }
 #define LOG_WRITE_FAILED_AND_THROW_2(L, S, M, E) { S << "FAILED: " << M; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_ERROR); throw faust::exception (SAGA_OSSTREAM_GETSTRING(S), E); S.str("");}
+#define LOG_WRITE_FAILED_AND_WARN_2(L, S, M) { S << "FAILED: " << M; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_WARNING); S.str("");}
 
 
 #define LOG_WRITE_SUCCESS(S)      { S << "SUCCESS"; log_sptr_->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_INFO); S.str(""); }
