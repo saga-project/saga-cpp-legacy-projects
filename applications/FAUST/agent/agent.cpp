@@ -192,20 +192,20 @@ void app::run(void)
 //
 void app::run_tests(void)
 {
-  monitor::monitor_group mg1("dirs", 5, description_, monitor_, log_sptr_);
-  mg1.add_value_value_mapping("dir_id", "dir_id");
-  mg1.add_value_value_mapping("dir_path", "dir_path");
-  mg1.add_cmd_value_mapping("dir_dev_space_total_cmd", "dir_dev_space_total");
-  mg1.add_cmd_value_mapping("dir_dev_space_used_cmd", "dir_dev_space_used");
+  monitor::monitor_group mg1  ("dirs", 5, description_, monitor_, log_sptr_);
+  mg1.add_value_value_mapping ("dir_id", "dir_id");
+  mg1.add_value_value_mapping ("dir_path", "dir_path");
+  mg1.add_cmd_value_mapping   ("dir_dev_space_total_cmd", "dir_dev_space_total");
+  mg1.add_cmd_value_mapping   ("dir_dev_space_used_cmd", "dir_dev_space_used");
 
-  mg1.add_cmd_value_mapping("dir_quota_total_cmd", "dir_quota_total");
-  mg1.add_cmd_value_mapping("dir_quota_used_cmd", "dir_quota_used");
+  mg1.add_cmd_value_mapping   ("dir_quota_total_cmd", "dir_quota_total");
+  mg1.add_cmd_value_mapping   ("dir_quota_used_cmd", "dir_quota_used");
   
   mg1.execute();
   
-  monitor::monitor_group mg2("queues", 5, description_, monitor_, log_sptr_);
-  mg2.add_value_value_mapping("queue_id", "queue_id");
-  mg2.add_value_value_mapping("queue_name", "queue_name");
+  monitor::monitor_group mg2  ("queues", 5, description_, monitor_, log_sptr_);
+  mg2.add_value_value_mapping ("queue_id", "queue_id");
+  mg2.add_value_value_mapping ("queue_name", "queue_name");
   
   mg2.execute();
 
