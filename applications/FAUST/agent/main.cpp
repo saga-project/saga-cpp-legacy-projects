@@ -21,7 +21,7 @@
 
 namespace po = boost::program_options;
 
-bool test_mode = false;
+static bool test_mode = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -30,6 +30,9 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
   po::options_description desc_cmdline ("Usage: "+std::string("faust_agent")+" [options]");
   try {
     desc_cmdline.add_options()
+    ("test, t", 
+     "Run tests.")
+    
     ("help, h", 
      "Display this information and exit.")
     
@@ -47,6 +50,12 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
     
     po::store(po::parse_command_line(argc, argv, desc_cmdline), vm);
     po::notify(vm);
+    
+    if (vm.count("test")) {
+      std::cout << "Entering test mode" << std::endl;
+      test_mode = true;
+      return true;
+    }
     
     if (vm.count("help")) {
       std::cout << std::endl << desc_cmdline << std::endl;
@@ -68,11 +77,6 @@ bool parse_commandline(int argc, char *argv[], po::variables_map& vm)
       std::cerr << "Missing unique identifier: use --identifier=" 
       << std::endl << std::endl << desc_cmdline << std::endl;
       return false;
-    }
-    
-    if(vm.count("testmode")) {
-      std::cout << "Entering test mode" << std::endl;
-      test_mode = true;
     }
   }
   catch (std::exception const& e) {
@@ -99,13 +103,16 @@ int main( int argc, char** argv )
   
   // main application loop
   app faust_agent(endpoint, identifier);
+  
   if(test_mode) {
     faust_agent.run_tests();
+    return 0;
   }
-  else {
+  else
+  {
     faust_agent.run();
   }
-  
+
   return 0;
 }
 

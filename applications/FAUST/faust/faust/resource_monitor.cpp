@@ -31,6 +31,7 @@ boost::shared_ptr <faust::impl::resource_monitor> resource_monitor::get_impl (vo
   <faust::impl::resource_monitor> (this->base_type::get_impl ());
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 void resource_monitor::setupAttributes()
@@ -68,8 +69,8 @@ void resource_monitor::setupAttributes()
   (attributes::resource_monitor::dir_quota_total, "")
   (attributes::resource_monitor::dir_quota_used, "")
   
-  (attributes::resource_monitor::queue_id, "")
-  (attributes::resource_monitor::queue_name, "")
+  (attributes::resource_monitor::queue_id, "xx")
+  (attributes::resource_monitor::queue_name, "xx")
   (attributes::resource_monitor::queue_nodes_total, "")
   (attributes::resource_monitor::queue_nodes_used, "")
   

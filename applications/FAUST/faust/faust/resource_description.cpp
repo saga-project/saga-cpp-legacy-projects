@@ -77,17 +77,17 @@ void resource_description::setupAttributes()
   insert(attributes_vector_rw)
   (attributes::resource_description::environment, "")
 
-  (attributes::resource_description::dir_id, "")
-  (attributes::resource_description::dir_path, "")
-  (attributes::resource_description::dir_dev_space_total_cmd, "")
-  (attributes::resource_description::dir_dev_space_used_cmd, "")
-  (attributes::resource_description::dir_quota_total_cmd, "")
-  (attributes::resource_description::dir_quota_used_cmd, "")
+  (attributes::resource_description::dir_id, " ")
+  (attributes::resource_description::dir_path, " ")
+  (attributes::resource_description::dir_dev_space_total_cmd, " ")
+  (attributes::resource_description::dir_dev_space_used_cmd, " ")
+  (attributes::resource_description::dir_quota_total_cmd, " ")
+  (attributes::resource_description::dir_quota_used_cmd, " ")
   
-  (attributes::resource_description::queue_id, "")
-  (attributes::resource_description::queue_name, "")
-  (attributes::resource_description::queue_nodes_total_cmd, "")
-  (attributes::resource_description::queue_nodes_free_cmd, "")  
+  (attributes::resource_description::queue_id, " ")
+  (attributes::resource_description::queue_name, " ")
+  (attributes::resource_description::queue_nodes_total_cmd, " ")
+  (attributes::resource_description::queue_nodes_free_cmd, " ")  
   ;
   
   

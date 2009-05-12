@@ -121,13 +121,6 @@ namespace faust
       return saga::detail::attribute<faust::resource_monitor> ::get_attribute(key);
     }
     
-    /// @cond 
-    void set_attribute(std::string key, std::string value) 
-    {
-      throw faust::exception("faust::resource_monitor is read-only.", faust::NoSuccess);
-    }
-    /// @endcond
-    
     /*! \brief Returns the value of the vector %attribute identified by 'key'.
      *
      */
@@ -135,13 +128,6 @@ namespace faust
     {
       return saga::detail::attribute<faust::resource_monitor> ::get_vector_attribute(key);
     }
-    
-    /// @cond
-    void set_vector_attribute(std::string key, std::vector<std::string> value) 
-    {
-      throw faust::exception("faust::resource_monitor is read-only.", faust::NoSuccess);
-    }
-    /// @endcond
     
     /*! \brief Returns a list of all defined attribute key.
      *
