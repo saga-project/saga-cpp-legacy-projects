@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
   localhost_rd.write_to_file("/tmp/test.faust");
   
   faust::resource_description queenbee_rd;
-  queenbee_rd.set_attribute("idedfsdfsdfntifier", "queenbee.loni.org");
+  queenbee_rd.set_attribute("identifier", "queenbee.loni.org");
 
   
   queenbee_rd.set_attribute("identifier", "queenbee.loni.org");
