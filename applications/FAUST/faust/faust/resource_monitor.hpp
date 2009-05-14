@@ -38,6 +38,9 @@ namespace faust
       
       /*! \brief  Directory path.*/
       char const* const dir_path            = "dir_path";
+
+      /*! \brief  Last update of the directory informations.*/
+      char const* const dir_last_update     = "dir_last_update";
       
       /*! \brief  Total space available on the storage device (in kB). */
       char const* const dir_dev_space_total = "dir_dev_space_total";
@@ -56,6 +59,9 @@ namespace faust
       
       /*! \brief  Queue name.*/
       char const* const queue_name          = "queue_name";
+      
+      /*! \brief  Last update of the queue informations.*/
+      char const* const queue_last_update   = "queue_last_update";
       
       /*! \brief  Number of total nodes assigned to this queue.*/
       char const* const queue_nodes_total   = "queue_nodes_total";

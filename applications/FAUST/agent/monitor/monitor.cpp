@@ -14,27 +14,32 @@
 #include <agent/monitor/monitor.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 
+#include <iostream>
+#include <fstream>
+
 using namespace faust::agent::monitor;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 void monitor::init()
 {
-  monitor_group mg1  ("dirs", update_interval_, description_, monitor_, log_sptr_);
-  mg1.add_value_value_mapping ("dir_id", "dir_id");
-  mg1.add_value_value_mapping ("dir_path", "dir_path");
+  monitor_group mg1 ("dirs", description_, monitor_, log_sptr_);
+  mg1.set_update_interval     ("dir_update_interval");
+  mg1.add_value_value_mapping ("dir_id",                  "dir_id");
+  mg1.add_value_value_mapping ("dir_path",                "dir_path");
   mg1.add_cmd_value_mapping   ("dir_dev_space_total_cmd", "dir_dev_space_total");
-  mg1.add_cmd_value_mapping   ("dir_dev_space_used_cmd", "dir_dev_space_used");
-  mg1.add_cmd_value_mapping   ("dir_quota_total_cmd", "dir_quota_total");
-  mg1.add_cmd_value_mapping   ("dir_quota_used_cmd", "dir_quota_used");
+  mg1.add_cmd_value_mapping   ("dir_dev_space_used_cmd",  "dir_dev_space_used");
+  mg1.add_cmd_value_mapping   ("dir_quota_total_cmd",     "dir_quota_total");
+  mg1.add_cmd_value_mapping   ("dir_quota_used_cmd",      "dir_quota_used");
   mgv_.push_back(mg1);
   
-  monitor_group mg2  ("queues", update_interval_, description_, monitor_, log_sptr_);
-  mg2.add_value_value_mapping ("queue_id", "queue_id");
-  mg2.add_value_value_mapping ("queue_name", "queue_name");
-  mg2.add_cmd_value_mapping   ("queue_nodes_busy_cmd", "queue_nodes_busy");
-  mg2.add_cmd_value_mapping   ("queue_nodes_down_cmd", "queue_nodes_down");
-  mg2.add_cmd_value_mapping   ("queue_nodes_total_cmd", "queue_nodes_total");
+  monitor_group mg2 ("queues", description_, monitor_, log_sptr_);
+  mg2.set_update_interval     ("queue_update_interval");
+  mg2.add_value_value_mapping ("queue_id",               "queue_id");
+  mg2.add_value_value_mapping ("queue_name",             "queue_name");
+  mg2.add_cmd_value_mapping   ("queue_nodes_busy_cmd",   "queue_nodes_busy");
+  mg2.add_cmd_value_mapping   ("queue_nodes_down_cmd",   "queue_nodes_down");
+  mg2.add_cmd_value_mapping   ("queue_nodes_total_cmd",  "queue_nodes_total");
   mg2.add_cmd_value_mapping   ("queue_nodes_queued_cmd", "queue_nodes_queued");   
   mgv_.push_back(mg2);
 }
@@ -42,16 +47,21 @@ void monitor::init()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void monitor::thread_entry_point_(monitor * mg)
+void monitor::thread_entry_point_(monitor * THIS)
 {
-  for(int i=0; i < 1; ++i)
+  while(1) // wait for quit() command! 
   {
-    std::cerr << "Hello" << std::endl;
-    
-    boost::posix_time::seconds td(1);
-    
-    boost::this_thread::sleep(td);
-    
+    std::vector<monitor_group>::iterator it;
+    for(it = THIS->mgv_.begin(); it != THIS->mgv_.end(); ++it)
+    {
+      std::cout << (*it).get_update_interval() << std::endl;
+      if( (*it).get_last_update() + (*it).get_update_interval() <= time(NULL) )
+      {
+        (*it).execute();        
+      }
+    }
+
+    boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
   }
 }
 
@@ -97,6 +107,8 @@ monitor::monitor (unsigned int update_interval,
 
 {
   init();
+  
+  last_update_ = 0;
 }
 
 

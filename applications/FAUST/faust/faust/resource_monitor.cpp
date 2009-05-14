@@ -41,6 +41,7 @@ void resource_monitor::setupAttributes()
   valid_keys += 
   /*VECTOR*/ attributes::resource_monitor::dir_id,
   /*VECTOR*/ attributes::resource_monitor::dir_path,
+  /*VECTOR*/ attributes::resource_monitor::dir_last_update,
   /*VECTOR*/ attributes::resource_monitor::dir_dev_space_total,
   /*VECTOR*/ attributes::resource_monitor::dir_dev_space_used,
   /*VECTOR*/ attributes::resource_monitor::dir_quota_total,
@@ -48,6 +49,7 @@ void resource_monitor::setupAttributes()
   
   /*VECTOR*/ attributes::resource_monitor::queue_id,
   /*VECTOR*/ attributes::resource_monitor::queue_name,
+  /*VECTOR*/ attributes::resource_monitor::queue_last_update,
   /*VECTOR*/ attributes::resource_monitor::queue_nodes_total,
   /*VECTOR*/ attributes::resource_monitor::queue_nodes_busy,
   /*VECTOR*/ attributes::resource_monitor::queue_nodes_down,
@@ -66,6 +68,7 @@ void resource_monitor::setupAttributes()
   insert(attributes_vector_rw)
   (attributes::resource_monitor::dir_id, "")
   (attributes::resource_monitor::dir_path, "")
+  (attributes::resource_monitor::dir_last_update, "0")
   (attributes::resource_monitor::dir_dev_space_total, "")
   (attributes::resource_monitor::dir_dev_space_used, "")
   (attributes::resource_monitor::dir_quota_total, "")
@@ -73,6 +76,7 @@ void resource_monitor::setupAttributes()
   
   (attributes::resource_monitor::queue_id, "")
   (attributes::resource_monitor::queue_name, "")
+  (attributes::resource_monitor::queue_last_update, "0")
   (attributes::resource_monitor::queue_nodes_total, "")
   (attributes::resource_monitor::queue_nodes_busy, "")
   (attributes::resource_monitor::queue_nodes_down, "")

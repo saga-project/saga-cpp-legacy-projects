@@ -15,12 +15,13 @@
 
 int main (int argc, char* argv[])
 {
-  std::vector<std::string> dir_ids, dir_path, dir_dev_space_total_cmd, env,
+  std::vector<std::string> dir_ids, dir_path, dir_udi, dir_dev_space_total_cmd, env,
   dir_dev_space_used_cmd, dir_quota_total_cmd, dir_quota_used_cmd;
   
   // A directory description
   dir_ids.push_back("my_work_dir");
   dir_path.push_back("/home/oweidner");
+  dir_udi.push_back("10");
   dir_dev_space_total_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $2}'` * 512/1024/1024\" | bc");
   dir_dev_space_used_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $3}'` * 512/1024/1024\" | bc");
   dir_quota_total_cmd.push_back("echo \"0\"");
@@ -34,6 +35,7 @@ int main (int argc, char* argv[])
   localhost_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.2.1/");
   
   localhost_rd.set_vector_attribute("dir_id", dir_ids);
+  localhost_rd.set_vector_attribute("dir_update_interval", dir_udi);
   localhost_rd.set_vector_attribute("dir_path", dir_path);
   localhost_rd.set_vector_attribute("dir_dev_space_total_cmd", dir_dev_space_total_cmd);
   localhost_rd.set_vector_attribute("dir_dev_space_used_cmd", dir_dev_space_used_cmd);

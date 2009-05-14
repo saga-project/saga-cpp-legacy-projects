@@ -51,6 +51,7 @@ void resource_description::setupAttributes()
   
   /*VECTOR*/ attributes::resource_description::dir_id,
   /*VECTOR*/ attributes::resource_description::dir_path,
+  /*VECTOR*/ attributes::resource_description::dir_update_interval,
   /*VECTOR*/ attributes::resource_description::dir_dev_space_total_cmd,
   /*VECTOR*/ attributes::resource_description::dir_dev_space_used_cmd,
   /*VECTOR*/ attributes::resource_description::dir_quota_total_cmd,
@@ -58,6 +59,7 @@ void resource_description::setupAttributes()
 
   /*VECTOR*/ attributes::resource_description::queue_id,
   /*VECTOR*/ attributes::resource_description::queue_name,
+  /*VECTOR*/ attributes::resource_description::queue_update_interval,
   /*VECTOR*/ attributes::resource_description::queue_nodes_total_cmd,
   /*VECTOR*/ attributes::resource_description::queue_nodes_busy_cmd,
   /*VECTOR*/ attributes::resource_description::queue_nodes_down_cmd,
@@ -85,6 +87,7 @@ void resource_description::setupAttributes()
   (attributes::resource_description::dir_dev_space_used_cmd, " ")
   (attributes::resource_description::dir_quota_total_cmd, " ")
   (attributes::resource_description::dir_quota_used_cmd, " ")
+  (attributes::resource_description::dir_update_interval, "30")
   
   (attributes::resource_description::queue_id, " ")
   (attributes::resource_description::queue_name, " ")
@@ -92,6 +95,7 @@ void resource_description::setupAttributes()
   (attributes::resource_description::queue_nodes_busy_cmd, " ")  
   (attributes::resource_description::queue_nodes_down_cmd, " ")  
   (attributes::resource_description::queue_nodes_queued_cmd, " ")  
+  (attributes::resource_description::queue_update_interval, "30")
   ;
   
   

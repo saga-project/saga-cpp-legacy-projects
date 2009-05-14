@@ -55,6 +55,10 @@ namespace faust
       /*! \brief Your own identifier for this directory
        *         <br>(example: <code>mydir1</code>) */
       char const* const dir_id                  = "dir_id"; 
+
+      /*! \brief The update interval for this resource attribute in seconds (default: 60). 
+       *         <br>(example: <code>30</code>) */
+      char const* const dir_update_interval     = "dir_update_interval"; 
       
       /*! \brief Path to the directory
        *         <br>(example: <code>/scratch/</code>) */
@@ -84,6 +88,10 @@ namespace faust
        *         <br>(example: <code>workq</code>) */
       char const* const queue_name              = "queue_name";
       
+      /*! \brief The update interval for this resource attribute in seconds (default: 60). 
+       *         <br>(example: <code>30</code>) */
+      char const* const queue_update_interval   = "queue_update_interval"; 
+      
       /*! \brief Command to retrieve the total number of nodes for this queue
        *         <br>(example: <code>qfree | awk '/workq/ {print $4}' | tr -d ,</code>)*/
       char const* const queue_nodes_total_cmd   = "queue_nodes_total_cmd";
@@ -98,7 +106,7 @@ namespace faust
       
       
       
-      char const* const queue_nodes_queued_cmd    = "queue_nodes_queued_cmd";
+      char const* const queue_nodes_queued_cmd  = "queue_nodes_queued_cmd";
     }
   }
   
