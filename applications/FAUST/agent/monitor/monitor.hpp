@@ -15,60 +15,53 @@
 
 #include <saga/saga.hpp>
 #include <faust/impl/logwriter.hpp>
-#include <faust/impl/resource_description_impl.hpp>
-#include <faust/impl/resource_monitor_impl.hpp>
+#include <faust/faust/resource_description.hpp>
+#include <faust/faust/resource_monitor.hpp>
 
-////////////////////////////////////////////////////////////////////////////
-//
-namespace faust
-{
-  //////////////////////////////////////////////////////////////////////////
+#include <agent/monitor/monitor_group.hpp>
+
+namespace faust { namespace agent { namespace monitor {
+  
+  //////////////////////////////////////////////////////////////////////////////
   //
-  namespace agent { namespace monitor {
-    
-    enum query_type 
+  class monitor   
     {
-      QueryAll          = 1,
-      QueryDir          = 2,
-      QueryQueues       = 3,
+    private:
+      
+      time_t last_update_;
+      unsigned int update_interval_;
+      
+      faust::resource_description description_;
+      faust::resource_monitor monitor_;
+      
+      boost::shared_ptr <faust::detail::logwriter> log_sptr_;
+      
+      std::vector<monitor_group> mgv_;
+      
+      // the main eventloop thread & entry-point fucntion
+      boost::thread service_thread_;
+      static void thread_entry_point_(monitor * mg);
+      
+      void init();
+      
+    public:
+      
+      monitor (unsigned int update_interval,
+               faust::resource_description desc,
+               faust::resource_monitor mon,
+               boost::shared_ptr <faust::detail::logwriter> log_sptr);
+      
+      unsigned int get_update_interval();
+      
+      void run();
+      
+      ~monitor();
+      
     };
-    
-    class monitor   
-      {
-      private:
-        faust::detail::logwriter * log_;
-        
-        boost::shared_ptr <faust::detail::logwriter> log_sptr_;
-        boost::shared_ptr <faust::impl::resource_description> desc_obj_sptr_;
-        boost::shared_ptr <faust::impl::resource_monitor> mon_obj_sptr_;
-        
-        /* directory attributes related stuff */
-        bool directory_attributes_checked_;
-        bool directory_attributes_ok_;
-        bool check_directory_attributes();
-        void query_directories();
-        
-        /* queue attributes related stuff */
-        bool queue_attributes_checked_;
-        bool queue_attributes_ok_;
-        bool check_queue_attributes();
-        void query_queues();
-        
-      public:
-        //monitor() {}
-        monitor (boost::shared_ptr <faust::impl::resource_description> rd,
-                 boost::shared_ptr <faust::impl::resource_monitor>     rm,
-                 boost::shared_ptr <faust::detail::logwriter>          lw);
-        
-        ~monitor() {}
-        
-        void query(query_type=QueryAll); // executes a query on all rd attributes
-      };
-    
-  }}
   //
-  //////////////////////////////////////////////////////////////////////////
-}
+  //////////////////////////////////////////////////////////////////////////////
+  
+}}}
 
 #endif /* FAUST_AGENT_MONITOR_MONITOR_HPP */
 

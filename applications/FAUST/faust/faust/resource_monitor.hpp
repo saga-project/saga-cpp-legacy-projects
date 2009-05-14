@@ -33,36 +33,45 @@ namespace faust
   {
     namespace resource_monitor 
     {
-      /*! \brief  */
+      /*! \brief  Directory identifier. */
       char const* const dir_id              = "dir_id"; 
       
-      /*! \brief  */
+      /*! \brief  Directory path.*/
       char const* const dir_path            = "dir_path";
       
-      /*! \brief  */
+      /*! \brief  Total space available on the storage device (in kB). */
       char const* const dir_dev_space_total = "dir_dev_space_total";
       
-      /*! \brief  */
+      /*! \brief  Space currently used on the storage device (in kB).*/
       char const* const dir_dev_space_used  = "dir_dev_space_used";
-            
-      /*! \brief  */
+      
+      /*! \brief  Total availalbe quota space in this directory (in kB). */
       char const* const dir_quota_total     = "dir_quota_total";
       
-      /*! \brief  */
+      /*! \brief   Quota space currently used in this directory (in kB)*/
       char const* const dir_quota_used      = "dir_quota_used";
       
-      /*! \brief  */
+      /*! \brief  Queue ideentifier. */
       char const* const queue_id            = "queue_id";
       
-      /*! \brief  */
+      /*! \brief  Queue name.*/
       char const* const queue_name          = "queue_name";
       
-      /*! \brief  */
+      /*! \brief  Number of total nodes assigned to this queue.*/
       char const* const queue_nodes_total   = "queue_nodes_total";
-
-      /*! \brief  */
-      char const* const queue_nodes_used    = "queue_nodes_used";
-          }
+      
+      /*! \brief  Number of nodes that are currently queued.*/
+      char const* const queue_nodes_queued  = "queue_nodes_queued";
+      
+      /*! \brief  Number of nodes that are currently busy.*/
+      char const* const queue_nodes_busy    = "queue_nodes_busy";
+      
+      /*! \brief  Number of nodes that are currently down.*/
+      char const* const queue_nodes_down    = "queue_nodes_down";
+      
+      
+      
+    }
   }
   
   /*! \brief The %resource_monitor encapsulates all the attributes which define a 
@@ -73,9 +82,9 @@ namespace faust
   class resource_monitor : public faust::object,
   public saga::detail::attribute<faust::resource_monitor>
   {
-
+    
   private: 
-
+    
     friend struct saga::detail::attribute<faust::resource_monitor>;
     friend class faust::impl::resource_monitor;
 		friend class faust::impl::resource;
@@ -84,14 +93,14 @@ namespace faust
     
     void setupAttributes();
     resource_monitor() ;
-
+    
   public:
 		
 		/// @cond - hide from Doxygen
     boost::shared_ptr <faust::impl::resource_monitor> get_impl (void) const;
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
-
+    
 		/*! \brief D'TOR: Properly destroys this %object instance. 
      *
      */

@@ -59,7 +59,9 @@ void resource_description::setupAttributes()
   /*VECTOR*/ attributes::resource_description::queue_id,
   /*VECTOR*/ attributes::resource_description::queue_name,
   /*VECTOR*/ attributes::resource_description::queue_nodes_total_cmd,
-  /*VECTOR*/ attributes::resource_description::queue_nodes_free_cmd
+  /*VECTOR*/ attributes::resource_description::queue_nodes_busy_cmd,
+  /*VECTOR*/ attributes::resource_description::queue_nodes_down_cmd,
+  /*VECTOR*/ attributes::resource_description::queue_nodes_queued_cmd
   ;
   
   // initialize list of valid keys          
@@ -87,7 +89,9 @@ void resource_description::setupAttributes()
   (attributes::resource_description::queue_id, " ")
   (attributes::resource_description::queue_name, " ")
   (attributes::resource_description::queue_nodes_total_cmd, " ")
-  (attributes::resource_description::queue_nodes_free_cmd, " ")  
+  (attributes::resource_description::queue_nodes_busy_cmd, " ")  
+  (attributes::resource_description::queue_nodes_down_cmd, " ")  
+  (attributes::resource_description::queue_nodes_queued_cmd, " ")  
   ;
   
   

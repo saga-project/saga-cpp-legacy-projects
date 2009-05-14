@@ -13,13 +13,13 @@
 #ifndef FAUST_LOGWRITER_HPP
 #define FAUST_LOGWRITER_HPP
 
-#define LOG_WRITE_SUCCESS_2(L, S)      { S << "SUCCESS"; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_INFO); S.str(""); }
-#define LOG_WRITE_FAILED_AND_THROW_2(L, S, M, E) { S << "FAILED: " << M; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_ERROR); throw faust::exception (SAGA_OSSTREAM_GETSTRING(S), E); S.str("");}
-#define LOG_WRITE_FAILED_AND_WARN_2(L, S, M) { S << "FAILED: " << M; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_WARNING); S.str("");}
+#define LOG_WRITE_SUCCESS_2(L, S)      { S << " SUCCESS"; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_INFO); S.str(""); }
+#define LOG_WRITE_FAILED_AND_THROW_2(L, S, M, E) { S << " FAILED: " << M; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_ERROR); SAGA_OSSTREAM tmp; tmp << __FILE__ << ":" << __LINE__ << " " << SAGA_OSSTREAM_GETSTRING(S); throw faust::exception (SAGA_OSSTREAM_GETSTRING(tmp), E); S.str("");}
+#define LOG_WRITE_FAILED_AND_WARN_2(L, S, M) { S << " FAILED: " << M; L->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_WARNING); S.str("");}
 
 
-#define LOG_WRITE_SUCCESS(S)      { S << "SUCCESS"; log_sptr_->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_INFO); S.str(""); }
-#define LOG_WRITE_FAILED_AND_THROW(S, M, E) { S << "FAILED: " << M; log_sptr_->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_ERROR); throw faust::exception (SAGA_OSSTREAM_GETSTRING(S), E); S.str("");}
+#define LOG_WRITE_SUCCESS(S)      { S << " SUCCESS"; log_sptr_->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_INFO); S.str(""); }
+#define LOG_WRITE_FAILED_AND_THROW(S, M, E) { S << " FAILED: " << M; log_sptr_->write(SAGA_OSSTREAM_GETSTRING(S), LOGLEVEL_ERROR); SAGA_OSSTREAM tmp; tmp << __FILE__ << ":" << __LINE__ << " " << S; throw faust::exception (SAGA_OSSTREAM_GETSTRING(tmp), E); S.str("");}
 
 #define LOGLEVEL_FATAL     0x2   
 #define LOGLEVEL_ERROR     0x4  
