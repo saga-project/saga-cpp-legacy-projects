@@ -43,12 +43,14 @@
 #define ADVERT_ENTRY_SERVER        "SERVER"
 
 #define WORKER_COMMAND_COMPARE     "COMPARE"    // Copy given file to another host
+#define WORKER_COMMAND_STAGE       "STAGE"    // Copy given file to another host
 #define WORKER_COMMAND_QUIT        "QUIT"       // Quit the worker
 
 #define WORKER_STATE_IDLE          "IDLE"       // Ready to Map or Reduce
 #define WORKER_STATE_DONE          "DONE"       // Done with assigned task
+#define WORKER_STATE_DONE_STAGING  "DONE_STAGING"       // Done with assigned task
 #define WORKER_STATE_FAIL          "FAIL"       // Assigned task failed 
-#define WORKER_STATE_COMPARING     "COMPARING\0"  // Done with assigned task
+#define WORKER_STATE_COMPARING     "COMPARING"  // Done with assigned task
 
 #define LOGLEVEL_FATAL             0x2   
 #define LOGLEVEL_ERROR             0x4  
@@ -57,4 +59,3 @@
 #define LOGLEVEL_DEBUG             0x32  
 
 #endif // AP_DEFINES_HPP
-

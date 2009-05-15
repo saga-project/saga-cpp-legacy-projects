@@ -8,6 +8,11 @@
 
 #include <string>
 #include <saga/saga.hpp>
+#include <time.h>
+#include <ostream>
+#include "defines.hpp"
+#include <boost/lexical_cast.hpp>
+
 
 namespace AllPairs 
 {

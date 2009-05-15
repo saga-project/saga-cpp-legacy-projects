@@ -12,13 +12,11 @@
 using namespace AllPairs::Master;
 
 ConfigFileParser::ConfigFileParser() {
-   //compareDescList_ = new std::vector<std::vector <CompareDescription> >();
 }
 
 ConfigFileParser::ConfigFileParser(std::string cfgFilePath, AllPairs::LogWriter &log)
 : cfgFilePath_(cfgFilePath), log_(&log) {
    parse_();
-   //generateTestInstance_();
 }
 
 SessionDescription ConfigFileParser::getSessionDescription() {
@@ -26,7 +24,7 @@ SessionDescription ConfigFileParser::getSessionDescription() {
 }
 
 std::vector<BinaryDescription> ConfigFileParser::getExecutableList() {
-   return binDescList_;
+  return binDescList_;
 }
 
 std::vector<std::vector<CompareDescription> > ConfigFileParser::getCompareList() {
@@ -94,7 +92,6 @@ void ConfigFileParser::parse_(void) {
             log_->write(message, LOGLEVEL_ERROR);
          }
       }
-
       // parse MasterAddress information
       xNode = xMainNode.getChildNode("MasterAddress");
       if(NULL != xNode.getText()) {
@@ -105,7 +102,6 @@ void ConfigFileParser::parse_(void) {
          log_->write(message, LOGLEVEL_ERROR);
       }
       
-      // parse the ApplicationBinaries section
       xNode = xMainNode.getChildNode("ApplicationBinaries");
       int m=xNode.nChildNode("BinaryImage");
       for(int i=0; i<m; ++i) {

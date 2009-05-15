@@ -12,6 +12,7 @@
 #include "../utils/defines.hpp"
 #include "version.hpp"
 #include "HandleComparisons.hpp"
+#include "HandleStaging.hpp"
 #include "parseCommand.hpp"
 
 /***********************************
@@ -31,9 +32,7 @@ namespace AllPairs {
           * \param argC argc from main          *
           * \param argV argv from main          *
          ***************************************/
-         Master(int argC,char **argV) {
-            //Parses the command line options passed from main
-            //looking for --config to find config xml file
+         Master(int argC, char **argV) {
             boost::program_options::variables_map vm;
             try {
                if (!parseCommand(argC, argV, vm))
@@ -49,11 +48,11 @@ namespace AllPairs {
             serverURL_     = cfgFileParser_.getMasterAddress();
             
             // create a UUID for this agent
-            uuid_ = saga::uuid().string();  //Temporarily disabled
-            //uuid_ = "DUMMY-UUID";
-            
+            uuid_ = std::string("AllPairs-") + saga::uuid().string();
+
             saga::url advertKey(std::string(database_ + "//" + uuid_ + "/log"));
             logURL_ = advertKey;
+            //create new LogWriter instance that writes to advert
             log = new AllPairs::LogWriter(std::string(AP_MASTER_EXE_NAME), advertKey);
          }
          void run() {
@@ -66,30 +65,33 @@ namespace AllPairs {
             log->write(message, LOGLEVEL_INFO);
             // register with the db
             // Just connect to see if it exists
-            //registerWithDB_();
+            registerWithDB_();
             
             // create a new session
             // create all necessary directories
-            //createNewSession_();
+            createNewSession_();
             
             // add binaries to the Orchestrator DB
             // Take binaries from config file and
             // advertise them
-            //populateBinariesList_();
+            populateBinariesList_();
             
-            // Take input files from xml and 
             // then advertise the chunk on the DB
-            //populateFileList_();
+            populateFileList_();
 
             // Launch all worker command on all
             // host defined in config file
-            //spawnAgents_();
+            spawnAgents_();
+
+            //Handle Staging
+            Graph network = runStaging_();
 
             // Start comparing fragments to bases
-            //runComparisons_();
+            runComparisons_(network);
 
             //Tell all workers to quit
             sendQuit_();
+
             log->write("All done - exiting normally", LOGLEVEL_INFO);
          }
          ~Master(void) {
@@ -146,11 +148,11 @@ namespace AllPairs {
           * session (AllPairs instance).                         *
           * ******************************************************/
          void createNewSession_(void) {
-            int mode = saga::advert::ReadWrite | saga::advert::Create;  
-            std::string message("Creating a new session (");
+            int mode = saga::advert::ReadWrite | saga::advert::Create;
             saga::task_container tc;
-           
-            message += (uuid_) + ")... ";
+
+            std::string message("Creating a new session (");
+            message += uuid_ + ")... ";
             std::string advertKey(database_ + "//" + uuid_ + "/");
             try {
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
@@ -226,7 +228,7 @@ namespace AllPairs {
           * of the database.                                      *
           ********************************************************/
          void populateFileList_(void) {
-            int successCounter = 0;
+            unsigned int successCounter = 0;
             int mode = saga::advert::Create | saga::advert::ReadWrite;
             std::vector<FileDescription> fileListFragment                   = cfgFileParser_.getFileListFragment();
             std::vector<FileDescription> fileListBase                       = cfgFileParser_.getFileListBase();
@@ -344,7 +346,6 @@ namespace AllPairs {
                         args.push_back("--log");
                         args.push_back(logURL_.get_string());
                         jd.set_attribute(saga::job::attributes::description_executable, command);
-                        //jd.set_attribute(saga::job::attributes::description_interactive, saga::attributes::common_false);
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
                         saga::job::service js(hostListIT->rmURL);
                         saga::job::job agentJob= js.create_job(jd);
@@ -369,8 +370,17 @@ namespace AllPairs {
                APPLICATION_ABORT
             }
          }
-         void runComparisons_(void) {
-            HandleComparisons comparisonHandler(assignments_, serverURL_, log);
+
+         Graph runStaging_(void) {
+            std::vector<HostDescription>  hostList        = cfgFileParser_.getTargetHostList();
+            std::vector<FileDescription> fileListFragment = cfgFileParser_.getFileListFragment();
+            std::vector<FileDescription> fileListBase     = cfgFileParser_.getFileListBase();
+            HandleStaging stage(serverURL_, hostList, fileListFragment, fileListBase, log);
+            return stage.getNetwork();
+         }
+
+         void runComparisons_(Graph networkGraph) {
+            HandleComparisons comparisonHandler(networkGraph, assignments_, serverURL_, log);
             std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
             comparisonHandler.assignWork();
@@ -409,7 +419,6 @@ namespace AllPairs {
                std::cerr << e.what() << std::endl;
             }
          }
-
       };
    } // namespace Master
 } // namespace AllPairs

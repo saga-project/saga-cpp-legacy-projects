@@ -7,16 +7,19 @@
 #define AP_HANDLE_COMPARISONS_HPP
 
 #include <string>
-#include <saga/saga.hpp>
-#include "../utils/LogWriter.hpp"
-#include "version.hpp"
-#include "Assignment.hpp"
 #include <vector>
+#include <saga/saga.hpp>
+#include <boost/lexical_cast.hpp>
+#include "../utils/LogWriter.hpp"
+#include "../utils/network.hpp"
+#include "../utils/Graph.hpp"
+#include "../utils/defines.hpp"
+#include "Assignment.hpp"
 
 namespace AllPairs {
    class HandleComparisons {
      public:
-      HandleComparisons(assignmentChunksVector &assignments, const saga::url serverURL_, LogWriter *log);
+      HandleComparisons(Graph &networkGraph, assignmentChunksVector &assignments, const saga::url serverURL_, LogWriter *log);
       ~HandleComparisons();
       void assignWork();
      private:
@@ -26,6 +29,7 @@ namespace AllPairs {
       std::vector<int> finished_;
       std::vector<int> assigned_;
       std::vector<int> unassigned_;
+      Graph            networkGraph_;
       assignmentChunksVector   assignments_;
       saga::stream::server    *service_;
       saga::advert::directory  workerDir_;

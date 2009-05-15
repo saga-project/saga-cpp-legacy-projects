@@ -1,6 +1,9 @@
+//  Copyright (c) 2008 Michael Miceli and Christopher Miceli
+// 
+//  Distributed under the Boost Software License, Version 1.0. (See accompanying 
+//  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
 #include "HandleComparisons.hpp"
-#include <boost/lexical_cast.hpp>
-#include "../utils/defines.hpp"
 
 /*********************************************************
  * HandleComparisons tries to group together the proper files*
@@ -10,15 +13,14 @@ namespace AllPairs
 {
  // fileCount is the total number of files possibly outputted by
  // the map function (NUM_MAPS)
- HandleComparisons::HandleComparisons(assignmentChunksVector &assignments, saga::url serverURL, LogWriter *log)
-    :  assignments_(assignments), serverURL_(serverURL), log_(log)
+ HandleComparisons::HandleComparisons(Graph &networkGraph, assignmentChunksVector &assignments, saga::url serverURL, LogWriter *log)
+    :  networkGraph_(networkGraph), assignments_(assignments), serverURL_(serverURL), log_(log)
  {
     assignmentChunksVector::iterator end = assignments.end();
     for(assignmentChunksVector::iterator it = assignments.begin();
         it != end; ++it)
     {
        unassigned_.push_back(it->getId());
-       //unassigned_.push_back(boost::lexical_cast<int>((*it)[0].first));
     }
     try
     {
@@ -60,34 +62,24 @@ namespace AllPairs
 
          //Ask worker for state
          worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
-         char buff[255];
-         saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-         std::string state(buff, read_bytes);
-
+         std::string read(network::read(worker));
          message.clear();
-         message = "Worker: " + worker.get_url().get_string() + " has state " + state;
+         message = "Worker: " + worker.get_url().get_string() + " has state " + read;
          log_->write(message, LOGLEVEL_INFO);
 
-         if(state == WORKER_STATE_IDLE)
+         if(network::test(read, WORKER_STATE_IDLE))
          {
             if(finished_.size() == assignments_.size())
             {
                //Prevent unneccessary work assignments
                worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
-               saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-               if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
-               {
-                  log_->write(std::string("Misbehaving worker!"), LOGLEVEL_WARNING);
-               }
-               return;
+               network::expect(WORKER_RESPONSE_ACKNOLEDGE, network::read(worker));
             }
             //Ask worker for location, then try to assign closest available assignment chunk
             worker.write(saga::buffer(MASTER_QUESTION_LOCATION, 9));
-            memset(buff, 0, 255);
-            saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-            std::string location(buff, read_bytes);
+            read = network::read(worker);
 
-            AssignmentChunk chunk(getChunk_(saga::url(location)));
+            AssignmentChunk chunk(getChunk_(saga::url(read)));
             int currentChunkID = chunk.getId();
             //Worker is idle
             message.clear();
@@ -100,72 +92,51 @@ namespace AllPairs
 
             //Ask where their advert is
             worker.write(saga::buffer(MASTER_QUESTION_ADVERT, 7));
-            memset(buff, 0, 255);
-            read_bytes = worker.read(saga::buffer(buff));
-            saga::url advert = saga::url(std::string(buff, read_bytes));
+            saga::url advert(network::read(worker));
 
             message.clear();
             message += worker.get_url().get_string();
-            message += " <==> " + std::string(buff);
+            message += " <==> " + advert.get_string();
             message += " ... ";
             log_->write(message, LOGLEVEL_INFO); 
 
             //Tell worker about data
             worker.write(saga::buffer(WORKER_COMMAND_COMPARE, 7));
-            memset(buff, 0, 255);
-            read_bytes = worker.read(saga::buffer(buff));
-            if(std::string(buff, read_bytes) == WORKER_RESPONSE_ACKNOLEDGE)
+            network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
+            //Write chunk to worker
+            std::vector<Assignment>::iterator it  = chunk.getBegin();
+            std::vector<Assignment>::iterator end = chunk.getEnd();
+            worker.write(saga::buffer(START_CHUNK, 5));
+
+            network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
+
+            //Give the id first
+            std::string stringID = boost::lexical_cast<std::string>(currentChunkID);
+            worker.write(saga::buffer(stringID, stringID.size()));
+            network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
+
+            while(it != end)
             {
-               //Write chunk to worker
-               std::vector<Assignment>::iterator it  = chunk.getBegin();
-               std::vector<Assignment>::iterator end = chunk.getEnd();
-               worker.write(saga::buffer(START_CHUNK, 5));
-
-               memset(buff, 0, 255);
-               read_bytes = worker.read(saga::buffer(buff));
-               //FIXME proper handling 
-               if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
-
-               //Give the id first
-               std::string stringID = boost::lexical_cast<std::string>(currentChunkID);
-               worker.write(saga::buffer(stringID, stringID.size()));
-               memset(buff, 0, 255);
-               read_bytes = worker.read(saga::buffer(buff));
-               if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
-
-               while(it != end)
-               {
-                  std::string to   = it->getTo();
-                  std::string from = it->getFrom();
-                  worker.write(saga::buffer(to, to.size()));
-                  read_bytes = worker.read(saga::buffer(buff));
-                  if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
-                  worker.write(saga::buffer(from, from.size()));
-                  read_bytes = worker.read(saga::buffer(buff));
-                  if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
-                  ++it;
-               }
-               worker.write(saga::buffer(END_CHUNK, 3));
-               memset(buff, 0, 255);
-               read_bytes = worker.read(saga::buffer(buff));
-               if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE) { return; } 
+               std::string to   = it->getTo();
+               std::string from = it->getFrom();
+               worker.write(saga::buffer(to, to.size()));
+               network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
+               worker.write(saga::buffer(from, from.size()));
+               network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
+               ++it;
             }
-            else
-            {
-               message = std::string("Worker did not accept chunk!");
-               log_->write(message, LOGLEVEL_WARNING);
-               break;
-            }
+            worker.write(saga::buffer(END_CHUNK, 3));
+            network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
 
             std::string message("Success: ");
             message += advert.get_string() + " is comparing chunk ";
             message += boost::lexical_cast<std::string>(currentChunkID);
             log_->write(message, LOGLEVEL_INFO);
             //If not in assigned, add it
-            std::vector<int>::iterator end = assigned_.end();
+            std::vector<int>::iterator aend = assigned_.end();
             std::vector<int>::iterator assigned_IT = assigned_.begin();
             bool found = false;
-            while(assigned_IT != end)
+            while(assigned_IT != aend)
             {
                if(currentChunkID == (*assigned_IT))
                {
@@ -180,9 +151,9 @@ namespace AllPairs
             }
 
             //If from unassigned, remove it
-            end = unassigned_.end();
+            aend = unassigned_.end();
             std::vector<int>::iterator unassigned_IT = unassigned_.begin();
-            while(unassigned_IT != end)
+            while(unassigned_IT != aend)
             {
                if(currentChunkID == (*unassigned_IT))
                {
@@ -194,12 +165,10 @@ namespace AllPairs
             assigned = true;
             return;
          }
-         else if(state == WORKER_STATE_DONE)
+         else if(network::test(read, WORKER_STATE_DONE))
          {
             worker.write(saga::buffer(MASTER_QUESTION_RESULT, 7));
-            memset(buff, 0, 255);
-            read_bytes = worker.read(saga::buffer(buff));
-            std::string result(buff, read_bytes);
+            std::string result(network::read(worker));
             worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
 
             std::string message("Worker ");

@@ -13,7 +13,9 @@
 #include <boost/lexical_cast.hpp>
 #include "../utils/LogWriter.hpp"
 #include "../utils/defines.hpp"
+#include "../utils/network.hpp"
 #include "RunComparison.hpp"
+#include "RunStaging.hpp"
 #include "SystemInfo.hpp"
 #include "parseCommand.hpp"
 
@@ -25,7 +27,7 @@ namespace AllPairs {
        * init parses the arguments and pulls out the database  *
        * to use and the session to use.                        *
        * ******************************************************/
-      AllPairsBase(int argCount,char **argList) {
+      AllPairsBase(int argCount, char **argList) {
          boost::program_options::variables_map vm;
          try {
             if(!parseCommand(argCount, argList, vm))
@@ -88,6 +90,7 @@ namespace AllPairs {
       saga::advert::directory resultDir_;
       saga::advert::directory sessionBaseDir_;
       std::vector<saga::url>  baseFiles_;
+      std::vector<int>        stageResult_;
       AllPairs::LogWriter*    logWriter_;
       RunComparison*          runComparison_;
       assignmentChunk         chunk_;
@@ -232,59 +235,98 @@ namespace AllPairs {
        * ******************************************************/
       std::string getFrontendCommand_(void) {
          static int depth = 0;
-         std::string commandString;
-         char buff[255];
+         std::string read;
          try {
             saga::stream::stream server_(serverURL_);
             server_.connect();
-            memset(buff, 0, 255);
-            saga::ssize_t read_bytes = server_.read(saga::buffer(buff));
-            std::string question(buff, read_bytes);
-            if(question == MASTER_QUESTION_STATE)
+            read = network::read(server_);
+            if(network::test(read, MASTER_QUESTION_STATE))
             {
-               server_.write(saga::buffer(state_), sizeof(state_));
-               memset(buff, 0, 255);
-               read_bytes = server_.read(saga::buffer(buff));
-               question = std::string(buff, read_bytes);
-               if(question == MASTER_QUESTION_LOCATION) {
+               std::string state(state_);
+               server_.write(saga::buffer(state, state.size()));
+               read = network::read(server_);
+               if(network::test(read, MASTER_QUESTION_LOCATION))
+               {
                   server_.write(saga::buffer(location_, location_.size()));
-                  memset(buff, 0, 255);
-                  read_bytes = server_.read(saga::buffer(buff));
-                  question = std::string(buff, read_bytes);
-                  if(question == MASTER_QUESTION_ADVERT)
+                  read = network::read(server_);
+                  if(network::test(read, MASTER_QUESTION_ADVERT))
                   {
                      std::string advert(workerDir_.get_url().get_string());
                      server_.write(saga::buffer(advert, advert.size()));
-                     memset(buff, 0, 255);
-                     read_bytes = server_.read(saga::buffer(buff));
-                     question = std::string(buff, read_bytes);
-                     if(question == WORKER_COMMAND_COMPARE)
+                     read = network::read(server_);
+                     if(network::test(read, WORKER_COMMAND_COMPARE))
                      {
                         server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
                         runComparison_ = new RunComparison(server_, logWriter_);
                         chunk_ = runComparison_->getAssignmentChunk();
                         return WORKER_COMMAND_COMPARE;
                      }
-                     else if(question == WORKER_COMMAND_QUIT)
+                     else if(network::test(read, WORKER_COMMAND_QUIT))
                      {
                         return WORKER_COMMAND_QUIT;
                      }
                   }
+                  else if(network::test(read, WORKER_COMMAND_STAGE)) {
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     read = network::read(server_);
+                     if(network::test(read, START_CHUNK)) {
+                        std::vector<std::string> hosts;
+                        //Get lists of hosts to ping
+                        server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                        read = network::read(server_);
+                        while(network::test(read, END_CHUNK) == false) {
+                           server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                           //push_back hosts read
+                           hosts.push_back(read);
+                           //Call handleStaging
+                           read = network::read(server_);
+                        }
+                        server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                        RunStaging runStaging(hosts, location_, logWriter_);
+                        stageResult_ = runStaging.getResults();
+                        state_ = WORKER_STATE_DONE_STAGING;
+                        return getFrontendCommand_();
+                     }
+                  }
+                  else if(network::test(read, MASTER_REQUEST_IDLE))
+                  {
+                     state_ = WORKER_STATE_IDLE;
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     return getFrontendCommand_();
+                  }
+                  else if(network::test(read, START_CHUNK)) {
+                     //our state is WORKER_STATE_DONE_STAGING
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     for(std::vector<int>::iterator it = stageResult_.begin();
+                         it != stageResult_.end(); ++it)
+                     {
+                        read = network::read(server_);
+                        if(network::test(read, MASTER_QUESTION_RESULT)) {
+                           std::string result(boost::lexical_cast<std::string>(*it));
+                           server_.write(saga::buffer(result, result.size()));
+                        }
+                     }
+                     network::expect(END_CHUNK, network::read(server_));
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     network::expect(MASTER_REQUEST_IDLE, network::read(server_));
+                     server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
+                     state_ = WORKER_STATE_IDLE;
+                     sleep(1);
+                     return getFrontendCommand_();
+                  }
                }
-               else if(question == MASTER_QUESTION_RESULT)
+               else if(network::test(read, MASTER_QUESTION_RESULT))
                {
                   std::string lastString = boost::lexical_cast<std::string>(lastFinishedChunk_);
                   server_.write(saga::buffer(lastString, lastString.size()));
-                  memset(buff, 0, 255);
-                  read_bytes = server_.read(saga::buffer(buff));
-                  question = std::string(buff, read_bytes);
-                  if(question == MASTER_REQUEST_IDLE)
+                  read = network::read(server_);
+                  if(network::test(read, MASTER_REQUEST_IDLE))
                   {
                      state_ = WORKER_STATE_IDLE;
                   }
                   return getFrontendCommand_();
                }
-               if(question == MASTER_REQUEST_IDLE)
+               if(network::test(read, MASTER_REQUEST_IDLE))
                {
                   state_ = WORKER_STATE_IDLE;
                   server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
@@ -295,19 +337,19 @@ namespace AllPairs {
                   APPLICATION_ABORT;
                }
             }
-            else if(question == WORKER_COMMAND_QUIT)
+            else if(network::test(read, WORKER_COMMAND_QUIT))
             {
                server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
                return WORKER_COMMAND_QUIT;
             }
-            else
-            {
-               APPLICATION_ABORT;
-            }
+         }
+         catch(network::networkException const &e) {
+            std::cout << "Error: " << e.what() << std::endl;
+            APPLICATION_ABORT;
          }
          catch(saga::exception const & e) {
-            sleep(1);
             std::cout << "Couldn't connect, try again" << std::endl;
+            sleep(1);
             if(depth > 20)
             {
                return WORKER_COMMAND_QUIT;
@@ -315,7 +357,7 @@ namespace AllPairs {
             return getFrontendCommand_();
          }
          // get command number & reset the attribute to "" 
-         return commandString;
+         return read;
       }
    };
 }
