@@ -26,6 +26,16 @@ int main (int argc, char* argv[])
   dir_dev_space_used_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $3}'` * 512/1024/1024\" | bc");
   dir_quota_total_cmd.push_back("echo \"0\"");
   dir_quota_used_cmd.push_back("echo \"0\"");
+
+  // And another
+  dir_ids.push_back("my_work_dir_2");
+  dir_path.push_back("/tmp/");
+  dir_udi.push_back("20");
+  dir_dev_space_total_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $2}'` * 512/1024/1024\" | bc");
+  dir_dev_space_used_cmd.push_back("echo \"scale=0; `df . | awk '/\\// {print $3}'` * 512/1024/1024\" | bc");
+  dir_quota_total_cmd.push_back("echo \"10000\"");
+  dir_quota_used_cmd.push_back("echo \"10000\"");
+  
   
   faust::resource_description localhost_rd;
   

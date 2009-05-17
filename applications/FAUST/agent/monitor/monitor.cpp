@@ -23,24 +23,27 @@ using namespace faust::agent::monitor;
 //
 void monitor::init()
 {
+  namespace FAR = faust::attributes::resource_description;
+  namespace FAM = faust::attributes::resource_monitor;
+
   monitor_group mg1 ("dirs", description_, monitor_, log_sptr_);
-  mg1.set_update_interval     ("dir_update_interval");
-  mg1.add_value_value_mapping ("dir_id",                  "dir_id");
-  mg1.add_value_value_mapping ("dir_path",                "dir_path");
-  mg1.add_cmd_value_mapping   ("dir_dev_space_total_cmd", "dir_dev_space_total");
-  mg1.add_cmd_value_mapping   ("dir_dev_space_used_cmd",  "dir_dev_space_used");
-  mg1.add_cmd_value_mapping   ("dir_quota_total_cmd",     "dir_quota_total");
-  mg1.add_cmd_value_mapping   ("dir_quota_used_cmd",      "dir_quota_used");
+  mg1.set_update_interval_mapping (FAR::dir_update_interval,     FAM::dir_last_update);
+  mg1.add_value_value_mapping     (FAR::dir_id,                  FAM::dir_id);
+  mg1.add_value_value_mapping     (FAR::dir_path,                FAM::dir_path);
+  mg1.add_cmd_value_mapping       (FAR::dir_dev_space_total_cmd, FAM::dir_dev_space_total);
+  mg1.add_cmd_value_mapping       (FAR::dir_dev_space_used_cmd,  FAM::dir_dev_space_used);
+  mg1.add_cmd_value_mapping       (FAR::dir_quota_total_cmd,     FAM::dir_quota_total);
+  mg1.add_cmd_value_mapping       (FAR::dir_quota_used_cmd,      FAM::dir_quota_used);
   mgv_.push_back(mg1);
   
   monitor_group mg2 ("queues", description_, monitor_, log_sptr_);
-  mg2.set_update_interval     ("queue_update_interval");
-  mg2.add_value_value_mapping ("queue_id",               "queue_id");
-  mg2.add_value_value_mapping ("queue_name",             "queue_name");
-  mg2.add_cmd_value_mapping   ("queue_nodes_busy_cmd",   "queue_nodes_busy");
-  mg2.add_cmd_value_mapping   ("queue_nodes_down_cmd",   "queue_nodes_down");
-  mg2.add_cmd_value_mapping   ("queue_nodes_total_cmd",  "queue_nodes_total");
-  mg2.add_cmd_value_mapping   ("queue_nodes_queued_cmd", "queue_nodes_queued");   
+  mg2.set_update_interval_mapping (FAR::queue_update_interval,   FAM::queue_last_update);
+  mg2.add_value_value_mapping     (FAR::queue_id,                FAM::queue_id);
+  mg2.add_value_value_mapping     (FAR::queue_name,              FAM::queue_name);
+  mg2.add_cmd_value_mapping       (FAR::queue_nodes_busy_cmd,    FAM::queue_nodes_busy);
+  mg2.add_cmd_value_mapping       (FAR::queue_nodes_down_cmd,    FAM::queue_nodes_down);
+  mg2.add_cmd_value_mapping       (FAR::queue_nodes_total_cmd,   FAM::queue_nodes_total);
+  mg2.add_cmd_value_mapping       (FAR::queue_nodes_queued_cmd,  FAM::queue_nodes_queued);   
   mgv_.push_back(mg2);
 }
 
@@ -54,11 +57,7 @@ void monitor::thread_entry_point_(monitor * THIS)
     std::vector<monitor_group>::iterator it;
     for(it = THIS->mgv_.begin(); it != THIS->mgv_.end(); ++it)
     {
-      std::cout << (*it).get_update_interval() << std::endl;
-      if( (*it).get_last_update() + (*it).get_update_interval() <= time(NULL) )
-      {
-        (*it).execute();        
-      }
+      (*it).execute();        
     }
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
@@ -107,8 +106,6 @@ monitor::monitor (unsigned int update_interval,
 
 {
   init();
-  
-  last_update_ = 0;
 }
 
 

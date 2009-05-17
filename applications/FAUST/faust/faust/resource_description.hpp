@@ -56,7 +56,7 @@ namespace faust
        *         <br>(example: <code>mydir1</code>) */
       char const* const dir_id                  = "dir_id"; 
 
-      /*! \brief The update interval for this resource attribute in seconds (default: 60). 
+      /*! \brief The update interval for this directory's attributes in seconds (default: 60). 
        *         <br>(example: <code>30</code>) */
       char const* const dir_update_interval     = "dir_update_interval"; 
       
@@ -88,7 +88,7 @@ namespace faust
        *         <br>(example: <code>workq</code>) */
       char const* const queue_name              = "queue_name";
       
-      /*! \brief The update interval for this resource attribute in seconds (default: 60). 
+      /*! \brief The update interval for this queue's attributes in seconds (default: 60). 
        *         <br>(example: <code>30</code>) */
       char const* const queue_update_interval   = "queue_update_interval"; 
       

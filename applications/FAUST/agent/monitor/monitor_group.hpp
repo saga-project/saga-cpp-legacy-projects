@@ -54,10 +54,7 @@ namespace faust { namespace agent { namespace monitor {
     
     std::string name_;
     bool is_vector_group_;
-    int  vector_length_;
-    unsigned int update_interval_;
-    std::string update_interval_c_;
-    time_t last_update_;
+    int vector_length_;
     
     boost::shared_ptr <faust::detail::logwriter> log_sptr_;
     
@@ -65,10 +62,16 @@ namespace faust { namespace agent { namespace monitor {
     std::vector<mapping_t> cmd_value_mappings_;
     std::vector<mapping_t> value_value_mappings_;
     
+    bool has_update_interval_mapping_;
+    mapping_t update_interval_mapping_;
+    
+    unsigned int default_update_interval_;
+    time_t default_last_update_;
+    
     faust::resource_description description_;
     faust::resource_monitor monitor_;
     
-    bool validate_(std::vector<mapping_t> &vec);
+    bool validate_(std::vector<mapping_t> &vec, SAGA_OSSTREAM & msg);
     void process_all_();
     
   public:
@@ -80,16 +83,11 @@ namespace faust { namespace agent { namespace monitor {
     
     ~monitor_group();
     
-    void set_update_interval(unsigned int t);
-    void set_update_interval(char const* const rd_attrib);
-    unsigned int get_update_interval();
-    
-    time_t get_last_update() { return last_update_; }
-    
     void execute();
-    
-    void add_cmd_value_mapping   (char const* const rd_attrib, char const* const rm_attrib);
-    void add_value_value_mapping (char const* const rd_attrib, char const* const rm_attrib);
+
+    void set_update_interval_mapping(char const* const rd_attrib, char const* const rm_attrib);
+    void add_cmd_value_mapping      (char const* const rd_attrib, char const* const rm_attrib);
+    void add_value_value_mapping    (char const* const rd_attrib, char const* const rm_attrib);
     
   };
   //
