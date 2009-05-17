@@ -34,6 +34,8 @@ namespace faust { namespace agent { namespace monitor {
       faust::resource_description description_;
       faust::resource_monitor monitor_;
       
+      saga::advert::entry mon_adv_;
+      
       boost::shared_ptr <faust::detail::logwriter> log_sptr_;
       
       std::vector<monitor_group> mgv_;
@@ -49,6 +51,7 @@ namespace faust { namespace agent { namespace monitor {
       monitor (unsigned int update_interval,
                faust::resource_description desc,
                faust::resource_monitor mon,
+               saga::advert::entry mon_adv, 
                boost::shared_ptr <faust::detail::logwriter> log_sptr);
       
       unsigned int get_update_interval();

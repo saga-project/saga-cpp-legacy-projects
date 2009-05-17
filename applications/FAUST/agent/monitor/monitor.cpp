@@ -14,6 +14,8 @@
 #include <agent/monitor/monitor.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 
+#include <faust/impl/detail/serialize.hpp>
+
 #include <iostream>
 #include <fstream>
 
@@ -57,10 +59,18 @@ void monitor::thread_entry_point_(monitor * THIS)
     std::vector<monitor_group>::iterator it;
     for(it = THIS->mgv_.begin(); it != THIS->mgv_.end(); ++it)
     {
-      (*it).execute();        
+      bool should_write = (*it).execute();    
+      
+      if(should_write)
+      {
+        faust::impl::detail::writeAttributesToDB<faust::resource_monitor>
+        (THIS->monitor_, "faust::resource_monitor", THIS->mon_adv_, THIS->log_sptr_);
+      }
+      
+      
     }
 
-    boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
+    boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
   }
 }
 
@@ -100,9 +110,10 @@ void monitor::run()
 monitor::monitor (unsigned int update_interval,
                   faust::resource_description desc,
                   faust::resource_monitor mon,
+                  saga::advert::entry mon_adv,
                   boost::shared_ptr <faust::detail::logwriter> log_sptr)
 : update_interval_(update_interval), description_(desc), monitor_(mon),
-  log_sptr_(log_sptr)
+  mon_adv_(mon_adv), log_sptr_(log_sptr)
 
 {
   init();

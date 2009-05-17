@@ -72,7 +72,7 @@ namespace faust { namespace agent { namespace monitor {
     faust::resource_monitor monitor_;
     
     bool validate_(std::vector<mapping_t> &vec, SAGA_OSSTREAM & msg);
-    void process_all_();
+    bool process_all_();
     
   public:
     
@@ -83,7 +83,7 @@ namespace faust { namespace agent { namespace monitor {
     
     ~monitor_group();
     
-    void execute();
+    bool execute();
 
     void set_update_interval_mapping(char const* const rd_attrib, char const* const rm_attrib);
     void add_cmd_value_mapping      (char const* const rd_attrib, char const* const rm_attrib);

@@ -25,11 +25,11 @@ monitor_group::monitor_group(std::string name,
 {
   is_vector_group_ = false;
   vector_length_ = 0;
-
+  
   has_update_interval_mapping_ = false;
   default_update_interval_ = 60;
   default_last_update_ = 0;
-
+  
 }
 
 
@@ -42,15 +42,16 @@ monitor_group::~monitor_group()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void monitor_group::execute()
+bool monitor_group::execute()
 {
   if(!has_update_interval_mapping_ & (default_last_update_+default_update_interval_ >= time(NULL)))
   {
     // DO NOTHING
+    return false;
   }
   else
   {
-    process_all_();
+    return process_all_();
   }
 }
 
@@ -150,242 +151,240 @@ bool monitor_group::validate_(std::vector<mapping_t> &vec, SAGA_OSSTREAM & msg)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void monitor_group::process_all_()
+bool monitor_group::process_all_()
 {
+  bool global_update = false;
+  
   SAGA_OSSTREAM msg;
   msg << "Validating monitor_group '" << name_ << "'.";
-
+  
   if(!validate_(cmd_value_mappings_, msg))
   {
-    return;
+    return false;
   }
   
   if(!validate_(value_value_mappings_, msg))
   {
-    return;
+    return false;
   }
   
-  LOG_WRITE_SUCCESS_2(log_sptr_, msg);
-  
-  
-
-  
-  
-  
-  
-  
-  
-  msg << "Updating monitor_group '" << name_ << "'.";
-  
-  //try 
-  
+  msg.str("");
+  //LOG_WRITE_SUCCESS_2(log_sptr_, msg);
+    
+  try 
+  {
+    ////// VECTOR GROUP PROCESSING
+    //
     if(is_vector_group_)
     {
-      std::vector<std::vector<std::string> > test;
+      std::vector<std::vector<std::string> > cmd_val_map_results;
+      std::vector<std::vector<std::string> > val_val_map_results;
+      std::vector<std::string> update_intervals;
       std::vector<std::string> last_updates;
+      
+      if(has_update_interval_mapping_)
+      {
+        update_intervals = description_.get_vector_attribute(update_interval_mapping_.first);
+        last_updates = monitor_.get_vector_attribute(update_interval_mapping_.second);
+        
+        // update fields might not be properly initialized in the first pass
+        for(int i=0; i < vector_length_; ++i)
+        {
+          try { last_updates.at(i); }
+          catch (std::out_of_range const & e) { last_updates.push_back("0"); }
+        }
+      }
       
       for(int i=0; i < vector_length_; ++i)
       {
+        bool needs_update = true;
+        
+        // check if this set needs to be updates
         if(has_update_interval_mapping_)
         {
-          update_interval = boost::lexical_cast<unsigned int>(
-            description_.get_vector_attribute(update_interval_mapping_.first).at(i));
-          try {
-            // can be zero initially
-            last_update = boost::lexical_cast<unsigned int>(
-              monitor_.get_vector_attribute(update_interval_mapping_.second).at(i));
-          }
-          catch(std::out_of_range const & e)
-          {
-            last_update = 0;
-          }
-        }
-
-        std::vector<std::string> results;
-        std::vector<std::string> commands;
-        
-        if(last_update+update_interval > time(NULL))
-        {
-          results.push_back(monitor_.get_vector_attribute((*it).first).at(i));
-          // PROCESS UPDATE_TIME VECTOR
-        }
-        else
-        {
-          std::vector<mapping_t>::const_iterator it;
-          for(it = cmd_value_mappings_.begin(); it != cmd_value_mappings_.end(); ++it)
-          {           
-            std::string command = description_.get_vector_attribute((*it).first).at(i);
+          unsigned int lu = boost::lexical_cast<unsigned int>(last_updates.at(i));
+          unsigned int ui = boost::lexical_cast<unsigned int>(update_intervals.at(i));
           
+          if( lu + ui >= time(NULL) )
+          {
+            needs_update = false;
+          }
+          else
+          {
+            needs_update = true;
+          }
+        }
+        
+        if(needs_update) 
+        {
+          msg << "Updating (vector) monitor_group '" << name_ << ":"<< i <<"'.";
+
+          ////// CMD -> VALUE MAPPINGS
+          //
+          std::vector<std::string> cmd_val_results;
+          std::vector<mapping_t>::const_iterator cmd_val_it;
+          for(cmd_val_it = cmd_value_mappings_.begin(); cmd_val_it != cmd_value_mappings_.end(); ++cmd_val_it)
+          {           
+            std::string command = description_.get_vector_attribute((*cmd_val_it).first).at(i);
+            
             boost::process::child c = run_bash_script("/bin/bash", command);
             boost::process::pistream & out = c.get_stdout();
             std::string val; getline(out, val);
-            results.push_back(val);
+            cmd_val_results.push_back(val);
             boost::process::status status = c.wait();
           }
-          test.push_back(results);
+          cmd_val_map_results.push_back(cmd_val_results);
+          
+          ////// VALUE -> VALUE MAPPINGS
+          //
+          std::vector<std::string> val_val_results;
+          std::vector<mapping_t>::const_iterator v_v_it;
+          for(v_v_it = value_value_mappings_.begin(); v_v_it != value_value_mappings_.end(); ++v_v_it)
+          {           
+            std::string val = description_.get_vector_attribute((*v_v_it).first).at(i);
+            
+            val_val_results.push_back(val);
+          }
+          val_val_map_results.push_back(val_val_results);
+          
+          if(has_update_interval_mapping_)
+          {
+            last_updates.at(i) = boost::lexical_cast<std::string>(time(NULL));
+          }
+          
+          LOG_WRITE_SUCCESS_2(log_sptr_, msg);
+          global_update = true;
+        }
+        else // no update needed. copy old values
+        {
+          std::vector<std::string> cmd_val_results;
+          std::vector<mapping_t>::const_iterator cmd_val_it;
+          for(cmd_val_it = cmd_value_mappings_.begin(); cmd_val_it != cmd_value_mappings_.end(); ++cmd_val_it)
+          {  
+            cmd_val_results.push_back(monitor_.get_vector_attribute((*cmd_val_it).second).at(i));
+          }
+          cmd_val_map_results.push_back(cmd_val_results);
+          
+          std::vector<std::string> val_val_results;
+          std::vector<mapping_t>::const_iterator v_v_it;
+          for(v_v_it = value_value_mappings_.begin(); v_v_it != value_value_mappings_.end(); ++v_v_it)
+          {  
+            val_val_results.push_back(monitor_.get_vector_attribute((*v_v_it).second).at(i));
+          }
+          val_val_map_results.push_back(val_val_results);
+        }
+        
+      } 
+      
+      ////// SET UPDATE TIMESTAMP IF SUPPROTED
+      //
+      if(has_update_interval_mapping_)
+      {
+        monitor_.set_vector_attribute(update_interval_mapping_.second, last_updates);
       }
       
+      ////// REVERSE CMD -> VALUE RESULTS
+      //
       int vec_pos = 0;
       std::vector<mapping_t>::const_iterator it_2;
       for(it_2 = cmd_value_mappings_.begin(); it_2 != cmd_value_mappings_.end(); ++it_2)
       {
-        //std::cout << "out: " << (*it_2).second << std::endl;
         std::vector<std::string> reverse;
-        
         std::vector<std::vector<std::string> >::const_iterator it_3;
-        for(it_3 = test.begin(); it_3 != test.end(); ++it_3)
+        for(it_3 = cmd_val_map_results.begin(); it_3 != cmd_val_map_results.end(); ++it_3)
         {
-          //std::cout << "  * " << (*it_3).at(vec_pos) << std::endl;
           reverse.push_back((*it_3).at(vec_pos));
         }
         
         monitor_.set_vector_attribute((*it_2).second, reverse);
         ++vec_pos;
-
       }
       
-      /*for(int i=0; i < vector_length_; ++i)
-      {
-        std::vector<std::vector<std::string> >::const_iterator it_2;
-        for(it_2 = test.begin(); it_2 != test.end(); ++it_2)
-      {
-
-          std::vector<std::string> reverse;
-         // monitor_.set_vector_attribute();
-        }*/
-      }
-    
-
-        
-        
-    
-    
-    // process command -> value mappings
-    /*std::vector<mapping_t>::const_iterator it;
-    for(it = cmd_value_mappings_.begin(); it != cmd_value_mappings_.end(); ++it)
-    {
-      ////// VECTOR GROUP
+      ////// REVERSE VALUE -> VALUE RESULTS
       //
-      if(is_vector_group_) 
+      vec_pos = 0;
+      std::vector<mapping_t>::const_iterator it_3;
+      for(it_3 = value_value_mappings_.begin(); it_3 != value_value_mappings_.end(); ++it_3)
       {
-        std::vector<std::string> results;
-        std::vector<std::string> commands = description_.get_vector_attribute((*it).first);
-                
-        std::vector<std::string> update_intervals;
-        std::vector<std::string> last_updates;
-        std::vector<std::string> update_times;
-        
-        if(has_update_interval_mapping_)
+        std::vector<std::string> reverse;
+        std::vector<std::vector<std::string> >::const_iterator it_4;
+        for(it_4 = val_val_map_results.begin(); it_4 != val_val_map_results.end(); ++it_4)
         {
-          update_intervals = description_.get_vector_attribute(update_interval_mapping_.first);
-          last_updates = monitor_.get_vector_attribute(update_interval_mapping_.second);
+          reverse.push_back((*it_4).at(vec_pos));
         }
         
-        for(int i=0; i < vector_length_; ++i)
+        monitor_.set_vector_attribute((*it_3).second, reverse);
+        ++vec_pos;
+      }
+    }
+    
+    
+    ////// SCALAR GROUP PROCESSING
+    //
+    else
+    {
+      std::string update_intervals;
+      std::string last_updates;
+      bool needs_update = true;
+      
+      if(has_update_interval_mapping_)
+      {
+        unsigned int lu = boost::lexical_cast<unsigned int>(last_updates);
+        unsigned int ui = boost::lexical_cast<unsigned int>(update_intervals);
+        
+        if( lu + ui >= time(NULL) )
         {
-          if(has_update_interval_mapping_) 
-          {
-            unsigned int update_interval_ui = 
-              boost::lexical_cast<unsigned int>(update_intervals.at(i));
-            unsigned int last_update_ui =
-              boost::lexical_cast<unsigned int>(last_updates.at(i));
-            
-            if(last_update_ui+update_interval_ui > time(NULL))
-            {
-              // NO UPDATE NECCESSARY
-              return;
-            }
-            else
-            {
-              std::cout << "UPDATE" << std::endl;
-            }
-          }
-          
-          boost::process::child c = run_bash_script("/bin/bash", commands.at(i));
+          needs_update = false;
+        }
+        else
+        {
+          needs_update = true;
+        }
+      }
+      
+      
+      if(needs_update) 
+      {
+        msg << "Updating (scalar) monitor_group '" << name_ << "'.";
+        
+        ////// CMD -> VALUE MAPPINGS
+        //
+        std::vector<mapping_t>::const_iterator cmd_val_it_s;
+        for(cmd_val_it_s = cmd_value_mappings_.begin(); cmd_val_it_s != cmd_value_mappings_.end(); ++cmd_val_it_s)
+        {           
+          std::string command = description_.get_attribute((*cmd_val_it_s).first);
+          boost::process::child c = run_bash_script("/bin/bash", command);
           boost::process::pistream & out = c.get_stdout();
           std::string val; getline(out, val);
-          results.push_back(val);
+          monitor_.set_attribute((*cmd_val_it_s).second, val);
           boost::process::status status = c.wait();
-          
-          if(has_update_interval_mapping_)
-          {
-            std::string udt = boost::lexical_cast<std::string>(time(NULL));
-            update_times.push_back(udt); 
-          }
         }
-        monitor_.set_vector_attribute((*it).second, results);
+        
+        ////// VALUE -> VALUE MAPPINGS
+        //
+        std::vector<mapping_t>::const_iterator val_val_it_s;
+        for(val_val_it_s = value_value_mappings_.begin(); val_val_it_s != value_value_mappings_.end(); ++val_val_it_s)
+        {           
+          std::string val = description_.get_attribute((*val_val_it_s).first);
+          monitor_.set_attribute((*val_val_it_s).second, val);
+        }
         
         if(has_update_interval_mapping_)
         {
-          monitor_.set_vector_attribute(update_interval_mapping_.second, update_times);
-        }
-      }
-      
-      ////// SCALAR GROUP 
-      //
-      else
-      {
-        std::string result;
-        std::string command = description_.get_attribute((*it).first);    
-        
-        std::string update_interval;
-        std::string last_update;
-        std::string update_time;
-        
-        if(has_update_interval_mapping_)
-        {
-          unsigned int update_interval_ui = 
-            boost::lexical_cast<unsigned int>(description_.get_attribute(update_interval_mapping_.first));
-          unsigned int last_update_ui =
-            boost::lexical_cast<unsigned int>(monitor_.get_attribute(update_interval_mapping_.second));
-          
-          if(last_update_ui+update_interval_ui > time(NULL))
-          {
-            // NO UPDATE NECCESSARY
-            return;
-          }
+          std::string update_time = boost::lexical_cast<std::string>(time(NULL));
+          monitor_.set_attribute(update_interval_mapping_.second, update_time);
         }
         
-        boost::process::child c = run_bash_script("/bin/bash", command);
-        boost::process::pistream & out = c.get_stdout();
-        getline(out, result);
-        boost::process::status status = c.wait();
-        
-        monitor_.set_attribute((*it).second, result);
-        
-        if(has_update_interval_mapping_)
-        {
-          monitor_.set_attribute(update_interval_mapping_.second, 
-                                 boost::lexical_cast<std::string>(time(NULL)));
-        }
+        LOG_WRITE_SUCCESS_2(log_sptr_, msg);
+        global_update = true;
       }
     }
-    
-    // process value -> value mappings
-    std::vector<mapping_t>::const_iterator it2;
-    for(it2 = value_value_mappings_.begin(); it2 != value_value_mappings_.end(); ++it2)
-    {
-      if(is_vector_group_)
-      {
-        std::vector<std::string> results;
-        std::vector<std::string> values = description_.get_vector_attribute((*it2).first);
-        
-        for(int i=0; i < vector_length_; ++i)
-        {
-          results.push_back(values.at(i));
-        }
-        monitor_.set_vector_attribute((*it2).second, results);
-      }
-      else
-      {
-        monitor_.set_attribute((*it2).second, 
-                               description_.get_attribute((*it2).first));
-      }
-    }
-    LOG_WRITE_SUCCESS_2(log_sptr_, msg);
   }
   catch(saga::exception const & e)
   {
     LOG_WRITE_FAILED_AND_THROW_2(log_sptr_,msg, e.what(), faust::NoSuccess);
-  }*/
+  }
+  
+  return global_update;
 }
+

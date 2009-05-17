@@ -192,7 +192,7 @@ void app::run(void)
 //
 void app::run_tests(void)
 {
-  monitor::monitor m(1, description_, monitor_, log_sptr_);
+  monitor::monitor m(1, description_, monitor_, mon_adv_, log_sptr_);
   m.run();
 
   sleep(100);
