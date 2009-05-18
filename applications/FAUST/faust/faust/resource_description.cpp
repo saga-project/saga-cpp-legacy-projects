@@ -129,6 +129,13 @@ void resource_description::write_to_file(std::string filename)
   get_impl()->write_to_file(filename);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource_description::read_from_file(std::string filename)
+{
+  get_impl()->read_from_file(filename);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //  implement the attribute functions (we need to explicitly specialize 
 //  the template because the functions are not implemented inline)

@@ -15,7 +15,12 @@
 
 int main (int argc, char* argv[])
 {
-  std::vector<std::string> dir_ids, dir_path, dir_udi, dir_dev_space_total_cmd, env,
+  
+  faust::resource_description localhostRD;
+  localhostRD.read_from_file("../../misc/resource_descriptions/macpro01.cct.lsu.edu.faust");
+  
+  
+ /* std::vector<std::string> dir_ids, dir_path, dir_udi, dir_dev_space_total_cmd, env,
   dir_dev_space_used_cmd, dir_quota_total_cmd, dir_quota_used_cmd;
   
   // A directory description
@@ -61,30 +66,30 @@ int main (int argc, char* argv[])
   queenbee_rd.set_attribute("identifier", "queenbee.loni.org");
   queenbee_rd.set_attribute("faust_agent_submit_url",  "gram://qb1.loni.org/jobmanager-fork");
   queenbee_rd.set_attribute("faust_agent_binary_path", "/work/oweidner/FAUST/agent/faust_agent");	
-  queenbee_rd.set_attribute("saga_root_path",          "/work/oweidner/megajobs");
+  queenbee_rd.set_attribute("saga_root_path",          "/work/oweidner/megajobs");*/
   
   //env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
   //queenbee_rd.set_vector_attribute("environment", env);
   
-  while(1) 
-  {
-		try 
-    {
+  //while(1) 
+ // {
+//		try 
+  //  {
       //// two new persitent faust instances
       //
 			//faust::resource queenbee  (queenbee_rd, true);
-			faust::resource localhost (localhost_rd, true);
+//			faust::resource localhost (localhost_rd, true);
       
-      faust::resource_description rm_recx = localhost.get_description();
-      std::vector<std::string> attr1x_ = rm_recx.list_attributes();
+//      faust::resource_description rm_recx = localhost.get_description();
+//      std::vector<std::string> attr1x_ = rm_recx.list_attributes();
       
-      faust::resource_monitor rm_rec2x = localhost.get_monitor();
-      std::vector<std::string> attr2x_ = rm_rec2x.list_attributes();
+//      faust::resource_monitor rm_rec2x = localhost.get_monitor();
+//      std::vector<std::string> attr2x_ = rm_rec2x.list_attributes();
       
 							
 			//// test reconnect
       //
-			faust::resource localhost_reconnect(localhost_rd.get_attribute("identifier"));
+//			faust::resource localhost_reconnect(localhost_rd.get_attribute("identifier"));
 			
       
       /*faust::resource_description localhost_rd_rec = localhost_reconnect.get_description();
@@ -96,11 +101,11 @@ int main (int argc, char* argv[])
 			}
       */
       
-      faust::resource_description rm_rec = localhost_reconnect.get_description();
-      std::vector<std::string> attr1_ = rm_rec.list_attributes();
+ //     faust::resource_description rm_rec = localhost_reconnect.get_description();
+ //     std::vector<std::string> attr1_ = rm_rec.list_attributes();
 
-      faust::resource_monitor rm_rec2 = localhost_reconnect.get_monitor();
-      std::vector<std::string> attr2_ = rm_rec2.list_attributes();
+//      faust::resource_monitor rm_rec2 = localhost_reconnect.get_monitor();
+//      std::vector<std::string> attr2_ = rm_rec2.list_attributes();
       
       /*std::vector<std::string>::const_iterator it1;
 			for(it1 = attr1_.begin(); it1 != attr1_.end(); ++it1)
@@ -129,13 +134,13 @@ int main (int argc, char* argv[])
        
 			
 			//queenbee_reconnect.set_persistent(false);
-			localhost_reconnect.set_persistent(false);
-		}
-		catch(faust::exception const & e) {
-			std::cout << "FAUST EXCEPTION: " << e.what() << std::endl;
-			exit(1);
-		}
+//			localhost_reconnect.set_persistent(false);
+//		}
+	//	catch(faust::exception const & e) {
+//			std::cout << "FAUST EXCEPTION: " << e.what() << std::endl;
+	//		exit(1);
+	//	}
 		
-  }
-  return 0;
+//  }
+return 0;
 }

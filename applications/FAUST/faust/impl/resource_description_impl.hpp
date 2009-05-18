@@ -39,6 +39,7 @@ namespace faust
       resource_description(std::string filename);
       
       void write_to_file(std::string filename);
+      void read_from_file(std::string filename);
       
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }

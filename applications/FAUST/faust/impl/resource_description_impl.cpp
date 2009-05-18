@@ -18,12 +18,37 @@
 
 using namespace faust::impl;
 
+//////////////////////////////////////////////////////////////////////////
+//
+namespace {
+  
+  inline void tokenize(const std::string& str,
+                       std::vector<std::string>& tokens,
+                       const std::string& delimiters = " ")
+  {
+    // Skip delimiters at beginning.
+    std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    // Find first "non-delimiter".
+    std::string::size_type pos     = str.find_first_of(delimiters, lastPos);
+    
+    while (std::string::npos != pos || std::string::npos != lastPos)
+    {
+      // Found a token, add it to the vector.
+      tokens.push_back(str.substr(lastPos, pos - lastPos));
+      // Skip delimiters.  Note the "not_of"
+      lastPos = str.find_first_not_of(delimiters, pos);
+      // Find next "non-delimiter"
+      pos = str.find_first_of(delimiters, lastPos);
+    }
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 resource_description::resource_description()
 : object(faust::object::ResourceDescription)
 {
-
+  
 }
 
 
@@ -41,9 +66,62 @@ resource_description::resource_description(saga::advert::entry & desc_adv)
 resource_description::resource_description(std::string filename)
 : object(faust::object::ResourceDescription)
 {
-
+  
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+void resource_description::read_from_file(std::string filename)
+{
+  using namespace std;
+  
+  SAGA_OSSTREAM strm;
+  strm << "Reading resource description from file: " << filename << " ";
+  
+  ifstream infile;
+  infile.open(filename.c_str(), ios::in);
+  
+  if(!infile.is_open())
+  {
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(), strm, "Could not open file.", faust::NoSuccess);
+  }
+  else
+  {
+    string line;
+    
+    while(! infile.eof() )
+    {
+      try
+      {
+        getline(infile, line);
+        
+        vector<string> tokens;
+        tokenize(line, tokens, "\t");
+        if(tokens.size() != 4) continue;
+        
+        else
+        {
+          if(tokens.at(0) == "V") 
+          {
+            
+          }
+          else if(tokens.at(0) == "S")
+          {
+            
+          }
+          else
+          {
+            continue;
+          }
+        }
+      }
+      catch(saga::exception const & e)
+      {
+        LOG_WRITE_FAILED_AND_THROW_2(get_log(), strm, e.what(), faust::NoSuccess);
+      }
+    }
+  }
+}  
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -52,7 +130,7 @@ void resource_description::write_to_file(std::string filename)
   using namespace std;
   
   SAGA_OSSTREAM strm;
-  strm << "Writing attributes to file: " << filename << " ";
+  strm << "Writing resource description to file: " << filename << " ";
   
   ofstream outfile;
   outfile.open(filename.c_str(), ios::out | ios::trunc);

@@ -22,15 +22,7 @@
 #include <faust/faust/exception.hpp>
 
 namespace faust { namespace impl { namespace detail {
-  
-  //////////////////////////////////////////////////////////////////////////////
-  //
-  template<class T> void readAttributesFromFile(T obj, std::string filename,
-                                                boost::shared_ptr <faust::detail::logwriter> lw)
-  {
-    
-  }
-  
+
   //////////////////////////////////////////////////////////////////////////////
   //
   template<class T> void writeAttributesToDB(T obj, std::string name, saga::advert::entry ae,

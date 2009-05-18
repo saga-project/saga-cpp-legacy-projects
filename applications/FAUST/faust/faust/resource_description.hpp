@@ -151,11 +151,17 @@ namespace faust
      */
     ~resource_description();
 
-    /*! \brief Writes all scalar/vector %attributes to the ASCI file located
+    /*! \brief Writes all scalar/vector %attributes to an ASCII file located
      *         at 'filename'.
      *
      */
     void write_to_file(std::string filename);
+
+    /*! \brief Reads the resource description from an ASCII file located at
+     *         'filename'. Attributes that are already set will be overwritten.
+     */
+    void read_from_file(std::string filename);
+    
     
     /*! \brief Returns TRUE if the %attribute identified by 'key' exists. FALSE otherwise.
      *
