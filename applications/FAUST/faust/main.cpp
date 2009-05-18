@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
   localhost_rd.set_attribute("identifier", "localhost");
   localhost_rd.set_attribute("faust_agent_submit_url",  "fork://localhost/");
   localhost_rd.set_attribute("faust_agent_binary_path", "/Users/oweidner/Work/FAUST/build/Debug/faust_agent");	
-  localhost_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.2.1/");
+  localhost_rd.set_attribute("saga_root_path",          "/usr/local/saga-1.2/");
   
   localhost_rd.set_vector_attribute("dir_id", dir_ids);
   localhost_rd.set_vector_attribute("dir_update_interval", dir_udi);
@@ -63,8 +63,8 @@ int main (int argc, char* argv[])
   queenbee_rd.set_attribute("faust_agent_binary_path", "/work/oweidner/FAUST/agent/faust_agent");	
   queenbee_rd.set_attribute("saga_root_path",          "/work/oweidner/megajobs");
   
-  env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
-  queenbee_rd.set_vector_attribute("environment", env);
+  //env.push_back("LD_LIBRARY_PATH=/usr/local/compilers/GNU/gcc-4.2.0/lib64:/usr/local/packages/jdk1.6.0_06/lib:/usr/local/packages/mvapich-1.0-intel10.1/lib:/usr/local/compilers/Intel/intel_fc_10.1/lib:/usr/local/compilers/Intel/intel_cc_10.1/lib:/usr/local/compilers/Intel/mkl-10.0/lib/em64t:/home/packages/globus/globus-4.0.8-r2/lib:/work/oweidner/megajobs/lib/");
+  //queenbee_rd.set_vector_attribute("environment", env);
   
   while(1) 
   {
@@ -118,7 +118,7 @@ int main (int argc, char* argv[])
 			
       //// test reconnect
       //
-			faust::resource queenbee_reconnect(queenbee_rd.get_attribute("identifier"));
+			//faust::resource queenbee_reconnect(queenbee_rd.get_attribute("identifier"));
 			//faust::resource_description queenbee_rd_rec = queenbee_reconnect.get_description();
 			//std::vector<std::string> attr2_ = queenbee_rd_rec.list_attributes();
 			//std::vector<std::string>::const_iterator it2;
