@@ -286,14 +286,14 @@ void resource::launch_agent(unsigned int timeout)
 		saga::job::service js(description_.get_attribute(FAR::faust_agent_submit_url));
 		saga::job::job j = js.create_job(jd);
     
-		/*j.run();
+		j.run();
     saga::job::state state = j.get_state ();
     
     if ( state != saga::job::Running && state != saga::job::Done    )
     {
       LOG_WRITE_FAILED_AND_THROW_2(get_log(),msg, "Job is not running.", faust::NoSuccess);
     }
-    else*/
+    else
     {
       LOG_WRITE_SUCCESS_2(get_log(),msg);
     }

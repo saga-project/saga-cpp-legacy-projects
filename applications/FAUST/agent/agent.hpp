@@ -37,7 +37,7 @@ namespace faust
         saga::advert::entry mon_adv_;
         
         boost::shared_ptr <faust::detail::logwriter> log_sptr_;
-        boost::shared_ptr <faust::agent::monitor::monitor> sysmon_obj_sptr_;
+        boost::shared_ptr <faust::agent::monitor::monitor> monitor_sptr_;
         
         faust::resource_description description_;
         faust::resource_monitor     monitor_;

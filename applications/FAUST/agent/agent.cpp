@@ -73,8 +73,8 @@ app::app(std::string endpoint, std::string uuid)
     faust::impl::detail::readAttributesFromDB<faust::resource_monitor>
     (monitor_, "faust::resource_monitor", mon_adv_, log_sptr_);     
     
-    /*sysmon_obj_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
-      (new faust::agent::monitor::monitor(desc_obj_sptr_, mon_obj_sptr_, log_sptr_));*/
+    monitor_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
+      (new faust::agent::monitor::monitor(1, description_, monitor_, mon_adv_, log_sptr_));
     
     msg += ". SUCCESS ";
     log_sptr_->write(msg, LOGLEVEL_INFO);
@@ -178,12 +178,15 @@ std::string app::recv_command(std::string & cmd, std::string & args)
 //
 void app::run(void)
 {
+  // start monitor thread
+  monitor_sptr_->run();
+  
   std::string a("");
   std::string b("");
-  while(1) {
+  while(1) 
+  {
     std::string cmd = recv_command(a, b);
     if(cmd == uuid_+":TERMINATE") return;
-    //m_.query();
     sleep(1);
   }
 }
@@ -192,10 +195,10 @@ void app::run(void)
 //
 void app::run_tests(void)
 {
-  monitor::monitor m(1, description_, monitor_, mon_adv_, log_sptr_);
-  m.run();
+  //monitor::monitor m(1, description_, monitor_, mon_adv_, log_sptr_);
+  //m.run();
 
-  sleep(100);
+  //sleep(100);
   
   /*faust::impl::detail::writeAttributesToDB<faust::resource_monitor>
   (monitor_, "faust::resource_description", mon_adv_, log_sptr_); 
