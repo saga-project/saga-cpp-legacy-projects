@@ -12,8 +12,55 @@
 
 #include <faust/faust/exception.hpp>
 #include <faust/impl/resource_monitor_impl.hpp>
+#include <faust/impl/detail/serialize.hpp>
 
 using namespace faust::impl;
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+void resource_monitor::read_from_db(std::string key)
+{
+  SAGA_OSSTREAM strm;
+  strm << "Reading attributes from database. ";
+  
+  try 
+  {
+    if( key.empty() )
+    {
+      std::vector<std::string> attribs = monitor_adv_.list_attributes();
+      std::vector<std::string>::const_iterator it;
+      for(it = attribs.begin(); it != attribs.end(); ++it)
+      {
+        if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
+          continue;
+        
+        if(monitor_adv_.attribute_is_vector(*it)) {
+          attributes_.set_vector_attribute((*it), monitor_adv_.get_vector_attribute((*it)));
+        }
+        else {
+          attributes_.set_attribute((*it), monitor_adv_.get_attribute((*it)));
+        }
+      }
+    }
+    else
+    {
+      if(monitor_adv_.attribute_is_vector(key))
+      {
+        attributes_.set_vector_attribute(key, monitor_adv_.get_vector_attribute(key));
+      }
+      else
+      {
+        attributes_.set_attribute(key, monitor_adv_.get_attribute(key));
+      }
+    }
+    LOG_WRITE_SUCCESS_2(get_log(),strm);
+  }
+  catch(saga::exception const & e) 
+  {
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(), strm, e.what(), faust::NoSuccess);
+  }  
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
@@ -29,7 +76,14 @@ resource_monitor::resource_monitor(saga::advert::entry & monitor_adv)
 
 : object(faust::object::ResourceMonitor),  monitor_adv_(monitor_adv)
 {
-
+  
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// 
+void resource_monitor::update_attributes(std::string key) 
+{
+  // update all values
+  this->read_from_db(key);
+}

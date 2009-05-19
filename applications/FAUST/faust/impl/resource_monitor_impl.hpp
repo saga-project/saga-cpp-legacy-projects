@@ -33,15 +33,24 @@ namespace faust
       
       saga::advert::entry monitor_adv_;
       
+      void read_from_db(std::string key="");
+      
     public:
       
       resource_monitor();
       resource_monitor(saga::advert::entry & monitor_adv);
       
+      void set_advert_entry(saga::advert::entry e)
+      {
+        monitor_adv_ = e;
+      }
+      
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }
       
       saga::impl::attribute_cache get_cache() {return attributes_;}
+      
+      void update_attributes(std::string key="");
 			
     };
     //

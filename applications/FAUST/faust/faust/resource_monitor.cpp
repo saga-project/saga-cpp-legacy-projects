@@ -100,11 +100,21 @@ faust::object (new faust::impl::resource_monitor(), object::ResourceMonitor)
   this->setupAttributes();
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 resource_monitor::~resource_monitor() 
 {
   
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+std::vector<std::string> resource_monitor::list_attributes() const 
+{
+  get_impl()->update_attributes();
+  return saga::detail::attribute<faust::resource_monitor> ::list_attributes();
 }
 
 /////////////////////////////////////////////////////////////////////////////

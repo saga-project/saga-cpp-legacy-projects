@@ -70,8 +70,10 @@ resource_id_(resource_id)
     detail::readAttributesFromDB<faust::resource_description>
       (description_, "faust::resource_description", desc_adv_, get_log());    
 
-    detail::readAttributesFromDB<faust::resource_monitor>
-      (monitor_, "faust::resource_monitor", mon_adv_, get_log());    
+    //detail::readAttributesFromDB<faust::resource_monitor>
+    //  (monitor_, "faust::resource_monitor", mon_adv_, get_log());  
+    
+    monitor_.get_impl()->set_advert_entry(mon_adv_);
     
     LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
@@ -228,6 +230,8 @@ init_from_id_(false), persistent_(persistent)
   
   detail::writeAttributesToDB<faust::resource_description>
   (description_, "faust::resource_description", desc_adv_, get_log()); 
+  
+  monitor_.get_impl()->set_advert_entry(mon_adv_);
   
 	launch_agent();
   send_command(PROTO_V1_PING, 120);

@@ -75,6 +75,12 @@ void resource_description::read_from_file(std::string filename)
 {
   using namespace std;
   
+  typedef std::map<std::string, std::vector<std::string> > vector_map_t;
+  typedef std::map<std::string, std::vector<std::string> >::iterator vector_map_it_t;
+  
+  typedef std::map<std::string, std::string> scalar_map_t;
+  typedef std::map<std::string, std::string>::iterator scalar_map_it_t;
+  
   SAGA_OSSTREAM strm;
   strm << "Reading resource description from file: " << filename << " ";
   
@@ -87,38 +93,65 @@ void resource_description::read_from_file(std::string filename)
   }
   else
   {
-    string line;
-    
-    while(! infile.eof() )
+    try
     {
-      try
+      string line;
+      vector_map_t vector_map;
+      scalar_map_t scalar_map;
+      
+      while(! infile.eof() )
       {
         getline(infile, line);
         
         vector<string> tokens;
         tokenize(line, tokens, "\t");
+        
         if(tokens.size() != 4) continue;
         
         else
         {
           if(tokens.at(0) == "V") 
           {
-            
+            vector_map_it_t it = vector_map.find(tokens.at(2));
+            if(it == vector_map.end())
+            {
+              std::vector<std::string> val;
+              val.push_back(tokens.at(3));
+              vector_map.insert( pair<std::string, std::vector<std::string> >(tokens.at(2), val) );
+            }
+            else
+            {
+              ((*it).second).push_back(tokens.at(3));
+            }
           }
           else if(tokens.at(0) == "S")
           {
-            
+            std::string val = tokens.at(3);
+            scalar_map.insert( pair<std::string, std::string>(tokens.at(2), val) );
           }
           else
           {
             continue;
           }
         }
-      }
-      catch(saga::exception const & e)
+      } // while
+      
+      vector_map_it_t vec_it;
+      for(vec_it = vector_map.begin(); vec_it != vector_map.end(); ++vec_it)
       {
-        LOG_WRITE_FAILED_AND_THROW_2(get_log(), strm, e.what(), faust::NoSuccess);
+        attributes_.set_vector_attribute((*vec_it).first, (*vec_it).second);
       }
+      
+      scalar_map_it_t scal_it;
+      for(scal_it = scalar_map.begin(); scal_it != scalar_map.end(); ++ scal_it)
+      {
+        attributes_.set_attribute((*scal_it).first, (*scal_it).second);
+      }
+      LOG_WRITE_SUCCESS_2(get_log(), strm);
+    }
+    catch(saga::exception const & e)
+    {
+      LOG_WRITE_FAILED_AND_THROW_2(get_log(), strm, e.what(), faust::NoSuccess);
     }
   }
 }  

@@ -147,11 +147,7 @@ namespace faust
     /*! \brief Returns a list of all defined attribute key.
      *
      */
-    std::vector<std::string> list_attributes() const 
-    {
-      return saga::detail::attribute<faust::resource_monitor> ::list_attributes(); 
-    }
-    
+    std::vector<std::string> list_attributes() const;     
     
   };
 }
