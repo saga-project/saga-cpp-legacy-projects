@@ -18,7 +18,52 @@ using namespace faust::impl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-void resource_monitor::read_from_db(std::string key)
+void resource_monitor::write_to_db_(std::string key)
+{
+  SAGA_OSSTREAM strm;
+  strm << "Writing attributes to database. " ;
+  
+  try 
+  {
+    if( key.empty() )
+    {
+      std::vector<std::string> attribs = attributes_.list_attributes();
+      std::vector<std::string>::const_iterator it;
+      for(it = attribs.begin(); it != attribs.end(); ++it)
+      {
+        if((*it) == "utime" || (*it) == "ctime" || (*it) == "persistent")
+          continue;
+        
+        if(attributes_.attribute_is_vector(*it)) {
+          monitor_adv_.set_vector_attribute((*it), attributes_.get_vector_attribute((*it)));
+        }
+        else {
+          monitor_adv_.set_attribute((*it), attributes_.get_attribute((*it)));
+        }
+      }
+    }
+    else
+    {
+      if(attributes_.attribute_is_vector(key))
+      {
+        monitor_adv_.set_vector_attribute(key, attributes_.get_vector_attribute(key));
+      }
+      else
+      {
+        monitor_adv_.set_attribute(key, attributes_.get_attribute(key));
+      }
+    }
+    LOG_WRITE_SUCCESS_2(get_log(),strm);
+  }
+  catch(saga::exception const & e) 
+  {
+    LOG_WRITE_FAILED_AND_THROW_2(get_log(), strm, e.what(), faust::NoSuccess);
+  }    
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+void resource_monitor::read_from_db_(std::string key)
 {
   SAGA_OSSTREAM strm;
   strm << "Reading attributes from database. ";
@@ -82,8 +127,16 @@ resource_monitor::resource_monitor(saga::advert::entry & monitor_adv)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-void resource_monitor::update_attributes(std::string key) 
+void resource_monitor::read_attributes(std::string key) 
 {
   // update all values
-  this->read_from_db(key);
+  this->read_from_db_(key);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 
+void resource_monitor::write_attributes(std::string key) 
+{
+  // update all values
+  this->write_to_db_(key);
 }

@@ -33,7 +33,8 @@ namespace faust
       
       saga::advert::entry monitor_adv_;
       
-      void read_from_db(std::string key="");
+      void read_from_db_ (std::string key="");
+      void write_to_db_  (std::string key="");
       
     public:
       
@@ -50,7 +51,8 @@ namespace faust
       
       saga::impl::attribute_cache get_cache() {return attributes_;}
       
-      void update_attributes(std::string key="");
+      void read_attributes  (std::string key="");
+      void write_attributes (std::string key="");
 			
     };
     //

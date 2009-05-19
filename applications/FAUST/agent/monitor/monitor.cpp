@@ -66,8 +66,6 @@ void monitor::thread_entry_point_(monitor * THIS)
         faust::impl::detail::writeAttributesToDB<faust::resource_monitor>
         (THIS->monitor_, "faust::resource_monitor", THIS->mon_adv_, THIS->log_sptr_);
       }
-      
-      
     }
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
