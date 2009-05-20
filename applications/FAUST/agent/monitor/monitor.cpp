@@ -63,8 +63,7 @@ void monitor::thread_entry_point_(monitor * THIS)
       
       if(should_write)
       {
-        faust::impl::detail::writeAttributesToDB<faust::resource_monitor>
-        (THIS->monitor_, "faust::resource_monitor", THIS->mon_adv_, THIS->log_sptr_);
+        THIS->monitor_.get_impl()->write_attributes();
       }
     }
 

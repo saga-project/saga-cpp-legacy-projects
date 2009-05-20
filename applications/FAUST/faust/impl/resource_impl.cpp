@@ -66,14 +66,17 @@ resource_id_(resource_id)
     args_adv_ = advert_base_.open(endpoint_str_+"ARGS", mode);
     desc_adv_ = advert_base_.open(endpoint_str_+"RD",   mode);
     mon_adv_  = advert_base_.open(endpoint_str_+"RM",   mode);
-    
-    detail::readAttributesFromDB<faust::resource_description>
-      (description_, "faust::resource_description", desc_adv_, get_log());    
-
-    //detail::readAttributesFromDB<faust::resource_monitor>
-    //  (monitor_, "faust::resource_monitor", mon_adv_, get_log());  
+       
+    //////////////////
+    //
+    description_.get_impl()->set_advert_entry(desc_adv_);
+    description_.get_impl()->read_attributes();
     
     monitor_.get_impl()->set_advert_entry(mon_adv_);
+    monitor_.get_impl()->read_attributes();
+    //
+    //////////////////
+    
     
     LOG_WRITE_SUCCESS_2(get_log(),msg);
   }
@@ -227,11 +230,17 @@ init_from_id_(false), persistent_(persistent)
   // create "AGENT_UUID" entry
   saga::advert::entry auuid(endpoint_str_+"AGENT_UUID", mode);
   auuid.store_string(agent_uuid_);  
+
   
-  detail::writeAttributesToDB<faust::resource_description>
-  (description_, "faust::resource_description", desc_adv_, get_log()); 
+  //////////////////
+  //
+  description_.get_impl()->set_advert_entry(desc_adv_);
+  description_.get_impl()->write_attributes();
   
   monitor_.get_impl()->set_advert_entry(mon_adv_);
+  monitor_.get_impl()->read_attributes();
+  //
+  //////////////////
   
 	launch_agent();
   send_command(PROTO_V1_PING, 120);

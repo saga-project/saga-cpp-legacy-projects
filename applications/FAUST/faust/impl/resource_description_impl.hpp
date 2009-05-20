@@ -32,22 +32,30 @@ namespace faust
       
       saga::advert::entry desc_adv_;
       
+      void read_from_db_ (std::string key="");
+      void write_to_db_  (std::string key="");
+      
     public:
       
       resource_description();
       resource_description(saga::advert::entry & desc_adv);
       resource_description(std::string filename);
       
-      void write_to_file(std::string filename);
-      void read_from_file(std::string filename);
-      
+      void set_advert_entry(saga::advert::entry e)
+      {
+        desc_adv_ = e;
+      }
+          
       saga::impl::attribute* get_attributes() { return this; }
       saga::impl::attribute const* get_attributes() const { return this; }
       
       saga::impl::attribute_cache get_cache() {return attributes_;}
       
-      // Generate a exact deep copy of this object
-      // saga::object clone() const;
+      void write_to_file(std::string filename);
+      void read_from_file(std::string filename);
+      
+      void read_attributes  (std::string key="");
+      void write_attributes (std::string key="");
     };
     //
     //////////////////////////////////////////////////////////////////////////

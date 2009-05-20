@@ -53,7 +53,6 @@ namespace faust
       
       void read_attributes  (std::string key="");
       void write_attributes (std::string key="");
-			
     };
     //
     //////////////////////////////////////////////////////////////////////////

@@ -21,7 +21,7 @@ using namespace faust::impl;
 void resource_monitor::write_to_db_(std::string key)
 {
   SAGA_OSSTREAM strm;
-  strm << "Writing attributes to database. " ;
+  strm << "Writing resource_monitor attributes to database. " ;
   
   try 
   {
@@ -66,7 +66,7 @@ void resource_monitor::write_to_db_(std::string key)
 void resource_monitor::read_from_db_(std::string key)
 {
   SAGA_OSSTREAM strm;
-  strm << "Reading attributes from database. ";
+  strm << "Reading resource_monitor attributes from database. ";
   
   try 
   {

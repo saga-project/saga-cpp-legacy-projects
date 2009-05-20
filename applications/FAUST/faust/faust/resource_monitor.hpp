@@ -21,11 +21,13 @@
 #include <faust/faust/object.hpp>
 #include <faust/faust/defines.hpp>
 
+#include <faust/impl/resource_monitor_impl.hpp>
+
 namespace faust
 {    
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
-  namespace agent {class app; namespace monitor { class monitor_group; }}
+  namespace agent {class app; namespace monitor { class monitor_group; class monitor; }}
   namespace impl { class resource_monitor; class resource; }
   ///@endcond - exclude from Doxygen
   
@@ -75,8 +77,6 @@ namespace faust
       /*! \brief  Number of nodes that are currently down.*/
       char const* const queue_nodes_down    = "queue_nodes_down";
       
-      
-      
     }
   }
   
@@ -95,7 +95,10 @@ namespace faust
     friend class faust::impl::resource_monitor;
 		friend class faust::impl::resource;
     friend class faust::agent::app;
+    friend class faust::agent::monitor::monitor;
     friend class faust::agent::monitor::monitor_group;
+    
+    boost::shared_ptr <faust::impl::resource_monitor> get_impl (void) const;
     
     void setupAttributes();
     resource_monitor() ;
@@ -103,7 +106,6 @@ namespace faust
   public:
 		
 		/// @cond - hide from Doxygen
-    boost::shared_ptr <faust::impl::resource_monitor> get_impl (void) const;
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
     

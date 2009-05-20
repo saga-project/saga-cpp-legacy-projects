@@ -25,7 +25,7 @@ namespace faust
   // fwd. decl. implementation class // 
   ///@cond - exclude from Doxygen
   namespace agent {class app; }
-  namespace impl { class resource_description; }
+  namespace impl { class resource_description; class resource; }
   ///@endcond - exclude from Doxygen
   
   namespace attributes 
@@ -123,13 +123,16 @@ namespace faust
 
     friend struct saga::detail::attribute<faust::resource_description>;
     friend class faust::impl::resource_description;
+    friend class faust::impl::resource;
+    friend class faust::agent::app;
+    
+    boost::shared_ptr <faust::impl::resource_description> get_impl (void) const;
     
     void setupAttributes();
     
   public:
 
 		/// @cond - hide from Doxygen
-    boost::shared_ptr <faust::impl::resource_description> get_impl (void) const;
     typedef faust::impl::object implementation_base_type;
 		/// @endcond
 		

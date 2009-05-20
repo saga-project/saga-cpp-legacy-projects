@@ -13,11 +13,12 @@
 #include <agent/agent.hpp>
 #include <faust/faust/exception.hpp>
 
-#include <faust/impl/detail/serialize.hpp>
+#include <faust/impl/resource_description_impl.hpp>
+#include <faust/impl/resource_monitor_impl.hpp>
 
 #include <agent/monitor/monitor_group.hpp>
 
-#include <faust/impl/detail/serialize.hpp>
+
 
 using namespace saga;
 using namespace faust::agent;
@@ -67,12 +68,16 @@ app::app(std::string endpoint, std::string uuid)
     desc_adv_ = base.open("RD", mode);
     mon_adv_  = base.open("RM", mode);
     
-    faust::impl::detail::readAttributesFromDB<faust::resource_description>
-    (description_, "faust::resource_description", desc_adv_, log_sptr_);    
+    //////////////////
+    //
+    description_.get_impl()->set_advert_entry(desc_adv_);
+    description_.get_impl()->read_attributes();
     
-    faust::impl::detail::readAttributesFromDB<faust::resource_monitor>
-    (monitor_, "faust::resource_monitor", mon_adv_, log_sptr_);     
-    
+    monitor_.get_impl()->set_advert_entry(mon_adv_);
+    monitor_.get_impl()->read_attributes();
+    //
+    //////////////////
+        
     monitor_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
       (new faust::agent::monitor::monitor(1, description_, monitor_, mon_adv_, log_sptr_));
     
