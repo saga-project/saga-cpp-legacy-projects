@@ -3,7 +3,7 @@
 
 #define DO_THREADS 
 
-namespace diggedag 
+namespace digedag 
 {
   namespace util
   {
@@ -15,7 +15,7 @@ namespace diggedag
       // and calls its thread_start method.
       void * thread_startup_ (void * arg)
       {
-        diggedag::util::thread * t = (diggedag::util::thread *) arg;
+        digedag::util::thread * t = (digedag::util::thread *) arg;
         return t->thread_start ();
       }
     }
@@ -51,7 +51,7 @@ namespace diggedag
       thread_state_ = ThreadRunning;
 
 #ifdef DO_THREADS
-      if ( 0 != pthread_create (&thread_, NULL, diggedag::util::thread_startup_, this) )
+      if ( 0 != pthread_create (&thread_, NULL, digedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
         joined_       = true;
@@ -105,5 +105,5 @@ namespace diggedag
 
   } // namespace util
 
-} // namespace diggedag
+} // namespace digedag
 

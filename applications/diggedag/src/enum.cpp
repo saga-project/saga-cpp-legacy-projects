@@ -1,7 +1,7 @@
 
 #include "enum.hpp"
 
-namespace diggedag
+namespace digedag
 {
   std::string state_to_string (state s)
   {
@@ -13,5 +13,5 @@ namespace diggedag
     else                        return "Unknown"   ;
   }
 
-} // namespace diggedag
+} // namespace digedag
 

@@ -4,7 +4,7 @@ SAGA_SUBDIRS      = util
 SAGA_SRC          = $(wildcard *.cpp)
 SAGA_ADD_LIB_OBJ  = $(SAGA_SRC:%.cpp=%.o)
 SAGA_ADD_LIB_OBJ += util/thread.o util/split.o
-SAGA_LIB          = diggedag
+SAGA_LIB          = digedag
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 

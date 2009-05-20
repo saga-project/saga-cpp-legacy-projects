@@ -1,19 +1,19 @@
 
-#ifndef DIGGEDAG_ENUM_HPP
-#define DIGGEDAG_ENUM_HPP
+#ifndef DIGEDAG_ENUM_HPP
+#define DIGEDAG_ENUM_HPP
 
 #include <string>
 #include <vector>
 
-namespace diggedag
+namespace digedag
 {
   class edge;
   class node;
 
   typedef std::string                          node_id_t;
   typedef std::pair <std::string, std::string> edge_id_t;
-  typedef std::vector <diggedag::edge *>       edge_map_t;
-  typedef              diggedag::node *        node_map_t;
+  typedef std::vector <digedag::edge *>       edge_map_t;
+  typedef              digedag::node *        node_map_t;
 
   enum state
   {
@@ -27,7 +27,7 @@ namespace diggedag
 
   std::string state_to_string (state s);
 
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_ENUM_HPP
+#endif // DIGEDAG_ENUM_HPP
 

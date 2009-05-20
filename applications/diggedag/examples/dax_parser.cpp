@@ -15,15 +15,15 @@ int main (int argc, char** argv)
       return -1;
     }
 
-    diggedag::dax::parser p (argv[1]);
+    digedag::dax::parser p (argv[1]);
 
-    diggedag::dag * d = p.get_dag ();
+    digedag::dag * d = p.get_dag ();
 
     d->set_scheduler (argv[2]);
 
     // allow for pre-run scheduling
     d->schedule (); 
-    // d->dump ();
+    d->dump ();
 
     // run the dag.  This also performs scheduling on-the-fly
     if ( dryrun )

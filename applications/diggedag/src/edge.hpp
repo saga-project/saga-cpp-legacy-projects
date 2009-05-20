@@ -1,6 +1,6 @@
 
-#ifndef DIGGEDAG_EDGE_HPP
-#define DIGGEDAG_EDGE_HPP
+#ifndef DIGEDAG_EDGE_HPP
+#define DIGEDAG_EDGE_HPP
 
 #include <vector>
 
@@ -15,9 +15,9 @@
 #include "scheduler.hpp"
 
 
-namespace diggedag
+namespace digedag
 {
-  class edge : public diggedag::util::thread
+  class edge : public digedag::util::thread
   {
     private:
       saga::url             src_url_;   // src location of data
@@ -26,13 +26,13 @@ namespace diggedag
       std::string           src_path_;  // original src path
       std::string           tgt_path_;  // original tgt path
 
-      diggedag::state       state_; // state of instance
+      digedag::state       state_; // state of instance
 
-      diggedag::node      * src_node_;
-      diggedag::node      * tgt_node_;
+      digedag::node      * src_node_;
+      digedag::node      * tgt_node_;
 
-      diggedag::dag       * dag_;
-      diggedag::scheduler * scheduler_;
+      digedag::dag       * dag_;
+      digedag::scheduler * scheduler_;
 
       util::mutex           mtx_;
 
@@ -59,28 +59,28 @@ namespace diggedag
       void             thread_work   (void);
       void             erase_src     (void);
       void             erase_tgt     (void);
-      void             add_src_node  (diggedag::node * src);
-      void             add_tgt_node  (diggedag::node * tgt);
+      void             add_src_node  (digedag::node * src);
+      void             add_tgt_node  (digedag::node * tgt);
       void             set_state     (state s);
-      diggedag::state  get_state     (void) const;
+      digedag::state  get_state     (void) const;
       edge_id_t        get_name      (void) const;
 
       saga::url        get_src       (void) const { return src_url_; }
       saga::url        get_tgt       (void) const { return tgt_url_; }
 
 
-      diggedag::node * get_src_node  (void) const { return src_node_; }
-      diggedag::node * get_tgt_node  (void) const { return tgt_node_; }
+      digedag::node * get_src_node  (void) const { return src_node_; }
+      digedag::node * get_tgt_node  (void) const { return tgt_node_; }
 
       void             set_pwd_src   (std::string pwd);
       void             set_pwd_tgt   (std::string pwd);
       void             set_host_src  (std::string host);
       void             set_host_tgt  (std::string host);
 
-      void             set_dag       (diggedag::dag  * d);
+      void             set_dag       (digedag::dag  * d);
   };
 
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_EDGE_HPP
+#endif // DIGEDAG_EDGE_HPP
 

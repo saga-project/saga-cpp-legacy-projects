@@ -1,12 +1,12 @@
 
 #include "dag.hpp"
 
-namespace diggedag
+namespace digedag
 {
   dag::dag (void)
     : state_ (Pending)
   { 
-    scheduler_ = new diggedag::scheduler ();
+    scheduler_ = new digedag::scheduler ();
 
     // create special nodes
     input_  = new node ();
@@ -33,9 +33,9 @@ namespace diggedag
 
     // stop nodes
     {
-      std::map <node_id_t, diggedag::node *> :: iterator it;
-      std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
-      std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
+      std::map <node_id_t, digedag::node *> :: iterator it;
+      std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
+      std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
 
       for ( it = begin; it != end; it++ )
       {
@@ -64,9 +64,9 @@ namespace diggedag
     
     // delete nodes
     {
-      std::map <node_id_t, diggedag::node *> :: iterator it;
-      std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
-      std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
+      std::map <node_id_t, digedag::node *> :: iterator it;
+      std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
+      std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
 
       for ( it = begin; it != end; it++ )
       {
@@ -96,7 +96,7 @@ namespace diggedag
 
 
   void dag::add_node (const node_id_t & name, 
-                      diggedag::node  * node)
+                      digedag::node  * node)
   {
     if ( node == NULL )
     {
@@ -114,9 +114,9 @@ namespace diggedag
   }
 
 
-  void dag::add_edge (diggedag::edge * e, 
-                      diggedag::node * src, 
-                      diggedag::node * tgt)
+  void dag::add_edge (digedag::edge * e, 
+                      digedag::node * src, 
+                      digedag::node * tgt)
   {
     node * s = src;
     node * t = tgt;
@@ -140,7 +140,7 @@ namespace diggedag
 
 
   // add edges to named nodes
-  void dag::add_edge (diggedag::edge  * e, 
+  void dag::add_edge (digedag::edge  * e, 
                       const node_id_t & src, 
                       const node_id_t & tgt)
   {
@@ -163,9 +163,9 @@ namespace diggedag
 
   void dag::reset (void)
   {
-    std::map <node_id_t, diggedag::node *> :: iterator it;
-    std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, digedag::node *> :: iterator it;
+    std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
 
     state_ = Pending;
 
@@ -183,9 +183,9 @@ namespace diggedag
 
     log (" dryun:  dag");
 
-    std::map <node_id_t, diggedag::node *> :: iterator it;
-    std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, digedag::node *> :: iterator it;
+    std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
@@ -226,9 +226,9 @@ namespace diggedag
     // if no nodes can be fired, complain.  Graph is probably cyclic.
     bool cyclic = true;
 
-    std::map <node_id_t, diggedag::node *> :: iterator it;
-    std::map <node_id_t, diggedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, diggedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, digedag::node *> :: iterator it;
+    std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
@@ -297,9 +297,9 @@ namespace diggedag
 
     {
       // count node states
-      std::map <node_id_t, diggedag::node *> :: const_iterator it;
-      std::map <node_id_t, diggedag::node *> :: const_iterator begin = nodes_.begin ();
-      std::map <node_id_t, diggedag::node *> :: const_iterator end   = nodes_.end ();
+      std::map <node_id_t, digedag::node *> :: const_iterator it;
+      std::map <node_id_t, digedag::node *> :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, digedag::node *> :: const_iterator end   = nodes_.end ();
 
       int i = 0;
       for ( it = begin; it != end; it++ )
@@ -440,9 +440,9 @@ namespace diggedag
 
     log (" -  NODES  ----------------------------------\n");
     {
-      std::map <node_id_t, diggedag::node *> :: const_iterator it;
-      std::map <node_id_t, diggedag::node *> :: const_iterator begin = nodes_.begin ();
-      std::map <node_id_t, diggedag::node *> :: const_iterator end   = nodes_.end ();
+      std::map <node_id_t, digedag::node *> :: const_iterator it;
+      std::map <node_id_t, digedag::node *> :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, digedag::node *> :: const_iterator end   = nodes_.end ();
 
       for ( it = begin; it != end; it++ )
       {
@@ -498,7 +498,7 @@ namespace diggedag
     // ### scheduler hook
     scheduler_->hook_dag_schedule (this);
 
-    // FIXME: data transfers may end up to be redundant, and ch=should be
+    // FIXME: data transfers may end up to be redundant, and should be
     // pruned.
   }
 
@@ -517,9 +517,9 @@ namespace diggedag
     scheduler_->set_scheduler (s);
   }
 
-  diggedag::scheduler * dag::get_scheduler (void)
+  digedag::scheduler * dag::get_scheduler (void)
   {
     return scheduler_;
   }
-} // namespace diggedag
+} // namespace digedag
 

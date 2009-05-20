@@ -1,12 +1,12 @@
 
-#ifndef DIGGEDAG_UTIL_MUTEX_HPP
-#define DIGGEDAG_UTIL_MUTEX_HPP
+#ifndef DIGEDAG_UTIL_MUTEX_HPP
+#define DIGEDAG_UTIL_MUTEX_HPP
 
 #include <pthread.h>
 
 // FIXME: check mutex call return values
 
-namespace diggedag 
+namespace digedag 
 {
   namespace util
   {
@@ -55,7 +55,7 @@ namespace diggedag
 
   } // namespace util
 
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_UTIL_MUTEX_HPP
+#endif // DIGEDAG_UTIL_MUTEX_HPP
 

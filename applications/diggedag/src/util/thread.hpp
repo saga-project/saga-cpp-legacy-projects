@@ -1,12 +1,12 @@
 
-#ifndef DIGGEDAG_UTIL_THREAD_HPP
-#define DIGGEDAG_UTIL_THREAD_HPP
+#ifndef DIGEDAG_UTIL_THREAD_HPP
+#define DIGEDAG_UTIL_THREAD_HPP
 
 #include <iostream>
 
 #include <pthread.h>
 
-namespace diggedag 
+namespace digedag 
 {
   namespace util
   {
@@ -80,8 +80,8 @@ namespace diggedag
 
   } // namespace util
 
-} // namespace diggedag
+} // namespace digedag
 
 
-#endif // DIGGEDAG_UTIL_THREAD_HPP
+#endif // DIGEDAG_UTIL_THREAD_HPP
 

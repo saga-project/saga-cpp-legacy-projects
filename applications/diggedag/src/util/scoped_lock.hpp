@@ -1,10 +1,10 @@
-#ifndef DIGGEDAG_UTIL_SCOPEDLOCK_HPP
-#define DIGGEDAG_UTIL_SCOPEDLOCK_HPP
+#ifndef DIGEDAG_UTIL_SCOPEDLOCK_HPP
+#define DIGEDAG_UTIL_SCOPEDLOCK_HPP
 
 #include "util/mutex.hpp"
 
 
-namespace diggedag 
+namespace digedag 
 {
   namespace util
   {
@@ -36,8 +36,8 @@ namespace diggedag
 
   } // namespace util
 
-} // namespace diggedag
+} // namespace digedag
 
 
-#endif // DIGGEDAG_UTIL_SCOPEDLOCK_HPP
+#endif // DIGEDAG_UTIL_SCOPEDLOCK_HPP
 

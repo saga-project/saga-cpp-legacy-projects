@@ -3,7 +3,7 @@
 
 #include "util/uid.hpp"
 
-namespace diggedag 
+namespace digedag 
 {
   namespace util
   {
@@ -25,5 +25,5 @@ namespace diggedag
 
   } // namespace util
 
-} // namespace diggedag
+} // namespace digedag
 

@@ -1,22 +1,22 @@
 
-#ifndef DIGGEDAG_PEGASUS_PARSER_HPP
-#define DIGGEDAG_PEGASUS_PARSER_HPP
+#ifndef DIGEDAG_PEGASUS_PARSER_HPP
+#define DIGEDAG_PEGASUS_PARSER_HPP
 
 #include <string>
 #include <vector>
 
 #include "util/split.hpp"
-#include "diggedag.hpp"
+#include "digedag.hpp"
 
 
-namespace diggedag
+namespace digedag
 {
   namespace pegasus
   {
     class parser
     {
       private:
-        diggedag::dag           * dag_;
+        digedag::dag           * dag_;
 
         std::string               filename_;
         std::string               basename_;
@@ -35,10 +35,10 @@ namespace diggedag
         parser  (const std::string & filename);
         ~parser (void);
 
-        diggedag::dag * get_dag (void) { return dag_; }
+        digedag::dag * get_dag (void) { return dag_; }
     };
   }
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_PEGASUS_PARSER_HPP
+#endif // DIGEDAG_PEGASUS_PARSER_HPP
 

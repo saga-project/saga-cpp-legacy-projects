@@ -15,7 +15,7 @@
 
 #define RETRY_MAX 10
 
-namespace diggedag
+namespace digedag
 {
   scheduler::scheduler (void)
     :stopped_ (false)
@@ -54,7 +54,7 @@ namespace diggedag
 
     while ( std::getline (fin, line) )
     {
-      std::vector <std::string> words = diggedag::split (line);
+      std::vector <std::string> words = digedag::split (line);
 
       if ( words.size () < 1 )
       {
@@ -104,21 +104,21 @@ namespace diggedag
     }
   }
 
-  void scheduler::hook_dag_create (diggedag::dag  * d)                     
+  void scheduler::hook_dag_create (digedag::dag  * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_destroy (diggedag::dag * d)                     
+  void scheduler::hook_dag_destroy (digedag::dag * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_schedule (diggedag::dag * d)                     
+  void scheduler::hook_dag_schedule (digedag::dag * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -160,35 +160,35 @@ namespace diggedag
   }
 
 
-  void scheduler::hook_dag_run_pre (diggedag::dag * d)                     
+  void scheduler::hook_dag_run_pre (digedag::dag * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_run_post (diggedag::dag * d)                     
+  void scheduler::hook_dag_run_post (digedag::dag * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_run_done (diggedag::dag * d)                     
+  void scheduler::hook_dag_run_done (digedag::dag * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_run_fail (diggedag::dag * d)                     
+  void scheduler::hook_dag_run_fail (digedag::dag * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_wait (diggedag::dag * d)                     
+  void scheduler::hook_dag_wait (digedag::dag * d)                     
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -196,8 +196,8 @@ namespace diggedag
 
 
 
-  void scheduler::hook_node_add (diggedag::dag  * d,
-                                 diggedag::node * n)           
+  void scheduler::hook_node_add (digedag::dag  * d,
+                                 digedag::node * n)           
   {
     if ( stopped_ ) return;
     pthread_mutex_t m = mtx_.get ();
@@ -205,24 +205,24 @@ namespace diggedag
   }
 
 
-  void scheduler::hook_node_remove (diggedag::dag  * d,
-                                    diggedag::node * n)           
+  void scheduler::hook_node_remove (digedag::dag  * d,
+                                    digedag::node * n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_node_run_pre (diggedag::dag  * d,
-                                     diggedag::node * n)           
+  void scheduler::hook_node_run_pre (digedag::dag  * d,
+                                     digedag::node * n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_node_run_done (diggedag::dag  * d,
-                                      diggedag::node * n)           
+  void scheduler::hook_node_run_done (digedag::dag  * d,
+                                      digedag::node * n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -230,8 +230,8 @@ namespace diggedag
 
 
   // NOTE that this implementation is recursive!  no locks, please...
-  void scheduler::hook_node_run_fail (diggedag::dag  * d,
-                                      diggedag::node * n)           
+  void scheduler::hook_node_run_fail (digedag::dag  * d,
+                                      digedag::node * n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -266,8 +266,8 @@ namespace diggedag
 
 
 
-  void scheduler::hook_edge_add (diggedag::dag  * d,
-                                 diggedag::edge * e)           
+  void scheduler::hook_edge_add (digedag::dag  * d,
+                                 digedag::edge * e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -281,36 +281,36 @@ namespace diggedag
   }
 
 
-  void scheduler::hook_node_remove (diggedag::dag  * d,
-                                    diggedag::edge * e)           
+  void scheduler::hook_node_remove (digedag::dag  * d,
+                                    digedag::edge * e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_edge_run_pre (diggedag::dag  * d,
-                                     diggedag::edge * e)           
+  void scheduler::hook_edge_run_pre (digedag::dag  * d,
+                                     digedag::edge * e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_edge_run_done (diggedag::dag  * d,
-                                      diggedag::edge * e)           
+  void scheduler::hook_edge_run_done (digedag::dag  * d,
+                                      digedag::edge * e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_edge_run_fail (diggedag::dag  * d,
-                                      diggedag::edge * e)           
+  void scheduler::hook_edge_run_fail (digedag::dag  * d,
+                                      digedag::edge * e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
-} // namespace diggedag
+} // namespace digedag
 

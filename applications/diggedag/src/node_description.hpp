@@ -1,10 +1,10 @@
 
-#ifndef DIGGEDAG_NODEDESC_HPP
-#define DIGGEDAG_NODEDESC_HPP 
+#ifndef DIGEDAG_NODEDESC_HPP
+#define DIGEDAG_NODEDESC_HPP 
 
 #include <saga/saga.hpp>
 
-namespace diggedag
+namespace digedag
 {
   namespace node_attributes
   {
@@ -32,7 +32,7 @@ namespace diggedag
     // job_description, but have a job_description, and an accessor.
   };
 
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_NODEDESC_HPP
+#endif // DIGEDAG_NODEDESC_HPP
 

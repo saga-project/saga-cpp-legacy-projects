@@ -1,6 +1,6 @@
 
-#ifndef DIGGEDAG_SCHEDULER_HPP
-#define DIGGEDAG_SCHEDULER_HPP
+#ifndef DIGEDAG_SCHEDULER_HPP
+#define DIGEDAG_SCHEDULER_HPP
 
 #include <vector>
 
@@ -9,7 +9,7 @@
 #include "util/mutex.hpp"
 
 
-namespace diggedag
+namespace digedag
 {
   class dag;
   class node;
@@ -47,29 +47,29 @@ namespace diggedag
 
       void set_scheduler      (std::string s);
 
-      void hook_dag_create    (diggedag::dag * d);
-      void hook_dag_destroy   (diggedag::dag * d);
-      void hook_dag_schedule  (diggedag::dag * d);
-      void hook_dag_run_pre   (diggedag::dag * d);
-      void hook_dag_run_post  (diggedag::dag * d);
-      void hook_dag_run_done  (diggedag::dag * d);
-      void hook_dag_run_fail  (diggedag::dag * d);
-      void hook_dag_wait      (diggedag::dag * d);
+      void hook_dag_create    (digedag::dag * d);
+      void hook_dag_destroy   (digedag::dag * d);
+      void hook_dag_schedule  (digedag::dag * d);
+      void hook_dag_run_pre   (digedag::dag * d);
+      void hook_dag_run_post  (digedag::dag * d);
+      void hook_dag_run_done  (digedag::dag * d);
+      void hook_dag_run_fail  (digedag::dag * d);
+      void hook_dag_wait      (digedag::dag * d);
 
-      void hook_node_add      (diggedag::dag * d, diggedag::node * n);
-      void hook_node_remove   (diggedag::dag * d, diggedag::node * n);
-      void hook_node_run_pre  (diggedag::dag * d, diggedag::node * n);
-      void hook_node_run_done (diggedag::dag * d, diggedag::node * n);
-      void hook_node_run_fail (diggedag::dag * d, diggedag::node * n);
+      void hook_node_add      (digedag::dag * d, digedag::node * n);
+      void hook_node_remove   (digedag::dag * d, digedag::node * n);
+      void hook_node_run_pre  (digedag::dag * d, digedag::node * n);
+      void hook_node_run_done (digedag::dag * d, digedag::node * n);
+      void hook_node_run_fail (digedag::dag * d, digedag::node * n);
 
-      void hook_edge_add      (diggedag::dag * d, diggedag::edge * e);
-      void hook_node_remove   (diggedag::dag * d, diggedag::edge * e);
-      void hook_edge_run_pre  (diggedag::dag * d, diggedag::edge * e);
-      void hook_edge_run_done (diggedag::dag * d, diggedag::edge * e);
-      void hook_edge_run_fail (diggedag::dag * d, diggedag::edge * e);
+      void hook_edge_add      (digedag::dag * d, digedag::edge * e);
+      void hook_node_remove   (digedag::dag * d, digedag::edge * e);
+      void hook_edge_run_pre  (digedag::dag * d, digedag::edge * e);
+      void hook_edge_run_done (digedag::dag * d, digedag::edge * e);
+      void hook_edge_run_fail (digedag::dag * d, digedag::edge * e);
   };
 
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_SCHEDULER_HPP
+#endif // DIGEDAG_SCHEDULER_HPP
 

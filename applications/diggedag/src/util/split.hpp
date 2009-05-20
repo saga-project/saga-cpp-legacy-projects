@@ -1,15 +1,15 @@
 
-#ifndef DIGGEDAG_UTIL_SPLIT_HPP
-#define DIGGEDAG_UTIL_SPLIT_HPP
+#ifndef DIGEDAG_UTIL_SPLIT_HPP
+#define DIGEDAG_UTIL_SPLIT_HPP
 
 #include <string>
 #include <vector>
 
-namespace diggedag
+namespace digedag
 {
   std::vector <std::string> split (std::string line, 
                                    std::string delim = " \t");
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_UTIL_SPLIT_HPP
+#endif // DIGEDAG_UTIL_SPLIT_HPP
 

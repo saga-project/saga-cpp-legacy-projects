@@ -4,7 +4,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-namespace diggedag
+namespace digedag
 {
   std::vector <std::string> split (std::string line, 
                                    std::string delim)
@@ -15,5 +15,5 @@ namespace diggedag
     
     return list;
   }
-} // namespace diggedag
+} // namespace digedag
 

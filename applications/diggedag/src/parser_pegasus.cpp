@@ -6,7 +6,7 @@
 #include "util/split.hpp"
 #include "parser_pegasus.hpp"
 
-namespace diggedag
+namespace digedag
 {
   namespace pegasus
   {
@@ -15,7 +15,7 @@ namespace diggedag
       , basename_ (get_name (filename))
       , basedir_  (get_dir  (filename))
     {
-      dag_ = new diggedag::dag ();
+      dag_ = new digedag::dag ();
       parse_dag ();
     }
 
@@ -45,7 +45,7 @@ namespace diggedag
       {
         while ( std::getline (fin, line) )
         {
-          std::vector <std::string> words = diggedag::split (line);
+          std::vector <std::string> words = digedag::split (line);
 
           if ( words[0] == "JOB" )
           {
@@ -77,7 +77,7 @@ namespace diggedag
     {
       std::cout << "\n";
 
-      std::vector <std::string> elems = diggedag::split (spec);
+      std::vector <std::string> elems = digedag::split (spec);
 
       std::fstream fin;
       std::string  line;
@@ -94,12 +94,12 @@ namespace diggedag
 
       try 
       {
-        diggedag::node_description nd;
+        digedag::node_description nd;
 
         while ( std::getline (fin, line) )
         {
           std::string key = "";
-          std::vector <std::string> words = diggedag::split (line);
+          std::vector <std::string> words = digedag::split (line);
 
           if ( words.size () > 2 )
           {
@@ -139,7 +139,7 @@ namespace diggedag
           {
             std::cout << "ENV LINE " << std::endl;
 
-            std::vector <std::string> env = diggedag::split (words[0], ";");
+            std::vector <std::string> env = digedag::split (words[0], ";");
 
             for ( unsigned int i = 0; i < env.size (); i++ )
               std::cout << "   " << env[i] << "\n";
@@ -176,7 +176,7 @@ namespace diggedag
 
         }
 
-        diggedag::node * n = new diggedag::node (nd);
+        digedag::node * n = new digedag::node (nd);
         dag_->add_node (name, n);
       }
       catch ( ... )
@@ -189,9 +189,9 @@ namespace diggedag
 
     void parser::parse_edge (const std::string spec)
     {
-      std::vector <std::string> elems = diggedag::split (spec);
+      std::vector <std::string> elems = digedag::split (spec);
 
-      diggedag::edge * e = new diggedag::edge ("file://localhost/TODO", 
+      digedag::edge * e = new digedag::edge ("file://localhost/TODO", 
                                                "file://localhost/FIXME");
       dag_->add_edge (e, elems[1], elems[3]);
     }
@@ -226,5 +226,5 @@ namespace diggedag
 
   } // namespace pegasus
 
-} // namespace diggedag
+} // namespace digedag
 

@@ -11,13 +11,13 @@
 #include "node.hpp"
 
 
-namespace diggedag
+namespace digedag
 {
-  node::node (diggedag::node_description & nd, 
+  node::node (digedag::node_description & nd, 
               std::string                  name)
     : nd_      (nd)
     , name_    (name)
-    , state_   (diggedag::Pending)
+    , state_   (digedag::Pending)
     , is_void_ (false)
   {
     std::stringstream ss;
@@ -38,11 +38,11 @@ namespace diggedag
               std::string name)
     : cmd_     (cmd)
     , name_    (name)
-    , state_   (diggedag::Pending)
+    , state_   (digedag::Pending)
     , is_void_ (false)
   {
     // parse cmd into node description
-    std::vector <std::string> elems = diggedag::split (cmd_);
+    std::vector <std::string> elems = digedag::split (cmd_);
 
     nd_.set_attribute ("Executable", elems[0]);
     nd_.set_attribute ("Interactive", saga::attributes::common_false);
@@ -55,7 +55,7 @@ namespace diggedag
   node::node (void)
     : cmd_     ("-")
     , name_    ("void")
-    , state_   (diggedag::Pending)
+    , state_   (digedag::Pending)
     , is_void_ (true)
   {
   }
@@ -70,12 +70,12 @@ namespace diggedag
     name_ = name;
   }
 
-  void node::add_edge_in (diggedag::edge * e)
+  void node::add_edge_in (digedag::edge * e)
   {
     edge_in_.push_back (e);
   }
 
-  void node::add_edge_out (diggedag::edge * e)
+  void node::add_edge_out (digedag::edge * e)
   {
     edge_out_.push_back (e);
   }
@@ -274,7 +274,7 @@ namespace diggedag
     return name_;
   }
 
-  diggedag::node_description node::get_description (void) const
+  digedag::node_description node::get_description (void) const
   {
     return nd_;
   }
@@ -284,7 +284,7 @@ namespace diggedag
     state_ = s;
   }
 
-  diggedag::state node::get_state (void)
+  digedag::state node::get_state (void)
   {
     // check if all input data are ready
     for ( unsigned int i = 0; i < edge_in_.size (); i++ )
@@ -379,11 +379,11 @@ namespace diggedag
     nd_.set_vector_attribute ("Environment", new_env);
   }
 
-  void node::set_dag (diggedag::dag * d)
+  void node::set_dag (digedag::dag * d)
   {
     dag_       = d;
     scheduler_ = dag_->get_scheduler ();
   }
 
-} // namespace diggedag
+} // namespace digedag
 

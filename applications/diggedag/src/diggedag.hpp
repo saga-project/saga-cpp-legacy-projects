@@ -1,6 +1,6 @@
 
-#ifndef DIGGEDAG_HPP
-#define DIGGEDAG_HPP
+#ifndef DIGEDAG_HPP
+#define DIGEDAG_HPP
 
 #include "enum.hpp"
 #include "dag.hpp"
@@ -8,5 +8,5 @@
 #include "edge.hpp"
 #include "scheduler.hpp"
 
-#endif // DIGGEDAG_HPP
+#endif // DIGEDAG_HPP
 

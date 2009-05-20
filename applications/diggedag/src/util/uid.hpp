@@ -1,8 +1,8 @@
 
-#ifndef DIGGEDAG_UTIL_UID_HPP
-#define DIGGEDAG_UTIL_UID_HPP
+#ifndef DIGEDAG_UTIL_UID_HPP
+#define DIGEDAG_UTIL_UID_HPP
 
-namespace diggedag 
+namespace digedag 
 {
   namespace util
   {
@@ -25,7 +25,7 @@ namespace diggedag
     // };
     //
     // Well, this needs to be done if copies point to the same underlying
-    // resource, as in the diggedag use case...
+    // resource, as in the digedag use case...
     class uid
     {
       private:
@@ -42,7 +42,7 @@ namespace diggedag
 
   } // namespace util
 
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_UTIL_UID_HPP
+#endif // DIGEDAG_UTIL_UID_HPP
 

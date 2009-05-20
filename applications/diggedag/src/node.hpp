@@ -1,6 +1,6 @@
 
-#ifndef DIGGEDAG_NODE_HPP
-#define DIGGEDAG_NODE_HPP
+#ifndef DIGEDAG_NODE_HPP
+#define DIGEDAG_NODE_HPP
 
 #include <vector>
 
@@ -17,25 +17,25 @@
 #include "node_description.hpp"
 
 
-namespace diggedag
+namespace digedag
 {
-  class node : public diggedag::util::thread
+  class node : public digedag::util::thread
   {
     private:
-      diggedag::node_description     nd_;       // node application to run
+      digedag::node_description     nd_;       // node application to run
 
-      std::vector <diggedag::edge *> edge_in_;  // input  data
-      std::vector <diggedag::edge *> edge_out_; // output data
+      std::vector <digedag::edge *> edge_in_;  // input  data
+      std::vector <digedag::edge *> edge_out_; // output data
 
       std::string                    cmd_;
       std::string                    pwd_;
       std::string                    host_;
       std::string                    path_;
       std::string                    name_;     // instance name
-      diggedag::state                state_;    // instance state
+      digedag::state                state_;    // instance state
 
-      diggedag::dag                * dag_;
-      diggedag::scheduler          * scheduler_;
+      digedag::dag                * dag_;
+      digedag::scheduler          * scheduler_;
 
       bool                           is_void_;  // void node?
 
@@ -44,7 +44,7 @@ namespace diggedag
 
 
     public:
-      node  (diggedag::node_description & nd, 
+      node  (digedag::node_description & nd, 
              std::string                  name = "");
       node  (std::string                  cmd,
              std::string                  name = "");
@@ -52,8 +52,8 @@ namespace diggedag
       ~node (void);
 
       void            set_name        (std::string      name);
-      void            add_edge_in     (diggedag::edge * e);
-      void            add_edge_out    (diggedag::edge * e);
+      void            add_edge_in     (digedag::edge * e);
+      void            add_edge_out    (digedag::edge * e);
 
       void            dryrun          (void);
       void            reset           (void);
@@ -62,18 +62,18 @@ namespace diggedag
       void            dump            (bool deep = false);
       void            thread_work     (void);
       std::string     get_name        (void) const;
-      diggedag::node_description 
+      digedag::node_description 
                       get_description (void) const;
       void            set_state       (state s);
-      diggedag::state get_state       (void);
+      digedag::state get_state       (void);
       void            set_pwd         (std::string pwd);
       void            set_host        (std::string host);
       void            set_path        (std::string path);
 
-      void            set_dag         (diggedag::dag  * d);
+      void            set_dag         (digedag::dag  * d);
   };
 
-} // namespace diggedag
+} // namespace digedag
 
-#endif // DIGGEDAG_NODE_HPP
+#endif // DIGEDAG_NODE_HPP
 

@@ -3,7 +3,7 @@
 
 #include "util/scoped_lock.hpp"
 
-namespace diggedag
+namespace digedag
 {
   edge::edge (const saga::url & src, 
               const saga::url & tgt) 
@@ -47,12 +47,12 @@ namespace diggedag
     }
   }
 
-  void edge::add_src_node (diggedag::node * src)
+  void edge::add_src_node (digedag::node * src)
   {
     src_node_ = src;
   }
 
-  void edge::add_tgt_node (diggedag::node * tgt)
+  void edge::add_tgt_node (digedag::node * tgt)
   {
     tgt_node_ = tgt;
   }
@@ -220,7 +220,7 @@ namespace diggedag
     state_ = s;
   }
 
-  diggedag::state edge::get_state (void) const
+  digedag::state edge::get_state (void) const
   {
     return state_;
   }
@@ -252,12 +252,12 @@ namespace diggedag
 
 
 
-  void edge::set_dag (diggedag::dag * d)
+  void edge::set_dag (digedag::dag * d)
   {
     dag_       = d;
     scheduler_ = dag_->get_scheduler ();
     // FIXME: use the scheduler
   }
 
-} // namespace diggedag
+} // namespace digedag
 
