@@ -29,7 +29,7 @@ int main (int argc, char* argv[])
   // create a resource object from the description
   faust::resource localhost (localhost_rd, false);
   
-  for(int i=0; i < 10; ++i)
+  for(int i=0; i < 100; ++i)
   {
     // read resource monitor attributes
     faust::resource_monitor localhost_rm = localhost.get_monitor();

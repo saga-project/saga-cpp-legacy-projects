@@ -137,7 +137,6 @@ bool monitor_group::validate_(std::vector<mapping_t> &vec, SAGA_OSSTREAM & msg)
           return false;
         } 
       }
-      
     }
   }
   catch(saga::exception const & e)
@@ -296,6 +295,7 @@ bool monitor_group::process_all_()
           reverse.push_back((*it_3).at(vec_pos));
         }
         
+        // write values to monitor if update required
         monitor_.set_vector_attribute((*it_2).second, reverse);
         ++vec_pos;
       }
@@ -313,6 +313,7 @@ bool monitor_group::process_all_()
           reverse.push_back((*it_4).at(vec_pos));
         }
         
+        // write values to monitor
         monitor_.set_vector_attribute((*it_3).second, reverse);
         ++vec_pos;
       }
