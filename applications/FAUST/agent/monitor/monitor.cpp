@@ -14,7 +14,7 @@
 #include <agent/monitor/monitor.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 
-#include <faust/impl/detail/serialize.hpp>
+//#include <faust/impl/detail/serialize.hpp>
 
 #include <iostream>
 #include <fstream>

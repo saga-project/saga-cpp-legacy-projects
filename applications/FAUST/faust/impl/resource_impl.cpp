@@ -10,7 +10,7 @@
  *  LICENSE file or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <faust/impl/detail/serialize.hpp>
+//#include <faust/impl/detail/serialize.hpp>
 
 #include <faust/faust/protocol.hpp>
 #include <faust/faust/exception.hpp>

@@ -15,9 +15,8 @@ include_directories(${Boost_LIBRARY_DIR})
 set (AGENT_SOURCE_FILES 
 	${FAUST_SOURCE_DIR}/agent/main.cpp
 	${FAUST_SOURCE_DIR}/agent/agent.cpp
-	${FAUST_SOURCE_DIR}/agent/system_monitor.cpp
 	${FAUST_SOURCE_DIR}/agent/monitor/monitor.cpp
-	${FAUST_SOURCE_DIR}/agent/monitor/directories.cpp
+	${FAUST_SOURCE_DIR}/agent/monitor/monitor_group.cpp
 )
 
 set (FAUST_SOURCE_FILES

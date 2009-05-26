@@ -47,7 +47,7 @@ namespace faust { namespace agent { namespace monitor {
       void init();
       
     public:
-      
+            
       monitor (unsigned int update_interval,
                faust::resource_description desc,
                faust::resource_monitor mon,

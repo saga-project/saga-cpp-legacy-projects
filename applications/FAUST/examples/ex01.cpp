@@ -24,7 +24,7 @@ int main (int argc, char* argv[])
   faust::resource_description localhost_rd;
   
   // you can load a resource description from a file
-  localhost_rd.read_from_file("../../misc/resource_descriptions/macpro01.cct.lsu.edu.faust");
+  localhost_rd.read_from_file("../misc/resource_descriptions/macpro01.cct.lsu.edu.faust");
   
   // create a resource object from the description
   faust::resource localhost (localhost_rd, false);

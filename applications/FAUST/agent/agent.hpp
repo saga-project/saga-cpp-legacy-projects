@@ -30,7 +30,7 @@ namespace faust
         
         std::string endpoint_;
         std::string uuid_;
-        
+                
         saga::advert::entry cmd_adv_;
         saga::advert::entry args_adv_;
         saga::advert::entry desc_adv_;

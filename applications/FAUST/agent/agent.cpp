@@ -51,7 +51,7 @@ namespace {
 //////////////////////////////////////////////////////////////////////////
 //
 app::app(std::string endpoint, std::string uuid)
-: endpoint_(endpoint), uuid_(uuid)
+: endpoint_(endpoint), uuid_(uuid) 
 {
   // Initialize logwrite instance 
   std::string identifier("faust_agent ("+uuid_+")"); std::string msg("");
@@ -80,7 +80,7 @@ app::app(std::string endpoint, std::string uuid)
         
     monitor_sptr_ = boost::shared_ptr <faust::agent::monitor::monitor>
       (new faust::agent::monitor::monitor(1, description_, monitor_, mon_adv_, log_sptr_));
-    
+        
     msg += ". SUCCESS ";
     log_sptr_->write(msg, LOGLEVEL_INFO);
   }
@@ -183,6 +183,7 @@ std::string app::recv_command(std::string & cmd, std::string & args)
 //
 void app::run(void)
 {
+
   // start monitor thread
   monitor_sptr_->run();
   

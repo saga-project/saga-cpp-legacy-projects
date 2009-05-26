@@ -12,7 +12,7 @@
 
 #include <faust/faust/exception.hpp>
 #include <faust/impl/resource_monitor_impl.hpp>
-#include <faust/impl/detail/serialize.hpp>
+//#include <faust/impl/detail/serialize.hpp>
 
 using namespace faust::impl;
 

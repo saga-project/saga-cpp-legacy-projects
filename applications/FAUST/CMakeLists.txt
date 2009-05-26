@@ -163,18 +163,7 @@ endif()
 # directory structure.
 add_subdirectory(${FAUST_SOURCE_DIR}/faust)
 add_subdirectory(${FAUST_SOURCE_DIR}/agent)
-
-
-
-# Components are to build separately
-#add_subdirectory(FAUST/components)
-
-# executables depend on libraries above
-#add_subdirectory(tests)
-#add_subdirectory(examples)
-#add_subdirectory(runtime)
-
-# installation instructions
+add_subdirectory(${FAUST_SOURCE_DIR}/examples)
 
 
 INSTALL(

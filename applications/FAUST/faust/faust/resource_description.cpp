@@ -22,7 +22,7 @@
 #include <faust/faust/resource_description.hpp>
 #include <faust/impl/resource_description_impl.hpp>
 
-#include <faust/impl/detail/serialize.hpp>
+//#include <faust/impl/detail/serialize.hpp>
 
 using namespace faust;
 
