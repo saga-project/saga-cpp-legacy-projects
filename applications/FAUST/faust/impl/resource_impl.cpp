@@ -270,16 +270,12 @@ void resource::launch_agent(unsigned int timeout)
   if(description_.attribute_exists(FAR::environment))
     env = description_.get_vector_attribute(FAR::environment);
   
-	env.push_back("SAGA_LOCATION="+
-								description_.get_attribute(FAR::saga_root_path));
-	//env.push_back("LD_LIBRARY_PATH="+
-	//							description_.get_attribute(FAR::saga_root_path) +"/lib"); // Linux
-	env.push_back("DYLD_LIBRARY_PATH="+
-								description_.get_attribute(FAR::saga_root_path)+"/lib");  // MacOS 
+	env.push_back("SAGA_LOCATION="+description_.get_attribute(FAR::saga_root_path));
+	env.push_back("LD_LIBRARY_PATH="+description_.get_attribute(FAR::saga_root_path) +"/lib"); // Linux
+	env.push_back("DYLD_LIBRARY_PATH="+description_.get_attribute(FAR::saga_root_path)+"/lib");  // MacOS 
 	
 	std::vector<std::string> args;
-	args.push_back("--endpoint="+object::faust_root_namesapce_ 
-                 +"RESOURCES/"+resource_id_+"/");
+	args.push_back("--endpoint="+object::faust_root_namesapce_ +"RESOURCES/"+resource_id_+"/");
 	args.push_back("--identifier="+agent_uuid_);
   
   SAGA_OSSTREAM msg;
