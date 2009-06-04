@@ -4,11 +4,12 @@
 #use warnings;
 
 use Archive::Tar;
+use Getopt::Long;
 use LWP::Simple;
 
 $meph_version     = 0.1;
 $meph_repository  = "http://macpro01.cct.lsu.edu/mephisto";
-$meph_tmp_dir     = "/tmp/";
+$meph_tmp_dir     = "/tmp/meph_tmp";
 $meph_install_dir = "/tmp/meph_inst/";
 
 ##############################################################################
@@ -22,7 +23,6 @@ sub print_mephisto_logo {
     print " |_| |_| |_|\\___| .__/|_| |_|_|___/\\__\\___/ \n";
     print "                | |                         \n";
     print "                |_| $meph_version\n";
-    print " \n ... A deployment tool for SAGA and FAUST ...\n";
 }
 ##
 ##############################################################################
@@ -181,27 +181,101 @@ sub pull_package {
 ##############################################################################
 
 ##############################################################################
+## 
+sub print_usage () {
+    print "\n Usage: mephisto.pl list <options>\n";
+    print "        Lists all packages that are available in the repository.\n\n";
+
+	print "        mephisto.pl install --target-dir=<dir> <options>\n";
+    print "        Installs all or just selected packages from the repository.\n\n";
+
+    print " Options and Arguments:\n\n";
+	print "      --target-dir=    The base directory for the installation.\n";
+	print "                       All selected packages will end up in here.\n\n";
+
+	print "      --tmp-dir=       The directory mephisto should use for downloading\n";
+	print "                       and building. If omitted, it defaults to /tmp/meph_tmp.\n\n";
+	
+	print "      --with-packages= Comma-separated list of optional packages to\n";
+	print "                       install. By default, mephisto installs all\n";
+	print "                       available packages.\n\n";
+}
+
+##############################################################################
+## 
+sub check_options () {
+	my $help        = 0;	
+	my $install_dir = 0;	
+	my $tmp_dir     = 0;
+	my $mode        = 0;
+	
+	# The first option HAS to be the mode (list/install/etc)
+	if( @ARGV < 1)
+	{
+	    print_usage();
+		exit();	
+	}
+	
+	if( $ARGV[0] eq "list")
+	{
+		$mode = "list";
+		print "\n LIST NOT IMPLEMENTED YET\n";
+		print_usage();
+		exit();
+	}
+	elsif( $ARGV[0] eq "install")
+	{
+		$mode = "install";
+		my $retval= GetOptions('target-dir=s'  => \$install_dir, 
+							   'help|?'		   => \$help,
+				         	   'tmp-dir=s'     => \$tmp_dir) ; 
+		if(!$retval)
+		{
+			print_usage();
+			exit();	
+		}
+		
+		if($install_dir eq 0)
+		{
+			print "\n You have to set the '--target-dir' argument.\n";
+			print_usage();
+			exit();
+		}
+		else
+		{
+			$meph_install_dir = $install_dir;
+		}
+		
+		if(! $tmp_dir eq 0)
+		{
+			$meph_tmp_dir = $tmp_dir;
+		}
+	}
+	else
+	{
+		print_usage();
+		exit();
+	}
+	
+	if ( $help ) {
+	    print_usage();
+		exit()
+	}
+ }
+##
+##############################################################################
+
+##############################################################################
 ## "MAIN"
 ##
 
 print_mephisto_logo();
-$numArgs = $#ARGV + 1;
+check_options();
 
-if ( $numArgs < 1 ) {
-    print "\n Usage: mephisto.pl <install_dir> <tmp_dir>\n\n";
-    print "        <tmp_dir>     the temporary download/build directory (default: /tmp/)\n";
-    print "        <install_dir> the directory where you want to install the packages\n\n";
-    exit();
-}
-else {
-    $meph_install_dir = $ARGV[0];
-    if ( $numArgs == 2 ) {
-        $meph_tmp_dir = $ARGV[1];
-        if ( !-d $meph_tmp_dir ) {
-            mkdir($meph_tmp_dir)
-              or die "\n Couldn't create tmp directory: $meph_tmp_dir\n\n";
-        }
-    }
+
+if ( !-d $meph_tmp_dir ) {
+	mkdir($meph_tmp_dir)
+		or die "\n Couldn't create tmp directory: $meph_tmp_dir\n\n";
 }
 
 my $meph_rep_full = $meph_repository . "/" . $meph_version . "/packages";
