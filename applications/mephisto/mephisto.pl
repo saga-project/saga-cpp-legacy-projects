@@ -8,7 +8,7 @@ use LWP::Simple;
 
 $meph_version     = 0.1;
 $meph_repository  = "http://macpro01.cct.lsu.edu/mephisto";
-$meph_tmp_dir     = "/tmp/mephisto/";
+$meph_tmp_dir     = "/tmp/";
 $meph_install_dir = "/tmp/meph_inst/";
 
 ################################################################################
@@ -22,7 +22,8 @@ print " | '_ ` _ \\ / _ \\ '_ \\| '_ \\| / __| __/ _ \\ \n";
 print " | | | | | |  __/ |_) | | | | \\__ \\ || (_) |\n";
 print " |_| |_| |_|\\___| .__/|_| |_|_|___/\\__\\___/ \n";
 print "                | |                         \n";
-print "                |_| $meph_version 												\n";
+print "                |_| $meph_version\n";
+print " \n ... A deployment tool for SAGA and FAUST ...\n";
 }
 ##
 ################################################################################
@@ -31,7 +32,7 @@ print "                |_| $meph_version 												\n";
 ##
 sub redirect_console
 {
-	my($logfile) = @_;
+    my($logfile) = @_;
 	
     open(OLDOUT, ">&STDOUT"); 
     open(OLDERR, ">&STDERR");
@@ -54,6 +55,15 @@ sub restore_console
     open(STDOUT, ">&OLDOUT");
     open(STDERR, ">&OLDERR");
 }
+
+################################################################################
+##
+sub prepare_temp
+{
+  print "\n Setting up working directory: $meph_tmp_dir \n";
+}
+##
+################################################################################
 
 ################################################################################
 ##
@@ -168,14 +178,20 @@ sub pull_package
 print_mephisto_logo();
 $numArgs = $#ARGV + 1;
 
-if($numArgs != 1)
+if($numArgs < 1)
 {
-   print "\n Usage: mephisto.pl <target dir>\n\n";
+   print "\n Usage: mephisto.pl <install_dir> <tmp_dir>\n\n";
+   print "        <tmp_dir>     the temporary download/build directory (default: /tmp/)\n";
+   print "        <install_dir> the directory where you want to install the packages\n\n";
    exit();
 }
 else
 {
-	$meph_install_dir = $ARGV[0];
+  $meph_install_dir = $ARGV[0];
+  if($numArgs == 2) {
+    $meph_tmp_dir = $ARGV[1];
+    prepare_temp();
+  }
 }
 
 my $meph_rep_full = $meph_repository."/".$meph_version."/packages";
