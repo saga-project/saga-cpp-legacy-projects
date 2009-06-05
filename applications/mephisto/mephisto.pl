@@ -74,7 +74,9 @@ sub pull_package {
     my $package_bin_path = "$meph_rep_full/$package[1]";
     my $package_store_path = "$meph_tmp_dir/$package[1]";
 
+
     print "\n\n Processing package $package[0]\n";
+    chdir($meph_tmp_dir);
 
     #try to download the package
     print "  o Downloading to $package_store_path";
@@ -87,17 +89,34 @@ sub pull_package {
 
     #### try to unpack the package
     ##
-    print "  o Extracting to ";
-    my $tar = Archive::Tar->new;
-    $tar->setcwd($meph_tmp_dir);
-    $tar->read( $package_store_path, 0 );
+    my $unpack_logfile = "$meph_tmp_dir/$package[0].unpack.log";
+    print "  o Extracting package \n    logfile: $unpack_logfile"; $|++; 
 
-    @list = $tar->list_files;
-    print "$meph_tmp_dir/$list[0]";
-    $|++;
+    my @untar_cmd = ('tar', 'vxzf', $package_store_path);
+    redirect_console($unpack_logfile);
+    $retval = system(@untar_cmd);
+    restore_console();
 
-    $tar->extract();
+    die "  [FAILED]\n" unless $retval == 0;
+
+    open(TARLOG, "$meph_tmp_dir/$package[0].unpack.log"); 
+    my $package_dir_name = readline(TARLOG); # This should be the base directory
+    chomp($package_dir_name);
+    close(TARLOG);
+    chdir "$meph_tmp_dir/$package_dir_name";
+
     print " [OK]\n";
+
+    #my $tar = Archive::Tar->new;
+    #$tar->setcwd($meph_tmp_dir);
+    #$tar->read( $package_store_path, 0 );
+
+    #@list = $tar->list_files;
+    #print "$meph_tmp_dir/$list[0]";
+    #$|++;
+
+    #$tar->extract();
+    #print " [OK]\n";
     ##
     ####
 
@@ -113,18 +132,18 @@ sub pull_package {
     push( @configure_cmd, "--prefix=$meph_install_dir" );
 
     ## PACKAGE SPECIFIC DEPENDENCY OPTIONS ##
+    #
     if ( $package[0] eq "BOOST" ) {
-		# make sure that boost uses this python version
+	# make sure that boost uses this python version
         push( @configure_cmd, "--with-python-root=$meph_install_dir" );
-		# workaround for bug in 1.39 bootstrap
-		push( @configure_cmd, "--libdir=$meph_install_dir/lib");
+	# workaround for bug in 1.39 bootstrap
+	push( @configure_cmd, "--libdir=$meph_install_dir/lib");
     }
+    #
+    #########################################
 
     print "  o Configuring package [@configure_cmd] \n    logfile: $configure_logfile";
     $|++;
-    chdir "$meph_tmp_dir/$list[0]";
-
-    #########################################
 
     redirect_console($configure_logfile);
     my $retval = system(@configure_cmd);
