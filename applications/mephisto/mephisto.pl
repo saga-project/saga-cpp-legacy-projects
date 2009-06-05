@@ -3,7 +3,7 @@
 #use strict;
 #use warnings;
 
-use Archive::Tar;
+#use Archive::Tar;
 use Getopt::Long;
 use LWP::Simple;
 
