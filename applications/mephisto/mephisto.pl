@@ -65,6 +65,21 @@ sub prepare_temp {
 ##
 ##############################################################################
 
+sub list_packages {
+	my $meph_rep_full = $meph_repository . "/" . $meph_version . "/packages";
+	print "\n Source repository: $meph_rep_full\n\n";
+	
+	my $content = get $meph_rep_full. "/INDEX";
+	die "Couldn't get $meph_rep_full" unless defined $content;
+	
+	my @index = split( "\n", $content );
+	foreach my $line (@index) {
+	    my @packages = split( ";;", $line );
+	    print "  o $packages[0]: $packages[1]\n";
+	}
+	print "\n";
+}
+
 ##############################################################################
 ##
 sub pull_package {
@@ -134,12 +149,16 @@ sub pull_package {
     ## PACKAGE SPECIFIC DEPENDENCY OPTIONS ##
     #
     if ( $package[0] eq "BOOST" ) {
-	# make sure that boost uses this python version
+		# make sure that boost uses this python version
         push( @configure_cmd, "--with-python-root=$meph_install_dir" );
-	push( @configure_cmd, "--with-python=$meph_install_dir/bin/python" );
-	# workaround for bug in 1.39 bootstrap
-	push( @configure_cmd, "--libdir=$meph_install_dir/lib");
+		push( @configure_cmd, "--with-python=$meph_install_dir/bin/python" );
+		# workaround for bug in 1.39 bootstrap
+		push( @configure_cmd, "--libdir=$meph_install_dir/lib");
     }
+	elsif ($package[0] eq "SAGA" ) {
+		push( @configure_cmd, "--with-python=$meph_install_dir" );
+		push( @configure_cmd, "--with-boost=$meph_install_dir" );
+	}
     #
     #########################################
 
@@ -239,8 +258,7 @@ sub check_options () {
 	if( $ARGV[0] eq "list")
 	{
 		$mode = "list";
-		print "\n LIST NOT IMPLEMENTED YET\n";
-		print_usage();
+		list_packages();
 		exit();
 	}
 	elsif( $ARGV[0] eq "install")
