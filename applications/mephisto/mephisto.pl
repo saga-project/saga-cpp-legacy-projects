@@ -283,8 +283,7 @@ sub check_options () {
 		{
 			$meph_install_dir = $install_dir;
 		}
-		
-		if(! $tmp_dir eq 0)
+		if( !($tmp_dir eq 0))
 		{
 			$meph_tmp_dir = $tmp_dir;
 		}
