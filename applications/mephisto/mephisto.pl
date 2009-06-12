@@ -151,9 +151,8 @@ sub pull_package {
     if ( $package[0] eq "BOOST" ) {
 		# make sure that boost uses this python version
         push( @configure_cmd, "--with-python-root=$meph_install_dir" );
-		push( @configure_cmd, "--with-python=$meph_install_dir/bin/python" );
 		# workaround for bug in 1.39 bootstrap
-		push( @configure_cmd, "--libdir=$meph_install_dir/lib");
+				push( @configure_cmd, "--libdir=$meph_install_dir/lib");
     }
 	elsif ($package[0] eq "SAGA" ) {
 		push( @configure_cmd, "--with-python=$meph_install_dir" );
