@@ -219,6 +219,30 @@ sub pull_package {
 ##############################################################################
 
 ##############################################################################
+##
+sub write_setenv() {
+	open FILE, ">", "$meph_install_dir/saga-env.sh" or  die $1;
+	
+	print FILE "#!/bin/bash\n";
+	print FILE "\n";
+	print FILE "export SAGA_LOCATION=$meph_install_dir\n"; 
+	print FILE "export BOOST_LOCATION=$meph_install_dir\n\n"; 
+	
+	print FILE "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$meph_install_dir/lib\n"; 
+	print FILE "export DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH:$meph_install_dir/lib\n\n"; 
+	
+	print FILE "export PYTHONPATH=\$PYTHONPATH:$meph_install_dir/lib/python2.6/site-packages/\n\n";
+	
+	print FILE "export PATH=$meph_install_dir/bin:\$PATH\n";
+	
+	close FILE;
+	
+	print "\n  Environment setup file written to $meph_install_dir/saga-env.sh.\n\n";
+}
+##
+##############################################################################
+
+##############################################################################
 ## 
 sub print_usage () {
     print "\n Usage: mephisto.pl list <options>\n";
@@ -334,6 +358,8 @@ foreach my $line (@index2) {
     my @packages = split( ";;", $line );
     pull_package(@packages);
 }
+
+write_setenv();
 
 #
 ##############################################################################
