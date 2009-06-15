@@ -122,9 +122,6 @@ namespace digedag
   // application.  If they are not ready, fire has no effect.
   void node::fire (void)
   {
-    // ### scheduler hook
-    scheduler_->hook_node_run_pre (dag_, this);
-
     // if an incoming edge failed, we can give up
     for ( unsigned int i = 0; i < edge_in_.size (); i++ )
     {

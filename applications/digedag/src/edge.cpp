@@ -121,8 +121,6 @@ namespace digedag
   // thread_work is the workload, i.e. the data copy operation
   void edge::thread_work (void)
   {
-    // FIXME: perform the real remote saga file copy from src to tgt here
-    // (if both are not identical)
     try 
     {
       dump ();

@@ -2,55 +2,15 @@
 #include "digedag.hpp"
 #include "util/thread.hpp"
 
-class test : public digedag::util::thread
-{
-  public:
-    test (void) 
-    {
-      std::cout << "1 thread id is " << ::pthread_self () << std::endl;
-    }
-    
-    ~test (void) 
-    {
-      std::cout << "4 thread id is " << ::pthread_self () << std::endl;
-    }
-
-    void thread_work (void)
-    {
-      std::cout << "2 thread id is " << ::pthread_self () << std::endl;
-    }
-
-    void thread_cb (void)
-    {
-      std::cout << "3 thread id is " << ::pthread_self () << std::endl;
-    }
-};
-
-
-// FIXME: we should use thread callbacks for state changes, everywhere.  Just
-// for the beauty of it ;-)
-//
 int main (int argc, char** argv)
 {
   try
   {
     if ( 1 )
     {
-      test t1;
-      test t2;
-
-      t1.thread_run ();
-      t2.thread_run ();
-
-      t1.thread_wait ();
-      t2.thread_wait ();
-    }
-
-    if ( 0 )
-    {
       digedag::dag * d = new digedag::dag;
 
-      digedag::node_description nd;
+      digedag::node_description nd; // inherits saga::job::description
 
       digedag::node * n1 = new digedag::node (nd);
       digedag::node * n2 = new digedag::node (nd);
@@ -65,6 +25,7 @@ int main (int argc, char** argv)
       d->fire ();
 
       std::cout << "dag    running..." << std::endl;
+
       // wait til the dag had a chance to finish
       while ( digedag::Running == d->get_state () )
       {
@@ -72,12 +33,15 @@ int main (int argc, char** argv)
         std::cout << "dag    waiting..." << std::endl;
       }
 
+      // this is the same:
+      s.wait ();
+
       delete d;
     }
 
     if ( 1 )
     {
-      digedag::dag * d1 = new digedag::dag;
+      digedag::dag  * d  = new digedag::dag;
 
       digedag::node * n1 = new digedag::node ("/tmp/node_job.sh node_1"
                                                 " -i /tmp/in_1"
@@ -127,35 +91,28 @@ int main (int argc, char** argv)
       digedag::edge * e8 = new digedag::edge ("/tmp/out_3_c", "/tmp/in_5_a");
       digedag::edge * e9 = new digedag::edge ("/tmp/out_6_a", "/tmp/in_7_a");
 
-      d1->add_node ("node_1", n1);
-      d1->add_node ("node_2", n2);
-      d1->add_node ("node_3", n3);
-      d1->add_node ("node_4", n4);
-      d1->add_node ("node_5", n5);
-      d1->add_node ("node_6", n6);
+      d->add_node ("node_1", n1);
+      d->add_node ("node_2", n2);
+      d->add_node ("node_3", n3);
+      d->add_node ("node_4", n4);
+      d->add_node ("node_5", n5);
+      d->add_node ("node_6", n6);
 
-      d1->add_edge (e1, n1, n4);
-      d1->add_edge (e2, n1, n3);
-      d1->add_edge (e3, n2, n3);
-      d1->add_edge (e4, n2, n3);
-      d1->add_edge (e5, n2, n5);
-      d1->add_edge (e6, n3, n4);
-      d1->add_edge (e7, n3, n4);
-      d1->add_edge (e8, n3, n5);
-      d1->add_edge (e9, n6, n7);
+      d->add_edge (e1, n1, n4);
+      d->add_edge (e2, n1, n3);
+      d->add_edge (e3, n2, n3);
+      d->add_edge (e4, n2, n3);
+      d->add_edge (e5, n2, n5);
+      d->add_edge (e6, n3, n4);
+      d->add_edge (e7, n3, n4);
+      d->add_edge (e8, n3, n5);
+      d->add_edge (e9, n6, n7);
 
-      digedag::dag * d2 = d1;
+      d->fire ();
 
-      d2->fire ();
+      d->wait ();
 
-      // wait til the dag had a chance to finish
-      while ( digedag::Running == d2->get_state () )
-      {
-        ::sleep (1);
-        std::cout << "dag    waiting..." << std::endl;
-      }
-
-      delete d1;
+      delete d;
     }
 
     std::cout << "done" << std::endl;
@@ -167,6 +124,10 @@ int main (int argc, char** argv)
   catch ( const std::string & s )
   {
     std::cerr << "string exception: " << s << std::endl;
+  }
+  catch ( const saga::exception & e )
+  {
+    std::cerr << "saga exception: " << e.what () << std::endl;
   }
 }
 
