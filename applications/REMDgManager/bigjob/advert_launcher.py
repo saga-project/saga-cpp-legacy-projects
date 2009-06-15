@@ -57,7 +57,7 @@ class advert_launcher:
         except:
             print "No advert entry found at specified url: " + self.base_url
 
-    # update state of glidin job to running
+        # update state of glidin job to running
         self.update_glidin_state()
         # start background thread for polling new jobs and monitoring current jobs
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
@@ -72,7 +72,13 @@ class advert_launcher:
             return self.init_pbs()
         elif(os.environ.get("PE_HOSTFILE")!=None):
             return self.init_sge()
+        else:
+            return self.init_local()
         return None
+
+    def init_local(self):
+        """ initialize free nodes list with dummy (for fork jobs)"""
+        self.freenodes.append("localhost")
 
     def init_sge(self):
         """ initialize free nodes list from SGE environment """
@@ -294,7 +300,7 @@ class advert_launcher:
         jobs = []
         #try:
         jobs = self.base_dir.list()
-        print "Found " + "%d"%len(jobs) + " jobs"
+        print "Found " + "%d"%len(jobs) + " jobs in " + str(self.base_dir.get_url().get_string())
         #except:
         #    pass
         for i in jobs:  
@@ -372,6 +378,12 @@ class advert_launcher:
         print "##################################### New POLL/MONITOR cycle ##################################"
         print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while True and self.stop==False:
+            if self.base_dir.exists(self.base_url) == False:
+                print "Job dir deleted - terminate agent"
+                break
+            else:
+                print "Job dir: " + str(self.base_dir) + "exists."
+
             try:
                 self.poll_jobs()
                 self.monitor_jobs()            

@@ -24,7 +24,7 @@ import traceback
 import logging
 
 """ Config parameters (will move to config file in future) """
-APPLICATION_NAME="BigJob"
+APPLICATION_NAME="BigJob/BigJob"
 CPR = False
         
 class advert_glidin_job():
@@ -34,7 +34,7 @@ class advert_glidin_job():
         print "init advert service session at host: " + database_host
         self.uuid = uuid.uuid1()
         self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
-        self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.ReadWrite)
+        self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         print "created advert directory for application: " + self.app_url.get_string()
     
     def start_glidin_job(self, 
@@ -79,14 +79,20 @@ class advert_glidin_job():
             jd.executable = "$(HOME)/src/REMDgManager/adaptive/advert_launcher.sh" # backward compatibility to be removed
         else:
             jd.executable = replica_agent_executable
-        jd.queue = queue
-        jd.job_project = [project]
+        if queue != None:
+            jd.queue = queue
+        if project !=None:
+            jd.job_project = [project]
         if walltime!=None:
             jd.wall_time_limit=str(walltime)
 
-        jd.working_directory = "$(HOME)"
-        jd.output = "advert-launcher-" + str(self.uuid) + "-stdout.txt"
-        jd.error = "advert-launcher-" + str(self.uuid) + "-stderr.txt"
+        if working_directory != None:
+            jd.working_directory = working_directory
+        else:
+            jd.working_directory = "$(HOME)"
+        
+        jd.output = "stdout-advert-launcher-" + str(self.uuid) + ".txt"
+        jd.error = "stderr-advert-launcher-" + str(self.uuid) + ".txt"
            
         if CPR==True: 
             js = saga.cpr.service(lrms_saga_url)
@@ -112,7 +118,8 @@ class advert_glidin_job():
         print "Cancel Glidin Job"
         self.job.cancel()
         try:
-            self.app_dir.change_dir("..")
+            #self.app_dir.change_dir("..")
+            print "delete job: " + str(self.app_url)
             self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
         except:
             pass
@@ -164,9 +171,9 @@ class advert_job():
 
         for i in range(0,3):
             try:
-                print "create job entry - attempt: " + str(i)
+                print "create job entry "
                 self.job_dir = saga.advert.directory(saga.url(self.job_url), 
-                                             saga.advert.Create | saga.advert.ReadWrite)
+                                             saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
                 print "initialized advert directory for job: " + self.job_url
                 # put job description attributes to advert
                 attributes = jd.list_attributes()                
@@ -184,7 +191,7 @@ class advert_job():
             except:
                 traceback.print_exc(file=sys.stdout)
                 time.sleep(2)
-                raise Exception("Unable to submit job")      
+                #raise Exception("Unable to submit job")      
 
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
