@@ -34,7 +34,7 @@ int main (int argc, char** argv)
       }
 
       // this is the same:
-      s.wait ();
+      d->wait ();
 
       delete d;
     }
