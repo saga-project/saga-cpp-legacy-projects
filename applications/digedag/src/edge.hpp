@@ -36,6 +36,8 @@ namespace digedag
 
       util::mutex           mtx_;
 
+      saga::session         session_;
+
 
     protected:
       saga::url      & get_src_url   (void) { return src_url_; }
@@ -77,7 +79,8 @@ namespace digedag
       void             set_host_src  (std::string host);
       void             set_host_tgt  (std::string host);
 
-      void             set_dag       (digedag::dag  * d);
+      void             set_dag       (saga::session  s,
+                                      digedag::dag * d);
   };
 
 } // namespace digedag

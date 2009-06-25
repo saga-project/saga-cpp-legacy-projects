@@ -40,6 +40,8 @@ namespace digedag
 
       util::mutex           mtx_;
 
+      saga::session         session_;
+
 
     protected:
       // allow our friend, the sxheduler, full access to the dag data.

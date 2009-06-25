@@ -130,7 +130,7 @@ namespace digedag
       // the local file adaptor is not thread save if operating on the same
       // directory structure
 
-      saga::filesystem::file f_src (src_url_);
+      saga::filesystem::file f_src (session_, src_url_);
       f_src.copy (tgt_url_, saga::filesystem::Overwrite
                           | saga::filesystem::CreateParents);
       dag_->unlock ();
@@ -250,8 +250,10 @@ namespace digedag
 
 
 
-  void edge::set_dag (digedag::dag * d)
+  void edge::set_dag (saga::session  s, 
+                      digedag::dag * d)
   {
+    session_   = s;
     dag_       = d;
     scheduler_ = dag_->get_scheduler ();
     // FIXME: use the scheduler

@@ -185,7 +185,7 @@ namespace digedag
       try {
         saga::job::description jd (nd_);
 
-        saga::job::service js;
+        saga::job::service js (session_);
         saga::job::job j = js.create_job (jd);
 
         j.run  ();
@@ -376,8 +376,10 @@ namespace digedag
     nd_.set_vector_attribute ("Environment", new_env);
   }
 
-  void node::set_dag (digedag::dag * d)
+  void node::set_dag (saga::session  s, 
+                      digedag::dag * d)
   {
+    session_   = s;
     dag_       = d;
     scheduler_ = dag_->get_scheduler ();
   }

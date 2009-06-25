@@ -41,6 +41,8 @@ namespace digedag
 
       util::mutex                    mtx_;
 
+      saga::session                  session_;
+
 
 
     public:
@@ -70,7 +72,8 @@ namespace digedag
       void            set_host        (std::string host);
       void            set_path        (std::string path);
 
-      void            set_dag         (digedag::dag  * d);
+      void            set_dag         (saga::session  s, 
+                                       digedag::dag * d);
   };
 
 } // namespace digedag

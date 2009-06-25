@@ -106,7 +106,7 @@ namespace digedag
 
     nodes_[name] = node;
 
-    node->set_dag  (this);
+    node->set_dag  (session_, this);
     node->set_name (name);
 
     // ### scheduler hook
@@ -130,7 +130,7 @@ namespace digedag
     e->add_src_node (s);
     e->add_tgt_node (t);
 
-    e->set_dag (this);
+    e->set_dag (session_, this);
 
     edges_[edge_id_t (s->get_name (), t->get_name ())].push_back (e);
 
