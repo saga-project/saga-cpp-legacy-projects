@@ -7,7 +7,7 @@
 use Getopt::Long;
 use LWP::Simple;
 
-$meph_version     = 0.1;
+$meph_version     = 0.2;
 $meph_repository  = "http://macpro01.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp";
 $meph_install_dir = "/tmp/meph_inst/";
@@ -22,7 +22,7 @@ sub print_mephisto_logo {
     print " | | | | | |  __/ |_) | | | | \\__ \\ || (_) |\n";
     print " |_| |_| |_|\\___| .__/|_| |_|_|___/\\__\\___/ \n";
     print "                | |                         \n";
-    print "                |_| $meph_version\n";
+    print "                |_| Simplified SAGA Deployment\n";
 }
 ##
 ##############################################################################
@@ -66,7 +66,7 @@ sub prepare_temp {
 ##############################################################################
 
 sub list_packages {
-	my $meph_rep_full = $meph_repository . "/" . $meph_version . "/packages";
+	my $meph_rep_full = $meph_repository . "/repository/" . $meph_version;
 	print "\n Source repository: $meph_rep_full\n\n";
 	
 	my $content = get $meph_rep_full. "/INDEX";
@@ -85,7 +85,7 @@ sub list_packages {
 sub pull_package {
     my (@package) = @_;
 
-    my $meph_rep_full    = $meph_repository . "/" . $meph_version . "/packages";
+    my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[1]";
     my $package_store_path = "$meph_tmp_dir/$package[1]";
 
@@ -252,23 +252,28 @@ sub print_usage () {
     print "        Installs all or just selected packages from the repository.\n\n";
 
     print " Options and Arguments:\n\n";
-	print "      --target-dir=    The base directory for the installation.\n";
-	print "                       All selected packages will end up in here.\n\n";
+	print "      --repository=     The repository version to use. By default,\n";
+	print "                        mephisto uses the latest version.\n\n";
 
-	print "      --tmp-dir=       The directory mephisto should use for downloading\n";
-	print "                       and building. If omitted, it defaults to /tmp/meph_tmp.\n\n";
+	print "      --target-dir=     The base directory for the installation.\n";
+	print "                        All selected packages will end up in here.\n\n";
+
+	print "      --tmp-dir=        The directory mephisto should use for downloading\n";
+	print "                        and building. If omitted, it defaults to /tmp/meph_tmp.\n\n";
 	
-	print "      --with-packages= Comma-separated list of optional packages to\n";
-	print "                       install. By default, mephisto installs all\n";
-	print "                       available packages.\n\n";
+	print "      --with-packages=  Comma-separated list of optional packages to\n";
+	print "                        install. By default, mephisto installs all\n";
+	print "                        available packages.\n\n";
 }
 
 ##############################################################################
 ## 
 sub check_options () {
+
 	my $help        = 0;	
 	my $install_dir = 0;	
 	my $tmp_dir     = 0;
+	my $repository  = 0;
 	my $mode        = 0;
 	
 	# The first option HAS to be the mode (list/install/etc)
@@ -281,6 +286,15 @@ sub check_options () {
 	if( $ARGV[0] eq "list")
 	{
 		$mode = "list";
+        my $retval= GetOptions('help|?'		   => \$help,
+				         	   'repository=s'  => \$repository) ; 
+				         	   
+        if( !($repository eq 0))
+		{
+		    $meph_version = $repository;
+        }
+
+
 		list_packages();
 		exit();
 	}
@@ -289,7 +303,8 @@ sub check_options () {
 		$mode = "install";
 		my $retval= GetOptions('target-dir=s'  => \$install_dir, 
 							   'help|?'		   => \$help,
-				         	   'tmp-dir=s'     => \$tmp_dir) ; 
+				         	   'tmp-dir=s'     => \$tmp_dir,
+				         	   'repository=s'  => \$repository) ; 
 		if(!$retval)
 		{
 			print_usage();
@@ -306,10 +321,16 @@ sub check_options () {
 		{
 			$meph_install_dir = $install_dir;
 		}
+		
 		if( !($tmp_dir eq 0))
 		{
 			$meph_tmp_dir = $tmp_dir;
 		}
+		
+		if( !($repository eq 0))
+		{
+		    $meph_version = $repository;
+        }
 	}
 	else
 	{
@@ -338,7 +359,7 @@ if ( !-d $meph_tmp_dir ) {
 		or die "\n Couldn't create tmp directory: $meph_tmp_dir\n\n";
 }
 
-my $meph_rep_full = $meph_repository . "/" . $meph_version . "/packages";
+my $meph_rep_full = $meph_repository . "/repository/" . $meph_version;
 
 print "\n Source repository: $meph_rep_full\n";
 
