@@ -320,6 +320,11 @@ sub check_options () {
 		else
 		{
 			$meph_install_dir = $install_dir;
+			#if(!(-w $meph_install_dir))
+			#{
+            #  print "\n You don't have write permission for $install_dir.\n\n";
+            #  exit();
+			#}
 		}
 		
 		if( !($tmp_dir eq 0))
@@ -353,10 +358,19 @@ sub check_options () {
 print_mephisto_logo();
 check_options();
 
-
-if ( !-d $meph_tmp_dir ) {
+if ( !(-d $meph_tmp_dir) ) {
 	mkdir($meph_tmp_dir)
 		or die "\n Couldn't create tmp directory: $meph_tmp_dir\n\n";
+}
+
+if ( !(-d $meph_install_dir) ) {
+	mkdir($meph_install_dir)
+		or die "\n Couldn't create install directory: $meph_install_dir\n\n";
+}
+
+if(!(-w $meph_install_dir) ) {
+  print "\n You don't have write permissions for $meph_install_dir\n\n";
+  exit();
 }
 
 my $meph_rep_full = $meph_repository . "/repository/" . $meph_version;
