@@ -23,8 +23,12 @@ namespace AllPairs {
       ~HandleComparisons();
       void assignWork();
      private:
-      void issueCommand_();
-      AssignmentChunk getChunk_(const saga::url location);
+      void                             issueCommand_();
+      AssignmentChunk                  getChunk_(const std::string &location);
+      std::pair<AssignmentChunk, bool> networkGraphCheck_(const std::vector<int> &set,
+                                                          const std::string &hostname);
+      std::pair<AssignmentChunk, bool> AssignmentChunkCheck_(const std::vector<int> &set,
+                                                             const std::string &hostname);
     
       std::vector<int> finished_;
       std::vector<int> assigned_;

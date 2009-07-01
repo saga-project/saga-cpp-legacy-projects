@@ -26,10 +26,9 @@ bool parseCommand(int argCount, char *argList[], po::variables_map& vm) {
       desc_cmdline.add_options()
         ("help,h", "Display this information and exit")
         ("version,v", "Print version information and exit")
-        ("config,c", po::value<std::string>(), 
-         "The config filename for this session")
-        ("database,d", po::value<std::string>(), 
-         "Hostname of the orchestrator database")
+        ("config,c", po::value<std::string>(), "The config filename for this session")
+        ("database,d", po::value<std::string>(), "Hostname of the orchestrator database")
+        ("staging,s", "Enable staging")
         ;
       po::positional_options_description p;
       po::store(po::parse_command_line(argCount, argList, desc_cmdline), vm);

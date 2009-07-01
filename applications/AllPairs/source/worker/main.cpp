@@ -70,7 +70,8 @@
  * directly.                                             *
  * ******************************************************/
 int main(int argc,char **argv) {
-   putenv("SAGA_VERBOSE=100");
+   char env[] = "SAGA_VERBOSE=100";
+   putenv(env);
    std::freopen("/tmp/worker-stderr.txt", "w", stderr);
    std::freopen("/tmp/worker-stdout.txt", "w", stdout);
    try {

@@ -62,7 +62,7 @@ namespace AllPairs
 
  HandleStaging::~HandleStaging()
  {
-    std::cout << "before we close, what is our graph?" << std::endl;
+    /*std::cout << "before we close, what is our graph?" << std::endl;
     boost::graph_traits<Graph>::edge_iterator ei, ebegin, end;
     boost::graph_traits<Graph>::vertex_iterator vi, vbegin, vend;
     //Find vertex of currently reporting worker
@@ -79,7 +79,7 @@ namespace AllPairs
     for(vi = vbegin; vi != vend; ++vi)
     {
        std::cout << networkGraph_[*vi].name << std::endl;
-    }
+    }*/
  }
 
  void HandleStaging::assignStages_() 

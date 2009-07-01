@@ -9,6 +9,7 @@
 namespace AllPairs {
   class Assignment {
    public:
+     Assignment() {}
      Assignment(std::string from, std::string to) : from_(from), to_(to) { 
         //Just make location one of the hostnames of the two files
         location_ = saga::url(from_).get_host();
@@ -35,6 +36,7 @@ namespace AllPairs {
 
   class AssignmentChunk {
    public:
+     AssignmentChunk() {}
      AssignmentChunk(std::vector<Assignment> &assignments, int id) : 
        assignments_(assignments) , id_(id) {
         location_ = std::string("");

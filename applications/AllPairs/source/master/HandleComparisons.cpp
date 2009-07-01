@@ -72,14 +72,17 @@ namespace AllPairs
             if(finished_.size() == assignments_.size())
             {
                //Prevent unneccessary work assignments
+               //std::cout << "all assigned already, don't dish out, we only want done ones" << std::endl;
                worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
                network::expect(WORKER_RESPONSE_ACKNOLEDGE, network::read(worker));
+               return;
             }
             //Ask worker for location, then try to assign closest available assignment chunk
             worker.write(saga::buffer(MASTER_QUESTION_LOCATION, 9));
             read = network::read(worker);
+            //std::cout << "Just got location from worker as :" << read << std::endl;
 
-            AssignmentChunk chunk(getChunk_(saga::url(read)));
+            AssignmentChunk chunk(getChunk_(read));
             int currentChunkID = chunk.getId();
             //Worker is idle
             message.clear();
@@ -133,34 +136,16 @@ namespace AllPairs
             message += boost::lexical_cast<std::string>(currentChunkID);
             log_->write(message, LOGLEVEL_INFO);
             //If not in assigned, add it
-            std::vector<int>::iterator aend = assigned_.end();
-            std::vector<int>::iterator assigned_IT = assigned_.begin();
-            bool found = false;
-            while(assigned_IT != aend)
-            {
-               if(currentChunkID == (*assigned_IT))
-               {
-                  found = true;
-                  break;
-               }
-                ++assigned_IT;
-            }
-            if(found == false)
+            if(std::find(assigned_.begin(), assigned_.end(), currentChunkID) == assigned_.end())
             {
                assigned_.push_back(currentChunkID);
             }
 
             //If from unassigned, remove it
-            aend = unassigned_.end();
-            std::vector<int>::iterator unassigned_IT = unassigned_.begin();
-            while(unassigned_IT != aend)
+            std::vector<int>::iterator pos = std::find(unassigned_.begin(), unassigned_.end(), currentChunkID);
+            if(pos != unassigned_.end())
             {
-               if(currentChunkID == (*unassigned_IT))
-               {
-                  unassigned_.erase(unassigned_IT);
-                  break;
-               }
-                ++unassigned_IT;
+               unassigned_.erase(pos);
             }
             assigned = true;
             return;
@@ -175,36 +160,17 @@ namespace AllPairs
             message += worker.get_url().get_string() + " finished chunk ";
             message += result;
             log_->write(message, LOGLEVEL_INFO);
+            int resultInt = boost::lexical_cast<int>(result);
 
             //If in assigned, remove it
-            std::vector<int>::iterator end = assigned_.end();
-            int resultInt = boost::lexical_cast<int>(result);
-            for(std::vector<int>::iterator assigned_IT = assigned_.begin();
-                assigned_IT != end;
-                ++assigned_IT)
+            std::vector<int>::iterator pos = std::find(assigned_.begin(), assigned_.end(), resultInt);
+            if(pos != assigned_.end())
             {
-               if(resultInt == *assigned_IT)
-               {
-                  assigned_.erase(assigned_IT);
-                  break;
-               }
+               assigned_.erase(pos);
             }
 
             //Make sure not already inserted into finished list
-            end = finished_.end();
-            std::vector<int>::iterator finished_fileIT = finished_.end();
-            bool found = false;
-            for(std::vector<int>::iterator finished_IT = finished_.begin();
-                finished_IT != end;
-                ++finished_IT)
-            {
-               if(resultInt == *finished_IT)
-               {
-                  found = true;
-                  break;
-               }
-            }
-            if(found == false)
+            if(std::find(finished_.begin(), finished_.end(), resultInt) == finished_.end())
             {
                finished_.push_back(resultInt);
             }
@@ -216,58 +182,159 @@ namespace AllPairs
        }
     }
  }
- AssignmentChunk HandleComparisons::getChunk_(const saga::url location) {
-    std::string hostname = location.get_host();
+ AssignmentChunk HandleComparisons::getChunk_(const std::string &hostname) {
+    //std::cout << "worker hostname: " << hostname << std::endl;
     if(unassigned_.size() > 0)
     {
-       //Return element on list whose should correspond to a close data set
-       std::vector<int>::iterator it  = unassigned_.begin();
-       std::vector<int>::iterator end = unassigned_.end();
-       while(it != end) {
-          if(assignments_[unassigned_[*it]].getLocation() == location) {
-             std::cerr << "FOUND EXACT MATCH FOR LOCATION: " << location;
-             std::cerr << " to assignmentchunk with location: " << assignments_[unassigned_[*it]].getLocation() << std::endl;
-             return assignments_[unassigned_[*it]];
-          }
-          ++it;
+       //std::cout << "unassigned..." << std::endl;
+       AssignmentChunk ac;
+       bool found = false;
+       boost::tie(ac, found) = networkGraphCheck_(unassigned_, hostname);
+       if(found == true)
+       {
+          //std::cout << "return from graph lowest latency unassigned: " << ac.getId() << std::endl;
+          return ac;
        }
-       //Couldn't Find an exact location, just give one out.
-       return assignments_[unassigned_[0]];
+       else
+       {
+          boost::tie(ac, found) = AssignmentChunkCheck_(unassigned_, hostname);
+          if(found == true)
+          {
+             //std::cout << "return from looking at locations of assignmentChunks..." << std::endl;
+             return ac;
+          }
+          else
+          {
+             //Couldn't Find an exact location, just give any assignment out
+             //std::cout << "returned first one" << std::endl;
+             return assignments_[unassigned_[0]];
+          }
+       }
     }
     else if(assigned_.size() > 0)
     {
        //No more unassigned ones
-       //These will be redundant, but possibly improve runtime.
-       std::vector<int>::iterator it  = assigned_.begin();
-       std::vector<int>::iterator end = assigned_.end();
-       while(it != end) {
-          if(assignments_[assigned_[*it]].getLocation() == location) {
-             return assignments_[assigned_[*it]];
-          }
-          ++it;
+       //Try to use locality information from graph
+       AssignmentChunk ac;
+       bool found = false;
+       //std::cout << "assigned..." << std::endl;
+       boost::tie(ac, found) = networkGraphCheck_(assigned_, hostname);
+       if(found == true)
+       {
+          //std::cout << "return from graph lowest latency unassigned: " << ac.getId() << std::endl;
+          return ac;
        }
-       //Couldn't find exact location, just give one out
-       //Random so not to give out same assigned one every time
-       return assignments_[assigned_[rand() % assigned_.size()]];
+       else
+       {
+          boost::tie(ac, found) = AssignmentChunkCheck_(assigned_, hostname);
+          if(found == true)
+          {
+             //std::cout << "return from looking at locations of assignmentChunks..." << std::endl;
+             return ac;
+          }
+          else
+          {
+             //Random so not to give out same assigned one every time
+             //std::cout << "return random one" << std::endl;
+             return assignments_[assigned_[rand() % assigned_.size()]];
+          }
+       }
     }
     else if(finished_.size() > 0)
     {
-       //No more assigned ones
+       //No more assigned or unassigned assignments
        //No one should be asking!
-       std::vector<int>::iterator it  = finished_.begin();
-       std::vector<int>::iterator end = finished_.end();
-       while(it != end) {
-          if(assignments_[finished_[*it]].getLocation() == location) {
-             return assignments_[finished_[*it]];
-          }
-          ++it;
-       }
+       std::cerr << "Asking for assignments when only finished ones exists" << std::endl;
+       //Give random
        return assignments_[finished_[rand() % finished_.size()]];
     }
     else
     {
        std::cerr << "Stop asking for chunks!" << std::endl;
        APPLICATION_ABORT;
+    }
+ }
+ std::pair<AssignmentChunk, bool> HandleComparisons::AssignmentChunkCheck_(
+       const std::vector<int> &set,
+       const std::string &hostname)
+ {
+    std::vector<int>::const_iterator it  = set.begin();
+    std::vector<int>::const_iterator end = set.end();
+    while(it != end) {
+       if(assignments_[*it].getLocation() == hostname) {
+          //found exact match for host 
+          return std::pair<AssignmentChunk, bool>(set[*it], true);
+       }
+       ++it;
+    }
+    return std::pair<AssignmentChunk, bool>(AssignmentChunk(), false);
+ }
+
+
+ std::pair<AssignmentChunk, bool> HandleComparisons::networkGraphCheck_(
+       const std::vector<int> &set,
+       const std::string &hostname)
+ {
+    AssignmentChunk closestAssignmentChunk;
+    double distance = -1;
+    boost::graph_traits<Graph>::edge_iterator ei, ebegin, end;
+    boost::tie(ebegin, end) = boost::edges(networkGraph_);
+    for(ei = ebegin; ei != end; ++ei)
+    {
+       std::string name(networkGraph_[boost::source(*ei, networkGraph_)].name);
+       double weight =  networkGraph_[*ei].weight;
+       //Check to see if this edge's source is the hostname in question
+       //std::cout << "checking to see if source of this edge(" << networkGraph_[boost::source(*ei, networkGraph_)].name << ") is equal";
+       //std::cout << " to location of worker wanting work(" << hostname << ")" << std::endl;
+       if(name == hostname)
+       {
+          //std::cout << "It is!" << std::endl;
+          //Found an edge to another host from the one in question
+          if(weight < distance || distance < 0)
+          {
+             //Check to see if the target hostname is in the set
+             //std::cout << "check to see if it is in the set" << std::endl;
+             //std::cout << "target of edge: " << networkGraph_[boost::target(*ei, networkGraph_)].name << std::endl;
+             std::vector<int>::const_iterator it  = set.begin();
+             std::vector<int>::const_iterator end = set.end();
+             while(it != end)
+             {
+                //std::cout << "iterator over set is: " << *it << std::endl;
+                AssignmentChunk ac = assignments_[*it];
+                //std::cout << "location of ac that this iterator gave us: " << ac.getLocation() << std::endl;
+                if(ac.getLocation() == networkGraph_[boost::target(*ei, networkGraph_)].name)
+                {
+                   //We found an assignment in the set with the hostname of the target vertex
+                   //meaning we know information about network traffic along this path
+                   //we want the minimal assignment
+                   //std::cout << "gotcha!" << std::endl;
+                   int weight = networkGraph_[*ei].weight;
+                   if(distance == -1)
+                   {
+                      distance    = networkGraph_[*ei].weight;
+                      closestAssignmentChunk = ac;
+                   }
+                   else if(weight < distance)
+                   {
+                      distance    = networkGraph_[*ei].weight;
+                      closestAssignmentChunk = ac;
+                   }
+                   //Otherwise, this is not less than an already found weight describing the network
+                }
+                ++it;
+             }
+          }
+       }
+    }
+    if(distance < 0)
+    {
+       //If a graph was not found, or the graph was not useful for this set and hostname
+       return std::pair<AssignmentChunk, bool>(closestAssignmentChunk, false);
+    }
+    else
+    {
+       //Minimum assignment found
+       return std::pair<AssignmentChunk, bool>(closestAssignmentChunk, true);
     }
  }
 } // namespace AllPairs

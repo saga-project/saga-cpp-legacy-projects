@@ -42,6 +42,7 @@ namespace AllPairs {
                throw;
             }
             std::string configFilePath (vm["config"].as<std::string>());
+            staging_ = vm.count("staging") ? true : false;
             AllPairs::LogWriter *initialLogger = new AllPairs::LogWriter(std::string(AP_MASTER_EXE_NAME), *(new saga::url("")));
             cfgFileParser_ = ConfigFileParser(configFilePath, *initialLogger);
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
@@ -84,7 +85,11 @@ namespace AllPairs {
             spawnAgents_();
 
             //Handle Staging
-            Graph network = runStaging_();
+            Graph network;
+            if(staging_)
+            {
+               network = runStaging_();
+            }
 
             // Start comparing fragments to bases
             runComparisons_(network);
@@ -98,7 +103,8 @@ namespace AllPairs {
             delete log;
          }
         private:
-         time_t startupTime_;
+         bool        staging_;
+         time_t      startupTime_;
          std::string uuid_;
          std::string database_;
          std::string serverURL_;
@@ -388,11 +394,10 @@ namespace AllPairs {
          }
 
          void sendQuit_(void) {
-            saga::url url("tcp://localhost:8000");
-            char buff[255];
-            int successCounter = 0;
-            int workersSize = workersDir_.list("*").size();
+            saga::url url(serverURL_);
+            unsigned int successCounter = 0;
             std::vector<saga::url> list = workersDir_.list("*");
+            unsigned int workersSize = list.size();
             try {
                while(successCounter < workersSize)
                {
@@ -402,15 +407,9 @@ namespace AllPairs {
                   message += worker.get_url().get_string();
                   log->write(message, LOGLEVEL_INFO);
                   worker.write(saga::buffer(WORKER_COMMAND_QUIT, 4));
-                  saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-                  if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOLEDGE)
-                  {
-                     log->write(std::string("Misbehaving worker!"), LOGLEVEL_WARNING);
-                  }
-                  else
-                  {
-                     successCounter++;
-                  }
+                  std::string read(network::read(worker));
+                  network::expect(read, WORKER_RESPONSE_ACKNOLEDGE);
+                  successCounter++;
                   service->close();
                   delete service;
                }
