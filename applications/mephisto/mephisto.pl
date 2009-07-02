@@ -157,6 +157,7 @@ sub pull_package {
 	elsif ($package[0] eq "SAGA" ) {
 		push( @configure_cmd, "--with-python=$meph_install_dir" );
 		push( @configure_cmd, "--with-boost=$meph_install_dir" );
+		push( @configure_cmd, "--with-postgresql=$meph_install_dir" );
 	}
     #
     #########################################
@@ -228,10 +229,10 @@ sub write_setenv() {
 	print FILE "export SAGA_LOCATION=$meph_install_dir\n"; 
 	print FILE "export BOOST_LOCATION=$meph_install_dir\n\n"; 
 	
-	print FILE "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$meph_install_dir/lib\n"; 
-	print FILE "export DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH:$meph_install_dir/lib\n\n"; 
+	print FILE "export LD_LIBRARY_PATH=$meph_install_dir/lib:\$LD_LIBRARY_PATH\n"; 
+	print FILE "export DYLD_LIBRARY_PATH=$meph_install_dir/lib:\$DYLD_LIBRARY_PATH\n\n"; 
 	
-	print FILE "export PYTHONPATH=\$PYTHONPATH:$meph_install_dir/lib/python2.6/site-packages/\n\n";
+	print FILE "export PYTHONPATH=$meph_install_dir/lib/python2.6/site-packages/:\$PYTHONPATH\n\n";
 	
 	print FILE "export PATH=$meph_install_dir/bin:\$PATH\n";
 	
@@ -362,6 +363,15 @@ if ( !(-d $meph_tmp_dir) ) {
 	mkdir($meph_tmp_dir)
 		or die "\n Couldn't create tmp directory: $meph_tmp_dir\n\n";
 }
+
+    # add uuid to the directory name to
+    # avoid race conditions
+    $meph_tmp_dir .= "/" . time . "/" ;
+    if ( !(-d $meph_tmp_dir) ) {
+	mkdir($meph_tmp_dir)
+		or die "\n Couldn't create tmp directory: $meph_tmp_dir\n\n";
+    }
+
 
 if ( !(-d $meph_install_dir) ) {
 	mkdir($meph_install_dir)
