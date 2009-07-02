@@ -1,0 +1,119 @@
+\documentclass[conference,draft]{IEEEtran}
+
+\clubpenalty=10000
+\widowpenalty = 10000
+
+\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
+ \usepackage{epsfig}
+\usepackage{subfigure}
+\usepackage[hypertex]{hyperref}
+\usepackage{subfigure}  
+\usepackage{color}
+\usepackage{pdfsync}
+% \usepackage{draftcopy}
+
+\usepackage[small,it]{caption}
+
+\usepackage{multirow}
+\usepackage{ifpdf}
+
+\long\def\comment#1{{ \bf \textcolor{magenta}{\bf #1}}}
+\long\def\ccomment#1{{ \bf \textcolor{blue}{\bf #1 (SJ)}}}
+\newcommand{\F}[1]{\B{\textcolor{red}{FIXME: #1}}}
+\newcommand{\C}{\comment}
+\newcommand{\CC}{\ccomment}
+\newcommand{\fix}[1]{\textcolor{red}{\bf #1}}
+\newcommand{\tc}{$T_c$ }
+\newcommand{\tcnsp}{$T_c$}
+
+\setlength\parskip{-0.15em}
+\setlength\parsep{-0.0em}
+\newcommand{\upup}{\vspace*{-0.6em}}
+\newcommand{\upp}{\vspace*{-0.6em}}
+\newcommand{\up}{\vspace*{-0.3em}}
+
+\newif\ifdraft
+%\drafttrue
+
+\ifdraft
+\newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1 }} }
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
+\newcommand{\yyenote}[1]{ {\textcolor{blue} { ***yye00: #1 }}}
+\else
+\newcommand{\jhanote}[1]{}
+\newcommand{\yyenote}[1]{}
+\newcommand{\fixme}[1]{}
+\fi
+
+\newcommand{\jitter}[1]{{$\sigma(\alpha)$}}
+
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+  \pdffalse
+\else
+  \ifnum\pdfoutput=1
+    \pdftrue
+  \else
+    \pdffalse
+  \fi
+\fi
+
+\ifpdf
+\DeclareGraphicsExtensions{.pdf, .jpg}
+\else
+\DeclareGraphicsExtensions{.eps}
+\fi
+
+\begin{document}
+
+\title{UK E-Science Abstract}
+
+ \author{\authorblockN{Shantenu Jha\authorrefmark{2}\authorrefmark{3}\authorrefmark{4}, Yaakoub El Khamra\authorrefmark{1}\authorrefmark{2}},
+   \authorblockA{\authorrefmark{2} Center for Computation and
+     Technology, Louisiana State University, Baton Rouge, 70803}
+   \authorblockA{\authorrefmark{3} Department of Computer Science,
+     Louisiana State University, Baton Rouge, 70803}
+   \authorblockA{\authorrefmark{4} e-Science Institute, Edinburgh, UK}
+   \authorblockA{\authorrefmark{1} Texas Advanced Computing Center,
+     University of Texas, Austin, 78758} }
+
+
+\maketitle
+
+ \begin{abstract}
+Here I will put broad strokes for now some ideas for what we should include in the abstract:
+\begin{itemize}
+ \item Sensor driven application and workflow: the number of stages is controlled by sensors and the simulations themselves use sensor data
+ \item Highly unpredictable: we have workflows that are changing dynamically and applications that use parameters from live data that we do not see before, everything will vary wildly
+ \item The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.e. real-time suddenly) you lose well-head pressure: the CO2 is going somewhere, you want to find out where! It could be building up around the casing or going into a fracture, really nasty stuff can happen
+\begin{itemize}
+ \item Based on that, we will need several things: frequent and dynamic updates of available sensor data (i.e. sensor platform, which we sort of have but needs more work, this is labview side...)
+ \item On demand computing: You want to know if the CO2 is just moving to new places normally (i.e. you have low permeability and have to cross a threshold to get CO2 through there) or you broke the rock and CO2 is building around the casing of the well and the whole damn thing will explode
+ \item Special handling of critical sensor data: we might need some sort of mechanism to distinguish low priority sensor data from critical sensor data, based on that, throw a token for spruce or switch to dedicated queues or something like that
+ \item The data is sensitive and confidential, security is a big issue that we will need to address, same goes for database redundancy (you don't want all ensembles hitting a single DB for latest sensor data all at once, you want redundancy...)
+\item Based on sensor data, we might want to run fire control models, emergency response models, kill-well/well-shutdown models etc... So analysis of sensor data before we jam it in the workflow might be important
+\end{itemize}
+\item While the application in this case is CO2 seq, this can be really anything in the real world EnKF for atmospherics, EnKF for radar, or simply hurricane simulations
+\item Keeping tabs, book-keeping is incredibly difficult, you will need to archive data effectively for larger runs (list this in the challenges)
+\item In terms of autonomics, we have: sensor driven workflow (i.e. throughput), sensor driven simulations, i.e. data-aware workflows and data-aware simulations. We do not have this now but a natural extension is checking whether the data is critical or not, this would make the application data-criticality aware (not just availability of data but nature of the data... need better term for that one)
+\item We have (or will have soon once the admins fix it) condor, that should help with the on-demand computing issue by allowing us to harvest cycles for regular jobs and put the critical ones in the high-priority queues
+\item One interesting feature: when we run this we are doing 2 things: history match then forecast, i.e. we are updating our ``study'' of the reservoir behavior dynamically as it evolves in realtime
+\item The rest of the autonomics we have still apply
+
+\end{itemize}
+
+This is what I have so far, broke 2 pages so now I can sleep especially since it is a quarter to three.
+
+ \end{abstract}
+
+ \begin{keywords}
+    Distributed and Autonomic Applications, Distributed Application
+    Programming, SAGA
+  \end{keywords}
+
+\section{Introduction}
+
+\bibliographystyle{IEEEtran} 
+%\bibliography{saga_tg08}
+\end{document}
