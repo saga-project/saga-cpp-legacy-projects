@@ -67,9 +67,9 @@
 
 \begin{document}
 
-\title{Applying Distributed HPC CyberInfrastructure to Sequestrate C02}
+\title{Applying Distributed HPC CyberInfrastructure to Simulate the Sequestration of C02}
 
- \author{\authorblockN{Shantenu Jha\authorrefmark{2}\authorrefmark{3}\authorrefmark{4}, Yaakoub El Khamra\authorrefmark{1}\authorrefmark{2}},
+ \author{\authorblockN{Yaakoub El Khamra\authorrefmark{1}\authorrefmark{2}, Shantenu Jha\authorrefmark{2}\authorrefmark{3}\authorrefmark{4}},
    \authorblockA{\authorrefmark{2} Center for Computation and
      Technology, Louisiana State University, Baton Rouge, 70803}
    \authorblockA{\authorrefmark{3} Department of Computer Science,
@@ -91,22 +91,30 @@ We will also come up with a better title..
     Programming, SAGA
   \end{keywords}
 
-\section*{Notes}
+\section*{Notes (this will become the abstract)}
 
 \begin{itemize}
 \item \jhanote{Define Problem in a few sentences; Motivate/Establish the Use of Distributed CyberInfrastructure}
 \item \yyenote{ The problem is performing reservoir studies that are updated real-time, the application is the history-matching, forecasting and CO2 sequestration scenario. We want to use cyberinfrastructure because of several reasons: we have many simulations of complex reservoirs, that means we have to go parallel for higher throughput and use parallel processing. To be able to do this in real-time i.e. as the sensor data streams in, we have to have very fast turn-around for simulations that means high throughput, so we use everything at our disposal including grids which so far works. Other motivation, and this is more of a petroleum engineering perspective: if we cannot make use of existing tools and technologies today, chances are we will not be able to use new tools and technologies of tomorrow. We can elaborate on how we need cyberinfrastructure not just cycles: HPC for the simulator, grid and high througput for many simulations and bigjob, databases for the sensor data i.e. data driven and data aware for lazarus, as well as restart/fault-tolerance mechanisms, and of course sensors in the field. Now all I have to do is structure this so that it resembles a half defence paragraph. }
  \item Sensor driven application and workflow: the number of stages is controlled by sensors and the simulations themselves use sensor data
  \item Highly unpredictable: we have workflows that are changing dynamically and applications that use parameters from live data that we do not see before, everything will vary wildly
- \item The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.e. real-time suddenly) you lose well-head pressure: the CO2 is going somewhere, you want to find out where! It could be building up around the casing or going into a fracture, really nasty stuff can happen
-\begin{itemize}
- \item Based on that, we will need several things: frequent and dynamic updates of available sensor data (i.e. sensor platform, which we sort of have but needs more work, this is labview side...)
- \item On demand computing: You want to know if the CO2 is just moving to new places normally (i.e. you have low permeability and have to cross a threshold to get CO2 through there) or you broke the rock and CO2 is building around the casing of the well and the whole damn thing will explode
- \item Special handling of critical sensor data: we might need some sort of mechanism to distinguish low priority sensor data from critical sensor data, based on that, throw a token for spruce or switch to dedicated queues or something like that
- \item The data is sensitive and confidential, security is a big issue that we will need to address, same goes for database redundancy (you don't want all ensembles hitting a single DB for latest sensor data all at once, you want redundancy...)
-\item Based on sensor data, we might want to run fire control models, emergency response models, kill-well/well-shutdown models etc... So analysis of sensor data before we jam it in the workflow might be important
-\end{itemize}
-\item While the application in this case is CO2 seq, this can be really anything in the real world EnKF for atmospherics, EnKF for radar, or simply hurricane simulations \item Keeping tabs, book-keeping is incredibly difficult, you will need to archive data effectively for larger runs (list this in the challenges) \item In terms of autonomics, we have: sensor driven workflow (i.e. throughput), sensor driven simulations, i.e. data-aware workflows and data-aware simulations. We do not have this now but a natural extension is checking whether the data is critical or not, this would make the application data-criticality aware (not just availability of data but nature of the data... need better term for that one) \jhanote{this needs a bit of clarification} \yyenote{a pressure loss of let's say -5 psi is not the same as -5000 psi, one would not cause panic the other would. It is a good idea to have a person at the helm who would notice that big of a drop and realize: hey we need the results of those simulations immediately, and jump the queues or do something special. What would be even great: lazarus is made aware of this, does things so that everything is optimized for faster turnover and results are on hand asap. If the clarification is the application of EnKF: the method has its origins in atmospherics: radar, hurricane tracking, metereology that sort of thing. This not being my domain I do not know much about it but all books on enkf say this}
+
+\item \jhanote{We need to describe the simulation components here before getting into details of
+   the sensor data. Core numerical solvers, how we handle sensors, distributed computing ...}
+
+\item Place discailmer that this a simplified Sequestration problem. And mention the primary
+ approximations/simplifications made. Need to mention that as models get more realisitic the
+architecture remains the same, but the specific solvers get more complex.
+
+\item The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.e. real-time suddenly) you lose well-head pressure: the CO2 is going somewhere, you want to find out where! It could be building up around the casing or going into a fracture, really nasty stuff can happen \jhanote{elaborate}
+
+\item While the application in this case is CO2 seq, this can be really anything in the real world EnKF for atmospherics, EnKF for radar, or simply hurricane simulations 
+
+\item Keeping tabs, book-keeping is incredibly difficult, you will need to archive data effectively for larger runs (list this in the challenges) \item In terms of autonomics, we have: sensor driven workflow (i.e. throughput), sensor driven simulations, i.e. data-aware workflows and data-aware simulations. We do not have this now but a natural extension is checking whether the data is critical or not, this would make the application data-criticality aware (not just availability of data but nature of the data... need better term for that one) \jhanote{this needs a bit of clarification} \yyenote{a pressure loss of let's say -5 psi is not the same as -5000 psi, one would not cause panic the other would. It is a good idea to have a person at the helm who would notice that big of a drop and realize: hey we need the results of those simulations immediately, and jump the queues or do something special. What would be even great: lazarus is made aware of this, does things so that everything is optimized for faster turnover and results are on hand asap. If the clarification is the application of EnKF: the method has its origins in atmospherics: radar, hurricane tracking, metereology that sort of thing. This not being my domain I do not know much about it but all books on enkf say this}
+
+\item Need for autonomics is driven by the rwquirement to either respond to external sensors or internal 
+compute data-output. Elaborate on how this arises, what this means..
+\item Input data drives the priority of the next state of simulations, based upon state of the application
 
 \item We have (or will have soon once the admins fix it) condor, that should help with the on-demand computing issue by allowing us to harvest cycles for regular jobs and put the critical ones in the high-priority queues
 \item One interesting feature: when we run this we are doing 2 things: history match then forecast, i.e. we are updating our ``study'' of the reservoir behavior dynamically as it evolves in realtime
@@ -115,8 +123,24 @@ We will also come up with a better title..
 
 \item The three Unique things about this paper are (i) The fact that we are studying C02 Sequestration using EnKF (EnKF-CS) one of the first to do so, (ii) Effective/proper solution of EnKF-CS, imposes interesting additional requirements, over and above EnKF for History Matching -- that of sensors \& experimentally driven data. We incorporate this additional requirement, using the same programming system (SAGA) as used for EnkF-HM thus justifying claims of extensibility, and (iii) Due to distribution of sub-problems (task), we introduce Condor pools in the mix of resources we utilize and interestingly, we utilize Condor's native pilot-job (Glide-In) when using Condor resources but SAGA's BigJob abstraction when using TG resources (which opens the question, why can't we use Condor's Pilot-Job on Ranger, QueenBee ?). We beleieve this is a novel if not the first demonstration of the use of two-different pilot job mechanims towards the solution of the same problem.
 
+\item Need for distributed computing when urgent -- ``little bit on all machines''. Need for autonomic decision making in detemrining the resource: Lazarus determines where to send the simulation. \jhanote{We need to say something about how this decision could be made in practise}
+
+\item Application objective: match-making for ; mechanism:  Lazarus.. etc ; strategy: 
+
 \end{itemize}
 
+\section{Introduction}
+
+The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.e. real-time suddenly) you lose well-head pressure: the CO2 is going somewhere, you want to find out where! It could be building up around the casing or going into a fracture, really nasty stuff can happen
+\begin{itemize}
+ \item Based on that, we will need several things: frequent and dynamic updates of available sensor data (i.e. sensor platform, which we sort of have but needs more work, this is labview side...)
+ \item On demand computing: You want to know if the CO2 is just moving to new places normally (i.e. you have low permeability and have to cross a threshold to get CO2 through there) or you broke the rock and CO2 is building around the casing of the well and the whole damn thing will explode
+ \item Special handling of critical sensor data: we might need some sort of mechanism to distinguish low priority sensor data from critical sensor data, based on that, throw a token for spruce or switch to dedicated queues or something like that
+ \item The data is sensitive and confidential, security is a big issue that we will need to address, same goes for database redundancy (you don't want all ensembles hitting a single DB for latest sensor data all at once, you want redundancy...)
+\item Based on sensor data, we might want to run fire control models, emergency response models, kill-well/well-shutdown models etc... So analysis of sensor data before we jam it in the workflow might be important
+\end{itemize}
+
+\jhanote{Introduction will not be submitted}
 
 \bibliographystyle{IEEEtran} 
 %\bibliography{saga_tg08}
