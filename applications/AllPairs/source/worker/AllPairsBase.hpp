@@ -90,7 +90,7 @@ namespace AllPairs {
       saga::advert::directory resultDir_;
       saga::advert::directory sessionBaseDir_;
       std::vector<saga::url>  baseFiles_;
-      std::vector<int>        stageResult_;
+      std::vector<double>        stageResult_;
       AllPairs::LogWriter*    logWriter_;
       RunComparison*          runComparison_;
       assignmentChunk         chunk_;
@@ -297,7 +297,7 @@ namespace AllPairs {
                   else if(network::test(read, START_CHUNK)) {
                      //our state is WORKER_STATE_DONE_STAGING
                      server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
-                     for(std::vector<int>::iterator it = stageResult_.begin();
+                     for(std::vector<double>::iterator it = stageResult_.begin();
                          it != stageResult_.end(); ++it)
                      {
                         read = network::read(server_);

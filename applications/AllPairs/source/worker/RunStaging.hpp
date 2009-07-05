@@ -14,7 +14,7 @@ namespace AllPairs {
      public:
       RunStaging(const std::vector<std::string> &hosts,
                  const std::string &location, AllPairs::LogWriter *log);
-      std::vector<int> getResults();
+      std::vector<double> getResults();
       ~RunStaging();
 
      private:

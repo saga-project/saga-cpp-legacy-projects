@@ -22,7 +22,7 @@ namespace AllPairs {
          std::string communication(buff, read_bytes);
          //The first try is always ID
          chunkID_ = boost::lexical_cast<int>(communication);
-         std::cerr << "Got ID: " << communication << std::endl;
+         //std::cerr << "Got ID: " << communication << std::endl;
          server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
 
          while(1)
