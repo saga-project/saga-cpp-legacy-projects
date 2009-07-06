@@ -161,6 +161,7 @@ sub pull_package {
 		push( @configure_cmd, "--with-python=$meph_install_dir" );
 		push( @configure_cmd, "--with-boost=$meph_install_dir" );
 		push( @configure_cmd, "--with-postgresql=$meph_install_dir" );
+		push( @configure_cmd, "--with-sqlite3=$meph_install_dir" );
 	}
     #
     #########################################
