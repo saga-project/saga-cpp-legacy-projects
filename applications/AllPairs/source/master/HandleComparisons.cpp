@@ -56,15 +56,13 @@ namespace AllPairs
    while(assigned == false) {
       try {
          saga::stream::stream worker = service_->serve();
-         std::string message("Established connection to ");
-         message += worker.get_url().get_string();
+         std::string message("Established connection!");
          log_->write(message, LOGLEVEL_INFO);
 
          //Ask worker for state
          worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
          std::string read(network::read(worker));
          message.clear();
-         message = "Worker: " + worker.get_url().get_string() + " has state " + read;
          log_->write(message, LOGLEVEL_INFO);
 
          if(network::test(read, WORKER_STATE_IDLE))
@@ -80,6 +78,11 @@ namespace AllPairs
             //Ask worker for location, then try to assign closest available assignment chunk
             worker.write(saga::buffer(MASTER_QUESTION_LOCATION, 9));
             read = network::read(worker);
+
+            message.clear();
+            message = "Worker: " + read + " has state " + WORKER_STATE_IDLE;
+            log_->write(message, LOGLEVEL_INFO);
+
             //std::cout << "Just got location from worker as :" << read << std::endl;
 
             AssignmentChunk chunk(getChunk_(read));
@@ -152,12 +155,15 @@ namespace AllPairs
          }
          else if(network::test(read, WORKER_STATE_DONE))
          {
+            message.clear();
+            message = "Worker has state " + std::string(WORKER_STATE_DONE);
+            log_->write(message, LOGLEVEL_INFO);
+
             worker.write(saga::buffer(MASTER_QUESTION_RESULT, 7));
             std::string result(network::read(worker));
             worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
 
-            std::string message("Worker ");
-            message += worker.get_url().get_string() + " finished chunk ";
+            std::string message("Worker finished chunk ");
             message += result;
             log_->write(message, LOGLEVEL_INFO);
             int resultInt = boost::lexical_cast<int>(result);
@@ -282,12 +288,12 @@ namespace AllPairs
     for(ei = ebegin; ei != end; ++ei)
     {
        std::string name(networkGraph_[boost::source(*ei, networkGraph_)].name);
-       double weight =  networkGraph_[*ei].weight;
        //Check to see if this edge's source is the hostname in question
        //std::cout << "checking to see if source of this edge(" << networkGraph_[boost::source(*ei, networkGraph_)].name << ") is equal";
        //std::cout << " to location of worker wanting work(" << hostname << ")" << std::endl;
        if(name == hostname)
        {
+          double weight =  networkGraph_[*ei].weight;
           //std::cout << "It is!" << std::endl;
           //Found an edge to another host from the one in question
           if(weight < distance || distance < 0)
@@ -308,15 +314,14 @@ namespace AllPairs
                    //meaning we know information about network traffic along this path
                    //we want the minimal assignment
                    //std::cout << "gotcha!" << std::endl;
-                   int weight = networkGraph_[*ei].weight;
                    if(distance == -1)
                    {
-                      distance    = networkGraph_[*ei].weight;
+                      distance    = weight;
                       closestAssignmentChunk = ac;
                    }
                    else if(weight < distance)
                    {
-                      distance    = networkGraph_[*ei].weight;
+                      distance    = weight;
                       closestAssignmentChunk = ac;
                    }
                    //Otherwise, this is not less than an already found weight describing the network

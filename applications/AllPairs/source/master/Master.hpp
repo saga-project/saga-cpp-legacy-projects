@@ -346,6 +346,7 @@ namespace AllPairs {
                         args.push_back("--session");
                         args.push_back(uuid_);
                         args.push_back("--hostname");
+                        std::cerr << "PUSHING BACK HOSTNAME FOR WORKER AS: " << loc << std::endl;
                         args.push_back(loc);
                         args.push_back("--database");
                         args.push_back(database_);
@@ -355,6 +356,11 @@ namespace AllPairs {
                         jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
                         saga::job::service js(hostListIT->rmURL);
                         saga::job::job agentJob= js.create_job(jd);
+                        std::cout << hostListIT->rmURL << " ";
+                        for(unsigned int x=0;x<args.size();x++) {
+                           std::cout << args[x] << " ";
+                        }
+                        std::cout << std::endl;
                         agentJob.run();
                         jobs_.push_back(agentJob);
                         message += "SUCCESS";
