@@ -9,8 +9,8 @@ use LWP::Simple;
 
 $meph_version     = 0.2;
 $meph_repository  = "http://macpro01.cct.lsu.edu/mephisto";
-$meph_tmp_dir     = "/tmp/meph_tmp";
-$meph_install_dir = "/tmp/meph_inst/";
+$meph_tmp_dir     = "/tmp/meph_tmp." . $<;
+$meph_install_dir = "/tmp/meph_inst" . $< . "/";
 
 ##############################################################################
 ##
