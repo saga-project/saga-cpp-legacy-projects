@@ -1,5 +1,6 @@
 
 all: saga_data_gsoc.pdf
+pdf: saga_data_gsoc.pdf
 
 saga_data_gsoc.pdf: saga_data_gsoc.tex
 	pdflatex $<
