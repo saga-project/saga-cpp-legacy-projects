@@ -226,7 +226,7 @@ sub pull_package {
 ##############################################################################
 ##
 sub write_setenv() {
-	open FILE, ">", "$meph_install_dir/saga-env.sh" or  die $1;
+	open FILE, ">", "$meph_install_dir/share/saga/saga-env.sh" or  die $1;
 	
 	print FILE "#!/bin/bash\n";
 	print FILE "\n";
