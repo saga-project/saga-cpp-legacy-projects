@@ -13,9 +13,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // the hostnames to run the spawned jobs on
-#define HOST1 "localhost"
-#define HOST2 "localhost"
-#define HOST3 "localhost"
+#define HOST1 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr";
+#define HOST2 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
+#define HOST3 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
