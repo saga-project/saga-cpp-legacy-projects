@@ -1,77 +1,59 @@
-%\documentclass{article}
 \documentclass[a4paper,11pt]{article}
-\usepackage[utf8]{inputenc}
+\pagestyle{empty}
+\usepackage{amssymb}
+\usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{url}
-\usepackage{float}
-\usepackage{times}
-\usepackage{multirow}
-\usepackage{listings}
-\usepackage{times}
-\usepackage{paralist}
-\usepackage{epsfig}
-\usepackage{subfigure}
-\usepackage[hypertex]{hyperref}
-\usepackage{subfigure}
+\usepackage{epstopdf}
 \usepackage{color}
+\usepackage{hyperref}
 
-%\documentclass{rspublic}
+\pdfpagewidth 8.75in
+\pdfpageheight 11.5in 
 
-\usepackage{ifpdf}
-
-\newcommand{\I}[1]{\textit{#1}}
-\newcommand{\B}[1]{\textbf{#1}}
-\newcommand{\BI}[1]{\textbf{\textit{#1}}}
-\newcommand{\T}[1]{\texttt{#1}}
-
-\pdfpagewidth 8.5in
-\pdfpageheight 11in 
-
-\setlength\topmargin{0in}
-\setlength\headheight{0in}
+\setlength\topmargin{0.25in}
+\setlength\headheight{0.25in}
 \setlength\headsep{0in}
-\setlength\textheight{9in}
-\setlength\textwidth{6.5in}
+\setlength\textheight{9.5in}
+\setlength\textwidth{6.75in}
 \setlength\oddsidemargin{0in}
 \setlength\evensidemargin{0in}
 \setlength\parindent{0.1in}
 \setlength\parskip{0.25em}
 
-\ifpdf
- \DeclareGraphicsExtensions{.pdf, .jpg}
-\else
- \DeclareGraphicsExtensions{.eps, .ps}
-\fi
+
+\usepackage{fancyhdr,lastpage}
+\pagestyle{fancy}
+\chead{Supporting Effective Data~\thepage~of \pageref{LastPage}}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\cfoot{Page \thepage~of \pageref{LastPage}}
 
 \newif\ifdraft
 \drafttrue
-
 \ifdraft
 \newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1 }} }
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
-\newcommand{\yyenote}[1]{ {\textcolor{blue} { ***yye00: #1 }}}
 \else
 \newcommand{\jhanote}[1]{}
-\newcommand{\yyenote}[1]{}
 \newcommand{\fixme}[1]{}
 \fi
 
 \begin{document}
 
+
 \title{\large The Performance Effect of Distributed FileSysystems on Data-Intensive Applications}
 
-\author{Christopher Miceli$^{1}$, Michael Miceli$^{1}$, Bety Rodriguez-Milla$^{1}$, Shantenu Jha$^{1,2}$\\
-  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
-  \small{\emph{$^{2}$Department of Computer Science, Louisiana State
-      University, USA}}}
+\textbf{Christopher Miceli$^{1}$, Michael Miceli$^{1}$, Bety Rodriguez-Milla$^{1}$, Shantenu Jha$^{1,2}$}
 
-\maketitle
+\small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}
 
-\section{New Abstract}
+\small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}
 
-Grids and, more recently, Clouds are showing themselves capable of handling large problems. While the capability of these systems is great, unique performance issues appear as the trend of extremely large data sets, such as Google's 20 petabytes of data processed per day, continues to grow. A distributed application developer must take precautions when accessing this data or else performance could be adversely affected greatly. Distributed filesystems (DFSs) are applications that handle replication and distribution of files across multiple machines to provide fault-tolerance. This abstraction removes pressure from developers, but also has performance implications. The aim of this paper is to address what these may be and why they are important.
+%\section{New Abstract}
 
-When working with distributed systems and large data sets together, determining whether to move input data to the computational resource, or the computational resource to the input data becomes very important. Frequently there will be more than one copy of the input data for fault-tolerance reasons, then the added issue of deciding between the two or more replicas becomes an issues as well. While DFSs remove the responsibility of replica management, the abstraction often makes determining where where in the DFS the data is being stored impossible. This property removes the ability to move computation resources to the data, and instead leaves the developer hoping the DFS will perform well. Despite this, the DFS's replication may alleviate these issues by placing replicas in locations where computational resources reside.
+Grids and, more recently, Clouds are showing themselves capable of handling large problems. While the capability of these systems is great, unique performance issues appear as the trend of extremely large data sets, such as Google's 20 petabytes of data processed per day, continues to grow. A distributed application developer must take precautions when accessing this data or else performance could be adversely affected greatly. Distributed FileSystems (DFS) are applications that handle replication and distribution of files across multiple machines to provide fault-tolerance. This abstraction removes pressure from developers, but also has performance implications. The aim of this paper is to address what these may be and why they are important.
+
+When working with distributed systems and large data sets together, determining whether to move input data to the computational resource, or the computational resource to the input data becomes very important. Frequently there will be more than one copy of the input data for fault-tolerance reasons, then the added issue of deciding between the two or more replicas becomes an issues as well. While DFS remove the responsibility of replica management, the abstraction often makes determining where where in the DFS the data is being stored impossible. This property removes the ability to move computation resources to the data, and instead leaves the developer hoping the DFS will perform well. Despite this, the DFS replication may alleviate these issues by placing replicas in locations where computational resources reside.
 
 %There are at least two types of data-intensive applications: the first where the actual data generated is large; the second type is where the data generated is small, but the volume of data on which computation occurs is very large. The application we used, has relatively small input and relatively small output, but the manner of processing causes many data reads. This type of application can be classified as having a large data throughput. \jhanote{Can you elaborate on different types of data-intensive applications? What kind is
 %an ImageMagic based application?}
@@ -84,8 +66,8 @@ We use the results of three different experiments when determining the effect of
 
 Our results do show that a DFS greatly change the performance on an distributed application in a positive manner. Our experiments that utilized the DFS to access and store data outperformed their gridftp counterparts by an order of magnitude in most cases. Our results also indicate that the DFS scales better as file sizes and number of files grow, although both seem to scale linearly. Before any conclusions may be drawn, there are issues that need to be addressed. Our applicationutilized the Simple API for Grid Applications (SAGA) to access DFS based and gridftp based files. Accessing files through this abstraction with gridftp seemed to perform sub-optimally in comparison to using the globus tools directly. In addition, our distributed system was not extremely large, so with our replication level of two in the DFS, data was almost certainly co-located with the computational resource. Staging did improve upon the results of the naïve first experiment, but still did not approach the DFS's performance levels. 
 
-Distributed filesystems are important abstractions for a data-intensive distributed application developers to consider. It also appears that staging is worth the time required to build a graph representing the network. Also to note, the second experiment is also naïve in the way that it attempts to optimize data and work assignments. Our staging only performed pings, not data transfer trials or reliability tests. A job could have low latency, but poor bandwidth. Perhaps CloudStore's performance can be attributed to recent work that has shown that data in large scale distributed applications tends to be accessed together, despite being seemingly unrelated in the input data set. The data accessed frequently together being called a filecule, an application specific group of files \jhanote{reference!}. Attempting to determine these filecules in the All-Pair application would be very difficult\jhanote{filecules -- or the lack thereof, are application specific, and possible compute-function dependent}. In a DFS, however, if the data store is also capable of data processing, then the DFS will be placing filecules together, and on machines needing them for work. The fault tolerance that distributed filesystems are already well renowned for also have added benefits to grid application developers in terms of performance. The distributed application does not have to be aware of where data has been copied to previously when assigning work; the distributed filesystem will use the best replica when data is being accessed.
+Distributed filesystems are important abstractions for a data-intensive distributed application developers to consider. It also appears that staging is worth the time required to build a graph representing the network. Also to note, the second experiment is also naive in the way that it attempts to optimize data and work assignments. Our staging only performed pings, not data transfer trials or reliability tests. A job could have low latency, but poor bandwidth. Perhaps CloudStore's performance can be attributed to recent work that has shown that data in large scale distributed applications tends to be accessed together, despite being seemingly unrelated in the input data set. The data accessed frequently together being called a filecule, an application specific group of files \jhanote{reference!}. Attempting to determine these filecules in the All-Pair application would be very difficult\jhanote{filecules -- or the lack thereof, are application specific, and possible compute-function dependent}. In a DFS, however, if the data store is also capable of data processing, then the DFS will be placing filecules together, and on machines needing them for work. The fault tolerance that distributed filesystems are already well renowned for also have added benefits to grid application developers in terms of performance. The distributed application does not have to be aware of where data has been copied to previously when assigning work; the distributed filesystem will use the best replica when data is being accessed.
 
 \bibliographystyle{IEEEtran} 
-\bibliography{saga}
+%\bibliography{saga}
 \end{document}
