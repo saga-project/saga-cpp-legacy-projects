@@ -7,13 +7,13 @@
 \usepackage{color}
 \usepackage{hyperref}
 
-\pdfpagewidth 8.75in
-\pdfpageheight 11.5in 
+\pdfpagewidth 9.75in
+\pdfpageheight 12.0in 
 
-\setlength\topmargin{0.25in}
-\setlength\headheight{0.25in}
-\setlength\headsep{0in}
-\setlength\textheight{9.5in}
+\setlength\topmargin{-0.5in}
+\setlength\headheight{-0.0in}
+\setlength\headsep{0.2in}
+\setlength\textheight{10.5in}
 \setlength\textwidth{6.75in}
 \setlength\oddsidemargin{0in}
 \setlength\evensidemargin{0in}
@@ -23,7 +23,7 @@
 
 \usepackage{fancyhdr,lastpage}
 \pagestyle{fancy}
-\chead{Supporting Effective Data~\thepage~of \pageref{LastPage}}
+\chead{Understanding Performance of Distributed File Systems~\thepage~of \pageref{LastPage}}
 \fancyhead[L]{}
 \fancyhead[R]{}
 \cfoot{Page \thepage~of \pageref{LastPage}}
@@ -40,25 +40,32 @@
 
 \begin{document}
 
+\begin{center}
 
-\title{\large The Performance Effect of Distributed FileSysystems on Data-Intensive Applications}
+\textbf{\large Understanding Performance of Distributed File Systems for Data-Intensive Distributed Applications}
 
-\textbf{Christopher Miceli$^{1}$, Michael Miceli$^{1}$, Bety Rodriguez-Milla$^{1}$, Shantenu Jha$^{1,2}$}
+\vspace{0.05in}
+
+\textbf{Christopher Miceli$^{1}$, Michael Miceli$^{1}$, Bety Rodriguez-Milla$^{1}$, Shantenu Jha$^{1,2,*}$}
 
 \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}
 
 \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}
 
+{\footnotesize {\hspace{0.0 in} $^*$Corresponding Author sjha@cct.lsu.edu}}
+
+\end{center}
+
 %\section{New Abstract}
 
-Grids and, more recently, Clouds are showing themselves capable of handling large problems. While the capability of these systems is great, unique performance issues appear as the trend of extremely large data sets, such as Google's 20 petabytes of data processed per day, continues to grow. A distributed application developer must take precautions when accessing this data or else performance could be adversely affected greatly. Distributed FileSystems (DFS) are applications that handle replication and distribution of files across multiple machines to provide fault-tolerance. This abstraction removes pressure from developers, but also has performance implications. The aim of this paper is to address what these may be and why they are important.
+Grids and, more recently, Clouds and Cloud-like infrastructure are capable of supporting large problems. While the capability of these systems is great, unique performance issues appear as data-sets get extremely large, such as Google's 20 petabytes of data processed per day\jhanote{Chris, Michael: Do you have a reference to this by any chance?}, and with trends showing continuing growth. Against this backdrop, it has become ever more important that a distributed application developer take precautions when placing, scheduling and managing such large volumes of data, or to state the obvious, performance could be adversely affected greatly. As the volume of data, and especially distributed data increases, scalable placement and management techniques are required.  Distributed FileSystems (DFS) simplify the management of distributed data, for example, providing a single access protocol and a common name-space. With the advent of several Stable Open Source DFS projects (motivated in part, by developments in Cloud Computing), these can be deployed without explicit vendor support and are now thus, potentially useful and effective tools to consider for data-intensive scientific applications.  DFS typically handle replication and distribution of files across multiple machines internally and although this abstraction simplifies the management of data, contrasted with explicit distributed aware placement, there are potential performance tradeoffs, in that the user can no longer control data placement to optimise performance, and possibly has performance implications.  The most common trade-offs when using DFS are the (i) number of replicas of each data/file, (ii) number of servers.  The aim of this paper is to understand for a real data-intensive distributed applications, the performance trade-offs of a DFS compared to ``regular'' distribution and placement techniques, and how sensitive the performance is.
 
-When working with distributed systems and large data sets together, determining whether to move input data to the computational resource, or the computational resource to the input data becomes very important. Frequently there will be more than one copy of the input data for fault-tolerance reasons, then the added issue of deciding between the two or more replicas becomes an issues as well. While DFS remove the responsibility of replica management, the abstraction often makes determining where where in the DFS the data is being stored impossible. This property removes the ability to move computation resources to the data, and instead leaves the developer hoping the DFS will perform well. Despite this, the DFS replication may alleviate these issues by placing replicas in locations where computational resources reside.
+When working with distributed systems and large data sets together, determining whether to move input data to the computational resource, or the computational resource to the input data becomes very important. Frequently there will be more than one copy of the input data for fault-tolerance reasons, then the added issue of deciding between the two or more replicas becomes an issues as well. While DFS remove the responsibility of replica management, the abstraction often makes determining where in the DFS the data is being stored impossible. This property removes the ability to move computation resources to the data, and instead leaves the developer hoping the DFS will perform well. Despite this, the DFS replication may alleviate these issues by placing replicas in locations where computational resources reside.
 
 %There are at least two types of data-intensive applications: the first where the actual data generated is large; the second type is where the data generated is small, but the volume of data on which computation occurs is very large. The application we used, has relatively small input and relatively small output, but the manner of processing causes many data reads. This type of application can be classified as having a large data throughput. \jhanote{Can you elaborate on different types of data-intensive applications? What kind is
 %an ImageMagic based application?}
 
-In this paper, we use a grid-enabled All-Pair algorithm application~\cite{Interop}. This application applies an operation on the input data set such that every possible pair in the set will be input to the operation. The result of this application is stored in a matrix. This application spawns jobs on the grid to run sets of these pairs. The problem becomes determining which pairs to put into a set, and with which distributed resource to run that set. If transferring data to the job takes too long, we will spend more time on data management than computation. There may be an entity in the grid capable of the work that may be slower than others, but close enough to the data to make up for its lack of computational ability. In our experiments, we used CloudStore (formerly KFS), an open-source high performance distributed filesystem that builds upon ideas from Google's distributed filesystem GFS~\cite{kfs_web}. CloudStore was chosen for its high performance focus, C++ implementation, and its source code availability.
+In this paper, we use an application grid-enabled All-Pair algorithm application~\cite{Interop}.  \jhanote{Provide Details of the ImageMagic based application}. This application applies an operation on the input data set such that every possible pair in the set will be input to the operation. The result of this application is stored in a matrix. This application spawns jobs on the grid to run sets of these pairs. The problem becomes determining which pairs to put into a set, and with which distributed resource to run that set. If transferring data to the job takes too long, we will spend more time on data management than computation. There may be an entity in the grid capable of the work that may be slower than others, but close enough to the data to make up for its lack of computational ability. In our experiments, we used CloudStore (formerly KFS), an open-source high performance distributed filesystem that builds upon ideas from Google's distributed filesystem GFS~\cite{kfs_web}. CloudStore was chosen for its high performance focus, C++ implementation, and its source code availability.
 
 We use the results of three different experiments when determining the effect of distributed filesystems. In the first experiment, we run our All-Pairs application on a grid without regard to data placement. No replication or fault-tolerance will take place. The application will sequentially assign data to the first available computational resource, and all data will be accessed via the gridftp protocol. The second experiment will be similar to the first, except the All-Pairs application will take the data's location into consideration when determining whether or not to assign a certain data set. Being inspired by earlier work~\cite{netperf}, this version of the application performs an extra step that determines the performance of the network by pinging hosts that may be involved, and utilizes this information when deciding which data set to assign to a job requesting work. If there is an unprocessed data set collocated or network-close with the job, then the assignment of that worker to that data set would have benefits. If there is no unprocessed data set network-close to the job, still assign data that may be network-far, in case the network-close job failed or there is no available jobs network-close to the data set. The third experiment will provide information into DFSs' performance in handling data locality issues. The All-Pairs application will be the same as the first, except all data will be stored in the distributed filesystem CloudStore with a replication factor of two (each file is guaranteed to be replicated at least twice). All read and writes will also utilize the distributed filesystem. Since the performance of this test dependent on the DFS's location relative to the computational resources, we decided to make block-servers on every machine that may be capable of performing work. This will put all responsibility on the DFS in determining where to place data.
 
