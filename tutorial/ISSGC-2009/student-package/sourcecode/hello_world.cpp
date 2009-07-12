@@ -6,10 +6,11 @@
 #include <iostream>
 #include <saga/saga.hpp>
 #include <boost/thread.hpp>
+#include <boost/version.hpp>
 
-//#if BOOST_VERSION < 103600
-//#error "This code is usable with Boost versions newer than V1.35.0 only"
-//#endif
+#if BOOST_VERSION < 103600
+#error "This code is usable with Boost versions newer than V1.35.0 only"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // The hello_world example is meant to be a very simple and first example to 
@@ -37,7 +38,7 @@
 //#define HOST2 "localhost"
 //#define HOST3 "localhost"
 
-#define HOST1 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr";
+#define HOST1 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
 #define HOST2 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
 #define HOST3 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
 
