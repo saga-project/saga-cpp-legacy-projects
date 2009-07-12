@@ -7,9 +7,9 @@
 #include <saga/saga.hpp>
 #include <boost/thread.hpp>
 
-#if BOOST_VERSION < 103600
-#error "This code is usable with Boost versions newer than V1.35.0 only"
-#endif
+//#if BOOST_VERSION < 103600
+//#error "This code is usable with Boost versions newer than V1.35.0 only"
+//#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // The hello_world example is meant to be a very simple and first example to 
