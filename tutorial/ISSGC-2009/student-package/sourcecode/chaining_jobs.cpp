@@ -8,7 +8,22 @@
 #include <boost/thread.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-// the host names to run the spawned jobs on
+// The chaining_jobs example tries to overcome one of the limitations of the 
+// hello_world example: it introduces dependencies between 3 (possibly remotely)
+// spawned childs. In this example the next child will be spawned only after 
+// the previous one has finished its execution. To make it more interesting we 
+// now use /usr/bin/bc to do some calculations, where the result of the previous
+// calculation is used as the input for the next one.
+//
+// Try to make more complex calculations if you like!
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// The host names to run the spawned jobs on. For the sake of simplicity this 
+// example needs to be modified in order to use different host names than the 
+// local machine. Please change the 3 macros below to the host names you want
+// the 3 childs to be spawned on.
+///////////////////////////////////////////////////////////////////////////////
 #define HOST1 "localhost"
 #define HOST2 "localhost"
 #define HOST3 "localhost"
@@ -39,14 +54,14 @@ std::string increment(std::string host, std::string argument)
         }
 
         // feed the remote process some input
-        in << "1 + " + argument;
+        in << "1 + " + argument + "\n";
 
         // receive result
         std::string line;
         std::getline(out, line);
 
         // quit remote process
-        in << "quit";
+        in << "quit\n";
 
         return line;
     }

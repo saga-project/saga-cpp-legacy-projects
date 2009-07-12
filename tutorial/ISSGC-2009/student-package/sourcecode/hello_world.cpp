@@ -7,15 +7,34 @@
 #include <saga/saga.hpp>
 #include <boost/thread.hpp>
 
-//#if BOOST_VERSION < 103600
-//#error "This code is usable with Boost versions newer than V1.35.0 only"
-//#endif
+#if BOOST_VERSION < 103600
+#error "This code is usable with Boost versions newer than V1.35.0 only"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// the hostnames to run the spawned jobs on
-#define HOST1 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr";
-#define HOST2 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
-#define HOST3 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
+// The hello_world example is meant to be a very simple and first example to 
+// try when it comes to SAGA. It's purpose is to spawn 3 (possibly remote) 
+// identical jobs (/bin/echo) while passing the 3 words "Hello", "distributed", 
+// and "world!" on their command lines. The result is that the jobs will print
+// the respective command line arguments (hey, it's /bin/echo we're 
+// launching...). The master job (this one) waits for the 3 child jobs to 
+// finish. It intercepts the generated output and prints it to the user.
+//
+// Depending on which child jobs finish first the overall printed message might
+// be some combination of the 3 arguments we passed. But most of the time you
+// will see "Hello distributed world!", which is our way of saying hello and
+// welcome to the world of SAGA.
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// The host names to run the spawned jobs on. For the sake of simplicity this 
+// example needs to be modified in order to use different host names than the 
+// local machine. Please change the 3 macros below to the host names you want
+// the 3 childs to be spawned on.
+///////////////////////////////////////////////////////////////////////////////
+#define HOST1 "localhost"
+#define HOST2 "localhost"
+#define HOST3 "localhost"
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
