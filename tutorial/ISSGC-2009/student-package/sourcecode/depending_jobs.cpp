@@ -14,7 +14,7 @@
 // increment a number stored in a central result store.
 
 ///////////////////////////////////////////////////////////////////////////////
-#define RESULT_STORE  "advert://issgc-ui//issgcXX/result_ex_2"   // place in advert to store result to
+#define RESULT_STORE  "advert://issgc-ui//issgc10/result_ex_2"   // place in advert to store result to
 #define JOB_PATH      "./depending_jobs"                         // put the correct path here
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,20 +75,25 @@ void respawn(int argc, char *argv[])
         saga::job::service js (argv[1]);
 
         // compose the command line, skip first argument
-        std::vector<std::string> arguments;// ("");//JOB_PATH);
+        std::string commandline(JOB_PATH);
         for (int i = 2; i < argc; ++i) {
-            arguments.push_back(argv[i]);// += " ";
-          //  commandline += argv[i];
+//            arguments.push_back(argv[i]);// += " ";
+            commandline += " ";
+            commandline += argv[i];
         }
         
-        saga::job::description jd;
-        jd.set_attribute (saga::job::attributes::description_executable, "./depending_jobs");
-        jd.set_attribute (saga::job::attributes::description_interactive, saga::attributes::common_true);
-        jd.set_vector_attribute (saga::job::attributes::description_arguments, arguments);
+//        saga::job::description jd;
+//        jd.set_attribute (saga::job::attributes::description_executable, "./depending_jobs");
+//        jd.set_attribute (saga::job::attributes::description_interactive, saga::attributes::common_true);
+//        jd.set_vector_attribute (saga::job::attributes::description_arguments, arguments);
 
         // run the job on host given by first argument
-        saga::job::job j = js.create_job(jd);
-        j.run();
+        saga::job::ostream in;
+        saga::job::istream out, err;
+        saga::job::job j = js.run_job(commandline, argv[1], in, out, err);
+
+//        saga::job::job j = js.create_job(jd);
+//        j.run();
 
         // wait for the job to start
         saga::job::state s = j.get_state();
