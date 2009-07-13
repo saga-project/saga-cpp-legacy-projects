@@ -15,7 +15,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 #define RESULT_STORE  "advert://issgc-ui//issgc10/result_ex_2"   // place in advert to store result to
-#define JOB_PATH      "./depending_jobs"                         // put the correct path here
+#define JOB_PATH      "/tmp/saga/depending_jobs"                 // put the correct path here
+#define SAGA_LOCATION "/opt/saga-1.3.1-issg"
 
 ///////////////////////////////////////////////////////////////////////////////
 // retrieve the current value from the advert (result store)
@@ -28,7 +29,8 @@ bool get_result(int& result)
         result = boost::lexical_cast<int>(e.retrieve_string());
     }
     catch (saga::exception const& e) {
-        std::cerr << "saga::exception caught: " << e.what () << std::endl;
+        if (e.get_error() != saga::NoSuccess)
+            std::cerr << "saga::exception caught: " << e.what () << std::endl;
         return false;
     }
     catch (std::exception const& e) {
@@ -72,28 +74,35 @@ void respawn(int argc, char *argv[])
 {
     assert(argc > 1);     // we shouldn't end up here without any given hosts
     try {
-        saga::job::service js (argv[1]);
 
         // compose the command line, skip first argument
-        std::string commandline(JOB_PATH);
-        for (int i = 2; i < argc; ++i) {
-//            arguments.push_back(argv[i]);// += " ";
-            commandline += " ";
-            commandline += argv[i];
-        }
-        
-//        saga::job::description jd;
-//        jd.set_attribute (saga::job::attributes::description_executable, "./depending_jobs");
-//        jd.set_attribute (saga::job::attributes::description_interactive, saga::attributes::common_true);
-//        jd.set_vector_attribute (saga::job::attributes::description_arguments, arguments);
+        std::vector<std::string> arguments; 
+        for (int i = 2; i < argc; ++i) 
+            arguments.push_back(argv[i]);
+
+        // compose environment variables
+        std::vector<std::string> environment; 
+        environment.push_back("SAGA_LOCATION=" SAGA_LOCATION);
+        environment.push_back("LD_LIBRARY_PATH=" SAGA_LOCATION "/lib:$LD_LIBRARY_PATH");
+
+        // create and fill job description
+        saga::job::description jd;
+        jd.set_attribute (saga::job::attributes::description_executable, JOB_PATH);
+        jd.set_attribute (saga::job::attributes::description_interactive, saga::attributes::common_true);
+        jd.set_vector_attribute (saga::job::attributes::description_arguments, arguments);
+        jd.set_vector_attribute (saga::job::attributes::description_environment, environment);
 
         // run the job on host given by first argument
         saga::job::ostream in;
         saga::job::istream out, err;
-        saga::job::job j = js.run_job(commandline, argv[1], in, out, err);
 
-//        saga::job::job j = js.create_job(jd);
-//        j.run();
+        saga::job::service js (argv[1]);    // job needs to run on host given by 1st argument
+        saga::job::job j = js.create_job(jd);
+        in = j.get_stdin();
+        out = j.get_stdout();
+        err = j.get_stderr();
+
+        j.run();
 
         // wait for the job to start
         saga::job::state s = j.get_state();
@@ -110,6 +119,7 @@ void respawn(int argc, char *argv[])
         s = j.get_state();
         while (s == saga::job::Running)
             s = j.get_state();
+
     }
     catch (saga::exception const& e) {
         std::cerr << "saga::exception caught: " << e.what () << std::endl;
