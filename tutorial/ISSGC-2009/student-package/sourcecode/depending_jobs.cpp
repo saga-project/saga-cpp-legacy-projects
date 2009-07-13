@@ -125,8 +125,8 @@ int main(int argc, char* argv[])
         int result = 0;
         get_result(result);   // ignore errors, will set result to zero
 
-        // re-spawn this job
-        if (set_result(result)) 
+        // re-spawn this job, increment result
+        if (set_result(result + 1)) 
             respawn(argc, argv);
     }
     return 0;
