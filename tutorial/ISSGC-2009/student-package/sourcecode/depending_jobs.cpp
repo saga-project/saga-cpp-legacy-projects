@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #define RESULT_STORE  "advert://issgc-ui//issgc10/result_ex_2"   // place in advert to store result to
 #define JOB_PATH      "/tmp/saga/depending_jobs"                 // put the correct path here
-#define SAGA_LOCATION "/opt/saga-1.3.1-issg"
+#define SAGA_LOCATION "/opt/saga-1.3.1-issgc"
 
 ///////////////////////////////////////////////////////////////////////////////
 // retrieve the current value from the advert (result store)

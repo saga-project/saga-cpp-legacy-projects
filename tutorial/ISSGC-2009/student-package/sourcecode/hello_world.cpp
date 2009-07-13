@@ -38,9 +38,9 @@
 //#define HOST2 "localhost"
 //#define HOST3 "localhost"
 
-#define HOST1 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
-#define HOST2 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
-#define HOST3 "ssh://issgc<ID>@issgc-ui.polytech.unice.fr"
+#define HOST1 "ssh://issgc10@issgc-ui.polytech.unice.fr"
+#define HOST2 "ssh://issgc11@issgc-ui.polytech.unice.fr"
+#define HOST3 "ssh://issgc12@issgc-ui.polytech.unice.fr"
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results

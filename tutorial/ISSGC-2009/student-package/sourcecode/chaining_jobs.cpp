@@ -24,9 +24,10 @@
 // local machine. Please change the 3 macros below to the host names you want
 // the 3 childs to be spawned on.
 ///////////////////////////////////////////////////////////////////////////////
-#define HOST1 "localhost"
-#define HOST2 "localhost"
-#define HOST3 "localhost"
+#define HOST1 "ssh://issgc10@issgc-ui.polytech.unice.fr"
+#define HOST2 "ssh://issgc11@issgc-ui.polytech.unice.fr"
+#define HOST3 "ssh://issgc12@issgc-ui.polytech.unice.fr"
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
