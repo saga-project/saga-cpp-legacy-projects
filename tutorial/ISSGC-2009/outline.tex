@@ -51,19 +51,16 @@ Unless this tutorial is going to be preceded by a SAGA installation tutorial, th
 \end{figure}
 
 The summer school infrastructure consists of a set of client machines issgc-client-01 to issgc-client-20 and a server issgc-ui. Since SAGA provides a uniform API for job submission, it doesn't make a difference to whether you submit your jobs through gLite, Globus, Condor or any other middleware. For the sake of simplicity, we set up the machines with SSH in a way that allows you to submit "jobs" to any other client or the server and transfer data between all available machines. Before you start using SAGA, please make sure that SSH work on your lab machine:
-
 \begin{verbatim}
 ssh user@issgc-client-XX /bin/hostname
 ssh issgcXX@issgc-ui /bin/hostname
 \end{verbatim}
-
-Remember these host names. You will use them again in your SAGA program in the form of:
-
+{\it Don't forget to assign a value to`XX''}.  Remember these host names. You will use them again in your SAGA program in the form of:
 \begin{verbatim}
 saga::url my_resource("ssh://user@issgc-client-XX");
 saga::url my_other_resource("ssh://issgcXX@issgc-ui");
 \end{verbatim}
-{\it Don't forget to set the value of ``XX''}. 
+
 
 The server also hosts a SAGA advert DB (PostgreSQL). You will use it in one of the exercises to store some data. To make sure that you don't mess with each other's data, we created directories for each participant - make sure that you can access yours:
 
@@ -86,7 +83,7 @@ Also, please note the location of the Tutorial Document Servers, where we have s
   \texttt{http://issgc-server-01.polytech.unice.fr/saga/}
 \end{center}
 
-\subsection{SAGA Applications} Every application that uses just a single SAGA call is considered a SAGA application, since it triggers the whole (SAGA) stack. SAGA is not a framework, but it provides the building blocks from which to develop frameworks or applications; loosly speaking, SAGA is programming system, but it does not impose a specific programming model.  Remember the rough taxonomy that we presented of three ways of developing applications using SAGA: (i) Implement a distributed submission/execution mode for a {\it legacy} application; (ii) Create a framework that supports a specific application characteristics and/or pattern, or (iii) Compose applications from multiple (distributed) units, which in a way makes it an {\it a priori} application.
+\subsection{SAGA Applications} Every application that uses just a single SAGA call is considered a SAGA application, since it triggers the whole (SAGA) stack. SAGA is not a framework, but it provides the building blocks from which to develop frameworks or applications; loosely speaking, SAGA is programming system, but it does not impose a specific programming model.  Remember the rough taxonomy that we presented of three ways of developing applications using SAGA: (i) Implement a distributed submission/execution mode for a {\it legacy} application; (ii) Create a framework that supports a specific application characteristics and/or pattern, or (iii) Compose applications from multiple (distributed) units, which in a way makes it an {\it a priori} application.
 
 %Look at it as a TOOLBOX for distributed computing.
 %\jhanote{Remember, we are going to use SSH adaptors for everything and nothing will USE Globus}
@@ -172,16 +169,15 @@ source /opt/saga-1.3.1-issgc/share/saga/saga-env.sh
 \end{verbatim}
 
 Another environment variable that might come in handy is \texttt{SAGA\_VERBOSE}
-in case something goes wrong. If set, SAGA will print detailed debug informations.
+in case something goes wrong. If set, SAGA will print detailed debug information.
 
 \subsubsection*{Unit IV (20 min): SAGA-based Applications:}
 
 In this tutorial, we will work with three different examples. The aim of these applications is to give you a quick feel for how SAGA is actually utilized to develop distributed applications. And although these examples are by definition very simple, they are representative of the way you would use SAGA in a real world examples to develop many of the scientific applications you heard about in today's lecture such as Replica-Exchange and C0$_2$ Sequestration problem(s).
 
-In the first example, we will introduce a simple ``Hello Distributed World!'', where the aim will be to submit three simple remote jobs using SAGA. In the second example application (``chaining\_jobs.cpp''), we will serialize the launch of three (remote) jobs, so that the second job is launched after the first, and the third job is launched after the second. In the third example application (``depending\_jobs.cpp''), we will start an application that once started, is able to re-spawn itself on another machine and after doing so increments a ``global counter''. Finally, we will leave you with a programming excercise that will build upon your understanding of application examples 2 and 3.
+In the first example, we will introduce a simple ``Hello Distributed World!'', where the aim will be to submit three simple remote jobs using SAGA. In the second example application (``chaining\_jobs.cpp''), we will serialize the launch of three (remote) jobs, so that the second job is launched after the first, and the third job is launched after the second. In the third example application (``depending\_jobs.cpp''), we will start an application that once started, is able to re-spawn itself on another machine and after doing so increments a ``global counter''. Finally, we will leave you with a programming exercise that will build upon your understanding of application examples 2 and 3.
 
-\subsection*{Example 1: Hello distributed world!} Submit three jobs to three machines. One returns “Hello”, one returns “Distributed” and one returns “World”. They may or may not return in the right order. This should give the student an idea how they could potentially speed up their application using multiple resources. 
-
+\subsection*{Example 1: Hello distributed world!} Submit three jobs to three machines. One returns “Hello”, one returns “Distributed” and one returns “World”. They may or may not return in the right order. This should give you an an idea how they could potentially speed up their application using multiple resources. Also, execute the program several times. Do you notice any difference in the outputs? Are they same?
 
 \begin{verbatim}
 
@@ -192,7 +188,7 @@ In the first example, we will introduce a simple ``Hello Distributed World!'', w
 // on their command lines. 
 //
 // The result  is that the jobs will print the respective command 
-// line arguments (it's /bin/echo we're launching!). The master job (this one)
+// line arguments (it's /bin/echo after all). The master job (this one)
 // waits for the 3 child jobs to  finish. It intercepts the generated
 // output and prints it to the user. Depending on which child jobs 
 // finish first the overall printed message might be some combination 
@@ -264,17 +260,7 @@ student-package/sourcecode from where you checked out the code from SVN.
 user@issgc-client-10:/tmp/student-package/sourcecode$./hello_world
 \end{verbatim}
 
-This application is executed using the following command in the sub-directory 
-student-package/sourcecode from where you checked out the code from SVN.
-
-{\footnotesize
-\begin{verbatim}
-user@issgc-client-10:/tmp/student-package/sourcecode$
- 
-/tmp/student-package/sourcecode/depending_jobs ssh://user@134.59.140.163 ssh://user@134.59.140.164
-\end{verbatim}}
-
-\subsection*{Example 2: Multiple Sequential Jobs} \textbf{Applications} The aim of this section is to see how SAGA is used to implement common {\it higher-level} functionality that is used by Distributed Applications (DA). Specifically, we will look at two commonly occuring functionality required by DA.
+\subsection*{Example 2: Multiple Sequential Jobs} \textbf{Applications} The aim of this section is to see how SAGA is used to implement common {\it higher-level} functionality that is used by Distributed Applications (DA). Specifically, we will look at two commonly occurring functionality required by DA.
 
 {\bf Example 1:} Here we will demonstrate the ability to checkpoint, use a specified resource, self-migrate and restart on a different computational resource. There are multiple reasons this might be required (see lecture notes). Here we will demonstrate this capability using the \textbf{Hello distributed world!} example discussed in Unit IV.  Instead of launching three jobs on three machines, we will launch one job on one machine, which will then launch itself on another machine, which in turn will do so onto yet another machine. 
 
@@ -359,9 +345,20 @@ Once developed, this capability can be utilized by a wide range of different app
 
 \newpage
 
-\subsection*{Example 3: Managing Dependendcies between Jobs}
+\subsection*{Example 3: Managing Dependencies between Jobs}
 
 In this example, we will introduce the {\it advert service} as a simple mechanism to provide coordination between different distributed tasks.  Specifically, the advert service will be used by a set of jobs to increment a global counter everytime a job is successfully spawned. There are other ways of {\it coordinating} distributed tasks/jobs, but the idea of a centralized data-store is arguably the simplest, even if not the most robust (fault-tolerant) or tuned for performance.
+
+This application is executed using the following command in the sub-directory 
+student-package/sourcecode from where you checked out the code from SVN.
+{\footnotesize
+\begin{verbatim}
+user@issgc-client-10:/tmp/student-package/sourcecode$
+
+saga-advert remove_entry advert://issgc-ui//issgcXX/result_ex_2
+./depending_job ssh://user@134.59.140.163 ssh://user@134.59.140.164
+saga-advert retrieve_string advert://issgc-ui//issgcXX/result_ex_2
+\end{verbatim}}
 
 \begin{verbatim}
 ///////////////////////////////////////////////////////////////////////
@@ -418,7 +415,7 @@ void respawn(int argc, char *argv[])
 }
 \end{verbatim}
 
-\noindent Not surprisingly the code snippet above is independent of any application specific details and focusses on the assignment of workloads to workers, execution and then retrival. This specific approach adopted here relies heavily on the use of the Advert Service.  
+\noindent Not surprisingly the code snippet above is independent of any application specific details and focuses on the assignment of workloads to workers, execution and then retrieval. This specific approach adopted here relies heavily on the use of the Advert Service.  
 
 \begin{verbatim}
 
@@ -442,22 +439,19 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
-
 \end{verbatim}
-
-Although introduced here, the requirement of coordination of distributed, often heteregenous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes and MapReduce below).
+\noindent Although we introduce the concept introduced here, the requirement of coordination of distributed, often heterogeneous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes and MapReduce below).
 
 \subsubsection*{Additional Real World Example} We will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems. For more details, see the code at the following:
 \begin{verbatim}
 svn co  https://svn.cct.lsu.edu/repos/saga-projects/applications/MapReduce/
 \end{verbatim}
 
-\subsection{Programming Excercise:} 
+\subsection{Programming Exercise:} 
 
-In earlier examples, we introduced the underlying concepts of submitting jobs and coordination amongst multiple distributed jobs (tasks), where we updated the value of a counter. Can the same approach (i.e. advert) be used to coordinate the submission of multiple jobs? In effect, this is a way of informing a job (that is ready to spawn another job) about which (possible) machines to spawn too.
-The aim of this excercise is for you to complete the code by implementing
-some (i) job submission functionality, and (ii) accessing advert entries.
-(We will post a sample solution to this at the end of the tutorial).
+\subsubsection{Exercise 1:} Recall how when the program hello\_world was executed the order of the values returned often varied. Can you use introduce dependencies between the jobs so as to ensure that the output is always in order ``Hello Distributed World!''?
+
+\subsubsection{Exercise 2:} In earlier examples, we introduced the underlying concepts of submitting jobs and coordination amongst multiple distributed jobs (tasks), where we updated the value of a counter. Can the same approach (i.e. advert) be used to coordinate the submission of multiple jobs? In effect, this is a way of informing a job (that is ready to spawn another job) about which (possible) machines to spawn too.  The aim of this exercise is for you to complete the code by implementing some (i) job submission functionality, and (ii) accessing advert entries.  (We will post a sample solution to this at the end of the tutorial).
 
 \begin{verbatim}
 <CODE>
@@ -473,9 +467,9 @@ Let us recap that there are multiple types of distributed applications. What you
 
 \item Distributed Applications can be developed much like regular applications.  The challenges facing Distributed Applications -- development and deployment are different from traditional applications and many of those challenges arise from the distributed infrastructure. It is to precisely meet these ``unique'' distributed computing challenges that there is a need for simple, standard and pervasive application level interface such as SAGA was conceived.
 
-\item We have focussed on some of the challenges of developing distributed applications, such as coordinating distributed tasks. We have shown the ability to do so in a simple fashion; however this is not necessarily scalable, and poses challenges for many real-world applications. Some other real-world challenges we have not discussed here are fault-tolerance, recovery, replication etc. SAGA provides APIs to these ``Advanced'' features as well.
+\item We have focused on some of the challenges of developing distributed applications, such as coordinating distributed tasks. We have shown the ability to do so in a simple fashion; however this is not necessarily scalable, and poses challenges for many real-world applications. Some other real-world challenges we have not discussed here are fault-tolerance, recovery, replication etc. SAGA provides APIs to these ``Advanced'' features as well.
 
-\item Interestingly, we have built all the distributed functionality around simple ``ssh'' adaptors; if you wanted to launch to a Globus or a Condor specific infrastructure, you would just configure SAGA to utilize Globus or Condor specific adaptors. 
+\item Interestingly, we have built all the distributed functionality around simple ``ssh'' adaptors; if you wanted to launch to a Globus or a Condor specific infrastructure, you would just configure SAGA to utilize Globus or Condor specific adaptors.
 
 \item All of these exist in the full SAGA installation (http://saga.cct.lsu.edu is your source of information for all things SAGA).  
 
