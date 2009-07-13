@@ -14,8 +14,8 @@
 // increment a number stored in a central result store.
 
 ///////////////////////////////////////////////////////////////////////////////
-#define RESULT_STORE  "/tutorial/depending_jobs/result"   // place in advert to store result to
-#define JOB_PATH      "./depending_jobs"                  // put the correct path here
+#define RESULT_STORE  "advert://issgc-ui//issgcXX/result_ex_2"   // place in advert to store result to
+#define JOB_PATH      "./depending_jobs"                         // put the correct path here
 
 ///////////////////////////////////////////////////////////////////////////////
 // retrieve the current value from the advert (result store)
