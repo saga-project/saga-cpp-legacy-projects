@@ -1,5 +1,5 @@
 \title{A 90 Minute \textit{SAGA} Hands-On Tutorial\\[1em]
-\Large{ISSGC, Nice, France, July 5-17 2009 } \\[1em]
+\Large{ISSGC, Nice, France, July 14 2009 } \\[1em]
 \large{Ole Weidner, Hartmut Kaiser, Andre Merzky, Shantenu Jha}}
 
 \documentclass[12pt]{article}
@@ -35,7 +35,7 @@
 The scope of this tutorial is to provide the audience with the required resources and technical knowledge (hands-on experience) to start hacking their own distributed applications with SAGA.
 
 \subsection*{Prerequisites} This tutorial requires basic knowledge of the C/C++ programming language. Experience using the command line on a Linux/UNIX based operating system and a basic idea of what a compiler, a linker and a Makefile is might come in handy.\\[0.4em]
-Unless this tutorial is going to be preceded by a SAGA installation tutorial, the students are required to have a fully working installation of SAGA on their laptops/lab machines (preferred), or remote access (e.g. via SSH) to a machine with SAGA installed. 
+Unless this tutorial is going to be preceded by a SAGA installation tutorial, the students are required to have a fully working installation of SAGA on their laptops/lab machines (preferred), or remote access (e.g. via SSH) to a machine with SAGA installed.
 	
 %\subsection*{Cheat Sheat} At the beginning of the tutorial we're going to hand out the SAGA Cheat Sheet (yet to be %created). The cheat sheet is a double-sided % (laminated, so people won't throw it away!)
 %letter-sized piece of paper with hints and tips for writing, compiling, and running SAGA applications.
@@ -264,6 +264,88 @@ Once developed, this capability can be utilized by a wide range of different app
 
 \subsection*{Example 3: Managing Dependies between Jobs}
 
+In this example, we will introduce the {\it advert service} as a simple mechanism to provide coordination between different distributed tasks.  Specifically, the advert service will be used by a set of jobs to increment a global counter everytime a job is successfully spawned. There are other ways of {\it coordinating} distributed tasks/jobs, but the idea of a centralized data-store is arguably the simplest, even if not the most robust (fault-tolerant) or tuned for performance.
+
+
+\begin{verbatim}
+
+///////////////////////////////////////////////////////////////////////////////
+// Start this example by providing an arbitrary number of hosts on the command 
+// line. It will re-spawn itself on each of the hosts. Each instance will 
+// increment a number stored in a central result store.
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+// the routine spawning the SAGA jobs and waiting for their results
+void respawn(int argc, char *argv[])
+{
+    assert(argc > 1);     // we shouldn't end up here without any given hosts
+    try {
+        saga::job::service js (argv[1]);
+
+        // compose the command line, skip first argument
+        std::string commandline (JOB_PATH);
+        for (int i = 2; i < argc; ++i) {
+            commandline += " ";
+            commandline += argv[i];
+        }
+
+        // run the job on host given by first argument
+        saga::job::job j = js.run_job(commandline, argv[1]);
+
+        // wait for the job to start
+        saga::job::state s = j.get_state();
+        while (s != saga::job::Running && s != saga::job::Failed)
+            s = j.get_state();
+
+        // if the job didn't start successfully, print error message
+        if (s == saga::job::Failed) {
+            std::cerr << "SAGA job: " << j.get_job_id() << " failed (state: " 
+                      << saga::job::detail::get_state_name(s) << ")\n";
+        }
+
+        // wait for the job to Finish
+        s = j.get_state();
+        while (s == saga::job::Running)
+            s = j.get_state();
+    }
+
+    catch (saga::exception const& e) {
+        std::cerr << "saga::exception caught: " << e.what () << std::endl;
+    }
+    catch (std::exception const& e) {
+        std::cerr << "std::exception caught: " << e.what () << std::endl;
+    }
+    catch (...) {
+        std::cerr << "unexpected exception caught" << std::endl;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int main(int argc, char* argv[])
+{
+    if (argc == 1) {
+    // no more hosts are given, we're done!
+        int result = 0;
+        if (get_result(result))
+            std::cout << "The overall result is: " << result << std::endl;
+    }
+    else {
+    // otherwise get current value, increment it, and store new value
+        int result = 0;
+        get_result(result);   // ignore errors, will set result to zero
+
+        // re-spawn this job, increment result
+        if (set_result(result + 1)) 
+            respawn(argc, argv);
+    }
+    return 0;
+}
+
+\end{verbatim}
+
 {\bf An additional Real World Example} Here we will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems.
 
 \begin{verbatim}
@@ -273,12 +355,34 @@ Once developed, this capability can be utilized by a wide range of different app
 Not surprisingly the code snippet above is independent of any application specific details and focusses on the assignment of workloads to workers, execution and then retrival. This specific approach adopted here relies heavily on the use of the Advert Service.  Although introduced in the context of MapReduce, the requirement of coordination of distributed, often heteregenous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes).
 
 
-\subsection*{Programming Excercise:} Have the students write a distributed application We have to come up with something neat, fun!!!, and simple enough that can be solved by all students within 20 minutes and the help of the cheat sheet. 
+\subsection*{Programming Excercise:} 
+
+In earlier examples, we introduced the underlying concepts of submitting jobs and coordination amongst multiple distributed jobs (tasks), where we updated the value of a counter. Can the same approach (i.e. advert) be used to coordinate the submission of multiple jobs? In effect, this is a way of informing a job (that is ready to spawn another job) about which (possible) machines to spawn too.
+The aim of this excercise is for you to complete the code by implementing
+some (i) job submission functionality, and (ii) accessing advert entries.
+(We will post a sample solution to this at the end of the tutorial).
 
 \begin{verbatim}
 <CODE>
 \end{verbatim}
 
+Think of generalizations to this concept: Say one application is ``producing'' this information (that is a list of possible resources), and this information is being ``consumed'' by another application.
+
 \subsection*{Conclusion}
+
+Let us recap that there are multiple types of distributed applications. What you have seen here are simple applications that utilize distributed functionality, such as remote job submission to achieve tasks.  What you should take away from this tutorial are essentially the following: 
+
+\begin{itemize}
+
+\item Distributed Applications can be developed much like regular applications.  The challenges facing Distributed Applications -- development and deployment are different from traditional applications and many of those challenges arise from the distributed infrastructure. It is to precisely meet these ``unique'' distributed computing challenges that there is a need for simple, standard and pervasive
+application level interface such as SAGA was conceived.
+
+\item We have focussed on some of the challenges of developing distributed applications, such as coordinating distributed tasks. We have shown the ability to do so in a simple fashion; however this is not necessarily scalable, and poses challenges for many real-world applications. Some other real-world challenges we have not discussed here are fault-tolerance, recovery, replication etc. SAGA provides APIs to these ``Advanced'' features as well.
+
+\item Interestingly, we have built all the distributed functionality around simple ``ssh'' adaptors; if you wanted to launch to a Globus or a Condor specific infrastructure, you would just configure SAGA to utilize Globus or Condor specific adaptors. 
+
+\item All of these exist in the full SAGA installation (Remember: http://saga.cct.lsu.edu is your source of information for all things SAGA).
+
+\end{itemize}
 
 \end{document}
