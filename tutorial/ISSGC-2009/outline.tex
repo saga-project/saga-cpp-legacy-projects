@@ -69,13 +69,13 @@ source /opt/saga-1.3.1-issgc/share/saga/saga-env.sh
 saga-advert list_directory advert://issgc-ui//issgcXX/ ?
 \end{verbatim}
 
-Before you begin, please download the ISSGC09 student-package from our SVN sever.
+Before you begin, please download the ISSGC09 student-package from our SVN sever (We recommend downloading it in /tmp/ on your machine):
 {\footnotesize
 \begin{verbatim}
 svn co https://svn.cct.lsu.edu/repos/saga-projects/tutorial/ISSGC-2009/student-package/
 \end{verbatim}}
 
-We recommend downloading it in /tmp/ on your machine. 
+
 
 
 \subsection*{Unit I (15 min)} \textbf{SAGA Applications:} Every application that uses just a single SAGA call is considered a SAGA application, since it triggers the whole (SAGA) stack. SAGA is not a framework, but it provides the building blocks from which to develop frameworks or applications; loosly speaking, SAGA is programming system, but it does not impose a specific programming model.  Remember the rough taxonomy that we presented of three ways of developing applications using SAGA: (i) Implement a distributed submission/execution mode for a {\it legacy} application; (ii) Create a framework that supports a specific application characteristics and/or pattern, or (iii) Compose applications from multiple (distributed) units, which in a way makes it an {\it a priori} application.
@@ -104,14 +104,14 @@ int main(int argc, char * argv[])
 }
 \end{verbatim}
 
-\jhanote{Ole: I guess this is where we take a diversion into ``clutils'' and ``shell''. I have put the slide into tutorial/ISSGC-2009/student-package/slides
-Maybe we should now put the code for clutils and shell into
-tutorial/ISSGC-2009/student-package/tools/}
+% \jhanote{Ole: I guess this is where we take a diversion into ``clutils'' and ``shell''. I have put the slide into tutorial/ISSGC-2009/student-package/slides
+% Maybe we should now put the code for clutils and shell into
+% tutorial/ISSGC-2009/student-package/tools/}
 
-{\footnotesize
-\begin{verbatim}
-svn co https://svn.cct.lsu.edu/repos/saga/tags/saga-1.3.1-issgc-release/tools/ 
-\end{verbatim}}
+% {\footnotesize
+% \begin{verbatim}
+% svn co https://svn.cct.lsu.edu/repos/saga/tags/saga-1.3.1-issgc-release/tools/ 
+% \end{verbatim}}
 
 
 
@@ -253,18 +253,32 @@ int main(int argc, char* argv[])
 
 \end{verbatim}
 
+This application is executed using the following command in the sub-directory 
+student-package/sourcecode from where you checked out the code from SVN.
+\begin{verbatim}
+user@issgc-client-10:/tmp/student-package/sourcecode$./hello_world
+\end{verbatim}
+
+This application is executed using the following command in the sub-directory 
+student-package/sourcecode from where you checked out the code from SVN.
+
+\begin{verbatim}
+user@issgc-client-10:/tmp/student-package/sourcecode$ /tmp/student-package/sourcecode/depending_jobs ssh://user@134.59.140.163 ssh://user@134.59.140.164
+\end{verbatim}
+
 \subsection*{Example 2: Multiple Sequential Jobs} \textbf{Applications} The aim of this section is to see how SAGA is used to implement common {\it higher-level} functionality that is used by Distributed Applications (DA). Specifically, we will look at two commonly occuring functionality required by DA.
 
 {\bf Example 1:} Here we will demonstrate the ability to checkpoint, use a specified resource, self-migrate and restart on a different computational resource. There are multiple reasons this might be required (see lecture notes). Here we will demonstrate this capability using the \textbf{Hello distributed world!} example discussed in Unit IV.  Instead of launching three jobs on three machines, we will launch one job on one machine, which will then launch itself on another machine, which in turn will do so onto yet another machine. 
 
 \begin{verbatim}
 //////////////////////////////////////////////////////////////////////////////
-// The chaining_jobs example tries to overcome one of the limitations of the 
-// hello_world example: it introduces dependencies between 3 (possibly remotely)
-// spawned childs. In this example the next child will be spawned only after 
-// the previous one has finished its execution. To make it more interesting we 
-// now use /usr/bin/bc to do some calculations, where the result of the previous
-// calculation is used as the input for the next one.
+// The chaining_jobs example tries to overcome one of the limitations 
+// of the   hello_world example: it introduces dependencies between 3
+// (possibly remotely) spawned childs. In this example the next child
+// will be spawned only after the previous one has finished its execution.
+// To make it more interesting we now use /usr/bin/bc to do some 
+// calculations, where the result of the previous calculation is used as
+// the input for the next one.
 //
 // Try to make more complex calculations if you like!
 ///////////////////////////////////////////////////////////////////////////////
@@ -339,14 +353,11 @@ Once developed, this capability can be utilized by a wide range of different app
 
 In this example, we will introduce the {\it advert service} as a simple mechanism to provide coordination between different distributed tasks.  Specifically, the advert service will be used by a set of jobs to increment a global counter everytime a job is successfully spawned. There are other ways of {\it coordinating} distributed tasks/jobs, but the idea of a centralized data-store is arguably the simplest, even if not the most robust (fault-tolerant) or tuned for performance.
 
-
 \begin{verbatim}
-
 ///////////////////////////////////////////////////////////////////////////////
-// Start this example by providing an arbitrary number of hosts on the command 
-// line. It will re-spawn itself on each of the hosts. Each instance will 
-// increment a number stored in a central result store.
-
+// Start this example by providing an arbitrary number of hosts on the 
+// command line. It will re-spawn itself on each of the hosts. Each 
+// instance will increment a number stored in a central result store.
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -396,7 +407,14 @@ void respawn(int argc, char *argv[])
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+
+\end{verbatim}
+
+\noindent Not surprisingly the code snippet above is independent of any application specific details and focusses on the assignment of workloads to workers, execution and then retrival. This specific approach adopted here relies heavily on the use of the Advert Service.  
+
+\begin{verbatim}
+
+/////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
     if (argc == 1) {
@@ -419,14 +437,12 @@ int main(int argc, char* argv[])
 
 \end{verbatim}
 
-{\bf A Real World Example} Here we will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems.
+Although introduced here, the requirement of coordination of distributed, often heteregenous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes and MapReduce below).
 
+\noindent {\bf Additional Real World Example} We will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems. For more details, see the code at the following:
 \begin{verbatim}
-<CODE>
+svn co  https://svn.cct.lsu.edu/repos/saga-projects/applications/MapReduce/
 \end{verbatim}
-
-Not surprisingly the code snippet above is independent of any application specific details and focusses on the assignment of workloads to workers, execution and then retrival. This specific approach adopted here relies heavily on the use of the Advert Service.  Although introduced in the context of MapReduce, the requirement of coordination of distributed, often heteregenous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes).
-
 
 \subsection*{Programming Excercise:} 
 
