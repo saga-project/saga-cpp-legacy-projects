@@ -31,16 +31,18 @@
 %This is the paper's abstract \ldots
 %t\end{abstract}
 
-\section*{Scope of this Tutorial}
-The scope of this tutorial is to provide the audience with the required resources and technical knowledge (hands-on experience) to start hacking their own distributed applications with SAGA.
+\section{Scope of this Tutorial}
+The scope of this tutorial is to provide the audience with the required resources and technical knowledge (hands-on experience) to start hacking their own distributed applications with SAGA.  We will begin with a quick overview of how to use SAGA -- the basic, and then quickly dive into simple yet complete applications written using SAGA. In the latter half we will discuss a couple of ``complex'' applications, which aren't
+complex at all, but would have been if they hadn't been 
+written in SAGA.
 
-\subsection*{Prerequisites} This tutorial requires basic knowledge of the C/C++ programming language. Experience using the command line on a Linux/UNIX based operating system and a basic idea of what a compiler, a linker and a Makefile is might come in handy.\\[0.4em]
+\subsection{Prerequisites} This tutorial requires basic knowledge of the C/C++ programming language. Experience using the command line on a Linux/UNIX based operating system and a basic idea of what a compiler, a linker and a Makefile is might come in handy.\\[0.4em]
 Unless this tutorial is going to be preceded by a SAGA installation tutorial, the students are required to have a fully working installation of SAGA on their laptops/lab machines (preferred), or remote access (e.g. via SSH) to a machine with SAGA installed.
 	
 %\subsection*{Cheat Sheat} At the beginning of the tutorial we're going to hand out the SAGA Cheat Sheet (yet to be %created). The cheat sheet is a double-sided % (laminated, so people won't throw it away!)
 %letter-sized piece of paper with hints and tips for writing, compiling, and running SAGA applications.
 
-\subsection*{ISSGC Infrastructure}
+\subsection{ISSGC Infrastructure}
 
 \begin{figure}[!ht]
   \begin{center}
@@ -61,13 +63,16 @@ Remember these host names. You will use them again in your SAGA program in the f
 saga::url my_resource("ssh://user@issgc-client-XX");
 saga::url my_other_resource("ssh://issgcXX@issgc-ui");
 \end{verbatim}
+{\it Don't forget to set the value of ``XX''}. 
 
-{\it Don't forget to set the value of ``XX''}. The server also hosts a SAGA advert DB (PostgreSQL). You will use it in one of the exercises to store some data. To make sure that you don't mess with each other's data, we created directories for each participant - make sure that you can access yours:
+The server also hosts a SAGA advert DB (PostgreSQL). You will use it in one of the exercises to store some data. To make sure that you don't mess with each other's data, we created directories for each participant - make sure that you can access yours:
 
-\begin{verbatim}
-source /opt/saga-1.3.1-issgc/share/saga/saga-env.sh
-saga-advert list_directory advert://issgc-ui//issgcXX/ ?
-\end{verbatim}
+\begin{center}
+\texttt{source /opt/saga-1.3.1-issgc/share/saga/saga-env.sh}
+\end{center}
+\begin{center}
+ \hspace{0.35in} \texttt{saga-advert list\_directory advert://issgc-ui//issgcXX/ ?}
+\end{center}
 
 Before you begin, please download the ISSGC09 student-package from our SVN sever (We recommend downloading it in /tmp/ on your machine):
 {\footnotesize
@@ -76,22 +81,20 @@ svn co https://svn.cct.lsu.edu/repos/saga-projects/tutorial/ISSGC-2009/student-p
 \end{verbatim}}
 
 Also, please note the location of the Tutorial Document Servers, where we have some sample command-line utilities source code and a PDF version of a programming manual.
-\begin{verbatim}
-http://issgc-server-01.polytech.unice.fr/saga/
-\end{verbatim}
 
+\begin{center}
+  \texttt{http://issgc-server-01.polytech.unice.fr/saga/}
+\end{center}
 
-
-\subsection*{Unit I (15 min)} \textbf{SAGA Applications:} Every application that uses just a single SAGA call is considered a SAGA application, since it triggers the whole (SAGA) stack. SAGA is not a framework, but it provides the building blocks from which to develop frameworks or applications; loosly speaking, SAGA is programming system, but it does not impose a specific programming model.  Remember the rough taxonomy that we presented of three ways of developing applications using SAGA: (i) Implement a distributed submission/execution mode for a {\it legacy} application; (ii) Create a framework that supports a specific application characteristics and/or pattern, or (iii) Compose applications from multiple (distributed) units, which in a way makes it an {\it a priori} application.
+\subsection{SAGA Applications} Every application that uses just a single SAGA call is considered a SAGA application, since it triggers the whole (SAGA) stack. SAGA is not a framework, but it provides the building blocks from which to develop frameworks or applications; loosly speaking, SAGA is programming system, but it does not impose a specific programming model.  Remember the rough taxonomy that we presented of three ways of developing applications using SAGA: (i) Implement a distributed submission/execution mode for a {\it legacy} application; (ii) Create a framework that supports a specific application characteristics and/or pattern, or (iii) Compose applications from multiple (distributed) units, which in a way makes it an {\it a priori} application.
 
 %Look at it as a TOOLBOX for distributed computing.
 %\jhanote{Remember, we are going to use SSH adaptors for everything and nothing will USE Globus}
 
-\begin{verbatim}
-<CODE>
-\end{verbatim}
-
 % \jhanote{Points/Issues to consider here: (i) Avoid Context, (ii) Copy a file given 2 URLS, and (iii) Command line Tools. Make Use of material already in the programming manual}
+
+\subsubsection*{Unit I (15 min): Command Line Utilities}
+The following is a simple example of an application that copies a file. There are more such simple (command-line utilities) that we will discuss at: \\ \texttt{http://issgc-server-01.polytech.unice.fr/saga/cltools/}
 
 \begin{verbatim}
 #include <saga/saga.hpp>
@@ -118,8 +121,7 @@ int main(int argc, char * argv[])
 % \end{verbatim}}
 
 
-
-\subsection*{Unit II (15 min)} \textbf{Compiling and linking.} Like with any other C/C++ library, you have to let the 
+\subsubsection*{Unit II (15 min)} \textbf{Compiling and linking.} Like with any other C/C++ library, you have to let the 
 compiler and the linker know where to find the header files and the library. To make life easier, SAGA provides
 a Makefile which you can include in order to build your application:
 
@@ -145,7 +147,7 @@ g++ -Wall -I/opt/saga-1.3.1-issgc/include -pthread \
 
 \end{verbatim}
 
-\subsection*{Unit III } \textbf{Running a SAGA application.} 
+\subsubsection*{Unit III: Running a SAGA application.} 
 
 In order to run a SAGA application, you have to make sure that all required libraries
 can be found by the loader. The easiest way to do that is to set the LD\_LIBRARY\_PATH
@@ -172,10 +174,9 @@ source /opt/saga-1.3.1-issgc/share/saga/saga-env.sh
 Another environment variable that might come in handy is \texttt{SAGA\_VERBOSE}
 in case something goes wrong. If set, SAGA will print detailed debug informations.
 
-\section*{Unit IV (20 min)}\textbf{SAGA-based Applications:}
-In this tutorial, we will work with three different examples. The aim of these
-applications is to give you a  quick feel for how SAGA is actually utilized to develop distributed applications. And although these examples are by definition very simple, they are representative of the way you would use SAGA in a real world examples to develop many of the scientific applications you heard about in today's 
-lecture such as Replica-Exchange and C0$_2$ Sequestration problem(s).
+\subsubsection*{Unit IV (20 min): SAGA-based Applications:}
+
+In this tutorial, we will work with three different examples. The aim of these applications is to give you a quick feel for how SAGA is actually utilized to develop distributed applications. And although these examples are by definition very simple, they are representative of the way you would use SAGA in a real world examples to develop many of the scientific applications you heard about in today's lecture such as Replica-Exchange and C0$_2$ Sequestration problem(s).
 
 In the first example, we will introduce a simple ``Hello Distributed World!'', where the aim will be to submit three simple remote jobs using SAGA. In the second example application (``chaining\_jobs.cpp''), we will serialize the launch of three (remote) jobs, so that the second job is launched after the first, and the third job is launched after the second. In the third example application (``depending\_jobs.cpp''), we will start an application that once started, is able to re-spawn itself on another machine and after doing so increments a ``global counter''. Finally, we will leave you with a programming excercise that will build upon your understanding of application examples 2 and 3.
 
@@ -356,7 +357,9 @@ int main(int argc, char* argv[])
 
 Once developed, this capability can be utilized by a wide range of different applications. In other words this capability described/shown above is independent of any specific application logic. Do you know of a (Scientific) application that could utilize this feature?
 
-\subsection*{Example 3: Managing Dependies between Jobs}
+\newpage
+
+\subsection*{Example 3: Managing Dependendcies between Jobs}
 
 In this example, we will introduce the {\it advert service} as a simple mechanism to provide coordination between different distributed tasks.  Specifically, the advert service will be used by a set of jobs to increment a global counter everytime a job is successfully spawned. There are other ways of {\it coordinating} distributed tasks/jobs, but the idea of a centralized data-store is arguably the simplest, even if not the most robust (fault-tolerant) or tuned for performance.
 
@@ -444,12 +447,12 @@ int main(int argc, char* argv[])
 
 Although introduced here, the requirement of coordination of distributed, often heteregenous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes and MapReduce below).
 
-\noindent {\bf Additional Real World Example} We will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems. For more details, see the code at the following:
+\subsubsection*{Additional Real World Example} We will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems. For more details, see the code at the following:
 \begin{verbatim}
 svn co  https://svn.cct.lsu.edu/repos/saga-projects/applications/MapReduce/
 \end{verbatim}
 
-\subsection*{Programming Excercise:} 
+\subsection{Programming Excercise:} 
 
 In earlier examples, we introduced the underlying concepts of submitting jobs and coordination amongst multiple distributed jobs (tasks), where we updated the value of a counter. Can the same approach (i.e. advert) be used to coordinate the submission of multiple jobs? In effect, this is a way of informing a job (that is ready to spawn another job) about which (possible) machines to spawn too.
 The aim of this excercise is for you to complete the code by implementing
@@ -462,7 +465,7 @@ some (i) job submission functionality, and (ii) accessing advert entries.
 
 Think of generalizations to this concept: Say one application is ``producing'' this information (that is a list of possible resources), and this information is being ``consumed'' by another application.
 
-\subsection*{Conclusion}
+\subsection{Conclusion}
 
 Let us recap that there are multiple types of distributed applications. What you have seen here are simple applications that utilize distributed functionality, such as remote job submission to achieve tasks.  What you should take away from this tutorial are essentially the following: 
 
@@ -474,7 +477,12 @@ Let us recap that there are multiple types of distributed applications. What you
 
 \item Interestingly, we have built all the distributed functionality around simple ``ssh'' adaptors; if you wanted to launch to a Globus or a Condor specific infrastructure, you would just configure SAGA to utilize Globus or Condor specific adaptors. 
 
-\item All of these exist in the full SAGA installation (http://saga.cct.lsu.edu is your source of information for all things SAGA).  https://svn.cct.lsu.edu/repos/saga-projects/tutorial/ISSGC-2009/student-package/
+\item All of these exist in the full SAGA installation (http://saga.cct.lsu.edu is your source of information for all things SAGA).  
+
+{\footnotesize
+\begin{verbatim}
+https://svn.cct.lsu.edu/repos/saga-projects/tutorial/ISSGC-2009/student-package/
+\end{verbatim}}
 
 \end{itemize}
 
