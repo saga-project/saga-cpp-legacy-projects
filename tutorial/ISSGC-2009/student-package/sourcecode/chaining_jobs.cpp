@@ -34,13 +34,17 @@
 std::string increment(std::string host, std::string argument)
 {
     try {
+        // construct command line
+        std::string command ("/bin/echo");
+        command += " $[" + argument + " + 1]";
+
+        // run the job
         saga::job::service js (host);
         saga::job::ostream in;
         saga::job::istream out;
         saga::job::istream err;
 
-        // run the job
-        saga::job::job j = js.run_job("/usr/bin/bc -q", host, in, out, err);
+        saga::job::job j = js.run_job(command, host, in, out, err);
 
         // wait for the job to finish
         saga::job::state s = j.get_state();
@@ -54,15 +58,9 @@ std::string increment(std::string host, std::string argument)
             return argument;
         }
 
-        // feed the remote process some input
-        in << "1 + " + argument + "\n";
-
         // receive result
         std::string line;
         std::getline(out, line);
-
-        // quit remote process
-        in << "quit\n";
 
         return line;
     }
