@@ -8,14 +8,15 @@
 #include <boost/thread.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-// The chaining_jobs example tries to overcome one of the limitations of the 
-// hello_world example: it introduces dependencies between 3 (possibly remotely)
-// spawned childs. In this example the next child will be spawned only after 
-// the previous one has finished its execution. To make it more interesting we 
-// now use /usr/bin/bc to do some calculations, where the result of the previous
-// calculation is used as the input for the next one.
+// The chaining_jobs example tries to overcome one of the limitations
+// of the hello_world example: it introduces dependencies between 3
+// (possibly remotely) spawned childs. In this example the next child
+// will be spawned only after the previous one has finished its
+// execution.  Here we use an "addition" hack to do some calculations,
+// where the result of the previous calculation is used as the input
+// for the next one.
 //
-// Try to make more complex calculations if you like!
+// Try to make more complex calculations if you like/can
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,7 +28,6 @@
 #define HOST1 "ssh://issgc10@issgc-ui.polytech.unice.fr"
 #define HOST2 "ssh://issgc11@issgc-ui.polytech.unice.fr"
 #define HOST3 "ssh://issgc12@issgc-ui.polytech.unice.fr"
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
