@@ -83,7 +83,7 @@ Also, please note the location of the Tutorial Document Servers, where we have s
   \texttt{http://issgc-server-01.polytech.unice.fr/saga/}
 \end{center}
 
-\subsection{SAGA Applications} Every application that uses just a single SAGA call is considered a SAGA application, since it triggers the whole (SAGA) stack. SAGA is not a framework, but it provides the building blocks from which to develop frameworks or applications; loosely speaking, SAGA is programming system, but it does not impose a specific programming model.  Remember the rough taxonomy that we presented of three ways of developing applications using SAGA: (i) Implement a distributed submission/execution mode for a {\it legacy} application; (ii) Create a framework that supports a specific application characteristics and/or pattern, or (iii) Compose applications from multiple (distributed) units, which in a way makes it an {\it a priori} application.
+\subsection{SAGA Applications} Every application that uses even a single SAGA call is considered a SAGA application, since it triggers the whole (SAGA) stack. SAGA is not a framework, but it provides the building blocks from which to develop frameworks and/or applications. Loosely speaking, SAGA is programming system for distributed applications; it is important to understand that it does not impose a specific programming model. Remember the rough taxonomy that we presented of three ways of developing distributed applications using SAGA: (i) Implement a distributed submission/execution mode for a {\it legacy} application; (ii) Create a framework that supports a specific application characteristics and/or pattern, or (iii) Compose applications from multiple (distributed) units, which in a way makes it an {\it a priori} application.
 
 %Look at it as a TOOLBOX for distributed computing.
 %\jhanote{Remember, we are going to use SSH adaptors for everything and nothing will USE Globus}
@@ -117,6 +117,7 @@ int main(int argc, char * argv[])
 % svn co https://svn.cct.lsu.edu/repos/saga/tags/saga-1.3.1-issgc-release/tools/ 
 % \end{verbatim}}
 
+{\it Q: Which of the three types of distributed applications would you classify the above copy program into?}
 
 \subsubsection*{Unit II (15 min)} \textbf{Compiling and linking.} Like with any other C/C++ library, you have to let the 
 compiler and the linker know where to find the header files and the library. To make life easier, SAGA provides
@@ -173,9 +174,9 @@ in case something goes wrong. If set, SAGA will print detailed debug information
 
 \subsubsection*{Unit IV (20 min): SAGA-based Applications:}
 
-In this tutorial, we will work with three different examples. The aim of these applications is to give you a quick feel for how SAGA is actually utilized to develop distributed applications. And although these examples are by definition very simple, they are representative of the way you would use SAGA in a real world examples to develop many of the scientific applications you heard about in today's lecture such as Replica-Exchange and C0$_2$ Sequestration problem(s).
+You have had some initial exposure to the API when going through the command-line utilities.  In this section, we will work with three different examples. The aim of these applications is to give you a quick feel for how SAGA is actually utilized to develop {\it complete, stand-alone} distributed applications. And although these examples are by necessity very simple, they are representative of the way you would use SAGA in actual real-world examples to develop many of the scientific applications you heard about in today's lecture such as Replica-Exchange and C0$_2$ Sequestration problem(s).
 
-In the first example, we will introduce a simple ``Hello Distributed World!'', where the aim will be to submit three simple remote jobs using SAGA. In the second example application (``chaining\_jobs.cpp''), we will serialize the launch of three (remote) jobs, so that the second job is launched after the first, and the third job is launched after the second. In the third example application (``depending\_jobs.cpp''), we will start an application that once started, is able to re-spawn itself on another machine and after doing so increments a ``global counter''. Finally, we will leave you with a programming exercise that will build upon your understanding of application examples 2 and 3.
+In the first example, we will introduce a simple ``Hello Distributed World!'', where the aim will be to submit three simple remote jobs using SAGA. In the second example application (``chaining\_jobs.cpp''), we will serialize the launch of three (remote) jobs, so that the second job is launched after the first, and the third job is launched after the second. In the third example application (``depending\_jobs.cpp''), we will start an application that once started, is able to re-spawn itself on another machine, and after doing so increments a ``global counter''. Finally, we will leave you with a programming exercise that will build upon your understanding of application examples 2 and 3.
 
 \subsection*{Example 1: Hello distributed world!} Submit three jobs to three machines. One returns “Hello”, one returns “Distributed” and one returns “World”. They may or may not return in the right order. This should give you an an idea how they could potentially speed up their application using multiple resources. Also, execute the program several times. Do you notice any difference in the outputs? Are they same?
 
@@ -347,10 +348,11 @@ Once developed, this capability can be utilized by a wide range of different app
 
 \subsection*{Example 3: Managing Dependencies between Jobs}
 
-In this example, we will introduce the {\it advert service} as a simple mechanism to provide coordination between different distributed tasks.  Specifically, the advert service will be used by a set of jobs to increment a global counter everytime a job is successfully spawned. There are other ways of {\it coordinating} distributed tasks/jobs, but the idea of a centralized data-store is arguably the simplest, even if not the most robust (fault-tolerant) or tuned for performance.
+In this example, we will introduce the {\it advert service} as a simple mechanism to provide coordination between different distributed tasks.  Specifically, the advert service will be used by a set of jobs to increment a global counter everytime a job is successfully spawned. There are other ways of {\it coordinating} distributed tasks/jobs, but the idea of a centralized data-store is arguably the simplest, even if not the most robust (fault-tolerant) or tuned for performance. Also, of interest is the \texttt{respawn} method.
 
 This application is executed using the following command in the sub-directory 
 student-package/sourcecode from where you checked out the code from SVN.
+
 {\footnotesize
 \begin{verbatim}
 user@issgc-client-10:/tmp/student-package/sourcecode$
@@ -440,9 +442,12 @@ int main(int argc, char* argv[])
     return 0;
 }
 \end{verbatim}
-\noindent Although we introduce the concept introduced here, the requirement of coordination of distributed, often heterogeneous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes and MapReduce below).
 
-\subsubsection*{Additional Real World Example} We will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems. For more details, see the code at the following:
+\noindent {\it Q: Can you think of an a usage-mode that can be supported by the general functionality to respawn a job? Long-running Simulations? What else?}
+
+\subsubsection*{Additional Real World Example} 
+\noindent The requirement of coordination of distributed, often heterogeneous units is a fundamental {\it vector} of distributed applications. (See Lecture Notes).  We will briefly discuss MapReduce -- a computational pattern made famous by Google's use for its Search Engine Infrastructure.  The fundamental idea is that there is a Master which coordinates the distribution of work to a large number of Workers, and manages the merging of the output of the computation that the Workers produce. In addition to performance, a fundamental challenge is the need to be able to coordinate Master-Workers across a wide range of distributed systems. For more details, see the code at the following:
+
 \begin{verbatim}
 svn co  https://svn.cct.lsu.edu/repos/saga-projects/applications/MapReduce/
 \end{verbatim}
