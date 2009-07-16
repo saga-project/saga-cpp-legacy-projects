@@ -363,6 +363,27 @@ One of the major areas of research in this field is the characterization of rese
 
 Since the amount of information obtained directly from reservoirs is very small compared to the actual size of the reservoir, history matching techniques have been developed to match actual reservoir production with simulated reservoir production, therefore obtaining a more ``satisfactory'' set of reservoir models. One of the promising approaches to history matching is the use of Ensemble Kalman filters (EnKF) ~\cite{KalmanPaper, DO2007, LiEnKF07, DO2006}.
 
+\begin{table}[!h]
+\begin{center}
+ \caption{Summary of allocation usage for a typical simulation}
+\begin{tabular}{| c | c |}
+\hline
+Simulation Time & 0.041667 years \\ 
+\hline
+SU cost per Simulation & 0.6667 SUs \\ 
+\hline
+Target History Matching Simulation Time & 15 years \\ 
+\hline
+Target Forecast Simulation Time & 20 years \\ 
+\hline
+Number of Simulations & 200 \\ 
+\hline
+Total Cost in SUs & 112k\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
 Ensemble Kalman filters are recursive filters that can be used to handle large, noisy data; the data in this case would be the results and parameters from ensembles of reservoir models that are sent through the filter to obtain the ``true state'' of the data. Since the reservoir model varies from one ensemble to another, the run-time characteristics of the ensemble simulation are irregular and hard to predict. Furthermore, at simulation times when real historical data is available, all the data from the different ensembles at that simulation time must be compared to the actual production data, before the simulations are allowed to proceed. This translates into a global synchronization point for all ensembles; hence performing large scale studies for complex reservoirs in a reasonable amount of time would benefit greatly from the use of distributed, high performance, high throughput and on-demand computing resources.
 
 \begin{figure}
@@ -388,16 +409,14 @@ To this end we developed several components: a CO$_2$ sequestration simulator an
 \end{figure}
 
 \subsubsection*{Utilizing Application-level Interoperability across TeraGrid and DEISA}
-As part of NSF funded HPCOPS Award, LONI has begun a year long project to utilize the aggregated computational power of the Federated Grids of DEISA and TeraGrid. The aim of the project is to (i) work towards an integrated infrastructure that supports application level-interoperability and, (ii) having created the infrastructure apply it to the scientific problem of understanding the conformational challenges and determining the free energy...
+As part of NSF funded HPCOPS Award, LONI has begun a year long project to utilize the aggregated computational power of the Federated Grids of DEISA and TeraGrid. The aim of the project is to (i) work towards an integrated infrastructure that supports application level-interoperability and, (ii) having created the infrastructure, apply it to the dual challenge of understanding the conformational changes and determining the free energy of biological systems. Specifically, the high-level aim of this project is to enable scientific applications to utilise the federated capabilities of the TeraGrid, DEISA and LONI systems, to enhance the understanding of HIV-1 enzymes and epidermal growth factor receptors (EGFR) implicated in lung cancer -- important science drivers in general. The aim of this project is to use several Replica-based and Replica-Exchange simulations for HIV-1 \& EGFR research, on multiple TeraGrid, LONI and DEISA resources, working concurrently towards the solution of a single problem instance -- the rapid computation of free-energies of binding with high-levels precision.
 
-\jhanote{Provide URL of the project. Mention its funded. Mention Project
-has guaranteed resources from the UK NGS and DEISA. Need approximately
-500K Roaming across, QB/Abe, Kraken, Ranger}
+{\it Resource Requirements:} For Project 3, we require 750,000 SUs. This in turn is divided into a component for the Interoperabilty Project (500K) and the EnKF-based Sequestration Project (250K). The latter is, a somewhat more experimental component of this proposal, where we do not have clear estimates and benchmarking data. However, based upon our experience/publications alluded to in the previous paragraph, each "experiment" that we conduct, (ie application that we develop), requires a minimum of 50000 SUs. For example, running a reservoir simulation for a simulation time of two weeks (typical period of historical production data gathering) consumes about ten minutes on four cores.  With two hundred ensembles (typical number of ensembles), running for a simulation time of fifteen years will consume 48k SUs. This obviously is the medium range of simulations; a more detailed reservoir model will naturally consume more SUs per simulation, multiplied by a large number of ensembles and the SUs required to perform the history matching increases dramatically. To complete the forecast stage, we will need to run the same ensembles for an extended period of time (reservoir depletion/workover, enhanced oil recovery and CO$_2$ sequestration) which roughly would range between twenty to thirty years in simulation time, that is an additional 64k-96k SUs, placing the total in the range of 112k-144k SUs for a single complete reservoir study.
 
+The TeraGrid-DEISA Interoperability project -- built upon validated and ready to run models, has already acquired significant resources (several million CPU hours) on DEISA machines; our request for 500K is to support initial production runs of the VPH (Virtual Physiological Human) models and test the infrastructure for Scale-Out tests -- intra-TeraGrid as well as TeraGrid-DEISA Grids, performed on the VPH Models.
 
-% A major limitation we are facing at the moment is the fact the allocations currently used in the group are small and limited to a few machines, forcing us to reserve the allocations for production runs and not benchmarks or development runs.
-
-{\it Roaming Resource:} To state the obvious, if a primary aim of our work is to investigate the ability of distributed applications to {\it Scale-Out}, then it is imperative that there be an underlying resource allocation to support the work. We aim to develop frameworks such as Lazarus and Faust to support the ability of applications to {\it Scale-Out} in a manner that is independent of the specifics of the applications.
+{\it Roaming Resource:} To state the obvious, if a primary aim of our work is to investigate the ability of distributed applications to {\it Scale-Out}, then it is imperative that there be an underlying resource allocation to support the work. We aim to develop frameworks such as Lazarus and Faust to support the ability of applications to {\it Scale-Out} in a manner that is independent of the specifics of the applications.  By extension, in order to scale-out to the TeraGrid and DEISA combined resources (one of the motivations for interoperability), we will also have to scale-out on the TeraGrid.  In general, there are instances where we have chosen to request non-roaming allocations but request more than one machine for the same project; this is to hedge against lengthy, but more challengingly, variable queue length (load) factors. However, 
+the bulk of our resource request is non-roaming ($\approx$ 75\%).
 
 \begin{table}[!h]
 \begin{center}
@@ -422,40 +441,9 @@ IIIb & Abe-QB/Kraken/Ranger & 500K & Roaming \\
 
 %  This hinders our capacity to perform full scale testing of Lazarus' {\it Scale-Out} to the intended target of at least one million simulations.
 
-{\it Resource Requirements:} For Project 3, we require 250,000 SUs; this is the more experimental component of this proposal, where we do not have clear estimates and benchmarking data. However, based upon our experience/publications alluded to in the previous paragraph, each "experiment" that we conduct, (ie application that we develop), requires a minimum of 50000 SUs. For example, running a reservoir simulation for a simulation time of two weeks (typical period of historical production data gathering) consumes about ten minutes on four cores.  With two hundred ensembles (typical number of ensembles), running for a simulation time of fifteen years will consume 48k SUs. This obviously is the medium range of simulations; a more detailed reservoir model will naturally consume more SUs per simulation, multiplied by a large number of ensembles and the SUs required to perform the history matching increases dramatically. To complete the forecast stage, we will need to run the same ensembles for an extended period of time (reservoir depletion/workover, enhanced oil recovery and CO$_2$ sequestration) which roughly would range between twenty to thirty years in simulation time, that is an additional 64k-96k SUs, placing the total in the range of 112k-144k SUs for a single complete reservoir study.
-
-\begin{table}[!h]
-\begin{center}
- \caption{Summary of allocation usage for a typical simulation}
-\begin{tabular}{| c | c |}
-\hline
-Simulation Time & 0.041667 years \\ 
-\hline
-SU cost per Simulation & 0.6667 SUs \\ 
-\hline
-Target History Matching Simulation Time & 15 years \\ 
-\hline
-Target Forecast Simulation Time & 20 years \\ 
-\hline
-Number of Simulations & 200 \\ 
-\hline
-Total Cost in SUs & 112k\\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
 
 
-{\it Supporting Grants:} This work is funded by the UCoMS project, Department of Energy and Louisiana Board of Regents
-award No. DE-FG02- 04ER46136 
-
-The PI leads Work Package 4 of the NSF Funded Cybertools Project
-(http://www.cybertools.org) (NSF Award Number-00000, Total Value
-\$12M).
-
-PI-Jha is also the co-PI of LSU/LONI's HPCOPS NSF award, ``Joining the TeraGrid'', member of the Scientific Board of the LONI Institute.  Project 2 is funded by multiple Louisiana Board of Regents award and an LSU Faculty Award (PI Jha). Integration of SAGA with applications is part of Cybertools and the PI also holds multiple peer-reviewed awards for the development and integration of SAGA.
-
-Current the Interop~\cite{interop_url}
+{\it Supporting Grants:} The PI leads Work Package 4 of the NSF Funded Cybertools Project (http://www.cybertools.org) (NSF Award Number-00000, Total Value \$12M).  PI-Jha is also the co-PI of LSU/LONI's HPCOPS NSF award, ``Joining the TeraGrid'', member of the Scientific Board of the LONI Institute.  Project 2 is funded by multiple Louisiana Board of Regents award and an LSU Faculty Award (PI Jha). Integration of SAGA with applications is part of Cybertools and the PI also holds multiple peer-reviewed awards for the development and integration of SAGA.  The Interoperabiltiy Project~\cite{interop_url} is currently funded by an NSF HPCOPS award, and is being executed by the PI (Jha). See PI's vitae for full grant listing. Part of EnKF work is funded by the UCoMS project, Department of Energy and Louisiana Board of Regents award No. DE-FG02- 04ER46136
 
 % 
 {\it TeraGrid User Support:} Since our applications have been developed, tested and benchmarked on the TeraGrid resources we are requesting allocations on, we do not foresee any need for support from TeraGrid personnel. However, as part of the TeraGrid-DEISA Interoperability, it is probable we will submit a supplemental request for ASTA support (in Q4 of 2009).
