@@ -1,0 +1,62 @@
+\documentclass[a4paper,12pt]{article}
+\begin{document}
+
+\section{General Notes}
+No need to vary comparison files.  Find 8 images, then do AllPairs compare with these files as the indecies to the matrix:
+
+1x1: FileA
+
+2x2: FileA, FileB
+
+3x3: FileA, FileB, FileC
+
+\ldots
+
+8x8: FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH
+
+For each of the matrices described above, the same number of workers should be used in each tier described below.  In each case, the number of workers should be spread across our grid (loni) evenly.
+
+1x1: 1 worker (There is only one comparison made)
+
+2x2: 4 workers (There are only two comparisons)
+
+3x3: 9 workers
+
+4x4: 16 workers
+
+5x5: 25 workers
+
+6x6: 36 workers
+
+7x7: 49 workers
+
+8x8: 64 workers
+
+The amount of data/worker is constant in these tests, we could alter this later. We could also reduce number of workers if desired.
+The file sizes can be roughly the same, or monotonic increasing.
+
+\section{Tier 1: No data awareness}
+Baseline performance of a grid application, unaware of data locality issues
+\begin{itemize}
+\item Use gridftp to access files
+\item Variant 1: Place files in central data store (on one machine)
+\item Variant 2: Place files arbitrarily, but consistently on multiple machines
+\end{itemize}
+
+\section{Tier 2: Baseline for distributed filesystems}
+\begin{itemize}
+\item use kfs adaptor for file access
+\item chunk servers as numerous as possible (I believe this is around 4 or so servers)
+\item Variant 1: Replication 2
+\item Variant 2: Replication 3
+\item Variant 3: Replication 4
+\end{itemize}
+
+\section{Tier 3: Baseline for data aware version}
+\begin{itemize}
+\item Use gridftp for file access
+\item Use ping at the moment for staging
+\item Group comparisons together with close files together (be consistent here throughout)
+\item Total number of tests: 8*6=48 (8*2 for Tier 1, 8*3 for Tier 2, 8*1 for Tier 3)
+\end{itemize}
+\end{document}
