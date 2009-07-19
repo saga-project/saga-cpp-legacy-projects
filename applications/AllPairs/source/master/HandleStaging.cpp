@@ -14,7 +14,6 @@ namespace AllPairs
                               LogWriter *log)
     : serverURL_(serverURL), log_(log)
  {
-    numWorkers_ = hostList.size();
     std::vector<Master::HostDescription>::const_iterator hit  = hostList.begin();
     std::vector<Master::HostDescription>::const_iterator hend = hostList.end();
     while(hit != hend) {
@@ -25,6 +24,7 @@ namespace AllPairs
        }
        ++hit;
     }
+    numWorkers_ = hosts_.size();
     std::vector<Master::FileDescription>::const_iterator it  = bases.begin();
     std::vector<Master::FileDescription>::const_iterator end = bases.end();
     while(it != end) {
@@ -62,7 +62,7 @@ namespace AllPairs
 
  HandleStaging::~HandleStaging()
  {
-    /*std::cout << "before we close, what is our graph?" << std::endl;
+    std::cout << "before we close, what is our graph?" << std::endl;
     boost::graph_traits<Graph>::edge_iterator ei, ebegin, end;
     boost::graph_traits<Graph>::vertex_iterator vi, vbegin, vend;
     //Find vertex of currently reporting worker
@@ -79,7 +79,7 @@ namespace AllPairs
     for(vi = vbegin; vi != vend; ++vi)
     {
        std::cout << networkGraph_[*vi].name << std::endl;
-    }*/
+    }
  }
 
  void HandleStaging::assignStages_() 
@@ -95,6 +95,9 @@ namespace AllPairs
              worker.write(saga::buffer(MASTER_QUESTION_LOCATION, 9));
              read = network::read(worker);
              if(find(finishedHosts_.begin(), finishedHosts_.end(), read) == finishedHosts_.end()) {
+                std::string message("Begining staging for worker: ");
+                message += read;
+                log_->write(message, LOGLEVEL_INFO);
                 //Not yet finished finding information about this hosts
                 worker.write(saga::buffer(WORKER_COMMAND_STAGE, 5));
                 network::expect(WORKER_RESPONSE_ACKNOLEDGE, network::read(worker));
@@ -121,6 +124,9 @@ namespace AllPairs
              read = network::read(worker);
              std::string location(read);
              if(find(finishedHosts_.begin(), finishedHosts_.end(), read) == finishedHosts_.end()) {
+                std::string message("Gathering results from staging with worker: ");
+                message += location;
+                log_->write(message, LOGLEVEL_INFO);
                 Vertex dest, source;
                 boost::graph_traits<Graph>::vertex_iterator vi, vbegin, vend;
                 //Find vertex of currently reporting worker
@@ -160,6 +166,9 @@ namespace AllPairs
                 network::expect(WORKER_RESPONSE_ACKNOLEDGE, network::read(worker));
                 //Not yet finished, add to finished list
                 finishedHosts_.push_back(location);
+                message = std::string("Gathered results from staging with worker: ");
+                message += location;
+                log_->write(message, LOGLEVEL_INFO);
                 worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
                 network::expect(WORKER_RESPONSE_ACKNOLEDGE, network::read(worker));
              }

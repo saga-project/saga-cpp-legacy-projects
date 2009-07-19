@@ -36,6 +36,7 @@ namespace AllPairs {
          std::string rmURL;
          std::string hostOS;
          std::string hostArch;
+         std::string instances;
       };
       
       // Describes a data file

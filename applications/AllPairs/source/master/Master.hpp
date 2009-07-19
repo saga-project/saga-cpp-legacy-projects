@@ -343,6 +343,8 @@ namespace AllPairs {
                         std::string command(binaryListIT->URL);
                         std::string loc(saga::url(hostListIT->rmURL).get_host());
                         std::vector<std::string> args;
+                        args.push_back("--instances");
+                        args.push_back(hostListIT->instances);
                         args.push_back("--session");
                         args.push_back(uuid_);
                         args.push_back("--hostname");

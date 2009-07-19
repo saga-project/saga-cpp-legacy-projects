@@ -83,6 +83,8 @@ void ConfigFileParser::parse_(void) {
             hd.hostArch=tmpNode.getAttribute("arch"); else complete = false;
          if(NULL != tmpNode.getAttribute("OS"))
             hd.hostOS=tmpNode.getAttribute("OS"); else complete = false;
+         if(NULL != tmpNode.getAttribute("instances"))
+            hd.instances=tmpNode.getAttribute("instances"); else hd.instances="1";
          if(NULL != tmpNode.getText())
             hd.rmURL = tmpNode.getText(); else complete = false;  
          if(complete)

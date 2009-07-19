@@ -50,32 +50,36 @@
 	   char data[KB64+1];
 	   double minimum = -1.0;
       std::cerr << "about to read" << std::endl;
-	   while((bytesRead = test.read(saga::buffer(data,KB64)))!=0) {
-         std::cerr << "read from testFile" << std::endl;
-         write(testFile, data, bytesRead);
-		   //testFile.write(data, bytesRead);
-	   }
+      try {
+	      while((bytesRead = test.read(saga::buffer(data,KB64)))!=0) {
+            std::cerr << "read from testFile" << std::endl;
+            int retval = write(testFile, data, bytesRead);
+            if(retval < 0)
+               perror(NULL);
+	      }
+      }
+      catch(saga::exception const & e) {
+         std::cerr << "Exception caught: " << e.what() << std::endl;
+      }
+	   test.close();
+      fsync(testFile);
+      close(testFile);
       try {
 	      while((bytesRead = base.read(saga::buffer(data,KB64)))!=0) {
             std::cerr << "read from baseFile" << std::endl;
             std::cerr << "size = " << base.get_size() << std::endl;
-            write(baseFile, data, bytesRead);
-		      //baseFile.write(data, bytesRead);
+            int retval = write(baseFile, data, bytesRead);
+            if(retval < 0)
+               perror(NULL);
 	      }
 	   }
-      catch(saga::state_exception const & e) {
-         std::cerr << "I caught the exception first" << std::endl;
+      catch(saga::exception const & e) {
+         std::cerr << "Exception caught: " << e.what() << std::endl;
       }
-	   std::cerr << "Before closing files" << std::endl;
-	   
-	   // Need to close them before I can actually do something
-	   
-	   //testFile.close();
-	   //baseFile.close();
-      close(testFile);
-      close(baseFile);
-	   test.close();
       base.close();
+      fsync(baseFile);
+      close(baseFile);
+	   
 	   std::cerr << "Just before Image magick" << std::endl;
 	   
 #define ThrowWandException(wand) \
@@ -132,8 +136,8 @@ exit(-1); \
 	   DestroyMagickWand(magick_wand_2);
 
 	   MagickWandTerminus();
-	   /*remove(bName);
-      remove(tName);*/
+	   remove(bName);
+      remove(tName);
 	   return minimum;
 	   //return difference;
    }
@@ -150,8 +154,8 @@ int main(int argc,char **argv) {
    char env[] = "SAGA_VERBOSE=100";
    putenv(env);
    std::string uuid(saga::uuid().string());
-   std::string err("/tmp/worker-" + uuid + "stderr.txt");
-   std::string out("/tmp/worker-" + uuid + "stdout.txt");
+   std::string err("/home/mmicel2/worker-" + uuid + "stderr.txt");
+   std::string out("/home/mmicel2/worker-" + uuid + "stdout.txt");
    std::freopen(err.c_str(), "w", stderr);
    std::freopen(out.c_str(), "w", stdout);
    try {
