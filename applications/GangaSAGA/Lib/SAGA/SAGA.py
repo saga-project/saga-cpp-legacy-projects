@@ -38,19 +38,22 @@ class SAGA(IBackend):
        The job is run localy or remotely - depending on which SAGA adaptor is selected. 
     """
     
-    # Setup Job Attributes
-    _schema = Schema(Version(1,2), {'status' : SimpleItem(defvalue=None,typelist=None,protected=1,copyable=0,hidden=1,doc='*NOT USED*'),
-                                   # 'exitcode' : SimpleItem(defvalue=None,typelist=['int','type(None)'],protected=1,copyable=0,doc='Process exit code.'),
-                                    'workdir' : SimpleItem(defvalue='',protected=1,copyable=0,doc='Working directory.'),
-                                    'actualCE' : SimpleItem(defvalue='',protected=1,copyable=0,doc='Hostname where the job was submitted.'),
-                                    'wrapper_pid' : SimpleItem(defvalue=-1,protected=1,copyable=0,hidden=1,doc='(internal) process id of the execution wrapper'),
-                                    
-                                    'rm_url' : SimpleItem(defvalue='gram://qb1.loni.org', doc='Resource manager URL that will be passed to SAGA'),
-                                    'saga_job_id' : SimpleItem(defvalue='',protected=1,copyable=0,doc='SAGA-internal Process id.'),
-                                    
-                                    })
+    # Set category & unique backend name
     _category = 'backends'
     _name = 'SAGA'
+    
+    # Setup Job Attributes
+    _schema = Schema(Version(1,2), {
+        'status' : SimpleItem(defvalue=None,typelist=None,protected=1,copyable=0,hidden=1,doc='*NOT USED*'),
+        'actualCE' : SimpleItem(defvalue='',protected=1,copyable=0,doc='Hostname where the job was submitted.'),
+        'wrapper_pid' : SimpleItem(defvalue=-1,protected=1,copyable=0,hidden=1,doc='(internal) process id of the execution wrapper'),
+                                    
+        ## SAGA specific attributes                           
+        'workdir' : SimpleItem(defvalue='',protected=1,copyable=0,doc='JSDL Attribute: Working Directory'),
+        'queue' : SimpleItem(defvalue='',protected=1,copyable=0,doc='JSDL Attribute: Queue.'),
+        'rm_url' : SimpleItem(defvalue='gram://qb1.loni.org', doc='Resource manager URL that will be passed to SAGA'),
+        'saga_job_id' : SimpleItem(defvalue='',protected=1,copyable=0,doc='SAGA-internal Process id.') 
+    })
     
     _GUIPrefs = [ { 'attribute' : 'rm_url', 'widget' : 'String' },
                   { 'attribute' : 'id', 'widget' : 'Int' },
@@ -71,39 +74,58 @@ class SAGA(IBackend):
     ## Tries to submit a ganga job through saga
     ##
     def submit(self, jobconfig, master_input_sandbox):
-        # actualCE is the same as the resource manager (for now)
-        self.actualCE = self.rm_url;
-        
         try: 
-            js_url = saga.url(self.rm_url)
             jd = saga.job.description()
-            self.preparesagajob(jobconfig, jd)
-      
-            # create saga job service
-            js =  saga.job.service(js_url)
-            saga_job = js.create_job(jd)
-      
-            # execute the job
-            saga_job.run()
-            self.saga_job_id = saga_job.get_job_id()        
-    
+            jd = self.makesagajobdesc(self.getJobObject())
+                  
+            self.run(self.rm_url, jd)
+                
         except saga.exception, e:
             logger.error('exception caught while submitting job: %s', str(e))
             return 0
       
         return 1 # sets job to 'submitted'
-      
+
     ##########################################################################
     ## Tries to resubmit an existing ganga job through saga
     ##
-    def resubmit(self):
-        job = self.getJobObject()
+    def resubmit(self):                
+        try: 
+            jd = saga.job.description()
+            jd = self.makesagajobdesc(self.getJobObject())
+                  
+            self.run(self.rm_url, jd)
+                
+        except saga.exception, e:
+            logger.error('exception caught while submitting job: %s', str(e))
+            return 0
+      
+        return 1 # sets job to 'submitted'
+
+           
+      
+    ##########################################################################
+    ## Run a SAGA job
+    ##
+    def run(self, js_contact, jd):
+        # actualCE is the same as the resource manager (for now)
+        self.actualCE = self.rm_url;
         
-        # reset the saga job id since it belongs to the old job
-        # job.backend.saga_job_id = ''
+        try:
+            js_url = saga.url(self.rm_url)
+            js =  saga.job.service(js_url)
+            saga_job = js.create_job(jd)
+      
+            # execute the job
+            saga_job.run()
+            self.saga_job_id = saga_job.get_job_id()  
+                  
+        except saga.exception, e:
+            logger.error('exception caught while submitting job: %s', str(e))
+            return 0
         
-        # TODO
-        return 0
+        return 1
+
 
     ##########################################################################
     ## Tries to kill a running saga job
@@ -127,22 +149,36 @@ class SAGA(IBackend):
             
         return 1 # sets job to 'killed'
 
-
     ##########################################################################
-    ## Creates a saga job description from a ganga attribute set
+    ## Creates and returns a saga.job.description from a given
+    ## job object
     ##
-    def preparesagajob(self, jobconfig, jd):
-        job = self.getJobObject()
-                
-        # map application.exe -> jd.executable
-        jd.executable = jobconfig.getExeString().strip()
+    def makesagajobdesc(self, job):
+        jd = saga.job.description()
         
-        # map application.args -> jd.arguments
-        quotedArgList = []
-        for arg in jobconfig.getArgStrings():
-            quotedArgList.append( arg ) #"\\'%s\\'" % arg ) 
-        jd.arguments = quotedArgList
+        # executable
+        jd.executable = job.application.exe
+        
+        # arguments
+        argList = []
+        for arg in job.application.args:
+            argList.append( arg ) #"\\'%s\\'" % arg ) 
+        jd.arguments = argList
 
+        # environment
+        envList = []
+        for env in job.application.env:
+            envList.append( arg ) #"\\'%s\\'" % arg ) 
+        jd.environment = envList
+
+        # workdir
+        jd.workdir = job.backend.workdir
+        
+        # queue
+        jd.queue = job.backend.queue
+        
+        return jd
+                
 
     ##########################################################################
     ## Method gets triggered by a ganga monitoring thread periodically 
