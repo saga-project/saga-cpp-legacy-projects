@@ -30,10 +30,11 @@ import os.path,re,errno
 import subprocess
 import string
 
+##############################################################################
+##
 class SAGA(IBackend):
     
     """Run jobs in the background using SAGA.
-
        The job is run localy or remotely - depending on which SAGA adaptor is selected. 
     """
     
@@ -41,10 +42,10 @@ class SAGA(IBackend):
     _schema = Schema(Version(1,2), {'status' : SimpleItem(defvalue=None,typelist=None,protected=1,copyable=0,hidden=1,doc='*NOT USED*'),
                                    # 'exitcode' : SimpleItem(defvalue=None,typelist=['int','type(None)'],protected=1,copyable=0,doc='Process exit code.'),
                                     'workdir' : SimpleItem(defvalue='',protected=1,copyable=0,doc='Working directory.'),
-                                   # 'actualCE' : SimpleItem(defvalue='',protected=1,copyable=0,doc='Hostname where the job was submitted.'),
+                                    'actualCE' : SimpleItem(defvalue='',protected=1,copyable=0,doc='Hostname where the job was submitted.'),
                                     'wrapper_pid' : SimpleItem(defvalue=-1,protected=1,copyable=0,hidden=1,doc='(internal) process id of the execution wrapper'),
                                     
-                                    'rm_url' : SimpleItem(defvalue='fork://localhost', doc='Resource manager URL that will be passed to SAGA'),
+                                    'rm_url' : SimpleItem(defvalue='gram://qb1.loni.org', doc='Resource manager URL that will be passed to SAGA'),
                                     'saga_job_id' : SimpleItem(defvalue='',protected=1,copyable=0,doc='SAGA-internal Process id.'),
                                     
                                     })
@@ -60,73 +61,136 @@ class SAGA(IBackend):
                           { 'attribute' : 'exitcode', 'widget' : 'String' } ]    
 
 
-    ##################################################
+    ##########################################################################
     ##
     def __init__(self):
       super(SAGA,self).__init__()
-      
-
-    ##################################################
-    ##
-    def sagatogangastatus(self,sagastatus):
-        
-        sagastatus
-        
-        if sagastatus == saga.job.Done:
-            return "complete"
-        elif sagastatus == saga.job.Running:
-            return "running"
         
 
-    ##################################################
+    ##########################################################################
+    ## Tries to submit a ganga job through saga
     ##
-    def submit(self,jobconfig,master_input_sandbox):
+    def submit(self, jobconfig, master_input_sandbox):
+        # actualCE is the same as the resource manager (for now)
+        self.actualCE = self.rm_url;
+        
+        try: 
+            js_url = saga.url(self.rm_url)
+            jd = saga.job.description()
+            self.preparesagajob(jobconfig, jd)
       
-      try: 
-        js_url = saga.url(self.rm_url)
-        jd = saga.job.description()
-        self.preparesagajob(jobconfig, jd)
+            # create saga job service
+            js =  saga.job.service(js_url)
+            saga_job = js.create_job(jd)
       
-        # create saga job service
-        js =  saga.job.service(js_url)
-        saga_job = js.create_job(jd)
-      
-        # execute the job
-        saga_job.run()
-        self.saga_job_id = saga_job.get_job_id()        
+            # execute the job
+            saga_job.run()
+            self.saga_job_id = saga_job.get_job_id()        
     
-      except saga.exception, e:
-        logger.error('exception caught while executing SAGA job: %s', str(e))
+        except saga.exception, e:
+            logger.error('exception caught while submitting job: %s', str(e))
+            return 0
+      
+        return 1 # sets job to 'submitted'
+      
+    ##########################################################################
+    ## Tries to resubmit an existing ganga job through saga
+    ##
+    def resubmit(self):
+        job = self.getJobObject()
+        
+        # reset the saga job id since it belongs to the old job
+        # job.backend.saga_job_id = ''
+        
+        # TODO
         return 0
-      
-      return 1 # 1 sets job to 'submitted'
-      
 
-    ##################################################
+    ##########################################################################
+    ## Tries to kill a running saga job
+    ##        
+    def kill(self):
+        job = self.getJobObject()
+        
+        # create a new service object in order
+        # to reconnect to the job we want to kill
+        try :
+            js_url = saga.url(job.backend.rm_url)
+            js = saga.job.service(js_url)
+            saga_job = js.get_job(job.backend.saga_job_id)
+            
+            # KILL KILL KILL
+            saga_job.cancel()
+                            
+        except saga.exception, e:
+            logger.error('exception caught while killing job: %s', str(e))
+            return 0
+            
+        return 1 # sets job to 'killed'
+
+
+    ##########################################################################
+    ## Creates a saga job description from a ganga attribute set
     ##
     def preparesagajob(self, jobconfig, jd):
         job = self.getJobObject()
                 
         # map application.exe -> jd.executable
-        logger.info(jobconfig.getExeString().strip())
-        print "  * attribute.application.exe: " + jobconfig.getExeString().strip()        
         jd.executable = jobconfig.getExeString().strip()
         
         # map application.args -> jd.arguments
         quotedArgList = []
         for arg in jobconfig.getArgStrings():
             quotedArgList.append( arg ) #"\\'%s\\'" % arg ) 
-        print "  * attribute.application.args: " + string.join(quotedArgList,'')
         jd.arguments = quotedArgList
-        
-        print "  * attribute.workdir " + self.workdir 
 
 
-    ##################################################
+    ##########################################################################
+    ## Method gets triggered by a ganga monitoring thread periodically 
+    ## in order to update job information, like state, etc...
     ##
     def updateMonitoringInformation(jobs):
+    
+        ###################################################
+        ## Translates a saga job state to a ganga job state
+        ##
+        def sagatogangastatus(sagastatus):
+                
+            if sagastatus == saga.job.Done:
+                return "completed"
+            elif sagastatus == saga.job.Running:
+                return "running"
+        ##
+        ##################################################
+        
         for j in jobs:
-            print  "update info for job: " + j.backend.saga_job_id
+            # Skip job status query in case the job is already in
+            # 'completed' status. That should avoid a great amount of
+            # overhead if there are many completed jobs in the list
+            if j.status == 'completed':
+                continue
+        
+            # create a new service object in order
+            # to reconnect to the job
+            try :
+                js_url = saga.url(j.backend.rm_url)
+                js = saga.job.service(js_url)
+                saga_job = js.get_job(j.backend.saga_job_id)
+            
+                # query saga job state
+                job_state = saga_job.get_state()
+            
+                # translate saga job state to ganga job state
+                j.updateStatus(sagatogangastatus(job_state))
+                
+            except saga.exception, e:
+                logger.error('exception caught while updating job: %s', str(e))
+    
+    ##########################################################################
+    ## Make the monitoring function available to the update thread
+    ##         
+    updateMonitoringInformation = staticmethod(updateMonitoringInformation)
+
+                        
             
 
 
@@ -139,37 +203,25 @@ class SAGA(IBackend):
 
     ##################################################
     ##
-    def resubmit(self):
-      job = self.getJobObject()
-      import shutil
-
-      try:
-          shutil.rmtree(self.workdir)
-      except OSError,x:
-          import errno
-          if x.errno != errno.ENOENT:
-              logger.error('problem cleaning the workdir %s, %s',self.workdir,str(x))
-              return 0
-      try:
-          os.mkdir(self.workdir)
-      except Exception,x:
-        logger.error('cannot make the workdir %s, %s',self.workdir,str(x))
-        return 0
-      return self.run(job.getInputWorkspace().getPath('__jobscript__'))
-      
-    
-    ##################################################
-    ##
-    #def run(self,scriptpath):
+    #def resubmit(self):
+    #  job = self.getJobObject()
+    #  import shutil
+    #
     #  try:
-    #      process=subprocess.Popen(["python",scriptpath,'subprocess'])
+    #      shutil.rmtree(self.workdir)
     #  except OSError,x:
-    #      logger.error('cannot start a job process: %s',str(x))
-    #      return 0
-    #  self.wrapper_pid=process.pid
-    #  self.actualCE = Ganga.Utility.util.hostname()
-    #  return 1
-
+    #      import errno
+    #      if x.errno != errno.ENOENT:
+    #          logger.error('problem cleaning the workdir %s, %s',self.workdir,str(x))
+    #          return 0
+    #  try:
+    #      os.mkdir(self.workdir)
+    #  except Exception,x:
+    #    logger.error('cannot make the workdir %s, %s',self.workdir,str(x))
+    #    return 0
+    #  return self.run(job.getInputWorkspace().getPath('__jobscript__'))
+      
+      
 
     ##################################################
     ##
@@ -373,36 +425,36 @@ sys.exit()
 
       return job.getInputWorkspace().writefile(FileBuffer('__jobscript__',script),executable=1)
 
-    def kill(self):
-        import os,signal
-
-        job = self.getJobObject()
-        
-        ok = True
-        try:
-            # kill the wrapper script
-            # bugfix: #18178 - since wrapper script sets a new session and new group, we can use this to kill all processes in the group
-            os.kill(-self.wrapper_pid,signal.SIGKILL)
-        except OSError,x:
-            logger.warning('while killing wrapper script for job %d: pid=%d, %s',job.id,self.wrapper_pid,str(x))
-            ok = False
-
-        # waitpid to avoid zombies
-        try:
-            ws = os.waitpid(self.wrapper_pid,0)
-        except OSError,x:
-            logger.warning('problem while waitpid %d: %s',job.id,x)
-
-        from Ganga.Utility.files import recursive_copy
-
-        for fn in ['stdout','stderr','__syslog__']:
-            try:
-                recursive_copy(os.path.join(self.workdir,fn),job.getOutputWorkspace().getPath())
-            except Exception,x:
-                logger.info('problem retrieving %s:',fn,x)
-
-        self.remove_workdir()
-        return 1
+#    def kill(self):
+#        import os,signal
+#
+#        job = self.getJobObject()
+#        
+#        ok = True
+#        try:
+#            # kill the wrapper script
+#            # bugfix: #18178 - since wrapper script sets a new session and new group, we can use this to kill all processes in the group
+#            os.kill(-self.wrapper_pid,signal.SIGKILL)
+#        except OSError,x:
+#            logger.warning('while killing wrapper script for job %d: pid=%d, %s',job.id,self.wrapper_pid,str(x))
+#            ok = False
+#
+#        # waitpid to avoid zombies
+#        try:
+#            ws = os.waitpid(self.wrapper_pid,0)
+#        except OSError,x:
+#            logger.warning('problem while waitpid %d: %s',job.id,x)
+#
+#        from Ganga.Utility.files import recursive_copy
+#
+#        for fn in ['stdout','stderr','__syslog__']:
+#            try:
+#                recursive_copy(os.path.join(self.workdir,fn),job.getOutputWorkspace().getPath())
+#            except Exception,x:
+#                logger.info('problem retrieving %s:',fn,x)
+#
+#        self.remove_workdir()
+#        return 1
 
     def remove_workdir(self):
         if config['remove_workdir']:
@@ -495,4 +547,4 @@ sys.exit()
 #              j.backend.remove_workdir()
                   
                        
-    updateMonitoringInformation = staticmethod(updateMonitoringInformation)
+    
