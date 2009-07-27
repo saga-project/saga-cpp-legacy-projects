@@ -1,29 +1,45 @@
 #!/usr/bin/perl
-
 open FILE, '+>', '/tmp/pbstemp.pbs' or die $!;
-$cmd = '/work/mmicel2/saga/saga-projects/applications/AllPairs/source/worker/main';
-#$cmd = '/bin/hostname';
-$nodes = '1';
+$cmd = '/work/mmicel2/saga/saga-projects/applications/AllPairs/source/worker/compare/compare';
 foreach $argnum (0 .. $#ARGV)
 {
-   if ($ARGV[$argnum] eq '--instances' || $ARGV[$argnum] eq '-i')
+   if ($ARGV[$argnum] eq '-u')
    {
-      $nodes = $ARGV[$argnum + 1];
+      #unique id to identify job from qstat
+      $uid = $ARGV[$argnum+1];
    }
-   else
+   if($ARGV[$argnum] eq '-a')
    {
-      if($argnum > 0 && $ARGV[$argnum-1] ne '--instances' && $ARGV[$argnum-1] ne '-i')
-      {
-         $cmd = $cmd . ' ' . $ARGV[$argnum];
-      }
+      #advert output of result string
+      $advert = " -a $ARGV[$argnum+1]";
+   }
+   if ($ARGV[$argnum] eq '-y')
+   {
+      #staging not required for next file on cmdline
+      $dest = $ARGV[$argnum+2] . $uid;
+      `globus-url-copy  $ARGV[$argnum+1] $dest`;
+      $cmd = $cmd . " $dest";
+   }
+   elsif ($ARGV[$argnum] eq '-n')
+   {
+      #staging required for next file on cmdline
+      $cmd = $cmd . " $ARGV[$argnum+1]";
    }
 }
 
+$cmd = $cmd . $advert;
+
 print FILE '#!/bin/sh' . "\n";
 print FILE '### Job name' . "\n";
-print FILE '#PBS -N imageCompare' . "\n";
+print FILE "#PBS -N imageCompare-$uid" . "\n";
+print FILE '### Output' . "\n";
+print FILE "#PBS -o /tmp/imageCompare-o$uid" . "\n";
+print FILE '### Error' . "\n";
+print FILE "#PBS -e /tmp/imageCompare-e$uid" . "\n";
 print FILE '### Queue name ' . "\n";
 print FILE '#PBS -q single' . "\n";
+print FILE '### Allocation ' . "\n";
+print FILE '#PBS -A loni_stopgap2' . "\n";
 print FILE '### Number of nodes ' . "\n";
 print FILE '#PBS -l nodes=1:ppn=1,walltime=00:05:00' . "\n";
 print FILE '' . "\n";
@@ -54,7 +70,9 @@ print FILE '' . "\n";
 print FILE '# Wait for background jobs to complete.' . "\n";
 print FILE 'wait ' . "\n";
 
-for ($temp = $nodes; $temp > 0; $temp--)
+`qsub /tmp/pbstemp.pbs`;
+
+while (`qstat -f | grep $uid`)
 {
-   `qsub /tmp/pbstemp.pbs &`;
+   sleep(1);
 }

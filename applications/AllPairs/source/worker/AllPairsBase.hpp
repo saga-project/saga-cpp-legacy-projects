@@ -40,7 +40,6 @@ namespace AllPairs {
          database_    = (vm["database"].as<std::string>());
          logURL_      = (vm["log"].as<std::string>());
          location_    = (vm["hostname"].as<std::string>());
-         std::cerr << "JUST GOT AS HOSTNAME: " << location_ << std::endl;
          uuid_        = saga::uuid().string();
          logWriter_   = new LogWriter(AP_WORKER_EXE_NAME, logURL_);
          state_       = WORKER_STATE_IDLE;
@@ -102,7 +101,6 @@ namespace AllPairs {
        * to allow the master to know keepalive information.    *
        * ******************************************************/
       void updateStatus_(void) {
-         std::cout << "Updating agent status: " << std::endl;
          //(1) update the last seen (keep alive) timestamp 
          time_t timestamp;
          time(&timestamp);
@@ -181,7 +179,6 @@ namespace AllPairs {
                baseFilesAdvIT++;
                counter++;
             }
-            std::cout << " I am done adding files" << std::endl;
          }
          catch(saga::exception const & e) {
             std::cout << "FAILED (" << e.get_error() << ")" << std::endl;
@@ -198,39 +195,86 @@ namespace AllPairs {
          int mode = saga::advert::ReadWrite;
          while(1) {
             std::string command(getFrontendCommand_());
-            std::cout << "Command is:  " << command << std::endl;
             // read command from orchestrator
             if(command == WORKER_COMMAND_COMPARE) {
-               std::cout << "command truely is compare" << std::endl;
+               std::cerr << "GOT COMMAND COMPARE!" << std::endl;
                state_ = WORKER_STATE_COMPARING;
                std::string resultString;
-               double val;
-               std::cout << "about to enter loop, hopefully doesn't result in segfault" << std::endl;
+               //double val;
                while(runComparison_->hasAssignment()) {
-                  std::cout << "has assignments!" << std::endl;
                   assignment asn(runComparison_->getAssignment());
-                  std::cout << "got the assignment" << std::endl;
-                  val = compare(asn.first, asn.second);
-                  std::cout << "first: " << asn.first << std::endl;
+                  std::cerr << "BUILDING ASSIGNMENT AND COMMAND" << std::endl;
+                  //val = compare(asn.first, asn.second);
+                  //Here is where the headache beings
+                  //run perl script with runs a worker to compare
+                  std::string command("/work/mmicel2/saga/saga-projects/applications/AllPairs/samples/runner.pl");
+                  command += " -u " + saga::uuid().string();
+                  if(saga::url(asn.first).get_scheme() == "gridftp")
+                  {
+                     //requires staging
+                     saga::url first(asn.first);
+                     first.set_scheme("gsiftp");
+                     command += " -y " + first.get_string();
+                     first.set_scheme("file");
+                     first.set_host("localhost");
+                     command += ' ' + first.get_string();
+                  }
+                  else if(saga::url(asn.first).get_scheme() != "file")
+                  {
+                     //requires staging
+                     saga::url first(asn.second);
+                     command += " -y " + asn.first;
+                     first.set_scheme("file");
+                     first.set_host("localhost");
+                     command += ' ' + first.get_string();
+                  }
+                  else
+                  {
+                     //requires no staging
+                     command += " -n " + asn.first;
+                  }
+                  if(saga::url(asn.second).get_scheme() == "gridftp")
+                  {
+                     //requires staging
+                     saga::url second(asn.second);
+                     second.set_scheme("gsiftp");
+                     command += " -y " + second.get_string();
+                     second.set_scheme("file");
+                     second.set_host("localhost");
+                     command += ' ' + second.get_string();
+                  }
+                  else if(saga::url(asn.second).get_scheme() != "file")
+                  {
+                     //requires staging
+                     saga::url second(asn.second);
+                     command += " -y " + asn.second;
+                     second.set_scheme("file");
+                     second.set_host("localhost");
+                     command += ' ' + second.get_string();
+                  }
+                  else
+                  {
+                     //requires no staging
+                     command += " -n " + asn.second;
+                  }
+                  saga::url result(std::string("result-") + boost::lexical_cast<std::string>(runComparison_->getChunkID()));
+                  saga::advert::entry fin_adv(resultDir_.open(result, mode | saga::advert::Create));
+                  command += " -a " + fin_adv.get_url().get_string();
+                  std::cerr << "ABOUT TO RUN PERL COMMAND: " << command << std::endl;
+                  FILE *job = popen(command.c_str(), "r");
+                  std::cerr << "WAITING FOR JOB TO FINISH NOW!" << std::endl;
+                  pclose(job);
+                  /*std::cout << "first: " << asn.first << std::endl;
                   resultString += "(" + asn.first;
                   std::cout << "second: " << asn.second << std::endl;
                   resultString += + ", " + asn.second + "): ";
-                  std::cout << "about to get value" << std::endl;
-                  resultString += boost::lexical_cast<std::string>(val) + '\n';
-                  std::cout << "value: " << boost::lexical_cast<std::string>(val) << std::endl;
-                  resultString += boost::lexical_cast<std::string>(val) + '\n';
-                  std::cout << "--" << std::endl;
-                  std::cout << resultString << std::endl;
-                  std::cout << "--" << std::endl;
+                  std::cout << "value: " << boost::lexical_cast<std::string>(&val) << std::endl;
+                  resultString += boost::lexical_cast<std::string>(&val) + '\n';*/
                }
-               std::cout << "about to ask for chunkID()" << std::endl;
                lastFinishedChunk_ = runComparison_->getChunkID();
                std::cout << "chunkId: " << runComparison_->getChunkID();
-               saga::url result(std::string("result-") + boost::lexical_cast<std::string>(lastFinishedChunk_));
                delete runComparison_;
-               saga::advert::entry fin_adv(resultDir_.open(result, mode | saga::advert::Create));
-               //finished, now write data to advert
-               fin_adv.store_string(boost::lexical_cast<std::string>(resultString));
+               //fin_adv.store_string(boost::lexical_cast<std::string>(resultString));
                state_ = WORKER_STATE_DONE;
             }
             else if(command == WORKER_COMMAND_QUIT) {
@@ -252,23 +296,18 @@ namespace AllPairs {
          static int depth = 0;
          std::string read;
          try {
-            std::cout << "Here we go in getFrontendCommand_" << std::endl;
             saga::stream::stream server_(serverURL_);
             server_.connect();
-            std::cout << "I am connected to:  " << serverURL_ << std::endl;
             read = network::read(server_);
-            std::cout << "I read from server: " << read << std::endl;
             if(network::test(read, MASTER_QUESTION_STATE))
             {
                std::string state(state_);
                server_.write(saga::buffer(state, state.size()));
                read = network::read(server_);
-               std::cout << "I read from server: " << read << std::endl;
                if(network::test(read, MASTER_QUESTION_LOCATION))
                {
                   server_.write(saga::buffer(location_, location_.size()));
                   read = network::read(server_);
-                  std::cout << "I read from server: " << read << std::endl;
                   if(network::test(read, MASTER_QUESTION_ADVERT))
                   {
                      std::string advert(workerDir_.get_url().get_string());

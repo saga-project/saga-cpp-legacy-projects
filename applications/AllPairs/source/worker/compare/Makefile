@@ -5,13 +5,9 @@
 #  http://www.boost.org/LICENSE_1_0.txt)
 
 # use all cpp files from here
-SAGA_SUBDIRS      = compare
-
 SAGA_SRC          = $(wildcard *.cpp)
 SAGA_ADD_BIN_OBJ  = $(SAGA_SRC:%.cpp=%.o)
-SAGA_ADD_BIN_OBJ += ../utils/LogWriter.o
-SAGA_ADD_BIN_OBJ += ../utils/network.o
-SAGA_BIN		      = main
+SAGA_BIN		      = compare
 
 SAGA_USE_BOOST_OPTIONS = "yes"
 

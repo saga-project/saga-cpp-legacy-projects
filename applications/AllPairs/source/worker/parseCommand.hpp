@@ -3,7 +3,6 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include "version.hpp"
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
@@ -38,15 +37,15 @@ bool parseCommand(int argc, char *argv[], po::variables_map& vm) {
        std::cerr << "Missing session UUID: use --session" << std::endl;
        return false;
     }
-    else if (!vm.count("database")) {
+    if (!vm.count("database")) {
        std::cerr << "Missing orchestrator database hostname: use --database" << std::endl;
        return false;
     }
-    else if (!vm.count("hostname")) {
+    if (!vm.count("hostname")) {
        std::cerr << "Missing worker hostname: use --hostname" << std::endl;
        return false;
     }
-    else if (!vm.count("log")) {
+    if (!vm.count("log")) {
        std::cerr << "Missing orchestrator log information: use --log" << std::endl;
        return false;
     }

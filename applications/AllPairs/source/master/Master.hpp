@@ -340,35 +340,37 @@ namespace AllPairs {
                      if(hostListIT->hostArch == binaryListIT->targetArch
                      && hostListIT->hostOS   == binaryListIT->targetOS) {
                         // Found one, now try to launch it with proper arguments
-                        std::string command(binaryListIT->URL);
-                        std::string loc(saga::url(hostListIT->rmURL).get_host());
-                        std::vector<std::string> args;
-                        args.push_back("--instances");
-                        args.push_back(hostListIT->instances);
-                        args.push_back("--session");
-                        args.push_back(uuid_);
-                        args.push_back("--hostname");
-                        std::cerr << "PUSHING BACK HOSTNAME FOR WORKER AS: " << loc << std::endl;
-                        args.push_back(loc);
-                        args.push_back("--database");
-                        args.push_back(database_);
-                        args.push_back("--log");
-                        args.push_back(logURL_.get_string());
-                        jd.set_attribute(saga::job::attributes::description_executable, command);
-                        jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
-                        saga::job::service js(hostListIT->rmURL);
-                        saga::job::job agentJob= js.create_job(jd);
-                        std::cout << hostListIT->rmURL << " ";
-                        for(unsigned int x=0;x<args.size();x++) {
-                           std::cout << args[x] << " ";
+                        int instances = boost::lexical_cast<int>(hostListIT->instances);
+                        for(int i = 0; i < instances; i++)
+                        {
+                           std::string command(binaryListIT->URL);
+                           std::string loc(saga::url(hostListIT->rmURL).get_host());
+                           std::vector<std::string> args;
+                           args.push_back("--session");
+                           args.push_back(uuid_);
+                           args.push_back("--hostname");
+                           std::cerr << "PUSHING BACK HOSTNAME FOR WORKER AS: " << loc << std::endl;
+                           args.push_back(loc);
+                           args.push_back("--database");
+                           args.push_back(database_);
+                           args.push_back("--log");
+                           args.push_back(logURL_.get_string());
+                           jd.set_attribute(saga::job::attributes::description_executable, command);
+                           jd.set_vector_attribute(saga::job::attributes::description_arguments, args);
+                           saga::job::service js(hostListIT->rmURL);
+                           saga::job::job agentJob= js.create_job(jd);
+                           std::cout << hostListIT->rmURL << " ";
+                           for(unsigned int x=0;x<args.size();x++) {
+                              std::cout << args[x] << " ";
+                           }
+                           std::cout << std::endl;
+                           agentJob.run();
+                           jobs_.push_back(agentJob);
+                           message += "SUCCESS";
+                           log->write(message, LOGLEVEL_INFO);
+                           successCounter++;
+                           break; //Found correct binary, move to next host
                         }
-                        std::cout << std::endl;
-                        agentJob.run();
-                        jobs_.push_back(agentJob);
-                        message += "SUCCESS";
-                        log->write(message, LOGLEVEL_INFO);
-                        successCounter++;
-                        break; //Found correct binary, move to next host
                      }
                      binaryListIT++;
                   }
