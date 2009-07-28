@@ -267,9 +267,9 @@ namespace AllPairs
     std::vector<int>::const_iterator it  = set.begin();
     std::vector<int>::const_iterator end = set.end();
     while(it != end) {
-       if(assignments_[*it].getLocation() == hostname) {
+       if(assignments_[set[*it]].getLocation() == hostname) {
           //found exact match for host 
-          return std::pair<AssignmentChunk, bool>(set[*it], true);
+          return std::pair<AssignmentChunk, bool>(assignments_[set[*it]], true);
        }
        ++it;
     }
@@ -306,7 +306,7 @@ namespace AllPairs
              while(it != end)
              {
                 //std::cout << "iterator over set is: " << *it << std::endl;
-                AssignmentChunk ac = assignments_[*it];
+                AssignmentChunk ac = assignments_[set[*it]];
                 //std::cout << "location of ac that this iterator gave us: " << ac.getLocation() << std::endl;
                 if(ac.getLocation() == networkGraph_[boost::target(*ei, networkGraph_)].name)
                 {
