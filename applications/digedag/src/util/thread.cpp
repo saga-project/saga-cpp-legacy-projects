@@ -58,7 +58,7 @@ namespace digedag
       }
       else
       {
-        joined_         = false;
+        joined_       = false;
       }
 #else
       thread_start ();

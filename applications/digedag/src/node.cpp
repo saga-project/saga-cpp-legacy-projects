@@ -22,16 +22,24 @@ namespace digedag
   {
     std::stringstream ss;
 
-    ss << nd.get_attribute ("Executable");
-
-    std::vector <std::string> args = nd.get_vector_attribute ("Arguments");
-
-    for ( unsigned int i = 0; i < args.size (); i++ )
+    if ( ! nd.attribute_exists ("Executable") )
     {
-      ss << " " << args[i];
+      throw ("Cannot handle node w/o executable");
     }
 
-    cmd_ = ss.str ();
+    ss << nd.get_attribute ("Executable");
+
+    if ( nd.attribute_exists ("Arguments") )
+    {
+      std::vector <std::string> args = nd.get_vector_attribute ("Arguments");
+
+      for ( unsigned int i = 0; i < args.size (); i++ )
+      {
+        ss << " " << args[i];
+      }
+
+      cmd_ = ss.str ();
+    }
   }
 
   node::node (std::string cmd, 
@@ -168,6 +176,8 @@ namespace digedag
   // staged out.
   void node::thread_work (void)
   {
+    dag_->log (std::string ("       node ") + name_ + " starting up");
+
     // ### scheduler hook
     scheduler_->hook_node_run_pre (dag_, this);
 
@@ -178,6 +188,10 @@ namespace digedag
     if ( is_void_ )
     {
       // do nothing
+      
+      dag_->log (std::string ("       node ") + name_ + " is void");
+
+      state_ = Done;
     }
     else
     {
