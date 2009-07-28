@@ -197,18 +197,18 @@ namespace AllPairs
        std::cout << "unassigned..." << std::endl;
        AssignmentChunk ac;
        bool found = false;
-       boost::tie(ac, found) = networkGraphCheck_(unassigned_, hostname);
+       boost::tie(ac, found) = AssignmentChunkCheck_(unassigned_, hostname);
        if(found == true)
        {
-          std::cerr << "return from graph lowest latency unassigned: " << ac.getId() << std::endl;
+          std::cerr << "return from looking at locations of assignmentChunks..." << std::endl;
           return ac;
        }
        else
        {
-          boost::tie(ac, found) = AssignmentChunkCheck_(unassigned_, hostname);
+          boost::tie(ac, found) = networkGraphCheck_(unassigned_, hostname);
           if(found == true)
           {
-             std::cerr << "return from looking at locations of assignmentChunks..." << std::endl;
+             std::cerr << "return from graph lowest latency unassigned: " << ac.getId() << std::endl;
              return ac;
           }
           else
@@ -226,7 +226,7 @@ namespace AllPairs
        AssignmentChunk ac;
        bool found = false;
        //std::cout << "assigned..." << std::endl;
-       boost::tie(ac, found) = networkGraphCheck_(assigned_, hostname);
+       boost::tie(ac, found) = AssignmentChunkCheck_(assigned_, hostname);
        if(found == true)
        {
           //std::cout << "return from graph lowest latency unassigned: " << ac.getId() << std::endl;
@@ -234,7 +234,7 @@ namespace AllPairs
        }
        else
        {
-          boost::tie(ac, found) = AssignmentChunkCheck_(assigned_, hostname);
+          boost::tie(ac, found) = networkGraphCheck_(assigned_, hostname);
           if(found == true)
           {
              //std::cout << "return from looking at locations of assignmentChunks..." << std::endl;
