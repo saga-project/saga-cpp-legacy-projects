@@ -120,7 +120,7 @@ namespace AllPairs
             std::string stringID = boost::lexical_cast<std::string>(currentChunkID);
             worker.write(saga::buffer(stringID, stringID.size()));
             network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
-
+            std::cerr << "about to start!" << std::endl;
             while(it != end)
             {
                std::string to   = it->getTo();
@@ -130,7 +130,9 @@ namespace AllPairs
                worker.write(saga::buffer(from, from.size()));
                network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
                ++it;
+               std::cerr << "just gave: (" << to << ", " << from << ")" << std::endl;
             }
+            std::cerr << "done" << std::endl;
             worker.write(saga::buffer(END_CHUNK, 3));
             network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
 
@@ -192,13 +194,13 @@ namespace AllPairs
     //std::cout << "worker hostname: " << hostname << std::endl;
     if(unassigned_.size() > 0)
     {
-       //std::cout << "unassigned..." << std::endl;
+       std::cout << "unassigned..." << std::endl;
        AssignmentChunk ac;
        bool found = false;
        boost::tie(ac, found) = networkGraphCheck_(unassigned_, hostname);
        if(found == true)
        {
-          //std::cout << "return from graph lowest latency unassigned: " << ac.getId() << std::endl;
+          std::cerr << "return from graph lowest latency unassigned: " << ac.getId() << std::endl;
           return ac;
        }
        else
@@ -206,13 +208,13 @@ namespace AllPairs
           boost::tie(ac, found) = AssignmentChunkCheck_(unassigned_, hostname);
           if(found == true)
           {
-             //std::cout << "return from looking at locations of assignmentChunks..." << std::endl;
+             std::cerr << "return from looking at locations of assignmentChunks..." << std::endl;
              return ac;
           }
           else
           {
-             //Couldn't Find an exact location, just give any assignment out
-             //std::cout << "returned first one" << std::endl;
+             std::cerr << "Couldn't Find an exact location, just give any assignment out" << std::endl;
+             std::cerr << "returned first one" << std::endl;
              return assignments_[unassigned_[0]];
           }
        }
@@ -267,9 +269,11 @@ namespace AllPairs
     std::vector<int>::const_iterator it  = set.begin();
     std::vector<int>::const_iterator end = set.end();
     while(it != end) {
-       if(assignments_[set[*it]].getLocation() == hostname) {
+       std::cerr << "*IT = " << *it << std::endl;
+       std::cerr << "CHECK TO SEE IF HOSTNAME OF WORKER (" << hostname << ") =? " << assignments_[*it].getLocation() << std::endl;
+       if(assignments_[*it].getLocation() == hostname) {
           //found exact match for host 
-          return std::pair<AssignmentChunk, bool>(assignments_[set[*it]], true);
+          return std::pair<AssignmentChunk, bool>(assignments_[*it], true);
        }
        ++it;
     }
@@ -306,7 +310,7 @@ namespace AllPairs
              while(it != end)
              {
                 //std::cout << "iterator over set is: " << *it << std::endl;
-                AssignmentChunk ac = assignments_[set[*it]];
+                AssignmentChunk ac = assignments_[*it];
                 //std::cout << "location of ac that this iterator gave us: " << ac.getLocation() << std::endl;
                 if(ac.getLocation() == networkGraph_[boost::target(*ei, networkGraph_)].name)
                 {
