@@ -30,8 +30,8 @@ class many_job_service():
 
     def __init__(self, bigjob_list, advert_host):
         """ accepts resource list as key/value pair:
-            ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "128", "allocation" : "loni_jha_big", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh",  "walltime":1000},
-              {"gram_url" : "gram://eric1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "loni_jha_big", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh", "walltime":1000})
+            ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh",  "walltime":1000},
+              {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh", "walltime":1000})
         """        
         self.uuid = uuid.uuid1()
         
@@ -76,6 +76,7 @@ class many_job_service():
                                     i["queue"],
                                     i["allocation"],
                                     "$(HOME)", 
+                                    None,
                                     None)
             i["bigjob"]=bigjob # store bigjob for later reference in dict
             i["free_cores"]=int(i["number_cores"])
