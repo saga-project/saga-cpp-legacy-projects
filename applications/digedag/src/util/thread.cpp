@@ -59,7 +59,6 @@ namespace digedag
       thread_state_ = ThreadRunning;
 
 #ifdef DO_THREADS
-      std::cout << "starting thread" << std::endl;
       if ( 0 != pthread_create (&thread_, NULL, digedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
@@ -68,11 +67,9 @@ namespace digedag
       }
       else
       {
-        std::cout << " ==== thread created" << std::endl;
         joined_       = false; // we can join the created thread later on
       }
 #else
-      std::cout << "starting thread.  NOT." << std::endl;
       thread_start ();
 #endif
     }
@@ -83,7 +80,6 @@ namespace digedag
     // which holds the threads workload.
     void * thread::thread_start (void)
     {
-      std::cout << "starting thread_work" << std::endl;
       // startup is completed - call the (custom) workload
       this->thread_work ();
 
@@ -113,7 +109,6 @@ namespace digedag
 
       if ( joined_ ) return;
 
-      std::cout << " ==== joining thread" << std::endl;
 #ifdef DO_THREADS
       pthread_join (thread_, NULL);
 #endif
