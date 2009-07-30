@@ -209,48 +209,64 @@ namespace AllPairs {
                   //run perl script with runs a worker to compare
                   std::string command("/work/mmicel2/saga/saga-projects/applications/AllPairs/samples/runner.pl");
                   command += " -u " + saga::uuid().string();
-                  if(saga::url(asn.first).get_scheme() == "gridftp")
+                  saga::url firstURL(asn.first);
+                  saga::url secondURL(asn.second);
+                  if(firstURL.get_scheme() == "gridftp")
                   {
-                     //requires staging
-                     saga::url first(asn.first);
-                     first.set_scheme("gsiftp");
-                     command += " -y " + first.get_string();
-                     first.set_scheme("file");
-                     first.set_host("localhost");
-                     command += ' ' + first.get_string();
+                     if(location_ != firstURL.get_host())
+                     {
+                        //requires staging
+                        firstURL.set_scheme("gsiftp");
+                        command += " -y " + firstURL.get_string();
+                        firstURL.set_scheme("file");
+                        firstURL.set_host("localhost");
+                        command += ' ' + firstURL.get_string();
+                     }
+                     else
+                     {
+                        firstURL.set_scheme("file");
+                        firstURL.set_host("localhost");
+                        command += " -n " + firstURL.get_string();
+                     }
                   }
-                  else if(saga::url(asn.first).get_scheme() != "file")
+                  else if(firstURL.get_scheme() != "file")
                   {
                      //requires staging
-                     saga::url first(asn.second);
                      command += " -y " + asn.first;
-                     first.set_scheme("file");
-                     first.set_host("localhost");
-                     command += ' ' + first.get_string();
+                     firstURL.set_scheme("file");
+                     firstURL.set_host("localhost");
+                     command += ' ' + firstURL.get_string();
                   }
                   else
                   {
                      //requires no staging
                      command += " -n " + asn.first;
                   }
-                  if(saga::url(asn.second).get_scheme() == "gridftp")
+                  if(secondURL.get_scheme() == "gridftp")
                   {
-                     //requires staging
-                     saga::url second(asn.second);
-                     second.set_scheme("gsiftp");
-                     command += " -y " + second.get_string();
-                     second.set_scheme("file");
-                     second.set_host("localhost");
-                     command += ' ' + second.get_string();
+                     if(location_ != secondURL.get_host())
+                     {
+                        //requires staging
+                        secondURL.set_scheme("gsiftp");
+                        command += " -y " + secondURL.get_string();
+                        secondURL.set_scheme("file");
+                        secondURL.set_host("localhost");
+                        command += ' ' + secondURL.get_string();
+                     }
+                     else
+                     {
+                        secondURL.set_scheme("file");
+                        secondURL.set_host("localhost");
+                        command += " -n " + secondURL.get_string();
+                     }
                   }
-                  else if(saga::url(asn.second).get_scheme() != "file")
+                  else if(secondURL.get_scheme() != "file")
                   {
                      //requires staging
-                     saga::url second(asn.second);
                      command += " -y " + asn.second;
-                     second.set_scheme("file");
-                     second.set_host("localhost");
-                     command += ' ' + second.get_string();
+                     secondURL.set_scheme("file");
+                     secondURL.set_host("localhost");
+                     command += ' ' + secondURL.get_string();
                   }
                   else
                   {
