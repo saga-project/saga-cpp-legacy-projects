@@ -64,7 +64,7 @@ namespace digedag
       void             add_src_node  (digedag::node * src);
       void             add_tgt_node  (digedag::node * tgt);
       void             set_state     (state s);
-      digedag::state  get_state     (void) const;
+      digedag::state   get_state     (void);
       edge_id_t        get_name      (void) const;
 
       saga::url        get_src       (void) const { return src_url_; }

@@ -218,8 +218,14 @@ namespace digedag
     state_ = s;
   }
 
-  digedag::state edge::get_state (void) const
+  digedag::state edge::get_state (void)
   {
+    if ( Done   == state_ ||
+         Failed == state_ )
+    {
+      thread_join ();
+    }
+
     return state_;
   }
 
