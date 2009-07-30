@@ -1,6 +1,10 @@
 
 #include "util/thread.hpp"
 
+#include <errno.h>
+#include <stdio.h>
+
+
 #define DO_THREADS 
 
 namespace digedag 
@@ -46,21 +50,27 @@ namespace digedag
     void thread::thread_run (void)
     {
       if ( thread_state_ != ThreadNew )
+      {
+        throw ("Thread is not New");
         return;
+      }
 
       thread_state_ = ThreadRunning;
 
 #ifdef DO_THREADS
+      std::cout << "starting thread" << std::endl;
       if ( 0 != pthread_create (&thread_, NULL, digedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
         joined_       = true;
+        throw (strerror (errno));
       }
       else
       {
         joined_       = false;
       }
 #else
+      std::cout << "starting thread.  NOT." << std::endl;
       thread_start ();
 #endif
     }
@@ -71,11 +81,12 @@ namespace digedag
     // which holds the threads workload.
     void * thread::thread_start (void)
     {
+      std::cout << "starting thread_work" << std::endl;
       // startup is completed - call the (custom) workload
       this->thread_work ();
 
       // the thread workload is done - update state
-        thread_state_ = ThreadDone;
+      thread_state_ = ThreadDone;
 
       // nothing more to do: close thread
 #ifdef DO_THREADS

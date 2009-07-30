@@ -156,7 +156,10 @@ namespace digedag
     // If not, mark that we start the work (Running).
     {
       if ( Pending != state_ )
+      {
+        dag_->log (std::string ("         node : ") + name_ + " not pending");
         return;
+      }
 
       // we have work to do...
       state_ = Running;
@@ -166,7 +169,14 @@ namespace digedag
     // can thus really execute the node application.
     //
     // So: run the application, in extra thread
-    thread_run ();
+    try {
+      thread_run ();
+    }
+    catch ( const char* & err )
+    {
+      dag_->log (std::string ("         node : ") + name_ + " failed: " + err);
+      state_ = Failed;
+    }
   }
 
 
