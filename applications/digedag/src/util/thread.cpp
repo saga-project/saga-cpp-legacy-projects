@@ -108,9 +108,11 @@ namespace digedag
     void thread::thread_join (void)
     {
       if ( joined_ ) return;
+
 #ifdef DO_THREADS
       pthread_join (thread_, NULL);
 #endif
+
       joined_ = true;
     }
 

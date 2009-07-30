@@ -72,8 +72,13 @@ namespace digedag
         void          thread_wait        (void);
         void          thread_join        (void);
         void          thread_exit        (void);
-        thread_state  thread_state       (void) const
+        thread_state  thread_state       (void)
         {
+          if ( thread_state_ == ThreadDone )
+          {
+            thread_join ();
+          }
+
           return thread_state_; 
         }
     };
