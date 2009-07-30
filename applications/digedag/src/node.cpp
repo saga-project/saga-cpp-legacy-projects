@@ -316,6 +316,12 @@ namespace digedag
       }
     }
 
+    if ( Done   == state_ ||
+         Failed == state_ )
+    {
+      thread_join ();
+    }
+
     return state_;
   }
 
