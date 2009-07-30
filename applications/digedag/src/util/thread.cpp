@@ -1,5 +1,6 @@
 
 #include "util/thread.hpp"
+#include "util/scoped_lock.hpp"
 
 #include <errno.h>
 #include <stdio.h>
@@ -28,7 +29,7 @@ namespace digedag
     // the c'tor does nothing than setting the state to 'New'
     thread::thread (void)
       : thread_state_ (ThreadNew)
-      , joined_ (true)
+      , joined_       (true) // don't join threads which did not even start
     {
     }
 
@@ -62,12 +63,13 @@ namespace digedag
       if ( 0 != pthread_create (&thread_, NULL, digedag::util::thread_startup_, this) )
       {
         thread_state_ = ThreadFailed;
-        joined_       = true;
+        joined_       = true; // don't join failed threads
         throw (strerror (errno));
       }
       else
       {
-        joined_       = false;
+        std::cout << " ==== thread created" << std::endl;
+        joined_       = false; // we can join the created thread later on
       }
 #else
       std::cout << "starting thread.  NOT." << std::endl;
@@ -107,6 +109,9 @@ namespace digedag
     // allow the consumer to wait for thread completion
     void thread::thread_join (void)
     {
+      std::cout << " ==== joining thread" << std::endl;
+      scoped_lock l;
+
       if ( joined_ ) return;
 
 #ifdef DO_THREADS
