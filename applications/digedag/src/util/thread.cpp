@@ -109,11 +109,11 @@ namespace digedag
     // allow the consumer to wait for thread completion
     void thread::thread_join (void)
     {
-      std::cout << " ==== joining thread" << std::endl;
       scoped_lock l;
 
       if ( joined_ ) return;
 
+      std::cout << " ==== joining thread" << std::endl;
 #ifdef DO_THREADS
       pthread_join (thread_, NULL);
 #endif
