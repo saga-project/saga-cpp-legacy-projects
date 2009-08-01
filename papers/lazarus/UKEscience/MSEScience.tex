@@ -104,29 +104,13 @@ CO$_2$.
 
 For long-term storage of large volumes of CO$_2$, porous subsurface geologic formations are ideal candidates: these are the same formations responsible for the existence of oil and gas reservoirs. Indeed much of the technology behind carbon dioxide sequestration (including drilling, gas injection, reservoir management and reservoir simulation) stems from drilling, petroleum and reservoir engineering. Injecting CO$_2$ into an oil-gas reservoir can also lead to improved oil recovery by ``pushing out'' the oil and gas for production, thus reducing the net cost through increased revenues from oil and gas production ~\cite{EORBook}.
 
-One of the major areas of research in this field is the characterization of reservoirs that are safe and secure, environmentally and geologically \jhanote{Yaakoub, this sentence does not make sense: please check?} and are therefore promising candidates for CO$_2$ sequestration ~\cite{GeoRPT,Luigi}. Our efforts are directed towards developing CyberInfrastructure tools, technologies and abstractions that facilitate large scale reservoir characterization and forecasting studies.
+One of the major areas of research in this field is the characterization of reservoirs that are safe and secure, environmentally and geologically \jhanote{Yaakoub, this sentence does not make sense: please check?} and are therefore promising candidates for CO$_2$ sequestration ~\cite{GeoRPT,Luigi}. Our efforts are directed towards developing CyberInfrastructure -- the tools, technologies and abstractions, that facilitate large scale reservoir characterization and forecasting studies.
 
 \section*{Reservoir Characterization}
 
-Since the amount of information obtained directly from reservoirs is very small compared 
-to the actual size of the reservoir, 
-history matching techniques have been developed to match actual reservoir production with 
-simulated reservoir production, 
-therefore obtaining a more ``satisfactory'' set of reservoir models. One of the promising approaches 
-to history matching is the use of Ensemble Kalman filters (EnKF) ~\cite{KalmanPaper, 
-DO2007, LiEnKF07, DO2006}.
+Since the amount of information obtained directly from reservoirs is very small compared to the actual size of the reservoir, \jhanote{previous sentence doesn't read well, and isn't clear to me} history matching techniques have been developed to match actual reservoir production with simulated reservoir production, therefore obtaining a more ``satisfactory'' set of reservoir models. One of the promising approaches to history matching is the use of Ensemble Kalman filters (EnKF) ~\cite{KalmanPaper, DO2007, LiEnKF07, DO2006}.
 
-Ensemble Kalman filters are recursive filters that can be used to handle large, noisy 
-data; the data in this case would be the results and parameters from ensembles of 
-reservoir models that are sent through the filter to obtain the ``true state'' of the 
-data. Since the reservoir model varies from one ensemble to another, the run-time 
-characteristics of the ensemble simulation are irregular and hard to predict. Furthermore, 
-at simulation times when real historical data is available, all the data from the 
-different ensembles at that simulation time must be compared to the actual production 
-data, before the simulations are allowed to proceed. This translates into a global 
-synchronization point for all ensembles; hence performing large scale studies for complex 
-reservoirs in a reasonable amount of time would benefit greatly from the use of 
-distributed, high performance, high throughput and on-demand computing resources.
+Ensemble Kalman filters are recursive filters that can be used to handle large, noisy data; the data in this case would be the results and parameters from ensembles of reservoir models that are sent through the filter to obtain the ``true state'' of the data. Since the reservoir model varies from one ensemble to another, the run-time characteristics of the ensemble simulation are irregular and hard to predict. Furthermore, at simulation times when real historical data is available, all the data from the different ensembles at that simulation time must be compared to the actual production data, before the simulations are allowed to proceed. This translates into a global synchronization point for all ensemble-members in any given stage. Due to this fundamental limit on task-parallelism, performing large scale studies for complex reservoirs in a reasonable amount of time would benefit greatly from the use of distributed, high-performance, high-throughput and on-demand computing resources.
 
 \begin{figure}
 \begin{center}
@@ -141,21 +125,10 @@ distributed, high performance, high throughput and on-demand computing resources
 
 \section*{CyberInfrastructure used}
 
-Due to the complexity of the problem, involving reservoir simulation, geostatistics on one 
-end and simulation management, workflows, grid and high-throughput computing on another, 
-a design decision was made early in development to make full use of existing tools and 
-abstractions whenever possible. This resulted in a rapid development cycle and faster 
-turn-over. The components we developed and use are as follows:
+Due to the complexity of the problem -- involving reservoir simulation and geostatistics on one hand and simulation management, workflows, grid and high-throughput computing on the other, a design decision was made early in development to make full use of existing tools and abstractions whenever possible. This resulted in a rapid development cycle and faster turn-over. The components we developed and use are as follows:
 
 \begin{itemize}
-\item The Reservoir Simulator: Based on the Cactus Code ~\cite{cactus_web} high 
-performance scientific computing framework and the Portable Extensible Toolkit for 
-Scientific Computing: PETSc ~\cite{PETSc}, the BlackOil reservoir simulator solves the 
-equations for multiphase fluid flow through porous media, allowing us to simulate the 
-movement of oil and gas in subsurface formations. With a few parameter changes, BlackOil 
-is also used for modelling the flow of CO$_2$; however it does not
-simulate any geochemical interactions. While adequate as a first order approximation, it is 
-still under heavy development to enable it to satisfactorily model geochemical phenomena.
+\item The Reservoir Simulator: The BlackOil reservoir simulator \jhanote{BlackOil simulator is never fully defined. Is that a functional description? Is that just a name?} solves the equations for multiphase fluid flow through porous media, allowing us to simulate the movement of oil and gas in subsurface formations. It is based on the Cactus Code ~\cite{cactus_web} high performance scientific computing framework and the Portable Extensible Toolkit for Scientific Computing: PETSc ~\cite{PETSc}. With a few parameter changes, BlackOil is also used for modelling the flow of CO$_2$; however it does not simulate any geochemical interactions. While adequate as a first order approximation, it is still under heavy development to enable it to satisfactorily model geochemical phenomena.
 
 \item The Ensemble Kalman filter: Also based on Cactus and PETSc, it computes the Kalman 
 gain matrix and updates the model parameters of the ensembles. The Kalman filter requires 
@@ -164,19 +137,13 @@ real-time, and launch the subsequent long-term forecast, enhanced oil recovery a
 sequestration studies.
 
 \item Lazarus: Is a SAGA (Simple API for Grid Applications) based autonomic computing 
-framework for scientific applications. Lazarus utilizes SAGA , SAGA-based 
+framework for scientific applications. Lazarus utilizes SAGA, SAGA-based 
 abstractions (BigJob) and provides an autonomic, self-configuring, self optimizing, self 
 monitoring and self-healing job manager that facilitates the launch of history matching 
 studies on distributed high performance, high throughput and grid computing resources 
 ~\cite{gmac}.
 
-\item SensorsToSimulations (S2S): Developed, using Cactus and database interfaces, 
-initially to send measurement-while-drilling (MWD) data from drilling 
-bottom-hole-assemblies to drill-string simulators, the S2S framework has been extended to 
-accommodate sending sensor data to the BlackOil reservoir simulator (production data 
-required for well modelling) and the Ensemble Kalman filter for history matching. The S2S 
-framework also announces the arrival of new history data to Lazarus to trigger the 
-launching of a new stage of ensemble simulations ~\cite{Duff2,Duff1}.
+\item SensorsToSimulations (S2S) framework: Developed initially using Cactus and database interfaces, to send measurement-while-drilling (MWD) data from drilling bottom-hole-assemblies to drill-string simulators, the S2S framework has been extended to accommodate sending sensor data to the BlackOil reservoir simulator (production data required for well modelling) and the Ensemble Kalman filter for history matching. The S2S framework also announces the arrival of new history data to Lazarus to trigger the launching of a new stage of ensemble simulations ~\cite{Duff2,Duff1}.
 
 \end{itemize}
 
