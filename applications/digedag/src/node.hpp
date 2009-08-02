@@ -27,6 +27,7 @@ namespace digedag
       std::vector <digedag::edge *> edge_in_;  // input  data
       std::vector <digedag::edge *> edge_out_; // output data
 
+      std::string                    rm_;
       std::string                    cmd_;
       std::string                    pwd_;
       std::string                    host_;
@@ -69,6 +70,7 @@ namespace digedag
       void            set_state       (state s);
       digedag::state get_state       (void);
       void            set_pwd         (std::string pwd);
+      void            set_rm          (std::string rm);
       void            set_host        (std::string host);
       void            set_path        (std::string path);
 

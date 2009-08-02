@@ -16,6 +16,7 @@ namespace digedag
   node::node (digedag::node_description & nd, 
               std::string                  name)
     : nd_      (nd)
+    , rm_      ("")
     , name_    (name)
     , state_   (digedag::Pending)
     , is_void_ (false)
@@ -44,7 +45,8 @@ namespace digedag
 
   node::node (std::string cmd, 
               std::string name)
-    : cmd_     (cmd)
+    : rm_      ("")
+    , cmd_     (cmd)
     , name_    (name)
     , state_   (digedag::Pending)
     , is_void_ (false)
@@ -61,7 +63,8 @@ namespace digedag
   }
 
   node::node (void)
-    : cmd_     ("-")
+    : rm_      ("")
+    , cmd_     ("-")
     , name_    ("void")
     , state_   (digedag::Pending)
     , is_void_ (true)
@@ -209,7 +212,7 @@ namespace digedag
       try {
         saga::job::description jd (nd_);
 
-        saga::job::service js (session_);
+        saga::job::service js (session_, rm_);
         saga::job::job j = js.create_job (jd);
 
         j.run  ();
@@ -343,6 +346,12 @@ namespace digedag
     }
   }
 
+  void node::set_rm (std::string rm)
+  {
+    rm_ = rm;
+  }
+
+
   void node::set_host (std::string host)
   {
     host_ = host;
@@ -373,6 +382,7 @@ namespace digedag
     if ( nd_.attribute_exists ("Environment") )
     {
       std::vector <std::string> old_env = nd_.get_vector_attribute ("Environment");
+      bool found = false;
 
       for ( unsigned int i = 0; i < old_env.size (); i++ )
       {
@@ -388,22 +398,30 @@ namespace digedag
           {
             new_env.push_back (words[0] + "=" + words[1] + ":" + path);
           }
+          std::cout << "adding path " << new_env[new_env.size () - 1] << std::endl;
+          found = true;
         }
         else 
         {
           // not PATH
           new_env.push_back (old_env[i]);
+          new_env.push_back (std::string ("PATH=") + path);
+          std::cout << "Adding Path " << new_env[new_env.size () - 1] << std::endl;
         }
+      }
+      if ( ! found )
+      {
       }
     }
     else
     {
       // no env at all
       new_env.push_back (std::string ("PATH=") + path);
+      std::cout << "adding PATH " << new_env[new_env.size () - 1] << std::endl;
     }
 
     // replace env
-    nd_.set_vector_attribute ("Environment", new_env);
+    nd_.set_vector_attribute (saga::job::attributes::description_environment, new_env);
   }
 
   void node::set_dag (saga::session  s, 

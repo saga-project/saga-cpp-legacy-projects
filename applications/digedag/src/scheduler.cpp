@@ -87,15 +87,16 @@ namespace digedag
       }
       else if ( words[0] == "job" )
       {
-        if ( words.size () != 5 )
+        if ( words.size () != 6 )
         {
           std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
         }
         else
         {
-          job_info_[words[1]].host = words[2];
-          job_info_[words[1]].pwd  = words[3];
-          job_info_[words[1]].path = words[4];
+          job_info_[words[1]].rm   = words[2];
+          job_info_[words[1]].host = words[3];
+          job_info_[words[1]].pwd  = words[4];
+          job_info_[words[1]].path = words[5];
         }
       }
       
@@ -151,6 +152,7 @@ namespace digedag
 
         if ( job_info_.find (id) != job_info_.end () )
         {
+          n->set_rm   (job_info_[id].rm);
           n->set_host (job_info_[id].host);
           n->set_pwd  (job_info_[id].pwd);
           n->set_path (job_info_[id].path);

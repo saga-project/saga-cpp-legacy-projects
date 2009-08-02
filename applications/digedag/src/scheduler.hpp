@@ -32,9 +32,10 @@ namespace digedag
 
       struct job_info_t 
       { 
-        std::string host; 
-        std::string pwd; 
-        std::string path; 
+        std::string rm;
+        std::string host;
+        std::string pwd;
+        std::string path;
       };
 
       std::map <std::string, job_info_t> job_info_;
