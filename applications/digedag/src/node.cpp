@@ -422,6 +422,16 @@ namespace digedag
 
     // replace env
     nd_.set_vector_attribute (saga::job::attributes::description_environment, new_env);
+
+    // FIXME: condor adaptor does not evaluate path.  Thus, we set the
+    // executable name to absolute file name
+    // Note that this mechanism required rm_ to be set first
+    if ( nd_.attribute_exists (saga::job::attributes::description_executable) &&
+         saga::url (rm_).get_scheme () == "condor" )
+    {
+      nd_.set_attribute (saga::job::attributes::description_executable,
+                         path + "/" + nd_.get_attribute (saga::job::attributes::description_executable));
+    }
   }
 
   void node::set_dag (saga::session  s, 

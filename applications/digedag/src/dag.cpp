@@ -283,6 +283,7 @@ namespace digedag
     if ( Failed  == state_ ||
          Done    == state_ )
     {
+      log ("get_state on final state");
       return state_;
     }
 
@@ -304,7 +305,7 @@ namespace digedag
       int i = 0;
       for ( it = begin; it != end; it++ )
       {
-        if ( ! (i++ % 10) )
+        if ( ! (i++ % 5) )
         {
           log ();
         }
@@ -350,15 +351,15 @@ namespace digedag
       {
         for ( unsigned int i = 0; i < it->second.size (); i++ )
         {
-          if ( ! (cnt++ % 5) )
+          if ( ! (cnt++ % 2) )
           {
-            // log ();
+            log ();
           }
 
           state_total++;
 
           state s = it->second[i]->get_state ();
-          // log (it->first + ":" + state_to_string (s) +  "\t", false);
+          log (it->second[i]->get_name_s () + ":" + state_to_string (s) +  "\t", false);
 
           switch ( s )
           {

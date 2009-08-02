@@ -229,6 +229,11 @@ namespace digedag
     return state_;
   }
 
+  std::string edge::get_name_s (void) const
+  {
+    return src_node_->get_name () + "->" + tgt_node_->get_name ();
+  }
+
   edge_id_t edge::get_name (void) const
   {
     return edge_id_t (src_node_->get_name (), tgt_node_->get_name ());
