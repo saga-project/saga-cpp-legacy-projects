@@ -353,13 +353,13 @@ namespace digedag
         {
           if ( ! (cnt++ % 2) )
           {
-            log ();
+            // log ();
           }
 
           state_total++;
 
           state s = it->second[i]->get_state ();
-          log (it->second[i]->get_name_s () + ":" + state_to_string (s) +  "\t", false);
+          // log (it->second[i]->get_name_s () + ":" + state_to_string (s) +  "\t", false);
 
           switch ( s )
           {
