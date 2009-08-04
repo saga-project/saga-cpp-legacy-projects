@@ -8,7 +8,7 @@ SAGA_LIB          = digedag
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
-SAGA_CXXFLAGS    += -Wall # -ansi -std=c++98
+SAGA_CXXFLAGS    += -fPIC -Wall # -ansi -std=c++98
 
 SAGA_CPPINCS     += -I./
 SAGA_CPPINCS     += -I../external/tinyxml++/
