@@ -80,8 +80,8 @@ namespace digedag
       void             set_host_src  (std::string host);
       void             set_host_tgt  (std::string host);
 
-      void             set_dag       (saga::session  s,
-                                      digedag::dag * d);
+      void             set_dag       (digedag::dag * d);
+      void             set_session   (saga::session  s);
   };
 
 } // namespace digedag

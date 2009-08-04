@@ -96,7 +96,7 @@ namespace digedag
             }
           }
 
-          contexts_.push_back (c);
+          session_.add_context (c);
         }
         catch ( const saga::exception & e )
         {
@@ -153,33 +153,6 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
-
-    // we do not simply add contexts to the dag's session, but create a new
-    // session with _only_ the contexts we got here.  If we don't have any
-    // contexts, we leave the dag's session alone.
-
-    if ( contexts_.size () > 0 )
-    {
-      try {
-        saga::session sd = d->get_session (); // the dag session
-        saga::session sf;                     // our fresh session
-
-        // add context to new session.  SAGA's shallow copy comes in handy
-        // here
-        for ( unsigned int i = 0; i < contexts_.size (); i++ )
-        {
-          sf.add_context (contexts_[i]);
-        }
-
-        // replace the sd impl with the clean sf impl
-        sd = sf;
-      }
-      catch ( const saga::exception & e )
-      {
-        std::cerr << "cannot add context to dag's session: " << e.what () << std::endl;
-      }
-    }
-
   }
 
 
@@ -291,6 +264,8 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    n->set_session (session_);
   }
 
 
@@ -367,6 +342,8 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    e->set_session (session_);
   }
 
 

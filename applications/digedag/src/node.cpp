@@ -213,7 +213,23 @@ namespace digedag
       try {
         saga::job::description jd (nd_);
 
-        saga::job::service js (session_, rm_);
+        std::vector <saga::context> cs = session_.list_contexts ();
+
+        for ( unsigned int i = 0; i < cs.size (); i++ )
+        {
+          std::vector <std::string> as = cs[i].list_attributes ();
+
+          for ( unsigned int j = 0; j < as.size (); j++ )
+          {
+            std::cout << "Context: " 
+                      <<  as[j]
+                      << "="
+                      << cs[i].get_attribute (as[j])
+                      << std::endl;
+          }
+        }
+
+        saga::job::service js (rm_);
         saga::job::job j = js.create_job (jd);
 
         j.run  ();
@@ -435,12 +451,15 @@ namespace digedag
     }
   }
 
-  void node::set_dag (saga::session  s, 
-                      digedag::dag * d)
+  void node::set_dag (digedag::dag * d)
   {
-    session_   = s;
     dag_       = d;
     scheduler_ = dag_->get_scheduler ();
+  }
+
+  void node::set_session (saga::session s)
+  {
+    session_ = s;
   }
 
 } // namespace digedag

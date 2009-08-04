@@ -40,8 +40,6 @@ namespace digedag
 
       util::mutex           mtx_;
 
-      saga::session         session_;
-
 
     protected:
       // allow our friend, the sxheduler, full access to the dag data.
@@ -85,10 +83,6 @@ namespace digedag
       void  unlock    (void);
       void  log       (std::string msg = "", 
                        bool        eol = true);
-
-      // SAGA inspection
-      saga::session 
-            get_session (void);
 
 
       void                 set_scheduler (std::string s);
