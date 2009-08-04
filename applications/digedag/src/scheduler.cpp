@@ -264,8 +264,6 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
-
-    n->set_session (session_);
   }
 
 
@@ -342,8 +340,6 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
-
-    e->set_session (session_);
   }
 
 
@@ -360,6 +356,13 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+  }
+
+
+  saga::session scheduler::hook_saga_get_session (digedag::dag  * d)
+  {
+    util::scoped_lock sl (mtx_);
+    return session_;
   }
 
 } // namespace digedag

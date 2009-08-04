@@ -209,11 +209,13 @@ namespace digedag
     }
     else
     {
+      saga::session session = scheduler_->hook_saga_get_session (dag_);
+
       // not void: there is work to do
       try {
         saga::job::description jd (nd_);
 
-        std::vector <saga::context> cs = session_.list_contexts ();
+        std::vector <saga::context> cs = session.list_contexts ();
 
         for ( unsigned int i = 0; i < cs.size (); i++ )
         {
@@ -229,7 +231,7 @@ namespace digedag
           }
         }
 
-        saga::job::service js (rm_);
+        saga::job::service js (session, rm_);
         saga::job::job j = js.create_job (jd);
 
         j.run  ();
@@ -455,11 +457,6 @@ namespace digedag
   {
     dag_       = d;
     scheduler_ = dag_->get_scheduler ();
-  }
-
-  void node::set_session (saga::session s)
-  {
-    session_ = s;
   }
 
 } // namespace digedag
