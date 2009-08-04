@@ -58,17 +58,61 @@ namespace digedag
 
       if ( words.size () < 1 )
       {
-        std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
+        std::cerr << "parser error (1) in " << policy_ << " at line " << lnum << std::endl;
       }
       else if ( words[0] == "#" )
       {
         // ignore comments
       }
+      else if ( words[0] == "context" )
+      {
+        try 
+        {
+          // split context line words into key=val pairs, and set those as
+          // attributes.  Add that respective context to the dag's session on
+          // hook_dag_create
+          saga::context c;
+
+          // leave out context keyword
+          for ( unsigned int i = 1; i < words.size (); i++ )
+          {
+            // all other words, split at '='
+            std::vector <std::string> elems = digedag::split (words[i], "=", 2);
+
+            if ( 0 == elems.size () )
+            {
+              // nothing to do
+              // this should never happen though unless words[i] was empty.
+            }
+            else if ( 1 == elems.size () )
+            {
+              // empty value
+              c.set_attribute (elems[0], "");
+            }
+            else // never have more than two elems, as per split limit above
+            {
+              // set key and value
+              c.set_attribute (elems[0], elems[1]);
+            }
+          }
+
+          contexts_.push_back (c);
+        }
+        catch ( const saga::exception & e )
+        {
+          // error in handling context line
+          std::cerr << "context error in " << policy_ 
+                    << " at line " << lnum 
+                    << ": \n" << e.what () 
+                    << std::endl;
+        }
+        
+      }
       else if ( words[0] == "data" )
       {
         if ( words.size () != 4 )
         {
-          std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
+          std::cerr << "parser error (2) in " << policy_ << " at line " << lnum << std::endl;
         }
         else if ( words[1] == "INPUT" )
         {
@@ -82,14 +126,14 @@ namespace digedag
         }
         else
         {
-          std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
+          std::cerr << "parser error (3) in " << policy_ << " at line " << lnum << std::endl;
         }
       }
       else if ( words[0] == "job" )
       {
         if ( words.size () != 6 )
         {
-          std::cerr << "parser error in " << policy_ << " at line " + lnum << std::endl;
+          std::cerr << "parser error (4) in " << policy_ << " at line " << lnum << std::endl;
         }
         else
         {
@@ -109,6 +153,33 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    // we do not simply add contexts to the dag's session, but create a new
+    // session with _only_ the contexts we got here.  If we don't have any
+    // contexts, we leave the dag's session alone.
+
+    if ( contexts_.size () > 0 )
+    {
+      try {
+        saga::session sd = d->get_session (); // the dag session
+        saga::session sf;                     // our fresh session
+
+        // add context to new session.  SAGA's shallow copy comes in handy
+        // here
+        for ( unsigned int i = 0; i < contexts_.size (); i++ )
+        {
+          sf.add_context (contexts_[i]);
+        }
+
+        // replace the sd impl with the clean sf impl
+        sd = sf;
+      }
+      catch ( const saga::exception & e )
+      {
+        std::cerr << "cannot add context to dag's session: " << e.what () << std::endl;
+      }
+    }
+
   }
 
 
@@ -123,7 +194,7 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
-    
+
     // walk throgh the dag, and assign execution host for nodes, and data
     // prefixes for edges
     std::map <node_id_t, node_map_t> nodes = d->get_nodes ();
@@ -278,7 +349,7 @@ namespace digedag
     // that data need to be staged in, from the data_src_ directory .  An empty
     // tgt node implies that data need to be staged out, to the data_tgt_
     // directory.  The latter may need to be created.
-    
+
 
   }
 

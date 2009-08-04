@@ -39,6 +39,7 @@ namespace digedag
       };
 
       std::map <std::string, job_info_t> job_info_;
+      std::vector <saga::context>        contexts_;
 
     public:
       scheduler (void);

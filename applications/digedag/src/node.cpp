@@ -23,16 +23,17 @@ namespace digedag
   {
     std::stringstream ss;
 
-    if ( ! nd.attribute_exists ("Executable") )
+    if ( ! nd.attribute_exists (digedag::node_attributes::executable) )
     {
       throw ("Cannot handle node w/o executable");
     }
 
-    ss << nd.get_attribute ("Executable");
+    ss << nd.get_attribute
+      (digedag::node_attributes::executable);
 
-    if ( nd.attribute_exists ("Arguments") )
+    if ( nd.attribute_exists (digedag::node_attributes::arguments) )
     {
-      std::vector <std::string> args = nd.get_vector_attribute ("Arguments");
+      std::vector <std::string> args = nd.get_vector_attribute (digedag::node_attributes::arguments);
 
       for ( unsigned int i = 0; i < args.size (); i++ )
       {
@@ -54,12 +55,12 @@ namespace digedag
     // parse cmd into node description
     std::vector <std::string> elems = digedag::split (cmd_);
 
-    nd_.set_attribute ("Executable", elems[0]);
-    nd_.set_attribute ("Interactive", saga::attributes::common_false);
+    nd_.set_attribute (digedag::node_attributes::executable, elems[0]);
+    nd_.set_attribute (digedag::node_attributes::interactive, saga::attributes::common_false);
 
     elems.erase (elems.begin ());
 
-    nd_.set_vector_attribute ("Arguments", elems);
+    nd_.set_vector_attribute (digedag::node_attributes::arguments, elems);
   }
 
   node::node (void)
@@ -332,7 +333,8 @@ namespace digedag
   {
     pwd_ = pwd;
     saga::url u_pwd (pwd_);
-    nd_.set_attribute ("WorkingDirectory", u_pwd.get_path ());
+
+    nd_.set_attribute (digedag::node_attributes::working_directory, u_pwd.get_path ());
 
     // set pwd for all incoming and outgoing edges
     for ( unsigned int i = 0; i < edge_in_.size (); i++ )
@@ -358,7 +360,7 @@ namespace digedag
 
     std::vector <std::string> chosts;
     chosts.push_back (host);
-    nd_.set_vector_attribute ("CandidateHosts", chosts);
+    nd_.set_vector_attribute (digedag::node_attributes::candidate_hosts, chosts);
 
     // set host for all incoming and outgoing edges
     for ( unsigned int i = 0; i < edge_in_.size (); i++ )
@@ -379,9 +381,9 @@ namespace digedag
 
     std::vector <std::string> new_env;
 
-    if ( nd_.attribute_exists ("Environment") )
+    if ( nd_.attribute_exists (digedag::node_attributes::environment) )
     {
-      std::vector <std::string> old_env = nd_.get_vector_attribute ("Environment");
+      std::vector <std::string> old_env = nd_.get_vector_attribute (digedag::node_attributes::environment);
       bool found = false;
 
       for ( unsigned int i = 0; i < old_env.size (); i++ )
@@ -398,7 +400,6 @@ namespace digedag
           {
             new_env.push_back (words[0] + "=" + words[1] + ":" + path);
           }
-          std::cout << "adding path " << new_env[new_env.size () - 1] << std::endl;
           found = true;
         }
         else 
@@ -406,7 +407,6 @@ namespace digedag
           // not PATH
           new_env.push_back (old_env[i]);
           new_env.push_back (std::string ("PATH=") + path);
-          std::cout << "Adding Path " << new_env[new_env.size () - 1] << std::endl;
         }
       }
       if ( ! found )
@@ -417,20 +417,21 @@ namespace digedag
     {
       // no env at all
       new_env.push_back (std::string ("PATH=") + path);
-      std::cout << "adding PATH " << new_env[new_env.size () - 1] << std::endl;
     }
 
     // replace env
-    nd_.set_vector_attribute (saga::job::attributes::description_environment, new_env);
+    nd_.set_vector_attribute (digedag::node_attributes::environment, new_env);
 
     // FIXME: condor adaptor does not evaluate path.  Thus, we set the
     // executable name to absolute file name
     // Note that this mechanism required rm_ to be set first
-    if ( nd_.attribute_exists (saga::job::attributes::description_executable) &&
+    if ( nd_.attribute_exists (digedag::node_attributes::executable) &&
          saga::url (rm_).get_scheme () == "condor" )
     {
-      nd_.set_attribute (saga::job::attributes::description_executable,
-                         path + "/" + nd_.get_attribute (saga::job::attributes::description_executable));
+      nd_.set_attribute (digedag::node_attributes::executable,
+                         path 
+                         + "/" 
+                         + nd_.get_attribute (digedag::node_attributes::executable));
     }
   }
 

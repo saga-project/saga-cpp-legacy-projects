@@ -86,7 +86,12 @@ namespace digedag
       void  log       (std::string msg = "", 
                        bool        eol = true);
 
-      void                  set_scheduler (std::string s);
+      // SAGA inspection
+      saga::session 
+            get_session (void);
+
+
+      void                 set_scheduler (std::string s);
       digedag::scheduler * get_scheduler (void);
   };
 

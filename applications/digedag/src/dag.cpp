@@ -234,6 +234,7 @@ namespace digedag
     {
       log (std::string ("       dag checks ") + it->second->get_name () 
            + ": " + state_to_string (it->second->get_state ()));
+
       if ( Pending == it->second->get_state () )
       {
         log (std::string ("       dag fires node ") + it->second->get_name ());
@@ -522,5 +523,11 @@ namespace digedag
   {
     return scheduler_;
   }
+
+  saga::session dag::get_session (void)
+  {
+    return session_;
+  }
+
 } // namespace digedag
 

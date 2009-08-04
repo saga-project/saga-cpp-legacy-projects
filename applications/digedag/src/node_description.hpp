@@ -13,6 +13,7 @@ namespace digedag
     char const * const arguments           = "Arguments";
     char const * const environment         = "Environment";
     char const * const working_directory   = "WorkingDirectory";
+    char const * const interactive         = "Interactive";
     char const * const input               = "Input";
     char const * const output              = "Output";
     char const * const error               = "Error";
