@@ -214,25 +214,8 @@ namespace digedag
       // not void: there is work to do
       try {
         saga::job::description jd (nd_);
-
-        std::vector <saga::context> cs = session.list_contexts ();
-
-        for ( unsigned int i = 0; i < cs.size (); i++ )
-        {
-          std::vector <std::string> as = cs[i].list_attributes ();
-
-          for ( unsigned int j = 0; j < as.size (); j++ )
-          {
-            std::cout << "Context: " 
-                      <<  as[j]
-                      << "="
-                      << cs[i].get_attribute (as[j])
-                      << std::endl;
-          }
-        }
-
-        saga::job::service js (session, rm_);
-        saga::job::job j = js.create_job (jd);
+        saga::job::service     js (session, rm_);
+        saga::job::job     j = js.create_job (jd);
 
         j.run  ();
         j.wait ();

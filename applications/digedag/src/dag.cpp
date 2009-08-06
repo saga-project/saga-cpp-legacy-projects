@@ -201,8 +201,8 @@ namespace digedag
   {
     log ("fire   dag  ");
 
-    dump_node ("INPUT");
-    dump_node ("OUTPUT");
+    // dump_node ("INPUT");
+    // dump_node ("OUTPUT");
 
     log (std::string ("state: ") + state_to_string (state_));
 
@@ -232,8 +232,8 @@ namespace digedag
 
     for ( it = begin; it != end; it++ )
     {
-      log (std::string ("       dag checks ") + it->second->get_name () 
-           + ": " + state_to_string (it->second->get_state ()));
+      // log (std::string ("       dag checks ") + it->second->get_name () 
+      //      + ": " + state_to_string (it->second->get_state ()));
 
       if ( Pending == it->second->get_state () )
       {
@@ -250,7 +250,7 @@ namespace digedag
       // ### scheduler hook
       scheduler_->hook_dag_run_fail (this);
 
-      dump ();
+      // dump ();
 
       throw "can't find pending nodes.  cyclic or empty graph?";
     }
@@ -386,7 +386,7 @@ namespace digedag
         }
       }
     }
-    log ();
+    // log ();
 
 
     // if any job failed, dag is considered to have failed
@@ -437,6 +437,8 @@ namespace digedag
 
   void dag::dump (void)
   {
+    return;
+
     log (" -  DAG    ----------------------------------\n");
     log (std::string (" state: ") + state_to_string (get_state ()));
 

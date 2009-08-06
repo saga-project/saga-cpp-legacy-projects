@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 
-// #define DO_THREADS 
+#define DO_THREADS 
 
 namespace digedag 
 {

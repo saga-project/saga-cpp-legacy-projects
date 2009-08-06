@@ -123,7 +123,7 @@ namespace digedag
   {
     try 
     {
-      dump ();
+      // dump ();
 
       dag_->lock ();
 

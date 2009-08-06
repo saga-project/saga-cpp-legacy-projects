@@ -23,7 +23,7 @@ int main (int argc, char** argv)
 
     // allow for pre-run scheduling
     d->schedule (); 
-    d->dump ();
+ // d->dump ();
 
     // run the dag.  This also performs scheduling on-the-fly
     if ( dryrun )

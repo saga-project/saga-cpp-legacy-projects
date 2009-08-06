@@ -231,6 +231,8 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    ::exit (3);
   }
 
 
@@ -308,6 +310,8 @@ namespace digedag
     //   n->set_state (Pending);
     //   n->fire ();
     // }
+    
+    ::exit (1);
   }
 
 
@@ -356,6 +360,8 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    ::exit (2);
   }
 
 
