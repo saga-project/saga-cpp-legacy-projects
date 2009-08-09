@@ -99,21 +99,6 @@ Here we outline our approach -- which is not-tied to a specific application set,
 
 %------------------------------------------------------------------------- 
 \Section{Hybrid CFD-MD Approach: Understanding the Coupling, Communication and Load-Balancing Requirements}
-\skonote{(Nayong)}
-
-\skonote{Motivation of hybrid CFD/MD simulation (Nayong, 2 paragraphs)
-Brief description of flow regimes for conventional CFD and MD approaches and their limitation (1 paragraph), the benefit of coupled simulation (1 paragraph)}
-
-\skonote{Coupling algorithm (1 or 2 paragraphs)
-: How the coupling is accomplished (with 1 figure of layer composition), mention that 'file-based approach is used' / The role of each layer and meaning of constrained MD equation / Solution (1 figure)}
-
-\skonote{Baseline CFD and MD codes (1 paragraph): Schemes within CFD code, LAMMPS code / Comment that 'other CFD or MD components can be attachable/replaceable if interface is properly given'}
-
-\skonote{Requirements for efficient computation (1 paragraph)
-: Two simulations should start concurrently / Two codes should be load-balanced between communications, for synchronous and frequent communication / More resources required for MD part; Include the definition of total simulation time (as the sum of startup time, wait time and runtime) and specify which part we are going to reduce}
-
-\skonote{Brief introduction of BigJob concept (1 paragraph)
-: Just mention that 'BigJob abstraction will satisfy the above requirements'}
 
 A hybrid CFD/MD approach~\cite{Nie:2004},~\cite{Yen:2007} is a simulation method which adopts the continuum hypothesis in capturing the macroscopic features of a flow-field and resolves intermolecular effects on interfaces of different materials. CFD can accurately predict flow properties on conventional moderate/large size fluid domains, but is intrinsically impossible to reflect the characteristics of surrounding solid materials. MD guarantees more accurate solution in that it also considers collision between fluid particles as well as interaction with solid particles; the price for this greater resolution is that it is computationally very expensive and makes it difficult to apply this method to solve a large scale system.
 
@@ -139,11 +124,10 @@ The essence of this coupled approach lies in how the hybrid region is constructe
 
 The simulation procedure and the design of a problem domain is as follows: A computational domain is constructed using a CFD mesh generator and it is roughly split to three regions of pure MD, overlap and pure CFD. Then, the overlap region is split again to contain the five layers mentioned above. This geometric information is transferred to CFD and MD codes as input parameters, to define their computational domains. In our initial approach during the simulation, the CFD code stores flow properties within the constrained MD region in the form of a data file and reads a data file from the MD solution as its boundary condition. This is done for each iteration. The MD code also stores flow property data on CFD ghost cells and gets continuum property data for the constrained region. The difference is that, the MD code needs to average particle velocities inside prescribed CFD ghost zones over time as the time scale of MD processes is far less than that of the continuum CFD-resolved processes. 
 
-\jhanote{I don't understand the next sentence:} Based on using file-based information exchange on CFD-MD coupling simulation, any CFD or MD toolkit is replaceable with file-based appropriate interface information.  \jhanote{I would rather have us to introduce SAGA in this way: load-balancing $\rightarrow$ dynamic eresource allocation $\rightarrow$ BigJob like solution which is then provided by SAGA} In order to increase performance and stability of coupled simulation, dynamic resource allocation concept is employed using SAGA and BigJob frame work which is referred to previous section \jhanote{we have not introducted SAGA and BigJob yet.}
+Another considerable issue in CFD-MD coupled simulation is execution and performance of to use HPC resources, (e.g., both simulation toolkits need to run concurrently on conventional queuing system and different size of two jobs require frequent communication during the simulation) which is referred to previous section. SAGA-based framework is expected not only solving the problems of coupled simulation, but also achieving dynamic load-balancing to reduce latency on the information exchange stage. 
+\jhanote{I would rather have us to introduce SAGA in this way: load-balancing $\rightarrow$ dynamic eresource allocation $\rightarrow$ BigJob like solution which is then provided by SAGA} 
 
-\Nkimnote{ This is the draft version of chpater2
-We have developed an {\it in-house} incompressible CFD code and and employed the in-house modified version of LAMMPS for MD. We will report on the details of the communication mechanism employed elsewhere, but
-we briefly present the high-level details here:
+\Nkimnote{ 
 }
 %------------------------------------------------------------------------- 
 \Section{SAGA and Its Abstraction for Large-scale Computation}
