@@ -1,5 +1,3 @@
-
-%
 %  $Description: Author guidelines and sample document in LaTeX 2.09$ 
 %
 %  $Author: ienne $
@@ -146,133 +144,7 @@ independent of the diverse and dynamic Grid environments. The SAGA specification
    of the SAGA landscape. At the topmost level is the simple integrated API which provides the basic functionality for distributed computing. Then there exists the} \label{sagalayer}
 \end{figure}
 
-%\begin{itemize}\addtolength{\itemsep}{-0.8\baselineskip}
-\begin{itemize}
-\item File package - provides methods for accessing local and remote
-  filesystems, browsing directories, moving, copying, and deleting
-  files, setting access permissions, as well as zero-copy reading and
-  writing
-\item Job package - provides methods for describing, submitting,
-  monitoring, and controlling local and remote jobs. Many parts of
-  this package were derived from the largely adopted
-  DRMAA~\cite{drmaa_url} specification.
-\item Stream package - provides methods for authenticated local and
-  remote socket connections with hooks to support authorization and
-  encryption schemes.
-\item Other Packages, such as the RPC (remote procedure call) and Replica
-  package
-% \item RPC package - is an implementation of the GGF Grid-RPC
-%   API~\cite{gridrpc_url} definition and provides methods for unified
-%   remote procedure calls.
-% \item Replica package - provides methods for replica management such
-%   as browsing logical filesystems, moving, copying, deleting logical
-%   entries, adding and removing physical files from a logical file
-%   entry, and search logical files based on attribute sets.
-\end{itemize}
-
-% - Introduction of SAGA (Shantenu, 1 paragraph)
-
-\skonote{What is SAGA, which routines/functions are available and useful for this coupled simulation}
-
-Introduction of PilotJob and BigJob (Joohyun, 1 or 2 paragraphs) : What is PilotJob, BigJob / what have been done so far and how effective it was when using BigJob
-
-\\
-\\
-
-\skonote{Joohyun, can you check this paragraph and improve it? In this paragraph, I was going to talk about 'Structure and Simulation Flow of BigJob Abstraction for Coupled Simulation'.}
-
-Figure *** shows the structure of BigJob and its operation flow. When a BigJob is submitted to remote resources, ithe application manager monitors the status of a pilot-job through the advert service. When resources are allocated to the pilot-job, the application manager divides obtained resources to its sub-jobs and coupled subtasks start running under the control of a multi-physics agent in the remote resource. Advert service keeps on getting the status of a pilot-job from the queueing system of a remote resource and the status of sub-jobs from multi-physics agent, also delivering these information to the application manager by a push-pull mechanism. The application manager watches the status of subtasks and decides the next event when the coupled simulation is finished. When one default BigJob is launched, subtasks keeps running until final solution is achieved and the manager quits the pilot-job at that time. In cases multiple BigJobs are submitted for the same simulation or a load balancing function is included, subtasks stop temporarily and re-start with changed resource allocation until converged solution is gained. In former case, resource allocation to each sub-job follows a pre-defined map according to the number of BigJobs allotted to this simulation: In latter case, resource allocation becomes dynamical according to the performance of each subtask, to be discussed in the next section.
-
-%%%%% FIGURE %%%%%
-\begin{figure}
-\centering
-\includegraphics[scale=0.40]{Structure_of_BigJob.eps}
-\caption{Structure of BigJob and the Operation Flow}
-\end{figure}
-%%%%% FIGURE %%%%%
-
-
-%------------------------------------------------------------------------- 
-\Section{Load Balancing for Performance Enhancement of Coupled Multi-physical Simulation}
-
-
-It is argued that SAGA and its pilot-job framework achieves efficient coupled simulation by resolving the concurrency problem when coupled application codes are individually submitted to conventional queueing system and start independently, in a way of submitting one container job and distributing its processors to each task. Also, total execution time can further be reduced by assigning more BigJobs to this task and dynamically reallocating resources to each sub-task with increased number of processors. However, there has not been discussed whether allocated resources are optimally used in application side, i.e., two simulation tasks are well balanced. As the current simulation requires frequent data exchange between CFD and MD during the simulation, it is likely to increase communication cost (strictly, waiting time for communication in one application) if their loads are not well balanced, which is quite different from former BigJob application~\cite{Jha:2009} where data e
- xchange took place when sub-tasks stopped temporarily.
-Meanwhile, checking sub-tasks' performances and controlling their operation for load balancing runs counter to SAGA's philosophy of "using services without changing the application source". Thus, help from application side is necessary to employ a load balancing function on a BigJob. A load to each application is determined by its elapsed time to run the evolution loop, which is counted in an application code. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time event or irrelevant to application's performance. As the result of load balancing is reflected in the next launch of simulation codes, applications should be able to restart from their checkpointing data. Also, they should be equipped with generalized domain partitioning routine to run simulation with any number of processors, without harming their parallel efficiency a lot.
-If above conditions are satisfied, BigJob application manager can do load balancing between subtasks before applications restart from the previous state. The idea of current load balancing algorithm is to assign more processors to a sub-task with more runtime until two codes show the same runtime. We have adopted some assumptions to simplify load balancing procedure and apply the algorithm without considering applications' characteristics and indivual code's scalability. Assumptions are,
-(1) Each application code follows the ideal parallel efficiency.
-%(2) Total workload in each application remains the same when the amount of resource changes.
-(2) All processors in one node is assigned to one sub-job.
-Load balacing mechanism is as follows:
-
-
-%\begin{tabular}{|l|}
-%\hline
-
-%Let computation time of two applications by $t_CFD$ and $t_MD$, processors to each domain by $PE_CFD$ and $PE_MD$, respectively. 
-%Total workload $W_TOT$ is going to be \\
-
-%\begin{equation}
-%\begin{center}
-%W_{TOT} = W_{CFD} + W_{MD} = PE_{CFD} \ times t_{CFD} + PE_{MD} \ times t_{MD} 
-%= PE_{TOT} \times t_{TOT}
-%\end{center}
-%\end{equation}
-
-Let computation time of two applications by $t_{CFD}$ and $t_{MD}$, processors to each domain by $PE_{CFD}$ and $PE_{MD}$, respectively. Based on assumption (1), total simulation time in each application after the reallocation of resource is predicted to be
-
-\begin{equation}
-%\begin{center}
-t_{CFD}' = \frac {PE_{CFD} \times t_{CFD}} {PE_{CFD}'} , ~~ t_{MD}' = \frac {PE_{MD} \times t_{MD}} {PE_{MD}'}
-%$t_{CFD} = \frac {PE_{CFD} \times t_{CFD}} {PE_{CFD}} , ~~ t_{MD} = \frac {PE_{MD} \times t_{MD}} {PE_{MD}}$
-%\end{center}
-\end{equation}
-
-Still, total number of processor remains the same:
-
-\begin{equation}
-%\begin{center}
-PE_{CFD}' + PE_{MD}' = PE_{CFD} + PE_{MD}
-%\end{center}
-\end{equation}
-
-Our objective is to reduce the computation time of an over-loaded subtask until two simulations show the same computation time, $t_{CFD}' = t_{MD}'$. Then, Equation 1 and Equation 2 concludes the optimal processors for one subtask would be
-
-\begin{equation}
-%\begin{center}
-PE_{CFD}' = \frac {PE_{CFD} \times t_{CFD}} {(PE_{CFD} \times t_{CFD}) + (PE_{MD} \times t_{MD})} \times {(PE_{CFD} + PE_{MD})}
-%\end{center}
-\end{equation}
-
-The other sub-job will follow the similar expression.
-The optimal processor distribution from above equation will return a float value. Also, considerting the second assumption, which is the policy of many supercomputing center, the above distribution needs to be refined more. If CPU cores in one node is $N_{UNIT}$ and $N_{UNIT} \times S < PE_{CFD}' < N_{UNIT} \times (S+1)$, we can choose the optimal condition by comparing $MAX(t_{CFD}',t_{MD}')$ between upper and lower bound of processor allocation.
-
-%\hline
-%\end{tabular}
-
-
-As we include a load balancing function within BigJob application manager, the manager shows more complicated flow, as given in Figure 4. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
-
-%%%%% FIGURE %%%%%
-\begin{figure}
-\centering
-\includegraphics[scale=0.40]{BigJob_with_Load_Balance.eps}
-\caption{Operation Flow of a BigJob with Load Balancing Function}
-\end{figure}
-%%%%% FIGURE %%%%%
-
-
-%------------------------------------------------------------------------- 
-\Section{Three Use Cases of Hybrid CFD/MD Simulation using SAGA and SAGA-based Framework}
-
-In Section 2, we have argued the hardness of running a coupled multi-physical simulation through the conventional queueing system as,
-- Hardness to start multiple applications concurrently,
-- Unability to balance the load among domains,
-- Fixed number of allocated resources throughout the simulation.
-To resolve the concurrency and load-imbalance issues, we have applied a BigJob abstraction with load balancing module to the coupled simulation. As a way to minimize total simulation time, we have investigated acquiring idling resources more during the simulation, by launching multiple BigJobs for one coupled simulation. These use cases are to be introduced in this section.
-
-\SubSection{One BigJob with Load Balancing}
-Figure *** shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queueing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are idling. In this case, total simulation time ($t_{f0}-t_{0}$) is the sum of waiting time on the queue (the time no simulation is running, $t_1-t_0}$), inactive mode (when one of tasks is waiting for another simulation's data, $t_2-t_1$) and active mode ($t_{f0}-t_2$).
+%\begin{itemize}\addtolength{\itemsep}{-0.8\baselineskip}$), inactive mode (when one of tasks is waiting for another simulation's data, $t_2-t_1$) and active mode ($t_{f0}-t_2$).
 If these tasks are submitted as a pilot job with the size of $PE_{CFD}+PE{MD}$, the inactive mode disappears as a BigJob manager will distribute allocated resources to subtasks. In this case, total simulation time changes to be the sum of waiting on the queue ($t_{1}'-t_{0}$) and simulation runtime ($t_{f1}=t_{1}'$). If resource distribution to subtasks is identical to the conventional job submission, total runtime will remain the same. It means that a user can save his/her account by the multiplication of first processor allocation and inactive time ($PE_{CFD} \times t_2-t_1$ in this example). However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one allocation with $PE_{CFD}+PE_{MD}$ size can take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
 
 %%%%% FIGURE %%%%%
@@ -312,17 +184,14 @@ In summary, use of a BigJob will eliminate idling operation of a subtask, which 
 
 The concept of a Pilot-Job has been advanced by the Condor project, wherein the Pilot-Job concept is referred to as a Glide-in...  Here we will discucss (i) how SAGA-BigJob has been used in conjunction with Condor-Glide-in whereby SAGA-BigJob was used on the TeraGrid (Ranger) and the Glide-in was running on the Purdue Condor Cluster.
 
-
-
-
 \Section{Conclusions}
 
-Please direct any questions to the production editor in charge of these 
-proceedings at the IEEE Computer Society Press: Phone (714) 821-8380, or 
-Fax (714) 761-1784.
+% Please direct any questions to the production editor in charge of these 
+% proceedings at the IEEE Computer Society Press: Phone (714) 821-8380, or 
+% Fax (714) 761-1784.
 
 \section*{Acknowledgement}
-This work is part of the Cybertools (http://cybertools.loni.org) project. Important funding for SAGA has been provided by the UK EPSRC grant number GR/D0766171/1 (via OMII).  This work has also been made possible thanks to computer resources provided by LONI.  We thank Andre Luckow for some initial work on BigJob, Lukasz Lacinski for help with SAGA deployment and Joao Abecasis for his work on the SAGA Condor adaptors.
+This work is part of the Cybertools (http://cybertools.loni.org) project and primarily funded by NSF/LEQSF(2007-10)-CyberRII-01. Important funding for SAGA has been provided by the UK EPSRC grant number GR/D0766171/1 (via OMII-UK).  This work has also been made possible thanks to computer resources provided by LONI.  We thank Andre Luckow for initial work on BigJob, Lukasz Lacinski for help with SAGA deployment (via HPCOPS NSF-OCI 0710874) and Joao Abecasis for his work on the SAGA Condor adaptors.
 
 %------------------------------------------------------------------------- 
 \nocite{ex1,ex2}
