@@ -102,13 +102,13 @@ Here we outline our approach -- which is not-tied to a specific application set,
 %------------------------------------------------------------------------- 
 \Section{Hybrid CFD-MD Approach: Understanding the Coupling, Communication and Load-Balancing Requirements}
 
-A hybrid CFD/MD approach~\cite{Nie:2004},~\cite{Yen:2007} is a simulation method which adopts the continuum hypothesis in capturing the macroscopic features of a flow-field and resolves intermolecular effects on interfaces of different materials. CFD can accurately predict flow properties on conventional moderate/large size fluid domains, but is intrinsically impossible to reflect the characteristics of surrounding solid materials. MD guarantees more accurate solution in that it also considers collision between fluid particles as well as interaction with solid particles; the price for this greater resolution is that it is computationally very expensive and makes it difficult to apply this method to solve a large scale system.
+A hybrid CFD/MD approach~\cite{Thompson:1995},~\cite{Nie:2004},~\cite{Yen:2007} is a simulation method which adopts the continuum hypothesis in capturing the macroscopic features of a flow-field and resolves intermolecular effects on interfaces of different materials. CFD can accurately predict flow properties on conventional moderate/large size fluid domains, but is intrinsically impossible to reflect the characteristics of surrounding solid materials. MD guarantees more accurate solution in that it also considers collision between fluid particles as well as interaction with solid particles; the price for this greater resolution is that it is computationally very expensive and makes it difficult to apply this method to solve a large scale system.
 
 The aim of this section is not to describe the details of the coupling between CFD and MD simulations, but to outline the nature of the coupling between the two simulation components, the communication 
 mechanisms and to motivate the need for load-balancing -- the details of which we will discuss
 in a later section. 
 
-\jhanote{I suggest this paragraph be shortened:} An important challenge is solving a flowfield where viscous effect of solid boundary is dominant and the scale is sufficiently large in view of particle dynamics. These fluid systems can only be analyzed by solving particle interaction near the wall through molecular dynamics and applying a continuum approach on far field region. As is seen in Figure 1, the hybrid approach accurately describes strong interaction between solid elements and fluid particles near the wall and conducts efficient simulation in the far field follows the continuum approach.
+An important challenge is solving a flowfield where viscous effect of solid boundary is dominant and the scale is sufficiently large in view of particle dynamics. These fluid systems can only be analyzed by solving particle interaction near the wall through molecular dynamics and applying a continuum approach on far field region. As is seen in Figure 1, the hybrid approach accurately describes interaction between solid elements and fluid particles near the wall and conducts efficient simulation in the far field follows the continuum approach.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -118,7 +118,7 @@ in a later section.
 \end{figure}
 %%%%% FIGURE %%%%%
 
-CFD-MD coupled simulation requires the design and implementation of hybrid coupling schemes such as control of exchanged information and physical models of constrained dynamics, on the basis of reliable CFD and MD simulation toolkits. We have developed an in-house incompressible CFD ~\cite{Lee:2006} and and employed the in-house modi?d version of LAMMPS ~\cite{LAMMPS} for MD. 
+CFD-MD coupled simulation requires the design and implementation of hybrid coupling schemes such as control of exchanged information and physical models of constrained dynamics, on the basis of reliable CFD and MD simulation toolkits. We have developed an in-house incompressible CFD~\cite{Lee:2006} and and employed the in-house modified version of LAMMPS~\cite{LAMMPS} for MD. 
 
 The coupling algorithm is embedded in Figure 1, which also illustrates the communications between the constituents of the hybrid code. Usually, this simulation is conducted where molecular-level effects are dominant on some region of the domain, for example, a nano-structured or surface-modified micro-scale channel. MD simulation is conducted near the solid material boundary where the interaction between the solid material and the fluid is on the molecular level. The macroscopic features are governed by the continuum equations solved through the CFD solver. A hybrid region is positioned between these regions to let the two domains exchange information.
 
@@ -126,11 +126,10 @@ The essence of this coupled approach lies in how the hybrid region is constructe
 
 The simulation procedure and the design of a problem domain is as follows: A computational domain is constructed using a CFD mesh generator and it is roughly split to three regions of pure MD, overlap and pure CFD. Then, the overlap region is split again to contain the five layers mentioned above. This geometric information is transferred to CFD and MD codes as input parameters, to define their computational domains. In our initial approach during the simulation, the CFD code stores flow properties within the constrained MD region in the form of a data file and reads a data file from the MD solution as its boundary condition. This is done for each iteration. The MD code also stores flow property data on CFD ghost cells and gets continuum property data for the constrained region. The difference is that, the MD code needs to average particle velocities inside prescribed CFD ghost zones over time as the time scale of MD processes is far less than that of the continuum CFD-resolved processes. 
 
-Another considerable issue in CFD-MD coupled simulation is execution and performance of to use HPC resources, (e.g., both simulation toolkits need to run concurrently on conventional queuing system and different size of two jobs require frequent communication during the simulation) which is referred to previous section. SAGA-based framework is expected not only solving the problems of coupled simulation, but also achieving dynamic load-balancing to reduce latency on the information exchange stage. 
+Another considerable issue in CFD-MD coupled simulation is execution and performance of using HPC resources, (e.g., problems caused by both simulation toolkits need to run concurrently on conventional queuing system and different size of two jobs require frequent communication during the simulation) which is referred to previous section. In order to avoid its computational complexity and give more efficiency, SAGA-based framework is employed not only solving the problems of coupled simulation, but also achieving dynamic load-balancing to reduce latency on the information exchange stage. 
 \jhanote{I would rather have us to introduce SAGA in this way: load-balancing $\rightarrow$ dynamic eresource allocation $\rightarrow$ BigJob like solution which is then provided by SAGA} 
 
-\Nkimnote{ 
-}
+%\Nkimnote{ }
 %------------------------------------------------------------------------- 
 \Section{SAGA and Its Abstraction for Large-scale Computation}
 \skonote{(Shantenu and Joohyun)}
@@ -207,19 +206,24 @@ This work is part of the Cybertools (http://cybertools.loni.org) project and pri
 %%%%% REFERENCES %%%%%
 \begin{thebibliography}{99}
 
+\bibitem{Thompson:1995}
+S.T. O{'}Connell, P.A. Thompson,
+\newblock "Molecular Dynamics–Continuum Hybrid Computations: a Tool for Studying Complex Fuid Flows"
+\newblock {\em Phys. Rev. E}, 1995
+
 \bibitem{Nie:2004}
 X. B. Nie, S. Y. Chen, W. N. E and M. O. Robbins,
-\newblock "A Continuum and Molecular Dynamics Hybrid Method for Micro- and Nano-Fluid Flow,"
-\newblock {\em J. Fluid Mech.}, 500, pp. 55-64, 2004
+\newblock "A Continuum and Molecular Dynamics Hybrid Method for Micro- and Nano-Fluid Flow"
+\newblock {\em J. Fluid Mech.}, 2004
 
 \bibitem{Yen:2007}
 T. H. Yen, C. Y. Soong and P. Y. Tzeng,
-\newblock "Hybrid Molecular Dynamics-Continuum Simulation for Nano/Mesoscale Channel Flow,"
+\newblock "Hybrid Molecular Dynamics-Continuum Simulation for Nano/Mesoscale Channel Flow"
 \newblock {\em Microfluid Nanofluid}, 2007
 
 \bibitem{Lee:2006}
 Jung-Sang Lee, Chongam Kim and Kyu Hong Kim, 
-\newblock "Design of Flapping Airfoil for Optimal Aerodynamic Performance in Low-Reynolds Number Flows,?
+\newblock "Design of Flapping Airfoil for Optimal Aerodynamic Performance in Low-Reynolds Number Flows"
 \newblock {\em AIAA Journal}, 2006
 
 \bibitem{LAMMPS}
