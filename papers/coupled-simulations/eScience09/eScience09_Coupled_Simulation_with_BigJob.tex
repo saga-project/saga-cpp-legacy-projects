@@ -176,48 +176,135 @@ independent of the diverse and dynamic Grid environments. The SAGA specification
 
 Introduction of PilotJob and BigJob (Joohyun, 1 or 2 paragraphs) : What is PilotJob, BigJob / what have been done so far and how effective it was when using BigJob
 
-- Structure and Simulation Flow of BigJob Abstraction for Coupled Simulation (Joohyun, 1 or 2 paragraphs) : Structure of BigJob with new components (Hybrid job manager - python script / load balancing routine), how the simulation is performed
+\\
+\\
+
+\skonote{Joohyun, can you check this paragraph and improve it? In this paragraph, I was going to talk about 'Structure and Simulation Flow of BigJob Abstraction for Coupled Simulation'.}
+
+Figure *** shows the structure of BigJob and its operation flow. When a BigJob is submitted to remote resources, ithe application manager monitors the status of a pilot-job through the advert service. When resources are allocated to the pilot-job, the application manager divides obtained resources to its sub-jobs and coupled subtasks start running under the control of a multi-physics agent in the remote resource. Advert service keeps on getting the status of a pilot-job from the queueing system of a remote resource and the status of sub-jobs from multi-physics agent, also delivering these information to the application manager by a push-pull mechanism. The application manager watches the status of subtasks and decides the next event when the coupled simulation is finished. When one default BigJob is launched, subtasks keeps running until final solution is achieved and the manager quits the pilot-job at that time. In cases multiple BigJobs are submitted for the same simulation or a load balancing function is included, subtasks stop temporarily and re-start with changed resource allocation until converged solution is gained. In former case, resource allocation to each sub-job follows a pre-defined map according to the number of BigJobs allotted to this simulation: In latter case, resource allocation becomes dynamical according to the performance of each subtask, to be discussed in the next section.
+
+%%%%% FIGURE %%%%%
+\begin{figure}
+\centering
+\includegraphics[scale=0.40]{Structure_of_BigJob.eps}
+\caption{Structure of BigJob and the Operation Flow}
+\end{figure}
+%%%%% FIGURE %%%%%
 
 
 %------------------------------------------------------------------------- 
 \Section{Load Balancing for Performance Enhancement of Coupled Multi-physical Simulation}
-\skonote{(Soon-Heum)}
 
-- Motivation
 
-- Equation and Implementation
+It is argued that SAGA and its pilot-job framework achieves efficient coupled simulation by resolving the concurrency problem when coupled application codes are individually submitted to conventional queueing system and start independently, in a way of submitting one container job and distributing its processors to each task. Also, total execution time can further be reduced by assigning more BigJobs to this task and dynamically reallocating resources to each sub-task with increased number of processors. However, there has not been discussed whether allocated resources are optimally used in application side, i.e., two simulation tasks are well balanced. As the current simulation requires frequent data exchange between CFD and MD during the simulation, it is likely to increase communication cost (strictly, waiting time for communication in one application) if their loads are not well balanced, which is quite different from former BigJob application~\cite{Jha:2009} where data e
+ xchange took place when sub-tasks stopped temporarily.
+Meanwhile, checking sub-tasks' performances and controlling their operation for load balancing runs counter to SAGA's philosophy of "using services without changing the application source". Thus, help from application side is necessary to employ a load balancing function on a BigJob. A load to each application is determined by its elapsed time to run the evolution loop, which is counted in an application code. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time event or irrelevant to application's performance. As the result of load balancing is reflected in the next launch of simulation codes, applications should be able to restart from their checkpointing data. Also, they should be equipped with generalized domain partitioning routine to run simulation with any number of processors, without harming their parallel efficiency a lot.
+If above conditions are satisfied, BigJob application manager can do load balancing between subtasks before applications restart from the previous state. The idea of current load balancing algorithm is to assign more processors to a sub-task with more runtime until two codes show the same runtime. We have adopted some assumptions to simplify load balancing procedure and apply the algorithm without considering applications' characteristics and indivual code's scalability. Assumptions are,
+(1) Each application code follows the ideal parallel efficiency.
+%(2) Total workload in each application remains the same when the amount of resource changes.
+(2) All processors in one node is assigned to one sub-job.
+Load balacing mechanism is as follows:
 
-- Test Result (Compared with 1 BigJob with fixed PEs in each sub-task)
 
-- Limitation
-: It checks the performance of code and only applies iteratively. Considers application codes have good scalability (the more, the better)
+%\begin{tabular}{|l|}
+%\hline
+
+%Let computation time of two applications by $t_CFD$ and $t_MD$, processors to each domain by $PE_CFD$ and $PE_MD$, respectively. 
+%Total workload $W_TOT$ is going to be \\
+
+%\begin{equation}
+%\begin{center}
+%W_{TOT} = W_{CFD} + W_{MD} = PE_{CFD} \ times t_{CFD} + PE_{MD} \ times t_{MD} 
+%= PE_{TOT} \times t_{TOT}
+%\end{center}
+%\end{equation}
+
+Let computation time of two applications by $t_{CFD}$ and $t_{MD}$, processors to each domain by $PE_{CFD}$ and $PE_{MD}$, respectively. Based on assumption (1), total simulation time in each application after the reallocation of resource is predicted to be
+
+\begin{equation}
+%\begin{center}
+t_{CFD}' = \frac {PE_{CFD} \times t_{CFD}} {PE_{CFD}'} , ~~ t_{MD}' = \frac {PE_{MD} \times t_{MD}} {PE_{MD}'}
+%$t_{CFD} = \frac {PE_{CFD} \times t_{CFD}} {PE_{CFD}} , ~~ t_{MD} = \frac {PE_{MD} \times t_{MD}} {PE_{MD}}$
+%\end{center}
+\end{equation}
+
+Still, total number of processor remains the same:
+
+\begin{equation}
+%\begin{center}
+PE_{CFD}' + PE_{MD}' = PE_{CFD} + PE_{MD}
+%\end{center}
+\end{equation}
+
+Our objective is to reduce the computation time of an over-loaded subtask until two simulations show the same computation time, $t_{CFD}' = t_{MD}'$. Then, Equation 1 and Equation 2 concludes the optimal processors for one subtask would be
+
+\begin{equation}
+%\begin{center}
+PE_{CFD}' = \frac {PE_{CFD} \times t_{CFD}} {(PE_{CFD} \times t_{CFD}) + (PE_{MD} \times t_{MD})} \times {(PE_{CFD} + PE_{MD})}
+%\end{center}
+\end{equation}
+
+The other sub-job will follow the similar expression.
+The optimal processor distribution from above equation will return a float value. Also, considerting the second assumption, which is the policy of many supercomputing center, the above distribution needs to be refined more. If CPU cores in one node is $N_{UNIT}$ and $N_{UNIT} \times S < PE_{CFD}' < N_{UNIT} \times (S+1)$, we can choose the optimal condition by comparing $MAX(t_{CFD}',t_{MD}')$ between upper and lower bound of processor allocation.
+
+%\hline
+%\end{tabular}
+
+
+As we include a load balancing function within BigJob application manager, the manager shows more complicated flow, as given in Figure 4. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
+
+%%%%% FIGURE %%%%%
+\begin{figure}
+\centering
+\includegraphics[scale=0.40]{BigJob_with_Load_Balance.eps}
+\caption{Operation Flow of a BigJob with Load Balancing Function}
+\end{figure}
+%%%%% FIGURE %%%%%
 
 
 %------------------------------------------------------------------------- 
 \Section{Three Use Cases of Hybrid CFD/MD Simulation using SAGA and SAGA-based Framework}
-\skonote{(Soon-Heum, Joohyun and Abhinav)}
 
+In Section 2, we have argued the hardness of running a coupled multi-physical simulation through the conventional queueing system as,
+- Hardness to start multiple applications concurrently,
+- Unability to balance the load among domains,
+- Fixed number of allocated resources throughout the simulation.
+To resolve the concurrency and load-imbalance issues, we have applied a BigJob abstraction with load balancing module to the coupled simulation. As a way to minimize total simulation time, we have investigated acquiring idling resources more during the simulation, by launching multiple BigJobs for one coupled simulation. These use cases are to be introduced in this section.
 
-\Nkimnote{ We can use this modified versin of figure for BigJob concept }
+\SubSection{One BigJob with Load Balancing}
+Figure *** shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queueing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are idling. In this case, total simulation time ($t_{f0}-t_{0}$) is the sum of waiting time on the queue (the time no simulation is running, $t_1-t_0}$), inactive mode (when one of tasks is waiting for another simulation's data, $t_2-t_1$) and active mode ($t_{f0}-t_2$).
+If these tasks are submitted as a pilot job with the size of $PE_{CFD}+PE{MD}$, the inactive mode disappears as a BigJob manager will distribute allocated resources to subtasks. In this case, total simulation time changes to be the sum of waiting on the queue ($t_{1}'-t_{0}$) and simulation runtime ($t_{f1}=t_{1}'$). If resource distribution to subtasks is identical to the conventional job submission, total runtime will remain the same. It means that a user can save his/her account by the multiplication of first processor allocation and inactive time ($PE_{CFD} \times t_2-t_1$ in this example). However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one allocation with $PE_{CFD}+PE_{MD}$ size can take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
+
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.45]{figbj_m1.eps}
-\caption{Schematic Outline of the three Scenarios undertaken in this paper to demonstrate the effectiveness of BigJobs in supporting scheduling and Dynamic Resource allocation.}
+\includegraphics[scale=0.40]{Simulation_Time_of_One_BigJob.eps}
+\caption{Total Simulation Time of a Coupled Subtasks: Conventional Job Submission and Use of One BigJob}
 \end{figure}
 %%%%% FIGURE %%%%%
 
-- Objectives of Each BigJob Test (Soon-Heum, 1 paragraph)
-: What do three testsuites focus on
+\skonote{simulation results will come here}
 
-- Implementation and Test Result of 1 BigJob (Soon-Heum, 1 paragraph)
-: How it is implemented (without load balancing), what's the focus and what is the total time for coupled simulation (compare with the same test when CFD and MD jobs are separately applied to the queueing system)
+Though the above results show the large performance gain by employing a load balancing algorithm, some limitations are also observed. First, as the function only refers to the computation cost at given processor distribution and moves to the optimal condition iteratively, it takes time to achieve a converged resource allocation if initial processor allocation starts from other extreme. Second and furthermore, the alogrithm itself should be refined to distinguish the computational cost from inter-processor communication within one application code and control both factors. Also, the load balancing module needs to be expanded to cover multiple BigJob allocations for one coupled simulation, when running a subtask across BigJobs becomes possible.
 
-- Implementation and Test Result of 2 BigJobs (Joohyun and Abhinav, 1 paragraph)
-: How it is implemented, what's the focus and what is the total time for coupled simulation (compare with the 1 BigJob: 1 BigJob with 64 PEs VS 2 BigJobs with 32 PEs each)
 
-- Implementation and Test Result of 2 BigJobs on Heterogeneous Machines (Joohyun and Abhinav, 1 paragraph)
-: How it is implemented, what's the focus and what is the total time for coupled simulation (compare with the 2 BigJobs in the Same Machine: Different (more) resource requirement in this case) 
+\SubSection{Two BigJobs from a Single Site or Multiple Sites}
+
+\skonote{explain the meaning of two BigJob configurations}
+
+
+%%%%% FIGURE %%%%%
+\begin{figure}
+\centering
+\includegraphics[scale=0.40]{Simulation_Time_of_Two_BigJobs.eps}
+\caption{Total Simulation Time of a Coupled Subtasks: Two BigJobs at the Same Site and Multiple Sites}
+\end{figure}
+%%%%% FIGURE %%%%%
+
+
+\skonote{Joohyun and Abhinav: Simulation results will come here}
+
+In summary, use of a BigJob will eliminate idling operation of a subtask, which waits for another application to start running. Also, employing a load balancing function will let coupled codes use allocated resources more efficiently. Furthermore, using two BigJobs guarantees the reduction of total simulation time, compared to conventional job submission. Meanwhile, launch of two BigJobs does not intend to use resources more efficiently than conventional job allocation, but intend to save total simulation time more than one BigJob test case, by utilizing more available resources. Remember that having multiple BigJob allocations is to increase the computing power for a specific simulation, not to use optimally within given circumstances.
 
 
 %------------------------------------------------------------------------- 
