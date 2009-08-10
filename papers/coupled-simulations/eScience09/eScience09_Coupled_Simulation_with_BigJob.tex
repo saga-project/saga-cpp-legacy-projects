@@ -238,11 +238,12 @@ PE_{CFD}' + PE_{MD}' = PE_{CFD} + PE_{MD}
 
 Our objective is to reduce the computation time of an over-loaded subtask until two simulations show the same computation time, $t_{CFD}' = t_{MD}'$. Then, Equation 1 and Equation 2 concludes the optimal processors for one subtask would be
 
-\begin{equation}
+\begin{eqnarray}
 %\begin{center}
-PE_{CFD}' = \frac {PE_{CFD} \times t_{CFD}} {(PE_{CFD} \times t_{CFD}) + (PE_{MD} \times t_{MD})} \times {(PE_{CFD} + PE_{MD})}
+PE_{CFD}' & = & \frac {PE_{CFD} \times t_{CFD}} {(PE_{CFD} \times t_{CFD}) + (PE_{MD} \times t_{MD})} \\
+& \times & {(PE_{CFD} + PE_{MD})}
 %\end{center}
-\end{equation}
+\end{eqnarray}
 
 The other sub-job will follow the similar expression.
 The optimal processor distribution from above equation will return a float value. Also, considerting the second assumption, which is the policy of many supercomputing center, the above distribution needs to be refined more. If CPU cores in one node is $N_{UNIT}$ and $N_{UNIT} \times S < PE_{CFD}' < N_{UNIT} \times (S+1)$, we can choose the optimal condition by comparing $MAX(t_{CFD}',t_{MD}')$ between upper and lower bound of processor allocation.
@@ -251,13 +252,14 @@ The optimal processor distribution from above equation will return a float value
 %\end{tabular}
 
 The control-flow within the BigJob Application-Manager when supporting a LB modules is shown
-in Figure 4. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
+in Fig.~\ref{Fig:BigJob_LB}. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
 \includegraphics[scale=0.40]{BigJob_with_Load_Balance}
 \caption{\small Operation Flow of a BigJob with Load Balancing Function}
+\label{Fig:BigJob_LB}
 \end{figure}
 %%%%% FIGURE %%%%%
 
@@ -276,7 +278,7 @@ the details of these three different Use Cases.
 \jhanote{please be sure to use co-scheduling where appropriate and not concurrency}
 
 \subsection{One BigJob with Load Balancing}
-Figure *** shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queueing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are idling. In this case, total simulation time ($t_{f0}-t_{0}$) is the sum of waiting time on the queue (the time no simulation is running, $t_1-t_0$), inactive mode (when one of tasks is waiting for another simulation's data, $t_2-t_1$) and active mode ($t_{f0}-t_2$).
+Fig.~\ref{Fig:OneBJ_Flow} shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queueing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are idling. In this case, total simulation time ($t_{f0}-t_{0}$) is the sum of waiting time on the queue (the time no simulation is running, $t_1-t_0$), inactive mode (when one of tasks is waiting for another simulation's data, $t_2-t_1$) and active mode ($t_{f0}-t_2$).
 If these tasks are submitted as a pilot job with the size of $PE_{CFD}+PE{MD}$, the inactive mode disappears as a BigJob manager will distribute allocated resources to subtasks. In this case, total simulation time changes to be the sum of waiting on the queue ($t_{1}'-t_{0}$) and simulation runtime ($t_{f1}=t_{1}'$). If resource distribution to subtasks is identical to the conventional job submission, total runtime will remain the same. It means that a user can save his/her account by the multiplication of first processor allocation and inactive time ($PE_{CFD} \times t_2-t_1$ in this example). However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one allocation with $PE_{CFD}+PE_{MD}$ size can take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
 
 %%%%% FIGURE %%%%%
@@ -284,18 +286,20 @@ If these tasks are submitted as a pilot job with the size of $PE_{CFD}+PE{MD}$, 
 \centering
 \includegraphics[scale=0.40]{Simulation_Time_of_One_BigJob.eps}
 \caption{\small Total Simulation Time of a Coupled Subtasks: Conventional Job Submission and Use of One BigJob}
+\label{Fig:OneBJ_Flow}
 \end{figure}
 %%%%% FIGURE %%%%%
 
 
 
-Table *** shows elspsed time on running above testcases: conventional job submission, one default BigJob launch and one BigJob with load balancing. These tests were conducted on supercomputing resources in LONI (Louisiana Optical Network Initiative)~\cite{LONI_web} and tested resources of eric, oliver and louie have the same specification with 4 processors in each node. A coupled simulation has been conducted by using 32 processors with two dirrenent processor allocations to subtasks. Application codes experience four restarting from their checkpointing data in load balancing test, while simulation keeps running until it completes in baseline and default BigJob tests.
+Table~\ref{table:oneBJ_Test} shows elspsed time on running above testcases: conventional job submission, one default BigJob launch and one BigJob with load balancing. These tests were conducted on supercomputing resources in LONI (Louisiana Optical Network Initiative)~\cite{LONI_web} and tested resources of eric, oliver and louie have the same specification with 4 processors in each node. A coupled simulation has been conducted by using 32 processors with two dirrenent processor allocations to subtasks. Application codes experience four restarting from their checkpointing data in load balancing test, while simulation keeps running until it completes in baseline and default BigJob tests.
 From the first test of assigning 8 processors to CFD task and others to MD, conventional job submission and one default BigJob launch show nearly the same active runtime, as we have already expected. Comparing these two tasks, main difference lies in the existence of idling time on conventional job submission, which is denoted as 'inactive mode' in the table, when one of subtasks were allowed to start faster than BigJob submission but had to idle waiting for its counterpart. As a result, conventional testsuite starts later than one BigJob application, let alone the wasting of computing time on idling. Nevertheless, one BigJob submission does not guarantee faster start if we refer to the result of load-balanced BigJob submission, which experienced far longer waiting on the queue. For the worse, a load-balanced BigJob showed longer runtime than other tests, because additional cost on running a load balancing function and trying checkpointing and restarting subtasks is not compensated by the performance improvement in this well-defined resource assignment.
 On the other hand, load balancing becomes effective at initially imbalanced condition. When same number of processors are assigned to each subtask, load balancing function leads the resource allocation to the best condition after the first simulation loop and 8 processors from CFD task are moved to MD simulation from the next start, which is the same as former resource allocation. Thus, the performance in load balanced case becomes identical to above tests from the second start and total runtime shows far better result than other imbalanced cases. Still, load balaced case experiences longest total simulation time because of long waiting on the queue, which is case-specific.
 
 
 \begin{table}[!h]
 \begin{center}
+\label{table:oneBJ_Test}
   \caption{\small Time Elapsement for a CFD/MD Coupled Simulation by using Conventional Queueing System and a BigJob Abstraction. Above table shows total simulation time when 8 processors are allocated to CFD and 24 processors on MD task, which is initially well-balanced allocation: below one represents another test with 16 processors allocated to each task, an imbalanced simulation. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsment \newline }
 %\label{table:systems}
 \begin{tabular}{ c|| c | c | c }
@@ -339,13 +343,14 @@ Time & (19213) & (4430) & (11004) \\
 \end{table}
 
 
-A number of performance tests with different initial job allocation have been conducted and graphs in Figure *** show the result. From the first test when 32 processors are used, load balancing function detects the ratio of 8 and 24 between CFD and MD tasks are optimal and converges to this ratio at the next restart, except one case when CFD solution experiences unexpected overload initially. Though CFD simulation still shows far less runtime compared to MD work, load balancing function judges this configuration is optimal, because CFD simulation time is estimated to be longer than current MD time if processors allotted to CFD reduces to 4. Remember that processor allocation changes by the number of processors in each node. Also, the above decision is verified by the next load balacing test where the ratio of 4 and 20 between CFD and MD tasks are ideal. In this simulation, CFD runtime with 4 processors is longer than 200 seconds, which is longer than MD simulation time with 24 processors. This means that total runtime would be increased if processor distribution changes from 8 and 24 to 4 and 28. Focusing on the load balancing test with 24 processors again, CFD and MD tasks show nearly the same simulation time after converged processor allocation is gained. Also, load balancing function indicates the optimal condition after the first sub-job running, except one variation when initial CFD task was running with doubled CPUs than MD task. Even in this case, load balancing function traces the optimal load allocation during the iteration and this demonstrates the stability of current load balancing function.
+A number of performance tests with different initial job allocation have been conducted and graphs in Fig.~\ref{fig:LB_Graph} show the result. From the first test when 32 processors are used, load balancing function detects the ratio of 8 and 24 between CFD and MD tasks are optimal and converges to this ratio at the next restart, except one case when CFD solution experiences unexpected overload initially. Though CFD simulation still shows far less runtime compared to MD work, load balancing function judges this configuration is optimal, because CFD simulation time is estimated to be longer than current MD time if processors allotted to CFD reduces to 4. Remember that processor allocation changes by the number of processors in each node. Also, the above decision is verified by the next load balacing test where the ratio of 4 and 20 between CFD and MD tasks are ideal. In this simulation, CFD runtime with 4 processors is longer than 200 seconds, which is longer than MD simulation time with 24 processors. This means that total runtime would be increased if processor distribution changes from 8 and 24 to 4 and 28. Focusing on the load balancing test with 24 processors again, CFD and MD tasks show nearly the same simulation time after converged processor allocation is gained. Also, load balancing function indicates the optimal condition after the first sub-job running, except one variation when initial CFD task was running with doubled CPUs than MD task. Even in this case, load balancing function traces the optimal load allocation during the iteration and this demonstrates the stability of current load balancing function.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
 \includegraphics[scale=0.25]{LB_Graph}
 \caption{\small Convergence of a Load Balancing Function and Runtime of Suntasks. Above graphs show load balancing result when 32 processors are assigned initially. Latter graphs represent the history of load balancing when 24 processors are allocated.}
+\label{fig:LB_Graph}
 \end{figure}
 %%%%% FIGURE %%%%%
 
@@ -354,8 +359,9 @@ Though the above results show the large performance gain by employing a load bal
 
 \subsection{Two BigJobs from a Single Site or Multiple Sites}
 
-\skonote{explain the meaning of two BigJob configurations}
-As illustrated in Fig.~\ref{Fig:TwoBigJobs}, runtime environment for coupled multi-physics simulations would benefit from dynamic resource availability exploited by BigJob implementation.  In brief, it is possible to assign more cpus for a slowing application when another bigjob becomes available. In Table ~\ref{table:TwoBigJobs}, test measurements for performance gains are summarized. The scenario for this testing is simple for clarifying benefits.  Initially, two bigjobs are submitted to one HPC resource or two HPCs.  Once the first bigjob becomes available, two applications are submitted as two subtasks with pre-defined cpus to the bigjob, and then when another bigjob becomes available later, two subtasks for each application is reconfigured by assigning the entire cpus of a bigjob to one application.  Table  ~\ref{table:TwoBigJobs} shows performance gains with such a scenario in terms of MD run time.  In this simple scenario, other complicated aspects such as file transfer, in particular between two distributed resources are not considered but in the future study, the overall performance will be optimized by considering them.
+
+As illustrated in Figure~\ref{Fig:TwoBigJobs}, runtime environment for coupled multi-physics simulations would benefit from dynamic resource availability exploited by BigJob implementation. In brief, it is possible to assign more CPUs for a slowing application when another BigJob becomes available. Compared with one BigJob allocation for a coupled simulation in Figure~\ref{Fig:One_BigJob_Run}, two smaller BigJob submissions with sizes of CFD and MD will enable faster start of coupled subtasks. Also, when next BigJob is also allocated to this coupled simulation, total job size will be the same as one BigJob submission. In a word, resource allocation and simulation flow is identical to the conventional job submission, but inactive idling in a conventional case disappears as a BigJob framework starts coupled subtasks with smaller number of processors when first job is allocated. So, submitting two BigJobs guarantees the reduction of total simulation time compared to conventional job submission, if all conditions are identical. If this two BigJob submission is applied on multiple sites, it is more likely to get two allocations faster than requesting two jobs in the same site. However, faster launch of two BigJobs does not guaranteed save of total simulation time, because time for data exchange between applications will also increase if distributed resources cooperate.
+
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -365,6 +371,9 @@ As illustrated in Fig.~\ref{Fig:TwoBigJobs}, runtime environment for coupled mul
 \label{Fig:TwoBigJobs}
 \end{figure}
 %%%%% FIGURE %%%%%
+
+
+In Table~\ref{table:TwoBigJobs}, test measurements for performance gains are summarized. The scenario for this testing is simple for clarifying benefits.  Initially, two bigjobs are submitted to one HPC resource or two HPCs.  Once the first bigjob becomes available, two applications are submitted as two subtasks with pre-defined cpus to the bigjob, and then when another bigjob becomes available later, two subtasks for each application is reconfigured by assigning the entire cpus of a bigjob to one application.  Table  ~\ref{table:TwoBigJobs} shows performance gains with such a scenario in terms of MD run time.  In this simple scenario, other complicated aspects such as file transfer, in particular between two distributed resources are not considered but in the future study, the overall performance will be optimized by considering them.
 
 \begin{table}[!h]
 \begin{center}
@@ -396,7 +405,7 @@ MD CPU time  (sec) & 277.21 & 277.63  & 276.8 & 150.4  \\
 
 \skonote{Joohyun and Abhinav: Simulation results will come here}
 
-In summary, use of a BigJob will eliminate idling operation of a subtask, which waits for another application to start running. Also, employing a load balancing function will let coupled codes use allocated resources more efficiently. Furthermore, using two BigJobs guarantees the reduction of total simulation time, compared to conventional job submission. Meanwhile, launch of two BigJobs does not intend to use resources more efficiently than conventional job allocation, but intend to save total simulation time more than one BigJob test case, by utilizing more available resources. Remember that having multiple BigJob allocations is to increase the computing power for a specific simulation, not to use optimally within given circumstances.
+In summary, use of a BigJob will eliminate idling operation of a subtask, which waits for another application to start running. Also, employing a load balancing function will let coupled codes use allocated resources more efficiently. Furthermore, using two BigJobs promotes the reduction of total simulation time, compared to conventional job submission. Meanwhile, launch of two BigJobs does not intend to use resources more efficiently than conventional job allocation, but intend to save total simulation time more than one BigJob test case, by utilizing more available resources. Remember that having multiple BigJob allocations is to increase the computing power for a specific simulation, not to use optimally within given circumstances.
 
 
 %------------------------------------------------------------------------- 
