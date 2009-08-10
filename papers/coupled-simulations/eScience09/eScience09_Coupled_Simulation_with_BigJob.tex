@@ -278,7 +278,66 @@ If these tasks are submitted as a pilot job with the size of $PE_{CFD}+PE{MD}$, 
 
 
 
-\skonote{simulation results will come here}
+Table *** shows elspsed time on running above testcases: conventional job submission, one default BigJob launch and one BigJob with load balancing. These tests were conducted on supercomputing resources in LONI (Louisiana Optical Network Initiative)~\cite{LONI_web} and tested resources of eric, oliver and louie have the same specification with 4 processors in each node. A coupled simulation has been conducted by using 32 processors with two dirrenent processor allocations to subtasks. Application codes experience four restarting from their checkpointing data in load balancing test, while simulation keeps running until it completes in baseline and default BigJob tests.
+From the first test of assigning 8 processors to CFD task and others to MD, conventional job submission and one default BigJob launch show nearly the same active runtime, as we have already expected. Comparing these two tasks, main difference lies in the existence of idling time on conventional job submission, which is denoted as 'inactive mode' in the table, when one of subtasks were allowed to start faster than BigJob submission but had to idle waiting for its counterpart. As a result, conventional testsuite starts later than one BigJob application, let alone the wasting of computing time on idling. Nevertheless, one BigJob submission does not guarantee faster start if we refer to the result of load-balanced BigJob submission, which experienced far longer waiting on the queue. For the worse, a load-balanced BigJob showed longer runtime than other tests, because additional cost on running a load balancing function and trying checkpointing and restarting subtasks is not compensated by the performance improvement in this well-defined resource assignment.
+On the other hand, load balancing becomes effective at initially imbalanced condition. When same number of processors are assigned to each subtask, load balancing function leads the resource allocation to the best condition after the first simulation loop and 8 processors from CFD task are moved to MD simulation from the next start, which is the same as former resource allocation. Thus, the performance in load balanced case becomes identical to above tests from the second start and total runtime shows far better result than other imbalanced cases. Still, load balaced case experiences longest total simulation time because of long waiting on the queue, which is case-specific.
+
+
+\begin{table}[!h]
+\begin{center}
+  \caption{Time Elapsement for a CFD/MD Coupled Simulation by using Conventional Queueing System and a BigJob Abstraction. Above table shows total simulation time when 8 processors are allocated to CFD and 24 processors on MD task, which is initially well-balanced allocation: below one represents another test with 16 processors allocated to each task, an imbalanced simulation. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsment \newline }
+%\label{table:systems}
+\begin{tabular}{ c|| c | c | c }
+\hline
+ & Baseline Simulation & Default 1 BigJob & Load-balanced 1 BigJob \\
+\hline
+\hline
+Waiting on & 1900 & 3372 & 10344  \\
+the Queue & (1873) & (6450) & (6767) \\
+\hline
+Inactive & 5486 & 4 & 4 \\
+Mode & (10318) & (0) & (0) \\
+\hline
+Active & 1171 & 1169 & 1280 \\
+Runtime & (175) & (72) & (81) \\
+\hline
+Total & 8557 & 4545 & 11629 \\
+Time & (11882) & (6457) & (6720) \\
+\hline
+\end{tabular}
+
+\begin{tabular}{ c|| c | c | c }
+\hline
+ & Baseline Simulation & Default 1 BigJob & Load-balanced 1 BigJob \\
+\hline
+\hline
+Waiting on & 3000 & 10834 & 15201  \\
+the Queue & (4136) & (4593) & (10968) \\
+\hline
+Inactive & 10300 & 4 & 4 \\
+Mode & (15327) & (0) & (0) \\
+\hline
+Active & 1672 & 1641 & 1370 \\
+Runtime & (246) & (162) & (98) \\
+\hline
+Total & 14973 & 12480 & 16577 \\
+Time & (19213) & (4430) & (11004) \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+A number of performance tests with different initial job allocation have been conducted and graphs in Figure *** show the result. From the first test when 32 processors are used, load balancing function detects the ratio of 8 and 24 between CFD and MD tasks are optimal and converges to this ratio at the next restart, except one case when CFD solution experiences unexpected overload initially. Though CFD simulation still shows far less runtime compared to MD work, load balancing function judges this configuration is optimal, because CFD simulation time is estimated to be longer than current MD time if processors allotted to CFD reduces to 4. Remember that processor allocation changes by the number of processors in each node. Also, the above decision is verified by the next load balacing test where the ratio of 4 and 20 between CFD and MD tasks are ideal. In this simulation, CFD runtime with 4 processors is longer than 200 seconds, which is longer than MD simulation time with 24 processors. This means that total runtime would be increased if processor distribution changes from 8 and 24 to 4 and 28. Focusing on the load balancing test with 24 processors again, CFD and MD tasks show nearly the same simulation time after converged processor allocation is gained. Also, load balancing function indicates the optimal condition after the first sub-job running, except one variation when initial CFD task was running with doubled CPUs than MD task. Even in this case, load balancing function traces the optimal load allocation during the iteration and this demonstrates the stability of current load balancing function.
+
+%%%%% FIGURE %%%%%
+\begin{figure}
+\centering
+\includegraphics[scale=0.40]{LB_Graph.eps}
+\caption{\small{Convergence of a Load Balancing Function and Runtime of Suntasks. Above graphs show load balancing result when 32 processors are assigned initially. Latter graphs represent the history of load balancing when 24 processors are allocated.}
+\end{figure}
+%%%%% FIGURE %%%%%
+
 
 Though the above results show the large performance gain by employing a load balancing algorithm, some limitations are also observed. First, as the function only refers to the computation cost at given processor distribution and moves to the optimal condition iteratively, it takes time to achieve a converged resource allocation if initial processor allocation starts from other extreme. Second and furthermore, the alogrithm itself should be refined to distinguish the computational cost from inter-processor communication within one application code and control both factors. Also, the load balancing module needs to be expanded to cover multiple BigJob allocations for one coupled simulation, when running a subtask across BigJobs becomes possible.
 
