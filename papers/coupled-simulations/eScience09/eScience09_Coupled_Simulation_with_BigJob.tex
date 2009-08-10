@@ -80,7 +80,7 @@
 \maketitle
 
 \begin{abstract}
-  Coupled Multi-Physics simulations, such as hybrid CFD-MD simulations, represent an increasingly important class of applications.  Often the physical problems of interest demand the use of high-end computers, such as TeraGrid resources, which are often accessible only via batch-queues.  We develop and demonstrate a novel approach to overcoming the co-scheduling requirements associated with coupled runs.  Our solution which is developed using SAGA and a SAGA-based framework (BigJob), is a generalization of the Pilot-Job concept -- which in of itself is not new, but is applied to coupled simulations for the first time.  Our solution not only overcomes the initial co-scheduling problem, but provides a dynamic resource allocation mechanism. Such support for dynamic resources is critical for a load-balancing mechanism, which we develop and demonstrate to be effective at reducing the total time-to-solution of the problem.  We also demonstrate for the first time that we are aware of, the use of multiple Pilot-Job mechanisms to solve the same problem; specifically, we use SAGA to access the SAGA-based Pilot-Job on high-end (TeraGrid) resources whilst using the native Condor Pilot-Job (Glide-in) on Condor resources, and importantly both are accessed via the same interface. 
+  Coupled Multi-Physics simulations, such as hybrid CFD-MD simulations, represent an increasingly important class of applications.  Often the physical problems of interest demand the use of high-end computers, such as TeraGrid resources, which are often accessible only via batch-queues.  We develop and demonstrate a novel approach to overcoming the co-scheduling requirements associated with coupled runs.  Our solution which is developed using SAGA and a SAGA-based framework (BigJob), is a generalization of the Pilot-Job concept -- which in of itself is not new, but is applied to coupled simulations for the first time.  Our solution not only overcomes the initial co-scheduling problem, but provides a dynamic resource allocation mechanism. Such support for dynamic resources is critical for a load-balancing mechanism, which we develop and demonstrate to be effective at reducing the total time-to-solution of the problem.  We also demonstrate for the first time that we are aware of, the use of multiple Pilot-Job mechanisms to solve the same problem; specifically, we use SAGA to access the SAGA-based Pilot-Job on high-end resources whilst using the native Condor Pilot-Job (Glide-in) on Condor resources, and importantly both are accessed via the same interface. 
 \end{abstract}
 
 
@@ -297,33 +297,21 @@ From the first test of assigning 8 processors to CFD task and others to MD, conv
 On the other hand, load balancing becomes effective at initially imbalanced condition. When same number of processors are assigned to each subtask, load balancing function leads the resource allocation to the best condition after the first simulation loop and 8 processors from CFD task are moved to MD simulation from the next start, which is the same as former resource allocation. Thus, the performance in load balanced case becomes identical to above tests from the second start and total runtime shows far better result than other imbalanced cases. Still, load balaced case experiences longest total simulation time because of long waiting on the queue, which is case-specific.
 
 
+
+% Elapsement for a CFD/MD Coupled Simulation by using Conventional Queueing System and a BigJob Abstraction. Above table shows total simulation time when 8 processors are allocated to CFD and 24 processors on MD task, which is initially well-balanced allocation: below one represents another test with 16 processors allocated to each task, an imbalanced simulation. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsed; the average is taken over 5 distinct
+% experiments. \newline }
+
+
 \begin{table}[!h]
 \begin{center}
 \label{table:oneBJ_Test}
-  \caption{\small Time Elapsement for a CFD/MD Coupled Simulation by using Conventional Queueing System and a BigJob Abstraction. Above table shows total simulation time when 8 processors are allocated to CFD and 24 processors on MD task, which is initially well-balanced allocation: below one represents another test with 16 processors allocated to each task, an imbalanced simulation. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsment \newline }
+\caption{\small Performance Data of using BigJob with and without LB. The Baseline Simulation represents the case when BigJob is not used; in this case, the time to start is dominated by the Inactive Mode of the longer waiting task. The use of BigJob resolves, this as can be seen by the reduced inactive mode time in columns
+3 and 4. The starting configuration assigns resources equally between CFD-MD -- 16px each. However, after a few iterations of the LB the configuration is 8-24. It is with this configuration that the performance is better with LB, than without the LB 1370 $\pm 98$ vs 1641 $\pm$ 162. The starting configuration of the second set (8-24) is a ``balanced configuration'' which is why there is no performance gains on using the LB. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsed; the average is taken over 5 distinct experiments}
+% experiments. }
 %\label{table:systems}
 \begin{tabular}{ c|| c | c | c }
 \hline
- & Baseline Simulation & Default 1 BigJob & Load-balanced 1 BigJob \\
-\hline
-\hline
-Waiting on & 1900 & 3372 & 10344  \\
-the Queue & (1873) & (6450) & (6767) \\
-\hline
-Inactive & 5486 & 4 & 4 \\
-Mode & (10318) & (0) & (0) \\
-\hline
-Active & 1171 & 1169 & 1280 \\
-Runtime & (175) & (72) & (81) \\
-\hline
-Total & 8557 & 4545 & 11629 \\
-Time & (11882) & (6457) & (6720) \\
-\hline
-\end{tabular}
-
-\begin{tabular}{ c|| c | c | c }
-\hline
- & Baseline Simulation & Default 1 BigJob & Load-balanced 1 BigJob \\
+16-16 & Baseline Simulation & BigJob (no LB) & BigJob (LB) \\
 \hline
 \hline
 Waiting on & 3000 & 10834 & 15201  \\
@@ -337,6 +325,24 @@ Runtime & (246) & (162) & (98) \\
 \hline
 Total & 14973 & 12480 & 16577 \\
 Time & (19213) & (4430) & (11004) \\
+\hline
+\end{tabular}
+\begin{tabular}{ c|| c | c | c }
+\hline
+8-24 & Baseline Simulation & BigJob (no LB) & BigJob (LB) \\
+\hline
+\hline
+Waiting on & 1900 & 3372 & 10344  \\
+the Queue & (1873) & (6450) & (6767) \\
+\hline
+Inactive & 5486 & 4 & 4 \\
+Mode & (10318) & (0) & (0) \\
+\hline
+Active & 1171 & 1169 & 1280 \\
+Runtime & (175) & (72) & (81) \\
+\hline
+Total & 8557 & 4545 & 11629 \\
+Time & (11882) & (6457) & (6720) \\
 \hline
 \end{tabular}
 \end{center}
@@ -425,7 +431,7 @@ With minor modifications to the BigJob asbtraction layer, we are able to submit 
 % Fax (714) 761-1784.
 
 \section*{Acknowledgement}
-This work is part of the Cybertools (http://cybertools.loni.org) project and primarily funded by NSF/LEQSF(2007-10)-CyberRII-01. Important funding for SAGA has been provided by the UK EPSRC grant number GR/D0766171/1 (via OMII-UK).  This work has also been made possible thanks to computer resources provided by LONI.  We thank Andre Luckow for initial work on BigJob, Lukasz Lacinski for help with SAGA deployment (via HPCOPS NSF-OCI 0710874) and Joao Abecasis for his work on the SAGA Condor adaptors.
+This work is part of the Cybertools (http://cybertools.loni.org) project and primarily funded by NSF/LEQSF(2007-10)-CyberRII-01. Important funding for SAGA has been provided by the UK EPSRC grant number GR/D0766171/1 (via OMII-UK).  This work has also been made possible thanks to computer resources provided by LONI.  We thank Andre Luckow for initial work on BigJob, Lukasz Lacinski for help with SAGA deployment (via HPCOPS NSF-OCI 0710874) and Joao Abecasis for his work on the SAGA Condor adaptors. 
 
 %------------------------------------------------------------------------- 
 \nocite{ex1,ex2}
