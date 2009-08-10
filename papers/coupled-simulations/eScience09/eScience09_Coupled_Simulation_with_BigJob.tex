@@ -85,7 +85,7 @@
 
 
 %------------------------------------------------------------------------- 
-\Section{Introduction} 
+\section{Introduction} 
 
 Multi-Physics simulation techniques are being increasingly used to study many different physical phenomenon spanning time and length scales at different level of details\jhanote{need a couple of references to multi-physics simulations here}. These techniques have been used to investigate phenomenon from crack-propagation in materials, biological systems as well as understanding multi-phase fluid flow in constrained geometry.
 
@@ -100,7 +100,7 @@ Another important challenge, especially for large-scale simulations is the need 
 Here we outline our approach -- which is not-tied to a specific application set, is scalable and extensible. SAGA (the Simple API for Grid Applications)~\cite{saga_web}  is a high-level API which provides the basic functionality required to implement distributed applications in an infrastructure and middleware independent fashion.  SAGA enables the creation of higher-levels of abstractions, for example a contain-job and pilot-job, which is referred to as the BigJob abstraction~\cite{saga_royalsoc}.  -- which denotes a container task where a number of subtasks can run in pre-defined schedule with specified number of processors whether or not they are coupled.  Although the Container-Job/Pilot-Job concept is not novel {\it per se}, we believe this is the first documented utilization of these abstractions to perform coupled Multi-Physics simulations. Additionally, our approach employing a SAGA-based Pilot-Job is infrastructure neutral, unlike most other Pilot-Jobs.  The essential improvement of BigJob abstraction in this application lies in removing the need for scheduling the two-components separately and in providing a single job-requirement to the queuing system. Additional efficiency is provided via application scenario specific load balancing modules. But in order to work efficiently, load-balancing algorithms require dynamic resource allocation...
 
 %------------------------------------------------------------------------- 
-\Section{Hybrid CFD-MD Approach: Understanding the Coupling, Communication and Load-Balancing Requirements}
+\section{Hybrid CFD-MD Approach: Understanding the Coupling, Communication and Load-Balancing Requirements}
 
 A hybrid CFD/MD approach~\cite{Thompson},~\cite{Nie},~\cite{Yen} is a simulation method which adopts the continuum hypothesis in capturing the macroscopic features of a flow-field and resolves intermolecular effects on interfaces of different materials. CFD can accurately predict flow properties on conventional moderate/large size fluid domains, but is intrinsically impossible to reflect the characteristics of surrounding solid materials. MD guarantees more accurate solution in that it also considers collision between fluid particles as well as interaction with solid particles; the price for this greater resolution is that it is computationally very expensive and makes it difficult to apply this method to solve a large scale system.
 
@@ -131,7 +131,7 @@ Another considerable issue in CFD-MD coupled simulation is execution and perform
 
 %\Nkimnote{ }
 %------------------------------------------------------------------------- 
-\Section{SAGA and Its Abstraction for Large-scale Computation}
+\section{SAGA and Its Abstraction for Large-scale Computation}
 \skonote{(Shantenu and Joohyun)}
 
 \subsection{SAGA}
@@ -186,7 +186,7 @@ Figure *** shows the structure of BigJob and its operation flow. When a BigJob i
 
 
 %------------------------------------------------------------------------- 
-\Section{Load Balancing for Performance Enhancement of Coupled Multi-physical Simulation}
+\section{Load Balancing for Performance Enhancement of Coupled Multi-physical Simulation}
 
 
 SAGA and its pilot-job framework (BigJob) enable coupled, yet distinct simulations to be 
@@ -263,15 +263,19 @@ in Figure 4. When one simulation loop is finished, the performance data of each 
 
 
 %------------------------------------------------------------------------- 
-\Section{Three Use Cases of Hybrid CFD/MD Simulation using SAGA and SAGA-based Framework}
+\section{Three Use Cases of Hybrid CFD/MD Simulation using SAGA and SAGA-based Framework}
 
-In Section 2, we have argued the hardness of running a coupled multi-physical simulation through the conventional queueing system as,
-- Hardness to start multiple applications concurrently,
-- Unability to balance the load among domains,
-- Fixed number of allocated resources throughout the simulation.
-To resolve the concurrency and load-imbalance issues, we have applied a BigJob abstraction with load balancing module to the coupled simulation. As a way to minimize total simulation time, we have investigated acquiring idling resources more during the simulation, by launching multiple BigJobs for one coupled simulation. These use cases are to be introduced in this section.
+In Section 2, we have argued the challenges of running a coupled multi-physical simulation on a conventional queueing system as (i) Hardness to start multiple applications concurrently; (ii) Unability to balance the load among domains, and (iii) Fixed number of allocated resources throughout the simulation.  To resolve the co-scheduling and load-imbalance issues, and with the ultimate aim of reducing the time to solution, we have used the BigJob abstraction with load balancing module to the coupled simulation. % With the ultimate aim of reducing the total simulation time, we investigate acquiring idle resources during the simulation, by launching multiple BigJobs for one coupled simulation.
+Three different real scenarios arise. In the first, a single BigJob is utilized to run the coupled-simulations, first without, and then with the LB redistributing resources based upon their individual performance. One component maybe relieved of its resources for the greater good. In the second Use Case, In the second case, two BigJobs are started together, but often one BigJob starts before the other; to increase efficiency both coupled simulations start with whatever resources are available as part of the first (to run) BigJob. When the other BigJob becomes active, there is a dynamic redistribution of tasks, such that
+the larger of the two simulations is assigned the bigger BigJob. The variant of the above when 
+the two BigJobs are on different machines forms Use Case 3. In the remainder of this section we discuss
+the details of these three different Use Cases.
 
-\SubSection{One BigJob with Load Balancing}
+% We compare the performance as measured by TTS using the benchmark case to be the situation when we do not have the ability to utilize the BigJob concept and thus each simulation interacts with the queueing system differently, and thereby each must be in an Active state before both can start running.
+
+\jhanote{please be sure to use co-scheduling where appropriate and not concurrency}
+
+\subsection{One BigJob with Load Balancing}
 Figure *** shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queueing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are idling. In this case, total simulation time ($t_{f0}-t_{0}$) is the sum of waiting time on the queue (the time no simulation is running, $t_1-t_0$), inactive mode (when one of tasks is waiting for another simulation's data, $t_2-t_1$) and active mode ($t_{f0}-t_2$).
 If these tasks are submitted as a pilot job with the size of $PE_{CFD}+PE{MD}$, the inactive mode disappears as a BigJob manager will distribute allocated resources to subtasks. In this case, total simulation time changes to be the sum of waiting on the queue ($t_{1}'-t_{0}$) and simulation runtime ($t_{f1}=t_{1}'$). If resource distribution to subtasks is identical to the conventional job submission, total runtime will remain the same. It means that a user can save his/her account by the multiplication of first processor allocation and inactive time ($PE_{CFD} \times t_2-t_1$ in this example). However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one allocation with $PE_{CFD}+PE_{MD}$ size can take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
 
@@ -348,7 +352,7 @@ A number of performance tests with different initial job allocation have been co
 Though the above results show the large performance gain by employing a load balancing algorithm, some limitations are also observed. First, as the function only refers to the computation cost at given processor distribution and moves to the optimal condition iteratively, it takes time to achieve a converged resource allocation if initial processor allocation starts from other extreme. Second and furthermore, the alogrithm itself should be refined to distinguish the computational cost from inter-processor communication within one application code and control both factors. Also, the load balancing module needs to be expanded to cover multiple BigJob allocations for one coupled simulation, when running a subtask across BigJobs becomes possible.
 
 
-\SubSection{Two BigJobs from a Single Site or Multiple Sites}
+\subsection{Two BigJobs from a Single Site or Multiple Sites}
 
 \skonote{explain the meaning of two BigJob configurations}
 As illustrated in Fig.~\ref{Fig:TwoBigJobs}, runtime environment for coupled multi-physics simulations would benefit from dynamic resource availability exploited by BigJob implementation.  In brief, it is possible to assign more cpus for a slowing application when another bigjob becomes available. In Table ~\ref{table:TwoBigJobs}, test measurements for performance gains are summarized. The scenario for this testing is simple for clarifying benefits.  Initially, two bigjobs are submitted to one HPC resource or two HPCs.  Once the first bigjob becomes available, two applications are submitted as two subtasks with pre-defined cpus to the bigjob, and then when another bigjob becomes available later, two subtasks for each application is reconfigured by assigning the entire cpus of a bigjob to one application.  Table  ~\ref{table:TwoBigJobs} shows performance gains with such a scenario in terms of MD run time.  In this simple scenario, other complicated aspects such as file transfer, in particular between two distributed resources are not considered but in the future study, the overall performance will be optimized by considering them.
@@ -396,7 +400,7 @@ In summary, use of a BigJob will eliminate idling operation of a subtask, which 
 
 
 %------------------------------------------------------------------------- 
-\Section{BigJob: A General Purpose Pilot-Job (Yaakoub)}
+\section{BigJob: A General Purpose Pilot-Job (Yaakoub)}
 
 The concept of a Pilot-Job has been advanced by the Condor project, wherein the Pilot-Job concept is referred to as a Glide-in...  Here we will discucss (i) how SAGA-BigJob has been used in conjunction with Condor-Glide-in whereby SAGA-BigJob was used on the TeraGrid (Ranger) and the Glide-in was running on the Purdue Condor Cluster.
 
@@ -405,7 +409,7 @@ With minor modifications to the BigJob asbtraction layer, we are able to submit 
 % At the moment we are limited to single processor runs on the available condor pools and are working to remove this restriction. We also want to study the optimization problem of how to schedule jobs based on performance. Not sure if this belongs here or in the conculusions so commented out for now.
 
 
-\Section{Conclusions}
+\section{Conclusions}
 
 % Please direct any questions to the production editor in charge of these 
 % proceedings at the IEEE Computer Society Press: Phone (714) 821-8380, or 
@@ -427,24 +431,24 @@ This work is part of the Cybertools (http://cybertools.loni.org) project and pri
 
 
 %------------------------------------------------------------------------- 
-\Section{Instructions}
+\section{Instructions}
 
 Please read the following carefully.
 
 %------------------------------------------------------------------------- 
-\SubSection{Language}
+\subsection{Language}
 
 All manuscripts must be in English.
 
 %------------------------------------------------------------------------- 
-\SubSection{Printing your paper}
+\subsection{Printing your paper}
 
 Print your properly formatted text on high-quality, $8.5times 11$-inch 
 white printer paper. A4 paper is also acceptable, but please leave the 
 extra 0.5 inch (1.27 cm) at the BOTTOM of the page.
 
 %------------------------------------------------------------------------- 
-\SubSection{Margins and page numbering}
+\subsection{Margins and page numbering}
 
 All printed material, including text, illustrations, and charts, must be 
 kept within a print area 6-7/8 inches (17.5 cm) wide by 8-7/8 inches 
@@ -456,7 +460,7 @@ lower halves of the backs of the pages.
 
 
 %------------------------------------------------------------------------ 
-\SubSection{Formatting your paper}
+\subsection{Formatting your paper}
 
 All text must be in a two-column format. The total allowable width of 
 the text area is 6-7/8 inches (17.5 cm) wide by 8-7/8 inches (22.54 cm) 
@@ -469,7 +473,7 @@ bottom edge of the page for $8.5 \times 11$-inch paper; for A4 paper,
 approximately 1-5/8 inches (4.13 cm) from the bottom edge of the page.
 
 %------------------------------------------------------------------------- 
-\SubSection{Type-style and fonts}
+\subsection{Type-style and fonts}
 
 Wherever Times is specified, Times Roman may also be used. If neither is 
 available on your word processor, please use the font closest in 
@@ -521,7 +525,7 @@ capitalized, flush left, preceded by one blank line, followed by a period
 and your text on the same line.
 
 %------------------------------------------------------------------------- 
-\SubSection{Footnotes}
+\subsection{Footnotes}
 
 Please use footnotes sparingly%
 \footnote
@@ -536,7 +540,7 @@ referenced. Use Times 8-point type, single-spaced.
 
 
 %------------------------------------------------------------------------- 
-\SubSection{References}
+\subsection{References}
 
 List and number all bibliographical references in 9-point Times, 
 single-spaced, at the end of your paper. When referenced in the text, 
@@ -544,7 +548,7 @@ enclose the citation number in square brackets, for example~\cite{ex1}.
 Where appropriate, include the name(s) of editors of referenced books.
 
 %------------------------------------------------------------------------- 
-\SubSection{Illustrations, graphs, and photographs}
+\subsection{Illustrations, graphs, and photographs}
 
 All graphics should be centered. Your artwork must be in place in the 
 article (preferably printed as part of the text rather than pasted up). 
@@ -558,7 +562,7 @@ reproduce well. Remember, the quality of the book cannot be better than
 the originals provided. Do NOT use tape on your pages!
 
 %------------------------------------------------------------------------- 
-\SubSection{Color}
+\subsection{Color}
 
 The use of color on interior pages (that is, pages other
 than the cover) is prohibitively expensive. We publish interior pages in 
@@ -567,7 +571,7 @@ conference organizers. DO NOT SUBMIT COLOR IMAGES IN YOUR
 PAPERS UNLESS SPECIFICALLY INSTRUCTED TO DO SO.
 
 %------------------------------------------------------------------------- 
-\SubSection{Symbols}
+\subsection{Symbols}
 
 If your word processor or typewriter cannot produce Greek letters, 
 mathematical symbols, or other graphical elements, please use 
@@ -575,7 +579,7 @@ pressure-sensitive (self-adhesive) rub-on symbols or letters (available
 in most stationery stores, art stores, or graphics shops).
 
 %------------------------------------------------------------------------ 
-\SubSection{Copyright forms}
+\subsection{Copyright forms}
 
 You must include your signed IEEE copyright release form when you submit 
 your finished paper. We MUST have this form before your paper can be 
