@@ -189,15 +189,22 @@ Figure *** shows the structure of BigJob and its operation flow. When a BigJob i
 \Section{Load Balancing for Performance Enhancement of Coupled Multi-physical Simulation}
 
 
-It is argued that SAGA and its pilot-job framework achieves efficient coupled simulation by resolving the concurrency problem when coupled application codes are individually submitted to conventional queueing system and start independently, in a way of submitting one container job and distributing its processors to each task. Also, total execution time can further be reduced by assigning more BigJobs to this task and dynamically reallocating resources to each sub-task with increased number of processors. However, there has not been discussed whether allocated resources are optimally used in application side, i.e., two simulation tasks are well balanced. As the current simulation requires frequent data exchange between CFD and MD during the simulation, it is likely to increase communication cost (strictly, waiting time for communication in one application) if their loads are not well balanced, which is quite different from former BigJob application~\cite{Jha:2009} where data e
- xchange took place when sub-tasks stopped temporarily.
-Meanwhile, checking sub-tasks' performances and controlling their operation for load balancing runs counter to SAGA's philosophy of "using services without changing the application source". Thus, help from application side is necessary to employ a load balancing function on a BigJob. A load to each application is determined by its elapsed time to run the evolution loop, which is counted in an application code. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time event or irrelevant to application's performance. As the result of load balancing is reflected in the next launch of simulation codes, applications should be able to restart from their checkpointing data. Also, they should be equipped with generalized domain partitioning routine to run simulation with any number of processors, without harming their parallel efficiency a lot.
-If above conditions are satisfied, BigJob application manager can do load balancing between subtasks before applications restart from the previous state. The idea of current load balancing algorithm is to assign more processors to a sub-task with more runtime until two codes show the same runtime. We have adopted some assumptions to simplify load balancing procedure and apply the algorithm without considering applications' characteristics and indivual code's scalability. Assumptions are,
-(1) Each application code follows the ideal parallel efficiency.
-%(2) Total workload in each application remains the same when the amount of resource changes.
-(2) All processors in one node is assigned to one sub-job.
-Load balacing mechanism is as follows:
+SAGA and its pilot-job framework (BigJob) enable coupled, yet distinct simulations to be 
+% by resolving the concurrency problem when coupled application codes are individually 
+submitted to queueing system.  This is done by submitting one container job, and re-distributing its processors to each task.  Also, total execution time can further be reduced by assigning more BigJobs and dynamically reallocating resources to each sub-task with increased number of processors. 
+However, the flexibility to re-distribute resources (processors) to the individual task, does
+not imply efficient utilization. This is the responsibility of a load-balancer (LB)
+We will discuss the implementation and algorithm of this LB; it is important
+to mention that the LB functions in the context of the SAGA-BigJob framewor.
+% As the current simulation requires frequent data exchange between CFD and MD during the simulation, it is likely to increase communication cost (strictly, waiting time for communication in one application) if their loads are not well balanced, which is quite different from former BigJob application~\cite{Jha:2009} where data exchange takes place when sub-tasks stopped temporarily.
 
+% Meanwhile, checking sub-tasks' performances and controlling their operation for load balancing runs counter to SAGA's philosophy of "using services without changing the application source". Thus, help from application side is necessary to employ a load balancing function on a BigJob. 
+
+Each applications load is determined by its elapsed time to run the evolution loop. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time event or irrelevant to application's performance. As the result of load balancing is reflected in the next launch of simulation codes, applications should be able to restart from their checkpointing data. Also, they should be equipped with generalized domain partitioning routine to run simulation with any number of processors, without harming their parallel efficiency a lot.  If above conditions are satisfied, BigJob application manager, 
+can be interfaced with the LB to implement the dynamic resource allocation between tasks.
+% load balancing between subtasks before applications restart from the previous state. 
+The idea of current load balancing algorithm is to assign more processors to a sub-task with more runtime until two codes show the same runtime. We have adopted some assumptions to simplify load balancing procedure and apply the algorithm without considering applications' characteristics and indivual code's scalability. Assumptions are, (1) Each application code follows the ideal parallel efficiency.
+(2) All processors in one node is assigned to one sub-job.
 
 %\begin{tabular}{|l|}
 %\hline
@@ -212,7 +219,7 @@ Load balacing mechanism is as follows:
 %\end{center}
 %\end{equation}
 
-Let computation time of two applications by $t_{CFD}$ and $t_{MD}$, processors to each domain by $PE_{CFD}$ and $PE_{MD}$, respectively. Based on assumption (1), total simulation time in each application after the reallocation of resource is predicted to be
+Let the computation time of two applications be $t_{CFD}$ and $t_{MD}$, processors to each domain by \jhanote{by? or be?} $PE_{CFD}$ and $PE_{MD}$, respectively. Based on assumption (1), total simulation time in each application after the reallocation of resource is predicted to be
 
 \begin{equation}
 %\begin{center}
@@ -243,8 +250,8 @@ The optimal processor distribution from above equation will return a float value
 %\hline
 %\end{tabular}
 
-
-As we include a load balancing function within BigJob application manager, the manager shows more complicated flow, as given in Figure 4. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
+The control-flow within the BigJob Application-Manager when supporting a LB modules is shown
+in Figure 4. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -285,7 +292,7 @@ On the other hand, load balancing becomes effective at initially imbalanced cond
 
 \begin{table}[!h]
 \begin{center}
-  \caption{Time Elapsement for a CFD/MD Coupled Simulation by using Conventional Queueing System and a BigJob Abstraction. Above table shows total simulation time when 8 processors are allocated to CFD and 24 processors on MD task, which is initially well-balanced allocation: below one represents another test with 16 processors allocated to each task, an imbalanced simulation. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsment \newline }
+  \caption{\small Time Elapsement for a CFD/MD Coupled Simulation by using Conventional Queueing System and a BigJob Abstraction. Above table shows total simulation time when 8 processors are allocated to CFD and 24 processors on MD task, which is initially well-balanced allocation: below one represents another test with 16 processors allocated to each task, an imbalanced simulation. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsment \newline }
 %\label{table:systems}
 \begin{tabular}{ c|| c | c | c }
 \hline
@@ -337,7 +344,6 @@ A number of performance tests with different initial job allocation have been co
 \caption{\small Convergence of a Load Balancing Function and Runtime of Suntasks. Above graphs show load balancing result when 32 processors are assigned initially. Latter graphs represent the history of load balancing when 24 processors are allocated.}
 \end{figure}
 %%%%% FIGURE %%%%%
-
 
 Though the above results show the large performance gain by employing a load balancing algorithm, some limitations are also observed. First, as the function only refers to the computation cost at given processor distribution and moves to the optimal condition iteratively, it takes time to achieve a converged resource allocation if initial processor allocation starts from other extreme. Second and furthermore, the alogrithm itself should be refined to distinguish the computational cost from inter-processor communication within one application code and control both factors. Also, the load balancing module needs to be expanded to cover multiple BigJob allocations for one coupled simulation, when running a subtask across BigJobs becomes possible.
 
