@@ -10,28 +10,31 @@ namespace AllPairs {
   class Assignment {
    public:
      Assignment() {}
-     Assignment(std::string from, std::string to) : from_(from), to_(to) { 
-        //Just make location one of the hostnames of the two files
-        location_ = saga::url(from_).get_host();
-     }
-     Assignment(std::string from, std::string to, std::string location) :
-        from_(from), to_(to), location_(location) { }
-     std::string getFrom(void) {
+     Assignment(int from, int to) : 
+        from_(from), to_(to), stringAvailable_(false) { }
+     Assignment(std::string stringFrom, std::string stringTo) : 
+        stringFrom_(stringFrom), stringTo_(stringTo), stringAvailable_(true) { }
+     int getFrom(void) {
         return from_;
      }
-     std::string getTo(void) {
+     int getTo(void) {
         return to_;
      }
-     std::string getLocation(void) {
-        return location_;
+     std::string getStringFrom(void) {
+        return stringFrom_;
      }
-     void setLocation(std::string location) {
-        location_ = location;
+     std::string getStringTo(void) {
+        return stringTo_;
+     }
+     bool stringAvailable(void) {
+        return stringAvailable_;
      }
    private:
-     std::string from_;
-     std::string to_;
-     std::string location_;
+     int from_;
+     int to_;
+     std::string stringFrom_;
+     std::string stringTo_;
+     bool stringAvailable_;
   }; //Class Assignment
 
   class AssignmentChunk {
@@ -39,16 +42,11 @@ namespace AllPairs {
      AssignmentChunk() {}
      AssignmentChunk(std::vector<Assignment> &assignments, int id) : 
        assignments_(assignments) , id_(id) {
-        location_ = std::string("");
      }
      AssignmentChunk(int id) : id_(id) {
-        location_ = std::string("");
      }
      int getId(void) {
         return id_;
-     }
-     std::string getLocation(void) {
-        return location_;
      }
      void push_back(Assignment assignment) {
         assignments_.push_back(assignment);
@@ -65,38 +63,29 @@ namespace AllPairs {
      unsigned int size(void) {
         return assignments_.size();
      }
-     void guessLocation(void) {
+     std::vector<int> getFiles(void) {
         //Guess best location to describe this assignment chunk
-        std::map<std::string, int> counter;
-        std::map<std::string, int>::iterator counterEnd = counter.end();
+        std::vector<int> files;
         std::vector<Assignment>::iterator assignmentsIt = assignments_.begin();
         std::vector<Assignment>::iterator assignmentsEnd = assignments_.end();
         while(assignmentsIt != assignmentsEnd) {
-           if(counter.find(assignmentsIt->getLocation()) != counterEnd) {
-              counter[assignmentsIt->getLocation()]++;
+           int from = assignmentsIt->getFrom();
+           int to   = assignmentsIt->getTo();
+           if(std::find(files.begin(), files.end(), from) == files.end())
+           {
+              files.push_back(from);
            }
-           else {
-              counter.insert(std::pair<std::string, int>(assignmentsIt->getLocation(), 1));
+           if(std::find(files.begin(), files.end(), to) == files.end())
+           {
+              files.push_back(to);
            }
            ++assignmentsIt;
         }
-        //Now find which location occurs the most
-        std::map<std::string, int>::iterator counterIt = counter.begin();
-        int maximumVal = 0;
-        std::string maximumLoc = std::string("");
-        while(counterIt != counterEnd) {
-           if(counterIt->second > maximumVal) {
-              maximumVal = counterIt->second;
-              maximumLoc = counterIt->first;
-           }
-           counterIt++;
-        }
-        location_ = maximumLoc;
+        return files;
      }
    private:
      std::vector<Assignment> assignments_;
      int id_;
-     std::string location_;
   }; //Class AssignmentChunk
 
   typedef std::vector<AssignmentChunk> assignmentChunksVector;

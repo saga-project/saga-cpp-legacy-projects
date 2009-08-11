@@ -21,8 +21,7 @@ namespace AllPairs {
      public:
       HandleStaging(const std::string &serverURL_,
                     const std::vector<Master::HostDescription> &hostList,
-                    const std::vector<Master::FileDescription> &bases,
-                    const std::vector<Master::FileDescription> &fragments,
+                    const std::vector<Master::FileDescription> &files,
                     LogWriter *log);
       ~HandleStaging();
       Graph getNetwork(void);

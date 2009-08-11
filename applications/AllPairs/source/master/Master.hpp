@@ -110,15 +110,13 @@ namespace AllPairs {
          std::string serverURL_;
          saga::url   logURL_;
 
-         assignmentChunksVector      assignments_;
-         saga::advert::directory     sessionBaseDir_;
-         saga::advert::directory     workersDir_;
-         saga::advert::directory     binariesDir_;
-         saga::advert::directory     baseFilesDir_;
-         saga::advert::directory     fragmentFilesDir_;
-         std::vector<saga::url>      fragmentFiles_;
-         std::vector<saga::url>      baseFiles_;
-         std::vector<saga::job::job> jobs_;
+         assignmentChunksVector                 assignments_;
+         saga::advert::directory                sessionBaseDir_;
+         saga::advert::directory                workersDir_;
+         saga::advert::directory                binariesDir_;
+         saga::advert::directory                FilesDir_;
+         std::map<int, std::vector<saga::url> > Files_;
+         std::vector<saga::job::job>            jobs_;
          
          AllPairs::LogWriter * log;
          ConfigFileParser cfgFileParser_;
@@ -165,21 +163,18 @@ namespace AllPairs {
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
                tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
-               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),   mode);      //workersDir_
-               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES),  mode);      //binariesDir_
-               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BASE_FILES), mode);     //baseDir_
-               saga::task t3 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_FRAGMENT_FILES), mode); //fragmentDir_
-               saga::task t4 = sessionBaseDir_.open<saga::task_base::ASync>(saga::url(ADVERT_ENTRY_SERVER), mode);           //server address for worker
+               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),   mode); //workersDir_
+               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES),  mode); //binariesDir_
+               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_FILES), mode);     //Dir_
+               saga::task t3 = sessionBaseDir_.open<saga::task_base::ASync>(saga::url(ADVERT_ENTRY_SERVER), mode);      //server address for worker
                tc.add_task(t0);
                tc.add_task(t1);
                tc.add_task(t2);
-               tc.add_task(t3);
                tc.wait();
-               workersDir_       = t0.get_result<saga::advert::directory>();
-               binariesDir_      = t1.get_result<saga::advert::directory>();
-               baseFilesDir_     = t2.get_result<saga::advert::directory>();
-               fragmentFilesDir_ = t3.get_result<saga::advert::directory>();
-               saga::advert::entry address = t4.get_result<saga::advert::entry>();
+               workersDir_   = t0.get_result<saga::advert::directory>();
+               binariesDir_  = t1.get_result<saga::advert::directory>();
+               FilesDir_     = t2.get_result<saga::advert::directory>();
+               saga::advert::entry address = t3.get_result<saga::advert::entry>();
                address.store_string(serverURL_);
             }
             catch(saga::exception const & e) {
@@ -235,57 +230,11 @@ namespace AllPairs {
           ********************************************************/
          void populateFileList_(void) {
             unsigned int successCounter = 0;
-            int mode = saga::advert::Create | saga::advert::ReadWrite;
-            std::vector<FileDescription> fileListFragment                   = cfgFileParser_.getFileListFragment();
-            std::vector<FileDescription> fileListBase                       = cfgFileParser_.getFileListBase();
-            std::vector<FileDescription>::const_iterator fileListBaseIT     = fileListBase.begin();
-            std::vector<FileDescription>::const_iterator fileListFragmentIT = fileListFragment.begin();
-            //int mode = saga::advert::ReadWrite | saga::advert::Create;  
-            //unsigned int successCounter = 0;
-
-            // Translate FileDescriptions returned by getFileList
-            // into names to be chunked by chunker
-            while(fileListBaseIT != fileListBase.end()) {
-               try
-               {
-                  std::string message("Adding new chunk base" + fileListBaseIT->name + "...");
-                  saga::advert::entry adv = baseFilesDir_.open(saga::url("base-" + boost::lexical_cast<std::string>(successCounter)), mode);
-                  adv.store_string(fileListBaseIT->name);
-                  message += "SUCCESS";
-                  baseFiles_.push_back(saga::url(fileListBaseIT->name));
-                  log->write(message, LOGLEVEL_INFO);
-                  successCounter++;
-                  ++fileListBaseIT;
-               }
-               catch(saga::exception const &e) {
-                  log->write(e.what(), LOGLEVEL_ERROR);
-                  APPLICATION_ABORT;
-               }
-            }
-            if(successCounter == 0) {
-               log->write("No base files added for this session. Aborting", LOGLEVEL_FATAL);
-               APPLICATION_ABORT;
-            }
-            successCounter=0;
-            while(fileListFragmentIT != fileListFragment.end()) {
-               try {
-                  std::string message("Adding new chunk fragment " + fileListFragmentIT->name + "...");
-                  saga::advert::entry adv = fragmentFilesDir_.open(saga::url("file-" + boost::lexical_cast<std::string>(successCounter)), mode);
-                  adv.store_string(fileListFragmentIT->name);
-                  message += "SUCCESS";
-                  fragmentFiles_.push_back(saga::url(fileListFragmentIT->name));
-                  log->write(message, LOGLEVEL_INFO);
-                  successCounter++;
-                  fileListFragmentIT++;
-               }
-               catch(saga::exception const & e) {
-                  log->write(e.what(), LOGLEVEL_ERROR);
-               }
-            }
             std::vector<std::vector<CompareDescription> > compareDescriptions = cfgFileParser_.getCompareList();
             std::vector<std::vector<CompareDescription> >::iterator it = compareDescriptions.begin();
             std::vector<std::vector<CompareDescription> >::iterator end = compareDescriptions.end();
             int assignmentChunkID = 0;
+            int fileID = 0;
             while(it != end)
             {
                std::string message("Reading assignment " + boost::lexical_cast<std::string>(assignmentChunkID) + "...");
@@ -299,13 +248,64 @@ namespace AllPairs {
                   message.clear();
                   message =  "    (" + innerIt->fragments + ", ";
                   message += innerIt->bases + ")";
-                  Assignment assignmentTemp(innerIt->fragments, innerIt->bases);
+                  int baseID, fragmentID;
+                  bool found = false;
+                  std::map<int, std::vector<saga::url> >::iterator FilesIt  = Files_.begin();
+                  std::map<int, std::vector<saga::url> >::iterator FilesEnd = Files_.end();
+                  while(FilesIt != FilesEnd)
+                  {
+                     if(FilesIt->second[0].get_string() == innerIt->bases)
+                     {
+                        found = true;
+                        break;
+                     }
+                     ++FilesIt;
+                  }
+                  if(found == false)
+                  {
+                     std::vector<saga::url> tempVector;
+                     tempVector.push_back(innerIt->bases);
+                     std::pair<int, std::vector<saga::url> > temp(fileID, tempVector);
+                     Files_.insert(temp);
+                     baseID = fileID;
+                     fileID++;
+                  }
+                  else
+                  {
+                     baseID = FilesIt->first;
+                  }
+                  found = false;
+                  FilesIt  = Files_.begin();
+                  FilesEnd = Files_.end();
+                  while(FilesIt != FilesEnd)
+                  {
+                     if(FilesIt->second[0].get_string() == innerIt->fragments)
+                     {
+                        found = true;
+                        break;
+                     }
+                     ++FilesIt;
+                  }
+                  if(found == false)
+                  {
+                     std::vector<saga::url> tempVector;
+                     tempVector.push_back(innerIt->fragments);
+                     std::pair<int, std::vector<saga::url> > temp(fileID, tempVector);
+                     Files_.insert(temp);
+                     fragmentID = fileID;
+                     fileID++;
+                  }
+                  else
+                  {
+                     fragmentID = FilesIt->first;
+                  }
+                  Assignment assignmentTemp(fragmentID, baseID);
+                  //Assignment assignmentTemp(innerIt->fragments, innerIt->bases);
                   temp.push_back(assignmentTemp);
                   log->write(message, LOGLEVEL_INFO);
                   ++innerIt;
                }
-               //Try to describe chunk by best location
-               temp.guessLocation();
+               //Try to describe chunk by locations
                assignments_.push_back(temp);
                ++assignmentChunkID;
                ++it;
@@ -388,15 +388,14 @@ namespace AllPairs {
          }
 
          Graph runStaging_(void) {
-            std::vector<HostDescription>  hostList        = cfgFileParser_.getTargetHostList();
-            std::vector<FileDescription> fileListFragment = cfgFileParser_.getFileListFragment();
-            std::vector<FileDescription> fileListBase     = cfgFileParser_.getFileListBase();
-            HandleStaging stage(serverURL_, hostList, fileListFragment, fileListBase, log);
+            std::vector<HostDescription> hostList = cfgFileParser_.getTargetHostList();
+            std::vector<FileDescription> fileList = cfgFileParser_.getFileList();
+            HandleStaging stage(serverURL_, hostList, fileList, log);
             return stage.getNetwork();
          }
 
          void runComparisons_(Graph networkGraph) {
-            HandleComparisons comparisonHandler(networkGraph, assignments_, serverURL_, log);
+            HandleComparisons comparisonHandler(networkGraph, assignments_, Files_, serverURL_, log);
             std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
             comparisonHandler.assignWork();

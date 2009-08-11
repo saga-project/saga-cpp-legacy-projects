@@ -31,12 +31,8 @@ std::vector<std::vector<CompareDescription> > ConfigFileParser::getCompareList()
    return compareDescList_;
 }
 
-std::vector<FileDescription> ConfigFileParser::getFileListBase() {
-   return fileDescListBase_;
-}
-
-std::vector<FileDescription> ConfigFileParser::getFileListFragment() {
-   return fileDescListFragment_;
+std::vector<FileDescription> ConfigFileParser::getFileList() {
+   return fileDescList_;
 }
 
 std::vector<HostDescription> ConfigFileParser::getTargetHostList() {
@@ -125,7 +121,7 @@ void ConfigFileParser::parse_(void) {
          }
       }
       // parse the ApplicationFiles section
-      xNode = xMainNode.getChildNode("ApplicationFiles").getChildNode("Bases");
+      xNode = xMainNode.getChildNode("ApplicationFiles");
       int k=xNode.nChildNode("File");
       for(int i=0; i<k; ++i) {
          FileDescription fd;
@@ -136,30 +132,12 @@ void ConfigFileParser::parse_(void) {
          }
          else complete = false;
          if(!complete) {
-            std::string message("XML Parser: Incomplete Base files section found");
+            std::string message("XML Parser: Incomplete files section found");
             log_->write(message, LOGLEVEL_ERROR);
             break;
          }
          else
-            fileDescListBase_.push_back(fd);
-      }
-      xNode = xMainNode.getChildNode("ApplicationFiles").getChildNode("Fragments");
-      k = xNode.nChildNode("File");
-      for(int i=0; i<k; ++i) {
-         FileDescription fd;
-         bool complete = true;
-         XMLNode tmpNode = xNode.getChildNode("File", i);
-         if( NULL != tmpNode.getText() ) {
-            fd.name = tmpNode.getText();
-         }
-         else complete = false;
-         if(!complete) {
-            std::string message("XML Parser: Incomplete ApplicationFile section found");
-            log_->write(message, LOGLEVEL_ERROR);
-            break;
-         }
-         else
-            fileDescListFragment_.push_back(fd);
+            fileDescList_.push_back(fd);
       }
       int numCompares = xMainNode.nChildNode("CompareAssignment");
       for(int i = 0; i < numCompares; ++i) {

@@ -58,8 +58,7 @@ namespace AllPairs {
          SessionDescription                              sessionDesc_;
          std::vector<HostDescription>                    targetHostList_;
          std::vector<BinaryDescription>                  binDescList_;
-         std::vector<FileDescription>                    fileDescListBase_;
-         std::vector<FileDescription>                    fileDescListFragment_;
+         std::vector<FileDescription>                    fileDescList_;
          std::vector<std::vector <CompareDescription> >  compareDescList_;
          std::string                                     masterAddress_;
          void parse_(void);
@@ -71,8 +70,7 @@ namespace AllPairs {
          SessionDescription                             getSessionDescription(void);
          std::vector<BinaryDescription>                 getExecutableList(void);
          std::vector<HostDescription>                   getTargetHostList(void);
-         std::vector<FileDescription>                   getFileListBase(void);
-         std::vector<FileDescription>                   getFileListFragment(void);
+         std::vector<FileDescription>                   getFileList(void);
          std::vector<std::vector<CompareDescription> >  getCompareList(void);
          std::string                                    getMasterAddress(void);
         

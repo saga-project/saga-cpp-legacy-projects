@@ -9,8 +9,7 @@ namespace AllPairs
 {
  HandleStaging::HandleStaging(const std::string &serverURL,
                               const std::vector<Master::HostDescription> &hostList,
-                              const std::vector<Master::FileDescription> &bases,
-                              const std::vector<Master::FileDescription> &fragments,
+                              const std::vector<Master::FileDescription> &files,
                               LogWriter *log)
     : serverURL_(serverURL), log_(log)
  {
@@ -25,18 +24,8 @@ namespace AllPairs
        ++hit;
     }
     numWorkers_ = hosts_.size();
-    std::vector<Master::FileDescription>::const_iterator it  = bases.begin();
-    std::vector<Master::FileDescription>::const_iterator end = bases.end();
-    while(it != end) {
-       std::string filehost(saga::url(it->name).get_host());
-       if(find(hosts_.begin(), hosts_.end(), filehost) == hosts_.end()) {
-          //Not yet in vector
-          hosts_.push_back(filehost);
-       }
-       ++it;
-    }
-    it  = fragments.begin();
-    end = fragments.end();
+    std::vector<Master::FileDescription>::const_iterator it  = files.begin();
+    std::vector<Master::FileDescription>::const_iterator end = files.end();
     while(it != end) {
        std::string filehost(saga::url(it->name).get_host());
        if(find(hosts_.begin(), hosts_.end(), filehost) == hosts_.end()) {

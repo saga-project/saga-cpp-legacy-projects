@@ -19,14 +19,15 @@
 namespace AllPairs {
    class HandleComparisons {
      public:
-      HandleComparisons(Graph &networkGraph, assignmentChunksVector &assignments, const saga::url serverURL_, LogWriter *log);
+      HandleComparisons(Graph &networkGraph,
+                        assignmentChunksVector &assignments,
+                        std::map<int, std::vector<saga::url> > &files,
+                        const saga::url serverURL_, LogWriter *log);
       ~HandleComparisons();
       void assignWork();
      private:
       void                             issueCommand_();
       AssignmentChunk                  getChunk_(const std::string &location);
-      std::pair<AssignmentChunk, bool> networkGraphCheck_(const std::vector<int> &set,
-                                                          const std::string &hostname);
       std::pair<AssignmentChunk, bool> AssignmentChunkCheck_(const std::vector<int> &set,
                                                              const std::string &hostname);
     
@@ -35,6 +36,7 @@ namespace AllPairs {
       std::vector<int> unassigned_;
       Graph            networkGraph_;
       assignmentChunksVector   assignments_;
+      std::map<int, std::vector<saga::url> > files_;
       saga::stream::server    *service_;
       saga::advert::directory  workerDir_;
       saga::url serverURL_;
