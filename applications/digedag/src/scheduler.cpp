@@ -88,11 +88,13 @@ namespace digedag
             {
               // empty value
               c.set_attribute (elems[0], "");
+              std::cout << " === " << elems[0] << "=" << "" << std::endl;
             }
             else // never have more than two elems, as per split limit above
             {
               // set key and value
               c.set_attribute (elems[0], elems[1]);
+              std::cout << " === " << elems[0] << "=" << elems[1] << std::endl;
             }
           }
 
@@ -106,7 +108,6 @@ namespace digedag
                     << ": \n" << e.what () 
                     << std::endl;
         }
-        
       }
       else if ( words[0] == "data" )
       {

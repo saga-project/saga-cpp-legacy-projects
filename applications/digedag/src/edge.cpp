@@ -123,6 +123,9 @@ namespace digedag
   {
     try 
     {
+      dag_->log (std::string ("edge run: ")
+                + src_url_.get_string () + "->" + tgt_url_.get_string ());
+
       // dump ();
 
       dag_->lock ();
@@ -133,8 +136,30 @@ namespace digedag
       saga::session session = scheduler_->hook_saga_get_session (dag_);
 
       saga::filesystem::file f_src (session, src_url_);
-      f_src.copy (tgt_url_, saga::filesystem::Overwrite
-                          | saga::filesystem::CreateParents);
+
+
+      // first check if file exists
+      bool exists = false;
+      try 
+      {
+        saga::filesystem::file f_tgt (session, tgt_url_);
+
+        if ( f_tgt.get_size () == f_src.get_size () )
+        {
+          exists = true;
+        }
+      }
+      catch ( ... )
+      {
+        // does not exist
+      }
+
+      if ( ! exists )
+      {
+        f_src.copy (tgt_url_, saga::filesystem::Overwrite
+                    | saga::filesystem::CreateParents);
+      }
+
       dag_->unlock ();
     }
     catch ( const saga::exception & e ) 
