@@ -57,10 +57,10 @@ sub print_stats ($$)
   my $n = shift;
   my $s = shift;
 
-  printf ("   %-30s  \&               \&  %7.1f  \&  %7.1f  \\\\\n", 
-          $n,
-          $s->mean (), 
-          $s->standard_deviation ());
+  printf "   %-30s  \&               \&  %7.1f  \&  %7.1f  \\\\\n", 
+         $n,
+         $s->mean (), 
+         $s->standard_deviation ();
 
   # print "-- $n --------------------\n";
   # print "Min     : " , $s->min                (), "\n";
@@ -69,5 +69,4 @@ sub print_stats ($$)
   # print "StdDev  : " , $s->standard_deviation (), "\n";
   # print "Median  : " , $s->median             (), "\n";
 }
-
 
