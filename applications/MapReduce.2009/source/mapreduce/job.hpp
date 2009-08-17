@@ -50,10 +50,20 @@ class JobDescription : public Serializable {
     }
   }
   int get_attribute(const std::string& name, int default_value) const {
-    return boost::lexical_cast<int>(get_attribute(name, "0"));
+    const std::string& value = get_attribute(name);
+    if (value.empty()) {
+      return default_value;
+    } else {
+      return boost::lexical_cast<int>(value);
+    }
   }
   float get_attribute(const std::string& name, float default_value) const {
-    return boost::lexical_cast<float>(get_attribute(name, "0.0"));
+    const std::string& value = get_attribute(name);
+    if (value.empty()) {
+      return default_value;
+    } else {
+      return boost::lexical_cast<float>(value);
+    }
   }
   void set_input_format(const std::string& input_format) {
     attributes_[JOB_ATTRIBUTE_INPUTFORMAT] = input_format;
