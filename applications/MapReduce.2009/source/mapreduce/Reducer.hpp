@@ -21,13 +21,35 @@ class RawComparator {
  public:
   virtual ~RawComparator() {}
   // Compare two byte buffers.
-  virtual int Compare(uint8* data1, int size1, uint8* data2, int size2) = 0;
+  virtual int Compare(const uint8* data1, int size1, const uint8* data2,
+    int size2) = 0;
 };
 
 template <class T>
 class RawBytesComparator : public RawComparator<T> {
  public:
-  int Compare(uint8* data1, int size1, uint8* data2, int size2);
+  int Compare(const uint8* data1, int size1, const uint8* data2, int size2);
+};
+
+// Default comparator class which deserializes the keys from the given buffers
+// and compares them using comparison operators.
+template <class T>
+class DefaultComparator {
+ public:
+  int Compare(const uint8* data1, int size1, const uint8* data2, int size2) {
+    ArrayInputStream ais1(data1, size1);
+    ArrayInputStream ais2(data2, size2);
+    T key1, key2;
+    SerializationHandler<T>::Deserialize(&ais1, &key1);
+    SerializationHandler<T>::Deserialize(&ais2, &key2);
+    if (key1 < key2) {
+      return -1;
+    } else if (key1 > key2) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 };
 
 // Simple iterator interface for enumerating values for a given key.
@@ -92,7 +114,8 @@ class ReducerContext : public Iterator<ValueIn> {
 //
 // Reducer class definition.
 //
-template <typename KeyIn, typename ValueIn, typename KeyOut, typename ValueOut>
+template <typename KeyIn, typename ValueIn, typename KeyOut, typename ValueOut,
+  class Comparator = DefaultComparator<KeyOut> >
 class Reducer {
  public:
   // Context specific to this reducer instantiation.
@@ -118,6 +141,7 @@ class Reducer {
   typedef ValueIn value_type;
   typedef KeyOut out_key_type;
   typedef ValueOut out_value_type;
+  typedef Comparator comparator_type;
  private:
   DECLARE_LOGGER(Reducer);
 };

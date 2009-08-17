@@ -143,7 +143,7 @@ void HandleReduces::issue_command_() {
             }
             assigned = true;
             if(++currentPartition_ == fileCount_) {
-               //currentPartition_ = 0; //Allows reduces to be re-issued
+               currentPartition_ = 0; //Allows reduces to be re-issued
             }
             message.clear();
             message += "Success!";
@@ -162,19 +162,10 @@ void HandleReduces::issue_command_() {
             message += result;
             log_->write(message, MR_LOGLEVEL_INFO);
 
-            //If not finished, already, push back
-            std::vector<std::string>::iterator finished_IT = finished_.begin();
-            std::vector<std::string>::iterator end         = finished_.end();
-            bool found = false;
-            while(finished_IT != end) {
-               if(*finished_IT == result) {
-                  found = true;
-                  break;
-               }
-               ++finished_IT;
-            }
-            if(found == false) {
-               finished_.push_back(result);
+            // Note partition number as being finished.
+            int finished_partition = boost::lexical_cast<int>(result);
+            if (finished_.find(finished_partition) == finished_.end()) {
+              finished_.insert(finished_partition);
             }
          }
          else if(state == WORKER_STATE_DONE_MAP) {

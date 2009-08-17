@@ -14,7 +14,6 @@ void WorkerThread::mainLoop() {
     if(command == WORKER_COMMAND_MAP) {
        try {
           state_ = WORKER_STATE_MAPPING;
-          //workerDir_.set_attribute("STATE", WORKER_STATE_MAPPING);
           // Map the chunk given from the master.
           MapTaskRunner runner(job_, chunk_id_, raw_chunk_);
           runner.Execute();
@@ -33,8 +32,8 @@ void WorkerThread::mainLoop() {
               // Construct output path for this particular partition.
               std::string full_path = FileOutputFormat::GetOutputPath(*job_);
               full_path.append(partition_name);
-              saga::url fileurl(full_path);
-              adv.store_string(fileurl.get_string());
+              LOG_DEBUG << "Intermediate data: " << full_path;
+              adv.store_string(full_path);
             }
             state_ = WORKER_STATE_DONE_MAP;
           }

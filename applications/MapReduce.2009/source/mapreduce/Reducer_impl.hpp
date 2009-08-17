@@ -10,23 +10,11 @@ namespace mapreduce {
 // Comparator performing per-bit comparison of raw data regardless of the
 // underlying object type.
 template <class T>
-int RawBytesComparator<T>::Compare(uint8* data1, int size1, uint8* data2,
-  int size2) {
+int RawBytesComparator<T>::Compare(const uint8* data1, int size1,
+  const uint8* data2, int size2) {
   int size = std::min(size1, size2);
   return memcmp(reinterpret_cast<const void*>(data1),
     reinterpret_cast<const void*>(data2), size);
-}
-
-// Helper function for consuming data from input and writing it into a string.
-inline static void CopyStreamIntoString(ZeroCopyInputStream* input, std::string& output) {
-  const void* buffer;
-  int size;
-  int total_size = 0;
-  // Copy stream's content into output.
-  while (input->Next(&buffer, &size)) {
-    output.append(reinterpret_cast<const char*>(buffer), size);
-    total_size += size;
-  }
 }
 
 template <typename KeyIn, typename ValueIn, typename KeyOut, typename ValueOut>
@@ -63,7 +51,6 @@ bool ReducerContext<KeyIn, ValueIn, KeyOut, ValueOut>::NextPair() {
     // Shouldn't have been called.
     return false;
   }
-  //std::cerr<<"nextpair ";
   // Deserialize current key/value.
   SerializationHandler<KeyIn>::Deserialize(input_->current_key(), &key_);
   SerializationHandler<ValueIn>::Deserialize(input_->current_value(), &value_);
@@ -73,23 +60,24 @@ bool ReducerContext<KeyIn, ValueIn, KeyOut, ValueOut>::NextPair() {
   if (exhausted_) {
     same_as_previous_key_ = false;
   } else {
-    //LOG_DEBUG << "compareee ";
-    // TODO(miklos): should be done with pointer exchange to avoid copying.
-    previous_key_ = key_buffer_;
     // Read key into buffer.
     key_buffer_.clear();
-    CopyStreamIntoString(input_->current_key(), key_buffer_);
-    // Compare it with previous key.
-    same_as_previous_key_ = 0 == comparator_->Compare(
-      reinterpret_cast<uint8*>(string_as_array(&previous_key_)),
-      previous_key_.size(),
-      reinterpret_cast<uint8*>(string_as_array(&key_buffer_)),
-      key_buffer_.size());
-      LOG_DEBUG << "prev " << previous_key_ << " n " << key_buffer_ << " cm" << same_as_previous_key_;
-  }
+    const uint8* key_buffer;
+    int key_size;
+    input_->get_key_buffer(&key_buffer, &key_size);
+    if (static_cast<int>(previous_key_.size()) != key_size) {
+      same_as_previous_key_ = false;
+    } else {
+      same_as_previous_key_ = 0 == memcmp(reinterpret_cast<const void*>(key_buffer),
+        reinterpret_cast<const void*>(string_as_array(&previous_key_)),
+        key_size);
+    }
+    // Save key.
+    previous_key_.clear();
+    previous_key_.append(reinterpret_cast<const char*>(key_buffer), key_size);
+   }
   return true;
 }
-
 
 //
 // Iterator implementation.
@@ -100,6 +88,9 @@ bool ReducerContext<KeyIn, ValueIn, KeyOut, ValueOut>::Next() {
     if (iterator_begin_) {
       // Key/value has been deserialized by NextKey().
       iterator_begin_ = false;
+      if (!same_as_previous_key_) {
+        stop_ = true;
+      }
     } else {
       NextPair();
       if (!same_as_previous_key_) {

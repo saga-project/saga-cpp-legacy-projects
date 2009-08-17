@@ -66,7 +66,7 @@ class WorkerThread {
   }
 
  private:
-  DECLARE_LOGGER(TypedMapRunner);
+  DECLARE_LOGGER(WorkerThread);
   std::string  uuid_;
   std::string  sessionUUID_;
   saga::url    logURL_;

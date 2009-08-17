@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <saga/saga.hpp>
 #include "utils/LogWriter.hpp"
 #include "job.hpp"
@@ -38,7 +39,7 @@ class HandleReduces {
   saga::advert::directory  workerDir_;
   saga::url                serverURL_;
   LogWriter               *log_;
-  std::vector<std::string> finished_;
+  std::set<int> finished_;  // Finished partition's ID.
   std::vector<saga::url>   workers_;
   saga::stream::server    *service_;
   int                      currentPartition_;

@@ -38,7 +38,8 @@ class SequenceFileOutputFormat : public FileOutputFormat {
  public:
   RawRecordWriter* GetRecordWriter(TaskDescription* task) {
     // Default work path for task.
-    saga::url default_url(FileOutputFormat::GetUniqueWorkFile(task));
+    saga::url default_url = FileOutputFormat::GetUrl(*task,
+      FileOutputFormat::GetUniqueWorkFile(task));
     return new SequenceFileRecordWriter(default_url);
   }
 };

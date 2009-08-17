@@ -21,6 +21,8 @@ void DistributedJobRunner::Initialize(const std::string& config_file_path) {
   cfgFileParser_ = ConfigFileParser(config_file_path, *(initialLogger.get()));
   database_      = cfgFileParser_.getSessionDescription().orchestrator;
   serverURL_     = cfgFileParser_.getMasterAddress();
+  // Modify job based on the configuration read.
+  SetupJob();
   // create a UUID for this agent
   uuid_ = std::string("MapReduce-") + saga::uuid().string();
 
@@ -28,6 +30,15 @@ void DistributedJobRunner::Initialize(const std::string& config_file_path) {
   logURL_ = advertKey;
   //create new LogWriter instance that writes to advert
   log = new mapreduce::LogWriter(std::string(MR_MASTER_EXE_NAME), advertKey);
+}
+
+void DistributedJobRunner::SetupJob() {
+  // Set output base if output path have been specified by the user.
+  const std::string& output_prefix = cfgFileParser_.getOutputBase();
+  if (!FileOutputFormat::GetOutputPath(job_).empty() &&
+    !output_prefix.empty()) {
+    FileOutputFormat::SetOutputBase(job_, output_prefix);
+  }
 }
 
 void DistributedJobRunner::Run(MapReduceResult* result) {

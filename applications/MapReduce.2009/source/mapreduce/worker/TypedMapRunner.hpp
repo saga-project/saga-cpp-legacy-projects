@@ -24,7 +24,10 @@ class TypedMapRunner {
   void RunTask(JobDescription* job, ZeroCopyInputStream* input);
 };
 
-// Class for outputting partitioned intermediate data.
+// Class for outputting partitioned intermediate data. Buffers the output
+// key/value pairs in a std::map using operator< as the comparator.
+// Note: as such, an operator< needs to be specified for custom key types,
+// otherwise compilation of MapPartitionedOutput will fail.
 template <typename KeyT, typename ValueT>
 class MapPartitionedOutput : public RecordWriter<KeyT, ValueT> {
  public:
@@ -34,21 +37,16 @@ class MapPartitionedOutput : public RecordWriter<KeyT, ValueT> {
   // RecordWriter implementation.
   void Write(const KeyT& key, const ValueT& value) {
     key_buffer_.clear();
-//    value_buffer_.clear();
     // Serialize the key/value pair.
     StringOutputStream key_out(&key_buffer_);
-//    StringOutputStream value_out(&value_buffer_);
     SerializationHandler<KeyT>::Serialize(&key, &key_out);
-//    SerializationHandler<ValueT>::Serialize(&value, &value_out);
     // Get partition for this key.
     int partition = partitioner_->GetPartition(key_buffer_, num_partitions_);
     // Sanity check.
     if (partition < 0 || partition >= num_partitions_) {
       throw saga::bad_parameter("Wrong partition returned by partitioner");
     }
-    // Choose writer.
-/*    RawRecordWriter* writer = writers_[partition];
-    writer->Write(key_buffer_, value_buffer_);*/
+    // Choose intermediate buffer and save value.
     IntermediateBufferT* buffer = buffers_[partition];
     (*buffer)[key].push_back(value);
   }
@@ -106,12 +104,15 @@ class MapPartitionedOutput : public RecordWriter<KeyT, ValueT> {
         "map", job_->get_attribute("runner.chunk_id"), partition));
       LOG_DEBUG << "Output path for partition " << partition << ": "
                 << output_path;
-      saga::url output_url(output_path);
-      writers_[partition] = new SequenceFileRecordWriter(output_url);
-      /*    RawOutputFormat* output_format = mapreduce::OutputFormatFactory::get_by_key(
-      job_->get_output_format());
-    //RecordWriter<typename KeyT, typename ValueT> writ = typed_output.GetRecordWriter(map_task.get());
-          writers_[partition] = output_format->GetRecordWriter(task.get());*/
+      try {
+        saga::url output_url(FileOutputFormat::GetUrl(*job_, output_path));
+        writers_[partition] = new SequenceFileRecordWriter(output_url);
+      } catch (saga::exception const& e) {
+        LOG_ERROR << "Failed to create map writer for "
+                  << FileOutputFormat::GetUrl(*job_, output_path).get_string()
+                  << "; reason: " << e.what();
+        throw e;
+      }
     }
   }
 

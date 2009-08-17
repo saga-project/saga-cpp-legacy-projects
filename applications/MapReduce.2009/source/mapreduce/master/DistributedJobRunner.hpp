@@ -41,8 +41,10 @@ class DistributedJobRunner {
 
   mapreduce::LogWriter * log;
   ConfigFileParser cfgFileParser_;
-  const JobDescription& job_;
+  JobDescription job_;  // Copy of original JobDescription.
 
+  // Sets up the job based on the configuration read.
+  void SetupJob();
 
  /*********************************************************
   * registerWithDB_ attempts to make a connection to the  *

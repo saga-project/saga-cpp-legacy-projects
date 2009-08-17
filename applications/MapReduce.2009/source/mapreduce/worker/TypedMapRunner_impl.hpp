@@ -11,12 +11,6 @@
 
 using namespace mapreduce;
 using namespace mapreduce::io;
-/*mapreduce::InputFormatFactory;
-using mapreduce::InputFormatCreator;
-using mapreduce::RawInputFormat;
-using mapreduce::InputChunk;
-using mapreduce::TypedInputFormat;
-using mapreduce::RecordReader;*/
 
 namespace mapreduce { namespace worker {
 
