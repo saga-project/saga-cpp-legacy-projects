@@ -14,6 +14,18 @@
 
 namespace mapreduce {
 
+// Helper function for consuming data from input and writing it into a string.
+inline static void CopyStreamIntoString(ZeroCopyInputStream* input, std::string& output) {
+  const void* buffer;
+  int size;
+  int total_size = 0;
+  // Copy stream's content into output.
+  while (input->Next(&buffer, &size)) {
+    output.append(reinterpret_cast<const char*>(buffer), size);
+    total_size += size;
+  }
+}
+
 // Class representing one piece of input data.
 class InputChunk {
  public:
@@ -32,10 +44,19 @@ class RawRecordReader {
   virtual bool NextRecord() = 0;
   // Get inputstream for current key.
   virtual ZeroCopyInputStream* current_key() = 0;
+  // Get immutable buffer for current key.
+  virtual void get_key_buffer(const uint8** buffer, int* size) {
+    // Default implementation.
+    CopyStreamIntoString(current_key(), default_key_buffer_);
+    *buffer = reinterpret_cast<const uint8*>(string_as_array(&default_key_buffer_));
+    *size = default_key_buffer_.size();
+  }
   // Get inputstream for current value.
   virtual ZeroCopyInputStream* current_value() = 0;
   // Close the record reader.
   virtual void Close() = 0;
+ private:
+  std::string default_key_buffer_;
 };
 
 // Class for reading typed input using a RawRecordReader.
@@ -97,18 +118,6 @@ class RecordWriter {
     // Write them using the RawRecordWriter.
     raw_writer_->Write(key_buffer_, value_buffer_);
   }
-/*  void Write(const KeyT key, const ValueT value) {
-    // Reset buffers.
-    key_buffer_.clear();
-    value_buffer_.clear();
-    // Serialize the key/value pair.
-    StringOutputStream key_output(&key_buffer_);
-    StringOutputStream value_output(&value_buffer_);
-    SerializationHandler<KeyT>::Serialize(&key, &key_output);
-    SerializationHandler<ValueT>::Serialize(&value, &value_output);
-    // Write them using the RawRecordWriter.
-    raw_writer_->Write(key_buffer_, value_buffer_);
-  }*/
   // Close the record writer.
   virtual void Close() {
     raw_writer_->Close();
@@ -120,22 +129,7 @@ class RecordWriter {
   std::string value_buffer_;
   RawRecordWriter* raw_writer_;
 };
-/*
-// Interface for handling custom input formats dealing with blocks of bytes
-// representing serialized objects. 
-class RawInputFormat {
- public:
-  virtual ~RawInputFormat() {}
-  // Serialize the InputChunk.
-  virtual void SerializeInputChunk(InputChunk* chunk, ZeroCopyOutputStream* buffer) = 0;
-  // Deserialize the InputChunk needed for this InputFormat from the message.
-  virtual InputChunk* CreateInputChunk(ZeroCopyInputStream* buffer) = 0;
-  // Chunk the input data specified in the job's descriptor.
-  virtual std::vector<InputChunk*> GetChunks(const JobDescription& job) = 0;
-  // Create a record reader to be used by the Mapper/Combiner/Reducer function.
-  virtual RawRecordReader* GetRecordReader(InputChunk* chunk, JobDescription* job) = 0;
-};
-*/
+
 // Typed version of a RawInputFormat which handles the deserialization of
 // objects from the underlying data stream by delegating it to a RecordReader.
 template <typename KeyT, typename ValueT>
