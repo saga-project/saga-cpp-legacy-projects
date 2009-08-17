@@ -124,7 +124,8 @@ namespace mapreduce {
       std::freopen("/tmp/mr-worker-stderr.txt", "w", stderr);
       std::freopen("/tmp/mr-worker-stdout.txt", "w", stdout);
       // Init logging.
-      std::string log_file("/tmp/mr-worker-log.txt");
+      std::string log_file("/tmp/mr-worker-log-" +
+        g_command_line_parameters["session"].as<std::string>() + ".txt");
       // Log messages with at least INFO level to console.
       logging::init_log_to_console()->set_filter(
         flt::attr< severity_level >("Severity") >= 1);
@@ -134,7 +135,8 @@ namespace mapreduce {
             << fmt::date_time< boost::posix_time::ptime >("TimeStamp") << " ["
             << fmt::attr< severity_level >("Severity") << "] " << fmt::message();
       // Log to file all messages.
-      logging::init_log_to_file("test.log")->locked_backend()->set_formatter(formatter);
+      logging::init_log_to_file(log_file)->locked_backend()->set_formatter(
+        formatter);
       // Register common attributes.
       logging::add_common_attributes();
 
