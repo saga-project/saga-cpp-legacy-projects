@@ -8,6 +8,15 @@
 
 namespace mapreduce {
 
+void FileOutputFormat::SetOutputBase(JobDescription& job,
+  const std::string& value) {
+  job.set_attribute(JOB_ATTRIBUTE_FILE_OUTPUTBASE, value);
+}
+
+std::string FileOutputFormat::GetOutputBase(const JobDescription& job) {
+  return job.get_attribute(JOB_ATTRIBUTE_FILE_OUTPUTBASE, "file://localhost/");
+}
+
 void FileOutputFormat::SetOutputPath(JobDescription& job, const std::string& path) {
   std::string current_paths(job.get_attribute(JOB_ATTRIBUTE_FILE_OUTPUTPATH));
   if (!current_paths.empty()) {
@@ -19,8 +28,14 @@ void FileOutputFormat::SetOutputPath(JobDescription& job, const std::string& pat
 }
 
 std::string FileOutputFormat::GetOutputPath(const JobDescription& job) {
-  return job.get_attribute(JOB_ATTRIBUTE_FILE_OUTPUTPATH,
-    "file://localhost//tmp/");
+  return job.get_attribute(JOB_ATTRIBUTE_FILE_OUTPUTPATH, "/tmp/");
+}
+
+saga::url FileOutputFormat::GetUrl(const JobDescription& job,
+  const std::string& path) {
+  std::string result(GetOutputBase(job));
+  result.append(path);
+  return saga::url(result);
 }
 
 std::string FileOutputFormat::GetOutputPartitionName(const JobDescription* job,
