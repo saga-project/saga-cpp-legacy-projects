@@ -8,29 +8,12 @@
 #include "input/SequenceFileInputFormat.hpp"
 #include "Reducer.hpp"
 #include "input_output.hpp"
+#include "MergingRawRecordReader.hpp"
 
 using namespace mapreduce;
 using namespace mapreduce::io;
 
 namespace mapreduce { namespace worker {
-
-/*class RawRecordReaderIterator : public RawKeyValueIterator {
- public:
-  RawRecordReaderIterator(RawRecordReader* reader) : reader_(reader) {}
-  // RawKeyValueIterator interface implementation.
-  bool Next() {
-    return reader_->Next();
-  }
-  ZeroCopyInputStream* current_key() {
-    return reader_->current_key();
-  }
-  ZeroCopyInputStream* current_value() {
-    return reader_->current_value();
-  }
-  void Close() {
-    reader_->Close();
-  }
-};*/
 
 template <typename ReducerT>
 void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
@@ -53,23 +36,30 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
       throw;
   }
   if (input_files.size() == 0) {
-    LOG_DEBUG << "No input files specified. Quitting";
+    LOG_DEBUG << "No input files specified. Quitting.";
     return;
   }
   // Create reader for files.
-  // MergeSortingRawReader(input_files, comparator)
-  LOG_DEBUG << "create read";
-  boost::scoped_ptr<RawRecordReader> reader(new SequenceFileRecordReader(
-    saga::url(input_files.back()), 0));
-/*  {
-      RecordReader<std::string, int> reader_;
-  reader_.Initialize(reader.get());
-  while (reader_.NextRecord()) {
-    std::cerr <<reader_.current_key() << " " << reader_.current_value() << std::endl;
+  boost::scoped_ptr<RawRecordReader> reader;
+  if (input_files.size() == 1) {
+    LOG_DEBUG << "Creating single reader";
+    // Special case when no merging is needed.
+    reader.reset(new SequenceFileRecordReader(saga::url(
+      input_files.back()), 0));
+  } else {
+    LOG_DEBUG << "Creating merging reader";
+    // Instantiate readers for each intermediate input part.
+    std::vector<RawRecordReader*> readers;
+    std::vector<std::string>::const_iterator input_file = input_files.begin();
+    while (input_file != input_files.end()) {
+      readers.push_back(new SequenceFileRecordReader(
+        FileOutputFormat::GetUrl(*task, *input_file), 0));
+      ++input_file;
+    }
+    // Merge input files while reading them.
+    reader.reset(new MergingRawRecordReader<typename ReducerT::out_key_type,
+      typename ReducerT::comparator_type>(readers));
   }
-  reader_.Close();
-    
-  }*/
   // Prepare output.
   boost::scoped_ptr<RecordWriter<typename ReducerT::out_key_type,
                                  typename ReducerT::out_value_type> > writer;
@@ -85,7 +75,6 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
   // Run the reducer on this partition.
   typename ReducerT::Context context(reader.get(), comparator, writer.get());
   ReducerT reducer;
-  LOG_DEBUG << "run";
   reducer.Run(&context);
   // Cleanup.
   reader->Close();

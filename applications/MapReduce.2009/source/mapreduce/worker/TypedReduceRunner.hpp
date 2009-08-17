@@ -18,7 +18,7 @@ class TypedReduceRunner {
  public:
   void RunTask(TaskDescription* job, saga::advert::directory& input_dir);
  private:
-  DECLARE_LOGGER(TypedMapRunner);
+  DECLARE_LOGGER(TypedReduceRunner);
 };
 
 }   // namespace worker
