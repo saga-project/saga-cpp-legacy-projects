@@ -46,6 +46,11 @@ class SequenceFileRecordReader : public RawRecordReader {
       key_buffer_.size()));
     return key_input_.get();
   }
+  // Get immutable buffer for current key.
+  void get_key_buffer(const uint8** buffer, int* size) {
+    *buffer = reinterpret_cast<const uint8*>(string_as_array(&key_buffer_));
+    *size = key_buffer_.size();
+  }
   // Get inputstream for current value.
   ZeroCopyInputStream* current_value() {
     value_input_.reset(new ArrayInputStream(string_as_array(&value_buffer_),
