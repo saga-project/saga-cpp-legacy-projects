@@ -81,7 +81,6 @@ class MergingRawRecordReader : public RawRecordReader {
       reader_heap_.pop_back();
       // Advance top reader.
       top_->Next();
-      std::make_heap(reader_heap_.begin(), reader_heap_.end(),
       // Put it back into the heap.
       reader_heap_.push_back(top_);
       // Maintain heap property.
