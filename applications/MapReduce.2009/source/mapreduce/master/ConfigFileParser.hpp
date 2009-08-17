@@ -51,7 +51,7 @@ namespace mapreduce {
          std::vector<HostDescription>   targetHostList_;
          std::vector<BinaryDescription> binDescList_;
          std::vector<FileDescription>   fileDescList_;
-         std::string                    outputPrefix_;
+         std::string                    outputBase_;
          std::string                    masterAddress_;
          mapreduce::LogWriter          *log_;
         
@@ -65,7 +65,7 @@ namespace mapreduce {
          std::vector<BinaryDescription> getExecutableList(void);
          std::vector<HostDescription>   getTargetHostList(void);
          std::vector<FileDescription>   getFileList(void);
-         std::string                    getOutputPrefix(void);
+         std::string                    getOutputBase(void);
          std::string                    getMasterAddress();
         
       };
