@@ -5,18 +5,21 @@
 #  http://www.boost.org/LICENSE_1_0.txt)
 
 # use all cpp files from here
-SAGA_SRC          = $(wildcard *.cpp)
-SAGA_LIB_OBJ += $(SAGA_SRC:%.cpp=%.o)
+SAGA_SRC  = $(wildcard *.cpp)
+SAGA_OBJ += $(SAGA_SRC:%.cpp=%.o)
 
-SAGA_USE_BOOST_OPTIONS = "yes"
 
-# include the application helper make file
-include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
+include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
-BOOST_VERSION_CHECK = $(shell expr $(SAGA_BOOST_VERSION_MAJ) \<= 1 \& $(SAGA_BOOST_VERSION_MIN) \< 36)
+ifdef SAGA_BOOST_VERSION_MAJ 
+  ifdef SAGA_BOOST_VERSION_MIN
+    BOOST_VERSION_CHECK = $(shell expr $(SAGA_BOOST_VERSION_MAJ) \<= 1 \& $(SAGA_BOOST_VERSION_MIN) \< 36)
+  endif
+endif
 
 ifneq "$(BOOST_VERSION_CHECK)" "0"
   SAGA_CPPINCS += -I../../external/boost/include
 endif
 
 SAGA_CPPINCS += -I../
+
