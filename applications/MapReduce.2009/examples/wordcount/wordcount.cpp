@@ -41,7 +41,7 @@ class WordCountReduce : public Reducer<string, int, string, int> {
 };
 REGISTER_REDUCER_CLASS(WordCountReduce, 1);
 
-//using namespace mapreduce;
+
 int main(int argc, char** argv) {
   // Will not continue execution if we are supposed to be a worker.
   // Otherwise jobs will be submitted.
@@ -54,13 +54,16 @@ int main(int argc, char** argv) {
 
   MapReduceResult result;
   JobDescription job;
+  // Specify input.
   job.set_input_format("Text");
-  FileInputFormat::AddInputPath(job, mapreduce::g_command_line_parameters["i"].as<std::string>());
+  FileInputFormat::AddInputPath(job,
+    "file://localhost//home/miklos/test-data/file.txt");
   job.set_mapper_class("WordCountMap");
   job.set_reducer_class("WordCountReduce");
   job.set_output_format("SequenceFile");
   job.set_num_reduce_tasks(1);
   mapreduce::master::DistributedJobRunner job_runner(job);
-  job_runner.Initialize(mapreduce::g_command_line_parameters["config"].as<std::string>());
+  job_runner.Initialize(
+    mapreduce::g_command_line_parameters["config"].as<std::string>());
   job_runner.Run(&result);
 }
