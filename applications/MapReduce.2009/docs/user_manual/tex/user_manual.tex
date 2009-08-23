@@ -1,0 +1,451 @@
+
+\documentclass{article}
+
+\usepackage{ifpdf}
+%\usepackage{subfigure}
+
+\ifpdf
+  \usepackage[pdftex]{graphicx}
+  \usepackage[pdftex]{hyperref}
+  \graphicspath{{Pics/}}
+  \DeclareGraphicsExtensions{.pdf, .png, .jpg}
+\else
+  \usepackage{graphicx}
+  \usepackage[hypertex]{hyperref}
+  \graphicspath{{Pics/}}
+  \DeclareGraphicsExtensions{.ps, .eps}
+\fi
+
+\usepackage{srcltx}
+%\usepackage{wrapfig}
+
+\newcommand{\I}{\textit}
+\newcommand{\B}{\textbf}
+\newcommand{\T}{\texttt}
+
+\newcommand{\F}[1]{\B{FIXME: #1}}
+
+\begin{document}
+
+\title{SAGA-MapReduce Framework -- User Manual}
+\author{Miklos Erdelyi \footnotemark}
+\maketitle
+
+\footnotetext{made in the frame of Google Summer of Code 2009}
+
+\begin{abstract}
+
+  This document provides an overview for the SAGA-MapReduce framework,
+  aimed at programmers who would like to use it for data processing in
+  heterogenous computing environments.
+
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+The MapReduce programming model has gained wide popularity in recent years \cite{mapreduce, hadoop}.
+
+The aim of this framework is to make large-scale parallel data processing tasks easily implementable in heterogenous environments supported by SAGA. There are several open-source solutions available, such as Hadoop \cite{hadoop}, Sector/Sphere \cite{sector}. SAGA-MapReduce differs from these solutions in that it is infrastructure-independent: different job scheduling systems (eg., Globus, Condor) and distributed file systems (eg., HDFS \cite{hdfs}, KFS \cite{kfs}) can be used in combination for performing MapReduce tasks, so the application is not inherently tied to any infrastructure.
+
+
+\section{Programming Model}
+
+The reader is invited to read about the MapReduce programming model in more depth in \cite{mapreduce}. Here, only the main ideas will be recalled.
+
+The computation is based on key/value pairs: from a set of \emph{input} key/value pairs a set of \emph{output} key/value pairs are produced. The user of the framework can express the computation as two functions: a \emph{Mapper} and a \emph{Reducer}.
+
+The \emph{Mapper} takes an input pair and produces a set of \emph{intermediate} key/value pairs. The framework collects all the intermediate values for a key \emph{K} and hands them over to the Reducer. Essentially, the Mapper performs a filtering operation.
+
+The \emph{Reducer} gets an intermediate key \emph{K} and a list of intermediate values, and merges these to form a usually smaller set of values. Typically only zero or one value is produced for each intermediate key, as the Reducer usually performs an aggregation of data.
+
+\subsection{Example}
+
+Let us consider the problem of building an inverted index for a text collection, in such a way that we would like to have a list of document IDs for each word. In this case, the user could write something similar to the following pseudo-code:
+
+\begin{quote}
+\begin{verbatim}
+Map(String key, Document value):
+    for each word w in value:
+        EmitIntermediate(w, value.docID);
+
+Reduce(String key, Iterator values):
+    List doc_list;
+    for each v in values:
+        doc_list.add(v);
+    sort_by_id(doc_list);
+    Emit(key, doc_list);
+
+\end{verbatim}
+\end{quote}
+
+The Map function emits each word plus the document identifier in which the word occurred, while the Reduce function creates a sorted list of document identifiers for each word.
+%Appendix A contains the full source code for this simple example.
+
+
+\section{Programming Elements}
+
+This section describes how mappers, reducers and partitioners can be specified by the user.
+
+\subsection{Mappers}
+
+A user-specified mapper function must be derived from the base \emph{Mapper} class as follows:
+
+\begin{quote}
+\begin{verbatim}
+class FooMapper :
+    public Mapper<KeyIn, ValueIn, KeyOut, ValueOut> {
+public:
+    void Map(const KeyIn& key, const ValueIn& value, Context* context) {
+        // Do the processing.
+        ...
+        // Emit intermediate key/value.
+        context->Emit(key_out, value_out);
+    }
+};
+\end{verbatim}
+\end{quote}
+
+Here, KeyIn and ValueIn denote the input type of the keys and values, respectively, while KeyOut and ValueOut denote the output type of the intermediate keys and values.
+In order to be able to set up a declared Mapper in a JobDescription, it must be registered with the framework. Registration is done through the \texttt{REGISTER\_MAPPER\_CLASS} macro as follows:
+
+\begin{quote}
+\begin{verbatim}
+REGISTER_MAPPER_CLASS(<mapper_class_name>, <ID>);
+\end{verbatim}
+\end{quote}
+
+such that \texttt{<ID>} is a unique integer, starting from 1.
+
+Intermediate values must be emitted through the \texttt{context} instance passed to the Map function.
+
+\subsection{Reducers}
+
+Each user-specified must be derived from the base \emph{Reducer} class as follows:
+
+\begin{quote}
+\begin{verbatim}
+class FooReducer :
+    public Reducer<KeyIn, ValueIn, KeyOut, ValueOut, ComparatorClass> {
+public:
+    void Reduce(const KeyIn& key, Iterator<ValueIn>& values,
+        Context* context) {
+        // Do the aggregation.
+        ...
+        // Emit intermediate key/value.
+        context->Emit(key_out, value_out);
+    }
+};
+\end{verbatim}
+\end{quote}
+
+Here, KeyIn and ValueIn denote the input type of the intermediate keys and values, so these must match with the type of the intermediate keys and values of the respective Mapper class used for generating the input for this reducer. KeyOut and ValueOut denote the output type of the final keys and values.
+Specifying the ComparatorClass is optional (see more about this in Section \ref{sec:comparators}).
+
+In order to be usable in jobs, the declared Reducer class must be registered in the framework with the \texttt{REGISTER\_REDUCER\_CLASS} macro the same way as it is described in the previous subsection for Mapper classes.
+
+\subsection{Partitioners}
+
+The number of reduce tasks/output files can be specified by the user. When processing the input data, the generated intermediate keys will get partitioned across reduce tasks using a partitioning function. This partitioning function has the following signature:
+
+\begin{quote}
+\begin{verbatim}
+// Interface for partitioning intermediate keys.
+class Partitioner {
+ public:
+  virtual ~Partitioner() {}
+  virtual int GetPartition(const std::string& key, int num_partitions) = 0;
+};
+\end{verbatim}
+\end{quote}
+
+By default, the framework applies a partitioning function that returns the hash value of the input key modulo the number of partitions.
+However, in certain cases a different partitioning scheme might be needed. For example, when the set of classes the keys belong to is known in advance, and all keys belonging to the same class must end up in the same output file.
+
+To be able to specify a custom partitioner class in a JobDescription, it must be registered through the \texttt{REGISTER\_PARTITIONER\_CLASS} macro as follows:
+
+\begin{quote}
+\begin{verbatim}
+REGISTER_PARTITIONER_CLASS(<partitioner_class_name>, <ID>);
+\end{verbatim}
+\end{quote}
+
+such that \texttt{<ID>} is a unique integer, starting from 1.
+
+
+\section{Jobs}
+
+This section explains how to properly set up the framework to run a job.
+
+\subsection{Initializing the Framework}
+
+Before any user code is run, the framework must be initialized by a \texttt{ mapreduce::InitFramework(argc, argv)} call, where \texttt{argc} and \texttt{argv} are the parameters given to the \texttt{main} function. This initialization call ensures that tasks can be conducted properly by the master. For worker machines the initialization call never returns; it will run the main worker code listening for the master's commands.
+
+\subsection{Describing a Job}
+
+A MapReduce job can be specified by a JobDescription, which holds the detailed description of the operations to be executed: what Mapper/Reducer classes to use, where to find the input, what format the input has, where should the output be stored, etc. In the following, these parameters will be described shortly.
+
+\paragraph{Specifying Mapper/Reducer/Partitioner classes.}
+
+Use \texttt{set\_mapper\_class}, \texttt{set\_reducer\_class} and \texttt{set\_partitioner\_class} for this. Note: the classes the user intends to use in a job must be registered via the respective \texttt{REGISTER\_...\_CLASS} macros, as described in the previous section.
+
+\paragraph{Specifying number of reduce tasks/output files.}
+
+The number of reduce workers to use (identical to the number of output files or partitions) can be specified via \texttt{set\_num\_reduce\_tasks}.
+
+\paragraph{Specifying input/output format.}
+
+Use \texttt{set\_input\_format} and \texttt{set\_output\_format} for this. Currently only file-based input and output formats are supported.
+
+The input/output formats supported by the SAGA-MapReduce framework are listen in Table \ref{tbl:formats}.
+
+\begin{table}[htb!]
+  \centering
+\begin{tabular}{|c|c|c|}
+  \hline
+  \emph{Format Name} & \emph{Type} & \emph{Notes} \\
+  \hline
+  \hline
+  Text & input & Outputs (int, std::string) key/value pairs, such that \\
+   & & the key will be the offset in the text file, while the \\
+   & & value will be the line starting from that offset \\
+  \hline
+  SequenceFile & input/output & \\
+  \hline
+\end{tabular}
+\caption{Currently supported input/output formats.}
+\label{tbl:formats}
+\end{table}
+
+
+\paragraph{Specifying accessibility of input/output.}
+
+For file-based input formats input paths can be added as follows:
+\begin{quote}
+\begin{verbatim}
+FileInputFormat::AddInputPath(job, "/path/to/input");
+\end{verbatim}
+\end{quote}
+where \texttt{job} is a set up JobDescription.
+
+The output path for the output shards can be specified like below:
+\begin{quote}
+\begin{verbatim}
+FileOutputFormat::SetOutputPath(job, "/path/to/output");
+\end{verbatim}
+\end{quote}
+where \texttt{job} is a set up JobDescription, with a configured output base.
+
+\paragraph{Example JobDescription}
+Please see the word counting example in \texttt{examples/wordcount/wordcount.cpp} for a full example of setting up a MapReduce job.
+
+\subsection{Configuring the Framework}
+
+The framework must be configured through an XML-based file. Whenever a job is described, the framework loads the configuration properties from this file as defaults. So, when the user does not specify certain configuration property, when available, it is taken from the configuration file.
+
+You can find an example configuration file which demonstrates the possibilities in Appendix \ref{sec:appendix_config}.
+
+\subsubsection{Orchestrator}
+
+Communication between the master and the workers is done partially through an advert DB. Under the \texttt{OrchestratorDB} node it must be specify which SAGA Advert adaptor to use, specified by a fully-qualified URL.
+
+For example, to use a local advert database, one can specify:
+
+\begin{quote}
+\begin{verbatim}
+    <OrchestratorDB>
+      <Host>
+        advert://
+      </Host>
+    </OrchestratorDB>
+\end{verbatim}
+\end{quote}
+
+\subsubsection{Executables}
+
+Currently the framework does not copy executables as part of the staging process to the worker machines. As such, the user needs to take care of compiling and installing the executables of the MapReduce program he or she wishes to run. These application binaries must be created for every target host's architecture.
+
+Executables must be specified under the \texttt{ApplicationBinaries} node, as follows:
+\begin{quote}
+\begin{verbatim}
+    <ApplicationBinaries>
+      <BinaryImage arch="i686" OS="Linux" extraArgs="">
+        /path/to/binary/for/this/platform
+      </BinaryImage>
+    </ApplicationBinaries>
+\end{verbatim}
+\end{quote}
+where \texttt{arch} and \texttt{OS} should match the relevant properties of the binary executable described.
+
+\subsubsection{Workers}
+
+Under the \texttt{TargetHosts} node the available worker machines can be given. These should be URLs with schemas which have configured SAGA Job adaptors. For example, to run the jobs locally, one can specify the following:
+
+\begin{quote}
+\begin{verbatim}
+...
+<TargetHosts>
+    <Host arch="i686" OS="Linux">
+    fork://localhost
+    </Host>
+</TargetHosts>
+...
+\end{verbatim}
+\end{quote}
+
+For running distributed jobs, eg., the Globus GRAM adaptor can be used as follows:
+
+\begin{quote}
+\begin{verbatim}
+...
+<TargetHosts>
+    <Host arch="i386" OS="Linux">
+    gram://qb1.loni.org:2119/jobmanager-pbs
+    </Host>
+</TargetHosts>
+...
+\end{verbatim}
+\end{quote}
+
+The \texttt{Host} node's \texttt{arch} and \texttt{OS} attributes specify which binary must be submitted when using the specific target host.
+
+\subsubsection{Output File System}
+
+Under the \texttt{OutputBase} node the base URL for all output can be specified. The schema of the URL given here should have a corresponding configured SAGA File adaptor available. For example, to use KFS for storing intermediate and output files, one could write:
+
+\begin{quote}
+\begin{verbatim}
+...
+<OutputBase>
+kfs://foo.bar:20010/test-output/
+</OutputBase>
+...
+\end{verbatim}
+\end{quote}
+
+\subsection{Running a Job}
+
+Jobs can be run through a \emph{JobRunner}. There is currently only one implemented which runs jobs in a distributed environment: this is the \emph{DistributedJobRunner}. It can be constructed by giving it a JobDescription prepared beforehand. Before running the MapReduce job, the JobRunner needs to be initialized as follows:
+
+\begin{quote}
+\begin{verbatim}
+mapreduce::master::DistributedJobRunner job_runner(job);
+job_runner.Initialize(mapreduce::g_command_line_parameters[
+    "config"].as<std::string>());
+mapreduce::MapReduceResult result;
+job_runner.Run(&result);
+
+\end{verbatim}
+\end{quote}
+
+Here, the \texttt{config} command line parameter contains the path to the XML configuration file specified by the user. The results of the execution of the job will be stored in the variable \emph{result}.
+
+\section{Custom Types, Comparators}
+
+The framework can be extended easily with custom input/output types and input/output formats. These might be needed when the user would like to process custom objects as input data, or input needs to be obtained from non-file based data sources such as databases.
+
+\subsection{Custom Keys/Values}
+
+In order to support a custom key or value class, the user needs to provide the following:
+\begin{itemize}
+\item a serialization handler - so that data can be stored and read back,
+\item a comparison operator - so that data can be sorted.
+\end{itemize}
+
+Currently serialization support for Google Protocol Buffers \cite{protobuf} objects is built-in.
+
+Alternatively, you can create a serializable class by implementing the \texttt{mapreduce::Serializable} interface:
+\begin{quote}
+\begin{verbatim}
+class Serializable {
+ public:
+  virtual ~Serializable() {}
+  virtual void Serialize(CodedOutputStream* output) const = 0;
+  virtual void Deserialize(CodedInputStream* input) = 0;
+};
+\end{verbatim}
+\end{quote}
+
+For more details on using a \texttt{CodedStream} for input/output, please consult the relevant Google Protocol Buffers \cite{protobuf} documentation.
+
+\paragraph{Note:}
+In order to use a custom key type, it needs to have the less operator (\texttt{operator<}) specified, otherwise the Mapper will not be able to sort the intermediate keys.
+
+%\subsection{Custom Input/Output Formats}
+%
+%%interface
+%%macro for registering
+
+\subsection{Comparators}
+\label{sec:comparators}
+
+The last template parameter for the declaration of the Reducer class specifies what comparator should be used for ordering the intermediate keys input to the Reducer.
+
+A user-defined comparator must have a \texttt{Compare} method which must have the following signature:
+\begin{quote}
+\begin{verbatim}
+int Compare(const uint8* data1, int size1,
+    const uint8* data2, int size2);
+\end{verbatim}
+\end{quote}
+such that 0 is returned when the two objects are identical, a negative number is returned when the first object is less than the second one, and a positive number otherwise.
+
+The default comparator implementation deserializes the two objects and applies the less or greater than operators between them. A custom implementation might be more efficient by avoiding the complete deserialization of the objects from the buffers. For example, in case of ASCII strings a byte-wise comparison might be sufficient using \texttt{memcmp}.
+
+\section{References}
+\bibliography{saga_mapreduce}
+\bibliographystyle{plain}
+
+\newpage
+\section{Appendix}
+\label{sec:appendix_config}
+
+Example configuration file:
+\begin{quote}
+\begin{verbatim}
+<MRDL version="1.0"
+      xmlns="http://cct.lsu.edu/MRL-1-0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema_instance" >
+
+  <!-- Description of the session - a file can contain multiple sessions -->
+  <MapReduceSession name="WordCount"
+                    version="..."
+                    user="..."
+                    priority="1"
+                    experimentID="..."
+                    eventLevel="...">
+
+    <!-- The orchestrator host (AdvertDB) -->
+    <OrchestratorDB>
+      <Host>
+        advert://
+      </Host>
+    </OrchestratorDB>
+
+    <MasterAddress>tcp://localhost:8000</MasterAddress>
+
+    <!-- Application binaries for different platforms/architectures -->
+    <ApplicationBinaries>
+      <BinaryImage arch="i686" OS="Linux" extraArgs="">
+        /path/to/binary/for/this/platform
+      </BinaryImage>
+    </ApplicationBinaries>
+
+    <!-- List of hosts we want to run comp. agents on -->
+    <TargetHosts>
+      <Host arch="i686" OS="Linux">
+        fork://localhost
+      </Host>
+    </TargetHosts>
+
+    <!-- Output data base location -->
+    <OutputBase>file://localhost/</OutputBase>
+
+  </MapReduceSession>
+
+</MRDL>
+\end{verbatim}
+\end{quote}
+
+\end{document}
