@@ -43,27 +43,38 @@ REGISTER_REDUCER_CLASS(WordCountReduce, 1);
 
 
 int main(int argc, char** argv) {
-  // Will not continue execution if we are supposed to be a worker.
-  // Otherwise jobs will be submitted.
-  // TODO(miklos): the below should be done by the registerer macro.
-  mapreduce::MapRunner* runner = mapreduce::MapRunnerFactory::get_by_key("WordCountMap");
-  assert(runner);
-  mapreduce::ReduceRunner* runner2 = mapreduce::ReduceRunnerFactory::get_by_key("WordCountReduce");
-  assert(runner2);
-  mapreduce::InitFramework(argc, argv);
 
-  MapReduceResult result;
-  JobDescription job;
-  // Specify input.
-  job.set_input_format("Text");
-  FileInputFormat::AddInputPath(job,
-    "file://localhost//home/miklos/test-data/file.txt");
-  job.set_mapper_class("WordCountMap");
-  job.set_reducer_class("WordCountReduce");
-  job.set_output_format("SequenceFile");
-  job.set_num_reduce_tasks(1);
-  mapreduce::master::DistributedJobRunner job_runner(job);
-  job_runner.Initialize(
-    mapreduce::g_command_line_parameters["config"].as<std::string>());
-  job_runner.Run(&result);
+  try {
+    // Will not continue execution if we are supposed to be a worker.
+    // Otherwise jobs will be submitted.
+    // TODO(miklos): the below should be done by the registerer macro.
+    mapreduce::MapRunner* runner = mapreduce::MapRunnerFactory::get_by_key("WordCountMap");
+    assert(runner);
+    mapreduce::ReduceRunner* runner2 = mapreduce::ReduceRunnerFactory::get_by_key("WordCountReduce");
+    assert(runner2);
+    mapreduce::InitFramework(argc, argv);
+
+    MapReduceResult result;
+    JobDescription job;
+    // Specify input.
+    job.set_input_format("Text");
+    FileInputFormat::AddInputPath(job,
+      "file://localhost//home/miklos/test-data/file.txt");
+    job.set_mapper_class("WordCountMap");
+    job.set_reducer_class("WordCountReduce");
+    job.set_output_format("SequenceFile");
+    job.set_num_reduce_tasks(1);
+    mapreduce::master::DistributedJobRunner job_runner(job);
+    job_runner.Initialize(
+      mapreduce::g_command_line_parameters["config"].as<std::string>());
+    job_runner.Run(&result);
+  }
+  catch ( const std::exception & e )
+  {
+    std::cerr << "std exception cought: " << e.what () << std::endl;
+  }
+  catch ( const saga::exception & se )
+  {
+    std::cerr << "saga exception cought: " << se.what () << std::endl;
+  }
 }
