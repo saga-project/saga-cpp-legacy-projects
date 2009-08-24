@@ -109,14 +109,11 @@ namespace mapreduce {
    */
   void InitFramework(int argCount, char** argList) {
     bool is_worker = false;
-    try {
-      if(!ParseCommand(argCount, argList, g_command_line_parameters, is_worker)) {
-        throw saga::exception("Incorrect command line arguments", saga::BadParameter);
-      }
+
+    if(!ParseCommand(argCount, argList, g_command_line_parameters, is_worker)) {
+      throw saga::exception("Incorrect command line arguments", saga::BadParameter);
     }
-    catch(saga::exception const& e) {
-      exit (-1);
-    }
+
     if (is_worker) {
       // Set highest verbosity for SAGA.
       putenv("SAGA_VERBOSE=100");
