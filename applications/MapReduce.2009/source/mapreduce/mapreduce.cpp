@@ -115,7 +115,7 @@ namespace mapreduce {
       }
     }
     catch(saga::exception const& e) {
-      throw;
+      exit (-1);
     }
     if (is_worker) {
       // Set highest verbosity for SAGA.
