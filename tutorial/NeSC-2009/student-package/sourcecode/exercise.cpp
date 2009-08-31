@@ -47,7 +47,7 @@ std::string increment(std::string host, std::string argument)
         command += " $[" + argument + " + 1]";
 
         // run the job
-        saga::job::service js (host);
+        saga::job::service js ("any://" + host);
         saga::job::ostream in;
         saga::job::istream out;
         saga::job::istream err;

@@ -95,11 +95,15 @@ void respawn(int argc, char *argv[])
         environment.push_back("SAGA_LOCATION=" SAGA_LOCATION);
         environment.push_back("LD_LIBRARY_PATH=" SAGA_LOCATION "/lib:$LD_LIBRARY_PATH");
 
+        // full name (path) of the executable
+        fs::path executable(targetdir);
+        executable /= fs::path(argv[0]).filename();
+
         // create and fill job description
         saga::job::description jd;
-        jd.set_attribute (saga::job::attributes::description_executable, fs::path(argv[0]).filename());
+        jd.set_attribute (saga::job::attributes::description_executable, 
+            executable.string());
         jd.set_attribute (saga::job::attributes::description_working_directory, targetdir);
-        jd.set_attribute (saga::job::attributes::description_interactive, saga::attributes::common_true);
         jd.set_attribute (saga::job::attributes::description_interactive, saga::attributes::common_true);
         jd.set_vector_attribute (saga::job::attributes::description_arguments, arguments);
         jd.set_vector_attribute (saga::job::attributes::description_environment, environment);
