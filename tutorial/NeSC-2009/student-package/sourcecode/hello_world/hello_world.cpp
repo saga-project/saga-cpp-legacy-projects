@@ -34,13 +34,13 @@
 // the 3 childs to be spawned on.
 ///////////////////////////////////////////////////////////////////////////////
 
-//#define HOST1 "localhost"
-//#define HOST2 "localhost"
-//#define HOST3 "localhost"
+#define HOST1 "fork://localhost"
+#define HOST2 "fork://localhost"
+#define HOST3 "fork://localhost"
 
-#define HOST1 "ssh://issgc10@issgc-ui.polytech.unice.fr"
-#define HOST2 "ssh://issgc11@issgc-ui.polytech.unice.fr"
-#define HOST3 "ssh://issgc12@issgc-ui.polytech.unice.fr"
+//#define HOST1 "ssh://tc11.nesc.ed.ac.uk/"
+//#define HOST2 "ssh://tc15.nesc.ed.ac.uk/"
+//#define HOST3 "ssh://tc16.nesc.ed.ac.uk/"
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
