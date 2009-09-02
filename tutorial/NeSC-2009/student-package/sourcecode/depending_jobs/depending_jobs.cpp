@@ -22,6 +22,11 @@ namespace fs = boost::filesystem;
 #define RESULT_STORE  "advert://macpro01.cct.lsu.edu/NeSC2009/result_ex_3"   
 #define SAGA_LOCATION "/usr/local/saga/"
 
+// The overall result will be stored in the advert service using the key above
+// but with the user id (`id -u`) and the process id appended. So the overall
+// advertkey will be: RESULT_STORE/<uid>/<pid>, where pid is the process id of 
+// the first process.
+ 
 ///////////////////////////////////////////////////////////////////////////////
 // implemented somewhere else 
 std::string deploy_me(std::string path, std::string target_host);
