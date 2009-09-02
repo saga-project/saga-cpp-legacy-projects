@@ -16,6 +16,17 @@ namespace fs = boost::filesystem;
 // This file implements helper functions for the example depending_jobs 
 
 ///////////////////////////////////////////////////////////////////////////////
+// Helper functions retrieving the proper host and scheme from a given string
+std::string get_host(std::string s)
+{
+    saga::url u(s);
+    std::string host(u.get_host());
+    if (!host.empty())
+        return host;
+    return s;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // function allowing to deploy the current executable to the remote machine, 
 // where it is supposed to be launched. return the directory name the job got 
 // deployed
@@ -33,7 +44,8 @@ std::string deploy_me(std::string path, std::string target_host)
 
     // Create remote directory
     saga::url target_dir(targetdir);
-    target_dir.set_host(target_host);
+    target_dir.set_scheme("any");         // we rely on adaptor selection
+    target_dir.set_host(get_host(target_host));
     saga::filesystem::directory d(target_dir, saga::filesystem::Create|saga::filesystem::CreateParents);
 
     // copy the executable
@@ -41,7 +53,8 @@ std::string deploy_me(std::string path, std::string target_host)
     saga::filesystem::file f(source);
 
     saga::url target(targetdir + "/" + exe.filename());
-    target.set_host(target_host);
+    target_dir.set_scheme("any");         // we rely on adaptor selection
+    target.set_host(get_host(target_host));
     f.copy(target);
 
     return targetdir;
