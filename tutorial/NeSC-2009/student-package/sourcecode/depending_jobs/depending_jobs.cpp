@@ -33,6 +33,26 @@ std::string deploy_me(std::string path, std::string target_host);
 std::string get_advert_result_store(std::string basepath);
 
 ///////////////////////////////////////////////////////////////////////////////
+// Helper function creating a valid host url
+//
+// The issue is that some SAGA API calls take saga::url's, which are implicitely
+// creatable from a std::string. But if a saga::url gets created from a string
+// not containing any hostname or scheme (such as 'localhost') this will result
+// in an url holding this string as its path component - not exactly what we 
+// need... 
+//
+std::string hosturl(std::string host)
+{
+    saga::url hosturl(host);
+    if (hosturl.get_host().empty())
+        hosturl.set_host(host);
+    if (hosturl.get_scheme().empty())
+        hosturl.set_scheme("any");
+    hosturl.set_path("");
+    return hosturl.get_string();
+}
+ 
+///////////////////////////////////////////////////////////////////////////////
 // retrieve the current value from the advert (result store)
 bool get_result(int& result, std::string advertkey)
 {
@@ -124,7 +144,7 @@ void respawn(std::string exename, int argc, char *argv[], std::string advertkey)
         saga::job::ostream in;
         saga::job::istream out, err;
 
-        saga::job::service js (argv[0]);    // job needs to run on host given by 1st argument
+        saga::job::service js (hosturl(argv[0]));    // job needs to run on host given by 1st argument
         saga::job::job j = js.create_job(jd);
         in = j.get_stdin();
         out = j.get_stdout();

@@ -53,7 +53,7 @@ std::string deploy_me(std::string path, std::string target_host)
     saga::filesystem::file f(source);
 
     saga::url target(targetdir + "/" + exe.filename());
-    target_dir.set_scheme("any");         // we rely on adaptor selection
+    target.set_scheme("any");            // we rely on adaptor selection
     target.set_host(get_host(target_host));
     f.copy(target);
 
