@@ -32,14 +32,17 @@ std::string deploy_me(std::string path, std::string target_host)
     fs::path exe(path);
 
     // Create remote directory
-    saga::url target(targetdir);
-    target.set_host(target_host);
-    saga::filesystem::directory d(target, saga::filesystem::Create|saga::filesystem::Create);
+    saga::url target_dir(targetdir);
+    target_dir.set_host(target_host);
+    saga::filesystem::directory d(target_dir, saga::filesystem::Create|saga::filesystem::CreateParents);
 
     // copy the executable
     saga::url source(exe.filename());
     saga::filesystem::file f(source);
-    f.copy(d.get_cwd());
+
+    saga::url target(targetdir + "/" + exe.filename());
+    target.set_host(target_host);
+    f.copy(target);
 
     return targetdir;
 }

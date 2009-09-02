@@ -18,7 +18,8 @@ namespace fs = boost::filesystem;
 // increment a number stored in a central result store.
 
 ///////////////////////////////////////////////////////////////////////////////
-#define RESULT_STORE  "advert://fortytwo.cct.lsu.edu/NeSC/result_ex_2"   // place in advert to store result to
+// place in advert to store result to
+#define RESULT_STORE  "advert://macpro01.cct.lsu.edu/NeSC2009/result_ex_3"   
 #define SAGA_LOCATION "/usr/local/saga/"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,11 +29,11 @@ std::string get_advert_result_store(std::string basepath);
 
 ///////////////////////////////////////////////////////////////////////////////
 // retrieve the current value from the advert (result store)
-bool get_result(int& result)
+bool get_result(int& result, std::string advertkey)
 {
     result = 0;
     try {
-        saga::advert::entry e(get_advert_result_store(RESULT_STORE), 
+        saga::advert::entry e(advertkey, 
             saga::advert::CreateParents | saga::advert::Create | saga::advert::Read);
         result = boost::lexical_cast<int>(e.retrieve_string());
     }
@@ -54,10 +55,10 @@ bool get_result(int& result)
 
 ///////////////////////////////////////////////////////////////////////////////
 // store the current value into the advert (result store)
-bool set_result(int result)
+bool set_result(int result, std::string advertkey)
 {
     try {
-        saga::advert::entry e(get_advert_result_store(RESULT_STORE), 
+        saga::advert::entry e(advertkey, 
             saga::advert::CreateParents | saga::advert::Create | saga::advert::ReadWrite);
         e.store_string(boost::lexical_cast<std::string>(result));
     }
@@ -78,16 +79,22 @@ bool set_result(int result)
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
-void respawn(int argc, char *argv[])
+void respawn(std::string exename, int argc, char *argv[], std::string advertkey)
 {
-    assert(argc > 1);     // we shouldn't end up here without any given hosts
+    assert(argc > 0);     // we shouldn't end up here without any given hosts
     try {
         // deploy this executable
-        std::string targetdir = deploy_me(argv[0], argv[1]);
+        std::string targetdir = deploy_me(exename, argv[0]);
 
-        // compose the command line, skip first argument
+        // compose the command line
         std::vector<std::string> arguments; 
-        for (int i = 2; i < argc; ++i) 
+
+        // pass advertkey
+        arguments.push_back("-c");
+        arguments.push_back(advertkey);
+
+        // pass remaining hostnames (skip first argument)
+        for (int i = 1; i < argc; ++i) 
             arguments.push_back(argv[i]);
 
         // compose environment variables
@@ -97,7 +104,7 @@ void respawn(int argc, char *argv[])
 
         // full name (path) of the executable
         fs::path executable(targetdir);
-        executable /= fs::path(argv[0]).filename();
+        executable /= fs::path(exename).filename();
 
         // create and fill job description
         saga::job::description jd;
@@ -112,7 +119,7 @@ void respawn(int argc, char *argv[])
         saga::job::ostream in;
         saga::job::istream out, err;
 
-        saga::job::service js (argv[1]);    // job needs to run on host given by 1st argument
+        saga::job::service js (argv[0]);    // job needs to run on host given by 1st argument
         saga::job::job j = js.create_job(jd);
         in = j.get_stdin();
         out = j.get_stdout();
@@ -151,20 +158,35 @@ void respawn(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-    if (argc == 1) {
+    int first_host_arg = 1;
+    std::string advertkey;
+    if (argc > 1 && std::string(argv[1]) == "-c") {
+    // got advert store key passed from parent
+        advertkey = argv[2];
+        first_host_arg = 3;
+    }
+    else {
+        advertkey = get_advert_result_store(RESULT_STORE);
+        std::cout << "Look here for the overall result: " << advertkey << std::endl;
+    }
+
+    if (argc == first_host_arg) {
     // no more hosts are given, we're done!
         int result = 0;
-        if (get_result(result))
+        if (get_result(result, advertkey))
             std::cout << "The overall result is: " << result << std::endl;
     }
     else {
     // otherwise get current value, increment it, and store new value
         int result = 0;
-        get_result(result);   // ignore errors, will set result to zero
+        get_result(result, advertkey);   // ignore errors, will set result to zero
 
         // re-spawn this job, increment result
-        if (set_result(result + 1)) 
-            respawn(argc, argv);
+        if (set_result(result + 1, advertkey)) {
+            // exename, numhosts, hosts, advertkey
+            respawn(argv[0], argc-first_host_arg, &argv[first_host_arg], advertkey);
+        }
     }
     return 0;
 }
+
