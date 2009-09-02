@@ -24,9 +24,13 @@
 // local machine. Please change the 3 macros below to the host names you want
 // the 3 childs to be spawned on.
 ///////////////////////////////////////////////////////////////////////////////
-#define HOST1 "ssh://issgc10@issgc-ui.polytech.unice.fr"
-#define HOST2 "ssh://issgc11@issgc-ui.polytech.unice.fr"
-#define HOST3 "ssh://issgc12@issgc-ui.polytech.unice.fr"
+#define HOST1 "fork://localhost"
+#define HOST2 "fork://localhost"
+#define HOST3 "fork://localhost"
+
+//#define HOST1 "ssh://tc11.nesc.ed.ac.uk"
+//#define HOST2 "ssh://tc15.nesc.ed.ac.uk"
+//#define HOST3 "ssh://tc16.nesc.ed.ac.uk"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,6 +65,7 @@ std::string increment(std::string host, std::string argument)
         // receive result
         std::string line;
         std::getline(out, line);
+        std::cout << "got:" << line << std::endl;
 
         return line;
     }
@@ -88,3 +93,4 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
