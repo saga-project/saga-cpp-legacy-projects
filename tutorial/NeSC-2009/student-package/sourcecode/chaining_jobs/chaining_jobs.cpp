@@ -65,7 +65,6 @@ std::string increment(std::string host, std::string argument)
         // receive result
         std::string line;
         std::getline(out, line);
-        std::cout << "got:" << line << std::endl;
 
         return line;
     }
