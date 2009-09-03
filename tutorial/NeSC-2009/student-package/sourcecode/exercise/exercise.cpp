@@ -3,20 +3,19 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <unistd.h>
+
 #include <iostream>
 #include <cassert>
 #include <vector>
 #include <string>
 
 #include <saga/saga.hpp>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
-#include <boost/version.hpp>
-
-#if BOOST_VERSION < 103600
-#error "This code is usable with Boost versions newer than V1.35.0 only"
-#endif
+#include <boost/lexical_cast.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Complement the code below in a way that it retrieves a list of hosts from a 
@@ -27,15 +26,15 @@
 // example may be executed. The simplest way of creating the entry is to use 
 // the command line tool saga-advert:
 //
-//    saga-advert add_entry /tutorial/exercise/hostnames
-//    saga-advert store_string /tutorial/exercise/hostnames "localhost,localhost"
+//    saga-advert add_entry advert://macpro01.cct.lsu.edu/tutorial/exercise/hostnames/<uid>
+//    saga-advert store_string advert://macpro01.cct.lsu.edu/tutorial/exercise/hostnames/<uid> "localhost,localhost"
 //
-// these commands will create an advert entry /tutorial/exercise/hostnames and
+// these commands will create an advert entry /tutorial/exercise/hostnames/<uid> and
 // will store the list of two hosts into the new entry.
 
 ///////////////////////////////////////////////////////////////////////////////
 // place in advert where host names are stored
-#define HOST_ENTRY "/tutorial/exercise/hostnames"
+#define HOST_ENTRY "advert://macpro01.cct.lsu.edu/tutorial/exercise/hostnames/"
 
 ///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
@@ -89,7 +88,10 @@ std::string increment(std::string host, std::string argument)
 bool get_list_of_hostnames(std::vector<std::string>& hostnames)
 {
     try {
-        saga::advert::entry e(HOST_ENTRY, saga::advert::Read);
+        std::string advertkey(HOST_ENTRY);
+        advertkey += boost::lexical_cast<std::string>(getuid());
+
+        saga::advert::entry e(advertkey, saga::advert::Read);
         std::string hostnames_str(e.retrieve_string());
 
         boost::algorithm::split(hostnames, hostnames_str, 
@@ -132,3 +134,4 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+

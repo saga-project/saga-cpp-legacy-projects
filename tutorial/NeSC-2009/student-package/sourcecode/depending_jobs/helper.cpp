@@ -68,7 +68,6 @@ std::string get_advert_result_store(std::string basepath)
     basepath += boost::lexical_cast<std::string>(getuid());
     basepath += "/";
     basepath += boost::lexical_cast<std::string>(getpid());
-    basepath += "/";
 
     return basepath;
 }
