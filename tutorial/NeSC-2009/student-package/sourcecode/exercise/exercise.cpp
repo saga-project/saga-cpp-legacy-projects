@@ -42,16 +42,18 @@ std::string increment(std::string host, std::string argument)
 {
     try {
         // construct command line
-        std::string command ("/bin/echo");
-        command += " $[" + argument + " + 1]";
+        std::string command ("/usr/bin/bc");
 
         // run the job
-        saga::job::service js ("any://" + host);
+        saga::job::service js (host);
         saga::job::ostream in;
         saga::job::istream out;
         saga::job::istream err;
 
         saga::job::job j = js.run_job(command, host, in, out, err);
+
+        in << argument << " + 1" << std::endl;
+        in << "quit" << std::endl;
 
         // wait for the job to finish
         saga::job::state s = j.get_state();
