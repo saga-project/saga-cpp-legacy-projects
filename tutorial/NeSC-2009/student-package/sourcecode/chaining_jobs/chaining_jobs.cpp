@@ -24,13 +24,13 @@
 // local machine. Please change the 3 macros below to the host names you want
 // the 3 childs to be spawned on.
 ///////////////////////////////////////////////////////////////////////////////
-#define HOST1 "fork://localhost"
-#define HOST2 "fork://localhost"
-#define HOST3 "fork://localhost"
+//#define HOST1 "fork://localhost"
+//#define HOST2 "fork://localhost"
+//#define HOST3 "fork://localhost"
 
-//#define HOST1 "ssh://tc11.nesc.ed.ac.uk"
-//#define HOST2 "ssh://tc15.nesc.ed.ac.uk"
-//#define HOST3 "ssh://tc16.nesc.ed.ac.uk"
+#define HOST1 "ssh://tc11.nesc.ed.ac.uk"
+#define HOST2 "ssh://tc15.nesc.ed.ac.uk"
+#define HOST3 "ssh://tc16.nesc.ed.ac.uk"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,8 +39,7 @@ std::string increment(std::string host, std::string argument)
 {
     try {
         // construct command line
-        std::string command ("/bin/echo");
-        command += " $[" + argument + " + 1]";
+        std::string command ("/usr/bin/bc");
 
         // run the job
         saga::job::service js (host);
@@ -49,6 +48,9 @@ std::string increment(std::string host, std::string argument)
         saga::job::istream err;
 
         saga::job::job j = js.run_job(command, host, in, out, err);
+
+        in << argument << " + 1" << std::endl;
+        in << "quit" << std::endl;
 
         // wait for the job to finish
         saga::job::state s = j.get_state();
