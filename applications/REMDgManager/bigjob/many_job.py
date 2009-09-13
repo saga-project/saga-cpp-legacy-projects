@@ -207,10 +207,11 @@ class many_job_service():
         sum = reduce(operator.add, times)
         mean = sum/n
         variance=0
-        for i in times:
-            variance += (i - mean)**2
-        variance /= (n-1)
-        variance = math.sqrt(variance)
+        if n > 1:
+            for i in times:
+                variance += (i - mean)**2
+            variance /= (n-1)
+            variance = math.sqrt(variance)
         print description + " Average: " + str(mean) + " Stdev: " + str(variance)
 
     def __repr__(self):
