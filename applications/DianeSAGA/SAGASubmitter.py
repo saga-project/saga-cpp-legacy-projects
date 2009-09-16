@@ -62,10 +62,10 @@ class SAGASubmitter(Submitter):
 prog = SAGASubmitter()
 
 prog.parser.description = "Submit worker using the GangaSAGA backend. "+prog.parser.description
-prog.parser.add_option("--saga-job-service",dest="saga_job_service",type="string", default='',help="SAGA Job Service Endpoint URL")
-prog.parser.add_option("--saga-filesystem", dest="saga_filesystem", type="string", default='',help="SAGA File System Endpoint URL")
-prog.parser.add_option("--saga-queue",      dest="saga_queue",      type="string", default='',help="Queue name that should be used for submission")
-prog.parser.add_option("--saga-allocation", dest="saga_allocation", type="string", default='',help="Allocation that should be used for accounting")
+prog.parser.add_option("--jobservice_url", dest="saga_job_service",type="string", default='',help="SAGA Job Service Endpoint URL")
+prog.parser.add_option("--filesystem_url", dest="saga_filesystem", type="string", default='',help="SAGA File System Endpoint URL")
+prog.parser.add_option("--queue",          dest="saga_queue",      type="string", default='',help="Queue name that should be used for submission")
+prog.parser.add_option("--allocation",     dest="saga_allocation", type="string", default='',help="Allocation that should be used for accounting")
 
 prog.initialize()
 
