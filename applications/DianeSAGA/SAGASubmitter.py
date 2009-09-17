@@ -39,7 +39,7 @@ class SAGASubmitter(Submitter):
         uuid.close()
         diane.util.chmod_executable(wf.name)
         j.application.exe = "/bin/sh" #Ganga.GPI.File(wf.name)
-        j.application.args+=[Ganga.GPI.File(wf.name)]
+        j.application.args=[Ganga.GPI.File(wf.name)]
         j.application.args+=['--ior-file=MasterOID']
         if self.enable_GSI:
             j.application.args+=['--enable-GSI']
@@ -71,8 +71,72 @@ class SAGASubmitter(Submitter):
             self.runfile.call('worker_submit',j)
         #except DianeException:
         #    pass
-        
-        j.submit()
+
+        ###############
+        ### EMULATION OF WRAPPER SCRIPT
+
+        ganga_wrapper = """
+try:
+    import subprocess
+except ImportError,x:
+    sys.path.insert(0,###SUBPROCESS_PYTHONPATH###)
+    import subprocess
+
+appscriptpath = ###APPSCRIPTPATH###
+
+###MONITORING_SERVICE###
+
+monitor = createMonitoringObject()
+monitor.start()
+
+import subprocess
+
+try:
+ child = subprocess.Popen(appscriptpath, shell=False)
+except OSError,x:
+ print 'EXITCODE: %d'%-9999
+ print 'PROBLEM STARTING THE APPLICATION SCRIPT: %s %s'%(appscriptpath,str(x))
+ sys.exit()
+ 
+result = -1
+
+try:
+  while 1:
+    result = child.poll()
+    if result is not None:
+        break
+    monitor.progress()
+    time.sleep(0.3)
+finally:
+    monitor.progress()
+
+monitor.stop(result)
+"""        
+
+      job = j._impl
+      mon = job.getMonitoringService()
+
+      import Ganga.Core.Sandbox as Sandbox
+      import Ganga.PACKAGE
+      j.inputsandbox += Sandbox.getGangaModulesAsSandboxFiles(Sandbox.getDefaultModules())
+      j.inputsandbox += Sandbox.getGangaModulesAsSandboxFiles(mon.getSandboxModules()))
+
+      ganga_wrapper = ganga_wrapper.replace('###APPSCRIPTPATH###',repr([j.application.exe,wf.name]+j.application.args[1:])) #HACK SPECIFIC TO THIS SCRIPT
+      #ganga_wrapper = ganga_wrapper.replace('###APPSCRIPTPATH###',repr([j.application.exe]+j.args)) # NEED TO CONVERT ALL ARGS TO STRINGS (SMARTLY)
+      ganga_wrapper = ganga_wrapper.replace('###JOBID###',repr(job.getFQID('.')))
+      ganga_wrapper = ganga_wrapper.replace('###MONITORING_SERVICE###',job.getMonitoringService().getWrapperScriptConstructorText())
+      import Ganga.PACKAGE
+      ganga_wrapper = ganga_wrapper.replace('###SUBPROCESS_PYTHONPATH###',repr(Ganga.PACKAGE.setup.getPackagePath2('subprocess','syspath',force=True)))
+
+
+      gwf = tempfile.NamedTemporaryFile(mode="w",prefix='ganga-emulated-wrapper-')
+      gwf.write(ganga_wrapper)
+      gwf.close()
+   
+      # replace the job args
+      j.application.exe='/usr/bin/python'
+      j.application.args=[Ganga.GPI.File(gwf.name)]             
+      j.submit()
 
 
 prog = SAGASubmitter()
