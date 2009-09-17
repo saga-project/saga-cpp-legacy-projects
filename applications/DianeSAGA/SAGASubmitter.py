@@ -38,7 +38,8 @@ class SAGASubmitter(Submitter):
         uuid.flush()
         uuid.close()
         diane.util.chmod_executable(wf.name)
-        j.application.exe = Ganga.GPI.File(wf.name)
+        j.application.exe = "/bin/sh" #Ganga.GPI.File(wf.name)
+        j.application.args+=[Ganga.GPI.File(wf.name)]
         j.application.args+=['--ior-file=MasterOID']
         if self.enable_GSI:
             j.application.args+=['--enable-GSI']
