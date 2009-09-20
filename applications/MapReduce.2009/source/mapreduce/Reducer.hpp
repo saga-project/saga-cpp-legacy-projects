@@ -56,6 +56,7 @@ class DefaultComparator {
 template <typename T>
 class Iterator {
  public:
+  virtual ~Iterator() {}
   // Obtain next object in the iterator.
   virtual bool Next() = 0;
   // Retrieve reference to current object in the iterator.
@@ -118,6 +119,7 @@ template <typename KeyIn, typename ValueIn, typename KeyOut, typename ValueOut,
   class Comparator = DefaultComparator<KeyOut> >
 class Reducer {
  public:
+  virtual ~Reducer() {}
   // Context specific to this reducer instantiation.
   class Context : public ReducerContext<KeyIn, ValueIn, KeyOut, ValueOut>  {
    public:
