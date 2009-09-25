@@ -89,6 +89,9 @@ Dynamic Resource Allocation and Load-Balancing}
 \end{abstract}
 \up\up 
 
+\jhanote{Notes: (i) Can we perform some big runs on Ranger. Can we establish that the performance advantage of using bigjobs is invariant with the size of the machine, i.e., small LONI machines such as Eric, to the largest machines available such as Ranger. (ii) Need to establish clearly how we are measuring the times in Table I. Are we using 'startq'? Remember enough details should be presented to make the experiments reproducible (iii) Yaakoub: You and I need to write a paragraph succintly outlining why all this dynamic load-balancing is not possible using, or at least not easily, using MPI, (iv) What is the largest system size that we can simulate using BigJob and/or using independent execution threads? (v) What is the final ratio of $N_{MD} to N_{CFD}$? Is it always the same? How do we counter the argument that the final configuration can be determined with a few simple pre-processing runs? What is the importance of dynamic resource management, i.e. start with initial Configuration I and adapt to Final Configuration F with intermediate states in between? (vi) Yaakoub: We have also discussed what is required here in terms of a diagram and a *clear* explaination of how the SAGA BigJob interface calls the Condor Glide-In, the control flow and other details.  (vii) Yaakoub: Also as discussed, we need the BigJob-Glidein runs with the same systems, so we can compare like to like.}
+
+
 %-------------------------------------------------------------------------
 \section{Introduction}
 
@@ -356,18 +359,10 @@ Time & (11882) & (6457) & (6720) \\
 A number of experiments have been conducted to validate the performance of a load balancing function with different BigJob size. Fig.~\ref{fig:LB_Graph} shows the change of processor allocation to sub-jobs and their runtime at every start. A BigJob with 24 processors is tested with two kinds of initial processor distribution between CFD and MD, 8 to 16 or 16 to 8. In all simulations, the load balancing function detects the ratio of 4 and 20 between CFD and MD tasks are optimal and converges to this ratio at the next restart, except one case when CFD solution experiences unexpected overload initially. Even in this case, load balancing function traces the optimal load allocation during the iteration and this demonstrates the stability of current load balancing function. After the balancing, runtimes of CFD and MD jobs become very close, 219 seconds for CFD and 236 for MD task.
 
 %%%%% FIGURE %%%%%
-\begin{figure}
-\centering
-\includegraphics[scale=0.45]{LB_Graph2}
-\caption{\small 
-Plot showing the convergence in resource configuration and runtime with load-balancing steps.
-Lines show runtime change of each sub-job, symbols represent the history of load balancing at every start/restart. When the
-starting distribution between CFD and MD tasks are either 8-16 or 16-8, load balancer converges to a distribution of 4 and 20 processors
-for CFD and MD respectively. The coupled simulation time reduces to around 235 seconds. All tests were repeated 5 times; the bars in the graph represent minimum and maximum values from the 5 tests. } %\jhanote{let us discuss this at 3pm}}
+\begin{figure} \centering \includegraphics[scale=0.45]{LB_Graph2} \caption{\small Plot showing the convergence in resource configuration and runtime with load-balancing steps.  Lines show runtime change of each sub-job, symbols represent the history of load balancing at every start/restart. When the starting distribution between CFD and MD tasks are either 8-16 or 16-8, load balancer converges to a distribution of 4 and 20 processors for CFD and MD respectively. The coupled simulation time reduces to around 235 seconds. All tests were repeated 5 times; the bars in the graph represent minimum and maximum values from the 5 tests. \jhanote{This graph is difficult to understand as well to read/decipher. Needs attention.} } %\jhanote{let us discuss this at 3pm}}
 \label{fig:LB_Graph}
 \end{figure}
 %%%%% FIGURE %%%%%
-
 
 Though the above results show the large performance gain by employing a load balancing algorithm, some limitations are also observed. First, as the function only refers to the computation cost at given processor distribution and moves to the optimal condition iteratively, it takes time to achieve a converged resource allocation if initial processor allocation starts from other extreme. Second and furthermore, the algorithm itself should be refined to distinguish the computational cost from inter-processor communication within one application code and control both factors. Also, the load balancing module needs to be expanded to cover multiple BigJob allocations for one coupled simulation, when running a subtask across BigJobs becomes possible.
 
@@ -389,14 +384,7 @@ In Table~\ref{table:TwoBigJobs}, test measurements for performance gains are sum
 
 \begin{table}[!h]
 \begin{center}
- \caption{\small
-Performance measures for Use Cases 2 and 3. We take the time of the MD simulation as a measure of performance.
-For Test 1 and 2, we compare the time taken (for the MD simulation) before and after the availability of
-the second BigJob. As can be seen, the time to solution is significantly lower. This is now because
-the entire second BigJob is available to the MD simulation.
-For Test 3 and 4, the second BigJob (i.e the one to start later) is launched on a different machine
-from the first BigJob. For similar reasons to Test 1\&2, the time to solution is lower when the
-second BigJob starts. This situation will win over the single BigJob scenario, despite of transfer/set-up times. For Test 1-3, the size of the first BigJob is 8px, whilst the size of the second (later available) BigJob is 16px. For Test the first BigJob is 16px and the second BigJob is 32px.}
+  \caption{\small Performance measures for Use Cases 2 and 3. We take the time of the MD simulation as a measure of performance.  For Test 1 and 2, we compare the time taken (for the MD simulation) before and after the availability of the second BigJob. As can be seen, the time to solution is significantly lower. This is now because the entire second BigJob is available to the MD simulation.  For Test 3 and 4, the second BigJob (i.e the one to start later) is launched on a different machine from the first BigJob. For similar reasons to Test 1\&2, the time to solution is lower when the second BigJob starts. This situation will win over the single BigJob scenario, despite of transfer/set-up times. For Test 1-3, the size of the first BigJob is 8px, whilst the size of the second (later available) BigJob is 16px. For Test the first BigJob is 16px and the second BigJob is 32px. \jhanote{I think we should revisit the way this is presented, i.e., the utility of using the time of the MD phase?}}
 \label{table:TwoBigJobs}
 \begin{tabular}{ c| c c c c }
 \hline
@@ -419,6 +407,7 @@ MD CPU time  (sec) & 277.21 & 277.63  & 276.8 & 150.4  \\
 \end{center}
 \end{table}
 
+\jhanote{The $T_{comm}$ has two components: $T_{read_write} + T_{transfer}$. We need to determine the first component. We will not be able to do so rigorously, but we need to show a good-faithed attempt at deriving it.  The we need to determine the transfer overheard, and find out if it is truly negligible when compared to $T_{read_write}$. We need to also mention/determine if $T_{read_write}$ is the same -- when using 2 different machines as it is when using 1 machine. As would be expected.}
 
 In summary, use of a BigJob will eliminate idling operation of a subtask, which waits for another application to start running. Also, employing a load balancing function will let coupled codes use allocated resources more efficiently. Furthermore, using two BigJobs promotes the reduction of total simulation time, compared to conventional job submission. Meanwhile, launch of two BigJobs does not intend to use resources more efficiently than conventional job allocation, but intend to save total simulation time more than one BigJob test case, by utilizing more available resources. Remember that having multiple BigJob allocations is to increase the computing power for a specific simulation, not to use optimally within given circumstances.
 
