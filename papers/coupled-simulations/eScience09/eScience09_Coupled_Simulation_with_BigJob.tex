@@ -561,19 +561,9 @@ module to the coupled simulation.
 
  % With the ultimate aim of reducing the total simulation time, we investigate acquiring idle resources during the simulation, by launching multiple BigJobs for one coupled simulation.
 
-Three different real scenarios arise. In the first Use Case, a single
-BigJob is utilized to run the coupled-simulations, first without, and
-then with the LB redistributing resources based upon their individual
-performance. One component maybe relieved of its resources for the
-greater good. In the second Use Case, two BigJobs are started
-together, but often one BigJob starts before the other; to increase
-efficiency both coupled simulations start with whatever resources are
-available as part of the first (to run) BigJob. When the other BigJob
-becomes active, there is a dynamic redistribution of tasks, such that
-the larger of the two simulations is assigned the bigger BigJob. The
-variant of the above when the two BigJobs are on different machines
-forms Use Case 3. In the remainder of this section we discuss the
-details of these three different Use Cases.
+The use of the BigJob asbtraction gives rise to three different execution scenarios. In the first Use Case, a single BigJob is utilized to run the coupled-simulations, with
+and without the LB redistributing resources based upon their individual performance. 
+In the second Use Case, two BigJobs are started together, but often one BigJob starts before the other; to increase efficiency both coupled simulations start with whatever resources are available as part of the first (to run) BigJob. When the second BigJob becomes active, there is a dynamic redistribution of tasks, such that the larger of the two simulations is assigned the bigger BigJob. The variant of the above when the two BigJobs are on different machines forms Use Case 3. In the remainder of this section we discuss the details of these three different Use Cases.
 
 % We compare the performance as measured by TTS using the benchmark
 % case to be the situation when we do not have the ability to utilize
@@ -647,12 +637,6 @@ different from an application's simulation time.  \jhanote{I'm not
 time checking functions inside to capture total iteration time without
 inter-domain information exchange.
 
-The Walltime limit for the simulation runs is set to 6 hours for all
-tests, which is enough to encounter both the active and inactive
-phase, (the inactive phase is defined as the time between the first
-job and second job allocations in conventional job submission).
-
-
 Simulations used to validate and determine performance values were
 conducted on supercomputing resources on LONI (Louisiana Optical
 Network Initiative)~\cite{LONI_web} resources (and shared with the
@@ -666,6 +650,10 @@ reduction by using the BigJob abstraction, while tests on QueenBee is
 rather involved in arguing the benefit of co-scheduling on crowded
 systems.
 
+The Walltime limit for the simulation runs is set to 6 hours for all
+tests, which is enough to encounter both the active and inactive
+phase, (the inactive phase is defined as the time between the first
+job and second job allocations in conventional job submission).
 
 %monitoring over these systems, QueenBee has been very crowded while
 %all others have been less occupied.
@@ -701,10 +689,16 @@ RAM/Node &  &  \\
 \end{center}
 \end{table}
 
-
-
 \subsection{One BigJob with Load Balancing}
-Fig.~\ref{Fig:OneBJ_Flow} shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queuing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are available. In this case, both tasks wait on the queue when no job is allocated, the first allocated job idles to do data exchange with its counterpart, and run actual simulation after both jobs are allocated. On the other hand, in a BigJob simulation, a pilot job with the size of $PE_{CFD}+PE_{MD}$ is submitted to the queue and coupled simulation directly starts when the resource is assigned on this BigJob. By using a BigJob, a user can save his/her account consumption on inactive mode in conventional job submission, while total runtime is the same if the resource distribution to sub-jobs is identical. However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one bigger allocation may happen to take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
+Fig.~\ref{Fig:OneBJ_Flow} shows the temporal-evolution of a coupled simulation using
+conventional job submission mode and when using one BigJob. When
+using the conventional submission mode, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queuing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they typically start at different times, except when enough resources are available
+or submission is coordinated via a co-scheduler. But in general,
+both tasks wait on the queue when no job is allocated; the first allocated job when active state idles, as it waits for the other job to become active. Thus until both 
+jobs are not active, neither job progresses.
+% waiting and run actual simulation after both jobs are allocated. 
+On the other hand, when a BigJob of size $PE_{CFD}+PE_{MD}$ is submitted to the queue, both components of the coupled simulation start instantaneously when the BigJob become actives.  By using the BigJob abstraction, neither simulation code ever enters inactive mode (unlike the conventional job submission mode) and this makes it more efficient than the conventional submission mode.  However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one bigger allocation may happen to take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
+%while total runtime is the same if the resource distribution to sub-jobs is identical.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
