@@ -695,7 +695,10 @@ or submission is coordinated via a co-scheduler. But in general,
 both tasks wait on the queue when no job is allocated; the first allocated job when active state idles, as it waits for the other job to become active. Thus until both 
 jobs are not active, neither job progresses.
 % waiting and run actual simulation after both jobs are allocated. 
-On the other hand, when a BigJob of size $PE_{CFD}+PE_{MD}$ is submitted to the queue, both components of the coupled simulation start instantaneously when the BigJob become actives.  By using the BigJob abstraction, neither simulation code ever enters inactive mode (unlike the conventional job submission mode) and this makes it more efficient than the conventional submission mode.  However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one bigger allocation may happen to take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
+On the other hand, when a BigJob of size $PE_{CFD}+PE_{MD}$ is submitted to the queue, both components of the coupled simulation start instantaneously when the BigJob become actives.  By using the BigJob abstraction, neither simulation code ever enters inactive mode (unlike the conventional job submission mode) and this makes it more efficient than the conventional submission mode.  However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one bigger allocation may happen to take more than getting two allocations with smaller chunks. 
+
+% The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
+
 %while total runtime is the same if the resource distribution to sub-jobs is identical.
 
 %%%%% FIGURE %%%%%
@@ -707,34 +710,7 @@ On the other hand, when a BigJob of size $PE_{CFD}+PE_{MD}$ is submitted to the 
 \end{figure}
 %%%%% FIGURE %%%%%
 
-
-Table~\ref{table:oneBJ_Test} shows elapsed time on running above test
-cases: conventional job submission, one default BigJob launch and one
-BigJob with load balancing. These tests were conducted on
-supercomputing resources in LONI (Louisiana Optical Network
-Initiative)~\cite{LONI_web} and tested resources of eric, oliver and
-louie have the same specification with 4 processors in each node. A
-coupled simulation has been conducted by using 32 processors with two
-different processor allocations to subtasks. Application codes
-experience four restarting from their checkpointing data in load
-balancing test, while simulation keeps running until it completes in
-baseline and default BigJob tests. When the same number of processors
-are allocated to CFD and MD tasks, one BigJob simulation with LB shows
-better performance on runtime compared to other two cases. Load
-balancing function changes the resource distribution to the best
-condition after the first simulation loop and 8 processors from CFD
-task are moved to MD simulation from the next start. As a result,
-total runtime is saved by about 20 percent compared to other test
-cases. On the other hand, a load-balanced BigJob shows worse
-performance in the latter test when initial processor distribution is
-an optimal condition, because running a load balancing function and
-trying checkpointing and restarting subtasks becomes additional costs.
-Comparing results between conventional job allocation and one BigJob
-simulation (with or without LB), it is guaranteed that a lot of
-computational cost on idling is saved. However, it does not guarantee
-that one BigJob allocation satisfies the reduction of total simulation
-time: waiting time on the queue purely depends on the condition of
-remote resource.
+Table~\ref{table:oneBJ_Test} shows the elapsed times of running the above test cases: conventional job submission, one default BigJob launch and one BigJob with load balancing. These tests were conducted on supercomputing resources in LONI (Louisiana Optical Network Initiative)~\cite{LONI_web} and tested resources of eric, oliver and louie have the same specification with 4 processors in each node. Coupled simulations were conducted by using 32 processors with two different processor allocations to subtasks. \jhanote{Not sure what is being said here, can I request clarification please: Application codes experience four restarting from their checkpointing data in load balancing test, while simulation keeps running until it completes in baseline and default BigJob tests.}  When the same number of processors are allocated to CFD and MD tasks, one BigJob simulation with LB shows better performance on runtime compared to other two cases. Load balancing function changes the resource distribution to the best condition after the first simulation loop and 8 processors from CFD task are moved to MD simulation from the next start. As a result, total runtime is saved by about 20 percent compared to other test cases. On the other hand, a load-balanced BigJob shows worse performance in the latter test when initial processor distribution is an optimal condition, because running a load balancing function and trying checkpointing and restarting subtasks adds to the additional costs.  A comparision of the results between conventional job allocation and one BigJob simulation (with or without LB), shows that significant computational costs are saved (no idle state). However, it does not guarantee that the BigJob mode will reduce the total simulation time -- as the queue waiting time depends on the load condition of remote resource and thus influences the time to completion.
 
 
 % Elapsement for a CFD/MD Coupled Simulation by using Conventional Queueing System and a BigJob Abstraction. Above table shows total simulation time when 8 processors are allocated to CFD and 24 processors on MD task, which is initially well-balanced allocation: below one represents another test with 16 processors allocated to each task, an imbalanced simulation. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsed; the average is taken over 5 distinct
@@ -792,20 +768,7 @@ Time & (11882) & (6457) & (6720) \\
 \end{table}
 
 
-A number of experiments have been conducted to validate the
-performance of a load balancing function with different BigJob size.
-Fig.~\ref{fig:LB_Graph} shows the change of processor allocation to
-sub-jobs and their runtime at every start. A BigJob with 24 processors
-is tested with two kinds of initial processor distribution between CFD
-and MD, 8 to 16 or 16 to 8. In all simulations, the load balancing
-function detects the ratio of 4 and 20 between CFD and MD tasks are
-optimal and converges to this ratio at the next restart, except one
-case when CFD solution experiences unexpected overload initially. Even
-in this case, load balancing function traces the optimal load
-allocation during the iteration and this demonstrates the stability of
-current load balancing function. After the balancing, runtimes of CFD
-and MD jobs become very close, 219 seconds for CFD and 236 for MD
-task.
+A number of experiments have been conducted to validate the performance of a load balancing function with different BigJob sizes.  Fig.~\ref{fig:LB_Graph} shows the change of processor allocation to sub-jobs and their runtime over the course of the simulation life-time.  Two different distributions for a BigJob with 24 processors are tested: initial processor distribution between CFD and MD of 8 to 16 or 16 to 8. In all simulations, the load balancing function detects that the ratio of 4 to 20 between CFD and MD tasks are optimal and converges to this ratio, except one case when CFD solution experiences unexpected overload initially. Even in this case, the load balancing function follows the optimal load allocation which thus demonstrates the stability of current load balancing function. After reaching an equilibirum distribution, the runtimes of CFD and MD inter-exchange stages becomes close: 219 seconds for CFD and 236 for MD task.
 
 %%%%% FIGURE %%%%%
 \begin{figure} \centering \includegraphics[scale=0.45]{LB_Graph2} \caption{\small Plot showing the convergence in resource configuration and runtime with load-balancing steps.  Lines show runtime change of each sub-job, symbols represent the history of load balancing at every start/restart. When the starting distribution between CFD and MD tasks are either 8-16 or 16-8, load balancer converges to a distribution of 4 and 20 processors for CFD and MD respectively. The coupled simulation time reduces to around 235 seconds. All tests were repeated 5 times; the bars in the graph represent minimum and maximum values from the 5 tests. \jhanote{This graph is difficult to understand as well to read/decipher. Needs attention.} } %\jhanote{let us discuss this at 3pm}}
@@ -815,10 +778,11 @@ task.
 
 Though the above results show the large performance gain by employing
 a load balancing algorithm, some limitations are also observed. First,
-as the function only refers to the computation cost at given processor
-distribution and moves to the optimal condition iteratively, it takes
-time to achieve a converged resource allocation if initial processor
-allocation starts from other extreme. Second and furthermore, the
+as the function only refers to the computation cost for a given processor
+distribution and moves to the optimal condition between stages (iteratively), it takes
+time to achieve a converged resource allocation, if the initial processor
+allocation starts afar -- often the case for physical systems 
+that ``eventually settle down''. Second and furthermore, the
 algorithm itself should be refined to distinguish the computational
 cost from inter-processor communication within one application code
 and control both factors. Also, the load balancing module needs to be
