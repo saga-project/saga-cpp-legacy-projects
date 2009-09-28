@@ -465,7 +465,7 @@ SAGA-BigJob framework.
 % from application side is necessary to employ a load balancing
 % function on a BigJob.
 
-Each applications load is determined by its elapsed time to run the
+Each application's load is determined by its elapsed time to run the
 evolution loop. Here, time for initialization or inter-domain data
 exchange are excluded from the counting, because they are one-time
 event or irrelevant to application's performance. As the result of
@@ -477,8 +477,7 @@ harming their parallel efficiency a lot. If above conditions are
 satisfied, BigJob application manager, can be interfaced with the LB
 to implement the dynamic resource allocation between tasks.
 % load balancing between subtasks before applications restart from the previous state.
-The idea of current load balancing algorithm is to assign more processors to a sub-task with more runtime until two codes show the same runtime. We have adopted some assumptions to simplify load balancing procedure and apply the algorithm without considering applications' characteristics and individual code's scalability. Assumptions are, (1) Each application code follows the ideal parallel efficiency.
-(2) All processors in one node is assigned to one sub-job.
+The idea of current load balancing algorithm is to assign more processors to a sub-task with more runtime until two codes show the same runtime. We have adopted some assumptions to simplify load balancing procedure and apply the algorithm without considering applications' characteristics and individual code's scalability. Assumptions are, (1) Each application code follows the ideal parallel efficiency.  (2) All processors in one node are assigned to one single task.
 
 %\begin{tabular}{|l|}
 %\hline
@@ -493,8 +492,7 @@ The idea of current load balancing algorithm is to assign more processors to a s
 %\end{center}
 %\end{equation}
 
-Let the computation time of two applications as $t_{CFD}$ and $t_{MD}$, processors to each domain as $PE_{CFD}$ and $PE_{MD}$, respectively. Based on assumption (1), workload on each application remains the same after the reallocation of resources,
-\begin{eqnarray}
+Let the computation time (between exchanges) of the two applications be $t_{CFD}$ and $t_{MD}$ and the number of processors assigned to each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Based on assumption (1), workload on each application remains the same after the re-allocation of resources, \begin{eqnarray}
 %\begin{center}
 W_{CFD} &=& PE_{CFD} \times t_{CFD} = PE_{CFD}' \times t_{CFD}', \nonumber \\
 W_{MD} &=& PE_{MD} \times t_{MD} = PE_{MD}' \times t_{MD}'
@@ -502,27 +500,27 @@ W_{MD} &=& PE_{MD} \times t_{MD} = PE_{MD}' \times t_{MD}'
 %\end{center}
 \label{eq:SimTime_EachTask}
 \end{eqnarray}
-Still, total number of processor remains the same:
+In spite of the re-allocation, the total number of processor remains the same:
 \begin{equation}
 %\begin{center}
 PE_{TOT} = PE_{CFD} + PE_{MD} = PE_{CFD}' + PE_{MD}'
 %\end{center}
 \label{eq:PECondition}
 \end{equation}
-Our objective is to reduce the computation time of an over-loaded subtask until two simulations show the same computation time, $t_{CFD}' = t_{MD}'$. Then, Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition} concludes the optimal processors for one subtask would be
+Our objective is to reduce the computation time of an over-loaded subtask until the  two simulations show the same computation time, $t_{CFD}' = t_{MD}'$. From Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition} an optimal processors distributed for one subtask would be:
 \begin{eqnarray}
 %\begin{center}
 PE_{CFD}' & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
 %\end{center}
 \end{eqnarray}
 
-The other sub-job will follow the similar expression. The optimal
-processor distribution from above equation will return a float value.
-Also, considering the second assumption, which is the policy of many
-supercomputing center, the above distribution needs to be asymptotic.
-If CPU cores in one node is $N_{UNIT}$,
-%$N_{UNIT} \times S < PE_{CFD}' < N_{UNIT} \times (S+1)$, we can choose the optimal condition by comparing $MAX(t_{CFD}',t_{MD}')$ between upper and lower bound of processor allocation.
-optimal condition can be gained by finding $S = int(PE_{CFD}' / N_{UNIT})$ and comparing $MAX(t_{CFD}',t_{MD}')$ between processor allocations on CFD task with $N_{UNIT} \times S$ and $N_{UNIT} \times (S+1)$.
+The other sub-job will follow a similar expression. The optimal processor distribution from above equation will return a non-integer value. Also, given the second assumption (which is the policy of many supercomputing center, the above re-allocation will proceed in discrete values determined by the number of CPU cores in one node is $N_{UNIT}$).  An optimal distribution can be obtained by finding $S = int(PE_{CFD}' / N_{UNIT})$ and comparing $MAX(t_{CFD}',t_{MD}')$ between processor allocations on CFD task with $N_{UNIT} \times S$ and $N_{UNIT} \times (S+1)$.
+
+% The other sub-job will follow a similar expression. The optimal processor distribution 
+% from above equation will return a float value.  Also, considering the second assumption, which is the policy of many supercomputing center, the above distribution needs to be asymptotic.  If CPU cores in one node is $N_{UNIT}$,
+% %$N_{UNIT} \times S < PE_{CFD}' < N_{UNIT} \times (S+1)$, we can choose the optimal condition by comparing $MAX(t_{CFD}',t_{MD}')$ between upper and lower bound of processor allocation.
+% optimal condition can be gained by finding $S = int(PE_{CFD}' / N_{UNIT})$ and comparing $MAX(t_{CFD}',t_{MD}')$ between processor allocations on CFD task with $N_{UNIT} \times S$ and $N_{UNIT} \times (S+1)$.
+
 
 
 %\hline
