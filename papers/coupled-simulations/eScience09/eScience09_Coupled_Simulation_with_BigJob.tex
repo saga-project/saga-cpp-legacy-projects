@@ -507,6 +507,9 @@ optimal condition can be gained by finding $S = int(PE_{CFD}' / N_{UNIT})$ and c
 %\hline
 %\end{tabular}
 
+\skonote{I'll be looking at this section afterwards, including adding reference.}
+
+
 %The control-flow within the BigJob Application-Manager when supporting a LB modules is shown in Fig.~\ref{Fig:BigJob_LB}. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
 
 %%%%% FIGURE %%%%%
@@ -531,6 +534,10 @@ resources throughout the simulation. To resolve the co-scheduling and
 load-imbalance issues, and with the ultimate aim of reducing the time
 to solution, we have used the BigJob abstraction with load balancing
 module to the coupled simulation.
+
+\skonote{Need to check section 2, whether we have mentioned the necessity of BigJob. This includes why we need BigJob, rather than unifying application codes. Here, we should mention that 'minimizing the application code change is the SAGA's great benefit'.}
+
+
  % With the ultimate aim of reducing the total simulation time, we investigate acquiring idle resources during the simulation, by launching multiple BigJobs for one coupled simulation.
 Three different real scenarios arise. In the first Use Case, a single BigJob is utilized to run the coupled-simulations, first without, and then with the LB redistributing resources based upon their individual performance. One component maybe relieved of its resources for the greater good. In the second Use Case, two BigJobs are started together, but often one BigJob starts before the other; to increase efficiency both coupled simulations start with whatever resources are available as part of the first (to run) BigJob. When the other BigJob becomes active, there is a dynamic redistribution of tasks, such that
 the larger of the two simulations is assigned the bigger BigJob. The variant of the above when
@@ -545,6 +552,42 @@ the details of these three different Use Cases.
 
 % \jhanote{please be sure to use co-scheduling where appropriate and
 %   not concurrency}
+
+
+\skonote{Included a new subsection, to describe how the experiments are performed.}
+\subsection{Description of Experiments}
+A simple couette flow, which is depicted on Figure 1 in Section 2, is simulated to validate the runtime reduction by applying BigJob abstraction on CFD-MD coupled simulation. The current flow system is composed of 62,400 mesh points in CFD side and 23,188 particles in MD side, both of which are such a small system in each scientific domain. This coupled simulation runs for 2500 \tau physical time to get a converged solution, which is equivalent to 25,000 iterations on CFD code and 500,000 iterations on MD code. During the simulation, both codes update their boundary values by exchanging their simulation data through file-based approach, once in every 10 \tau. This leads to 250 times synchronization between two application domains throughout the simulation.
+A coupled simulation by the default one BigJob does not require any change of application codes. On the other hand, it is inevitable to have application codes changed to use advanced functions such as the load balancing between coupled codes or to get assigned with more resources during simulation, because SAGA does not have any control over application sides. First, in both cases, application codes need to have an application-level checkpointing and generalized domain partitioning method with any number of processor allocation. As the new resource assignment between two domains by a load balancing function or a new BigJob allocation can be applied when the simulation is temporarily stopped, application codes need to stop several times and restart from its checkpointing data with changed number of processors assignment. In the current test, application codes stop and restart from checkpointing data on every 500 \tau, which is the same as 1/5 of total iterations. Second, to use a load balancing function, application codes need to return their actual computation time data to the BigJob. This is far different from each application's simulation time, which can be monitored by the BigJob: One-time event such as domain partitioning or checkpointing, and waiting time between application domains which is going to be minimized as they are well-balanced, should be excluded from the consideration of application's performance. In the current test, CFD and MD codes have several time checking functions inside to capture total iteration time without inter-domain information exchange.
+All these tests were conducted on supercomputing resources on LONI (Louisiana Optical Network Initiative)~\cite{LONI_web} resources and their specifications are listed on table~\ref{table:LONI_resource}. As given on the table, QueenBee system is far larger than other resources in total number of processors, while all the others are identical. Based on our monitoring over these systems, QueenBee has been very crowded while all others have been less occupied. Thus, tests on small systems are focused on quantifying runtime reduction by using the BigJob abstraction, while tests on QueenBee is rather involved in arguing the benefit of co-scheduling on crowded systems. Walltime limit is set to be 6 hours in all tests, which seems enough for the active simulation and inactive idling, i.e., the time between the first job and second job allocations in conventional job submission.
+
+
+\skonote{Nayong, can you fill the below table?}
+
+
+\setlength{\tabcolsep}{1pt}
+\begin{table}[!ht]
+\begin{center}
+
+\caption{\small LONI Resource Specification}
+\label{table:LONI_resource}
+
+\begin{tabular}{ c || c | c | c | c | c}
+
+\hline
+ & QueenBee & Eric & Oliver & Louie & Poseidon \\
+\hline
+\hline
+Institute &  &  &  &  & \\
+\hline
+No. of CPUs &  &  \\
+(CPU/Node) & (8) & (4) \\
+\hline
+CPU Spec &  &  \\
+\hline
+RAM/Node &  &  \\
+\hline
+
+
 
 \subsection{One BigJob with Load Balancing}
 Fig.~\ref{Fig:OneBJ_Flow} shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queuing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are available. In this case, both tasks wait on the queue when no job is allocated, the first allocated job idles to do data exchange with its counterpart, and run actual simulation after both jobs are allocated. On the other hand, in a BigJob simulation, a pilot job with the size of $PE_{CFD}+PE_{MD}$ is submitted to the queue and coupled simulation directly starts when the resource is assigned on this BigJob. By using a BigJob, a user can save his/her account consumption on inactive mode in conventional job submission, while total runtime is the same if the resource distribution to sub-jobs is identical. However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one bigger allocation may happen to take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
