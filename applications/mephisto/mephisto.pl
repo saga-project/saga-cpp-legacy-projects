@@ -1,14 +1,25 @@
 #!/usr/local/bin/perl -w
 
+##############################################################################
+## CHANGELOG
+## 
+## 10/01/2009 - Ole Weidner
+##   - Migrated repository to http://faust.cct.lsu.edu/mephisto/
+##   - The latest repository version dosn't need to be set in the
+##     source code anymore. It will always be in mephisto/repository/latest
+##   - Mephisto will install SAGA always from the latest release tag in 
+##     SVN - not from local release packages
+##
+##############################################################################
+
 #use strict;
 #use warnings;
 
-#use Archive::Tar;
 use Getopt::Long;
 use LWP::Simple;
 
-$meph_version     = 0.3;
-$meph_repository  = "http://macpro01.cct.lsu.edu/mephisto";
+$meph_version     = "latest";
+$meph_repository  = "http://faust.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
 
@@ -75,7 +86,7 @@ sub list_packages {
 	my @index = split( "\n", $content );
 	foreach my $line (@index) {
 	    my @packages = split( ";;", $line );
-	    print "  o $packages[0]: $packages[1]\n";
+	    print "  o $packages[1]: $packages[2]\n";
 	}
 	print "\n";
 }
@@ -86,41 +97,76 @@ sub pull_package {
     my (@package) = @_;
 
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
-    my $package_bin_path = "$meph_rep_full/$package[1]";
-    my $package_store_path = "$meph_tmp_dir/$package[1]";
+    my $package_bin_path = "$meph_rep_full/$package[2]";
+    
+     my $package_store_path = "$meph_tmp_dir";
+    
+    if($package[0] eq "SVN") {
+       $package_store_path .= "/SVN_$package[1]";
+    }
+    else {
+       $package_store_path .= "/$package[2]";
+    }
+    
 
-
-    print "\n\n Processing package $package[0]\n";
+    print "\n\n Processing package $package[1]\n";
     chdir($meph_tmp_dir);
 
-    #try to download the package
-    print "  o Downloading to $package_store_path";
-    $|++;
+    #try to download the packages
+    
+    if($package[0] eq "LF") # LF: Local File
+    {
+      print "  o Downloading to $package_store_path";
+      $|++;
 
-    my $ret_val = getstore( $package_bin_path, $package_store_path );
-    die "  !! Couldn't get $package_bin_path\n" unless $ret_val == 200;
+      my $ret_val = getstore( $package_bin_path, $package_store_path );
+      die "  !! Couldn't get $package_bin_path\n" unless $ret_val == 200;
 
-    print " [OK]\n";
+      print " [OK]\n";
+    }
+    elsif($package[0] eq "SVN") # LF: Subversion
+    {
+      print "  o SVN checkout to $package_store_path";
+      
+      my $checkout_logfile = "$meph_tmp_dir/$package[1].svn_checkout.log";
+      my @checkout_cmd = ('svn', 'co', $package[2] , $package_store_path);
+      redirect_console($checkout_logfile);
+      $retval = system(@checkout_cmd);
+      restore_console();
 
+      die "  [FAILED]\n" unless $retval == 0;
+      
+      chdir "$package_store_path";
+      print " [OK]\n";
+    }
+    else 
+    {
+      die "  !! Unknown package type: $package[0]\n"
+    }
+    
+    
+    
     #### try to unpack the package
     ##
-    my $unpack_logfile = "$meph_tmp_dir/$package[0].unpack.log";
-    print "  o Extracting package \n    logfile: $unpack_logfile"; $|++; 
+    if($package[0] eq "LF") {
+      my $unpack_logfile = "$meph_tmp_dir/$package[1].unpack.log";
+      print "  o Extracting package \n    logfile: $unpack_logfile"; $|++; 
 
-    my @untar_cmd = ('tar', 'vxzf', $package_store_path);
-    redirect_console($unpack_logfile);
-    $retval = system(@untar_cmd);
-    restore_console();
+      my @untar_cmd = ('tar', 'vxzf', $package_store_path);
+      redirect_console($unpack_logfile);
+      $retval = system(@untar_cmd);
+      restore_console();
 
-    die "  [FAILED]\n" unless $retval == 0;
+      die "  [FAILED]\n" unless $retval == 0;
 
-    open(TARLOG, "$meph_tmp_dir/$package[0].unpack.log"); 
-    my $package_dir_name = readline(TARLOG); # This should be the base directory
-    chomp($package_dir_name);
-    close(TARLOG);
-    chdir "$meph_tmp_dir/$package_dir_name";
+      open(TARLOG, "$meph_tmp_dir/$package[1].unpack.log"); 
+      my $package_dir_name = readline(TARLOG); # This should be the base directory
+      chomp($package_dir_name);
+      close(TARLOG);
+      chdir "$meph_tmp_dir/$package_dir_name";
 
-    print " [OK]\n";
+      print " [OK]\n";
+    }
 
     #my $tar = Archive::Tar->new;
     #$tar->setcwd($meph_tmp_dir);
@@ -137,18 +183,18 @@ sub pull_package {
 
     #### cd & configure
     ##
-    my $configure_string = $package[2];
+    my $configure_string = $package[3];
     $configure_string =
       substr( $configure_string, 1, length($configure_string) - 2 );
 
-    my $configure_logfile = "$meph_tmp_dir/$package[0].configure.log";
+    my $configure_logfile = "$meph_tmp_dir/$package[1].configure.log";
 
     my @configure_cmd = split( ' ', $configure_string );
     push( @configure_cmd, "--prefix=$meph_install_dir" );
 
     ## PACKAGE SPECIFIC DEPENDENCY OPTIONS ##
     #
-    if ( $package[0] eq "BOOST" ) {
+    if ( $package[1] eq "BOOST" ) {
 		# make sure that boost uses this python version
         #push( @configure_cmd, "--with-python=python" );
         push( @configure_cmd, "--with-python-root=$meph_install_dir" );
@@ -157,7 +203,7 @@ sub pull_package {
 		# workaround for bug in 1.39 bootstrap
         push( @configure_cmd, "--libdir=$meph_install_dir/lib");
     }
-	elsif ($package[0] eq "SAGA" ) {
+	elsif ($package[1] eq "SAGA" ) {
 		push( @configure_cmd, "--with-python=$meph_install_dir" );
 		push( @configure_cmd, "--with-boost=$meph_install_dir" );
 		push( @configure_cmd, "--with-postgresql=$meph_install_dir" );
@@ -180,10 +226,10 @@ sub pull_package {
 
     #### build package
     ##
-    my $build_string = $package[3];
+    my $build_string = $package[4];
     $build_string = substr( $build_string, 1, length($build_string) - 2 );
 
-    my $build_logfile = "$meph_tmp_dir/$package[0].build.log";
+    my $build_logfile = "$meph_tmp_dir/$package[1].build.log";
     print "  o Building package [$build_string] \n    logfile: $build_logfile";
     $|++;
 
@@ -199,12 +245,11 @@ sub pull_package {
     ##
     ####
 
-    #### installing package
-    ##
-    my $install_string = $package[4];
+    #### installing     ##
+    my $install_string = $package[5];
     $install_string = substr( $install_string, 1, length($install_string) - 2 );
 
-    my $install_logfile = "$meph_tmp_dir/$package[0].install.log";
+    my $install_logfile = "$meph_tmp_dir/$package[1].install.log";
     print "  o Installing packge to $meph_install_dir \n    logfile: $install_logfile";
     $|++;
 
@@ -399,7 +444,7 @@ die "Couldn't get $meph_rep_full" unless defined $content;
 my @index = split( "\n", $content );
 foreach my $line (@index) {
     my @packages = split( ";;", $line );
-    print "  o $packages[0]: $packages[1]\n";
+    print "  o $packages[1]: $packages[2]\n";
 }
 
 my @index2 = split( "\n", $content );
