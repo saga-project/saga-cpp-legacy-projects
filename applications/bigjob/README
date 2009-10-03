@@ -1,0 +1,55 @@
+SAGA BigJob/Glide-In framework
+Based on advert service
+Prerequisites:
+- SAGA with File, Job and Advert package (and default adaptors)
+- SAGA Python bindings (PYTHONPATH must be set accordingly)
+
+0.) Setup SAGA
+- install SAGA/Globus on all resources that supposed to run tasks 
+- Make sure the advert service is configured to use PostgreSQL by checking $SAGA_LOCATION/share/saga/saga_adaptor_default_advert.ini:
+        [saga.adaptors.default_advert]
+          name      = default_advert
+        
+        [saga.adaptors.default_advert.preferences]
+          dbtype    = postgresql
+        
+        [saga.adaptors.default_advert.preferences.postgresql]
+          # The set of parameters used in the dbconnect string 
+          # for PostgreSQL is the same as accepted by the PQconnectdb 
+          # function from the libpq library (see here: 
+          # http://www.postgresql.org/docs/8.1/interactive/libpq.html#LIBPQ-CONNECT)
+          dbconnect = dbname=advertdb;host=fortytwo.cct.lsu.edu;port=5432;user=SAGA;password=SAGA_client
+
+
+1) BigJob-Agent (Must run on every resource):
+- bigjob_agent_launcher.sh/bigjob_agent.py
+- poll advert service for jobs
+- executes and monitors jobs
+
+* Configure advert_launcher:
+    $ cp bigjob_agent_launcher.sh.template bigjob_agent_launcher.sh
+    
+    This is the agent, which launches the sub-jobs. It ensures that the environemnt is correctly set (MPI version, application binaries, etc.)
+    If necessary adjust enviornmental settings in this file. 
+
+* Launch Configuration:
+    $cp bigjob_agent.conf.template bigjob_agent_launcher.conf
+
+    Adjust shell, mpi version, if necessary
+
+2.) Run test application:
+Look at example source:
+$ vi example.py
+=> adjust replica_agent location for launching the big_job: 
+re_agent = <PATH_TO_RE_AGENT> + "/bigjob_agent_launcher.sh"
+
+=> adjust working directory
+
+Run example
+$ grid-proxy-init
+$ python example
+
+TODO:
+- cancelation of jobs via Globus adaptor does not work correctly
+
+Last updated: 11/12/2008
