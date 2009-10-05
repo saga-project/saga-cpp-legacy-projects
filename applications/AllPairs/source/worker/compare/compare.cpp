@@ -142,7 +142,8 @@ int main(int argc,char **argv) {
                                             saga::advert::Overwrite | 
                                             saga::advert::CreateParents);
       std::cerr << "ABOUT TO STORE " << result << " IN ADVERT: " << advertURL.get_string() << std::endl;
-      advert.store_string(boost::lexical_cast<std::string>(result));
+      //FIXME: Possibly put result as a double in there
+      advert.store_object<std::string>(boost::lexical_cast<std::string>(result));
    }
    catch (saga::exception const& e) {
       std::cerr << "Saga:  exception caught: " << e.what() << std::endl;

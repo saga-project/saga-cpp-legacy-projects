@@ -19,7 +19,7 @@
 namespace AllPairs {
    class HandleStaging {
      public:
-      HandleStaging(const std::string &serverURL_,
+      HandleStaging(const saga::url &serverURL_,
                     const std::vector<Master::HostDescription> &hostList,
                     const std::vector<Master::FileDescription> &files,
                     LogWriter *log);
@@ -29,7 +29,7 @@ namespace AllPairs {
       void assignStages_();
 
       unsigned int             numWorkers_;
-      std::string              serverURL_;
+      saga::url                serverURL_;
       LogWriter               *log_;
       saga::stream::server    *service_;
       std::vector<std::string> hosts_;

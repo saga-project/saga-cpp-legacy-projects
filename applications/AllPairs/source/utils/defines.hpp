@@ -38,8 +38,7 @@
 #define ADVERT_DIR_WORKERS         "WORKERS"
 #define ADVERT_DIR_BINARIES        "BINARIES"
 #define ADVERT_DIR_RESULTS         "RESULTS"
-#define ADVERT_DIR_BASE_FILES      "BASE-FILES"
-#define ADVERT_DIR_FRAGMENT_FILES  "FRAGMENT_FILES"
+#define ADVERT_DIR_FILES           "FILES"
 #define ADVERT_ENTRY_SERVER        "SERVER"
 
 #define WORKER_COMMAND_COMPARE     "COMPARE"    // Copy given file to another host

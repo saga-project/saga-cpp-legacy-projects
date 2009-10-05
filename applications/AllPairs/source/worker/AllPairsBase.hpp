@@ -89,8 +89,7 @@ namespace AllPairs {
       saga::advert::directory workerDir_;
       saga::advert::directory resultDir_;
       saga::advert::directory sessionBaseDir_;
-      std::vector<saga::url>  baseFiles_;
-      std::vector<double>        stageResult_;
+      std::vector<double>     stageResult_;
       AllPairs::LogWriter*    logWriter_;
       RunComparison*          runComparison_;
       Derived& derived() {
@@ -163,22 +162,8 @@ namespace AllPairs {
             workerDir_.set_attribute(ATTR_LAST_SEEN, boost::lexical_cast<std::string>(timestamp));
 
             saga::advert::entry server_name(sessionBaseDir_.open(ADVERT_ENTRY_SERVER, mode));
-            serverURL_ = saga::url(server_name.retrieve_string());
+            serverURL_ = server_name.retrieve_object<saga::url>();
             std::cerr << "SERVER_URL = " << serverURL_.get_string() << std::endl;
-
-            saga::advert::directory baseFilesDir_(sessionBaseDir_.open_dir(saga::url(ADVERT_DIR_BASE_FILES), saga::advert::ReadWrite));
-            std::vector<saga::url> baseFilesAdv(baseFilesDir_.list());
-            std::vector<saga::url>::iterator baseFilesAdvIT = baseFilesAdv.begin();
-
-            int counter = 0;
-            while(baseFilesAdvIT != baseFilesAdv.end())
-            {
-               saga::advert::entry adv(baseFilesDir_.open(*baseFilesAdvIT, saga::advert::ReadWrite));
-               baseFiles_.push_back(saga::url(adv.retrieve_string()));
-               std::cerr << "Added file: " << baseFiles_[counter] << std::endl;
-               baseFilesAdvIT++;
-               counter++;
-            }
          }
          catch(saga::exception const & e) {
             std::cout << "FAILED (" << e.get_error() << ")" << std::endl;

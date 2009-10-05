@@ -46,7 +46,7 @@ namespace AllPairs {
             AllPairs::LogWriter *initialLogger = new AllPairs::LogWriter(std::string(AP_MASTER_EXE_NAME), *(new saga::url("")));
             cfgFileParser_ = ConfigFileParser(configFilePath, *initialLogger);
             database_      = cfgFileParser_.getSessionDescription().orchestrator;
-            serverURL_     = cfgFileParser_.getMasterAddress();
+            serverURL_     = saga::url(cfgFileParser_.getMasterAddress());
             
             // create a UUID for this agent
             uuid_ = std::string("AllPairs-") + saga::uuid().string();
@@ -107,7 +107,7 @@ namespace AllPairs {
          time_t      startupTime_;
          std::string uuid_;
          std::string database_;
-         std::string serverURL_;
+         saga::url   serverURL_;
          saga::url   logURL_;
 
          assignmentChunksVector                 assignments_;
@@ -175,7 +175,7 @@ namespace AllPairs {
                binariesDir_  = t1.get_result<saga::advert::directory>();
                FilesDir_     = t2.get_result<saga::advert::directory>();
                saga::advert::entry address = t3.get_result<saga::advert::entry>();
-               address.store_string(serverURL_);
+               address.store_object<saga::url>(serverURL_);
             }
             catch(saga::exception const & e) {
                message += e.what();
@@ -248,7 +248,7 @@ namespace AllPairs {
                   message.clear();
                   message =  "    (" + innerIt->source + ", ";
                   message += innerIt->target + ")";
-                  int sourceID, targetID, 
+                  int sourceID, targetID;
                   bool found = false;
                   std::map<int, std::vector<saga::url> >::iterator FilesIt  = Files_.begin();
                   std::map<int, std::vector<saga::url> >::iterator FilesEnd = Files_.end();

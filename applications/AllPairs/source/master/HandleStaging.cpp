@@ -7,7 +7,7 @@
 
 namespace AllPairs
 {
- HandleStaging::HandleStaging(const std::string &serverURL,
+ HandleStaging::HandleStaging(const saga::url &serverURL,
                               const std::vector<Master::HostDescription> &hostList,
                               const std::vector<Master::FileDescription> &files,
                               LogWriter *log)
@@ -75,7 +75,7 @@ namespace AllPairs
  {
     std::string read;
     try {
-       service_ = new saga::stream::server(saga::url(serverURL_));
+       service_ = new saga::stream::server(serverURL_);
        while(finishedHosts_.size() != numWorkers_) {
           saga::stream::stream worker = service_->serve();
           worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
