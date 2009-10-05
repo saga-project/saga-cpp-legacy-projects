@@ -91,7 +91,7 @@ namespace AllPairs {
                network = runStaging_();
             }
 
-            // Start comparing fragments to bases
+            // Start comparing sources to targets 
             runComparisons_(network);
 
             //Tell all workers to quit
@@ -246,15 +246,15 @@ namespace AllPairs {
                while(innerIt != innerEnd)
                {
                   message.clear();
-                  message =  "    (" + innerIt->fragments + ", ";
-                  message += innerIt->bases + ")";
-                  int baseID, fragmentID;
+                  message =  "    (" + innerIt->source + ", ";
+                  message += innerIt->target + ")";
+                  int sourceID, targetID, 
                   bool found = false;
                   std::map<int, std::vector<saga::url> >::iterator FilesIt  = Files_.begin();
                   std::map<int, std::vector<saga::url> >::iterator FilesEnd = Files_.end();
                   while(FilesIt != FilesEnd)
                   {
-                     if(FilesIt->second[0].get_string() == innerIt->bases)
+                     if(FilesIt->second[0].get_string() == innerIt->source)
                      {
                         found = true;
                         break;
@@ -264,22 +264,22 @@ namespace AllPairs {
                   if(found == false)
                   {
                      std::vector<saga::url> tempVector;
-                     tempVector.push_back(innerIt->bases);
+                     tempVector.push_back(innerIt->source);
                      std::pair<int, std::vector<saga::url> > temp(fileID, tempVector);
                      Files_.insert(temp);
-                     baseID = fileID;
+                     sourceID = fileID;
                      fileID++;
                   }
                   else
                   {
-                     baseID = FilesIt->first;
+                     sourceID = FilesIt->first;
                   }
                   found = false;
                   FilesIt  = Files_.begin();
                   FilesEnd = Files_.end();
                   while(FilesIt != FilesEnd)
                   {
-                     if(FilesIt->second[0].get_string() == innerIt->fragments)
+                     if(FilesIt->second[0].get_string() == innerIt->target)
                      {
                         found = true;
                         break;
@@ -289,17 +289,17 @@ namespace AllPairs {
                   if(found == false)
                   {
                      std::vector<saga::url> tempVector;
-                     tempVector.push_back(innerIt->fragments);
+                     tempVector.push_back(innerIt->target);
                      std::pair<int, std::vector<saga::url> > temp(fileID, tempVector);
                      Files_.insert(temp);
-                     fragmentID = fileID;
+                     targetID = fileID;
                      fileID++;
                   }
                   else
                   {
-                     fragmentID = FilesIt->first;
+                     targetID = FilesIt->first;
                   }
-                  Assignment assignmentTemp(fragmentID, baseID);
+                  Assignment assignmentTemp(sourceID, targetID);
                   //Assignment assignmentTemp(innerIt->fragments, innerIt->bases);
                   temp.push_back(assignmentTemp);
                   log->write(message, LOGLEVEL_INFO);
@@ -311,7 +311,7 @@ namespace AllPairs {
                ++it;
             }
             if(successCounter == 0) {
-               log->write("No fragment files added for this session. Aborting", LOGLEVEL_FATAL);
+               log->write("No files added for this session. Aborting", LOGLEVEL_FATAL);
                APPLICATION_ABORT;
             }
          }

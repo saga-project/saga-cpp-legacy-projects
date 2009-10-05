@@ -148,12 +148,12 @@ void ConfigFileParser::parse_(void) {
             CompareDescription compareTemp;
             XMLNode xCompareNode = xNode.getChildNode("Compare", j);
 
-            if((NULL != xCompareNode.getAttribute("fragments")) && (NULL != xCompareNode.getAttribute("bases"))) {
-                compareTemp.fragments = xCompareNode.getAttribute("fragments");
-                compareTemp.bases = xCompareNode.getAttribute("bases");
+            if((NULL != xCompareNode.getAttribute("source")) && (NULL != xCompareNode.getAttribute("target"))) {
+                compareTemp.source = xCompareNode.getAttribute("source");
+                compareTemp.target = xCompareNode.getAttribute("target");
             }
             else {
-               std::string message("XML Parser: Incomplete Compare section found \n Example <Compare fragments=\"file://..\" bases=\"file?..\"/>");
+               std::string message("XML Parser: Incomplete Compare section found \n Example <Compare source=\"file://..\" target=\"file?..\"/>");
                log_->write(message, LOGLEVEL_ERROR);
                APPLICATION_ABORT;
             }

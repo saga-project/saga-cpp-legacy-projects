@@ -45,8 +45,8 @@ namespace AllPairs {
       };
       
       struct CompareDescription {
-         std::string fragments;
-         std::string bases;
+         std::string source;
+         std::string target;
       };
    
       // Parses a Task Farming config file 
