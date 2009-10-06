@@ -162,7 +162,12 @@ sub pull_package {
       open(TARLOG, "$meph_tmp_dir/$package[1].unpack.log"); 
       my $package_dir_name = readline(TARLOG); # This should be the base directory
       chomp($package_dir_name);
+      my $result = index($package_dir_name, "x ");
+      if($result != -1) {       
+        $package_dir_name = substr $package_dir_name, $result+2;
+      }
       close(TARLOG);
+     
       chdir "$meph_tmp_dir/$package_dir_name";
 
       print " [OK]\n";
