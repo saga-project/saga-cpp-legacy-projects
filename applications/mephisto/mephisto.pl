@@ -286,7 +286,7 @@ sub write_setenv() {
 	print FILE "export LD_LIBRARY_PATH=$meph_install_dir/lib:\$LD_LIBRARY_PATH\n"; 
 	print FILE "export DYLD_LIBRARY_PATH=$meph_install_dir/lib:\$DYLD_LIBRARY_PATH\n\n"; 
 	
-	print FILE "export PYTHONPATH=$meph_install_dir/lib/python2.6/site-packages/:\$PYTHONPATH\n\n";
+	print FILE "export PYTHONPATH=$meph_install_dir/lib/python2.6.2/site-packages/:\$PYTHONPATH\n\n";
 	
 	print FILE "export PATH=$meph_install_dir/bin:\$PATH\n";
 	
