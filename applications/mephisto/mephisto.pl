@@ -1,6 +1,16 @@
 #!/usr/local/bin/perl -w
 
 ##############################################################################
+##
+##  Copyright (c) 2009 Ole Weidner 2009 (oweidner <at> cct.ct.lsu.edu)
+##
+##  Use, modification and distribution is subject to the Boost Software
+##  License, Version 1.0. (See accompanying file LICENSE or copy at
+##  http://www.boost.org/LICENSE_1_0.txt)
+##
+##############################################################################
+
+##############################################################################
 ## CHANGELOG
 ## 
 ## 10/01/2009 - Ole Weidner
