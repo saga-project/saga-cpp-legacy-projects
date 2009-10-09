@@ -292,7 +292,7 @@ sub write_setenv() {
 	
 	close FILE;
 	
-	print "\n  Environment setup file written to $meph_install_dir/saga-env.sh.\n\n";
+	print "\n  Environment setup file written to $meph_install_dir/share/saga/saga-env.sh.\n\n";
 }
 ##
 ##############################################################################
