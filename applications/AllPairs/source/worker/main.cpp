@@ -17,7 +17,9 @@
    public:
     AllPairsImpl(int argCount, char **argList)
       : AllPairsBase<AllPairsImpl>(argCount, argList) {
-   }
+    }
+    double compare(saga::url testUrl, saga::url baseUrl) {
+    }
 };
 
 /*********************************************************
