@@ -19,7 +19,7 @@
 namespace AllPairs {
    class HandleComparisons {
      public:
-      HandleComparisons(Graph &networkGraph,
+      HandleComparisons(Graph &networkGraph, bool useGraph_,
                         assignmentChunksVector &assignments,
                         std::map<int, std::vector<saga::url> > &files,
                         const saga::url serverURL_, LogWriter *log);
@@ -35,6 +35,7 @@ namespace AllPairs {
       std::vector<int> assigned_;
       std::vector<int> unassigned_;
       Graph            networkGraph_;
+      bool             useGraph_;
       assignmentChunksVector   assignments_;
       std::map<int, std::vector<saga::url> > files_;
       saga::stream::server    *service_;

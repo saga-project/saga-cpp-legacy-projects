@@ -175,7 +175,8 @@ namespace AllPairs {
                binariesDir_  = t1.get_result<saga::advert::directory>();
                FilesDir_     = t2.get_result<saga::advert::directory>();
                saga::advert::entry address = t3.get_result<saga::advert::entry>();
-               address.store_object<saga::url>(serverURL_);
+               std::cout << "About to store our version of servuer url (string) " << serverURL_.get_string() << std::endl;
+               address.store_string(serverURL_.get_string());
             }
             catch(saga::exception const & e) {
                message += e.what();
@@ -269,6 +270,7 @@ namespace AllPairs {
                      Files_.insert(temp);
                      sourceID = fileID;
                      fileID++;
+                     successCounter++;
                   }
                   else
                   {
@@ -294,6 +296,7 @@ namespace AllPairs {
                      Files_.insert(temp);
                      targetID = fileID;
                      fileID++;
+                     successCounter++;
                   }
                   else
                   {
@@ -388,14 +391,16 @@ namespace AllPairs {
          }
 
          Graph runStaging_(void) {
+            log->write("Running Staging...", LOGLEVEL_INFO);
             std::vector<HostDescription> hostList = cfgFileParser_.getTargetHostList();
             std::vector<FileDescription> fileList = cfgFileParser_.getFileList();
             HandleStaging stage(serverURL_, hostList, fileList, log);
+            log->write("Success", LOGLEVEL_INFO);
             return stage.getNetwork();
          }
 
          void runComparisons_(Graph networkGraph) {
-            HandleComparisons comparisonHandler(networkGraph, assignments_, Files_, serverURL_, log);
+            HandleComparisons comparisonHandler(networkGraph, staging_, assignments_, Files_, serverURL_, log);
             std::string message("Running Comparisons ...");
             log->write(message, LOGLEVEL_INFO);
             comparisonHandler.assignWork();

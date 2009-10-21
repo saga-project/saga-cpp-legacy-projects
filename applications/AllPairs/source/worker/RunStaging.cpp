@@ -29,22 +29,23 @@ namespace AllPairs {
          }
          else {
             //Ping the host
-            std::string command;
-            const int buff_size = 50;
+            const int buff_size = 25;
             double answer;
 
-            command = "/work/mmicel2/bin/netperf -H " + *it + " | tail -n 1 | sed 's/\\([0-9]*.*[0-9]*\\) \\([0-9]*.*[0-9]*\\) \\([0-9]*.*[0-9]*\\) \\([0-9]*.[0-9]*\\) \\([0-9]*.*[0-9]*\\)/\\5/'";
-            FILE *results = popen(command.c_str(), "r");
+            FILE *results = popen("/work/mmicel2/bin/netperf -H localhost | tail -n 1 | sed 's/[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\.[0-9]*\\)[ ]*\\([0-9]*\\.[0-9]*\\)/\\5/'", "r");
             char buffer[buff_size];
             int read = fread(buffer, 1, buff_size, results);
+            pclose(results);
+            std::cerr << "read  " << read << " bytes" << std::endl;
+            std::cerr << "string result: " << buffer << std::endl;
             if(read < buff_size)
                buffer[read] = '\0';
             else
                buffer[buff_size-1] = '\0';
+            std::cerr << "string result: " << buffer << std::endl;
             sscanf(buffer, "%lf", &answer);
             std::cerr << "netperf result of host (" << *it << "): " << "(" << answer << ")" << std::endl;
             retval.push_back(answer);
-            pclose(results);
          }
       }
       return retval;

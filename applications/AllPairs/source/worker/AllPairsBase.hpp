@@ -162,7 +162,8 @@ namespace AllPairs {
             workerDir_.set_attribute(ATTR_LAST_SEEN, boost::lexical_cast<std::string>(timestamp));
 
             saga::advert::entry server_name(sessionBaseDir_.open(ADVERT_ENTRY_SERVER, mode));
-            serverURL_ = server_name.retrieve_object<saga::url>();
+            std::cerr << "SERVER_URL about to get" << std::endl;
+            serverURL_ = saga::url(server_name.retrieve_string());
             std::cerr << "SERVER_URL = " << serverURL_.get_string() << std::endl;
          }
          catch(saga::exception const & e) {
@@ -189,10 +190,10 @@ namespace AllPairs {
                while(runComparison_->hasAssignment()) {
                   assignment asn(runComparison_->getAssignment());
                   std::cerr << "BUILDING ASSIGNMENT AND COMMAND" << std::endl;
-                  //val = compare(asn.first, asn.second);
+                  double val = compare(asn.first, asn.second);
                   //Here is where the headache beings
                   //run perl script with runs a worker to compare
-                  std::string command("/work/mmicel2/saga/saga-projects/applications/AllPairs/samples/runner.pl");
+                  /*std::string command("/work/mmicel2/saga/saga-projects/applications/AllPairs/samples/runner.pl");
                   command += " -u " + saga::uuid().string();
                   saga::url firstURL(asn.first);
                   saga::url secondURL(asn.second);
@@ -257,20 +258,20 @@ namespace AllPairs {
                   {
                      //requires no staging
                      command += " -n " + asn.second;
-                  }
+                  }*/
                   saga::url result(std::string("result-") + boost::lexical_cast<std::string>(runComparison_->getChunkID()));
                   saga::advert::entry fin_adv(resultDir_.open(result, mode | saga::advert::Create));
                   command += " -a " + fin_adv.get_url().get_string();
-                  std::cerr << "ABOUT TO RUN PERL COMMAND: " << command << std::endl;
+                  /*std::cerr << "ABOUT TO RUN PERL COMMAND: " << command << std::endl;
                   FILE *job = popen(command.c_str(), "r");
                   std::cerr << "WAITING FOR JOB TO FINISH NOW!" << std::endl;
-                  pclose(job);
-                  /*std::cout << "first: " << asn.first << std::endl;
+                  pclose(job);*/
+                  std::cout << "first: " << asn.first << std::endl;
                   resultString += "(" + asn.first;
                   std::cout << "second: " << asn.second << std::endl;
                   resultString += + ", " + asn.second + "): ";
                   std::cout << "value: " << boost::lexical_cast<std::string>(&val) << std::endl;
-                  resultString += boost::lexical_cast<std::string>(&val) + '\n';*/
+                  resultString += boost::lexical_cast<std::string>(&val) + '\n';
                }
                lastFinishedChunk_ = runComparison_->getChunkID();
                std::cout << "chunkId: " << runComparison_->getChunkID();

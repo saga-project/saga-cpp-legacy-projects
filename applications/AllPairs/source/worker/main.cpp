@@ -19,7 +19,32 @@
       : AllPairsBase<AllPairsImpl>(argCount, argList) {
     }
     double compare(saga::url testUrl, saga::url baseUrl) {
-    }
+      saga::filesystem::file f (testUrl, saga::filesystem::Read);
+      saga::filesystem::file g (baseUrl, saga::filesystem::Read);
+      saga::size_t const n = 1024*64;
+      saga::uint8_t data[n+1];
+      while (true) {
+         std::memset(data, n+1, '\0');
+         // read a chunk into the buffer
+         if ( f.read (saga::buffer (data, n), n) ) {
+            //std::cout << data;
+         }
+         else {
+            break;
+         }
+      }
+      while (true) {
+         std::memset(data, n+1, '\0');
+         // read a chunk into the buffer
+         if ( g.read (saga::buffer (data, n), n) ) {
+             //std::cout << data;
+         }
+         else {
+             break;
+         }
+      }
+      return 0;
+   }
 };
 
 /*********************************************************

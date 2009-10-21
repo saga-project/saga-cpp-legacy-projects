@@ -12,11 +12,12 @@
 namespace AllPairs {
    // fileCount is the total number of files possibly outputted by
    // the map function (NUM_MAPS)
-   HandleComparisons::HandleComparisons(Graph &networkGraph,
+   HandleComparisons::HandleComparisons(Graph &networkGraph, bool useGraph,
                                       assignmentChunksVector &assignments,
                                       std::map<int, std::vector<saga::url> > &files,
                                       saga::url serverURL, LogWriter *log)
     :  networkGraph_(networkGraph),
+       useGraph_(useGraph),
        assignments_(assignments),
        files_(files),
        serverURL_(serverURL), log_(log) {
@@ -208,118 +209,108 @@ namespace AllPairs {
             std::cerr << "returned first one" << std::endl;
             return assignments_[unassigned_[0]];
          }
+      } else if(assigned_.size() > 0) {
+         //No more unassigned ones
+         //Try to use locality information from graph
+         AssignmentChunk ac;
+         bool found = false;
+         boost::tie(ac, found) = AssignmentChunkCheck_(assigned_, hostname);
+         if(found == true) {
+            return ac;
+         }
+         else {
+            //Random so not to give out same assigned one every time
+            return assignments_[assigned_[rand() % assigned_.size()]];
+         }
+      } else if(finished_.size() > 0) {
+         //No more assigned or unassigned assignments
+         //No one should be asking!
+         std::cerr << "Asking for assignments when only finished ones exists" << std::endl;
+         //Give random
+         return assignments_[finished_[rand() % finished_.size()]];
+      } else {
+         std::cerr << "Stop asking for chunks!" << std::endl;
+         APPLICATION_ABORT;
       }
-      else if(assigned_.size() > 0) {
-       //No more unassigned ones
-       //Try to use locality information from graph
-       AssignmentChunk ac;
-       bool found = false;
-       boost::tie(ac, found) = AssignmentChunkCheck_(assigned_, hostname);
-       if(found == true)
-       {
-          return ac;
-       }
-       else
-       {
-          //Random so not to give out same assigned one every time
-          return assignments_[assigned_[rand() % assigned_.size()]];
-       }
-    }
-else if(finished_.size() > 0)
-    {
-       //No more assigned or unassigned assignments
-       //No one should be asking!
-       std::cerr << "Asking for assignments when only finished ones exists" << std::endl;
-       //Give random
-       return assignments_[finished_[rand() % finished_.size()]];
-    }
-    else
-    {
-       std::cerr << "Stop asking for chunks!" << std::endl;
-       APPLICATION_ABORT;
-    }
- }
+   }
 
- std::pair<AssignmentChunk, bool> HandleComparisons::AssignmentChunkCheck_(
-       const std::vector<int> &set,
-       const std::string &hostname)
- {
-    double minimumDependency = -1;
-    AssignmentChunk result;
+   std::pair<AssignmentChunk, bool> HandleComparisons::AssignmentChunkCheck_(
+      const std::vector<int> &set,
+      const std::string &hostname) {
+      double minimumDependency = -1;
+      AssignmentChunk result;
 
-    //Iterator over set, to determine available AssignmentChunks's dependency
-    std::vector<int>::const_iterator end = set.end();
-    for(std::vector<int>::const_iterator it  = set.begin(); it != end; ++it)
-    {
-       double tempMin = 0;
-       AssignmentChunk tempResult;
-       std::vector<Assignment>::iterator AEnd = assignments_[*it].getEnd();
-       for(std::vector<Assignment>::iterator AIt  = assignments_[*it].getBegin();
-           AIt != AEnd; ++AIt)
-       {
-          //Look through all known replicas, and find minimum dependency in graph
-          double replicaMin = -1;
-          std::string minFrom;
-          std::string minTo;
-          std::vector<saga::url>::iterator ReplicaIt  = files_[AIt->getFrom()].begin();
-          std::vector<saga::url>::iterator ReplicaEnd = files_[AIt->getFrom()].end();
-          while(ReplicaIt != ReplicaEnd)
-          {
-             //Lookup cost of each replica
-             boost::graph_traits<Graph>::edge_iterator EIt, EBegin, Eend;
-             boost::tie(EBegin, Eend) = boost::edges(networkGraph_);
-             for(EIt = EBegin; EIt != Eend; ++EIt)
-             {
-                std::string source(networkGraph_[boost::source(*EIt, networkGraph_)].name);
-                std::string target(networkGraph_[boost::target(*EIt, networkGraph_)].name);
-                if(source == ReplicaIt->get_host() && target == hostname)
-                {
-                   double weight = networkGraph_[*EIt].weight;
-                   if(weight < replicaMin || replicaMin == -1)
-                   {
-                      replicaMin = weight;
-                      minFrom = ReplicaIt->get_string();
-                   }
-                }
-             }
-          }
-          tempMin += replicaMin;
-          replicaMin = -1;
-          ReplicaIt  = files_[AIt->getTo()].begin();
-          ReplicaEnd = files_[AIt->getTo()].end();
-          while(ReplicaIt != ReplicaEnd)
-          {
-             //Lookup cost of each replica
-             boost::graph_traits<Graph>::edge_iterator EIt, EBegin, Eend;
-             boost::tie(EBegin, Eend) = boost::edges(networkGraph_);
-             for(EIt = EBegin; EIt != Eend; ++EIt)
-             {
-                std::string source(networkGraph_[boost::source(*EIt, networkGraph_)].name);
-                std::string target(networkGraph_[boost::target(*EIt, networkGraph_)].name);
-                if(source == ReplicaIt->get_host() && target == hostname)
-                {
-                   double weight = networkGraph_[*EIt].weight;
-                   if(weight < replicaMin || replicaMin == -1)
-                   {
-                      replicaMin = weight;
-                      minTo = ReplicaIt->get_string();
-                   }
-                }
-             }
-             tempResult.push_back(Assignment(minFrom, minTo));
-             tempMin += replicaMin;
-          }
-       }
-       if(tempMin < minimumDependency || minimumDependency == -1)
-       {
-          result = tempResult;
-          minimumDependency = tempMin;
-       }
-    }
-    if(minimumDependency  == -1)
-       return std::pair<AssignmentChunk, bool>(AssignmentChunk(), false);
-    else
-       return std::pair<AssignmentChunk, bool>(result, true);
- }
-
+      //Iterator over set, to determine available AssignmentChunks's dependency
+      if(useGraph_ == false)
+      {
+         std::cout << "entering false check" << std::endl;
+         return std::pair<AssignmentChunk, bool>(result, false);
+      }
+      std::vector<int>::const_iterator end = set.end();
+      for(std::vector<int>::const_iterator it  = set.begin(); it != end; ++it) {
+         double tempMin = 0;
+         AssignmentChunk tempResult;
+         std::vector<Assignment>::iterator AEnd = assignments_[*it].getEnd();
+         for(std::vector<Assignment>::iterator AIt  = assignments_[*it].getBegin();
+            AIt != AEnd; ++AIt) {
+            //Look through all known replicas, and find minimum dependency in graph
+            double replicaMin = -1;
+            std::string minFrom;
+            std::string minTo;
+            std::vector<saga::url>::iterator ReplicaIt  = files_[AIt->getFrom()].begin();
+            std::vector<saga::url>::iterator ReplicaEnd = files_[AIt->getFrom()].end();
+            while(ReplicaIt != ReplicaEnd) {
+               //Lookup cost of each replica
+               boost::graph_traits<Graph>::edge_iterator EIt, EBegin, Eend;
+               boost::tie(EBegin, Eend) = boost::edges(networkGraph_);
+               for(EIt = EBegin; EIt != Eend; ++EIt) {
+                  std::string source(networkGraph_[boost::source(*EIt, networkGraph_)].name);
+                  std::string target(networkGraph_[boost::target(*EIt, networkGraph_)].name);
+                  if(source == ReplicaIt->get_host() && target == hostname) {
+                     double weight = networkGraph_[*EIt].weight;
+                     if(weight < replicaMin || replicaMin == -1) {
+                        replicaMin = weight;
+                        minFrom = ReplicaIt->get_string();
+                     }
+                  }
+               }
+               ReplicaIt++;
+            }
+            tempMin += replicaMin;
+            replicaMin = -1;
+            ReplicaIt  = files_[AIt->getTo()].begin();
+            ReplicaEnd = files_[AIt->getTo()].end();
+            while(ReplicaIt != ReplicaEnd) {
+               //Lookup cost of each replica
+               boost::graph_traits<Graph>::edge_iterator EIt, EBegin, Eend;
+               boost::tie(EBegin, Eend) = boost::edges(networkGraph_);
+               for(EIt = EBegin; EIt != Eend; ++EIt) {
+                  std::string source(networkGraph_[boost::source(*EIt, networkGraph_)].name);
+                  std::string target(networkGraph_[boost::target(*EIt, networkGraph_)].name);
+                  if(source == ReplicaIt->get_host() && target == hostname) {
+                     double weight = networkGraph_[*EIt].weight;
+                     if(weight < replicaMin || replicaMin == -1) {
+                        replicaMin = weight;
+                        minTo = ReplicaIt->get_string();
+                     }
+                  }
+               }
+               tempResult.push_back(Assignment(minFrom, minTo));
+               tempMin += replicaMin;
+               ReplicaIt++;
+            }
+         }
+         if(tempMin < minimumDependency || minimumDependency == -1) {
+            result = tempResult;
+            minimumDependency = tempMin;
+         }
+      }
+      if(minimumDependency  == -1) {
+         std::cerr << "returning false from lookup" << std::endl;
+         return std::pair<AssignmentChunk, bool>(AssignmentChunk(), false);
+      } else {
+         std::cerr << "returning true from lookup" << std::endl;
+         return std::pair<AssignmentChunk, bool>(result, true);
+      }
+   }
 } // namespace AllPairs
