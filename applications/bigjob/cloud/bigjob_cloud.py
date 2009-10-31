@@ -25,7 +25,7 @@ import copy
 
 NIMBUS_CLIENT="/opt/nimbus/bin/cloud-client.sh"
 NIMBUS_URL="nimbus://tp-vm1.ci.uchicago.edu"
-IMAGE_NAME="gentoo-saga-1.3.3.gz"
+IMAGE_NAME="gentoo_saga-1.3.3_namd-2.7b1.gz"
 DEFAULT_WALLTIME=60   #in minutes
 
 class bigjob_cloud():
@@ -64,17 +64,43 @@ class bigjob_cloud():
         self.busynodes = []
         self.subjobs = {}
         self.pilot_url=NIMBUS_URL
-        for i in range(0, number_nodes):
-            self.nodes.append(self.start_nimbus_image())
-            
+        
+        self.resource_lock = threading.RLock()       
+        
+        # spawn Nimbus images
+        self.start_nimbus_images_as_thread(number_nodes)
+        # for fast debugging     
+        #self.nodes = [{"hostname":"tp-x001.ci.uchicago.edu", "vmid":"vm-049", "cpu_count":2},
+        #              {"hostname":"tp-x002.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2}]      
         self.free_nodes=copy.copy(self.nodes)
-        # wait for images to properly come up
-        time.sleep(60)
+                
         self.launcher_thread=threading.Thread(target=self.start_background_thread)
         self.launcher_thread.start()
         print "Finished launching of pilot jobs"
         
         
+    def start_nimbus_images_as_thread(self, number_nodes):
+        """ Launches specified number of nimbus images 
+            For each image launch a separate thread is spawned """
+        init_threads = []
+        number_of_images_to_start = number_nodes
+        retry_number = 0 
+        # restart mechanism in case an allocation fails
+        while number_of_images_to_start > 0 and retry_number < 3:
+            print "Start " + str(number_of_images_to_start) + " images."
+            for i in range(0, number_nodes):
+                thread=threading.Thread(target=self.start_nimbus_image)
+                thread.start()      
+                init_threads.append(thread)
+             
+            # join threads
+            for t in init_threads:
+                t.join()    
+            
+            number_of_images_to_start = number_nodes - len(self.nodes)
+            retry_number = retry_number + 1
+                    
+    
     def start_nimbus_image(self):
         """ Starts a single Nimbus image """
         #return {"hostname":"tp-x012.ci.uchicago.edu", "vmid":"vm-061", "cpu_count":1}
@@ -111,10 +137,33 @@ class bigjob_cloud():
             hostname=hostname_mo.group(2)
         if (vmid!=None and hostname!=None):
             print "Sucessfully launched image. VMID: " + vmid + " Hostname: " + hostname
+            # wait for images to properly come up
+            time.sleep(60)
+            self.setup_nimbus_image(hostname)
+            self.resource_lock.acquire()
+            self.nodes.append({"hostname":hostname, "vmid":vmid, "cpu_count":2})
+            self.resource_lock.release()
         else:
             print "Failed to launch VM."
             raise NoResourceAvailable("No resource available.")
-        return {"hostname":hostname, "vmid":vmid, "cpu_count":1}
+    
+    
+    
+    def setup_nimbus_image(self, hostname):
+        """ ensure ssh keys are properly setup """
+        jd = saga.job.description()
+        jd.executable = "/usr/bin/cat"
+        jd.number_of_processes = "1"
+        jd.spmd_variation = "single"
+        # ssh root@tp-x001.ci.uchicago.edu "cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys"
+        jd.arguments = ["~/.ssh/id_rsa.pub", ">>", "~/.ssh/authorized_keys" ]
+        jd.output = "stdout.txt"
+        jd.error = "stderr.txt"
+        
+        job_service_url = saga.url("ssh://root@" + hostname)
+        job_service = saga.job.service(job_service_url)
+        job = job_service.create_job(jd)
+        job.run()
         
         
     def get_state(self):        
@@ -132,17 +181,32 @@ class bigjob_cloud():
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
         self.stop_background_thread()
         print "Cancel Cloud VMs"
+        stop_threads = [] 
         for i in self.nodes:
-            print "Terminate VM: " + i["hostname"] + "/" + i["vmid"]
-            command = NIMBUS_CLIENT + " --terminate " + "--handle " + i["vmid"]
-            print "Command: " + str(command)
-            p = subprocess.Popen(args=command, 
+             thread=threading.Thread(target=self.stop_nimbus_image,
+                                     args=[i["vmid"]])
+             thread.start()      
+             stop_threads.append(thread)
+             
+        # join threads
+        for t in stop_threads:
+            t.join()    
+            
+        self.nodes=[]
+        
+            
+    def stop_nimbus_image(self, vmid):
+        """ stops Nimbus image with passed vmid """
+        print "Terminate VM: " + vmid
+        command = NIMBUS_CLIENT + " --terminate " + "--handle " + vmid
+        print "Command: " + str(command)
+        p = subprocess.Popen(args=command, 
                                 stdin=None,
                                 stderr=subprocess.STDOUT,
                                 stdout=subprocess.PIPE,
                                 cwd=self.working_directory, shell=True)
-            p.wait()
-            print "Successfully terminated VM "+ i["hostname"] + "/" + i["vmid"]
+        p.wait()
+        print "Successfully terminated VM " + vmid 
             
     def add_subjob(self, jd):
         print "add subjob to queue"
@@ -202,34 +266,66 @@ class bigjob_cloud():
         """ allocate nodes - remove nodes from free nodes list
             return SAGA-URL to resource ssh://tx.domain.org
         """
-        nodes = []
-        if (len(self.free_nodes)>=number_of_nodes):            
-            for i in self.free_nodes:
+        allocated_nodes = []
+        self.resource_lock.acquire()
+        if (len(self.free_nodes)>=number_of_nodes): 
+            for i in self.free_nodes[:]:
                 number = i["cpu_count"]
-                print "allocate: " + i["hostname"] + " number nodes: " + str(number)
-                for j in range(0, number):
-                    if(number_of_nodes > 0):
-                        nodes.append(i)
+                print "allocate: " + i["hostname"] + " number cores: " + str(number)
+                if(number_of_nodes > 0):
+                        allocated_nodes.append(i)
                         self.free_nodes.remove(i)                
                         self.busynodes.append(i)
                         number_of_nodes = number_of_nodes - 1
-                    else:
+                else:
                         break
-                return saga.url("ssh://root@" + i["hostname"])
-        return saga.url("")    
+        
+        self.resource_lock.release()
+        self.setup_charmpp_nodefile(allocated_nodes)
+        return saga.url("ssh://root@" + allocated_nodes[0]["hostname"])
+            
     
+    def setup_charmpp_nodefile(self, allocated_nodes):
+        """ Setup charm++ nodefile to use for executing NAMD  
+            HACK!! Method violates layering principle
+            File $HOME/machinefile in charm++ nodefileformat is written to first node in list
+        """
+        # Nodelist format:
+        # 
+        # host tp-x001 ++cpus 2 ++shell ssh 
+        # host tp-x002 ++cpus 2 ++shell ssh
+        nodefile_string=""
+        for i in allocated_nodes:
+            nodefile_string=nodefile_string + "host "+ i["hostname"] + " ++cpus " + str(i["cpu_count"]) + " ++shell ssh\n"
+            
+        # copy nodefile to rank 0 node
+        jd = saga.job.description()
+        jd.executable = "/usr/bin/echo"
+        jd.number_of_processes = "1"
+        jd.spmd_variation = "single"
+        # ssh root@tp-x001.ci.uchicago.edu "cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys"
+        jd.arguments = ["\""+nodefile_string+"\"", ">", "machinefile" ]
+        jd.output = "stdout.txt"
+        jd.error = "stderr.txt"
+        
+        job_service_url = saga.url("ssh://root@"+allocated_nodes[0]["hostname"])
+        job_service = saga.job.service(job_service_url)
+        job = job_service.create_job(jd)
+        job.run()
+             
+        
     
     def deallocate_nodes(self, job_dict):
          """ add nodes back to free node list """
          number_nodes = int(job_dict["job_description"].number_of_processes)
          hostname = job_dict["job_service_url"].host
+         self.resource_lock.acquire()
          for i in self.busynodes:
              if i["hostname"]==hostname:
                  self.busynodes.remove(i) 
-        
-         for i in self.busynodes:
-             if i["hostname"]==hostname:
                  self.free_nodes.append(i)
+        
+         self.resource_lock.release()
         
         
     
@@ -254,13 +350,15 @@ class bigjob_cloud():
         for i in self.subjobs.values():
             job = i["job"]
             state = job.get_state()
-            if (str(state)=="Failed" or str(state)=="Done"):
-                    self.deallocate_nodes(i)                
+            if (i.has_key("freed")==False and (str(state)=="Failed" or str(state)=="Done")):
+                    self.deallocate_nodes(i)   
+                    i["freed"]=True
+                                 
         
     def start_background_thread(self):
         self.stop=False
         print "\n"
-        print "##################################### New POLL/MONITOR cycle ##################################"
+        print "##########################    ########### New POLL/MONITOR cycle ##################################"
         print "Free nodes: " + str(len(self.free_nodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while self.stop==False:
             try:
@@ -273,16 +371,18 @@ class bigjob_cloud():
                         print "No resources available - put job back into queue."
                         self.queue.put(job_dict)
                 self.monitor_jobs()            
-                time.sleep(10)
+                if self.queue.empty():
+                    time.sleep(10)
+            except KeyboardInterrupt:
+                print "Keyboard Interrupt"
+                self.stop=True
+                raise
             except Queue.Empty:
                 pass
             except saga.exception:
                 traceback.print_exc(file=sys.stdout)
                 break
-            except (KeyboardInterrupt, SystemExit):
-                print "Keyboard Interrupt"
-                self.stop=True
-                raise
+            
     
     def stop_background_thread(self):        
         self.stop=True
