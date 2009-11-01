@@ -1,0 +1,223 @@
+\documentclass[conference,final]{IEEEtran}
+
+\usepackage{latex8}
+\usepackage{times}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{float}
+\usepackage{times}    
+\usepackage{multirow}    
+\usepackage{listings}   
+\usepackage{times}     
+\usepackage{paralist}    
+\usepackage{wrapfig}    
+\usepackage[small,it]{caption}
+\usepackage{multirow}
+\usepackage{ifpdf}
+
+
+\usepackage{listings}
+\usepackage{keyval}  
+\usepackage{color}
+\definecolor{listinggray}{gray}{0.95}
+\definecolor{darkgray}{gray}{0.7}
+\definecolor{commentgreen}{rgb}{0, 0.4, 0}
+\definecolor{darkblue}{rgb}{0, 0, 0.4}
+\definecolor{middleblue}{rgb}{0, 0, 0.7}
+\definecolor{darkred}{rgb}{0.4, 0, 0}
+\definecolor{brown}{rgb}{0.5, 0.5, 0}
+
+\lstdefinestyle{myListing}{
+  frame=single,   
+  backgroundcolor=\color{listinggray},  
+  %float=t,
+  language=C,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  aboveskip=0em,
+  belowskip=-2em,
+  %numbers=left, 
+  %numberstyle=\tiny
+}      
+
+\lstdefinestyle{myPythonListing}{
+  frame=single,   
+  backgroundcolor=\color{listinggray},  
+  %float=t,
+  language=Python,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  %numbers=left, 
+  %numberstyle=\tiny
+}
+
+\newcommand{\up}{\vspace*{-1em}}
+\newcommand{\upp}{\vspace*{-0.5em}}
+
+
+\title{SAGA-based BigJob: A Pilot Job Abstraction for Distributed Grid and Cloud Applications}
+
+\author{
+  Shantenu Jha$^{1,2,3}$, Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$\\
+  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
+  \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
+  \small{\emph{$^{3}$e-Science Institute, Edinburgh, UK}}\\
+}
+
+%\date{}
+
+\def\acknowledgementname{Acknowledgements}
+\newenvironment{acknowledgement}%
+{\section*{\acknowledgementname}%
+\parindent=0pt%
+}
+
+\newif\ifdraft
+% \drafttrue
+\ifdraft
+\newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
+\else
+\newcommand{\kimnote}[1]{}
+\newcommand{\alnote}[1]{}
+\newcommand{\amnote}[1]{}
+\newcommand{\jhanote}[1]{}
+\fi
+
+\begin{document} 
+
+\maketitle    
+
+% \up\up\up\up
+
+\begin{abstract}
+  
+ 
+\end{abstract}
+
+% \up \up
+\Section{Introduction}
+% \up
+
+Several classes of applications are well suited for distributed
+environments. Probably the best known and most powerful examples are
+those that involve an ensemble of decoupled tasks, such as simple
+parameter sweep applications~\cite{1239909}.
+
+\emph{Pilot jobs} is a concept initially pioneered by Condor Glide-In, which
+has been used by many communities to increase the predictability
+and time-to-solution of such applications. A pilot job allows the execution 
+of jobs which the necessity to queue each individual sub-job. The pilot job itself
+is a regular Grid job, which is started through a Grid resource manager, such as
+the Globus GRAM.
+
+The Simple API for Grid Applications (SAGA) is a high-level, easy-to-use API for 
+accessing distributed resources. Unlike other common pilot job systems SAGA BigJob 
+(i) natively supports MPI job and (ii) works on a variety of back-end systems, 
+generally reflecting the advantage of using a SAGA-based approach.
+
+Discuss PilotJob:
+- How Traditionally Used (mostly deployment time)
+- How traditionally bound to a single platform and system
+
+Recently, the usage of virtualization and the usage of on-demand virtual machines
+become increasingly popular. These so-called infrastructure-as-a-service clouds have
+different advantages compared to traditional Grid systems: users are provided
+with a greater flexibility and have the ability to customize their virtual machine
+environment. At the same time virtual machines are well isolated from each other. More and
+more the need to integrate traditional Grids and Clouds arises.
+
+%from autonomic HPC Grid/Cloud paper
+Developing and running applications in such a hybrid and dynamic computational 
+infrastructure presents new and significant challenges. These include the need for programming 
+systems that can express the hybrid usage modes and associated runtime trade-offs and adaptations, 
+as well as coordination and management infrastructures that can implement them in an efficient 
+and scalable manner. Key issues include decomposing applications, components and workflows, 
+determining and provisioning the appropriate mix of Grid/Cloud resources, and dynamically scheduling 
+them across the hybrid execution environment while satisfying/balancing multiple, possibly changing 
+objectives for performance, resilience, budgets and so on.
+
+
+\Section{Related Work}
+
+Condor Glide-In
+
+Falkon
+
+Nimbus
+
+CERN Atlas Pilot Job~\cite{1555338}
+
+\Section{BigJob -- The SAGA-based Pilot Job}
+
+Introduce BigJob:
+ - Describe it, and how it differs from other PilotJobs
+
+ - Outline new usage modes that BigJob fundamentally supports:
+    -- As the basis for scale-out across
+    -- As the basis for a framework for runtime optimization
+    -- More thought?
+
+BigJob:
+ - Architecture and control flow details
+ - Performance Numbers
+
+\SubSection{Overview}
+
+
+The following figure gives an overview of the SAGA BigJob architecture.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\textwidth]{figures/bigjob}
+    \caption{BigJob Architecture: The core of the framework, the BigJob-Manager,
+     orchestrates a set of BigJob-Agents and sub-jobs using the SAGA job and file APIs. 
+     The BigJob-Agent is responsible for managing and monitoring sub-jobs on a 
+     single machine.}
+    \label{fig:figures_bigjob}
+\end{figure}
+
+
+\SubSection{Performance}
+
+Startup Times
+
+Dispatch times
+
+
+\Section{BigJob for Utilizing Cloud Resources}
+
+Despite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
+
+OCCI
+
+
+\Section{Case Study: Running BigJob Across Heterogeneous Infrastructures}
+
+NAMD
+
+No discovery service - it is more or less a surprise what kind of capabilities you get in each science cloud
+
+Test new Amazon High Memory Machine
+
+Eucalyptus networking completely screwed up: all images start with the same hostname
+
+Images not transferable
+
+Different feature set
+
+\Section{Conclusion}
+
+
+
+\end{document}
