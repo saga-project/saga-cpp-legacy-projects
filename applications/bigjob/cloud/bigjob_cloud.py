@@ -22,11 +22,25 @@ import Queue
 import threading
 import copy
 
-
+#Nimbus
 NIMBUS_CLIENT="/opt/nimbus/bin/cloud-client.sh"
 NIMBUS_URL="nimbus://tp-vm1.ci.uchicago.edu"
-IMAGE_NAME="gentoo_saga-1.3.3_namd-2.7b1.gz"
 DEFAULT_WALLTIME=60   #in minutes
+
+#EC2
+#EC2_ENV_FILE="/Users/luckow/.ec2/ec2rc"
+EC2_ENV_FILE="/Users/luckow/.euca/eucarc"
+EC2_KEYNAME="euca-key"
+
+# Common Parameter
+#IMAGE_NAME="ami-836e8dea"
+#IMAGE_NAME="gentoo_saga-1.3.3_namd-2.7b1.gz"
+#KEYNAME="/Users/luckow/.ec2/id-lsu-keypair"
+
+IMAGE_NAME="emi-62360E71"
+
+SSH_PRIVATE_KEY_FILE="/Users/luckow/.euca/euca-key.private"
+
 
 class bigjob_cloud():
     
@@ -36,6 +50,7 @@ class bigjob_cloud():
     def __init__(self, database_host=None):        # no database host as advert based bigjob
        self.uuid = uuid.uuid1()
        self.queue=Queue.Queue()
+       
         
     def start_pilot_job(self, 
                  lrms_url=None,                     # in future version one can specify a URL for a cloud (ec2:// vs. nimbus:// vs. eu://)
@@ -44,8 +59,9 @@ class bigjob_cloud():
                  queue=None,                        # n/a
                  project=None,                      # n/a
                  working_directory=None,            # working directory
-                 userproxy=None,               # optional: path to user credential (X509 cert or proxy cert)
-                 walltime=None):               # optional: walltime
+                 userproxy=None,                    # optional: path to user credential (X509 cert or proxy cert)
+                 walltime=None,                     # optional: walltime
+                 cloud_type=None):                  # optional: EC2 or Nimbus
         """ The start_pilot_job method will initialize the requested number of images """           
 
         if userproxy != None and userproxy != '':
@@ -63,15 +79,44 @@ class bigjob_cloud():
         self.free_nodes = []
         self.busynodes = []
         self.subjobs = {}
-        self.pilot_url=NIMBUS_URL
+        
+        self.job_service_cache={}
+        #EC2 environment
+        self.env_dict={}
+        if EC2_ENV_FILE != None:
+            self.env_dict=self.read_ec2_environments(EC2_ENV_FILE)   
+        
+        self.cloud_type = cloud_type
+        # SSH Context
+        self.ssh_context = saga.context("ssh")
+        self.ssh_context.set_attribute("UserKey", SSH_PRIVATE_KEY_FILE)
+        self.session = saga.session()
+        self.session.add_context(self.ssh_context)        
         
         self.resource_lock = threading.RLock()       
         
         # spawn Nimbus images
-        self.start_nimbus_images_as_thread(number_nodes)
+        start=time.time()
+        host=socket.gethostname()
+        if cloud_type == "EC2":
+            self.pilot_url="ec2://"+host
+            self.start_ec2_images(number_nodes)            
+        else:
+            self.pilot_url="nimbus://"+host
+            self.start_nimbus_images_as_thread(number_nodes)
         # for fast debugging     
-        #self.nodes = [{"hostname":"tp-x001.ci.uchicago.edu", "vmid":"vm-049", "cpu_count":2},
-        #              {"hostname":"tp-x002.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2}]      
+        #self.nodes=[{"hostname":"149.165.228.110", "vmid":"i-4F100957", "private_hostname":"192.168.8.4", "cpu_count":1}]
+#        self.nodes = [{"hostname":"tp-x001.ci.uchicago.edu", "vmid":"vm-049", "cpu_count":2},
+#                      {"hostname":"tp-x002.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2},
+#                      {"hostname":"tp-x004.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2},      
+#                      {"hostname":"tp-x005.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2}]
+        
+        print "Started " + str(len(self.nodes)) + " nodes in " + str(time.time()-start)      
+        
+        # check whether all requested nodes have been started
+        if len(self.nodes) < number_nodes:
+            raise NoResourceAvailable("Not sufficient resource available.")  
+        
         self.free_nodes=copy.copy(self.nodes)
                 
         self.launcher_thread=threading.Thread(target=self.start_background_thread)
@@ -88,7 +133,7 @@ class bigjob_cloud():
         # restart mechanism in case an allocation fails
         while number_of_images_to_start > 0 and retry_number < 3:
             print "Start " + str(number_of_images_to_start) + " images."
-            for i in range(0, number_nodes):
+            for i in range(0, number_of_images_to_start):
                 thread=threading.Thread(target=self.start_nimbus_image)
                 thread.start()      
                 init_threads.append(thread)
@@ -139,7 +184,7 @@ class bigjob_cloud():
             print "Sucessfully launched image. VMID: " + vmid + " Hostname: " + hostname
             # wait for images to properly come up
             time.sleep(60)
-            self.setup_nimbus_image(hostname)
+            self.setup_image(hostname)
             self.resource_lock.acquire()
             self.nodes.append({"hostname":hostname, "vmid":vmid, "cpu_count":2})
             self.resource_lock.release()
@@ -147,10 +192,9 @@ class bigjob_cloud():
             print "Failed to launch VM."
             raise NoResourceAvailable("No resource available.")
     
-    
-    
-    def setup_nimbus_image(self, hostname):
-        """ ensure ssh keys are properly setup """
+        
+    def setup_image(self, hostname):
+        """ ensure ssh keys are properly setup (works for Nimbus, Eucalyptus and EC2 """
         jd = saga.job.description()
         jd.executable = "/usr/bin/cat"
         jd.number_of_processes = "1"
@@ -161,10 +205,127 @@ class bigjob_cloud():
         jd.error = "stderr.txt"
         
         job_service_url = saga.url("ssh://root@" + hostname)
-        job_service = saga.job.service(job_service_url)
+        job_service = saga.job.service(self.session, job_service_url)
         job = job_service.create_job(jd)
         job.run()
         
+        # Cache job service object for later usage
+        self.job_service_cache[job_service_url] =job_service
+        
+        # wait for completion of job
+        job.wait()
+        
+        
+    def start_ec2_images(self, number_nodes):
+        """Start EC2 image (either on Eucalyptus or Amazon EC2) """
+ 
+        
+        command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  IMAGE_NAME \
+                + " -k " + EC2_KEYNAME + " -n " + str(number_nodes)
+        print "execute: " + command + " in " + self.working_directory
+        
+        stdout = self.execute_command(command, self.working_directory, self.env_dict)
+        vmid_regex = re.compile("i-\w*")
+        for i in stdout.splitlines():
+            try:
+                m = vmid_regex.search(i)
+                vmid = m.group()
+                print vmid
+                self.nodes.append({"hostname":None, "vmid":vmid, "cpu_count":1, "state":"pending"})
+            except:
+                pass
+        print "Started instances: " + str(self.nodes)
+        
+        #wait for instances to startup
+        self.wait_for_ec2_instance_startup()
+        
+        #setup images
+        for i in self.nodes:
+            self.setup_image(i["hostname"])
+                  
+    def wait_for_ec2_instance_startup(self):
+        """ polls EC2 for updated instance states """
+        command = self.env_dict["EC2_HOME"]  + "bin/ec2-describe-instances"
+        while self.check_all_ec2_nodes()==False:
+            stdout = self.execute_command(command, self.working_directory, self.env_dict)
+            for i in stdout.splitlines():
+                if i.startswith("INSTANCE"):
+                    line_components = i.split()
+                    instance_id = line_components[1]
+                    public_ip = line_components[3]
+                    internal_ip = line_components[4]
+                    state = line_components[5]
+                    if state == "running":
+                        for node in self.nodes:
+                            if node["vmid"]==instance_id:
+                                print "New running instance: " + instance_id
+                                node["hostname"]=public_ip
+                                node["private_hostname"]=internal_ip
+                                node["state"]=state
+                                
+            time.sleep(10)
+                        
+    
+    def check_all_ec2_nodes(self):
+        """ check whether all nodes in self.nodes list are running 
+            return TRUE if all nodes are running otherwise FALSE """
+        counter = 0 
+        for i in self.nodes:
+            if i["state"]=="running":
+                counter = counter + 1
+                
+        if counter == len(self.nodes):
+            return True
+        else: 
+            return False
+        
+    def read_ec2_environments(self, env_file):
+        """ read required env variables for Eucalyptus """
+        euca_dir=os.path.dirname(env_file)
+        #open file
+        f = open(env_file)
+        env = f.readlines()
+        env_regex = re.compile("(export\s)(\w*)=(\S*)")
+        env_dict = {}
+        for i in env:
+            try:
+                m = env_regex.search(i)
+                key = m.group(2)
+                value = m.group(3)
+                #expand EUCA_KEY_DIR environment variable
+                value = value.replace("""${EUCA_KEY_DIR}""", euca_dir)
+                env_dict[key]=value
+            except:
+                pass
+        f.close() 
+        return env_dict
+    
+    def stop_ec2_images(self):
+        """ terminate all ec2 instances managed by this pilot job """
+        instances = ""
+        for i in self.nodes:
+            instances = instances + i["vmid"] + " "
+            
+        command = self.env_dict["EC2_HOME"]  + "/bin/ec2-terminate-instances " + instances
+        self.execute_command(command, self.working_directory, self.env_dict)
+         
+    
+    def execute_command(self, command, working_directory, environment_variable):
+        print "execute: " + command + " in " + working_directory              
+        start=time.time()
+        p = subprocess.Popen(args=command, 
+                            stdin=None,
+                            stderr=subprocess.STDOUT,
+                            stdout=subprocess.PIPE,
+                            cwd=working_directory, 
+                            shell=True,
+                            env=environment_variable)
+        print "started " + command 
+        p.wait()
+        end = time.time()     
+        print "Execution Time: " + str(end-start) + " s."  
+        stdout = p.communicate()[0]
+        return stdout  
         
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
@@ -181,19 +342,23 @@ class bigjob_cloud():
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
         self.stop_background_thread()
         print "Cancel Cloud VMs"
-        stop_threads = [] 
-        for i in self.nodes:
-             thread=threading.Thread(target=self.stop_nimbus_image,
+        if self.cloud_type=="EC2":
+            self.stop_ec2_images()
+        else:
+            stop_threads = [] 
+            for i in self.nodes:
+                thread=threading.Thread(target=self.stop_nimbus_image,
                                      args=[i["vmid"]])
-             thread.start()      
-             stop_threads.append(thread)
+                thread.start()      
+                stop_threads.append(thread)
              
-        # join threads
-        for t in stop_threads:
-            t.join()    
+            # join threads
+            for t in stop_threads:
+                t.join()    
             
         self.nodes=[]
         
+               
             
     def stop_nimbus_image(self, vmid):
         """ stops Nimbus image with passed vmid """
@@ -247,13 +412,19 @@ class bigjob_cloud():
                 job_service_url = self.allocate_nodes(int(jd.number_of_processes))
                 if str(job_service_url) != "":
                     print "Execute subjob: " + str(jobid) + " at: " + str(job_service_url)
-                    job_service = saga.job.service(job_service_url)
+                    if self.job_service_cache.has_key(job_service_url):
+                        job_service = self.job_service_cache[job_service_url]
+                    else:
+                        job_service = saga.job.service(self.session, job_service_url)
+                        self.job_service_cache[job_service_url] =job_service
+                        
+                        
                     job = job_service.create_job(jd)
                     job.run()
                     
                     # store objects for later use
                     job_dict["job_service_url"]=job_service_url
-                    job_dict["job_service"]=job_service
+                    #job_dict["job_service"]=job_service
                     job_dict["job"]=job
                     self.subjobs[str(jobid)]=job_dict
                 else:
@@ -300,18 +471,19 @@ class bigjob_cloud():
             
         # copy nodefile to rank 0 node
         jd = saga.job.description()
-        jd.executable = "/usr/bin/echo"
+        jd.executable = "echo"
         jd.number_of_processes = "1"
         jd.spmd_variation = "single"
         # ssh root@tp-x001.ci.uchicago.edu "cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys"
-        jd.arguments = ["\""+nodefile_string+"\"", ">", "machinefile" ]
+        jd.arguments = ["\""+nodefile_string+"\"", ">", "machinefile"]
         jd.output = "stdout.txt"
         jd.error = "stderr.txt"
         
         job_service_url = saga.url("ssh://root@"+allocated_nodes[0]["hostname"])
-        job_service = saga.job.service(job_service_url)
+        job_service = saga.job.service(self.session, job_service_url)
         job = job_service.create_job(jd)
         job.run()
+        job.wait()
              
         
     
