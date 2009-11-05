@@ -17,7 +17,7 @@ if __name__ == "__main__":
     ##########################################################################################
     # Start BigJob
     # Parameter for BigJob
-    nodes = 1 # number nodes for agent
+    nodes = 2 # number nodes for agent
     current_directory=os.getcwd() +"/agent"  # working directory for agent
 
     # start pilot job (bigjob_agent)
@@ -26,7 +26,9 @@ if __name__ == "__main__":
     bj.start_pilot_job(number_nodes=nodes, 
                        working_directory=current_directory,
                        walltime=300,
-                       cloud_type="EC2")
+                       cloud_type="EUCA",
+                       image_name="emi-62360E71")
+    
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
 
     ##########################################################################################
@@ -36,9 +38,9 @@ if __name__ == "__main__":
     jd = saga.job.description()
     jd.executable = "/usr/local/NAMD_2.7b1_Linux-x86/charmrun"
     #jd.executable = "/bin/date"
-    jd.number_of_processes = "1"
+    jd.number_of_processes = "2"
     jd.spmd_variation = "single"
-    jd.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p1", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
+    jd.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p2", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
     #jd.working_directory = "/root/run/"
     jd.output = "stdout.txt"
     jd.error = "stderr.txt"

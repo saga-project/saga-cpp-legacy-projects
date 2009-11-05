@@ -28,19 +28,16 @@ NIMBUS_URL="nimbus://tp-vm1.ci.uchicago.edu"
 DEFAULT_WALLTIME=60   #in minutes
 
 #EC2
-#EC2_ENV_FILE="/Users/luckow/.ec2/ec2rc"
-EC2_ENV_FILE="/Users/luckow/.euca/eucarc"
-EC2_KEYNAME="euca-key"
+EC2_ENV_FILE="/Users/luckow/.ec2/ec2rc"
+EC2_KEYNAME="lsu-keypair"
+EC2_SSH_PRIVATE_KEY_FILE="/Users/luckow/.ec2/id-lsu-keypair"
+EC2_INSTANCE_TYPE="m1.large"
 
-# Common Parameter
-#IMAGE_NAME="ami-836e8dea"
-#IMAGE_NAME="gentoo_saga-1.3.3_namd-2.7b1.gz"
-#KEYNAME="/Users/luckow/.ec2/id-lsu-keypair"
-
-IMAGE_NAME="emi-62360E71"
-
-SSH_PRIVATE_KEY_FILE="/Users/luckow/.euca/euca-key.private"
-
+# EUCA
+EUCA_ENV_FILE="/Users/luckow/.euca/eucarc"
+EUCA_KEYNAME="euca-key"
+EUCA_SSH_PRIVATE_KEY_FILE="/Users/luckow/.euca/euca-key.private"
+EUCA_INSTANCE_TYPE="m1.small"
 
 class bigjob_cloud():
     
@@ -61,14 +58,9 @@ class bigjob_cloud():
                  working_directory=None,            # working directory
                  userproxy=None,                    # optional: path to user credential (X509 cert or proxy cert)
                  walltime=None,                     # optional: walltime
-                 cloud_type=None):                  # optional: EC2 or Nimbus
+                 cloud_type=None,
+                 image_name=None):                  # optional: EC2 or Nimbus
         """ The start_pilot_job method will initialize the requested number of images """           
-
-        if userproxy != None and userproxy != '':
-            os.environ["X509_USER_PROXY"]=userproxy
-            print "use proxy: " + userproxy
-        else:
-            print "use standard proxy"
 
         print "Working directory: " + working_directory
         if not os.path.isdir(working_directory):
@@ -83,30 +75,60 @@ class bigjob_cloud():
         self.job_service_cache={}
         #EC2 environment
         self.env_dict={}
-        if EC2_ENV_FILE != None:
-            self.env_dict=self.read_ec2_environments(EC2_ENV_FILE)   
-        
         self.cloud_type = cloud_type
-        # SSH Context
-        self.ssh_context = saga.context("ssh")
-        self.ssh_context.set_attribute("UserKey", SSH_PRIVATE_KEY_FILE)
-        self.session = saga.session()
-        self.session.add_context(self.ssh_context)        
-        
+        self.image_name = image_name
+         
+        # for locking 
         self.resource_lock = threading.RLock()       
         
-        # spawn Nimbus images
+        # spawn Cloud images
         start=time.time()
         host=socket.gethostname()
         if cloud_type == "EC2":
             self.pilot_url="ec2://"+host
-            self.start_ec2_images(number_nodes)            
-        else:
+            
+            # SSH Context
+            self.ssh_context = saga.context("ssh")
+            self.ssh_context.set_attribute("UserKey", EC2_SSH_PRIVATE_KEY_FILE)
+            self.session = saga.session()
+            self.session.add_context(self.ssh_context)  
+            
+            self.key_name = EC2_KEYNAME
+            
+            #setup environment
+            self.env_dict=self.read_ec2_environments(EC2_ENV_FILE)   
+            self.start_ec2_images(number_nodes)
+                        
+        elif cloud_type == "EUCA":
+            self.pilot_url="euca://"+host
+            
+            self.ssh_context = saga.context("ssh")
+            self.ssh_context.set_attribute("UserKey", EUCA_SSH_PRIVATE_KEY_FILE)
+            self.session = saga.session()
+            self.session.add_context(self.ssh_context)   
+            
+            self.key_name = EUCA_KEYNAME
+            
+             #setup environment
+            self.env_dict=self.read_ec2_environments(EUCA_ENV_FILE)   
+            #1
+            self.start_ec2_images(number_nodes)
+            
+        elif cloud_type ==  "NIMBUS":
             self.pilot_url="nimbus://"+host
+            self.ssh_context = saga.context("ssh")
+            self.session = saga.session() # use default
+            self.session.add_context(self.ssh_context)   
+            
             self.start_nimbus_images_as_thread(number_nodes)
+        else:
+            raise UnsupportedCloudType("Cloud Type not supported")
+        
         # for fast debugging     
-        #self.nodes=[{"hostname":"149.165.228.110", "vmid":"i-4F100957", "private_hostname":"192.168.8.4", "cpu_count":1}]
-#        self.nodes = [{"hostname":"tp-x001.ci.uchicago.edu", "vmid":"vm-049", "cpu_count":2},
+        #self.nodes=[{"hostname":"149.165.228.103", "vmid":"i-48F80882", "private_hostname":"192.168.8.2", "cpu_count":1},
+        #            {"hostname":"149.165.228.108", "vmid":"i-40820878", "private_hostname":"192.168.8.3", "cpu_count":1},
+        #            ]
+#       self.nodes = [{"hostname":"tp-x001.ci.uchicago.edu", "vmid":"vm-049", "cpu_count":2},
 #                      {"hostname":"tp-x002.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2},
 #                      {"hostname":"tp-x004.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2},      
 #                      {"hostname":"tp-x005.ci.uchicago.edu", "vmid":"vm-050", "cpu_count":2}]
@@ -152,7 +174,7 @@ class bigjob_cloud():
         nimbus_walltime=1;
         if self.walltime!=None:
             nimbus_walltime=self.walltime/60
-        command = NIMBUS_CLIENT + " --run " + " --name " + IMAGE_NAME + " --hours " + str(nimbus_walltime)
+        command = NIMBUS_CLIENT + " --run " + " --name " + self.image_name + " --hours " + str(nimbus_walltime)
         print "execute: " + command + " in " + self.working_directory              
         start=time.time()
         p = subprocess.Popen(args=command, 
@@ -220,8 +242,8 @@ class bigjob_cloud():
         """Start EC2 image (either on Eucalyptus or Amazon EC2) """
  
         
-        command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  IMAGE_NAME \
-                + " -k " + EC2_KEYNAME + " -n " + str(number_nodes)
+        command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  self.image_name \
+                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + EC2_INSTANCE_TYPE
         print "execute: " + command + " in " + self.working_directory
         
         stdout = self.execute_command(command, self.working_directory, self.env_dict)
@@ -238,6 +260,9 @@ class bigjob_cloud():
         
         #wait for instances to startup
         self.wait_for_ec2_instance_startup()
+        
+        # make sure image is booted
+        time.sleep(30)
         
         #setup images
         for i in self.nodes:
@@ -451,9 +476,13 @@ class bigjob_cloud():
                 else:
                         break
         
-        self.resource_lock.release()
-        self.setup_charmpp_nodefile(allocated_nodes)
-        return saga.url("ssh://root@" + allocated_nodes[0]["hostname"])
+                self.resource_lock.release()
+                self.setup_charmpp_nodefile(allocated_nodes)
+                return saga.url("ssh://root@" + allocated_nodes[0]["hostname"])
+        else:
+                print "BigJob: " + str(self.pilot_url) + ": Not sufficient resources for job."
+                self.resource_lock.release()
+                return ""
             
     
     def setup_charmpp_nodefile(self, allocated_nodes):
@@ -467,7 +496,10 @@ class bigjob_cloud():
         # host tp-x002 ++cpus 2 ++shell ssh
         nodefile_string=""
         for i in allocated_nodes:
-            nodefile_string=nodefile_string + "host "+ i["hostname"] + " ++cpus " + str(i["cpu_count"]) + " ++shell ssh\n"
+            if i.has_key("private_hostname"):
+                nodefile_string=nodefile_string + "host "+ i["private_hostname"] + " ++cpus " + str(i["cpu_count"]) + " ++shell ssh\n"
+            else:
+                nodefile_string=nodefile_string + "host "+ i["hostname"] + " ++cpus " + str(i["cpu_count"]) + " ++shell ssh\n"
             
         # copy nodefile to rank 0 node
         jd = saga.job.description()
@@ -608,4 +640,12 @@ class NoResourceAvailable(Exception):
 
     def __str__(self):
         return repr(self.value)
+    
+class UnsupportedCloudType(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+    
 
