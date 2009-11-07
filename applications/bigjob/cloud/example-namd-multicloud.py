@@ -7,6 +7,7 @@ import os
 import bigjob_cloud
 import time
 import pdb
+import threading
 
 
 NUMBER_JOBS=1
@@ -32,22 +33,44 @@ if __name__ == "__main__":
 
     print "Start Pilot Job/BigJob in the EC2 cloud. "
     bj_ec2 = bigjob_cloud.bigjob_cloud()
-    bj_ec2.start_pilot_job(number_nodes=nodes, 
-                       working_directory=current_directory,
-                       walltime=300,
-                       cloud_type="EC2",
-                       image_name="ami-644caf0d")
-    print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state())
+    
+    big_ec2_args = {"number_nodes":nodes, 
+            "working_directory":current_directory,
+            "walltime":300,
+            "cloud_type":"EC2",
+            "image_name":"ami-644caf0d"}
+    big_ec2_thread=threading.Thread(target=bj_ec2.start_pilot_job,
+                                    kwargs=big_ec2_args)
+    big_ec2_thread.start()      
+    
+    #bj_ec2.start_pilot_job(number_nodes=nodes, 
+    #                   working_directory=current_directory,
+    #                   walltime=300,
+    #                   cloud_type="EC2",
+    #                   image_name="ami-644caf0d")
     
     print "Start Pilot Job/BigJob in the Nimbus cloud. "
+    big_nimbus_args = {"number_nodes":nodes, 
+            "working_directory":current_directory,
+            "walltime":300,
+            "cloud_type":"NIMBUS",
+            "image_name":"gentoo_saga-1.3.3_namd-2.7b1.gz"}
     bj_nimbus = bigjob_cloud.bigjob_cloud()
-    bj_nimbus.start_pilot_job(number_nodes=nodes, 
-                       working_directory=current_directory,
-                       walltime=300,
-                       cloud_type="NIMBUS",
-                       image_name="gentoo_saga-1.3.3_namd-2.7b1.gz")
-    print "Pilot Job/BigJob URL: " + bj_nimbus.pilot_url + " State: " + str(bj_nimbus.get_state())
+    big_nimbus_thread=threading.Thread(target=bj_nimbus.start_pilot_job,
+                                    kwargs=big_nimbus_args)
+    big_nimbus_thread.start()
+#    bj_nimbus.start_pilot_job(number_nodes=nodes, 
+#                       working_directory=current_directory,
+#                       walltime=300,
+#                       cloud_type="NIMBUS",
+#                       image_name="gentoo_saga-1.3.3_namd-2.7b1.gz")
 
+    # wait for bigjobs to startup    
+    big_ec2_thread.join()
+    big_nimbus_thread.join()
+        
+    print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state())
+    print "Pilot Job/BigJob URL: " + bj_nimbus.pilot_url + " State: " + str(bj_nimbus.get_state())
 
 
     ##########################################################################################

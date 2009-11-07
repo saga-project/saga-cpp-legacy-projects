@@ -137,7 +137,8 @@ class bigjob_cloud():
         
         # check whether all requested nodes have been started
         if len(self.nodes) < number_nodes:
-            raise NoResourceAvailable("Not sufficient resource available.")  
+            print "Not sufficent resources available: " + str(self.pilot_url)
+            raise NoResourceAvailable("Not sufficient resources available.")  
         
         self.free_nodes=copy.copy(self.nodes)
                 
