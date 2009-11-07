@@ -96,10 +96,13 @@ if __name__ == "__main__":
     big_ec2_thread.join()
     big_nimbus_thread.join()
     #big_tg_thread.join()
-    
-    print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state())
-    print "Pilot Job/BigJob URL: " + bj_nimbus.pilot_url + " State: " + str(bj_nimbus.get_state())
-    print "Pilot Job/BigJob URL: " + bj_tg.pilot_url + " State: " + str(bj_tg.get_state())
+
+    # Barrier
+    while bj_tg.get_state_detail()!="Running" and bj_ec2.get_state_detail()!="Running" and bj_ec2.get_state_detail!="Running":
+        print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state()) + " Time since launch: " + str(time.time()-start)
+        print "Pilot Job/BigJob URL: " + bj_nimbus.pilot_url + " State: " + str(bj_nimbus.get_state()) + " Time since launch: " + str(time.time()-start)
+        print "Pilot Job/BigJob URL: " + bj_tg.pilot_url + " State: " + str(bj_tg.get_state()) + " Time since launch: " + str(time.time()-start)
+        time.sleep(10)
 
     ##########################################################################################
     # Submit SubJob through BigJob

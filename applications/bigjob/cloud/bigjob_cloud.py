@@ -77,6 +77,9 @@ class bigjob_cloud():
         self.env_dict={}
         self.cloud_type = cloud_type
         self.image_name = image_name
+        self.number_requested_nodes=number_nodes
+        self.state="Pending"
+        self.init_thread=None
          
         # for locking 
         self.resource_lock = threading.RLock()       
@@ -97,7 +100,7 @@ class bigjob_cloud():
             
             #setup environment
             self.env_dict=self.read_ec2_environments(EC2_ENV_FILE)   
-            self.start_ec2_images(number_nodes)
+            self.start_ec2_images_in_background(number_nodes)
                         
         elif cloud_type == "EUCA":
             self.pilot_url="euca://"+host
@@ -111,7 +114,7 @@ class bigjob_cloud():
             
              #setup environment
             self.env_dict=self.read_ec2_environments(EUCA_ENV_FILE)   
-            self.start_ec2_images(number_nodes)
+            self.start_ec2_images_in_background(number_nodes)
             
         elif cloud_type ==  "NIMBUS":
             self.pilot_url="nimbus://"+host
@@ -120,7 +123,7 @@ class bigjob_cloud():
             self.session = saga.session() # use default
             self.session.add_context(self.ssh_context)   
             
-            self.start_nimbus_images_as_thread(number_nodes)
+            self.start_nimbus_images_in_background(number_nodes)
         else:
             raise UnsupportedCloudType("Cloud Type not supported")
         
@@ -146,27 +149,34 @@ class bigjob_cloud():
         self.launcher_thread.start()
         print "Finished launching of pilot jobs"
         
+      
+    def start_nimbus_images_in_background(self, number_nodes):
+        self.init_thread=threading.Thread(target=self.start_nimbus_images_as_thread, args=[number_nodes])
+        self.init_thread.start()      
+                  
         
     def start_nimbus_images_as_thread(self, number_nodes):
         """ Launches specified number of nimbus images 
             For each image launch a separate thread is spawned """
-        init_threads = []
+        nimbus_init_threads = []
         number_of_images_to_start = number_nodes
         retry_number = 0 
         # restart mechanism in case an allocation fails
-        while number_of_images_to_start > 0 and retry_number < 3:
+        while number_of_images_to_start > 0 and retry_number<3:
             print "Start " + str(number_of_images_to_start) + " images."
             for i in range(0, number_of_images_to_start):
                 thread=threading.Thread(target=self.start_nimbus_image)
                 thread.start()      
-                init_threads.append(thread)
+                nimbus_init_threads.append(thread)
              
             # join threads
-            for t in init_threads:
+            for t in nimbus_init_threads:
                 t.join()    
             
             number_of_images_to_start = number_nodes - len(self.nodes)
             retry_number = retry_number + 1
+        
+        self.update_state()
                     
     
     def start_nimbus_image(self):
@@ -213,6 +223,7 @@ class bigjob_cloud():
             self.resource_lock.release()
         else:
             print "Failed to launch VM."
+            self.state="Failed"
             raise NoResourceAvailable("No resource available.")
     
         
@@ -239,7 +250,7 @@ class bigjob_cloud():
         job.wait()
         
         
-    def start_ec2_images(self, number_nodes):
+    def start_ec2_images_in_background(self, number_nodes):
         """Start EC2 image (either on Eucalyptus or Amazon EC2) """
  
         
@@ -260,17 +271,9 @@ class bigjob_cloud():
         print "Started instances: " + str(self.nodes) + "stdout: \n" +stdout
         
         #wait for instances to startup
-        self.wait_for_ec2_instance_startup()
-        
-        # make sure image is booted
-        print "Wait for instance to boot up..."
-        time.sleep(60)
-        
-        #setup images
-        for i in self.nodes:
-            print "setup instance: " + i["hostname"]
-            self.setup_image(i["hostname"])
-                  
+        self.init_thread=threading.Thread(target=self.wait_for_ec2_instance_startup)
+        self.init_thread.start()
+                         
     def wait_for_ec2_instance_startup(self):
         """ polls EC2 for updated instance states """
         command = self.env_dict["EC2_HOME"]  + "bin/ec2-describe-instances"
@@ -292,7 +295,26 @@ class bigjob_cloud():
                                 node["state"]=state
                                 
             time.sleep(10)
-                        
+        
+        # make sure image is booted
+        print "Wait for instance to boot up..."
+        time.sleep(60)
+        
+        # setup images
+        for i in self.nodes:
+            print "setup instance: " + i["hostname"]
+            self.setup_image(i["hostname"])
+        
+        self.update_state()
+
+        
+    def update_state(self):
+        """Update state"""
+        if len(self.nodes)==self.number_requested_nodes:
+            self.state="Running"
+        else:
+            self.state="Failed"
+                            
     
     def check_all_ec2_nodes(self):
         """ check whether all nodes in self.nodes list are running 
@@ -357,10 +379,9 @@ class bigjob_cloud():
         
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
-        if (self.nodes.count>0):
-            return "running";
-        else:
-            return "failed";
+        if self.init_thread.is_alive()==False:
+            self.update_state()
+        return self.state;
     
     def get_state_detail(self):
         """for compatibility reason with advert bigjob""" 
