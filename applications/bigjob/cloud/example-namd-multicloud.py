@@ -36,7 +36,7 @@ if __name__ == "__main__":
                        working_directory=current_directory,
                        walltime=300,
                        cloud_type="EC2",
-                       image_name="ami-836e8dea")
+                       image_name="ami-644caf0d")
     print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state())
     
     print "Start Pilot Job/BigJob in the Nimbus cloud. "
@@ -74,15 +74,15 @@ if __name__ == "__main__":
     jd_ec2.output = "stdout_ec2.txt"
     jd_ec2.error = "stderr_ec2.txt"
     
-    jd_nimubs = saga.job.description()
-    jd_nimubs.executable = "/usr/local/NAMD_2.7b1_Linux-x86/charmrun"
+    jd_nimbus = saga.job.description()
+    jd_nimbus.executable = "/usr/local/NAMD_2.7b1_Linux-x86/charmrun"
     #jd.executable = "/bin/date"
-    jd_nimubs.number_of_processes = "1"
-    jd_nimubs.spmd_variation = "single"
-    jd_nimubs.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p2", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
+    jd_nimbus.number_of_processes = "1"
+    jd_nimbus.spmd_variation = "single"
+    jd_nimbus.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p2", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
     #jd.working_directory = "/root/run/"
-    jd_nimubs.output = "stdout_euca_nimbus.txt"
-    jd_nimubs.error = "stderr_euca_nimbus.txt"
+    jd_nimbus.output = "stdout_euca_nimbus.txt"
+    jd_nimbus.error = "stderr_euca_nimbus.txt"
     
     
     
@@ -144,7 +144,7 @@ if __name__ == "__main__":
             if (number_done == len(jobs_nimbus)):
                 all_done = all_done + 1
             
-            if (all_done == 3):
+            if (all_done == 2):
                 break
                  
             time.sleep(10)

@@ -262,7 +262,8 @@ class bigjob_cloud():
         self.wait_for_ec2_instance_startup()
         
         # make sure image is booted
-        time.sleep(30)
+        print "Wait for instance to boot up..."
+        time.sleep(50)
         
         #setup images
         for i in self.nodes:
@@ -566,7 +567,7 @@ class bigjob_cloud():
         print "Free nodes: " + str(len(self.free_nodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while self.stop==False:
             try:
-                print "Poll/Monitor job queue"
+                #print "Poll/Monitor job queue"
                 job_dict = self.queue.get(True, 2)
                 if job_dict != None:
                     try:
