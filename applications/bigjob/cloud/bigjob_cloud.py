@@ -7,7 +7,6 @@ This Module is used to launch a set of jobs via a defined set of cloud virtual m
 """
 
 import sys
-import getopt
 import saga
 import time
 import uuid
@@ -23,20 +22,21 @@ import threading
 import copy
 
 #Nimbus
-NIMBUS_CLIENT="/opt/nimbus/bin/cloud-client.sh"
+NIMBUS_CLIENT="/home/luckow/sw/nimbus/bin/cloud-client.sh"
 NIMBUS_URL="nimbus://tp-vm1.ci.uchicago.edu"
+NIMBUS_SSH_PRIVATE_KEY_FILE="/home/luckow/.ssh/id_rsa"
 DEFAULT_WALLTIME=60   #in minutes
 
 #EC2
-EC2_ENV_FILE="/Users/luckow/.ec2/ec2rc"
+EC2_ENV_FILE="/home/luckow/.ec2/ec2rc"
 EC2_KEYNAME="lsu-keypair"
-EC2_SSH_PRIVATE_KEY_FILE="/Users/luckow/.ec2/id-lsu-keypair"
+EC2_SSH_PRIVATE_KEY_FILE="/home/luckow/.ec2/id-lsu-keypair"
 EC2_INSTANCE_TYPE="m1.large"
 
 # EUCA
-EUCA_ENV_FILE="/Users/luckow/.euca/eucarc"
+EUCA_ENV_FILE="/home/luckow/.euca/eucarc"
 EUCA_KEYNAME="euca-key"
-EUCA_SSH_PRIVATE_KEY_FILE="/Users/luckow/.euca/euca-key.private"
+EUCA_SSH_PRIVATE_KEY_FILE="/home/luckow/.euca/euca-key.private"
 EUCA_INSTANCE_TYPE="m1.small"
 
 class bigjob_cloud():
@@ -111,12 +111,12 @@ class bigjob_cloud():
             
              #setup environment
             self.env_dict=self.read_ec2_environments(EUCA_ENV_FILE)   
-            #1
             self.start_ec2_images(number_nodes)
             
         elif cloud_type ==  "NIMBUS":
             self.pilot_url="nimbus://"+host
             self.ssh_context = saga.context("ssh")
+            self.ssh_context.set_attribute("UserKey", NIMBUS_SSH_PRIVATE_KEY_FILE)
             self.session = saga.session() # use default
             self.session.add_context(self.ssh_context)   
             
@@ -257,17 +257,18 @@ class bigjob_cloud():
                 self.nodes.append({"hostname":None, "vmid":vmid, "cpu_count":1, "state":"pending"})
             except:
                 pass
-        print "Started instances: " + str(self.nodes)
+        print "Started instances: " + str(self.nodes) + "stdout: \n" +stdout
         
         #wait for instances to startup
         self.wait_for_ec2_instance_startup()
         
         # make sure image is booted
         print "Wait for instance to boot up..."
-        time.sleep(50)
+        time.sleep(60)
         
         #setup images
         for i in self.nodes:
+            print "setup instance: " + i["hostname"]
             self.setup_image(i["hostname"])
                   
     def wait_for_ec2_instance_startup(self):
