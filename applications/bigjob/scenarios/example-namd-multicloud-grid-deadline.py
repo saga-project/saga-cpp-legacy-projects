@@ -21,7 +21,8 @@ import threading
 
 NUMBER_JOBS=50
 RUNTIME_JOB_CLOUD=6 # in min
-MAX_RUNTIME=60 #in min
+MAX_RUNTIME=20 #in min
+NUMBER_CHECK_INTERVALLS=4 #if MAX_RUNTIME=20 that means to check progress every 5 min
 advert_host = "fortytwo.cct.lsu.edu"
 
 def check_all_jobs(jobs):
@@ -40,13 +41,13 @@ def start_cloud_pilots():
     nodes = 4 # number nodes for agent
     current_directory=os.getcwd() +"/agent"  # working directory for agent
 
-    print "Start Pilot Job/BigJob in the EC2 cloud. "
-    bj_ec2 = bigjob_cloud.bigjob_cloud()
-    bj_ec2.start_pilot_job(number_nodes=nodes, 
-                       working_directory=current_directory,
-                       walltime=300,
-                       cloud_type="EC2",
-                       image_name="ami-644caf0d")
+    #print "Start Pilot Job/BigJob in the EC2 cloud. "
+    #bj_ec2 = bigjob_cloud.bigjob_cloud()
+    #bj_ec2.start_pilot_job(number_nodes=nodes, 
+    #                   working_directory=current_directory,
+    #                   walltime=300,
+    #                   cloud_type="EC2",
+    #                   image_name="ami-644caf0d")
  
     print "Start Pilot Job/BigJob in the Nimbus cloud. "
     bj_nimbus = bigjob_cloud.bigjob_cloud()
@@ -56,7 +57,7 @@ def start_cloud_pilots():
                        cloud_type="NIMBUS",
                        image_name="gentoo_saga-1.3.3_namd-2.7b1.gz")
 
-    return bj_ec2, bj_nimbus
+    return bj_nimbus
 
 """ Test Job Submission of NAMD via Cloud BigJob """
 if __name__ == "__main__":
@@ -132,49 +133,47 @@ if __name__ == "__main__":
     ec2_done=0
     tg_done=0
     nimbus_done=0
+    cloud_bigjobs=[]
+
+    # for dynamic cloud launching mechanism
+    intervall_timer=time.time()
+    period = MAX_RUNTIME/NUMBER_CHECK_INTERVALLS
     while True:
         try:
-            # check how much time/work is left
-            runtime = (time.time() - start)/60 # in min 
-            time_left = MAX_RUNTIME - runtime
-            jobs_done=ec2_done + tg_done + nimbus_done
-            jobs_left=NUMBER_JOBS-jobs_done
-            jobs_per_minute = all_done/runtime
 
-            # if half of the time is used up and not half of the jobs have been executed
+            # check after specified period whether we make sufficient progress
             # start cloud pilots
-            if jobs_left > (NUMBER_JOBS/2) and time_left < MAX_RUNTIME/2:
-                bj_ec2, bj_nimbus = start_cloud_pilots()
+            if ((time.time()-intervall_timer) > (period*60)):
+                # check how much time/work is left
+                runtime = (time.time() - start)/60 # in min 
+                time_left = MAX_RUNTIME - runtime
+                jobs_done= tg_done + nimbus_done
+                jobs_left=NUMBER_JOBS-jobs_done
+                jobs_per_minute = jobs_done/runtime
+                # if estimated nb. of finishable jobs is smaller than number jobs
+                # add new resources
+                if jobs_per_minute*MAX_RUNTIME < NUMBER_JOBS:
+                    bj_cloud = start_cloud_pilots()
+                    cloud_bigjobs.append(bj_cloud)
+                    # reset intervall timer
+                    intervall_timer=time.time()
 
             print "Pilot Job/BigJob URL: " + bj_tg.pilot_url + " State: " + str(bj_tg.get_state_detail()) + " Time since launch: " + str(time.time()-start)
-            if(bj_ec2!=None and bj_nimbus!=None):
-                print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state_detail()) + " Time since launch: " + str(time.time()-start)
-                print "Pilot Job/BigJob URL: " + bj_nimbus.pilot_url + " State: " + str(bj_nimbus.get_state_detail()) + " Time since launch: " + str(time.time()-start)
-            
-
+            for i in cloud_bigjobs:
+                print "Pilot Job/BigJob URL: " + i.pilot_url + " State: " + str(i.get_state_detail()) + " Time since launch: " + str(time.time()-start)
 
             if number_started_jobs < NUMBER_JOBS:
-                if bj_nimbus!=None and str(bj_nimbus.get_state_detail())=="Running":
-                    print "Nimbus: Free nodes: " + str(bj_nimbus.get_free_nodes()) 
-                    if int(bj_nimbus.get_free_nodes()) >= int(jd_nimbus.number_of_processes):
-                        print " Start job: " +str(number_started_jobs + 1) + " on " + str(jd_nimbus.number_of_processes)
-                        sj_nimbus = bigjob_cloud.subjob(bigjob=bj_nimbus)
-                        jd_nimbus.output = "stdout_nimbus.txt."+str(number_started_jobs+1)
-                        jd_nimbus.error = "stderr_nimbus.txt."+str(number_started_jobs+1)
-                        sj_nimbus.submit_job(jd_nimbus)
-                        jobs_nimbus.append(sj_nimbus)
-                        number_started_jobs = number_started_jobs + 1
-
-                if bj_ec2!=None = str(bj_ec2.get_state_detail())=="Running":
-                    print "EC2: Free nodes: " + str(bj_ec2.get_free_nodes())
-                    if int(bj_ec2.get_free_nodes()) >= int(jd_ec2.number_of_processes):
-                        print " Start job no.: " +str(number_started_jobs + 1)
-                        sj_ec2 = bigjob_cloud.subjob(bigjob=bj_ec2)
-                        jd_ec2.output = "stdout_ec2.txt."+str(number_started_jobs+1)
-                        jd_ec2.error = "stderr_ec2.txt."+str(number_started_jobs+1)
-                        sj_ec2.submit_job(jd_ec2)
-                        jobs_ec2.append(sj_ec2)
-                        number_started_jobs = number_started_jobs + 1
+                for bj in cloud_bigjobs:
+                    if bj!=None and str(bj.get_state_detail())=="Running":
+                        print "Cloud: Free nodes: " + str(bj.get_free_nodes()) 
+                        if int(bj.get_free_nodes()) >= int(jd_nimbus.number_of_processes):
+                            print " Start job: " +str(number_started_jobs + 1) + " on " + str(jd_nimbus.number_of_processes)
+                            sj_nimbus = bigjob_cloud.subjob(bigjob=bj)
+                            jd_nimbus.output = "stdout_nimbus.txt."+str(number_started_jobs+1)
+                            jd_nimbus.error = "stderr_nimbus.txt."+str(number_started_jobs+1)
+                            sj_nimbus.submit_job(jd_nimbus)
+                            jobs_nimbus.append(sj_nimbus)
+                            number_started_jobs = number_started_jobs + 1
 
                 if str(bj_tg.get_state_detail())=="Running": 
                     print "TG: Free nodes: " + str(bj_tg.get_free_nodes())
@@ -187,12 +186,10 @@ if __name__ == "__main__":
                         jobs_tg.append(sj_tg)
                         number_started_jobs = number_started_jobs + 1
                 
-            print str(number_started_jobs)+"/"+str(NUMBER_JOBS) + " started. EC2: " + str(len(jobs_ec2))\
+            print str(number_started_jobs)+"/"+str(NUMBER_JOBS) + " started.  "\
                    + " Nimbus: " + str(len(jobs_nimbus)) + " TG: " + str(len(jobs_tg))
-            # EC 2 jobs    
-            ec2_done=check_all_jobs(jobs_ec2)
-            print "EC2: "+ str(ec2_done) + "/"+str(len(jobs_ec2)) + " done. Time since SubJob Start: " + str(time.time()-subjob_start) + " s"
-            
+
+             
             # Nibmus jobs    
             nimbus_done=check_all_jobs(jobs_nimbus)
             print "Nimbus: "+ str(nimbus_done) + "/"+str(len(jobs_nimbus)) + " done. Time since SubJob Start: " + str(time.time()-subjob_start) + " s"
@@ -201,7 +198,7 @@ if __name__ == "__main__":
             tg_done=check_all_jobs(jobs_tg)
             print "TG: "+ str(tg_done) + "/"+str(len(jobs_tg)) + " Time since SubJob Start: " + str(time.time()-subjob_start) + " s"
                     
-            if ((ec2_done+nimbus_done+tg_done)==NUMBER_JOBS):
+            if ((nimbus_done+tg_done)==NUMBER_JOBS):
                 print "******** Completed Scenario of " + str(NUMBER_JOBS) + " Runtime " + str(time.time()-subjob_start) + " s"
                 break
                  

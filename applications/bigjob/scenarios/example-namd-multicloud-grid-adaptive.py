@@ -19,7 +19,7 @@ import threading
     Start n number of jobs on whatever resources become available
 """
 
-NUMBER_JOBS=50
+NUMBER_JOBS=8
 advert_host = "fortytwo.cct.lsu.edu"
 
 def check_all_jobs(jobs):
@@ -44,25 +44,25 @@ if __name__ == "__main__":
 
     print "Start Pilot Job/BigJob in the EC2 cloud. "
     bj_ec2 = bigjob_cloud.bigjob_cloud()
-    bj_ec2.start_pilot_job(number_nodes=16, 
-                       working_directory=current_directory,
-                       walltime=300,
-                       cloud_type="EC2",
-                       image_name="ami-644caf0d")
+    #bj_ec2.start_pilot_job(number_nodes=8, 
+    #                   working_directory=current_directory,
+    #                   walltime=300,
+    #                   cloud_type="EC2",
+    #                   image_name="ami-644caf0d")
  
     print "Start Pilot Job/BigJob in the Nimbus cloud. "
     bj_nimbus = bigjob_cloud.bigjob_cloud()
-    #bj_nimbus.start_pilot_job(number_nodes=15, 
-    #                   working_directory=current_directory,
-    #                   walltime=60,
-    #                   cloud_type="NIMBUS",
-    #                   image_name="gentoo_saga-1.3.3_namd-2.7b1.gz")
+    bj_nimbus.start_pilot_job(number_nodes=4, 
+                       working_directory=current_directory,
+                       walltime=60,
+                       cloud_type="NIMBUS",
+                       image_name="gentoo_saga-1.3.3_namd-2.7b1.gz")
 
     # ###################################################################################
     # TG/LONI Pilot Job
     # Parameter for BigJob
     re_agent = "/home/luckow/src/bigjob/bigjob_agent_launcher.sh" # path to agent
-    nodes = 32  # number nodes for agent
+    nodes = 16  # number nodes for agent
     lrms_url = "gram://poseidon1.loni.org/jobmanager-pbs" # resource url
     #lrms_url = "gram://qb1.loni.org/jobmanager-fork" # resource url
     project = "" #allocation
@@ -88,9 +88,9 @@ if __name__ == "__main__":
     jd_ec2 = saga.job.description()
     jd_ec2.executable = "/usr/local/NAMD_2.7b1_Linux-x86/charmrun"
     #jd.executable = "/bin/date"
-    jd_ec2.number_of_processes = "4"
+    jd_ec2.number_of_processes = "8"
     jd_ec2.spmd_variation = "single"
-    jd_ec2.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p8", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
+    jd_ec2.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p16", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
     #jd.working_directory = "/root/run/"
     jd_ec2.output = "stdout_ec2.txt"
     jd_ec2.error = "stderr_ec2.txt"
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     # submit sub-job through big-job
     jd = saga.job.description()
     jd.executable = "/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2"
-    jd.number_of_processes = "32"
+    jd.number_of_processes = "8"
     jd.spmd_variation = "mpi"
     jd.arguments = ["/home/luckow/run/NPT.conf"]
     # !!Adjust!!

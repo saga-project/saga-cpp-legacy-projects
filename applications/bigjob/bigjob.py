@@ -60,6 +60,7 @@ class bigjob():
         # application level state since globus adaptor does not support state detail
         self.pilot_dir.set_attribute("state", str(saga.job.Unknown)) 
         logging.debug("set pilot state to: " + self.pilot_dir.get_attribute("state"))
+        self.number_nodes=int(number_nodes)        
  
         # create job description
         jd = saga.job.description()
@@ -103,6 +104,24 @@ class bigjob():
     def get_state_detail(self): 
         return self.pilot_dir.get_attribute("state")
     
+    def get_free_nodes(self):
+        jobs = self.pilot_dir.list()
+        number_used_nodes=0
+        for i in jobs:
+            job_dir=None
+            try:
+                job_dir = self.pilot_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite) 
+            except:
+                pass
+            if job_dir != None and job_dir.attribute_exists("state") == True\
+                and str(job_dir.get_attribute("state"))==str(saga.job.Running):
+                job_np = "1"
+                if (job_dir.attribute_exists("NumberOfProcesses") == True):
+                    job_np = job_dir.get_attribute("NumberOfProcesses")
+
+                number_used_nodes=number_used_nodes + int(job_np)
+        return (self.number_nodes - number_used_nodes)
+
     def cancel(self):        
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
         print "Cancel Glidin Job"

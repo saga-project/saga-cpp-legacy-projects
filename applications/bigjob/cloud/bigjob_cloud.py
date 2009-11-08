@@ -47,6 +47,8 @@ class bigjob_cloud():
     def __init__(self, database_host=None):        # no database host as advert based bigjob
        self.uuid = uuid.uuid1()
        self.queue=Queue.Queue()
+       self.state=saga.job.Unknown
+       self.pilot_url=""
        
         
     def start_pilot_job(self, 
@@ -78,7 +80,6 @@ class bigjob_cloud():
         self.cloud_type = cloud_type
         self.image_name = image_name
         self.number_requested_nodes=number_nodes
-        self.state="Pending"
         self.init_thread=None
          
         # for locking 
@@ -139,11 +140,11 @@ class bigjob_cloud():
         print "Started " + str(len(self.nodes)) + " nodes in " + str(time.time()-start)      
         
         # check whether all requested nodes have been started
-        if len(self.nodes) < number_nodes:
-            print "Not sufficent resources available: " + str(self.pilot_url)
-            raise NoResourceAvailable("Not sufficient resources available.")  
+        #if len(self.nodes) < number_nodes:
+        #    print "Not sufficent resources available: " + str(self.pilot_url)
+        #    raise NoResourceAvailable("Not sufficient resources available.")  
         
-        self.free_nodes=copy.copy(self.nodes)
+
                 
         self.launcher_thread=threading.Thread(target=self.start_background_thread)
         self.launcher_thread.start()
@@ -168,6 +169,7 @@ class bigjob_cloud():
                 thread=threading.Thread(target=self.start_nimbus_image)
                 thread.start()      
                 nimbus_init_threads.append(thread)
+                time.sleep(20)
              
             # join threads
             for t in nimbus_init_threads:
@@ -177,6 +179,7 @@ class bigjob_cloud():
             retry_number = retry_number + 1
         
         self.update_state()
+        self.free_nodes=copy.copy(self.nodes)
                     
     
     def start_nimbus_image(self):
@@ -198,6 +201,7 @@ class bigjob_cloud():
         end = time.time()     
         print "VM Start Time: " + str(end-start) + " s - get result now"
         stdout = p.communicate()[0]   # get stdout as string
+        print "Stdout: " + stdout
         
         # grep for vm id (vm-xxx)
         vmid_regex = re.compile('vm-\\d\\d\\d')
@@ -238,16 +242,23 @@ class bigjob_cloud():
         jd.output = "stdout.txt"
         jd.error = "stderr.txt"
         
-        job_service_url = saga.url("ssh://root@" + hostname)
-        job_service = saga.job.service(self.session, job_service_url)
-        job = job_service.create_job(jd)
-        job.run()
+        for i in range (0, 3):
+            try:
+                job_service_url = saga.url("ssh://root@" + hostname)
+                job_service = saga.job.service(self.session, job_service_url)
+                job = job_service.create_job(jd)
+                job.run()
+                
+                # Cache job service object for later usage
+                self.job_service_cache[job_service_url] =job_service
+                
+                # wait for completion of job
+                job.wait()
+                return
+            except:
+                pass
+            time.sleep(30)
         
-        # Cache job service object for later usage
-        self.job_service_cache[job_service_url] =job_service
-        
-        # wait for completion of job
-        job.wait()
         
         
     def start_ec2_images_in_background(self, number_nodes):
@@ -268,7 +279,7 @@ class bigjob_cloud():
                 self.nodes.append({"hostname":None, "vmid":vmid, "cpu_count":1, "state":"pending"})
             except:
                 pass
-        print "Started instances: " + str(self.nodes) + "stdout: \n" +stdout
+        print "Started instances: " + str(self.nodes) + " - stdout: \n" +stdout
         
         #wait for instances to startup
         self.init_thread=threading.Thread(target=self.wait_for_ec2_instance_startup)
@@ -276,8 +287,12 @@ class bigjob_cloud():
                          
     def wait_for_ec2_instance_startup(self):
         """ polls EC2 for updated instance states """
+        print "* WAIT FOR EC2 nodes to come up "
         command = self.env_dict["EC2_HOME"]  + "bin/ec2-describe-instances"
+        for i in self.nodes:
+            command = command + " "+ i["vmid"]
         while self.check_all_ec2_nodes()==False:
+            print "* WAIT FOR EC2 nodes to come up "
             stdout = self.execute_command(command, self.working_directory, self.env_dict)
             for i in stdout.splitlines():
                 if i.startswith("INSTANCE"):
@@ -298,7 +313,7 @@ class bigjob_cloud():
         
         # make sure image is booted
         print "Wait for instance to boot up..."
-        time.sleep(60)
+        time.sleep(70)
         
         # setup images
         for i in self.nodes:
@@ -306,6 +321,7 @@ class bigjob_cloud():
             self.setup_image(i["hostname"])
         
         self.update_state()
+        self.free_nodes=copy.copy(self.nodes)
 
         
     def update_state(self):
@@ -379,35 +395,42 @@ class bigjob_cloud():
         
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
-        if self.init_thread.is_alive()==False:
-            self.update_state()
+        try:
+            if self.init_thread.is_alive()==False:
+                self.update_state()
+        except:
+            pass
         return self.state;
     
     def get_state_detail(self):
         """for compatibility reason with advert bigjob""" 
-        return self.get_state()
+        return str(self.get_state())
     
     def cancel(self):        
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
-        self.stop_background_thread()
-        print "Cancel Cloud VMs"
-        if self.cloud_type=="EC2":
-            self.stop_ec2_images()
-        else:
-            stop_threads = [] 
-            for i in self.nodes:
-                thread=threading.Thread(target=self.stop_nimbus_image,
-                                     args=[i["vmid"]])
-                thread.start()      
-                stop_threads.append(thread)
-             
-            # join threads
-            for t in stop_threads:
-                t.join()    
-            
-        self.nodes=[]
+        try:
+            self.stop_background_thread()
+            print "Cancel Cloud VMs"
+            if self.cloud_type=="EC2":
+                self.stop_ec2_images()
+            else:
+                stop_threads = [] 
+                for i in self.nodes:
+                    thread=threading.Thread(target=self.stop_nimbus_image,
+                                         args=[i["vmid"]])
+                    thread.start()      
+                    stop_threads.append(thread)
+                 
+                # join threads
+                for t in stop_threads:
+                    t.join()    
+                
+            self.nodes=[]
+        except:
+            pass
         
-               
+    def get_free_nodes(self):
+        return len(self.free_nodes)          
             
     def stop_nimbus_image(self, vmid):
         """ stops Nimbus image with passed vmid """
@@ -455,10 +478,10 @@ class bigjob_cloud():
         jobid = job_dict["job_id"]
         state = job_dict["state"]
         print "Execute job: " + str(jobid)+ " state: " + str(state)
-        if(str(state)==str(saga.job.Unknown) or
-           str(state)==str(saga.job.New)):
+        if(self.state=="Running" and (str(state)==str(saga.job.Unknown) or
+           str(state)==str(saga.job.New))):
             try: 
-                job_service_url = self.allocate_nodes(int(jd.number_of_processes))
+                job_service_url, job_dict["allocated_nodes"] = self.allocate_nodes(int(jd.number_of_processes))
                 if str(job_service_url) != "":
                     print "Execute subjob: " + str(jobid) + " at: " + str(job_service_url)
                     if self.job_service_cache.has_key(job_service_url):
@@ -491,7 +514,7 @@ class bigjob_cloud():
         if (len(self.free_nodes)>=number_of_nodes): 
             for i in self.free_nodes[:]:
                 number = i["cpu_count"]
-                print "allocate: " + i["hostname"] + " number cores: " + str(number)
+                print "Pilot: " + self.pilot_url + " Allocate: " + i["hostname"] + " number cores: " + str(number)
                 if(number_of_nodes > 0):
                         allocated_nodes.append(i)
                         self.free_nodes.remove(i)                
@@ -500,9 +523,9 @@ class bigjob_cloud():
                 else:
                         break
         
-                self.resource_lock.release()
-                self.setup_charmpp_nodefile(allocated_nodes)
-                return saga.url("ssh://root@" + allocated_nodes[0]["hostname"])
+            self.resource_lock.release()
+            self.setup_charmpp_nodefile(allocated_nodes)
+            return saga.url("ssh://root@" + allocated_nodes[0]["hostname"]), allocated_nodes
         else:
                 print "BigJob: " + str(self.pilot_url) + ": Not sufficient resources for job."
                 self.resource_lock.release()
@@ -535,25 +558,35 @@ class bigjob_cloud():
         jd.output = "stdout.txt"
         jd.error = "stderr.txt"
         
-        job_service_url = saga.url("ssh://root@"+allocated_nodes[0]["hostname"])
-        job_service = saga.job.service(self.session, job_service_url)
-        job = job_service.create_job(jd)
-        job.run()
-        job.wait()
+        for i in range(0, 3):
+            try:
+                job_service_url = saga.url("ssh://root@"+allocated_nodes[0]["hostname"])
+                job_service = saga.job.service(self.session, job_service_url)
+                job = job_service.create_job(jd)
+                job.run()
+                job.wait()
+                break
+            except:
+                pass
+            time.sleep(30)
+
              
         
     
     def deallocate_nodes(self, job_dict):
          """ add nodes back to free node list """
          number_nodes = int(job_dict["job_description"].number_of_processes)
-         hostname = job_dict["job_service_url"].host
+         allocated_nodes = job_dict["allocated_nodes"]
          self.resource_lock.acquire()
-         for i in self.busynodes:
-             if i["hostname"]==hostname:
-                 self.busynodes.remove(i) 
-                 self.free_nodes.append(i)
-        
+         number = 0
+         for node in allocated_nodes:
+            for i in self.busynodes:
+                if i["hostname"]==node["hostname"]:
+                    self.busynodes.remove(i) 
+                    self.free_nodes.append(i)
+                    number = number + 1
          self.resource_lock.release()
+         print "Pilot Job: " + str(self.pilot_url) + " Freed " + str(number) + " nodes."
         
         
     
@@ -575,10 +608,13 @@ class bigjob_cloud():
     
     def monitor_jobs(self):
         """Monitor running processes. """   
+        print "BJ Cloud Monitor subjobs"
         for i in self.subjobs.values():
             job = i["job"]
             state = job.get_state()
+            print "BJ Cloud Monitor:" + str(job) + ": " + str(state)
             if (i.has_key("freed")==False and (str(state)=="Failed" or str(state)=="Done")):
+                    print "BJ Cloud: Free nodes"
                     self.deallocate_nodes(i)   
                     i["freed"]=True
                                  
@@ -590,23 +626,25 @@ class bigjob_cloud():
         print "Free nodes: " + str(len(self.free_nodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while self.stop==False:
             try:
-                #print "Poll/Monitor job queue"
-                job_dict = self.queue.get(True, 2)
+                print "Poll/Monitor job queue"
+                job_dict=None
+                try:
+                    job_dict = self.queue.get(True, 2)
+                except Queue.Empty:
+                    pass
                 if job_dict != None:
                     try:
                         self.execute_job(job_dict)
                     except NoResourceAvailable:
                         print "No resources available - put job back into queue."
                         self.queue.put(job_dict)
-                self.monitor_jobs()            
+                self.monitor_jobs()
                 if self.queue.empty():
                     time.sleep(10)
             except KeyboardInterrupt:
                 print "Keyboard Interrupt"
                 self.stop=True
                 raise
-            except Queue.Empty:
-                pass
             except saga.exception:
                 traceback.print_exc(file=sys.stdout)
                 break
