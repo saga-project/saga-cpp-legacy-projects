@@ -202,11 +202,18 @@ objectives for performance, resilience, budgets and so on.
 
 \Section{Related Work}
 
-Condor Glide-In
+Lately, the pilot job concept has been extensively research.
 
-Falkon
+Condor Glide-In~\cite{citeulike:291860}
 
-Nimbus
+Falkon~\cite{1362680}
+
+
+Nimbus~\cite{10.1109/MIC.2009.94} provides a special integration with classical batch cluster systems. By running cluster
+in a hybrid mode this setup can support both native jobs by running those in the Xen's domain 0 as well
+as VMs. In the pilot usage mode, the cloud user is able to control the entire setup and configuration 
+and startup a virtual cluster.
+
 
 CERN Atlas Pilot Job~\cite{1555338}
 
@@ -246,14 +253,46 @@ Startup Times
 
 Dispatch times
 
+In the following section we show that the SAGA BigJob abstraction is suitable for running pilot jobs on
+different kinds of distributed infrastructures.
+
 
 \Section{BigJob for Utilizing Cloud Resources}
 
-Despite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
+% espite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
+
+BigJob provides the user a a uniform abstraction to grids and clouds independent of 
+any particular cloud or grid provider that can be instantiated dynamically 
+(Figure~\ref{fig:figures_distributed_pilot_job}).
+
+\begin{figure*}[htbp]
+    \centering
+        \includegraphics[width=0.7\textwidth]{figures/distributed_pilot_job.pdf}
+    \caption{SAGA Pilot Job Overview}
+    \label{fig:figures_distributed_pilot_job}
+\end{figure*}
+
+Prior to using the SAGA cloud pilot job, the user is required to prepare the virtual machine
+image for each cloud that is going to used. The image should contain the application and possibly
+the application data. Once the image is setup, the user can initialize \texttt{bigjob\_cloud} object referencing
+the respective cloud environment (including the used image).
+
+During the initialization of a cloud based BigJob, the implementation launches the requested
+number of the specified virtual machine type.
+No agent required
+
+While these IaaS clouds share similar Amazon EC2 style interface, they tend to expose
+different semantics and behaviors. Commonly, there a strong difference in the machine 
+types supported, the management of metadata and customization possibilities, the image
+setup procedure, support for shared file systems, network setup etc. Further standardization
+in this area is required.
+
+
+description of images and instance types different
 
 OCCI
 
-\section{Usage Modes and Analaysis}
+\section{Usage Modes and Analysis}
 
 The aim of this section is not to perform detailed systematic
 performance measures and analysis, but to illustrate the various usage
@@ -297,7 +336,40 @@ up, what features are used etc}
 
 \subsubsection{\tc for single Resource Usage}
 
+In the first example, a given workload -- a NAMD simulation consisting of xxx atoms --
+was run for 500 timesteps at different infrastructures.
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.45\textwidth]{performance/namd_run.pdf}
+    \caption{\textbf{NAMD Runtimes on Different Resource Types: } The graph shows that 
+             native HPC resource generally outperform cloud resources in particular when
+             running applications across multiple nodes. However, the new 
+             high memory eight core EC2 instance type was able to }
+    \label{fig:performance_namd_run}
+\end{figure}
+
+The main overhead when using BigJob results from the queueing time in grids respectively the virtual 
+machine creation time in cloud environments. Figure~\ref{fig:performance_setup_time} shows the setup
+times observed in our experiments. 
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.45\textwidth]{performance/setup_time.pdf}
+    \caption{\textbf{BigJob Setup Times:} In grids the setup time greatly depends upon the 
+    queuing time at the local resource manager. However, in our experiments also clouds showed
+    a high fluctuation in the queueing time.}
+    \label{fig:performance_setup_time}
+\end{figure}
+
+
+
 \subsubsection{\tc for Collective Resource Utilization}
+
+Workload of 8 replica runs
+Subsequent run - each replica will take the entire BigJob
+4 VMs/8 cores as increments for Nimbus
+8 cores on Poseidon
+32 core per bigjobs
 
 \begin{itemize}
 \item Resource I and III:
@@ -305,38 +377,56 @@ up, what features are used etc}
 \item Resource I, II and III:
 \end{itemize}
 
+
+If resources in the Grid environment are instantly available it is usually not reasonable to start
+additional cloud resources. However, clouds provide a very predictable startup times. Thus,
+it is possible to  Nevertheless,
+the performance can be highly variable.
+
 \subsection{Scenario II: Investigation of the Distribution of Workload for Maximum Allowed
   Time to Solution} 
 
 Given that Clouds provide the illusion of infinite capacity, or at
 least queue wait-times are non-existent, it is likely that often most
-sub-jobs will end up on the Cloud infrastructure.  Thus in Scenario
+sub-jobs will end up on the Cloud infrastructure.  Thus, in Scenario
 II, the resource assignment algorithm we use is as follows: We submit
 tasks to non-cloud resource first, and if the jobs have not finished
 when time equal to $T_{X}$ (defined as: \tmax - 2 average \tc on all
 clouds) has elapsed, than we move the workload to utilize clouds.  The
-underlying basis is that clouds have an explit cost associated with
+underlying basis is that clouds have an explicit cost associated with
 them and if jobs can be completed on the the TG and Condor pool while
 preserving the performance constraints, we opt for such a
 solution. However, if queue loads prevent the performance requirements
 being met, we move the jobs to a cloud-resource, which we have shown
 has less fluctuation in \tc of the workload.
 
-\subsection{Case Study: Running BigJob Across Heterogeneous Infrastructures}
+Start on Poseidon
+Wait for 15 minutes
 
-NAMD
+Based on current trends: will we finish or not.
 
-No discovery service - it is more or less a surprise what kind of capabilities you get in each science cloud
+Wallclock 1000 sec
+Poseidon BigJob becomes available after 100 sec
+1 replica finishes after 150 sec
 
-Test new Amazon High Memory Machine
+After 1/4 check whether some resources should be started:
+- 1 BigJob on Nimbus with 4 VM
+- increase VMs linearly if jobs done don't catch
+- if we caught up, we backup
 
-Eucalyptus networking completely screwed up: all images start with the same hostname
+BigJob startup is a dynamic decision -- We can dynamically bigjobs to a queue
 
-Images not transferable
 
-Different feature set
+
+
+
+
+
+
 
 \Section{Conclusion}
+various abstractions for IaaS currently
+various standardization efforts: OCCI, Cloud Consortium, ISO
 
 We plan to extend this work in two important directions. The first is
 the use of a more sophisticated coordination mechanism -- that
@@ -352,4 +442,6 @@ resources using a simple, single interface, an important second
 extension of this work is to use more sophisticated task-placement
 decisions or resource utilization decision making.
 
+\bibliographystyle{IEEEtran}
+\bibliography{saga,literatur}
 \end{document}
