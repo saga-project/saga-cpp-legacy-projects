@@ -39,7 +39,7 @@ if __name__ == "__main__":
     ##########################################################################################
     # Start BigJob
     # Parameter for BigJob
-    nodes = 1 # number nodes for agent
+    nodes = 4 # number nodes for agent
     current_directory=os.getcwd() +"/agent"  # working directory for agent
     start=time.time()
 
@@ -70,8 +70,8 @@ if __name__ == "__main__":
     # TG/LONI Pilot Job
     # Parameter for BigJob
     re_agent = "/home/luckow/src/bigjob/bigjob_agent_launcher.sh" # path to agent
-    nodes = 8  # number nodes for agent
-    lrms_url = "gram://qb1.loni.org/jobmanager-pbs" # resource url
+    nodes = 16  # number nodes for agent
+    lrms_url = "gram://poseidon1.loni.org/jobmanager-pbs" # resource url
     #lrms_url = "gram://qb1.loni.org/jobmanager-fork" # resource url
     project = "" #allocation
     queue = "workq" # queue (PBS)
@@ -92,38 +92,34 @@ if __name__ == "__main__":
                            project,
                            workingdirectory,
                            userproxy,
-                           "120")
+                           "20")
     big_ec2_thread.join()
     big_nimbus_thread.join()
     #big_tg_thread.join()
 
     # Barrier
-    while bj_tg.get_state_detail()!="Running" and bj_ec2.get_state_detail()!="Running" and bj_ec2.get_state_detail!="Running":
-        print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state()) + " Time since launch: " + str(time.time()-start)
-        print "Pilot Job/BigJob URL: " + bj_nimbus.pilot_url + " State: " + str(bj_nimbus.get_state()) + " Time since launch: " + str(time.time()-start)
-        print "Pilot Job/BigJob URL: " + bj_tg.pilot_url + " State: " + str(bj_tg.get_state()) + " Time since launch: " + str(time.time()-start)
-        time.sleep(10)
+    while ((str(bj_tg.get_state_detail())=="Running" or str(bj_tg.get_state_detail())=="Failed")\
+        and (str(bj_ec2.get_state_detail())=="Running" or str(bj_ec2.get_state_detail())=="Failed")\
+        and (str(bj_nimbus.get_state_detail())=="Running" or str(bj_nimbus.get_state_detail())=="Failed" ))==False:
+            print "Loop:" + str(str(bj_tg.get_state_detail())=="Running" and str(bj_ec2.get_state_detail())=="Running" and str(bj_nimbus.get_state_detail())=="Running")
+            try:
+                print "Pilot Job/BigJob URL: " + bj_ec2.pilot_url + " State: " + str(bj_ec2.get_state_detail()) + " Time since launch: " + str(time.time()-start)
+                print "Pilot Job/BigJob URL: " + bj_nimbus.pilot_url + " State: " + str(bj_nimbus.get_state_detail()) + " Time since launch: " + str(time.time()-start)
+                print "Pilot Job/BigJob URL: " + bj_tg.pilot_url + " State: " + str(bj_tg.get_state_detail()) + " Time since launch: " + str(time.time()-start)
+                time.sleep(10)
+            except:
+                raise
 
     ##########################################################################################
     # Submit SubJob through BigJob
     # NAMD command: $NAMD_HOME/charmrun ++verbose ++remote-shell ssh ++nodelist nodefile +p4 /usr/local/namd2/namd2 NPT.conf
     # working directory: $HOME/run       
-    jd_euca = saga.job.description()
-    jd_euca.executable = "/usr/local/NAMD_2.7b1_Linux-x86/charmrun"
-    #jd.executable = "/bin/date"
-    jd_euca.number_of_processes = "1"
-    jd_euca.spmd_variation = "single"
-    jd_euca.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p2", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
-    #jd.working_directory = "/root/run/"
-    jd_euca.output = "stdout_euca.txt"
-    jd_euca.error = "stderr_euca.txt"
-    
     jd_ec2 = saga.job.description()
     jd_ec2.executable = "/usr/local/NAMD_2.7b1_Linux-x86/charmrun"
     #jd.executable = "/bin/date"
-    jd_ec2.number_of_processes = "1"
+    jd_ec2.number_of_processes = "4"
     jd_ec2.spmd_variation = "single"
-    jd_ec2.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p2", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
+    jd_ec2.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p8", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
     #jd.working_directory = "/root/run/"
     jd_ec2.output = "stdout_ec2.txt"
     jd_ec2.error = "stderr_ec2.txt"
@@ -131,9 +127,9 @@ if __name__ == "__main__":
     jd_nimbus = saga.job.description()
     jd_nimbus.executable = "/usr/local/NAMD_2.7b1_Linux-x86/charmrun"
     #jd.executable = "/bin/date"
-    jd_nimbus.number_of_processes = "1"
+    jd_nimbus.number_of_processes = "4"
     jd_nimbus.spmd_variation = "single"
-    jd_nimbus.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p2", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
+    jd_nimbus.arguments = ["++remote-shell", "ssh", "++nodelist", "/root/machinefile", "+p8", "/usr/local/NAMD_2.7b1_Linux-x86/namd2", "/root/run/NPT.conf"]
     #jd.working_directory = "/root/run/"
     jd_nimbus.output = "stdout_nimbus.txt"
     jd_nimbus.error = "stderr_nimbus.txt"
@@ -141,17 +137,16 @@ if __name__ == "__main__":
     # submit sub-job through big-job
     jd = saga.job.description()
     jd.executable = "/usr/local/packages/namd-2.6-mvapich-1.0-intel10.1/namd2"
-    jd.number_of_processes = "32"
+    jd.number_of_processes = "16"
     jd.spmd_variation = "mpi"
     jd.arguments = ["/home/luckow/run/NPT.conf"]
     # !!Adjust!!
     jd.working_directory = "/home/luckow/run/"
     jd.output = "output.txt"
     jd.error = "error.txt"
-    subjob = bigjob.subjob(advert_host)
-    subjob.submit_job(bj_tg.pilot_url, jd)
 
-
+    print "**************** Start SubJob Submission ************** "
+    subjob_start = time.time()
     jobs_ec2 = []
     jobs_nimbus = []
     jobs_tg = []
@@ -179,15 +174,15 @@ if __name__ == "__main__":
             
             # EC 2 jobs    
             ec2_done=check_all_jobs(jobs_ec2);
-            print "EC2 All Done? "+ str(ec2_done)
+            print "EC2 All Done? "+ str(ec2_done) + " Time since SubJob Start: " + str(time.time()-subjob_start) + " s"
             
             # Nibmus jobs    
             nimbus_done=check_all_jobs(jobs_nimbus);
-            print "Nimbus All Done? "+ str(nimbus_done)
+            print "Nimbus All Done? "+ str(nimbus_done) + " Time since SubJob Start: " + str(time.time()-subjob_start) + " s"
 
             # TG jobs    
             tg_done=check_all_jobs(jobs_tg);
-            print "TG All Done? "+ str(tg_done)
+            print "TG All Done? "+ str(tg_done) + " Time since SubJob Start: " + str(time.time()-subjob_start) + " s"
                     
             if ec2_done and nimbus_done and tg_done:
                 break
