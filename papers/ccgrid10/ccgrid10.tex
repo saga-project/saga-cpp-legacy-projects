@@ -61,7 +61,10 @@
 
 \newcommand{\up}{\vspace*{-1em}}
 \newcommand{\upp}{\vspace*{-0.5em}}
-
+\newcommand{\numrep}{16 }
+\newcommand{\samplenum}{4 }
+\newcommand{\tmax}{$T_{max}$ }
+\newcommand{\tc}{$T_{C}$ }
 
 \title{SAGA-based BigJob: A pervasive, general purpose Pilot-Job Abstraction for Distributed Systems}
 
@@ -84,14 +87,12 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
 \newif\ifdraft
 % \drafttrue
 \ifdraft
-\newcommand{\kimnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
+\newcommand{\llnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
-\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1 }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 \else
-\newcommand{\kimnote}[1]{}
+\newcommand{\llnote}[1]{}
 \newcommand{\alnote}[1]{}
-\newcommand{\amnote}[1]{}
 \newcommand{\jhanote}[1]{}
 \fi
 
@@ -204,8 +205,74 @@ Despite a standardized interface, big difference on how to obtain meta-data (int
 
 OCCI
 
+\section{Usage Modes and Analaysis}
 
-\Section{Case Study: Running BigJob Across Heterogeneous Infrastructures}
+The aim of this section is not to perform detailed systematic
+performance measures and analysis, but to illustrate the various usage
+modes the SAGA-based BigJob can support and how they are supported. We
+posit that the performance overheads of BigJob are small relative to
+the duration of the tasks that are typically performed, i.e., order of
+seconds compared to tens of minutes and hours.  Needless to say, if
+millions of jobs each of short duration were being attempted then the
+overheads would be significant.
+
+We discuss two scenarios that are representative of how applications
+would typically use multiple distributed infrastructure. We focus our
+attention on replica-based MD simulations and define a workload as
+\numrep replicas of the HCV model~\cite{}, each replica running for
+500 timesteps.  The first scenario involves running all \numrep over
+different infrastructure configurations and determining the \tc for
+each scenario. We repeat \tc for each configuration \samplenum times.
+
+The second scenario, introduces an upper-bound on the acceptable \tc
+(defined as \tmax) -- which is the maximum permissible time to
+solution.
+
+Each scenario has several possible specific sub-scenarios, of which we
+discuss a few in each.
+
+\subsection{List and explain the resources used in Experiments}
+
+\subsubsection*{Resource I: TeraGrid/LONI Cluster (QB)}
+
+\subsubsection*{Resource II: Condor-Pool of LONI Clusters}
+
+\jhanote{This one will require most description -- how the pool is set
+up, what features are used etc}
+
+\subsubsection*{Resource III: Cloud Environments}
+
+
+\subsection{Scenario I: \tc for Workload for Different Resource Configurations}
+
+\subsubsection{\tc for single Resource Usage}
+
+\subsubsection{\tc for Collective Resource Utilization}
+
+\begin{itemize}
+\item Resource I and III:
+\item Resource II and III:
+\item Resource I, II and III:
+\end{itemize}
+
+\subsection{Scenario II: Investigation of the Distribution of Workload for Maximum Allowed
+  Time to Solution} 
+
+Given that Clouds provide the illusion of infinite capacity, or at
+least queue wait-times are non-existent, it is likely that often most
+sub-jobs will end up on the Cloud infrastructure.  Thus in Scenario
+II, the resource assignment algorithm we use is as follows: We submit
+tasks to non-cloud resource first, and if the jobs have not finished
+when time equal to $T_{X}$ (defined as: \tmax - 2 average \tc on all
+clouds) has elapsed, than we move the workload to utilize clouds.  The
+underlying basis is that clouds have an explit cost associated with
+them and if jobs can be completed on the the TG and Condor pool while
+preserving the performance constraints, we opt for such a
+solution. However, if queue loads prevent the performance requirements
+being met, we move the jobs to a cloud-resource, which we have shown
+has less fluctuation in \tc of the workload.
+
+\subsection{Case Study: Running BigJob Across Heterogeneous Infrastructures}
 
 NAMD
 
@@ -221,6 +288,18 @@ Different feature set
 
 \Section{Conclusion}
 
-
+We plan to extend this work in two important directions. The first is
+the use of a more sophisticated coordination mechanism -- that
+supports asynchronous task coordination (e.g., Comet). In this paper,
+we have focussed on replica simulations, but not on replica-exchange
+simulations -- which involve coordination between the different tasks
+and intelligence in their placements.  It will be very interesting to
+note the performance gains that accrue as a result of such
+asynchronous coordination on production infrastructure for the
+replica-exchange problems. Also, having established the basic
+infrastructure to submit tasks to and manage multiple, heterogenous
+resources using a simple, single interface, an important second
+extension of this work is to use more sophisticated task-placement
+decisions or resource utilization decision making.
 
 \end{document}
