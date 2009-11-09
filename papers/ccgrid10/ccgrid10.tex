@@ -109,7 +109,7 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
   multiple levels -- development, deployment and execution stages of
   scientific applications. The Pilot-Job abstraction has been shown to
   be an effective abstraction to address many requirements of
-  scientific applciations. Howeever there are multiple Pilot-Job
+  scientific applciations. However there are multiple Pilot-Job
   abstractions which are often tied to a specific infrastructure.  In
   this paper, we introduce a SAGA-based Pilot-Job which supports a
   wide range of application types and is usable over a broad range of
@@ -140,7 +140,7 @@ Section 2. SAGA-based Pilot Job.  SAGA in brief. Place canonical SAGA
 picture. Talk about why using SAGA for PilotJob is different
 (integrated and consistent API). Talk about SAGA Job-Model; talk about
 extensions to the SAGA Job Model for BigJob.  Architecture and Control
-Flow for BigJob.
+Flow for BigJob. Discuss how SAGA BigJob works well with Condor Glide-in.
 
 \bigskip 
 
@@ -209,10 +209,12 @@ Condor Glide-In~\cite{citeulike:291860}
 Falkon~\cite{1362680}
 
 
-Nimbus~\cite{10.1109/MIC.2009.94} provides a special integration with classical batch cluster systems. By running cluster
-in a hybrid mode this setup can support both native jobs by running those in the Xen's domain 0 as well
-as VMs. In the pilot usage mode, the cloud user is able to control the entire setup and configuration 
-and startup a virtual cluster.
+Nimbus~\cite{10.1109/MIC.2009.94} provides a special integration with
+classical batch cluster systems. By running cluster in a hybrid mode
+this setup can support both native jobs by running those in the Xen's
+domain 0 as well as VMs. In the pilot usage mode, the cloud user is
+able to control the entire setup and configuration and startup a
+virtual cluster.
 
 
 CERN Atlas Pilot Job~\cite{1555338}
@@ -233,7 +235,6 @@ BigJob:
 
 \SubSection{Overview}
 
-
 The following figure gives an overview of the SAGA BigJob architecture.
 
 \begin{figure}[htbp]
@@ -247,50 +248,88 @@ The following figure gives an overview of the SAGA BigJob architecture.
 \end{figure}
 
 
+\subsection{BigJob and Condor Glide-in}
+
+\jhanote{I'm currently unsure of where to add -- here or in the next
+  section, how bigjob works with Condor Glide-in. Suggestions?}
+
+\subsection{BigJob for Utilizing Cloud Resources}
+
+% espite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
+
+At the execution level, Clouds differ from Clusters/Grids in at least
+a couple of different ways. In cloud environment, user-level jobs are
+not typically exposed to a scheduling system; jobs are either assigned
+a virtual machine or are not assigned a virtual machine (this is an
+important attribute that provides the illusion of infinite
+resources). In contrast, user-level jobs on grids and clusters are
+exposed to a scheduling system and are assigned to execute at a later
+stage.  Also a description of a grid/cluster job typically contains an
+explicit description of workload; in contrast for clouds a user level
+job typically contains the container (description of the resource
+requested) but does not necessarily contain the workload. In other
+other words, the physical resources are not provisioned to the
+workload but are provisioned to the container.  Interestingly, at this
+level of formulation, pilot-jobs attempt to provide a similar model of
+resource provisiong as clouds natively provide.
+
+BigJob provides the user a a uniform abstraction to grids and clouds
+independent of any particular cloud or grid provider that can be
+instantiated dynamically
+(Figure~\ref{fig:figures_distributed_pilot_job}).
+
+\begin{figure*}[htbp]
+    \centering
+        \includegraphics[width=0.7\textwidth]{figures/distributed_pilot_job.pdf}
+    \caption{An overview of the SAGA-based Pilot Job}
+    \label{fig:figures_distributed_pilot_job}
+\end{figure*}
+
+Prior to using the SAGA cloud pilot job, the user is required to
+prepare the virtual machine image for each cloud that is going to
+used. The image should contain the application and possibly the
+application data. Once the image is setup, the user can initialize
+\texttt{bigjob\_cloud} object referencing the respective cloud
+environment (including the used image).
+
+During the initialization of a cloud based BigJob, the implementation
+launches the requested number of the specified virtual machine type.
+No agent required
+
+While these IaaS clouds share similar Amazon EC2 style interface, they
+tend to expose different semantics and behaviors. Commonly, there a
+strong difference in the machine types supported, the management of
+metadata and customization possibilities, the image setup procedure,
+support for shared file systems, network setup etc. Further
+standardization in this area is required.
+
+
+description of images and instance types different
+
+OCCI
+
 \SubSection{Performance}
 
 Startup Times
 
 Dispatch times
 
-In the following section we show that the SAGA BigJob abstraction is suitable for running pilot jobs on
-different kinds of distributed infrastructures.
+In the following section we show that the SAGA BigJob abstraction is
+suitable for running pilot jobs on different kinds of distributed
+infrastructures.
 
-
-\Section{BigJob for Utilizing Cloud Resources}
-
-% espite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
-
-BigJob provides the user a a uniform abstraction to grids and clouds independent of 
-any particular cloud or grid provider that can be instantiated dynamically 
-(Figure~\ref{fig:figures_distributed_pilot_job}).
-
-\begin{figure*}[htbp]
+The main overhead when using BigJob results from the queueing time in grids respectively the virtual 
+machine creation time in cloud environments. Figure~\ref{fig:performance_setup_time} shows the setup
+times observed in our experiments. 
+\begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.7\textwidth]{figures/distributed_pilot_job.pdf}
-    \caption{SAGA Pilot Job Overview}
-    \label{fig:figures_distributed_pilot_job}
-\end{figure*}
+        \includegraphics[width=0.45\textwidth]{performance/setup_time.pdf}
+    \caption{\textbf{BigJob Setup Times:} In grids the setup time greatly depends upon the 
+    queuing time at the local resource manager. However, in our experiments also clouds showed
+    a high fluctuation in the queueing time.}
+    \label{fig:performance_setup_time}
+\end{figure}
 
-Prior to using the SAGA cloud pilot job, the user is required to prepare the virtual machine
-image for each cloud that is going to used. The image should contain the application and possibly
-the application data. Once the image is setup, the user can initialize \texttt{bigjob\_cloud} object referencing
-the respective cloud environment (including the used image).
-
-During the initialization of a cloud based BigJob, the implementation launches the requested
-number of the specified virtual machine type.
-No agent required
-
-While these IaaS clouds share similar Amazon EC2 style interface, they tend to expose
-different semantics and behaviors. Commonly, there a strong difference in the machine 
-types supported, the management of metadata and customization possibilities, the image
-setup procedure, support for shared file systems, network setup etc. Further standardization
-in this area is required.
-
-
-description of images and instance types different
-
-OCCI
 
 \section{Usage Modes and Analysis}
 
@@ -349,17 +388,6 @@ was run for 500 timesteps at different infrastructures.
     \label{fig:performance_namd_run}
 \end{figure}
 
-The main overhead when using BigJob results from the queueing time in grids respectively the virtual 
-machine creation time in cloud environments. Figure~\ref{fig:performance_setup_time} shows the setup
-times observed in our experiments. 
-\begin{figure}[htbp]
-    \centering
-        \includegraphics[width=0.45\textwidth]{performance/setup_time.pdf}
-    \caption{\textbf{BigJob Setup Times:} In grids the setup time greatly depends upon the 
-    queuing time at the local resource manager. However, in our experiments also clouds showed
-    a high fluctuation in the queueing time.}
-    \label{fig:performance_setup_time}
-\end{figure}
 
 
 
