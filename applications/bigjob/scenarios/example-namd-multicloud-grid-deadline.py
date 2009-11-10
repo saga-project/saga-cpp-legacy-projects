@@ -19,10 +19,10 @@ import threading
     Start n number of jobs on whatever resources become available
 """
 
-NUMBER_JOBS=50
-RUNTIME_JOB_CLOUD=6 # in min
-MAX_RUNTIME=20 #in min
-NUMBER_CHECK_INTERVALLS=4 #if MAX_RUNTIME=20 that means to check progress every 5 min
+NUMBER_JOBS=8
+MAX_RUNTIME=45 #in min
+NUMBER_CHECK_INTERVALLS=10 #if MAX_RUNTIME=20 that means to check progress every 5 min
+MAX_NUMBER_CLOUD_BIGJOBS=3
 advert_host = "fortytwo.cct.lsu.edu"
 
 def check_all_jobs(jobs):
@@ -150,11 +150,16 @@ if __name__ == "__main__":
                 jobs_done= tg_done + nimbus_done
                 jobs_left=NUMBER_JOBS-jobs_done
                 jobs_per_minute = jobs_done/runtime
+                print "Progress Check Runtime: " + str(runtime) + " min; time left: " \
+                      + str(time_left) + " min; jobs done: " + str(jobs_done) + "/"+str(NUMBER_JOBS)\
+                      + " prognosed job number: " + str(jobs_per_minute*MAX_RUNTIME)+"/"+str(NUMBER_JOBS)
                 # if estimated nb. of finishable jobs is smaller than number jobs
                 # add new resources
-                if jobs_per_minute*MAX_RUNTIME < NUMBER_JOBS:
+                if jobs_per_minute*MAX_RUNTIME < NUMBER_JOBS and len(cloud_bigjobs)<MAX_NUMBER_CLOUD_BIGJOBS:
+                    print "*** DEADLINE DANGER: Start new Pilot ***"
                     bj_cloud = start_cloud_pilots()
                     cloud_bigjobs.append(bj_cloud)
+
                     # reset intervall timer
                     intervall_timer=time.time()
 
@@ -209,7 +214,7 @@ if __name__ == "__main__":
     ##########################################################################################
     # Cleanup - stop BigJob
     #bj_euca.cancel()
-    bj_ec2.cancel()
-    bj_nimbus.cancel()
+    for i in cloud_bigjobs:
+        i.cancel()
     bj_tg.cancel()
     print "Runtime: " + str(time.time()-start)

@@ -52,7 +52,7 @@ if __name__ == "__main__":
  
     print "Start Pilot Job/BigJob in the Nimbus cloud. "
     bj_nimbus = bigjob_cloud.bigjob_cloud()
-    bj_nimbus.start_pilot_job(number_nodes=4, 
+    bj_nimbus.start_pilot_job(number_nodes=8, 
                        working_directory=current_directory,
                        walltime=60,
                        cloud_type="NIMBUS",
