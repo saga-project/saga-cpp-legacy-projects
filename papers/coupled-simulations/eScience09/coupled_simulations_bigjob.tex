@@ -44,6 +44,7 @@
 
 \newcommand{\up}{\vspace*{-1em}}
 \newcommand{\upp}{\vspace*{-0.5em}}
+\newcommand{\ts}{$T_{s}$}
 
 
 %-------------------------------------------------------------------------
@@ -95,7 +96,7 @@ support the coordinated scheduling of jobs -- which in turn is
 required to support the concurrent execution required by coupled
 multi-physics simulations. In this paper we develop and demonstrate a
 novel approach to overcome the lack of native support for coordinated
-job submission requirements associated with coupled runs. Our solution
+job submission requirement associated with coupled runs. Our solution
 is a generalization of the Pilot-Job concept -- which in of itself is
 not new, but is applied to coupled simulations for the first time. Our
 solution not only overcomes the initial co-scheduling problem, but
@@ -135,12 +136,14 @@ execution (run-time) decision.
   simple pre-processing runs? What is the importance of dynamic
   resource management, i.e. start with initial Configuration I and
   adapt to Final Configuration F with intermediate states in between?
- (vi) Yaakoub: We have also discussed what is required here in terms
-  of a diagram and a *clear* explaination of how the SAGA BigJob
-  interface calls the Condor Glide-In, the control flow and other
-  details. (vii) Yaakoub: Also as discussed, we need the
-  BigJob-Glidein runs with the same systems, so we can compare like to
-  like.}
+  % (vi) Yaakoub: We have also discussed what is required here in
+  % terms
+  % of a diagram and a *clear* explaination of how the SAGA BigJob
+  % interface calls the Condor Glide-In, the control flow and other
+  % details. (vii) Yaakoub: Also as discussed, we need the
+  % BigJob-Glidein runs with the same systems, so we can compare like
+  % to like.
+}
 
 
 %-------------------------------------------------------------------------
@@ -165,7 +168,7 @@ demand of large and complex systems, but incorporating two distinct
 codes under the umbrella of a single tightly-coupled application (say
 using MPI) is not without significant problems. For example, the two
 codes can often have very different computational kernels (one could
-be grid-based, the other unstructured particle simulations) with very
+be mesh-based, the other unstructured particle simulations) with very
 different computational time-scales.
 
 Here we will focus on the challenges arising from running
@@ -179,7 +182,7 @@ Unix pipes (see next section for details on the coupling).
 % Users' account loss is inevitable in conventional queuing systems
 % except when sufficient CPUs are idling,
 
-Although not exactly tightly-coupled in the sense of MPI, i.e., very
+Although not exactly tightly-coupled in the sense of MPI, viz., very
 frequent and with an extreme sensitivity to latency in communication
 delay, the CFD and MD codes communicate frequently, (e.g., the CFD
 code conducts data exchange in every iteration) and thus they need to
@@ -213,59 +216,80 @@ solution that we devise to overcome the concurrent scheduling
 requirement/constraints of coupled jobs also supports the feature of
 dynamic resource allocation.
 
-We outline our approach and solution -- which is not tied to either a
-specific application set (or infrastructure) and is scalable and
-extensible. SAGA (the Simple API for Grid
-Applications)~\cite{saga_web} is a high-level API which provides the
-basic functionality required to implement distributed functionally --
-both logically and physically, in an infrastructure and middleware
-independent fashion. SAGA enables the creation of higher-levels of
-abstractions, for example a container-job and pilot-job (which as we
-will discuss is referred to as the BigJob~\cite{saga_royalsoc}). % A
-pilot-job is just a container task where the number of sub-tasks can
-run in pre-defined schedule with the specified number of processors
-whether or not they are coupled. Although the container-Job/Pilot-Job
-concept is not novel {\it per se}, we believe this is the first
-documented utilization of these abstractions to perform coupled
-Multi-Physics simulations. Additionally, our approach employing a
-SAGA-based Pilot-Job is infrastructure neutral, unlike most other
-Pilot-Jobs. We claim that there several distinct advantages that arise
-as a consequence of using Pilot-Jobs for Coupled Simulations: (i)
-Obviates the need for a Co-Scheduler while preserving performance,
-(ii) Enables dynamic resource allocation, which in turn is important
-for load-balancing across coupled simulations.
+Our solution which is not tied to either a specific application set
+(or infrastructure) and is scalable and extensible. SAGA (the Simple
+API for Grid Applications)~\cite{saga_web} is a high-level API which
+provides the basic functionality required to implement distributed
+functionally -- both logically and physically, in an infrastructure
+and middleware independent fashion. SAGA enables the creation of
+higher-levels of abstractions, for example a container-job and
+pilot-job (which as we will discuss is referred to as the
+BigJob~\cite{saga_royalsoc}).  The pilot-job is just a container task
+where a number of sub-tasks can run in pre-defined schedule with the
+specified number of processors whether or not they are
+coupled. Although the container-Job/Pilot-Job concept is not novel
+{\it per se}, we believe this is the first documented utilization of
+these abstractions to perform coupled Multi-Physics
+simulations. Additionally, our approach employing a SAGA-based
+Pilot-Job is infrastructure neutral, unlike most other Pilot-Jobs. We
+claim that there several distinct advantages that arise as a
+consequence of using Pilot-Jobs for Coupled Simulations: (i) Obviates
+the need for a Co-Scheduler while preserving performance, (ii) Enables
+dynamic resource allocation, which in turn is important for
+load-balancing across coupled simulations.  But given the lack of
+System or Service-level support to address the challenges outlined
+above, there is a need to address the solution at the application
+level. This paper aims to provide novel solutions to the above problem
+using frameworks that are in user (application) space.
 
-\jhanote{Next few paragraphs need fixing}
+We will begin by investigating the fundamental question: Does the use
+of an infrastructure independent container job assist in the time to
+solution of coupled simulation? We will determine that the answer is
+yes for a variety of different resource utilization scenarios. In the
+simplest case of a coupled simulation running on a single machine, we
+will establish that the reason is the lowered waiting time typically
+associated with a larger size request (on most queuing systems, for
+most commonly occuring load factors).
 
-But given the lack of System or Service-level support to address the
-challenges outlined above, there is a need to address the solution at
-the application level. This paper aims to provide novel solutions to
-the above problem using frameworks that are in user (application)
-space.
+The dynamical resource allocation capabilties of the Pilot-Job prove
+useful in the other two scenarios, as well as when using
+load-balancing in the single-resource scenario.
 
-As our experiments will show, performance improvement arise from
-removing the need for scheduling the two-components separately and in
-providing a single job-requirement to the queuing system. Additional
-efficiency is provided via application scenario specific load
-balancing modules. We begin the next section with an outline of the
-basic motivation for coupled simulations and load balancing.
+\jhanote{redundant?} As our experiments will show, performance
+improvement arise from removing the need for scheduling the
+two-components separately and in providing a single job-requirement to
+the queuing system.
 
-\yyenote{Added this paragraph} Some of these problems arise from the
-nature of the simulations: large scale simulations that would not be
-able to run concurrently on the same resource, while others issues are
-quite technical such as dynamic shrinking/expanding the number of MPI
-processes of each simulation (dynamic load-balancing). Using MPI as a
-coupling layer would also require code modification, adding
+\jhanote{nayong define load factor please}
+
+\jhanote{mention the variation in load factors that you have seen over
+  the 2-3 week period}
+
+\jhanote{Next few paragraphs need attention}
+
+% Additional efficiency is provided via application scenario specific
+% load balancing modules.
+
+\jhanote{Place appropriately. This discusses why simple MPI
+  generalizations are not enough.} Some of these problems arise from
+the nature of the simulations: large scale simulations that would not
+be able to run concurrently on the same resource, while others issues
+are quite technical such as dynamic shrinking/expanding the number of
+MPI processes of each simulation (dynamic load-balancing). Using MPI
+as a coupling layer would also require code modification, adding
 infrastructure to support simulation-to-simulation communication. To
 maintain a high level of adaptivity, abstraction, interoperate between
 various simulation codes, and to eliminate simulation code invasion,
 we opted not to use MPI and focus on non-invasive abstract coupling
 layers.
 
-% . But in order to work efficiently, load-balancing algorithms require dynamic resource allocation...
+We begin the next section with an outline of the basic motivation for
+coupled simulations and load balancing.
 
-%-------------------------------------------------------------------------
-\section{Hybrid CFD-MD Approach: Understanding the Coupling, Communication and Load-Balancing Requirements}
+
+% -------------------------------------------------------------------------
+\section{Hybrid CFD-MD Approach: Understanding the Coupling,
+  Communication and Load-Balancing Requirements}
 
 The hybrid CFD/MD approach~\cite{Thompson},~\cite{Nie},~\cite{Yen} is
 a simulation method which adopts the continuum hypothesis in capturing
@@ -300,14 +324,18 @@ is simulated by MD and the far field flow is calculated by CFD.
 \includegraphics[scale=0.45]{fig1.eps}
 \linebreak
 \includegraphics[scale=0.50]{Vel_Profile.PDF}
-\caption{\small Schematic of CFD/MD Coupled Simulation of Channel Flow and the velocity profiles at different times}
+\caption{\small Schematic of CFD/MD Coupled Simulation of Channel Flow
+  and the velocity profiles at different times \jhanote{should the
+    graph be eliminated?}}
 \label{Fig:Couette}
 \end{figure}
 %%%%% FIGURE %%%%%
 
-In this study, we used the MPI version of the in-house incompressible
-CFD code~\cite{Lee} for CFD and the MPI version of the in-house
-modified version of LAMMPS~\cite{LAMMPS} for MD. As illustrated in
+In this study, we used the MPI version of the ``in-house''
+incompressible CFD code~\cite{Lee} for CFD and the MPI version of the
+modified version of LAMMPS~\cite{LAMMPS} for MD. We will present
+details of the ``in-house'' CFD code and the modifications that we
+made in LAMMPS elsewhere~\cite{jocs_in_prep}. As illustrated in
 Fig.~\ref{Fig:Couette}, the coupling mechanism is the key component
 for successful hybrid CFD/MD simulations and our implementation
 follows the literature~\cite{Nie},~\cite{Yen}. In brief, the hybrid
@@ -324,14 +352,17 @@ another zone. The truncated and shifted Lennard-Jones potential is
 used for interactions of particles in MD simulation.
 
 
-To check the validity of the hybrid CFD/MD simulation, sudden-start Couette flow was 
-employed that is similar to the test case used by O'Connell and Thompson~\cite{Thompson}.
-The velocity profiles of hybrid approach are shown in the bottom of Fig.~\ref{Fig:Couette}. The line shows 
-the velocity evolution which is solved by Navier-Stocks equations averaged over the given 
-time intervals. MD results are shown as marks with same time intervals of CFD and overlap 
-regions is indicated as both line and marks in the figure. These result is carried out 
-for code validation of both CFD/MD and hybrid simulation. Good agreement between 
-simulation results and analytical soluations.
+To check the validity of the hybrid CFD/MD simulation, sudden-start
+Couette flow was employed that is similar to the test case used by
+O'Connell and Thompson~\cite{Thompson}.  The velocity profiles of
+hybrid approach are shown in the bottom of Fig.~\ref{Fig:Couette}. The
+line shows the velocity evolution which is solved by Navier-Stocks
+equations averaged over the given time intervals. MD results are shown
+as marks with same time intervals of CFD and overlap regions is
+indicated as both line and marks in the figure. These result is
+carried out for code validation of both CFD/MD and hybrid
+simulation. Good agreement between simulation results and analytical
+soluations.
 
 As clearly indicated in Fig.~\ref{Fig:Couette}, the most prominent
 computational challenge is how to run efficiently two separate stand
@@ -573,9 +604,56 @@ In the second Use Case, two BigJobs are started together, but often one BigJob s
 
 \skonote{Included a new subsection, to describe how the experiments are performed.}
 % \subsection{Description of Experiments}
-% A simple couette flow, which is depicted on Figure 1 in Section 2, is simulated to validate the runtime reduction by applying BigJob abstraction on CFD-MD coupled simulation. The current flow system is composed of 62,400 mesh points in CFD side and 23,188 particles in MD side, both of which are such a small system in each scientific domain. This coupled simulation runs for 2500 $$\tau$$ physical time to get a converged solution, which is equivalent to 25,000 iterations on CFD code and 500,000 iterations on MD code. During the simulation, both codes update their boundary values by exchanging their simulation data through file-based approach, once in every 10 $\tau$. This leads to 250 times synchronization between two application domains throughout the simulation.
-% A coupled simulation by the default one BigJob does not require any change of application codes. On the other hand, it is inevitable to have application codes changed to use advanced functions such as the load balancing between coupled codes or to get assigned with more resources during simulation, because SAGA does not have any control over application sides. First, in both cases, application codes need to have an application-level checkpointing and generalized domain partitioning method with any number of processor allocation. As the new resource assignment between two domains by a load balancing function or a new BigJob allocation can be applied when the simulation is temporarily stopped, application codes need to stop several times and restart from its checkpointing data with changed number of processors assignment. In the current test, application codes stop and restart from checkpointing data on every 500 $\tau$, which is the same as 1/5 of total iterations. Second, to use a load balancing function, application codes need to return their actual computation time data to the BigJob. This is far different from each application's simulation time, which can be monitored by the BigJob: One-time event such as domain partitioning or checkpointing, and waiting time between application domains which is going to be minimized as they are well-balanced, should be excluded from the consideration of application's performance. In the current test, CFD and MD codes have several time checking functions inside to capture total iteration time without inter-domain information exchange.
-% All these tests were conducted on supercomputing resources on LONI (Louisiana Optical Network Initiative)~\cite{LONI_web} resources and their specifications are listed on table~\ref{table:LONI_resource}. As given on the table, QueenBee system is far larger than other resources in total number of processors, while all the others are identical. Based on our monitoring over these systems, QueenBee has been very crowded while all others have been less occupied. Thus, tests on small systems are focused on quantifying runtime reduction by using the BigJob abstraction, while tests on QueenBee is rather involved in arguing the benefit of co-scheduling on crowded systems. Walltime limit is set to be 6 hours in all tests, which seems enough for the active simulation and inactive idling, i.e., the time between the first job and second job allocations in conventional job submission.
+% A simple couette flow, which is depicted on Figure 1 in Section 2,
+% is simulated to validate the runtime reduction by applying BigJob
+% abstraction on CFD-MD coupled simulation. The current flow system is
+% composed of 62,400 mesh points in CFD side and 23,188 particles in
+% MD side, both of which are such a small system in each scientific
+% domain. This coupled simulation runs for 2500 $$\tau$$ physical time
+% to get a converged solution, which is equivalent to 25,000
+% iterations on CFD code and 500,000 iterations on MD code. During the
+% simulation, both codes update their boundary values by exchanging
+% their simulation data through file-based approach, once in every 10
+% $\tau$. This leads to 250 times synchronization between two
+% application domains throughout the simulation.  A coupled simulation
+% by the default one BigJob does not require any change of application
+% codes. On the other hand, it is inevitable to have application codes
+% changed to use advanced functions such as the load balancing between
+% coupled codes or to get assigned with more resources during
+% simulation, because SAGA does not have any control over application
+% sides. First, in both cases, application codes need to have an
+% application-level checkpointing and generalized domain partitioning
+% method with any number of processor allocation. As the new resource
+% assignment between two domains by a load balancing function or a new
+% BigJob allocation can be applied when the simulation is temporarily
+% stopped, application codes need to stop several times and restart
+% from its checkpointing data with changed number of processors
+% assignment. In the current test, application codes stop and restart
+% from checkpointing data on every 500 $\tau$, which is the same as
+% 1/5 of total iterations. Second, to use a load balancing function,
+% application codes need to return their actual computation time data
+% to the BigJob. This is far different from each application's
+% simulation time, which can be monitored by the BigJob: One-time
+% event such as domain partitioning or checkpointing, and waiting time
+% between application domains which is going to be minimized as they
+% are well-balanced, should be excluded from the consideration of
+% application's performance. In the current test, CFD and MD codes
+% have several time checking functions inside to capture total
+% iteration time without inter-domain information exchange.  All these
+% tests were conducted on supercomputing resources on LONI (Louisiana
+% Optical Network Initiative)~\cite{LONI_web} resources and their
+% specifications are listed on table~\ref{table:LONI_resource}. As
+% given on the table, QueenBee system is far larger than other
+% resources in total number of processors, while all the others are
+% identical. Based on our monitoring over these systems, QueenBee has
+% been very crowded while all others have been less occupied. Thus,
+% tests on small systems are focused on quantifying runtime reduction
+% by using the BigJob abstraction, while tests on QueenBee is rather
+% involved in arguing the benefit of co-scheduling on crowded
+% systems. Walltime limit is set to be 6 hours in all tests, which
+% seems enough for the active simulation and inactive idling, i.e.,
+% the time between the first job and second job allocations in
+% conventional job submission.
 
 \subsection{Description of Experiments}
 
@@ -686,9 +764,37 @@ RAM/Node &  &  \\
 \end{center}
 \end{table}
 
-\subsection{One BigJob with Load Balancing}
+\subsection{Using Container taks to submit Coupled Simulations:
+  Performance Analysis}
 
-Fig.~\ref{Fig:OneBJ_Flow} shows the flow of a coupled simulation with the conventional job submission and through one BigJob. In a conventional way, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to the conventional queuing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they are going to start at a different time, except when enough resources are available. In this case, both tasks wait on the queue when no job is allocated, the first allocated job idles to do data exchange with its counterpart, and run actual simulation after both jobs are allocated. On the other hand, in a BigJob simulation, a pilot job with the size of $PE_{CFD}+PE_{MD}$ is submitted to the queue and coupled simulation directly starts when the resource is assigned on this BigJob. By using a BigJob, a user can save his/her account consumption on inactive mode in conventional job submission, while total runtime is the same if the resource distribution to sub-jobs is identical. However, eliminating inactive mode does not guarantee total simulation time is reduced, because waiting to get one bigger allocation may happen to take more than getting two allocations with smaller chunks. The same situation can happen to the load-balanced case with one BigJob, which satisfies the reduction of total runtime compared to other examples.
+\jhanote{This section needs to establish the basic feature that on
+  average, over different loads and on different machines that
+  submitting larger simulations is beneficial, i.e., lowers the \ts.}
+
+
+\subsection{Single BigJob with Load Balancing}
+
+Fig.~\ref{Fig:OneBJ_Flow} shows the flow of a coupled simulation with
+the conventional job submission and through one BigJob. In a
+conventional way, individual tasks with resource requirements of
+$PE_{CFD}$ and $PE_{MD}$, respectively, are independently submitted to
+the conventional queuing system and job scheduler recognizes these
+coupled tasks as two distinct jobs. Thus, they are going to start at a
+different time, except when enough resources are available. In this
+case, both tasks wait on the queue when no job is allocated, the first
+allocated job idles to do data exchange with its counterpart, and run
+actual simulation after both jobs are allocated. On the other hand, in
+a BigJob simulation, a pilot job with the size of $PE_{CFD}+PE_{MD}$
+is submitted to the queue and coupled simulation directly starts when
+the resource is assigned on this BigJob. By using a BigJob, a user can
+save his/her account consumption on inactive mode in conventional job
+submission, while total runtime is the same if the resource
+distribution to sub-jobs is identical. However, eliminating inactive
+mode does not guarantee total simulation time is reduced, because
+waiting to get one bigger allocation may happen to take more than
+getting two allocations with smaller chunks. The same situation can
+happen to the load-balanced case with one BigJob, which satisfies the
+reduction of total runtime compared to other examples.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -725,7 +831,21 @@ Above result of simulation performance can be discussed as follows. At first, wo
 \begin{table}[!ht]
 \begin{center}
 
-\caption{\small Results for performance data using BigJob with and without LB. The Baseline Simulation represents the case when BigJob is not used; in this case, the time to start is dominated by the Inactive Mode of the longer waiting task. The use of BigJob resolves, this as can be seen by the reduced inactive mode time in columns 3 and 4. The starting configuration assigns resources equally between CFD-MD -- 16px each. However, after a few iterations of the LB the configuration is 8-24. It is with this configuration that the performance is better with LB, than without the LB 1370 $\pm 98$ vs 1641 $\pm$ 162. The starting configuration of the second set (8-24) is a ``balanced configuration'' which is why there is no performance gains on using the LB. Values in table shows averaged time in seconds, values within a parenthesis are standard deviation of time elapsed; the average is taken over 5 distinct experiments}
+  \caption{\small Results for performance data using BigJob with and
+    without LB. The baseline simulation represents the case when
+    BigJob is not used; in this case, the time to start is dominated
+    by the Inactive Mode of the longer waiting task. The use of BigJob
+    resolves, this as can be seen by the reduced inactive mode time in
+    columns 3 and 4. The starting configuration assigns resources
+    equally between CFD-MD -- 16px each. However, after a few
+    iterations of the LB the configuration is 8-24. With this
+    configuration the performance is better with LB, than without
+    LB 1370 $\pm 98$ vs 1641 $\pm$ 162. The starting configuration
+    of the second set (8-24) is a ``balanced configuration'' which is
+    why there is no performance gains on using the LB. Values in table
+    shows averaged time in seconds, values within a parenthesis are
+    standard deviation of time elapsed; the average is taken over 5
+    distinct experiments}
 % experiments. }
 %\label{table:systems}
 \label{table:oneBJ_Test}
