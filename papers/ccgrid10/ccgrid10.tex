@@ -140,7 +140,8 @@ Section 2. SAGA-based Pilot Job.  SAGA in brief. Place canonical SAGA
 picture. Talk about why using SAGA for PilotJob is different
 (integrated and consistent API). Talk about SAGA Job-Model; talk about
 extensions to the SAGA Job Model for BigJob.  Architecture and Control
-Flow for BigJob. Discuss how SAGA BigJob works well with Condor Glide-in.
+Flow for BigJob. Discuss how SAGA BigJob works well with Condor
+Glide-in.
 
 \bigskip 
 
@@ -159,35 +160,37 @@ Section 5. Conclusion
 \Section{Introduction}
 % \up
 
-
-
 Several classes of applications are well suited for distributed
 environments. Probably the best known and most powerful examples are
 those that involve an ensemble of decoupled tasks, such as simple
 parameter sweep applications~\cite{1239909}.
 
-\emph{Pilot jobs} is a concept initially pioneered by Condor Glide-In, which
-has been used by many communities to increase the predictability
-and time-to-solution of such applications. A pilot job allows the execution 
-of jobs which the necessity to queue each individual sub-job. The pilot job itself
-is a regular Grid job, which is started through a Grid resource manager, such as
-the Globus GRAM.
+\emph{Pilot jobs} is an execution abstraction that 
+% concept initially pioneered by Condor Glide-In,which 
+has been used by many communities to increase the predictability and
+time-to-solution of such applications. A pilot job allows the
+execution of jobs without the necessity to queue each individual
+sub-job. The pilot job itself is a regular Grid job, which is started
+through a Grid resource manager, such as the Globus GRAM.
 
-The Simple API for Grid Applications (SAGA) is a high-level, easy-to-use API for 
-accessing distributed resources. Unlike other common pilot job systems SAGA BigJob 
-(i) natively supports MPI job and (ii) works on a variety of back-end systems, 
-generally reflecting the advantage of using a SAGA-based approach.
+The Simple API for Grid Applications (SAGA) is a high-level,
+easy-to-use API for accessing distributed resources. Unlike other
+common pilot job systems SAGA BigJob (i) natively supports MPI job and
+(ii) works on a variety of back-end systems, generally reflecting the
+advantage of using a SAGA-based approach.
 
 Discuss PilotJob:
 - How Traditionally Used (mostly deployment time)
 - How traditionally bound to a single platform and system
 
-Recently, the usage of virtualization and the usage of on-demand virtual machines
-become increasingly popular. These so-called infrastructure-as-a-service clouds have
-different advantages compared to traditional Grid systems: users are provided
-with a greater flexibility and have the ability to customize their virtual machine
-environment. At the same time virtual machines are well isolated from each other. More and
-more the need to integrate traditional Grids and Clouds arises.
+Recently, the usage of virtualization and the usage of on-demand
+virtual machines become increasingly popular. These so-called
+infrastructure-as-a-service clouds have different advantages compared
+to traditional Grid systems: users are provided with a greater
+flexibility and have the ability to customize their virtual machine
+environment. At the same time virtual machines are well isolated from
+each other. More and more the need to integrate traditional Grids and
+Clouds arises.
 
 %from autonomic HPC Grid/Cloud paper
 Developing and running applications in such a hybrid and dynamic computational 
@@ -200,14 +203,21 @@ them across the hybrid execution environment while satisfying/balancing multiple
 objectives for performance, resilience, budgets and so on.
 
 
+
+
 \Section{Related Work}
 
 Lately, the pilot job concept has been extensively research.
-
-Condor Glide-In~\cite{citeulike:291860}
-
-Falkon~\cite{1362680}
-
+Different systems that use similar Glide-In approaches have been
+developed. Frey et al. (2002) initially proposed this idea in their
+work on Condor Glide-In. Using Condor Glide-In a complete Condor pool
+can be initiated using the GRAM service. Falkon~\cite{1362680} is a
+newer system, which emphasize in particular the performance of its
+task dispatcher. However, both systems have limitations and impose
+e. g. different overheads: Condor Glide-In~\cite{citeulike:291860}
+requires the start of a complete set of Condor daemons within the
+allocated set of resources. Falkon does not support MPI applications,
+i. e. it is not usable for our application scenario.
 
 Nimbus~\cite{10.1109/MIC.2009.94} provides a special integration with
 classical batch cluster systems. By running cluster in a hybrid mode
@@ -216,8 +226,102 @@ domain 0 as well as VMs. In the pilot usage mode, the cloud user is
 able to control the entire setup and configuration and startup a
 virtual cluster.
 
-
 CERN Atlas Pilot Job~\cite{1555338}
+
+\section{SAGA and SAGA-based Frameworks for Large-Scale and Distributed Computation}
+
+SAGA~\cite{saga_url} provides a simple, POSIX-inspired API to the most
+commonly required distributed functionality at a sufficiently
+high-level of abstraction so as to be independent of the divers\ e and
+dynamic Grid environments.
+
+The Simple API for Grid Applications (SAGA) is an API standardization
+effort within the Open Grid Forum (OGF)~\cite{ogf_web}, an
+international standards development body concerned primarily with
+standards for distributed computing. SAGA provides a simple,
+POSIX-style API to the most common Grid functions at a sufficiently
+high-level of abstraction so as to be independent of the diverse and
+dynamic Grid environments. The SAGA specification defines interfaces
+for the most common Grid-programming functions grouped as a set of
+functional packages (Fig.~\ref{Fig:SAGA1}). Some key packages are:
+
+\begin{figure}[!ht]
+ \begin{center}
+     \includegraphics[width=0.40\textwidth]{stci_saga_figures-1.pdf}
+ \end{center}
+\caption{\small Layered schematic of the different components of the
+x   SAGA landscape. At the topmost level is the simple integrated API
+   which provides the basic functionality for distributed
+   computing. Our BigJob abstraction is built upon this SAGA layer
+   using Python API wrapper} \label{Fig:SAGA1}
+\end{figure}
+
+\begin{itemize}
+\item File package - provides methods for accessing local and remote
+ filesystems, browsing directories, moving, copying, and deleting
+ files, setting access permissions, as well as zero-copy reading and
+ writing
+\item Job package - provides methods for describing, submitting,
+ monitoring, and controlling local and remote jobs. Many parts of
+ this package were derived from the largely adopted
+ DRMAA % ~\cite{drmaa_url}                                                                                           
+ specification.
+\item Stream package - provides methods for authenticated local and
+ remote socket connections with hooks to support authorization and
+ encryption schemes.
+\item Other Packages, such as the RPC (remote procedure call) and Replica
+ package
+\end{itemize}
+
+In the absence of a formal theoretical taxonomy of distributed
+applications, Fig.~\ref{Fig:sagaapps} can act a guide.  Using this
+classification system, there are three types of distributed
+applications: (i) Applications where local functionality is swapped
+for distributed functionality, or where distributed execution modes
+are provided.  A simple but illustrative example is an ensemble of an
+application that uses distributed resources for bulk submission. Here,
+the application remains unchanged and even unaware of its distributed
+execution, and the staging, coordination, and management are done by
+external tools or agents. Most application in this category are
+classified as implicitly distributed.  (ii) Applications that are
+naturally decomposable or have multiple components are then aggregated
+or coordinated by some unifying or explicit mechanism.  DAG-based
+workflows are probably the most common example of applications in this
+category.
+    % (ii) Applications that are developed using well known patterns,                                                
+    % for example MapReduce, which in turn is implemented using                                                      
+    % infrastructure independent programming systems such as SAGA;                                                   
+Finally, (iii) applications that are developed using frameworks, where
+a framework is a generic name for a development tool that supports
+specific application characteristics (e.g., hierarchical job
+submission), and recurring patterns (e.g., MapReduce, data
+parallelism) and system functionality.  SAGA has been used to develop
+system-level tools and applications of each of these types.
+
+   \begin{figure}[!ht]
+     \begin{center}
+       \includegraphics[width=0.45\textwidth]{distributed_applications_saga_figure.pdf}
+     \end{center}
+     \caption{\small Showing the ways in which
+         SAGA can be used to develop distributed applications.
+         The different shaded box represent the three different types;
+         frameworks in turn can capture either common patterns or common
+         application requirements/characteristics. \label{Fig:sagaapps}}
+   \end{figure}
+
+   It is important to note that SAGA provides the basic API to
+   implement distributed functionality required by applications
+   (typically used directly by the first category of applications),
+   and is also used to implement higher-level APIs, abstractions, and
+   frameworks that, in turn, support the development, deployment and
+   execution of distributed
+   applications~\cite{gmac09,saga_data_intensive_abstractions}. In
+   Ref.~\cite{saga_montage} we discussed how SAGA was used to
+   implement a higher-level API to support workflows. In this paper, 
+   we will discuss how SAGA can be used to implement runtime
+   frameworks to support the efficient execution of the distributed
+   applications.
+
 
 \Section{BigJob -- The SAGA-based Pilot Job}
 
@@ -246,7 +350,6 @@ The following figure gives an overview of the SAGA BigJob architecture.
      single machine.}
     \label{fig:figures_bigjob}
 \end{figure}
-
 
 \subsection{BigJob and Condor Glide-in}
 
@@ -329,9 +432,11 @@ times observed in our experiments.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{performance/setup_time_xls.pdf}
-    \caption{\textbf{BigJob Setup Times:} In grids the setup time greatly depends upon the 
-    queuing time at the local resource manager. However, in our experiments also clouds showed
-    a high fluctuation in the queueing time.}
+    \caption{\textbf{BigJob Setup Times:} In grids the setup time
+      greatly depends upon the queuing time at the local resource
+      manager. However, in our experiments also clouds showed a high
+      fluctuation in the queueing time. \jhanote{Would ``startup''
+        time be a better term than ``setup'' time?}}
     \label{fig:performance_setup_time}
 \end{figure}
 
