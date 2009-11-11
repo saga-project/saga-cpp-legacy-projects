@@ -113,7 +113,7 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
   Specifically, Pilot-Jobs enable the decoupling of workload
   submission from resource assignment; this enables the distributed
   scale-out of applications on multiple and heteregenous resources.
-  However, there are multiple Pilot-Job abstractions which are often
+  However, there are most Pilot-Job abstractions which are often
   tied to a specific infrastructure.  In this paper, we introduce a
   SAGA-based Pilot-Job which supports a wide range of application
   types and is usable over a broad range of infrastructures, i.e. is
@@ -171,23 +171,46 @@ environments. Probably the best known and most powerful examples are
 those that involve an ensemble of decoupled tasks, such as simple
 parameter sweep applications~\cite{1239909}.
 
-\emph{Pilot-Jobs} is an execution abstraction that 
-% concept initially pioneered by Condor Glide-In,which 
-has been used by many communities to increase the predictability and
-time-to-solution of such applications. A Pilot-Job allows the
-execution of jobs without the necessity to queue each individual
-sub-job. The Pilot-Job itself is a regular Grid job, which is started
-through a Grid resource manager, such as the Globus GRAM.
+Discuss PilotJob: (i) How Traditionally Used (mostly deployment time);
+(ii) Advantages; (iii) How traditionally bound to a single platform
+and system 
+
+\emph{Pilot-Jobs} is an execution abstraction that has been used by
+many communities to increase the predictability and time-to-solution
+of such applications. A Pilot-Job allows the execution of jobs without
+the necessity to queue each individual sub-job. The Pilot-Job itself
+is a regular Grid job, which is started through a Grid resource
+manager, such as the Globus GRAM.
+
+Pilot-Jobs are, (i) used to improve the utilization of resources, (ii)
+to reduce the net wait time of a collection of tasks (iii) facilitate
+bulk or high-throughput simulations where multiple jobs need to be
+submitted which would otherwise saturate the queuing system, (iv) as a
+basis to implement application specific scheduling decisions and
+policy decisions. 
+
+For example, on the LHCb computing model, Grid jobs are routed through
+the DIRAC~\cite{dirac} workload management system (WMS). DIRAC is a
+pilot-based system where user jobs are queued in the WMS server and
+the server submits generic pilot scripts to the Grid. Each pilot
+queries the WMS for a job with resource requirements satisfied by the
+machine where the pilot script is running. If a compatible job is
+available, it is pulled from the WMS and started. Otherwise, the pilot
+terminates and the WMS sends a new pilot to the Grid. This system
+improves the reliability of the Grid system as seen by the user.  the
+DIRAC system was developed in order to provide a complete solution for
+using the distributed computing resources of the LHCb experiment at
+CERN for data production and analysis. It allows a concurrent use of
+over 10K CPUs and 10M file replicas distributed over many tens of
+sites.  There can be additional functionality that builds upon a
+pilot-based scheme; for example DIANE~\cite{diane} a lightweight
+agent-based scheduling layer can use DIRAC.
 
 The Simple API for Grid Applications (SAGA) is a high-level,
 easy-to-use API for accessing distributed resources. Unlike other
 common Pilot-Job systems SAGA Big-Job (i) natively supports MPI job and
 (ii) works on a variety of back-end systems, generally reflecting the
 advantage of using a SAGA-based approach.
-
-Discuss PilotJob:
-- How Traditionally Used (mostly deployment time)
-- How traditionally bound to a single platform and system
 
 Recently, the usage of virtualization and the usage of on-demand
 virtual machines become increasingly popular. These so-called
@@ -198,15 +221,18 @@ environment. At the same time virtual machines are well isolated from
 each other. More and more the need to integrate traditional Grids and
 Clouds arises.
 
-%from autonomic HPC Grid/Cloud paper
-Developing and running applications in such a hybrid and dynamic computational 
-infrastructure presents new and significant challenges. These include the need for programming 
-systems that can express the hybrid usage modes and associated runtime trade-offs and adaptations, 
-as well as coordination and management infrastructures that can implement them in an efficient 
-and scalable manner. Key issues include decomposing applications, components and workflows, 
-determining and provisioning the appropriate mix of Grid/Cloud resources, and dynamically scheduling 
-them across the hybrid execution environment while satisfying/balancing multiple, possibly changing 
-objectives for performance, resilience, budgets and so on.
+Developing and running applications in such a hybrid and dynamic
+computational infrastructure presents new and significant
+challenges~\cite{cloud-grid-autonomics}. These include the need for
+programming systems that can express the hybrid usage modes and
+associated runtime trade-offs and adaptations, as well as coordination
+and management infrastructures that can implement them in an efficient
+and scalable manner. Key issues include decomposing applications,
+components and workflows, determining and provisioning the appropriate
+mix of Grid/Cloud resources, and dynamically scheduling them across
+the hybrid execution environment while satisfying/balancing multiple,
+possibly changing objectives for performance, resilience, budgets and
+so on.
 
 \Section{Related Work} \jhanote{AL, SJ}
 
@@ -339,17 +365,20 @@ the Pilot-Job is responsible for managing these and assigning them to so-called 
 That way queuing times for Sub-Jobs can be reduced and the predictability for application
 scenarios can be increased. 
 
-Pilot-Jobs decouple resource allocation from resource binding and allow the efficient 
-utilization of resources. By delay the resource binding decision into the application-level,
-dynamic usage modes, e.\,g.\ the load-depended sizing of Sub-Jobs, can be supported.
+Pilot-Jobs decouple resource allocation from resource binding and
+allow the efficient utilization of resources. By delay the resource
+binding decision into the application-level, dynamic usage modes,
+e.\,g.\ the load-depended sizing of Sub-Jobs, can be supported.
 
-Big-Job is a SAGA-based Pilot-Job implementation. In contrast to other Pilot-Job 
-implementations as Condor Glide-In or Falkon, BigJob natively supports parallel 
-applications (e.g. based on MPI) and works independent of the underlying Grid 
-infrastructure across different heterogeneous backend, e.\,g.\ Grids and Cloud, 
-reflecting the advantage of using a SAGA-based approach. After an overview of 
-the standard Big-Job implementation for Grid backends, we highlight
-how the Big-Job framework was extended to support Condor and Cloud resources.
+Big-Job is a SAGA-based Pilot-Job implementation. In contrast to other
+Pilot-Job implementations as Condor Glide-In or Falkon, BigJob
+natively supports parallel applications (e.g. based on MPI) and works
+independent of the underlying Grid infrastructure across different
+heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
+advantage of using a SAGA-based approach. After an overview of the
+standard Big-Job implementation for Grid backends, we highlight how
+the Big-Job framework was extended to support Condor and Cloud
+resources.
 
 \alnote{Old Notes: 
 Introduce Big-Job:
@@ -376,26 +405,29 @@ The following figure gives an overview of the SAGA Big-Job architecture.
     \label{fig:figures_bigjob}
 \end{figure}
 
-SAGA Big-Job comprises of three components: (i) the Big-Job Manager that provides 
-the Pilot-Job abstraction and manages the orchestration and scheduling of 
-Big-Jobs (which in turn allows the management of both Big-Job objects and subjobs)
-(ii) the BigJob-Agent that represents the pilot job and thus, the application-level 
-resource manager on the respective resource, and (iii) the advert service that 
+SAGA Big-Job comprises of three components: (i) the Big-Job Manager
+that provides the Pilot-Job abstraction and manages the orchestration
+and scheduling of Big-Jobs (which in turn allows the management of
+both Big-Job objects and subjobs) (ii) the BigJob-Agent that
+represents the pilot job and thus, the application-level resource
+manager on the respective resource, and (iii) the advert service that
 is used for communication between the BigJob Manager and Agent.
 
-Applications can utilize the framework via the \texttt{bigjob} and \texttt{subjob} classes.
-Before running regular jobs, an application must initialize a \texttt{bigjob} object. 
-The Big-Job Manager then queues a Pilot-Job, which actually runs a Big-Job Agent 
-on the respective resource. For this agent a specified number of resources is 
-requested. Subsequently, Sub-Jobs can be submitted through the Big-Job Manager 
-using the jobID of the Big-Job as reference. The Big-Job Manager ensures that 
-the subjobs are launched onto the correct resource based upon the specified 
-jobID using the right number of processes. Communication between the Big-Job 
-Agent and Big-Job Manager is carried out using the SAGA advert service, a 
-central key/value store. For each new job, an advert entry is created by 
-the Big-Job Manager. The agent periodically polls for new jobs. If a new 
-job is found and resources are available, the job is dispatched, 
-otherwise it is queued.
+Applications can utilize the framework via the \texttt{bigjob} and
+\texttt{subjob} classes.  Before running regular jobs, an application
+must initialize a \texttt{bigjob} object.  The Big-Job Manager then
+queues a Pilot-Job, which actually runs a Big-Job Agent on the
+respective resource. For this agent a specified number of resources is
+requested. Subsequently, Sub-Jobs can be submitted through the Big-Job
+Manager using the jobID of the Big-Job as reference. The Big-Job
+Manager ensures that the subjobs are launched onto the correct
+resource based upon the specified jobID using the right number of
+processes. Communication between the Big-Job Agent and Big-Job Manager
+is carried out using the SAGA advert service, a central key/value
+store. For each new job, an advert entry is created by the Big-Job
+Manager. The agent periodically polls for new jobs. If a new job is
+found and resources are available, the job is dispatched, otherwise it
+is queued.
 
 \subsection{Big-Job and Condor Glide-in} \jhanote{Lukas}
 
