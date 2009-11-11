@@ -238,7 +238,7 @@ so on.
 
 Lately, the Pilot-Job concept has been extensively research.
 Different systems that use similar Glide-In approaches have been
-developed. Frey et al. (2002) initially proposed this idea in their
+developed. Frey et al.~\cite{citeulike:291860} initially proposed this idea in their
 work on Condor Glide-In. Using Condor Glide-In a complete Condor pool
 can be initiated using the GRAM service. Falkon~\cite{1362680} is a
 newer system, which emphasize in particular the performance of its
@@ -248,14 +248,27 @@ requires the start of a complete set of Condor daemons within the
 allocated set of resources. Falkon does not support MPI applications,
 i. e. it is not usable for our application scenario.
 
-Nimbus~\cite{10.1109/MIC.2009.94} provides a special integration with
-classical batch cluster systems. By running cluster in a hybrid mode
-this setup can support both native jobs by running those in the Xen's
-domain 0 as well as VMs. In the pilot usage mode, the Cloud user is
-able to control the entire setup and configuration and startup a
-virtual cluster.
+Nimbus~\cite{10.1109/MIC.2009.94} provides a Pilot-Job like abstractions
+for Clouds. For this purpose, Nimbus allows the launch of auto-configured 
+virtual machine clusters that contain a Torque and Globus installation. 
+The Atlas computing framework developed at CERN also heavily relies
+on the PanDA Pilot-Job framework to implement resource leases. Using the VIRM API,
+PanDA was extended to support different virtualization backends, e.\,g.\ 
+OpenNebula and Nimbus~\cite{1555338}. However,
+in contrast to the SAGA-based Pilot Job for Clouds both framework are strongly
+coupled to a particular backend infrastructure -- Globus in the case of Nimbus and
+gLite in the case of PanDA. The advantage of the SAGA Pilot-Job is that
+it allows applications to seamlessly utilize different backend infrastructure, e.\,g.\
+Condor, Globus and different kinds of Clouds, at the same time.
 
-CERN Atlas Pilot Job~\cite{1555338}
+
+% Further, Nimbus provides a possibility to integrate classical batch clusters
+% and VM clusters. By running cluster in a hybrid mode this setup 
+% can support both native jobs by running those in the Xen's
+% domain 0 as well as VMs. However, only in the VM usage mode, the user is
+% able to control the entire setup and configuration of its virtual machines.
+
+
 
 \section{SAGA and SAGA-based Frameworks for Large-Scale and
   Distributed Computation} \jhanote{AL, SJ}
@@ -637,9 +650,11 @@ Given that Clouds provide the illusion of infinite capacity, or at
 least queue wait-times are non-existent, it is likely that often most
 sub-jobs will end up on the Cloud infrastructure.  Thus, in Scenario
 II, the resource assignment algorithm we use is as follows: We submit
-tasks to non-Cloud resource first, and if the jobs have not finished
-when time equal to $T_{X}$ (defined as: \tmax - 2 average \tc on all
-Clouds) has elapsed, than we move the workload to utilize Clouds.  The
+tasks to non-Cloud resources first. Periodically the progress of the
+scenario is monitored. If not sufficient jobs have finished
+when time equal to $T_{X}$ has elapsed,
+%(defined as: \tmax - 2 average \tc on all Clouds)  
+than we move the workload to utilize Clouds.  The
 underlying basis is that Clouds have an explicit cost associated with
 them and if jobs can be completed on the the TG and Condor pool while
 preserving the performance constraints, we opt for such a
@@ -647,7 +662,8 @@ solution. However, if queue loads prevent the performance requirements
 being met, we move the jobs to a Cloud-resource, which we have shown
 has less fluctuation in \tc of the workload.
 
-For this experiment we integrated a progress counter into the Replica application.
+For this experiment we integrated a progress manager that implements
+the described algorithm into the replica application.
 The user has the possibility to specify a maximum runtime and a check interval.
 At the beginning of each check interval the progress manager compares the number 
 of jobs done with the total number of jobs and estimates the total 
@@ -656,21 +672,41 @@ number of jobs is higher than this estimate, the progress monitor instantiates
 another Big-Job object request additional cloud resources for a single replica. 
 In this scenario, each time an intermediate target is not met four additional 
 Nimbus VMs sufficient for running another eight core replica are instantiated.
+Table~\ref{tab:app_deadline} summarizes the results.
+
+\begin{table}[ht]
+    \centering
+	\begin{tabular}{|l|l|l|}
+	\hline
+    Result & \#\,Events &Average \tc \\ \hline
+	No VM started &6 &7.8\,min\\ \hline
+	1 VMs started &1 &36.4\,min\\ \hline
+	2 VMs started &1 &47.3\,min\\ \hline
+	3 VMs started &2 &44.2\,min\\ \hline
+	\end{tabular}
+	\caption{Usage of Cloud Pilot-Jobs to Ensure Deadline \label{tab:app_deadline}}
+\end{table}
+
+In the investigated scenario, we configured a maximum runtime of 45\,minutes and 
+a progress check interval of 4 minutes. We repeated the same experiment 10\,times
+at different times of the day. In 6 out of 10\,cases the scenario completed in about 
+8\,minutes. In the other cases additional VMs had to be started to finish the application
+within the specified deadline. In two cases 3\,Pilot-Jobs each with 8 cores
+had to be started to meet the application deadline. In one case a single Pilot-Job
+was sufficient. In a single case the deadline was missed solely due to the fact that not 
+sufficient Cloud resources have been available. 
 
 
-
-
+\alnote{Old notes: 
 This scenario in particular shows how Big-Jobs can be dynamically created based
 on runtime decisions.
-
-
 Based on current trends: will we finish or not.
 Poseidon Big-Job becomes available after 100 sec
 1 replica finishes after 150 sec
 After 1/4 check whether some resources should be started:
 - 1 Big-Job on Nimbus with 4 VM
 - increase VMs linearly if jobs done don't catch
-- if we caught up, we backup
+- if we caught up, we backup}
 
 
 
