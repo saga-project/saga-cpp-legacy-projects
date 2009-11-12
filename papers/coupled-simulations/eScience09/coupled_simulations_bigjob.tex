@@ -446,9 +446,7 @@ in the next section.
   consistently through the paper.}
 
 SAGA and its pilot-job framework (BigJob) enable coupled, yet distinct
-simulations to be
-% by resolving the concurrency problem when coupled application codes are individually
-submitted to queuing system. This is done by submitting one container
+simulations to be submitted to queuing system. This is done by submitting one container
 job, and re-distributing its processors to each task. Also, total
 execution time can further be reduced by assigning more BigJobs and
 dynamically reallocating resources to each sub-task with increased
@@ -491,43 +489,52 @@ are, (1) each application code follows the ideal parallel efficiency.
 
 Let the computation time (between exchanges) of the two simulations
 be $t_{CFD}$ and $t_{MD}$, and the number of processors assigned to
-each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Based on
+each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts I and F denotes initial and final states. Based on
 assumption (1), workload on each application remains the same after
 the re-allocation of resources, \begin{eqnarray}
-W_{CFD} &=& PE_{CFD} \times t_{CFD} = PE_{CFD}' \times t_{CFD}', \nonumber \\
-W_{MD} &=& PE_{MD} \times t_{MD} = PE_{MD}' \times t_{MD}'
+W_{CFD} &=& PE_{CFD,I} \times t_{CFD,I} = PE_{CFD,F} \times t_{CFD,F} \nonumber \\
+W_{MD} &=& PE_{MD,I} \times t_{MD,I} = PE_{MD,F} \times t_{MD,F}
 \label{eq:SimTime_EachTask}
 \end{eqnarray}
-\jhanote{Jeff: Please define what is $PE_{MD}'$, $t_{MD}'$} In spite
+%\jhanote{Jeff: Please define what is $PE_{MD}'$, $t_{MD}'$} 
+In spite
 of re-allocation, the total number of processor utilized remains the
 same:
 \begin{equation}
 %\begin{center}
-PE_{TOT} = PE_{CFD} + PE_{MD} = PE_{CFD}' + PE_{MD}'
+PE_{TOT} = PE_{CFD,I} + PE_{MD,I} = PE_{CFD,F} + PE_{MD,F}
 %\end{center}
 \label{eq:PECondition}
 \end{equation}
 Our objective is to reduce the computation time of a subtask until the
-two simulations show the same computation \jhanote{should this be wall
-  clock time?} between the exchange points, $t_{CFD}' = t_{MD}'$. From
+two simulations show the same computation between the exchange points, i.e., $t_{CFD,F} = t_{MD,F}$. From
 Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition}
-an optimal processors distributed for the CFD subtask \jhanote{Jeff,
-  please check this is correct} would be:
+an optimal processors distributed for the CFD subtask would be:
+%\jhanote{Jeff, please check this is correct} 
 \begin{eqnarray}
-PE_{CFD}' & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
+PE_{CFD,F} & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
 \end{eqnarray}
 
-The MD simulation (sub-job) will follow a similar expression. The
-optimal processor distribution from above equation will return a
+The MD simulation (sub-job) will follow a similar expression. 
+
+The optimal processor distribution from above equation will return a
 non-integer value. Also, under the second assumption (which is the
 policy of many supercomputing centers), any load-balancing determined
-as above, will proceed in discrete values determined by the number of
-CPU cores in a node -- $N_{UNIT}$).  \jhanote{Jeff: Please
-  elaborate/clarify what is being said here; it is difficult to
-  follow.} An optimal distribution can be obtained by finding $S =
-int(PE_{CFD}' / N_{UNIT})$ and comparing $MAX(t_{CFD}',t_{MD}')$
-between processor allocations on CFD task with $N_{UNIT} \times S$ and
-$N_{UNIT} \times (S+1)$.
+as above, will proceed in discrete values determined by the number of CPU cores in a node, which is denoted by $N_{UNIT}$. When upper and lower bound of $PE{CFD,F}$ is defined as 
+%\begin{boundval}
+$
+N_{UNIT} \times S \ge PE{CFD,F} \ge N_{UNIT} \times (S+1)
+$
+%\end{boundval}
+with $S = int(PE_{CFD,F} / N_{UNIT})$, either bound is going to satisfy optimal processor distribution between CFD and MD tasks. CFD computation time will determine coupled simulation time in the lower bound ,whilst simulation time in the upper bound is dependent on MD computation time, based on assumption (1). So, optimal processor distribution is the one which satisfies smaller computation time between $t_{CFD_in_Lower_Bound}$ and $t_{MD_in_Upper_Bound}$, who are expressed by
+\begin{bounds}
+t_{CFD_in_Lower_Bound} & = & \frac {W_{CFD}} {N_{UNIT} \times S}
+\nonumber \\
+t_{MD_in_Upper_Bound} & = & \frac {W_{MD}} {PE_{TOT}-N_{UNIT} \times (S+1)}
+\end{bounds}
+
+
+% \jhanote{Jeff: Please elaborate/clarify what is being said here; it is difficult to follow.} 
 
 % The other sub-job will follow a similar expression. The optimal processor distribution 
 % from above equation will return a float value.  Also, considering the second assumption, which is the policy of many supercomputing center, the above distribution needs to be asymptotic.  If CPU cores in one node is $N_{UNIT}$,
@@ -540,8 +547,6 @@ $N_{UNIT} \times (S+1)$.
 %\end{tabular}
 
 
-\skonote{I'll be looking at this section afterwards, including adding reference.}
-
 
 %The control-flow within the BigJob Application-Manager when supporting a LB modules is shown in Fig.~\ref{Fig:BigJob_LB}. When one simulation loop is finished, the performance data of each subtask is sent to the load balancing module and it computes optimal resource distribution. Sub-job launcher restarts coupled application codes from their checkpointing data, according to the result of load balancing function. This process iterates until coupled simulation finalizes and processor allocation moves to the optimal condition during this process.
 
@@ -553,6 +558,7 @@ $N_{UNIT} \times (S+1)$.
 %\label{Fig:BigJob_LB}
 %\end{figure}
 %%%%% FIGURE %%%%%
+
 
 
 
