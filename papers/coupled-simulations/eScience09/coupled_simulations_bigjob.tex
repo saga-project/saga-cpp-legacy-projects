@@ -87,62 +87,55 @@ Dynamic Resource Allocation and Load-Balancing}
 \maketitle
 
 \begin{abstract}
- Coupled Multi-Physics simulations, such as hybrid CFD-MD simulations,
-represent an increasingly important class of scientific applications.
-Often the physical problems of interest demand the use of high-end
-computers, such as TeraGrid resources, which are often accessible only
-via batch-queues. Batch-queue systems are not natively developed to
-support the coordinated scheduling of jobs -- which in turn is
-required to support the concurrent execution required by coupled
-multi-physics simulations. In this paper we develop and demonstrate a
-novel approach to overcome the lack of native support for coordinated
-job submission requirement associated with coupled runs. Our solution
-is a generalization of the Pilot-Job concept -- which in of itself is
-not new, but is applied to coupled simulations for the first time. Our
-solution not only overcomes the initial co-scheduling problem, but
-provides a dynamic resource allocation mechanism. Support for such
-dynamic resources is critical for a load-balancing mechanism, which we
-develop and demonstrate to be effective at reducing the total
-time-to-solution of the problem. The Pilot-Job abstraction is
-developed using SAGA (http://saga.cct.lsu.edu) which provides an
-infrastructure agnostic implementation, and which can seamlessly
-execute and utilize distributed resources. We also demonstrate for the
-first time that we are aware of, the use of multiple Pilot-Job
-implementations to solve the same problem; specifically, we use SAGA
-to access the SAGA-based Pilot-Job on high-end resources such as the
-TeraGrid, whilst using the native Condor Pilot-Job (Glide-in) on
-Condor resources. Importantly both are invoked via the same interface
-without changes at the development or deployment level, but only an
-execution (run-time) decision.
-
+  Coupled Multi-Physics simulations, such as hybrid CFD-MD
+  simulations, represent an increasingly important class of scientific
+  applications.  Often the physical problems of interest demand the
+  use of high-end computers, such as TeraGrid resources, which are
+  often accessible only via batch-queues. Batch-queue systems are not
+  natively developed to support the coordinated scheduling of jobs --
+  which in turn is required to support the concurrent execution
+  required by coupled multi-physics simulations. In this paper we
+  develop and demonstrate a novel approach to overcome the lack of
+  native support for coordinated job submission requirement associated
+  with coupled runs. Our solution is a generalization of the Pilot-Job
+  concept -- which in of itself is not new, but is applied to coupled
+  simulations for the first time. Our solution not only overcomes the
+  initial co-scheduling problem, but provides a dynamic resource
+  allocation mechanism. Support for such dynamic resources is critical
+  for a load-balancing mechanism, which we develop and demonstrate to
+  be effective at reducing the total time-to-solution of the
+  problem. We establish that the performance advantage of using
+  bigjobs is invariant with the size of the machine as well as the
+  size of the physical model under investigation.  The Pilot-Job
+  abstraction is developed using SAGA (http://saga.cct.lsu.edu) which
+  provides an infrastructure agnostic implementation, and which can
+  seamlessly execute and utilize distributed resources. We also
+  demonstrate for the first time that we are aware of, the use of
+  multiple Pilot-Job implementations to solve the same problem;
+  specifically, we use SAGA to access the SAGA-based Pilot-Job on
+  high-end resources such as the TeraGrid, whilst using the native
+  Condor Pilot-Job (Glide-in) on Condor resources. Importantly both
+  are invoked via the same interface without changes at the
+  development or deployment level, but only an execution (run-time)
+  decision.
 \end{abstract}
 \up\up
 
-\jhanote{Notes: (i) Can we perform some big runs on Ranger. Can we
-  establish that the performance advantage of using bigjobs is
-  invariant with the size of the machine, i.e., small LONI machines
-  such as Eric, to the largest machines available such as Ranger. This
-  is not so much about the machine, but the system sizes of the
-  physical-models that we are investigating. (ii) Need to establish
-  clearly how we are measuring the times in Table I. Are we using
-  'startq'? Remember enough details should be presented to make the
-  experiments reproducible (iii) Done % Yaakoub: You and I need to write a
-%   paragraph succintly outlining why all this dynamic load-balancing is
-%   not possible using, or at least not easily, using MPI, 
- (iv) What is the largest system size that we can simulate using BigJob and/or
-  using independent execution threads? (v) What is the final ratio of
+\jhanote{Notes: (i) We have established that the performance advantage
+  of using bigjobs is invariant with the size of the machine, i.e.,
+  small LONI machines such as Eric, to the largest machines available
+  such as Ranger. This is not so much about the machine, but the
+  system sizes of the physical-models that we are investigating. (ii)
+  Need to establish clearly how we are measuring the times in Table
+  I. Are we using 'startq'? Remember enough details should be
+  presented to make the experiments reproducible (iii) What is the
+  largest system size that we can simulate using BigJob and/or using
+  independent execution threads? (iv) What is the final ratio of
   $N_{MD} to N_{CFD}$? Is it always the same? How do we counter the
   argument that the final configuration can be determined with a few
   simple pre-processing runs? What is the importance of dynamic
   resource management, i.e. start with initial Configuration I and
   adapt to Final Configuration F with intermediate states in between?
-  % (vi) Yaakoub: We have also discussed what is required here in
-  % terms
-  % of a diagram and a *clear* explaination of how the SAGA BigJob
-  % interface calls the Condor Glide-In, the control flow and other
-  % details. (vii) Yaakoub: Also as discussed, we need the
-  % BigJob-Glidein runs with the same systems, so we can compare like
-  % to like.
 }
 
 
@@ -1006,7 +999,6 @@ distributed resources cooperate.
 \begin{figure} \centering \includegraphics[scale=0.40]{Simulation_Time_of_Two_BigJobs.eps} \caption{\small Schematic comparing the distribution of simulations when 2 BigJobs are used, first on the same physical machine, then on different (distributed) machines. In both cases, coupled sub-jobs start running when the first BigJob is allocated at $t=t_1$ and experience resource reallocation with increased amount when the next BigJob becomes available. When two BigJobs are allocated, each sub-job occupies one BigJob and data exchange between jobs takes place across BigJobs.}  \label{Fig:TwoBigJobs} \end{figure}
 %%%%% FIGURE %%%%%
 
-
 In Table~\ref{table:TwoBigJobs}, test measurements for performance
 gains are summarized. The scenario for this testing is simple for
 clarifying benefits. Initially, two BigJobs are submitted to one HPC
@@ -1022,7 +1014,16 @@ as file transfer, in particular between two distributed resources are
 not considered but in the future study, the overall performance will
 be optimized by considering them.
 
-% Performance gains with two bigjobs. Performance is measured with CPU times consumed by MD, since test cases we used always require longer cpu times for MD than those of CFD.  Performance gains with additionally available bigjob can be seen by comparing MD CPU times with those obtained with the initial bigjob.  Measurements were carried out with LONI cluster systems.  louie and poseidon are dell cluster systems having 128 nodes with 4 cores in a node. \jhanote{add bigjob size --- which 8 and 16} Test 1 and 2 correspond to Use Case 2; Test 3 and 4 correspond to Use Case 3 \newline }
+% Performance gains with two bigjobs. Performance is measured with CPU
+% times consumed by MD, since test cases we used always require longer
+% cpu times for MD than those of CFD.  Performance gains with
+% additionally available bigjob can be seen by comparing MD CPU times
+% with those obtained with the initial bigjob.  Measurements were
+% carried out with LONI cluster systems.  louie and poseidon are dell
+% cluster systems having 128 nodes with 4 cores in a
+% node. \jhanote{add bigjob size --- which 8 and 16} Test 1 and 2
+% correspond to Use Case 2; Test 3 and 4 correspond to Use Case 3
+% \newline }
 
 \begin{table}[!h]
 \begin{center}
@@ -1049,7 +1050,14 @@ MD CPU time  (sec) & 277.21 & 277.63  & 276.8 & 150.4  \\
 \end{center}
 \end{table}
 
-\jhanote{The $T_{comm}$ has two components: $T_{read_write} + T_{transfer}$. We need to determine the first component. We will not be able to do so rigorously, but we need to show a good-faithed attempt at deriving it.  The we need to determine the transfer overheard, and find out if it is truly negligible when compared to $T_{read_write}$. We need to also mention/determine if $T_{read_write}$ is the same -- when using 2 different machines as it is when using 1 machine. As would be expected.}
+\jhanote{The $T_{comm}$ has two components: $T_{read_write} +
+  T_{transfer}$. We need to determine the first component. We will not
+  be able to do so rigorously, but we need to show a good-faithed
+  attempt at deriving it.  The we need to determine the transfer
+  overheard, and find out if it is truly negligible when compared to
+  $T_{read_write}$. We need to also mention/determine if
+  $T_{read_write}$ is the same -- when using 2 different machines as
+  it is when using 1 machine. As would be expected.}
 
 In summary, use of a BigJob will eliminate idling operation of a
 subtask, which waits for another application to start running. Also,
@@ -1064,92 +1072,33 @@ having multiple BigJob allocations is to increase the computing power
 for a specific simulation, not to use optimally within given
 circumstances.
 
-
-%-------------------------------------------------------------------------
-% \section{BigJob: A General Purpose Pilot-Job}
-
-% We are able to submit a SAGA-based Pilot-Job to Condor in addition to
-% TeraGrid resources -- to both a Condor-G interface and a Condor
-% resource pool. To that end we use Condor's native pilot-job (Glide-In)
-% for Condor resources, through the SAGA Condor adaptor. This allows us
-% to concurrently make use of high performance resources on the TeraGrid
-% and high-throughput resources such as the Condor pools at Purdue and
-% LONI. Having the capability to run pilot jobs on both types of
-% resources through a unified abstract interface with varying underlying
-% mechanisms presents new vistas for infrastructure interoperability,
-% such as the TeraGrid and the Open Science Grid.
-
-% \begin{figure} \centering 
-% \includegraphics[scale=0.66]{BWSAGA}
-% \caption{\small stuff} 
-% \label{plot}
-% \end{figure}
-
-% \yyenote{Added this paragraph} The process proceeds as follows: the
-% user specifies resources where the BigJobs (and tasks therein) will be
-% run through URI's. The specifics of which task executable, what
-% arguments and so on are sent to the advert service where they are
-% preserved for job launchers to retrieve. BigJob passes the resource
-% information to SAGA which launches the appropriate adaptor for each
-% URI: Globus adaptors for gram URI's and Condor adaptors for condor
-% URI's. Once a submitted BigJob starts (whether through the Globus or
-% Condor adaptor) it starts pulling the task specifications from the
-% advert service. Based on availability of free cores, the BigJob
-% continues to pull tasks from the advert service until there are no
-% more tasks to be run.
-
-% To demonstrate that a single SAGA-based BigJob interface works for
-% both, we started a BigJob on Queen Bee (shared TeraGrid LONI machine),
-% to which we submitted a MD simulation. Once the MD simulation started,
-% the coupled CFD simulation is submitted to the Condor Pool at Purdue
-% through the Condor Glide-In. The total time spent running on QueenBee
-% was 5328 seconds, and the total run time on the Condor poll was 1015
-% seconds for a reduced number of iterations. The reduction in problem
-% size was necessary due to the lack of a working MPI Condor universe on
-% an accessible resource.
-
-% We investigated if it is possible to determine an optimal
-% configuration using BQP on the resources used; we found that at the
-% load-factors encountered, and for the wall-clock times of relevance,
-% BQP did not have the sensitivity to distinguish between jobs of
-% slightly different sizes and requested lengths and predicted the same
-% wait times. However as the plots show, ``real data'' established that
-% the wait-time was sensitive to the job-size and requested duration.
-
 \section{Conclusions}
-Increasing accessibility to High Performance Computing and advances in
-software development utilizing parallelisms implemented in different
-granularity are, perhaps, two critical components for recent numerous
-successful outcomes with large scale scientific calculations in
-various domains. Nonetheless, it is not trivial to integrate a
-targeted scientific application with a resource management system that
-is aware of the challenges arising from the distributed computing as
-well as the local scheduler implemented with the local resource
-management policy. In this work, we report our development for
-efficient runtime environment targeting the coupled multi-physics
-application comprising MD and CFD as two coupled standalone
-applications. Overcoming the co-scheduling requirements and
-implementing dynamic resource allocation mechanism were two main goals
-motivating a novel development and our test runs demonstrated its
-potential for large scale scientific simulations benefiting scientific
-problems that are only tackled by a coupled hybrid MD-CFD calculation.
-Our development is built upon the BigJob framework enabled by the
-SAGA. The cycle of the development for core BigJob management system
-is significantly helped by using the SAGA with which the simple and
+
+In this work, we report the first production-level framework that
+enables an efficient runtime environment targeting the coupled
+multi-physics application comprising MD and CFD as two coupled stand
+alone applications...
+
+It is not trivial to integrate a targeted scientific application with
+a resource management system that is aware of the challenges arising
+from the distributed computing as well as the local scheduler
+implemented with the local resource management policy..
+
+Overcoming the co-scheduling requirements and implementing dynamic
+resource allocation mechanism were two main goals motivating a novel
+development and our test runs demonstrated its potential for large
+scale scientific simulations benefiting scientific problems that are
+only tackled by a coupled hybrid MD-CFD calculation.  Our development
+is built upon the BigJob framework enabled by the SAGA. ... simple and
 consistent interface for managing HPC resources is easily achieved
 resulting the agile and flexible development. We tested our
 development for three cases and demonstrated its capability. In
 addition, the use cases includes the usage of the Condor-glide-in as
-our BigJob framework is closely related. In spite of simple nature of
-our test problems, already our development showed many promises for a
-successful large scale simulation. Some of those are i) employment of
-load balancing mechanism ii) advantages from implementation of dynamic
-allocation in heterogeneous distributed computing resources iii)
-simple solution for the co-scheduling requirements for the coupled
-tasks.
-% Please direct any questions to the production editor in charge of these
-% proceedings at the IEEE Computer Society Press: Phone (714) 821-8380, or
-% Fax (714) 761-1784.
+our BigJob framework is closely related. ... Some of those are i)
+employment of load balancing mechanism ii) advantages from
+implementation of dynamic allocation in heterogeneous distributed
+computing resources iii) simple solution for the co-scheduling
+requirements for the coupled tasks.
 
 \section*{Acknowledgment}
 This work is part of the Cybertools (http://cybertools .loni.org)
