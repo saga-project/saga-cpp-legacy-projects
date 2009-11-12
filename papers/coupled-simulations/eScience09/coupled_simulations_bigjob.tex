@@ -107,7 +107,7 @@ Dynamic Resource Allocation and Load-Balancing}
   problem. We establish that the performance advantage of using
   bigjobs is invariant with the size of the machine as well as the
   size of the physical model under investigation.  The Pilot-Job
-  abstraction is developed using SAGA (http://saga.cct.lsu.edu) which
+  abstraction is developed using SAGA (http://saga.cct.lsu.edu), which
   provides an infrastructure agnostic implementation, and which can
   seamlessly execute and utilize distributed resources. We also
   demonstrate for the first time that we are aware of, the use of
@@ -461,6 +461,8 @@ in the next section.
 %-------------------------------------------------------------------------
 \section{Load Balancing for Coupled Multi-Physics Simulation}
 
+\jhanote{ALL: Please use code, simulations and applications
+  consistently through the paper.}
 
 SAGA and its pilot-job framework (BigJob) enable coupled, yet distinct
 simulations to be
@@ -491,53 +493,60 @@ SAGA-BigJob framework.
 Each application's load is determined by its elapsed time to run the
 evolution loop. Here, time for initialization or inter-domain data
 exchange are excluded from the counting, because they are one-time
-event or irrelevant to application's performance. As the result of
-load balancing is reflected in the next launch of simulation codes,
-applications should be able to restart from their checkpointing data.
-Also, they should be equipped with generalized domain partitioning
-routine to run simulation with any number of processors, without
-harming their parallel efficiency a lot. If above conditions are
-satisfied, BigJob application manager, can be interfaced with the LB
-to implement the dynamic resource allocation between tasks.
-% load balancing between subtasks before applications restart from the previous state.
-The idea of current load balancing algorithm is to assign more processors to a sub-task with more runtime until two codes show the same runtime. We have adopted some assumptions to simplify load balancing procedure and apply the algorithm without considering applications' characteristics and individual code's scalability. Assumptions are, (1) Each application code follows the ideal parallel efficiency.  (2) All processors in one node are assigned to one single task.
+event or irrelevant to application's performance.  The efficient
+functioning of the LB is predicated on simulation codes being able to
+restart from their checkpointing data effectively.  Also, simulations
+should be equipped with generalized domain partitioning routine to run
+simulation with any number of processors, without harming their
+parallel efficiency a lot. If above conditions are satisfied, it makes
+sense to load the LB within the pilot-job, to implement dynamic
+resource allocation between tasks.  Conceptually, the load-balancing
+algorithm assigns more processors to a sub-task with greater runtime,
+until two codes take the same wall-clock time between points when they
+communicate. Interestingly, our approach is very simple and the
+algorithm is indepenendent of applications upon which it is predicated
+are, (1) each application code follows the ideal parallel efficiency.
+(2) all processors in one node are assigned to one single task.
 
-%\begin{tabular}{|l|}
-%\hline
-
-%Let computation time of two applications by $t_CFD$ and $t_MD$, processors to each domain by $PE_CFD$ and $PE_MD$, respectively.
-%Total workload $W_TOT$ is going to be \\
-
-%\begin{equation}
-%\begin{center}
-%W_{TOT} = W_{CFD} + W_{MD} = PE_{CFD} \ times t_{CFD} + PE_{MD} \ times t_{MD}
-%= PE_{TOT} \times t_{TOT}
-%\end{center}
-%\end{equation}
-
-Let the computation time (between exchanges) of the two applications be $t_{CFD}$ and $t_{MD}$ and the number of processors assigned to each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Based on assumption (1), workload on each application remains the same after the re-allocation of resources, \begin{eqnarray}
-%\begin{center}
+Let the computation time (between exchanges) of the two simulations
+be $t_{CFD}$ and $t_{MD}$, and the number of processors assigned to
+each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Based on
+assumption (1), workload on each application remains the same after
+the re-allocation of resources, \begin{eqnarray}
 W_{CFD} &=& PE_{CFD} \times t_{CFD} = PE_{CFD}' \times t_{CFD}', \nonumber \\
 W_{MD} &=& PE_{MD} \times t_{MD} = PE_{MD}' \times t_{MD}'
-%$t_{CFD} = \frac {PE_{CFD} \times t_{CFD}} {PE_{CFD}} , ~~ t_{MD} = \frac {PE_{MD} \times t_{MD}} {PE_{MD}}$
-%\end{center}
 \label{eq:SimTime_EachTask}
 \end{eqnarray}
-In spite of the re-allocation, the total number of processor remains the same:
+\jhanote{Jeff: Please define what is $PE_{MD}'$, $t_{MD}'$} In spite
+of re-allocation, the total number of processor utilized remains the
+same:
 \begin{equation}
 %\begin{center}
 PE_{TOT} = PE_{CFD} + PE_{MD} = PE_{CFD}' + PE_{MD}'
 %\end{center}
 \label{eq:PECondition}
 \end{equation}
-Our objective is to reduce the computation time of an over-loaded subtask until the  two simulations show the same computation time, $t_{CFD}' = t_{MD}'$. From Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition} an optimal processors distributed for one subtask would be:
+Our objective is to reduce the computation time of a subtask until the
+two simulations show the same computation \jhanote{should this be wall
+  clock time?} between the exchange points, $t_{CFD}' = t_{MD}'$. From
+Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition}
+an optimal processors distributed for the CFD subtask \jhanote{Jeff,
+  please check this is correct} would be:
 \begin{eqnarray}
-%\begin{center}
 PE_{CFD}' & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
-%\end{center}
 \end{eqnarray}
 
-The other sub-job will follow a similar expression. The optimal processor distribution from above equation will return a non-integer value. Also, given the second assumption (which is the policy of many supercomputing center, the above re-allocation will proceed in discrete values determined by the number of CPU cores in one node is $N_{UNIT}$).  An optimal distribution can be obtained by finding $S = int(PE_{CFD}' / N_{UNIT})$ and comparing $MAX(t_{CFD}',t_{MD}')$ between processor allocations on CFD task with $N_{UNIT} \times S$ and $N_{UNIT} \times (S+1)$.
+The MD simulation (sub-job) will follow a similar expression. The
+optimal processor distribution from above equation will return a
+non-integer value. Also, under the second assumption (which is the
+policy of many supercomputing centers), any load-balancing determined
+as above, will proceed in discrete values determined by the number of
+CPU cores in a node -- $N_{UNIT}$).  \jhanote{Jeff: Please
+  elaborate/clarify what is being said here; it is difficult to
+  follow.} An optimal distribution can be obtained by finding $S =
+int(PE_{CFD}' / N_{UNIT})$ and comparing $MAX(t_{CFD}',t_{MD}')$
+between processor allocations on CFD task with $N_{UNIT} \times S$ and
+$N_{UNIT} \times (S+1)$.
 
 % The other sub-job will follow a similar expression. The optimal processor distribution 
 % from above equation will return a float value.  Also, considering the second assumption, which is the policy of many supercomputing center, the above distribution needs to be asymptotic.  If CPU cores in one node is $N_{UNIT}$,
