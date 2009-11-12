@@ -34,6 +34,7 @@ HandleReduces::HandleReduces(const JobDescription& job,
        std::cerr << "saga::exception caught: " << e.what () << std::endl;
     }
     currentPartition_ = 0;
+    numPartitions_ = job.get_num_reduce_tasks();
     // Get worker advert list.
     workers_ = workerDir_.list("*");
     while(workers_.size() == 0) {
@@ -51,11 +52,12 @@ HandleReduces::~HandleReduces() {
  * to assign reduce files to idle workers                *
  * ******************************************************/
 bool HandleReduces::assignReduces() {
-  log_->write("Finished: " + boost::lexical_cast<std::string>(finished_.size())
-    + "; count: " + boost::lexical_cast<std::string>(fileCount_),
-    MR_LOGLEVEL_INFO);
-  while(finished_.size() != (unsigned)fileCount_) {
-     issue_command_();
+  while(finished_.size() < static_cast<unsigned>(numPartitions_)) {
+    log_->write("Finished " + boost::lexical_cast<std::string>(finished_.size())
+        + " out of " + boost::lexical_cast<std::string>(numPartitions_)
+        + " partitions",
+        MR_LOGLEVEL_INFO);
+    issue_command_();
   }
   return true;
 }
@@ -67,7 +69,8 @@ bool HandleReduces::assignReduces() {
 #define MSG_BUFFER_SIZE 2048
 void HandleReduces::issue_command_() {
    bool assigned = false;
-   while(assigned == false) {
+   while(assigned == false &&
+         finished_.size() < static_cast<unsigned>(numPartitions_)) {
       try {
          int mode = saga::advert::Create | saga::advert::ReadWrite;
          saga::stream::stream worker = service_->serve();
@@ -142,8 +145,8 @@ void HandleReduces::issue_command_() {
               break;
             }
             assigned = true;
-            if(++currentPartition_ == fileCount_) {
-               currentPartition_ = 0; //Allows reduces to be re-issued
+            if(++currentPartition_ == numPartitions_) {
+               currentPartition_ = 0;   // Allows reduces to be re-issued.
             }
             message.clear();
             message += "Success!";

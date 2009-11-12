@@ -43,6 +43,7 @@ class HandleReduces {
   std::vector<saga::url>   workers_;
   saga::stream::server    *service_;
   int                      currentPartition_;
+  int                      numPartitions_;
 };
 
 } // namespace master
