@@ -42,7 +42,6 @@ class bigjob_condor():
 		print "Working directory: " + working_directory
 		if not os.path.isdir(working_directory):
 			os.mkdir(working_directory)
-		lrms_url = lrms_url
 
 		self.js_url = saga.url("condor://localhost/")
 		self.job_service = saga.job.service(self.js_url)
