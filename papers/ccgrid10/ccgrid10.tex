@@ -170,6 +170,9 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
 
 % Section 5. Conclusion
 
+\jhanote{We need to be consistent with the usage of sub-job and
+  Sub-Job and subjob/SubJob. Preference?}
+
 \alnote{What spelling convention should we use: Pilot-Job, Big-Job, Sub-Job or PilotJob, BigJob, SubJob?}
 
 \Section{Introduction} \jhanote{SJ}
@@ -401,12 +404,11 @@ system-level tools and applications of each of these types.
   \begin{center}
     \includegraphics[width=0.45\textwidth]{distributed_applications_saga_figure.pdf}
   \end{center}
-  \caption{\small Showing the ways in which
-      SAGA can be used to develop distributed applications.
-      The different shaded box represent the three different types;
-      frameworks in turn can capture either common patterns or common
-      application requirements/characteristics. \label{Fig:sagaapps}
-      \alnote{Hard to read.} \jhanote{fixed/removed typo. Still hard to read, or better now?}}
+  \caption{\small Showing the ways in which SAGA can be used to
+    develop distributed applications.  The different shaded box
+    represent the three different types; frameworks in turn can
+    capture either common patterns or common application
+    requirements/characteristics. \label{Fig:sagaapps} }
 \end{figure}
 
 It is important to note that SAGA provides the basic API to
@@ -416,7 +418,7 @@ and is also used to implement higher-level APIs, abstractions, and
 frameworks that, in turn, support the development, deployment and
 execution of distributed
 applications~\cite{gmac09,saga_data_intensive_abstractions}. In
-Ref.~\cite{saga_montage} we discussed how SAGA was used to
+Ref.~\cite{sagamontage09} we discussed how SAGA was used to
 implement a higher-level API to support workflows. In this paper, 
 we will discuss how SAGA can be used to implement runtime
 frameworks to support the efficient execution of the distributed
@@ -424,14 +426,15 @@ applications.
 
 
 \Section{BigJob -- The SAGA-based Pilot-Job} \jhanote{AL}
+Pilot-Jobs are a useful abstraction for efficiently executing an
+ensemble of batch jobs without the necessity to queue each individual
+job. A Pilot-Job is a normal Grid job, which is places into the batch
+queue of the respective Grid resource. Once the batch queue assigned
+the requested resources to the Pilot-Job, the Pilot-Job is responsible
+for managing these and assigning them to so-called Sub-Jobs.  That way
+queuing times for Sub-Jobs can be reduced and the predictability for
+application scenarios can be increased.
 
-Pilot-Jobs are a useful abstraction for efficiently executing an ensemble
-of batch jobs without the necessity to queue each individual job. A Pilot-Job
-is a normal Grid job, which is places into the batch queue of a
-resource. Once the batch queue assigned the requested resources to the Pilot-Job,
-the Pilot-Job is responsible for managing these and assigning them to so-called Sub-Jobs. 
-That way queuing times for Sub-Jobs can be reduced and the predictability for applications
-can be increased. 
 
 Pilot-Jobs decouple resource allocation from resource binding and
 allow the efficient utilization of resources. By delaying the resource
@@ -444,6 +447,10 @@ Pilot-Job implementations as Condor Glide-In or Falkon, BigJob
 natively supports parallel applications (e.g. based on MPI) and works
 independent of the underlying Grid infrastructure across different
 heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
+advantage of using a SAGA-based approach. After an overview of the
+standard BigJob implementation for Grid backends, we highlight how the
+BigJob framework was extended to support Condor and Cloud resources.
+
 advantage of using a SAGA-based approach (Figure~\ref{fig:figures_distributed_pilot_job}).
 In doing so BigJob provides the user an uniform abstraction to Grids and Clouds
 independent of any particular Cloud or Grid provider that can be
@@ -456,9 +463,6 @@ instantiated dynamically.
     for Clouds.}
     \label{fig:figures_distributed_pilot_job}
 \end{figure}
-After an overview of the standard BigJob implementation for Grid backends, 
-we highlight how the BigJob framework was extended to support Condor and Cloud
-resources.
 
 \alnote{Old Notes: 
 Introduce BigJob:
@@ -479,20 +483,21 @@ developed for computational Grids.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.45\textwidth]{figures/bigjob}
-    \caption{BigJob Architecture: The core of the framework, the BigJob-Manager,
-     orchestrates a set of Sub-Jobs via a BigJob-Agent using the SAGA job and file APIs. 
-     The BigJob-Agent is responsible for managing and monitoring sub-jobs on a 
-     single machine.}
-    \label{fig:figures_bigjob}
+   \caption{BigJob Architecture: The core of the framework, the
+      BigJob-Manager, orchestrates a set of Sub-Jobs via a
+      BigJob-Agent using the SAGA job and file APIs.  The
+      BigJob-Agent is responsible for managing and monitoring sub-jobs
+      on a single machine.}
+   \label{fig:figures_bigjob}
 \end{figure}
 
-SAGA BigJob comprises of three components: (i) the BigJob Manager
-that provides the Pilot-Job abstraction and manages the orchestration
-and scheduling of BigJobs (which in turn allows the management of
-both BigJob objects and subjobs) (ii) the BigJob-Agent that
-represents the pilot job and thus, the application-level resource
-manager on the respective resource, and (iii) the advert service that
-is used for communication between the BigJob Manager and Agent.
+SAGA BigJob comprises of three components: (i) the BigJob Manager that
+provides the Pilot-Job abstraction and manages the orchestration and
+scheduling of BigJobs (which in turn allows the management of both
+BigJob objects and subjobs) (ii) the BigJob-Agent that represents the
+pilot job and thus, the application-level resource manager on the
+respective resource, and (iii) the advert service that is used for
+communication between the BigJob Manager and Agent.
 
 Applications can utilize the framework via the \texttt{bigjob} and
 \texttt{subjob} classes.  Before running regular jobs, an application
@@ -509,6 +514,12 @@ store. For each new job, an advert entry is created by the BigJob
 Manager. The agent periodically polls for new jobs. If a new job is
 found and resources are available, the job is dispatched, otherwise it
 is queued.
+
+Need to mention that BigJob is based upon extensions to the SAGA job
+and file APIs, and thus is both syntaticallye and semantically
+consistent with the core SAGA package. Hence, referred to as a
+SAGA-based framework.
+
 
 \subsection{BigJob and Condor Glide-in} \jhanote{Lukas}
 
@@ -759,28 +770,35 @@ Clouds optimal.
 
 \subsubsection{\tc for Collective Resource Utilization}
 
-In this scenario we used the BigJob abstraction to run replicas across different types of
-infrastructures. In this experiment the LONI cluster Poseidon and the Nimbus Cloud at the University
-of Chicago are used. At the beginning of the experiment a particular set of Pilot-Jobs is started
-in each environment. Once a Pilot-Job becomes active, the application assigns replica to 
-this job. We measure \tc for different sizes of Pilot-Jobs. Figure~\ref{fig:performance_8replica_scenario_poseidon_nimbus}
+In this scenario we used the BigJob abstraction to run replicas across
+different types of infrastructures. In this experiment the LONI
+cluster Poseidon and the Nimbus Cloud at the University of Chicago are
+used. At the beginning of the experiment a particular set of
+Pilot-Jobs is started in each environment. Once a Pilot-Job becomes
+active, the application assigns replica to this job. We measure \tc
+for different sizes of
+Pilot-Jobs. Figure~\ref{fig:performance_8replica_scenario_poseidon_nimbus}
 shows the results.
 
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{performance/8replica_scenario_poseidon_nimbus}
-    \caption{\textbf{Collective Usage of Cloud and Grid Resources: }  The experiments showed that if the LONI resource
-             Poseidon has only a light load, the benefits of using additional Cloud resources are very low. Increasing
-             the size of the Nimbus Pilot-Job only resulted in modest improvements of \tc. 
-             However, when using more Poseidon resources \tc could be reduced by more than 6 minutes.}
+        \caption{\textbf{S1 - Collective Usage of Cloud and Grid
+            Resources: } The experiments showed that if the LONI
+          resource Poseidon has only a light load, the benefits of
+          using additional Cloud resources are very low. Increasing
+          the size of the Nimbus Pilot-Job only resulted in modest
+          improvements of \tc.  However, when using more Poseidon
+          resources \tc could be reduced by more than 6 minutes.}
     \label{fig:performance_8replica_scenario_poseidon_nimbus}
 \end{figure}
 
 
 \begin{itemize}
-\item Resource I and III:
-\item Resource II and III:
-\item Resource I, II and III:
+\item Scenario 1 (S1): Resource I and III -- Clouds and GT2/4 based Grids. 
+\item Scenario 2 (S2): Resource II and III -- Clouds and Condor Grids.
+\item Scenario 3 (S3): Resource I, II and III -- Clouds, GT2/4 and Condor
+  Grids.
 \end{itemize}
 
 
@@ -879,9 +897,9 @@ this project). Both use cases are typical parameter sweeps and require
 the execution of a very large number of simulations in parallel. To
 support these use cases a custom middleware on top of the ScotGrid was
 developed. To utilize further distributed resources in the future,
-Nano-CMOS is currently adopting SAGA. Using the SAGA framework
-TeraGrid resources can be used by the electronics engineers to run
-their applications.
+Nano-CMOS~\cite{nanocmos} is currently adopting SAGA. Using the SAGA
+framework TeraGrid resources can be used by the electronics engineers
+to run their applications.
 
 Need to mention the general purpose nature: both HTC and HTC of HPC,
 as well that it is more than just a container of ensemble based
