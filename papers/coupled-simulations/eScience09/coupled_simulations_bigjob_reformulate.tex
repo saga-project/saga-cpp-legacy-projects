@@ -434,8 +434,7 @@ in the next section.
 %-------------------------------------------------------------------------
 \section{Load Balancing for Coupled Multi-Physics Simulation}
 
-%\jhanote{ALL: Please use code, simulations and applications
-  consistently through the paper.}
+%\jhanote{ALL: Please use code, simulations and applications consistently through the paper.}
 
 % SAGA and its pilot-job framework (BigJob) enable coupled, yet distinct
 % simulations to be submitted to queuing system. This is done by submitting one container
@@ -460,7 +459,7 @@ in the next section.
 The flexibility to re-distribute resources (processors) to the
 individual task, does not imply efficient utilization. This is the
 responsibility of a load-balancer (LB) We will discuss the
-implementation and algorithm of this LB~\cite{Ko_Balancing:2004}; it is important to mention
+implementation and algorithm of this LB~\cite{Ko}; it is important to mention
 that the LB functions in the context of the SAGA-BigJob framework.
 
 Each application's load is determined by its elapsed time to run the
@@ -487,22 +486,29 @@ denotes initial and final states. Based on assumption (1), total problem size of
 \jhanote{What does ``workload on each application
   mean''?} 
 remains the same after the re-allocation of resources,
+
+\small
 \begin{eqnarray}
 W_{CFD}&=&PE_{CFD,I}\times t_{CFD,I}=PE_{CFD,F}\times t_{CFD,F} \nonumber \\
 W_{MD}&=&PE_{MD,I}\times t_{MD,I}=PE_{MD,F}\times t_{MD,F}
 \label{eq:SimTime_EachTask}
 \end{eqnarray}
+\normalsize
 %\jhanote{Jeff: Please define what is $PE_{MD}'$, $t_{MD}'$} 
 
 In spite
 of re-allocation, the total number of processor utilized remains the
 same:
+
+\small
 \begin{equation}
 %\begin{center}
 PE_{TOT}=PE_{CFD,I}+PE_{MD,I}=PE_{CFD,F}+PE_{MD,F}
 %\end{center}
 \label{eq:PECondition}
 \end{equation}
+\normalsize
+
 
 Our objective is to reduce the computation time of a subtask until the
 two application components show the same computation between the exchange points,
@@ -510,9 +516,12 @@ i.e., $t_{CFD,F} = t_{MD,F}$. From Equation~\ref{eq:SimTime_EachTask}
 and Equation~\ref{eq:PECondition} an optimal processors distributed
 for the CFD subtask would be:
 %\jhanote{Jeff, please check this is correct} 
+
+\small
 \begin{eqnarray}
 PE_{CFD,F} & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
 \end{eqnarray}
+\normalsize
 
 The MD simulation (sub-job) will follow a similar expression. 
 
@@ -1069,9 +1078,9 @@ The validity of a load balancing function can be discussed by the change of proc
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.40]{BJ_Execution_Small_Time.eps}
+\includegraphics[scale=0.3]{fig6_1.pdf}
 \linebreak
-\includegraphics[scale=0.40]{BJ_Execution_Small_CPUs.eps}
+\includegraphics[scale=0.3]{fig6_2.pdf}
 \caption{\small Change of processor distribution between CFD and MD jobs and resultant computation time in the small simulation. A load balancer starts from the same number of processors assigned to both sub-jobs and detects 20 to 44 processor distribution as the optimal solution. The poor scalability of CFD job makes the load balancer to search for the optimal condition once again and the processor assignment finally reaches to a steady solution of 12 to 52 between two sub-jobs. Computation time for every simulation loop reduces from 153 seconds to 107 seconds after the balancing.}
 \label{Fig:LBSmall}
 \end{figure}
@@ -1083,9 +1092,11 @@ The result of computation time evolution on a large simulation is seen in Fig.~\
 % %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.3]{BJ_Execution_Large_Time.eps}
+\includegraphics[scale=0.21]{fig7_11.pdf}
+\includegraphics[scale=0.21]{fig7_21.pdf}
 \linebreak
-\includegraphics[scale=0.3]{BJ_Execution_Large_CPUs.eps}
+\includegraphics[scale=0.21]{fig7_12.pdf}
+\includegraphics[scale=0.21]{fig7_22.pdf}
 \caption{\small (Left) Change of processor distribution between CFD and MD jobs and resultant computation time in the large simulation. A load balancer directly finds the processor distribution of 24 to 40 between CFD and MD jobs and remains the steady state until it completes after 25 simulation loops. Initial computation time of 1605 seconds reduces to 1320 seconds after the convergence. (Right) Change of processor distribution between CFD and MD jobs and resultant computation time when the temporary overhead was observed in the system. After experiencing the fluctuation of processor distributions due to temporary system overhead on MD side, a load balancer goes to a different converged solution of 20 to 44 and it leads to the increase of computation time to 1380 seconds per each simulation loop. Total computation time in this case increased by 3000 seconds, including the effect of temporary system overhead and a wrong load balancing result.}
 \label{Fig:LBLarge}
 \end{figure}
