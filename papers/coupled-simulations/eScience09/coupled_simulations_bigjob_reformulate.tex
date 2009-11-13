@@ -574,7 +574,8 @@ t_{MD-in-Upper-Bound} & = & \frac {W_{MD}} {PE_{TOT}-N_{UNIT} \times (S+1)}
 
 
 %-------------------------------------------------------------------------
-\section{Dynamic Resource Allocation for Coupled Simulations: Three Scenarios }
+\section{Dynamic Resource Allocation for Coupled Simulations:                                                        
+  Experiments and Analysis}
 
 In Section 2, we have argued the challenges of running a coupled
 multi-physical simulation on a conventional queuing system as (i)
@@ -590,7 +591,9 @@ module to the coupled simulation.
   unifying application codes. Here, we should mention that 'minimizing
   the application code change is the SAGA's great benefit'.}
 
- % With the ultimate aim of reducing the total simulation time, we investigate acquiring idle resources during the simulation, by launching multiple BigJobs for one coupled simulation.
+% With the ultimate aim of reducing the total simulation time, we
+% investigate acquiring idle resources during the simulation, by
+% launching multiple BigJobs for one coupled simulation.
 
 The use of the BigJob asbtraction gives rise to three different
 execution scenarios. In the first scenario, a single BigJob is
@@ -682,23 +685,36 @@ different time, except when enough resources are available. In this
 case, both tasks wait on the queue when no job is allocated, the first
 allocated job idles to do data exchange with its counterpart, and run
 actual simulation after both jobs are allocated. On the other hand, in
-S1, a pilot job \jhanote{change to BigJob!} of size 
-$PE_{CFD}+PE_{MD}$ is submitted to the queue, and coupled simulation
-directly starts when the resource is assigned on this BigJob.
-... inactive mode in conventional job submission, while total runtime
-is the same if the resource distribution to sub-jobs is
-identical. However, eliminating inactive mode does not guarantee total
-simulation time is reduced, because waiting to get one bigger
-allocation may happen to take more than getting two allocations with
-smaller chunks. The same situation can happen to the load-balanced
-case with one BigJob, which satisfies the reduction of total runtime
-compared to other examples.
+S1, a pilot job \jhanote{change to BigJob!} of size $PE_{CFD}+PE_{MD}$
+is submitted to the queue, and coupled simulation directly starts when
+the resource is assigned on this BigJob.  ... inactive mode in
+conventional job submission, while total runtime is the same if the
+resource distribution to sub-jobs is identical. However, eliminating
+inactive mode does not guarantee total simulation time is reduced,
+because waiting to get one bigger allocation may happen to take more
+than getting two allocations with smaller chunks. The same situation
+can happen to the load-balanced case with one BigJob, which satisfies
+the reduction of total runtime compared to other examples.
+Figure~\ref{Fig:TwoBigJobs} illustrates scenarios S2 and S3 -- whereby
+2 BigJobs are submitted as opposed to 1 BigJob. In S2 both BigJobs are
+on the same machine, whilst in S3 they are on different machines.  As
+we will show later, under certain load and queue conditions, it is
+possible that two smaller BigJobs -- either S2 or S3, begin sooner
+than a larger subtask (S1).
 
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
 \includegraphics[scale=0.40]{Simulation_Time_of_One_BigJob.eps}
-\caption{\small Comparison of dependencies encountered for coupled-simulations submitted as conventional Jobs, to the scenario when using Pilot-Jobs (BigJob). Here we use only 1 BigJob. The conventional mode of submission experiences three phases of queue waiting (all jobs are waiting: $t_1-t_0$), inactive mode (one job is waiting for another: $t_2-t_1$), and active running (running a coupled simulation: $t_f-t_2$). On the other hand, inactive mode disappears when coupled simulation runs within one BigJob, as an allocated BigJob distributes its resource to sub-jobs.}
+\caption{\small Comparison of dependencies encountered for
+  coupled-simulations submitted as conventional Jobs, to the scenario
+  when using Pilot-Jobs (BigJob). Here we use only 1 BigJob. The
+  conventional mode of submission experiences three phases of queue
+  waiting (all jobs are waiting: $t_1-t_0$), inactive mode (one job is
+  waiting for another: $t_2-t_1$), and active running (running a
+  coupled simulation: $t_f-t_2$). On the other hand, inactive mode
+  disappears when coupled simulation runs within one BigJob, as an
+  allocated BigJob distributes its resource to sub-jobs.}
 \label{Fig:OneBJ_Flow}
 \end{figure}
 %%%%% FIGURE %%%%%
@@ -714,38 +730,45 @@ compared to other examples.
 %   using two or more BJs will increase real usage of CPUs, thus
 %   maximizing the use of idling resources.'}
 
-As illustrated in Figure~\ref{Fig:TwoBigJobs}, runtime environment for
-coupled multi-physics simulations would benefit from dynamic resource
-availability exploited by BigJob implementation. It is
-possible to assign more CPUs for a slowing application when another
-BigJob becomes available. Compared with one BigJob allocation for a
-coupled simulation in Figure~\ref{Fig:OneBJ_Flow}, two smaller BigJob
-submissions with sizes of CFD and MD will enable faster start of
-coupled subtasks. Also, when next BigJob is also allocated to this
-coupled simulation, total job size will be the same as one BigJob
-submission. In a word, resource allocation and simulation flow is
-identical to the conventional job submission, but inactive idling in a
-conventional case disappears as a BigJob framework starts coupled
-subtasks with smaller number of processors when first job is
-allocated. So, submitting two BigJobs guarantees the reduction of
-total simulation time compared to conventional job submission, if all
-conditions are identical. If this two BigJob submission is applied on
-multiple sites, it is more likely to get two allocations faster than
-requesting two jobs in the same site. However, faster launch of two
-BigJobs does not guaranteed save of total simulation time, because
-time for data exchange between applications will also increase if
-distributed resources cooperate.
+
+
+% runtime environment for coupled multi-physics simulations would
+% benefit from dynamic resource availability exploited by BigJob
+% implementation. It is possible to assign more CPUs for a slowing
+% application when another BigJob becomes available.  Compared to S1
+% for a coupled simulation in Figure~\ref{Fig:OneBJ_Flow}, faster
+% start of coupled subtasks. Also, when next BigJob is also allocated
+% to this coupled simulation, total job size will be the same as one
+% BigJob submission. Resource allocation and simulation flow is
+% identical to the conventional job submission, but inactive idling in
+% a conventional case disappears as a BigJob framework starts coupled
+% subtasks with smaller number of processors when first job is
+% allocated. So, submitting two BigJobs guarantees the reduction of
+% total simulation time compared to conventional job submission, if
+% all conditions are identical. If this two BigJob submission is
+% applied on multiple sites, it is more likely to get two allocations
+% faster than requesting two jobs in the same site. However, faster
+% launch of two BigJobs does not guaranteed save of total simulation
+% time, because time for data exchange between applications will also
+% increase if distributed resources cooperate.
 
 
 %%%%% FIGURE %%%%%
-\begin{figure} \centering \includegraphics[scale=0.40]{Simulation_Time_of_Two_BigJobs.eps} \caption{\small Schematic comparing the distribution of simulations when 2 BigJobs are used, first on the same physical machine, then on different (distributed) machines. In both cases, coupled sub-jobs start running when the first BigJob is allocated at $t=t_1$ and experience resource reallocation with increased amount when the next BigJob becomes available. When two BigJobs are allocated, each sub-job occupies one BigJob and data exchange between jobs takes place across BigJobs.}  \label{Fig:TwoBigJobs} \end{figure}
+\begin{figure}
+  \centering \includegraphics[scale=0.40]{Simulation_Time_of_Two_BigJobs.eps} \caption{\small
+    Schematic comparing the distribution of simulations when 2 BigJobs
+    are used, first on the same physical machine, then on different
+    (distributed) machines. In both cases, coupled sub-jobs start
+    running when the first BigJob is allocated at $t=t_1$ and
+    experience resource reallocation with increased amount when the
+    next BigJob becomes available. When two BigJobs are allocated,
+    each sub-job occupies one BigJob and data exchange between jobs
+    takes place across BigJobs.}  \label{Fig:TwoBigJobs} \end{figure}
 %%%%% FIGURE %%%%%
 
-
-
-We investigate a simple couette flow (Fig.~\ref{Fig:Couette}) as the representative
-physical problem, to validate the performance gains and 
-resource flexibility of above BigJob scenarios.
+We investigate a simple couette flow (Fig.~\ref{Fig:Couette}) as the
+representative physical problem, to validate the performance gains and
+resource flexibility of above scenarios.
 %arising from the Pilot-Job based approach.
 %by applying BigJob abstraction on CFD-MD coupled simulation.
 The current flow system is
@@ -753,20 +776,31 @@ composed of 62,400 mesh points (CFD) and 23,188 particles (MD).
 % both of which are such a small system in each scientific
 % domain. 
 In order to reach convergence, the coupled simulation runs for a
-physical time of 2500$\tau$, which is the time unit related to the characteristics of molecules. This is equivalent to 25,000 CFD iterations and 500,000 MD integration steps. During the simulation, both codes components update their boundary values by exchanging their simulation data via files, once every 10 $\tau$. This leads to 250
-synchronization steps between two simulation components over
-the course of a single simulation run. For the rigorous test of a load balancer, larger coupled simulation task (which has 150 times more workload on CFD domain and 50 times on MD) also has been experimented. The wall-time limit of all simulations are set to 6 hours, which is large enough to encounter both the active and inactive phase experienced in conventional job submission. In the larger simulation, wall-limt time is increased to 24 hours, consdiering its runtime which is around 11 hours.
+physical time of 2500$\tau$, which is the time unit related to the
+characteristics of molecules. This is equivalent to 25,000 CFD
+iterations and 500,000 MD integration steps. During the simulation,
+both codes components update their boundary values by exchanging their
+simulation data via files, once every 10 $\tau$. This leads to 250
+synchronization steps between two simulation components over the
+course of a single simulation run. For a rigorous test of a load
+balancer, larger coupled simulation task (which has 150 times more
+workload on CFD domain and 50 times on MD) also has been
+experimented. The wall-time limit of all simulations are set to 6
+hours, which is large enough to encounter both the active and inactive
+phase experienced in conventional job submission. In the larger
+simulation, wall-limt time is increased to 24 hours, consdiering its
+runtime which is around 11 hours.
 
-
-
-No changes in the simulation codes were required in order
-to utilize the BigJob capabilty; however, in order
-to utilize load-balancing features or dynamic-resource
-assignement the simulation codes need to be equipped
-with the ability to carry out application-level checkpointing.
-The application codes in addition to having application-level
-checkpointing need generalized domain partitioning method to work
-with a range of processor counts. In the current work, the application codes experience five launch/re-launches (25 times in larger simulation) to get assigned with changed number of processors, either by the result of load balancing or more resource allocations.
+No changes in the simulation codes were required in order to utilize
+the BigJob capabilty; however, in order to utilize load-balancing
+features or dynamic-resource assignement the simulation codes need to
+be equipped with the ability to carry out application-level
+checkpointing.  The application codes in addition to having
+application-level checkpointing need generalized domain partitioning
+method to work with a range of processor counts. In the current work,
+the application codes experience five launch/re-launches (25 times in
+larger simulation) to get assigned with changed number of processors,
+either by the result of load balancing or more resource allocations.
 
 % A coupled simulation by the default one BigJob does not require any
 % change of application codes. On the other hand, it is inevitable to
@@ -796,23 +830,29 @@ inter-domain information exchange.
 Simulations used to validate and determine performance values were
 conducted on supercomputing resources on TeraGrid machines (62,976
 cores Ranger), shared TeraGrid-LONI (Louisiana Optical Network
-Initiative)~\cite{LONI_web} resources including  Queenbee(5,440 cores) and some smaller LONI clusters such as Eric, Oliver, Louie and Poseidon(512 cores).
-We monitored the load on these
-systems over a long period of time (several weeks) and found Queenbee
-to be significantly more loaded than other resources.  \jhanote{Do we
-  still want the following sentence?} Thus, tests on small systems
-focus on quantifying runtime reduction by using the BigJob
-abstraction, while tests on QueenBee is rather involved in arguing the
-benefit of co-scheduling on crowded systems.
+Initiative)~\cite{LONI_web} resources including Queenbee(5,440 cores)
+and some smaller LONI clusters such as Eric, Oliver, Louie and
+Poseidon(512 cores).  We monitored the load on these systems over a
+long period of time (several weeks) and found Queenbee to be
+significantly more loaded than other resources.
 
+% \jhanote{Do we still want the following sentence?} Thus, tests on
+% small systems focus on quantifying runtime reduction by using the
+% BigJob abstraction, while tests on QueenBee is rather involved in
+% arguing the benefit of co-scheduling on crowded systems.
 
-\jhanote{nayong define load factor please}
-
-\jhanote{mention the variation in load factors that you have seen over
-  the 2-3 week period}
-  
-
-The status of the systems are predicted using load factor through the ratio of the number of nodes in active jobs over the total number of nodes when the job had been submitted. The load factor was recorded on every job submission by changing of the requesting number of processor from 8 to 64 and the requesting wall-time limit from 1 hr to 12 hr. Order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. The result of simulation actual waiting time via queuing system shows very diversity and variance as a matter of course. 
+\jhanote{I don't understand the next sentence:} The status of the
+systems are predicted using load factor through the ratio of the
+number of nodes in active jobs over the total number of nodes when the
+job had been submitted. \jhanote{The following is out of place:} The
+load factor was recorded on every job submission by changing of the
+requesting number of processor from 8 to 64 and the requesting
+wall-time limit from 1 hr to 12 hr. Order of job execution depends on
+a variety of parameters such as submission time, backfill
+opportunities, number of actively scheduled jobs and queue priority
+including credential, fairshare, resource and service priority. The
+result of simulation actual waiting time via queuing system shows very
+diversity and variance as a matter of course.
 
 
 % monitoring over these systems, QueenBee has been very crowded while
