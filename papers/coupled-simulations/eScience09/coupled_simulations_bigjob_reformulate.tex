@@ -1000,11 +1000,11 @@ interact.
 \skonote{Jeff's edit from here}
 The result of time-to-start on conventional job submnissions and a single BigJob launch coincides with our waiting time experiments above: 
 %estimating time-to-start is highly unpredictable and 
-there is no guarantee whether two smaller job submissions would utilize backfilling capability more effectively or one BigJob launch will get the benefit of higher priority by resources' queueing policy. According to the experiments presented in Table~\ref{table:BJwaiting}, though the result gives conventional job submission showed faster start in small wall-time limit and BigJob had better with longer wall-time limit, the large standard deviation leaves much to debate on the reliability of these data. The only thing clear is that a BigJob submission eliminates the worry of simulation's failure due to long inactive mode, which shall cause far longer wall-time limit setup than actual simulation time.
+there is no guarantee whether two smaller job submissions would utilize backfilling capability more effectively or one BigJob launch will get the benefit of higher priority by resources' queueing policy. According to the experiments presented in Table~\ref{table:BJwaiting}, though the result gives conventional job submission showed faster start in small wall-time limit and BigJob had better with longer wall-time limit, the large standard deviation leaves much to debate on the reliability of these data. The only thing clear is that a BigJob submission eliminates the possibility of simulation's failure due to long inactive phase, which shall cause far longer wall-time limit setup than actual simulation time.
 
 
 \begin{table}[t]
-\caption{\small  Waiting and inactive time on conventional job submissions and a single BigJob submission. Values show averaged time elapse over 6 distinct experiments and values in parenthesis are their standard deviation. Conventional job showed faster time-to-start (i.e., the sum of waiting time and inactive mode) on small problem size with 6 hours of wall-time limit, while a BigJob gets allocated faster with longer wall-time limit. Conventional job submission showed 3 failures during the test due to the timeover of wall-time limit in the first-started job. Experiments were conducted on small and less crowded LONI clusters.}
+\caption{\small  Waiting and inactive time on conventional job submissions and a single BigJob submission. Values show averaged time elapse over 6 distinct experiments and values in parenthesis are their standard deviation. In both cases, conventional job is submitted to use 2 $\times$ 32 processors and a BigJob requests 64 processors. Conventional job showed faster time-to-start (i.e., the sum of waiting time and inactive mode) on small problem size with 6 hours of wall-time limit, while a BigJob gets allocated faster with longer wall-time limit. Conventional job submission showed 3 failures during the test due to the timeover of wall-time limit in the first-started job. Experiments were conducted on small and less crowded LONI clusters.}
 
 \label{table:BJwaiting}
 \centering
@@ -1064,173 +1064,70 @@ there is no guarantee whether two smaller job submissions would utilize backfill
 
 \subsection{Scenario S1: Pilot-Job with Load Balancing}
 
-\jhanote{Do not have such long paragraphs. One paragraph should
+%\jhanote{Do not have such long paragraphs. One paragraph should
   represent one simple compact idea. Maxm of 4-5 sentences!!}
 
-Figure~\ref{Fig:Queuewait_LONI} and table~\ref{table:oneBJ_Test} show
-queue waiting and job simulation time performed on small LONI
-resources, running above test cases: conventional job submission, one
-default BigJob launch and one BigJob with load balancing. A coupled
-simulation has been conducted by using 32 and 64 processors, with the
-same number of processors allocated to CFD and MD
-subtasks. Simulations are restarted after load-balancing four times
-using checkpointing data. The waiting time until the launch of a
-coupled simulation is shown in figure~\ref{Fig:Queuewait_LONI}. From
-the graph \jhanote{Figure 6 is not a graph} the waiting time (or
-waiting time and inactive mode in conventional testsuites) did not
-show a close relationship with the workload of the system \jhanote{has
-  workload been defined? If not, define before this. If yes, remove!!}
-(which is defined as the sum of number of processors either running or
-waiting on the queue before the current job submission, divided by
-total number of processors in the system). Even some cases when
-workload is bigger than 1, all simulations experienced the direct
-start of a simulation by the help of a backfill capacity. Though a
-BigJob simulation had more possibility to start faster than either of
-submitted tasks through the conventional way, some test cases also
-showed that the conventional coupled simulation was starting ahead of
-a BigJob simulation.  Meanwhile, the detailed analysis over the above
-data shows that the use of a BigJob gives a great benefit on coupled
-simulation, both in terms of faster start and job stability. Regarding
-the faster start, the job queueing priority on many supercomputer
-systems usually allow a bigger job to get higher priority, letting one
-BigJob start faster than any of independently submitted tasks in
-normal condition. Even in cases conventional job started coupled
-simulation faster than a BigJob launch, most events happened not
-because these smaller jobs get the benefit of a backfill capability
-twice before the start of a BigJob, but because direct job submission
-on the system filled available resources before a BigJob submission
-passing through the advert server arrives in the system. Especially,
-even with the sufficient wall-time limit on job submission, a
-conventional job submission showed an event of job failure due to the
-time over of first allocated task. As the BigJob submission is free
-from this inactive waiting, wall-time limit can be far reduced than
-conventional job submission and this would increase BigJob's
-possibility to be allocated by a backfill capability.
+Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{table:oneBJ_Test}. In both small and large simulations, a default BigJob task takes about 1\% longer than the conventional test. This is reasonable because a default BigJob has the same processor distribution between subtasks as the conventional job, while BigJob has the overhead of subjobs' status monitoring and communication with advert server. In cases of load-balanced BigJob simulations, runtime is saved by about 13\% compared to conventional tests. In the large problem simulation, a load-balanced BigJob simulation relatively shows higher standard deviation due to the unexpected instability of a computing resource during one experiment, which is to be discussed in detail below.
+
+
+\begin{table}[t]
+%\setlength{\tabcolsep}{1pt}
+%\begin{table}[!ht]
+%\begin{center}
+\caption{\small Runtime results for S1, S1-LB and conventional submission. Six distinct experiments were accomplished on each simulation. In both cases, S1 shows about 1\% overhead due to the communication with advert server. On the other hand, S1-LB tests show about 13\% runtime save compared to conventional submission. 64 processors are used on all simulations.}
+\label{table:oneBJ_Test}
+\centering
+\begin{tabular}
+{m{0.6in} || m{0.5in} m{0.5in} m{0.5in}}
+\multicolumn{4}{c}{\phantom{\tiny 100}}\\
+\hline
+ & \nyc Conventional
+ & \nyc S1
+ & \nyc S1+LB
+\\
+\hline
+ \multirow{2}{0.6in}{Small Simulation}
+ & \nyc 757 & \nyc 764 & \nyc 661 \\
+ & \nyc (1.89) & \nyc (1.41) & \nyc (4.41) \\
+ \multirow{2}{0.6in}{Large Simulation}
+ & \nyc 39595 & \nyc 39906 & \nyc 34350 \\
+ & \nyc (119.2) & \nyc (206.3) & \nyc (1302.7) \\
+\hline
+%\midrule
+\end{tabular}
+\end{table}
+
+
+The validity of a load balancing function can be discussed by the change of processor distribution between subtasks throughout the simulation. In the result of a small simulation in Fig.~\ref{Fig:LBSmall}, both CFD and MD subtasks are assigned with 32 processors initially. After two starts, a load balancer converges to the processor distribution of 12 to 52 between CFD and MD jobs and this processor distribution remains the same until the simulation completes. Simulation time reduces from 153 seconds at the initial stage to 107 seconds after the convergence. Total simulation time is 596.19 seconds, which is different from 663 seconds counted from BigJob application manager. This time difference implies that the BigJob application manager spends about 13 seconds on executing its internal commands including the run of a load balancing function and subjob re-launch.
+
 
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.40]{Simulation_Time_of_One_BigJob.eps}
-\caption{\small Waiting time of a conventional job submission and a
-  BigJob submission, with 32 and 64 processors on LONI's local
-  resources: Eric, Oliver, Louie and Poseidon. Job start time in
-  conventional job submission is denoted by X: the line between two
-  symbols represent the inactive waiting of a first launched job. O
-  symbol represents the start time of a BigJob submission. X axis
-  means the workload and Y axis is waiting time, presented by a log
-  scale. Conventional job submission and one BigJob tests were
-  conducted by 12 times.}
-\label{Fig:Queuewait_LONI}
+\includegraphics[scale=0.40]{BJ_Execution_Small_Time.eps}
+\linebreak
+\includegraphics[scale=0.40]{BJ_Execution_Small_CPUs.eps}
+\caption{\small Change of processor distribution between CFD and MD jobs and resultant simulation time in the small simulation. A load balancer starts from the same number of processors assigned to both subjobs and detects 20 to 44 processor distribution as the optimal solution. The poor scalability of CFD job makes the load balancer to search for the optimal condition once again and the processor assignment finally reaches to a steady solution of 12 to 52 between two subjobs. Simulation time on every start reduces from 153 seconds to 107 seconds after the balancing.}
+\label{Fig:LBSmall}
 \end{figure}
 %%%%% FIGURE %%%%%
 
-\setlength{\tabcolsep}{1pt}
-\begin{table}[!ht]
-\begin{center}
-  \caption{\small Results for S1, S1-LB and conventional
-    submission.The baseline simulation represents the case when BigJob
-    is not used; in this case, the time to start is dominated by the
-    Inactive Mode of the longer waiting task. The use of BigJob
-    resolves, this as can be seen by the reduced inactive mode time in
-    columns 3 and 4. The starting configuration assigns resources
-    equally between CFD-MD -- 16px each. However, after a few
-    iterations of the LB the configuration is 8-24. With this
-    configuration the performance is better with LB, than without LB
-    1370 $\pm 98$ vs 1641 $\pm$ 162. The starting configuration of the
-    second set (8-24) is a ``balanced configuration'' which is why
-    there is no performance gains on using the LB. Values in table
-    shows averaged time in seconds, values within a parenthesis are
-    standard deviation of time elapsed; the average is taken over 5
-    distinct experiments. \jhanote{Use $\pm$ and not a new line!!}}
-% experiments. }
-%\label{table:systems}
-\label{table:oneBJ_Test}
-
-\begin{tabular}{ c|| c | c }
-
-\hline
-16-16 & Active Runtime & Time for Iterative Loop \\
-\hline
-\hline
-Conventional & 1448    & 1349 \\
-Submission   & (13)    & (41) \\
-\hline
-S1    & 1458  $\pm$ 59  & 1365 $\pm$ 15\\
-\hline
-S1-LB     & 1294    & 967 \\
-   & (54)  & (21) \\
-\hline
-\hline
-\end{tabular}
+The result of simulation time evolution on a large simulation is seen in Fig.~\ref{Fig:LBLarge}. On most experiments, which is given in the left side of Fig.~\ref{Fig:LBLarge}, a load balancer directly goes to a converged solution of processor distribution, which is 24 to 40 between CFD and MD jobs. On the other, in one experiment, one of computing nodes assigned to MD simulation the system seems to have temporarily experienced the internal overhead as shown from the right side of Fig.~\ref{Fig:LBLarge}. This overhead temporarily increased MD computation time a lot and a load balancer shows the fluctuating pattern of processor distribution in response to this temporary instability. A load balancer goes to a different steady solution after the system settled down, which is the processor distribution of 20 to 44 between two subjobs. Compared to the steady solution in stable cases, simulation time for one restart increases in this processor distribution increases from 1320 seconds to 1380 seconds. This leaves the requirement of refining a load balancing function, to predict more precisely on parallel performances of application codes.
 
 
-\begin{tabular}{ c|| c | c }
-\hline
-\hline
-32-32 & Active Runtime & Time for Iterative Loop \\
-\hline
-\hline
-Conventional & 861    & 741 \\
-Submission   & (65)    & (47) \\
-\hline
-BigJob     & 892    & 759 \\
-(no LB)    & (89)  & (26)\\
-\hline
-BigJob     & 969    & 617 \\
-(LB)    & (111)  & (47) \\
-\hline
+%%%%% FIGURE %%%%%
+\begin{figure}
+\centering
+\includegraphics[scale=0.40]{BJ_Execution_Large_Time.eps}
+\linebreak
+\includegraphics[scale=0.40]{BJ_Execution_Large_CPUs.eps}
+\caption{\small (Left) Change of processor distribution between CFD and MD jobs and resultant simulation time in the large simulation. A load balancer directly finds the processor distribution of 24 to 40 between CFD and MD jobs and remains the steady state until it completes after 25 start/restarts. Initial simulation time of 1605 seconds reduces to 1320 seconds after the convergence. (Right) Change of processor distribution between CFD and MD jobs and resultant simulation time when the temporary overhead was observed in the system. After experiencing the fluctuation of processor distributions due to temporary system overhead on MD side, a load balancer goes to a different converged solution of 20 to 44 and it leads to the increase of simulation time to 1380 seconds per each restart. Total simulation time in this case increased by 3000 seconds, including the effect of temporary system overhead and a wrong load balancing result.}
+\label{Fig:LBLarge}
+\end{figure}
+%%%%% FIGURE %%%%%
 
-\end{tabular}
-\end{center}
-\end{table}
 
-\jhanote{You cannot present results after the discussion/analysis has
-  taken place}
-
-The result of simulation runtime is shown in the
-table~\ref{table:oneBJ_Test}. From the result in tests with 32
-processors, a conventional job submission and one default BigJob
-running show nearly the same computational cost, while one BigJob
-simulation with LB shows better performance on runtime. Load balancing
-function changes the resource distribution to the best condition after
-the first simulation loop and 8 processors from CFD task are moved to
-MD simulation from the next start. From the next start, the processor
-distribution between subtasks remains the same. As a result, total
-runtime is saved by about 10 percent compared to other test cases. On
-the other hand, a load balanced BigJob shows worse performance when 64
-processors are used on simulation, by around 10 percent compared to a
-conventional job submission. \jhanote{WHERE IS THE GRAPH?????}. In
-this case, a load-balanced BigJob initially starts with same number of
-processors to each subtask, slowly moving to assign more resources on
-the MD side, until finally 12 processors are allotted to CFD
-simulation. In both tests, a default one BigJob experiences slightly
-worse performance compared to the computation time on a conventional
-case.  Above result of simulation performance can be discussed as
-follows. At first, worse performance of a default BigJob is caused by
-the additional cost on running a job through advert server and
-monitoring the status of a BigJob. Because of the frequent monitoring,
-a coupled task even experiences the increase of a simulation time on
-solving the iterative loop. Meanwhile, the bad performance on a
-load-balanced BigJob is because of multiple reasons. Aside from above
-issues, the load-balanced BigJob experiences the redundant cost on
-restarting application codes, when they have to reinitialize and load
-the checkpointing data. In both test cases, a load-balanced BigJob has
-spent about three times more cost on one-time event during the
-simulation (which can be gained by the subtraction between total
-computation time and iteration time). This is closely related to the
-checkpointing and restarting interval. Also, the algorithm itself
-needs to be refined to predict the performance of each code more
-precisely. In the simulation with 32 processors, a load balancer
-computed the optimal ratio of processor distribution to be 8 to 24
-between CFD and MD tasks, based on the computation time in this
-assignment, which takes 108 seconds on CFD and 194 seconds on MD
-simulation. Because of the assumption that all application codes will
-experience the ideal parallel efficiency, a load balancer determines
-that the current resource distribution is better than the other
-
-\skonote{Will correct the caption in the below table.}
-
-\jhanote{You need to really sit down and rewrite this. It is almost
+%\jhanote{You need to really sit down and rewrite this. It is almost
   impossible to understand anything here!!!}
 
 
