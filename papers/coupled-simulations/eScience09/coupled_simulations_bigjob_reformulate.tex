@@ -597,8 +597,7 @@ for dynamic resource allocation.
 % launching multiple BigJobs for one coupled simulation.
 
 We outline three possible scenarios. In the first
-scenario, a single BigJob is utilized to run the coupled simulations,
-\athotanote{(S1-LB) and (S1)LB, confusing?} with (S1-LB) and without (S1) LB redistributing resources based upon
+scenario, a single BigJob is utilized to run the coupled simulations, with and without LB (denoted as S1+LB and S1) redistributing resources based upon
 their individual performance.  In the second scenario (S2) there are
 two BigJobs, and although they are started together, most often one
 BigJob starts before the other; to increase efficiency, both coupled
@@ -699,7 +698,7 @@ Figure~\ref{Fig:TwoBigJobs} illustrates scenarios S2 and S3 -- whereby
 on the same machine, whilst in S3 they are on different machines.  As
 we will show later, under certain load and queue conditions, it is
 possible that two smaller BigJobs -- either S2 or S3, begin sooner
-than a larger subtask (S1).
+than a larger subtask S1.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -822,11 +821,12 @@ information exchange. This can be implemented by checking elapsed time
 on inter-domain data exchange and subtracting it from total iteration
 time.
 %\jhanote{I'm not  sure I understand the following}
-One-time event such as domain partitioning or checkpointing, and
-waiting time between application domains which is going to be
-minimized as they are well-balanced, should be excluded from the
-consideration of application's performance.
+%One-time event such as domain partitioning or checkpointing, and waiting time between application domains which is going to be minimized as they are well-balanced, should be excluded from the consideration of application's performance.
 %e architected the CFD and MD codes to have several time checking functions inside to capture total iteration time without inter-domain information exchange.
+
+
+Evaluation of a BigJob as a faster time-to-start solution requires the elaborative experiments with different processor requests and different wall-time limit on various system conditions. To quantify the waiting time of job submissions and analyze the variation of waiting time with system's conditions, we define the load-factor as the ratio of the number of active nodes to the total number of nodes on the machine; we measure this ratio at the instant the job was submitted to the queuing-system, as well as when the job execution began, to correct for large variation in loads. The load-factor was recorded on every job submission while changing the requested number of processors from 8 to 64 and the requested wall-time limit from 1 hr to 12 hrs. The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. 
+
 
 
 Simulations used to validate and determine the performance measures were
@@ -844,33 +844,22 @@ significantly more loaded than other resources.
 % arguing the benefit of co-scheduling on crowded systems.
 
 % \jhanote{I don't understand the next sentence:} 
-\skonote{let's think a little more where to put this part}
-\athotanote{moved to the beginning of next section, doesn't totally fit there either.}
 % monitoring over these systems, QueenBee has been very crowded while
 % all others have been less occupied.
 
 \subsection{Using Pilot-Jobs to submit Coupled Simulations:
   Performance Analysis}
   
-\athotanote{load-factor, load factor, workload, or just load?}The load-factor is defined as the ratio of the number of active nodes
-to the total number of nodes on the machine; we measured this ratio at
-the instant when the job was submitted to the queuing-system, as well as
-when the job execution began, to correct for large variation in loads.
-\jhanote{The following is out of place:} The load factor was recorded
-on every job submission while changing the requested number of
-processors from 8 to 64 and the requested wall-time limit from 1 hr to
-12 hrs. The order of job execution depends on a variety of parameters such
-as submission time, backfill opportunities, number of actively
-scheduled jobs and queue priority including credential, fairshare,
-resource and service priority. The result of waiting
-time on the queue shows very diversity and variance as a matter
-of course.
+%The load-factor is defined as the ratio of the number of active nodes to the total number of nodes on the machine; we measured this ratio at the instant when the job was submitted to the queuing-system, as well as when the job execution began, to correct for large variation in loads. The load-factor was recorded on every job submission while changing the requested number of processors from 8 to 64 and the requested wall-time limit from 1 hr to 12 hrs. The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. 
+
+% The result of waiting time on the queue shows very diversity and variance as a matter of course.
+
 
 We wanted to see if we could come up with an analysis that would tell
 us how running larger and/or longer simulations effects the actual
 waiting time on the queue.
 
-\Nkimnote{Will be added some two small job Vs. BigJob table here}
+%The result of waiting time on the queue shows very diversity and variance as a matter of course.
 
 \begin{table}[t]
   \caption{\small  Effect of various configurations on waiting
@@ -891,7 +880,7 @@ of actual waiting time on the queueing system.}
 \hline
 %\midrule
  \multirow{3}{0.4in}{number of processors}&
- \multicolumn{5}{c}{requested wall-time at 92$\pm$6\% load (Ranger)}
+ \multicolumn{5}{c}{requested wall-time at 92$\pm$6\% load-factor (Ranger)}
 \\
 \cline{2-6}
 %\cmidrule{2-6}
@@ -929,7 +918,7 @@ of actual waiting time on the queueing system.}
 \hline
 %\midrule
  \multirow{3}{0.4in}{number of processors}&
- \multicolumn{5}{c}{requested wall-time at 95$\pm$4\% load (Queenbee)}
+ \multicolumn{5}{c}{requested wall-time at 95$\pm$4\% load-factor (Queenbee)}
 \\
 \cline{2-6}
 %\cmidrule{2-6}
@@ -965,7 +954,7 @@ of actual waiting time on the queueing system.}
 What we did was the following. We chose two machines with more than
 5000 processors, Ranger and Queenbee. We submitted jobs of different
 sizes, requiring different wall-time limits. Each time we submitted a
-job, we gathered the load factor and the actual waiting time on the
+job, we gathered the load-factor and the actual waiting time on the
 queue. Lots of factors effect the waiting times. Most important of
 them is the load at the moment on the machine, requested wall-time
 limit and also the number of processors requested. Two more factors
@@ -988,11 +977,6 @@ jobs is going to be larger than the waiting time of a single large
 processor job. This is especially true in cases where the jobs need to
 interact, as shown in Fig. 4.
 
-\jhanote{This section needs to establish the basic feature that on
-  average, over different loads and on different machines that
-  submitting larger simulations is beneficial, i.e., lowers the \ts.}
-
-\skonote{Jeff's edit from here}
 The result of time-to-start on conventional job submnissions and a single BigJob launch coincides with our waiting time experiments above: 
 %estimating time-to-start is highly unpredictable and 
 there is no guarantee whether two smaller job submissions would utilize backfilling capability more effectively or one BigJob launch will get the benefit of higher priority by resources' queueing policy. According to the experiments presented in Table ~\ref{table:BJwaiting}, though the result gives conventional job submission showed faster start in small wall-time limit and BigJob had better with longer wall-time limit, the large standard deviation leaves much to debate on the reliability of these data. The only thing clear is that a BigJob submission eliminates the possibility of simulation's failure due to long inactive phase, which shall cause far longer wall-time limit setup than actual computation time.
@@ -1053,7 +1037,7 @@ Computation times of the coupled simulation with a single BigJob is given on Tab
 %\setlength{\tabcolsep}{1pt}
 %\begin{table}[!ht]
 %\begin{center}
-\caption{\small Results of computation time for S1, S1-LB and conventional submission. Six distinct experiments were accomplished on each simulation. In both cases, S1 shows about 1\% overhead due to the communication with advert server. On the other hand, S1-LB tests show about 13\% computation time save compared to conventional submission. 64 processors are used on all simulations.}
+\caption{\small Results of computation time for S1, S1+LB and conventional submission. Six distinct experiments were accomplished on each simulation. In both cases, S1 shows about 1\% overhead due to the communication with advert server. On the other hand, S1+LB tests show about 13\% computation time save compared to conventional submission. 64 processors are used on all simulations.}
 \label{table:oneBJ_Test}
 \centering
 \begin{tabular} {p{0.5in} || p{0.7in} p{0.7in} p{0.7in}}
@@ -1061,7 +1045,7 @@ Computation times of the coupled simulation with a single BigJob is given on Tab
 \hline
  & \nyc Conventional
  & \nyc S1
- & \multicolumn{1}{c}{S1 + LB}
+ & \multicolumn{1}{c}{S1+LB}
 \\
 \hline
  \nyc Small Sim. & \nyc 757$\pm$1.89 & \nyc 764$\pm$1.41 & \multicolumn{1}{c}{661$\pm$4.41} \\
