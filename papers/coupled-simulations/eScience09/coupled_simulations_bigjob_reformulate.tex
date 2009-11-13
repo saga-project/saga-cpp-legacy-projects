@@ -497,11 +497,12 @@ algorithm is indepenendent of applications upon which it is predicated
 are, (1) each application code follows the ideal parallel efficiency.
 (2) all processors in one node are assigned to one single task.
 
-Let the computation time (between exchanges) of the two simulations
-be $t_{CFD}$ and $t_{MD}$, and the number of processors assigned to
-each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts I and F denotes initial and final states. Based on
-assumption (1), workload on each application remains the same after
-the re-allocation of resources, 
+Let the computation time (between exchanges) of the two simulations be
+$t_{CFD}$ and $t_{MD}$, and the number of processors assigned to each
+domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts I and F
+denotes initial and final states. Based on assumption (1), workload on
+each application\jhanote{What does ``workload on each application
+  mean''?} remains the same after the re-allocation of resources,
 \begin{eqnarray}
 W_{CFD} &=& PE_{CFD,I} \times t_{CFD,I} = PE_{CFD,F} \times t_{CFD,F} \nonumber \\
 W_{MD} &=& PE_{MD,I} \times t_{MD,I} = PE_{MD,F} \times t_{MD,F}
@@ -518,9 +519,10 @@ PE_{TOT} = PE_{CFD,I} + PE_{MD,I} = PE_{CFD,F} + PE_{MD,F}
 \label{eq:PECondition}
 \end{equation}
 Our objective is to reduce the computation time of a subtask until the
-two simulations show the same computation between the exchange points, i.e., $t_{CFD,F} = t_{MD,F}$. From
-Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition}
-an optimal processors distributed for the CFD subtask would be:
+two simulations show the same computation between the exchange points,
+i.e., $t_{CFD,F} = t_{MD,F}$. From Equation~\ref{eq:SimTime_EachTask}
+and Equation~\ref{eq:PECondition} an optimal processors distributed
+for the CFD subtask would be:
 %\jhanote{Jeff, please check this is correct} 
 \begin{eqnarray}
 PE_{CFD,F} & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
@@ -531,27 +533,32 @@ The MD simulation (sub-job) will follow a similar expression.
 The optimal processor distribution from above equation will return a
 non-integer value. Also, under the second assumption (which is the
 policy of many supercomputing centers), any load-balancing determined
-as above, will proceed in discrete values determined by the number of CPU cores in a node, which is denoted by $N_{UNIT}$. When upper and lower bound of $PE{CFD,F}$ is defined as 
+as above, will proceed in discrete values determined by the number of
+CPU cores in a node, which is denoted by $N_{UNIT}$.  \jhanote{the
+  following is unecessarily complex. Simplify! Please remove
+  everything and replace with one single sentence without any
+  formulas. None of these terms are ever used again, so no point
+  introducing terminology if never used again!!}
+
+{\footnotesize{When upper and lower bound of $PE{CFD,F}$ is defined as
 %\begin{boundval}
-$
-N_{UNIT} \times S \le PE{CFD,F} \le N_{UNIT} \times (S+1)
-$
+$ N_{UNIT} \times S \le PE{CFD,F} \le N_{UNIT} \times (S+1) $
 %\end{boundval}
-with $S = int(PE_{CFD,F} / N_{UNIT})$, either bound is going to satisfy optimal processor distribution between CFD and MD tasks. CFD computation time will determine coupled simulation time in the lower bound ,whilst simulation time in the upper bound is dependent on MD computation time, based on assumption (1). So, optimal processor distribution is the one which satisfies smaller computation time between $t_{CFD-in-Lower-Bound}$ and $t_{MD-in-Upper-Bound}$, who are expressed by
+with $S = int(PE_{CFD,F} / N_{UNIT})$, either bound is going to
+satisfy optimal processor distribution between CFD and MD tasks. CFD
+computation time will determine coupled simulation time in the lower
+bound ,whilst simulation time in the upper bound is dependent on MD
+computation time, based on assumption (1). So, optimal processor
+distribution is the one which satisfies smaller computation time
+between $t_{CFD-in-Lower-Bound}$ and $t_{MD-in-Upper-Bound}$, who are
+expressed by
 \begin{eqnarray}
 t_{CFD-in-Lower-Bound} & = & \frac {W_{CFD}} {N_{UNIT} \times S}
 \nonumber \\
 t_{MD-in-Upper-Bound} & = & \frac {W_{MD}} {PE_{TOT}-N_{UNIT} \times (S+1)}
 \label{eq:Optimal_Time_Condition}
 \end{eqnarray}
-
-
-% \jhanote{Jeff: Please elaborate/clarify what is being said here; it is difficult to follow.} 
-
-% The other sub-job will follow a similar expression. The optimal processor distribution 
-% from above equation will return a float value.  Also, considering the second assumption, which is the policy of many supercomputing center, the above distribution needs to be asymptotic.  If CPU cores in one node is $N_{UNIT}$,
-% %$N_{UNIT} \times S < PE_{CFD}' < N_{UNIT} \times (S+1)$, we can choose the optimal condition by comparing $MAX(t_{CFD}',t_{MD}')$ between upper and lower bound of processor allocation.
-% optimal condition can be gained by finding $S = int(PE_{CFD}' / N_{UNIT})$ and comparing $MAX(t_{CFD}',t_{MD}')$ between processor allocations on CFD task with $N_{UNIT} \times S$ and $N_{UNIT} \times (S+1)$.
+}}
 
 
 
@@ -575,40 +582,39 @@ t_{MD-in-Upper-Bound} & = & \frac {W_{MD}} {PE_{TOT}-N_{UNIT} \times (S+1)}
 
 
 %-------------------------------------------------------------------------
-\section{Dynamic Resource Allocation for Coupled Simulations:                                                        
+\section{Dynamic Resource Allocation for Coupled Simulations:
   Experiments and Analysis}
 
-In Section 2, we have argued the challenges of running a coupled
-multi-physical simulation on a conventional queuing system as (i)
-Difficulty of starting multiple applications concurrently; (ii) Inability
-to balance the load among domains, and (iii) Fixed number of allocated
-resources throughout the simulation. To resolve the co-scheduling and
-load-imbalance issues, and with the ultimate aim of reducing the time
-to solution, we have used the BigJob abstraction with load balancing
-module to the coupled simulation.
+In Section 2, we outlined the challenges of running a coupled
+multi-physics simulation using conventional queuing system as, (i)
+Difficulty of starting multiple applications concurrently; (ii)
+Inability to balance the load among domains, and (iii) Fixed number of
+allocated resources throughout the simulation. To address these
+challenges we use the BigJob abstraction with a load balancing module
+for dynamic resource allocation.
 
-\skonote{Need to check section 2, whether we have mentioned the
-  necessity of BigJob. This includes why we need BigJob, rather than
-  unifying application codes. Here, we should mention that 'minimizing
-  the application code change is the SAGA's great benefit'.}
+% \skonote{Need to check section 2, whether we have mentioned the
+%   necessity of BigJob. This includes why we need BigJob, rather than
+%   unifying application codes. Here, we should mention that 'minimizing
+%   the application code change is the SAGA's great benefit'.}
 
 % With the ultimate aim of reducing the total simulation time, we
 % investigate acquiring idle resources during the simulation, by
 % launching multiple BigJobs for one coupled simulation.
 
-Three different scenarios arise here. In the first scenario, a single BigJob is
-utilized to run the coupled-simulations, with (S1-LB) and without (S1)
-LB redistributing resources based upon their individual performance.
-In the second scenario (S2) there are two BigJobs, and although they
-are started together, most often one BigJob starts before the other;
-to increase efficiency, both coupled simulations start with whatever
-resources are available as part of the first (to run) BigJob. When the
-second BigJob becomes active, there is a dynamic redistribution of
-tasks, such that the larger of the two simulations is assigned the
-bigger BigJob. Variant of the above, when the two BigJobs are on
-different machines forms the third scenario (S3). In the remainder of
-this section we discuss the details of these three different Use
-Cases.
+We outline three different scenarios that arise. In the first
+scenario, a single BigJob is utilized to run the coupled-simulations,
+with (S1-LB) and without (S1) LB redistributing resources based upon
+their individual performance.  In the second scenario (S2) there are
+two BigJobs, and although they are started together, most often one
+BigJob starts before the other; to increase efficiency, both coupled
+simulations start with whatever resources are available as part of the
+first (to run) BigJob. When the second BigJob becomes active, there is
+a dynamic redistribution of tasks, such that the larger of the two
+simulations is assigned the bigger BigJob. Variant of the above, when
+the two BigJobs are on different machines forms the third scenario
+(S3). In the remainder of this section we discuss the details of these
+three different Use Cases.
 
 % We compare the performance as measured by TTS using the benchmark
 % case to be the situation when we do not have the ability to utilize
@@ -815,8 +821,13 @@ either by the result of load balancing or more resource allocations.
 % need to stop several times and restart from its checkpointing data
 % with changed number of processors assignment. 
 
-The use of a load balancing function requires one more change on application codes. As load balancer refers to the performance data from application codes, application codes need to return their
-actual computation time, which excludes idle waiting on inter-domain information exchange. This can be implemented by checking elapsed time on inter-domain data exchange and subtracting it from total iteration time.
+The use of a load balancing function requires one more change on
+application codes. As load balancer refers to the performance data
+from application codes, application codes need to return their actual
+computation time, which excludes idle waiting on inter-domain
+information exchange. This can be implemented by checking elapsed time
+on inter-domain data exchange and subtracting it from total iteration
+time.
 %\jhanote{I'm not  sure I understand the following}
 One-time event such as domain partitioning or checkpointing, and
 waiting time between application domains which is going to be
@@ -854,20 +865,28 @@ including credential, fairshare, resource and service priority. The
 result of simulation actual waiting time via queuing system shows very
 diversity and variance as a matter of course.
 
-
 % monitoring over these systems, QueenBee has been very crowded while
 % all others have been less occupied.
-
-
 
 \subsection{Using Container taks to submit Coupled Simulations:
   Performance Analysis}
 
+We wanted to see if we could come up with an analysis that would tell
+us how running larger and/or longer simulations effects the actual
+waiting time on the queue.
 
-We wanted to see if we could come up with an analysis that would tell us how running larger and/or longer simulations effects the actual waiting time on the queue.
-
-What we did was the following. We chose two machines with more than 5000 processors, Ranger and Queenbee. We submitted jobs of different sizes, requiring different wall-time limits. Each time we submitted a job, we gathered the load factor and the actual waiting time on the queue. Lots of factors effect the waiting times. Most important of them is the load at the moment on the machine, requested wall-time limit and also the number of processors requested. Two more factors that effect this are the backfilling that occurs when some other irrelevant job ends and the changes in the priority of our own job when a particular higher priority job joins the queue. 
-The waiting time has a tendency to decrease as the number of processors of a job increase, as can be seen from Table~\ref{table:waitingtime}.
+What we did was the following. We chose two machines with more than
+5000 processors, Ranger and Queenbee. We submitted jobs of different
+sizes, requiring different wall-time limits. Each time we submitted a
+job, we gathered the load factor and the actual waiting time on the
+queue. Lots of factors effect the waiting times. Most important of
+them is the load at the moment on the machine, requested wall-time
+limit and also the number of processors requested. Two more factors
+that effect this are the backfilling that occurs when some other
+irrelevant job ends and the changes in the priority of our own job
+when a particular higher priority job joins the queue.  The waiting
+time has a tendency to decrease as the number of processors of a job
+increase, as can be seen from Table~\ref{table:waitingtime}.
 %The waiting time is most acutely effected due the load as can be seen from Table~\ref{table:waitingtime} . But even then, some of the jobs start running immediately due the backfilling policy.
 % This may part of due to its~
 Considering only the data from the jobs which did not go through backfilling, it can be seen that larger processor jobs start earlier based on the priority of jobs.
