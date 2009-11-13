@@ -79,7 +79,7 @@ Dynamic Resource Allocation and Load-Balancing}
 
 \author{
  ~\\[-2em]
- Soon-Heum Ko$^{1}$, Nayong Kim$^{1}$, Joohyun Kim$^{1}$, \\ Abhinav Thota$^{1}$, Shantenu Jha$^{*1,2}$\\
+ Soon-Heum Ko$^{1}$, Nayong Kim$^{1}$, Joohyun Kim$^{1}$, \\ Abhinav Thota$^{1,2}$, Shantenu Jha$^{*1,2}$\\
  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
  \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
  \small{\emph{$^{*}$Contact Author}}\\
@@ -580,11 +580,11 @@ expressed as the multiples of the number of CPU cores in a node. We choose the n
   Experiments and Analysis}
 
 In Section 2, we outlined the challenges of running a coupled
-multi-physics simulation using conventional queuing system as, (i)
+multi-physics simulation using conventional queuing systems as the following: (i)
 Difficulty of starting multiple applications concurrently; (ii)
 Inability to balance the load among domains, and (iii) Fixed number of
 allocated resources throughout the simulation. To address these
-challenges we use the BigJob abstraction with a load balancing module
+challenges we use the BigJob abstraction with a load balancing (LB) module
 for dynamic resource allocation.
 
 % \skonote{Need to check section 2, whether we have mentioned the
@@ -596,9 +596,9 @@ for dynamic resource allocation.
 % investigate acquiring idle resources during the simulation, by
 % launching multiple BigJobs for one coupled simulation.
 
-We outline three different scenarios that arise. In the first
+We outline three possible scenarios. In the first
 scenario, a single BigJob is utilized to run the coupled simulations,
-with (S1-LB) and without (S1) LB redistributing resources based upon
+\athotanote{(S1-LB) and (S1)LB, confusing?} with (S1-LB) and without (S1) LB redistributing resources based upon
 their individual performance.  In the second scenario (S2) there are
 two BigJobs, and although they are started together, most often one
 BigJob starts before the other; to increase efficiency, both coupled
@@ -606,7 +606,7 @@ simulations start with whatever resources are available as part of the
 first (to run) BigJob. When the second BigJob becomes active, there is
 a dynamic redistribution of tasks, such that the larger of the two
 sub-jobs is assigned the bigger BigJob. Variant of the above, when
-the two BigJobs are on different machines forms the third scenario
+the two BigJobs are on two different machines forms the third scenario
 (S3). In the remainder of this section we discuss the details of these
 three different Use Cases.
 
@@ -829,12 +829,12 @@ consideration of application's performance.
 %e architected the CFD and MD codes to have several time checking functions inside to capture total iteration time without inter-domain information exchange.
 
 
-Simulations used to validate and determine performance values were
+Simulations used to validate and determine the performance measures were
 conducted on supercomputing resources on TeraGrid machines (62,976
 cores Ranger), shared TeraGrid-LONI (Louisiana Optical Network
-Initiative)~\cite{LONI_web} resources including Queenbee(5,440 cores)
-and some smaller LONI clusters such as Eric, Oliver, Louie and
-Poseidon(512 cores).  We monitored the load on these systems over a
+Initiative)~\cite{LONI_web} machines (5,440 core QueenBee)
+and some smaller LONI machines such as Eric, Oliver, Louie and
+Poseidon(512 cores each).  We monitored the load on these systems over a
 long period of time (several weeks) and found Queenbee to be
 significantly more loaded than other resources.
 
@@ -845,26 +845,26 @@ significantly more loaded than other resources.
 
 % \jhanote{I don't understand the next sentence:} 
 \skonote{let's think a little more where to put this part}
-
-The load-factor is defined as the ratio of the number of active nodes
-to the total number of nodes on the machine; we measure this ratio at
-the instant the job was submitted to the queuing-system, as well as
-when the job execution began, to correct for large variation in loads.
-\jhanote{The following is out of place:} The load factor was recorded
-on every job submission by changing of the requesting number of
-processor from 8 to 64 and the requesting wall-time limit from 1 hr to
-12 hr. Order of job execution depends on a variety of parameters such
-as submission time, backfill opportunities, number of actively
-scheduled jobs and queue priority including credential, fairshare,
-resource and service priority. The result of waiting
-time on the queue shows very diversity and variance as a matter
-of course.
-
+\athotanote{moved to the beginning of next section, doesn't totally fit there either.}
 % monitoring over these systems, QueenBee has been very crowded while
 % all others have been less occupied.
 
 \subsection{Using Pilot-Jobs to submit Coupled Simulations:
   Performance Analysis}
+  
+\athotanote{load-factor, load factor, workload, or just load?}The load-factor is defined as the ratio of the number of active nodes
+to the total number of nodes on the machine; we measured this ratio at
+the instant when the job was submitted to the queuing-system, as well as
+when the job execution began, to correct for large variation in loads.
+\jhanote{The following is out of place:} The load factor was recorded
+on every job submission while changing the requested number of
+processors from 8 to 64 and the requested wall-time limit from 1 hr to
+12 hrs. The order of job execution depends on a variety of parameters such
+as submission time, backfill opportunities, number of actively
+scheduled jobs and queue priority including credential, fairshare,
+resource and service priority. The result of waiting
+time on the queue shows very diversity and variance as a matter
+of course.
 
 We wanted to see if we could come up with an analysis that would tell
 us how running larger and/or longer simulations effects the actual
@@ -891,7 +891,7 @@ of actual waiting time on the queueing system.}
 \hline
 %\midrule
  \multirow{3}{0.4in}{number of processors}&
- \multicolumn{5}{c}{wall-time limit with 92$\pm$6\% workload (Ranger)}
+ \multicolumn{5}{c}{requested wall-time at 92$\pm$6\% load (Ranger)}
 \\
 \cline{2-6}
 %\cmidrule{2-6}
@@ -929,7 +929,7 @@ of actual waiting time on the queueing system.}
 \hline
 %\midrule
  \multirow{3}{0.4in}{number of processors}&
- \multicolumn{5}{c}{wall-time limit with 95$\pm$4\% workload (Queenbee)}
+ \multicolumn{5}{c}{requested wall-time at 95$\pm$4\% load (Queenbee)}
 \\
 \cline{2-6}
 %\cmidrule{2-6}
@@ -986,7 +986,7 @@ feel that running a large job is better than running two smaller
 jobs. We say that the sum total of the waiting times of two smaller
 jobs is going to be larger than the waiting time of a single large
 processor job. This is especially true in cases where the jobs need to
-interact.
+interact, as shown in Fig. 4.
 
 \jhanote{This section needs to establish the basic feature that on
   average, over different loads and on different machines that
