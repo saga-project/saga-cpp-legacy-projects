@@ -593,19 +593,19 @@ module to the coupled simulation.
  % With the ultimate aim of reducing the total simulation time, we investigate acquiring idle resources during the simulation, by launching multiple BigJobs for one coupled simulation.
 
 The use of the BigJob asbtraction gives rise to three different
-execution scenarios. In the first Use Case, a single BigJob is
-utilized to run the coupled-simulations, with and without the LB
-redistributing resources based upon their individual performance.  In
-the second Use Case, two BigJobs are started together, but often one
-BigJob starts before the other; to increase efficiency both coupled
-simulations start with whatever resources are available as part of the
-first (to run) BigJob. When the second BigJob becomes active, there is
-a dynamic redistribution of tasks, such that the larger of the two
-simulations is assigned the bigger BigJob. The variant of the above
-when the two BigJobs are on different machines forms Use Case 3. In
-the remainder of this section we discuss the details of these three
-different Use Cases. \jhanote{Maybe define them as Scenario I, II and
-  III, IV? Will make it easier?}
+execution scenarios. In the first scenario, a single BigJob is
+utilized to run the coupled-simulations, with (S1-LB) and without (S1)
+LB redistributing resources based upon their individual performance.
+In the second scenario (S2) there are two BigJobs, and although they
+are started together, most often one BigJob starts before the other;
+to increase efficiency, both coupled simulations start with whatever
+resources are available as part of the first (to run) BigJob. When the
+second BigJob becomes active, there is a dynamic redistribution of
+tasks, such that the larger of the two simulations is assigned the
+bigger BigJob. The variant of the above when the two BigJobs are on
+different machines forms the third scenario (S3). In the remainder of
+this section we discuss the details of these three different Use
+Cases.
 
 % We compare the performance as measured by TTS using the benchmark
 % case to be the situation when we do not have the ability to utilize
@@ -669,8 +669,7 @@ different Use Cases. \jhanote{Maybe define them as Scenario I, II and
 % the time between the first job and second job allocations in
 % conventional job submission.
 
-\subsection{Description of BigJob Application Scenarios and Numerical Experiments}
-
+\subsection{Description of Experiments}
 
 Fig.~\ref{Fig:OneBJ_Flow} shows two different scenarios: the first
 (leftmost) shows the time evolution of a coupled simulation with the
@@ -683,17 +682,17 @@ different time, except when enough resources are available. In this
 case, both tasks wait on the queue when no job is allocated, the first
 allocated job idles to do data exchange with its counterpart, and run
 actual simulation after both jobs are allocated. On the other hand, in
-a BigJob simulation, a pilot job with the size of $PE_{CFD}+PE_{MD}$
-is submitted to the queue and coupled simulation directly starts when
-the resource is assigned on this BigJob.
-... inactive mode in conventional job
-submission, while total runtime is the same if the resource
-distribution to sub-jobs is identical. However, eliminating inactive
-mode does not guarantee total simulation time is reduced, because
-waiting to get one bigger allocation may happen to take more than
-getting two allocations with smaller chunks. The same situation can
-happen to the load-balanced case with one BigJob, which satisfies the
-reduction of total runtime compared to other examples.
+S1, a pilot job \jhanote{change to BigJob!} of size 
+$PE_{CFD}+PE_{MD}$ is submitted to the queue, and coupled simulation
+directly starts when the resource is assigned on this BigJob.
+... inactive mode in conventional job submission, while total runtime
+is the same if the resource distribution to sub-jobs is
+identical. However, eliminating inactive mode does not guarantee total
+simulation time is reduced, because waiting to get one bigger
+allocation may happen to take more than getting two allocations with
+smaller chunks. The same situation can happen to the load-balanced
+case with one BigJob, which satisfies the reduction of total runtime
+compared to other examples.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -784,12 +783,11 @@ with a range of processor counts. In the current work, the application codes exp
 
 The use of a load balancing function requires one more change on application codes. As load balancer refers to the performance data from application codes, application codes need to return their
 actual computation time, which excludes idle waiting on inter-domain information exchange. This can be implemented by checking elapsed time on inter-domain data exchange and subtracting it from total iteration time.
-%\jhanote{I'm not
-  sure I understand the following: One-time event such as domain
-  partitioning or checkpointing, and waiting time between application
-  domains which is going to be minimized as they are well-balanced,
-  should be excluded from the consideration of application's
-  performance.}  
+%\jhanote{I'm not  sure I understand the following}
+One-time event such as domain partitioning or checkpointing, and
+waiting time between application domains which is going to be
+minimized as they are well-balanced, should be excluded from the
+consideration of application's performance.
 %e architected the CFD and MD codes to have several
 time checking functions inside to capture total iteration time without
 inter-domain information exchange.
