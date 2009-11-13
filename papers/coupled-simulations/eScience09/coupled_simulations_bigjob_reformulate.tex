@@ -1119,59 +1119,37 @@ The result of computation time evolution on a large simulation is seen in Fig.~\
   Pilot-Jobs}
 
 
-In Table~\ref{table:TwoBigJobs}, test measurements \jhanote{for
-  what???}  for performance gains are summarized. The scenario for
-this testing is simple for clarifying benefits.  \jhanote{Terrible
-  writing. This has to change and improve} Initially, two BigJobs are
-submitted to one HPC resource or two HPC resources. Once the first
-BigJob becomes available, two applications are submitted as two
-subtasks with pre-defined cpus to the BigJob, and then when another
-BigJob becomes available later, two subtasks for each application is
-reconfigured by assigning the entire CPUs of a BigJob to one
-application. \jhanote{the 3 scenarios have been outlined. no need to
-  outline them again. just reference them appropriately!} Table
-~\ref{table:TwoBigJobs} shows performance gains with such a scenario
-in terms of MD computation time since CFD computation time is always smaller under
-this setting. In this simple scenario, other complicated aspects such
-as file transfer, in particular between two distributed resources are
-not considered but in the future study, the overall performance will
-be optimized by considering them.
+In Table~\ref{table:TwoBigJobs}, results from the four test runs representing S2 and S3 are presented. 
+The general scenario for these cases is that one bigjob is launched first and the other bigjob becomes available later in the same system (S2) or the remote system (S3).  
+When the first bigjob is available, two applications, MD and CFD, are submitted as two subjobs by requesting a half of the cpus of the BigJob. Once the other BigJob becomes available, each application is immediately configured to run in each BigJob by consuming the entire cpus.  Therefore, more available cpus allow each application to speed up.  For simple demonstration, we confine our experimental runs for such a simple configuration without load balancing or other advanced scheme to distribute available cpus.   
 
-% Performance gains with two BigJobs. Performance is measured with CPU
+As shown in the table, the results with these four test cases demonstrate clearly performance gains with the additionally available cpus when two bigjobs begin to run.  Particularly, the performance gain is examined with respect to two components ${T_{comm}}$ and
+    ${T_{compute}}$ of the total time-to-solution.  The major performance gain is indicated with a
+    shorten ${T_{compute}}$.  ${T_{compute}}$ represents max( ${T _{MD,compute}}$, ${T_{CFD,compute}}$), a longer compute time of two applications. Each $T_{app,compute}$, where ${app}$ is MD or CFD, is measured by monitoring the start time and the end time between the data exchange.  More cpus are available with the incoming BigJob, more gain in the performance is achieved as shown the case of test 4.  On the other hand, the time for communication, ${T_{comm}}$
+    is further decomposed into ${T_{read/write}}$ and ${T_{file-transfer}}$.  Note that the latter is only required with
+    S3.  Other components contributing to the time-to-solution
+    such as the waiting time in the queue are not considered here to
+    focus on the performance gain that is unique for these two scenarios with two BigJobs. 
+
+
+% Performance gains with two bigjobs. Performance is measured with CPU
 % times consumed by MD, since test cases we used always require longer
 % cpu times for MD than those of CFD.  Performance gains with
-% additionally available BigJob can be seen by comparing MD CPU times
-% with those obtained with the initial BigJob.  Measurements were
+% additionally available bigjob can be seen by comparing MD CPU times
+% with those obtained with the initial bigjob.  Measurements were
 % carried out with LONI cluster systems.  louie and poseidon are dell
 % cluster systems having 128 nodes with 4 cores in a
-% node. \jhanote{add BigJob size --- which 8 and 16} Test 1 and 2
+% node. \jhanote{add bigjob size --- which 8 and 16} Test 1 and 2
 % correspond to Use Case 2; Test 3 and 4 correspond to Use Case 3
 % \newline }
 
 \begin{table}[!h]
 \begin{center}
-  \caption{\small Performance measures for Use Case 2 and 3.  The
-    general scenario for these cases is that one BigJob is launched
-    first and the other BigJob becomes available later in the same
-    system (Use Case 2) or the remote system (Use Case 3).  Results
-    are presented with four test cases (two cases for each Use Case 2
-    and 3, respectively) and demonstrate a performance gain with the
-    additionally available BigJob. Here, we present the time to
+  \caption{\small Performance measures for Scenarios S2 and S3.  Here, we present the time to
     solution in terms of two components, ${T_{comm}}$ and
-    ${T_{compute}}$. The major performance gain is indicated with a
-    shorten ${T_{compute}}$ with one more BigJob.  ${T_{compute}}$ is
-    simply measured as max( ${T _{MD,compute}}$. ${T_{CFD,
-        compute}}$), a longer compute time among two applications but
-    excludes the time for communication, ${T_{comm}}$.  ${T_{comm}}$
-    is the period of the time used for communication between MD and
-    CFD and further decomposed into ${T_{read/write}}$ and
-    ${T_{file_transfer}}$.  Note that the latter is only required with
-    Use Case 3.  Other components contributing to the time-to-solution
-    such as the waiting time in the queue are not considered here to
-    focus on the performance gain that is unique for these two Use
-    Cases with two BigJobs.  The details on how to conduct these
+    ${T_{compute}}$.  The details on how to conduct these
     experiments are described in the text.  All measured time is in
-    second. (* describes the size of two BigJobs with the requested cpus. ** describes the system used with the L stands Louie and the P stands Poseidon of LONI cluster systems)
+    second. (* describes the size of two BigJobs with the requested cpus. ** describes the system used and the L stands for Louie and the P stands for Poseidon of LONI cluster system)
     \jhanote{I think we should revisit the way this is
       presented, i.e., the utility of using the time of the MD phase?}
     \Jkimnote{I got rid of MD time as a measure since it causes
@@ -1185,9 +1163,9 @@ test & 1 & 2 & 3 & 4  \\
 
 \hline
 test configuration &&& \\
-use case & 2 & 2 &3 &3 \\
+scenario & S2 & S2 & S3 & S3 \\
 
-size of BigJobs & (8,16)${^*}$  & (8,16) & (8, 16) & (16,32) \\
+size of bigjobs & (8,16)${^*}$  & (8,16) & (8, 16) & (16,32) \\
 compute systems & P${^{**}}$  & L  &  L + P & L + P \\
 \hline
 first period (one big job) &   & & & \\
@@ -1214,6 +1192,9 @@ ${T_{comm}}$ & 0.041 & 0.009 &  0.990 & 0.60 \\
   $T_{read_write}$. We need to also mention/determine if
   $T_{read_write}$ is the same -- when using 2 different machines as
   it is when using 1 machine. As would be expected.}
+
+According to our results, the communication time is insignificant even for cases with S3 in part thanks to the small size of the data required to be exchanged.  Of course, the file transfer depends heavily on the network condition, but it is not expected to be a major issue considering the different time scales between ${T_{compute}}$ and ${T_{compute}}$.  Furthermore, we expect that the difference would be larger as the size of material systems to be simulated increases.  Considering the scaling of computing costs for MD or CFD as the number of particles in MD or the number of mesh points increase, the scaling of the data to be exchanged, consequently, the time for transferring files is expected to remains as insignificant.   Indeed, the development of an efficient runtime environment for hybrid CFD/MD simulation lies in finding a way to decrease ${T_{compute}}$.  Arguably, the results in the table  ~\ref{table:TwoBigJobs} suggests that an BigJob-based runtime environment is able to provide an compelling idea for that.   
+
 
 In summary, use of a BigJob will eliminate idling operation of a
 subtask, which waits for another application to start running. Also,
