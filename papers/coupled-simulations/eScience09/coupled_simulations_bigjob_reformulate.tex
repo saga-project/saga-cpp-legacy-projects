@@ -743,22 +743,22 @@ distributed resources cooperate.
 %%%%% FIGURE %%%%%
 
 
-We investigate a simple couette flow (Fig. 1) as the representative
+
+We investigate a simple couette flow (Fig.~\ref{Fig:Couette}) as the representative
 physical problem, to validate the performance gains and 
-resource flexibility arising from the Pilot-Job based approach.
+resource flexibility of above BigJob scenarios.
+%arising from the Pilot-Job based approach.
 %by applying BigJob abstraction on CFD-MD coupled simulation.
 The current flow system is
 composed of 62,400 mesh points (CFD) and 23,188 particles (MD).
 % both of which are such a small system in each scientific
 % domain. 
 In order to reach convergence, the coupled simulation runs for a
-physical time of 2500$\tau$.  \jhanote{need to define $\tau$
-  somewhere?)}  This is equivalent to 25,000 CFD iterations and
-500,000 MD integration steps. During the simulation, both codes
-components update their boundary values by exchanging their simulation
-data via files, once every 10 $\tau$. This leads to 250
+physical time of 2500$\tau$, which is the time unit related to the characteristics of molecules. This is equivalent to 25,000 CFD iterations and 500,000 MD integration steps. During the simulation, both codes components update their boundary values by exchanging their simulation data via files, once every 10 $\tau$. This leads to 250
 synchronization steps between two simulation components over
-the course of a single simulation run.
+the course of a single simulation run. For the rigorous test of a load balancer, larger coupled simulation task (which has 150 times more workload on CFD domain and 50 times on MD) also has been experimented. The wall-time limit of all simulations are set to 6 hours, which is large enough to encounter both the active and inactive phase experienced in conventional job submission. In the larger simulation, wall-limt time is increased to 24 hours, consdiering its runtime which is around 11 hours.
+
+
 
 No changes in the simulation codes were required in order
 to utilize the BigJob capabilty; however, in order
@@ -767,7 +767,7 @@ assignement the simulation codes need to be equipped
 with the ability to carry out application-level checkpointing.
 The application codes in addition to having application-level
 checkpointing need generalized domain partitioning method to work
-with a range of processor counts.
+with a range of processor counts. In the current work, the application codes experience five launch/re-launches (25 times in larger simulation) to get assigned with changed number of processors, either by the result of load balancing or more resource allocations.
 
 % A coupled simulation by the default one BigJob does not require any
 % change of application codes. On the other hand, it is inevitable to
@@ -782,21 +782,18 @@ with a range of processor counts.
 % need to stop several times and restart from its checkpointing data
 % with changed number of processors assignment. 
 
-Everytime load-balancing is performed, checkpoint and new domain
-partitioning needs to be carried out. For the specific tests
-performed, the application codes stop and restart from checkpointed
-data every 500 $\tau$ (which is 1/5 of total iterations). Second, to
-use a load balancing function, application codes need to return their
-actual computation time data to the BigJob \jhanote{I think it is not
-  bigjob but Application Manager. Please check/correct?}  -- which is
-different from an application's simulation time.  \jhanote{I'm not
+The use of a load balancing function requires one more change on application codes. As load balancer refers to the performance data from application codes, application codes need to return their
+actual computation time, which excludes idle waiting on inter-domain information exchange. This can be implemented by checking elapsed time on inter-domain data exchange and subtracting it from total iteration time.
+%\jhanote{I'm not
   sure I understand the following: One-time event such as domain
   partitioning or checkpointing, and waiting time between application
   domains which is going to be minimized as they are well-balanced,
   should be excluded from the consideration of application's
-  performance.}  e architected the CFD and MD codes to have several
+  performance.}  
+%e architected the CFD and MD codes to have several
 time checking functions inside to capture total iteration time without
 inter-domain information exchange.
+
 
 Simulations used to validate and determine performance values were
 conducted on supercomputing resources on TeraGrid machines (62,976
