@@ -12,8 +12,8 @@ CONDOR_BIN = "/home/latin/saga/condor_bin"
 X509_USER_PROXY = "/home/latin/.globus/userproxy.pem"	# or alternatively os.environ.get("X509_USER_PROXY")
 
 resources_list = (
-		  { "gram_url" : "poseidon1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 10},
-#		  { "gram_url" : "oliver1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 1, "walltime" : 10},
+		  { "gram_url" : "poseidon1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 20},
+		  { "gram_url" : "oliver1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 20},
 #		  { "gram_url" : "louie1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 1, "walltime" : 10},
 		)	
 
@@ -28,19 +28,17 @@ if __name__ == "__main__":
 
 	# Create a local Condor pool (glidein master_condor on remote resources via Condor-G/GRAM2)
 	print "Create a local Condor pool"
+	print time.ctime()
 
-	bigjobs = []
+	bj = bigjob_condor.bigjob_condor()
 	for i in resources_list:
-		bj = bigjob_condor.bigjob_condor()
-		bj.start_pilot_job(lrms_url=i["gram_url"],
+		pj = bj.start_pilot_job(lrms_url=i["gram_url"],
 			queue=i["queue"],
 			project=i["project"],
 			number_nodes=i["number_nodes"],
 			walltime=i["walltime"],
 			userproxy=X509_USER_PROXY)
-    
-		print "Glidein Condor-G Job URL: " + bj.pilot_url + " State: " + str(bj.get_state())
-		bigjobs.append(bj)
+    		print "Glidein Condor-G Job URL: " + bj.pilot_url + " State: " + str(bj.get_state(pj))
 
 	##########################################################################################
 	# Submit SubJob through BigJob (to the local Condor pool)
@@ -56,13 +54,14 @@ if __name__ == "__main__":
 
 	attr = open(CONDOR_BIN + "/condor_attr", "w")
 	attr.write("universe = parallel\n")
-	attr.write("machine_count = 2\n")		# number of nodes (not cores)
-	attr.write("+WantParallelSchedulingGroups = True\n")
+	attr.write("machine_count = 2\n")			# number of nodes (not cores)
+	attr.write("+WantParallelSchedulingGroups = True\n")	# to avoid running on nodes from different clusters
 	attr.close()
 
 	jobs = []
 	for i in range (0, NUMBER_JOBS):
 		print "Start job no.: " + str(i)
+		print time.ctime()
 		sj = bigjob_condor.subjob(bigjob=bj)
 		sj.submit_job(jd)
 		jobs.append(sj)
@@ -84,6 +83,7 @@ if __name__ == "__main__":
 			break
 
 	#######################################################################
-	# Cleaning - stop BigJob - release the local Condor pool
-	for i in bigjobs:
-		i.cancel()
+	# Cleaning - stop BigJob - release nodes in the local Condor pool
+	bj.cancel()
+
+	print time.ctime()

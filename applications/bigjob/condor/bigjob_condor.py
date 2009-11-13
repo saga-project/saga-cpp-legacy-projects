@@ -21,6 +21,8 @@ class bigjob_condor():
 		self.uuid = uuid.uuid1()
 		self.state=saga.job.Unknown
 		self.pilot_url=""
+		self.glidein_jobs = {}
+		self.subjobs = {}
 
 	"""Create a local Condor pool - glidein condor_master on remote
 	   resources via Condor-G -> GRAM2
@@ -40,29 +42,28 @@ class bigjob_condor():
 		print "Working directory: " + working_directory
 		if not os.path.isdir(working_directory):
 			os.mkdir(working_directory)
-		self.lrms_url = lrms_url
-		self.subjobs = {}
+		lrms_url = lrms_url
 
 		self.js_url = saga.url("condor://localhost/")
 		self.job_service = saga.job.service(self.js_url)
 		self.pilot_url = "condor://" + socket.getfqdn()
 
-		condor_glidein_desc = saga.job.description()
-		condor_glidein_desc.executable = working_directory + "/condor_glidein.sh"
-		condor_glidein_desc.output = "condor_glidein.$(CLUSTER).$(PROCESS).out"
-		condor_glidein_desc.error = "condor_glidein.$(CLUSTER).$(PROCESS).err"
+		glidein_desc = saga.job.description()
+		glidein_desc.executable = working_directory + "/condor_glidein.sh"
+		glidein_desc.output = "condor_glidein.$(CLUSTER).$(PROCESS).out"
+		glidein_desc.error = "condor_glidein.$(CLUSTER).$(PROCESS).err"
 
-		condor_glidein = open(condor_glidein_desc.executable, "w")
-		condor_glidein.write("#!/bin/bash -l\n")
-		condor_glidein.write("/bin/date\n")
-		condor_glidein.write("NODES=`uniq $PBS_NODEFILE`\n")
-		condor_glidein.write("for i in $NODES; do\n")
-		condor_glidein.write("ssh $i \"export CONDOR_LOCATION=" + CONDOR_LOCATION + ";")
-		condor_glidein.write("source " + CONDOR_LOCATION + "/condor.sh;")
-		condor_glidein.write("condor_master\"\n")
-		condor_glidein.write("done\n")
-		condor_glidein.write("sleep " + str(60*walltime) + "\n")
-		condor_glidein.close()
+		glidein = open(glidein_desc.executable, "w")
+		glidein.write("#!/bin/bash -l\n")
+		glidein.write("/bin/date\n")
+		glidein.write("NODES=`uniq $PBS_NODEFILE`\n")
+		glidein.write("for i in $NODES; do\n")
+		glidein.write("ssh $i \"export CONDOR_LOCATION=" + CONDOR_LOCATION + ";")
+		glidein.write("source " + CONDOR_LOCATION + "/condor.sh;")
+		glidein.write("condor_master\"\n")
+		glidein.write("done\n")
+		glidein.write("sleep " + str(60*walltime) + "\n")
+		glidein.close()
 
 		attr = open(CONDOR_BIN + "/condor_attr", "w")
 		attr.write("universe = grid\n")
@@ -71,12 +72,27 @@ class bigjob_condor():
 		attr.write("x509userproxy = " + userproxy + "\n")
 		attr.close()
 
-		self.condor_glidein_job = self.job_service.create_job(condor_glidein_desc)
-		self.condor_glidein_job.run()
+		glidein_job = self.job_service.create_job(glidein_desc)
+		glidein_job.run()
 
-	def get_state(self):
-		return self.condor_glidein_job.get_state()
+		glidein_job_id = uuid.uuid1()
+		self.glidein_jobs[str(glidein_job_id)] = glidein_job
+		return glidein_job_id
 
+	def get_state(self, glidein_job_id):
+		if self.glidein_jobs.has_key(str(glidein_job_id)):
+			return self.glidein_jobs[str(glidein_job_id)].get_state()
+		return None
+
+	def cancel(self, glidein_job_id):
+		if self.glidein_jobs.has_key(str(glidein_job_id)):
+			return self.glidein_jobs[str(glidein_job_id)].cancel()
+		return None
+    
+	def cancel(self):
+		for id, job in self.glidein_jobs.iteritems():
+			job.cancel()
+    
 	def add_subjob(self, jd):
 		print "add subjob to list"
 		job_id = uuid.uuid1()
@@ -104,11 +120,9 @@ class bigjob_condor():
 			return saga_job.cancel()
 		return None
 
-	""" Release the local Condor pool"""
+	def __del__(self):
+		self.cancel()
 
-	def cancel(self):
-		self.condor_glidein_job.cancel()
-    
 
 class subjob():
 
@@ -135,7 +149,8 @@ class subjob():
 		return self.bigjob.cancel_subjob(self.job_id)
 
 	def __del__(self):
-		self.delete_job()
+		if self.bigjob.get_state_of_subjob(self.job_id)!="Done":
+			self.delete_job()
 
 	def __repr__(self):
 		if self.job_url==None:
