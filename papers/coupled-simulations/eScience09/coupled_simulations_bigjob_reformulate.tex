@@ -875,34 +875,6 @@ We wanted to see if we could come up with an analysis that would tell
 us how running larger and/or longer simulations effects the actual
 waiting time on the queue.
 
-What we did was the following. We chose two machines with more than
-5000 processors, Ranger and Queenbee. We submitted jobs of different
-sizes, requiring different wall-time limits. Each time we submitted a
-job, we gathered the load factor and the actual waiting time on the
-queue. Lots of factors effect the waiting times. Most important of
-them is the load at the moment on the machine, requested wall-time
-limit and also the number of processors requested. Two more factors
-that effect this are the backfilling that occurs when some other
-irrelevant job ends and the changes in the priority of our own job
-when a particular higher priority job joins the queue.  The waiting
-time has a tendency to decrease as the number of processors of a job
-increase, as can be seen from Table~\ref{table:waitingtime}.
-%The waiting time is most acutely effected due the load as can be seen from Table~\ref{table:waitingtime} . But even then, some of the jobs start running immediately due the backfilling policy.
-% This may part of due to its~
-Considering only the data from the jobs which did not go through
-backfilling, it can be seen that larger processor jobs start earlier
-based on the priority of jobs.
-
-We cannot claim this just by running some tests on a couple of
-machines. It may be, in part, due to the policies and loads under
-which a particular machine is run. The waiting time has a little
-relationship with wall-time limit of jobs. But from experience, we
-feel that running a large job is better than running two smaller
-jobs. We say that the sum total of the waiting times of two smaller
-jobs is going to be larger than the waiting time of a single large
-processor job. This is especially true in cases where the jobs need to
-interact.
-
 \Nkimnote{Will be added some two small job Vs. BigJob table here}
 
 \begin{table}[t]
@@ -994,6 +966,32 @@ of actual waiting time on the queueing system.}
 %\midrule
 \end{tabular}
 \end{table}
+
+What we did was the following. We chose two machines with more than
+5000 processors, Ranger and Queenbee. We submitted jobs of different
+sizes, requiring different wall-time limits. Each time we submitted a
+job, we gathered the load factor and the actual waiting time on the
+queue. Lots of factors effect the waiting times. Most important of
+them is the load at the moment on the machine, requested wall-time
+limit and also the number of processors requested. Two more factors
+that effect this are the backfilling that occurs when some other
+irrelevant job ends and the changes in the priority of our own job
+when a particular higher priority job joins the queue.  The waiting
+time has a tendency to decrease as the number of processors of a job
+increase, as can be seen from Table~\ref{table:waitingtime}.
+Considering only the data from the jobs which did not go through
+backfilling, it can be seen that larger processor jobs start earlier
+based on the priority of jobs.
+
+We cannot claim this just by running some tests on a couple of
+machines. It may be, in part, due to the policies and loads under
+which a particular machine is run. The waiting time has a little
+relationship with wall-time limit of jobs. But from experience, we
+feel that running a large job is better than running two smaller
+jobs. We say that the sum total of the waiting times of two smaller
+jobs is going to be larger than the waiting time of a single large
+processor job. This is especially true in cases where the jobs need to
+interact.
 
 \jhanote{This section needs to establish the basic feature that on
   average, over different loads and on different machines that
@@ -1089,9 +1087,10 @@ of actual waiting time on the queueing system.}
 
 
 
-\subsection{Scenario S1: Single BigJob with Load Balancing}
+\subsection{Scenario S1: Pilot-Job with Load Balancing}
 
-
+\jhanote{Do not have such long paragraphs. One paragraph should
+  represent one simple compact idea. Maxm of 4-5 sentences!!}
 
 Figure~\ref{Fig:Queuewait_LONI} and table~\ref{table:oneBJ_Test} show
 queue waiting and job simulation time performed on small LONI
@@ -1099,19 +1098,19 @@ resources, running above test cases: conventional job submission, one
 default BigJob launch and one BigJob with load balancing. A coupled
 simulation has been conducted by using 32 and 64 processors, with the
 same number of processors allocated to CFD and MD
-subtasks. Application codes experience four restarting from their
-checkpointing data in load balancing test, while simulation keeps
-running until it completes in baseline and default BigJob tests.  The
-waiting time until the launch of a coupled simulation is shown in
-figure~\ref{Fig:Queuewait_LONI}. From the graph, the waiting time (or
+subtasks. Simulations are restarted after load-balancing four times
+using checkpointing data. The waiting time until the launch of a
+coupled simulation is shown in figure~\ref{Fig:Queuewait_LONI}. From
+the graph \jhanote{Figure 6 is not a graph} the waiting time (or
 waiting time and inactive mode in conventional testsuites) did not
-show a close relationship with the workload of the system (which is
-defined as the sum of number of processors either running or waiting
-on the queue before the current job submission, divided by total
-number of processors in the system). Even some cases when workload is
-bigger than 1, all simulations experienced the direct start of a
-simulation by the help of a backfill capacity. Though a BigJob
-simulation had more possibility to start faster than either of
+show a close relationship with the workload of the system \jhanote{has
+  workload been defined? If not, define before this. If yes, remove!!}
+(which is defined as the sum of number of processors either running or
+waiting on the queue before the current job submission, divided by
+total number of processors in the system). Even some cases when
+workload is bigger than 1, all simulations experienced the direct
+start of a simulation by the help of a backfill capacity. Though a
+BigJob simulation had more possibility to start faster than either of
 submitted tasks through the conventional way, some test cases also
 showed that the conventional coupled simulation was starting ahead of
 a BigJob simulation.  Meanwhile, the detailed analysis over the above
@@ -1137,10 +1136,79 @@ possibility to be allocated by a backfill capability.
 \begin{figure}
 \centering
 \includegraphics[scale=0.40]{Simulation_Time_of_One_BigJob.eps}
-\caption{\small Waiting time of a conventional job submission and a BigJob submission, with 32 and 64 processors on LONI's local resources: Eric, Oliver, Louie and Poseidon. Job start time in conventional job submission is denoted by X: the line between two symbols represent the inactive waiting of a first launched job. O symbol represents the start time of a BigJob submission. X axis means the workload and Y axis is waiting time, presented by a log scale. Conventional job submission and one BigJob tests were conducted by 12 times.}
+\caption{\small Waiting time of a conventional job submission and a
+  BigJob submission, with 32 and 64 processors on LONI's local
+  resources: Eric, Oliver, Louie and Poseidon. Job start time in
+  conventional job submission is denoted by X: the line between two
+  symbols represent the inactive waiting of a first launched job. O
+  symbol represents the start time of a BigJob submission. X axis
+  means the workload and Y axis is waiting time, presented by a log
+  scale. Conventional job submission and one BigJob tests were
+  conducted by 12 times.}
 \label{Fig:Queuewait_LONI}
 \end{figure}
 %%%%% FIGURE %%%%%
+
+\setlength{\tabcolsep}{1pt}
+\begin{table}[!ht]
+\begin{center}
+ \caption{\small Results for performance data using BigJob with and
+    without LB. The baseline simulation represents the case when
+    BigJob is not used; in this case, the time to start is dominated
+    by the Inactive Mode of the longer waiting task. The use of BigJob
+    resolves, this as can be seen by the reduced inactive mode time in
+    columns 3 and 4. The starting configuration assigns resources
+    equally between CFD-MD -- 16px each. However, after a few
+    iterations of the LB the configuration is 8-24. With this
+    configuration the performance is better with LB, than without
+    LB 1370 $\pm 98$ vs 1641 $\pm$ 162. The starting configuration
+    of the second set (8-24) is a ``balanced configuration'' which is
+    why there is no performance gains on using the LB. Values in table
+    shows averaged time in seconds, values within a parenthesis are
+    standard deviation of time elapsed; the average is taken over 5
+    distinct experiments. \jhanote{use S1 and S1-LB}}
+% experiments. }
+%\label{table:systems}
+\label{table:oneBJ_Test}
+
+\begin{tabular}{ c|| c | c }
+
+\hline
+16-16 & Active Runtime & Time for Iterative Loop \\
+\hline
+\hline
+Conventional & 1448    & 1349 \\
+Submission   & (13)    & (41) \\
+\hline
+BigJob     & 1458    & 1365 \\
+(no LB)    & (59)  & (15)\\
+\hline
+BigJob     & 1294    & 967 \\
+(LB)    & (54)  & (21) \\
+\hline
+\hline
+\end{tabular}
+
+
+\begin{tabular}{ c|| c | c }
+\hline
+\hline
+32-32 & Active Runtime & Time for Iterative Loop \\
+\hline
+\hline
+Conventional & 861    & 741 \\
+Submission   & (65)    & (47) \\
+\hline
+BigJob     & 892    & 759 \\
+(no LB)    & (89)  & (26)\\
+\hline
+BigJob     & 969    & 617 \\
+(LB)    & (111)  & (47) \\
+\hline
+
+\end{tabular}
+\end{center}
+\end{table}
 
 
 The result of simulation runtime is shown in the
@@ -1186,66 +1254,6 @@ that the current resource distribution is better than the other
 
 \skonote{Will correct the caption in the below table.}
 
-\setlength{\tabcolsep}{1pt}
-\begin{table}[!ht]
-\begin{center}
- \caption{\small Results for performance data using BigJob with and
-    without LB. The baseline simulation represents the case when
-    BigJob is not used; in this case, the time to start is dominated
-    by the Inactive Mode of the longer waiting task. The use of BigJob
-    resolves, this as can be seen by the reduced inactive mode time in
-    columns 3 and 4. The starting configuration assigns resources
-    equally between CFD-MD -- 16px each. However, after a few
-    iterations of the LB the configuration is 8-24. With this
-    configuration the performance is better with LB, than without
-    LB 1370 $\pm 98$ vs 1641 $\pm$ 162. The starting configuration
-    of the second set (8-24) is a ``balanced configuration'' which is
-    why there is no performance gains on using the LB. Values in table
-    shows averaged time in seconds, values within a parenthesis are
-    standard deviation of time elapsed; the average is taken over 5
-    distinct experiments}
-% experiments. }
-%\label{table:systems}
-\label{table:oneBJ_Test}
-
-\begin{tabular}{ c|| c | c }
-
-\hline
-16-16 & Active Runtime & Time for Iterative Loop \\
-\hline
-\hline
-Conventional & 1448    & 1349 \\
-Submission   & (13)    & (41) \\
-\hline
-BigJob     & 1458    & 1365 \\
-(no LB)    & (59)  & (15)\\
-\hline
-BigJob     & 1294    & 967 \\
-(LB)    & (54)  & (21) \\
-\hline
-\hline
-\end{tabular}
-
-
-\begin{tabular}{ c|| c | c }
-\hline
-\hline
-32-32 & Active Runtime & Time for Iterative Loop \\
-\hline
-\hline
-Conventional & 861    & 741 \\
-Submission   & (65)    & (47) \\
-\hline
-BigJob     & 892    & 759 \\
-(no LB)    & (89)  & (26)\\
-\hline
-BigJob     & 969    & 617 \\
-(LB)    & (111)  & (47) \\
-\hline
-
-\end{tabular}
-\end{center}
-\end{table}
 
 
 \subsection{Scenario S2 and S3: Logically and Physically Distributed
