@@ -27,16 +27,16 @@ CONDOR_BIN = "/home/luckow/saga/condor_bin"
 X509_USER_PROXY = "/home/luckow/.globus/userproxy.pem"  # or alternatively os.environ.get("X509_USER_PROXY")
 
 resources_list = [ 
-                  { "gram_url" : "poseidon1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 20}
-#                  { "gram_url" : "oliver1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 20},
+                  { "gram_url" : "poseidon1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 45}
+#                  { "gram_url" : "oliver1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 20}
 #                 { "gram_url" : "louie1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 1, "walltime" : 10},
                  ]
 
 
-NUMBER_JOBS_NIMBUS=0
+NUMBER_JOBS_NIMBUS=8
 NUMBER_JOBS_EC2=0
 NUMBER_JOBS_GRID=0
-NUMBER_JOBS_CONDOR=8
+NUMBER_JOBS_CONDOR=0
 
 #BJ Grid
 advert_host = "fortytwo.cct.lsu.edu"
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # TG/LONI Pilot Job
     # Parameter for BigJob
     re_agent = "/home/luckow/src/bigjob/bigjob_agent_launcher.sh" # path to agent
-    nodes = 16  # number nodes for agent
+    nodes = 8  # number nodes for agent
     lrms_url = "gram://poseidon1.loni.org/jobmanager-pbs" # resource url
     #lrms_url = "gram://qb1.loni.org/jobmanager-fork" # resource url
     project = "" #allocation

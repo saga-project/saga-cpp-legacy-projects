@@ -529,7 +529,7 @@ class bigjob_cloud():
         else:
                 print "BigJob: " + str(self.pilot_url) + ": Not sufficient resources for job."
                 self.resource_lock.release()
-                return ""
+                return "", []
             
     
     def setup_charmpp_nodefile(self, allocated_nodes):
@@ -626,6 +626,11 @@ class bigjob_cloud():
         print "Free nodes: " + str(len(self.free_nodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while self.stop==False:
             try:
+                if self.get_state_detail()!="Running":
+                    print "BJ cloud: No job processing yet"
+                    time.sleep(10)
+                    continue
+
                 print "Poll/Monitor job queue"
                 job_dict=None
                 try:
@@ -639,8 +644,7 @@ class bigjob_cloud():
                         print "No resources available - put job back into queue."
                         self.queue.put(job_dict)
                 self.monitor_jobs()
-                if self.queue.empty():
-                    time.sleep(10)
+                time.sleep(10)
             except KeyboardInterrupt:
                 print "Keyboard Interrupt"
                 self.stop=True
