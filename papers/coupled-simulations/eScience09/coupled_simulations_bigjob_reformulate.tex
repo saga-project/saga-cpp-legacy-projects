@@ -1132,53 +1132,62 @@ waiting times.
 %  represent one simple compact idea. Maxm of 4-5 sentences!!}
 
 Runtimes of the coupled simulation with a single BigJob is given on
-Table~\ref{table:oneBJ_Test}. In both small and large simulations, a
+Table~\ref{table:oneBJ_Test}. For both small and large simulations, a
 default BigJob task takes about 1 percent longer than the conventional
 test. This is reasonable because a default BigJob has the same
 processor distribution between sub-jobs as the conventional job, while
-BigJob has the overhead of sub-jobs' status monitoring and
+BigJob has the minor overhead of sub-jobs' status monitoring and
 communication with advert server. In cases of load-balanced BigJob
-simulations, runtime is saved by about 13 percent compared to
-conventional tests. In the large problem, a load-balanced BigJob
-simulation relatively shows higher standard deviation due to the
-unexpected instability of a computing resource during one experiment,
-which is to be discussed in detail below.
+simulations, there is a significant reduction in the runtime compared
+to successful conventional jobs -- 13\% and greater. For larger
+problem set, a load-balanced BigJob simulation relatively shows higher
+standard deviation due to the unexpected instability of a computing
+resource during one experiment, which will be discussed in detail
+below.
 
 \begin{table}[t]
 %\setlength{\tabcolsep}{1pt}
 %\begin{table}[!ht]
 %\begin{center}
-\caption{\small Results of runtime for S1, S1+LB and conventional submission. 6 distinct experiments were accomplished on each simulation. In both cases, S1 shows about 1\% overhead due to the communication with advert server. On the other hand, S1+LB tests show about 13\% runtime save compared to conventional submission. 64 processors are used on all simulations.}
+  \caption{\small Results of runtime for S1, $S1_{LB}$ and
+    conventional submission. 6 distinct experiments were accomplished
+    for each simulation. In both cases, S1 shows about 1\% overhead
+    due to the communication with advert server. On the other hand,
+    $S1_{LB}$ tests show about 13\% runtime save compared to
+    conventional submission. 64 processors are used on all
+    simulations.}
 \label{table:oneBJ_Test}
 \centering
 \begin{tabular} {p{0.5in} || p{0.7in} p{0.7in} p{0.7in}}
-\multicolumn{4}{c}{\phantom{\tiny 100}}\\
-\hline
- & \nyc Conventional
- & \nyc S1
- & \multicolumn{1}{c}{S1+LB}
-\\
-\hline
- \nyc Small sim. & \nyc 757$\pm$1.89 & \nyc 764$\pm$1.41 & \multicolumn{1}{c}{661$\pm$4.41} \\
- \nyc Large sim. & \nyc 39595$\pm$119.2 & \nyc 39906$\pm$206.3 & \multicolumn{1}{c}{34350$\pm$1302.7} \\
-\hline
+  \multicolumn{4}{c}{\phantom{\tiny 100}}\\
+  \hline
+  & \nyc Conventional
+  & \nyc S1
+  & \multicolumn{1}{c}{S1+LB}
+  \\
+  \hline
+  \nyc Small sim. & \nyc 757$\pm$1.89 & \nyc 764$\pm$1.41 & \multicolumn{1}{c}{661$\pm$4.41} \\
+  \nyc Large sim. & \nyc 39595$\pm$119.2 & \nyc 39906$\pm$206.3 & \multicolumn{1}{c}{34350$\pm$1302.7} \\
+  \hline
 %\midrule
 \end{tabular}
 \end{table}
 The validity of a load balancing function can be discussed by the
 change of processor distribution between subtasks throughout the
-simulation. In the result of a small simulation in
+simulation. For the result of a small simulation in
 Fig.~\ref{Fig:LBSmall}, both CFD and MD subtasks are assigned with 32
 processors initially. After two simulation loops, a load balancer
-converges to the processor distribution of 12 to 52 between CFD and MD
-jobs and this processor distribution remains the same until the
-simulation completes. Runtime reduces from 153 seconds at the initial
-stage to 107 seconds after the convergence. Total computation time is
-596.19 seconds, which is different from 663 seconds counted from
-BigJob application manager. This time difference implies that the
-BigJob application manager spends about 13 seconds on executing its
-internal commands including the run of a load balancing function and
-sub-job re-launch.
+converges to the processor distribution of 12 to 52 processors between
+CFD and MD respectively; this processor distribution remains the same
+until the simulation completes. Runtime reduces from 153 seconds at
+the initial stage to 107 seconds after the convergence. Total
+computation time is 596.19 seconds, which is different from 663
+seconds counted from BigJob application manager. This time difference
+implies that the BigJob application manager spends about 13 seconds on
+executing its internal commands including the run of a load balancing
+function and sub-job re-launch. \jhanote{I don't see how this is
+  13seconds saving? I can't see what the numbers 596 and 663s
+  represent??}
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -1199,10 +1208,10 @@ sub-job re-launch.
 \end{figure}
 %%%%% FIGURE %%%%%
 
-The result of computation time evolution on a large simulation is seen
-in Fig.~\ref{Fig:LBLarge}. On most experiments, which is given in the
-left side of Fig.~\ref{Fig:LBLarge}, a load balancer directly goes to
-a converged solution of processor distribution, which is 24 to 40
+The result of computation time evolution for a large simulation is
+seen in Fig.~\ref{Fig:LBLarge}. For most experiments, which is given in
+the left side of Fig.~\ref{Fig:LBLarge}, a load balancer directly goes
+to a converged solution of processor distribution, which is 24 to 40
 between CFD and MD jobs. On the other, in one experiment, computing
 nodes assigned to MD simulation seem to have temporarily experienced
 the internal overhead as shown from the right side of
@@ -1214,9 +1223,15 @@ the system settled down, which is the processor distribution of 20 to
 44 between two sub-jobs. Compared to the steady solution in stable
 cases, computation time for one simulation loop increases in this
 processor distribution increases from 1320 seconds to 1380
-seconds. This leaves the requirement of refining a load balancing
-function, to predict more precisely on parallel performances of
-application codes.
+seconds. % This leaves the requirement of refining a load balancing
+% function, to predict more precisely on parallel performances of
+% application codes.
+Plots on the right side of Fig.~\ref{Fig:LBLarge} show a
+non-monotonically changing resource assignment by the LB, and thus
+demonstrating how the load balancer can be self-correcting and adapt
+to changing performance; after increasing the number of processors
+assigned to the MD, the load-balancer unassigns the additional
+processors.
 
 
 % %%%%% FIGURE %%%%%
