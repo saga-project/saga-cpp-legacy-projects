@@ -439,15 +439,15 @@ ensemble of batch jobs without the necessity to queue each individual
 job. A Pilot-Job is a normal Grid job, which is places into the batch
 queue of the respective Grid resource. Once the batch queue assigned
 the requested resources to the Pilot-Job, the Pilot-Job is responsible
-for managing these and assigning them to so-called Sub-Jobs.  That way
-queuing times for Sub-Jobs can be reduced and the predictability for
+for managing these and assigning them to so-called sub-jobs.  That way
+queuing times for sub-jobs can be reduced and the predictability for
 application scenarios can be increased.
 
 
 Pilot-Jobs decouple resource allocation from resource binding and
 allow the efficient utilization of resources. By delaying the resource
 binding decision into the application-level, dynamic usage modes,
-e.\,g.\ the load-depended sizing of Sub-Jobs or the dynamic addition
+e.\,g.\ the load-depended sizing of sub-jobs or the dynamic addition
 of resources to meet deadlines, can be supported.
 
 \emph{BigJob} is a SAGA-based Pilot-Job implementation. In contrast to other
@@ -464,7 +464,7 @@ bind sub-jobs to these resources. In the next sections the three different backe
 will be described.
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.45\textwidth]{figures/distributed_pilot_job.pdf}
+        \includegraphics[width=0.45\textwidth]{figures/distributed_pilot_job}
     \caption{\textbf{Overview of the SAGA-based Pilot Job:} The SAGA Pilot Job API is
     currently implemented by three different backends - one for Grids, Condor and 
     for Clouds.}
@@ -489,7 +489,7 @@ implementation for computational Grids. The Grid BigJob comprises
 of three components: (i) the BigJob Manager that
 provides the Pilot-Job abstraction and manages the orchestration and
 scheduling of BigJobs (which in turn allows the management of both
-BigJob objects and subjobs) (ii) the BigJob-Agent that represents the
+BigJob objects and subjobs) (ii) the BigJob Agent that represents the
 pilot job and thus, the application-level resource manager on the
 respective resource, and (iii) the advert service that is used for
 communication between the BigJob Manager and Agent.
@@ -498,9 +498,9 @@ communication between the BigJob Manager and Agent.
     \centering
     \includegraphics[width=0.45\textwidth]{figures/bigjob}
    \caption{BigJob Architecture: The core of the framework, the
-      BigJob-Manager, orchestrates a set of Sub-Jobs via a
-      BigJob-Agent using the SAGA job and file APIs.  The
-      BigJob-Agent is responsible for managing and monitoring sub-jobs
+      BigJob Manager, orchestrates a set of sub-jobs via a
+      BigJob Agent using the SAGA job and file APIs.  The
+      BigJob Agent is responsible for managing and monitoring sub-jobs
       on a single machine.}
    \label{fig:figures_bigjob}
 \end{figure}
@@ -545,7 +545,7 @@ advantages.  BigJob can utilize Condor scheduling and matchmaking. It
 allows the control in an unified way of the state of pilot-jobs and
 sub-jobs as Condor jobs. The Advert Service still can be applied and
 is an answer to a problem of central coordination point if many
-different backends (Condor pool, clouds, grids) are used.  However the
+different backends (Condor pool, Clouds, Grids) are used.  However the
 approach presented here shows how to implement the BigJob idea
 referring Condor only.
 
@@ -604,23 +604,29 @@ pool.
 At the execution level, Clouds differ from Clusters/Grids in at least
 a couple of different ways. In Cloud environments, user-level jobs are
 not typically exposed to a scheduling system; a user-level job
-consists of requesting the instantiation of a Virtual Machine (VM).
+consists of requesting the instantiation of a virtual machine (VM).
 Virtual machines are either assigned to the user or not (this is an
 important attribute that provides the illusion of infinite resources).
 The assignment of job to a VM must be done by the user (or a
 middleware layer as BigJob).  In contrast, user-level jobs on Grids
 and clusters are exposed to a scheduling system and are assigned to
-execute at a later stage.  Also a description of a Grid/cluster job
-typically contains an explicit description of workload; in contrast
-for Clouds a user level job typically contains the container
-(description of the resource requested) but does not necessarily
-contain the workload. In other words, the physical resources are not
+execute at a later stage.  Also a description of a Grid job
+typically contains an explicit description of the workload; in contrast
+for Clouds a user level job usually contains the container
+(description of the resource requested), but does not necessarily
+include the workload. In other words, the physical resources are not
 provisioned to the workload but are provisioned to the container.
 This model is quite similar to resource reservations where you obtain
 a ``container'' of resources to which you can later bind jobs
-to. Interestingly, at this level of formulation, pilot-jobs attempt to
+to. Interestingly, at this level of formulation, Pilot-Jobs attempt to
 provide a similar model of resource provisioning as Clouds natively
 provide.
+
+
+As shown in Figure~\ref{fig:figures_distributed_pilot_job} the BigJob Cloud implements
+the Pilot-Job abstraction for Cloud resources. The Cloud usage model naturally maps
+to the BigJob concept where resource allocation is done within the big-job and the 
+resource binding is conducted dynamically for each sub-job.
 
 Prior to using the SAGA Cloud Pilot-Job, the user is required to
 prepare the virtual machine image for each Cloud that is going to
@@ -629,15 +635,17 @@ application data. Once the image is setup, the user can initialize
 \texttt{bigjob\_cloud} object referencing the respective Cloud
 environment (including the used image). After the user initialized 
 a \texttt{big\_job} object and called \texttt{start\_pilot\_job},
-the BigJob-Manager starts the specified number of virtual machines 
+the BigJob Manager starts the specified number of virtual machines 
 in the requested Cloud. 
 
+
+
 For this purpose, the manager relies on a special resource adaptor
-for each cloud. This adaptor encapsulated cloud specifics, such as the used
+for each Cloud. This adaptor encapsulates Cloud specifics, such as the used
 security scheme, the communication protocol and the required setup tasks. Currently,
 Amazon EC2, Eucalyptus and Nimbus Clouds are supported. Despite the similarity 
 of these Clouds and the trend toward standardisation on the
-EC2 API, there are subtle differences between the clouds, e.\,g.\ in the allocation
+EC2 API, there are subtle differences between these Clouds, e.\,g.\ in the allocation
 of IP addresses, the SSH key handling, the metadata management or 
 the network setup. The Cloud BigJob attempts to hide these differences 
 from the user. However, a further standardization of such Cloud environments, 
@@ -653,9 +661,9 @@ up all SSH keys, which is a pre-requisite for running MPI applications.
 Having finished all preparation tasks, the BigJob changes into the state
 \emph{Running}. 
 
-After the running state has been reached, the manager starts to process Sub-Jobs.
-Unprocessed Sub-Jobs are stored in a FIFO queue. As resources become available,
-Sub-Jobs are assigned to these. For parallel jobs the manager generates
+After the running state has been reached, the manager starts to process sub-jobs.
+Unprocessed sub-jobs are stored in a FIFO queue. As resources become available,
+sub-jobs are assigned to these. For parallel jobs the manager generates
 a nodefile, which is then used for launching the application. Once the preparation
 work has been finished, the manager spawns the job using the SAGA job API and the SSH
 adaptor. 
@@ -663,7 +671,7 @@ adaptor.
 The manager monitors the job progress using the standard mechanisms provided by the
 SAGA job API and a monitoring thread. Once a job terminates, i.\,e.\ it changes 
 to the state \emph{Done} or \emph{Failed}, the allocated resources are freed. 
-A new Sub-Job from the queue can then be assigned to newly available resources.
+A new sub-job from the queue can then be assigned to newly available resources.
 
 Since all meta-data of the assigned Cloud virtual machines is available via 
 the respective Cloud API it is -- in contrast to the Grid BigJob -- not necessary 
@@ -813,8 +821,8 @@ startup time from 350 sec to about 60 sec.
 
 For our experiments we used different Cloud environments: 
 the Nimbus Science Cloud of the University of Chicago and the 
-Amazon EC2 environment is used. In general, each cloud has 
-its characteristics. The Nimbus cloud is accessed via the WSRF
+Amazon EC2 environment is used. In general, each Cloud has 
+its characteristics. The Nimbus Cloud is accessed via the WSRF
 interface, while for EC2 the Amazon command line 
 client is used. Each Nimbus VM provides 2 virtual cores and 3.7\,GB memory. 
 Amazon offeres different VM types with up to 8 cores. We used 
@@ -825,7 +833,7 @@ best to the virtual machine provided by Nimbus.
 \subsection{Scenario A: \tc for Workload for Different Resource Configurations}
 
 \subsubsection{\tc for single Resource Usage}
-
+\alnote{Shantenu: How many atoms do we have??}
 In the first example, a given workload -- a NAMD simulation consisting
 of xxx atoms -- was run for 500 timesteps at different
 infrastructures. For this experiment the Charm++~\cite{871085} version
@@ -947,7 +955,7 @@ number of jobs done with the total number of jobs and estimates the
 total number of jobs that can be completed within the requested
 timeframe. If the total number of jobs is higher than this estimate,
 the progress monitor instantiates another BigJob object request
-additional cloud resources for a single replica.  In this scenario,
+additional Cloud resources for a single replica.  In this scenario,
 each time an intermediate target is not met four additional Nimbus VMs
 sufficient for running another eight core replica are instantiated.
 Table~\ref{tab:app_deadline} summarizes the results.
