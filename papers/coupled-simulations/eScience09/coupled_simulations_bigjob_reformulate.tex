@@ -871,24 +871,8 @@ more loaded than other resources.
 % monitoring over these systems, QueenBee has been very crowded while
 % all others have been less occupied.
 
-\subsection{Using Pilot-Jobs to submit Coupled Simulations:
-  Performance Analysis}
-  
-% The load-factor is defined as the ratio of the number of active
-% nodes to the total number of nodes on the machine; we measured this
-% ratio at the instant when the job was submitted to the
-% queuing-system, as well as when the job execution began, to correct
-% for large variation in loads. The load-factor was recorded on every
-% job submission while changing the requested number of processors
-% from 8 to 64 and the requested wall-time limit from 1 hr to 12
-% hrs. The order of job execution depends on a variety of parameters
-% such as submission time, backfill opportunities, number of actively
-% scheduled jobs and queue priority including credential, fairshare,
-% resource and service priority.  The result of waiting time on the
-% queue shows very diversity and variance as a matter of course.
-
-% The result of waiting time on the queue shows very diversity and
-% variance as a matter of course.
+\subsection{Using Pilot-Jobs to submit Coupled Simulations: Queue Wait
+  Time Analysis}
 
 \begin{table}[t]
   \caption{\small  Effect of various configurations on waiting
@@ -980,42 +964,54 @@ more loaded than other resources.
 \end{tabular}
 \end{table}
 
-We wanted to see if we could come up with an analysis that would tell
-us how running larger and/or longer simulations effects the actual
-waiting time on the queue. What we did was the following. We chose two machines with more than
-5000 processors, Ranger and Queenbee. We submitted jobs of different
-sizes, requiring different wall-time limits. Each time we submitted a
-job, we gathered the load-factor and the actual waiting time on the
+We wanted to design experiments to determine if running larger and/or
+longer simulations effects the actual waiting time on the queue. What
+we did was the following. We chose two machines with more than 5000
+processors, Ranger and Queenbee. We submitted jobs of different sizes,
+requiring different wall-time limits. Each time we submitted a job, we
+gathered the load-factor and the actual waiting time on the
 queue. Lots of factors effect the waiting times. Most important of
 them is the load at the moment on the machine, requested wall-time
 limit and also the number of processors requested. Two more factors
 that effect this are the backfilling that occurs when some other
-irrelevant job ends and the changes in the priority of our own job
-when a particular higher priority job joins the queue.  Also, the internal queueing policy of supercomputing centers may effect the waiting time on the queue based on  their queueing priority  including credential, fairshare, resource and service priority. The waiting
-time has a tendency to decrease as the number of processors of a job
-increase, as can be seen from Table~\ref{table:waitingtime}.
-Considering only the data from the jobs which did not go through
-backfilling, it can be seen that larger processor jobs start earlier
-based on the priority of jobs. 
+unrelated job finishes and the changes in the priority of the test job
+when a particular higher priority job joins the queue; however, unlike
+the first three factors, the last two are somewhat random and it is
+difficult to systematically account for them. Also, the internal
+queueing policy of supercomputing centers may effect the waiting time
+on the queue based on their queueing priority including credential,
+fairshare, resource and service priority.  As can be seen from
+Table~\ref{table:waitingtime}, the waiting time tends to decrease as
+the number of processors requested in a job increases.  It can be seen
+that larger processor jobs start earlier based on the priority of
+jobs.
+% Considering only the data from jobs which did not go through
+% backfilling, it can be seen that larger processor jobs start earlier
+% based on the priority of jobs.
 
 We cannot claim this just by running some tests on a couple of
 machines. It may be, in part, due to the policies and loads under
-which a particular machine is run. The waiting time has a little
-relationship with wall-time limit of jobs. But from experience, we
-feel that running a large job is better than running two smaller
-jobs. We say that the sum total of the waiting times of two smaller
-jobs is going to be larger than the waiting time of a single large
-processor job. This is especially true in cases where the jobs need to
-interact, as shown in Fig.~\ref{Fig:OneBJ_Flow}.
+which a particular machine is run. It is difficult to discern a
+relationship between waiting time with the requested wall-time limit
+of jobs, as from experience there is greater variation in backfilling
+probability with varying wall-time requests.  However, we are able to
+establish that running a single large job on average has to wait less
+at the queue than the wait time for a smaller job (and thus most
+definitely two small jobs). We find that the sum total of the waiting
+times of two smaller jobs is larger than the waiting time of single
+large job. This is especially true in cases where the jobs need to
+interact, as shown in Fig.~\ref{Fig:OneBJ_Flow}, i.e., one job cannot
+start till the other is ready to start.
 
 %The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. 
 
-The result of time-to-start on conventional job submissions and a
-single BigJob launch is presented in Table~\ref{table:BJwaiting}. Test
-results do not exactly coincide with our waiting time experiments in
-every test. In the larger simulation problem which has longer
+The results of experiments to determine the time-to-start for
+conventional job submissions and a single BigJob launch is presented
+in Table~\ref{table:BJwaiting}. Test results do not exactly coincide
+with our waiting time experiments in every test. For the larger
+physical problem under investigation, the simulation with longer
 wall-time limit, the result follows our former experiments that a
-BigJob has the potential of faster time-to-start than two conventional
+BigJob has the potential of lower time-to-start than two conventional
 submissions. On the other hand, a small problem resulted in the faster
 time-to-start in conventional case.
 %there is no guarantee whether two smaller job submissions would utilize backfilling capability more effectively or one BigJob launch will get the benefit of higher priority by resources' queueing policy. According to the experiments presented in 
@@ -1029,15 +1025,15 @@ wall-time limit setup than actual runtime.
 
 \begin{table}[t]
   \caption{\small  Waiting and inactive time for conventional job
-submissions, and a single BigJob submission. In both cases,
-conventional job is submitted to use 2$\times$32 processors and a
-BigJob requests 64 processors. Conventional job showed faster
-time-to-start (i.e., the sum of waiting time and inactive mode) on
-small problem size with 6 hours of wall-time limit, while a BigJob
-gets allocated faster with longer wall-time limit. Conventional job
-submission showed 3 failures during the test due to the timeover of
-wall-time limit in the first-started job. Experiments were conducted
-on small and less crowded LONI clusters.}
+    submissions, and a single BigJob submission. In both cases,
+    conventional job is submitted to use 2$\times$32 processors and a
+    BigJob requests 64 processors. Conventional job submission mode showed faster
+    time-to-start (i.e., the sum of waiting time and inactive mode) on
+    small problem size with 6 hours of wall-time limit, while a BigJob
+    gets allocated faster with longer wall-time limit. Conventional job
+    submission showed 3 failures during the test due to the timeover of
+    wall-time limit in the first-started job. Experiments were conducted
+    on small and less crowded LONI clusters.}
 
 \label{table:BJwaiting}
 \centering
