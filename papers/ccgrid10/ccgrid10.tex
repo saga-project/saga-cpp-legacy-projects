@@ -304,8 +304,9 @@ Lately, the Pilot-Job concept has been extensively research.
 Different systems that use similar Glide-In approaches have been
 developed. Frey et al.~\cite{citeulike:291860} initially proposed this idea in their
 work on Condor Glide-In. Using Condor Glide-In a complete Condor pool
-can be initiated using the GRAM service. Falkon~\cite{1362680} is a
-newer system, which emphasize in particular the performance of its
+can be initiated using the GRAM service. 
+Falkon~\cite{1362680} is a newer system, 
+which emphasize in particular the performance of its
 task dispatcher. However, both systems have limitations and impose
 e. g. different overheads: Condor Glide-In~\cite{citeulike:291860}
 requires the start of a complete set of Condor daemons within the
@@ -454,14 +455,13 @@ Pilot-Job implementations as Condor Glide-In or Falkon, BigJob
 natively supports parallel applications (e.g. based on MPI) and works
 independent of the underlying Grid infrastructure across different
 heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
-advantage of using a SAGA-based approach. After an overview of the
-standard BigJob implementation for Grid backends, we highlight how the
-BigJob framework was extended to support Condor and Cloud resources.
+advantage of using a SAGA-based approach. 
 
-advantage of using a SAGA-based approach (Figure~\ref{fig:figures_distributed_pilot_job}).
-In doing so BigJob provides the user an uniform abstraction to Grids and Clouds
-independent of any particular Cloud or Grid provider that can be
-instantiated dynamically.
+As shown in Figure~\ref{fig:figures_distributed_pilot_job} BigJob provides
+a unified abstraction to Grids, Condor pools and Clouds. Using the same API,
+applications can dynamically allocate resources via the big-job interface and
+bind sub-jobs to these resources. In the next sections the three different backends
+will be described.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{figures/distributed_pilot_job.pdf}
@@ -484,10 +484,17 @@ BigJob:
 
 \subsection{BigJob for Grids}
 
-The following figure gives an overview of the SAGA BigJob architecture of the default BigJob
-developed for computational Grids.
+Figure~\ref{fig:figures_bigjob} shows an overview of the SAGA BigJob 
+implementation for computational Grids. The Grid BigJob comprises 
+of three components: (i) the BigJob Manager that
+provides the Pilot-Job abstraction and manages the orchestration and
+scheduling of BigJobs (which in turn allows the management of both
+BigJob objects and subjobs) (ii) the BigJob-Agent that represents the
+pilot job and thus, the application-level resource manager on the
+respective resource, and (iii) the advert service that is used for
+communication between the BigJob Manager and Agent.
 
-\begin{figure}[htbp]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.45\textwidth]{figures/bigjob}
    \caption{BigJob Architecture: The core of the framework, the
@@ -498,23 +505,15 @@ developed for computational Grids.
    \label{fig:figures_bigjob}
 \end{figure}
 
-SAGA BigJob comprises of three components: (i) the BigJob Manager that
-provides the Pilot-Job abstraction and manages the orchestration and
-scheduling of BigJobs (which in turn allows the management of both
-BigJob objects and subjobs) (ii) the BigJob-Agent that represents the
-pilot job and thus, the application-level resource manager on the
-respective resource, and (iii) the advert service that is used for
-communication between the BigJob Manager and Agent.
-
-Applications can utilize the framework via the \texttt{bigjob} and
-\texttt{subjob} classes.  Before running regular jobs, an application
-must initialize a \texttt{bigjob} object.  The BigJob Manager then
+Applications can utilize the framework via the big-job and
+sub-job classes.  Before running regular jobs, an application
+must initialize a big-job object.  The BigJob Manager then
 queues a Pilot-Job, which actually runs a BigJob Agent on the
 respective resource. For this agent a specified number of resources is
-requested. Subsequently, Sub-Jobs can be submitted through the BigJob
-Manager using the jobID of the BigJob as reference. The BigJob
+requested. Subsequently, sub-jobs can be submitted through the BigJob
+Manager using the job-id of the BigJob as reference. The BigJob
 Manager ensures that the subjobs are launched onto the correct
-resource based upon the specified jobID using the right number of
+resource based upon the specified job-id using the right number of
 processes. Communication between the BigJob Agent and BigJob Manager
 is carried out using the SAGA advert service, a central key/value
 store. For each new job, an advert entry is created by the BigJob
@@ -523,7 +522,7 @@ found and resources are available, the job is dispatched, otherwise it
 is queued.
 
 Need to mention that BigJob is based upon extensions to the SAGA job
-and file APIs, and thus is both syntaticallye and semantically
+and file APIs, and thus is both syntactically and semantically
 consistent with the core SAGA package. Hence, referred to as a
 SAGA-based framework.
 
@@ -533,21 +532,21 @@ SAGA-based framework.
 
 \jhanote{How bigjob works with Condor Glide-in}
 
-Condor natively provides pilot-job functionality; in fact, Condor has
-been instrumental in the uptake and popularization of the pilot-job
+Condor natively provides Pilot-Job functionality; in fact, Condor has
+been instrumental in the uptake and popularization of the Pilot-Job
 concept.
-% that allows implement the general Big-Job 
+% that allows implement the general BigJob 
 % architecture in many different ways. 
 In fact the challenge here is to implement BigJob as an overlay over
-Condor's native pilot-job with minimal disturption. The idea of Advert
+Condor's native pilot-job with minimal disruption. The idea of Advert
 Service as a central point of collecting information about sub-jobs
 can be substituted by a Condor queue. This approach gives some
-advantages.  Big-Job can utilize Condor scheduling and matchmaking. It
+advantages.  BigJob can utilize Condor scheduling and matchmaking. It
 allows the control in an unified way of the state of pilot-jobs and
 sub-jobs as Condor jobs. The Advert Service still can be applied and
 is an answer to a problem of central coordination point if many
 different backends (Condor pool, clouds, grids) are used.  However the
-approach presented here shows how to implement the Big-Job idea
+approach presented here shows how to implement the BigJob idea
 referring Condor only.
 
 \begin{figure}[!ht]
@@ -895,13 +894,15 @@ Nimbus as Cloud resource.
     \label{fig:performance_8replica_grid_cloud_condor}
 \end{figure}
 
-Figure~\ref{fig:performance_8replica_grid_cloud_condor} shows the results. The performance of the Condor and
-Grid BigJob is quite similar, which can be expected since the underlying physical resources Poseidon and Oliver
-are quite similar. Solely, the slightly higher startup overhead can be observed in the overall Condor
+Figure~\ref{fig:performance_8replica_grid_cloud_condor} shows the results. 
+The performance of the Condor and Grid BigJob is quite similar, which can be expected since the underlying 
+physical LONI resources are quite similar. Solely, the slightly higher startup overhead can be observed in the overall Condor
 runtime.
 
-The offloading of 2 replicas to an additional Cloud resource did not
-result in an improved \tc. In such a scenario, \tc is determined by
+In the following the offload of 2 replicas to a Cloud resource has been
+investigated. For this purpose, the Nimbus Cloud was used. The offloading of 2 replicas 
+to an additional Cloud resource did not result in an 
+improved \tc. In such a scenario, \tc is determined by
 the slowest resource, i.\,e.\ Nimbus. As described earlier, the
 startup time for Nimbus images is in particular for such short runs
 significant. Also, NAMD performs significantly worse in the Nimbus
@@ -912,8 +913,12 @@ Figure~\ref{fig:performance_namd_run}) at least 720\,sec must be
 allowed for running a single replica on Nimbus. Thus, it can be
 concluded that if resources in the Grids or Condor pool are instantly
 available it is not reasonable to start additional Cloud resources.
+However, it must be noted that are virtual machines types with a better
+performance available, e.\,g.\ in the Amazon Cloud. These VMs 
+are usually associated with higher costs (up to 2.40\,\$ per CPU hour) than
+the Science Cloud VMs. For a further discussion of cost trade-offs for 
+scientific computations see Deelman et\,al.~\cite{1413421}. 
 
-\alnote{Related Work: Condor VM}
 
 \subsection{Scenario B: Investigation of the Distribution of Workload for Maximum Allowed
   Time to Solution} 
