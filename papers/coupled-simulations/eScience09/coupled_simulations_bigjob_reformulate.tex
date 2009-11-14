@@ -102,9 +102,10 @@ Dynamic Resource Allocation and Load-Balancing}
   required by coupled multi-physics simulations. In this paper we
   develop and demonstrate a novel approach to overcome the lack of
   native support for coordinated job submission requirement associated
-  with coupled runs. Our solution is a generalization of the Pilot-Job
+  with coupled runs. We establish the performance advantages arising
+  from our solution, which is a generalization of the Pilot-Job
   concept -- which in of itself is not new, but is applied to coupled
-  simulations for the first time. Our solution not only overcomes the
+  simulations for the first time.  Our solution not only overcomes the
   initial co-scheduling problem, but provides a dynamic resource
   allocation mechanism. Support for such dynamic resources is critical
   for a load-balancing mechanism, which we develop and demonstrate to
@@ -112,17 +113,9 @@ Dynamic Resource Allocation and Load-Balancing}
   problem. We establish that the performance advantage of using
   BigJobs is invariant with the size of the machine as well as the
   size of the physical model under investigation.  The Pilot-Job
-  abstraction is developed using SAGA (http://saga.cct.lsu.edu), which
-  provides an infrastructure agnostic implementation, and which can
-  seamlessly execute and utilize distributed resources. We also
-  demonstrate for the first time that we are aware of, the use of
-  multiple Pilot-Job implementations to solve the same problem;
-  specifically, we use SAGA to access the SAGA-based Pilot-Job on
-  high-end resources such as the TeraGrid, whilst using the native
-  Condor Pilot-Job (Glide-in) on Condor resources. Importantly both
-  are invoked via the same interface without changes at the
-  development or deployment level, but only an execution (run-time)
-  decision.
+  abstraction is developed using SAGA, which provides an
+  infrastructure agnostic implementation, and which can seamlessly
+  execute and utilize distributed resources. 
 \end{abstract}
 \up\up
 
@@ -269,10 +262,17 @@ is simulated by MD and the far field flow is calculated by CFD.
 % when reduction of total computational cost and keeping the atomistic
 % details are equivalently demanded.
 
-% A scientific problem that can be effectively tackled by the hybrid CFD/MD approach would be, for example, the simulation of a flow-field where the viscous effect of solid boundary is so dominant that the length scale required becomes significantly larger than the typical size of a system conducted by the conventional MD. Additionally, understanding of this fluid system near the wall is profoundly important but can be achieved only through atomistic molecular dynamics. One solution is, as is seen in Fig.~\ref{Fig:Couette}, to
-carry out the hybrid CFD/MD approaches with which atomistic
-interactions between solid elements and fluid particles near the wall
-is simulated by MD and the far field flow is calculated by CFD.
+% A scientific problem that can be effectively tackled by the hybrid
+% CFD/MD approach would be, for example, the simulation of a flow-field
+% where the viscous effect of solid boundary is so dominant that the
+% length scale required becomes significantly larger than the typical
+% size of a system conducted by the conventional MD. Additionally,
+% understanding of this fluid system near the wall is profoundly
+% important but can be achieved only through atomistic molecular
+% dynamics. One solution is, as is seen in Fig.~\ref{Fig:Couette}, to
+% carry out the hybrid CFD/MD approaches with which atomistic
+% interactions between solid elements and fluid particles near the wall
+% is simulated by MD and the far field flow is calculated by CFD.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -287,7 +287,21 @@ is simulated by MD and the far field flow is calculated by CFD.
 %%%%% FIGURE %%%%%
 
 In this study, we based on the MPI version of the ``in-house''
-incompressible CFD code~\cite{Lee} and the MPI version of LAMMPS~\cite{LAMMPS} for MD. We had some modifications over these application codes to implement hybrid schemes on each application domain. In brief, the hybrid region where the coupling mechanism between MD region and CFD region is executed comprises five sub-regions. In the CFD boundary grid region positioned near the pure MD region, velocities of particles obtained with MD are averaged and used for boundary condition for the corresponding CFD computational cells. The MD boundary zone is placed above the CFD boundary zone and here, information on velocities from the CFD grid are imposed on particles in the zone through dynamically constrained equation of motion for MD. As illustrated in Fig.~\ref{Fig:Couette}, the coupling mechanism is the key component for successful hybrid CFD/MD simulations and our implementation follows the literature~\cite{Nie},~\cite{Yen}.
+incompressible CFD code~\cite{Lee} and the MPI version of
+LAMMPS~\cite{LAMMPS} for MD. We had some modifications over these
+application codes to implement hybrid schemes on each application
+domain. In brief, the hybrid region where the coupling mechanism
+between MD region and CFD region is executed comprises five
+sub-regions. In the CFD boundary grid region positioned near the pure
+MD region, velocities of particles obtained with MD are averaged and
+used for boundary condition for the corresponding CFD computational
+cells. The MD boundary zone is placed above the CFD boundary zone and
+here, information on velocities from the CFD grid are imposed on
+particles in the zone through dynamically constrained equation of
+motion for MD. As illustrated in Fig.~\ref{Fig:Couette}, the coupling
+mechanism is the key component for successful hybrid CFD/MD
+simulations and our implementation follows the
+literature~\cite{Nie},~\cite{Yen}.
 
 % Between these zones, a buffer
 % layer exists to avoid any harmful direct influences from one zone to
@@ -445,10 +459,11 @@ evolution loop. Here, time for initialization or inter-domain data
 exchange are excluded from the counting, because they are one-time
 event or irrelevant to application's performance.  The efficient
 functioning of the LB is predicated on application codes being able to
-restart from their checkpointing data effectively.  Also, application codes should be equipped with generalized domain partitioning routine to run
-a simulation with any number of processors, without harming their
-parallel efficiency a lot. If above conditions are satisfied, it makes
-sense to load the LB within the pilot-job, to implement dynamic
+restart from their checkpointing data effectively.  Also, application
+codes should be equipped with generalized domain partitioning routine
+to run a simulation with any number of processors, without harming
+their parallel efficiency a lot. If above conditions are satisfied, it
+makes sense to load the LB within the pilot-job, to implement dynamic
 resource allocation between tasks.  Conceptually, the load-balancing
 algorithm assigns more processors to a sub-task with greater runtime,
 until two codes take the same wall-clock time between points when they
@@ -460,9 +475,9 @@ are, (1) each application code follows the ideal parallel efficiency.
 Let the computation time (between exchanges) of the two sub-jobs be
 $t_{CFD}$ and $t_{MD}$, and the number of processors assigned to each
 domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts I and F
-denotes initial and final states. Based on assumption (1), total problem size of each application
-%\jhanote{What does ``workload on each application   mean''?} 
-remains the same after the re-allocation of resources,
+denotes initial and final states. Based on assumption (1), total
+problem size of each application remains the same after the
+re-allocation of resources,
 
 \small
 \begin{eqnarray}
@@ -473,9 +488,8 @@ W_{MD}&=&PE_{MD,I}\times t_{MD,I}=PE_{MD,F}\times t_{MD,F}
 \normalsize
 %\jhanote{Jeff: Please define what is $PE_{MD}'$, $t_{MD}'$} 
 
-In spite
-of re-allocation, the total number of processor utilized remains the
-same:
+In spite of re-allocation, the total number of processor utilized
+remains the same:
 
 \small
 \begin{equation}
@@ -486,13 +500,11 @@ PE_{TOT}=PE_{CFD,I}+PE_{MD,I}=PE_{CFD,F}+PE_{MD,F}
 \end{equation}
 \normalsize
 
-
 Our objective is to reduce the computation time of a sub-job until the
-two application components show the same computation between the exchange points,
-i.e., $t_{CFD,F} = t_{MD,F}$. From Equation~\ref{eq:SimTime_EachTask}
-and Equation~\ref{eq:PECondition} an optimal processors distributed
-for the CFD sub-job would be:
-%\jhanote{Jeff, please check this is correct} 
+two application components show the same computation between the
+exchange points, i.e., $t_{CFD,F} = t_{MD,F}$. From
+Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition}
+an optimal processors distributed for the CFD subtask would be:
 
 \small
 \begin{eqnarray}
@@ -500,12 +512,11 @@ PE_{CFD,F} & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
 \end{eqnarray}
 \normalsize
 
-The MD simulation (sub-job) will follow a similar expression. 
-
-The optimal processor distribution from above equation will return a
+The MD simulation (sub-job) will follow a similar expression.  The
+optimal processor distribution from above equation will return a
 non-integer value. Also, under the second assumption (which is the
 policy of many supercomputing centers), any load-balancing determined
-as above, will proceed in discrete values 
+as above, will proceed in discrete values
 %determined by the number of CPU cores in a node.
 expressed as the multiples of the number of CPU cores in a node. We choose the nearest discrete number to our load balancing as the optimal number of processor on each application.
 
@@ -573,18 +584,19 @@ for dynamic resource allocation.
 % investigate acquiring idle resources during the simulation, by
 % launching multiple BigJobs for one coupled simulation.
 
-We outline three possible scenarios. In the first
-scenario, a single BigJob is utilized to run the coupled simulations, with and without LB (denoted as S1+LB and S1) redistributing resources based upon
-their individual performance.  In the second scenario (S2) there are
-two BigJobs, and although they are started together, most often one
-BigJob starts before the other; to increase efficiency, both coupled
-simulations start with whatever resources are available as part of the
-first (to run) BigJob. When the second BigJob becomes active, there is
-a dynamic redistribution of tasks, such that the larger of the two
-sub-jobs is assigned the bigger BigJob. Variant of the above, when
-the two BigJobs are on two different machines forms the third scenario
-(S3). In the remainder of this section we discuss the details of these
-three different Use Cases.
+We outline three possible scenarios. In the first scenario, a single
+BigJob is utilized to run the coupled simulations, with and without LB
+(denoted as $S1_{LB}$ and S1 respectively) redistributing resources
+based upon their individual performance.  In the second scenario (S2)
+there are two BigJobs, and although they are started together, most
+often one BigJob starts before the other; to increase efficiency, both
+coupled simulations start with whatever resources are available as
+part of the first (to run) BigJob. When the second BigJob becomes
+active, there is a dynamic redistribution of tasks, such that the
+larger of the two sub-jobs is assigned the bigger BigJob. Variant of
+the above, when the two BigJobs are on two different machines forms
+the third scenario (S3). In the remainder of this section we discuss
+the details of these three different Use Cases.
 
 % We compare the performance as measured by TTS using the benchmark
 % case to be the situation when we do not have the ability to utilize
@@ -1032,10 +1044,20 @@ Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{t
 %\midrule
 \end{tabular}
 \end{table}
-
-
-The validity of a load balancing function can be discussed by the change of processor distribution between sub-jobs throughout the simulation. In the result of a small simulation in Fig.~\ref{Fig:LBSmall}, both CFD and MD sub-jobs are assigned with 32 processors initially and detects 20 to 44 processor distribution as the next solution. The poor scalability of CFD job makes the load balancer to search for the optimal condition once again and the processor assignment finally reaches to a steady solution of 12 to 52 between two sub-jobs, which is the steady solution. Runtime reduces from 153 seconds at the initial stage to 107 seconds after the convergence. Total computation time is 596.19 seconds, which is different from 663 seconds counted from BigJob application manager. This time difference implies that the BigJob application manager spends about 13 seconds on executing its internal commands including the run of a load balancing function and sub-job re-launch.
-
+The validity of a load balancing function can be discussed by the
+change of processor distribution between subtasks throughout the
+simulation. In the result of a small simulation in
+Fig.~\ref{Fig:LBSmall}, both CFD and MD subtasks are assigned with 32
+processors initially. After two simulation loops, a load balancer
+converges to the processor distribution of 12 to 52 between CFD and MD
+jobs and this processor distribution remains the same until the
+simulation completes. Runtime reduces from 153 seconds at the initial
+stage to 107 seconds after the convergence. Total computation time is
+596.19 seconds, which is different from 663 seconds counted from
+BigJob application manager. This time difference implies that the
+BigJob application manager spends about 13 seconds on executing its
+internal commands including the run of a load balancing function and
+sub-job re-launch.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -1043,12 +1065,37 @@ The validity of a load balancing function can be discussed by the change of proc
 \includegraphics[scale=0.3]{fig6_1.pdf}
 \linebreak
 \includegraphics[scale=0.3]{fig6_2.pdf}
-\caption{\small Change of processor distribution between CFD and MD jobs and resultant computation time in the small simulation. A load balancer starts from the same number of processors assigned to both sub-jobs and a load balancer reaches to a converged the processor distribution of 12 to 52 between CFD and MD jobs after two simulation loops. Computation time for every simulation loop reduces from 153 seconds to 107 seconds after the balancing.}
+\caption{\small Change of processor distribution between CFD and MD
+  jobs and resultant computation time in the small simulation. A load
+  balancer starts from the same number of processors assigned to both
+  sub-jobs and detects 20 to 44 processor distribution as the optimal
+  solution. The poor scalability of CFD job makes the load balancer to
+  search for the optimal condition once again and the processor
+  assignment finally reaches to a steady solution of 12 to 52 between
+  two sub-jobs. Computation time for every simulation loop reduces
+  from 153 seconds to 107 seconds after the balancing.}
 \label{Fig:LBSmall}
 \end{figure}
 %%%%% FIGURE %%%%%
 
-The result of computation time evolution on a large simulation is seen in Fig.~\ref{Fig:LBLarge}. On most experiments, which is given in the left side of Fig.~\ref{Fig:LBLarge}, a load balancer directly goes to a converged solution of processor distribution, which is 24 to 40 between CFD and MD jobs. On the other, in one experiment, computing nodes assigned to MD simulation seem to have temporarily experienced the internal overhead as shown from the right side of Fig.~\ref{Fig:LBLarge}. This overhead temporarily increased MD computation time a lot and a load balancer shows the fluctuating pattern of processor distribution in response to this temporary instability. A load balancer goes to a different steady solution after the system settled down, which is the processor distribution of 20 to 44 between two sub-jobs. Compared to the steady solution in stable cases, computation time for one simulation loop increases in this processor distribution increases from 1320 seconds to 1380 seconds. This leaves the requirement of refining a load balancing function, to predict more precisely on parallel performances of application codes.
+The result of computation time evolution on a large simulation is seen
+in Fig.~\ref{Fig:LBLarge}. On most experiments, which is given in the
+left side of Fig.~\ref{Fig:LBLarge}, a load balancer directly goes to
+a converged solution of processor distribution, which is 24 to 40
+between CFD and MD jobs. On the other, in one experiment, computing
+nodes assigned to MD simulation seem to have temporarily experienced
+the internal overhead as shown from the right side of
+Fig.~\ref{Fig:LBLarge}. This overhead temporarily increased MD
+computation time a lot and a load balancer shows the fluctuating
+pattern of processor distribution in response to this temporary
+instability. A load balancer goes to a different steady solution after
+the system settled down, which is the processor distribution of 20 to
+44 between two sub-jobs. Compared to the steady solution in stable
+cases, computation time for one simulation loop increases in this
+processor distribution increases from 1320 seconds to 1380
+seconds. This leaves the requirement of refining a load balancing
+function, to predict more precisely on parallel performances of
+application codes.
 
 
 % %%%%% FIGURE %%%%%
@@ -1059,7 +1106,17 @@ The result of computation time evolution on a large simulation is seen in Fig.~\
 \linebreak
 \includegraphics[scale=0.21]{fig7_12.pdf}
 \includegraphics[scale=0.21]{fig7_22.pdf}
-\caption{\small (Left) Change of processor distribution between CFD and MD jobs and resultant computation time in the large simulation. A load balancer directly finds the processor distribution of 24 to 40 between CFD and MD jobs and remains the steady state until it completes after 25 simulation loops. Initial computation time of 1605 seconds reduces to 1320 seconds after the convergence. (Right) Change of processor distribution between CFD and MD jobs and resultant computation time when the temporary overhead was observed in the system. After experiencing the fluctuation of processor distributions due to temporary system overhead on MD side, a load balancer goes to a different converged solution of 20 to 44 and it leads to the increase of computation time to 1380 seconds per each simulation loop. Total computation time in this case increased by 3000 seconds, including the effect of temporary system overhead and a wrong load balancing result.}
+\caption{\small (Left Column) Change of processor distribution between
+  CFD and MD jobs and resultant computation time in the large
+  simulation. A load balancer directly finds the processor
+  distribution of 24 to 40 between CFD and MD jobs and remains the
+  steady state until it completes after 25 simulation loops. Initial
+  computation time of 1605 seconds reduces to 1320 seconds after the
+  convergence. (Right Column) Plots showing non-monotonic resource
+  assignment by the LB, and thus demonstrating how the load balancer
+  can be self-correcting and adapt to changing performance; after
+  increasing the number of processors assigned to the MD, the
+  load-balancer unassigns the additional processors.}
 \label{Fig:LBLarge}
 \end{figure}
 %%%%% FIGURE %%%%%
@@ -1072,21 +1129,41 @@ The result of computation time evolution on a large simulation is seen in Fig.~\
 \subsection{Scenario S2 and S3: Logically and Physically Distributed
   Pilot-Jobs}
 
+In Table~\ref{table:TwoBigJobs}, results from the four test runs
+representing scenarios S2 and S3 using two BigJobs are presented.  The
+general setup for scenarios S2 and S3 is that when two BigJobs are
+submitted, one BigJob becomes active first and the other BigJob
+becomes available later -- either on the same resource (S2) or on
+another resource (S3).  The MD and CFD request half of each
+BigJob. When the second BigJob becomes active, each application is
+immediately configured to run in each BigJob so as to consume all
+BigJob cpus. Therefore, more cpus allow each application to speed
+up. Conceptually the LB scheme adopted for S1 can be trivially applied
+here, but for simplicity and as proof-of-concept, we confine our test
+runs to the configuration in Fig.~\ref{Fig:TwoBigJobs}, i.e., without
+a load balancing scheme to determine an optimal distribution of
+resources.
 
-    \Jkimnote{I revised this section so please remove notes if issues are resolved} 
-
-In Table~\ref{table:TwoBigJobs}, results from the four test runs representing scenarios S2 and S3 using two BigJobs are presented. 
-The general scenario for these cases is that one BigJob is launched first and the other BigJob becomes available later in the same system S2 or in the remote system S3.  
-When the first BigJob is available, two applications, MD and CFD, are submitted as two sub-jobs by requesting a half of the CUPs of the BigJob. Once the other BigJob becomes available, each application is immediately configured to run in each BigJob by consuming the entire CPUs.  Therefore, more available CPUs allow each application to speed up.  For simple demonstration, we confine our test runs for such a simple configuration without considering the load balancing or other advanced scheme to distribute available CPUs within a BigJob.   
-
-As shown in the table, the results with these four test cases clearly demonstrate performance gains with additionally available CPUs when two BigJobs begin to be available.  Particularly, the performance gain is examined with respect to two components ${T_{comm}}$ and
-    ${T_{compute}}$ of the total time-to-solution.  The major performance gain is indicated with a
-    shorten ${T_{compute}}$.  ${T_{compute}}$ represents max( ${T _{MD,compute}}$, ${T_{CFD,compute}}$), a longer compute time of two applications. Each $T_{app,compute}$, where ${app}$ is MD or CFD, is measured with the start time and the end time between the data exchange.  More CPUs are available with the incoming BigJob, more gain in the performance is achieved as shown in the case of test 4.  On the other hand, the time for communication, ${T_{comm}}$
-    is further decomposed into ${T_{read/write}}$ and ${T_{file-transfer}}$.  Note that the latter is only required with
-    S3.  Other components contributing to the time-to-solution
-    such as the waiting time in the queue are not considered here to
-    focus on the performance gain that is unique for these two scenarios with two BigJobs. 
-
+As shown in the table, the results with these four test cases clearly
+demonstrate performance gains with additionally available cpus when
+two BigJobs.  The performance gain is examined with respect to two
+components ${T_{comm}}$ and ${T_{compute}}$ of the total
+time-to-solution.  % The major performance gain is indicated with a
+% shorten ${T_{compute}}$. 
+${T_{compute}}$ represents the maximum of (${T _{MD,compute}}$,
+${T_{CFD,compute}}$) -- which is the longer compute time of two
+applications, and%  Each $T_{app,compute}$, where ${app}$ is MD or CFD, is
+% measured with 
+by the start time and the end time between the data exchange.  As more
+cpus become available with the incoming BigJob, more gain in the
+performance is achieved as shown in the case of test 4.  On the other
+hand, the time for communication, ${T_{comm}}$ is further decomposed
+into ${T_{read-write}}$ and ${T_{file-transfer}}$.  Note that the
+latter is only required with S3.  There are other components that
+contribute to the overall time-to-solution, such as the waiting time
+in queue etc., but are not considered here to focus on the performance
+gain arising from simple dynamic execution (resource allocation) as
+illustrated from S2 and S3.
 
 % Performance gains with two BigJobs. Performance is measured with CPU
 % times consumed by MD, since test cases we used always require longer
@@ -1099,79 +1176,80 @@ As shown in the table, the results with these four test cases clearly demonstrat
 % correspond to Use Case 2; Test 3 and 4 correspond to Use Case 3
 % \newline }
 
+% \jhanote{I think
+%       we should revisit the way this is presented, i.e., the utility
+%       of using the time of the MD phase?}  \Jkimnote{I got rid of MD
+%       time as a measure since it causes unnecessary confusion}
+%     \jhanote{this caption is tooooo long and needs simplifying. Too
+%       many latex errors!} \jhanote{Look at all the wasted white
+%       space!!! We are running short of space. Fix}
+
 \begin{table}[!h]
 \begin{center}
-  \caption{\small Performance measured for Scenarios S2 and S3.  Here, we present the time to
+  \caption{\small Performance measured for Scenarios S2 and S3 (2
+    BigJobs on 2 different machines).  Here, we present the time to
     solution in terms of two components, ${T_{comm}}$ and
-    ${T_{compute}}$.  The details on how to conduct these
-    experiments are described in the text.  All measured time is in
-    second. (* describes the size of two BigJobs with the requested CPUs. ** describes the system used and the L stands for Louie and the P stands for Poseidon of LONI cluster system)
-    \jhanote{I think we should revisit the way this is
-      presented, i.e., the utility of using the time of the MD phase?}
-    \Jkimnote{I got rid of MD time as a measure since it causes
-      unnecessary confusion} \jhanote{this caption is tooooo long and
-      needs simplifying. Too many latex errors!} \jhanote{Look at all
-      the wasted white space!!! We are running short of space. Fix}}
+   ${T_{compute}}$.  The details on how to conduct these experiments
+    are described in the text.  All measured time are in seconds.
+    BigJob size refers to the size of two BigJobs as determined by the
+    number of requested cpus. Resource describes the system used (L
+    stands for Louie; P for Poseidon. L \& P are LONI resources) }
 \label{table:TwoBigJobs}
 \begin{tabular}{ c || c  c  c  c}
 \hline
 Test & 1 & 2 & 3 & 4  \\
 
 \hline
-Test config. scenario & S2 & S2 & S3 & S3 \\
-
-Size of BigJobs & (8,16)${^*}$  & (8,16) & (8, 16) & (16,32) \\
-Compute systems & P${^{**}}$  & L  &  L + P & L + P \\
+Scenario & S2 & S2 & S3 & S3 \\
+BigJob size & (8,16)  & (8,16) & (8, 16) & (16,32) \\
+Resource & P  & L  &  L + P & L + P \\
 \hline
-First period (one BigJob) &   & & & \\
+1 BigJob &   & & & \\
 ${T_{compute}}$ & 1037.2& 1045.2 & 1049.0 & 534.2\\
 ${T_{comm}}$ & 0.006 & 0.010 & 0.912 & 0.957 \\
 \hline
-Second period (two BigJobs)&   & & & \\
+2 BigJob  &   & & & \\
 ${T_{compute}}$ & 277.2 & 277.8& 276.8 & 150.4 \\
 ${T_{comm}}$ & 0.041 & 0.009 &  0.990 & 0.60 \\
 \hline
-
-
-
-
 \end{tabular}
 \end{center}
 \end{table}
 
-\jhanote{The $T_{comm}$ has two components: $T_{read_write} +
-  T_{transfer}$. We need to determine the first component. We will not
-  be able to do so rigorously, but we need to show a good-faithed
-  attempt at deriving it.  The we need to determine the transfer
-  overheard, and find out if it is truly negligible when compared to
-  $T_{read_write}$. We need to also mention/determine if
-  $T_{read_write}$ is the same -- when using 2 different machines as
-  it is when using 1 machine. As would be expected.}
+% \jhanote{The $T_{comm}$ has two components: $T_{read_write} +
+%   T_{transfer}$. We need to determine the first component. We will not
+%   be able to do so rigorously, but we need to show a good-faithed
+%   attempt at deriving it.  The we need to determine the transfer
+%   overheard, and find out if it is truly negligible when compared to
+%   $T_{read_write}$. We need to also mention/determine if
+%   $T_{read_write}$ is the same -- when using 2 different machines as
+%   it is when using 1 machine. As would be expected.}
 
-According to our results, the communication time is insignificant even for cases with S3 in part thanks to the small size of the data required to be exchanged.  Of course, the file transfer depends heavily on the network condition, but it is not expected to become a major issue considering the observation that ${T_{compute}}$ is a tiny fraction of  ${T_{compute}}$.  Furthermore, we expect that the ratio of time scales of two components would remains similar or larger as the size of material systems to be simulated increases.  Comparing to the increasing computing costs for MD or CFD as the number of particles in MD or the number of mesh points increase, the increases in the data size to be exchanged, consequently, the time for transferring files remains insignificant.  Indeed, the development of an efficient runtime environment for hybrid CFD/MD simulation lies in finding a way to decrease ${T_{compute}}$.  Arguably, the results in the table  ~\ref{table:TwoBigJobs} suggest that an BigJob-based runtime environment is able to provide a reasonable solution for that.  
+According to our results, the communication time is insignificant even
+for S3 -- in part thanks to the small size of the data required to be
+exchanged.  Of course, the file transfer depends heavily on the
+network condition, but it is not expected to become a major issue
+considering the observation that ${T_{comm}}$ is a tiny fraction of
+${T_{compute}}$.  Furthermore, we expect that the ratio of the two
+components will remain similar, or if anything become larger (i.e.,
+${T_{comm}}$ become less significant) as the size of physical system
+simulated increases, i.e., the number of particles in MD or the number
+of mesh points increases.  Indeed, the development of an efficient
+runtime environment for hybrid CFD/MD simulation lies in finding a way
+to decrease ${T_{compute}}$.  Arguably, the results in the
+table~\ref{table:TwoBigJobs} suggest that a BigJob-based runtime
+environment is able to provide a reasonable solution to this end.
 
-In summary, use of a BigJob will eliminate idling operation of a
-sub-job, which waits for another application to start running. Also,
-employing a load balancing function will let coupled codes use
-allocated resources more efficiently. Furthermore, using two BigJobs
-promotes the reduction of total runtime, compared to
-conventional job submission. Meanwhile, launch of two BigJobs does not
-intend to use resources more efficiently than conventional job
-allocation, but intend to save total runtime more than one
-BigJob test case, by utilizing more available resources. 
-\jhanote{broken. I cannot understand what is being said
-  here. The paragraph needs to be fixed}
-  
-  
 \section{Conclusions}
 
-\jhanote{Place appropriately. This discusses why simple MPI
-  generalizations are not enough.} Some of these problems arise from
-the nature of the simulations: large scale simulations that would not
-be able to run concurrently on the same resource, while others issues
-are quite technical such as dynamic shrinking/expanding the number of
-MPI processes of each application (dynamic load-balancing). Using MPI
-as a coupling layer would also require code modification, adding
+\jhanote{Conclusion needs fine scale adjustment} \jhanote{Place
+  appropriately. This discusses why simple MPI generalizations are not
+  enough.} Some of these problems arise from the nature of the
+simulations: large scale simulations that would not be able to run
+concurrently on the same resource, while others issues are quite
+technical such as dynamic shrinking/expanding the number of MPI
+processes of each application (dynamic load-balancing). Using MPI as a
+coupling layer would also require code modification, adding
 infrastructure to support simulation-to-simulation communication. To
 maintain a high level of adaptivity, abstraction, interoperate between
 various application codes, and to eliminate application code invasion,
@@ -1209,6 +1287,16 @@ invariant with the size of the machine, i.e., small LONI machines such
 as Eric, to the largest machines available such as Ranger. This is not
 so much about the machine, but the system sizes of the physical-models
 that we are investigating.
+
+In summary, use of a BigJob will eliminate idling operation of a
+subtask, which waits for another application to start running. Also,
+employing a load balancing function will let coupled codes use
+allocated resources more efficiently. Furthermore, using two BigJobs
+promotes the reduction of total runtime, compared to conventional job
+submission. Meanwhile, launch of two BigJobs does not intend to use
+resources more efficiently than conventional job allocation, but
+intend to save total computation time more than one BigJob test case,
+by utilizing more available resources.
 
   % \jhanote{Notes: (i) (ii) Need to establish clearly how we are
   %   measuring the times in Table I. Are we using 'startq'? Remember
