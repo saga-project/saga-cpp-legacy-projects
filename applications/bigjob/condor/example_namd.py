@@ -8,8 +8,8 @@ import os
 import time
 
 """ Directory with condor_submit wrapper and soft links to original condor_rm, condor_q"""
-CONDOR_BIN = "/home/latin/saga/condor_bin"
-X509_USER_PROXY = "/home/latin/.globus/userproxy.pem"	# or alternatively os.environ.get("X509_USER_PROXY")
+CONDOR_BIN = "/home/luckow/saga/condor_bin"
+X509_USER_PROXY = "/home/luckow/.globus/userproxy.pem"	# or alternatively os.environ.get("X509_USER_PROXY")
 
 resources_list = (
 		  { "gram_url" : "poseidon1.loni.org/jobmanager-pbs", "queue" : "checkpt", "project" : "loni_loniadmin1", "number_nodes" : 2, "walltime" : 20},
@@ -37,6 +37,7 @@ if __name__ == "__main__":
 			project=i["project"],
 			number_nodes=i["number_nodes"],
 			walltime=i["walltime"],
+			working_directory="/tmp/luckow",
 			userproxy=X509_USER_PROXY)
     		print "Glidein Condor-G Job URL: " + bj.pilot_url + " State: " + str(bj.get_state(pj))
 
@@ -46,11 +47,11 @@ if __name__ == "__main__":
 	# working directory: $TG_CLUSTER_SCRATCH/saga/bigjob/data
 
 	jd = saga.job.description()
-	jd.executable = "/home/latin/saga/condor_namd.sh"
+	jd.executable = "/home/luckow/src/bigjob/condor/condor_namd.sh"
 	jd.arguments = ["NPT.conf"]
 	jd.working_directory = "/work/lukas/saga/bigjob/data"
-	jd.output = "condor_namd.$(CLUSTER).$(PROCESS).$(NODE).out"
-	jd.error = "condor_namd.$(CLUSTER).$(PROCESS).$(NODE).err"
+	jd.output = "namd.$(CLUSTER).$(PROCESS).$(NODE).out"
+	jd.error = "namd.$(CLUSTER).$(PROCESS).$(NODE).err"
 
 	attr = open(CONDOR_BIN + "/condor_attr", "w")
 	attr.write("universe = parallel\n")

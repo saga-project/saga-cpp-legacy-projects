@@ -34,6 +34,8 @@ class bigjob():
         self.uuid = uuid.uuid1()
         self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
         self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+ 	self.state=saga.job.Unknown
+        self.pilot_url=""
         print "created advert directory for application: " + self.app_url.get_string()
     
     def start_pilot_job(self, 
@@ -99,10 +101,16 @@ class bigjob():
      
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
-        return self.job.get_state()
+        try:
+            return self.job.get_state()
+        except:
+            return None
     
     def get_state_detail(self): 
-        return self.pilot_dir.get_attribute("state")
+        try:
+            return self.pilot_dir.get_attribute("state")
+        except:
+            return None
     
     def get_free_nodes(self):
         jobs = self.pilot_dir.list()
