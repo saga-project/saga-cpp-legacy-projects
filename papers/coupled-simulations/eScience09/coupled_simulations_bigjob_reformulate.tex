@@ -258,7 +258,7 @@ using the MD approach. CFD can accurately predict flow properties on
 conventional moderate/large size fluid domains, but is intrinsically
 impossible to reflect characteristics of surrounding solid materials.
 While MD can provide atomistic level resolution of interactions
-between particles, it becomes computationally demanding as the size of simulated system grows. \skonote{two paragraphs merged into one} So, neither method is suitable for solving a mesh-scale fluid system where the viscous effect dominates the flow characteristics but macroscopic features are also worth to be captured efficiently. The best solution would be, as is seen in Fig.~\ref{Fig:Couette}, to
+between particles, it becomes computationally demanding as the size of simulated system grows. So, neither method is suitable for solving a mesh-scale fluid system where the viscous effect dominates the flow characteristics but macroscopic features are also worth to be captured efficiently. The best solution would be, as is seen in Fig.~\ref{Fig:Couette}, to
 carry out the hybrid CFD/MD approaches with which atomistic
 interactions between solid elements and fluid particles near the wall
 is simulated by MD and the far field flow is calculated by CFD.
@@ -281,8 +281,7 @@ is simulated by MD and the far field flow is calculated by CFD.
 %\linebreak
 %\includegraphics[scale=0.50]{Vel_Profile.PDF}
 \caption{\small Schematic of CFD/MD Coupled Simulation of Channel Flow
-  and the velocity profiles at different times \jhanote{should the
-    graph be eliminated?}}
+  and the velocity profiles at different times}
 \label{Fig:Couette}
 \end{figure}
 %%%%% FIGURE %%%%%
@@ -331,22 +330,20 @@ effort within the Open Grid Forum (OGF)~\cite{ogf_web}, an
 international standards development body concerned primarily with
 standards for distributed computing. SAGA provides a simple,
 POSIX-style API to the most common Grid functions at a sufficiently
-high-level of abstraction so as to be %able to be
+high-level of abstraction so as to be 
 independent of the diverse and dynamic Grid environments. The SAGA
 specification defines interfaces for the most common Grid-programming
 functions grouped as a set of functional packages
 (Fig.~\ref{Fig:SAGA1}). Some key packages are:
 
-\begin{figure}[!ht]
+\begin{figure}
+%[!ht]
  \begin{center}
      \includegraphics[width=0.40\textwidth]{stci_saga_figures-1.pdf}
  \end{center}
 \caption{\small Layered schematic of the different components
   of the SAGA landscape. At the topmost level is the simple integrated API which provides the basic functionality for distributed computing. Our BigJob abstraction is built upon this SAGA layer using Python API wrapper} \label{Fig:SAGA1}
 \end{figure}
-
-%\begin{itemize}\addtolength{\itemsep}{-0.8\baselineskip}
-
 
 \begin{itemize}
 \item File package - provides methods for accessing local and remote
@@ -386,7 +383,7 @@ multi-physics agent, also delivering these information to the
 application manager by a push-pull mechanism. The application manager
 watches the status of sub-jobs and decides the next event when the
 coupled simulation is finished. When one default BigJob is launched,
-subtasks keeps running until final solution is achieved and the
+sub-jobs keeps running until final solution is achieved and the
 manager quits the pilot-job at that time. In cases multiple BigJobs
 are submitted for the same simulation or a load balancing function is
 included, sub-jobs experience several restarts from their
@@ -411,8 +408,6 @@ in the next section.
 \label{Fig:BigJob_Structure}
 \end{figure}
 %%%%% FIGURE %%%%%
-
-
 
 %-------------------------------------------------------------------------
 \section{Load Balancing for Coupled Multi-Physics Simulation}
@@ -466,8 +461,7 @@ Let the computation time (between exchanges) of the two sub-jobs be
 $t_{CFD}$ and $t_{MD}$, and the number of processors assigned to each
 domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts I and F
 denotes initial and final states. Based on assumption (1), total problem size of each application
-\jhanote{What does ``workload on each application
-  mean''?} 
+%\jhanote{What does ``workload on each application   mean''?} 
 remains the same after the re-allocation of resources,
 
 \small
@@ -493,11 +487,11 @@ PE_{TOT}=PE_{CFD,I}+PE_{MD,I}=PE_{CFD,F}+PE_{MD,F}
 \normalsize
 
 
-Our objective is to reduce the computation time of a subtask until the
+Our objective is to reduce the computation time of a sub-job until the
 two application components show the same computation between the exchange points,
 i.e., $t_{CFD,F} = t_{MD,F}$. From Equation~\ref{eq:SimTime_EachTask}
 and Equation~\ref{eq:PECondition} an optimal processors distributed
-for the CFD subtask would be:
+for the CFD sub-job would be:
 %\jhanote{Jeff, please check this is correct} 
 
 \small
@@ -658,7 +652,7 @@ three different Use Cases.
 
 \subsection{Description of Experiments}
 
-Figure ~\ref{Fig:OneBJ_Flow} shows two different scenarios: the first
+Figure~\ref{Fig:OneBJ_Flow} shows two different scenarios: the first
 (leftmost) shows the time evolution of a coupled simulation with the
 conventional job submission and through one BigJob. In a conventional
 way, individual tasks with resource requirements of $PE_{CFD}$ and
@@ -670,7 +664,7 @@ case, both tasks wait on the queue when no job is allocated, the first
 allocated job idles to do data exchange with its counterpart, and run
 actual simulation after both jobs are allocated. On the other hand, in
 S1, a BigJob of size $PE_{CFD}+PE_{MD}$
-is submitted to the queue, and coupled simulation directly starts when the resource is assigned on this BigJob. Because of co-scheduling of sub-jobs, a BigJob is free from a long inactive mode which is frequent in conventional job submission, while total computation time is the same if the resource distribution to sub-jobs is identical. However, eliminating
+is submitted to the queue, and coupled simulation directly starts when the resource is assigned on this BigJob. Because of co-scheduling of sub-jobs, a BigJob is free from a long inactive mode which is frequent in conventional job submission, while total runtime is the same if the resource distribution to sub-jobs is identical. However, eliminating
 inactive mode does not guarantee total runtime is reduced,
 because waiting to get one bigger allocation may happen to take more
 than getting two allocations with smaller chunks. The same situation
@@ -681,7 +675,7 @@ Figure~\ref{Fig:TwoBigJobs} illustrates scenarios S2 and S3 -- whereby
 on the same machine, whilst in S3 they are on different machines.  As
 we will show later, under certain load and queue conditions, it is
 possible that two smaller BigJobs -- either S2 or S3, begin sooner
-than a larger subtask S1.
+than a larger BigJob S1.
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -766,11 +760,7 @@ synchronization steps between two simulation components over the
 course of a single simulation run. For a rigorous test of a load
 balancer, larger coupled simulation task (which has 150 times more
 workload on CFD domain and 50 times on MD) also has been
-experimented. The wall-time limit of all simulations are set to 6
-hours, which is large enough to encounter both the active and inactive
-phase experienced in conventional job submission. In the larger
-simulation, wall-time limt is increased to 24 hours, considering its
-computation time which is around 11 hours.
+experimented. 
 
 No changes in the application codes were required in order to utilize
 the BigJob capabilty; however, in order to utilize load-balancing
@@ -782,6 +772,7 @@ method to work with a range of processor counts. In the current work,
 the application codes experience five launch/re-launches (25 times in
 larger simulation) to get assigned with changed number of processors,
 either by the result of load balancing or more resource allocations.
+%The wall-time limit of all simulations are set to 6 hours, which is large enough to encounter both the active and inactive phase experienced in conventional job submission. In the larger simulation, wall-time limt is increased to 24 hours, considering its runtime which is around 11 hours.
 
 % A coupled simulation by the default one BigJob does not require any
 % change of application codes. On the other hand, it is inevitable to
@@ -799,7 +790,7 @@ either by the result of load balancing or more resource allocations.
 The use of a load balancing function requires one more change on
 application codes. As load balancer refers to the performance data
 from application codes, application codes need to return their actual
-computation time, which excludes idle waiting on inter-domain
+runtime, which excludes idle waiting on inter-domain
 information exchange. This can be implemented by checking elapsed time
 on inter-domain data exchange and subtracting it from total iteration
 time.
@@ -808,14 +799,15 @@ time.
 %e architected the CFD and MD codes to have several time checking functions inside to capture total iteration time without inter-domain information exchange.
 
 
-Evaluation of a BigJob as a faster time-to-start solution requires the elaborative experiments with different processor requests and different wall-time limit on various system conditions. To quantify the waiting time of job submissions and analyze the variation of waiting time with system's conditions, we define the load-factor as the ratio of the number of active nodes to the total number of nodes on the machine; we measure this ratio at the instant the job was submitted to the queuing-system, as well as when the job execution began, to correct for large variation in loads. The load-factor was recorded on every job submission while changing the requested number of processors from 8 to 64 and the requested wall-time limit from 1 hr to 12 hrs. The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. 
-
+\skonote{Load factor definition and the way of testing: you can either edit this one or use the former one behind (which is commented out)}
+Evaluation of a BigJob as a faster time-to-start solution requires the elaborative experiments with different processor requests and different wall-time limit on various system conditions. To quantify the waiting time of job submissions and analyze the variation of waiting time with system's conditions, we define the load-factor as the ratio of the number of active nodes to the total number of nodes on the machine; we testify the effect of load-factor on queue waiting time by submitting a number of experiments to the resources and monitoring the variance of load-factor at the submission and at the allocation time. Our experiments include multiple job submissions ranging from 8 to 64 processors with wall-time limit from 1 to 12 hours. This waiting time issue is also discussed by simulating above coupled simulations, in a way of submitting a BigJob and two conventional jobs concurrently and counting total waiting time in both cases. Both small and large simulations are conducted using 64 processors for a coupled task and wall-limit time is set to be either 6 hours or 24 hours, depending on their computation times.
+%The load-factor is defined as the ratio of the number of active nodes to the total number of nodes on the machine; we measured this ratio at the instant when the job was submitted to the queuing-system, as well as when the job execution began, to correct for large variation in loads. The load-factor was recorded on every job submission while changing the requested number of processors from 8 to 64 and the requested wall-time limit from 1 hr to 12 hrs. The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. The result of waiting time on the queue shows very diversity and variance as a matter of course.
 
 
 Simulations used to validate and determine the performance measures were
 conducted on supercomputing resources on TeraGrid machines (62,976
 cores Ranger), shared TeraGrid-LONI (Louisiana Optical Network
-Initiative)~\cite{LONI_web} machines (5,440 core QueenBee)
+Initiative)~\cite{LONI_web} machines (5,440 cores QueenBee)
 and some smaller LONI machines such as Eric, Oliver, Louie and
 Poseidon(512 cores each).  We monitored the load on these systems over a
 long period of time (several weeks) and found Queenbee to be
@@ -834,13 +826,10 @@ significantly more loaded than other resources.
   Performance Analysis}
   
 %The load-factor is defined as the ratio of the number of active nodes to the total number of nodes on the machine; we measured this ratio at the instant when the job was submitted to the queuing-system, as well as when the job execution began, to correct for large variation in loads. The load-factor was recorded on every job submission while changing the requested number of processors from 8 to 64 and the requested wall-time limit from 1 hr to 12 hrs. The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. 
-
 % The result of waiting time on the queue shows very diversity and variance as a matter of course.
 
 
-We wanted to see if we could come up with an analysis that would tell
-us how running larger and/or longer simulations effects the actual
-waiting time on the queue.
+
 
 %The result of waiting time on the queue shows very diversity and variance as a matter of course.
 
@@ -862,8 +851,8 @@ of actual waiting time on the queueing system.}
 \multicolumn{6}{c}{\phantom{\tiny 100}}\\
 \hline
 %\midrule
- \multirow{3}{0.4in}{number of processors}&
- \multicolumn{5}{c}{requested wall-time at 92$\pm$6\% load-factor (Ranger)}
+ \multirow{3}{0.4in}{Number of processors}&
+ \multicolumn{5}{c}{Requested wall-time at 92$\pm$6\% load (Ranger)}
 \\
 \cline{2-6}
 %\cmidrule{2-6}
@@ -900,8 +889,8 @@ of actual waiting time on the queueing system.}
 \multicolumn{6}{c}{\phantom{100}}\\
 \hline
 %\midrule
- \multirow{3}{0.4in}{number of processors}&
- \multicolumn{5}{c}{requested wall-time at 95$\pm$4\% load-factor (Queenbee)}
+ \multirow{3}{0.4in}{Number of processors}&
+ \multicolumn{5}{c}{Requested wall-time at 95$\pm$4\% load (Queenbee)}
 \\
 \cline{2-6}
 %\cmidrule{2-6}
@@ -934,7 +923,9 @@ of actual waiting time on the queueing system.}
 \end{tabular}
 \end{table}
 
-What we did was the following. We chose two machines with more than
+We wanted to see if we could come up with an analysis that would tell
+us how running larger and/or longer simulations effects the actual
+waiting time on the queue. What we did was the following. We chose two machines with more than
 5000 processors, Ranger and Queenbee. We submitted jobs of different
 sizes, requiring different wall-time limits. Each time we submitted a
 job, we gathered the load-factor and the actual waiting time on the
@@ -943,12 +934,12 @@ them is the load at the moment on the machine, requested wall-time
 limit and also the number of processors requested. Two more factors
 that effect this are the backfilling that occurs when some other
 irrelevant job ends and the changes in the priority of our own job
-when a particular higher priority job joins the queue.  The waiting
+when a particular higher priority job joins the queue.  Also, the internal queueing policy of supercomputing centers may effect the waiting time on the queue based on  their queueing priority  including credential, fairshare, resource and service priority. The waiting
 time has a tendency to decrease as the number of processors of a job
 increase, as can be seen from Table~\ref{table:waitingtime}.
 Considering only the data from the jobs which did not go through
 backfilling, it can be seen that larger processor jobs start earlier
-based on the priority of jobs.
+based on the priority of jobs. 
 
 We cannot claim this just by running some tests on a couple of
 machines. It may be, in part, due to the policies and loads under
@@ -958,14 +949,18 @@ feel that running a large job is better than running two smaller
 jobs. We say that the sum total of the waiting times of two smaller
 jobs is going to be larger than the waiting time of a single large
 processor job. This is especially true in cases where the jobs need to
-interact, as shown in Fig. 4.
+interact, as shown in Fig.~\ref{Fig:OneBJ_Flow}.
 
-The result of time-to-start on conventional job submnissions and a single BigJob launch coincides with our waiting time experiments above: 
-%estimating time-to-start is highly unpredictable and 
-there is no guarantee whether two smaller job submissions would utilize backfilling capability more effectively or one BigJob launch will get the benefit of higher priority by resources' queueing policy. According to the experiments presented in Table ~\ref{table:BJwaiting}, though the result gives conventional job submission showed faster start in small wall-time limit and BigJob had better with longer wall-time limit, the large standard deviation leaves much to debate on the reliability of these data. The only thing clear is that a BigJob submission eliminates the possibility of simulation's failure due to long inactive phase, which shall cause far longer wall-time limit setup than actual computation time.
+%The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. 
+
+The result of time-to-start on conventional job submissions and a single BigJob launch is presented in Table~\ref{table:BJwaiting}. Test results do not exactly coincide with our waiting time experiments in every test. In the larger simulation problem which has longer wall-time limit, the result follows our former experiments that a BigJob has the potential of faster time-to-start than two conventional submissions. On the other hand, a small problem resulted in the faster time-to-start in conventional case. 
+%there is no guarantee whether two smaller job submissions would utilize backfilling capability more effectively or one BigJob launch will get the benefit of higher priority by resources' queueing policy. According to the experiments presented in 
+Meanwhile, the large standard deviation of the resultant data leaves much to debate on the reliability of these data. At least, it is clear that a BigJob submission eliminates the possibility of simulation's failure due to long inactive phase, which shall cause far longer wall-time limit setup than actual runtime.
+
+%, though the result gives conventional job submission showed faster start in small wall-time limit and BigJob had better with longer wall-time limit, the large standard deviation leaves much to debate on the reliability of these data. The only thing clear is that a BigJob submission eliminates the possibility of simulation's failure due to long inactive phase, which shall cause far longer wall-time limit setup than actual runtime.
 
 \begin{table}[t]
-\caption{\small  Waiting and inactive time on conventional job submissions and a single BigJob submission. Values show averaged time elapse over 6 distinct experiments and values in parenthesis are their standard deviation. In both cases, conventional job is submitted to use 2 $\times$ 32 processors and a BigJob requests 64 processors. Conventional job showed faster time-to-start (i.e., the sum of waiting time and inactive mode) on small problem size with 6 hours of wall-time limit, while a BigJob gets allocated faster with longer wall-time limit. Conventional job submission showed 3 failures during the test due to the timeover of wall-time limit in the first-started job. Experiments were conducted on small and less crowded LONI clusters.}
+\caption{\small  Waiting and inactive time on conventional job submissions and a single BigJob submission. In both cases, conventional job is submitted to use 2$\times$32 processors and a BigJob requests 64 processors. Conventional job showed faster time-to-start (i.e., the sum of waiting time and inactive mode) on small problem size with 6 hours of wall-time limit, while a BigJob gets allocated faster with longer wall-time limit. Conventional job submission showed 3 failures during the test due to the timeover of wall-time limit in the first-started job. Experiments were conducted on small and less crowded LONI clusters.}
 
 \label{table:BJwaiting}
 \centering
@@ -973,12 +968,12 @@ there is no guarantee whether two smaller job submissions would utilize backfill
 \multicolumn{4}{c}{\phantom{\tiny 100}}\\
 \hline
  \multirow{2}{0.55in}{}&
- \multicolumn{3}{c}{Small Simulation with 6 Hrs Wall-time Limit} 
+ \multicolumn{3}{c}{Small simulation with 6 hrs wall-time limit} 
 \\
 \cline{2-4}
- & \nyc Waiting Time
- & \nyc Inactive Mode
- & \multicolumn {1}{c}{Failed Runs}
+ & \nyc Waiting time
+ & \nyc Inactive mode
+ & \multicolumn {1}{c}{Failed runs}
 \\
  \hline
    \nyc Conventional & \nyc 12318$\pm$15649 & \nyc 7407$\pm$11375 & \multicolumn {1}{c}{2} \\
@@ -988,12 +983,12 @@ there is no guarantee whether two smaller job submissions would utilize backfill
 \multicolumn{4}{c}{\phantom{100}}\\
 \hline
  \multirow{2}{0.55in}{}&
- \multicolumn{3}{c}{Large Simulation with 24 Hrs Wall-time Limit} 
+ \multicolumn{3}{c}{Large simulation with 24 hrs wall-time limit} 
 \\
 \cline{2-4}
- & \nyc Waiting Time
- & \nyc Inactive Mode
- & \multicolumn {1}{c}{Failed Runs}
+ & \nyc Waiting time
+ & \nyc Inactive mode
+ & \multicolumn {1}{c}{Failed runs}
 \\
 \hline
  \nyc Conventional & \nyc 83102$\pm$77134 & \nyc 47488$\pm$55647 & \multicolumn{1}{c}{1}
@@ -1012,7 +1007,7 @@ there is no guarantee whether two smaller job submissions would utilize backfill
 %\jhanote{Do not have such long paragraphs. One paragraph should
 %  represent one simple compact idea. Maxm of 4-5 sentences!!}
 
-Computation times of the coupled simulation with a single BigJob is given on Table ~\ref{table:oneBJ_Test}. In both small and large simulations, a default BigJob task takes about 1 percent longer than the conventional test. This is reasonable because a default BigJob has the same processor distribution between subtasks as the conventional job, while BigJob has the overhead of sub-jobs' status monitoring and communication with advert server. In cases of load-balanced BigJob simulations, computation time is saved by about 13 percent compared to conventional tests. In the large problem, a load-balanced BigJob simulation relatively shows higher standard deviation due to the unexpected instability of a computing resource during one experiment, which is to be discussed in detail below.
+Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{table:oneBJ_Test}. In both small and large simulations, a default BigJob task takes about 1 percent longer than the conventional test. This is reasonable because a default BigJob has the same processor distribution between sub-jobs as the conventional job, while BigJob has the overhead of sub-jobs' status monitoring and communication with advert server. In cases of load-balanced BigJob simulations, runtime is saved by about 13 percent compared to conventional tests. In the large problem, a load-balanced BigJob simulation relatively shows higher standard deviation due to the unexpected instability of a computing resource during one experiment, which is to be discussed in detail below.
 
 
 
@@ -1020,7 +1015,7 @@ Computation times of the coupled simulation with a single BigJob is given on Tab
 %\setlength{\tabcolsep}{1pt}
 %\begin{table}[!ht]
 %\begin{center}
-\caption{\small Results of computation time for S1, S1+LB and conventional submission. Six distinct experiments were accomplished on each simulation. In both cases, S1 shows about 1\% overhead due to the communication with advert server. On the other hand, S1+LB tests show about 13\% computation time save compared to conventional submission. 64 processors are used on all simulations.}
+\caption{\small Results of runtime for S1, S1+LB and conventional submission. 6 distinct experiments were accomplished on each simulation. In both cases, S1 shows about 1\% overhead due to the communication with advert server. On the other hand, S1+LB tests show about 13\% runtime save compared to conventional submission. 64 processors are used on all simulations.}
 \label{table:oneBJ_Test}
 \centering
 \begin{tabular} {p{0.5in} || p{0.7in} p{0.7in} p{0.7in}}
@@ -1031,15 +1026,15 @@ Computation times of the coupled simulation with a single BigJob is given on Tab
  & \multicolumn{1}{c}{S1+LB}
 \\
 \hline
- \nyc Small Sim. & \nyc 757$\pm$1.89 & \nyc 764$\pm$1.41 & \multicolumn{1}{c}{661$\pm$4.41} \\
- \nyc Large Sim. & \nyc 39595$\pm$119.2 & \nyc 39906$\pm$206.3 & \multicolumn{1}{c}{34350$\pm$1302.7} \\
+ \nyc Small sim. & \nyc 757$\pm$1.89 & \nyc 764$\pm$1.41 & \multicolumn{1}{c}{661$\pm$4.41} \\
+ \nyc Large sim. & \nyc 39595$\pm$119.2 & \nyc 39906$\pm$206.3 & \multicolumn{1}{c}{34350$\pm$1302.7} \\
 \hline
 %\midrule
 \end{tabular}
 \end{table}
 
 
-The validity of a load balancing function can be discussed by the change of processor distribution between subtasks throughout the simulation. In the result of a small simulation in Fig.~\ref{Fig:LBSmall}, both CFD and MD subtasks are assigned with 32 processors initially. After two simulation loops, a load balancer converges to the processor distribution of 12 to 52 between CFD and MD jobs and this processor distribution remains the same until the simulation completes. Runtime reduces from 153 seconds at the initial stage to 107 seconds after the convergence. Total computation time is 596.19 seconds, which is different from 663 seconds counted from BigJob application manager. This time difference implies that the BigJob application manager spends about 13 seconds on executing its internal commands including the run of a load balancing function and sub-job re-launch.
+The validity of a load balancing function can be discussed by the change of processor distribution between sub-jobs throughout the simulation. In the result of a small simulation in Fig.~\ref{Fig:LBSmall}, both CFD and MD sub-jobs are assigned with 32 processors initially and detects 20 to 44 processor distribution as the next solution. The poor scalability of CFD job makes the load balancer to search for the optimal condition once again and the processor assignment finally reaches to a steady solution of 12 to 52 between two sub-jobs, which is the steady solution. Runtime reduces from 153 seconds at the initial stage to 107 seconds after the convergence. Total computation time is 596.19 seconds, which is different from 663 seconds counted from BigJob application manager. This time difference implies that the BigJob application manager spends about 13 seconds on executing its internal commands including the run of a load balancing function and sub-job re-launch.
 
 
 %%%%% FIGURE %%%%%
@@ -1048,7 +1043,7 @@ The validity of a load balancing function can be discussed by the change of proc
 \includegraphics[scale=0.3]{fig6_1.pdf}
 \linebreak
 \includegraphics[scale=0.3]{fig6_2.pdf}
-\caption{\small Change of processor distribution between CFD and MD jobs and resultant computation time in the small simulation. A load balancer starts from the same number of processors assigned to both sub-jobs and detects 20 to 44 processor distribution as the optimal solution. The poor scalability of CFD job makes the load balancer to search for the optimal condition once again and the processor assignment finally reaches to a steady solution of 12 to 52 between two sub-jobs. Computation time for every simulation loop reduces from 153 seconds to 107 seconds after the balancing.}
+\caption{\small Change of processor distribution between CFD and MD jobs and resultant computation time in the small simulation. A load balancer starts from the same number of processors assigned to both sub-jobs and a load balancer reaches to a converged the processor distribution of 12 to 52 between CFD and MD jobs after two simulation loops. Computation time for every simulation loop reduces from 153 seconds to 107 seconds after the balancing.}
 \label{Fig:LBSmall}
 \end{figure}
 %%%%% FIGURE %%%%%
@@ -1081,26 +1076,26 @@ The result of computation time evolution on a large simulation is seen in Fig.~\
     \Jkimnote{I revised this section so please remove notes if issues are resolved} 
 
 In Table~\ref{table:TwoBigJobs}, results from the four test runs representing scenarios S2 and S3 using two BigJobs are presented. 
-The general scenario for these cases is that one BigJob is launched first and the other BigJob becomes available later in the same system (S2) or in the remote system (S3).  
-When the first bigjob is available, two applications, MD and CFD, are submitted as two subjobs by requesting a half of the cpus of the BigJob. Once the other BigJob becomes available, each application is immediately configured to run in each BigJob by consuming the entire cpus.  Therefore, more available cpus allow each application to speed up.  For simple demonstration, we confine our test runs for such a simple configuration without considering the load balancing or other advanced scheme to distribute available cpus within a BigJob.   
+The general scenario for these cases is that one BigJob is launched first and the other BigJob becomes available later in the same system S2 or in the remote system S3.  
+When the first BigJob is available, two applications, MD and CFD, are submitted as two sub-jobs by requesting a half of the CUPs of the BigJob. Once the other BigJob becomes available, each application is immediately configured to run in each BigJob by consuming the entire CPUs.  Therefore, more available CPUs allow each application to speed up.  For simple demonstration, we confine our test runs for such a simple configuration without considering the load balancing or other advanced scheme to distribute available CPUs within a BigJob.   
 
-As shown in the table, the results with these four test cases clearly demonstrate performance gains with additionally available cpus when two bigjobs begin to be available.  Particularly, the performance gain is examined with respect to two components ${T_{comm}}$ and
+As shown in the table, the results with these four test cases clearly demonstrate performance gains with additionally available CPUs when two BigJobs begin to be available.  Particularly, the performance gain is examined with respect to two components ${T_{comm}}$ and
     ${T_{compute}}$ of the total time-to-solution.  The major performance gain is indicated with a
-    shorten ${T_{compute}}$.  ${T_{compute}}$ represents max( ${T _{MD,compute}}$, ${T_{CFD,compute}}$), a longer compute time of two applications. Each $T_{app,compute}$, where ${app}$ is MD or CFD, is measured with the start time and the end time between the data exchange.  More cpus are available with the incoming BigJob, more gain in the performance is achieved as shown in the case of test 4.  On the other hand, the time for communication, ${T_{comm}}$
+    shorten ${T_{compute}}$.  ${T_{compute}}$ represents max( ${T _{MD,compute}}$, ${T_{CFD,compute}}$), a longer compute time of two applications. Each $T_{app,compute}$, where ${app}$ is MD or CFD, is measured with the start time and the end time between the data exchange.  More CPUs are available with the incoming BigJob, more gain in the performance is achieved as shown in the case of test 4.  On the other hand, the time for communication, ${T_{comm}}$
     is further decomposed into ${T_{read/write}}$ and ${T_{file-transfer}}$.  Note that the latter is only required with
     S3.  Other components contributing to the time-to-solution
     such as the waiting time in the queue are not considered here to
     focus on the performance gain that is unique for these two scenarios with two BigJobs. 
 
 
-% Performance gains with two bigjobs. Performance is measured with CPU
+% Performance gains with two BigJobs. Performance is measured with CPU
 % times consumed by MD, since test cases we used always require longer
-% cpu times for MD than those of CFD.  Performance gains with
-% additionally available bigjob can be seen by comparing MD CPU times
-% with those obtained with the initial bigjob.  Measurements were
+% CPU times for MD than those of CFD.  Performance gains with
+% additionally available BigJob can be seen by comparing MD CPU times
+% with those obtained with the initial BigJob.  Measurements were
 % carried out with LONI cluster systems.  louie and poseidon are dell
 % cluster systems having 128 nodes with 4 cores in a
-% node. \jhanote{add bigjob size --- which 8 and 16} Test 1 and 2
+% node. \jhanote{add BigJob size --- which 8 and 16} Test 1 and 2
 % correspond to Use Case 2; Test 3 and 4 correspond to Use Case 3
 % \newline }
 
@@ -1110,7 +1105,7 @@ As shown in the table, the results with these four test cases clearly demonstrat
     solution in terms of two components, ${T_{comm}}$ and
     ${T_{compute}}$.  The details on how to conduct these
     experiments are described in the text.  All measured time is in
-    second. (* describes the size of two BigJobs with the requested cpus. ** describes the system used and the L stands for Louie and the P stands for Poseidon of LONI cluster system)
+    second. (* describes the size of two BigJobs with the requested CPUs. ** describes the system used and the L stands for Louie and the P stands for Poseidon of LONI cluster system)
     \jhanote{I think we should revisit the way this is
       presented, i.e., the utility of using the time of the MD phase?}
     \Jkimnote{I got rid of MD time as a measure since it causes
@@ -1118,22 +1113,21 @@ As shown in the table, the results with these four test cases clearly demonstrat
       needs simplifying. Too many latex errors!} \jhanote{Look at all
       the wasted white space!!! We are running short of space. Fix}}
 \label{table:TwoBigJobs}
-\begin{tabular}{ c | c  c  c  c}
+\begin{tabular}{ c || c  c  c  c}
 \hline
-test & 1 & 2 & 3 & 4  \\
+Test & 1 & 2 & 3 & 4  \\
 
 \hline
-test configuration &&& \\
-scenario & S2 & S2 & S3 & S3 \\
+Test config. scenario & S2 & S2 & S3 & S3 \\
 
-size of bigjobs & (8,16)${^*}$  & (8,16) & (8, 16) & (16,32) \\
-compute systems & P${^{**}}$  & L  &  L + P & L + P \\
+Size of BigJobs & (8,16)${^*}$  & (8,16) & (8, 16) & (16,32) \\
+Compute systems & P${^{**}}$  & L  &  L + P & L + P \\
 \hline
-first period (one big job) &   & & & \\
+First period (one BigJob) &   & & & \\
 ${T_{compute}}$ & 1037.2& 1045.2 & 1049.0 & 534.2\\
 ${T_{comm}}$ & 0.006 & 0.010 & 0.912 & 0.957 \\
 \hline
-second period (two big jobs)&   & & & \\
+Second period (two BigJobs)&   & & & \\
 ${T_{compute}}$ & 277.2 & 277.8& 276.8 & 150.4 \\
 ${T_{comm}}$ & 0.041 & 0.009 &  0.990 & 0.60 \\
 \hline
@@ -1157,13 +1151,13 @@ ${T_{comm}}$ & 0.041 & 0.009 &  0.990 & 0.60 \\
 According to our results, the communication time is insignificant even for cases with S3 in part thanks to the small size of the data required to be exchanged.  Of course, the file transfer depends heavily on the network condition, but it is not expected to become a major issue considering the observation that ${T_{compute}}$ is a tiny fraction of  ${T_{compute}}$.  Furthermore, we expect that the ratio of time scales of two components would remains similar or larger as the size of material systems to be simulated increases.  Comparing to the increasing computing costs for MD or CFD as the number of particles in MD or the number of mesh points increase, the increases in the data size to be exchanged, consequently, the time for transferring files remains insignificant.  Indeed, the development of an efficient runtime environment for hybrid CFD/MD simulation lies in finding a way to decrease ${T_{compute}}$.  Arguably, the results in the table  ~\ref{table:TwoBigJobs} suggest that an BigJob-based runtime environment is able to provide a reasonable solution for that.  
 
 In summary, use of a BigJob will eliminate idling operation of a
-subtask, which waits for another application to start running. Also,
+sub-job, which waits for another application to start running. Also,
 employing a load balancing function will let coupled codes use
 allocated resources more efficiently. Furthermore, using two BigJobs
 promotes the reduction of total runtime, compared to
 conventional job submission. Meanwhile, launch of two BigJobs does not
 intend to use resources more efficiently than conventional job
-allocation, but intend to save total computation time more than one
+allocation, but intend to save total runtime more than one
 BigJob test case, by utilizing more available resources. 
 \jhanote{broken. I cannot understand what is being said
   here. The paragraph needs to be fixed}
