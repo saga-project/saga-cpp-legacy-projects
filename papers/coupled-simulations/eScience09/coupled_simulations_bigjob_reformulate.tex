@@ -97,16 +97,16 @@ Dynamic Resource Allocation and Load-Balancing}
   applications.  Often the physical problems of interest demand the
   use of high-end computers, such as TeraGrid resources, which are
   often accessible only via batch-queues. Batch-queue systems are not
-  natively developed to support the coordinated scheduling of jobs --
+  developed to natively support the coordinated scheduling of jobs --
   which in turn is required to support the concurrent execution
   required by coupled multi-physics simulations. In this paper we
   develop and demonstrate a novel approach to overcome the lack of
   native support for coordinated job submission requirement associated
   with coupled runs. We establish the performance advantages arising
   from our solution, which is a generalization of the Pilot-Job
-  concept -- which in of itself is not new, but is applied to coupled
+  concept -- which in of itself is not new, but is being applied to coupled
   simulations for the first time.  Our solution not only overcomes the
-  initial co-scheduling problem, but provides a dynamic resource
+  initial co-scheduling problem, but also provides a dynamic resource
   allocation mechanism. Support for such dynamic resources is critical
   for a load-balancing mechanism, which we develop and demonstrate to
   be effective at reducing the total time-to-solution of the
@@ -124,9 +124,9 @@ Dynamic Resource Allocation and Load-Balancing}
 \section{Introduction}
 
 Coupled Multi-Physics simulation techniques are being increasingly
-used to study many different physical phenomenon spanning time and
-length scales at different level of
-details~\cite{Tai}~\cite{Watanabe}. These techniques have been used to
+used to study many different physical phenomena spanning time and
+length scales at different levels of
+detail~\cite{Tai}~\cite{Watanabe}. These techniques have been used to
 investigate phenomena from crack-propagation in materials, biological
 systems as well as understanding multi-phase fluid flow in constrained
 geometry.
@@ -190,17 +190,17 @@ address these changes is challenging -- as the change in resource
 assigned to one is correlated with a change in resource assigned to
 the other component.
 
-The pilot-job is just a container task where a number of sub-tasks can
-run in pre-defined schedule with the specified number of processors
-whether or not they are coupled.  The dynamical resource allocation
-capabilties of the Pilot-Job prove useful in the other two scenarios,
+The Pilot-Job is just a container task where a number of sub-tasks can
+run in a pre-defined schedule with the specified number of processors
+whether or not they are coupled.  The dynamic resource allocation
+capabilties of the Pilot-Job prove useful in the other two scenarios,\athotanote{ the other 2 scenarios? we are yet to introduce the scenarios!?}
 as well as when using load-balancing in the single-resource scenario.
 Although the container-Job/Pilot-Job concept is not novel {\it per
   se}, we believe this is the first documented utilization of these
 abstractions to perform coupled Multi-Physics simulations. We claim
 that there several distinct advantages that arise as a consequence of
 using Pilot-Jobs for Coupled Simulations: (i) obviates the need for a
-o-scheduler while preserving performance, (ii) enables dynamic
+co-scheduler while preserving performance, (ii) enables dynamic
 resource allocation, which in turn is important for load-balancing
 across coupled simulations.  But given the lack of system or
 service-level support to address the challenges outlined above, there
@@ -210,28 +210,27 @@ that are in user (application) space.
  
 We will provide details on how we implement our solution in Section 3,
 but in a nutshell it is critical to mention that our solution and its
-concomittant efficiency is not tied to either a specific application
+concomitant efficiency is not tied to either a specific application
 set (or infrastructure) and is scalable and extensible. It is based
-upon the SAGA (the Simple API for Grid Applications)~\cite{saga_web},
+on SAGA (the Simple API for Grid Applications)~\cite{saga_web},
 which is a high-level API which provides the basic functionality
 required to implement distributed functionally -- both logically and
 physically, in an infrastructure and middleware independent
-fashion. SAGA enables the creation of higher-levels of abstractions,
-for example a container-job and pilot-job (which as we will discuss is
+fashion. SAGA enables creation of higher levels of abstraction,
+such as a container-job or a Pilot-Job (which, as we will discuss, is
 referred to as the BigJob~\cite{saga_royalsoc}). The SAGA-based
 Pilot-Job is infrastructure neutral, unlike {\it all} other
 Pilot-Jobs.
 
 We begin the next section with an outline of the basic motivation for
-coupled simulations and load balancing.  We will address the
+coupled simulations and load balancing.  We will address this
 fundamental question: Does the use of an infrastructure independent
-container job assist in the time to solution of coupled simulation? We
+container job assist in the time to solution of a coupled simulation? We
 will determine that the answer is yes for a variety of different
 resource utilization scenarios. In the simplest case of a coupled
 simulation running on a single machine, we will establish that the
 reason is the lowered waiting time typically associated with a larger
-size request (on most queuing systems, for most commonly occuring load
-factors).  As our experiments will show, performance improvement arise
+size request (on most queuing systems, for most commonly occurring load-factors).  As our experiments will show, performance improvement arise
 from removing the need for scheduling the two-components separately
 and in providing a single job-requirement to the queuing system.
 
@@ -251,8 +250,8 @@ using the MD approach. CFD can accurately predict flow properties on
 conventional moderate/large size fluid domains, but is intrinsically
 impossible to reflect characteristics of surrounding solid materials.
 While MD can provide atomistic level resolution of interactions
-between particles, it becomes computationally demanding as the size of simulated system grows. So, neither method is suitable for solving a mesh-scale fluid system where the viscous effect dominates the flow characteristics but macroscopic features are also worth to be captured efficiently. The best solution would be, as is seen in Fig.~\ref{Fig:Couette}, to
-carry out the hybrid CFD/MD approaches with which atomistic
+between particles, it becomes computationally demanding as the size of simulated system grows. So, neither method is suitable for solving a mesh-scale fluid system where the viscous effect dominates the flow characteristics but macroscopic features are also worth capturing efficiently. The best solution would be, as can be seen in Fig.~\ref{Fig:Couette}, to
+carry out the hybrid CFD/MD approach with which atomistic
 interactions between solid elements and fluid particles near the wall
 is simulated by MD and the far field flow is calculated by CFD.
 
@@ -286,9 +285,9 @@ is simulated by MD and the far field flow is calculated by CFD.
 \end{figure}
 %%%%% FIGURE %%%%%
 
-In this study, we based on the MPI version of the ``in-house''
+In this study, we built on the MPI version of the ``in-house''
 incompressible CFD code~\cite{Lee} and the MPI version of
-LAMMPS~\cite{LAMMPS} for MD. We had some modifications over these
+LAMMPS~\cite{LAMMPS} for MD. We did some modifications to these
 application codes to implement hybrid schemes on each application
 domain. In brief, the hybrid region where the coupling mechanism
 between MD region and CFD region is executed comprises five
@@ -296,7 +295,7 @@ sub-regions. In the CFD boundary grid region positioned near the pure
 MD region, velocities of particles obtained with MD are averaged and
 used for boundary condition for the corresponding CFD computational
 cells. The MD boundary zone is placed above the CFD boundary zone and
-here, information on velocities from the CFD grid are imposed on
+here the information on velocities from the CFD grid is imposed on
 particles in the zone through dynamically constrained equation of
 motion for MD. As illustrated in Fig.~\ref{Fig:Couette}, the coupling
 mechanism is the key component for successful hybrid CFD/MD
@@ -325,9 +324,9 @@ computational challenge is how to run efficiently two separate stand
 alone applications while efficiently conducting information exchange.
 In other words, the time-to-solution is heavily dependent upon whether
 a runtime environment can provide, (i) low collective-waiting times
-(arising from batch queue wait times), and (ii) prevent an imbalances
-in time to reach information exchange steps between the two codes. The
-imbalance arises due to different performance between two distinctly
+(arising from batch queue wait times), and (ii) prevent an imbalance
+in the time to reach the information exchange step between the two codes. The
+imbalance arises due to difference in performance between two distinctly
 heterogeneous applications, CFD and MD, resulting in an unavoidable
 time gap between arrival times of CFD and MD for the exchange step. We
 propose to address this using dynamical resource allocation mechanism
@@ -389,23 +388,23 @@ Fig.~\ref{Fig:BigJob_Structure} shows the structure of BigJob and its
 operation flow. When a BigJob is submitted to the remote resource, the
 application manager monitors the status of this pilot-job through the
 advert service. When resources are allocated to the BigJob, the
-application manager divides obtained resources to its sub-jobs and a
+application manager allots the obtained resources to its sub-jobs and a
 coupled simulation starts under the control of a multi-physics agent
 in the remote resource. Advert service keeps on getting the status of
 a pilot-job from the queuing system and the status of sub-jobs from
-multi-physics agent, also delivering these information to the
+multi-physics agent and also delivers this information to the
 application manager by a push-pull mechanism. The application manager
 watches the status of sub-jobs and decides the next event when the
 coupled simulation is finished. When one default BigJob is launched,
 sub-jobs keeps running until final solution is achieved and the
-manager quits the pilot-job at that time. In cases multiple BigJobs
-are submitted for the same simulation or a load balancing function is
+manager quits the Pilot-Job at that time. In case multiple BigJobs
+are submitted for the same simulation or if a load balancing function is
 included, sub-jobs experience several restarts from their
 checkpointing data, reflecting changed processor allocation to each
-application. In former case, resource allocation to each sub-job
+application. In the former case, resource allocation to each sub-job
 follows a pre-defined map according to the number of BigJobs allotted
-to this simulation: In latter case, resource allocation to each
-sub-job becomes dynamic according to its performance, to be discussed
+to the simulation; in the latter case, resource allocation to each
+sub-job becomes dynamic according to its performance, as discussed
 in the next section.
 
 %%%%% FIGURE %%%%%
@@ -417,8 +416,7 @@ in the next section.
   including BigJob and sub-job submission, their status monitoring
   functions. We implement a load balancing module, and migration
   service based on job information. Application agent system resides
-  on each HPC resource and conducts job information gathering as well
-  as communication with application manager via the advert service}
+  on each HPC resource and conducts job information gathering and also communicates with the application manager via the advert service}
 \label{Fig:BigJob_Structure}
 \end{figure}
 %%%%% FIGURE %%%%%
@@ -449,15 +447,15 @@ in the next section.
 % function on a BigJob.
 
 The flexibility to re-distribute resources (processors) to the
-individual task, does not imply efficient utilization. This is the
-responsibility of a load-balancer (LB) We will discuss the
+individual task does not imply efficient utilization. This is the
+responsibility of a load-balancer (LB). We will discuss the
 implementation and algorithm of this LB~\cite{Ko}; it is important to mention
 that the LB functions in the context of the SAGA-BigJob framework.
 
 Each application's load is determined by its elapsed time to run the
 evolution loop. Here, time for initialization or inter-domain data
 exchange are excluded from the counting, because they are one-time
-event or irrelevant to application's performance.  The efficient
+events or irrelevant to application's performance.  The efficient
 functioning of the LB is predicated on application codes being able to
 restart from their checkpointing data effectively.  Also, application
 codes should be equipped with generalized domain partitioning routine
@@ -466,8 +464,8 @@ their parallel efficiency a lot. If above conditions are satisfied, it
 makes sense to load the LB within the pilot-job, to implement dynamic
 resource allocation between tasks.  Conceptually, the load-balancing
 algorithm assigns more processors to a sub-task with greater runtime,
-until two codes take the same wall-clock time between points when they
-communicate. Interestingly, our approach is very simple and the
+until the two codes take the same wall-clock time between points when they
+communicate. \athotanote{the following sentence is confusing}Interestingly, our approach is very simple and the
 algorithm is indepenendent of applications upon which it is predicated
 are, (1) each application code follows the ideal parallel efficiency.
 (2) all processors in one node are assigned to one single task.
@@ -488,7 +486,7 @@ W_{MD}&=&PE_{MD,I}\times t_{MD,I}=PE_{MD,F}\times t_{MD,F}
 \normalsize
 %\jhanote{Jeff: Please define what is $PE_{MD}'$, $t_{MD}'$} 
 
-In spite of re-allocation, the total number of processor utilized
+In spite of the re-allocation, the total number of processors utilized
 remains the same:
 
 \small
@@ -500,11 +498,11 @@ PE_{TOT}=PE_{CFD,I}+PE_{MD,I}=PE_{CFD,F}+PE_{MD,F}
 \end{equation}
 \normalsize
 
-Our objective is to reduce the computation time of a sub-job until the
+Our objective is to reduce the computation time of a sub-job to the point until the
 two application components show the same computation between the
 exchange points, i.e., $t_{CFD,F} = t_{MD,F}$. From
 Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition}
-an optimal processors distributed for the CFD subtask would be:
+an optimal number of processors distributed for the CFD subtask would be:
 
 \small
 \begin{eqnarray}
@@ -584,6 +582,18 @@ for dynamic resource allocation.
 % investigate acquiring idle resources during the simulation, by
 % launching multiple BigJobs for one coupled simulation.
 
+<<<<<<< .mine
+We outline three possible scenarios. In the first
+scenario, a single BigJob is utilized to run the coupled simulations, with and without LB (denoted as S1+LB and S1) redistributing resources based upon
+their individual performance.  In the second scenario (S2) there are
+two BigJobs, and although they are started together, most often one
+BigJob starts before the other; to increase efficiency, both coupled
+simulations start with whatever resources are available as part of the
+first (to run) BigJob. When the second BigJob becomes active, there is
+a dynamic redistribution of tasks, such that the larger of the two
+sub-jobs is assigned the bigger BigJob. A variation of the second scenario, the third scenario would be two BigJobs on two different machines (S3). In the remainder of this section we discuss the details of these
+three different Use Cases.
+=======
 We outline three possible scenarios. In the first scenario, a single
 BigJob is utilized to run the coupled simulations, with and without LB
 (denoted as $S1_{LB}$ and S1 respectively) redistributing resources
@@ -597,6 +607,7 @@ larger of the two sub-jobs is assigned the bigger BigJob. Variant of
 the above, when the two BigJobs are on two different machines forms
 the third scenario (S3). In the remainder of this section we discuss
 the details of these three different Use Cases. 
+>>>>>>> .r1912
 
 % We compare the performance as measured by TTS using the benchmark
 % case to be the situation when we do not have the ability to utilize
@@ -827,6 +838,16 @@ time.
 %   edit this one or use the former one behind (which is commented out)}
 % \jhanote{I've address this I think}
 
+<<<<<<< .mine
+Simulations used to validate and determine the performance measures were
+conducted on supercomputing resources on TeraGrid machines (62,976
+core Ranger), shared TeraGrid-LONI (Louisiana Optical Network
+Initiative)~\cite{LONI_web} machine (5,440 core QueenBee)
+and some smaller LONI machines such as Eric, Oliver, Louie and
+Poseidon(512 cores each).  We monitored the load on these systems over a
+long period of time (several weeks) and found Queenbee to be
+significantly more loaded than other resources.
+=======
 Evaluation of the effectiveness of BigJob as a job-submission
 mechanism, requires carefully controlled experiments over different
 processor requests and different wall-time limits with varying system
@@ -845,6 +866,7 @@ conventional jobs concurrently and counting total waiting time in both
 cases. Both small and large simulations are conducted using 64
 processors for a coupled task and wall-limit time is set to be either
 6 hours or 24 hours, depending on their computation times.
+>>>>>>> .r1912
 
 % The load-factor is defined as the ratio of the number of active
 % nodes to the total number of nodes on the machine; we measured this
