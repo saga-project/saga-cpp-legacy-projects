@@ -533,15 +533,22 @@ SAGA-based framework.
 
 \jhanote{How bigjob works with Condor Glide-in}
 
-The Condor provides a functionality that allows implement the general Big-Job 
-architecture in many different ways. The idea of Advert Service as a central 
-point of collecting information about sub-jobs can be substituted by a Condor 
-queue. This approach gives some advantages. The Big-Job can utilize Condor 
-scheduling and matchmaking. It allows to control in the unified way a state of 
-pilot-jobs and sub-jobs as Condor jobs. The Advert Service still can be applied 
-and is an answer to a problem of central coordination point if many different 
-backends (Condor pool, clouds, grids) are used.  However the approach presented 
-here shows how to implement the Big-Job idea referring Condor only.
+Condor natively provides pilot-job functionality; in fact, Condor has
+been instrumental in the uptake and popularization of the pilot-job
+concept.
+% that allows implement the general Big-Job 
+% architecture in many different ways. 
+In fact the challenge here is to implement BigJob as an overlay over
+Condor's native pilot-job with minimal disturption. The idea of Advert
+Service as a central point of collecting information about sub-jobs
+can be substituted by a Condor queue. This approach gives some
+advantages.  Big-Job can utilize Condor scheduling and matchmaking. It
+allows the control in an unified way of the state of pilot-jobs and
+sub-jobs as Condor jobs. The Advert Service still can be applied and
+is an answer to a problem of central coordination point if many
+different backends (Condor pool, clouds, grids) are used.  However the
+approach presented here shows how to implement the Big-Job idea
+referring Condor only.
 
 \begin{figure}[!ht]
  \begin{center}
@@ -556,28 +563,37 @@ here shows how to implement the Big-Job idea referring Condor only.
    pool and distributing sub-jobs to them.} \label{fig:saga-condor}
 \end{figure}
 
-... such simple extensibility ... illustrates how SAGA enables the
-integration of heterogeneous resources to facilitate distributed
-Scale-out.
+\jhanote{... such simple extensibility ... illustrates how SAGA
+  enables the integration of heterogeneous resources to facilitate
+  distributed Scale-out.??}
 
 A Condor pilot-job from an application point of view is a request (1)
-for resources to be available in a local Condor pool (see Figure~\ref{fig:saga-condor}). 
-The application specify endpoints of grid job service (GRAM), a number of
-requested nodes from each endpoint and a wall time. The Bigjob Condor
-translate the request as a job for Condor-G (3) to start remotely (4)
-Condor master and startd on all requested nodes on grid
-resources. These nodes join (5) the Condor pool on the user desktop
-creating a coherent computing resource to submit sub-jobs to (6),
-(8). Both pilot-job and sub-jobs are submitted (2), (7) using the same
-SAGA interface to condor\_adaptor. Subjobs can be submitted before any
-nodes join the Condor pool. Then they will wait until scheduler is
-able to find any “Unclaimed” resources matching a subjob's
-requirements. Requesting nodes from several different clusters can
-speed-up processing all sub-jobs. If one of the requested clusters is heavily
-loaded the waiting time of
-pilot-jobs in a queue on this cluster can be really long. Then the
-first sub-jobs will be executed as soon as a first pilot-job starts
-and nodes of the least loaded cluster join the Condor pool.
+for resources to be available in a local Condor pool (see
+Figure~\ref{fig:saga-condor}).  The application specify endpoints of
+grid job service (GRAM), a number of requested nodes from each
+endpoint and a wall time. The Bigjob Condor translate the request as a
+job for Condor-G (3) to start remotely (4) Condor master and startd on
+all requested nodes on grid resources. These nodes join (5) the Condor
+pool on the user desktop creating a coherent computing resource to
+submit sub-jobs to (6), (8). Both pilot-job and sub-jobs are submitted
+(2), (7) using the same SAGA interface via the
+condor\_adaptor. Subjobs can be submitted before any nodes join the
+Condor pool. Then they will wait until scheduler is able to find any
+“Unclaimed” resources matching a subjob's requirements. Requesting
+nodes from several different clusters can speed-up processing all
+sub-jobs. If one of the requested clusters is heavily loaded the
+waiting time of pilot-jobs in a queue on this cluster can be really
+long. Then the first sub-jobs will be executed as soon as a first
+pilot-job starts and nodes of the least loaded cluster join the Condor
+pool.
+
+\jhanote{Lukas, I have taken a quick pass at the above paragraph, but
+  more is required. It is a bit difficult to read and understand, how
+  BigJob works with Condor-Glide-in. Maybe in addition to the above
+  control flow (which is helpful), add a few sentences about the
+  mapping between BigJob's interface (API calls) and Condors? That
+  might help.. Andre/Lukas: What do you think? ANy other suggestions
+  for improving this secton?}
 
 \jhanote{We should make sample code, examples and data-sets available
   on our website. Simple packaging}
@@ -870,12 +886,12 @@ Nimbus as Cloud resource.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{performance/8replica_scenario_grid_condor_cloud}
-        \caption{\textbf{S1 - S3: Collective Usage of Grid, Condor and Cloud
-            Resources: } The experiments showed that if the Grid and Condor
-          resource Poseidon has only a light load, no benefits for using
-          additional Cloud resources exist. However, the introduction
-          of an additional Condor resp. Grid resource significantly
-          decreases \tc.}
+        \caption{\textbf{A1 - A3: Collective Usage of Grid, Condor and
+            Cloud Resources: } The experiments showed that if the Grid
+          and Condor resource Poseidon has only a light load, no
+          benefits for using additional Cloud resources
+          exist. However, the introduction of an additional Condor
+          resp. Grid resource significantly decreases \tc.}
     \label{fig:performance_8replica_grid_cloud_condor}
 \end{figure}
 
@@ -884,15 +900,18 @@ Grid BigJob is quite similar, which can be expected since the underlying physica
 are quite similar. Solely, the slightly higher startup overhead can be observed in the overall Condor
 runtime.
 
-The offloading of 2 replicas to an additional Cloud resource did not result in an improved \tc. In such 
-a scenario, \tc is determined by the slowest resource, i.\,e.\ Nimbus. As described earlier,
-the startup time for Nimbus images is in particular for such short runs significant. Also, NAMD
-performs significantly worse in the Nimbus Cloud than on Poseidon or Oliver. Since the startup time 
-on Nimbus averages to 357\,sec (see Figure~\ref{fig:performance_setup_time}) and each 8 core replica runs for 
-about 363\,sec (see Figure~\ref{fig:performance_namd_run}) at least 720\,sec must be allowed 
-for running a single replica on Nimbus. Thus, it can be concluded that if resources in 
-the Grids or Condor pool are instantly available it is not reasonable to start
-additional Cloud resources. 
+The offloading of 2 replicas to an additional Cloud resource did not
+result in an improved \tc. In such a scenario, \tc is determined by
+the slowest resource, i.\,e.\ Nimbus. As described earlier, the
+startup time for Nimbus images is in particular for such short runs
+significant. Also, NAMD performs significantly worse in the Nimbus
+Cloud than on Poseidon or Oliver. Since the startup time on Nimbus
+averages to 357\,sec (see Figure~\ref{fig:performance_setup_time}) and
+each 8 core replica runs for about 363\,sec (see
+Figure~\ref{fig:performance_namd_run}) at least 720\,sec must be
+allowed for running a single replica on Nimbus. Thus, it can be
+concluded that if resources in the Grids or Condor pool are instantly
+available it is not reasonable to start additional Cloud resources.
 
 \alnote{Related Work: Condor VM}
 
