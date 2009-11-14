@@ -30,12 +30,12 @@ set xrange [7:33]
 set ylabel "Runtime (in s)" #font "Helvetica, 20"
 set xlabel "Number of Cores"   
 
-plot "namd_run.txt" using 1:2 title "LONI (QB)" with lp lt 1 linewidth 4,\
-     "namd_run.txt" using 1:3 title "LONI (Poseidon)" with lp  lt 2 linewidth 4,\
+plot "namd_run.txt" using 1:5 title "EC2 (m2.4xlarge)" with lp  lt 4 linewidth 4,\
+     "namd_run.txt" using 1:6 title "EC2 (m1.large)" with lp  lt 5 linewidth 4,\
      "namd_run.txt" using 1:4 title "Science Cloud" with lp  lt 3 linewidth 4,\
-     "namd_run.txt" using 1:5 title "EC2 (m2.4xlarge)" with lp  lt 4 linewidth 4,\
-     "namd_run.txt" using 1:6 title "EC2 (m1.large)" with lp  lt 5 linewidth 4  
-
+     "namd_run.txt" using 1:2 title "LONI (QB)" with lp lt 1 linewidth 4,\
+     "namd_run.txt" using 1:3 title "LONI (Poseidon)" with lp  lt 2 linewidth 4
+         
 ##########################################################################
 # Scenarios Times
 # Workload 50 Jobs Effect of Offloading to Cloud 
