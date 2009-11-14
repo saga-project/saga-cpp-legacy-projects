@@ -320,7 +320,7 @@ Globus installation.  The Atlas computing framework developed at CERN
 also heavily relies on the PanDA Pilot-Job framework to implement
 resource leases. Using the VIRM API, PanDA was extended to support
 different virtualization backends, e.\,g.\ OpenNebula and
-Nimbus~\cite{1555338}. However, in contrast to the SAGA-based Pilot
+Nimbus. However, in contrast to the SAGA-based Pilot
 Job for Clouds both framework are strongly coupled to a particular
 backend infrastructure -- Globus in the case of Nimbus and gLite in
 the case of PanDA. The advantage of the SAGA Pilot-Job is that it
@@ -425,7 +425,7 @@ implement distributed functionality required by applications
 and is also used to implement higher-level APIs, abstractions, and
 frameworks that, in turn, support the development, deployment and
 execution of distributed
-applications~\cite{gmac09,saga_data_intensive_abstractions}. In
+applications~\cite{enkf-gmac09,saga_data_intensive_abstractions}. In
 Ref.~\cite{sagamontage09} we discussed how SAGA was used to
 implement a higher-level API to support workflows. In this paper, 
 we will discuss how SAGA can be used to implement runtime
@@ -597,7 +597,7 @@ pool.
 \jhanote{We should make sample code, examples and data-sets available
   on our website. Simple packaging}
 
-\subsection{BigJob for Utilizing Cloud Resources} \jhanote{AL}
+\subsection{BigJob for Clouds} \jhanote{AL}
 
 % espite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
 
@@ -620,42 +620,34 @@ This model is quite similar to resource reservations where you obtain
 a ``container'' of resources to which you can later bind jobs
 to. Interestingly, at this level of formulation, Pilot-Jobs attempt to
 provide a similar model of resource provisioning as Clouds natively
-provide.
+offer. The Cloud usage model naturally maps to the Pilot-Job abstraction 
+where resource allocation is done within the big-job and the resource 
+binding is conducted dynamically for each sub-job.
 
-
-As shown in Figure~\ref{fig:figures_distributed_pilot_job} the BigJob Cloud implements
-the Pilot-Job abstraction for Cloud resources. The Cloud usage model naturally maps
-to the BigJob concept where resource allocation is done within the big-job and the 
-resource binding is conducted dynamically for each sub-job.
-
-Prior to using the SAGA Cloud Pilot-Job, the user is required to
-prepare the virtual machine image for each Cloud that is going to
-used. The image should contain the application and possibly the
-application data. Once the image is setup, the user can initialize
-\texttt{bigjob\_cloud} object referencing the respective Cloud
-environment (including the used image). After the user initialized 
-a \texttt{big\_job} object and called \texttt{start\_pilot\_job},
-the BigJob Manager starts the specified number of virtual machines 
-in the requested Cloud. 
-
-
-
-For this purpose, the manager relies on a special resource adaptor
+As shown in Figure~\ref{fig:figures_distributed_pilot_job} the Cloud BigJob implements
+the Pilot-Job abstraction for Cloud resources. In the following, we discuss
+the internals of the BigJob Cloud implementation. Initially it is required that the user
+prepares and uploads a virtual machine image for respective Cloud environment. 
+This image should contain the application and possibly the
+application data. Once the image is setup, the user can initialize a
+\texttt{bigjob\_cloud} object specifying the Cloud environment, 
+the image-id of the prepared VM image as well as the number and type of the VMs. The 
+BigJob Manager then starts up the VM cluster on the requested Cloud. 
+For this purpose, the manager relies on a resource adaptor
 for each Cloud. This adaptor encapsulates Cloud specifics, such as the used
-security scheme, the communication protocol and the required setup tasks. Currently,
-Amazon EC2, Eucalyptus and Nimbus Clouds are supported. Despite the similarity 
-of these Clouds and the trend toward standardisation on the
-EC2 API, there are subtle differences between these Clouds, e.\,g.\ in the allocation
+security mechanism, the communication protocol and the required setup tasks. Currently,
+Amazon EC2, Eucalyptus and Nimbus Clouds are supported. Despite some similarities
+between these Clouds and the trend toward standardization on the
+EC2 API, there are subtle differences, e.\,g.\ in the allocation
 of IP addresses, the SSH key handling, the metadata management or 
 the network setup. The Cloud BigJob attempts to hide these differences 
 from the user. However, a further standardization of such Cloud environments, 
 e.\,g.\ within the OCCI efforts~\cite{occi}, is necessary.
 
-
-The BigJob manager supports basic fault tolerance features: failed requests e.\,g.\
+The Cloud BigJob supports basic fault tolerance features: failed requests e.\,g.\
 are automatically re-executed $n$ times. If not sufficient resources can be
-allocated, the BigJob changes to the state \emph{failed}.
-Once all requested resource have been successfully allocated, the BigJob manager
+allocated, the BigJob changes to the state \emph{failed} and terminates all previously
+started VMs. Once all requested resource have been successfully allocated, the BigJob manager
 prepares each virtual machine for further job executions e.\,g.\ by setting
 up all SSH keys, which is a pre-requisite for running MPI applications.
 Having finished all preparation tasks, the BigJob changes into the state
@@ -665,18 +657,17 @@ After the running state has been reached, the manager starts to process sub-jobs
 Unprocessed sub-jobs are stored in a FIFO queue. As resources become available,
 sub-jobs are assigned to these. For parallel jobs the manager generates
 a nodefile, which is then used for launching the application. Once the preparation
-work has been finished, the manager spawns the job using the SAGA job API and the SSH
-adaptor. 
-
-The manager monitors the job progress using the standard mechanisms provided by the
-SAGA job API and a monitoring thread. Once a job terminates, i.\,e.\ it changes 
+work has been finished, the manager spawns the sub-job using the SAGA job API and the SSH
+adaptor. The progress of all sub-jobs is monitored by the manager using the standard mechanisms 
+provided by the SAGA job API and a monitoring thread. Once a job terminates, i.\,e.\ it changes 
 to the state \emph{Done} or \emph{Failed}, the allocated resources are freed. 
 A new sub-job from the queue can then be assigned to newly available resources.
 
-Since all meta-data of the assigned Cloud virtual machines is available via 
-the respective Cloud API it is -- in contrast to the Grid BigJob -- not necessary 
-to deploy any agents on the Cloud machines. The state of all VMs can simply be 
-maintained by the manager; remote launching can be done via the SSH protocol.
+Since all meta-data of the assigned Cloud virtual machines, in particular the internal
+and external IPs of the VMs, is available via the Cloud APIs of the supported Cloud 
+environments it is in contrast to the Grid BigJob not necessary to deploy any 
+agents on the Cloud machines. The state of all VMs can simply be maintained by the 
+manager; remote launching can be done via the SSH protocol.
 
 
 \subsection{BigJob Overheads} \jhanote{All}
@@ -686,11 +677,13 @@ maintained by the manager; remote launching can be done via the SSH protocol.
   BigJob startup and dispatch time -- which in principle should be
   independent of any usage mode/scenario. Right?}
 
-The main overhead when using BigJob results from the queueing time at
-individual computational resources on a computational grids the
-virtual machine creation time in Cloud
-environments. Figure~\ref{fig:performance_setup_time} shows the setup
-times observed in our experiments.
+In the following the overheads resulting from the usage of BigJob within
+Grid applications is analyzed. Typically, the main overhead 
+when using BigJob results from the queueing time at
+individual resources on a Grids respectively from the
+virtual machine creation time in Cloud environments. 
+Figure~\ref{fig:performance_setup_time} compares the startup time of the
+different Pilot-Job backends for Grids, Condor pools and Clouds.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{performance/setup_time_xls.pdf}
@@ -701,12 +694,12 @@ times observed in our experiments.
     \label{fig:performance_setup_time}
 \end{figure}
 
-Interestingly, the setup times for the Cloud environments have been larger than 
+Interestingly, the startup times for the Cloud environments have been larger than 
 for the LONI resource Poseidon, which was very light loaded at the time
 of the experiment. Obviously, the startup of a VM involves higher overheads 
 than spawning a job on an already running machine: a resource for the VM 
-must be allocated, the VM must be staged to the target and booted up. As the following
-experiments emphasize especially the already oversubscribed intra Cloud network
+must be allocated, the VM must be staged to the target and booted up. The following
+experiments will also show that especially the already oversubscribed intra Cloud network
 and thus, the staging of the VM can be a bottleneck. Also, there is a
 large fluctuation in particular in the EC2 environment probably caused by 
 the fact that insufficient resources have been available at certain times.
@@ -723,13 +716,13 @@ performance and less overheads than Condor Glide-In.
 
 In the following section we show that the SAGA BigJob abstraction is
 suitable for running Pilot-Jobs on different kinds of distributed
-infrastructures.
+infrastructures supporting different usage modes.
 
 \section{Usage Modes and Analysis}
 
 The aim of this section is not to perform detailed systematic
 performance measures and analysis, but to illustrate the various usage
-modes the SAGA-based BigJob can support and how they are supported. We
+modes the SAGA-based BigJob can support and to explain how they are supported. We
 posit that the performance overheads of BigJob are small relative to
 the duration of the tasks that are typically performed, i.e., order of
 seconds compared to tens of minutes and hours.  Needless to say, if
@@ -737,7 +730,7 @@ millions of jobs each of short duration were being attempted then the
 overheads would be significant.
 
 We discuss two scenarios that are representative of how applications
-would typically use multiple distributed infrastructure. We focus our
+would typically use multiple distributed infrastructures. We focus our
 attention on replica-based MD simulations and define a workload as
 \numrep replicas of the HCV model~\cite{}, each replica running for
 500 timesteps.  The first scenario involves running all \numrep over
@@ -892,7 +885,7 @@ Nimbus as Cloud resource.
 
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.45\textwidth]{performance/8replica_scenario_grid_condor_cloud}
+        \includegraphics[width=0.47\textwidth]{performance/8replica_scenario_grid_condor_cloud}
         \caption{\textbf{A1 - A3: Collective Usage of Grid, Condor and
             Cloud Resources: } The experiments showed that if the Grid
           and Condor resource Poseidon has only a light load, no
@@ -925,7 +918,7 @@ However, it must be noted that are virtual machines types with a better
 performance available, e.\,g.\ in the Amazon Cloud. These VMs 
 are usually associated with higher costs (up to 2.40\,\$ per CPU hour) than
 the Science Cloud VMs. For a further discussion of cost trade-offs for 
-scientific computations see Deelman et\,al.~\cite{1413421}. 
+scientific computations in Clouds see Deelman et\,al.~\cite{1413421}. 
 
 
 \subsection{Scenario B: Investigation of the Distribution of Workload for Maximum Allowed
@@ -1032,12 +1025,9 @@ application-level runtime environments.
 
 \section{Conclusion}
 
-various abstractions for IaaS currently various standardization
-efforts: OCCI, Cloud Consortium, ISO
-
 We plan to extend this work in two important directions. The first is
 the use of a more sophisticated coordination mechanism -- that
-supports asynchronous task coordination (e.g., Comet). In this paper,
+supports asynchronous task coordination (e.g. Comet). In this paper,
 we have focussed on replica simulations, but not on replica-exchange
 simulations -- which involve coordination between the different tasks
 and intelligence in their placements.  It will be very interesting to
@@ -1077,7 +1067,7 @@ important approach towards the interoperability of PGI.
 
 
 \bibliographystyle{IEEEtran}
-\bibliography{saga,literatur}
+\bibliography{literatur,saga}
 \end{document}
 
 
