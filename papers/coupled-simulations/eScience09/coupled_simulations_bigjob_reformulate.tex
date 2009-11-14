@@ -964,64 +964,66 @@ more loaded than other resources.
 \end{tabular}
 \end{table}
 
-We wanted to design experiments to determine if running larger and/or
-longer simulations effects the actual waiting time on the queue. What
-we did was the following. We chose two machines with more than 5000
-processors, Ranger and Queenbee. We submitted jobs of different sizes,
-requiring different wall-time limits. Each time we submitted a job, we
-gathered the load-factor and the actual waiting time on the
-queue. Lots of factors effect the waiting times. Most important of
-them is the load at the moment on the machine, requested wall-time
-limit and also the number of processors requested. Two more factors
-that effect this are the backfilling that occurs when some other
-unrelated job finishes and the changes in the priority of the test job
-when a particular higher priority job joins the queue; however, unlike
-the first three factors, the last two are somewhat random and it is
-difficult to systematically account for them. Also, the internal
-queueing policy of supercomputing centers may effect the waiting time
-on the queue based on their queueing priority including credential,
-fairshare, resource and service priority.  As can be seen from
-Table~\ref{table:waitingtime}, the waiting time tends to decrease as
-the number of processors requested in a job increases.  It can be seen
-that larger processor jobs start earlier based on the priority of
-jobs.
+We designed experiments to determine if running larger and/or longer
+simulations effects the actual waiting time on the queue. We performed
+our experiments on machines spanning two orders of magnitude in size
+(and peak performance)-- from approximately 500 processors upto 65000
+processors, and for a range of load-factors.  We submitted jobs of
+different sizes, requiring different wall-time limits. Each time we
+submitted a job, we gathered the load-factor and the actual waiting
+time on the queue. Many factors effect the waiting times, arguably the
+most important of them are the load-factors at the instant of
+submission, requested wall-time limit and also the number of
+processors requested. Two other factors that effect this are the
+backfilling that occurs when some other unrelated job finishes and the
+changes in the priority of the test job when a particular higher
+priority job joins the queue; however, unlike the first three factors,
+the last two are somewhat random and it is difficult to systematically
+account for them. Also, the internal queueing policy of supercomputing
+centers may effect the waiting time on the queue based on their
+queueing priority including credential, fairshare, resource and
+service priority.  As can be seen from Table~\ref{table:waitingtime},
+the waiting time tends to decrease as the number of processors
+requested in a job increases.
+
 % Considering only the data from jobs which did not go through
 % backfilling, it can be seen that larger processor jobs start earlier
 % based on the priority of jobs.
 
-We cannot claim this just by running some tests on a couple of
-machines. It may be, in part, due to the policies and loads under
-which a particular machine is run. It is difficult to discern a
-relationship between waiting time with the requested wall-time limit
-of jobs, as from experience there is greater variation in backfilling
-probability with varying wall-time requests.  However, we are able to
-establish that running a single large job on average has to wait less
-at the queue than the wait time for a smaller job (and thus most
-definitely two small jobs). We find that the sum total of the waiting
-times of two smaller jobs is larger than the waiting time of single
-large job. This is especially true in cases where the jobs need to
-interact, as shown in Fig.~\ref{Fig:OneBJ_Flow}, i.e., one job cannot
-start till the other is ready to start.
+% It can be seen that larger processor jobs start earlier based on the
+% priority of jobs.
 
-%The order of job execution depends on a variety of parameters such as submission time, backfill opportunities, number of actively scheduled jobs and queue priority including credential, fairshare, resource and service priority. 
+Results for machines with more than 5000 processors, Ranger and
+Queenbee are presented in Table~\ref{table:waitingtime}, and as can be
+seen, jobs with larger processor counts have typically lower wait
+times. The observation holds true for a range of values of requested
+wall-times over a range of ``high'' load-factors.
 
-The results of experiments to determine the time-to-start for
-conventional job submissions and a single BigJob launch is presented
-in Table~\ref{table:BJwaiting}. Test results do not exactly coincide
-with our waiting time experiments in every test. For the larger
-physical problem under investigation, the simulation with longer
-wall-time limit, the result follows our former experiments that a
-BigJob has the potential of lower time-to-start than two conventional
-submissions. On the other hand, a small problem resulted in the faster
-time-to-start in conventional case.
-%there is no guarantee whether two smaller job submissions would utilize backfilling capability more effectively or one BigJob launch will get the benefit of higher priority by resources' queueing policy. According to the experiments presented in 
-Meanwhile, the large standard deviation of the resultant data leaves
-much to debate on the reliability of these data. At least, it is clear
-that a BigJob submission eliminates the possibility of simulation's
-failure due to long inactive phase, which shall cause far longer
-wall-time limit setup than actual runtime.
+% We cannot claim this just by running some tests on a couple of
+% machines. It may be, in part, due to the policies and loads under
+% which a particular machine is run. 
 
-%, though the result gives conventional job submission showed faster start in small wall-time limit and BigJob had better with longer wall-time limit, the large standard deviation leaves much to debate on the reliability of these data. The only thing clear is that a BigJob submission eliminates the possibility of simulation's failure due to long inactive phase, which shall cause far longer wall-time limit setup than actual runtime.
+It is however, difficult to discern a relationship between waiting
+time with the requested wall-time limit of jobs; from experience there
+is greater variation in backfilling probability with varying wall-time
+requests.  However, as we are able to establish that submitting a
+single large job on average has to wait less at the queue than the a
+smaller job does; thus most definitely the maximum wait time of two
+small jobs will be even greater, in other words the sum total of the
+waiting time (of the first-to-run job) and the inactive time (defined
+as the difference between the waiting time of the two jobs) will be
+larger than the wait time of a single large job.
+
+Controlling for the runtime of the two scenarios, i.e., we take a
+BigJob of size 2X and 2 conventional jobs of size X each, we compare
+the waiting time of a 64 px BigJob (with wall-clock limits of 2, 3,
+and 4hrs) which is smaller than the wait for a 32px conventional job
+for the same values of wall-clock limits. As the individual
+simulations are assigned the same number of processors, the runtime
+performance will be similar in the two scenarios, and thus the total
+time-to-solution will determined by the wait-times on queues -- which
+we show statistically to be lower for the larger BigJob submission
+mode.
 
 \begin{table}[t]
   \caption{\small  Waiting and inactive time for conventional job
@@ -1034,7 +1036,6 @@ wall-time limit setup than actual runtime.
     submission showed 3 failures during the test due to the timeover of
     wall-time limit in the first-started job. Experiments were conducted
     on small and less crowded LONI clusters.}
-
 \label{table:BJwaiting}
 \centering
 \begin{tabular} {p{0.55in} || p{0.7in} p{0.7in} p{0.7in}}
@@ -1074,15 +1075,74 @@ wall-time limit setup than actual runtime.
 \end{table}
 
 
+Results for smaller systems ($\approx$ 500 processors) are presented
+in a different fashion in Table~\ref{table:BJwaiting}. In addition to
+the fact that a 64 processor BigJob is now ~16\% of the machine
+resources, the load-factors of the smaller machines fluctuated much
+more than those of the larger machines. Consequently the data obtained
+for smaller resources is far more noisier and than the ``clean'' data
+for the larger machines -- Ranger and QueenBee. As can be seen from
+Table~\ref{table:BJwaiting} although the waiting time for the
+first-to-start job was smaller in the conventional job submission mode
+than the BigJob (S1), the second job (convention job) had a large
+subsequent wait time; thus for conventional job submission mode there
+is a non-negligible inactive mode (defined as the time difference
+between queue wait times between the two simulations). There is no
+inactive mode for BigJob submission as by defintion both simulations
+begin concurrently. Interestingly, the situation is somewhat worse for
+the conventional job submission; although the average wait time is
+lower than the BigJob, there exist 2 (out of 6) cases (for 6hr
+wall-clock limit), when the wait time of the second job is greater
+than the wall-clock limit for the first-to-start job. In other words,
+the second job fails to start in the duration that the first-to-start
+job is in active/run mode, but can't do anything useful as the second
+job is still waiting on the queue. This is typically alleviated with
+co-allocation of resources; however the number of production grid
+infrastucture that provide co-allocation (and co-scheduling) as a
+production service is very limited. This leads us to the heart of the
+advantage of the BigJob submission mode: circumventing the
+requirements of co-scheduling by providing an application level
+solution that preserves performance and guarantees non-failure due to
+large-fluctuations (see data for 24hr wall-time limit) in queue
+waiting times.
+
+
+% This is especially true in cases where the jobs need to interact, as
+% shown in Fig.~\ref{Fig:OneBJ_Flow}, i.e., one job cannot start till
+% the other is ready to start.
+
+% The results of experiments to determine the time-to-start for
+% conventional job submissions and a single BigJob launch is presented
+% in Table~\ref{table:BJwaiting}. Test results do not exactly coincide
+% with our waiting time experiments in every test. For the larger
+% physical problem under investigation, the simulation with longer
+% wall-time limit, the result follows our former experiments that a
+% BigJob has the potential of lower time-to-start than two conventional
+% submissions. On the other hand, a small problem resulted in the faster
+% time-to-start in conventional case.  Meanwhile, the large standard
+% deviation of the resultant data leaves much to debate on the
+% reliability of these data. At least, it is clear that a BigJob
+% submission eliminates the possibility of simulation's failure due to
+% long inactive phase, which shall cause far longer wall-time limit
+% setup than actual runtime.
 
 \subsection{Scenario S1: Pilot-Job with Load Balancing}
 
 %\jhanote{Do not have such long paragraphs. One paragraph should
 %  represent one simple compact idea. Maxm of 4-5 sentences!!}
 
-Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{table:oneBJ_Test}. In both small and large simulations, a default BigJob task takes about 1 percent longer than the conventional test. This is reasonable because a default BigJob has the same processor distribution between sub-jobs as the conventional job, while BigJob has the overhead of sub-jobs' status monitoring and communication with advert server. In cases of load-balanced BigJob simulations, runtime is saved by about 13 percent compared to conventional tests. In the large problem, a load-balanced BigJob simulation relatively shows higher standard deviation due to the unexpected instability of a computing resource during one experiment, which is to be discussed in detail below.
-
-
+Runtimes of the coupled simulation with a single BigJob is given on
+Table~\ref{table:oneBJ_Test}. In both small and large simulations, a
+default BigJob task takes about 1 percent longer than the conventional
+test. This is reasonable because a default BigJob has the same
+processor distribution between sub-jobs as the conventional job, while
+BigJob has the overhead of sub-jobs' status monitoring and
+communication with advert server. In cases of load-balanced BigJob
+simulations, runtime is saved by about 13 percent compared to
+conventional tests. In the large problem, a load-balanced BigJob
+simulation relatively shows higher standard deviation due to the
+unexpected instability of a computing resource during one experiment,
+which is to be discussed in detail below.
 
 \begin{table}[t]
 %\setlength{\tabcolsep}{1pt}
