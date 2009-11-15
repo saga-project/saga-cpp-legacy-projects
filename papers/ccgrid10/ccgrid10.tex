@@ -67,8 +67,8 @@
 \newcommand{\tc}{$T_{C}$ }
 \newcommand{\bj}{BigJob}
 
-\title{SAGA BigJob: An Extensible, Interoperable and General-Purpose
-  Pilot-Job Abstraction for Distributed Applications and Systems}
+\title{SAGA BigJob: An Extensible and Interoperable Pilot-Job
+  Abstraction for Distributed Applications and Systems}
 
 \author{
 Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
@@ -140,171 +140,86 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
   % 4th sentence. OK?}
 \end{abstract}
 
-% \up \up
-
-% \section*{Structure/Outline}
-
-% Section 1. Introduction -- talk about (i) Distributed Systems, need
-% for abstractions (development, deployment and execution) and
-% programming systems. (ii) Talk about Pilot-Jobs as one of the most
-% successful ``execution abstraction''. (iii) Talk about limitations
-% of current approaches. (iv) In a nutshell what this paper aims to
-% achieve and then conclude with an outline.
-
-% \bigskip
-
-% Section 2. SAGA-based Pilot Job.  SAGA in brief. Place canonical SAGA
-% picture. Talk about why using SAGA for PilotJob is different
-% (integrated and consistent API). Talk about SAGA Job-Model; talk about
-% extensions to the SAGA Job Model for BigJob.  Architecture and Control
-% Flow for BigJob. Discuss how SAGA BigJob works well with Condor
-% Glide-in.
-
-% \bigskip 
-
-% Section 3. Introduce Clouds -- SAGA for Clouds and parallel jobs for
-% Clouds. Explain the role of a Pilot Job for Clouds. What does it mean?
-% How is it different from Pilot Jobs for Grids/Clusters?  Talk about
-% Parallel jobs and Clouds and how we manage them.
-
-% \bigskip 
-
-% Section 4. Usage Modes and Analysis: Already laid out.
-
-% \bigskip 
-
-% Section 5. Conclusion
-
-% \jhanote{We need to be consistent with the usage of sub-job and
-%   Sub-Job and subjob/SubJob. Preference?}
-
-% \alnote{What spelling convention should we use: Pilot-Job, Big-Job, Sub-Job or PilotJob, BigJob, SubJob?}
 
 \section{Introduction}
+Distributed infrastructure have been used by many applications to
+advance understanding in their disciplines.  The requirements and
+characteritiscs of applications that motivate their usage as a
+distributed applications are very broad and most often differ from
+regular, HPC applications in several fundamental ways. Distributed
+applications often need to be designed for more than simple
+peak-utilization, for example, such as the number of coupled tasks
+that need to be completed within a time window.  Somewhat related to
+the above, but equally important, distributed applications have a much
+broader range of usage modes.  Not only do Production Grids
+infrastructure, but so do the programming systems and tools used to
+develop distributed applications need to account for {\it fundamental}
+characteristics.
 
-Infrastructure capabilities (tools, programming systems) and policy
-determine applications, type development \& execution
+A number of applications have been able to use distributed
+infrastructure with existing programming systems and tools.
+% , without having to worry about customized extensions.
+Even though several success stories are well known, there are however,
+a large number of lesser, well-known applicaitons that have either
+failed to use distributed infrastructure effectively, or have had to
+implement new capabilities at one or more levels -- application,
+programming system, middleware, and/or infrastructure
+level~\cite{dpagrid2009, dpa-paper}.  It is generally accepted that
+the design and development of distributed applications is a difficult
+undertaking made somewhat more difficult by the state of distributed
+infrastructure available to end-suers~\cite{dpagrid2009}.  For
+example, many programming systems and tools for distributed
+applications are either incomplete and/or often out-of-phase with
+requirements, or simply incomplete or inflexible with respect to
+application needs, e.g., tools that support the master-worker paradigm
+often only address failures of workers and not of the master.
+Additionally, tools and development systems often don't support the
+specific usage modes that maybe required for a certain application
+scenario, with the level robustness and scalability required, i.e.,
+solutions work well in small or controlled environment, but not
+at-scale.  These and other concerns have motivated ``rolling out their
+own'' capabilities, in turn further adding to an existing large range
+of tools, programming systems and environments and adding to
+challenges of providing
+interoperability.  % The lack of reusability and
+% extensibility thus has the effect of further suppressing distributed
+% application development.
 
-1 Range of tools, prog. systems and environments large further adding
-to challenges of providing Interoperability and extensibility 
 
-2 Commonly accepted abstractions not available, Pilot-Job powerful,
-but no “unifying” tool on TG
-
-3 Deployment and execution challenges disjoint from the development
-process: 
-
-4 Dist. Application and Programming Systems and Tools 
- - Incompleteness and/or out-of-phase:  Need X and Y, but only X or Y available, 
-   e.g., Master-Worker paradigm supported, but no FT.
- - Customization
- - Robustness and Scalability: Works well in small or controlled
- environment, but not at-Scale
-
- Will not be possible always, but extensibility and interoperability
- must be built into it as a fundamental design objective
-
-DGI and PS/T need to account for the following characteristics of DA
- - Performance Models more than just simple HPC or peak-usage
- - Very broad range of usage modes that often need to be supported
-
-Ironically, most applications have been developed to hide from
-heterogeneity and dynamism; not embrace them Good heterogeneity vs
-bad heterogeneity Dynamism: Performance Advantages The SAGA based
-Pilot-Job provides supports for the good heterogeneity while
-addressing the bad heterogeneity
-
-Many applications have used distributed infrastructure to advance
-understanding in their disciplines. A number of applications have been
-able to use existing programming systems and tools, without having to
-worry about customized extensions. However, there also exist a number
-of applications that have had to implement new capabilities at one or
-more levels, i.e., at the application, programming system, middleware,
-and/or infrastructure level.  
-
-... developers prefer to ``roll out their own" capabilities, even
-though there exist programming systems with similar capabilities..
-
-Different facets of extensibility: (i) new functionality, (ii) new
-application domains and usage-modes (``put it out there and it will be
-used in unexpected ways'') (iii) new infrastructure, (iv) scale-out?
-(v) developer versus external user...
-
-% Utilizing existing programming systems would enable the developer to
-% focus on specifics of the application, rather than the implementation
-% of such core infrastructure.
-
-The lack of reusability and extensibility thus has the effect of
-further suppressing distributed application development. Thus, it can
-be asked in this context, why have application developers not
-considered using capabilities from an existing programming system to
-support the required capability? This may be due to a number of
-factors: (a) Many programming systems lack robustness when used by
-developers in scientific applications -- for instance, they may have
-limits on scalability. (b) The level of maturity and development
-schedule of the programming system may not align with the requirements
-of the application developers. (c) It may be difficult to isolate a
-specific capability from a programming system, thereby limiting re-use
-by an application developer requiring that capability. In
-general~\cite{dpagrid2009} programming systems fall short of the
-requirements of distributed applications due to: {\em
-  i. Incompleteness:} Programming systems and tools are often
-incomplete or inflexible with respect to application needs, e.g.,
-tools that support the master-worker paradigm often only address
-failures of workers and not of the master. Furthermore, they may not
-address non-functional issues such as security and privacy, which may
-be critical for some applications.  {\em ii. Customization:}
-Programming systems and tools also tend to be customized to
-applications and their requirements, with limited concern for reuse or
-extensibility.  Applications and tools are also often highly dependent
-on (and tuned to) a specific execution environment, further impacting
-portability, re-usability, and extensibility.
-
+Thus to the extent possible, extensibility and interoperability must
+be built as fundamental design objective of PS\&T. Although it will
+not be possible to support all of the following, and that too always,
+but in general PS\&T need to support the following different aspects
+of of extensibility as fundamental objectives: (ii) New application
+domains and usage-modes, (ii) Support for extended functionality,
+(iii) Extension to work on new infrastructure, (iv) Operation at
+extended scales, and (v) Uptake by communities other than the
+developer (community usage).
+ 
 The level of success of these efforts depended not only on the
 resulting programming system, but also on the suitability of the
-underlying paradigm for Grid environments. The Pilot-Job abstraction
-has been widely used and interestingly used across several different
+underlying paradigm for Grid environments and availability of usable
+and extension abstractions on given production
+infrastructure. Interestingly, the Pilot-Job abstraction has been
+widely used and interestingly used across several different
 PGI. However, they are all customized Pilot-Job implementations, often
 tightly coupled/tied to a specific infrastructure, and not extensible
-or usable across different systems...
+or usable across different systems, e.g., there is no “unifying” such
+tool on the TeraGrid.
 
-\emph{Pilot-Jobs} is an execution abstraction that has been used by
-many communities to increase the predictability and time-to-solution
-of such applications. A Pilot-Job allows the execution of jobs without
-the necessity to queue each individual sub-job. The Pilot-Job itself
-is a regular Grid job, which is started through a Grid resource
-manager, such as the Globus GRAM.  Pilot-Jobs are, (i) used to improve
-the utilization of resources, (ii) to reduce the net wait time of a
-collection of tasks (iii) facilitate bulk or high-throughput
-simulations where multiple jobs need to be submitted which would
-otherwise saturate the queuing system, (iv) as a basis to implement
-application specific scheduling decisions and policy decisions.
-Discuss PilotJob: (i) How Traditionally Used (mostly deployment time);
-(ii) Advantages; (iii) How traditionally bound to a single platform
-and system.
-
-For example, on the LHCb computing model, Grid jobs are routed through
-the DIRAC~\cite{dirac} workload management system (WMS). DIRAC is a
-pilot-based system where user jobs are queued in the WMS server and
-the server submits generic pilot scripts to the Grid. Each pilot
-queries the WMS for a job with resource requirements satisfied by the
-machine where the pilot script is running. If a compatible job is
-available, it is pulled from the WMS and started. Otherwise, the pilot
-terminates and the WMS sends a new pilot to the Grid. This system
-improves the reliability of the Grid system as seen by the user.  the
-DIRAC system was developed in order to provide a complete solution for
-using the distributed computing resources of the LHCb experiment at
-CERN for data production and analysis. It allows a concurrent use of
-over 10K CPUs and 10M file replicas distributed over many tens of
-sites.  There can be additional functionality that builds upon a
-pilot-based scheme; for example DIANE~\cite{diane} a lightweight
-agent-based scheduling layer can use DIRAC.
-
-The Simple API for Grid Applications (SAGA) is a high-level,
-easy-to-use API for accessing distributed resources. Unlike other
-common Pilot-Job systems SAGA BigJob (i) natively supports MPI job and
-(ii) works on a variety of back-end systems, generally reflecting the
-advantage of using a SAGA-based approach.
+SAGA is a programming system that provides a high-level, easy-to-use
+API for accessing distributed resources.  SAGA has traditionally been
+used to design and develop end-user applications, but it also commonly
+used to develop tools and infrastructure~ \cite{saga-tools} to support
+distributed applications. In a nutshell it provides the building
+blocks to develop the abstractions and functionality to support the
+characteristics required by distributed applications whether directly,
+or as tools. The SAGA-based Pilot-Job (BigJob) is such an example;
+unlike other common Pilot-Job systems, SAGA BigJob natively supports
+MPI job and works on a variety of back-end systems, generally
+reflecting the advantage of using a SAGA-based approach. But in
+addition, to the above and as we will show, it has been designed to be
+extensible in a number of ways.
 
 Recently, the usage of virtualization and the usage of on-demand
 virtual machines become increasingly popular. These so-called
@@ -328,7 +243,52 @@ the hybrid execution environment while satisfying/balancing multiple,
 possibly changing objectives for performance, resilience, budgets and
 so on.
 
-\section{Related Work} %\jhanote{AL, SJ}
+The paper is outlined as follows: We will begin the next section with
+a quick discussion of Pilot-Jobs and some related and frequently used
+concepts in this paper. We will then present SAGA and outline how it
+is used to support distributed application developments at multiple
+levels. In Section IV, we introduce the SAGA-based Pilot-Job -- BigJob
+and discuss its architecture and working over three different backend
+infrastructure. Although the focus of this paper is on outline the
+design principles and objectives of the SAGA-based Pilot-Job and
+experiments to understand its performance, we will present the results
+of preliminary experiments that exploit the dynamic execution models
+and form the basis for future work on sophisticated autonomic resource
+managment and allocation.
+
+\section{Pilot-Jobs: Concepts and Related Work} %\jhanote{AL, SJ}
+
+\emph{Pilot-Jobs} is an execution abstraction that has been used by
+many communities to increase the predictability and time-to-solution
+of such applications. A Pilot-Job allows the execution of jobs without
+the necessity to queue each individual sub-job. The Pilot-Job itself
+is a regular Grid job, which is started through a Grid resource
+manager, such as the Globus GRAM.  Pilot-Jobs are, (i) used to improve
+the utilization of resources, (ii) to reduce the net wait time of a
+collection of tasks (iii) facilitate bulk or high-throughput
+simulations where multiple jobs need to be submitted which would
+otherwise saturate the queuing system, (iv) as a basis to implement
+application specific scheduling decisions and policy decisions.
+\jhanote{Discuss PilotJob: (i) How Traditionally Used (mostly deployment time);
+(ii) Advantages; (iii) How traditionally bound to a single platform
+and system.}
+
+For example, on the LHCb computing model, Grid jobs are routed through
+the DIRAC~\cite{dirac} workload management system (WMS). DIRAC is a
+pilot-based system where user jobs are queued in the WMS server and
+the server submits generic pilot scripts to the Grid. Each pilot
+queries the WMS for a job with resource requirements satisfied by the
+machine where the pilot script is running. If a compatible job is
+available, it is pulled from the WMS and started. Otherwise, the pilot
+terminates and the WMS sends a new pilot to the Grid. This system
+improves the reliability of the Grid system as seen by the user.  the
+DIRAC system was developed in order to provide a complete solution for
+using the distributed computing resources of the LHCb experiment at
+CERN for data production and analysis. It allows a concurrent use of
+over 10K CPUs and 10M file replicas distributed over many tens of
+sites.  There can be additional functionality that builds upon a
+pilot-based scheme; for example DIANE~\cite{diane} a lightweight
+agent-based scheduling layer can use DIRAC.
 
 As more applications try to adopt the advantages from dynamic
 execution, the Pilot-Job concept has grown in popularity and has been
@@ -346,6 +306,7 @@ the start of a complete set of Condor daemons within the allocated set
 of resources. Falkon does not support MPI applications, i. e. it is
 not usable for our application scenario.
 
+\jhanote{This is now out of place I think}
 Nimbus~\cite{10.1109/MIC.2009.94} provides a Pilot-Job like
 abstractions for Clouds. For this purpose, Nimbus allows the launch of
 auto-configured virtual machine clusters that contain a Torque and
@@ -353,13 +314,13 @@ Globus installation.  The Atlas computing framework developed at CERN
 also heavily relies on the PanDA Pilot-Job framework to implement
 resource leases. Using the VIRM API, PanDA was extended to support
 different virtualization backends, e.\,g.\ OpenNebula and
-Nimbus. However, in contrast to the SAGA-based Pilot
-Job for Clouds, both frameworks are strongly coupled to a particular
-backend infrastructure -- Globus in the case of Nimbus and gLite in
-the case of PanDA. The advantage of the SAGA Pilot-Job is that it
-allows applications to seamlessly utilize different backend
-infrastructure, e.\,g.\ Condor, Globus and different kinds of Clouds,
-at the same time.
+Nimbus. However, in contrast to the SAGA-based Pilot Job for Clouds,
+both frameworks are strongly coupled to a particular backend
+infrastructure -- Globus in the case of Nimbus and gLite in the case
+of PanDA. The advantage of the SAGA Pilot-Job is that it allows
+applications to seamlessly utilize different backend infrastructure,
+e.\,g.\ Condor, Globus and different kinds of Clouds, at the same
+time.
 
 
 % Further, Nimbus provides a possibility to integrate classical batch clusters
@@ -723,13 +684,13 @@ manager; remote launching can be done via the SSH protocol.
   BigJob startup and dispatch time -- which in principle should be
   independent of any usage mode/scenario. Right?}
 
-In the following the overheads resulting from the usage of BigJob within
-Grid applications is analyzed. Typically, the main overhead 
-when using BigJob results from the queueing time at
-individual resources on a Grids respectively from the
-virtual machine creation time in Cloud environments. 
-Figure~\ref{fig:performance_setup_time} compares the startup time of the
-different Pilot-Job backends for Grids, Condor pools and Clouds.
+In the following the overheads resulting from the usage of BigJob
+within Grid applications is analyzed. Typically, the main overhead
+when using BigJob results from the queueing time at individual
+resources on a Grids respectively from the virtual machine creation
+time in Cloud environments.  Figure~\ref{fig:performance_setup_time}
+compares the startup time of the different Pilot-Job backends for
+Grids, Condor pools and Clouds.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{performance/setup_time_xls.pdf}
@@ -1080,30 +1041,44 @@ application-level runtime environments.
 
 \section{Conclusion}
 
-We plan to extend this work in two important directions. The first is
-the use of a more sophisticated coordination mechanism -- that
-supports asynchronous task coordination (e.g. Comet). In this paper,
-we have focussed on replica simulations, but not on replica-exchange
-simulations -- which involve coordination between the different tasks
-and intelligence in their placements.  It will be very interesting to
-note the performance gains that accrue as a result of such
-asynchronous coordination on production infrastructure for the
-replica-exchange problems. Also, having established the basic
-infrastructure to submit tasks to and manage multiple, heterogenous
-resources using a simple, single interface, an important second
-extension of this work is to use more sophisticated task-placement
-decisions or resource utilization decision making.
-
 Programming systems and tools often define the production grid
 infrastructure.  The ability to transcend specific programming systems
 and utilize existing tools without wholesale refactoring of
 applications and application usage-modes is important if not critical
-in facilitating the uptake of production grid infrastructure. The
-SAGA-based approach outlined here, specifically in the context of
-Pilot-Jobs is being used to integrate otherwise disparate PGI such as
-the TeraGrid and the OSG, as well as the TeraGrid and EGEE;
-application-level interoperability constitutes a different but an
-important approach towards the interoperability of PGI.
+in facilitating the uptake of production grid
+infrastructure. Ironically, most applications have been developed to
+hide from heterogeneity and dynamism; not embrace them Good
+heterogeneity vs bad heterogeneity Dynamism: Performance Advantages
+The SAGA based Pilot-Job provides supports for the good heterogeneity
+while addressing the bad heterogeneity The SAGA-based approach
+outlined here, specifically in the context of Pilot-Jobs is being used
+to integrate otherwise disparate PGI such as the TeraGrid and the OSG,
+as well as the TeraGrid and EGEE; application-level interoperability
+constitutes a different but an important approach towards the
+interoperability of PGI.
+
+We plan to extend this work in two important directions. The first is
+the use of a more sophisticated coordination mechanism -- that
+supports asynchronous task coordination
+(e.g. Comet~\cite{comethpdc}). In this paper, we have focussed on
+replica simulations, but not on replica-exchange simulations -- which
+involve coordination between the different tasks and intelligence in
+their placements.  It will be interesting to note the performance
+gains that accrue as a result of such asynchronous coordination on
+production infrastructure for the replica-exchange problems but over
+production and extreme-scale infrastructure as made possible by
+developments outlined in this paper. Also, having established the
+basic infrastructure to submit tasks to, and manage multiple,
+heterogenous resources using a simple, single interface, an important
+second extension of this work is to use more sophisticated
+task-placement decisions or resource utilization decision making.
+This in turn is where autonomic features and the abilty to easily
+extend capabilities to the exsiting framework will play important
+roles.
+
+
+
+
 
 \begin{acknowledgement}
   \footnotesize{Important funding for SAGA has been provided by the UK
@@ -1127,3 +1102,70 @@ important approach towards the interoperability of PGI.
 
 
 
+
+
+% \up \up
+
+% \section*{Structure/Outline}
+
+% Section 1. Introduction -- talk about (i) Distributed Systems, need
+% for abstractions (development, deployment and execution) and
+% programming systems. (ii) Talk about Pilot-Jobs as one of the most
+% successful ``execution abstraction''. (iii) Talk about limitations
+% of current approaches. (iv) In a nutshell what this paper aims to
+% achieve and then conclude with an outline.
+
+% \bigskip
+
+% Section 2. SAGA-based Pilot Job.  SAGA in brief. Place canonical SAGA
+% picture. Talk about why using SAGA for PilotJob is different
+% (integrated and consistent API). Talk about SAGA Job-Model; talk about
+% extensions to the SAGA Job Model for BigJob.  Architecture and Control
+% Flow for BigJob. Discuss how SAGA BigJob works well with Condor
+% Glide-in.
+
+% \bigskip 
+
+% Section 3. Introduce Clouds -- SAGA for Clouds and parallel jobs for
+% Clouds. Explain the role of a Pilot Job for Clouds. What does it mean?
+% How is it different from Pilot Jobs for Grids/Clusters?  Talk about
+% Parallel jobs and Clouds and how we manage them.
+
+% \bigskip 
+
+% Section 4. Usage Modes and Analysis: Already laid out.
+
+% \bigskip 
+
+% Section 5. Conclusion
+
+% \jhanote{We need to be consistent with the usage of sub-job and
+%   Sub-Job and subjob/SubJob. Preference?}
+
+% \alnote{What spelling convention should we use: Pilot-Job, Big-Job,
+% Sub-Job or PilotJob, BigJob, SubJob?}
+
+% There is a perception that developers also prefer to ``roll out their
+% own" capabilities, even though there exist programming systems with
+% similar capabilities..
+
+% Viewed alternatively, the capability of infrastructure -- as defined
+% by the tools, programming systems and policy determine applications,
+% type development \& execution
+
+% This may be due to a number of factors: Many programming systems lack
+% robustness when used by developers in scientific applications -- for
+% instance, they may have limits on scalability. It may be difficult to
+% isolate a specific capability from a programming system, thereby
+% limiting re-use by an application developer requiring that
+% capability. In general~\cite{dpagrid2009} programming systems fall
+% short of the requirements of distributed applications due to: {\em
+%   i. Incompleteness:} Programming systems and tools are often
+% incomplete or inflexible with respect to application needs, e.g.,
+% tools that support the master-worker paradigm often only address
+% failures of workers and not of the master. {\em ii. Customization:}
+% Programming systems and tools also tend to be customized to
+% applications and their requirements, with limited concern for reuse or
+% extensibility.  Applications and tools are also often highly dependent
+% on (and tuned to) a specific execution environment, further impacting
+% portability, re-usability, and extensibility.
