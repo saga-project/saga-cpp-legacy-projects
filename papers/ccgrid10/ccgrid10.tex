@@ -759,10 +759,10 @@ resources.
 
 Since all meta-data of the assigned Cloud VM, in particular the
 internal and external IPs of the VMs, is available via the Cloud APIs
-of the supported Cloud environments, it is in contrast to the Grid
-BigJob not necessary to deploy any agents on the Cloud machines. The
-state of all VMs can simply be maintained by the manager; remote
-launching can be done via the SSH protocol.
+of the supported Cloud environments, in contrast to the Grid BigJob it
+is not necessary to deploy any agents on the Cloud machines. The state
+of all VMs can simply be maintained by the manager; remote launching
+can be done via the SSH protocol.
 
 
 \subsection{BigJob: Performance Overheads} 
@@ -977,12 +977,16 @@ infrastructures. For this experiment the Charm++~\cite{871085} version
 of NAMD was used; Charm++ is in this case just a wrapper layer around
 MPI (so as to address dependencies).
 
-In most cases the TeraGrid and LONI machines QB and Poseidon
-outperform the Cloud resources.  However, there are scenarios when
-Cloud resources were able to outperform HPC resources, e.\,g.\ a
-single replica run required more than 5\,sec less on the largest
-available EC2 instance with 68.4\,GB of memory and 8\,virtual cores
-than on Poseidon or QB.
+In most cases the TeraGrid and LONI machines outperform the Cloud
+resources. This is not surprising, and simply reflects the
+complications of running MPI-style over multiple virtualized
+resources. However, there are scenarios when Cloud resources were able
+to outperform HPC resources, e.\,g.\ a single replica run required
+more than 5\,sec less on the largest available EC2 instance with
+68.4\,GB of memory and 8\,virtual cores than on Poseidon or QB. Even
+accounting for differences in the hardware, it is fair to say that MPI
+jobs across multiple VMs are less likely to have desired performance
+as a single MPI job across one VM composed of multiple-cores.
 
 \begin{figure}[htbp]
     \centering
@@ -1010,22 +1014,21 @@ Clouds optimal.
 
 \subsubsection{\tc for Collective Resource Utilization}
 
-In this scenario we use SAGA BigJob to run replicas across
-different types of infrastructures, the LONI
-cluster Poseidon, Oliver and the Nimbus Cloud. 
-At the beginning of the experiment a particular set of
-Pilot-Jobs is started in each environment. Once a Pilot-Job becomes
-active, the application assigns replica to this job. 
-
-We measure \tc for different resource configurations using a workload
-of 8 replicas each running on 8 cores. The following setups have been used
+In this scenario and as proof of scale-out capabilities, we use SAGA
+BigJob to run replicas across different types of infrastructures.
+% , the LONI clusters -- Poseidon, Oliver, and the Nimbus Cloud.
+At the beginning of the experiment a particular set of Pilot-Jobs is
+started in each environment. Once a Pilot-Job becomes active, the
+application assigns replica to this job.  We measure \tc for different
+resource configurations using a workload of 8 replicas each running on
+8 cores. The following setups have been used
 \begin{itemize}
 \item Scenario 1 (A1): Resource I and III -- Clouds and GT2 based Grids. 
 \item Scenario 2 (A2): Resource II and III -- Clouds and Condor Grids.
 \item Scenario 3 (A3): Resource I, II and III -- Clouds, GT2 and Condor Grids.
 \end{itemize} 
-For this experiment the LONI clusters: Poseidon and Oliver are used as Grid and Condor resources and
-Nimbus as Cloud resource.
+For this experiment the LONI clusters: Poseidon and Oliver are used as
+Grid and Condor resources and Nimbus as Cloud resource.
 
 \begin{figure}[htbp]
     \centering
@@ -1039,14 +1042,15 @@ Nimbus as Cloud resource.
     \label{fig:performance_8replica_grid_cloud_condor}
 \end{figure}
 
-Figure~\ref{fig:performance_8replica_grid_cloud_condor} shows the results. 
-Running the whole scenario in the Science Cloud resulted
-in a quite worse but predictable performance -- the standard deviation for this scenario
-is very low. The LONI resources are about 3 times faster than
-the Science Cloud, which corresponds to our earlier findings. 
-The performance of the Condor and Grid BigJob is similar, which can 
-be expected since the underlying physical LONI resources are the same. 
-Solely, a slightly higher startup overhead can be observed in the Condor runtimes.
+Figure~\ref{fig:performance_8replica_grid_cloud_condor} shows the
+results.  Running the whole scenario in the Science Cloud resulted in
+a quite poor but predictable performance -- the standard deviation
+for this scenario is very low. The LONI resources are about 3 times
+faster than the Science Cloud, which corresponds to our earlier
+findings.  The performance of the Condor and Grid BigJob is similar,
+which can be expected since the underlying physical LONI resources are
+the same.  Solely, a slightly higher startup overhead can be observed
+in the Condor runtimes.
 
 In the following the offload of 2 replicas to a Cloud resource has
 been investigated. For this purpose, the Nimbus Cloud was used. The
