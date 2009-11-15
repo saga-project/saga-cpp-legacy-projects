@@ -87,7 +87,7 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
 }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\llnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -512,13 +512,12 @@ implementation for computational Grids. The Grid BigJob comprises of
 three components: (i) the BigJob Manager that provides the Pilot-Job
 abstraction and manages the orchestration and scheduling of BigJobs
 (which in turn allows the management of both big-job objects and
-sub-jobs), (ii) the BigJob Agent that represents a placeholder for
-subsequent sub-jobs and thus, the application-level resource manager 
-on the respective resource, and
+sub-jobs), (ii) the BigJob Agent that represents the pilot job
+\jhanote{Can we use something other than pilot job} and thus, the
+application-level resource manager on the respective resource, and
 (iii) advert service which is used for communication between the
 BigJob Manager and Agent.
-\jhanote{Can we use something other than pilot job} \alnote{replaced
-with placeholder job}
+
 
 \begin{figure}[ht]
     \centering
@@ -810,11 +809,9 @@ Also, Condor Glide-In and thus, the SAGA-Condor BigJob shows some
 overheads compared to the Grid BigJob. These overheads can mainly be
 attributed to the Condor architecture. Condor requires several
 lightweight daemons to be run on the target resource. The overhead is
-mainly cause by the time required to setup the pool, to propagate the
-resource information to the main Condor pool, \jhanote{pool and pool used} 
-\alnote{Assuming that you meant that I used the word pool to often, I replaced it once with resource information)}
-to conduct the Condor matchmaking process,
-to allocate resources and to spawn the sub-job. And although our
+mainly cause by the time required to setup the pool, propagate the
+pool information to the main Condor pool \jhanote{pool and pool used} and the Condor matchmaking,
+resource allocation and job spawning mechanism. And although our
 somewhat limited performance analysis suggests that a BigJob can be
 launched in a shorter period of time, it is probably true that Condor
 Glide-in can scale to support a much greater number of
@@ -1104,20 +1101,24 @@ Clouds see Deelman et\,al.~\cite{1413421}.
 \up
 
 Given that Clouds provide the illusion of infinite capacity, or at
-least queue wait-times are non-existent, it is likely that often most
-sub-jobs will end up on the Cloud infrastructure.  Thus, in Scenario
-II, the resource assignment algorithm we use is as follows: We submit
-tasks to non-Cloud resources first. Periodically the progress of the
-scenario is monitored. If not sufficient jobs have finished
-when time equal to $T_{X}$ has elapsed,
+least queue wait-times are non-existent, it is likely that when using
+multiple resource types and with loaded Grids/Clusters (e.g., TeraGrid
+is currently over-subscribed and typical queue wait times often exceed
+24hours), most sub-jobs will end up on the Cloud infrastructure.
+Thus, in Scenario B, the resource assignment algorithm we use is as
+follows: We submit tasks to non-Cloud resources first and periodically
+monitor the progress of the tasks. If insufficient jobs have finished
+when time equal to $T_{X}$ has elapsed (determined per criteria
+outlined below),
+%(completion being  reached at current rates of progress),
 %(defined as: \tmax - 2 average \tc on all Clouds)  
-than we move the workload to utilize Clouds.  The
-underlying basis is that Clouds have an explicit cost associated with
-them and if jobs can be completed on the the TG and Condor pool while
-preserving the performance constraints, we opt for such a
-solution. However, if queue loads prevent the performance requirements
-being met, we move the jobs to a Cloud-resource, which we have shown
-has less fluctuation in \tc of the workload.
+than we move the workload to utilize Clouds.  The underlying basis is
+that Clouds have an explicit cost associated with them and if jobs can
+be completed on the TG/Condor-pool while preserving the performance
+constraints, we opt for such a solution. However, if queue loads
+prevent the performance requirements being met, we move the jobs to a
+Cloud-resource, which we have shown has less fluctuation in \tc of the
+workload.
 
 For this experiment we integrated a progress manager that implements
 the described algorithm into the replica application.  The user has
@@ -1150,13 +1151,13 @@ In the investigated scenario, we configured a maximum runtime of
 the same experiment 10\,times at different times of the day. In 6 out
 of 10\,cases the scenario completed in about 8\,minutes. However, the
 fluctuation in particular in the waiting time on typical Grid
-resources can be very high. Thus, it was in 4 cases necessary to
-start additional VMs to meet the application deadline. 
-In two cases 3\,Pilot-Jobs each with 8 cores had to be
-started, in one case a single Pilot-Job was sufficient. 
-In a single case the deadline was missed
-solely due to the fact that not sufficient Cloud resources have been
-available, i.\,e.\ we are only able to start 2 instead of 3 Pilot-Jobs. 
+resources can be very high. Thus, in 4 cases it was necessary to start
+additional VMs to meet the application deadline.  In two cases
+3\,Pilot-Jobs each with 8 cores had to be started, and in one case a
+single Pilot-Job was sufficient.  In a single case the deadline was
+missed solely due to the fact that not enough Cloud resources were
+available, i.\,e.\ we are only able to start 2 instead of 3
+Pilot-Jobs.
 
 % \jhanote{Put note to say something about fluctuations on
 %   Grids/Clusters} \alnote{done}
