@@ -61,7 +61,7 @@
 
 \newcommand{\up}{\vspace*{-1em}}
 \newcommand{\upp}{\vspace*{-0.5em}}
-\newcommand{\numrep}{16 }
+\newcommand{\numrep}{8 }
 \newcommand{\samplenum}{4 }
 \newcommand{\tmax}{$T_{max}$ }
 \newcommand{\tc}{$T_{C}$ }
@@ -87,7 +87,7 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
 }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\llnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -212,7 +212,7 @@ Ironically, most applications have been developed to hide from
 heterogeneity and dynamism; not embrace them Good heterogeneity vs
 bad heterogeneity Dynamism: Performance Advantages The SAGA based
 Pilot-Job provides supports for the good heterogeneity while
-addressing the bad heterogenity
+addressing the bad heterogeneity
 
 Many applications have used distributed infrastructure to advance
 understanding in their disciplines. A number of applications have been
@@ -576,8 +576,8 @@ Condor's native pilot-job with minimal disruption. The idea of Advert
 Service as a central point of collecting information about sub-jobs
 can be substituted by a Condor queue. This approach gives some
 advantages.  BigJob can utilize Condor scheduling and matchmaking. It
-allows the control in an unified way of the state of pilot-jobs and
-sub-jobs as Condor jobs. The Advert Service still can be applied and
+allows the control in an unified way of the state of Pilot-Jobs and
+sub-jobs as Condor jobs. The advert service still can be applied and
 is an answer to a problem of central coordination point if many
 different backends (Condor pool, Clouds, Grids) are used.  However the
 approach presented here shows how to implement the BigJob idea
@@ -600,25 +600,37 @@ referring Condor only.
   enables the integration of heterogeneous resources to facilitate
   distributed Scale-out.??}
 
-A Condor pilot-job from an application point of view is a request (1)
-for resources to be available in a local Condor pool (see
-Figure~\ref{fig:saga-condor}).  The application specify endpoints of
-grid job service (GRAM), a number of requested nodes from each
-endpoint and a wall time. The Bigjob Condor translate the request as a
-job for Condor-G (3) to start remotely (4) Condor master and startd on
-all requested nodes on grid resources. These nodes join (5) the Condor
-pool on the user desktop creating a coherent computing resource to
-submit sub-jobs to (6), (8). Both pilot-job and sub-jobs are submitted
-(2), (7) using the same SAGA interface via the
-condor\_adaptor. Subjobs can be submitted before any nodes join the
-Condor pool. Then they will wait until scheduler is able to find any
-“Unclaimed” resources matching a subjob's requirements. Requesting
-nodes from several different clusters can speed-up processing all
-sub-jobs. If one of the requested clusters is heavily loaded the
-waiting time of pilot-jobs in a queue on this cluster can be really
-long. Then the first sub-jobs will be executed as soon as a first
-pilot-job starts and nodes of the least loaded cluster join the Condor
-pool.
+Figure~\ref{fig:saga-condor} illustrates the architecture of the Condor BigJob.
+A Condor Pilot-Job from an application point of view is a request 
+for a set of resources that can later be accessed via the local Condor pool. 
+To initiate a Pilot-Job, the application must specify a GRAM endpoint 
+of a Grid resource, a number of requested nodes and a wall time (step 1). 
+The Condor Bigjob translates this request to a Condor-G job, which is managed
+using the SAGA Condor adaptor. Condor is then responsible for submitting 
+the job to the GRAM of the specified remote resource (step 3). Once the Condor-G
+job becomes active, it start the Condor daemons \texttt{master} and \texttt{startd} on 
+the remote resources (step 4). During the initialization these 
+daemons register the allocated resources with the Condor
+pool on the user's desktop creating a coherent computing resource to
+submit sub-jobs to (step 5). As with the Grid BigJob sub-job objects
+can be created via the Pilot-Job abstraction. The Condor BigJob maps these
+sub-jobs to the Condor pool and starts them via the SAGA Condor adaptor (steps 6-8). 
+Also, sub-jobs can already be submitted before any node joins the
+Condor pool. These jobs will automatically wait until scheduler is able to find any
+``Unclaimed'' resources matching a sub-job's requirements. 
+
+Thanks to the native capabilities of the Condor Pilot-Job, the Condor BigJob
+is able to support some enhanced features, e.\,g.\ the management
+of multiple Pilot-Jobs per big-job object. This capability is in particular
+useful since the usage of multiple clusters can reduce \tc for many application
+scenarios. For example, if one of the requested clusters is heavily loaded, the
+waiting time of the Pilot-Job can be very long. In general, the more resources used, the 
+lower the time until the first Pilot-Job and thus, the first sub-jobs becomes
+active 
+
+% will be executed as soon as a first
+% pilot-job starts and nodes of the least loaded cluster join the Condor
+% pool.
 
 \jhanote{Lukas, I have taken a quick pass at the above paragraph, but
   more is required. It is a bit difficult to read and understand, how
@@ -626,7 +638,7 @@ pool.
   control flow (which is helpful), add a few sentences about the
   mapping between BigJob's interface (API calls) and Condors? That
   might help.. Andre/Lukas: What do you think? ANy other suggestions
-  for improving this secton?}
+  for improving this section?}
 
 \jhanote{We should make sample code, examples and data-sets available
   on our website. Simple packaging}
@@ -997,7 +1009,7 @@ Table~\ref{tab:app_deadline} summarizes the results.
     \centering
 	\begin{tabular}{|l|l|l|}
 	\hline
-    Result & \#\,Events &Average \tc \\ \hline
+    Result & \#\,Occurences &Average \tc \\ \hline
 	No VM started &6 &7.8\,min\\ \hline
 	1 VMs started &1 &36.4\,min\\ \hline
 	2 VMs started &1 &47.3\,min\\ \hline
@@ -1011,13 +1023,15 @@ In the investigated scenario, we configured a maximum runtime of
 the same experiment 10\,times at different times of the day. In 6 out
 of 10\,cases the scenario completed in about 8\,minutes. However, the
 fluctuation in particular in the waiting time on typical Grid
-resources can be very high. Thus, it was in three cases necessary to
-start additional VMs to finish the application within the specified
-deadline. In two cases 3\,Pilot-Jobs each with 8 cores had to be
-started to meet the application deadline. In one case a single
-Pilot-Job was sufficient. In a single case the deadline was missed
+resources can be very high. Thus, it was in 4 cases necessary to
+start additional VMs to meet the application deadline. 
+In two cases 3\,Pilot-Jobs each with 8 cores had to be
+started, in one case a single Pilot-Job was sufficient. 
+In a single case the deadline was missed
 solely due to the fact that not sufficient Cloud resources have been
-available. \jhanote{Put note to say something about fluctuations on
+available, i.\,e.\ we are only able to start 2 instead of 3 Pilot-Jobs. 
+
+\jhanote{Put note to say something about fluctuations on
   Grids/Clusters}. \alnote{done}
 
 \alnote{Old notes: This scenario in particular shows how BigJobs can
