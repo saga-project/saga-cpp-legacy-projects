@@ -794,16 +794,14 @@ overheads would be significant.
 We discuss two scenarios that are representative of how applications
 would typically use multiple distributed infrastructures. We focus our
 attention on replica-based MD simulations and define a workload as
-\numrep replicas of the HCV model~\cite{}, each replica running for
+\numrep replicas of a Hepatatis-C virus model, each replica running for
 500 timesteps.  The first scenario involves running all \numrep over
 different infrastructure configurations and determining the \tc for
 each scenario. We repeat \tc for each configuration \samplenum times.
 
 The second scenario, introduces an upper-bound on the acceptable \tc
 (defined as \tmax) -- which is the maximum permissible time to
-solution.
-
-Each scenario has several possible specific sub-scenarios, of which we
+solution. Each scenario has several possible specific sub-scenarios, of which we
 discuss a few in each.
 
 \subsection{Test Application: Hepatatis-C Virus (RNA) Using
@@ -865,22 +863,33 @@ the Globus GRAM, the underlying Torque resource manager and the Moab scheduler a
 \jhanote{This one will require most description -- how the pool is set
 up, what features are used etc}
 
-The LONI Linux clusters: Poseidon, Oliver, Louie are used to create a local
-Condor pool. Because of problems with a support for parallel universe in the
-original condor\_glidein and Condor Glide-In binaries a dedicated solution was prepared.
-To run master and startd daemons on requested remote nodes a shell script staged-in
-from a user's desktop is submitted as a executable file of Condor-G Pilot-Job.
-The script reads appropriate environmental variables (\$PBS\_NODEFILE) and files to detect
-which nodes were reserved by the resource manager for the Pilot-Job. Then Condor master and startd
-deamons are executed via ssh on all of these nodes. Both the master and startd are from the
-standard Condor 7.3.2 package. The only necessary changes were introduced to
-Condor configuration files both on user's desktop and remote resources.
-All of these changes are needed to run jobs in the parallel
-universe and prevent a situation that one job runs across clusters. Additionally NUM\_CPUS=1
-assures that whole nodes are assigned to jobs.
-To obtaine comparable results no other parameters, especially deciding about
-timing, were changed although appropriate tuning would decrease a total
-startup time from 331 sec on average to less 60 sec.
+The LONI Linux clusters: Poseidon, Oliver and Louie are used as Condor Glide-In 
+resources. The base Condor pool was deployed on the user's desktop
+(Latin). Due to the lack of support for the parallel universe in the
+Condor Glide-In middleware, we had to modify our setup and could not
+use the original Glide-In. Rather, we startup a specially configured 
+Condor pool manually on the requested remote nodes using 
+a shell script staged-in from a user's desktop. This script evaluates 
+the environment variables \$PBS\_NODEFILE to extract the resource list assigned to
+the Pilot-Job from the local resource manager (in this case Torque). Then, the 
+Condor \texttt{master} and \texttt{startd} daemons are started 
+via SSH on all assigned nodes. The binaries for the \texttt{master} and 
+\texttt{startd} daemons are from the standard Condor 7.3.2 package. 
+We solely adjusted the Condor configuration files to point to the Condor
+pool on the user's desktop and to support the parallel universe.
+% All of these changes are needed to run jobs in the parallel
+% universe and prevent a situation that one job runs across clusters. 
+Additionally, setting the NUM\_CPUS parameter to 1 ensures that 
+whole nodes are assigned to jobs.
+To obtain comparable results no other parameter, especially no timing related parameter, 
+was changed. Some parameter tuning cloud potentially decrease the
+startup time from 331\,sec on average to less 60\,sec. \alnote{Which parameter is that? Are
+we sure that we can get below 60 sec?} While we observed
+some startup overhead, further experiments using multiple Glide-Ins distributed
+across different LONI resources indicated that Condor scales well: \tc for our
+scenario of 8 replicas was well reduced with the number of additional resources that have
+been dynamically added to the Condor pool. 
+
 
 \subsubsection*{Resource III: Cloud Environments}
 
@@ -900,7 +909,7 @@ best to the virtual machine provided by Nimbus.
 \up
 
 \subsubsection{\tc for single Resource Usage}
-\alnote{Shantenu: How many atoms do we have??}
+
 In the first example, a given workload -- a NAMD simulation consisting
 of approximately 50,000 atoms -- was run for 500 timesteps at different
 infrastructures. For this experiment the Charm++~\cite{871085} version
