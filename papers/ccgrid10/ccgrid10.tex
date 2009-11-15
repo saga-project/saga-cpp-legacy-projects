@@ -453,17 +453,17 @@ distributed applications.
 \section{BigJob: SAGA-based Pilot-Job Framework}
 \up
 
-\jhanote{do we want \emph for bigjob?} \alnote{yes,looks good for introducing the term.}
+%\jhanote{do we want \emph for bigjob?} \alnote{yes,looks good for introducing the term.}
 \emph{BigJob} is a SAGA-based Pilot-Job implementation. In contrast to
-other Pilot-Job implementations as Condor Glide-In or Falkon, BigJob
-natively supports parallel applications (e.g. based on MPI) and works
+other Pilot-Job implementations, e.g., Falkon, BigJob natively
+supports parallel applications (e.g. based on MPI) and works
 independent of the underlying Grid infrastructure across different
 heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
-advantage of using a SAGA-based approach. Further, the framework is 
+advantage of using a SAGA-based approach. Further, the framework is
 extensible and provides several hooks that can be used to support
 other resource types and Pilot-Job frameworks.
-\jhanote{We have talked about interoperability; need to address extensibility} 
-\alnote{Added sentence before}
+% \jhanote{We have talked about interoperability; need to address extensibility} 
+% \alnote{Added sentence before}
 
 As shown in Figure~\ref{fig:figures_distributed_pilot_job}, BigJob currently
 provides a unified abstraction to Grids, Condor pools and
@@ -473,27 +473,29 @@ resources. In the next sections, we describe how SAGA interfaces to
 three different backends, while exposing the same user-level BigJob interface
 and semantics:
 
+% \jhanote{Should the second level in the upperbox be ``SAGA BigJob
+%   API''?}\alnote{changed}
+
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{figures/distributed_pilot_job}
         \caption{\textbf{Overview of the SAGA-based Pilot Job:} The
           SAGA Pilot Job API is currently implemented by three
           different backends - one for Grids, Condor and for
-          Clouds. \jhanote{Should the second level in the upperbox be
-            ``SAGA BigJob API''?}\alnote{changed}}
+          Clouds.}
     \label{fig:figures_distributed_pilot_job}
 \end{figure}
 
-\alnote{Old Notes: 
-Introduce BigJob:
- - Describe it, and how it differs from other PilotJobs
- - Outline new usage modes that BigJob fundamentally supports:
-    -- As the basis for scale-out across
-    -- As the basis for a framework for runtime optimization
-    -- More thought?
-BigJob:
- - Architecture and control flow details
- - Performance Numbers}
+% \alnote{Old Notes: 
+% Introduce BigJob:
+%  - Describe it, and how it differs from other PilotJobs
+%  - Outline new usage modes that BigJob fundamentally supports:
+%     -- As the basis for scale-out across
+%     -- As the basis for a framework for runtime optimization
+%     -- More thought?
+% BigJob:
+%  - Architecture and control flow details
+%  - Performance Numbers}
 
 \up
 \subsection{BigJob for Grids}
@@ -525,9 +527,9 @@ classes. Both interfaces are syntactically and semantically consistent
 with the other SAGA APIs: a sub-job e.\,g.\ is described using 
 the standard SAGA job description; job states are expressed
 using the SAGA state model. Before running sub-jobs, an application must initialize
-a big-job object. The BigJob Manager then queues a Grid job,
-\jhanote{are we confusing the reader by toggling between Pilot-Job and
-  BigJob?} \alnote{ok, change to Grid job} 
+a big-job object. The BigJob Manager then queues a job,
+% \jhanote{are we confusing the reader by toggling between Pilot-Job
+%   and BigJob?} \alnote{ok, change to Grid job}
 which actually runs a BigJob Agent on the respective remote
 resource. For this agent a specified number of resources is
 requested. Subsequently, sub-jobs can be submitted through the BigJob
@@ -593,11 +595,10 @@ distributed infrastructure.
 %   to as a SAGA-based framework.} \alnote{Done. 
 %   Explicitly described which SAGA APIs are used when.}
 
-\subsection{BigJob and Condor Glide-in} \jhanote{Lukas}
+\subsection{BigJob and Condor Glide-in} 
 \up
 
-\jhanote{How bigjob works with Condor Glide-in}
-
+%\jhanote{How bigjob works with Condor Glide-in}
 % that allows implement the general BigJob 
 % architecture in many different ways.  
 
@@ -621,9 +622,9 @@ implement the BigJob idea referring Condor only.
    pool and distributing sub-jobs to them.} \label{fig:saga-condor}
 \end{figure}
 
-\jhanote{... such simple extensibility ... illustrates how SAGA
-  enables the integration of heterogeneous resources to facilitate
-  distributed Scale-out.??}
+% \jhanote{... such simple extensibility ... illustrates how SAGA
+%   enables the integration of heterogeneous resources to facilitate
+%   distributed Scale-out.??}
 
 Figure~\ref{fig:saga-condor} illustrates the architecture of the Condor BigJob.
 A Condor Pilot-Job from an application point of view is a request 
@@ -644,14 +645,14 @@ Also, sub-jobs can already be submitted before any node joins the
 Condor pool. These jobs will automatically wait until scheduler is able to find any
 ``Unclaimed'' resources matching a sub-job's requirements. 
 
-?The idea of advert service as a central point of
-collecting information about sub-jobs can be substituted by a Condor
-queue. This approach gives some advantages.  BigJob can utilize Condor
-scheduling and matchmaking. It allows the control in an unified way of
-the state of Pilot-Jobs and sub-jobs as Condor jobs. The advert
-service still can be applied and is an answer to a problem of central
-coordination point if many different backends (Condor pool, Clouds,
-Grids) are used. 
+The idea of an advert service as a central point of collecting
+information about sub-jobs can be substituted by a Condor queue. This
+approach gives some advantages.  BigJob can utilize Condor scheduling
+and matchmaking. It allows the control in an unified way of the state
+of Pilot-Jobs and sub-jobs as Condor jobs. The advert service still
+can be applied and is an answer to a problem of central coordination
+point if many different backends (Condor pool, Clouds, Grids) are
+used to scale-out.
 
 Thanks to the native capabilities of the Condor Pilot-Job, the Condor BigJob
 is able to support some enhanced features, e.\,g.\ the management
@@ -666,16 +667,16 @@ active
 % pilot-job starts and nodes of the least loaded cluster join the Condor
 % pool.
 
-\jhanote{Lukas, I have taken a quick pass at the above paragraph, but
-  more is required. It is a bit difficult to read and understand, how
-  BigJob works with Condor-Glide-in. Maybe in addition to the above
-  control flow (which is helpful), add a few sentences about the
-  mapping between BigJob's interface (API calls) and Condors? That
-  might help.. Andre/Lukas: What do you think? ANy other suggestions
-  for improving this section?}
+% \jhanote{Lukas, I have taken a quick pass at the above paragraph, but
+%   more is required. It is a bit difficult to read and understand, how
+%   BigJob works with Condor-Glide-in. Maybe in addition to the above
+%   control flow (which is helpful), add a few sentences about the
+%   mapping between BigJob's interface (API calls) and Condors? That
+%   might help.. Andre/Lukas: What do you think? ANy other suggestions
+%   for improving this section?}
 
-\jhanote{We should make sample code, examples and data-sets available
-  on our website. Simple packaging}
+% \jhanote{We should make sample code, examples and data-sets available
+%   on our website. Simple packaging}
 
 \subsection{BigJob for Clouds}
 \up
