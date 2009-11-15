@@ -102,8 +102,6 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
 
 \maketitle    
 
-% \up\up\up\up
-
 \begin{abstract}
   The uptake of distributed infrastructures by scientific applications
   has been limited by the availability of extensible, pervasive and
@@ -177,17 +175,44 @@ Andr\'e Luckow$^{1}$, Lukasz Lacinski$^{1}$,   Shantenu Jha$^{1,2,3,*}$,\\
 
 % Section 5. Conclusion
 
-\jhanote{We need to be consistent with the usage of sub-job and
-  Sub-Job and subjob/SubJob. Preference?}
+% \jhanote{We need to be consistent with the usage of sub-job and
+%   Sub-Job and subjob/SubJob. Preference?}
 
-\alnote{What spelling convention should we use: Pilot-Job, Big-Job, Sub-Job or PilotJob, BigJob, SubJob?}
+% \alnote{What spelling convention should we use: Pilot-Job, Big-Job, Sub-Job or PilotJob, BigJob, SubJob?}
 
-\section{Introduction} \jhanote{SJ}
+\section{Introduction}
 
-Several classes of applications are well suited for distributed
-environments. Probably the best known and most powerful examples are
-those that involve an ensemble of decoupled tasks, such as simple
-parameter sweep applications~\cite{1239909}.
+Infrastructure capabilities (tools, programming systems) and policy
+determine applications, type development \& execution
+
+1 Range of tools, prog. systems and environments large further adding
+to challenges of providing Interoperability and extensibility 
+
+2 Commonly accepted abstractions not available, Pilot-Job powerful,
+but no “unifying” tool on TG
+
+3 Deployment and execution challenges disjoint from the development
+process: 
+
+4 Dist. Application and Programming Systems and Tools 
+ - Incompleteness and/or out-of-phase:  Need X and Y, but only X or Y available, 
+   e.g., Master-Worker paradigm supported, but no FT.
+ - Customization
+ - Robustness and Scalability: Works well in small or controlled
+ environment, but not at-Scale
+
+ Will not be possible always, but extensibility and interoperability
+ must be built into it as a fundamental design objective
+
+DGI and PS/T need to account for the following characteristics of DA
+ - Performance Models more than just simple HPC or peak-usage
+ - Very broad range of usage modes that often need to be supported
+
+Ironically, most applications have been developed to hide from
+heterogeneity and dynamism; not embrace them Good heterogeneity vs
+bad heterogeneity Dynamism: Performance Advantages The SAGA based
+Pilot-Job provides supports for the good heterogeneity while
+addressing the bad heterogenity
 
 Many applications have used distributed infrastructure to advance
 understanding in their disciplines. A number of applications have been
@@ -195,32 +220,40 @@ able to use existing programming systems and tools, without having to
 worry about customized extensions. However, there also exist a number
 of applications that have had to implement new capabilities at one or
 more levels, i.e., at the application, programming system, middleware,
-and/or infrastructure level.  Many existing programming systems are
-not widely used by application developers. Often, developers prefer to
-``roll out their own" capabilities, even though many of these
-capabilities already exist in available programming systems.
-Utilizing existing programming systems would enable the developer to
-focus on specifics of the application, rather than the implementation
-of such core infrastructure. But as this is often not possible, the
-lack of reusability thus has the effect of further suppressing
-distributed application development. Thus, it can be asked in this
-context, why have application developers not considered using
-capabilities from an existing programming system to support the
-required capability? This may be due to a number of factors: (a) Many
-programming systems lack robustness when used by developers in
-scientific applications -- for instance, they may have limits on
-scalability. (b) The level of maturity and development schedule of the
-programming system may not align with the requirements of the
-application developers. (c) It may be difficult to isolate a specific
-capability from a programming system, thereby limiting re-use by an
-application developer requiring that capability. In general,
-programming systems fall short of the requirements of distributed
-applications due to: {\em i. Incompleteness:} Programming systems and
-tools are often incomplete or inflexible with respect to application
-needs, e.g., tools that support the master-worker paradigm often only
-address failures of workers and not of the master. Furthermore, they
-may not address non-functional issues such as security and privacy,
-which may be critical for some applications.  {\em ii. Customization:}
+and/or infrastructure level.  
+
+... developers prefer to ``roll out their own" capabilities, even
+though there exist programming systems with similar capabilities..
+
+Different facets of extensibility: (i) new functionality, (ii) new
+application domains and usage-modes (``put it out there and it will be
+used in unexpected ways'') (iii) new infrastructure, (iv) scale-out?
+(v) developer versus external user...
+
+% Utilizing existing programming systems would enable the developer to
+% focus on specifics of the application, rather than the implementation
+% of such core infrastructure.
+
+The lack of reusability and extensibility thus has the effect of
+further suppressing distributed application development. Thus, it can
+be asked in this context, why have application developers not
+considered using capabilities from an existing programming system to
+support the required capability? This may be due to a number of
+factors: (a) Many programming systems lack robustness when used by
+developers in scientific applications -- for instance, they may have
+limits on scalability. (b) The level of maturity and development
+schedule of the programming system may not align with the requirements
+of the application developers. (c) It may be difficult to isolate a
+specific capability from a programming system, thereby limiting re-use
+by an application developer requiring that capability. In
+general~\cite{dpagrid2009} programming systems fall short of the
+requirements of distributed applications due to: {\em
+  i. Incompleteness:} Programming systems and tools are often
+incomplete or inflexible with respect to application needs, e.g.,
+tools that support the master-worker paradigm often only address
+failures of workers and not of the master. Furthermore, they may not
+address non-functional issues such as security and privacy, which may
+be critical for some applications.  {\em ii. Customization:}
 Programming systems and tools also tend to be customized to
 applications and their requirements, with limited concern for reuse or
 extensibility.  Applications and tools are also often highly dependent
@@ -235,23 +268,20 @@ PGI. However, they are all customized Pilot-Job implementations, often
 tightly coupled/tied to a specific infrastructure, and not extensible
 or usable across different systems...
 
-Discuss PilotJob: (i) How Traditionally Used (mostly deployment time);
-(ii) Advantages; (iii) How traditionally bound to a single platform
-and system
-
 \emph{Pilot-Jobs} is an execution abstraction that has been used by
 many communities to increase the predictability and time-to-solution
 of such applications. A Pilot-Job allows the execution of jobs without
 the necessity to queue each individual sub-job. The Pilot-Job itself
 is a regular Grid job, which is started through a Grid resource
-manager, such as the Globus GRAM.
-
-Pilot-Jobs are, (i) used to improve the utilization of resources, (ii)
-to reduce the net wait time of a collection of tasks (iii) facilitate
-bulk or high-throughput simulations where multiple jobs need to be
-submitted which would otherwise saturate the queuing system, (iv) as a
-basis to implement application specific scheduling decisions and
-policy decisions.
+manager, such as the Globus GRAM.  Pilot-Jobs are, (i) used to improve
+the utilization of resources, (ii) to reduce the net wait time of a
+collection of tasks (iii) facilitate bulk or high-throughput
+simulations where multiple jobs need to be submitted which would
+otherwise saturate the queuing system, (iv) as a basis to implement
+application specific scheduling decisions and policy decisions.
+Discuss PilotJob: (i) How Traditionally Used (mostly deployment time);
+(ii) Advantages; (iii) How traditionally bound to a single platform
+and system.
 
 For example, on the LHCb computing model, Grid jobs are routed through
 the DIRAC~\cite{dirac} workload management system (WMS). DIRAC is a
@@ -298,20 +328,23 @@ the hybrid execution environment while satisfying/balancing multiple,
 possibly changing objectives for performance, resilience, budgets and
 so on.
 
-\section{Related Work} \jhanote{AL, SJ}
+\section{Related Work} %\jhanote{AL, SJ}
 
-Lately, the Pilot-Job concept has been extensively research.
-Different systems that use similar Glide-In approaches have been
-developed. Frey et al.~\cite{citeulike:291860} initially proposed this idea in their
-work on Condor Glide-In. Using Condor Glide-In a complete Condor pool
-can be initiated using the GRAM service. 
-Falkon~\cite{1362680} is a newer system, 
-which emphasize in particular the performance of its
-task dispatcher. However, both systems have limitations and impose
-e. g. different overheads: Condor Glide-In~\cite{citeulike:291860}
-requires the start of a complete set of Condor daemons within the
-allocated set of resources. Falkon does not support MPI applications,
-i. e. it is not usable for our application scenario.
+As more applications try to adopt the advantages from dynamic
+execution, the Pilot-Job concept has grown in popularity and has been
+extensively researched and implemented for different usage scenarios
+and infrastructure. % Different systems that use similar Glide-In
+% approaches have been developed. 
+% Frey et al.~\cite{citeulike:291860} initially proposed this idea in
+% their work on Condor Glide-In. 
+Using Condor Glide-In a complete Condor pool can be initiated using
+the GRAM service.  Falkon~\cite{1362680} is a newer system, which
+emphasize in particular the performance of its task
+dispatcher. However, both systems have limitations and impose
+different overheads: Condor Glide-In~\cite{citeulike:291860} requires
+the start of a complete set of Condor daemons within the allocated set
+of resources. Falkon does not support MPI applications, i. e. it is
+not usable for our application scenario.
 
 Nimbus~\cite{10.1109/MIC.2009.94} provides a Pilot-Job like
 abstractions for Clouds. For this purpose, Nimbus allows the launch of
@@ -321,7 +354,7 @@ also heavily relies on the PanDA Pilot-Job framework to implement
 resource leases. Using the VIRM API, PanDA was extended to support
 different virtualization backends, e.\,g.\ OpenNebula and
 Nimbus. However, in contrast to the SAGA-based Pilot
-Job for Clouds both framework are strongly coupled to a particular
+Job for Clouds, both frameworks are strongly coupled to a particular
 backend infrastructure -- Globus in the case of Nimbus and gLite in
 the case of PanDA. The advantage of the SAGA Pilot-Job is that it
 allows applications to seamlessly utilize different backend
@@ -345,15 +378,16 @@ at the same time.
 % high-level of abstraction so as to be independent of the divers\ e and
 % dynamic Grid environments.
 
-The Simple API for Grid Applications (SAGA)~\cite{saga_url}  is an API standardization
-effort within the Open Grid Forum (OGF)~\cite{saga_gfd90}, an
-international standards development body concerned primarily with
-standards for distributed computing. SAGA provides a simple,
-POSIX-style API to the most common Grid functions at a sufficiently
-high-level of abstraction so as to be independent of the diverse and
-dynamic Grid environments. The SAGA specification defines interfaces
-for the most common Grid-programming functions grouped as a set of
-functional packages (Fig.~\ref{Fig:SAGA1}). Some key packages are:
+The Simple API for Grid Applications (SAGA)~\cite{saga_url} is an API
+standardization effort within the Open Grid Forum
+(OGF)~\cite{saga_gfd90}, an international standards development body
+concerned primarily with standards for distributed computing. SAGA
+provides a simple, POSIX-style API to the most common Grid functions
+at a sufficiently high-level of abstraction so as to be independent of
+the diverse and dynamic Grid environments. The SAGA specification
+defines interfaces for the most common Grid-programming functions
+grouped as a set of functional packages (Fig.~\ref{Fig:SAGA1}). Some
+key packages are:
 
 \begin{figure}[!ht]
  \begin{center}
@@ -720,6 +754,7 @@ infrastructures supporting different usage modes.
 
 \section{Usage Modes and Analysis}
 
+
 The aim of this section is not to perform detailed systematic
 performance measures and analysis, but to illustrate the various usage
 modes the SAGA-based BigJob can support and to explain how they are supported. We
@@ -747,34 +782,39 @@ discuss a few in each.
 \subsection{Test Application: Hepatatis-C Virus (RNA) Using
   Replicas}
 
-Using Molecular Dynamics (MD) approaches, sufficient sampling of
-configurations is an important requirement for connecting atomistic
-results to macroscopic or thermodynamic quantities available from
-experiments. This provides an important motivation for researching
-ways to provide sampling and to enhance the ``effective'' time-scales
-studied.  Generalized ensemble approaches -- of which
-REMD~\cite{Sugita:1999rm} is a prominent example -- represent a
-promising attempt to overcome the general limitations of insufficient
-time-scales, as well as specific limitations of inadequate
-conformational sampling arising from kinetic trappings.  The fact that
-one single long-running simulation can be substituted for an ensemble
-of simulations, make these ideal candidates for distributed
-environments.
+Several classes of applications are well suited for distributed
+environments. Probably the best known and most powerful examples are
+those that involve an ensemble of decoupled tasks, such as simple
+parameter sweep applications~\cite{1239909}. Here we outline a
+scientific basis for focussing on an ensemble of (parallel HPC)
+Molecular Dynamics (MD) simulations.  Sufficient sampling of
+configurations is an important requirement for MD simulations in order
+to connect atomistic results to macroscopic or thermodynamic
+quantities available from experiments.  Ensemble based approaches
+represent an important and promising attempt to overcome the general
+limitations of insufficient time-scales, as well as specific
+limitations of inadequate conformational sampling arising from kinetic
+trappings.  The fact that one single long-running simulation can be
+substituted for an ensemble of simulations, make these ideal
+candidates for distributed environments.  This thus provides an
+important general motivation for researching ways to support scale-out
+and thus enhance sampling and to thereby increase ``effective''
+time-scales studied.
 
-Replica-based simulations of HCV consist of..  The hepatitis C virus
-(HCV) internal ribosome entry site (IRES) is recognized specifically
-by the small ribosomal subunit and eukaryotic initiation factor 3
-(eIF3) before viral translation initiation.  This makes it a good
-candidate for new drugs targeting Hepatitis-C virus.  The model of the
-physical system under investigation in this work is comprised of a RNA
-system of nucleotides; the total number of atoms in the simulating box
-is 21887 -- including the RNA system, explicit water molecules, and
-ions for neutralization of the system.  The initial conformation of
-the RNA is taken from the NMR structure (PDB ID: 1PK7).  By using
-multiple replicas, the aim is to enhance the sampling of the
-conformational flexibility of the internal loop referred to as {\it
-  HCV IRES IIIb CA variant}~\cite{Collier:2002wd} as well as the
-equilibrium energetics.
+The physical system we investigate using replica-based techniques is
+the hepatitis C virus (HCV) internal ribosome entry site and is
+recognized specifically by the small ribosomal subunit and eukaryotic
+initiation factor 3 (eIF3) before viral translation initiation.  This
+makes it a good candidate for new drugs targeting Hepatitis-C virus.
+The model of the physical system under investigation in this work is
+comprised of a RNA system of nucleotides; the total number of atoms in
+the simulating box is 21887 -- including the RNA system, explicit
+water molecules, and ions for neutralization of the system.  The
+initial conformation of the RNA is taken from the NMR structure (PDB
+ID: 1PK7).  By using multiple replicas, the aim is to enhance the
+sampling of the conformational flexibility of the internal loop
+referred to as {\it HCV IRES IIIb CA variant}~\cite{Collier:2002wd} as
+well as the equilibrium energetics.
 
 \subsection{List and explain the resources used in Experiments}
 
