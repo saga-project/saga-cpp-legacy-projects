@@ -229,7 +229,7 @@ SAGA is a programming system that provides a high-level, easy-to-use
 API for accessing distributed resources.  SAGA has traditionally been
 used to design and develop 
 ser applications, but it also commonly
-used to develop tools and infrastructure~ \cite{saga-tools} to support
+used to develop tools and infrastructure~\cite{saga-tools} to support
 distributed applications. In a nutshell it provides the building
 blocks to develop the abstractions and functionality to support the
 characteristics required by distributed applications whether directly,
@@ -441,21 +441,23 @@ support the efficient execution of the distributed applications.
 \section{BigJob: SAGA-based Pilot-Job Framework}
 \up
 
-\jhanote{do we want \emph for bigjob?}
+\jhanote{do we want \emph for bigjob?} \alnote{yes,looks good for introducing the term.}
 \emph{BigJob} is a SAGA-based Pilot-Job implementation. In contrast to
 other Pilot-Job implementations as Condor Glide-In or Falkon, BigJob
 natively supports parallel applications (e.g. based on MPI) and works
 independent of the underlying Grid infrastructure across different
 heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
-advantage of using a SAGA-based approach.  \jhanote{We have talked
-  about interoperability; need to address extensibility}
+advantage of using a SAGA-based approach. Further, the framework is 
+extensible and provides several hooks that can be used to support
+other resource types and Pilot-Job frameworks.
+\jhanote{We have talked about interoperability; need to address extensibility}
 
-As shown in Figure~\ref{fig:figures_distributed_pilot_job}, BigJob
+As shown in Figure~\ref{fig:figures_distributed_pilot_job}, BigJob currently
 provides a unified abstraction to Grids, Condor pools and
 Clouds. Using the same API, applications can dynamically allocate
 resources via the big-job interface and bind sub-jobs to these
 resources. In the next sections, we describe how SAGA interfaces to
-three different backends, while exposing the same user-level interface
+three different backends, while exposing the same user-level BigJob interface
 and semantics:
 
 \begin{figure}[htbp]
@@ -465,7 +467,7 @@ and semantics:
           SAGA Pilot Job API is currently implemented by three
           different backends - one for Grids, Condor and for
           Clouds. \jhanote{Should the second level in the upperbox be
-            ``SAGA BigJob API''?}}
+            ``SAGA BigJob API''?}\alnote{changed}}
     \label{fig:figures_distributed_pilot_job}
 \end{figure}
 
@@ -506,16 +508,24 @@ communication between the BigJob Manager and Agent.
 \end{figure}
 
 Applications can utilize the framework via the big-job and sub-job
-classes.  Before running regular jobs, an application must initialize
-a big-job object.  The BigJob Manager then queues a Pilot-Job
+classes. Both interfaces are syntactically and semantically consistent
+with the other SAGA APIs: a sub-job e.\,g.\ is described using 
+the standard SAGA job description; job states are expressed
+using the SAGA state model. Before running sub-jobs, an application must initialize
+a big-job object. The BigJob Manager then queues a Grid job,
 \jhanote{are we confusing the reader by toggling between Pilot-Job and
-  BigJob?}, which actually runs a BigJob Agent on the respective
+  BigJob?} \alnote{ok, change to Grid job} 
+which actually runs a BigJob Agent on the respective remote
 resource. For this agent a specified number of resources is
 requested. Subsequently, sub-jobs can be submitted through the BigJob
 Manager using the job-id of the BigJob as reference. The BigJob
-Manager ensures that the subjobs are launched onto the correct
+Manager ensures that sub-jobs are launched onto the correct
 resource based upon the specified job-id using the right number of
-processes. Communication between the BigJob Agent and BigJob Manager
+processes. 
+
+The Grid BigJob is a SAGA-based framework and heavily utilizes the SAGA job, file
+and advert API. The BigJob Agent is started using the SAGA job API.
+Communication between the BigJob Agent and BigJob Manager
 is carried out using the SAGA advert service, a central key/value
 store. For each new job, an advert entry is created by the BigJob
 Manager. The agent periodically polls for new jobs. If a new job is
@@ -525,7 +535,8 @@ is queued.
 \jhanote{Need to mention that BigJob is based upon extensions to the
   SAGA job and file APIs, and thus is both syntactically and
   semantically consistent with the core SAGA package. Hence, referred
-  to as a SAGA-based framework.}
+  to as a SAGA-based framework.} \alnote{Done. 
+  Explicitly described which SAGA APIs are used when.}
 
 \subsection{BigJob and Condor Glide-in} \jhanote{Lukas}
 \up
@@ -538,8 +549,8 @@ is queued.
 Condor provides a native Pilot-Job functionality (Condor Glide-in); in
 fact, Condor has been instrumental in the uptake and popularization of
 the Pilot-Job concept.  In fact the challenge here is to implement
-BigJob as an overlay over Condor's native pilot-job with minimal
-disruption. The idea of Advert Service as a central point of
+BigJob as an overlay over Condor's native Pilot-Job with minimal
+disruption. The idea of advert service as a central point of
 collecting information about sub-jobs can be substituted by a Condor
 queue. This approach gives some advantages.  BigJob can utilize Condor
 scheduling and matchmaking. It allows the control in an unified way of
