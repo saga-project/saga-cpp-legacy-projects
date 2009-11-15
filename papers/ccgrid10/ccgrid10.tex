@@ -246,7 +246,8 @@ interoperable and extensible fashion.  The SAGA-based Pilot-Job
 SAGA BigJob natively supports MPI jobs and works on a variety of
 back-end systems, generally reflecting the advantage of using a
 SAGA-based approach. But in addition, to the above and as we will
-show, it has been designed to be extensible.
+show, it has been designed to be extensible, e.g., to support
+policy-driven pilot-jobs.
 
 % in a number of ways.  \alnote{Should we briefly mention the
 %   extension for Clouds and Condor here?}
@@ -329,7 +330,7 @@ support MPI applications, and thus not usable for our application scenario.
 %   part?  Or also the CERN part? We could move at least the Nimbus
 %   pieces to description of Cloud environment.} \jhanote{OK -- I think
 %   your suggestion about moving is good. Then this section becomes about Pilot Jobs}
-\jhanote{I think it can stay. Lets discuss over skype later..}
+%\jhanote{I think it can stay. Lets discuss over skype later..}
 Nimbus~\cite{10.1109/MIC.2009.94} provides a Pilot-Job like
 abstractions for Clouds. For this purpose, Nimbus allows the launch of
 auto-configured virtual machine clusters that contain a Torque and
@@ -535,24 +536,62 @@ Manager ensures that sub-jobs are launched onto the correct
 resource based upon the specified job-id using the right number of
 processes. 
 
-The Grid BigJob is a SAGA-based framework and heavily utilizes the SAGA job, file
-and advert API. The BigJob Agent is started using the SAGA job API.
-Communication between the BigJob Agent and BigJob Manager
-is carried out using the SAGA advert service, a central key/value
-store. For each new job, an advert entry is created by the BigJob
-Manager. The agent periodically polls for new jobs. If a new job is
-found and resources are available, the job is dispatched, otherwise it
-is queued.
+The Grid BigJob is a SAGA-based framework and heavily utilizes the
+SAGA job, file and advert API. The BigJob Agent is started using the
+SAGA job API.  Communication between the BigJob Agent and BigJob
+Manager is carried out using the SAGA advert service, a central
+key/value store. For each new job, an advert entry is created by the
+BigJob Manager. The agent periodically polls for new jobs. If a new
+job is found and resources are available, the job is dispatched,
+otherwise it is queued.
 
-\jhanote{move applicaitons here. talk about how this is used in
-  production for a bunch of applications, and how we will extend this
-  to clouds and condor in subsequence sections..}
+% \jhanote{But mention that this work is different in that, (i) it
+%   establishes the general principles and design, and is used for a
+%   range of applications, (ii) extends capabilities to work with
+%   Clouds, and (iii) sets the stage for extensible Pilot-Job
+%   functionality, e.g., policy-driven pilot-jobs.  Need to mention the
+%   general purpose nature: both HTC and HTC of HPC, as well that it is
+%   more than just a container of ensemble based applications.  It
+%   provides the framework for deploying and supporting
+%   application-level runtime environments.}
 
-\jhanote{Need to mention that BigJob is based upon extensions to the
-  SAGA job and file APIs, and thus is both syntactically and
-  semantically consistent with the core SAGA package. Hence, referred
-  to as a SAGA-based framework.} \alnote{Done. 
-  Explicitly described which SAGA APIs are used when.}
+In this paper we will use BigJob to support HPC applications, however,
+BigJob has been used to support High-throughput runs of HPC
+applications on the TeraGrid. Specifically, as shown in
+Ref.~\cite{enkf-gmac09} the BigJob has been used to support a very
+large number of ensembles with highly variable run-times, as well as
+heterogenous resource requirements.  In Ref.~\cite{repex_ptrs}
+although efficient scale-out behaviour was established, all resources
+utilized were TeraGrid resources, and thus accessible using a uniform
+Globus interface. Another use cases that have used BigJob on Grid
+resources include applications involving parameter sweeps and which
+require the execution of a very large number of simulations in
+parallel.  Having outlined the general principles and design
+objectives of the BigJob framework, and established its use on
+production grid infrastructure for a range of applications, we will
+focus on extending its capabilities to work with Clouds and other
+distributed infrastructure.
+
+
+% Geronimo (an atomic-scale transistor simulator) and RandomSPICE (a
+% variant of the well-known circuit simulation tool SPICE adapted for
+% this project). Both use cases are typical parameter sweeps and require
+% the execution of a very large number of simulations in parallel. To
+% support these use cases a custom middleware on top of the ScotGrid was
+% developed. To utilize further distributed resources in the future,
+% Nano-CMOS~\cite{nanocmos} is currently adopting SAGA. Using the SAGA
+% framework TeraGrid resources can be used by the electronics engineers
+% to run their applications.
+
+% \jhanote{move applicaitons here. talk about how this is used in
+%   production for a bunch of applications, and how we will extend this
+%   to clouds and condor in subsequence sections..}
+
+% \jhanote{Need to mention that BigJob is based upon extensions to the
+%   SAGA job and file APIs, and thus is both syntactically and
+%   semantically consistent with the core SAGA package. Hence, referred
+%   to as a SAGA-based framework.} \alnote{Done. 
+%   Explicitly described which SAGA APIs are used when.}
 
 \subsection{BigJob and Condor Glide-in} \jhanote{Lukas}
 \up
@@ -860,8 +899,8 @@ the Globus GRAM, the underlying Torque resource manager and the Moab scheduler a
 
 \subsubsection*{Resource II: Condor-Pool of LONI Clusters}
 
-\jhanote{This one will require most description -- how the pool is set
-up, what features are used etc}
+% \jhanote{This one will require most description -- how the pool is set
+% up, what features are used etc}
 
 The LONI Linux clusters: Poseidon, Oliver and Louie are used as Condor Glide-In 
 resources. The base Condor pool was deployed on the user's desktop
@@ -1076,49 +1115,49 @@ In a single case the deadline was missed
 solely due to the fact that not sufficient Cloud resources have been
 available, i.\,e.\ we are only able to start 2 instead of 3 Pilot-Jobs. 
 
-\jhanote{Put note to say something about fluctuations on
-  Grids/Clusters} \alnote{done}
+% \jhanote{Put note to say something about fluctuations on
+%   Grids/Clusters} \alnote{done}
 
-\alnote{Old notes: This scenario in particular shows how BigJobs can
-  be dynamically created based on runtime decisions.  Based on current
-  trends: will we finish or not.  Poseidon BigJob becomes available
-  after 100 sec 1 replica finishes after 150 sec After 1/4 check
-  whether some resources should be started: - 1 BigJob on Nimbus with
-  4 VM - increase VMs linearly if jobs done don't catch - if we caught
-  up, we backup}
-\up
-\section{Other Applications}
-\up 
+% \alnote{Old notes: This scenario in particular shows how BigJobs can
+%   be dynamically created based on runtime decisions.  Based on current
+%   trends: will we finish or not.  Poseidon BigJob becomes available
+%   after 100 sec 1 replica finishes after 150 sec After 1/4 check
+%   whether some resources should be started: - 1 BigJob on Nimbus with
+%   4 VM - increase VMs linearly if jobs done don't catch - if we caught
+%   up, we backup}
 
-\jhanote{But mention that this work is different in that, (i) it establishes
-the general principles and design, (ii) extends capabilities to work
-with Clouds, and (iii) sets the stage for extensible Pilot-Job
-functionality, e.g., policy-driven pilot-jobs.  Need to mention the
-general purpose nature: both HTC and HTC of HPC, as well that it is
-more than just a container of ensemble based applications.  It
-provides the framework for deploying and supporting application-level
-runtime environments.}
+% \section{Other Applications}
+% \up 
 
-We have discussed how BigJob supports HPC applications; BigJob has
-been used to support HTC of HPC applications on the
-TeraGrid. Specifically, as shown in Ref.~\cite{enkf-gmac09} the BigJob
-has been used to support a very large number of ensembles with highly
-variable run-times, as well as heterogenous resource requirements.  In
-Ref.~\cite{enkf-gmac09} although efficient scale-out behaviour was
-established, all resources utilized were TeraGrid resources, and thus
-accessible using a uniform Globus interface. 
+% \jhanote{But mention that this work is different in that, (i) it establishes
+% the general principles and design, (ii) extends capabilities to work
+% with Clouds, and (iii) sets the stage for extensible Pilot-Job
+% functionality, e.g., policy-driven pilot-jobs.  Need to mention the
+% general purpose nature: both HTC and HTC of HPC, as well that it is
+% more than just a container of ensemble based applications.  It
+% provides the framework for deploying and supporting application-level
+% runtime environments.}
 
-Geronimo (an atomic-scale transistor simulator) and RandomSPICE (a
-variant of the well-known circuit simulation tool SPICE adapted for
-this project). Both use cases are typical parameter sweeps and require
-the execution of a very large number of simulations in parallel. To
-support these use cases a custom middleware on top of the ScotGrid was
-developed. To utilize further distributed resources in the future,
-Nano-CMOS~\cite{nanocmos} is currently adopting SAGA. Using the SAGA
-framework TeraGrid resources can be used by the electronics engineers
-to run their applications.
+% We have discussed how BigJob supports HPC applications; BigJob has
+% been used to support HTC of HPC applications on the
+% TeraGrid. Specifically, as shown in Ref.~\cite{enkf-gmac09} the BigJob
+% has been used to support a very large number of ensembles with highly
+% variable run-times, as well as heterogenous resource requirements.  In
+% Ref.~\cite{enkf-gmac09} although efficient scale-out behaviour was
+% established, all resources utilized were TeraGrid resources, and thus
+% accessible using a uniform Globus interface. 
 
-\up
+% Geronimo (an atomic-scale transistor simulator) and RandomSPICE (a
+% variant of the well-known circuit simulation tool SPICE adapted for
+% this project). Both use cases are typical parameter sweeps and require
+% the execution of a very large number of simulations in parallel. To
+% support these use cases a custom middleware on top of the ScotGrid was
+% developed. To utilize further distributed resources in the future,
+% Nano-CMOS~\cite{nanocmos} is currently adopting SAGA. Using the SAGA
+% framework TeraGrid resources can be used by the electronics engineers
+% to run their applications.
+
+% \up
 \section{Conclusion and Future Directions}
 \up Programming systems and tools often define the production grid
 infrastructure.  The ability to transcend specific programming systems
