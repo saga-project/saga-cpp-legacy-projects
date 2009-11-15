@@ -189,23 +189,22 @@ interoperability.
 Thus to the extent possible, extensibility and interoperability must
 be built as fundamental design objective of PS\&T. Although it will
 not be possible to support all of the following, and that too always,
-but in general PS\&T need to support the following different aspects
-of of extensibility as fundamental objectives: (ii) New application
-domains and usage-modes, (ii) Support for extended functionality,
-(iii) Extension to work on new infrastructure, (iv) Operation at
-extended scales, and (v) Uptake by communities other than the
-developer (community usage).
- 
-The level of success of these efforts depended not only on the
-resulting programming system, but also on the suitability of the
-underlying paradigm for Grid environments and availability of usable
-and extension abstractions on given production
+but in general programming systems and tools need to support the
+following different aspects of of extensibility as fundamental
+objectives: (ii) New application domains and usage-modes, (ii) Support
+for extended functionality, (iii) Extension to work on new
+infrastructure, (iv) Operation at extended scales, and (v) Uptake by
+communities other than the developer (community usage).  The level of
+success of these efforts depended not only on the resulting
+programming system, but also on the suitability of the underlying
+paradigm for Grid environments and availability of usable and
+extension abstractions on given production
 infrastructure. Interestingly, the Pilot-Job abstraction has been
 widely used and interestingly used across several different
 PGI. However, they are all customized Pilot-Job implementations, often
 tightly coupled/tied to a specific infrastructure, and not extensible
-or usable across different systems, e.g., there is no “unifying” such
-tool on the TeraGrid.
+or usable across different systems, e.g., there is no such “unifying”
+and ``extensible'' tools on the TeraGrid.
 
 Recently, the usage of virtualization and the usage of on-demand
 virtual machines become increasingly popular. These so-called
@@ -234,12 +233,12 @@ used to develop tools and infrastructure~ \cite{saga-tools} to support
 distributed applications. In a nutshell it provides the building
 blocks to develop the abstractions and functionality to support the
 characteristics required by distributed applications whether directly,
-or as tools. The SAGA-based Pilot-Job (BigJob) is such an example;
-unlike other common Pilot-Job systems, SAGA BigJob natively supports
-MPI job and works on a variety of back-end systems, generally
-reflecting the advantage of using a SAGA-based approach. But in
-addition, to the above and as we will show, it has been designed to be
-extensible in a number of ways.
+or as tools in interoperable and extensible fashion.  The SAGA-based
+Pilot-Job (BigJob) is such an example; unlike other common Pilot-Job
+systems, SAGA BigJob natively supports MPI job and works on a variety
+of back-end systems, generally reflecting the advantage of using a
+SAGA-based approach. But in addition, to the above and as we will
+show, it has been designed to be extensible in a number of ways.
 
 The paper is outlined as follows: We will begin the next section with
 a quick discussion of Pilot-Jobs and some related and frequently used
@@ -258,13 +257,25 @@ management and allocation.
 \section{Pilot-Jobs: Concepts and Related Work} %\jhanote{AL, SJ}
 \up
 
+Pilot-Jobs are a useful abstraction for efficiently executing an
+ensemble of batch jobs without the necessity to queue each individual
+job.  The Pilot-Job itself is a regular Grid job, which is started
+through a Grid resource manager, such as the Globus GRAM.  Once the
+batch queue assigned the requested resources to the Pilot-Job, the
+Pilot-Job circumvents the necessity to queue each individual sub-job
+and is responsible for managing these and assigning them to so-called
+sub-jobs. That way queuing times for sub-jobs can be reduced and the
+predictability for application scenarios can be increased.  Pilot-Jobs
+decouple resource allocation from resource binding and allow the
+efficient utilization of resources. By delaying the resource binding
+decision into the application-level, dynamic usage modes, e.\,g.\ the
+load-depended sizing of sub-jobs or the dynamic addition of resources
+to meet deadlines, can be supported.
+
 Pilot-Jobs are an execution abstraction that has been used by many
 communities to increase the predictability and time-to-solution of
-such applications. A Pilot-Job allows the execution of jobs without
-the necessity to queue each individual sub-job. The Pilot-Job itself
-is a regular Grid job, which is started through a Grid resource
-manager, such as the Globus GRAM.  Pilot-Jobs are, (i) used to improve
-the utilization of resources, (ii) to reduce the net wait time of a
+such applications.  Pilot-Jobs have been used to (i) improve the
+utilization of resources, (ii) to reduce the net wait time of a
 collection of tasks, (iii) facilitate bulk or high-throughput
 simulations where multiple jobs need to be submitted which would
 otherwise saturate the queuing system, and (iv) as a basis to
@@ -430,24 +441,6 @@ support the efficient execution of the distributed applications.
 \section{BigJob -- The SAGA-based Pilot-Job}
 \up
 
-\jhanote{I think the first two paragraphs should be moved to Section
-  II?} \alnote{ok with me}
-
-Pilot-Jobs are a useful abstraction for efficiently executing an
-ensemble of batch jobs without the necessity to queue each individual
-job. A Pilot-Job is a normal Grid job, which is places into the batch
-queue of the respective Grid resource. Once the batch queue assigned
-the requested resources to the Pilot-Job, the Pilot-Job is responsible
-for managing these and assigning them to so-called sub-jobs.  That way
-queuing times for sub-jobs can be reduced and the predictability for
-application scenarios can be increased.
-
-Pilot-Jobs decouple resource allocation from resource binding and
-allow the efficient utilization of resources. By delaying the resource
-binding decision into the application-level, dynamic usage modes,
-e.\,g.\ the load-depended sizing of sub-jobs or the dynamic addition
-of resources to meet deadlines, can be supported.
-
 \emph{BigJob} is a SAGA-based Pilot-Job implementation. In contrast to
 other Pilot-Job implementations as Condor Glide-In or Falkon, BigJob
 natively supports parallel applications (e.g. based on MPI) and works
@@ -525,32 +518,32 @@ Manager. The agent periodically polls for new jobs. If a new job is
 found and resources are available, the job is dispatched, otherwise it
 is queued.
 
-Need to mention that BigJob is based upon extensions to the SAGA job
-and file APIs, and thus is both syntactically and semantically
-consistent with the core SAGA package. Hence, referred to as a
-SAGA-based framework.
+\jhanote{Need to mention that BigJob is based upon extensions to the
+  SAGA job and file APIs, and thus is both syntactically and
+  semantically consistent with the core SAGA package. Hence, referred
+  to as a SAGA-based framework.}
 
 \subsection{BigJob and Condor Glide-in} \jhanote{Lukas}
 \up
 
 \jhanote{How bigjob works with Condor Glide-in}
 
-Condor natively provides Pilot-Job functionality; in fact, Condor has
-been instrumental in the uptake and popularization of the Pilot-Job
-concept.
 % that allows implement the general BigJob 
-% architecture in many different ways. 
-In fact the challenge here is to implement BigJob as an overlay over
-Condor's native pilot-job with minimal disruption. The idea of Advert
-Service as a central point of collecting information about sub-jobs
-can be substituted by a Condor queue. This approach gives some
-advantages.  BigJob can utilize Condor scheduling and matchmaking. It
-allows the control in an unified way of the state of Pilot-Jobs and
-sub-jobs as Condor jobs. The advert service still can be applied and
-is an answer to a problem of central coordination point if many
-different backends (Condor pool, Clouds, Grids) are used.  However the
-approach presented here shows how to implement the BigJob idea
-referring Condor only.
+% architecture in many different ways.  
+
+Condor provides a native Pilot-Job functionality (Condor Glide-in); in
+fact, Condor has been instrumental in the uptake and popularization of
+the Pilot-Job concept.  In fact the challenge here is to implement
+BigJob as an overlay over Condor's native pilot-job with minimal
+disruption. The idea of Advert Service as a central point of
+collecting information about sub-jobs can be substituted by a Condor
+queue. This approach gives some advantages.  BigJob can utilize Condor
+scheduling and matchmaking. It allows the control in an unified way of
+the state of Pilot-Jobs and sub-jobs as Condor jobs. The advert
+service still can be applied and is an answer to a problem of central
+coordination point if many different backends (Condor pool, Clouds,
+Grids) are used.  However the approach presented here shows how to
+implement the BigJob idea referring Condor only.
 
 \begin{figure}[!ht]
  \begin{center}
@@ -612,7 +605,7 @@ active
 \jhanote{We should make sample code, examples and data-sets available
   on our website. Simple packaging}
 
-\subsection{BigJob for Clouds} \jhanote{AL}
+\subsection{BigJob for Clouds}
 \up
 
 % espite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
@@ -669,38 +662,41 @@ up all SSH keys, which is a pre-requisite for running MPI applications.
 Having finished all preparation tasks, the BigJob changes into the state
 \emph{Running}. 
 
-After the running state has been reached, the manager starts to process sub-jobs.
-Unprocessed sub-jobs are stored in a FIFO queue. As resources become available,
-sub-jobs are assigned to these. For parallel jobs the manager generates
-a nodefile, which is then used for launching the application. Once the preparation
-work has been finished, the manager spawns the sub-job using the SAGA job API and the SSH
-adaptor. The progress of all sub-jobs is monitored by the manager using the standard mechanisms 
-provided by the SAGA job API and a monitoring thread. Once a job terminates, i.\,e.\ it changes 
-to the state \emph{Done} or \emph{Failed}, the allocated resources are freed. 
-A new sub-job from the queue can then be assigned to newly available resources.
+After the running state has been reached, the manager starts to
+process sub-jobs.  Unprocessed sub-jobs are stored in a FIFO queue. As
+resources become available, sub-jobs are assigned to these. For
+parallel jobs the manager generates a nodefile, which is then used for
+launching the application. Once the preparation work has been
+finished, the manager spawns the sub-job using the SAGA job API and
+the SSH adaptor. Progress of all sub-jobs is monitored by the
+manager using the standard mechanisms provided by the SAGA job API and
+a monitoring thread. Once a job terminates, i.\,e.\ it changes to the
+state \emph{Done} or \emph{Failed}, the allocated resources are freed.
+A new sub-job from the queue can then be assigned to newly available
+resources.
 
-Since all meta-data of the assigned Cloud virtual machines, in particular the internal
-and external IPs of the VMs, is available via the Cloud APIs of the supported Cloud 
-environments it is in contrast to the Grid BigJob not necessary to deploy any 
-agents on the Cloud machines. The state of all VMs can simply be maintained by the 
-manager; remote launching can be done via the SSH protocol.
-
+Since all meta-data of the assigned Cloud VM, in particular the
+internal and external IPs of the VMs, is available via the Cloud APIs
+of the supported Cloud environments, it is in contrast to the Grid
+BigJob not necessary to deploy any agents on the Cloud machines. The
+state of all VMs can simply be maintained by the manager; remote
+launching can be done via the SSH protocol.
 
 \subsection{BigJob Overheads} 
 \up
 
-\alnote{Should we move this section to Usage Model and Analysis?}
-\jhanote{I think not. The performance referred to here is that of just
-  BigJob startup and dispatch time -- which in principle should be
-  independent of any usage mode/scenario. Right?}
+% \alnote{Should we move this section to Usage Model and Analysis?}
+% \jhanote{I think not. The performance referred to here is that of just
+%   BigJob startup and dispatch time -- which in principle should be
+%   independent of any usage mode/scenario. Right?}
 
-In the following the overheads resulting from the usage of BigJob
-within Grid applications is analyzed. Typically, the main overhead
-when using BigJob results from the queueing time at individual
-resources on a Grids respectively from the virtual machine creation
-time in Cloud environments.  Figure~\ref{fig:performance_setup_time}
-compares the startup time of the different Pilot-Job backends for
-Grids, Condor pools and Clouds.
+We now analyze the overheads resulting from the usage of BigJob across
+different infrastructures. Typically, the main overhead when using
+BigJob results from the queueing time at individual resources for
+%batch-queue based  
+Grids and from the VM creation time for Cloud environments.
+Figure~\ref{fig:performance_setup_time} compares the startup time of
+the different Pilot-Job backends for Grids, Condor pools and Clouds.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.45\textwidth]{performance/setup_time_xls.pdf}
@@ -711,29 +707,44 @@ Grids, Condor pools and Clouds.
     \label{fig:performance_setup_time}
 \end{figure}
 
-Interestingly, the startup times for the Cloud environments have been larger than 
-for the LONI resource Poseidon, which was very light loaded at the time
-of the experiment. Obviously, the startup of a VM involves higher overheads 
-than spawning a job on an already running machine: a resource for the VM 
-must be allocated, the VM must be staged to the target and booted up. The following
-experiments will also show that especially the already oversubscribed intra Cloud network
-and thus, the staging of the VM can be a bottleneck. Also, there is a
-large fluctuation in particular in the EC2 environment probably caused by 
-the fact that insufficient resources have been available at certain times.
+Interestingly for the experiments conducted, the startup times for the
+Cloud environments were observed to be larger than queue-waiting time
+for the LONI resource Poseidon, which coincidentally was very lightly
+loaded during the course of these experiments. Obviously, the startup
+of a VM involves higher overheads than spawning a job on an already
+running machine: a resource for the VM must be allocated, the VM must
+be staged to the target and booted up. The following experiments will
+also show that especially the already oversubscribed intra Cloud
+network and thus, the staging of the VM can be a bottleneck. Also,
+there is a large fluctuation in particular in the EC2 environment
+probably caused by the fact that insufficient resources were available
+at certain times.
 
-Also, Condor Glide-In and thus, the SAGA-Condor BigJob shows severe 
-overheads compared to the Grid BigJob. These overheads can mainly be 
-attributed to the Condor architecture. Condor requires to run several more or less 
-lightweight daemons to be run on the target resource. The overhead is mainly 
-cause by the time required to setup the pool, propagate the pool information 
-to the main Condor pool and the Condor matchmaking, resource allocation and 
-job spawning mechanism. A major advantage of the SAGA-based BigJob is that
-it not only works across different infrastructures, it also provides a superior
-performance and less overheads than Condor Glide-In.
+Also, Condor Glide-In and thus, the SAGA-Condor BigJob shows severe
+overheads compared to the Grid BigJob. These overheads can mainly be
+attributed to the Condor architecture. Condor requires to run several
+more or less lightweight daemons to be run on the target resource. The
+overhead is mainly cause by the time required to setup the pool,
+propagate the pool information to the main Condor pool and the Condor
+matchmaking, resource allocation and job spawning mechanism. And
+although our somewhat limited performance analysis suggests that a
+BigJob can be lauched in a shorter period of time, it is probably true
+that Condor Glide-in can scale to support a much greater number of
+workers/sub-jobs. But the take home message is that in spite of a
+further layer of abstraction and the advantages of interoperability
+and extensibility that arise as a consequence, basic performance is
+and can be preserved.  In the following section we show that the SAGA
+BigJob abstraction is suitable for running Pilot-Jobs on different
+kinds of distributed infrastructures supporting different usage modes.
 
-In the following section we show that the SAGA BigJob abstraction is
-suitable for running Pilot-Jobs on different kinds of distributed
-infrastructures supporting different usage modes.
+ % A major
+% advantage of the SAGA-based BigJob is that it not only works across
+% different infrastructures, it also provides a superior performance and
+% less overheads than Condor Glide-In.
+\jhanote{This needs to be said carefully. Miron will castrate me! More
+  seriously, the problem is that the the ``overheads'' that we observe
+  in Condor don't change with loads}
+
 
 \section{Usage Modes and Analysis}
 \up
