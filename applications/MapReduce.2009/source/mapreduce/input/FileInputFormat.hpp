@@ -104,15 +104,22 @@ class FileInputFormat : public RawInputFormat {
       // Check if this path denotes a directory.
       bool is_directory = false;
       try {
-        saga::filesystem::directory dir(url, saga::filesystem::Read);
-        // Check validity...
+        saga::filesystem::directory directory(url, saga::filesystem::Read);
+        // It is a directory.
         is_directory = true;
+        // List files in this directory.
+        std::vector<saga::url> entries = directory.list();
+        for (std::vector<saga::url>::const_iterator entry_it = entries.begin();
+          entry_it != entries.end(); ++entry_it) {
+          if (!directory.is_dir(*entry_it) && !directory.is_link(*entry_it)) {
+            file_list.push_back(saga::url(directory.get_url().get_string() +
+                entry_it->get_url()));
+          }
+        }
       } catch (const saga::exception& e) {
       }
       if (!is_directory) {
         file_list.push_back(url);
-      } else {
-        // List files in this directory.
       }
     }
     // Generate chunks for each file.
