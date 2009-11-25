@@ -39,13 +39,13 @@ void my_print(string i)
 int main(int argc, char **argv)
 {
    vector<string> list;
-   string scheme("file://localhost/");
-   if(argc < 2)
+   if(argc < 5)
    {
-      cout << "Usage: ./createXML folder-to-data-files" << endl;
+      cout << "Usage: ./createXML -s scheme -d folder-to-data-files" << endl;
       return -1;
    }
-   string dir_name(argv[1]);
+   string scheme(argv[2]);
+   string dir_name(argv[4]);
    if(getdir(dir_name, list) != 0) {
       cerr << "Unable to find directory" << endl;
    }
