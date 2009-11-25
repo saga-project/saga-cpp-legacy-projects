@@ -4,23 +4,61 @@ AllPairs - Test for Royal Paper.
 8x8 each chunk 287 megabytes kfs 1 machine 2 worker = 2 min 22 secs
 8x8 each chunk 287 megabytes kfs 1 machine 4 worker = 2 min 18 secs
 8x8 each chunk 287 megabytes kfs 1 machine 8 worker = 2 min 19 secs
+ >What we see here is there is an obvious cap for reading data using kfs.  No
+  matter how many workers we add we see it stops decreasing.  This could be due
+  to time to read a file in KFS.  Adding more workers doesn't stop because a
+  singl test takes around 2 minutes and there are 8 workers and 8 sets of files
+  to compare.
 
 16x16 each chunk 287/2 megabytes kfs 1 machine 1 worker = 2 min 19 secs
 
 time to cat kfs file 287 megabytes = 2.984 seconds
 time to cat local file 287 megabytes=1.760 seconds
+ >This difference is acceptable because there is a program in between the fs
+ and accessing data.  It must figure out where the data is (even though it is
+ only on this machine).  Also, it must keep track of file locks and chunk the
+ file back together (it is stored internally as chunks).
 
 64 comparisons = 78.336 more seconds extra read time
 
 ============2 chunservers================
+(Note this has a replication value of 2 so each machine did have the data
+locally)
 8x8 each chunk 287 megabytes kfs 2 machine 1 worker = 8 min 14 secs
 8x8 each chunk 287 megabytes kfs 2 machine 2 worker = 4 min 5 secs
 8x8 each chunk 287 megabytes kfs 2 machine 4 worker = 2 min 47 secs
 8x8 each chunk 287 megabytes kfs 2 machine 8 worker = 1 min 53 secs
 
 16x16 each chunk 287/2 megabytes kfs 2 machines 1 worker = > 3 of 16 took 8 minutes
+ >It is estimated to have taken about 40 minutes to run.  It must be slow for
+  KFS to open files and find where they are.  This is significantly slower than
+  I anticipated.  To read 8 files with only one chunkserver took 2 min 19
+  seconds.  This test could be wrong, and I should retry before saying this as
+  truth. TODO: Redo this test
 
 time to cat kfs file 287 megabytes = 4.754 seconds
-time to cat local file 287 megabytes=1.196 seconds
+time to cat file 287 megabytes=1.196 seconds
+ >It is only fair to think that as the filesystem's number of machines grows
+  that this time would grow.  It must access more machines and wait longer
+  because of network traffic and download time. (Note: I'm not sure where the
+  file was.  There may have been no downloading involved (local)  TODO: I
+  should take an average.)
 
 64 comparisons = 227.712 more seconds extra read time
+
+
+============2 chunservers================
+(Note this has a replication value of 1 and all files are remote) [worked on
+eric and data on louie]
+
+8x8 each chunk 287 megabytes kfs 2 machine 1 worker =
+8x8 each chunk 287 megabytes kfs 2 machine 2 worker =
+8x8 each chunk 287 megabytes kfs 2 machine 4 worker = 9 minutes 16.915 seconds
+8x8 each chunk 287 megabytes kfs 2 machine 8 worker = 6 minutes 43.964 seconds
+
+16x16 each chunk 287/2 megabytes kfs 2 machines 1 worker = > 
+
+time to cat kfs file 287 megabytes = 16.104 seconds
+time to cat file 287 megabytes     = 1.947 seconds
+
+64 comparisons = 906  more seconds (15 min 6 secs) extra read time
