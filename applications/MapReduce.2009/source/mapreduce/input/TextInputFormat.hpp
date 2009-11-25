@@ -8,6 +8,7 @@
 
 #include "../input_output.hpp"
 #include "../io/saga_file_adaptors.hpp"
+#include "../../utils/logging.hpp"
 #include "FileInputFormat.hpp"
 
 using google::protobuf::io::CopyingInputStreamAdaptor;
@@ -31,12 +32,14 @@ class TextRecordReader : public RawRecordReader {
   ZeroCopyInputStream* current_value() { return current_value_; }
   void Close();
  private:
+  DECLARE_LOGGER(TextRecordReader);
   const char* buffer_pointer_;
   int buffer_position_;
   int buffer_length_;
   boost::scoped_ptr<CopyingInputStreamAdaptor> input_stream_;
   std::string line_;  // The currently constructed line.
   int file_offset_;
+  int end_offset_;
   std::string key_buffer_;
   std::string value_buffer_;
   ArrayInputStream* current_key_;

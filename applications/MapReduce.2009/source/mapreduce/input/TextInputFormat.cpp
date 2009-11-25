@@ -21,6 +21,7 @@ void TextRecordReader::Initialize(InputChunk* chunk) {
     saga::filesystem::Read);
   // Seek to the beginning of the chunk.
   file_offset_ = file_chunk->start_offset();
+  end_offset_ = file_offset_ + file_chunk->GetLength();
   file_input->Skip(file_offset_);
   CopyingInputStreamAdaptor* adaptor = new CopyingInputStreamAdaptor(
     file_input);
@@ -71,6 +72,13 @@ bool TextRecordReader::NextRecord() {
     } else if (newline_length > 0) {
       // Skip newline characters.
       buffer_position_ += newline_length;
+    }
+    if (file_offset_ > end_offset_) {
+      if (line_.size() == 0) {
+        return false;
+      } else {
+        break;
+      }
     }
   }
   // Serialize offset as an integer.
