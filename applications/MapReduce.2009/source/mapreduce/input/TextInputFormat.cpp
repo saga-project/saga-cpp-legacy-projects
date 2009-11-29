@@ -22,64 +22,37 @@ void TextRecordReader::Initialize(InputChunk* chunk) {
   // Seek to the beginning of the chunk.
   file_offset_ = file_chunk->start_offset();
   end_offset_ = file_offset_ + file_chunk->GetLength();
+  // Adjust offset if necessary.
+  bool skip_first_line = false;
+  if (file_offset_ > 0) {
+    skip_first_line = true;
+    --file_offset_;
+  }
   file_input->Skip(file_offset_);
   CopyingInputStreamAdaptor* adaptor = new CopyingInputStreamAdaptor(
     file_input);
   // The adaptor should free the CopyingStream.
   adaptor->SetOwnsCopyingStream(true);
   input_stream_.reset(adaptor);
+  reader_.reset(new LineReader(input_stream_.get()));
+  if (skip_first_line) {
+    file_offset_ += reader_->ReadLine(&line_);
+  }
 }
 
 bool TextRecordReader::NextRecord() {
   line_.clear();
-  int newline_length = 0;
-  int start_position = buffer_position_;
   int start_offset = file_offset_;
-  while (1) {
-    if (buffer_position_ >= buffer_length_) {
-      // Read another portion of the input.
-      bool success = input_stream_->Next(reinterpret_cast<const void**>(
-        &buffer_pointer_), &buffer_length_);
-      if (!success) {
-        return false;
-      }
-      buffer_position_ = start_position = 0;
-    }
-    bool previous_cr = false;   // Whether we read a CR in the previous pass.
-    for (; buffer_position_ < buffer_length_; ++buffer_position_) {
-      if (buffer_pointer_[buffer_position_] == '\r') {
-        previous_cr = true;
-        newline_length = 1;
-        continue;
-      } else if (buffer_pointer_[buffer_position_] == '\n') {
-        newline_length = previous_cr ? 2 : 1;
-        ++buffer_position_;
-        break;
-      }
-    }
-    if (previous_cr && newline_length == 1) {
-      ++buffer_position_;
-    }
-    file_offset_ += buffer_position_;
-    // Decide how much to append to the line buffer.
-    int append_length = buffer_position_ - start_position - newline_length;
-    if (append_length > 0) {
-      line_.append(reinterpret_cast<const char*>(&buffer_pointer_[start_position]),
-        append_length);
-    }
-    if (newline_length > 0 && line_.size() > 0) {
-      break;
-    } else if (newline_length > 0) {
-      // Skip newline characters.
-      buffer_position_ += newline_length;
-    }
-    if (file_offset_ > end_offset_) {
-      if (line_.size() == 0) {
-        return false;
-      } else {
-        break;
-      }
-    }
+  int read_size = 0;
+  if (file_offset_ < end_offset_) {
+    read_size = reader_->ReadLine(&line_);
+    file_offset_ += read_size;
+  }
+  if (read_size == 0) {
+    // No more data to read.
+    current_key_.reset();
+    current_value_.reset();
+    return false;
   }
   // Serialize offset as an integer.
   key_buffer_.clear();
@@ -91,16 +64,11 @@ bool TextRecordReader::NextRecord() {
   SerializationHandler<std::string>::Serialize(&line_, &value_output);
   // Reset key and value input streams.
   // FIXME: should use resettable input stream instead.
-  if (current_key_) delete current_key_;
-  current_key_ = new ArrayInputStream(string_as_array(&key_buffer_),
-    key_buffer_.size());
-  if (current_value_) delete current_value_;
-  current_value_ = new ArrayInputStream(string_as_array(&value_buffer_),
-    value_buffer_.size());
+  current_key_.reset(new ArrayInputStream(string_as_array(&key_buffer_),
+    key_buffer_.size()));
+  current_value_.reset(new ArrayInputStream(string_as_array(&value_buffer_),
+    value_buffer_.size()));
   return true;
-}
-
-void TextRecordReader::Close() {
 }
 
 }   // namespace mapreduce
