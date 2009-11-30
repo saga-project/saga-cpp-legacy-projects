@@ -17,8 +17,9 @@ namespace digedag
     class parser
     {
       private:
-        digedag::dag * dag_;
-        std::string     filename_;
+        sp_t <dag>      dag_;
+        std::string     dag_file_;
+        std::string     scheduler_file_;
 
         void parse_dag  (void);
         void parse_node (const std::string spec);
@@ -26,10 +27,14 @@ namespace digedag
 
 
       public:
-        parser  (const std::string & filename);
-        ~parser (void) { }
+        parser (const std::string & dag_file, 
+                const std::string & scheduler_file);
+        ~parser (void);
 
-        digedag::dag * get_dag (void) { return dag_; }
+        sp_t <dag> get_dag (void) 
+        { 
+          return dag_; 
+        }
     };
 
   } // namespace dax

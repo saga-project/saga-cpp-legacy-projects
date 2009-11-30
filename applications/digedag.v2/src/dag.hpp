@@ -6,6 +6,7 @@
 
 #include "util/scoped_lock.hpp"
 
+#include "config.hpp"
 #include "enum.hpp"
 #include "node.hpp"
 #include "edge.hpp"
@@ -25,20 +26,20 @@ namespace digedag
   // A dag also has a scheduler, which can traverse the dag, and change
   // attributes of edges and nodes, such as its assigment to a specific
   // resource.
-  class dag 
+  class dag : public boost::enable_shared_from_this <dag>
   {
     private:
-      std::map <node_id_t, node_map_t> nodes_;  // dag node names and instances
-      std::map <edge_id_t, edge_map_t> edges_;  // dag edge names and instances
+      std::map <node_id_t, node_map_t> nodes_;     // dag node names and instances
+      std::map <edge_id_t, edge_map_t> edges_;     // dag edge names and instances
 
-      digedag::scheduler * scheduler_;
-      state                 state_;             // see get_state ()
+      state                            state_;     // see get_state ()
+      sp_t <scheduler>                 scheduler_;
 
       // special nodes which act as anchor for input and output edges
-      node                * input_;
-      node                * output_;      
+      sp_t <node>                      input_;
+      sp_t <node>                      output_;      
 
-      util::mutex           mtx_;
+      util::mutex                      mtx_;
 
 
     protected:
@@ -51,19 +52,19 @@ namespace digedag
 
 
     public:
-      dag  (void);
+      dag  (const std::string & scheduler_src = "");
       ~dag (void); 
 
 
       // create the dag
-      void  add_node  (const std::string & name, 
-                       digedag::node    * node);
-      void  add_edge  (digedag::edge    * e, 
-                       digedag::node    * src, 
-                       digedag::node    * tgt);
-      void  add_edge  (digedag::edge    * e, 
-                       const std::string & src, 
-                       const std::string & tgt);
+      void  add_node  (const std::string    & name, 
+                       sp_t <node>            node);
+      void  add_edge  (sp_t <edge>            e, 
+                       sp_t <node>            src, 
+                       sp_t <node>            tgt);
+      void  add_edge  (sp_t <edge>            e, 
+                       const std::string    & src, 
+                       const std::string    & tgt);
 
       // operations on a dag
       void  dryrun    (void);
@@ -81,12 +82,6 @@ namespace digedag
       // other tools
       void  lock      (void);
       void  unlock    (void);
-      void  log       (std::string msg = "", 
-                       bool        eol = true);
-
-
-      void                 set_scheduler (std::string s);
-      digedag::scheduler * get_scheduler (void);
   };
 
 } // namespace digedag

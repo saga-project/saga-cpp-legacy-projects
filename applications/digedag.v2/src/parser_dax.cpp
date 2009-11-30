@@ -11,11 +11,17 @@ namespace digedag
 {
   namespace dax
   {
-    parser::parser (const std::string & filename)
-      : filename_ (filename)
+    parser::parser (const std::string & dag_file, 
+                    const std::string & scheduler_file)
+      : dag_file_       (dag_file)
+      , scheduler_file_ (scheduler_file)
     {
-      dag_ = new digedag::dag ();
       parse_dag ();
+    }
+
+
+    parser::~parser (void)
+    {
     }
 
 
@@ -23,10 +29,12 @@ namespace digedag
     // to be relative to the applications working directory.
     void parser::parse_dag (void)
     {
-      std::cout << "parsing " << filename_ << std::endl;
+      dag_ = sp_t <dag> (new dag (scheduler_file_));
+
+      std::cout << "parsing " << dag_file_ << std::endl;
       try
       {
-        ticpp::Document doc (filename_);
+        ticpp::Document doc (dag_file_);
 
         doc.LoadFile ();
 
@@ -41,7 +49,7 @@ namespace digedag
         // second run, we add all edges (connected nodes are known now).
         for ( job = job.begin (adag); job != job.end (); job++ )
         {
-          digedag::node_description nd;
+          node_description nd;
 
           std::string s_id   = job->GetAttribute ("id");
           std::string s_name = job->GetAttribute ("name");
@@ -96,7 +104,7 @@ namespace digedag
             nd.set_vector_attribute ("Arguments", s_args);
           }
 
-          digedag::node * n = new digedag::node (nd, s_name);
+          sp_t <node> n (new node (nd, s_name));
 
           dag_->add_node (s_id, n);
         }
@@ -174,7 +182,7 @@ namespace digedag
 
             saga::url loc (file);
             loc.set_scheme ("any");
-            digedag::edge * e = new digedag::edge (loc);
+            sp_t <edge> e (new edge (loc));
             dag_->add_edge (e, "INPUT", i_node);
           }
 
@@ -182,7 +190,7 @@ namespace digedag
           {
             saga::url loc (file);
             loc.set_scheme ("any");
-            digedag::edge * e = new digedag::edge (loc);
+            sp_t <edge> e (new edge (loc));
             dag_->add_edge (e, o_node, i_node);
           }
         }
@@ -213,7 +221,7 @@ namespace digedag
 
             saga::url loc (file);
             loc.set_scheme ("any");
-            digedag::edge * e = new digedag::edge (loc);
+            sp_t <edge> e  (new edge (loc));
             dag_->add_edge (e, o_node, i_node);
           }
         }
@@ -222,7 +230,7 @@ namespace digedag
       {
         std::cout << e.what () << std::endl;
       }
-      std::cout << "parsing " << filename_ << " done" << std::endl;
+      std::cout << "parsing " << dag_file_ << " done" << std::endl;
     }
 
   } // namespace dax

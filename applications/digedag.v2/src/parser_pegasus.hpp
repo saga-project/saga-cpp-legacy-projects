@@ -16,9 +16,11 @@ namespace digedag
     class parser
     {
       private:
-        digedag::dag           * dag_;
+        sp_t <dag>                dag_;
 
-        std::string               filename_;
+        std::string               dag_file_;
+        std::string               scheduler_file_;
+
         std::string               basename_;
         std::string               basedir_;
         std::vector <std::string> files_;
@@ -32,10 +34,11 @@ namespace digedag
 
 
       public:
-        parser  (const std::string & filename);
+        parser (const std::string & dag_file, 
+                const std::string & scheduler_file);
         ~parser (void);
 
-        digedag::dag * get_dag (void) { return dag_; }
+        sp_t <dag> get_dag (void) { return dag_; }
     };
   }
 } // namespace digedag

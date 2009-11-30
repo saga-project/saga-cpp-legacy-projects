@@ -20,16 +20,13 @@ namespace digedag
       bool stopped_;
 
       util::mutex mtx_;
-      std::string policy_; // scheduling policy
+      std::string src_; // scheduling policy
 
       std::string data_src_pwd_;
       std::string data_tgt_pwd_;
 
       std::string data_src_host_;
       std::string data_tgt_host_;
-
-      int running_nodes_;
-      int concurrency_;
 
       struct job_info_t 
       { 
@@ -43,38 +40,40 @@ namespace digedag
 
       saga::session session_;
 
+      sp_t <dag> dag_;
+
 
     public:
-      scheduler (void);
+      scheduler  (dag * d, 
+                  const std::string & src);
       ~scheduler (void);
 
+      void parse_src             (void);
       void stop                  (void);
 
-      void set_scheduler         (std::string s);
+      void hook_dag_create       (void);
+      void hook_dag_destroy      (void);
+      void hook_dag_schedule     (void);
+      void hook_dag_run_pre      (void);
+      void hook_dag_run_post     (void);
+      void hook_dag_run_done     (void);
+      void hook_dag_run_fail     (void);
+      void hook_dag_wait         (void);
 
-      void hook_dag_create       (digedag::dag * d);
-      void hook_dag_destroy      (digedag::dag * d);
-      void hook_dag_schedule     (digedag::dag * d);
-      void hook_dag_run_pre      (digedag::dag * d);
-      void hook_dag_run_post     (digedag::dag * d);
-      void hook_dag_run_done     (digedag::dag * d);
-      void hook_dag_run_fail     (digedag::dag * d);
-      void hook_dag_wait         (digedag::dag * d);
+      void hook_node_add         (node & n);
+      void hook_node_remove      (node & n);
+      void hook_node_run_pre     (node & n);
+      void hook_node_run_done    (node & n);
+      void hook_node_run_fail    (node & n);
 
-      void hook_node_add         (digedag::dag * d, digedag::node * n);
-      void hook_node_remove      (digedag::dag * d, digedag::node * n);
-      void hook_node_run_pre     (digedag::dag * d, digedag::node * n);
-      void hook_node_run_done    (digedag::dag * d, digedag::node * n);
-      void hook_node_run_fail    (digedag::dag * d, digedag::node * n);
-
-      void hook_edge_add         (digedag::dag * d, digedag::edge * e);
-      void hook_node_remove      (digedag::dag * d, digedag::edge * e);
-      void hook_edge_run_pre     (digedag::dag * d, digedag::edge * e);
-      void hook_edge_run_done    (digedag::dag * d, digedag::edge * e);
-      void hook_edge_run_fail    (digedag::dag * d, digedag::edge * e);
+      void hook_edge_add         (edge & e);
+      void hook_node_remove      (edge & e);
+      void hook_edge_run_pre     (edge & e);
+      void hook_edge_run_done    (edge & e);
+      void hook_edge_run_fail    (edge & e);
 
       saga::session
-           hook_saga_get_session (digedag::dag * d);
+           hook_saga_get_session (void);
   };
 
 } // namespace digedag

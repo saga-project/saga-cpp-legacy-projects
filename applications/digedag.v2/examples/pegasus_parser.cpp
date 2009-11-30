@@ -5,9 +5,9 @@ int main (int argc, char** argv)
 {
   try
   {
-    digedag::pegasus::parser p ("../src/parser_pegasus_example/black-diamond-0.dag");
+    digedag::pegasus::parser p ("../src/parser_pegasus_example/black-diamond-0.dag", "");
 
-    digedag::dag * d = p.get_dag ();
+    sp_t <digedag::dag> d = p.get_dag ();
 
     d->fire ();
    

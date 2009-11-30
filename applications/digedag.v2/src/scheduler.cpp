@@ -15,13 +15,15 @@
 
 namespace digedag
 {
-  scheduler::scheduler (void)
+  scheduler::scheduler (dag               * d, 
+                        const std::string & src)
     : stopped_       (false),
-      running_nodes_ (    0),
-      concurrency_   (   10),
-      session_       ( true)
+      session_       ( true),
+      dag_           (    d)
   {
     pthread_mutex_t m = mtx_.get ();
+
+    src_ = src;
   }
 
   scheduler::~scheduler (void)
@@ -33,21 +35,23 @@ namespace digedag
     stopped_ = true;
   }
 
-  void scheduler::set_scheduler (std::string s)
+  void scheduler::parse_src (void)
   {
     if ( stopped_ ) return;
 
-    policy_ = s;
+    if ( src_.empty () )
+    {
+      return;
+    }
 
-    // open the policy file
     std::fstream fin;
     std::string  line;
 
-    fin.open (policy_.c_str (), std::ios::in);
+    fin.open (src_.c_str (), std::ios::in);
 
     if ( fin.fail () )
     {
-      std::cerr << "opening " << policy_ << " failed" << std::endl;
+      std::cerr << "opening " << src_ << " failed" << std::endl;
       throw "Cannot open file";
     }
 
@@ -55,11 +59,11 @@ namespace digedag
 
     while ( std::getline (fin, line) )
     {
-      std::vector <std::string> words = digedag::split (line);
+      std::vector <std::string> words = split (line);
 
       if ( words.size () < 1 )
       {
-        std::cerr << "parser error (1) in " << policy_ << " at line " << lnum << std::endl;
+        std::cerr << "parser error (1) in " << src_ << " at line " << lnum << std::endl;
       }
       else if ( words[0] == "#" )
       {
@@ -78,7 +82,7 @@ namespace digedag
           for ( unsigned int i = 1; i < words.size (); i++ )
           {
             // all other words, split at '='
-            std::vector <std::string> elems = digedag::split (words[i], "=", 2);
+            std::vector <std::string> elems = split (words[i], "=", 2);
 
             if ( 0 == elems.size () )
             {
@@ -102,7 +106,7 @@ namespace digedag
         catch ( const saga::exception & e )
         {
           // error in handling context line
-          std::cerr << "context error in " << policy_ 
+          std::cerr << "context error in " << src_ 
                     << " at line " << lnum 
                     << ": \n" << e.what () 
                     << std::endl;
@@ -112,7 +116,7 @@ namespace digedag
       {
         if ( words.size () != 4 )
         {
-          std::cerr << "parser error (2) in " << policy_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error (2) in " << src_ << " at line " << lnum << std::endl;
         }
         else if ( words[1] == "INPUT" )
         {
@@ -126,14 +130,14 @@ namespace digedag
         }
         else
         {
-          std::cerr << "parser error (3) in " << policy_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error (3) in " << src_ << " at line " << lnum << std::endl;
         }
       }
       else if ( words[0] == "job" )
       {
         if ( words.size () < 5 )
         {
-          std::cerr << "parser error (4) in " << policy_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error (4) in " << src_ << " at line " << lnum << std::endl;
         }
         else
         {
@@ -153,33 +157,33 @@ namespace digedag
     }
   }
 
-  void scheduler::hook_dag_create (digedag::dag  * d)                     
+  void scheduler::hook_dag_create (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_destroy (digedag::dag * d)                     
+  void scheduler::hook_dag_destroy (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_schedule (digedag::dag * d)                     
+  void scheduler::hook_dag_schedule (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
 
     // walk throgh the dag, and assign execution host for nodes, and data
     // prefixes for edges
-    std::map <node_id_t, node_map_t> nodes = d->get_nodes ();
-    std::map <edge_id_t, edge_map_t> edges = d->get_edges ();
+    std::map <node_id_t, node_map_t> nodes = dag_->get_nodes ();
+    std::map <edge_id_t, edge_map_t> edges = dag_->get_edges ();
 
     // first, fix pwd and host for INPUT and OUTPUT nodes
-    node * input  = nodes["INPUT"];
-    node * output = nodes["OUTPUT"];
+    sp_t <node> input  = nodes["INPUT"];
+    sp_t <node> output = nodes["OUTPUT"];
 
     input->set_pwd   (data_src_pwd_);
     input->set_host  (data_src_host_);
@@ -196,7 +200,7 @@ namespace digedag
       for ( it = begin; it != end; it++ )
       {
         std::string id = it->first;
-        node *      n  = it->second;
+        sp_t <node> n  = it->second;
 
         if ( job_info_.find (id) != job_info_.end () )
         {
@@ -214,28 +218,28 @@ namespace digedag
   }
 
 
-  void scheduler::hook_dag_run_pre (digedag::dag * d)                     
+  void scheduler::hook_dag_run_pre (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_run_post (digedag::dag * d)                     
+  void scheduler::hook_dag_run_post (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_run_done (digedag::dag * d)                     
+  void scheduler::hook_dag_run_done (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_dag_run_fail (digedag::dag * d)                     
+  void scheduler::hook_dag_run_fail (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -244,7 +248,7 @@ namespace digedag
   }
 
 
-  void scheduler::hook_dag_wait (digedag::dag * d)                     
+  void scheduler::hook_dag_wait (void)
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -252,8 +256,7 @@ namespace digedag
 
 
 
-  void scheduler::hook_node_add (digedag::dag  * d,
-                                 digedag::node * n)           
+  void scheduler::hook_node_add (node & n)           
   {
     if ( stopped_ ) return;
     pthread_mutex_t m = mtx_.get ();
@@ -261,60 +264,39 @@ namespace digedag
   }
 
 
-  void scheduler::hook_node_remove (digedag::dag  * d,
-                                    digedag::node * n)           
+  void scheduler::hook_node_remove (node & n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_node_run_pre (digedag::dag  * d,
-                                     digedag::node * n)           
+  void scheduler::hook_node_run_pre (node & n)           
   {
     if ( stopped_ ) return;
-
-    std::cout << " --- " << n->get_name () << " enters queue" << std::endl;
-
-    // wait 'til we have no more than concurrency_ number of jobs running
-    while ( running_nodes_ >= concurrency_ )
-    {
-      // std::cout << " --- " << n->get_name () << " waits in queue (" 
-      //           << running_nodes_ << " > " << concurrency_ << ")" << std::endl;
-      ::sleep (1);
-    }
-
     util::scoped_lock sl (mtx_);
-    running_nodes_++;
-    std::cout << " --- " << n->get_name () << " leaves queue" << std::endl;
   }
 
 
-  void scheduler::hook_node_run_done (digedag::dag  * d,
-                                      digedag::node * n)           
+  void scheduler::hook_node_run_done (node & n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
-    running_nodes_--;
   }
 
 
   // NOTE that this implementation is recursive!  no locks, please...
-  void scheduler::hook_node_run_fail (digedag::dag  * d,
-                                      digedag::node * n)           
+  void scheduler::hook_node_run_fail (node & n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
-
-    running_nodes_--;
 
     ::exit (1);
   }
 
 
 
-  void scheduler::hook_edge_add (digedag::dag  * d,
-                                 digedag::edge * e)           
+  void scheduler::hook_edge_add (edge & e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -328,32 +310,28 @@ namespace digedag
   }
 
 
-  void scheduler::hook_node_remove (digedag::dag  * d,
-                                    digedag::edge * e)           
+  void scheduler::hook_node_remove (edge & e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_edge_run_pre (digedag::dag  * d,
-                                     digedag::edge * e)           
+  void scheduler::hook_edge_run_pre (edge & e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_edge_run_done (digedag::dag  * d,
-                                      digedag::edge * e)           
+  void scheduler::hook_edge_run_done (edge & e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_edge_run_fail (digedag::dag  * d,
-                                      digedag::edge * e)           
+  void scheduler::hook_edge_run_fail (edge & e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
@@ -362,7 +340,7 @@ namespace digedag
   }
 
 
-  saga::session scheduler::hook_saga_get_session (digedag::dag  * d)
+  saga::session scheduler::hook_saga_get_session (void)
   {
     util::scoped_lock sl (mtx_);
     return session_;

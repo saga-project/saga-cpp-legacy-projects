@@ -15,11 +15,9 @@ int main (int argc, char** argv)
       return -1;
     }
 
-    digedag::dax::parser p (argv[1]);
+    digedag::dax::parser p (argv[1], argv[2]);
 
-    digedag::dag * d = p.get_dag ();
-
-    d->set_scheduler (argv[2]);
+    sp_t <digedag::dag> d = p.get_dag ();
 
     // allow for pre-run scheduling
     d->schedule (); 
@@ -37,8 +35,6 @@ int main (int argc, char** argv)
       // wait til the dag had a chance to finish
       d->wait ();
     }
-
-    delete d;
   }
   catch ( const char * s )
   {

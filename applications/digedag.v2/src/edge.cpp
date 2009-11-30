@@ -12,8 +12,6 @@ namespace digedag
     , src_path_ (src_url_.get_path ())
     , tgt_path_ (tgt_url_.get_path ())
     , state_    (Pending)
-    , src_node_ (NULL)
-    , tgt_node_ (NULL)
   {
     if ( tgt_url_ == "" )
     {
@@ -24,7 +22,7 @@ namespace digedag
 
   edge::~edge (void)
   {
-    thread_join ();
+    // thread_join ();
   }
 
   bool edge::operator== (const edge & e)
@@ -36,7 +34,6 @@ namespace digedag
          state_     == e.state_       &&
       // src_node_  == e.src_node_    &&
       // tgt_node_  == e.tgt_node_    &&
-         dag_       == e.dag_         &&
          scheduler_ == e.scheduler_   )
     {
       return true;
@@ -47,12 +44,12 @@ namespace digedag
     }
   }
 
-  void edge::add_src_node (digedag::node * src)
+  void edge::add_src_node (sp_t <node> src)
   {
     src_node_ = src;
   }
 
-  void edge::add_tgt_node (digedag::node * tgt)
+  void edge::add_tgt_node (sp_t <node> tgt)
   {
     tgt_node_ = tgt;
   }
@@ -85,7 +82,7 @@ namespace digedag
   void edge::fire (void)
   {
     // ### scheduler hook
-    scheduler_->hook_edge_run_pre (dag_, this);
+    scheduler_->hook_edge_run_pre (*this);
 
     // check if copy was done, or started, before (!Pending).  
     // If not, mark that we start the work (Running)
@@ -103,7 +100,7 @@ namespace digedag
         tgt_node_->fire ();
 
         // ### scheduler hook
-        scheduler_->hook_edge_run_done (dag_, this);
+        scheduler_->hook_edge_run_done (*this);
 
         return;
       }
@@ -113,29 +110,27 @@ namespace digedag
         state_ = Running;
 
         // start the threaded operation
-        thread_run ();
+        work ();
         state_ = Done;
       }
     }
   }
 
 
-  // thread_work is the workload, i.e. the data copy operation
-  void edge::thread_work (void)
+  // work is the workload, i.e. the data copy operation
+  void edge::work (void)
   {
     try 
     {
-      dag_->log (std::string (" === edge run: ")
-                + src_url_.get_string () + "->" + tgt_url_.get_string ());
+      std::cout << std::string (" === edge run: ")
+                << get_name_s () << std::endl;
 
       // dump ();
-
-      dag_->lock ();
 
       // the local file adaptor is not thread save if operating on the same
       // directory structure
 
-      saga::session session = scheduler_->hook_saga_get_session (dag_);
+      saga::session session = scheduler_->hook_saga_get_session ();
 
       saga::filesystem::file f_src (session, src_url_);
 
@@ -171,27 +166,23 @@ namespace digedag
         // f_src.copy (tgt_url_, saga::filesystem::Overwrite
         //             | saga::filesystem::CreateParents);
       }
-
-      dag_->unlock ();
     }
     catch ( const saga::exception & e ) 
     {
-      dag_->unlock ();
-
       // FIXME: the local adaptor is not doing nicely in multithreaded
       // environments.  Thus, we ignore all errors for now, and rely on the
       // ability of the nodes to flag any missing data files.
 #if  1
-      dag_->log (std::string (" === edge failed to copy data ")
-                + src_url_.get_string () + "->" + tgt_url_.get_string () + "\n" 
-                + e.what ());
+      std::cout << std::string (" === edge failed to copy data ")
+                << get_name_s () << "\n" 
+                << e.what () << std::endl;
 
       {
         state_ = Failed;
       }
 
       // ### scheduler hook
-      scheduler_->hook_edge_run_fail (dag_, this);
+      scheduler_->hook_edge_run_fail (*this);
 
       return;
 #else
@@ -199,7 +190,7 @@ namespace digedag
       state_ = Done;
 
       // ### scheduler hook
-      scheduler_->hook_edge_run_done (dag_, this);
+      scheduler_->hook_edge_run_done (*this);
 #endif
     }
 
@@ -211,8 +202,8 @@ namespace digedag
     // result in a Running node.
     
     {
-      dag_->log (std::string (" === edge done: ")
-                + src_url_.get_string () + "->" + tgt_url_.get_string ());
+      std::cout << std::string (" === edge done: ")
+                << get_name_s () << std::endl;
 
       if ( state_ != Stopped )
       {
@@ -226,7 +217,7 @@ namespace digedag
     }
 
     // ### scheduler hook
-    scheduler_->hook_edge_run_done (dag_, this);
+    scheduler_->hook_edge_run_done (*this);
 
     return;
   }
@@ -239,11 +230,11 @@ namespace digedag
 
   void edge::dump (void)
   {
-    dag_->log (std::string ("         edge : ")
-              + src_node_->get_name () + "\t -> " + tgt_node_->get_name () 
-              + "[" + src_url_.get_string ()         + "\t -> " 
-              + tgt_url_.get_string ()  + "] "
-              + "(" + state_to_string (get_state ()) + ")");
+    std::cout << std::string ("         edge : ")
+              << src_node_->get_name () << "\t -> " << tgt_node_->get_name () 
+              << "[" << src_url_.get_string ()       << "\t -> " << tgt_url_.get_string () << "] "
+              << "(" << state_to_string (get_state ()) << ")" 
+              << std::endl;
   }
 
   void edge::erase_src (void)
@@ -261,12 +252,12 @@ namespace digedag
     state_ = s;
   }
 
-  digedag::state edge::get_state (void)
+  state edge::get_state (void)
   {
     if ( Done   == state_ ||
          Failed == state_ )
     {
-      thread_join ();
+      // thread_join ();
     }
 
     return state_;
@@ -303,11 +294,9 @@ namespace digedag
   }
 
 
-  void edge::set_dag (digedag::dag * d)
+  void edge::set_scheduler (sp_t <scheduler> s)
   {
-    dag_       = d;
-    scheduler_ = dag_->get_scheduler ();
-    // FIXME: use the scheduler
+    scheduler_ = s;
   }
 
 } // namespace digedag

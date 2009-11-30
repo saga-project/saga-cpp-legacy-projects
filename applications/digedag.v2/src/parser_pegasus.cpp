@@ -10,22 +10,24 @@ namespace digedag
 {
   namespace pegasus
   {
-    parser::parser (const std::string & filename)
-      : filename_ (filename)
-      , basename_ (get_name (filename))
-      , basedir_  (get_dir  (filename))
+    parser::parser (const std::string & dag_file,
+                    const std::string & scheduler_file)
+      : dag_file_       (dag_file)
+      , scheduler_file_ (scheduler_file)
+      , basename_       (get_name (dag_file_))
+      , basedir_        (get_dir  (dag_file_))
     {
-      dag_ = new digedag::dag ();
       parse_dag ();
     }
 
     parser::~parser (void)
     {
-      delete dag_;
     }
 
     void parser::parse_dag (void)
     {
+      dag_ = sp_t <dag> (new dag (scheduler_file_));
+
       // first, we read the base dag file, and axtract the following infos:
       //  - list of sub elements w/o cleanup and staging elements
       //  - list of cleanup elements
@@ -33,11 +35,11 @@ namespace digedag
       std::fstream fin;
       std::string  line;
 
-      fin.open (filename_.c_str (), std::ios::in);
+      fin.open (dag_file_.c_str (), std::ios::in);
 
       if ( fin.fail () )
       {
-        std::cerr << "opening " << filename_ << " failed\n";
+        std::cerr << "opening " << dag_file_ << " failed\n";
         throw "Cannot open file";
       }
 
@@ -45,7 +47,7 @@ namespace digedag
       {
         while ( std::getline (fin, line) )
         {
-          std::vector <std::string> words = digedag::split (line);
+          std::vector <std::string> words = split (line);
 
           if ( words[0] == "JOB" )
           {
@@ -65,7 +67,7 @@ namespace digedag
       }
       catch ( ... )
       {
-        std::cerr << "reading " << filename_ << " failed\n";
+        std::cerr << "reading " << dag_file_ << " failed\n";
         throw "file read error";
       }
 
@@ -77,7 +79,7 @@ namespace digedag
     {
       std::cout << "\n";
 
-      std::vector <std::string> elems = digedag::split (spec);
+      std::vector <std::string> elems = split (spec);
 
       std::fstream fin;
       std::string  line;
@@ -94,12 +96,12 @@ namespace digedag
 
       try 
       {
-        digedag::node_description nd;
+        node_description nd;
 
         while ( std::getline (fin, line) )
         {
           std::string key = "";
-          std::vector <std::string> words = digedag::split (line);
+          std::vector <std::string> words = split (line);
 
           if ( words.size () > 2 )
           {
@@ -139,7 +141,7 @@ namespace digedag
           {
             std::cout << "ENV LINE " << std::endl;
 
-            std::vector <std::string> env = digedag::split (words[0], ";");
+            std::vector <std::string> env = split (words[0], ";");
 
             for ( unsigned int i = 0; i < env.size (); i++ )
               std::cout << "   " << env[i] << "\n";
@@ -176,7 +178,7 @@ namespace digedag
 
         }
 
-        digedag::node * n = new digedag::node (nd);
+        sp_t <node> n (new node (nd));
         dag_->add_node (name, n);
       }
       catch ( ... )
@@ -189,10 +191,10 @@ namespace digedag
 
     void parser::parse_edge (const std::string spec)
     {
-      std::vector <std::string> elems = digedag::split (spec);
+      std::vector <std::string> elems = split (spec);
 
-      digedag::edge * e = new digedag::edge ("file://localhost/TODO", 
-                                               "file://localhost/FIXME");
+      sp_t <edge> e (new edge ("file://localhost/TODO", 
+                                                 "file://localhost/FIXME"));
       dag_->add_edge (e, elems[1], elems[3]);
     }
 

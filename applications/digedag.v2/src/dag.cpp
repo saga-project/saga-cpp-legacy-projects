@@ -3,27 +3,25 @@
 
 namespace digedag
 {
-  dag::dag (void)
-    : state_ (Pending)
+  dag::dag (const std::string & scheduler_src)
+    : state_     (Pending),
+      scheduler_ (new scheduler (this, scheduler_src)),
+      input_     (new node ()),
+      output_    (new node ())
   { 
-    scheduler_ = new digedag::scheduler ();
-
-    // create special nodes
-    input_  = new node ();
-    output_ = new node ();
-
+    // add special nodes to dag already
     add_node ("INPUT",  input_);
     add_node ("OUTPUT", output_);
 
     // ### scheduler hook
-    scheduler_->hook_dag_create (this);
+    scheduler_->hook_dag_create ();
   }
 
 
   dag::~dag (void) 
   {
     // ### scheduler hook
-    scheduler_->hook_dag_destroy (this);
+    scheduler_->hook_dag_destroy ();
 
     // Nodes fire edges, edges fire nodes.  No matter which we delete
     // first, we are in trouble.  Thus, we need to *stop* them all, before we
@@ -33,9 +31,9 @@ namespace digedag
 
     // stop nodes
     {
-      std::map <node_id_t, digedag::node *> :: iterator it;
-      std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
-      std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
+      std::map <node_id_t, sp_t <node> > :: iterator it;
+      std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
+      std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
 
       for ( it = begin; it != end; it++ )
       {
@@ -59,67 +57,35 @@ namespace digedag
     }
     
 
-
-    // ok, everything is stopped, now destroy
-    
-    // delete nodes
-    {
-      std::map <node_id_t, digedag::node *> :: iterator it;
-      std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
-      std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
-
-      for ( it = begin; it != end; it++ )
-      {
-        delete it->second;
-      }
-    }
-
-    // delete edges
-    {
-      std::map <edge_id_t, edge_map_t> :: iterator it;
-      std::map <edge_id_t, edge_map_t> :: iterator begin = edges_.begin ();
-      std::map <edge_id_t, edge_map_t> :: iterator end   = edges_.end ();
-
-      for ( it = begin; it != end; it++ )
-      {
-        for ( unsigned int i = 0; i < it->second.size (); i++ )
-        {
-          delete it->second[i];
-        }
-      }
-    }
-
-
-    // delete scheduler
-    delete scheduler_;
+    // ok, everything is stopped, and shared_ptr's will be destroyed here
   }
 
 
   void dag::add_node (const node_id_t & name, 
-                      digedag::node  * node)
+                      sp_t <node>       node)
   {
     if ( node == NULL )
     {
-      log (std::string ("NULL node: ") + name);
+      std::cout << std::string ("NULL node: ") << name << std::endl;
       return;
     }
 
     nodes_[name] = node;
 
-    node->set_dag  (this);
     node->set_name (name);
 
     // ### scheduler hook
-    scheduler_->hook_node_add (this, node);
+    node->set_scheduler (scheduler_);
+    scheduler_->hook_node_add (*(node.get ()));
   }
 
 
-  void dag::add_edge (digedag::edge * e, 
-                      digedag::node * src, 
-                      digedag::node * tgt)
+  void dag::add_edge (sp_t <edge> e, 
+                      sp_t <node> src, 
+                      sp_t <node> tgt)
   {
-    node * s = src;
-    node * t = tgt;
+    sp_t <node> s = src;
+    sp_t <node> t = tgt;
 
     if ( src == NULL ) { s = input_ ; } 
     if ( tgt == NULL ) { t = output_; }
@@ -130,22 +96,21 @@ namespace digedag
     e->add_src_node (s);
     e->add_tgt_node (t);
 
-    e->set_dag (this);
-
     edges_[edge_id_t (s->get_name (), t->get_name ())].push_back (e);
 
     // ### scheduler hook
-    scheduler_->hook_edge_add (this, e);
+    e->set_scheduler (scheduler_);
+    scheduler_->hook_edge_add (*(e.get ()));
   }
 
 
   // add edges to named nodes
-  void dag::add_edge (digedag::edge  * e, 
+  void dag::add_edge (sp_t <edge>       e, 
                       const node_id_t & src, 
                       const node_id_t & tgt)
   {
-    node * n_src = NULL;
-    node * n_tgt = NULL;
+    sp_t <node> n_src;
+    sp_t <node> n_tgt;
 
     if ( nodes_.find (src) != nodes_.end () )
     {
@@ -163,9 +128,9 @@ namespace digedag
 
   void dag::reset (void)
   {
-    std::map <node_id_t, digedag::node *> :: iterator it;
-    std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, sp_t <node> > :: iterator it;
+    std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
 
     state_ = Pending;
 
@@ -181,11 +146,11 @@ namespace digedag
     if ( Pending != state_ )
       return;
 
-    log (" dryun:  dag");
+    std::cout << " dryun:  dag" << std::endl;
 
-    std::map <node_id_t, digedag::node *> :: iterator it;
-    std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, sp_t <node> > :: iterator it;
+    std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
@@ -199,12 +164,12 @@ namespace digedag
 
   void dag::fire (void)
   {
-    log ("fire   dag  ");
+    std::cout << "fire   dag  " << std::endl;
 
     // dump_node ("INPUT");
     // dump_node ("OUTPUT");
 
-    log (std::string ("state: ") + state_to_string (state_));
+    std::cout << std::string ("state: ") << state_to_string (state_) << std::endl;
 
     if ( Incomplete != state_ &&
          Pending    != state_ )
@@ -213,7 +178,7 @@ namespace digedag
     state_ = Running;
 
     // ### scheduler hook
-    scheduler_->hook_dag_run_pre (this);
+    scheduler_->hook_dag_run_pre ();
 
 
     // search for nodes which have resolved inputs (no peding edges), and
@@ -226,18 +191,20 @@ namespace digedag
     // if no nodes can be fired, complain.  Graph is probably cyclic.
     bool cyclic = true;
 
-    std::map <node_id_t, digedag::node *> :: iterator it;
-    std::map <node_id_t, digedag::node *> :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, digedag::node *> :: iterator end   = nodes_.end ();
+    std::map <node_id_t, sp_t <node> > :: iterator it;
+    std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
-      // log (std::string ("       dag checks ") + it->second->get_name () 
-      //      + ": " + state_to_string (it->second->get_state ()));
+      // std::cout << std::string ("       dag checks ") << it->second->get_name () 
+      //           << ": " << state_to_string (it->second->get_state ()) 
+      //           << std::endl;
 
       if ( Pending == it->second->get_state () )
       {
-        log (std::string (" ===   dag fires node ") + it->second->get_name ());
+        std::cout << std::string (" ===   dag fires node ") 
+                  << it->second->get_name () << std::endl;
         it->second->fire ();
         cyclic = false;
       }
@@ -248,7 +215,7 @@ namespace digedag
       state_ = Failed;
 
       // ### scheduler hook
-      scheduler_->hook_dag_run_fail (this);
+      scheduler_->hook_dag_run_fail ();
 
       // dump ();
 
@@ -256,25 +223,25 @@ namespace digedag
     }
 
     // ### scheduler hook
-    scheduler_->hook_dag_run_post (this);
+    scheduler_->hook_dag_run_post ();
   }
 
 
   void dag::wait (void)
   {
     // ### scheduler hook
-    scheduler_->hook_dag_wait (this);
+    scheduler_->hook_dag_wait ();
 
     state s = get_state ();
     while ( s != Done   && 
             s != Failed )
     {
-      log ("dag    waiting...");
+      std::cout << "dag    waiting..." << std::endl;
       ::sleep (1);
       s = get_state ();
     }
 
-    log ("dag state is final - exit wait");
+    std::cout << "dag state is final - exit wait" << std::endl;
   }
 
 
@@ -284,7 +251,7 @@ namespace digedag
     if ( Failed  == state_ ||
          Done    == state_ )
     {
-      log ("get_state on final state");
+      std::cout << "get_state on final state" << std::endl;
       return state_;
     }
 
@@ -299,22 +266,22 @@ namespace digedag
 
     {
       // count node states
-      std::map <node_id_t, digedag::node *> :: const_iterator it;
-      std::map <node_id_t, digedag::node *> :: const_iterator begin = nodes_.begin ();
-      std::map <node_id_t, digedag::node *> :: const_iterator end   = nodes_.end ();
+      std::map <node_id_t, sp_t <node> > :: const_iterator it;
+      std::map <node_id_t, sp_t <node> > :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, sp_t <node> > :: const_iterator end   = nodes_.end ();
 
       int i = 0;
       for ( it = begin; it != end; it++ )
       {
         if ( ! (i++ % 5) )
         {
-          log ();
+          std::cout << std::endl;
         }
 
         state_total++;
 
         state s = it->second->get_state ();
-        log (it->first + ":" + state_to_string (s) +  "\t", false);
+        std::cout << it->first << ":" << state_to_string (s) <<  "\t";
 
         switch ( s )
         {
@@ -339,7 +306,7 @@ namespace digedag
         }
       }
     }
-    log ();
+    std::cout << std::endl;
 
     {
       // count edge states
@@ -354,13 +321,14 @@ namespace digedag
         {
           if ( ! (cnt++ % 2) )
           {
-            // log ();
+            // std::cout << std::endl;
           }
 
           state_total++;
 
           state s = it->second[i]->get_state ();
-          // log (it->second[i]->get_name_s () + ":" + state_to_string (s) +  "\t", false);
+          // std::cout << it->second[i]->get_name_s () 
+          //           << ":" << state_to_string (s) <<  "\t", false << std::endl;
 
           switch ( s )
           {
@@ -386,7 +354,7 @@ namespace digedag
         }
       }
     }
-    // log ();
+    // std::cout << std::endl;
 
 
     // if any job failed, dag is considered to have failed
@@ -419,7 +387,7 @@ namespace digedag
       state_ = Done;
 
       // ### scheduler hook
-      scheduler_->hook_dag_run_done (this);
+      scheduler_->hook_dag_run_done ();
     }
     else
     {
@@ -439,23 +407,23 @@ namespace digedag
   {
     return;
 
-    log (" -  DAG    ----------------------------------\n");
-    log (std::string (" state: ") + state_to_string (get_state ()));
+    std::cout << " -  DAG    ----------------------------------\n" << std::endl;
+    std::cout << std::string (" state: ") << state_to_string (get_state ()) << std::endl;
 
-    log (" -  NODES  ----------------------------------\n");
+    std::cout << " -  NODES  ----------------------------------\n" << std::endl;
     {
-      std::map <node_id_t, digedag::node *> :: const_iterator it;
-      std::map <node_id_t, digedag::node *> :: const_iterator begin = nodes_.begin ();
-      std::map <node_id_t, digedag::node *> :: const_iterator end   = nodes_.end ();
+      std::map <node_id_t, sp_t <node> > :: const_iterator it;
+      std::map <node_id_t, sp_t <node> > :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, sp_t <node> > :: const_iterator end   = nodes_.end ();
 
       for ( it = begin; it != end; it++ )
       {
         it->second->dump ();
       }
     }
-    log (" -  NODES  ----------------------------------\n");
+    std::cout << " -  NODES  ----------------------------------\n" << std::endl;
 
-    log (" -  EDGES  ----------------------------------\n");
+    std::cout << " -  EDGES  ----------------------------------\n" << std::endl;
     {
       std::map <edge_id_t, edge_map_t> :: const_iterator it;
       std::map <edge_id_t, edge_map_t> :: const_iterator begin = edges_.begin ();
@@ -469,7 +437,7 @@ namespace digedag
         }
       }
     }
-    log (" -  DAG    ----------------------------------\n");
+    std::cout << " -  DAG    ----------------------------------\n" << std::endl;
   }
 
 
@@ -482,25 +450,10 @@ namespace digedag
   }
 
 
-  void dag::log (std::string msg, bool eol)
-  {
-    lock ();
-
-    std::cout << msg;
-    
-    if ( eol )
-    {
-      std::cout << std::endl;
-    }
-
-    unlock ();
-  }
-
-
   void dag::schedule (void)
   {
     // ### scheduler hook
-    scheduler_->hook_dag_schedule (this);
+    scheduler_->hook_dag_schedule ();
 
     // FIXME: data transfers may end up to be redundant, and should be
     // pruned.
@@ -514,16 +467,6 @@ namespace digedag
   void dag::unlock (void)
   {
     mtx_.unlock ();
-  }
-
-  void dag::set_scheduler (std::string s)
-  {
-    scheduler_->set_scheduler (s);
-  }
-
-  digedag::scheduler * dag::get_scheduler (void)
-  {
-    return scheduler_;
   }
 
 } // namespace digedag

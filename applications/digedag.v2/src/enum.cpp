@@ -1,4 +1,5 @@
 
+#include "config.hpp"
 #include "enum.hpp"
 
 namespace digedag

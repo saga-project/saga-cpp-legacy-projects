@@ -1,3 +1,4 @@
+
 SAGA_SRC         = $(wildcard *.cpp)
 SAGA_OBJ         = $(SAGA_SRC:%.cpp=%.o)
 
