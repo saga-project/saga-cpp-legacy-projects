@@ -15,8 +15,11 @@ my $x      = 1.0;
 my $y      = 1.0;
 my $cdelt  = 0.000278;
 my $root   = `pwd`;
+my $help   = 0;
 
 chomp $root;
+
+print "\n";
 
 
 my $result = GetOptions ("name=s"   => \$name,
@@ -25,12 +28,33 @@ my $result = GetOptions ("name=s"   => \$name,
                          "x=s"      => \$x,
                          "y=s"      => \$y,
                          "cdelt=s"  => \$cdelt,
-                         "root=s"   => \$root   
+                         "root=s"   => \$root,
+                         "help=f"   => \$help   
                        );
 
-if ( ! $result )
+if ( ! $result || $help)
 {
-  die "incorrect options\n";
+  print <<EOT;
+
+    Usage: $0 [options]
+    
+    Options (with defaults given):
+     -root   `pwd`/\$name.\$survey.\$x.\$y.\$cdelt
+                            target directory
+     -name   m101           data objstr (?)
+     -survey 2mass          data survey
+     -band   j              data band
+     -x      1.0            data width
+     -y      1.0            data height
+     -cdelt  0.000278       data resolution (?)
+     -help                  prints this message
+
+   For more information, see man pages for mDAG and mArchiveList, 
+   or the general Montage documentation.
+  
+EOT
+
+  exit (! $help);
 }
 
 my $tgt    = "$root/$name.$survey.$x.$y.$cdelt"; 
@@ -60,9 +84,9 @@ while ( <IN> )
   { 
     print "   $2 ... "; 
     `wget -q '$1' -O '$data/$2'`;
-    print "done \n "; 
+    print "done\n"; 
   }
 }
 
-print "download data ........ done \n"; 
+print "download data ........ done\n\n"; 
 
