@@ -83,10 +83,26 @@ while ( <IN> )
   if ( $_ =~ /^.*\s(http\S+)\s+(\S+).*$/ ) 
   { 
     print "   $2 ... "; 
-    `wget -q '$1' -O '$data/$2'`;
+    #`wget -q '$1' -O '$data/$2'`;
     print "done\n"; 
   }
 }
 
-print "download data ........ done\n\n"; 
+print "download data ........ done\n"; 
+
+print "rename hdr files ..... \n"; 
+my $base = qx {grep statfile $tgt/dag.xml | grep filename | grep input | cut -f 2 -d '"'};
+
+chomp ($base);
+$base =~ s/^statfile_(.+)\.tbl$/$1/g;
+
+print "cp $tgt/region.hdr    $data/region_$base.hdr\n";
+`cp $tgt/region.hdr    $data/region_$base.hdr`;
+`cp $tgt/cimages.tbl   $data/cimages_$base.tbl`;
+`cp $tgt/pimages.tbl   $data/pimages_$base.tbl`;
+`cp $tgt/statfile.tbl  $data/statfile_$base.tbl`;
+print "done\n";
+
+
+print "\n";
 
