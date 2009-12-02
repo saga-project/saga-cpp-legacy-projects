@@ -3,11 +3,21 @@
 BEGIN {
   use strict;
   use Getopt::Long;
+
+  sub run_debug   ($);
+  sub print_debug ($);
 }
 
 # autoflush
 $| = 1;
 
+
+
+
+###################################################################
+#
+# get options and print help
+#
 my $name   = "m101";
 my $survey = "2mass";
 my $band   = "j";
@@ -16,6 +26,7 @@ my $y      = 1.0;
 my $cdelt  = 0.000278;
 my $root   = `pwd`;
 my $help   = 0;
+my $debug  = 0;
 
 chomp $root;
 
@@ -29,7 +40,8 @@ my $result = GetOptions ("name=s"   => \$name,
                          "y=s"      => \$y,
                          "cdelt=s"  => \$cdelt,
                          "root=s"   => \$root,
-                         "help=f"   => \$help   
+                         "help"     => \$help,  
+                         "debug"    => \$debug   
                        );
 
 if ( ! $result || $help)
@@ -47,6 +59,7 @@ if ( ! $result || $help)
      -x      1.0            data width
      -y      1.0            data height
      -cdelt  0.000278       data resolution (?)
+     -debug                 prints some debug messages
      -help                  prints this message
 
    For more information, see man pages for mDAG and mArchiveList, 
@@ -57,21 +70,30 @@ EOT
   exit (! $help);
 }
 
+
+###################################################################
+#
+# main
+#
 my $tgt    = "$root/$name.$survey.$x.$y.$cdelt"; 
 my $data   = "$root/$name.$survey.$x.$y.$cdelt/data"; 
 my $list   = "$root/$name.$survey.$x.$y.$cdelt/files.tbl"; 
 
-if ( ! -d $tgt  ) { `mkdir -v $tgt `; }
-if ( ! -d $data ) { `mkdir -v $data`; }
+print_debug ("tgt dir    : '$tgt'");
+print_debug ("data dir   : '$data'");
+print_debug ("file list  : '$list'");
+
+if ( ! -d $tgt  ) { run_debug ("mkdir -v $tgt "); }
+if ( ! -d $data ) { run_debug ("mkdir -v $data"); }
 
 
 # create dag and file list
 print "creating dag ......... "; 
-`mDAG         $survey $band $name $x $y $cdelt $tgt tmpurl test`;
+run_debug ("mDAG $survey $band $name $x $y $cdelt $tgt tmpurl test");
 print "done\n";
 
 print "creating file list ... "; 
-`mArchiveList $survey $band $name $x $y        $list`;
+run_debug ("mArchiveList $survey $band $name $x $y        $list");
 print "done\n";
 
 # grep URLs from file list, to be fetched
@@ -83,7 +105,7 @@ while ( <IN> )
   if ( $_ =~ /^.*\s(http\S+)\s+(\S+).*$/ ) 
   { 
     print "   $2 ... "; 
-    #`wget -q '$1' -O '$data/$2'`;
+    run_debug ("wget -q '$1' -O '$data/$2'");
     print "done\n"; 
   }
 }
@@ -96,13 +118,42 @@ my $base = qx {grep statfile $tgt/dag.xml | grep filename | grep input | cut -f 
 chomp ($base);
 $base =~ s/^statfile_(.+)\.tbl$/$1/g;
 
-print "cp $tgt/region.hdr    $data/region_$base.hdr\n";
-`cp $tgt/region.hdr    $data/region_$base.hdr`;
-`cp $tgt/cimages.tbl   $data/cimages_$base.tbl`;
-`cp $tgt/pimages.tbl   $data/pimages_$base.tbl`;
-`cp $tgt/statfile.tbl  $data/statfile_$base.tbl`;
+print_debug ("base string: '$base'");
+
+run_debug ("cp $tgt/region.hdr    $data/region_$base.hdr");
+run_debug ("cp $tgt/cimages.tbl   $data/cimages_$base.tbl");
+run_debug ("cp $tgt/pimages.tbl   $data/pimages_$base.tbl");
+run_debug ("cp $tgt/statfile.tbl  $data/statfile_$base.tbl");
 print "done\n";
 
 
 print "\n";
+
+
+
+###################################################################
+#
+# subroutines
+#
+sub run_debug ($)
+{
+  my $cmd = shift;
+
+  if ( $debug )
+  {
+    print "\n - debug : running '$cmd'\n";
+  }
+
+  `$cmd`;
+}
+
+sub print_debug ($)
+{
+  my $msg = shift;
+
+  if ( $debug )
+  {
+    print "\n - debug : $msg\n";
+  }
+}
 
