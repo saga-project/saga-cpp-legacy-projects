@@ -222,19 +222,54 @@ namespace digedag
         std::cout << " === creating rm for " << name_ << " - " << rm_ << std::endl;
 
         saga::job::description jd (nd_);
+
+        jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
+        jd.set_attribute (saga::job::attributes::description_interactive,  "yes");
+        jd.set_attribute (saga::job::attributes::description_input,        "/dev/null");
+        jd.set_attribute (saga::job::attributes::description_output,       
+                          std::string ("/tmp/out.") + get_name ());
+        jd.set_attribute (saga::job::attributes::description_error,       
+                          std::string ("/tmp/err.") + get_name ());
+
         saga::job::service     js (session, rm_);
         saga::job::job     j = js.create_job (jd);
 
         j.run  ();
 
-        // while ( j.get_state () == saga::job::Running )
-        // {
-        //  // std::cout << std::string ("       node ") << name_ 
-        //                << " : running            : "  << cmd_ << std::endl;
-        //   ::sleep (1);
-        // }
+        while ( j.get_state () == saga::job::Running )
+        {
+            std::cout << std::string ("       node ") << name_ 
+                       << " : running            : "  << cmd_ << std::endl;
+          ::sleep (1);
+        }
 
         j.wait ();
+
+        switch ( j.get_state () )
+        {
+          case saga::job::Unknown:
+            std::cout << "Unknown " << std::endl;
+            break;
+          case saga::job::Suspended:
+            std::cout << "Suspended " << std::endl;
+            break;
+          case saga::job::Failed:
+            std::cout << "Failed " << std::endl;
+            break;
+          case saga::job::Canceled:
+            std::cout << "Canceled " << std::endl;
+            break;
+          case saga::job::Done:
+            std::cout << "Done " << std::endl;
+            break;
+          case saga::job::Running:
+            std::cout << "Running " << std::endl;
+            break;
+          case saga::job::New:
+            std::cout << "New " << std::endl;
+            break;
+        }
+        
 
         if ( j.get_state () != saga::job::Done )
         {
@@ -248,6 +283,8 @@ namespace digedag
         
           return;
         }
+
+        std::cout << " ################### job should die here..." << std::endl;
 
         // unlock ();
       }
@@ -267,17 +304,18 @@ namespace digedag
 
 
     {
+      std::cout << " === node is done: " << name_ << std::endl;
       if ( state_ != Stopped )
       {
-        // std::cout << " === node fires edges: " << name_ << std::endl;
+        std::cout << " === node fires edges: " << name_ << std::endl;
         // done
         state_ = Done;
 
         // get data staged out, e.g. fire outgoing edges
         for ( unsigned int i = 0; i < edge_out_.size (); i++ )
         {
-          // std::cout << " === node fires edge " << std::endl;
-          // edge_out_[i]->dump ();
+          std::cout << " === node fires edge " << std::endl;
+          edge_out_[i]->dump ();
           edge_out_[i]->fire ();
         }
       }

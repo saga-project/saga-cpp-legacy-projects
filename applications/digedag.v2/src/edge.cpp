@@ -96,7 +96,9 @@ namespace digedag
         state_ = Done;
 
         // fire dependent node
-        // std::cout << " === edge has nothing to do, fires tagt node: "  << tgt_node_->get_name () << std::endl;
+        std::cout << " === edge has nothing to do, fires tgt node: "  
+                  << tgt_node_->get_name () << std::endl;
+
         tgt_node_->fire ();
 
         // ### scheduler hook
@@ -163,8 +165,8 @@ namespace digedag
 
       if ( ! exists )
       {
-        // f_src.copy (tgt_url_, saga::filesystem::Overwrite
-        //             | saga::filesystem::CreateParents);
+        f_src.copy (tgt_url_, saga::filesystem::Overwrite
+                    | saga::filesystem::CreateParents);
       }
     }
     catch ( const saga::exception & e ) 

@@ -24,6 +24,8 @@ namespace digedag
     pthread_mutex_t m = mtx_.get ();
 
     src_ = src;
+
+    parse_src ();
   }
 
   scheduler::~scheduler (void)
@@ -120,6 +122,9 @@ namespace digedag
         }
         else if ( words[1] == "INPUT" )
         {
+          std::cout << " === scheduler INPUT 1 " << line     << std::endl;
+          std::cout << " === scheduler INPUT 2 " << words[2] << std::endl;
+          std::cout << " === scheduler INPUT 3 " << words[3] << std::endl;
           data_src_host_ = words[2];
           data_src_pwd_  = words[3];
         }
@@ -184,6 +189,9 @@ namespace digedag
     // first, fix pwd and host for INPUT and OUTPUT nodes
     sp_t <node> input  = nodes["INPUT"];
     sp_t <node> output = nodes["OUTPUT"];
+
+    std::cout << " == setting data src for " << input->get_name () 
+              << " to " << data_src_pwd_ << std::endl;
 
     input->set_pwd   (data_src_pwd_);
     input->set_host  (data_src_host_);
