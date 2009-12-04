@@ -13,33 +13,39 @@
 #include "dag.hpp"
 #include "node.hpp"
 #include "edge.hpp"
-#include "scheduler.hpp"
 #include "node_description.hpp"
 
 
 namespace digedag
 {
+  class scheduler;
   class node : public boost::enable_shared_from_this <node>
   {
     private:
-      node_description           nd_;       // node application to run
+      saga::job::job             j_;           // the node's workload
+      bool                       created_;     // flag for valid job object
+      node_description           nd_;          // node application to run
 
-      std::vector <sp_t <edge> > edge_in_;  // input  data
-      std::vector <sp_t <edge> > edge_out_; // output data
+      std::vector <sp_t <edge> > edge_in_;     // input  data
+      std::vector <sp_t <edge> > edge_out_;    // output data
 
       std::string                rm_;
       std::string                cmd_;
       std::string                pwd_;
       std::string                host_;
       std::string                path_;
-      std::string                name_;     // instance name
-      state                      state_;    // instance state
+      std::string                name_;        // instance name
+      state                      state_;       // instance state
 
-      sp_t <scheduler>           scheduler_;
+      sp_t <scheduler>           scheduler_;   
 
-      bool                       is_void_;  // void node?
+      bool                       is_void_;     // void node?
+      bool                       fired_;       // dependent edges fired after Done?
 
       util::mutex                mtx_;
+
+      saga::task                 t_;           // our async workload
+      bool                       t_valid_;     // async workload was created
 
 
     public:
@@ -59,8 +65,11 @@ namespace digedag
       void             fire            (void);
       void             stop            (void);
       void             dump            (bool deep = false);
-      void             work            (void);
+      saga::task       work_start      (void);
+      void             work_done       (void);
+      void             work_failed     (void);
       std::string      get_name        (void) const;
+      std::string      get_name_s      (void) const;
       node_description get_description (void) const;
       void             set_state       (state s);
       state            get_state       (void);

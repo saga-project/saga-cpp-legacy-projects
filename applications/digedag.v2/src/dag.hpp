@@ -10,7 +10,6 @@
 #include "enum.hpp"
 #include "node.hpp"
 #include "edge.hpp"
-#include "scheduler.hpp"
 
 
 namespace digedag
@@ -26,6 +25,7 @@ namespace digedag
   // A dag also has a scheduler, which can traverse the dag, and change
   // attributes of edges and nodes, such as its assigment to a specific
   // resource.
+  class scheduler;
   class dag : public boost::enable_shared_from_this <dag>
   {
     private:

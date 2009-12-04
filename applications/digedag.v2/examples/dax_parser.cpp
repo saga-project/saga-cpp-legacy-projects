@@ -30,13 +30,16 @@ int main (int argc, char** argv)
     }
     else
     {
+      std::cout << " === 1 " << std::endl;
       d->fire ();
+      std::cout << " === 2 " << std::endl;
 
       // wait til the dag had a chance to finish
       d->wait ();
+      std::cout << " === 3 " << std::endl;
     }
   }
-  catch ( const char * s )
+  catch ( char const * s )
   {
     std::cerr << "char* exception: " << s << std::endl;
   }

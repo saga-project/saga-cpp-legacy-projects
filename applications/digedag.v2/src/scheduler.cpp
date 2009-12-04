@@ -17,9 +17,13 @@ namespace digedag
 {
   scheduler::scheduler (dag               * d, 
                         const std::string & src)
-    : stopped_       (false),
-      session_       ( true),
-      dag_           (    d)
+    : stopped_       (    false),
+      session_       (     true),
+      dag_           (        d),
+      max_nodes_     (       10),
+      max_edges_     (       10),
+      active_nodes_  (        0),
+      active_edges_  (        0)
   {
     pthread_mutex_t m = mtx_.get ();
 
@@ -122,9 +126,6 @@ namespace digedag
         }
         else if ( words[1] == "INPUT" )
         {
-          std::cout << " === scheduler INPUT 1 " << line     << std::endl;
-          std::cout << " === scheduler INPUT 2 " << words[2] << std::endl;
-          std::cout << " === scheduler INPUT 3 " << words[3] << std::endl;
           data_src_host_ = words[2];
           data_src_pwd_  = words[3];
         }
@@ -162,6 +163,10 @@ namespace digedag
     }
   }
 
+  /////////////////////////////////////////////////////////////////
+  //
+  // dag hooks
+  //
   void scheduler::hook_dag_create (void)
   {
     if ( stopped_ ) return;
@@ -179,7 +184,12 @@ namespace digedag
   void scheduler::hook_dag_schedule (void)
   {
     if ( stopped_ ) return;
+
     util::scoped_lock sl (mtx_);
+
+    // start watching the task containers, even if they are still empty
+    watch_nodes_ = sp_t <watch_tasks> (new watch_tasks (shared_from_this(), tc_nodes_, "node"));
+    watch_edges_ = sp_t <watch_tasks> (new watch_tasks (shared_from_this(), tc_edges_, "edge"));
 
     // walk throgh the dag, and assign execution host for nodes, and data
     // prefixes for edges
@@ -189,9 +199,6 @@ namespace digedag
     // first, fix pwd and host for INPUT and OUTPUT nodes
     sp_t <node> input  = nodes["INPUT"];
     sp_t <node> output = nodes["OUTPUT"];
-
-    std::cout << " == setting data src for " << input->get_name () 
-              << " to " << data_src_pwd_ << std::endl;
 
     input->set_pwd   (data_src_pwd_);
     input->set_host  (data_src_host_);
@@ -230,6 +237,9 @@ namespace digedag
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    // start the scheduler thread which executes nodes and edges
+    thread_run ();
   }
 
 
@@ -252,6 +262,7 @@ namespace digedag
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
 
+    std::cout << " === dag failed!  exit." << std::endl;
     ::exit (3);
   }
 
@@ -264,86 +275,112 @@ namespace digedag
 
 
 
-  void scheduler::hook_node_add (node & n)           
-  {
-    if ( stopped_ ) return;
-    pthread_mutex_t m = mtx_.get ();
-    util::scoped_lock sl (mtx_);
-  }
-
-
-  void scheduler::hook_node_remove (node & n)           
+  /////////////////////////////////////////////////////////////////
+  //
+  // node hooks
+  //
+  void scheduler::hook_node_add (sp_t <node> n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_node_run_pre (node & n)           
+  void scheduler::hook_node_remove (sp_t <node> n)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    // FIXME: remove from queue if needed
   }
 
 
-  void scheduler::hook_node_run_done (node & n)           
+  void scheduler::hook_node_run_pre (sp_t <node> n)           
   {
     if ( stopped_ ) return;
+
     util::scoped_lock sl (mtx_);
+
+    // queue the node for work
+    queue_nodes_.push_back (n);
+    std::cout << " === adding   node to   queue: " 
+              << n->get_name_s () << std::endl;
+  }
+
+
+  void scheduler::hook_node_run_done (sp_t <node> n)           
+  {
   }
 
 
   // NOTE that this implementation is recursive!  no locks, please...
-  void scheduler::hook_node_run_fail (node & n)           
+  void scheduler::hook_node_run_fail (sp_t <node> n)           
   {
     if ( stopped_ ) return;
-    util::scoped_lock sl (mtx_);
 
+    std::cout << " === node failed: " << n->get_name_s () 
+              << " (" << active_nodes_ << ")"
+              << std::endl;
+
+    active_nodes_--;
+    assert (active_nodes_ >= 0);
+
+    std::cout << " === node failed: " << n->get_name_s () << std::endl;
     ::exit (1);
   }
 
 
 
-  void scheduler::hook_edge_add (edge & e)           
-  {
-    if ( stopped_ ) return;
-    util::scoped_lock sl (mtx_);
-
-    // an edge may have an empty src or tgt node.  An empty src node implies
-    // that data need to be staged in, from the data_src_ directory .  An empty
-    // tgt node implies that data need to be staged out, to the data_tgt_
-    // directory.  The latter may need to be created.
-
-
-  }
-
-
-  void scheduler::hook_node_remove (edge & e)           
+  /////////////////////////////////////////////////////////////////
+  //
+  // edge hooks
+  //
+  void scheduler::hook_edge_add (sp_t <edge> e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
   }
 
 
-  void scheduler::hook_edge_run_pre (edge & e)           
+  void scheduler::hook_node_remove (sp_t <edge> e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    // FIXME: remove from queue if needed
   }
 
 
-  void scheduler::hook_edge_run_done (edge & e)           
+  void scheduler::hook_edge_run_pre (sp_t <edge> e)           
   {
     if ( stopped_ ) return;
     util::scoped_lock sl (mtx_);
+
+    // add edge to queue
+    queue_edges_.push_back (e);
+    std::cout << " === adding   edge to   queue: " 
+              << e->get_name_s () << std::endl;
   }
 
 
-  void scheduler::hook_edge_run_fail (edge & e)           
+  void scheduler::hook_edge_run_done (sp_t <edge> e)           
   {
     if ( stopped_ ) return;
-    util::scoped_lock sl (mtx_);
 
+    std::cout << " egde done: " << e->get_name_s () << std::endl;
+    active_edges_--;
+    assert (active_edges_ >= 0);
+  }
+
+
+  void scheduler::hook_edge_run_fail (sp_t <edge> e)           
+  {
+    if ( stopped_ ) return;
+
+    active_edges_--;
+    assert (active_edges_ >= 0);
+
+    std::cout << " === edge failed: " << e->get_name_s () << std::endl;
     ::exit (2);
   }
 
@@ -352,6 +389,117 @@ namespace digedag
   {
     util::scoped_lock sl (mtx_);
     return session_;
+  }
+
+
+  void scheduler::thread_work (void)
+  {
+    // work the node and edge queues:
+    // 
+    // if 
+    //  - work is in the queues  
+    //    AND
+    //  - not more than max_nodes/max_edges are running
+    // then
+    //  - start new nodes/edges, removing them from the queue
+    while ( true )
+    {
+      while ( max_nodes_           > active_nodes_ &&
+              queue_nodes_.size () > 0             )
+      {
+        util::scoped_lock sl (mtx_);
+
+        std::cout << " === starting node from queue: "
+                  << queue_nodes_.front ()->get_name_s () 
+                  << " (" << queue_nodes_.size () << ":" << max_nodes_ << " > " << active_nodes_ << ")" 
+                  << std::endl;
+
+        active_nodes_++;
+
+        saga::task t = queue_nodes_.front ()->work_start ();
+
+        tc_nodes_.add_task (t);
+        node_task_map_[t] = queue_nodes_.front ();
+
+        queue_nodes_.pop_front ();
+      }
+
+      while ( max_edges_           > active_edges_ &&
+              queue_edges_.size () > 0             )
+      {
+        util::scoped_lock sl (mtx_);
+
+        std::cout << " === starting edge from queue: "
+                  << queue_edges_.front ()->get_name_s () 
+                  << " (" << queue_edges_.size () << ":" << max_edges_ << " > " << active_edges_ << ")" 
+                  << std::endl;
+
+        active_edges_++;
+
+        saga::task t = queue_edges_.front ()->work_start ();
+
+        tc_edges_.add_task (t);
+
+        edge_task_map_[t] = queue_edges_.front ();
+
+        queue_edges_.pop_front ();
+      }
+
+      ::sleep (1);
+    }
+  }
+
+  void scheduler::work_finished (saga::task  t, 
+                                 std::string flag)
+  {
+    if ( stopped_ ) return;
+
+    if ( flag == "node" )
+    {
+      active_nodes_--;
+      assert (active_nodes_ >= 0);
+
+      sp_t <node> n = node_task_map_[t];
+
+      std::cout << " === task done: " << n->get_name_s () 
+                << " (" << active_nodes_ << ")"
+                << std::endl;
+
+      if ( t.get_state () == saga::task::Done )
+      {
+        n->work_done ();
+      }
+      else 
+      {
+        n->work_failed ();
+      }
+    }
+    else if ( flag == "edge" )
+    {
+      active_edges_--;
+      assert (active_edges_ >= 0);
+
+      sp_t <edge> e = edge_task_map_[t];
+
+      std::cout << " === task done: " << e->get_name_s () 
+                << " (" << active_edges_ << ")"
+                << std::endl;
+
+      if ( t.get_state () == saga::task::Done )
+      {
+        e->work_done ();
+      }
+      else 
+      {
+        e->work_failed ();
+      }
+
+    }
+    else
+    {
+      std::cerr << "unknown task finished.  flag: " << flag << std::endl;
+      exit (-1);
+    }
   }
 
 } // namespace digedag

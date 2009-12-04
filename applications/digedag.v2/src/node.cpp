@@ -5,20 +5,23 @@
 #include <saga/saga.hpp>
 
 #include "util/split.hpp"
-#include "util/scoped_lock.hpp"
 
 #include "node.hpp"
+#include "scheduler.hpp"
 
 
 namespace digedag
 {
   node::node (node_description & nd, 
               std::string        name)
-    : nd_      (nd)
+    : created_ (false)
+    , nd_      (nd)
     , rm_      ("")
     , name_    (name)
-    , state_   (Pending)
+    , state_   (Incomplete)
     , is_void_ (false)
+    , fired_   (false)
+    , t_valid_ (false)
   {
     std::stringstream ss;
 
@@ -45,11 +48,14 @@ namespace digedag
 
   node::node (std::string cmd, 
               std::string name)
-    : rm_      ("")
+    : created_ (false)
+    , rm_      ("")
     , cmd_     (cmd)
     , name_    (name)
-    , state_   (Pending)
+    , state_   (Incomplete)
     , is_void_ (false)
+    , fired_   (false)
+    , t_valid_ (false)
   {
     // parse cmd into node description
     std::vector <std::string> elems = split (cmd_);
@@ -63,17 +69,19 @@ namespace digedag
   }
 
   node::node (void)
-    : rm_      ("")
+    : created_ (false)
+    , rm_      ("")
     , cmd_     ("-")
     , name_    ("void")
-    , state_   (Pending)
+    , state_   (Incomplete)
     , is_void_ (true)
+    , fired_   (false)
+    , t_valid_ (false)
   {
   }
 
   node::~node (void)
   {
-    // thread_join ();
   }
 
   void node::set_name (const std::string name)
@@ -119,7 +127,7 @@ namespace digedag
 
   void node::reset (void)
   {
-    state_ = Pending;
+    state_ = Incomplete;
 
     for ( unsigned int i = 0; i < edge_out_.size (); i++ )
     {
@@ -133,203 +141,135 @@ namespace digedag
   // application.  If they are not ready, fire has no effect.
   void node::fire (void)
   {
-    // std::cout << std::string ("  ===    node (") << rm_ << "): " << name_ << "   \t ?> " << cmd_ << std::endl;
-
-    // if an incoming edge failed, we can give up
-    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
-    {
-      if ( Failed == edge_in_[i]->get_state () )
-      {
-        // std::cout << " === edge failed!\n";
-        state_ = Failed;
-
-        return;
-      }
-    }
-
-    // check if all input data are ready
-    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
-    {
-      if ( Done != edge_in_[i]->get_state () )
-      {
-        return;
-      }
-    }
-
-    std::cout << std::string (" ===     node : ") << name_ << "   \t -> " << cmd_ << std::endl;
+    // update state
+    get_state ();
 
     // Check if node was started before (!Pending).  
     // If not, mark that we start the work (Running).
+    if ( Pending != state_ )
     {
-      if ( Pending != state_ )
-      {
-        std::cout << std::string (" ===     node : ") << name_ << " not pending" << std::endl;
-        return;
-      }
+      // std::cout << std::string (" ===     node : ") << name_ << " not pending" << std::endl;
+      std::cout << std::string (" ===     node : ") << name_ << ": " << state_to_string (state_) << std::endl;
+      return;
     }
 
     // all input edges are Done, i.e. all input data are available.  We
     // can thus really execute the node application.
     //
     // So: run the application, in extra thread
-    try {
-      std::cout << std::string (" ===     node : ") << name_ << " starting" << std::endl;
-      work ();
-    }
-    catch ( const char* & err )
-    {
-      std::cout << std::string (" ===     node : ") << name_ << " failed: " << err << std::endl;
-      state_ = Failed;
-    }
-  }
-
-
-  // work is called when the node is fired, and all prerequesites
-  // are fullfilled, i.e. all input data are available.  First we execute
-  // the node's application, then we fire all outgoing edges, to get data
-  // staged out.
-  void node::work (void)
-  {
     std::cout << std::string (" ===   node ") << name_ << " starting up" << std::endl;
 
-    // ### scheduler hook
-    scheduler_->hook_node_run_pre (*this);
+    // ### scheduler hook - leave it to the scheduler to call our work routine
+    scheduler_->hook_node_run_pre (shared_from_this ());
+  }
+
+  saga::task node::work_start (void)
+  {
+    if ( state_ == Stopped )
+      return t_;
+
+    assert ( state_ == Pending );
 
     // we have work to do, an scheduler lets us go ahead
     state_ = Running;
 
-    // TODO: run the saga job for the job description here
-
-    // FIXME: for now, we simply fake work by sleeping for some amount of
-    // time
     if ( is_void_ )
     {
       // do nothing
       
       std::cout << std::string (" ===   node ") << name_ << " is void" << std::endl;
+      
+      // FIXME: we can't fake a noop task :-(
+      saga::session session = scheduler_->hook_saga_get_session ();
 
-      state_ = Done;
+      saga::filesystem::directory d (session, "any://localhost//");
+
+      t_ = d.get_url <saga::task::Async> ();
+      t_valid_ = true;
+
+      std::cout << " === fake task created: " 
+                << t_.get_id () << " - " 
+                << t_.get_state () << std::endl;
     }
     else
     {
       saga::session session = scheduler_->hook_saga_get_session ();
 
-      // not void: there is work to do
-      try {
+      saga::job::description jd (nd_);
 
-        // lock ();
+      jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
+   // jd.set_attribute (saga::job::attributes::description_interactive,  "true");
+   // jd.set_attribute (saga::job::attributes::description_input,        "/dev/null");
+   // jd.set_attribute (saga::job::attributes::description_output,       
+   //                   std::string ("/tmp/out.") + get_name ());
+   // jd.set_attribute (saga::job::attributes::description_error,       
+   //                   std::string ("/tmp/err.") + get_name ());
+ 
+      saga::job::service js (session, rm_);
+      saga::job::job     j = js.create_job (jd);
 
-        std::cout << " === creating rm for " << name_ << " - " << rm_ << std::endl;
+      j.run  ();
 
-        saga::job::description jd (nd_);
-
-        jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
-        jd.set_attribute (saga::job::attributes::description_interactive,  "yes");
-        jd.set_attribute (saga::job::attributes::description_input,        "/dev/null");
-        jd.set_attribute (saga::job::attributes::description_output,       
-                          std::string ("/tmp/out.") + get_name ());
-        jd.set_attribute (saga::job::attributes::description_error,       
-                          std::string ("/tmp/err.") + get_name ());
-
-        saga::job::service     js (session, rm_);
-        saga::job::job     j = js.create_job (jd);
-
-        j.run  ();
-
-        while ( j.get_state () == saga::job::Running )
-        {
-            std::cout << std::string ("       node ") << name_ 
-                       << " : running            : "  << cmd_ << std::endl;
-          ::sleep (1);
-        }
-
-        j.wait ();
-
-        switch ( j.get_state () )
-        {
-          case saga::job::Unknown:
-            std::cout << "Unknown " << std::endl;
-            break;
-          case saga::job::Suspended:
-            std::cout << "Suspended " << std::endl;
-            break;
-          case saga::job::Failed:
-            std::cout << "Failed " << std::endl;
-            break;
-          case saga::job::Canceled:
-            std::cout << "Canceled " << std::endl;
-            break;
-          case saga::job::Done:
-            std::cout << "Done " << std::endl;
-            break;
-          case saga::job::Running:
-            std::cout << "Running " << std::endl;
-            break;
-          case saga::job::New:
-            std::cout << "New " << std::endl;
-            break;
-        }
-        
-
-        if ( j.get_state () != saga::job::Done )
-        {
-          std::cout << std::string ("       node ") << name_ 
-                     << " : job failed - cancel: " << cmd_ << std::endl;
-
-          state_ = Failed;
-        
-          // ### scheduler hook
-          scheduler_->hook_node_run_fail (*this);
-        
-          return;
-        }
-
-        std::cout << " ################### job should die here..." << std::endl;
-
-        // unlock ();
-      }
-      catch ( const saga::exception & e )
-      {
-        std::cout << std::string (" ===   node ") << name_ 
-                   << " : job threw - cancel: "  << e.what () << std::endl;
-
-        state_ = Failed;
-
-        // ### scheduler hook
-        scheduler_->hook_node_run_fail (*this);
-
-        return;
-      }
+      t_ = j;
+      t_valid_ = true;
     }
 
+    return t_;
+  }
 
+
+  void node::work_done (void)
+  {
+    if ( state_ == Stopped )
+      return;
+
+    assert ( state_ != Failed );
+    assert ( state_ != Done   );
+
+    state_ = Done;
+
+    std::cout << std::string (" === node done: ")
+              << get_name_s () << std::endl;
+
+    if ( state_ == Done && ! fired_ )
     {
-      std::cout << " === node is done: " << name_ << std::endl;
-      if ( state_ != Stopped )
-      {
-        std::cout << " === node fires edges: " << name_ << std::endl;
-        // done
-        state_ = Done;
+      fired_ = true;
 
-        // get data staged out, e.g. fire outgoing edges
-        for ( unsigned int i = 0; i < edge_out_.size (); i++ )
-        {
-          std::cout << " === node fires edge " << std::endl;
-          edge_out_[i]->dump ();
-          edge_out_[i]->fire ();
-        }
+      // get data staged out, e.g. fire outgoing edges
+      for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+      {
+        std::cout << " === node " << get_name () << " fires edge " 
+                  << edge_out_[i]->get_name_s () << std::endl;
+
+        edge_out_[i]->fire ();
       }
     }
 
     // ### scheduler hook
-    scheduler_->hook_node_run_done (*this);
+    scheduler_->hook_node_run_done (shared_from_this ());
 
     return;
   }
 
-
-  void node::stop (void)
+  void node::work_failed (void)
   {
+    if ( state_ == Stopped )
+      return;
+
+    assert ( state_ != Failed );
+    assert ( state_ != Done   );
+
+    state_ = Failed;
+  }
+
+
+  void node::stop ()
+  {
+    if ( t_valid_ )
+    {
+      t_.cancel ();
+    }
+
     state_ = Stopped;
   }
 
@@ -359,6 +299,11 @@ namespace digedag
     return name_;
   }
 
+  std::string node::get_name_s (void) const
+  {
+    return name_;
+  }
+
   node_description node::get_description (void) const
   {
     return nd_;
@@ -369,21 +314,78 @@ namespace digedag
     state_ = s;
   }
 
+
+  // FIXME: it is not nice to have such fundamental side effects in get_state!
+  // That code needs to eventually move into a callback on the job state metric.
   state node::get_state (void)
   {
-    // check if all input data are ready
-    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    if ( state_ == Incomplete )
     {
-      if ( Done != edge_in_[i]->get_state () )
+      // check if any input data failed
+      for ( unsigned int i = 0; i < edge_in_.size (); i++ )
       {
-        return Incomplete;
+        if ( Failed == edge_in_[i]->get_state () )
+        {
+          state_ = Failed;
+          return state_;
+        }
       }
+
+
+      // check if all input data are ready
+      for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+      {
+        if ( Done != edge_in_[i]->get_state () )
+        {
+          state_ = Incomplete;
+          return state_;
+        }
+      }
+
+      // no dep failed, all Done - we are pending!
+      state_ = Pending;
     }
 
-    if ( Done   == state_ ||
-         Failed == state_ )
+
+    // we can only depend the node state from the job state if a job was
+    // actually created
+    if ( created_ )
     {
-      // thread_join ();
+      switch ( j_.get_state () )
+      {
+        case saga::job::New:
+          std::cout << " === node is almost running: " << name_ << std::endl;
+          state_ = Pending;
+          break;
+
+        case saga::job::Running:
+          // std::cout << " === node is running: " << name_ << std::endl;
+          state_ = Running;
+          // FIXME
+          // ::sleep (1);
+          break;
+
+        case saga::job::Done:
+          state_ = Done;
+          j_.cancel ();
+          scheduler_->hook_node_run_done (shared_from_this ());
+          break;
+
+
+          // Canceled, Failed, Unknown, New - all invalid
+        default:
+          state_ = Failed;
+          j_.cancel ();
+
+          std::cout << std::string ("       node ") << name_ 
+            << " : job failed - cancel: " << cmd_ << std::endl;
+
+          // ### scheduler hook
+          scheduler_->hook_node_run_fail (shared_from_this ());
+
+          break;
+
+      } // switch
     }
 
     return state_;

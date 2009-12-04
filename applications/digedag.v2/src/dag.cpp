@@ -1,5 +1,6 @@
 
 #include "dag.hpp"
+#include "scheduler.hpp"
 
 namespace digedag
 {
@@ -76,7 +77,7 @@ namespace digedag
 
     // ### scheduler hook
     node->set_scheduler (scheduler_);
-    scheduler_->hook_node_add (*(node.get ()));
+    scheduler_->hook_node_add (node);
   }
 
 
@@ -100,7 +101,7 @@ namespace digedag
 
     // ### scheduler hook
     e->set_scheduler (scheduler_);
-    scheduler_->hook_edge_add (*(e.get ()));
+    scheduler_->hook_edge_add (e);
   }
 
 
@@ -171,11 +172,18 @@ namespace digedag
 
     std::cout << std::string ("state: ") << state_to_string (state_) << std::endl;
 
-    if ( Incomplete != state_ &&
-         Pending    != state_ )
-      return;
+    {
+      util::scoped_lock sl (mtx_);
 
-    state_ = Running;
+      if ( Incomplete != state_ &&
+           Pending    != state_ )
+        return;
+
+      if ( Running == state_ )
+        return;
+    }
+
+    // we should get here exactly once
 
     // ### scheduler hook
     scheduler_->hook_dag_run_pre ();
@@ -188,47 +196,50 @@ namespace digedag
     // input edges resolved, the fire will indeed lead to an execution of
     // that node, etc.
     //
-    // if no nodes can be fired, complain.  Graph is probably cyclic.
-    bool cyclic = true;
-
+    // if no nodes can be fired, complain.  Graph may be cyclic.
     std::map <node_id_t, sp_t <node> > :: iterator it;
     std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
     std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
-      // std::cout << std::string ("       dag checks ") << it->second->get_name () 
-      //           << ": " << state_to_string (it->second->get_state ()) 
-      //           << std::endl;
+        std::cout << std::string (" ===   dag checks node ") 
+          << it->second->get_name () << ": " << state_to_string (it->second->get_state ())
+          << std::endl;
 
       if ( Pending == it->second->get_state () )
       {
         std::cout << std::string (" ===   dag fires node ") 
                   << it->second->get_name () << std::endl;
         it->second->fire ();
-        cyclic = false;
+        state_ = Running;
       }
     }
 
-    if ( cyclic )
+
+    if ( state_ != Running )
     {
       state_ = Failed;
 
       // ### scheduler hook
       scheduler_->hook_dag_run_fail ();
 
-      // dump ();
-
       throw "can't find pending nodes.  cyclic or empty graph?";
     }
 
+    std::cout << "dag fired" << std::endl;
+
     // ### scheduler hook
     scheduler_->hook_dag_run_post ();
+
+    std::cout << "dag fire done" << std::endl;
   }
 
 
   void dag::wait (void)
   {
+    std::cout << "dag    wait..." << std::endl;
+
     // ### scheduler hook
     scheduler_->hook_dag_wait ();
 
@@ -237,7 +248,7 @@ namespace digedag
             s != Failed )
     {
       std::cout << "dag    waiting..." << std::endl;
-      ::sleep (1);
+      ::sleep (3);
       s = get_state ();
     }
 
@@ -405,8 +416,6 @@ namespace digedag
 
   void dag::dump (void)
   {
-    return;
-
     std::cout << " -  DAG    ----------------------------------\n" << std::endl;
     std::cout << std::string (" state: ") << state_to_string (get_state ()) << std::endl;
 
