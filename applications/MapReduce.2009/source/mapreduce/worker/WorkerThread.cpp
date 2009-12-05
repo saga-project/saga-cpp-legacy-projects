@@ -11,7 +11,7 @@ void WorkerThread::mainLoop() {
   while(1) {
     std::string command(getFrontendCommand_());
     //(1) read command from orchestrator
-    LOG_DEBUG << "Commmand: " << command << std::endl;
+    LOG_DEBUG << "Commmand: " << command;
     if(command == WORKER_COMMAND_MAP) {
        try {
           state_ = WORKER_STATE_MAPPING;
@@ -70,7 +70,7 @@ void WorkerThread::mainLoop() {
        cleanup_();
        return;
     }
-    LOG_DEBUG << "Updating status with state = " << state_ << std::endl;
+    LOG_DEBUG << "Updating status with state = " << state_;
     updateStatus_();
   }
 }
