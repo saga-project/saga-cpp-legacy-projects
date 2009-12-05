@@ -5,6 +5,7 @@
 
 #include "HandleMaps.hpp"
 #include "../protocol.hpp"
+#include <sstream>
 
 /*********************************************************
  * The HandleMaps class handles all the details of       *
@@ -55,7 +56,13 @@ bool HandleMaps::assignMaps() {
   //Until the number of finished chunks
   //equals the number of total chunks
   while(totalChunks_ != finished_.size()) {
-     issue_command_();
+    std::stringstream message;
+    message << finished_.size() << " chunks done out of " << totalChunks_;
+    log_->write(message.str(),  MR_LOGLEVEL_INFO);
+    message.str("");
+    message << "Chunks unassigned/assigned: " << unassigned_.size() << "/" << assigned_.size();
+    log_->write(message.str(), MR_LOGLEVEL_INFO);
+    issue_command_();
   }
   return true;
 }
@@ -87,7 +94,7 @@ void HandleMaps::issue_command_() {
 
           if(state == WORKER_STATE_IDLE)
           {
-             if(finished_.size() == totalChunks_)
+             if(finished_.size() == totalChunks_ || unassigned_.size() == 0)
              {
                 //Prevent unneccessary work assignments
                 worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
@@ -176,9 +183,12 @@ void HandleMaps::issue_command_() {
              worker.write(saga::buffer(MASTER_QUESTION_RESULT, 7));
              memset(buff, 0, MSG_BUFFER_SIZE);
              read_bytes = worker.read(saga::buffer(buff));
-             std::string chunk_id(buff, read_bytes);
+             std::string result_message(buff, read_bytes);
              worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
-
+             // Parse result message.
+             size_t split_point = result_message.find_first_of(' ');
+             std::string chunk_id = result_message.substr(0, split_point);
+             std::string worker_advert = result_message.substr(split_point+1);
              message.clear();
              message += "Worker ";
              message += worker.get_url().get_string() + " finished chunk ";
@@ -186,19 +196,13 @@ void HandleMaps::issue_command_() {
              log_->write(message, MR_LOGLEVEL_INFO);
 
              // Note which worker completed this chunk.
-             std::map<std::string, saga::url>::const_iterator advert_it =
-               worker_adverts_.find(worker.get_url().get_string());
-             if (advert_it == worker_adverts_.end()) {
-               log_->write(("No advert found for worker " +
-                 worker.get_url().get_string()), MR_LOGLEVEL_ERROR);
-             } else {
-               std::cerr << "Noted " << advert_it->second.get_string() << " for " << chunk_id <<std::endl;
-               committed_chunks_[chunk_id] = advert_it->second;
-               // If in assigned, remove it.
-               assigned_.erase(chunk_id);
-               // Put into finished set.
-               finished_.insert(chunk_id);
-             }
+             message.clear();
+             message += "Noted " + worker_advert + " for " + chunk_id;
+             committed_chunks_[chunk_id] = worker_advert;
+             // If in assigned, remove it.
+             assigned_.erase(chunk_id);
+             // Put into finished set.
+             finished_.insert(chunk_id);
           }
        }
        catch(saga::exception const & e) {

@@ -85,6 +85,19 @@ void HandleReduces::issue_command_() {
          std::string state(buff, read_bytes);
 
          if(state == WORKER_STATE_IDLE) {
+            if (currentPartition_ == numPartitions_) {
+              //worker.write(saga::buffer(WORKER_COMMAND_QUIT, 4)); 
+              worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
+              memset(buff, 0, MSG_BUFFER_SIZE);
+              read_bytes = worker.read(saga::buffer(buff));
+              std::string result(buff, read_bytes);
+              if(result != WORKER_RESPONSE_ACKNOWLEDGE) {
+                 //error here
+              }
+              sleep(1);
+              log_->write("Requested worker to idle", MR_LOGLEVEL_INFO);
+              break;
+            }
             // Group all files that were mapped to this partition.
             std::vector<std::string> reduceInput(groupFiles_(currentPartition_));
 
@@ -146,7 +159,10 @@ void HandleReduces::issue_command_() {
             }
             assigned = true;
             if(++currentPartition_ == numPartitions_) {
-               currentPartition_ = 0;   // Allows reduces to be re-issued.
+               // FIXME(miklos): should allow reduces to be re-issued.
+               // Currently the problem is that the master cannot stop workers
+               // which are in the process of reducing.
+               //currentPartition_ = 0;   // Allows reduces to be re-issued.
             }
             message.clear();
             message += "Success!";
@@ -170,6 +186,7 @@ void HandleReduces::issue_command_() {
             if (finished_.find(finished_partition) == finished_.end()) {
               finished_.insert(finished_partition);
             }
+            break;
          }
          else if(state == WORKER_STATE_DONE_MAP) {
             worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));

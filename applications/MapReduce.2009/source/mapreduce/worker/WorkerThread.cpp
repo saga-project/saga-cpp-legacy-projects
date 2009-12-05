@@ -11,6 +11,7 @@ void WorkerThread::mainLoop() {
   while(1) {
     std::string command(getFrontendCommand_());
     //(1) read command from orchestrator
+    LOG_DEBUG << "Commmand: " << command << std::endl;
     if(command == WORKER_COMMAND_MAP) {
        try {
           state_ = WORKER_STATE_MAPPING;
@@ -69,6 +70,7 @@ void WorkerThread::mainLoop() {
        cleanup_();
        return;
     }
+    LOG_DEBUG << "Updating status with state = " << state_ << std::endl;
     updateStatus_();
   }
 }
@@ -92,6 +94,7 @@ std::string WorkerThread::getFrontendCommand_(void) {
             if(question == MASTER_REQUEST_IDLE) {
                server_.write(saga::buffer(WORKER_RESPONSE_ACKNOWLEDGE, 11));
                state_ = WORKER_STATE_IDLE;
+               sleep(1);
                //server_.close();
                return std::string("");
             }
@@ -166,7 +169,11 @@ std::string WorkerThread::getFrontendCommand_(void) {
             read_bytes = server_.read(saga::buffer(buff));
             question = std::string(buff, read_bytes);
             if(question == MASTER_QUESTION_RESULT) {
-               server_.write(saga::buffer(chunk_id_, chunk_id_.size()));
+               // Respond with the finished chunk's ID and our advert directory.
+               std::string result_message(chunk_id_);
+               result_message.append(1, ' ');
+               result_message.append(workerDir_.get_url().get_string());
+               server_.write(saga::buffer(result_message, result_message.size()));
                memset(buff, 0, MSG_BUFFER_SIZE);
                read_bytes = server_.read(saga::buffer(buff));
                question = std::string(buff, read_bytes);

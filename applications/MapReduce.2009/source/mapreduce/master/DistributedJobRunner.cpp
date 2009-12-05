@@ -78,6 +78,7 @@ void DistributedJobRunner::Run(MapReduceResult* result) {
   // assigning tasks to some workers.
   executeJob();
 
+  log->write("Sending quit to workers", MR_LOGLEVEL_INFO);
   //Send quit to all workers
   sendQuit_();
   
@@ -284,10 +285,11 @@ void DistributedJobRunner::executeJob() {
   delete map_handler;
 
   message = "Beginning reduces...";
-  HandleReduces reduce_handler(job_, committed_chunks_, workersDir_, serverURL_,
+  HandleReduces* reduce_handler = new HandleReduces(job_, committed_chunks_, workersDir_, serverURL_,
     log);
   log->write(message, MR_LOGLEVEL_INFO);
-  reduce_handler.assignReduces();
+  reduce_handler->assignReduces();
+  delete reduce_handler;
 }
 
 
@@ -299,7 +301,7 @@ void DistributedJobRunner::sendQuit_(void) {
   try {
     while(successCounter < workersSize) {
       saga::stream::server *service = new saga::stream::server(serverURL_);
-      saga::stream::stream worker = service->serve(25);
+      saga::stream::stream worker = service->serve(5);
       std::string message("Established connection to ");
       message += worker.get_url().get_string();
       log->write(message, MR_LOGLEVEL_INFO);
