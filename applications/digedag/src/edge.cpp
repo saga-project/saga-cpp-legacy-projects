@@ -96,6 +96,10 @@ namespace digedag
       // check if there is anything to do, at all
       if ( src_url_ == tgt_url_ )
       {
+        saga::filesystem::file f_src (src_url_);
+        std::cout << " ### edge size: " << get_name_s () << " : " << f_src.get_size ()
+                  << "\t (" << src_url_.get_path () << ")" << std::endl;
+
         state_ = Done;
 
         // fire dependent node
@@ -144,7 +148,8 @@ namespace digedag
       {
         saga::filesystem::file f_tgt (session, tgt_url_);
 
-        std::cout << " ### edge size: " << get_name_s () << " : " << f_tgt.get_size () << std::endl;
+        std::cout << " ### edge size: " << get_name_s () << " : " << f_tgt.get_size () 
+                  << "\t (" << src_url_.get_path () << ")" << std::endl;
 
         if ( f_tgt.get_size () == f_src.get_size () )
         {
