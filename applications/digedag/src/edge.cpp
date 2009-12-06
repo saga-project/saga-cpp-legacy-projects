@@ -144,6 +144,8 @@ namespace digedag
       {
         saga::filesystem::file f_tgt (session, tgt_url_);
 
+        std::cout << " ### edge size: " << get_name_s () << " : " << f_tgt.get_size () << std::endl;
+
         if ( f_tgt.get_size () == f_src.get_size () )
         {
           exists = true;
