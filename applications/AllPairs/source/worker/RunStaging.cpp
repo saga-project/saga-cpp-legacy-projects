@@ -35,7 +35,7 @@ namespace AllPairs {
             command += *it;
             command += " | tail -n 1 | sed 's/[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\.[0-9]*\\)[ ]*\\([0-9]*\\.[0-9]*\\)/\\5/'";
 
-            FILE *results = popen(command, "r");
+            FILE *results = popen(command.c_str(), "r");
             char buffer[buff_size];
             int read = fread(buffer, 1, buff_size, results);
             pclose(results);
