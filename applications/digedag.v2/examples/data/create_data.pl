@@ -104,7 +104,7 @@ while ( <IN> )
 {
   if ( $_ =~ /^.*\s(http\S+)\s+(\S+).*$/ ) 
   { 
-    print "   $2 ... "; 
+    print "   $2 \t ->  $data/$2"; 
     run_debug ("wget -q '$1' -O '$data/$2'");
     print "done\n"; 
   }

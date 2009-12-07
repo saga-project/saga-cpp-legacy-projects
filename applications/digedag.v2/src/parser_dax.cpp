@@ -104,7 +104,7 @@ namespace digedag
             nd.set_vector_attribute ("Arguments", s_args);
           }
 
-          sp_t <node> n (new node (nd, s_name));
+          sp_t <node> n = dag_->create_node (nd, s_name);
 
           dag_->add_node (s_id, n);
         }
@@ -182,7 +182,7 @@ namespace digedag
 
             saga::url loc (file);
             loc.set_scheme ("any");
-            sp_t <edge> e (new edge (loc));
+            sp_t <edge> e = dag_->create_edge (loc);
             dag_->add_edge (e, "INPUT", i_node);
           }
 
@@ -190,7 +190,7 @@ namespace digedag
           {
             saga::url loc (file);
             loc.set_scheme ("any");
-            sp_t <edge> e (new edge (loc));
+            sp_t <edge> e = dag_->create_edge (loc);
             dag_->add_edge (e, o_node, i_node);
           }
         }
@@ -221,7 +221,7 @@ namespace digedag
 
             saga::url loc (file);
             loc.set_scheme ("any");
-            sp_t <edge> e  (new edge (loc));
+            sp_t <edge> e  = dag_->create_edge (loc);
             dag_->add_edge (e, o_node, i_node);
           }
         }

@@ -5,10 +5,11 @@
 namespace digedag
 {
   dag::dag (const std::string & scheduler_src)
-    : state_     (Pending),
-      scheduler_ (new scheduler (this, scheduler_src)),
-      input_     (new node ()),
-      output_    (new node ())
+    : session_   (true)
+    , state_     (Pending)
+    , scheduler_ (new scheduler (this, scheduler_src, session_))
+    , input_     (new node (scheduler_, session_))
+    , output_    (new node (scheduler_, session_))
   { 
     // add special nodes to dag already
     add_node ("INPUT",  input_);
@@ -61,6 +62,39 @@ namespace digedag
     // ok, everything is stopped, and shared_ptr's will be destroyed here
   }
 
+  sp_t <node> dag::create_node (node_description & nd, 
+                                std::string        name)
+  {
+    return sp_t <node> (new node (nd, name, scheduler_, session_));
+  }
+
+
+  sp_t <node> dag::create_node (std::string cmd,
+                                std::string name)
+  {
+    return sp_t <node> (new node (cmd, name, scheduler_, session_));
+  }
+
+
+  sp_t <node> dag::create_node (void)
+  {
+    return sp_t <node> (new node (scheduler_, session_));
+  }
+
+
+  sp_t <edge> dag::create_edge (const saga::url & src, 
+                                const saga::url & tgt)
+  {
+    return sp_t <edge> (new edge (src, tgt, scheduler_, session_));
+  }
+
+
+  sp_t <edge> dag::create_edge (void)
+  {
+    return sp_t <edge> (new edge (scheduler_, session_));
+  }
+
+
 
   void dag::add_node (const node_id_t & name, 
                       sp_t <node>       node)
@@ -76,7 +110,6 @@ namespace digedag
     node->set_name (name);
 
     // ### scheduler hook
-    node->set_scheduler (scheduler_);
     scheduler_->hook_node_add (node);
   }
 
@@ -100,7 +133,6 @@ namespace digedag
     edges_[edge_id_t (s->get_name (), t->get_name ())].push_back (e);
 
     // ### scheduler hook
-    e->set_scheduler (scheduler_);
     scheduler_->hook_edge_add (e);
   }
 

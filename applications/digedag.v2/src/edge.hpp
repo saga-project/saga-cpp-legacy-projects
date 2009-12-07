@@ -23,9 +23,6 @@ namespace digedag
       saga::url                  src_url_;     // src location of data
       saga::url                  tgt_url_;     // tgt location of data
 
-      std::string                src_path_;    // original src path
-      std::string                tgt_path_;    // original tgt path
-
       state                      state_;       // state of instance
 
       sp_t <node>                src_node_;
@@ -34,12 +31,14 @@ namespace digedag
       bool                       is_void_;     // void edge?
       bool                       fired_;       // dependent node fired after Done?
 
-      sp_t <scheduler>           scheduler_;
 
       util::mutex                mtx_;
 
-      saga::task                 t_;           // our async workload
+      saga::task                 task_;        // our async workload
       bool                       t_valid_;     // async workload was created
+
+      sp_t <scheduler>           scheduler_;
+      saga::session              session_;     // session from scheduler
 
 
     protected:
@@ -50,8 +49,11 @@ namespace digedag
 
     public:
       edge  (const saga::url & src, 
-             const saga::url & tgt = "");
-      edge  (void);
+             const saga::url & tgt,
+             sp_t <scheduler>  scheduler, 
+             saga::session     session);
+      edge  (sp_t <scheduler>  scheduler,
+             saga::session     session);
       ~edge (void);
 
       bool operator== (const edge & e);
@@ -85,8 +87,6 @@ namespace digedag
       void             set_pwd_tgt   (std::string pwd);
       void             set_host_src  (std::string host);
       void             set_host_tgt  (std::string host);
-
-      void             set_scheduler (sp_t <scheduler> s);
   };
 
 } // namespace digedag

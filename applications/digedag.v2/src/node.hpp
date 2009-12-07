@@ -37,23 +37,31 @@ namespace digedag
       std::string                name_;        // instance name
       state                      state_;       // instance state
 
-      sp_t <scheduler>           scheduler_;   
 
       bool                       is_void_;     // void node?
       bool                       fired_;       // dependent edges fired after Done?
 
       util::mutex                mtx_;
 
-      saga::task                 t_;           // our async workload
+      saga::task                 task_;        // our async workload
       bool                       t_valid_;     // async workload was created
+
+      sp_t <scheduler>           scheduler_;   
+      saga::session              session_;     // session from scheduler
 
 
     public:
       node  (node_description & nd, 
-             std::string                  name = "");
-      node  (std::string                  cmd,
-             std::string                  name = "");
-      node  (void); //  a void node does nothing, and just fires its edges.
+             std::string        name, 
+             sp_t <scheduler>   scheduler, 
+             saga::session      session);
+            
+      node  (std::string        cmd,
+             std::string        name, 
+             sp_t <scheduler>   scheduler, 
+             saga::session      session);
+      node  (sp_t <scheduler>   scheduler,
+             saga::session      session);
       ~node (void);
 
       void             set_name        (std::string name);
@@ -77,8 +85,6 @@ namespace digedag
       void             set_rm          (std::string rm);
       void             set_host        (std::string host);
       void             set_path        (std::string path);
-
-      void             set_scheduler   (sp_t <scheduler> s);
   };
 
 } // namespace digedag

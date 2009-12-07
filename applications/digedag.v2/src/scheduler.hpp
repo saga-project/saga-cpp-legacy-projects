@@ -23,17 +23,6 @@ namespace digedag
                     public boost::enable_shared_from_this <scheduler>
   {
     private:
-      bool stopped_;
-
-      util::mutex mtx_;
-      std::string src_; // scheduling policy
-
-      std::string data_src_pwd_;
-      std::string data_tgt_pwd_;
-
-      std::string data_src_host_;
-      std::string data_tgt_host_;
-
       struct job_info_t 
       { 
         std::string rm;
@@ -42,11 +31,20 @@ namespace digedag
         std::string path;
       };
 
-      std::map <std::string, job_info_t> job_info_;
+      std::map <std::string, job_info_t>   job_info_;
 
-      saga::session session_;
+      std::string                          src_; // scheduling policy
 
-      sp_t <dag> dag_;
+      std::string                          data_src_pwd_;
+      std::string                          data_tgt_pwd_;
+
+      std::string                          data_src_host_;
+      std::string                          data_tgt_host_;
+
+      saga::session                      & session_;
+      dag                                * dag_;
+
+      bool                                 stopped_;
 
       // queues
       std::deque <sp_t <node> >            queue_nodes_;
@@ -67,10 +65,13 @@ namespace digedag
       std::map <saga::task, sp_t <node> >  node_task_map_;
       std::map <saga::task, sp_t <edge> >  edge_task_map_;
 
+      util::mutex                          mtx_;
+
 
     public:
       scheduler  (dag * d, 
-                  const std::string & src);
+                  const std::string & src, 
+                  saga::session       session);
       ~scheduler (void);
 
       void parse_src             (void);

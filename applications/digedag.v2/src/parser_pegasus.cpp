@@ -178,7 +178,7 @@ namespace digedag
 
         }
 
-        sp_t <node> n (new node (nd));
+        sp_t <node> n = dag_->create_node (nd);
         dag_->add_node (name, n);
       }
       catch ( ... )
@@ -193,8 +193,8 @@ namespace digedag
     {
       std::vector <std::string> elems = split (spec);
 
-      sp_t <edge> e (new edge ("file://localhost/TODO", 
-                                                 "file://localhost/FIXME"));
+      sp_t <edge> e = dag_->create_edge ("file://localhost/TODO", 
+                                         "file://localhost/FIXME");
       dag_->add_edge (e, elems[1], elems[3]);
     }
 

@@ -13,15 +13,19 @@
 namespace digedag
 {
   node::node (node_description & nd, 
-              std::string        name)
-    : created_ (false)
-    , nd_      (nd)
-    , rm_      ("")
-    , name_    (name)
-    , state_   (Incomplete)
-    , is_void_ (false)
-    , fired_   (false)
-    , t_valid_ (false)
+              std::string        name, 
+              sp_t <scheduler>   scheduler,
+              saga::session      session)
+    : created_   (     false)
+    , nd_        (        nd)
+    , rm_        (        "")
+    , name_      (      name)
+    , state_     (Incomplete)
+    , is_void_   (     false)
+    , fired_     (     false)
+    , t_valid_   (     false)
+    , scheduler_ ( scheduler)
+    , session_   (   session)
   {
     std::stringstream ss;
 
@@ -46,16 +50,20 @@ namespace digedag
     }
   }
 
-  node::node (std::string cmd, 
-              std::string name)
-    : created_ (false)
-    , rm_      ("")
-    , cmd_     (cmd)
-    , name_    (name)
-    , state_   (Incomplete)
-    , is_void_ (false)
-    , fired_   (false)
-    , t_valid_ (false)
+  node::node (std::string      cmd, 
+              std::string      name,
+              sp_t <scheduler> scheduler,
+              saga::session    session)
+    : created_   (     false)
+    , rm_        (        "")
+    , cmd_       (       cmd)
+    , name_      (      name)
+    , state_     (Incomplete)
+    , is_void_   (     false)
+    , fired_     (     false)
+    , t_valid_   (     false)
+    , scheduler_ ( scheduler)
+    , session_   (   session)
   {
     // parse cmd into node description
     std::vector <std::string> elems = split (cmd_);
@@ -68,15 +76,18 @@ namespace digedag
     nd_.set_vector_attribute (node_attributes::arguments, elems);
   }
 
-  node::node (void)
-    : created_ (false)
-    , rm_      ("")
-    , cmd_     ("-")
-    , name_    ("void")
-    , state_   (Incomplete)
-    , is_void_ (true)
-    , fired_   (false)
-    , t_valid_ (false)
+  node::node (sp_t <scheduler> scheduler, 
+              saga::session    session)
+    : created_   (     false)
+    , rm_        (        "")
+    , cmd_       (       "-")
+    , name_      (    "void")
+    , state_     (Incomplete)
+    , is_void_   (      true)
+    , fired_     (     false)
+    , t_valid_   (     false)
+    , scheduler_ ( scheduler)
+    , session_   (   session)
   {
   }
 
@@ -166,7 +177,7 @@ namespace digedag
   saga::task node::work_start (void)
   {
     if ( state_ == Stopped )
-      return t_;
+      return task_;
 
     assert ( state_ == Pending );
 
@@ -180,21 +191,17 @@ namespace digedag
       std::cout << std::string (" ===   node ") << name_ << " is void" << std::endl;
       
       // FIXME: we can't fake a noop task :-(
-      saga::session session = scheduler_->hook_saga_get_session ();
+      saga::filesystem::directory d (session_, "any://localhost//");
 
-      saga::filesystem::directory d (session, "any://localhost//");
-
-      t_ = d.get_url <saga::task::Async> ();
+      task_ = d.get_url <saga::task::Async> ();
       t_valid_ = true;
 
       std::cout << " === fake task created: " 
-                << t_.get_id () << " - " 
-                << t_.get_state () << std::endl;
+                << task_.get_id () << " - " 
+                << task_.get_state () << std::endl;
     }
     else
     {
-      saga::session session = scheduler_->hook_saga_get_session ();
-
       saga::job::description jd (nd_);
 
       jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
@@ -205,16 +212,16 @@ namespace digedag
    // jd.set_attribute (saga::job::attributes::description_error,       
    //                   std::string ("/tmp/err.") + get_name ());
  
-      saga::job::service js (session, rm_);
+      saga::job::service js (session_, rm_);
       saga::job::job     j = js.create_job (jd);
 
       j.run  ();
 
-      t_ = j;
+      task_ = j;
       t_valid_ = true;
     }
 
-    return t_;
+    return task_;
   }
 
 
@@ -259,6 +266,17 @@ namespace digedag
     assert ( state_ != Failed );
     assert ( state_ != Done   );
 
+    try 
+    {
+      task_.rethrow ();
+    }
+    catch ( const saga::exception & e )
+    {
+      std::cout << " === node " << get_name_s () 
+                << " set to failed by scheduler: "
+                << e.what () << std::endl;
+    }
+
     state_ = Failed;
   }
 
@@ -267,7 +285,7 @@ namespace digedag
   {
     if ( t_valid_ )
     {
-      t_.cancel ();
+      task_.cancel ();
     }
 
     state_ = Stopped;
@@ -326,6 +344,8 @@ namespace digedag
       {
         if ( Failed == edge_in_[i]->get_state () )
         {
+          std::cout << " === node " << get_name_s () << " failed due to failing edge " 
+                    << edge_in_[i]->get_name_s () << std::endl;
           state_ = Failed;
           return state_;
         }
@@ -513,11 +533,5 @@ namespace digedag
       }
     }
   }
-
-  void node::set_scheduler (sp_t <scheduler> s)
-  {
-    scheduler_ = s;
-  }
-
 } // namespace digedag
 

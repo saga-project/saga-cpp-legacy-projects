@@ -7,28 +7,32 @@
 namespace digedag
 {
   edge::edge (const saga::url & src, 
-              const saga::url & tgt) 
-    : src_url_  (src)
-    , tgt_url_  (tgt)
-    , src_path_ (src_url_.get_path ())
-    , tgt_path_ (tgt_url_.get_path ())
-    , state_    (Incomplete)
-    , is_void_  (false)
-    , fired_    (false)
-    , t_valid_  (false)
+              const saga::url & tgt, 
+              sp_t <scheduler>  scheduler, 
+              saga::session     session)
+    : src_url_   (       src)
+    , tgt_url_   (       tgt)
+    , state_     (Incomplete)
+    , is_void_   (     false)
+    , fired_     (     false)
+    , t_valid_   (     false)
+    , scheduler_ ( scheduler)
+    , session_   (   session)
   {
     if ( tgt_url_ == "" )
     {
-      tgt_url_ = src_url_;
-      tgt_path_ = tgt_url_.get_path ();
+      tgt_url_  = src_url_;
     }
   }
 
-  edge::edge (void)
-    : state_    (Incomplete)
-    , is_void_  (true)
-    , fired_    (false)
-    , t_valid_  (false)
+  edge::edge (sp_t <scheduler>  scheduler, 
+              saga::session     session)
+    : state_     (Incomplete)
+    , is_void_   (      true)
+    , fired_     (     false)
+    , t_valid_   (     false)
+    , scheduler_ ( scheduler)
+    , session_   (   session)
   {
   }
 
@@ -40,8 +44,6 @@ namespace digedag
   {
     if ( src_url_   == e.src_url_     &&
          tgt_url_   == e.tgt_url_     &&
-         src_path_  == e.src_path_    &&
-         tgt_path_  == e.tgt_path_    &&
          state_     == e.state_       &&
          src_node_  == e.src_node_    &&
          tgt_node_  == e.tgt_node_    &&
@@ -123,38 +125,63 @@ namespace digedag
   saga::task edge::work_start (void)
   {
     if ( state_ == Stopped )
-      return t_;
+      return task_;
 
     assert ( state_ == Pending );
 
     // we have work to do...
     state_ = Running;
 
-    std::cout << std::string (" === edge run: ")
-              << get_name_s () << std::endl;
+    std::cout << " === edge run: " << get_name_s () << std::endl;
+
+
+    // lets see if we actually need to do anything
+    try 
+    {
+      saga::filesystem::file f_tgt (session_, tgt_url_);
+      saga::filesystem::file f_src (session_, src_url_);
+
+      if ( f_src.get_size () == f_tgt.get_size () )
+      {
+        std::cout << " === edge run: " << get_name_s () << " optimized away ;-)" << std::endl;
+        is_void_ = true;
+      }
+    }
+    catch ( const saga::exception & e )
+    {
+      // well, we need to run the edge operation to see what's missing...
+    }
+
 
     if ( is_void_ )
     {
+      // do nothing
+      
+      std::cout << std::string (" ===   edge ") << get_name_s () << " is void" << std::endl;
+      
       // FIXME: we can't fake a noop task :-(
-      saga::session session = scheduler_->hook_saga_get_session ();
+      saga::filesystem::directory d (session_, "any://localhost//");
 
-      saga::job::service js (session, "fork://localhost/");
-
-      t_ = js.get_url <saga::task::Async> ();
+      task_ = d.get_url <saga::task::Async> ();
       t_valid_ = true;
+
+      std::cout << " === fake task created: " 
+                << task_.get_id () << " - " 
+                << task_.get_state () << std::endl;
     }
     else
     {
-      saga::session session = scheduler_->hook_saga_get_session ();
+      saga::filesystem::file f_src (session_, src_url_);
 
-      saga::filesystem::file f_src (session, src_url_);
+      task_ = f_src.copy <saga::task::Async> (tgt_url_, saga::filesystem::Overwrite
+                                                      | saga::filesystem::CreateParents);
 
-      t_ = f_src.copy <saga::task::Async> (tgt_url_, saga::filesystem::Overwrite
-                                                   | saga::filesystem::CreateParents);
+      std::cout << " === task " << task_.get_id () << " copies " 
+                << src_url_ << " to " << tgt_url_ << std::endl;
       t_valid_ = true;
     }
     
-    return t_;
+    return task_;
   }
 
   void edge::work_done (void)
@@ -199,6 +226,17 @@ namespace digedag
     assert ( state_ != Failed );
     assert ( state_ != Done   );
 
+    try 
+    {
+      task_.rethrow ();
+    }
+    catch ( const saga::exception & e )
+    {
+      std::cout << " === edge " << get_name_s () 
+                << " set to failed by scheduler: "
+                << e.what () << std::endl;
+    }
+  
     state_ = Failed;
   }
 
@@ -207,7 +245,7 @@ namespace digedag
   {
     if ( t_valid_ )
     {
-      t_.cancel ();
+      task_.cancel ();
     }
 
     state_ = Stopped;
@@ -249,6 +287,8 @@ namespace digedag
       }
       else if ( Failed == src_state )
       {
+        std::cout << " === edge " << get_name_s () << " failed due to failing src node " 
+                  << src_node_->get_name_s () << std::endl;
         state_ = Failed;
       }
     }
@@ -288,12 +328,12 @@ namespace digedag
 
   void edge::set_pwd_src (std::string pwd)
   {
-    src_url_.set_path (pwd  + src_path_);
+    src_url_.set_path (pwd  + src_url_.get_path ());
   }
 
   void edge::set_pwd_tgt (std::string pwd)
   {
-    tgt_url_.set_path (pwd  + tgt_path_);
+    tgt_url_.set_path (pwd  + tgt_url_.get_path ());
   }
 
   void edge::set_host_src (std::string host) 
@@ -304,12 +344,6 @@ namespace digedag
   void edge::set_host_tgt (std::string host) 
   {
     tgt_url_.set_host (host);
-  }
-
-
-  void edge::set_scheduler (sp_t <scheduler> s)
-  {
-    scheduler_ = s;
   }
 
 } // namespace digedag

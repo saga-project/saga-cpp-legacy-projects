@@ -10,6 +10,7 @@
 #include "enum.hpp"
 #include "node.hpp"
 #include "edge.hpp"
+#include "node_description.hpp"
 
 
 namespace digedag
@@ -29,6 +30,8 @@ namespace digedag
   class dag : public boost::enable_shared_from_this <dag>
   {
     private:
+      saga::session                    session_;   // saga session to be used everywhere 
+
       std::map <node_id_t, node_map_t> nodes_;     // dag node names and instances
       std::map <edge_id_t, edge_map_t> edges_;     // dag edge names and instances
 
@@ -40,6 +43,7 @@ namespace digedag
       sp_t <node>                      output_;      
 
       util::mutex                      mtx_;
+
 
 
     protected:
@@ -54,6 +58,16 @@ namespace digedag
     public:
       dag  (const std::string & scheduler_src = "");
       ~dag (void); 
+
+      sp_t <node> create_node  (node_description & nd, 
+                                std::string        name = "");
+      sp_t <node> create_node  (std::string        cmd,
+                                std::string        name = "");
+      sp_t <node> create_node  (void);
+
+      sp_t <edge> create_edge  (const saga::url  & src, 
+                                const saga::url  & tgt  = "");
+      sp_t <edge> create_edge  (void);
 
 
       // create the dag
