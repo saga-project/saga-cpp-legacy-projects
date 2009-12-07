@@ -44,6 +44,7 @@ namespace AllPairs {
                buffer[buff_size-1] = '\0';
             std::cerr << "string result: " << buffer << std::endl;
             sscanf(buffer, "%lf", &answer);
+            answer = 1 / answer;
             std::cerr << "netperf result of host (" << *it << "): " << "(" << answer << ")" << std::endl;
             retval.push_back(answer);
          }
