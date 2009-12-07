@@ -19,28 +19,97 @@
       : AllPairsBase<AllPairsImpl>(argCount, argList) {
     }
     double compare(saga::url testUrl, saga::url baseUrl) {
-      saga::filesystem::file f (testUrl, saga::filesystem::Read);
-      saga::filesystem::file g (baseUrl, saga::filesystem::Read);
+      std::cerr << "two strings are " << std::endl;
+      std::cerr << testUrl.get_string() << std::endl;
+      std::cerr << baseUrl.get_string() << std::endl;
       saga::size_t const n = 1024*64;
       saga::uint8_t data[n+1];
-      while (true) {
-         std::memset(data, n+1, '\0');
-         // read a chunk into the buffer
-         if ( f.read (saga::buffer (data, n), n) ) {
-            //std::cout << data;
+      if(testUrl.get_scheme().compare("gridftp") == 0)
+      {
+         std::cout << "Reading " << testUrl.get_string() << "!" << std::endl;
+         saga::url temporaryURL(testUrl);
+         temporaryURL.set_scheme("gsiftp");
+         std::string commandString("globus-url-copy ");
+         commandString += temporaryURL.get_string();
+         commandString += " file://localhost//tmp/tempfiledeletesaga.tmp";
+         std::cerr << "COMMAND STRING IS " << commandString << std::flush << std::endl;
+         system(commandString.c_str());
+         system("rm /tmp/tempfiledeletesaga.tmp");
+         std::cout << "Read " << testUrl.get_string() << "!" << std::endl;
+      }
+      else
+      {
+         saga::filesystem::file f (testUrl, saga::filesystem::Read);
+         saga::filesystem::file g (baseUrl, saga::filesystem::Read);
+         try {
+            std::cout << "Reading " << baseUrl.get_string() << "!" << std::endl;
+            while (true) {
+               std::memset(data, n+1, '\0');
+               // read a chunk into the buffer
+               if ( f.read (saga::buffer (data, n), n) ) {
+                  //std::cout << data;
+               }
+               else {
+                  break;
+               }
+            }
+            std::cout << "Read " << testUrl.get_string() << "!" << std::endl;
          }
-         else {
-            break;
+         catch (saga::exception const& e) {
+            std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
+            std::cerr << "Exiting..." << std::endl;
+         }
+         catch (std::exception const& e) {
+            std::cerr << "std:  exception caught: " << e.what() << std::endl;
+            std::cerr << "Exiting..." << std::endl;
+         }
+         catch (...) {
+            std::cerr << "FATAL Exception caught!" << std::endl << "Exiting..." << std::endl;
+            return 255;
          }
       }
-      while (true) {
-         std::memset(data, n+1, '\0');
-         // read a chunk into the buffer
-         if ( g.read (saga::buffer (data, n), n) ) {
-             //std::cout << data;
+      if(baseUrl.get_scheme().compare("gridftp") == 0)
+      {
+         std::cout << "Reading " << testUrl.get_string() << "!" << std::endl;
+         saga::url temporaryURL(testUrl);
+         temporaryURL.set_scheme("gsiftp");
+         std::string commandString("globus-url-copy ");
+         commandString += temporaryURL.get_string();
+         commandString += " file://localhost//tmp/tempfiledeletesaga.tmp";
+         std::cerr << "COMMAND STRING IS " << commandString << std::flush << std::endl;
+         system(commandString.c_str());
+         system("rm /tmp/tempfiledeletesaga.tmp");
+         std::cout << "Read " << testUrl.get_string() << "!" << std::endl;
+      }
+      else
+      {
+         saga::filesystem::file f (testUrl, saga::filesystem::Read);
+         saga::filesystem::file g (baseUrl, saga::filesystem::Read);
+         try {
+            std::cout << "Reading " << baseUrl.get_string() << "!" << std::endl;
+            while (true) {
+               std::memset(data, n+1, '\0');
+               // read a chunk into the buffer
+               if ( g.read (saga::buffer (data, n), n) ) {
+                   //std::cout << data;
+               }
+               else {
+                   break;
+               }
+            }
+            std::cout << "Read " << baseUrl.get_string() << "!" << std::endl;
          }
-         else {
-             break;
+         catch (saga::exception const& e) {
+            std::cerr << "Saga:  exception caught: " << e.what() << std::endl;
+            std::cerr << "Exiting..." << std::endl;
+         }
+         catch (std::exception const& e) {
+            std::cerr << "std:  exception caught: " << e.what() << std::endl;
+            std::cerr << "Exiting..." << std::endl;
+         }
+         catch (...) {
+            std::cerr << "FATAL Exception caught!" << std::endl << "Exiting..." << std::endl;
+            return 255;
          }
       }
       return 0;
