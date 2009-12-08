@@ -22,7 +22,7 @@ namespace AllPairs {
          std::string communication(buff, read_bytes);
          //The first try is always ID
          chunkID_ = boost::lexical_cast<int>(communication);
-         std::cout << "Got ID: " << communication << std::endl;
+         std::cerr<< "Got ID: " << communication << std::endl;
          server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
 
          while(1)
@@ -32,6 +32,7 @@ namespace AllPairs {
             memset(buff, 0, 255);
             read_bytes = server_.read(saga::buffer(buff));
             communication = std::string(buff, read_bytes);
+            std::cerr << "just read as part of assignment: " << communication << std::endl;
             if(communication == END_CHUNK)
             {
                break;

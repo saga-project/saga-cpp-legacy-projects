@@ -110,8 +110,6 @@ namespace AllPairs {
                worker.write(saga::buffer(WORKER_COMMAND_COMPARE, 7));
                network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
                //Write chunk to worker
-               std::vector<Assignment>::iterator it  = chunk.getBegin();
-               std::vector<Assignment>::iterator end = chunk.getEnd();
                worker.write(saga::buffer(START_CHUNK, 5));
                
                network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
@@ -121,6 +119,8 @@ namespace AllPairs {
                worker.write(saga::buffer(stringID, stringID.size()));
                network::expect(network::read(worker), WORKER_RESPONSE_ACKNOLEDGE);
                std::cerr << "about to start!" << std::endl;
+               std::vector<Assignment>::iterator it  = chunk.getBegin();
+               std::vector<Assignment>::iterator end = chunk.getEnd();
                while(it != end) {
                   std::string to, from;
                   if(it->stringAvailable() == true)
@@ -237,7 +237,6 @@ namespace AllPairs {
    std::pair<AssignmentChunk, bool> HandleComparisons::AssignmentChunkCheck_(
       const std::vector<int> &set,
       const std::string &hostname) {
-      double minimumDependency = -1;
       AssignmentChunk result;
 
       //Iterator over set, to determine available AssignmentChunks's dependency
@@ -247,70 +246,39 @@ namespace AllPairs {
          return std::pair<AssignmentChunk, bool>(result, false);
       }
       std::vector<int>::const_iterator end = set.end();
+      double minimum = -1;
+      AssignmentChunk minimumAssignmentChunk;
       for(std::vector<int>::const_iterator it  = set.begin(); it != end; ++it) {
-         double tempMin = 0;
-         AssignmentChunk tempResult;
          std::vector<Assignment>::iterator AEnd = assignments_[*it].getEnd();
+         double chunkWeight = 0;
+
          for(std::vector<Assignment>::iterator AIt  = assignments_[*it].getBegin();
             AIt != AEnd; ++AIt) {
             //Look through all known replicas, and find minimum dependency in graph
-            double replicaMin = -1;
-            std::string minFrom;
-            std::string minTo;
-            std::vector<saga::url>::iterator ReplicaIt  = files_[AIt->getFrom()].begin();
-            std::vector<saga::url>::iterator ReplicaEnd = files_[AIt->getFrom()].end();
-            while(ReplicaIt != ReplicaEnd) {
-               //Lookup cost of each replica
-               boost::graph_traits<Graph>::edge_iterator EIt, EBegin, Eend;
-               boost::tie(EBegin, Eend) = boost::edges(networkGraph_);
-               for(EIt = EBegin; EIt != Eend; ++EIt) {
-                  std::string source(networkGraph_[boost::source(*EIt, networkGraph_)].name);
-                  std::string target(networkGraph_[boost::target(*EIt, networkGraph_)].name);
-                  if(source == ReplicaIt->get_host() && target == hostname) {
-                     double weight = networkGraph_[*EIt].weight;
-                     if(weight < replicaMin || replicaMin == -1) {
-                        replicaMin = weight;
-                        minFrom = ReplicaIt->get_string();
-                     }
-                  }
+            saga::url from = files_[AIt->getFrom()][0];
+            saga::url to   = files_[AIt->getTo()][0];
+            boost::graph_traits<Graph>::edge_iterator EIt, EBegin, Eend;
+            boost::tie(EBegin, Eend) = boost::edges(networkGraph_);
+            for(EIt = EBegin; EIt != Eend; ++EIt) {
+               std::string sourceVertex(networkGraph_[boost::source(*EIt, networkGraph_)].name);
+               std::string targetVertex(networkGraph_[boost::target(*EIt, networkGraph_)].name);
+               if(sourceVertex == from.get_host() && targetVertex == hostname) {
+                  double weight = networkGraph_[*EIt].weight;
+                  chunkWeight += weight;
                }
-               ReplicaIt++;
-            }
-            tempMin += replicaMin;
-            replicaMin = -1;
-            ReplicaIt  = files_[AIt->getTo()].begin();
-            ReplicaEnd = files_[AIt->getTo()].end();
-            while(ReplicaIt != ReplicaEnd) {
-               //Lookup cost of each replica
-               boost::graph_traits<Graph>::edge_iterator EIt, EBegin, Eend;
-               boost::tie(EBegin, Eend) = boost::edges(networkGraph_);
-               for(EIt = EBegin; EIt != Eend; ++EIt) {
-                  std::string source(networkGraph_[boost::source(*EIt, networkGraph_)].name);
-                  std::string target(networkGraph_[boost::target(*EIt, networkGraph_)].name);
-                  if(source == ReplicaIt->get_host() && target == hostname) {
-                     double weight = networkGraph_[*EIt].weight;
-                     if(weight < replicaMin || replicaMin == -1) {
-                        replicaMin = weight;
-                        minTo = ReplicaIt->get_string();
-                     }
-                  }
-               }
-               tempResult.push_back(Assignment(minFrom, minTo));
-               tempMin += replicaMin;
-               ReplicaIt++;
             }
          }
-         if(tempMin < minimumDependency || minimumDependency == -1) {
-            result = tempResult;
-            minimumDependency = tempMin;
+         if(chunkWeight < minimum || minimum == -1) {
+            minimumAssignmentChunk = assignments_[*it];
+            minimum = chunkWeight;
          }
       }
-      if(minimumDependency  == -1) {
+      if(minimum == -1) {
          std::cerr << "returning false from lookup" << std::endl;
          return std::pair<AssignmentChunk, bool>(AssignmentChunk(), false);
       } else {
          std::cerr << "returning true from lookup" << std::endl;
-         return std::pair<AssignmentChunk, bool>(result, true);
+         return std::pair<AssignmentChunk, bool>(minimumAssignmentChunk, true);
       }
    }
 } // namespace AllPairs
