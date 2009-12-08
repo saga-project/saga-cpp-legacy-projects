@@ -186,6 +186,11 @@ namespace AllPairs {
                   finished_.push_back(resultInt);
                }
             }
+            else if(network::test(read, WORKER_STATE_DONE_STAGING))
+	    {
+               worker.write(saga::buffer(MASTER_REQUEST_IDLE, 5));
+               network::expect(WORKER_RESPONSE_ACKNOLEDGE, network::read(worker));
+	    }
          }
          catch(saga::exception const & e) {
             std::string message(e.what());

@@ -373,7 +373,7 @@ namespace AllPairs {
                      network::expect(MASTER_REQUEST_IDLE, network::read(server_));
                      server_.write(saga::buffer(WORKER_RESPONSE_ACKNOLEDGE, 10));
                      state_ = WORKER_STATE_IDLE;
-                     sleep(1);
+                     sleep(5);
                      return getFrontendCommand_();
                   }
                }

@@ -54,7 +54,7 @@ namespace AllPairs
     std::string read;
     try {
        service_ = new saga::stream::server(serverURL_);
-       while(finishedHosts_.size() != numWorkers_) {
+       while(finishedHosts_.size() < numWorkers_) {
           saga::stream::stream worker = service_->serve();
           worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
           read = network::read(worker);
