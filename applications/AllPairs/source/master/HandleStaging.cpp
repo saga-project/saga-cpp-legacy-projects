@@ -8,32 +8,10 @@
 namespace AllPairs
 {
  HandleStaging::HandleStaging(const saga::url &serverURL,
-                              const std::vector<Master::HostDescription> &hostList,
-                              const std::vector<Master::FileDescription> &files,
+                              const std::vector<std::string> &hosts,
                               LogWriter *log)
-    : serverURL_(serverURL), log_(log)
+    : serverURL_(serverURL), log_(log), hosts_(hosts)
  {
-    std::vector<Master::HostDescription>::const_iterator hit  = hostList.begin();
-    std::vector<Master::HostDescription>::const_iterator hend = hostList.end();
-    while(hit != hend) {
-       std::string hostname(saga::url(hit->rmURL).get_host());
-       if(find(hosts_.begin(), hosts_.end(), hostname) == hosts_.end()) {
-          //Not yet in vector
-          hosts_.push_back(hostname);
-       }
-       ++hit;
-    }
-    numWorkers_ = hosts_.size();
-    std::vector<Master::FileDescription>::const_iterator it  = files.begin();
-    std::vector<Master::FileDescription>::const_iterator end = files.end();
-    while(it != end) {
-       std::string filehost(saga::url(it->name).get_host());
-       if(find(hosts_.begin(), hosts_.end(), filehost) == hosts_.end()) {
-          //Not yet in vector
-          hosts_.push_back(filehost);
-       }
-       ++it;
-    }
     for(std::vector<std::string>::iterator it = hosts_.begin(); it != hosts_.end(); ++it)
     {
        Vertex v = boost::add_vertex(networkGraph_);

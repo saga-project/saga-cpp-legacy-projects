@@ -31,10 +31,6 @@ std::vector<std::vector<CompareDescription> > ConfigFileParser::getCompareList()
    return compareDescList_;
 }
 
-std::vector<FileDescription> ConfigFileParser::getFileList() {
-   return fileDescList_;
-}
-
 std::vector<HostDescription> ConfigFileParser::getTargetHostList() {
    return targetHostList_;
 }
@@ -121,28 +117,10 @@ void ConfigFileParser::parse_(void) {
          }
       }
       // parse the ApplicationFiles section
-      xNode = xMainNode.getChildNode("ApplicationFiles");
-      int k=xNode.nChildNode("File");
-      for(int i=0; i<k; ++i) {
-         FileDescription fd;
-         bool complete = true;
-         XMLNode tmpNode = xNode.getChildNode("File", i);
-         if( NULL != tmpNode.getText() ) {
-            fd.name = tmpNode.getText();
-         }
-         else complete = false;
-         if(!complete) {
-            std::string message("XML Parser: Incomplete files section found");
-            log_->write(message, LOGLEVEL_ERROR);
-            break;
-         }
-         else
-            fileDescList_.push_back(fd);
-      }
       int numCompares = xMainNode.nChildNode("CompareAssignment");
       for(int i = 0; i < numCompares; ++i) {
          xNode = xMainNode.getChildNode("CompareAssignment", i);
-         k = xNode.nChildNode("Compare");
+         int k = xNode.nChildNode("Compare");
          std::vector<CompareDescription> comparisons;
          for(int j = 0; j < k; ++j) {
             CompareDescription compareTemp;

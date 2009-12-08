@@ -29,11 +29,12 @@ namespace AllPairs {
          }
          else {
             //Ping the host
-            const int buff_size = 25;
+            const int buff_size = 100;
+            int dummy;
             double answer;
             std::string command("/work/mmicel2/bin/netperf -H ");
             command += *it;
-            command += " | tail -n 1 | sed 's/[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\)[ ]*\\([0-9]*\\.[0-9]*\\)[ ]*\\([0-9]*\\.[0-9]*\\)/\\5/'";
+            command += " | tail -n 1";
 
             FILE *results = popen(command.c_str(), "r");
             char buffer[buff_size];
@@ -44,7 +45,7 @@ namespace AllPairs {
             else
                buffer[buff_size-1] = '\0';
             std::cerr << "string result: " << buffer << std::endl;
-            sscanf(buffer, "%lf", &answer);
+            sscanf(buffer, "%d %d %d %lf %lf", &dummy, &dummy, &dummy, &answer, &answer);
             answer = 1 / answer;
             std::cerr << "netperf result of host (" << *it << "): " << "(" << answer << ")" << std::endl;
             retval.push_back(answer);

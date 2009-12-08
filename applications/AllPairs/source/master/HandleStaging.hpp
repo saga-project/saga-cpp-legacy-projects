@@ -20,8 +20,7 @@ namespace AllPairs {
    class HandleStaging {
      public:
       HandleStaging(const saga::url &serverURL_,
-                    const std::vector<Master::HostDescription> &hostList,
-                    const std::vector<Master::FileDescription> &files,
+                    const std::vector<std::string> &hosts,
                     LogWriter *log);
       ~HandleStaging();
       Graph getNetwork(void);

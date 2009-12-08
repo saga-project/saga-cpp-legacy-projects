@@ -392,9 +392,31 @@ namespace AllPairs {
 
          Graph runStaging_(void) {
             log->write("Running Staging...", LOGLEVEL_INFO);
+            std::vector<std::string> hosts;
             std::vector<HostDescription> hostList = cfgFileParser_.getTargetHostList();
-            std::vector<FileDescription> fileList = cfgFileParser_.getFileList();
-            HandleStaging stage(serverURL_, hostList, fileList, log);
+            std::vector<HostDescription>::iterator it;
+            for(it = hostList.begin();
+                it != hostList.end(); ++it)
+            {
+               std::string currentHost(saga::url(it->rmURL).get_host());
+               if(std::find(hosts.begin(), hosts.end(), currentHost) == hosts.end())
+               {
+                  hosts.push_back(currentHost);
+               }
+            }
+            std::map<int, std::vector<saga::url> >::iterator myIterator;
+            for(myIterator = Files_.begin(); myIterator != Files_.end(); ++it)
+            {
+               for(std::vector<saga::url>::iterator sit = myIterator->second.begin(); sit != myIterator->second.end(); ++sit)
+               {
+                  std::string currentHost(sit->get_host());
+                  if(std::find(hosts.begin(), hosts.end(), currentHost) == hosts.end())
+                  {
+                     hosts.push_back(currentHost);
+                  }
+               }
+            }
+            HandleStaging stage(serverURL_, hosts, log);
             log->write("Success", LOGLEVEL_INFO);
             return stage.getNetwork();
          }
