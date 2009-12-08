@@ -7,7 +7,7 @@
 //#include "../utils/type.hpp"
 //#include <fstream>
 #include <unistd.h>
-#include <wand/MagickWand.h>
+//#include <wand/MagickWand.h>
 
 
  using namespace std;
