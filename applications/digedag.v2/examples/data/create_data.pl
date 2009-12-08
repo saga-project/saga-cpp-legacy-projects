@@ -87,45 +87,99 @@ if ( ! -d $tgt  ) { run_debug ("mkdir -v $tgt "); }
 if ( ! -d $data ) { run_debug ("mkdir -v $data"); }
 
 
-# create dag and file list
-print "creating dag ......... "; 
-run_debug ("mDAG $survey $band $name $x $y $cdelt $tgt tmpurl test");
-print "done\n";
-
-print "creating file list ... "; 
-run_debug ("mArchiveList $survey $band $name $x $y        $list");
-print "done\n";
-
-# grep URLs from file list, to be fetched
-open (IN, "<$list") || die "Cannot open $list: $!\n";
-
-print "download data ........ \n"; 
-while ( <IN> )
 {
-  if ( $_ =~ /^.*\s(http\S+)\s+(\S+).*$/ ) 
-  { 
-    print "   $2 \t ->  $data/$2"; 
-    run_debug ("wget -q '$1' -O '$data/$2'");
-    print "done\n"; 
-  }
+  # create dag and file list
+  print "creating dag ......... "; 
+  run_debug ("mDAG $survey $band $name $x $y $cdelt $tgt tmpurl test");
+  print "done\n";
 }
 
-print "download data ........ done\n"; 
 
-print "rename hdr files ..... \n"; 
-my $base = qx {grep statfile $tgt/dag.xml | grep filename | grep input | cut -f 2 -d '"'};
+{
+  print "fixing   dag ......... "; 
+  # <job id="ID000210" name="mImgtbl" version="3.0" level="4" dv-name="mImgtbl1" dv-version="1.0">
+  #   <argument>
+  #     .
+  #     -t <filename file="cimages_20091208_123627_56073.tbl"/>
+  #     <filename file="newcimages.tbl"/>
+  #   </argument>
+  open (IN, "<$tgt/dag.xml") || die "Cannot open dag.xml: $!\n";
+  my @lines = <IN>;
+  chomp (@lines);
+  close (IN);
 
-chomp ($base);
-$base =~ s/^statfile_(.+)\.tbl$/$1/g;
+  my $tmp = "";
 
-print_debug ("base string: '$base'");
+  foreach my $i ( 0 .. $#lines )
+  {
+    if (   $lines[$i  ] =~ /^\s*<job id="(ID\d+)" name="mImgtbl"/io )
+    {
+      my $job = $1;
+      if ( $lines[$i+1] =~ /^\s*<argument>\s*$/io                 &&
+           $lines[$i+2] =~ /^\s*\./io                             &&
+           $lines[$i+3] =~ /^\s*-t\s+<filename file="/io          )
+      {
+        print "$job ";
+        $tmp         = $lines[$i+2];
+        $lines[$i+2] = $lines[$i+3];
+        $lines[$i+3] = $tmp;
+      }
+    }
+  }
 
-run_debug ("cp $tgt/region.hdr    $data/region_$base.hdr");
-run_debug ("cp $tgt/cimages.tbl   $data/cimages_$base.tbl");
-run_debug ("cp $tgt/pimages.tbl   $data/pimages_$base.tbl");
-run_debug ("cp $tgt/statfile.tbl  $data/statfile_$base.tbl");
-print "done\n";
+  open (OUT, ">$tgt/dag.xml") || die "Cannot open dag.xml: $!\n";
+  foreach my $line ( @lines )
+  {
+    print OUT "$line\n";
+  }
+  close OUT;
 
+  print " done\n";
+}
+
+
+{
+  print "creating file list ... "; 
+  run_debug ("mArchiveList $survey $band $name $x $y        $list");
+  print "done\n";
+}
+
+
+# grep URLs from file list, to be fetched
+{
+  print "download data ........ \n"; 
+
+  open (IN, "<$list") || die "Cannot open $list: $!\n";
+  while ( <IN> )
+  {
+    if ( $_ =~ /^.*\s(http\S+)\s+(\S+).*$/ ) 
+    { 
+      print "   $2 ... "; 
+      run_debug ("wget -q '$1' -O '$data/$2'");
+      print "done\n"; 
+    }
+  }
+  close IN;
+
+  print "download data ........ done\n"; 
+}
+
+
+{
+  print "rename hdr files ..... \n"; 
+  my $base = qx {grep statfile $tgt/dag.xml | grep filename | grep input | cut -f 2 -d '"'};
+
+  chomp ($base);
+  $base =~ s/^statfile_(.+)\.tbl$/$1/g;
+
+  print_debug ("base string: '$base'");
+
+  run_debug ("cp $tgt/region.hdr    $data/region_$base.hdr");
+  run_debug ("cp $tgt/cimages.tbl   $data/cimages_$base.tbl");
+  run_debug ("cp $tgt/pimages.tbl   $data/pimages_$base.tbl");
+  run_debug ("cp $tgt/statfile.tbl  $data/statfile_$base.tbl");
+  print "done\n";
+}
 
 print "\n";
 
