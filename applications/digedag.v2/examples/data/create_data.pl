@@ -155,7 +155,7 @@ if ( ! -d $data ) { run_debug ("mkdir -v $data"); }
     if ( $_ =~ /^.*\s(http\S+)\s+(\S+).*$/ ) 
     { 
       print "   $2 ... "; 
-      run_debug ("wget -q '$1' -O '$data/$2'");
+      run_debug ("wget -q -c '$1' -O '$data/$2'");
       print "done\n"; 
     }
   }
