@@ -394,20 +394,17 @@ namespace AllPairs {
             log->write("Running Staging...", LOGLEVEL_INFO);
             std::vector<std::string> hosts;
             std::vector<HostDescription> hostList = cfgFileParser_.getTargetHostList();
-            std::vector<HostDescription>::iterator it;
-            for(it = hostList.begin();
-                it != hostList.end(); ++it)
+            for(std::vector<HostDescription>::iterator hostIt = hostList.begin(); hostIt != hostList.end(); ++hostIt)
             {
-               std::string currentHost(saga::url(it->rmURL).get_host());
+               std::string currentHost(saga::url(hostIt->rmURL).get_host());
                if(std::find(hosts.begin(), hosts.end(), currentHost) == hosts.end())
                {
                   hosts.push_back(currentHost);
                }
             }
-            std::map<int, std::vector<saga::url> >::iterator myIterator;
-            for(myIterator = Files_.begin(); myIterator != Files_.end(); ++it)
+            for(std::map<int, std::vector<saga::url> >::iterator fileIt = Files_.begin(); fileIt!= Files_.end(); ++fileIt)
             {
-               for(std::vector<saga::url>::iterator sit = myIterator->second.begin(); sit != myIterator->second.end(); ++sit)
+               for(std::vector<saga::url>::iterator sit = fileIt->second.begin(); sit != fileIt->second.end(); ++sit)
                {
                   std::string currentHost(sit->get_host());
                   if(std::find(hosts.begin(), hosts.end(), currentHost) == hosts.end())
@@ -415,6 +412,12 @@ namespace AllPairs {
                      hosts.push_back(currentHost);
                   }
                }
+            }
+            std::vector<std::string>::iterator it = hosts.begin();
+            while(it != hosts.end())
+            {
+               std::cerr << "host: " << *it << std::endl;
+               ++it;
             }
             HandleStaging stage(serverURL_, hosts, log);
             log->write("Success", LOGLEVEL_INFO);
