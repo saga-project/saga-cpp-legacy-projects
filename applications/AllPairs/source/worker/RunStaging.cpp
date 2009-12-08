@@ -1,5 +1,4 @@
 #include "RunStaging.hpp"
-#include <stdio.h>
 
 namespace AllPairs {
 
@@ -30,11 +29,11 @@ namespace AllPairs {
          else {
             //Ping the host
             const int buff_size = 100;
-            int dummy;
             double answer;
-            std::string command("/work/mmicel2/bin/netperf -H ");
-            command += *it;
+            std::string command("/bin/ping -c 2 ");
+            command += it->c_str();
             command += " | tail -n 1";
+            std::cerr << "Netperf command: " << command.c_str() << std::endl;
 
             FILE *results = popen(command.c_str(), "r");
             char buffer[buff_size];
@@ -45,9 +44,8 @@ namespace AllPairs {
             else
                buffer[buff_size-1] = '\0';
             std::cerr << "string result: " << buffer << std::endl;
-            sscanf(buffer, "%d %d %d %lf %lf", &dummy, &dummy, &dummy, &answer, &answer);
-            answer = 1 / answer;
-            std::cerr << "netperf result of host (" << *it << "): " << "(" << answer << ")" << std::endl;
+            sscanf(buffer, "rtt min/avg/max/mdev = %lf", &answer);
+            std::cerr << "result of host (" << *it << "): " << "(" << answer << ")" << std::endl;
             retval.push_back(answer);
          }
       }
