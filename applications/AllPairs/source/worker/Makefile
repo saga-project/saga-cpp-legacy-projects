@@ -5,7 +5,7 @@
 #  http://www.boost.org/LICENSE_1_0.txt)
 
 # use all cpp files from here
-SAGA_SUBDIRS      = compare
+#SAGA_SUBDIRS      = compare
 
 SAGA_SRC          = $(wildcard *.cpp)
 SAGA_ADD_BIN_OBJ  = $(SAGA_SRC:%.cpp=%.o)
@@ -18,6 +18,5 @@ SAGA_USE_BOOST_OPTIONS = "yes"
 # include the application helper make file
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
-SAGA_CXXFLAGS += $(shell MagickWand-config --cppflags --cxxflags) 
-
-SAGA_LDFLAGS   += -L/sw/lib $(shell MagickWand-config --ldflags --libs)
+#SAGA_CXXFLAGS += $(shell MagickWand-config --cppflags --cxxflags) 
+#SAGA_LDFLAGS   += -L/sw/lib $(shell MagickWand-config --ldflags --libs)
