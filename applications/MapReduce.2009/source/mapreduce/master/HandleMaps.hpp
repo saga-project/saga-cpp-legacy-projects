@@ -14,7 +14,7 @@
 #include "../../utils/LogWriter.hpp"
 #include "../version.hpp"
 
-namespace mapreduce {
+namespace mapreduce { namespace master {
 
 class HandleMaps {
    public:
@@ -45,6 +45,7 @@ class HandleMaps {
     std::vector<std::string>::size_type totalChunks_;
 };
 
+} // namespace master
 } // namespace mapreduce
 
 #endif // MR_HANDLE_MAPS_HPP

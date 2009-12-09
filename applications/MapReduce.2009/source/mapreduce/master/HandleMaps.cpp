@@ -11,7 +11,8 @@
  * The HandleMaps class handles all the details of       *
  * assigning map tasks to running workers.               *
  ********************************************************/
-namespace mapreduce {
+namespace mapreduce { namespace master {
+
 HandleMaps::HandleMaps(const JobDescription& job,
                        std::vector<InputChunk*> &chunks,
                        std::map<std::string, saga::url>& committed_chunks,
@@ -229,4 +230,5 @@ std::string HandleMaps::getCandidate_(saga::stream::stream& worker) {
   }
 }
 
+} // namespace master
 } // namespace mapreduce
