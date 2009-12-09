@@ -34,7 +34,7 @@ void WorkerThread::mainLoop() {
               std::string full_path = FileOutputFormat::GetOutputPath(*job_);
               full_path.append(partition_name);
               LOG_DEBUG << "Intermediate data: " << full_path;
-              adv.store_string(full_path);
+              adv.store_object<std::string>(full_path);
             }
             state_ = WORKER_STATE_DONE_MAP;
           }

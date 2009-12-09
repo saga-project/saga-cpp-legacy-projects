@@ -142,7 +142,7 @@ void HandleReduces::issue_command_() {
             saga::advert::directory workerChunkDir(workerAdvert.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
             for(unsigned int counter = 0; counter < reduceInput.size(); counter++) {
               saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
-              adv.store_string(reduceInput[counter]);
+              adv.store_object<std::string>(reduceInput[counter]);
             }
             // Serialize JobDescription.
             std::string command;
@@ -229,7 +229,7 @@ std::vector<std::string> HandleReduces::groupFiles_(int partition) {
         "map", chunk_it->first, partition)));
       if (data.exists(fileurl)) {
         saga::advert::entry adv(data.open(fileurl, mode));
-        std::string path = adv.retrieve_string();
+        std::string path = adv.retrieve_object<std::string>();
         intermediate_files.push_back(path);
         log_->write(("Added file " + path + " to input list"), MR_LOGLEVEL_INFO);
       } else {

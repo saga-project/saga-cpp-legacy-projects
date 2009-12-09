@@ -105,7 +105,7 @@ void LogWriter::write(std::string message, unsigned int logLevel)
     //append message
     adv << message << std::endl;
     std::string report = SAGA_OSSTREAM_GETSTRING(adv);
-    log.store_string(report);
+    log.store_object<std::string>(report);
     std::cerr << report;
   }
   catch (saga::exception const& e) {
