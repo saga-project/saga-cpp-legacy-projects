@@ -8,7 +8,7 @@
 #include "ConfigFileParser.hpp"
 #include "../../xmlParser/xmlParser.h"
 
-using namespace mapreduce::master;
+namespace mapreduce { namespace master {
 
 ConfigFileParser::ConfigFileParser() {
 }
@@ -158,3 +158,5 @@ void ConfigFileParser::parse_(void)
   }*/
 }
 
+} // namespace master
+} // namespace mapreduce
