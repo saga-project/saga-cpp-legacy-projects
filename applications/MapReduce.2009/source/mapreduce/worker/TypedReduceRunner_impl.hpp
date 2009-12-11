@@ -29,7 +29,7 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
     while(entries_it != entries.end()) {
       saga::advert::entry adv(input_dir.open(*entries_it, mode));
       input_files.push_back(adv.retrieve_object<std::string>());
-      LOG_DEBUG << "Added reduce input " << adv.retrieve_object<std::string>();
+      LOG_DEBUG << "Added reduce input " << input_files.back();
       ++entries_it;
     }
   } catch(saga::exception const & e) {
@@ -45,7 +45,7 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
     LOG_DEBUG << "Creating single reader";
     // Special case when no merging is needed.
     reader.reset(new SequenceFileRecordReader(saga::url(
-      input_files.back()), 0));
+      FileOutputFormat::GetUrl(*task, input_files.back())), 0));
   } else {
     LOG_DEBUG << "Creating merging reader";
     // Instantiate readers for each intermediate input part.
