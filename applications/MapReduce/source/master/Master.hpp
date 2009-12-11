@@ -163,13 +163,13 @@ namespace MapReduce {
             std::string advertKey(database_ + "//" + uuid_ + "/");
             try {
                sessionBaseDir_ = saga::advert::directory(advertKey, mode);
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("name",    cfgFileParser_.getSessionDescription().name));
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("user",    cfgFileParser_.getSessionDescription().user));
-               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::ASync>("version", cfgFileParser_.getSessionDescription().version));
-               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
-               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
-               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::ASync>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
-               saga::task t3 = sessionBaseDir_.open<saga::task_base::ASync>(saga::url(ADVERT_ENTRY_SERVER), mode);           //server address for worker
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Async>("name",    cfgFileParser_.getSessionDescription().name));
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Async>("user",    cfgFileParser_.getSessionDescription().user));
+               tc.add_task(sessionBaseDir_.set_attribute<saga::task_base::Async>("version", cfgFileParser_.getSessionDescription().version));
+               saga::task t0 = sessionBaseDir_.open_dir<saga::task_base::Async>(saga::url(ADVERT_DIR_WORKERS),  mode); //workersDir_
+               saga::task t1 = sessionBaseDir_.open_dir<saga::task_base::Async>(saga::url(ADVERT_DIR_BINARIES), mode); //binariesDir_
+               saga::task t2 = sessionBaseDir_.open_dir<saga::task_base::Async>(saga::url(ADVERT_DIR_CHUNKS),   mode); //chunksDir_
+               saga::task t3 = sessionBaseDir_.open<saga::task_base::Async>(saga::url(ADVERT_ENTRY_SERVER), mode);           //server address for worker
                tc.add_task(t0);
                tc.add_task(t1);
                tc.add_task(t2);
@@ -206,8 +206,8 @@ namespace MapReduce {
                try {
                  saga::advert::entry adv = binariesDir_.open(binaryListIT->targetOS+"_"+binaryListIT->targetArch, mode);
                  //Now set some properties of the binaries
-                 saga::task t0 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_ARCH,    binaryListIT->targetArch);
-                 saga::task t1 = adv.set_attribute<saga::task_base::ASync>(ATTR_EXE_LOCATION,binaryListIT->URL);
+                 saga::task t0 = adv.set_attribute<saga::task_base::Async>(ATTR_EXE_ARCH,    binaryListIT->targetArch);
+                 saga::task t1 = adv.set_attribute<saga::task_base::Async>(ATTR_EXE_LOCATION,binaryListIT->URL);
                  t0.wait();
                  t1.wait();
                  message += "SUCCESS";

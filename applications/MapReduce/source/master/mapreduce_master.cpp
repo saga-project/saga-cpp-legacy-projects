@@ -5,6 +5,7 @@
 
 #include "Master.hpp"
 #include "../xmlParser/xmlParser.h"
+#include "../utils/block_profiler.hpp"
 #include <boost/scoped_ptr.hpp>
 
 using namespace MapReduce::Master;
