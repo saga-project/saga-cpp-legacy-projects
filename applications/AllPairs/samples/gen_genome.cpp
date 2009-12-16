@@ -12,7 +12,7 @@ int main()
       out << f;
       s += out.str();
       fp = fopen(s.c_str(), "w");
-      for(int c = 0; c < 150000000; c++)
+      for(int c = 0; c < 300000000; c++)
       {
          int number = rand() % 4;
          if(number == 0)
