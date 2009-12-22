@@ -433,7 +433,17 @@ namespace AllPairs {
          }
 
          void sendQuit_(void) {
-            saga::url url(serverURL_);
+            std::vector<saga::job::job>::iterator it = jobs_.begin();
+            while(it != jobs_.end())
+            {
+               if(it->get_state() != saga::job::Done ||
+                  it->get_state() != saga::job::Failed ||
+                  it->get_state() != saga::job::Canceled)
+               {
+                  it->signal(9);
+               }
+            }
+            /*saga::url url(serverURL_);
             unsigned int successCounter = 0;
             std::vector<saga::url> list = workersDir_.list("*");
             unsigned int workersSize = list.size();
@@ -455,7 +465,7 @@ namespace AllPairs {
             }
             catch(saga::exception const & e) {
                std::cerr << e.what() << std::endl;
-            }
+            }*/
          }
       };
    } // namespace Master
