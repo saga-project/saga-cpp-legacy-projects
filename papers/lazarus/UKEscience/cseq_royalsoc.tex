@@ -98,8 +98,8 @@
   approach. We will outline the architecture and implementation of the
   solution we develop in response to these requirements, and discuss
   results to validate claims that our solution scales to effectively
-  solve problems sizes and thus provides the capability to generate
-  novel scientific insight.\end{abstract}
+  solve desired problems sizes and thus provides the capability to
+  generate novel scientific insight.\end{abstract}
 
 \section{Introduction and Motivation}
 
@@ -176,6 +176,9 @@ throughput and on-demand computing resources.
 \label{fig:irregular_execution}
 \end{figure}
 
+
+\section{Meeting the Requirements: Design and Architecture}
+
 Due to the complexity of the problem, involving reservoir simulation,
 geostatistics on one end, and simulation management, workflows, grid
 and high-throughput computing on another, a design decision was made
@@ -184,16 +187,20 @@ abstractions whenever possible. This resulted in a rapid development
 cycle and faster turn-over. The components we developed and use are as
 follows:
 
+
 \begin{itemize}
 
-\item The Reservoir Simulator: Based on the Cactus Code ~\citep{cactus_web} high 
-performance scientific computing framework and the Portable Extensible Toolkit for 
-Scientific Computing: PETSc ~\citep{PETSc}, the BlackOil reservoir simulator solves the 
-equations for multiphase fluid flow through porous media, allowing us to simulate the 
-movement of oil and gas in subsurface formations. With a few parameter changes, BlackOil 
-is also used for modelling the flow of CO$_2$, however it cannot 
-simulate any geochemical interaction. While adequate as a first order approximation, it is 
-still under heavy development to enable it to satisfactorily model geochemical phenomena.
+\item The Reservoir Simulator: Based on the Cactus Code
+  ~\citep{cactus_web} high performance scientific computing framework
+  and the Portable Extensible Toolkit for Scientific Computing: PETSc
+  ~\citep{PETSc}, the BlackOil reservoir simulator solves the
+  equations for multiphase fluid flow through porous media, allowing
+  us to simulate the movement of oil and gas in subsurface
+  formations. With a few parameter changes, BlackOil is also used for
+  modelling the flow of CO$_2$, however it cannot simulate any
+  geochemical interaction. While adequate as a first order
+  approximation, it is still under heavy development to enable it to
+  satisfactorily model geochemical phenomena.
 
 \item The Ensemble Kalman filter: Also based on Cactus and PETSc, it
   computes the Kalman gain matrix and updates the model parameters of
@@ -235,73 +242,100 @@ still under heavy development to enable it to satisfactorily model geochemical p
 \label{fig:irregular_execution}
 \end{figure}
 
+When used in conjunction, these components allow us to perform
+closed-loop large scale reservoir characterization studies as well as
+long term forecast, enhanced oil recovery and CO$_2$ sequestration
+studies. As more reservoir history data is generated during enhanced
+oil recovery and CO$_2$ injection, the closed-loop can continue to run
+and provide insight as the reservoir geological models are being
+updated by the EnKF.  Continuously running the latest models in
+forecast simulations with the latest sensor data will hopefully allow
+us to predict un-intended movement of CO$_2$, leaks into aquifers,
+critical pressure build-ups or huge pressure drops (fractures,
+blow-outs etc.). To that end we use the BlackOil reservoir simulator
+as an early prototype of what will eventually be an accurate simulator
+that can model CO$_2$ sequestration, geochemical and geomechanical
+phenomena. The S2S framework is also under heavy development to add
+sensor metadata allowing Lazarus, through autonomic logic, to
+distinguish between critical and non-critical sensor data, and
+ultimately making use of on-demand computing resources (should the
+sensor data prove critical).
 
-When used in conjunction, these components allow us to perform closed-loop large scale 
-reservoir characterization studies as well as long term forecast, enhanced oil recovery 
-and CO$_2$ sequestration studies. As more reservoir history data is generated during 
-enhanced oil recovery and CO$_2$ injection, the closed-loop can continue to run and 
-provide insight as the reservoir geological models are being updated by the EnKF. 
-Continuously running the latest models in forecast simulations with the 
-latest sensor data will hopefully allow us to predict un-intended movement of CO$_2$, 
-leaks into aquifers, critical pressure build-ups or huge pressure drops (fractures, 
-blow-outs etc.). To that end we use the BlackOil reservoir simulator as an early prototype 
-of what will eventually be an accurate simulator that can model CO$_2$ sequestration, 
-geochemical and geomechanical phenomena. The S2S framework is also under heavy development 
-to add sensor metadata allowing Lazarus, through autonomic logic, to distinguish between 
-critical and non-critical sensor data, and ultimately making use of on-demand computing 
-resources (should the sensor data prove critical).
+% \jhanote{Need some details of how this ``autonomic decision making'' is supported?}
+% \yyenote{haven't figure that bit out yet, but I am guessing I will just remove it}
 
-\jhanote{Need some details of how this ``autonomic decision making'' is supported?}
-\yyenote{haven't figure that bit out yet, but I am guessing I will just remove it}
+\jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The
+  variability of sub-job sizes and requirements. We use BigJob on TG
+  and Condor Glide-in on Condor resources}.
 
-\jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The variability of
-sub-job sizes and requirements. We use BigJob on TG and Condor Glide-in on Condor
-resources}.
+\section{Performance Data and Analysis:} 
 
-{\it Performance Data: }We have previously run an EnKF based application on several 
-TeraGrid resources and demonstrated effective {\it Scale-out} across three 
-machines~\citep{gmac}. In this work, in addition to a different scientific problem, we 
-integrate (simulated) sensor data into the computational loop; the time-dependent 
-sensor-data dynamically drives the application, and influences the controls and execution 
-trajectory in phase-space. Additionally, we incorporate the use of Condor pools
-in Lazarus for even higher throughput, demonstrating possible advantages to
-using multiple pilot job mechanisms. These are amongst the first simulations that use general 
-purpose frameworks (as distinguished from specialized frameworks, for example LEAD) on 
-production infrastructure.
+We have previously run an EnKF based application on several TeraGrid
+resources and demonstrated effective {\it Scale-out} across three
+machines~\citep{gmac}.  Additionally, we incorporate the use of Condor
+pools in Lazarus for even higher throughput, demonstrating possible
+advantages to using multiple pilot job mechanisms.
 
-{\it Conclusion: } A triad of unique aspects are developed in this paper: (i) We
-incorporate the use of EnKF in reservoir characterization for carbon dioxide sequestration
-studies, combining two developing research areas and investigating the forefront (ii) We 
-extend our EnKF based approach further with the incorporation of live sensor data that 
-influences the entire study (iii) We introduce Condor pools to our resources and use 
-Condor's native pilot-job (Glide-In) for Condor resources and SAGA's BigJob abstraction 
-for Teragrid resources transparently through Lazarus. We believe this is a novel if not 
-the first demonstration of the use of two-different pilot job mechanisms towards the 
-solution of the same problem.
+\subsection{Performance Data} \jhanote{We could either reproduce the
+  above data plot as is, or we could extend the data plot to include
+  $T_c$ when Purdue's Condor Pool is introduced into the mix. I think
+  there is some merit in extending to scale-out onto 4 resources (R,
+  Q, A + Purdue) -- obviously without worrying about BQP. We don't
+  have to use BigJob on the Purdue-Condor pool}
 
+In this work, in addition to a different scientific problem, we
+integrate (simulated) sensor data into the computational loop; the
+time-dependent sensor-data dynamically drives the application, and
+influences the controls and execution trajectory in phase-space.
+
+These are amongst the first simulations
+that use general purpose frameworks (as distinguished from specialized
+frameworks, for example LEAD) on production infrastructure.
+
+\subsection{Analysis} 
+
+\jhanote{In this section we revisit the ``computational requirements
+  of real problems'' as set out near the beginning. We then calibrate
+  requirements based upon our results here -- showing (i) that we have
+  met a fraction of the requirements, but, (ii) that we need to do
+  much more in order to be able to meet the requirements laid out for
+  real problems.}
+  
+{\it Conclusion: } A triad of unique aspects are developed in this
+paper: (i) We incorporate the use of EnKF in reservoir
+characterization for carbon dioxide sequestration studies, combining
+two developing research areas and investigating the forefront (ii) We
+extend our EnKF based approach further with the incorporation of live
+sensor data that influences the entire study (iii) We introduce Condor
+pools to our resources and use Condor's native pilot-job (Glide-In)
+for Condor resources and SAGA's BigJob abstraction for Teragrid
+resources transparently through Lazarus. 
 
 \bibliographystyle{kluwer}
 \bibliography{cseq_abstract}
 \end{document}
 
-\section*{Notes (this will become the abstract)}
 
-\begin{itemize}
-
-
-\item \yyenote{ The problem is performing reservoir studies that are updated real-time, 
-the application is the history-matching, forecasting and CO2 sequestration scenario. We 
-want to use cyberinfrastructure because of several reasons: we have many simulations of 
-complex reservoirs, that means we have to go parallel for higher throughput and use parallel processing. To be able to do this in real-time i.e. as the sensor data streams 
-in, we have to have very fast turn-around for simulations that means high throughput, so 
-we use everything at our disposal including grids which so far works. Other motivation, 
-and this is more of a petroleum engineering perspective: if we cannot make use of existing 
-tools and technologies today, chances are we will not be able to use new tools and 
-technologies of tomorrow. We can elaborate on how we need cyberinfrastructure not just 
-cycles: HPC for the simulator, grid and high throughput for many simulations and bigjob, 
-databases for the sensor data i.e. data driven and data aware for Lazarus, as well as 
-restart/fault-tolerance mechanisms, and of course sensors in the field. Now all I have to 
-do is structure this so that it resembles a half defence paragraph. }
+\item \yyenote{ The problem is performing reservoir studies that are
+    updated real-time, the application is the history-matching,
+    forecasting and CO2 sequestration scenario. We want to use
+    cyberinfrastructure because of several reasons: we have many
+    simulations of complex reservoirs, that means we have to go
+    parallel for higher throughput and use parallel processing. To be
+    able to do this in real-time i.e. as the sensor data streams in,
+    we have to have very fast turn-around for simulations that means
+    high throughput, so we use everything at our disposal including
+    grids which so far works. Other motivation, and this is more of a
+    petroleum engineering perspective: if we cannot make use of
+    existing tools and technologies today, chances are we will not be
+    able to use new tools and technologies of tomorrow. We can
+    elaborate on how we need cyberinfrastructure not just cycles: HPC
+    for the simulator, grid and high throughput for many simulations
+    and bigjob, databases for the sensor data i.e. data driven and
+    data aware for Lazarus, as well as restart/fault-tolerance
+    mechanisms, and of course sensors in the field. Now all I have to
+    do is structure this so that it resembles a half defence
+    paragraph. }
 
  \item Sensor driven application and workflow: the number of stages is controlled by 
 sensors and the simulations themselves use sensor data
@@ -310,12 +344,6 @@ sensors and the simulations themselves use sensor data
 applications that use parameters from live data that we do not see before, everything will 
 vary wildly
 
-% \item \yyenote{ The simulation components are as follows:}
-%   \begin{itemize}
-%     \item Reservoir Simulator: a blackoil reservoir simulator that simulates three components in three phases: oil, water gas system. The Reservoir Simulator is used for forecasting production and for simulating CO2 sequestration by making the assumption that CO2 is soluble in oil but not water. This simplification, while crude, is a first order approximation and for our purposes will do for now. In the future, the blackoil reservoir simulator will be replaced with a compositional reservoir simulator that will be more accurate and allow us to resolve more physics. This does not affect anything in the workflow, it just gives us better results. The Reservoir simulator also needs to pull live sensor data since it constitutes part of the model parameters (eg. bottom hole pressure for production)
-%     \item The EnKF: the ensemble Kalman Filter executable uses historical production data (and later on live, real-time sensor data) to compute the Kalman gain matrix and update the ensemble parameters (that are used in the Reservoir simulator)
-%     \item The workflow manager: a mechansim for launching jobs and retrieving data, orchestrating new stages based on availability of new sensor data. The workflow also updates the forecast: i.e. runs models until reservoir is depleted and then runs the CO2 sequestration study
-%   \end{itemize}
 
 \item The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.e. real-time suddenly) you lose well-head pressure: the CO2 is going somewhere, you want to find out where! It could be building up around the casing or going into a fracture, really nasty stuff can happen \jhanote{elaborate  addressed} \yyenote{The sensor data can contain critical information: pressure went to the roof or pressure went to zero, i.e. bad things will happen. We need to be able to identify these situations because for those cases obtaining simulation results ASAP is very important}
 
@@ -335,9 +363,14 @@ vary wildly
 
 \item Need to formulate the problem in terms of Application Objective, Mechanisms and Strategy.
 
-% \item The three Unique things about this paper are (i) The fact that we are studying C02 Sequestration using EnKF (EnKF-CS) one of the first to do so, (ii) Effective/proper solution of EnKF-CS, imposes interesting additional requirements, over and above EnKF for History Matching -- that of sensors \& experimentally driven data. We incorporate this additional requirement, using the same programming system (SAGA) as used for EnkF-HM thus justifying claims of extensibility, and (iii) Due to distribution of sub-problems (task), we introduce Condor pools in the mix of resources we utilize and interestingly, we utilize Condor's native pilot-job (Glide-In) when using Condor resources but SAGA's BigJob abstraction when using TG resources (which opens the question, why can't we use Condor's Pilot-Job on Ranger, QueenBee ?). We beleieve this is a novel if not the first demonstration of the use of two-different pilot job mechanims towards the solution of the same problem.
-
-\item Need for distributed computing when urgent -- ``little bit on all machines''. Need for autonomic decision making in determining the resource: Lazarus determines where to send the simulation. \jhanote{We need to say something about how this decision could be made in practise} \yyenote{Was hoping Ole's scheduling stuff would help, I have no idea how to begin to optimize this, perhaps a reverse scheduler? I don't know honestly} \jhanote{OK let us leave this out}
+\item Need for distributed computing when urgent -- ``little bit on
+  all machines''. Need for autonomic decision making in determining
+  the resource: Lazarus determines where to send the
+  simulation. \jhanote{We need to say something about how this
+    decision could be made in practise} \yyenote{Was hoping Ole's
+    scheduling stuff would help, I have no idea how to begin to
+    optimize this, perhaps a reverse scheduler? I don't know honestly}
+  \jhanote{OK let us leave this out}
 
 \item Application objective: match-making for ; mechanism:  Lazarus.. etc ; strategy: 
 
@@ -349,10 +382,12 @@ The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.
 \begin{itemize}
  \item Based on that, we will need several things: frequent and dynamic updates of available sensor data (i.e. sensor platform, which we sort of have but needs more work, this is LabVIEW side...)
  \item On demand computing: You want to know if the CO2 is just moving to new places normally (i.e. you have low permeability and have to cross a threshold to get CO2 through there) or you broke the rock and CO2 is building around the casing of the well and the whole damn thing will explode
- \item Special handling of critical sensor data: we might need some sort of mechanism to distinguish low priority sensor data from critical sensor data, based on that, throw a token for spruce or switch to dedicated queues or something like that
+ \item Special handling of critical sensor data: we might need some
+   sort of mechanism to distinguish low priority sensor data from
+   critical sensor data, based on that, throw a token for spruce or
+   switch to dedicated queues or something like that
  \item The data is sensitive and confidential, security is a big issue that we will need to address, same goes for database redundancy (you don't want all ensembles hitting a single DB for latest sensor data all at once, you want redundancy...)
 \item Based on sensor data, we might want to run fire control models, emergency response models, kill-well/well-shutdown models etc... So analysis of sensor data before we jam it in the workflow might be important
 \end{itemize}
-
-\jhanote{Introduction will not be submitted}
+}
 
