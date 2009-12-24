@@ -436,8 +436,8 @@ namespace AllPairs {
             std::vector<saga::job::job>::iterator it = jobs_.begin();
             while(it != jobs_.end())
             {
-               if(it->get_state() != saga::job::Done ||
-                  it->get_state() != saga::job::Failed ||
+               if(it->get_state() != saga::job::Done &&
+                  it->get_state() != saga::job::Failed &&
                   it->get_state() != saga::job::Canceled)
                {
                   it->signal(9);
