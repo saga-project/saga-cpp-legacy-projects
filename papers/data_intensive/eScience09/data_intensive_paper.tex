@@ -44,16 +44,16 @@ backgroundcolor=\color{listinggray},
 }
 
 \title[Understanding Performance Implications of Distributing Data for
-  Data-Intensive Applications]{Understanding Performance Implications
-  of Distributing Data for Data-Intensive Applications}
+Data-Intensive Applications]{Understanding Performance Implications of
+Distributing Data for Data-Intensive Applications}
 
 
 \author[Miceli, Miceli, Rodriguez-Milla, Jha]{ Christopher Miceli$^{1}$,
-Michael Miceli$^{1}$, Bety Rodriguez-Milla$^{1}$, Shantenu Jha$^{1,2,*}$ \\
-\small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State
-University, USA}} \\  \small{\emph{$^{2}$Department of Computer Science,
-Louisiana State University, USA}} \\ {\footnotesize {\hspace{0.0 in}
-$^*$Corresponding Author sjha@cct.lsu.edu}} }
+Michael Miceli$^{1}$, Bety Rodriguez-Milla$^{1}$, Shantenu Jha$^{1,2,*}$
+\\ \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
+State University, USA}} \\  \small{\emph{$^{2}$Department of Computer
+Science, Louisiana State University, USA}} \\ {\footnotesize
+{\hspace{0.0 in} $^*$Corresponding Author sjha@cct.lsu.edu}} }
 
 %\date{}
 
@@ -63,14 +63,12 @@ $^*$Corresponding Author sjha@cct.lsu.edu}} }
 % {\section*{\acknowledgementname}%\parindent=0pt% }
 
 \newif\ifdraft \drafttrue \ifdraft \newcommand{\fixme}[1]{ { \bf{
-   ***FIXME: #1 }} } \newcommand{\jhanote}[1]{ {\textcolor{red} {
-      ***Jha: #1 }}} \newcommand{\micnote}[1]{ {\textcolor{blue} {
-         ***Michael: #1 }}} \else \newcommand{\jhanote}[1]{}
-         \newcommand{\micnote}[1]{} \newcommand{\fixme}[1]{} \fi
+***FIXME: #1 }} } \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha:
+#1 }}} \newcommand{\micnote}[1]{ {\textcolor{blue} { ***Michael: #1 }}}
+\else \newcommand{\jhanote}[1]{} \newcommand{\micnote}[1]{}
+\newcommand{\fixme}[1]{} \fi
 
-\begin{document} 
-
-\maketitle
+\begin{document} \maketitle
 
 \micnote{This can't be more than 200 words. The summary should be
 concise and informative. It should be complete by itself, and must not
@@ -82,82 +80,83 @@ results and conclusions. Please note that footnotes are not used.}
 computing, grid computing} Grids and, more recently, Clouds and
 Cloud-like infrastructure are capable of supporting large problems.
 While the capability of these systems is great, unique performance
-issues appear as data-sets get extremely large, such as Google's 20
-petabytes of data processed per day~\citep{google}, and trends show
-continuing growth. Against this backdrop, it has become ever more
-important that a distributed application developer take precautions when
-placing, scheduling and managing such large volumes of data, or to state
-the obvious, performance could be adversely affected greatly. As the
-volume of data, and especially distributed data increases, scalable
-placement and management techniques are required.  Distributed
-File-Systems (DFS) simplify the management of distributed data, for
-example, providing a single access protocol and a common name-space.
-With the advent of several stable Open Source DFS projects (motivated in
-part, by developments in Cloud Computing), these can be deployed without
-explicit vendor support and are now thus, potentially useful and
-effective tools to consider for data-intensive scientific applications.
-DFS typically handle replication and distribution of files across
-multiple machines internally and although this abstraction simplifies
-the management of data, contrasted with explicit distributed aware
-placement, there are potential performance trade-offs, in that the user
-can no longer control data placement to optimise performance, and
-possibly has performance implications.  The most common parameters
-determining the performance of using DFS are the (i) number of replicas
-of each data/file, (ii) number of servers. The aim of this paper is to
-understand the performance trade-offs of a DFS compared to ``regular''
-distribution and placement techniques, and how sensitive the performance
-is in the context of a real data-intensive distributed
-applications.\end{abstract}
+issues appear as data-sets get extremely large.  A good example of this
+is Google, which processes around 20 petabytes of data per day
+~\citep{google}, and trends show continuing growth. It has become very
+important that a distributed application developer takes precautions
+when placing, scheduling and managing large volumes of data.  Careless
+placesment can adversely affect system performance greatly. As the
+volume of data increases, scalable placement and management techniques
+are required.  Distributed filesystems (DFS) simplify the management of
+distributed data by providing a single access protocol and a common
+name-space, and encapsulating data placement issues.  Although this
+abstraction simplifies the management of data, contrasted with explicit
+distributed aware placement, there are potential performance trade-offs:
+users can no longer control data placement, which possibly has
+performance implications.  Another approach is for the work to be aware
+of the data and adjust accordingly.  A system that is aware and can move
+the work to the data or vice-versa has different performance issues than
+a DFS.The goal of this paper is to understand techniques for
+distributing data in a distributed environment and understand
+performance issues associated with these techniques.\end{abstract}
 
 \section{Introduction} When working with distributed systems and large
-data-sets together, determining whether to move input data to the
-computational resource, or the computational workload to the input data
-becomes very important. Frequently, there is more than one copy of the
-input data for fault-tolerance reasons, then the added issue of deciding
-between the two or more replicas becomes relevant. While DFS remove the
-responsibility of replica management, the abstraction often makes
-determining where in the DFS the data is being stored difficult, and
-thus relying on the DFS protocol and internal algorithms to perform
-well. Despite this, the DFS replication may alleviate these issues by
-placing replicas in locations where computational resources reside.
+data-sets together, determining whether to move input data to the computational
+resource, or the computational workload to the input data becomes very
+important. Frequently, there is more than one copy of the input data for
+fault-tolerance reasons, then the added issue of deciding between the two or
+more replicas becomes relevant. While DFS remove the responsibility of replica
+management, the abstraction often makes determining where in the DFS the data
+is being stored difficult, and thus relying on the DFS protocol and internal
+algorithms to perform well. Despite this, the DFS replication may alleviate
+these issues by placing replicas in locations where computational resources
+reside.
 
-%There are at least two types of data-intensive applications: the first
-%where the actual data generated is large; the second type is where the
-%data generated is small, but the volume of data on which computation
-%occurs is very large. The application we used, has relatively small
-%input and relatively small output, but the manner of processing causes
-%many data reads. This type of application can be classified as having a
-%large data throughput.  \jhanote{Can you elaborate on different types
-%of data-intensive applications?  What kind is an ImageMagic based
-%application?}
+%There are at least two types of data-intensive applications: the first where
+%the actual data generated is large; the second type is where the data
+%generated is small, but the volume of data on which computation occurs is very
+%large. The application we used, has relatively small input and relatively
+%small output, but the manner of processing causes many data reads. This type
+%of application can be classified as having a large data throughput.
+%\jhanote{Can you elaborate on different types of data-intensive applications?
+%What kind is an ImageMagic based application?}
 
-It has large input $O$(GB) and relatively small output $O$(KB). However,
-the manner of processing causes many data reads. This type of
-application can be classified as having a large data throughput. To
-handle seamlessly the DFS and gridftp based data stores, the application
-uses the Simple API for Grid Applications (SAGA) ~\citep{saga_web}. This
-allows the same exact application to be used for all of our experiments.
-The result of this application is stored in a matrix. The application
-spawns distributed jobs to run sets of these pairs.  The problem becomes
-determining which pairs to put into a set, and with which distributed
-resource to run that set. If transferring data to the job takes too
-long, we spend more time on data management than computation. There may
-be a resource capable of the work that may be slower than others, but
-network-close (able to be accessed in a relatively quick manner via the
-network supporting the distributed system) enough to the data to make up
-for its lack of computational ability. In our experiments, we used
-CloudStore (formerly KFS), an open-source high performance distributed
-filesystem that builds upon ideas from Google's distributed filesystem
-GFS ~\citep{cloudstore_web}.  CloudStore was chosen for its high performance
-focus, C++ implementation, and its source code availability.
+It has large input $O$(GB) and relatively small output $O$(KB). However, the
+manner of processing causes many data reads. This type of application can be
+classified as having a large data throughput. To handle seamlessly the DFS and
+gridftp based data stores, the application uses the Simple API for Grid
+Applications (SAGA) ~\citep{saga_web}. This allows the same exact application
+to be used for all of our experiments.  The result of this application is
+stored in a matrix. The application spawns distributed jobs to run sets of
+these pairs.  The problem becomes determining which pairs to put into a set,
+and with which distributed resource to run that set. If transferring data to
+the job takes too long, we spend more time on data management than computation.
+There may be a resource capable of the work that may be slower than others, but
+network-close (able to be accessed in a relatively quick manner via the network
+supporting the distributed system) enough to the data to make up for its lack
+of computational ability. In our experiments, we used CloudStore (formerly
+KFS), an open-source high performance distributed filesystem that builds upon
+ideas from Google's distributed filesystem GFS ~\citep{cloudstore_web}.
+CloudStore was chosen for its high performance focus, C++ implementation, and
+its source code availability.
 
 \section{SAGA}
-\section{AllPairs}
-In this paper, we use an application based upon a Grid-enabled All-Pair
-abstraction~\citep{Interop, AllPairs}. This application applies an
-operation on the input data-set such that every possible pair in the set
-is input to the operation. 
-\section{CloudStore}
+\section{AllPairs} \micnote{This has been cut from abstract.  Please
+review}In this paper, we use an application based
+upon a Grid-enabled All-Pair abstraction~\citep{Interop, AllPairs}. This
+application applies an operation on the input data-set such that every possible
+pair in the set is input to the operation.  \section{CloudStore}The most common
+parameters in determining the performance of using a DFS are the number of
+replicas of each data/file, and the number of servers. One goal of this paper
+is understand the performance trade-offs of a DFS compared to ``regular''
+distribution and placement techniques, and how sensitive the performance is in
+the context of a real data-intensive distributed applications.
+With the advent of several stable Open Source DFS projects
+(motivated in part, by developments in Cloud Computing), which can be
+deployed without explicit vendor support are now useful and effective
+tools to consider for data-intensive scientific applications.  DFSs
+typically handle replication and distribution of files across multiple
+machines internally.  
 \section{GridFTP}
 \section{Experiments} We developed three types of experiments in order
 to compare distributed filesystems with manual file management.  Does a
