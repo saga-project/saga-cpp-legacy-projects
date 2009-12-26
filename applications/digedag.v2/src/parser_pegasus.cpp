@@ -26,7 +26,7 @@ namespace digedag
 
     void parser::parse_dag (void)
     {
-      dag_ = sp_t <dag> (new dag (scheduler_file_));
+      dag_ = boost::shared_ptr <dag> (new dag (scheduler_file_));
 
       // first, we read the base dag file, and axtract the following infos:
       //  - list of sub elements w/o cleanup and staging elements
@@ -178,7 +178,7 @@ namespace digedag
 
         }
 
-        sp_t <node> n = dag_->create_node (nd);
+        boost::shared_ptr <node> n = dag_->create_node (nd);
         dag_->add_node (name, n);
       }
       catch ( ... )
@@ -193,8 +193,8 @@ namespace digedag
     {
       std::vector <std::string> elems = split (spec);
 
-      sp_t <edge> e = dag_->create_edge ("file://localhost/TODO", 
-                                         "file://localhost/FIXME");
+      boost::shared_ptr <edge> e = dag_->create_edge ("file://localhost/TODO", 
+                                                      "file://localhost/FIXME");
       dag_->add_edge (e, elems[1], elems[3]);
     }
 

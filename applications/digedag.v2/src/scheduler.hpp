@@ -20,7 +20,7 @@ namespace digedag
   class dag;
   class watch_tasks;
   class scheduler : public digedag::util::thread, 
-                    public boost::enable_shared_from_this <scheduler>
+                    public util::enable_shared_from_this <scheduler>
   {
     private:
       struct job_info_t 
@@ -31,41 +31,41 @@ namespace digedag
         std::string path;
       };
 
-      std::map <std::string, job_info_t>   job_info_;
+      std::map <std::string, job_info_t>     job_info_;
 
-      std::string                          src_; // scheduling policy
+      std::string                            src_; // scheduling policy
 
-      std::string                          data_src_pwd_;
-      std::string                          data_tgt_pwd_;
+      std::string                            data_src_pwd_;
+      std::string                            data_tgt_pwd_;
 
-      std::string                          data_src_host_;
-      std::string                          data_tgt_host_;
+      std::string                            data_src_host_;
+      std::string                            data_tgt_host_;
 
-      saga::session                      & session_;
-      dag                                * dag_;
+      saga::session                        & session_;
+      dag                                  * dag_;
 
-      bool                                 stopped_;
+      bool                                   stopped_;
 
       // queues
-      std::deque <sp_t <node> >            queue_nodes_;
-      std::deque <sp_t <edge> >            queue_edges_;
+      std::deque <boost::shared_ptr <node> > queue_nodes_;
+      std::deque <boost::shared_ptr <edge> > queue_edges_;
 
-      saga::task_container                 tc_nodes_;
-      saga::task_container                 tc_edges_;
+      saga::task_container                   tc_nodes_;
+      saga::task_container                   tc_edges_;
 
-      sp_t <watch_tasks>                   watch_nodes_;
-      sp_t <watch_tasks>                   watch_edges_;
+      watch_tasks                          * watch_nodes_;
+      watch_tasks                          * watch_edges_;
 
-      int                                  max_nodes_;
-      int                                  max_edges_;
+      int                                    max_nodes_;
+      int                                    max_edges_;
       
-      int                                  active_nodes_;
-      int                                  active_edges_;
+      int                                    active_nodes_;
+      int                                    active_edges_;
 
-      std::map <saga::task, sp_t <node> >  node_task_map_;
-      std::map <saga::task, sp_t <edge> >  edge_task_map_;
+      std::map <saga::task, boost::shared_ptr <node> > node_task_map_;
+      std::map <saga::task, boost::shared_ptr <edge> > edge_task_map_;
 
-      util::mutex                          mtx_;
+      util::mutex                            mtx_;
 
 
     public:
@@ -88,26 +88,27 @@ namespace digedag
       void hook_dag_run_fail     (void);
       void hook_dag_wait         (void);
 
-      void hook_node_add         (sp_t <node> n);
-      void hook_node_remove      (sp_t <node> n);
-      void hook_node_run_pre     (sp_t <node> n);
-      void hook_node_run_done    (sp_t <node> n);
-      void hook_node_run_fail    (sp_t <node> n);
+      void hook_node_add         (boost::shared_ptr <node> n);
+      void hook_node_remove      (boost::shared_ptr <node> n);
+      void hook_node_run_pre     (boost::shared_ptr <node> n);
+      void hook_node_run_done    (boost::shared_ptr <node> n);
+      void hook_node_run_fail    (boost::shared_ptr <node> n);
 
-      void hook_edge_add         (sp_t <edge> e);
-      void hook_node_remove      (sp_t <edge> e);
-      void hook_edge_run_pre     (sp_t <edge> e);
-      void hook_edge_run_done    (sp_t <edge> e);
-      void hook_edge_run_fail    (sp_t <edge> e);
+      void hook_edge_add         (boost::shared_ptr <edge> e);
+      void hook_node_remove      (boost::shared_ptr <edge> e);
+      void hook_edge_run_pre     (boost::shared_ptr <edge> e);
+      void hook_edge_run_done    (boost::shared_ptr <edge> e);
+      void hook_edge_run_fail    (boost::shared_ptr <edge> e);
 
       saga::session
            hook_saga_get_session (void);
 
       void work_finished         (saga::task  t, 
                                   std::string flag);
+
+      void dump_map (const std::map <saga::task, boost::shared_ptr <edge> >  & map);
   };
 
-  // as long as the task_container.wait() and also the callbacks on
   // task_container are broken, we use this watch_tasks class for notification
   // on finished tasks.  It will constantly cycle over the contents of a given
   // task container in its worker thread, and will call 'cb' in the main thread
@@ -115,25 +116,33 @@ namespace digedag
   class watch_tasks : public digedag::util::thread
   {
     private:
-      saga::task_container tc_;
-      sp_t <scheduler>     s_;
-      std::string          f_;
+      saga::task_container              tc_;
+      boost::shared_ptr <scheduler>     s_;
+      std::string                       f_;
+      bool                              todo_;
 
     public:
-      watch_tasks (sp_t <scheduler>     s, 
-                   saga::task_container tc, 
-                   std::string          flag) 
-        : tc_ (tc)
-        , s_  (s)
-        , f_  (flag)
+      watch_tasks (boost::shared_ptr <scheduler> s, 
+                   saga::task_container          tc, 
+                   std::string                   flag) 
+        : tc_   (tc)
+        , s_    (s)
+        , f_    (flag)
+        , todo_ (true)
+
       {
         thread_run ();
       }
 
+      ~watch_tasks (void)
+      {
+        todo_ = false;
+        thread_join ();
+      }
+
       void thread_work (void)
       {
-
-        while ( true )
+        while ( todo_ )
         {
           std::vector <saga::task> tasks = tc_.list_tasks ();
           
@@ -145,7 +154,7 @@ namespace digedag
             if ( s == saga::task::Done   || 
                  s == saga::task::Failed )
             {
-              std::cout << " === task " << t.get_id () << " finished: " << t.get_state () << std::endl;
+              // std::cout << " === task " << t.get_id () << " finished: " << t.get_state () << std::endl;
 
               tc_.remove_task (t);
 
@@ -153,7 +162,11 @@ namespace digedag
             }
           }
 
-          ::sleep (1);
+          // avoid busy wait
+          if ( tasks.size () == 0 )
+          {
+            ::sleep (1);
+          }
         }
       }
   };

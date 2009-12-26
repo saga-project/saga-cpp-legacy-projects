@@ -19,9 +19,11 @@ int main (int argc, char** argv)
       nodes[i] = d->create_node (nd);
     }
 
+    sp_t <digedag::edge> dummy = d->create_edge ();
+
     for ( int i = 0; i < 10000; i++ )
     {
-      nodes[i]->fire ();
+      nodes[i]->fire (dummy);
     }
   }
   catch ( ... )

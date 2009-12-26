@@ -12,20 +12,19 @@
 
 namespace digedag
 {
-  node::node (node_description & nd, 
-              std::string        name, 
-              sp_t <scheduler>   scheduler,
-              saga::session      session)
-    : created_   (     false)
-    , nd_        (        nd)
-    , rm_        (        "")
-    , name_      (      name)
-    , state_     (Incomplete)
-    , is_void_   (     false)
-    , fired_     (     false)
-    , t_valid_   (     false)
-    , scheduler_ ( scheduler)
-    , session_   (   session)
+  node::node (node_description              & nd, 
+              std::string                     name, 
+              boost::shared_ptr <scheduler>   scheduler,
+              saga::session                   session)
+    : nd_        (              nd)
+    , rm_        (              "")
+    , name_      (            name)
+    , state_     (      Incomplete)
+    , is_void_   (           false)
+    , fired_     (           false)
+    , task_      ( saga::task::New)
+    , scheduler_ (       scheduler)
+    , session_   (         session)
   {
     std::stringstream ss;
 
@@ -50,20 +49,19 @@ namespace digedag
     }
   }
 
-  node::node (std::string      cmd, 
-              std::string      name,
-              sp_t <scheduler> scheduler,
-              saga::session    session)
-    : created_   (     false)
-    , rm_        (        "")
-    , cmd_       (       cmd)
-    , name_      (      name)
-    , state_     (Incomplete)
-    , is_void_   (     false)
-    , fired_     (     false)
-    , t_valid_   (     false)
-    , scheduler_ ( scheduler)
-    , session_   (   session)
+  node::node (std::string                   cmd, 
+              std::string                   name,
+              boost::shared_ptr <scheduler> scheduler,
+              saga::session                 session)
+    : rm_        (              "")
+    , cmd_       (             cmd)
+    , name_      (            name)
+    , state_     (      Incomplete)
+    , is_void_   (           false)
+    , fired_     (           false)
+    , task_      ( saga::task::New)
+    , scheduler_ (       scheduler)
+    , session_   (         session)
   {
     // parse cmd into node description
     std::vector <std::string> elems = split (cmd_);
@@ -76,23 +74,23 @@ namespace digedag
     nd_.set_vector_attribute (node_attributes::arguments, elems);
   }
 
-  node::node (sp_t <scheduler> scheduler, 
-              saga::session    session)
-    : created_   (     false)
-    , rm_        (        "")
-    , cmd_       (       "-")
-    , name_      (    "void")
-    , state_     (Incomplete)
-    , is_void_   (      true)
-    , fired_     (     false)
-    , t_valid_   (     false)
-    , scheduler_ ( scheduler)
-    , session_   (   session)
+  node::node (boost::shared_ptr <scheduler> scheduler, 
+              saga::session                 session)
+    : rm_        (              "")
+    , cmd_       (             "-")
+    , name_      (          "void")
+    , state_     (      Incomplete)
+    , is_void_   (            true)
+    , fired_     (           false)
+    , task_      ( saga::task::New)
+    , scheduler_ (       scheduler)
+    , session_   (         session)
   {
   }
 
   node::~node (void)
   {
+    std::cout << " === node destructed" << std::endl;
   }
 
   void node::set_name (const std::string name)
@@ -100,12 +98,17 @@ namespace digedag
     name_ = name;
   }
 
-  void node::add_edge_in (sp_t <edge> e)
+  void node::add_edge_in (boost::shared_ptr <edge> e)
   {
     edge_in_.push_back (e);
+
+    std::cout << " === node " << get_name () << " gets a new edge: " 
+              << e->get_name () << std::endl;
+
+    edge_states_[e->get_name ()] = e->get_state ();
   }
 
-  void node::add_edge_out (sp_t <edge> e)
+  void node::add_edge_out (boost::shared_ptr <edge> e)
   {
     edge_out_.push_back (e);
   }
@@ -114,18 +117,25 @@ namespace digedag
   void node::dryrun (void)
   {
     // check if all input data are ready
-    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    std::map <std::string, state> :: iterator begin = edge_states_.begin ();
+    std::map <std::string, state> :: iterator end   = edge_states_.end   ();
+    std::map <std::string, state> :: iterator it;
+
+    for ( it = begin; it != end; it++ )
     {
-      if ( Done != edge_in_[i]->get_state () )
+      if ( Done != it->second )
       {
         return;
       }
     }
 
+    // update state
+    get_state ();
+
     if ( Pending != state_ )
       return;
 
-    std::cout << std::string ("         node : ") << name_ << "   \t -> " << cmd_ << std::endl;
+    std::cout << std::string ("         node : ") << get_name () << "   \t -> " << cmd_ << std::endl;
 
     state_ = Done;
 
@@ -147,20 +157,33 @@ namespace digedag
   }
 
 
-  // ensure the node application is run.  Before doing that, the input data
-  // edges need to be Done, to ensure that input data are available for the
-  // application.  If they are not ready, fire has no effect.
-  void node::fire (void)
+  // this call starts the sequence which will eventually run the node's job
+  // (application).  The edge parameter points to the edge which actually fired
+  // this node, so that the node can keep track of the state for its incoming
+  // edges.  Only if all those edges are Done, fire will actually *do* anything.
+  //
+  // Nodes can also be fired by the dag itself (thisnk INPUT node). A void edge
+  // is then given as parameter.
+  void node::fire (boost::shared_ptr <edge> e)
   {
-    // update state
+    if ( state_ == Stopped )
+      return;
+
+    std::cout << std::string (" ===     node ? ") << get_name () << ": " 
+      << e->get_name () << " fired me: " << state_to_string (e->get_state ()) 
+      << std::endl;
+
+    // store state of firing edge
+    edge_states_[e->get_name ()] = Done;
+
+    // update own state
     get_state ();
 
     // Check if node was started before (!Pending).  
     // If not, mark that we start the work (Running).
     if ( Pending != state_ )
     {
-      // std::cout << std::string (" ===     node : ") << name_ << " not pending" << std::endl;
-      std::cout << std::string (" ===     node : ") << name_ << ": " << state_to_string (state_) << std::endl;
+      std::cout << std::string (" ===     node ? ") << get_name () << ": " << state_to_string (state_) << std::endl;
       return;
     }
 
@@ -168,11 +191,16 @@ namespace digedag
     // can thus really execute the node application.
     //
     // So: run the application, in extra thread
-    std::cout << std::string (" ===   node ") << name_ << " starting up" << std::endl;
+    std::cout << std::string (" ===   node ") << get_name () << " starting up" << std::endl;
+    boost::shared_ptr <node> me = shared_from_this ();
+    std::cout << std::string (" ===   node ") << get_name () << " starting up" << std::endl;
+    assert (me);
+    std::cout << std::string (" ===   node ") << get_name () << " starting up" << std::endl;
 
     // ### scheduler hook - leave it to the scheduler to call our work routine
-    scheduler_->hook_node_run_pre (shared_from_this ());
+    scheduler_->hook_node_run_pre (me);
   }
+
 
   saga::task node::work_start (void)
   {
@@ -184,33 +212,35 @@ namespace digedag
     // we have work to do, an scheduler lets us go ahead
     state_ = Running;
 
+    std::cout << " === node run : " 
+              << get_name ()
+              << " (" << get_cmd () << ") " 
+              << std::endl;
+
+    
     if ( is_void_ )
     {
-      // do nothing
-      
-      std::cout << std::string (" ===   node ") << name_ << " is void" << std::endl;
-      
-      // FIXME: we can't fake a noop task :-(
-      saga::filesystem::directory d (session_, "any://localhost//");
+      // fake a noop task, which does nothing: simply returnh the empty
+      // Done task...
+      std::cout << " === task j " << task_.get_id () << " runs nothing: " 
+                << get_name () << std::endl;
 
-      task_ = d.get_url <saga::task::Async> ();
-      t_valid_ = true;
-
-      std::cout << " === fake task created: " 
-                << task_.get_id () << " - " 
-                << task_.get_state () << std::endl;
+      task_ = saga::task (saga::task::Done);
     }
     else
     {
+      assert ( nd_.attribute_exists ("Executable") );
+
+      
       saga::job::description jd (nd_);
 
-      jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
+   // jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
    // jd.set_attribute (saga::job::attributes::description_interactive,  "true");
    // jd.set_attribute (saga::job::attributes::description_input,        "/dev/null");
    // jd.set_attribute (saga::job::attributes::description_output,       
-   //                   std::string ("/tmp/out.") + get_name ());
+   //                   std::string ("/tmp/out.") + get_id ());
    // jd.set_attribute (saga::job::attributes::description_error,       
-   //                   std::string ("/tmp/err.") + get_name ());
+   //                   std::string ("/tmp/err.") + get_id ());
  
       saga::job::service js (session_, rm_);
       saga::job::job     j = js.create_job (jd);
@@ -218,7 +248,9 @@ namespace digedag
       j.run  ();
 
       task_ = j;
-      t_valid_ = true;
+
+      std::cout << " === task j " << task_.get_id () << " runs " 
+                << get_name () << std::endl;
     }
 
     return task_;
@@ -230,13 +262,16 @@ namespace digedag
     if ( state_ == Stopped )
       return;
 
-    assert ( state_ != Failed );
-    assert ( state_ != Done   );
-
+    // we don't assert here for state != Done and state_ != Failed, as
+    // get_state may have set these states meanwhile, looking at the job
+    // state.
+    
     state_ = Done;
 
     std::cout << std::string (" === node done: ")
-              << get_name_s () << std::endl;
+              << get_name () 
+              << " (" << get_cmd () << ") " 
+              << std::endl;
 
     if ( state_ == Done && ! fired_ )
     {
@@ -245,10 +280,10 @@ namespace digedag
       // get data staged out, e.g. fire outgoing edges
       for ( unsigned int i = 0; i < edge_out_.size (); i++ )
       {
-        std::cout << " === node " << get_name () << " fires edge " 
-                  << edge_out_[i]->get_name_s () << std::endl;
+  //    std::cout << " === node " << get_id () << " fires edge " 
+  //              << edge_out_[i]->get_name () << std::endl;
 
-        edge_out_[i]->fire ();
+        edge_out_[i]->fire (shared_from_this ());
       }
     }
 
@@ -268,13 +303,17 @@ namespace digedag
 
     try 
     {
-      task_.rethrow ();
+      if ( task_.get_state () == saga::task::Failed )
+      {
+        task_.rethrow ();
+      }
     }
     catch ( const saga::exception & e )
     {
-      std::cout << " === node " << get_name_s () 
-                << " set to failed by scheduler: "
-                << e.what () << std::endl;
+      std::cout << " === node " << get_name () 
+        << " set to failed by scheduler: \n"
+        << e.what () 
+        << std::endl;
     }
 
     state_ = Failed;
@@ -283,7 +322,7 @@ namespace digedag
 
   void node::stop ()
   {
-    if ( t_valid_ )
+    if ( task_.get_state () == saga::task::Running )
     {
       task_.cancel ();
     }
@@ -293,8 +332,9 @@ namespace digedag
 
   void node::dump (bool deep)
   {
-    std::cout << std::string ("       node ") << name_ << "(" << host_ << ", " 
-               << pwd_ +")" << " (" << state_to_string (get_state ()) << ")" << std::endl;
+    std::cout << "       node " << get_name () 
+              << " (" << host_ << ", " << pwd_ +")" 
+              << " (" << state_to_string (get_state ()) << ")" << std::endl;
 
     if ( deep )
     {
@@ -312,12 +352,12 @@ namespace digedag
     }
   }
 
-  std::string node::get_name (void) const
+  std::string node::get_id (void) const
   {
     return name_;
   }
 
-  std::string node::get_name_s (void) const
+  std::string node::get_name (void) const
   {
     return name_;
   }
@@ -337,26 +377,39 @@ namespace digedag
   // That code needs to eventually move into a callback on the job state metric.
   state node::get_state (void)
   {
+    // final states just return
+    if ( state_ == Stopped ||
+         state_ == Done    ||
+         state_ == Failed  )
+    {
+      // std::cout << " === node " << get_name () << " is in final state" << std::endl; 
+      return state_;
+    }
+
+
     if ( state_ == Incomplete )
     {
       // check if any input data failed
-      for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+      std::map <std::string, state> :: iterator begin = edge_states_.begin ();
+      std::map <std::string, state> :: iterator end   = edge_states_.end   ();
+      std::map <std::string, state> :: iterator it;
+
+      for ( it = begin; it != end; it++ )
       {
-        if ( Failed == edge_in_[i]->get_state () )
+        if ( Failed == it->second )
         {
-          std::cout << " === node " << get_name_s () << " failed due to failing edge " 
-                    << edge_in_[i]->get_name_s () << std::endl;
           state_ = Failed;
           return state_;
         }
       }
 
-
       // check if all input data are ready
-      for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+      for ( it = begin; it != end; it++ )
       {
-        if ( Done != edge_in_[i]->get_state () )
+        if ( Done != it->second )
         {
+          std::cout << " === node " << get_name () << " : input '" <<
+            it->first << "' is missing: " << state_to_string (it->second) << std::endl; 
           state_ = Incomplete;
           return state_;
         }
@@ -367,19 +420,19 @@ namespace digedag
     }
 
 
-    // we can only depend the node state from the job state if a job was
+    // we can only depend from the job state if a job was
     // actually created
-    if ( created_ )
+    if ( ! is_void_ )
     {
-      switch ( j_.get_state () )
+      switch ( task_.get_state () )
       {
         case saga::job::New:
-          std::cout << " === node is almost running: " << name_ << std::endl;
+  //      std::cout << " === node is almost running: " << get_name () << std::endl;
           state_ = Pending;
           break;
 
         case saga::job::Running:
-          // std::cout << " === node is running: " << name_ << std::endl;
+          // std::cout << " === node is running: " << get_name () << std::endl;
           state_ = Running;
           // FIXME
           // ::sleep (1);
@@ -387,7 +440,6 @@ namespace digedag
 
         case saga::job::Done:
           state_ = Done;
-          j_.cancel ();
           scheduler_->hook_node_run_done (shared_from_this ());
           break;
 
@@ -395,13 +447,13 @@ namespace digedag
           // Canceled, Failed, Unknown, New - all invalid
         default:
           state_ = Failed;
-          j_.cancel ();
-
-          std::cout << std::string ("       node ") << name_ 
+          std::cout << std::string ("       node ") << get_name () 
             << " : job failed - cancel: " << cmd_ << std::endl;
 
+          std::cout << " === 1 " << std::endl;
           // ### scheduler hook
           scheduler_->hook_node_run_fail (shared_from_this ());
+          std::cout << " === 5 ! " << std::endl;
 
           break;
 
@@ -533,5 +585,28 @@ namespace digedag
       }
     }
   }
+
+  std::string node::get_cmd (void)
+  {
+    if ( is_void_ )
+    {
+      return "void";
+    }
+
+    std::string out (nd_.get_attribute ("Executable"));
+
+    if ( nd_.attribute_exists ("Arguments") )
+    {
+      std::vector <std::string> args = nd_.get_vector_attribute ("Arguments");
+
+      for ( unsigned int i = 0; i < args.size (); i++ )
+      {
+        out += " " + args[i];
+      }
+    }
+
+    return out;
+  }
+
 } // namespace digedag
 

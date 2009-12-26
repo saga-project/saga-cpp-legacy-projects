@@ -6,8 +6,7 @@
 #include <string>
 #include <map>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include "util/shared_ptr.hpp"
 
 namespace digedag 
 {
@@ -15,12 +14,11 @@ namespace digedag
   class node;
 
   // C++ has no template typedefs :-(
-  #define sp_t boost::shared_ptr
 
-  typedef std::string                             node_id_t;
-  typedef std::pair   <std::string, std::string>  edge_id_t;
-  typedef std::vector <sp_t <edge> >              edge_map_t;
-  typedef              sp_t <node>                node_map_t;
+  typedef std::string   node_id_t;
+  typedef unsigned int  edge_id_t;
+  typedef boost::shared_ptr <edge>   edge_map_t;
+  typedef boost::shared_ptr <node>   node_map_t;
 
 }
 

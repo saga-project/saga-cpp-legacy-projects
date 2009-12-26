@@ -20,7 +20,8 @@ namespace digedag
     Failed     = 5
   };
 
-  std::string state_to_string (state s);
+  std::string state_to_string   (state       s);
+  std::string edge_id_to_string (edge_id_t id);
 
 } // namespace digedag
 

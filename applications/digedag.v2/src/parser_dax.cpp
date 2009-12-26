@@ -24,12 +24,16 @@ namespace digedag
     {
     }
 
+    boost::shared_ptr <dag> parser::get_dag (void)
+    { 
+      return dag_; 
+    }
 
     // Note that, when parsing file names and arguments, paths are interpreted
     // to be relative to the applications working directory.
     void parser::parse_dag (void)
     {
-      dag_ = sp_t <dag> (new dag (scheduler_file_));
+      dag_ = boost::shared_ptr <dag> (new dag (scheduler_file_));
 
       std::cout << "parsing " << dag_file_ << std::endl;
       try
@@ -104,7 +108,7 @@ namespace digedag
             nd.set_vector_attribute ("Arguments", s_args);
           }
 
-          sp_t <node> n = dag_->create_node (nd, s_name);
+          boost::shared_ptr <node> n = dag_->create_node (nd, s_id);
 
           dag_->add_node (s_id, n);
         }
@@ -149,7 +153,7 @@ namespace digedag
         // inputs not produced by some outputting node are assumed to be staged
         // in from a data src.  Also, data which are produced but not consumed
         // by another node are to be staged to an output data sink.  In both
-        // cases, we simply add edges with emoty src/tgt nodes, and leave it to
+        // cases, we simply add edges with empty src/tgt nodes, and leave it to
         // the scheduler to interprete that correctly.
 
         // first, iterate over inputs, and add edges for those inputs which are
@@ -161,7 +165,7 @@ namespace digedag
           std::string i_node = inputs[i].second;
           std::string o_node = "";
 
-          // for each input node, find output node
+          // for each input file, find output node
           for ( unsigned int j = 0; j < outputs.size (); j++ )
           {
             if ( outputs[j].first == file )
@@ -182,7 +186,8 @@ namespace digedag
 
             saga::url loc (file);
             loc.set_scheme ("any");
-            sp_t <edge> e = dag_->create_edge (loc);
+            boost::shared_ptr <edge> e = dag_->create_edge (loc);
+            std::cout << " e 2: INPUT->" << i_node << std::endl;
             dag_->add_edge (e, "INPUT", i_node);
           }
 
@@ -190,7 +195,8 @@ namespace digedag
           {
             saga::url loc (file);
             loc.set_scheme ("any");
-            sp_t <edge> e = dag_->create_edge (loc);
+            boost::shared_ptr <edge> e = dag_->create_edge (loc);
+            std::cout << " e 3: " << i_node << "->" << o_node << std::endl;
             dag_->add_edge (e, o_node, i_node);
           }
         }
@@ -221,7 +227,9 @@ namespace digedag
 
             saga::url loc (file);
             loc.set_scheme ("any");
-            sp_t <edge> e  = dag_->create_edge (loc);
+            boost::shared_ptr <edge> e  = dag_->create_edge (loc);
+
+            std::cout << " e 1 " << i_node << "->" << o_node << std::endl;
             dag_->add_edge (e, o_node, i_node);
           }
         }

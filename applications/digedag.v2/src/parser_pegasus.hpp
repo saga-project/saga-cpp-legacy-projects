@@ -16,7 +16,7 @@ namespace digedag
     class parser
     {
       private:
-        sp_t <dag>                dag_;
+        boost::shared_ptr <dag>   dag_;
 
         std::string               dag_file_;
         std::string               scheduler_file_;
@@ -38,7 +38,10 @@ namespace digedag
                 const std::string & scheduler_file);
         ~parser (void);
 
-        sp_t <dag> get_dag (void) { return dag_; }
+        boost::shared_ptr <dag> get_dag (void) 
+        { 
+          return dag_; 
+        }
     };
   }
 } // namespace digedag

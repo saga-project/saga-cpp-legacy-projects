@@ -6,8 +6,6 @@
 
 #include <saga/saga.hpp>
 
-#include "util/scoped_lock.hpp"
-
 #include "config.hpp"
 #include "enum.hpp"
 #include "dag.hpp"
@@ -19,65 +17,64 @@
 namespace digedag
 {
   class scheduler;
-  class node : public boost::enable_shared_from_this <node>
+  class node : public util::enable_shared_from_this <node>
   {
     private:
-      saga::job::job             j_;           // the node's workload
-      bool                       created_;     // flag for valid job object
-      node_description           nd_;          // node application to run
+      node_description                        nd_;          // node application to run
 
-      std::vector <sp_t <edge> > edge_in_;     // input  data
-      std::vector <sp_t <edge> > edge_out_;    // output data
+      std::vector <boost::shared_ptr <edge> > edge_in_;     // input  data
+      std::vector <boost::shared_ptr <edge> > edge_out_;    // output data
+      std::map    <std::string, state>          edge_states_; // states of incoming edges
 
-      std::string                rm_;
-      std::string                cmd_;
-      std::string                pwd_;
-      std::string                host_;
-      std::string                path_;
-      std::string                name_;        // instance name
-      state                      state_;       // instance state
+      std::string                             rm_;
+      std::string                             cmd_;
+      std::string                             pwd_;
+      std::string                             host_;
+      std::string                             path_;
+      std::string                             name_;        // instance name
+      state                                   state_;       // instance state
 
 
-      bool                       is_void_;     // void node?
-      bool                       fired_;       // dependent edges fired after Done?
+      bool                                    is_void_;     // void node?
+      bool                                    fired_;       // dependent edges fired after Done?
 
-      util::mutex                mtx_;
+      saga::task                              task_;        // our async workload
 
-      saga::task                 task_;        // our async workload
-      bool                       t_valid_;     // async workload was created
+      boost::shared_ptr <scheduler>           scheduler_;   
+      saga::session                           session_;     // session from scheduler
 
-      sp_t <scheduler>           scheduler_;   
-      saga::session              session_;     // session from scheduler
-
+      std::string   get_cmd (void);
 
     public:
-      node  (node_description & nd, 
-             std::string        name, 
-             sp_t <scheduler>   scheduler, 
-             saga::session      session);
+      node  (node_description              & nd, 
+             std::string                     name, 
+             boost::shared_ptr <scheduler>   scheduler, 
+             saga::session                   session);
             
-      node  (std::string        cmd,
-             std::string        name, 
-             sp_t <scheduler>   scheduler, 
-             saga::session      session);
-      node  (sp_t <scheduler>   scheduler,
-             saga::session      session);
+      node  (std::string                     cmd,
+             std::string                     name, 
+             boost::shared_ptr <scheduler>   scheduler, 
+             saga::session                   session);
+
+      node  (boost::shared_ptr <scheduler>   scheduler,
+             saga::session                   session);
+
       ~node (void);
 
-      void             set_name        (std::string name);
-      void             add_edge_in     (sp_t <edge> e);
-      void             add_edge_out    (sp_t <edge> e);
+      void             set_name        (std::string              name);
+      void             add_edge_in     (boost::shared_ptr <edge> e);
+      void             add_edge_out    (boost::shared_ptr <edge> e);
 
       void             dryrun          (void);
       void             reset           (void);
-      void             fire            (void);
+      void             fire            (boost::shared_ptr <edge> e);
       void             stop            (void);
       void             dump            (bool deep = false);
       saga::task       work_start      (void);
       void             work_done       (void);
       void             work_failed     (void);
+      std::string      get_id          (void) const;
       std::string      get_name        (void) const;
-      std::string      get_name_s      (void) const;
       node_description get_description (void) const;
       void             set_state       (state s);
       state            get_state       (void);

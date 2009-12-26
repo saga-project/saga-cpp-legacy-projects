@@ -10,6 +10,8 @@ namespace digedag
     , scheduler_ (new scheduler (this, scheduler_src, session_))
     , input_     (new node (scheduler_, session_))
     , output_    (new node (scheduler_, session_))
+    , dummy_     (new edge (scheduler_, session_, 0))
+    , edge_cnt_  (0)
   { 
     // add special nodes to dag already
     add_node ("INPUT",  input_);
@@ -22,6 +24,8 @@ namespace digedag
 
   dag::~dag (void) 
   {
+    std::cout << " === dag destructed" << std::endl;
+
     // ### scheduler hook
     scheduler_->hook_dag_destroy ();
 
@@ -33,9 +37,9 @@ namespace digedag
 
     // stop nodes
     {
-      std::map <node_id_t, sp_t <node> > :: iterator it;
-      std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
-      std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
+      std::map <node_id_t, boost::shared_ptr <node> > :: iterator it;
+      std::map <node_id_t, boost::shared_ptr <node> > :: iterator begin = nodes_.begin ();
+      std::map <node_id_t, boost::shared_ptr <node> > :: iterator end   = nodes_.end ();
 
       for ( it = begin; it != end; it++ )
       {
@@ -51,10 +55,7 @@ namespace digedag
 
       for ( it = begin; it != end; it++ )
       {
-        for ( unsigned int i = 0; i < it->second.size (); i++ )
-        {
-          it->second[i]->stop ();
-        }
+        it->second->stop ();
       }
     }
     
@@ -62,46 +63,48 @@ namespace digedag
     // ok, everything is stopped, and shared_ptr's will be destroyed here
   }
 
-  sp_t <node> dag::create_node (node_description & nd, 
-                                std::string        name)
+  boost::shared_ptr <node> dag::create_node (node_description & nd, 
+                                             std::string        name)
   {
-    return sp_t <node> (new node (nd, name, scheduler_, session_));
+    return boost::shared_ptr <node> (new node (nd, name, scheduler_, session_));
   }
 
 
-  sp_t <node> dag::create_node (std::string cmd,
-                                std::string name)
+  boost::shared_ptr <node> dag::create_node (std::string cmd,
+                                             std::string name)
   {
-    return sp_t <node> (new node (cmd, name, scheduler_, session_));
+    return boost::shared_ptr <node> (new node (cmd, name, scheduler_, session_));
   }
 
 
-  sp_t <node> dag::create_node (void)
+  boost::shared_ptr <node> dag::create_node (void)
   {
-    return sp_t <node> (new node (scheduler_, session_));
+    return boost::shared_ptr <node> (new node (scheduler_, session_));
   }
 
 
-  sp_t <edge> dag::create_edge (const saga::url & src, 
-                                const saga::url & tgt)
+  boost::shared_ptr <edge> dag::create_edge (const saga::url & src, 
+                                             const saga::url & tgt)
   {
-    return sp_t <edge> (new edge (src, tgt, scheduler_, session_));
+    edge_cnt_++;
+    return boost::shared_ptr <edge> (new edge (src, tgt, scheduler_, session_, edge_cnt_));
   }
 
 
-  sp_t <edge> dag::create_edge (void)
+  boost::shared_ptr <edge> dag::create_edge (void)
   {
-    return sp_t <edge> (new edge (scheduler_, session_));
+    edge_cnt_++;
+    return boost::shared_ptr <edge> (new edge (scheduler_, session_, edge_cnt_));
   }
 
 
 
-  void dag::add_node (const node_id_t & name, 
-                      sp_t <node>       node)
+  void dag::add_node (const node_id_t        & name, 
+                      boost::shared_ptr <node> node)
   {
-    if ( node == NULL )
+    if ( ! node )
     {
-      std::cout << std::string ("NULL node: ") << name << std::endl;
+      std::cout << "adding NULL node " << name << " ?" << std::endl;
       return;
     }
 
@@ -114,15 +117,21 @@ namespace digedag
   }
 
 
-  void dag::add_edge (sp_t <edge> e, 
-                      sp_t <node> src, 
-                      sp_t <node> tgt)
+  void dag::add_edge (boost::shared_ptr <edge> e, 
+                      boost::shared_ptr <node> src, 
+                      boost::shared_ptr <node> tgt)
   {
-    sp_t <node> s = src;
-    sp_t <node> t = tgt;
+    if ( ! src && ! tgt )
+    {
+      // WTF?
+      return;
+    }
 
-    if ( src == NULL ) { s = input_ ; } 
-    if ( tgt == NULL ) { t = output_; }
+    boost::shared_ptr <node> s = src;
+    boost::shared_ptr <node> t = tgt;
+
+    if ( ! src ) { s = input_ ; } 
+    if ( ! tgt ) { t = output_; }
 
     s->add_edge_out (e);
     t->add_edge_in  (e);
@@ -130,7 +139,7 @@ namespace digedag
     e->add_src_node (s);
     e->add_tgt_node (t);
 
-    edges_[edge_id_t (s->get_name (), t->get_name ())].push_back (e);
+    edges_[e->get_id ()] = e;
 
     // ### scheduler hook
     scheduler_->hook_edge_add (e);
@@ -138,12 +147,12 @@ namespace digedag
 
 
   // add edges to named nodes
-  void dag::add_edge (sp_t <edge>       e, 
-                      const node_id_t & src, 
-                      const node_id_t & tgt)
+  void dag::add_edge (boost::shared_ptr <edge> e, 
+                      const node_id_t        & src, 
+                      const node_id_t        & tgt)
   {
-    sp_t <node> n_src;
-    sp_t <node> n_tgt;
+    boost::shared_ptr <node> n_src;
+    boost::shared_ptr <node> n_tgt;
 
     if ( nodes_.find (src) != nodes_.end () )
     {
@@ -155,15 +164,21 @@ namespace digedag
       n_tgt = nodes_[tgt];
     }
 
+    if ( ! n_src && ! n_tgt )
+    {
+      // WTF?
+      return;
+    }
+
     add_edge (e, n_src, n_tgt);
   }
 
 
   void dag::reset (void)
   {
-    std::map <node_id_t, sp_t <node> > :: iterator it;
-    std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator it;
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator end   = nodes_.end ();
 
     state_ = Pending;
 
@@ -181,9 +196,9 @@ namespace digedag
 
     std::cout << " dryun:  dag" << std::endl;
 
-    std::map <node_id_t, sp_t <node> > :: iterator it;
-    std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator it;
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
@@ -199,14 +214,15 @@ namespace digedag
   {
     std::cout << "fire   dag  " << std::endl;
 
+    dump ();
+    sleep (10);
+
     // dump_node ("INPUT");
     // dump_node ("OUTPUT");
 
     std::cout << std::string ("state: ") << state_to_string (state_) << std::endl;
 
     {
-      util::scoped_lock sl (mtx_);
-
       if ( Incomplete != state_ &&
            Pending    != state_ )
         return;
@@ -229,21 +245,21 @@ namespace digedag
     // that node, etc.
     //
     // if no nodes can be fired, complain.  Graph may be cyclic.
-    std::map <node_id_t, sp_t <node> > :: iterator it;
-    std::map <node_id_t, sp_t <node> > :: iterator begin = nodes_.begin ();
-    std::map <node_id_t, sp_t <node> > :: iterator end   = nodes_.end ();
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator it;
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator begin = nodes_.begin ();
+    std::map <node_id_t, boost::shared_ptr <node> > :: iterator end   = nodes_.end ();
 
     for ( it = begin; it != end; it++ )
     {
-        std::cout << std::string (" ===   dag checks node ") 
-          << it->second->get_name () << ": " << state_to_string (it->second->get_state ())
-          << std::endl;
+ //   std::cout << std::string (" ===   dag checks node ") 
+ //             << it->second->get_id () << ": " << state_to_string (it->second->get_state ())
+ //             << std::endl;
 
       if ( Pending == it->second->get_state () )
       {
-        std::cout << std::string (" ===   dag fires node ") 
-                  << it->second->get_name () << std::endl;
-        it->second->fire ();
+        std::cout << std::string (" ===   dag fires node with dummy edge ") 
+                  << it->second->get_id () << std::endl;
+        it->second->fire (dummy_);
         state_ = Running;
       }
     }
@@ -259,18 +275,18 @@ namespace digedag
       throw "can't find pending nodes.  cyclic or empty graph?";
     }
 
-    std::cout << "dag fired" << std::endl;
+//  std::cout << "dag fired" << std::endl;
 
     // ### scheduler hook
     scheduler_->hook_dag_run_post ();
 
-    std::cout << "dag fire done" << std::endl;
+//  std::cout << "dag fire done" << std::endl;
   }
 
 
   void dag::wait (void)
   {
-    std::cout << "dag    wait..." << std::endl;
+//  std::cout << "dag    wait..." << std::endl;
 
     // ### scheduler hook
     scheduler_->hook_dag_wait ();
@@ -279,7 +295,7 @@ namespace digedag
     while ( s != Done   && 
             s != Failed )
     {
-      std::cout << "dag    waiting..." << std::endl;
+   // std::cout << "dag    waiting..." << std::endl;
       ::sleep (3);
       s = get_state ();
     }
@@ -309,22 +325,22 @@ namespace digedag
 
     {
       // count node states
-      std::map <node_id_t, sp_t <node> > :: const_iterator it;
-      std::map <node_id_t, sp_t <node> > :: const_iterator begin = nodes_.begin ();
-      std::map <node_id_t, sp_t <node> > :: const_iterator end   = nodes_.end ();
+      std::map <node_id_t, boost::shared_ptr <node> > :: const_iterator it;
+      std::map <node_id_t, boost::shared_ptr <node> > :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, boost::shared_ptr <node> > :: const_iterator end   = nodes_.end ();
 
       int i = 0;
       for ( it = begin; it != end; it++ )
       {
         if ( ! (i++ % 5) )
         {
-          std::cout << std::endl;
+ //       std::cout << std::endl;
         }
 
         state_total++;
 
         state s = it->second->get_state ();
-        std::cout << it->first << ":" << state_to_string (s) <<  "\t";
+ //     std::cout << it->first << ":" << state_to_string (s) <<  "\t";
 
         switch ( s )
         {
@@ -349,7 +365,7 @@ namespace digedag
         }
       }
     }
-    std::cout << std::endl;
+ // std::cout << std::endl;
 
     {
       // count edge states
@@ -360,40 +376,37 @@ namespace digedag
       int cnt = 0;
       for ( it = begin; it != end; it++ )
       {
-        for ( unsigned int i = 0; i < it->second.size (); i++ )
+        if ( ! (cnt++ % 2) )
         {
-          if ( ! (cnt++ % 2) )
-          {
-            // std::cout << std::endl;
-          }
+          // std::cout << std::endl;
+        }
 
-          state_total++;
+        state_total++;
 
-          state s = it->second[i]->get_state ();
-          // std::cout << it->second[i]->get_name_s () 
-          //           << ":" << state_to_string (s) <<  "\t", false << std::endl;
+        state s = it->second->get_state ();
+        // std::cout << it->second[i]->get_name () 
+        //           << ":" << state_to_string (s) <<  "\t", false << std::endl;
 
-          switch ( s )
-          {
-            case Incomplete:
-              state_incomplete++;
-              break;
-            case Stopped:
-              state_stopped++;
-              break;
-            case Pending:
-              state_pending++;
-              break;
-            case Running:
-              state_running++;
-              break;
-            case Done:
-              state_done++;
-              break;
-            case Failed:
-              state_failed++;
-              break;
-          }
+        switch ( s )
+        {
+          case Incomplete:
+            state_incomplete++;
+            break;
+          case Stopped:
+            state_stopped++;
+            break;
+          case Pending:
+            state_pending++;
+            break;
+          case Running:
+            state_running++;
+            break;
+          case Done:
+            state_done++;
+            break;
+          case Failed:
+            state_failed++;
+            break;
         }
       }
     }
@@ -453,9 +466,9 @@ namespace digedag
 
     std::cout << " -  NODES  ----------------------------------\n" << std::endl;
     {
-      std::map <node_id_t, sp_t <node> > :: const_iterator it;
-      std::map <node_id_t, sp_t <node> > :: const_iterator begin = nodes_.begin ();
-      std::map <node_id_t, sp_t <node> > :: const_iterator end   = nodes_.end ();
+      std::map <node_id_t, boost::shared_ptr <node> > :: const_iterator it;
+      std::map <node_id_t, boost::shared_ptr <node> > :: const_iterator begin = nodes_.begin ();
+      std::map <node_id_t, boost::shared_ptr <node> > :: const_iterator end   = nodes_.end ();
 
       for ( it = begin; it != end; it++ )
       {
@@ -472,10 +485,7 @@ namespace digedag
 
       for ( it = begin; it != end; it++ )
       {
-        for ( unsigned int i = 0; i < it->second.size (); i++ )
-        {
-          it->second[i]->dump ();
-        }
+        it->second->dump ();
       }
     }
     std::cout << " -  DAG    ----------------------------------\n" << std::endl;
@@ -498,16 +508,6 @@ namespace digedag
 
     // FIXME: data transfers may end up to be redundant, and should be
     // pruned.
-  }
-
-  void dag::lock (void)
-  {
-    mtx_.lock ();
-  }
-
-  void dag::unlock (void)
-  {
-    mtx_.unlock ();
   }
 
 } // namespace digedag

@@ -6,18 +6,21 @@
 
 namespace digedag
 {
-  edge::edge (const saga::url & src, 
-              const saga::url & tgt, 
-              sp_t <scheduler>  scheduler, 
-              saga::session     session)
-    : src_url_   (       src)
-    , tgt_url_   (       tgt)
-    , state_     (Incomplete)
-    , is_void_   (     false)
-    , fired_     (     false)
-    , t_valid_   (     false)
-    , scheduler_ ( scheduler)
-    , session_   (   session)
+  edge::edge (const saga::url               & src, 
+              const saga::url               & tgt, 
+              boost::shared_ptr <scheduler>   scheduler, 
+              saga::session                   session, 
+              edge_id_t                       id)
+    : src_url_   (             src)
+    , tgt_url_   (             tgt)
+    , state_     (      Incomplete)
+    , src_state_ (      Incomplete)
+    , is_void_   (           false)
+    , fired_     (           false)
+    , task_      ( saga::task::New)
+    , scheduler_ (       scheduler)
+    , session_   (         session)
+    , id_        (              id)
   {
     if ( tgt_url_ == "" )
     {
@@ -25,19 +28,23 @@ namespace digedag
     }
   }
 
-  edge::edge (sp_t <scheduler>  scheduler, 
-              saga::session     session)
-    : state_     (Incomplete)
-    , is_void_   (      true)
-    , fired_     (     false)
-    , t_valid_   (     false)
-    , scheduler_ ( scheduler)
-    , session_   (   session)
+  edge::edge (boost::shared_ptr <scheduler>   scheduler, 
+              saga::session                   session,
+              edge_id_t                       id)
+    : state_     (      Incomplete)
+    , src_state_ (      Incomplete)
+    , is_void_   (            true)
+    , fired_     (           false)
+    , task_      ( saga::task::New)
+    , scheduler_ (       scheduler)
+    , session_   (         session)
+    , id_        (              id)
   {
   }
 
   edge::~edge (void)
   {
+    std::cout << " === edge destructed " << get_name () << std::endl;
   }
 
   bool edge::operator== (const edge & e)
@@ -57,14 +64,32 @@ namespace digedag
     }
   }
 
-  void edge::add_src_node (sp_t <node> src)
+  void edge::add_src_node (boost::shared_ptr <node> src)
   {
     src_node_ = src;
+
+    if ( src_node_ && tgt_node_ )
+    {
+      is_void_ = false;
+    }
+    else
+    {
+      is_void_ = true;
+    }
   }
 
-  void edge::add_tgt_node (sp_t <node> tgt)
+  void edge::add_tgt_node (boost::shared_ptr <node> tgt)
   {
     tgt_node_ = tgt;
+
+    if ( src_node_ && tgt_node_ )
+    {
+      is_void_ = false;
+    }
+    else
+    {
+      is_void_ = true;
+    }
   }
 
   void edge::dryrun (void)
@@ -102,21 +127,24 @@ namespace digedag
 
   // fire() checks if there is still work to do, and if so, starts
   // a thread to do it.
-  void edge::fire (void)
+  void edge::fire (boost::shared_ptr <node> n)
   {
     if ( state_ == Stopped )
       return;
 
-    // update state
+    // update node_state.  If node fired, its obviously Done.
+    src_state_ = Done;
+
+    // update own state
     get_state ();
 
     if ( Pending != state_ )
     {
-      std::cout << " edge " << get_name_s () << " is not pending" << std::endl;
+ //   std::cout << " edge " << get_name () << " is not pending" << std::endl;
       return;
     }
 
-    std::cout << " edge " << get_name_s () << " fired" << std::endl;
+ // std::cout << " edge " << get_name () << " fired" << std::endl;
 
     // ### scheduler hook
     scheduler_->hook_edge_run_pre (shared_from_this ());
@@ -132,7 +160,9 @@ namespace digedag
     // we have work to do...
     state_ = Running;
 
-    std::cout << " === edge run: " << get_name_s () << std::endl;
+    std::cout << " === edge run : " << get_name () 
+              << " (" << src_url_ << " -> " << tgt_url_ << ")"
+              << std::endl;
 
 
     // lets see if we actually need to do anything
@@ -143,7 +173,7 @@ namespace digedag
 
       if ( f_src.get_size () == f_tgt.get_size () )
       {
-        std::cout << " === edge run: " << get_name_s () << " optimized away ;-)" << std::endl;
+      //std::cout << " === edge run: " << get_name () << " optimized away ;-)" << std::endl;
         is_void_ = true;
       }
     }
@@ -155,19 +185,12 @@ namespace digedag
 
     if ( is_void_ )
     {
-      // do nothing
-      
-      std::cout << std::string (" ===   edge ") << get_name_s () << " is void" << std::endl;
-      
-      // FIXME: we can't fake a noop task :-(
-      saga::filesystem::directory d (session_, "any://localhost//");
+      // fake a noop task, which does nothing: simply returnh the empty
+      // Done task...
+      std::cout << " === task e " << task_.get_id () << " is a dummy copy task " 
+                << std::endl;
 
-      task_ = d.get_url <saga::task::Async> ();
-      t_valid_ = true;
-
-      std::cout << " === fake task created: " 
-                << task_.get_id () << " - " 
-                << task_.get_state () << std::endl;
+      task_ = saga::task (saga::task::Done);
     }
     else
     {
@@ -176,9 +199,8 @@ namespace digedag
       task_ = f_src.copy <saga::task::Async> (tgt_url_, saga::filesystem::Overwrite
                                                       | saga::filesystem::CreateParents);
 
-      std::cout << " === task " << task_.get_id () << " copies " 
+      std::cout << " === task e " << task_.get_id () << " copies " 
                 << src_url_ << " to " << tgt_url_ << std::endl;
-      t_valid_ = true;
     }
     
     return task_;
@@ -189,13 +211,21 @@ namespace digedag
     if ( state_ == Stopped )
       return;
 
-    assert ( state_ != Failed );
-    assert ( state_ != Done   );
+    // we don't assert here for state != Done and state_ != Failed, as
+    // get_state may have set these states meanwhile, looking at the
+    // task state.
 
     state_ = Done;
 
-    std::cout << std::string (" === edge done: ")
-              << get_name_s () << std::endl;
+    std::cout << std::string (" === edge done: ") << get_name () 
+              << " (" << src_url_ << " -> " << tgt_url_ << ") : "
+              << state_to_string (state_)
+              << std::endl;
+
+    std::cout << std::string (" === edge done: ") << get_name () 
+              << " (" << src_url_ << " -> " << tgt_url_ << ") : "
+              << state_to_string (get_state ())
+              << std::endl;
 
     // if we are done copying data, we fire the dependend node
     // this fire may succeed or not - that depends on the availability
@@ -208,8 +238,8 @@ namespace digedag
     {
       fired_ = true;
 
-      std::cout << " === firing dep node " << tgt_node_->get_name () << std::endl;
-      tgt_node_->fire ();
+      std::cout << " === firing dep node " << tgt_node_->get_id () << std::endl;
+      tgt_node_->fire (shared_from_this ());
     }
 
     // ### scheduler hook
@@ -228,13 +258,17 @@ namespace digedag
 
     try 
     {
-      task_.rethrow ();
+      if ( task_.get_state () == saga::task::Failed )
+      {
+        task_.rethrow ();
+      }
     }
     catch ( const saga::exception & e )
     {
-      std::cout << " === edge " << get_name_s () 
-                << " set to failed by scheduler: "
-                << e.what () << std::endl;
+      std::cout << " === edge " << get_name () 
+                << " set to failed by scheduler: \n"
+                << e.what () 
+                << std::endl;
     }
   
     state_ = Failed;
@@ -243,7 +277,7 @@ namespace digedag
 
   void edge::stop (void)
   {
-    if ( t_valid_ )
+    if ( task_.get_state () == saga::task::Running )
     {
       task_.cancel ();
     }
@@ -254,7 +288,7 @@ namespace digedag
   void edge::dump (void)
   {
     std::cout << std::string ("         edge : ")
-              << get_name_s ()
+              << get_name ()
               << " [" << src_url_.get_string ()       << "\t -> " << tgt_url_.get_string () << "] "
               << " (" << state_to_string (state_) << ")" 
               << std::endl;
@@ -277,18 +311,35 @@ namespace digedag
 
   state edge::get_state (void)
   {
-    if ( Incomplete == state_ && src_node_ )
+    if ( is_void_ )
     {
-      state src_state = src_node_->get_state ();
+      // std::cout << " === edge " << get_name () << " is void and Done" << std::endl;
+      return Done;
+    }
 
-      if ( Done == src_state )
+    // final states just return
+    if ( state_ == Stopped ||
+         state_ == Done    ||
+         state_ == Failed  )
+    {
+      // std::cout << " === edge " << get_name () << " reporting final state" << std::endl;
+      return state_;
+    }
+
+
+    // Incomplete state may be left into Pending, if src is done, or
+    // into Failed, if src failed.
+    if ( Incomplete == state_ )
+    {
+      if ( Done == src_state_ )
       {
         state_ = Pending;
       }
-      else if ( Failed == src_state )
+      else if ( Failed == src_state_ )
       {
-        std::cout << " === edge " << get_name_s () << " failed due to failing src node " 
-                  << src_node_->get_name_s () << std::endl;
+    //  std::cout << " === edge " << get_name () 
+    //            << " failed due to failing src node " << src_node_->get_name () 
+    //            << std::endl;
         state_ = Failed;
       }
     }
@@ -298,32 +349,30 @@ namespace digedag
 
   // FIXME: names are not unique, yet!  Collision occurs when multiple data are
   // exchanged between the same pair of nodes.
-  std::string edge::get_name_s (void) const
+  std::string edge::get_name (void) const
   {
+    if ( ! src_node_ && 
+         ! tgt_node_ )
+    {
+      return "Dummy";
+    }
+
     std::string src_string = "???";
     std::string tgt_string = "???";
 
     if ( src_node_ )
-      src_string = src_node_->get_name_s ();
+      src_string = src_node_->get_name ();
 
     if ( tgt_node_ )
-      tgt_string = tgt_node_->get_name_s ();
+      tgt_string = tgt_node_->get_name ();
 
     return src_string + "->" + tgt_string;
   }
 
-  edge_id_t edge::get_name (void) const
+
+  edge_id_t edge::get_id   (void) const
   {
-    std::string src_string = "???";
-    std::string tgt_string = "???";
-
-    if ( src_node_ )
-      src_string = src_node_->get_name_s ();
-
-    if ( tgt_node_ )
-      tgt_string = tgt_node_->get_name_s ();
-
-    return edge_id_t (src_string, tgt_string);
+    return id_;
   }
 
   void edge::set_pwd_src (std::string pwd)

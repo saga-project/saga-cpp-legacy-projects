@@ -7,8 +7,8 @@ int main (int argc, char** argv)
 {
   bool dryrun = false;
 
-  try
-  {
+  // try
+  // {
     if ( argc != 3 )
     {
       std::cerr << "\n\tusage: " << argv[0] << " <dag.xml> <scheduler.txt>\n\n";
@@ -17,11 +17,11 @@ int main (int argc, char** argv)
 
     digedag::dax::parser p (argv[1], argv[2]);
 
-    sp_t <digedag::dag> d = p.get_dag ();
+    boost::shared_ptr <digedag::dag> d = p.get_dag ();
 
     // allow for pre-run scheduling
     d->schedule (); 
- // d->dump ();
+    // d->dump ();
 
     // run the dag.  This also performs scheduling on-the-fly
     if ( dryrun )
@@ -38,19 +38,19 @@ int main (int argc, char** argv)
       d->wait ();
       std::cout << " === 3 " << std::endl;
     }
-  }
-  catch ( char const * s )
-  {
-    std::cerr << "char* exception: " << s << std::endl;
-  }
-  catch ( const std::string & s )
-  {
-    std::cerr << "string exception: " << s << std::endl;
-  }
-  catch ( const saga::exception & e )
-  {
-    std::cerr << "oops exception: " << e.what () << std::endl;
-  }
+  // }
+  // catch ( char const * s )
+  // {
+  //   std::cerr << "char* exception: " << s << std::endl;
+  // }
+  // catch ( const std::string & s )
+  // {
+  //   std::cerr << "string exception: " << s << std::endl;
+  // }
+  // catch ( const saga::exception & e )
+  // {
+  //   std::cerr << "oops exception: " << e.what () << std::endl;
+  // }
 
   return 0;
 }

@@ -4,8 +4,6 @@
 
 #include <map>
 
-#include "util/scoped_lock.hpp"
-
 #include "config.hpp"
 #include "enum.hpp"
 #include "node.hpp"
@@ -27,7 +25,7 @@ namespace digedag
   // attributes of edges and nodes, such as its assigment to a specific
   // resource.
   class scheduler;
-  class dag : public boost::enable_shared_from_this <dag>
+  class dag : public util::enable_shared_from_this <dag>
   {
     private:
       saga::session                    session_;   // saga session to be used everywhere 
@@ -36,14 +34,15 @@ namespace digedag
       std::map <edge_id_t, edge_map_t> edges_;     // dag edge names and instances
 
       state                            state_;     // see get_state ()
-      sp_t <scheduler>                 scheduler_;
+   // boost::shared_ptr <scheduler>    scheduler_;
+      boost::shared_ptr <scheduler>    scheduler_;
 
       // special nodes which act as anchor for input and output edges
-      sp_t <node>                      input_;
-      sp_t <node>                      output_;      
+      boost::shared_ptr <node>         input_;     // node for data stagein 
+      boost::shared_ptr <node>         output_;    // node for data stageout 
+      boost::shared_ptr <edge>         dummy_;     // edge for firing nodes
 
-      util::mutex                      mtx_;
-
+      unsigned int                     edge_cnt_;  // serves as edge id
 
 
     protected:
@@ -59,26 +58,26 @@ namespace digedag
       dag  (const std::string & scheduler_src = "");
       ~dag (void); 
 
-      sp_t <node> create_node  (node_description & nd, 
-                                std::string        name = "");
-      sp_t <node> create_node  (std::string        cmd,
-                                std::string        name = "");
-      sp_t <node> create_node  (void);
+      boost::shared_ptr <node> create_node  (node_description & nd, 
+                                             std::string        name = "");
+      boost::shared_ptr <node> create_node  (std::string        cmd,
+                                             std::string        name = "");
+      boost::shared_ptr <node> create_node  (void);
 
-      sp_t <edge> create_edge  (const saga::url  & src, 
-                                const saga::url  & tgt  = "");
-      sp_t <edge> create_edge  (void);
+      boost::shared_ptr <edge> create_edge  (const saga::url  & src, 
+                                             const saga::url  & tgt  = "");
+      boost::shared_ptr <edge> create_edge  (void);
 
 
       // create the dag
-      void  add_node  (const std::string    & name, 
-                       sp_t <node>            node);
-      void  add_edge  (sp_t <edge>            e, 
-                       sp_t <node>            src, 
-                       sp_t <node>            tgt);
-      void  add_edge  (sp_t <edge>            e, 
-                       const std::string    & src, 
-                       const std::string    & tgt);
+      void  add_node  (const std::string         & name, 
+                       boost::shared_ptr <node>    node);
+      void  add_edge  (boost::shared_ptr <edge>    e, 
+                       boost::shared_ptr <node>    src, 
+                       boost::shared_ptr <node>    tgt);
+      void  add_edge  (boost::shared_ptr <edge>    e, 
+                       const std::string         & src, 
+                       const std::string         & tgt);
 
       // operations on a dag
       void  dryrun    (void);

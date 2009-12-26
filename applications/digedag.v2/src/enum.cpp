@@ -1,4 +1,6 @@
 
+#include <sstream>
+
 #include "config.hpp"
 #include "enum.hpp"
 
@@ -14,5 +16,13 @@ namespace digedag
     else                        return "Unknown"   ;
   }
 
+  std::string edge_id_to_string (edge_id_t id)
+  {
+    std::stringstream ss;
+
+    ss << id;
+
+    return ss.str ();
+  }
 } // namespace digedag
 

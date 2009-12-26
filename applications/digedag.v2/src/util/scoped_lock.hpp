@@ -21,7 +21,7 @@ namespace digedag
           mtx_.lock ();
         }
 
-        // sometimes, the user provides its own mutex for lokking
+        // sometimes, the user provides its own mutex for locking
         scoped_lock (util::mutex & mtx)
         {
           mtx_ = mtx;

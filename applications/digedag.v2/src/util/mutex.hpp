@@ -23,6 +23,7 @@ namespace digedag
         mutex (void)
         {
           mtx_ = new pthread_mutex_t;
+          assert (mtx_);
           pthread_mutex_init (mtx_, NULL);
         }
 
@@ -34,16 +35,19 @@ namespace digedag
         // dtor
         ~mutex (void)
         {
+          assert (mtx_);
           pthread_mutex_destroy (mtx_);
         }
 
         void lock (void) 
         {
+          assert (mtx_);
           pthread_mutex_lock (mtx_);
         }
 
         void unlock (void) 
         {
+          assert (mtx_);
           pthread_mutex_unlock (mtx_);
         } 
 
