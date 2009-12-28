@@ -9,19 +9,11 @@
 
 \usepackage[utf8]{inputenc}
 %\usepackage{graphicx}
-\usepackage{url} 
-\usepackage{float}
-\usepackage{times}
-\usepackage{multirow} 
-\usepackage{listings} 
-\usepackage{times}
-\usepackage{paralist}
-\usepackage{wrapfig}
-\usepackage[small,it]{caption} 
-\usepackage{multirow} 
-\usepackage{ifpdf}
-\usepackage{subfig} 
-\usepackage[pdftex]{graphicx}
+\usepackage{url} \usepackage{float} \usepackage{times}
+\usepackage{multirow} \usepackage{listings} \usepackage{times}
+\usepackage{paralist} \usepackage{wrapfig}
+\usepackage[small,it]{caption} \usepackage{multirow} \usepackage{ifpdf}
+\usepackage{subfig} \usepackage[pdftex]{graphicx}
 %\usepackage{harvard} \usepackage{pdfsync} \usepackage{subfigure}
 
 %Bibliography     
@@ -84,31 +76,27 @@ contain references or unexplained abbreviations.  It should not only
 indicate the general scope of the article but also state the main
 results and conclusions.  Please note that footnotes are not used.}
 
-\begin{abstract}{data-intensive computing, distributed computing,
-    cloud computing, grid computing} Grids and, more recently, Clouds
-  and Cloud-like infrastructure are capable of supporting large
-  problems.  While the capability of these systems is great, unique
-  performance issues appear as data-sets get extremely large.  As the
-  volume of data increases, scalable placement and management
-  techniques are required.  \jhanote{few words about the challenges
-    inherent in scalable placement and management techniques across
-    distributed systems are required} Distributed filesystems (DFS)
-  simplify the management of distributed data by providing a single
-  access protocol and a common name-space, and encapsulating data
-  placement issues.  Although this abstraction simplifies the
-  management of data, contrasted with explicit distributed aware
-  placement, there are potential performance trade-offs: users can no
-  longer control data placement, which possibly has performance
-  implications.  Another approach is for the work to be aware of the
-  data and adjust accordingly.  A system that is aware and can move
-  the work to the data or vice-versa has different performance issues
-  than a DFS. The goal of this paper is to understand techniques for
-  distributing data in a distributed environment and understand
-  performance issues associated with these techniques.  If the
-  question is ``To distribute data or not, is the question'', we
-  provide some initial approaches to answer this question.
-  \micnote{conclusion needs to go here *can be 41
-    words*}\end{abstract}
+\begin{abstract}{data-intensive computing, distributed computing, cloud
+computing, grid computing} Grids, clouds and cloud-like infrastructures
+are capable of supporting large problems.  While the capability of these
+systems is great, unique performance issues appear as data-sets become
+extremely large.  As the volume of data increases, scalable placement
+and management techniques are required.  Often, it is hard to predict
+where to place data to where it minimizes data transfer.  This paper
+uses two techniques to manage data placement.  One focuses on data
+placement and the other on worker placement.  Distributed Filesystems
+(DFS) focus on data placement.  They simplify the management of
+distributed data by providing a single access protocol and a common
+name-space, and encapsulating data placement issues.  Although this
+simplifies the management of data, there are potential performance
+trade-offs.  Users can no longer control data placement, which possibly
+has performance implications.  Another approach is for the work to be
+aware of the data and adjust accordingly. This technique can move the
+work to the data or vice-versa has different performance issues than a
+DFS.  The goal of this paper is to understand techniques for
+distributing data in a distributed environment and understand
+performance issues associated with these techniques.\micnote{conclusion
+needs to go here *can be 12 words*}\end{abstract}
 
 \section{Introduction} Data-intensive computing is a fast growing area
 of computer science.  A good example of this is Google, which processes
@@ -139,8 +127,19 @@ focus on minimizing poor data management.  Another method is determining
 where data is and where the work should go.  This is the opposite mode
 of thinking than a DFS.  Determining data location can be as simple as
 looking at the IP address of the worker and seeing geographically where
-it is located or as complicated as network analyses tools to sample
-worker network performance.
+it is located or as complicated as using network analyses tools to
+determine the optimal data transfer minimization time.
+
+Our research focused on comparing these two techniques and managing how
+they handle different data-sets and what there performance patterns
+were.  We use an implementation of All-Pairs in SAGA (Simple API for
+Grid Applications).  All-Pairs is an abstraction for creating a $MxN$
+comparison matrix.  This matrix compares all possible permutations of
+pairs in a set and creates a matrix for evaluation.  SAGA is ...
+
+If the question is ``To distribute data or not, is the question'', we
+provide some initial approaches to answer this question.  orker network
+performance.
 
 
 %There are at least two types of data-intensive applications: the first
@@ -174,11 +173,20 @@ ideas from Google's distributed filesystem GFS ~\citep{cloudstore_web}.
 CloudStore was chosen for its high performance focus, C++
 implementation, and its source code availability.
 
-\section{SAGA} \section{AllPairs} \micnote{This has been cut from
-abstract.  Please review}In this paper, we use an application based upon
-a Grid-enabled All-Pair abstraction~\citep{Interop, AllPairs}.  This
-application applies an operation on the input data-set such that every
-possible pair in the set is input to the operation.
+\section{SAGA}
+
+\section{AllPairs} In this paper, we use an application based upon a
+grid-enabled All-Pairs abstraction,  applies an operation on the input
+data-set such that every possible pair in the set is input to the
+operation.~\citep{Interop, AllPairs}  Essentially, it is a function of
+two sets which creates a matrix where each element is the result of a
+comparison between that element's row and column.  \begin{equation}
+All-Pairs(A, B, function\ F) \rightarrow M_{|A|X|B|}\ |\ M_{i,j} =
+F(A_{i},B_{j}) \end{equation} Examples of problems that fall into this
+category are image comparison for facial recognition, and genome
+comparison.  This paper uses genome comparisons to find the best
+matching gene in a genome. \micnote{I think we should have a small
+graphic here to show the matrix and how it works}
 
 \section{CloudStore} With the advent of several stable open source
 distributed filesystem (DFS) projects (motivated in part, by
@@ -206,9 +214,12 @@ to create and manage grid infrastructures.  GridFTP is a tool provided
 Globus that is used to transfer files across machines in a grid.  It is
 specifically designed for high-bandwidth networks.
 
-
-\section{Performance Measurement and Analysis} 
-
+\section{Performance Measurement and Analysis} We developed three types of experiments in order
+to compare distributed filesystems with manual file management.  Does a
+distributed filesystem grow more slowly than manual placement of data?
+When manually handling data, what are the advantages of being able to
+move work to data to the work?  We focused on three variables to measure
+data:  degree of distribution, data dependency, and workload.
 
 We developed three types of experiments in order to compare
 distributed filesystems with manual file management.  Does a
@@ -236,9 +247,16 @@ data to the first available computational resource, and all data is
 accessed via the gridFTP protocol.
 %\includegraphics[width=\textwidth]{ConventionalDistributed.pdf}
 
-\jhanote{We need data for compute (comparision) and I/O (only) for
-  different data-set sizes}
+\subsection{with Computation}
+The previous experiments had no computation involved.  This was to
+evaluate data dependencies without the added variable of computation.
+In these tests we added computation to the equation.
 
+\jhanote{We need data for compute (comparision) and I/O (only) for
+different data-set sizes} \micnote{We need data for three and four
+machines (just one graph going from 1 machine to four machines}
+
+%Staging experiment
 \subsection{Experiment II} The second experiment is similar to the
 first, except the All-Pairs application takes the data's location into
 consideration when determining whether or not to assign a certain
@@ -247,15 +265,21 @@ this version of the application performs an extra step that determines
 the performance of the network by pinging hosts that may be involved,
 and utilises this information when deciding which data-set to assign
 to a job requesting work.  Though not very sophisticated, it is a
-first-approximation to performance model aware data-placement
-strategy.  \jhanote{Data-aware placement is also required, i.e.,
-  managing location of files.}  If there is an unprocessed data-set
-collocated or network-close with the job, then the assignment of that
-worker to that data-set would have benefits.  If there is no
-unprocessed data-set network-close to the job, still we assign data
-that may be network-far, in case the network-close job failed or there
-is no available jobs network-close to the data-set.  \jhanote{what is
-  meant by ``unprocessed data-set network-close''}
+first-approximation to performance model aware data-placement strategy.
+This approach knows where the files are located and then determines
+whether to move the work to where the data is, or move the data to the
+work.  \jhanote{Data-aware placement is also required, i.e., managing
+location of files.}
+
+We introduce the idea of network-closeness.  A network-close data-set
+takes a small amount of time to transfer to the work location.  A
+network-far data-set is just the opposite.  A network-far data-set takes
+a long time to transfer to the work location.  If there is an
+unprocessed data-set collocated or network-close with the job, then the
+assignment of that worker to that data-set would have benefits.  If
+there is no unprocessed data-set that is network-close to the job, still
+we assign data that may be network-far, in case the network-close job
+failed or there is no available jobs network-close to the data-set.
 
 %\includegraphics[width=\textwidth]{ConventionalIntelligent.pdf}
 
@@ -289,7 +313,7 @@ calls.  This may be due to SAGA's adaptive nature, where lots of
 computation is spent determining how to make a distributed call.  Other
 reason's may be the gridFTP SAGA adaptor being separated from the
 application, being able to make only general decisions, allowing no
-performance tweaks. } \jhanote{Accessing files through this abstraction
+performance tweaks.  Accessing files through this abstraction
 with gridFTP seemed to perform sub-optimally in comparison to using the
 globus tools directly.} In addition, we were unable to utilise our
 entire distributed system, using at most 8 jobs to handle our work.
