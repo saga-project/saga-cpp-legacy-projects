@@ -1,5 +1,5 @@
 set term postscript eps enhanced
-set output 'IntelligentVsConventionalFigure.eps'
+set output 'IntelligentExtremes.eps'
 set xlabel 'Number of workers'
 set ylabel 'Time (Seconds)'
 plot './LocalGridFTP.dat' using 1:2 title 'C1 - [287 MB; P(Y, Y), O(N, N); Local; GridFTP]' with lp,\
