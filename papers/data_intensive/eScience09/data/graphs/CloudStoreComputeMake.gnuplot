@@ -1,4 +1,4 @@
-set term postscript eps enhanced
+set term postscript eps enhanced color solid
 set output 'CloudStoreCompute.eps'
 set xlabel 'Number of workers'
 set ylabel 'Time (Seconds)'
