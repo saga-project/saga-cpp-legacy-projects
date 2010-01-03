@@ -145,7 +145,7 @@ matrix compares all possible permutations of pairs in a set and creates a
 matrix for evaluation.  SAGA is ...
 
 If the question is ``To distribute data or not, is the question'', we provide
-some initial approaches to answer this question.  orker network performance.
+some initial approaches to answer this question.
 
 
 %There are at least two types of data-intensive applications: the first where
@@ -224,26 +224,26 @@ measure data:  degree of distribution, data dependency, and workload.
 
 \subsection{Experimental Configuration}
 
-The following experiements can be described by a tuple of the following form
+The following experiments can be described by a tuple of the following form
 (\textbf{d}, \textbf{c}, \textbf{dc}, \textbf{fs}, \textbf{m}, \textbf{r})
 where
 
 \begin{itemize} 
 \item \textbf{d} is the total amount of data in each set
 \item \textbf{c} is the number of elements in each set
-\item \textbf{dc} is a comma seperated list of pairs describing the
+\item \textbf{dc} is a comma separated list of pairs describing the
 capabilities of each machine involved in the experiment
 \item \textbf{fs} is the type of filesystem used
 \item \textbf{m} is the method used to access that filesystem
 \item \textbf{r} is the amount of replication utilized in the experiment
 \end{itemize}
 
-The App-Pairs implementation used for our experiments has a fixed distribution
+The All-Pairs implementation used for our experiments has a fixed distribution
 of data, fixed available computational resources, and fixed sets of pairs to
 operate with.  The variable portion of the implementation is the assignment
-between the sets of pairs and the fixed computational resources and the
-constants defined above.  Data will be moved around during execution as needed,
-demonstrating I/O complexities.  These variabilities are manipulated to
+between the sets of pairs to the fixed computational resources and the
+variables enumerated above.  Data will be moved around during execution as
+needed, demonstrating I/O complexities.  These variabilities are manipulated to
 determine causes for different I/O complexities observed.
 
 Define C as  tuple of (i) Chunk Size (number), (ii) Infrastructure,
@@ -256,45 +256,51 @@ Mention for CloudStore we also need to include a replication factor.
 $T_c = T_x + T_{I/O} + T_{compute}$
 
 \subsection{Base line Performance: Experiment I} In the first experiment, we
-run the SAGA-based All-Pairs application on up to 4 machines on a Grid (LONI),
-without any specific data placement strategy; also, no replication or
-fault-tolerance takes place.  The application sequentially assigns data to the
-first available computational resource, and all data is accessed via the
-gridFTP protocol.
-% \includegraphics[width=\textwidth]{data/graphs/ConventionalFigure.eps}
-% \includegraphics[width=\textwidth]{data/graphs/LocalFigure.eps}
+run the SAGA-based All-Pairs application on up to 2 unique machines on a Grid
+(LONI), without any specific data placement strategy; also, no replication or
+fault-tolerance takes place.  The application sequentially assigns sets of
+pairs to the first available computational resource.  All data is accessed via
+the gridFTP protocol.  An important fact to notice is the essentially random
+mapping of data sets to computational resources based on availability.  This is
+to mimic a naïve data-based application.
 
-\includegraphics{data/graphs/CloudStoreFigure}
-\includegraphics{data/graphs/CloudStoreNoComputeSmallerDataSet}
 \includegraphics{data/graphs/ConventionalFigure}
+
 \includegraphics{data/graphs/IntelligentExtremes}
-\includegraphics{data/graphs/IntelligentVsConventionalFigure}
 \includegraphics{data/graphs/LocalFigure}
-\includegraphics{data/graphs/StagingAsAPortionOfIntelligenceFigure}
 
-\subsection{with Computation}
-The previous experiments had no computation involved.  This was to
+\subsubsection{with Computation} The previous experiments had no actaul
+operation begin applied on the pairs.  The reasoning behind this is to
 evaluate data dependencies without the added variable of computation.
-In these tests we added computation to the equation.
+In order to properly evaulate all properties of a data-intensive
+application in practical use, we added the actual genome compare
+computation.  The complexity added that is necessary to capture to is
+the scaling of compuation time when multiple computational resources are
+colocated.
 
+%Bety's graph goes here
 \jhanote{We need data for compute (comparision) and I/O (only) for
 different data-set sizes} \micnote{We need data for three and four
 machines (just one graph going from 1 machine to four machines}
 
 %Staging experiment
-\subsection{Experiment II} The second experiment is similar to the first,
-except the All-Pairs application observes the data's location before
-determining whether or not to assign a certain set of data-dependent
-computation to an idle job.  Inspired by earlier work~\citep{netperf}, this
-version of the application performs an extra step during application startup
-that approximates the performance of the network by pinging the hosts that may
-be involved and then  assembling a graph structure.  This data structure is
-utilised when the time comes to map an idle worker to an unprocessed portion of
-compuational pairs.  Though not very sophisticated, it is a first-approximation
-to performance model aware data-placement strategy.  This approach knows where
-the files are located and then determines whether to move the work to where the
-data is, or move the data to the work.  \jhanote{Data-aware placement is also
-required, i.e., managing location of files.}
+\subsection{Experiment II} The second experiment is similar to the
+first, except the All-Pairs application observes the data's location
+before determining whether or not to assign a certain set of
+data-dependent computation to an idle job.  Inspired by earlier
+work~\citep{netperf}, this version of the application performs an extra
+step during application startup that approximates the performance of the
+network by pinging the hosts that may be be either a computational
+resource or a data store and then  assembling a graph structure.  This
+data structure is utilised when the time comes to map an idle worker to
+an unprocessed portion of compuational pairs.  This changes the
+first-available compuational resource assignment mechanism descrbied in
+the first experiment.  Though ping is not very sophisticated in terms of
+describing a network's behavior, it is a first-approximation to
+performance model aware data-placement strategy.  This approach knows
+where the files are located and then determines whether to move the work
+to where the data is, or move the data to the work.  \jhanote{Data-aware
+placement is also required, i.e., managing location of files.}  
 
 We introduce the idea of network-closeness.  A network-close data-set
 takes a small amount of time to transfer to the work location.  A
@@ -306,22 +312,26 @@ there is no unprocessed data-set that is network-close to the job, still
 we assign data that may be network-far, in case the network-close job
 failed or there is no available jobs network-close to the data-set.
 
-%\includegraphics[width=\textwidth]{data/graphs/IntelligentVsC.pdf}
+\includegraphics{data/graphs/IntelligentVsConventionalFigure}
+
+\includegraphics{data/graphs/StagingAsAPortionOfIntelligenceFigure}
 
 \subsection{Experiment III} The third experiment provides information
-into DFSs performance in handling data locality issues.  The same
-All-Pairs application as in Experiments 1 and 2 is used, except all data
-is stored in the distributed filesystem CloudStore under various
-configurations.  Some variables include number of data server that store
-data, replications value for data in these data servers, and as above,
-placement and number of computational resources.  All read and writes
-also utilise the distributed filesystem.  Since the performance of this
-test is dependent on where the DFS stores data relative to the
-computational resources of the system, we place block-servers on every
-machine that may be capable of performing work.  This places all
-responsibility on the DFS in determining where to place data.
-% \includegraphics[width=\textwidth]{data/graphs/CloudStoreFigure.pdf}
-% \includegraphics[width=\textwidth]{data/graphs/CloudStoreComputeFigure.pdf}
+into CloudStore's performance in handling data locality issues.  The
+same All-Pairs application as in Experiments 1 and 2 is used, except all
+data is stored on the distributed filesystem CloudStore under various
+configurations.  Some variables of importance include number of data
+servers that store data, replication value for data in these data
+servers, and as above, placement and number of computational resources.
+All read and writes also utilise the distributed filesystem.  
+
+\includegraphics{data/graphs/CloudStoreFigure}
+
+\subsubsection{with Computation} As done above for the first
+experiement, for completion with have attempted to capture how compute
+time scales under these configurations.
+
+\includegraphics{data/graphs/CloudStoreCompute}
 
 \section{Conclusion} Our results show that a DFS greatly changes the
 performance of a distributed application in a positive manner.  Our
