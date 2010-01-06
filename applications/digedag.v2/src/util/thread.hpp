@@ -74,7 +74,8 @@ namespace digedag
         void          thread_exit        (void);
         thread_state  thread_state       (void)
         {
-          if ( thread_state_ == ThreadDone )
+          // reap threads at this opportunity
+          if ( thread_state_ == ThreadDone && ! joined_ )
           {
             thread_join ();
           }

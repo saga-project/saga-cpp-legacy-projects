@@ -5,12 +5,11 @@
 namespace digedag
 {
   dag::dag (const std::string & scheduler_src)
-    : session_   (true)
+    : session_   (saga::get_default_session ())
     , state_     (Pending)
     , scheduler_ (new scheduler (this, scheduler_src, session_))
     , input_     (new node (scheduler_, session_))
     , output_    (new node (scheduler_, session_))
-    , dummy_     (new edge (scheduler_, session_, 0))
     , edge_cnt_  (0)
   { 
     // add special nodes to dag already
@@ -117,36 +116,11 @@ namespace digedag
   }
 
 
-  void dag::add_edge (boost::shared_ptr <edge> e, 
-                      boost::shared_ptr <node> src, 
-                      boost::shared_ptr <node> tgt)
-  {
-    if ( ! src && ! tgt )
-    {
-      // WTF?
-      return;
-    }
-
-    boost::shared_ptr <node> s = src;
-    boost::shared_ptr <node> t = tgt;
-
-    if ( ! src ) { s = input_ ; } 
-    if ( ! tgt ) { t = output_; }
-
-    s->add_edge_out (e);
-    t->add_edge_in  (e);
-
-    e->add_src_node (s);
-    e->add_tgt_node (t);
-
-    edges_[e->get_id ()] = e;
-
-    // ### scheduler hook
-    scheduler_->hook_edge_add (e);
-  }
-
-
   // add edges to named nodes
+  //
+  // NOTE: INPUT and OUTPUT are accepted as special node names for file stage-in
+  // and stage-out.
+  //
   void dag::add_edge (boost::shared_ptr <edge> e, 
                       const node_id_t        & src, 
                       const node_id_t        & tgt)
@@ -158,19 +132,50 @@ namespace digedag
     {
       n_src = nodes_[src];
     }
+    else
+    {
+      std::cout << " !!! add_edge: could not find src node with id " << src << std::endl; 
+      return;
+    }
 
     if ( nodes_.find (tgt) != nodes_.end () )
     {
       n_tgt = nodes_[tgt];
     }
-
-    if ( ! n_src && ! n_tgt )
+    else
     {
-      // WTF?
+      std::cout << " !!! add_edge: could not find tgt node with id " << tgt << std::endl; 
       return;
     }
 
     add_edge (e, n_src, n_tgt);
+  }
+
+
+  void dag::add_edge (boost::shared_ptr <edge> e, 
+                      boost::shared_ptr <node> src, 
+                      boost::shared_ptr <node> tgt)
+  {
+    if ( ! src || ! tgt )
+    {
+      std::cout << " !!! add_edge: ignoring: either src or tgt node is invalid" << std::endl; 
+      return;
+    }
+
+    // connect edge to its nodes
+    // first set the edge's nodes, so that it has a name
+    e->add_src_node (src);
+    e->add_tgt_node (tgt);
+
+    // then register the edge to the nodes it connects
+    src->add_edge_out (e);
+    tgt->add_edge_in  (e);
+
+    // register new edge
+    edges_[e->get_id ()] = e;
+
+    // ### scheduler hook
+    scheduler_->hook_edge_add (e);
   }
 
 
@@ -215,7 +220,6 @@ namespace digedag
     std::cout << "fire   dag  " << std::endl;
 
     dump ();
-    sleep (10);
 
     // dump_node ("INPUT");
     // dump_node ("OUTPUT");
@@ -251,15 +255,15 @@ namespace digedag
 
     for ( it = begin; it != end; it++ )
     {
- //   std::cout << std::string (" ===   dag checks node ") 
- //             << it->second->get_id () << ": " << state_to_string (it->second->get_state ())
- //             << std::endl;
+      std::cout << std::string (" ===   dag checks node ") 
+                << it->second->get_id () << ": " << state_to_string (it->second->get_state ())
+                << std::endl;
 
       if ( Pending == it->second->get_state () )
       {
-        std::cout << std::string (" ===   dag fires node with dummy edge ") 
+        std::cout << std::string (" ===   dag fires node w/o incomplete edges ") 
                   << it->second->get_id () << std::endl;
-        it->second->fire (dummy_);
+        it->second->fire ();
         state_ = Running;
       }
     }
@@ -295,8 +299,8 @@ namespace digedag
     while ( s != Done   && 
             s != Failed )
     {
-   // std::cout << "dag    waiting..." << std::endl;
-      ::sleep (3);
+      std::cout << "dag    waiting..." << std::endl;
+      ::sleep (1);
       s = get_state ();
     }
 
@@ -496,7 +500,7 @@ namespace digedag
   {
     if ( nodes_.find (name) != nodes_.end () )
     {
-      nodes_[name]->dump (true);
+      nodes_[name]->dump ();
     }
   }
 

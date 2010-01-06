@@ -42,6 +42,8 @@ namespace digedag
 
     stop ();
 
+    thread_exit ();
+
     std::cout << " === scheduler destructed" << std::endl;
     if ( watch_nodes_ ) delete (watch_nodes_);
     if ( watch_edges_ ) delete (watch_edges_);
@@ -516,6 +518,10 @@ namespace digedag
       }
       else 
       {
+        std::cout << " --- scheduler found failing task " 
+                  << " [" << t.get_id () << "]"
+                  << " (" << saga_state_to_string (t.get_state ()) << ")"
+                  << std::endl;
         n->work_failed ();
       }
     }

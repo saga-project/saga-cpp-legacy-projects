@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include <saga/saga.hpp>
 
 #define DO_THREADS 
 
@@ -80,11 +81,34 @@ namespace digedag
     // which holds the threads workload.
     void * thread::thread_start (void)
     {
-      // startup is completed - call the (custom) workload
-      this->thread_work ();
-
-      // the thread workload is done - update state
-      thread_state_ = ThreadDone;
+      try
+      {
+        // startup is completed - call the (custom) workload
+        this->thread_work ();
+        
+        // the thread workload is done - update state
+        thread_state_ = ThreadDone;
+      }
+      catch ( char const * s )
+      {
+        std::cerr << "char* thread exception: " << s << std::endl;
+        thread_state_ = ThreadFailed;
+      }
+      catch ( const std::string & s )
+      {
+        std::cerr << "string thread exception: " << s << std::endl;
+        thread_state_ = ThreadFailed;
+      }
+      catch ( const saga::exception & e )
+      {
+        std::cerr << "saga thread exception: " << e.what () << std::endl;
+        thread_state_ = ThreadFailed;
+      }
+      catch ( ... )
+      {
+        std::cerr << "some thread exception " << std::endl;
+        thread_state_ = ThreadFailed;
+      }
 
       // nothing more to do: close thread
 #ifdef DO_THREADS
@@ -101,6 +125,15 @@ namespace digedag
     {
       thread_join ();
     }
+
+    // thread_exit allows to cancel a running thread.  At the moment, that is
+    // not well implemented: it simply waits for the thread to finish on its
+    // own... (FIXME)
+    void thread::thread_exit (void)
+    {
+      thread_join ();
+    }
+
 
     // allow the consumer to wait for thread completion
     void thread::thread_join (void)

@@ -5,7 +5,7 @@
 #include "dag.hpp"
 #include "config.hpp"
 
-#undef USE_BOOST
+#define USE_BOOST
 
 #ifdef USE_BOOST
 # include <boost/shared_ptr.hpp>
@@ -61,12 +61,12 @@ int main ()
 
     shared_ptr <A> a1 = shared_ptr <A> (a);
 
-    std::cout << " = 2 ============================== " << &a1 << std::endl;
+    std::cout << " = 2 ============================== " << a1.get () << std::endl;
 
 #ifdef ESFT
     shared_ptr <A> a2 = a1->sp ();
 
-    std::cout << " = 3 ============================== " << &a2 << std::endl;
+    std::cout << " = 3 ============================== " << a2.get ()<< std::endl;
 
     a2->a ();
 #endif

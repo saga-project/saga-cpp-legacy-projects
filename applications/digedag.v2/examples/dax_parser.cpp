@@ -7,8 +7,8 @@ int main (int argc, char** argv)
 {
   bool dryrun = false;
 
-  // try
-  // {
+  try
+  {
     if ( argc != 3 )
     {
       std::cerr << "\n\tusage: " << argv[0] << " <dag.xml> <scheduler.txt>\n\n";
@@ -38,19 +38,23 @@ int main (int argc, char** argv)
       d->wait ();
       std::cout << " === 3 " << std::endl;
     }
-  // }
-  // catch ( char const * s )
-  // {
-  //   std::cerr << "char* exception: " << s << std::endl;
-  // }
-  // catch ( const std::string & s )
-  // {
-  //   std::cerr << "string exception: " << s << std::endl;
-  // }
-  // catch ( const saga::exception & e )
-  // {
-  //   std::cerr << "oops exception: " << e.what () << std::endl;
-  // }
+  }
+  catch ( char const * s )
+  {
+    std::cerr << "char* exception: " << s << std::endl;
+  }
+  catch ( const std::string & s )
+  {
+    std::cerr << "string exception: " << s << std::endl;
+  }
+  catch ( const saga::exception & e )
+  {
+    std::cerr << "saga exception: " << e.what () << std::endl;
+  }
+  catch ( ... )
+  {
+    std::cerr << "oops exception " << std::endl;
+  }
 
   return 0;
 }

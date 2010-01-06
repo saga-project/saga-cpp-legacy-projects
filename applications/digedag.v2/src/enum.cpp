@@ -16,13 +16,14 @@ namespace digedag
     else                        return "Unknown"   ;
   }
 
-  std::string edge_id_to_string (edge_id_t id)
+  std::string saga_state_to_string (saga::task_base::state s)
   {
-    std::stringstream ss;
-
-    ss << id;
-
-    return ss.str ();
+    if      ( s == saga::task_base::New        ) return "saga::New"       ;
+    else if ( s == saga::task_base::Running    ) return "saga::Running"   ;
+    else if ( s == saga::task_base::Done       ) return "saga::Done"      ;
+    else if ( s == saga::task_base::Failed     ) return "saga::Failed"    ;
+    else                                         return "saga::Unknown"   ;
   }
+
 } // namespace digedag
 

@@ -67,9 +67,10 @@ namespace digedag
 
       void             dryrun          (void);
       void             reset           (void);
+      void             fire            (void);
       void             fire            (boost::shared_ptr <edge> e);
       void             stop            (void);
-      void             dump            (bool deep = false);
+      void             dump            (void);
       saga::task       work_start      (void);
       void             work_done       (void);
       void             work_failed     (void);

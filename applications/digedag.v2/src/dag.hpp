@@ -40,7 +40,6 @@ namespace digedag
       // special nodes which act as anchor for input and output edges
       boost::shared_ptr <node>         input_;     // node for data stagein 
       boost::shared_ptr <node>         output_;    // node for data stageout 
-      boost::shared_ptr <edge>         dummy_;     // edge for firing nodes
 
       unsigned int                     edge_cnt_;  // serves as edge id
 

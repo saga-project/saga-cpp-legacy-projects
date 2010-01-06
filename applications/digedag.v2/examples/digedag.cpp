@@ -8,13 +8,13 @@ int main (int argc, char** argv)
   {
     if ( 1 )
     {
-      sp_t <digedag::dag>  d  (new digedag::dag (""));
+      boost::shared_ptr <digedag::dag>  d  (new digedag::dag (""));
 
       digedag::node_description nd; // inherits saga::job::description
 
-      sp_t <digedag::node> n1 = d->create_node (nd);
-      sp_t <digedag::node> n2 = d->create_node (nd);
-      sp_t <digedag::edge> e1 = d->create_edge ("/tmp/s1", "/tmp/t2");
+      boost::shared_ptr <digedag::node> n1 = d->create_node (nd);
+      boost::shared_ptr <digedag::node> n2 = d->create_node (nd);
+      boost::shared_ptr <digedag::edge> e1 = d->create_edge ("/tmp/s1", "/tmp/t2");
 
       d->add_node ("1", n1);
       d->add_node ("2", n2);
@@ -38,55 +38,55 @@ int main (int argc, char** argv)
 
     if ( 1 )
     {
-      sp_t <digedag::dag>  d  (new digedag::dag);
+      boost::shared_ptr <digedag::dag>  d  (new digedag::dag);
 
-      sp_t <digedag::node> n1 = d->create_node ("/tmp/node_job.sh node_1"
-                                                  " -i /tmp/in_1"
-                                                  " -o /tmp/out_1_a"
-                                                  " -o /tmp/out_1_b");
+      boost::shared_ptr <digedag::node> n1 = d->create_node ("/tmp/node_job.sh node_1"
+                                                             " -i /tmp/in_1"
+                                                             " -o /tmp/out_1_a"
+                                                             " -o /tmp/out_1_b");
 
-      sp_t <digedag::node> n2 = d->create_node ("/tmp/node_job.sh node_2"
-                                                  " -i /tmp/in_2" 
-                                                  " -o /tmp/out_2_a"
-                                                  " -o /tmp/out_2_b"
-                                                  " -o /tmp/out_2_c");
+      boost::shared_ptr <digedag::node> n2 = d->create_node ("/tmp/node_job.sh node_2"
+                                                             " -i /tmp/in_2" 
+                                                             " -o /tmp/out_2_a"
+                                                             " -o /tmp/out_2_b"
+                                                             " -o /tmp/out_2_c");
 
-      sp_t <digedag::node> n3 = d->create_node ("/tmp/node_job.sh node_3"
-                                                  " -i /tmp/in_3_a" 
-                                                  " -i /tmp/in_3_b" 
-                                                  " -i /tmp/in_3_c" 
-                                                  " -o /tmp/out_3_a"
-                                                  " -o /tmp/out_3_b"
-                                                  " -o /tmp/out_3_c");
+      boost::shared_ptr <digedag::node> n3 = d->create_node ("/tmp/node_job.sh node_3"
+                                                             " -i /tmp/in_3_a" 
+                                                             " -i /tmp/in_3_b" 
+                                                             " -i /tmp/in_3_c" 
+                                                             " -o /tmp/out_3_a"
+                                                             " -o /tmp/out_3_b"
+                                                             " -o /tmp/out_3_c");
 
-      sp_t <digedag::node> n4 = d->create_node ("/tmp/node_job.sh node_4"
-                                                  " -i /tmp/in_4_a" 
-                                                  " -i /tmp/in_4_b" 
-                                                  " -i /tmp/in_4_c" 
-                                                  " -o /tmp/out_4");
+      boost::shared_ptr <digedag::node> n4 = d->create_node ("/tmp/node_job.sh node_4"
+                                                             " -i /tmp/in_4_a" 
+                                                             " -i /tmp/in_4_b" 
+                                                             " -i /tmp/in_4_c" 
+                                                             " -o /tmp/out_4");
 
-      sp_t <digedag::node> n5 = d->create_node ("/tmp/node_job.sh node_5"
-                                                  " -i /tmp/in_5_a" 
-                                                  " -i /tmp/in_5_b" 
-                                                  " -o /tmp/out_5");
+      boost::shared_ptr <digedag::node> n5 = d->create_node ("/tmp/node_job.sh node_5"
+                                                             " -i /tmp/in_5_a" 
+                                                             " -i /tmp/in_5_b" 
+                                                             " -o /tmp/out_5");
 
-      sp_t <digedag::node> n6 = d->create_node ("/tmp/node_job.sh node_6"
-                                                  " -i /tmp/in_6" 
-                                                  " -o /tmp/out_6_a");
+      boost::shared_ptr <digedag::node> n6 = d->create_node ("/tmp/node_job.sh node_6"
+                                                             " -i /tmp/in_6" 
+                                                             " -o /tmp/out_6_a");
 
-      sp_t <digedag::node> n7 = d->create_node ("/tmp/node_job.sh node_7"
-                                                  " -i /tmp/in_7_a" 
-                                                  " -o /tmp/out_7");
+      boost::shared_ptr <digedag::node> n7 = d->create_node ("/tmp/node_job.sh node_7"
+                                                             " -i /tmp/in_7_a" 
+                                                             " -o /tmp/out_7");
 
-      sp_t <digedag::edge> e1 = d->create_edge ("/tmp/out_1_a", "/tmp/in_4_a");
-      sp_t <digedag::edge> e2 = d->create_edge ("/tmp/out_1_b", "/tmp/in_3_a");
-      sp_t <digedag::edge> e3 = d->create_edge ("/tmp/out_2_a", "/tmp/in_3_b");
-      sp_t <digedag::edge> e4 = d->create_edge ("/tmp/out_2_b", "/tmp/in_3_c");
-      sp_t <digedag::edge> e5 = d->create_edge ("/tmp/out_2_c", "/tmp/in_5_b");
-      sp_t <digedag::edge> e6 = d->create_edge ("/tmp/out_3_a", "/tmp/in_4_b");
-      sp_t <digedag::edge> e7 = d->create_edge ("/tmp/out_3_b", "/tmp/in_4_c");
-      sp_t <digedag::edge> e8 = d->create_edge ("/tmp/out_3_c", "/tmp/in_5_a");
-      sp_t <digedag::edge> e9 = d->create_edge ("/tmp/out_6_a", "/tmp/in_7_a");
+      boost::shared_ptr <digedag::edge> e1 = d->create_edge ("/tmp/out_1_a", "/tmp/in_4_a");
+      boost::shared_ptr <digedag::edge> e2 = d->create_edge ("/tmp/out_1_b", "/tmp/in_3_a");
+      boost::shared_ptr <digedag::edge> e3 = d->create_edge ("/tmp/out_2_a", "/tmp/in_3_b");
+      boost::shared_ptr <digedag::edge> e4 = d->create_edge ("/tmp/out_2_b", "/tmp/in_3_c");
+      boost::shared_ptr <digedag::edge> e5 = d->create_edge ("/tmp/out_2_c", "/tmp/in_5_b");
+      boost::shared_ptr <digedag::edge> e6 = d->create_edge ("/tmp/out_3_a", "/tmp/in_4_b");
+      boost::shared_ptr <digedag::edge> e7 = d->create_edge ("/tmp/out_3_b", "/tmp/in_4_c");
+      boost::shared_ptr <digedag::edge> e8 = d->create_edge ("/tmp/out_3_c", "/tmp/in_5_a");
+      boost::shared_ptr <digedag::edge> e9 = d->create_edge ("/tmp/out_6_a", "/tmp/in_7_a");
 
       d->add_node ("node_1", n1);
       d->add_node ("node_2", n2);

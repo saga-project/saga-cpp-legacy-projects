@@ -16,6 +16,7 @@ namespace digedag
     , state_     (      Incomplete)
     , src_state_ (      Incomplete)
     , is_void_   (           false)
+    , optimize_  (           false)
     , fired_     (           false)
     , task_      ( saga::task::New)
     , scheduler_ (       scheduler)
@@ -34,6 +35,7 @@ namespace digedag
     : state_     (      Incomplete)
     , src_state_ (      Incomplete)
     , is_void_   (            true)
+    , optimize_  (           false)
     , fired_     (           false)
     , task_      ( saga::task::New)
     , scheduler_ (       scheduler)
@@ -68,6 +70,8 @@ namespace digedag
   {
     src_node_ = src;
 
+    std::cout << " setting src node for edge: " << src->get_name () << std::endl;
+
     if ( src_node_ && tgt_node_ )
     {
       is_void_ = false;
@@ -82,13 +86,17 @@ namespace digedag
   {
     tgt_node_ = tgt;
 
+    std::cout << " setting tgt node for edge: " << tgt->get_name () << std::endl;
+
     if ( src_node_ && tgt_node_ )
     {
       is_void_ = false;
+      std::cout << " edge is no longer void after tgt node add" << std::endl;
     }
     else
     {
       is_void_ = true;
+      std::cout << " edge remains void despite tgt node?" << std::endl;
     }
   }
 
@@ -174,7 +182,7 @@ namespace digedag
       if ( f_src.get_size () == f_tgt.get_size () )
       {
       //std::cout << " === edge run: " << get_name () << " optimized away ;-)" << std::endl;
-        is_void_ = true;
+        optimize_ = true;
       }
     }
     catch ( const saga::exception & e )
@@ -183,11 +191,11 @@ namespace digedag
     }
 
 
-    if ( is_void_ )
+    if ( optimize_ || is_void_ )
     {
       // fake a noop task, which does nothing: simply returnh the empty
       // Done task...
-      std::cout << " === task e " << task_.get_id () << " is a dummy copy task " 
+      std::cout << " === task e " << task_.get_id () << " is a void copy task " 
                 << std::endl;
 
       task_ = saga::task (saga::task::Done);
@@ -287,9 +295,9 @@ namespace digedag
 
   void edge::dump (void)
   {
-    std::cout << std::string ("         edge : ")
+    std::cout << "          edge "
               << get_name ()
-              << " [" << src_url_.get_string ()       << "\t -> " << tgt_url_.get_string () << "] "
+              << " [" << src_url_.get_string ()   << "\t -> " << tgt_url_.get_string () << "] "
               << " (" << state_to_string (state_) << ")" 
               << std::endl;
   }
@@ -351,20 +359,14 @@ namespace digedag
   // exchanged between the same pair of nodes.
   std::string edge::get_name (void) const
   {
-    if ( ! src_node_ && 
-         ! tgt_node_ )
+    if ( is_void_ )
     {
-      return "Dummy";
+      std::cout << " --- VOID EDGE" << std::endl;
+      return "void_edge";
     }
 
-    std::string src_string = "???";
-    std::string tgt_string = "???";
-
-    if ( src_node_ )
-      src_string = src_node_->get_name ();
-
-    if ( tgt_node_ )
-      tgt_string = tgt_node_->get_name ();
+    std::string src_string = src_node_->get_name ();
+    std::string tgt_string = tgt_node_->get_name ();
 
     return src_string + "->" + tgt_string;
   }

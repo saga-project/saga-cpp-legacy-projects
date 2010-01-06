@@ -14,3 +14,7 @@ SAGA_CPPINCS     += -I./
 SAGA_CPPINCS     += -I../external/tinyxml++/
 SAGA_LDFLAGS     += -L../external/tinyxml++/ -lsaga_tinyxml++
 
+e:
+edit:
+	@$(XEDITOR) `$(CAT) FILES`
+

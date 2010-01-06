@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <saga/saga.hpp>
+
 #include "config.hpp"
 
 namespace digedag
@@ -20,8 +22,8 @@ namespace digedag
     Failed     = 5
   };
 
-  std::string state_to_string   (state       s);
-  std::string edge_id_to_string (edge_id_t id);
+  std::string state_to_string       (state                  s);
+  std::string saga_state_to_string  (saga::task_base::state s);
 
 } // namespace digedag
 

@@ -29,6 +29,7 @@ namespace digedag
       state                          src_state_;   // state of src node
                                        
       bool                           is_void_;     // void edge?
+      bool                           optimize_;    // src == tgt?
       bool                           fired_;       // dependent node fired after Done?
 
       saga::task                     task_;        // our async workload

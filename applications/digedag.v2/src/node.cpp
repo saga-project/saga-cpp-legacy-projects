@@ -102,9 +102,7 @@ namespace digedag
   {
     edge_in_.push_back (e);
 
-    std::cout << " === node " << get_name () << " gets a new edge: " 
-              << e->get_name () << std::endl;
-
+    // set initial input edge state
     edge_states_[e->get_name ()] = e->get_state ();
   }
 
@@ -176,6 +174,13 @@ namespace digedag
     // store state of firing edge
     edge_states_[e->get_name ()] = Done;
 
+    // proceed with the normal fire procedure
+    fire ();
+  }
+
+
+  void node::fire (void)
+  {
     // update own state
     get_state ();
 
@@ -183,7 +188,8 @@ namespace digedag
     // If not, mark that we start the work (Running).
     if ( Pending != state_ )
     {
-      std::cout << std::string (" ===     node ? ") << get_name () << ": " << state_to_string (state_) << std::endl;
+      std::cout << std::string (" ===     node ? ") << get_name () << ": " 
+                << state_to_string (state_) << std::endl;
       return;
     }
 
@@ -330,25 +336,15 @@ namespace digedag
     state_ = Stopped;
   }
 
-  void node::dump (bool deep)
+  void node::dump (void)
   {
-    std::cout << "       node " << get_name () 
-              << " (" << host_ << ", " << pwd_ +")" 
+    std::cout << "     node " << get_name () 
+              << " [" << host_ << ":" << pwd_  << " : " << cmd_ << "]" 
               << " (" << state_to_string (get_state ()) << ")" << std::endl;
 
-    if ( deep )
+    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
     {
-      std::cout << " edges in:" << std::endl;
-      for ( unsigned int i = 0; i < edge_in_.size (); i++ )
-      {
-        edge_in_[i]->dump ();
-      }
-
-      std::cout << " edges out:" << std::endl;
-      for ( unsigned int i = 0; i < edge_out_.size (); i++ )
-      {
-        edge_out_[i]->dump ();
-      }
+      edge_in_[i]->dump ();
     }
   }
 
@@ -377,15 +373,16 @@ namespace digedag
   // That code needs to eventually move into a callback on the job state metric.
   state node::get_state (void)
   {
+    std::cout << " === node " << get_name () << " : state before check " << state_to_string (state_) << std::endl;
+
     // final states just return
     if ( state_ == Stopped ||
          state_ == Done    ||
          state_ == Failed  )
     {
-      // std::cout << " === node " << get_name () << " is in final state" << std::endl; 
+      std::cout << " === node " << get_name () << " is in final state" << std::endl; 
       return state_;
     }
-
 
     if ( state_ == Incomplete )
     {
@@ -398,6 +395,7 @@ namespace digedag
       {
         if ( Failed == it->second )
         {
+          std::cout << " !!! node " << get_name () << " failed due to edge " << it->first << std::endl;
           state_ = Failed;
           return state_;
         }
@@ -408,8 +406,8 @@ namespace digedag
       {
         if ( Done != it->second )
         {
-          std::cout << " === node " << get_name () << " : input '" <<
-            it->first << "' is missing: " << state_to_string (it->second) << std::endl; 
+          std::cout << " === node " << get_name () << " : input '"
+                     << it->first << "' is missing: " << state_to_string (it->second) << std::endl; 
           state_ = Incomplete;
           return state_;
         }
@@ -418,7 +416,6 @@ namespace digedag
       // no dep failed, all Done - we are pending!
       state_ = Pending;
     }
-
 
     // we can only depend from the job state if a job was
     // actually created
@@ -459,6 +456,8 @@ namespace digedag
 
       } // switch
     }
+
+    std::cout << " === node " << get_name () << " : state after  check " << state_to_string (state_) << std::endl;
 
     return state_;
   }
@@ -539,7 +538,6 @@ namespace digedag
             {
               new_env.push_back (words[0] + "=" + path);
             }
-            else // assume we have 2 words
             {
               new_env.push_back (words[0] + "=" + words[1] + ":" + path);
             }
