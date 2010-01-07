@@ -1,4 +1,4 @@
-set term postscript eps enhanced color solid
+set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'ConventionalFigure.eps'
 set xlabel 'Number of workers'
 set ylabel 'Time (Seconds)'

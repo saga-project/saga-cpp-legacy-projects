@@ -1,4 +1,4 @@
-set term postscript eps enhanced color solid "Times-Roman" 20
+set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'CloudStoreFigure.eps'
 set xlabel 'Number of workers' 
 set ylabel 'Time (Seconds)' 
