@@ -7,6 +7,7 @@ gnuplot < IntelligentVsConventionalMake.gnuplot
 gnuplot < LocalFigure.gnuplot
 gnuplot < StagingAsAPortionOfIntelligence.gnuplot
 gnuplot < IntelligentFigureMake.gnuplot
+gnuplot < CloudStore3MachMake.gnuplot
 epstopdf CloudStoreCompute.eps
 epstopdf CloudStoreFigure.eps
 epstopdf CloudStoreNoComputeSmallerDataSet.eps
@@ -16,3 +17,4 @@ epstopdf IntelligentVsConventionalFigure.eps
 epstopdf LocalFigure.eps
 epstopdf StagingAsAPortionOfIntelligenceFigure.eps
 epstopdf IntelligentFigure.eps
+epstopdf CloudStore3Mach.eps
