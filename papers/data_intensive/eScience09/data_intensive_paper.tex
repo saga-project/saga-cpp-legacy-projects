@@ -114,42 +114,85 @@ around 20 petabytes of data per day ~\citep{google}, and trends show
 continuing growth.  It has become very important that a distributed
 application developer takes precautions when placing, scheduling, and
 managing large volumes of data.  Careless placement can adversely affect
-system performance greatly.  There are two ways to handle this issue:
-distributed filesystems, which focus on data placement, or an
-intelligent framework, which focuses on worker placement.
+system performance greatly.  It is decisive then to determine whether to move input data to the computational resource, or the computational workload to the input data.
+There are two ways to handle this issue, with 
+distributed filesystems, which focus on data placement, or with the use of an
+intelligent framework, which focuses on worker placement. 
 
-A distributed filesystem (DFS) controls the data placement and provides
-a uniform interface for accessing files.  Frequently, there is more than
-one copy of the input data for fault-tolerance reasons, then the added
+Distributed filesystems (DFS), motivated in part by
+developments in cloud computing, are useful and effective tools to consider for
+data-intensive scientific applications. A DFS controls the data placement and provides
+a uniform interface for accessing files on multiple hosts.
+Frequently, there is more than
+one copy of the input data for fault-tolerance reasons, consequently, the added
 issue of deciding between the two or more replicas becomes relevant.
 While a DFS removes the responsibility of replica management and data
 server placement, the abstraction often increases the difficulty in
-determining where in the DFS the data is being stored difficult.  This
+determining where in the DFS the data is being stored.  This
 puts pressure on a DFS's protocols and internal algorithms to perform
 well.  Despite this, the DFS replication may alleviate this issue by
-placing replicas in locations where computational resources reside.
+placing replicas in locations where computational resources reside. 
+A downfall of DFSs is the inability to make the decision of whether to move
+the input data, or the computational workload.  It can only
+focus on minimizing poor data management. The most common parameters
+in determining the performance of using a DFS are the performance
+overhead compared to a normal local filesystem, number of replicas of
+each datum/file, and the number of servers. In our experiments, 
+we use the stable open source
+distributed filesystem CloudStore (formerly KFS), which is written in
+C++ released under the Apache License Version 2.0.  It is inspired by
+the highly successful Google Filesystem, GFS ~\citep{cloudstore_web}, 
+which is closed source and
+unavailable for research.  CloudStore was chosen for its
+ high performance focus, C++
+implementation, and its source code availability. It
+also provides a means to automatically replicate data on 
+different hosts to provide
+efficient data access and fault tolerance.  
 
-When working with distributed systems and large data-sets together,
-determining whether to move input data to the computational resource, or
-the computational workload to the input data becomes very important.  A
-downfall of DFSs is the inability to make this decision.  It can only
-focus on minimizing poor data management.  Another method is determining
-where data is and where the work should go.  This is the opposite mode
-of thinking than a DFS.  Determining data location can be as simple as
+Our intelligent framework method differs from a DFS in that it
+determines where data is and where the work should go. 
+Determining data location can be as simple as
 looking at the IP address of the worker and seeing geographically where
 it is located or as complicated as using network analyses tools to
-determine the optimal data transfer minimization time.
+determine the optimal data transfer minimization time. 
+For this method, we use gridFTP, a tool that is used to transfer
+files across machines in a grid.  It is
+specifically designed for high-bandwidth networks. GridFTP  is provided by
+the Globus Toolkit, an open source software toolkit
+released under the Apache License version 2.0.  Globus provides tools used
+to create and manage grid infrastructures. 
 
-Our research focused on comparing these two techniques and managing how
+In this paper, we provide some initial approaches to answer
+ ``To distribute or not to distribute data, is the question''. 
+ Our research focuses on understanding the performance trade-offs
+  of a DFS compared to ''regular''
+distribution and placement techniques, as well as more advanced
+intelligent distribution methods and finding how
 they handle different data-sets and what there performance patterns
-were.  We use an implementation of All-Pairs in SAGA (Simple API for
-Grid Applications).  All-Pairs is an abstraction for creating a $MxN$
-comparison matrix.  This matrix compares all possible permutations of
-pairs in a set and creates a matrix for evaluation.  SAGA is ...
+are.  This paper also aims to determine
+how sensitive the performance is in the context of a real data-intensive
+distributed applications.
 
-If the question is ``To distribute data or not, is the question'', we
-provide some initial approaches to answer this question.
+\section {Methodology (change to a better title)}
+We use an application based upon a
+grid-enabled All-Pairs abstraction in SAGA (Simple API for
+Grid Applications, see Sec. \ref{Sec:SAGA}). This abstraction applies an operation on two
+data-sets such that every possible pair containing one element from the
+first set and one element from the second set has some operation
+applied to it.~\citep{Interop, AllPairs}  Essentially, All-Pairs is a
+function of two sets, $A$ and $B$, with lengths $m$ and $n$, respectively, which creates a matrix $M$. Each element $M_{i,j}$ is the
+result of the operation $f$ applied to the elements $A_i$ and $B_j$.
+\begin{eqnarray}
+ AllPairs(A, B, f) & \rightarrow & M_{m\times n}, \\
+\mbox{where} \quad M_{i,j} & = & f(A_{i},B_{j})
+ \end{eqnarray}
 
+Examples of problems that
+fall into this category are image comparison for facial recognition, and
+genome comparison.  This paper uses genome comparisons to find the best
+matching gene in a genome. \micnote{I think we should have a small
+graphic here to show the matrix and how it works}
 
 %There are at least two types of data-intensive applications: the first
 %where the actual data generated is large; the second type is where the
@@ -161,9 +204,10 @@ provide some initial approaches to answer this question.
 %types of data-intensive applications?  What kind is an ImageMagic
 %based application?}
 
-It has large input $O$(GB) and relatively small output $O$(KB).
-However, the manner of processing causes many data reads.  This type of
-application can be classified as having a large data throughput.  To
+Our genome comparison application can be classified as having a large
+data throughput, as, even though it
+has large input $O$(GB) and relatively small output $O$(KB), the manner of 
+processing causes many data reads.  To
 handle seamlessly the DFS and gridFTP based data stores, the application
 uses the Simple API for Grid Applications (SAGA) ~\citep{saga_web}.
 This allows the same exact application to be used for all of our
@@ -176,53 +220,9 @@ computation.  There may be a resource capable of the work that may be
 slower than others, but network-close (able to be accessed in a
 relatively quick manner via the network supporting the distributed
 system) enough to the data to make up for its lack of computational
-ability.  In our experiments, we used CloudStore (formerly KFS), an
-open-source high performance distributed filesystem that builds upon
-ideas from Google's distributed filesystem GFS ~\citep{cloudstore_web}.
-CloudStore was chosen for its high performance focus, C++
-implementation, and its source code availability.
+ability. 
 
-\section{SAGA}
-
-\section{All-Pairs} In this paper, we use an application based upon a
-grid-enabled All-Pairs abstraction, which applies an operation on two
-data-sets such that every possible pair containing one element from the
-first set and one element from the second set has a some operation
-applied to it.~\citep{Interop, AllPairs}  Essentially, All-Pairs is a
-function of two sets which creates a matrix where each element is the
-result of the operation applied to that element's row and column.
-\begin{equation} All-Pairs(A, B, function\ F) \rightarrow M_{|A|X|B|}\
-|\ M_{i,j} = F(A_{i},B_{j}) \end{equation} Examples of problems that
-fall into this category are image comparison for facial recognition, and
-genome comparison.  This paper uses genome comparisons to find the best
-matching gene in a genome. \micnote{I think we should have a small
-graphic here to show the matrix and how it works}
-
-\section{CloudStore} With the advent of several stable open source
-distributed filesystem (DFS) projects (motivated in part, by
-developments in cloud computing), which can be deployed without explicit
-vendor support are now useful and effective tools to consider for
-data-intensive scientific applications.  CloudStore is a DFS written in
-C++ released under the Apache License Version 2.0.  It is inspired by
-the highly successful Google Filesystem, which is closed source and
-unavailable for research.  A DFS provides a means to access data on
-multiple hosts from a common interface.  CloudStore also provides a
-means to automatically replicate data on different hosts to provide
-efficient data access and fault tolerance.  The most common parameters
-in determining the performance of using a DFS are the performance
-overhead compared to a normal local filesystem, number of replicas of
-each datum/file, and the number of servers.  One goal of this paper is
-understand the performance trade-offs of a DFS compared to ''regular''
-distribution and placement techniques as well as more advanced
-intelligent distribution methods.  Also, this papers aims to determine
-how sensitive the performance is in the context of a real data-intensive
-distributed applications.
-
-\section{GridFTP} The Globus Toolkit is an open source software toolkit
-released under the Apache License version 2.0.  It provides tools used
-to create and manage grid infrastructures.  GridFTP is a tool provided
-Globus that is used to transfer files across machines in a grid.  It is
-specifically designed for high-bandwidth networks.
+\section{SAGA} \label{Sec:SAGA}
 
 \section{Performance Measurement and Analysis} We developed three types
 of experiments in order to compare distributed filesystems with manual
