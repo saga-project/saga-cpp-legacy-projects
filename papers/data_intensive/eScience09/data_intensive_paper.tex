@@ -74,8 +74,10 @@ $^*$Corresponding Author sjha@cct.lsu.edu}} }
 
 \newif\ifdraft \drafttrue \ifdraft \newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1
 }} } \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
-\newcommand{\micnote}[1]{ {\textcolor{blue} { ***Michael: #1 }}} \else
-\newcommand{\jhanote}[1]{} \newcommand{\micnote}[1]{} \newcommand{\fixme}[1]{}
+\newcommand{\micnote}[1]{ {\textcolor{blue} { ***Michael: #1 }}} 
+\newcommand{\betynote}[1]{ {\textcolor{green} { ***Bety: #1 }}}
+\else
+\newcommand{\jhanote}[1]{} \newcommand{\micnote}[1]{}\newcommand{\betynote}[1]{} \newcommand{\fixme}[1]{}
 \fi
 
 \begin{document} \maketitle
@@ -181,10 +183,10 @@ Grid Applications, see Sec. \ref{Sec:SAGA}). This abstraction applies an operati
 data-sets such that every possible pair containing one element from the
 first set and one element from the second set has some operation
 applied to it.~\citep{Interop, AllPairs}  Essentially, All-Pairs is a
-function of two sets, $A$ and $B$, with lengths $m$ and $n$, respectively, which creates a matrix $M$. Each element $M_{i,j}$ is the
+function of two sets, $A$ and $B$, with number of elements $m$ and $n$, respectively, which creates a matrix $M$. Each element $M_{i,j}$ is the
 result of the operation $f$ applied to the elements $A_i$ and $B_j$.
 \begin{eqnarray}
- AllPairs(A, B, f) & \rightarrow & M_{m\times n}, \\
+ AllPairs(A, B, f) & \rightarrow & M_{m \times n}, \\
 \mbox{where} \quad M_{i,j} & = & f(A_{i},B_{j})
  \end{eqnarray}
  
@@ -241,7 +243,8 @@ dependency, and workload.
 
 As explained before, for our experiments, we used an All-Pairs
  implementation that utilises SAGA. Our specific
-implementation is given via an xml configuration file, the location of
+implementation is given via an xml configuration file. Such file, defines 
+the location of
 the data that comprises the two input sets, the grouping of pairs from
 these sets into sets to be provided to the compute resources, and the
 available machines that will perform the operation on these sets of
@@ -250,20 +253,24 @@ computational resource dynamically at run-time.
 
 Furthermore, variables external to the All-Pairs implementation also
 influence experimental results. The following experiments can be
-completely described by a tuple of the following form (\textbf{d},
-\textbf{c}, \textbf{dc}, \textbf{fs}, \textbf{m}, \textbf{r}) where
-
-\begin{itemize} 
-\item \textbf{d} is the total amount of data in each set
-\item \textbf{c} is the number of elements in each set
-\item \textbf{dc} is a comma separated list of elements of the following
-form: X(A1, A2) where X is a shorthand for the compuational resource, A1
-is whether computational resource X assisted calculations, and A2 is
-whether computational resource X assisted in data storage
-\item \textbf{fs} is the type of filesystem used
-\item \textbf{m} is the method used to access that filesystem
-\item \textbf{r} is the amount of replication utilized in the experiment
-\end{itemize}
+completely described by a tuple of the following form
+ \begin{equation}
+(d, c, dc, fs, m,r),
+\end{equation}
+where $d$ is the total amount of data in each element of a set (\textit{chunk} size); 
+$c $ is the number of elements in each set; \betynote{none of the graphs talk about $c$, either we say that before hand, and erase $c$ in here, or we add c to all graphs, most of the cases  $c= 8$}
+$dc$ is a comma separated list of elements of the following
+form: $X(A1, A2)$ where $X$ is a shorthand for the computational resource, $A1$
+is whether computational resource $X$ assisted calculations, and $A2$ is
+whether computational resource $X$ assisted in data storage; 
+$fs$ is the type of filesystem used;
+$m$ is the method used to access that filesystem; and
+$r$ is the amount of replication utilized in the experiment. For example, 
+ \begin{equation}
+(287 \mbox{MB}, E(Y, N), P(N, Y), \mbox{CloudStore, Direct}, 1),
+\end{equation}
+\betynote{We have to specify replication factor for the local, gridftp case}
+shows that each element of a set is 287 MB in size; the computational resource $E$ does calculations, but does not have data stored, while computational resource $P$ does not calculate, but stores the data; the filesystem used is CloudStore, it directly access the files, and we have a replication factor of 1 for our data.
 
 As described above, the All-Pairs implementation used for our
 experiments has a fixed distribution of data, fixed available
