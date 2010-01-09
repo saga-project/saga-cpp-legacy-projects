@@ -187,6 +187,17 @@ result of the operation $f$ applied to the elements $A_i$ and $B_j$.
  AllPairs(A, B, f) & \rightarrow & M_{m\times n}, \\
 \mbox{where} \quad M_{i,j} & = & f(A_{i},B_{j})
  \end{eqnarray}
+ 
+The result of this application is stored in a matrix.  The
+application spawns distributed jobs to run sets of these pairs.  The
+problem becomes determining which pairs to put into a set, and with
+which distributed resource to run that set.  If transferring data to the
+job takes too long, we spend more time on data management than
+computation.  There may be a resource capable of the work that may be
+slower than others, but network-close (able to be accessed in a
+relatively quick manner via the network supporting the distributed
+system) enough to the data to make up for its lack of computational
+ability. 
 
 Examples of problems that
 fall into this category are image comparison for facial recognition, and
@@ -208,34 +219,28 @@ Our genome comparison application can be classified as having a large
 data throughput, as, even though it
 has large input $O$(GB) and relatively small output $O$(KB), the manner of 
 processing causes many data reads.  To
-handle seamlessly the DFS and gridFTP based data stores, the application
+handle seamlessly the DFS and gridFTP based data stores, and to 
+facilitate usage on clouds and grids, the application
 uses the Simple API for Grid Applications (SAGA) ~\citep{saga_web}.
 This allows the same exact application to be used for all of our
-experiments.  The result of this application is stored in a matrix.  The
-application spawns distributed jobs to run sets of these pairs.  The
-problem becomes determining which pairs to put into a set, and with
-which distributed resource to run that set.  If transferring data to the
-job takes too long, we spend more time on data management than
-computation.  There may be a resource capable of the work that may be
-slower than others, but network-close (able to be accessed in a
-relatively quick manner via the network supporting the distributed
-system) enough to the data to make up for its lack of computational
-ability. 
+experiments.  
 
 \section{SAGA} \label{Sec:SAGA}
 
-\section{Performance Measurement and Analysis} We developed three types
+\section{Performance Measurement and Analysis} 
+We developed three types
 of experiments in order to compare distributed filesystems with manual
-file management.  Does a distributed filesystem grow more slowly than
+file management.  Some of the questions we try to answer are, 
+does a distributed filesystem grow more slowly than
 manual placement of data?  When manually handling data, what are the
-advantages of being able to move work to data to the work?  We focused
-on three variables to measure data:  degree of distribution, data
+advantages of being able to move work to data to the work?  
+We focus on three variables to measure performance:  degree of distribution, data
 dependency, and workload.
 
 \subsection{Experimental Configuration}
 
-For our experiments, we used an All-Pairs implementation that utilises
-SAGA to facilitate usage on clouds and grids. Our specific
+As explained before, for our experiments, we used an All-Pairs
+ implementation that utilises SAGA. Our specific
 implementation is given via an xml configuration file, the location of
 the data that comprises the two input sets, the grouping of pairs from
 these sets into sets to be provided to the compute resources, and the
