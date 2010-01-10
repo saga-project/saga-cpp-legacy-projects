@@ -209,6 +209,38 @@ Certain improvements are possible obviously. Using three machines as a distribut
 \yyenote{need to give examples on further optimization}	
 
 
+\section{Sensors}
+
+
+To perform realtime reservoir characterization and forecast, live sensor data must be retrieved from the field and used in the data assimilation stage. The availability of new data also triggers a new EnKF stage in the workflow. To that end we implemented a communication layer based on data streaming from the data acquisition (sensor) platforms to a data spool in the form of a MySQL database ~\ref{fig:SensorRelay}. The EnKF application queries the data spool for the latest available sensor platform (field observations) data. Once the new field observations are retrieved they are labeled as ``assimilated'' to differentiate them from the next--in--line observations. It is worth mentioning that while currently we use a MySQL database, a more consistent solution would be to use the SAGA advert service, which would remove the need to access MySQL in Lazarus.
+
+%With a high performance reservoir simulator, a parallel, scalable ensemble Kalman filter, and a workflow manager that provides access to an abundance of high performance and high throughput resources optimized for lowest total--time--to--completion, we are well equipped to perform live, real--time reservoir characterization based on direct sensor data.
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.35]{./figures/SensorRelay.png}
+\end{center}
+\caption[Sensors to Simulations data flow]{Real-time transfer of field sensor data to the EnKF application is a two stage process: streaming from sensor platforms to database and queries from the EnKF.}
+\label{fig:SensorRelay}
+\end{figure}
+
+The use of an intermediate data--spool is necessary for many reasons: it is difficult to guarantee resource availability and synchronization with the EnKF. It is also prohibitively costly to maintain an active EnKF session throughout the life--time of the reservoir. With a data--spool we can also adjust the update rate at the EnKF session without losing any data from the reservoir. Updates to the models can be as immediate as the moment data is broadcast from the sensors in the field, or as late as when the reservoir is being abandoned. With immediate model updates, we can run forecast studies.
+
+% \begin{figure}
+% \begin{center}
+% \includegraphics[scale=0.65]{./figures/LabView.png}
+% \end{center}
+% \caption[Sensor side LabVIEW vi]{Sensor side LabVIEW vi. To stream data from sensor platforms to data spools we use a LabVIEW vi that makes calls to a shared library containing an interface to the database (MySQL). Initial tests were conducted using a Wii mote 3--axis accelerometer. Image courtesy of Richard G. Duff }
+% \label{fig:LabView}
+% \up
+% \up
+% \end{figure}
+
+%Special care had to be taken when interfacing to sensor platforms: there is no unified specification for communicating abstract sensor information. The simplest approach was to develop an interface to a common data acquisition application: LabVIEW from National Instruments ~\cite{LabVIEW}. To that end we developed a virtual instrument (vi) that makes function calls to a shared library which in turn interfaces to the MySQL database (Figure ~\ref{fig:LabView}). The vi has an adjustable streaming rate for polling sensor information and relaying it to the database, and is modular so it can be integrated in existing vi's as a sub--vi. This translates to painless integration with existing field and laboratory sensor platforms, in particular, the UCoMs sand tank experiment ~\cite{UCOMS}.
+
+%It is worth mentioning that the intention here was to develop an abstract interface to sensor data that can accommodate everything from drill--string modelling ~\cite{DrillingLab}, well--heads, weather stations and buoys. This is one of the reasons why a ProdML ~\cite{ProdML} was not the first choice of interfaces. However, should the need arise, we can develop a direct ProdML to PETSc interface which will have no significant impact on the closed loop performance.
+
 
 
 
