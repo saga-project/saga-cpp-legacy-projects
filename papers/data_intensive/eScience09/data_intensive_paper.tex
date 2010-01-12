@@ -192,15 +192,14 @@ spawns distributed jobs to run sets of these pairs. Examples of
 problems that fall into this category are image comparison for facial
 recognition, and genome comparison. This paper uses genome comparisons
 to find the best matching gene in a genome. \micnote{I think we should
-have a small graphic here to show the matrix and how it works} The
-problem becomes determining which pairs to put into a set and with which
+have a small graphic here to show the matrix and how it works} 
+
+The problem becomes determining which pairs to put into a set and with which
 distributed resource to run that set. If transferring data to the job
 takes too long, we spend more time on data management than computation.
 There may be a resource capable of the work that may be slower than
 others, but able to be accessed in a relatively quick manner via the
-network, correcting for this lack of computational ability. 
-
-We introduce the idea of network-closeness. A network-close data-set
+network, correcting for this lack of computational ability. Therefore, we introduce the idea of network-closeness. A network-close data-set
 takes a small amount of time to transfer to the work location. A
 network-far data-set is just the opposite. A network-far data-set takes
 a long time to transfer to the work location. If there is an
@@ -264,21 +263,21 @@ Furthermore, variables external to the All-Pairs implementation also
 influence experimental results. The following experiments can be
 completely described by a tuple of the following form
  \begin{equation}
-(c_s, N_c, D, fs, m,r),
+(c_s, N_c, M_c, fs, m,r),
 \label{Eq:tuple}
 \end{equation}
 where $c_s$ is the total amount of data in each element (file) of a set (i.e., $c_s=\mbox{\textit{chunk} size}$); 
 $N_c$ is the number of elements in each set (i.e., number of chunks per set); \betynote{most of the graphs don't talk about $N_c$, either we say that before hand, and erase $N_c$ in here, or we add $N_c$ to all graphs, most of the cases  $N_c= 8$}
-$D$ is a comma separated list of the following
+$M_c$ is a comma separated list, of the machine configurations, of the following
 form: $X(c, d_a)$ where $X$ is a shorthand for the computational resource,  $c$ shows if the computational resource $X$ assisted calculations, and $d_a$ if
 the computational resource $X$ assisted in data storage, both have a yes/no $(Y/N)$ value.; 
 $fs$ is the type of filesystem used;
 $m$ is the method used to access that filesystem; and
 $r$ is the amount of replication utilized in the experiment. 
 
-In our experiments, we have three $(fs, m)$ configurations, and few $X$ configurations. Our $(fs, m)$ configurations are $LL=(\mbox{local, local})$, $LG=(\mbox{local, gridFTP})$, and $CD=(\mbox{CloudStore, direct})$.\betynote{Explain what all they mean, and find a better name other than f1, f2, f3.} Our $X$ configurations are, for one machine, $\mbox{C0}=X_1(Y,Y)$, where resource $X_1$ has both the data and the computing; for two machines, we have four configurations, and for three machines we only work with one. The configurations are listed in Table \ref{Tab:Configs}. In the local case, configuration C1  is equivalent to our one machine case, but not when we use CloudStore, as it also contributes to $t_x$. For example, 
+In our experiments, we have three $(fs, m)$ configurations, and few $X$ configurations. Our $(fs, m)$ configurations are $(L,L)=(\mbox{local, local})$, $(L,G)=(\mbox{local, gridFTP})$, and $(C,D)=(\mbox{CloudStore, direct})$.\betynote{Explain what all they mean, and find a better name other than f1, f2, f3.} Our $X$ configurations are, for one machine, $C0=X_1(Y,Y)$, where resource $X_1$ has both the data and the computing; for two machines, we have four configurations, and for three machines we only work with one. The configurations are listed in Table \ref{Tab:Configs}. In the local case, configuration $C1$ is equivalent to our one machine case, but not when we use CloudStore, as it also contributes to $t_x$. For example, 
  \begin{equation}
-(287 \mbox{MB}, 8, C2, \mbox{CD}, 1),
+(287 \mbox{MB}, 8, C2, C, D, 1),
 \end{equation}
 shows that each element of a set is 287 MB in size; we have 8 elements
 in each set; the computational resource $X_1$ does calculations, but does
@@ -292,15 +291,15 @@ data. The machines $X_i$ we use for our experiments are in the grid LONI (Louisi
     \begin{tabular}{ | l | l |}
     \hline
     Configurations & $X(c,d_a)$; $c= \mbox{compute}$, $d_a=\mbox{data storage}$  \\ \hline
-    C1 & $X_1(Y,Y), X_2(N, N)$  \\ \hline
-    C2 & $X_1(Y,N), X_2(N,Y)$ \\ \hline
-    C3 & $X_1(Y,Y), X_2(Y,N)$ \\ \hline
-    C4 & $X_1(Y,Y), X_2(Y,Y)$ \\ \hline
-    C5 & $X_1(Y,Y), X_2(Y,Y), X_3(Y,Y)$ \\ 
+    $C1$ & $X_1(Y,Y), X_2(N, N)$  \\ \hline
+    $C2$ & $X_1(Y,N), X_2(N,Y)$ \\ \hline
+    $C3$ & $X_1(Y,Y), X_2(Y,N)$ \\ \hline
+    $C4$ & $X_1(Y,Y), X_2(Y,Y)$ \\ \hline
+    $C5$ & $X_1(Y,Y), X_2(Y,Y), X_3(Y,Y)$ \\ 
     \hline
     \end{tabular}
 \end{center}
-    \caption{\textit{Here we show the configurations of $D$ (tuple \ref{Eq:tuple}) that we use in our experiments, for two and three machines. Both $c$ and $d_a$ can have yes/no (Y/N) values. A $c = Y$ means the machine $X_i$ does computation, and a $d_a = Y$ means the machine has data stored. For C4 and C5, we divide the data equally among the machines.}}
+    \caption{\textit{Here we show the configurations of $M_c$ (tuple \ref{Eq:tuple}) that we use in our experiments, for two and three machines. Both $c$ and $d_a$ can have yes/no (Y/N) values. A $c = Y$ means the machine $X_i$ does computation, and a $d_a = Y$ means the machine has data stored. For C4 and C5, we divide the data equally among the machines.}}
     \label{Tab:Configs}
 \end{table}
 
@@ -339,12 +338,12 @@ right.}
 %Figure 1
 \begin{center}
 \begin{figure}[ht]
-\subfigure{
-\includegraphics[scale=0.55]{data/graphs/LocalFigure}
+\subfigure[ $(fs, m)=(\mbox{local, local})$]{
+\includegraphics[scale=0.5]{data/graphs/LocalFigure}
 \label{Fig:ExpIConventionalLocal:a}
 }
-\subfigure{
-\includegraphics[scale=0.55]{data/graphs/ConventionalFigure}
+\subfigure[$(fs, m)=(\mbox{local, gridFTP})$]{
+\includegraphics[scale=0.5]{data/graphs/ConventionalFigure}
 \label{Fig:ExpIConventionalLocal:b}
 }
 \caption{\textit{Performance results for All-Pairs using GridFTP for
@@ -353,7 +352,6 @@ file reads being compared to a completely local run.}}
 \end{figure}
 \end{center}
 
-\subsubsection{With Computation} 
 In order to properly evaluate all properties of a data-intensive
 application in practical use, we added to our last experiment the actual genome
 compare computation. The complexity added that is necessary to capture to is
@@ -366,7 +364,7 @@ different data-set sizes} \micnote{We need data for three and four
 machines (just one graph going from 1 machine to four machines}
 
 %Staging experiment
-\subsection{Experiment II: Staging}
+\subsection{Experiment II: Intelligent Based System}
 The second experiment is similar to the first, except the All-Pairs
 application observes the data's location before determining whether or
 not to assign a certain set of data-dependent computation to an idle
@@ -391,17 +389,16 @@ where the files are located and their distance to available
 computational resources, thus allowing more intelligent decisions when
 mapping a set of pairs to a computational resource.
 
-whether to move the work
-to where the data is, or move the data to the work. \jhanote{Data-aware
+ \jhanote{Data-aware
 placement is also required, i.e., managing location of files.} 
 
 %Figure 2
 \begin{center}
 \begin{figure}
-\subfigure{\includegraphics[scale=0.55]
+\subfigure{\includegraphics[scale=0.5]
   {data/graphs/IntelligentVsConventionalFigure}}
   \label{Fig:IntelligentExp:a}
-\subfigure{\includegraphics[scale=0.55]
+\subfigure{\includegraphics[scale=0.5]
   {data/graphs/IntelligentFigure}}
   \label{Fig:IntelligentExp:b}
 \caption{\textit{The figure on the left demonstrations improved
@@ -412,7 +409,7 @@ resources are involved.}}
 \end{figure}
 \end{center}
 
-The overhead of intelligence includes all time spent pinging hosts and
+The overhead of intelligence includes the time spent pinging hosts and
 building the graph data structure. The total time spent for this
 overhead was negligible at approximately two seconds per application
 run. In \ref{Fig:IntelligentExp:a}, we achieved a great reduction in
@@ -427,41 +424,50 @@ structure. Each set of pairs would take the same time to compute using
 any computational resource.  \jhanote{Perhaps define a test to verify
 this, so a note can go in saying we investigated this}
 
-\subsection{Experiment III} The third experiment provides information
+\subsection{Experiment III: CloudStore} 
+The third experiment provides information
 into CloudStore's performance in handling data locality issues. The
 same All-Pairs application as in Experiments 1 and 2 is used, except all
 data is stored on the distributed filesystem CloudStore under various
 configurations. Some variables of importance include number of data
 servers that store data, replication value for data in these data
 servers, and as above, placement and number of computational resources.
-All read and writes also utilise the distributed filesystem. 
+All read and writes also utilise the distributed filesystem. Again, for out first set of results, we focus on $t_{compute}=0$.  
 %Figure 3
 \begin{center}
 \begin{figure}
-\subfigure{\includegraphics[scale=0.55]
-  {data/graphs/CloudStoreFigure}}
-\subfigure{\includegraphics[scale=0.55]
-  {data/graphs/CloudStore3Mach}}
+\subfigure{
+\includegraphics[scale=0.5]  {data/graphs/CloudStoreFigure}
+\label{Fig:experiment3:a}
+}
+\subfigure{\includegraphics[scale=0.5] {data/graphs/CloudStore3Mach}
+\label{Fig:experiment3:b}
+}
 \caption{\textit{Comparison of CloudStore using the All-Pairs
 application for different number of machines.}}
-\label{experiment3}
+\label{Fig:experiment3}
 \end{figure}
 \end{center}
 
-\subsubsection{with Computation} \micnote{Sentence about c2 and c3: On
-the left hand side of Figure 3, line C2 has data distant from the
+As done above for the first experiment, we have attempted to capture
+how compute time scales under these configurations. \micnote{Sentence about c2 and c3: On
+the left hand side of figure \ref{Fig:experiment3}, line C2 has data distant from the
 computation. Line C3 has data mixed with some resources. They follow
-the same curves with line C3 having speed improvements.} As done above
-for the first experiment, for completion with have attempted to capture
-how compute time scales under these configurations.
+the same curves with line C3 having speed improvements.} 
 %Figure 4
 \begin{center}
 \begin{figure}
-\subfigure{\includegraphics[scale=.55]{data/graphs/CloudStoreCompute}}
-\subfigure{\includegraphics[scale=0.55]{data/graphs/CloudStoreNoComputeSmallerDataSet}}
+\subfigure{
+\includegraphics[scale=.5]{data/graphs/CloudStoreCompute}
+\label{Fig:experiment4:a}
+}
+\subfigure{
+\includegraphics[scale=0.5]{data/graphs/CloudStoreNoComputeSmallerDataSet}
+\label{Fig:experiment4:b}
+}
 \caption{\textit{Comparison of CloudStore using the All-Pairs
 application with and without actual computation.}}
-\label{experiment4}
+\label{Fig:experiment4}
 \end{figure}
 \end{center}
 
