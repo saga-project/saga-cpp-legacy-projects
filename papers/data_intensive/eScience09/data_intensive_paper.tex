@@ -268,19 +268,17 @@ Furthermore, variables external to the All-Pairs implementation also
 influence experimental results. The following experiments can be
 completely described by a tuple of the following form
  \begin{equation}
-(d, c, dc, fs, m,r),
+(c_s, N_c, D, fs, m,r),
 \end{equation}
-where $d$ is the total amount of data in each element, or file, of a set
-(i.e., $d=\mbox{\textit{chunk} size}$); $c$ is the number of elements in
-each set (i.e., number of files per set); \betynote{most of the graphs
-don't talk about $c$, either we say that before hand, and erase $c$ in
-here, or we add c to all graphs, most of the cases $c= 8$} $dc$ is a
-comma separated list of the following form: $X(A1, A2)$ where $X$ is a
-shorthand for the computational resource, $A1$ is whether computational
-resource $X$ assisted calculations, and $A2$ is whether computational
-resource $X$ assisted in data storage; $fs$ is the type of filesystem
-used; $m$ is the method used to access that filesystem; and $r$ is the
-amount of replication utilized in the experiment. For example, 
+
+where $c_s$ is the total amount of data in each element (file) of a set (i.e., $c_s=\mbox{\textit{chunk} size}$); 
+$N_c$ is the number of elements in each set (i.e., number of chunks per set); \betynote{most of the graphs don't talk about $N_c$, either we say that before hand, and erase $N_c$ in here, or we add $N_c$ to all graphs, most of the cases  $N_c= 8$}
+$D$ is a comma separated list of the following
+form: $X(c, d_a)$ where $X$ is a shorthand for the computational resource,  $c$ shows if the computational resource $X$ assisted calculations, and $d_a$ if
+the computational resource $X$ assisted in data storage, both have a yes/no $(Y/N)$ value.; 
+$fs$ is the type of filesystem used;
+$m$ is the method used to access that filesystem; and
+$r$ is the amount of replication utilized in the experiment. For example, 
  \begin{equation}
 (287 \mbox{MB}, 8, E(Y, N), P(N, Y), \mbox{CloudStore, Direct}, 1),
 \end{equation}
@@ -291,6 +289,9 @@ calculate, but stores the data; the filesystem used is CloudStore, it
 directly access the files, and we have a replication factor of 1 for our
 data.
 
+
+In our experiments, we have three $(fs, m)$ configurations, and few $X$ configurations. Our $(fs, m)$ configurations are $LL=(\mbox{local, local})$, $LG=(\mbox{local, gridFTP})$, and $CD=(\mbox{CloudStore, direct})$.\betynote{Explain what all they mean, and find a better name other than f1, f2, f3.} Our $X$ configurations are, for one machine, $X_1(Y,Y)$, where resource $X_1$ has both the data and the computing. For two machines, we have four configurations, and for three machines we only work with one. The configurations are listed in Table \ref{Tab:Configs}.****
+\betynote{Keeping text below until I put a caption to the table}
 In our experiments, we have three $(fs, m)$ configurations, and few $X$
 configurations. Our $(fs, m)$ configurations are $LL=(\mbox{local,
 local})$, $LG=(\mbox{local, gridFTP})$, and $CD=(\mbox{CloudStore,
@@ -311,6 +312,25 @@ $A2$, both machines compute. For three machines, we have a unique
 configuration of $A1(Y, Y), A2(Y, N), A3(Y, Y)$, where the data is
 distributed in all three machines, and all of them compute. We run our
 experiments in the grid LONI (Louisiana Optical Network Initiative).
+
+\begin{table}
+\begin{center}
+    \begin{tabular}{ | l | l |}
+    \hline
+    Configurations & $X(c,d_a)$; $c= \mbox{compute}$, $d_a=\mbox{data storage}$  \\ \hline
+    C1 & $X_1(Y,Y)$  \\ \hline
+    C2 & $X_1(Y,N), X_2(N,Y)$ \\ \hline
+    C3 & $X_1(Y,Y), X_2(Y,N)$ \\ \hline
+    C4 & $X_1(Y,Y), X_2(Y,Y)$ \\ \hline
+    C5 & $X_1(Y,Y), X_2(Y,Y), X_3(Y,Y)$ \\ 
+    \hline
+    \end{tabular}
+\end{center}
+    \caption{Configs}
+    \label{Tab:Configs}
+\end{table}
+
+The first one is $C1=X_1(Y, Y), X_2(N, N)$, where $X_1$ has the data and runs all the jobs, while $X_2$ is added in our xml file, but does not participate. In the local case, this is equivalent to our one machine case, but not when we use CloudStore, as it also contributes to $t_x$. In the second one, $C2=X_1(Y, N), X_2(N, Y)$,  $X_1$ computes with the data stored at $X_2$, here, $X_2$ does no computation. The third one, $C3=X_1(Y, Y), X_2(Y, N)$, has the data in $X_1$, but computes in both $X_1$ and $X_2$ machines. In the fourth configuration, $C4=X_1(Y, Y), X_2(Y, Y)$, we distribute the data into two machines, half of the files go to $X_1$, and half go to $X_2$, both machines compute. For three machines, we have a unique configuration of  $X_1(Y, Y), X_2(Y, N), X_3(Y, Y)$, where the data is distributed in all three machines, and all of them compute. We run our experiments in the grid LONI (Louisiana Optical Network Initiative).
 
 As described above, the All-Pairs implementation used for our
 experiments has a fixed distribution of data, fixed available
@@ -340,15 +360,9 @@ strategy; also, no replication or fault-tolerance takes place. The
 application sequentially assigns sets of pairs to the first available
 computational resource. All data is accessed via the gridFTP protocol.
 An important fact to notice is the essentially random mapping of data
-sets to computational resources based on availability. This is to mimic
-a naïve data-based application. In figure
-\ref{Fig:ExpIConventionalLocal}, we show our results for one and two
-machines (Figs. \ref{Fig:ExpIConventionalLocal:a}, and
-\ref{Fig:ExpIConventionalLocal:b}, respectively). In figure
-\ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that
-\betynote{WHY is t(287, 8) $<$ t(144,16)} \betynote{Graphs need and (a)
-or (b), upper left corner, depending if there are two plots, left or
-right.} 
+sets to computational resources based on availability.  This is to mimic
+a naïve data-based application. In figure \ref{Fig:ExpIConventionalLocal}, we show our results for one and two machines (Figs. \ref{Fig:ExpIConventionalLocal:a}, and \ref{Fig:ExpIConventionalLocal:b}, respectively). In figure \ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that \betynote{WHY is t(287, 8) $<$ t(144,16)??} \betynote{Graphs need and (a) or (b), upper left corner, depending if there are two plots, left or right.} 
+
 %Figure 1
 \begin{center}
 \begin{figure}[ht]
