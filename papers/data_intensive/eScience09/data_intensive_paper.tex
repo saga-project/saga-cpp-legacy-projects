@@ -240,7 +240,101 @@ seamlessly the DFS and gridFTP based data stores on clouds and grids.
 This allows the same exact application to be used for all of our
 experiments. 
 
-\section{SAGA} \label{Sec:SAGA}
+\section{SAGA and SAGA-based Frameworks for Large-Scale and
+  Distributed Computation}\label{Sec:SAGA}
+
+%\alnote{removed the first paragraph - duplicated content}
+% SAGA~\cite{saga_url} provides a simple, POSIX-inspired API to the most
+% commonly required distributed functionality at a sufficiently
+% high-level of abstraction so as to be independent of the divers\ e and
+% dynamic Grid environments.
+
+The Simple API for Grid Applications (SAGA)~\cite{saga_url} is an API
+standardization effort within the Open Grid Forum
+(OGF)~\cite{saga_gfd90}, an international standards development body
+concerned primarily with standards for distributed computing. SAGA
+provides a simple, POSIX-style API to the most common Grid functions
+at a sufficiently high-level of abstraction so as to be independent of
+the diverse and dynamic Grid environments. The SAGA specification
+defines interfaces for the most common Grid-programming functions
+grouped as a set of functional packages (Fig.~\ref{Fig:SAGA1}). Some
+key packages are:
+
+\begin{figure}[!ht]
+ \begin{center}
+     \includegraphics[width=0.40\textwidth]{stci_saga_figures-1.pdf}
+ \end{center}
+\caption{\small Layered schematic of the different components of the
+   SAGA landscape. At the topmost level is the simple integrated API
+   which provides the basic functionality for distributed
+   computing. Our BigJob abstraction is built upon this SAGA layer
+   using Python API bindings.} \label{Fig:SAGA1}
+\end{figure}
+
+\begin{itemize}
+\item File package - provides methods for accessing local and remote
+ filesystems, browsing directories, moving, copying, and deleting
+ files, setting access permissions, as well as zero-copy reading and
+ writing.
+\item Job package - provides methods for describing, submitting,
+ monitoring, and controlling local and remote jobs. Many parts of
+ this package were derived from the largely adopted
+ DRMAA % ~\cite{drmaa_url}                                                                                           
+ specification.
+\item Stream package - provides methods for authenticated local and
+ remote socket connections with hooks to support authorization and
+ encryption schemes.
+\item Other Packages, such as the RPC (remote procedure call) and Replica
+ package.
+\end{itemize}
+
+In the absence of a formal theoretical taxonomy of distributed
+applications, Fig.~\ref{Fig:sagaapps} can act a guide.  Using this
+classification system, there are three types of distributed
+applications: (i) Applications where local functionality is swapped
+for distributed functionality, or where distributed execution modes
+are provided.  A simple but illustrative example is an ensemble of an
+application that uses distributed resources for bulk submission. Here,
+the application remains unchanged and even unaware of its distributed
+execution, and the staging, coordination, and management are done by
+external tools or agents. Most application in this category are
+classified as implicitly distributed.  (ii) Applications that are
+naturally decomposable or have multiple components are then aggregated
+or coordinated by some unifying or explicit mechanism.  DAG-based
+workflows are probably the most common example of applications in this
+category.
+% (ii) Applications that are developed using well known
+% patterns, % for example MapReduce, which in turn is implemented using % infrastructure independent programming systems such as SAGA;
+Finally, (iii) applications that are developed using frameworks, where
+a framework is a generic name for a development tool that supports
+specific application characteristics (e.g., hierarchical job
+submission), and recurring patterns (e.g., MapReduce, data
+parallelism) and system functionality.  SAGA has been used to develop
+system-level tools and applications of each of these types.
+
+
+\begin{figure}[!ht]
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{distributed_applications_saga_figure.pdf}
+  \end{center}
+  \caption{\small Showing the ways in which SAGA can be used to
+    develop distributed applications.  The different shaded box
+    represent the three different types; frameworks in turn can
+    capture either common patterns or common application
+    requirements/characteristics. \label{Fig:sagaapps}}
+\end{figure}
+
+It is important to note that SAGA provides the basic API to implement
+distributed functionality required by applications (typically used
+directly by the first category of applications), and is also used to
+implement higher-level APIs, abstractions, and frameworks that, in
+turn, support the development, deployment and execution of distributed
+applications~\cite{enkf-gmac09}. In Ref.~\cite{sagamontage09} we
+discussed how SAGA was used to implement a higher-level API to support
+workflows. In this paper, we will discuss how SAGA can be used to
+implement runtime frameworks to support the efficient execution of the
+distributed applications.
+
 
 \section{Performance Measurement and Analysis} We developed three types
 of experiments in order to compare distributed filesystems with manual
@@ -255,13 +349,12 @@ be compared, i.e.,
  \begin{equation}
 t_c = t_x + t_{I/O} + t_{compute}.
 \end{equation}
-We focus on three variables to measure $t_c$: degree of distribution, data
-dependency, and workload. Degree of distribution is defined as the
-number
-of resources that are utilized for a given computation/problem. For
-example, if data is distributed over 3 machines $D_d$ is 3; if data is
-distributed over three machines but the computational tasks over
-4 machines, the $D_d$ is 4. 
+We focus on three variables to measure $t_c$: degree of distribution,
+data dependency, and workload. Degree of distribution is defined as
+the number of resources that are utilized for a given
+computation/problem. For example, if data is distributed over 3
+machines $D_d$ is 3; if data is distributed over three machines but
+the computational tasks over 4 machines, the $D_d$ is 4.
 
 \betynote{We should find variable names for the 3 variables, like $D_d$,
 w for workload, etc, define them and add that to the $t_c$ equation as
