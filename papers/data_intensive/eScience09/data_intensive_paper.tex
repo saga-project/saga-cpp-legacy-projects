@@ -38,6 +38,7 @@
 \definecolor{middleblue}{rgb}{0, 0, 0.7}
 \definecolor{darkred}{rgb}{0.4, 0, 0}
 \definecolor{brown}{rgb}{0.5, 0.5, 0}
+\definecolor{orange}{rgb}{1,0.5,0}
 
 \lstdefinestyle{myListing}{ frame=single, backgroundcolor=\color{listinggray},  
   %float=t,
@@ -75,7 +76,7 @@ $^*$Corresponding Author sjha@cct.lsu.edu}} }
 \newif\ifdraft \drafttrue \ifdraft \newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1
 }} } \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
 \newcommand{\micnote}[1]{ {\textcolor{blue} { ***Michael: #1 }}} 
-\newcommand{\betynote}[1]{ {\textcolor{green} { ***Bety: #1 }}}
+\newcommand{\betynote}[1]{ {\textcolor{orange} { ***Bety: #1 }}}
 \else
 \newcommand{\jhanote}[1]{} \newcommand{\micnote}[1]{}\newcommand{\betynote}[1]{} \newcommand{\fixme}[1]{}
 \fi
@@ -229,15 +230,22 @@ experiments.
 
 \section{SAGA} \label{Sec:SAGA}
 
-\section{Performance Measurement and Analysis} 
+\section{Performance Measurement and Analysis}
 We developed three types
 of experiments in order to compare distributed filesystems with manual
-file management.  Some of the questions we try to answer are, 
+file management. Some of the questions we try to answer are, 
 does a distributed filesystem grow more slowly than
 manual placement of data?  When manually handling data, what are the
-advantages of being able to move work to data to the work?  
-We focus on three variables to measure performance:  degree of distribution, data
+advantages of being able to move work to data to the work? For this, we find 
+the time to completion $t_c$, which is a function of pre-processing time $t_x$, I/O time $t_{I/O}$, which is the time it takes to read and write files, and the time to compute $t_{compute}$, which is the time it takes for genomes to be compared, i.e.,
+\begin{equation}
+t_c = t_x + t_{I/O} + t_{compute}.
+\end{equation}
+We focus on three variables to measure $t_c$:  degree of distribution, data
 dependency, and workload.
+\betynote{We should find variable names for the 3 variables, like $D_d$, w
+ for workload, etc, define them and add that to the $t_c$ equation as $t_c(var1, var2, var3) = t_x()$...}
+\betynote{check name, role, text of $t_x$}
 
 \subsection{Experimental Configuration}
 
@@ -257,9 +265,9 @@ completely described by a tuple of the following form
  \begin{equation}
 (d, c, dc, fs, m,r),
 \end{equation}
-where $d$ is the total amount of data in each element of a set (\textit{chunk} size); 
-$c $ is the number of elements in each set; \betynote{none of the graphs talk about $c$, either we say that before hand, and erase $c$ in here, or we add c to all graphs, most of the cases  $c= 8$}
-$dc$ is a comma separated list of elements of the following
+where $d$ is the total amount of data in each element, or file, of a set (i.e., $d=\mbox{\textit{chunk} size}$); 
+$c$ is the number of elements in each set (i.e., number of files per set); \betynote{most of the graphs don't talk about $c$, either we say that before hand, and erase $c$ in here, or we add c to all graphs, most of the cases  $c= 8$}
+$dc$ is a comma separated list of the following
 form: $X(A1, A2)$ where $X$ is a shorthand for the computational resource, $A1$
 is whether computational resource $X$ assisted calculations, and $A2$ is
 whether computational resource $X$ assisted in data storage; 
@@ -267,10 +275,11 @@ $fs$ is the type of filesystem used;
 $m$ is the method used to access that filesystem; and
 $r$ is the amount of replication utilized in the experiment. For example, 
  \begin{equation}
-(287 \mbox{MB}, E(Y, N), P(N, Y), \mbox{CloudStore, Direct}, 1),
+(287 \mbox{MB}, 8, E(Y, N), P(N, Y), \mbox{CloudStore, Direct}, 1),
 \end{equation}
-\betynote{We have to specify replication factor for the local, gridftp case}
-shows that each element of a set is 287 MB in size; the computational resource $E$ does calculations, but does not have data stored, while computational resource $P$ does not calculate, but stores the data; the filesystem used is CloudStore, it directly access the files, and we have a replication factor of 1 for our data.
+shows that each element of a set is 287 MB in size; we have 8 elements in each set;  the computational resource $E$ does calculations, but does not have data stored, while computational resource $P$ does not calculate, but stores the data; the filesystem used is CloudStore, it directly access the files, and we have a replication factor of 1 for our data.
+
+In our experiments, we have three $(fs, m)$ configurations, and few $X$ configurations. Our $(fs, m)$ configurations are $LL=(\mbox{local, local})$, $LG=(\mbox{local, gridFTP})$, and $CD=(\mbox{CloudStore, direct})$.\betynote{Explain what all they mean, and find a better name other than f1, f2, f3.} Our $X$ configurations are, for one machine, $A1(Y,Y)$, where resource $A1$ has both the data and the computing. For two machines, we have four configurations. The first one is $C1=A1(Y, Y), A2(N, N)$, where $A1$ has the data and runs all the jobs, while $A2$ is added in our xml file, but does not participate. In the local case, this is equivalent to our one machine case, but not when we use CloudStore, as it also contributes to $t_x$. In the second one, $C2=A1(Y, N), A2(N, Y)$,  $A1$ computes with the data stored at $A2$, here, $A2$ does no computation. The third one, $C3=A1(Y, Y), A2(Y, N)$, has the data in $A1$, but computes in both $A1$ and $A2$ machines. In the fourth configuration, $C4=A1(Y, Y), A2(Y, Y)$, we distribute the data into two machines, half of the files go to $A1$, and half go to $A2$, both machines compute. For three machines, we have a unique configuration of  $A1(Y, Y), A2(Y, N), A3(Y, Y)$, where the data is distributed in all three machines, and all of them compute. We run our experiments in the grid LONI (Louisiana Optical Network Initiative).
 
 As described above, the All-Pairs implementation used for our
 experiments has a fixed distribution of data, fixed available
@@ -280,43 +289,50 @@ for different I/O complexities observed in an attempt to build an
 understanding of issues that arise when utilising data-intensive
 applications.
 
-Define C as  tuple of (i) Chunk Size (number), (ii) Infrastructure,
-(iii) FS configuration, (iv) Data-Access protocol.
+\fixme{Define C as  tuple of (i) Chunk Size (number), (ii) Infrastructure,
+(iii) FS configuration, (iv) Data-Access protocol.}
+Mention for CloudStore we also need to include a replication factor. \betynote{We have to specify replication factor for the local, gridftp case}
 
-Mention for CloudStore we also need to include a replication factor.
 
-\subsubsection{Modeling the Time to Completion}
 
-$T_c = T_x + T_{I/O} + T_{compute}$
-
-\subsection{Base line Performance: Experiment I} In the first
-experiment, we run the SAGA-based All-Pairs application on up to 2
-unique machines on a Grid (LONI), without any specific data placement
+\subsection{Experiment I: Baseline Performance}
+ In the first experiment, we have no actual
+operation begin applied on the pairs, this is, $t_{compute}=0$.  
+The reasoning behind this is to
+evaluate data dependencies without the added variable of computation. 
+We run the SAGA-based All-Pairs application on one, two, and three
+unique machines on a grid (LONI),
+ without any specific data placement
 strategy; also, no replication or fault-tolerance takes place.  The
 application sequentially assigns sets of pairs to the first available
 computational resource.  All data is accessed via the gridFTP protocol.
 An important fact to notice is the essentially random mapping of data
 sets to computational resources based on availability.  This is to mimic
-a naïve data-based application.
+a naïve data-based application. In figure \ref{Fig:ExpIConventionalLocal}, we show our results for one and two machines (Figs. \ref{Fig:ExpIConventionalLocal:a}, and \ref{Fig:ExpIConventionalLocal:b}, respectively). In figure \ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that \betynote{WHY is t(287, 8) $<$ t(144,16)} \betynote{Graphs need and (a) or (b), upper left corner, depending if there are two plots, left or right.} 
 %Figure 1
 \begin{center}
-\begin{figure}
-\subfigure{\includegraphics[scale=0.55]{data/graphs/ConventionalFigure}}
-\subfigure{\includegraphics[scale=0.55]{data/graphs/LocalFigure}}
+\begin{figure}[ht]
+\subfigure{
+\includegraphics[scale=0.55]{data/graphs/LocalFigure}
+\label{Fig:ExpIConventionalLocal:a}
+}
+\subfigure{
+\includegraphics[scale=0.55]{data/graphs/ConventionalFigure}
+\label{Fig:ExpIConventionalLocal:b}
+}
 \caption{\textit{Performance results for All-Pairs using GridFTP for
 file reads being compared to a completely local run.}}
-\label{expirement}
+\label{Fig:ExpIConventionalLocal}
 \end{figure}
 \end{center}
 
-\subsubsection{with Computation} The previous experiments had no actaul
-operation begin applied on the pairs.  The reasoning behind this is to
-evaluate data dependencies without the added variable of computation.
+\subsubsection{With Computation} 
+The previous experiments 
 In order to properly evaulate all properties of a data-intensive
 application in practical use, we added the actual genome compare
 computation.  The complexity added that is necessary to capture to is
-the scaling of compuation time when multiple computational resources are
-colocated.
+the scaling of computation time when multiple computational resources are
+coallocated.
 
 %Bety's graph goes here
 \jhanote{We need data for compute (comparision) and I/O (only) for
@@ -324,7 +340,8 @@ different data-set sizes} \micnote{We need data for three and four
 machines (just one graph going from 1 machine to four machines}
 
 %Staging experiment
-\subsection{Experiment II} The second experiment is similar to the
+\subsection{Experiment II: Staging}
+The second experiment is similar to the
 first, except the All-Pairs application observes the data's location
 before determining whether or not to assign a certain set of
 data-dependent computation to an idle job.  Inspired by earlier
