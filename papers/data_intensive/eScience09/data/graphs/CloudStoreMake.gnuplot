@@ -1,7 +1,7 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'CloudStoreFigure.eps'
-set xlabel 'Number of workers' 
-set ylabel 'Time (Seconds)' 
+set xlabel 'N_W' font "Times-Roman, 25"
+set ylabel 'T_C(s)' font "Times-Roman, 25"
 set mxtics 5
 set mytics 5
 plot[0:8][0:2000] './localCloudStore.dat' using 1:2 title 'C1 - [287 MB; E(Y, Y), P(N, N); CloudStore; Direct; 1]' with lp lw 3,\

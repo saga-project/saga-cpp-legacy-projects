@@ -1,7 +1,7 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'IntelligentFigure.eps'
-set xlabel 'Number of workers'
-set ylabel 'Time (Seconds)'
+set xlabel 'N_W' font "Times-Roman, 25"
+set ylabel 'T_C(S)' font "Times-Roman, 25"
 set mxtics 5
 set mytics 5
 plot[0:9] './IntelligentGridFTP.dat' using 1:2 title 'C1 - Intelligence [287 MB; P(Y, Y), O(Y, Y); Local; GridFTP]' with lp lw 3,\
