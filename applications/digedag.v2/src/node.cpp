@@ -247,26 +247,34 @@ namespace digedag
     {
       assert ( nd_.attribute_exists ("Executable") );
 
-      
-      saga::job::description jd (nd_);
+      try 
+      {
+        saga::job::description jd (nd_);
 
-   // jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
-   // jd.set_attribute (saga::job::attributes::description_interactive,  "true");
-   // jd.set_attribute (saga::job::attributes::description_input,        "/dev/null");
-   // jd.set_attribute (saga::job::attributes::description_output,       
-   //                   std::string ("/tmp/out.") + get_id ());
-   // jd.set_attribute (saga::job::attributes::description_error,       
-   //                   std::string ("/tmp/err.") + get_id ());
+     // jd.set_attribute (saga::job::attributes::description_working_directory,  "/tmp/0/");
+     // jd.set_attribute (saga::job::attributes::description_interactive,  "true");
+     // jd.set_attribute (saga::job::attributes::description_input,        "/dev/null");
+     // jd.set_attribute (saga::job::attributes::description_output,       
+     //                   std::string ("/tmp/out.") + get_id ());
+     // jd.set_attribute (saga::job::attributes::description_error,       
+     //                   std::string ("/tmp/err.") + get_id ());
  
-      saga::job::service js (session_, rm_);
-      saga::job::job     j = js.create_job (jd);
+        saga::job::service js (session_, rm_);
+        saga::job::job     j = js.create_job (jd);
 
-      j.run  ();
+        j.run  ();
 
-      task_ = j;
+        task_ = j;
 
-      std::cout << " === task j " << task_.get_id () << " runs " 
-                << get_name () << std::endl;
+        std::cout << " === task j " << task_.get_id () << " runs " 
+                  << get_name () << std::endl;
+      }
+      catch ( const saga::exception & e )
+      {
+        std::cout << " === running node " << get_name () << " failed: \n" 
+                  << e.what () << std::endl;
+        state_ = Failed;
+      }
     }
 
     return task_;
@@ -385,7 +393,7 @@ namespace digedag
   // That code needs to eventually move into a callback on the job state metric.
   state node::get_state (void)
   {
-    std::cout << " === node " << get_name () << " : state before check " << state_to_string (state_) << std::endl;
+    // std::cout << " === node " << get_name () << " : state before check " << state_to_string (state_) << std::endl;
 
     // final states just return
     if ( state_ == Stopped ||
@@ -418,8 +426,8 @@ namespace digedag
       {
         if ( Done != it->second )
         {
-          std::cout << " === node " << get_name () << " : input '"
-                     << it->first << "' is missing: " << state_to_string (it->second) << std::endl; 
+          // std::cout << " === node " << get_name () << " : input '"
+          //            << it->first << "' is missing: " << state_to_string (it->second) << std::endl; 
           state_ = Incomplete;
           return state_;
         }
@@ -436,15 +444,13 @@ namespace digedag
       switch ( task_.get_state () )
       {
         case saga::job::New:
-  //      std::cout << " === node is almost running: " << get_name () << std::endl;
+          // std::cout << " === node is almost running: " << get_name () << std::endl;
           state_ = Pending;
           break;
 
         case saga::job::Running:
-          std::cout << " === node is running: " << get_name () << std::endl;
+          // std::cout << " === node is running: " << get_name () << std::endl;
           state_ = Running;
-          // FIXME
-          // ::sleep (1);
           break;
 
         case saga::job::Done:
@@ -457,19 +463,17 @@ namespace digedag
         default:
           state_ = Failed;
           std::cout << std::string ("       node ") << get_name () 
-            << " : job failed - cancel: " << cmd_ << std::endl;
+                    << " : job failed - cancel: " << cmd_ << std::endl;
 
-          std::cout << " === 1 " << std::endl;
           // ### scheduler hook
           scheduler_->hook_node_run_fail (shared_from_this ());
-          std::cout << " === 5 ! " << std::endl;
 
           break;
 
       } // switch
     }
 
-    std::cout << " === node " << get_name () << " : state after  check " << state_to_string (state_) << std::endl;
+    // std::cout << " === node " << get_name () << " : state after  check " << state_to_string (state_) << std::endl;
 
     return state_;
   }

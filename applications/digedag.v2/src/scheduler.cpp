@@ -553,6 +553,10 @@ namespace digedag
         boost::shared_ptr <node> n = queue_nodes_.front ();
 
         saga::task t = n->work_start ();
+
+        // FIXME: we need to verify here if the task is valid (correct state
+        // etc).  Or simply catch for SAGA exceptions?
+
         tc_nodes_.add_task (t);
         std::cout << " === mapping task " 
                   << t.get_id () 
