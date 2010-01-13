@@ -357,12 +357,6 @@ computation/problem. For example, if data is distributed over 3
 machines $D_d$ is 3; if data is distributed over three machines but
 the computational tasks over 4 machines, the $D_d$ is 4.
 
-\betynote{We should find variable names for the 3 variables, like $D_d$,
-w for workload, etc, define them and add that to the $t_c$ equation as
-$t_c(var1, var2, var3) = t_x()$...}
-\betynote{check name, role, text of $t_x$}
-\jhanote{not sure that data-dependency needs a variable}
-
 \subsection{Experimental Configuration}
 
 As explained before, for our experiments, we used an All-Pairs implementation
@@ -383,10 +377,8 @@ completely described by a tuple of the following form
 where $c_s$ is the total amount of data in each file of a set (i.e.,
 $c_s=\mbox{\textit{chunk} size}$); $N_c$ is the number of work-loads
 that the total work is decomposed into, i.e., number of work
-assignments generated.each set; \betynote{most of the graphs don't
-  talk about $N_c$, either we say that before hand, and erase $N_c$ in
-  here, or we add $N_c$ to all graphs, most of the cases $N_c= 8$}
-$M_c$ is a comma separated list, of the machine configurations, of the
+assignments generated; $M_c$ is a comma separated list, of the machine 
+configurations, of the
 following form: $X(c, d)$ where $X$ is a shorthand reference for the
 computational resource, $c$ shows if the computational resource $X$
 was used in the compuationatl workloads/calculations, and $d$ if the
@@ -394,17 +386,20 @@ computational resource $X$ assisted in data storage, both have a
 yes/no $(Y/N)$ value.; $fs$ is the type of filesystem used; $m$ is the
 method used to access that filesystem; and $r$ is the degree of
 replication utilized in the experiment (with a default value of 1).
+ However, for CloudStore, we investigate the performance with 
+ $r = 1, 2 \mbox{and} 3$.
 
-In our experiments, we have three $(fs, m)$ configurations, and few $X$ configurations. Our $(fs, m)$ configurations are $(L,L)=(\mbox{local, local})$, $(L,G)=(\mbox{local, gridFTP})$, and $(C,D)=(\mbox{CloudStore, direct})$.\betynote{Explain what all they mean, and find a better name other than f1, f2, f3.} Our $X$ configurations are, for one machine, $C0=X_1(Y,Y)$, where resource $X_1$ has both the data and the computing; for two machines, we have four configurations, and for three machines we only work with one. The configurations are listed in Table \ref{Tab:Configs}. In the local case, configuration $C1$ is equivalent to our one machine case, but not when we use CloudStore, as it also contributes to $t_x$. For example, 
+In our experiments, we have three $(fs, m)$ configurations, and few $X$ configurations. Our $(fs, m)$ configurations are $(L,L)=(\mbox{local, local})$, $(L,G)=(\mbox{local, gridFTP})$, and $(C,D)=(\mbox{CloudStore, direct})$. Our $X$ configurations are, for one machine, $C0=X_1(Y,Y)$, where resource $X_1$ has both the data and the computing; for two machines, we have four configurations, and for three machines we only work with one. The configurations are listed in Table \ref{Tab:Configs}. In the local case, configuration $C1$ is equivalent to our one machine case, but not when we use CloudStore, as it also contributes to $t_x$. For example, 
  \begin{equation}
 (287 \mbox{MB}, 8, C2, C, D, 1),
 \end{equation}
-shows that each element of a set is 287 MB in size; we have 8 elements
-in each set; the computational resource $X_1$ does calculations, but does
+shows that each element of a set is 287 MB in size; we have 8 assignments;
+ the computational resource $X_1$ does calculations, but does
 not have data stored, while computational resource $X_2$ does not
 calculate, but stores the data; the filesystem used is CloudStore, it
 directly access the files, and we have a replication factor of 1 for our
-data. The machines $X_i$ we use for our experiments are in the grid LONI (Louisiana Optical Network Initiative).
+data. The machines $X_i$ we use for our experiments are in the grid LONI (Louisiana Optical Network Initiative). For most of our experiments, the number of 
+assignments is 8, unless otherwise specified.
 
 \begin{table}[!h]
 \begin{center}
@@ -431,10 +426,6 @@ for different I/O complexities observed in an attempt to build an
 understanding of issues that arise when utilising data-intensive
 applications. 
 
-\fixme{Mention for CloudStore we also need to include a replication factor.}
-\betynote{We have to specify replication factor for the local, gridftp
-case}
-
 \subsection{Experiment I: Baseline Performance}
  In the first experiment, we have no actual operation begin applied on
 the pairs, this is, $t_{compute}=0$. The reasoning behind this is to
@@ -451,10 +442,7 @@ a naïve data-based application. In figure
 machines (Figs. \ref{Fig:ExpIConventionalLocal:a}, and
 \ref{Fig:ExpIConventionalLocal:b}, respectively). In figure
 \ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that
-\betynote{WHY is t(287, 8) $<$ t(144,16)??} \betynote{Graphs need and
-(a) or (b), upper left corner, depending if there are two plots, left or
-right.} 
-
+\betynote{WHY is t(287, 8) $<$ t(144,16)??} 
 %Figure 1
 \begin{center}
 \begin{figure}[ht]
@@ -516,11 +504,12 @@ placement is also required, i.e., managing location of files.}
 \begin{center}
 \begin{figure}
 \subfigure{\includegraphics[scale=0.5]
-  {data/graphs/IntelligentVsConventionalFigure}}
+  {data/graphs/IntelligentVsConventionalFigure}
   \label{Fig:IntelligentExp:a}
+  }  
 \subfigure{\includegraphics[scale=0.5]
-  {data/graphs/IntelligentFigure}}
-  \label{Fig:IntelligentExp:b}
+  {data/graphs/IntelligentFigure}
+    \label{Fig:IntelligentExp:b}}
 \caption{\textit{The figure on the left demonstrations improved
 performance with minimal network awareness while the figure, while the
 figure on the right demonstrates less performance improvement when more
@@ -532,7 +521,7 @@ resources are involved.}}
 The overhead of intelligence includes the time spent pinging hosts and
 building the graph data structure. The total time spent for this
 overhead was negligible at approximately two seconds per application
-run. In \ref{Fig:IntelligentExp:a}, we achieved a great reduction in
+run. In figure \ref{Fig:IntelligentExp:a}, we achieved a great reduction in
 time to completion due to the use of intelligence.  However, when the
 same tests were performed utilising 3 resources instead of 2, the
 intelligence seemed to offer no significant reduction. The explanation
