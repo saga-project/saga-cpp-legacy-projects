@@ -165,7 +165,7 @@ namespace digedag
           std::string i_node = inputs[i].second;
           std::string o_node = "";
 
-          std::cout << " --- checking inputs: " << file << std::endl;
+          // std::cout << " --- checking inputs: " << file << std::endl;
 
           // for each input file, find output node
           for ( unsigned int j = 0; j < outputs.size (); j++ )
@@ -181,12 +181,12 @@ namespace digedag
 
           if ( o_node == "" )
           {
-            std::cout << " --- needs to be staged to node " << i_node << std::endl;
+            // std::cout << " --- needs to be staged to node " << i_node << std::endl;
             saga::url loc (file);
             loc.set_scheme ("any");
             boost::shared_ptr <edge> e = dag_->create_edge (loc);
 
-            std::cout << " e 1 " << file << " : " << "INPUT->" << o_node << std::endl;
+            // std::cout << " e 1 " << file << " : " << "INPUT->" << o_node << std::endl;
 
             dag_->add_edge (e, "INPUT", i_node);
           }
@@ -197,7 +197,7 @@ namespace digedag
             loc.set_scheme ("any");
             boost::shared_ptr <edge> e = dag_->create_edge (loc);
 
-            std::cout << " e 3: " << file << " : " << o_node << "->" << i_node << std::endl;
+            // std::cout << " e 3: " << file << " : " << o_node << "->" << i_node << std::endl;
 
             dag_->add_edge (e, o_node, i_node);
           }
@@ -231,7 +231,7 @@ namespace digedag
             loc.set_scheme ("any");
             boost::shared_ptr <edge> e  = dag_->create_edge (loc);
 
-            std::cout << " e 1 " << file << " : " << o_node << "-> OUTPUT " << std::endl;
+            // std::cout << " e 1 " << file << " : " << o_node << "-> OUTPUT " << std::endl;
 
             dag_->add_edge (e, o_node, "OUTPUT");
           }

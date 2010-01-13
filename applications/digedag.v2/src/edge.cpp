@@ -70,7 +70,7 @@ namespace digedag
   {
     src_node_ = src;
 
-    std::cout << " setting src node for edge: " << src->get_name () << std::endl;
+    // std::cout << " setting src node for edge: " << src->get_name () << std::endl;
 
     if ( src_node_ && tgt_node_ )
     {
@@ -86,17 +86,17 @@ namespace digedag
   {
     tgt_node_ = tgt;
 
-    std::cout << " setting tgt node for edge: " << tgt->get_name () << std::endl;
+    // std::cout << " setting tgt node for edge: " << tgt->get_name () << std::endl;
 
     if ( src_node_ && tgt_node_ )
     {
       is_void_ = false;
-      std::cout << " edge is no longer void after tgt node add" << std::endl;
+      // std::cout << " edge is no longer void after tgt node add" << std::endl;
     }
     else
     {
       is_void_ = true;
-      std::cout << " edge remains void despite tgt node?" << std::endl;
+      // std::cout << " edge remains void despite tgt node?" << std::endl;
     }
   }
 
@@ -148,11 +148,11 @@ namespace digedag
 
     if ( Pending != state_ )
     {
- //   std::cout << " edge " << get_name () << " is not pending" << std::endl;
+      std::cout << " edge " << get_name () << " is not pending" << std::endl;
       return;
     }
 
- // std::cout << " edge " << get_name () << " fired" << std::endl;
+    std::cout << " edge " << get_name () << " fired" << std::endl;
 
     // ### scheduler hook
     scheduler_->hook_edge_run_pre (shared_from_this ());

@@ -304,8 +304,8 @@ namespace digedag
       // get data staged out, e.g. fire outgoing edges
       for ( unsigned int i = 0; i < edge_out_.size (); i++ )
       {
-  //    std::cout << " === node " << get_id () << " fires edge " 
-  //              << edge_out_[i]->get_name () << std::endl;
+        std::cout << " === node " << get_id () << " fires edge " 
+                  << edge_out_[i]->get_name () << std::endl;
 
         edge_out_[i]->fire (shared_from_this ());
       }
