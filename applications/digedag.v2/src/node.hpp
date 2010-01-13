@@ -24,7 +24,7 @@ namespace digedag
 
       std::vector <boost::shared_ptr <edge> > edge_in_;     // input  data
       std::vector <boost::shared_ptr <edge> > edge_out_;    // output data
-      std::map    <std::string, state>          edge_states_; // states of incoming edges
+      std::map    <std::string, state>        edge_states_; // states of incoming edges
 
       std::string                             rm_;
       std::string                             cmd_;

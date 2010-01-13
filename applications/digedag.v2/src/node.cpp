@@ -181,11 +181,11 @@ namespace digedag
 
   void node::fire (void)
   {
-    // update own state
+    // update own state - we got fired by an edge most likely, and state needs
+    // to be updated for that edge at least.
     get_state ();
 
-    // Check if node was started before (!Pending).  
-    // If not, mark that we start the work (Running).
+    // Check if node is indeed ready to go
     if ( Pending != state_ )
     {
       std::cout << std::string (" ===     node ? ") << get_name () << ": " 
@@ -195,33 +195,43 @@ namespace digedag
 
     // all input edges are Done, i.e. all input data are available.  We
     // can thus really execute the node application.
-    //
-    // So: run the application, in extra thread
-    std::cout << std::string (" ===   node ") << get_name () << " starting up" << std::endl;
-    boost::shared_ptr <node> me = shared_from_this ();
-    std::cout << std::string (" ===   node ") << get_name () << " starting up" << std::endl;
-    assert (me);
-    std::cout << std::string (" ===   node ") << get_name () << " starting up" << std::endl;
-
+    // 
     // ### scheduler hook - leave it to the scheduler to call our work routine
-    scheduler_->hook_node_run_pre (me);
+    boost::shared_ptr <node> me = shared_from_this ();
+    assert (me);
+
+    if ( scheduler_->hook_node_run_pre (me) )
+    {
+      std::cout << std::string (" ===     node ") << get_name () 
+                << " was accepted by scheduler" 
+                << std::endl;
+    }
+    else
+    {
+      std::cout << std::string (" ===     node ") << get_name () 
+                << " was declined by scheduler" 
+                << std::endl;
+    }
   }
 
 
   saga::task node::work_start (void)
   {
+    std::cout << " === node run : " 
+              << get_name ()
+              << " (" << get_cmd () << "): "
+              << state_to_string (state_)
+              << std::endl;
+
     if ( state_ == Stopped )
       return task_;
 
     assert ( state_ == Pending );
 
-    // we have work to do, an scheduler lets us go ahead
-    state_ = Running;
 
-    std::cout << " === node run : " 
-              << get_name ()
-              << " (" << get_cmd () << ") " 
-              << std::endl;
+    // we have work to do, and scheduler lets us go ahead.  We are finally
+    // Running
+    state_ = Running;
 
     
     if ( is_void_ )
@@ -311,7 +321,9 @@ namespace digedag
     {
       if ( task_.get_state () == saga::task::Failed )
       {
-        task_.rethrow ();
+        // task_.rethrow ();
+        saga::no_success e (task_, "job failed for unknown reason");
+        throw e;
       }
     }
     catch ( const saga::exception & e )
@@ -429,7 +441,7 @@ namespace digedag
           break;
 
         case saga::job::Running:
-          // std::cout << " === node is running: " << get_name () << std::endl;
+          std::cout << " === node is running: " << get_name () << std::endl;
           state_ = Running;
           // FIXME
           // ::sleep (1);

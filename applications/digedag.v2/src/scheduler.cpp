@@ -52,7 +52,11 @@ namespace digedag
   void scheduler::stop (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+    
+    if ( stopped_ ) 
+    {
+      return;
+    }
 
     stopped_ = true;
   }
@@ -60,7 +64,11 @@ namespace digedag
   void scheduler::parse_src (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return;
+    }
 
     if ( src_.empty () )
     {
@@ -184,25 +192,42 @@ namespace digedag
   //
   // dag hooks
   //
-  void scheduler::hook_dag_create (void)
+  bool scheduler::hook_dag_create (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_dag_destroy (void)
+  bool scheduler::hook_dag_destroy (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_dag_schedule (void)
+  bool scheduler::hook_dag_schedule (void)
   {
+    // FIXME: check
     util::scoped_lock sl ();
     // util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
     // walk throgh the dag, and assign execution host for nodes, and data
     // prefixes for edges
@@ -248,13 +273,19 @@ namespace digedag
         }
       }
     }
+
+    return true;
   }
 
 
-  void scheduler::hook_dag_run_pre (void)
+  bool scheduler::hook_dag_run_pre (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
     // start watching the task containers, even if they are still empty
     watch_nodes_ = new watch_tasks (shared_from_this(), tc_nodes_, "node");
@@ -262,37 +293,61 @@ namespace digedag
 
     // start the scheduler thread which executes nodes and edges
     thread_run ();
+
+    return true;
   }
 
 
-  void scheduler::hook_dag_run_post (void)
+  bool scheduler::hook_dag_run_post (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_dag_run_done (void)
+  bool scheduler::hook_dag_run_done (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_dag_run_fail (void)
+  bool scheduler::hook_dag_run_fail (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
     std::cerr << " === dag failed!  exit." << std::endl;
     ::exit (3);
   }
 
 
-  void scheduler::hook_dag_wait (void)
+  bool scheduler::hook_dag_wait (void)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
@@ -301,52 +356,87 @@ namespace digedag
   //
   // node hooks
   //
-  void scheduler::hook_node_add (boost::shared_ptr <node> n)           
+  bool scheduler::hook_node_add (boost::shared_ptr <node> n)           
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_node_remove (boost::shared_ptr <node> n)           
+  bool scheduler::hook_node_remove (boost::shared_ptr <node> n)           
   {
+    // FIXME: remove node from queue if needed
+ 
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
 
-    // FIXME: remove from queue if needed
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_node_run_pre (boost::shared_ptr <node> n)           
+  bool scheduler::hook_node_run_pre (boost::shared_ptr <node> n)           
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
     assert ( n );
 
+    // only accept that node if it wasn't seen before
+    if ( known_nodes_.end () != known_nodes_.find (n->get_name ()) )
+    {
+      std::cout << " === scheduler ignores known node " << n->get_name () << std::endl;
+      return false;
+    }
+
+    // remember thid node
+    std::cout << " === scheduler registers known node " << n->get_name () << std::endl;
+    known_nodes_.insert (n->get_name ());
+
     // queue the node for work
     queue_nodes_.push_back (n);
-//  std::cout << " === adding   node to   queue: " 
-//            << n->get_name () << std::endl;
+    // std::cout << " === adding   node to   queue: " << n->get_name () << std::endl;
+
+    return true;
   }
 
 
-  void scheduler::hook_node_run_done (boost::shared_ptr <node> n)           
+  bool scheduler::hook_node_run_done (boost::shared_ptr <node> n)           
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
 //  std::cout << " === node done: " << n->get_name () << std::endl;
+    
+    return true;
   }
 
 
-  void scheduler::hook_node_run_fail (boost::shared_ptr <node> n)           
+  bool scheduler::hook_node_run_fail (boost::shared_ptr <node> n)           
   {
-    std::cout << " === 2 " << std::endl;
     util::scoped_lock sl (mtx_);
-    std::cout << " === 3 " << std::endl;
-    if ( stopped_ ) return;
-    std::cout << " === 4 " << std::endl;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
     std::cout << " === node failed: " << n->get_name () << " - exit!" << std::endl;
     ::exit (1);
@@ -358,26 +448,42 @@ namespace digedag
   //
   // edge hooks
   //
-  void scheduler::hook_edge_add (boost::shared_ptr <edge> e)           
+  bool scheduler::hook_edge_add (boost::shared_ptr <edge> e)           
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_node_remove (boost::shared_ptr <edge> e)           
+  bool scheduler::hook_edge_remove (boost::shared_ptr <edge> e)           
   {
+    // FIXME: remove edge from queue if needed
+    
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
 
-    // FIXME: remove from queue if needed
+    if ( stopped_ ) 
+    {
+      return false;
+    }
+
+    return true;
   }
 
 
-  void scheduler::hook_edge_run_pre (boost::shared_ptr <edge> e)           
+  bool scheduler::hook_edge_run_pre (boost::shared_ptr <edge> e)           
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
     assert ( e );
 
@@ -385,22 +491,34 @@ namespace digedag
     queue_edges_.push_back (e);
 //  std::cout << " === adding   edge to   queue: " 
 //            << e->get_name () << std::endl;
+
+    return true;
   }
 
 
-  void scheduler::hook_edge_run_done (boost::shared_ptr <edge> e)           
+  bool scheduler::hook_edge_run_done (boost::shared_ptr <edge> e)           
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
 //  std::cout << " === egde done: " << e->get_name () << std::endl;
+
+    return true;
   }
 
 
-  void scheduler::hook_edge_run_fail (boost::shared_ptr <edge> e)           
+  bool scheduler::hook_edge_run_fail (boost::shared_ptr <edge> e)           
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return false;
+    }
 
     std::cout << " === edge failed: " << e->get_name () << " - exit" << std::endl;
     ::exit (2);
@@ -482,7 +600,11 @@ namespace digedag
                                  std::string flag)
   {
     util::scoped_lock sl (mtx_);
-    if ( stopped_ ) return;
+
+    if ( stopped_ ) 
+    {
+      return;
+    }
 
     if ( flag == "node" )
     {
@@ -506,7 +628,7 @@ namespace digedag
                   << " [" << t.get_id () << "]"
                   << std::endl;
         return;
-        ::exit (7);
+        ::exit (8);
       }
 
       node_task_map_.erase (t);
@@ -540,7 +662,7 @@ namespace digedag
         dump_map (edge_task_map_);
 
         return;
-        ::exit (7);
+        ::exit (9);
       }
 
 
@@ -552,7 +674,7 @@ namespace digedag
                   << " [" << t.get_id () << "]"
                   << std::endl;
         return;
-        ::exit (7);
+        ::exit (10);
       }
 
       node_task_map_.erase (t);

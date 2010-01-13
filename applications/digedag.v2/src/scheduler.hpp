@@ -2,8 +2,9 @@
 #ifndef DIGEDAG_SCHEDULER_HPP
 #define DIGEDAG_SCHEDULER_HPP
 
-#include <vector>
+#include <set>
 #include <deque>
+#include <vector>
 
 #include <saga/saga.hpp>
 
@@ -67,6 +68,10 @@ namespace digedag
 
       util::mutex                            mtx_;
 
+      // list of known nodes and edges
+      std::set <std::string>                known_nodes_;
+      std::set <std::string>                known_edges_;
+
 
     public:
       scheduler  (dag * d, 
@@ -79,26 +84,26 @@ namespace digedag
 
       void thread_work           (void);
 
-      void hook_dag_create       (void);
-      void hook_dag_destroy      (void);
-      void hook_dag_schedule     (void);
-      void hook_dag_run_pre      (void);
-      void hook_dag_run_post     (void);
-      void hook_dag_run_done     (void);
-      void hook_dag_run_fail     (void);
-      void hook_dag_wait         (void);
+      bool hook_dag_create       (void);
+      bool hook_dag_destroy      (void);
+      bool hook_dag_schedule     (void);
+      bool hook_dag_run_pre      (void);
+      bool hook_dag_run_post     (void);
+      bool hook_dag_run_done     (void);
+      bool hook_dag_run_fail     (void);
+      bool hook_dag_wait         (void);
 
-      void hook_node_add         (boost::shared_ptr <node> n);
-      void hook_node_remove      (boost::shared_ptr <node> n);
-      void hook_node_run_pre     (boost::shared_ptr <node> n);
-      void hook_node_run_done    (boost::shared_ptr <node> n);
-      void hook_node_run_fail    (boost::shared_ptr <node> n);
+      bool hook_node_add         (boost::shared_ptr <node> n);
+      bool hook_node_remove      (boost::shared_ptr <node> n);
+      bool hook_node_run_pre     (boost::shared_ptr <node> n);
+      bool hook_node_run_done    (boost::shared_ptr <node> n);
+      bool hook_node_run_fail    (boost::shared_ptr <node> n);
 
-      void hook_edge_add         (boost::shared_ptr <edge> e);
-      void hook_node_remove      (boost::shared_ptr <edge> e);
-      void hook_edge_run_pre     (boost::shared_ptr <edge> e);
-      void hook_edge_run_done    (boost::shared_ptr <edge> e);
-      void hook_edge_run_fail    (boost::shared_ptr <edge> e);
+      bool hook_edge_add         (boost::shared_ptr <edge> e);
+      bool hook_edge_remove      (boost::shared_ptr <edge> e);
+      bool hook_edge_run_pre     (boost::shared_ptr <edge> e);
+      bool hook_edge_run_done    (boost::shared_ptr <edge> e);
+      bool hook_edge_run_fail    (boost::shared_ptr <edge> e);
 
       saga::session
            hook_saga_get_session (void);
