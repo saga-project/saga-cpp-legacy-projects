@@ -1,6 +1,7 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'LocalFigure.eps'
 set pointsize 2
+set key Left reverse
 set xlabel 'N_w' font "Times-Italic, 20"
 set ylabel 't_c(s)' font "Times-Italic, 20"
 set mxtics 2
