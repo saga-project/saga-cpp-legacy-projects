@@ -1,10 +1,12 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'IntelligentFigure.eps'
-set xlabel 'N_W' font "Times-Roman, 25"
-set ylabel 'T_C(S)' font "Times-Roman, 25"
-set mxtics 5
+set pointsize 2
+set key Left reverse
+set xlabel 'N_w' font "Times-Italic, 20"
+set ylabel 't_c(s)' font "Times-Italic, 20"
+set mxtics 2
 set mytics 5
-plot[0:9] './IntelligentGridFTP.dat' using 1:2 title 'C1 - Intelligence [287 MB; P(Y, Y), O(Y, Y); Local; GridFTP]' with lp lw 3,\
-'./MixedGridFTP.dat' using 1:2 title 'C2 - [287 MB; P(Y, Y), O(Y, Y); Local; GridFTP]' with lp lw 3,\
-'./IntelligentGridFTP3Resources.dat' using 1:2 title 'C3 - Intelligence [287 MB; P(Y, Y), O(Y, Y), A(Y, Y); Local; GridFTP]' with lp lw 3,\
-'./NonIntelligentGridFTP3Resources.dat' using 1:2 title 'C4 - [287 MB; P(Y, Y), O(Y, Y), A(Y, Y); Local; GridFTP]' with lp lw 3
+plot[0:10][0:2000] './IntelligentGridFTP.dat' using 1:2 title 'S0: [C4, Intelligence]' with lp lw 3,\
+'./MixedGridFTP.dat' using 1:2 title 'S1: [C4]' with lp lw 3,\
+'./IntelligentGridFTP3Resources.dat' using 1:2 title 'S2: [C5, Intelligence]' with lp lw 3,\
+'./NonIntelligentGridFTP3Resources.dat' using 1:2 title 'S3: [C5]' with lp lw 3

@@ -1,11 +1,13 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'CloudStoreFigure.eps'
-set xlabel 'N_W' font "Times-Roman, 25"
-set ylabel 'T_C(s)' font "Times-Roman, 25"
-set mxtics 5
+set pointsize 2
+set key Left reverse
+set xlabel 'N_w' font "Times-Italic, 20"
+set ylabel 't_c(s)' font "Times-Italic, 20"
+set mxtics 2
 set mytics 5
-plot[0:8][0:2000] './localCloudStore.dat' using 1:2 title 'C1 - [287 MB; E(Y, Y), P(N, N); CloudStore; Direct; 1]' with lp lw 3,\
-'./remoteCloudStore.dat' using 1:2 title 'C2 - [287 MB; E(Y, N), P(N, Y); CloudStore; Direct; 1]' with lp lw 3,\
-'./localCloudStore2Chunks.dat' using 1:2 title 'C3 - [287 MB; E(Y, Y), P(Y, N); CloudStore; Direct; 2]' with lp lw 3,\
-'./2ChunksReplication1.dat' using 1:2 title 'C4 - [287 MB; E(Y, Y), P(Y, Y); CloudStore; Direct, 1]' with lp lw 3,\
-'./2ChunksReplication2.dat' using 1:2 title 'C5 - [287 MB; E(Y, Y), P(Y, Y); CloudStore; Direct, 2]' with lp lw 3 
+plot[0:9][0:2000] './localCloudStore.dat' using 1:2 title 'S0: [C1, {/Times-Italic r} = 1]' with lp lw 3,\
+'./remoteCloudStore.dat' using 1:2 title 'S1: [C2, {/Times-Italic r} = 1]' with lp lw 3,\
+'./localCloudStore2Chunks.dat' using 1:2 title 'S2: [C3, {/Times-Italic r} = 2]' with lp lw 3,\
+'./2ChunksReplication1.dat' using 1:2 title 'S3: [C4, {/Times-Italic r} = 1]' with lp lw 3,\
+'./2ChunksReplication2.dat' using 1:2 title 'S4: [C4, {/Times-Italic r} = 2]' with lp lw 3 

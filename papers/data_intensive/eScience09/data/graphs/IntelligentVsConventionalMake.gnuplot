@@ -1,10 +1,12 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'IntelligentVsConventionalFigure.eps'
-set xlabel 'N_W' font "Times-Roman, 25"
-set ylabel 'T_C(S)' font "Times-Roman, 25"
-set mxtics 5
+set pointsize 2
+set key Left reverse
+set xlabel 'N_w' font "Times-Italic, 20"
+set ylabel 't_c(s)' font "Times-Italic, 20"
+set mxtics 2
 set mytics 5
-plot[0:8] './LocalGridFTP.dat' using 1:2 title 'C1 - [287 MB; P(Y, Y), O(N, N); Local; GridFTP]' with lp lw 3,\
-'./RemoteGridFTP.dat' using 1:2 title 'C2 - [287 MB; P(Y, N), O(N, Y); Local; GridFTP]' with lp lw 3,\
-'./MixedGridFTP.dat' using 1:2 title 'C3 - [287 MB; P(Y, Y), O(Y, Y); Local; GridFTP]' with lp lw 3,\
-'./IntelligentGridFTP.dat' using 1:2 title 'C4 - Intelligence - [287 MB; P(Y, Y), O(Y, Y); Local; GridFTP]' with lp lw 3
+plot[0:9][0:8000] './LocalGridFTP.dat' using 1:2 title 'S0: [C1]' with lp lw 3,\
+'./RemoteGridFTP.dat' using 1:2 title 'S1: [C2]' with lp lw 3,\
+'./MixedGridFTP.dat' using 1:2 title 'S3: [C4]' with lp lw 3,\
+'./IntelligentGridFTP.dat' using 1:2 title 'S4: [C4, Intelligence]' with lp lw 3
