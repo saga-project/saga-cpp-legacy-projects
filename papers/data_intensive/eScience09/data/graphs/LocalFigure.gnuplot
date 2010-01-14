@@ -1,9 +1,10 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'LocalFigure.eps'
-set xlabel 'N_W' font "Times-Roman, 25"
-set ylabel 'T_C(S)' font "Times-Roman, 25"
-set mxtics 5
+set pointsize 2
+set xlabel 'N_w' font "Times-Italic, 20"
+set ylabel 't_c(s)' font "Times-Italic, 20"
+set mxtics 2
 set mytics 5
-plot[0:8] './LocalFileSystem.dat' using 1:2 title 'C1 - [287 MB; 8 Assignments; E(Y, Y); Local; Local]' with lp lw 3,\
-'./LocalFileSystemHalfChunkSize16Assignments.dat' using 1:2 title 'C2 - [144 MB; 16; E(Y, Y); Local; Local] ' with lp lw 3,\
-'./LocalFileSystemHalfChunkSize8Assignments.dat' using 1:2 title 'C3 - [144 MB; 8; E(Y, Y); Local; Local] ' with lp lw 3
+plot[0:8][0:140]'./LocalFileSystem.dat' using 1:2 title 'S0: [287 MB; {/Times-Italic N_c} = 8]' with lp lw 3,\
+'./LocalFileSystemHalfChunkSize16Assignments.dat' using 1:2 title 'S1: [144 MB; {/Times-Italic N_c} = 16] ' with lp lw 3,\
+'./LocalFileSystemHalfChunkSize8Assignments.dat' using 1:2 title 'S2: [144 MB; {/Times-Italic N_c} = 8] ' with lp lw 3
