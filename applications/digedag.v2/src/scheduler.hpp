@@ -159,7 +159,7 @@ namespace digedag
             if ( s == saga::task::Done   || 
                  s == saga::task::Failed )
             {
-              // std::cout << " === task " << t.get_id () << " finished: " << t.get_state () << std::endl;
+              std::cout << " === task " << t.get_id () << " finished: " << t.get_state () << std::endl;
 
               tc_.remove_task (t);
 

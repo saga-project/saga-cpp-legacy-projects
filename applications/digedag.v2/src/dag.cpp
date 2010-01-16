@@ -219,7 +219,7 @@ namespace digedag
   {
     std::cout << "fire   dag  " << std::endl;
 
-    dump ();
+    // dump ();
 
     // dump_node ("INPUT");
     // dump_node ("OUTPUT");

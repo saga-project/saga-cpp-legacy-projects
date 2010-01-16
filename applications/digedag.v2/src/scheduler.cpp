@@ -38,13 +38,15 @@ namespace digedag
 
   scheduler::~scheduler (void)
   {
-    util::scoped_lock sl (mtx_);
-
+    // Signal that the end is near.
     stop ();
+
+    std::cout << " === scheduler destructed" << std::endl;
+
+    util::scoped_lock sl (mtx_);
 
     thread_exit ();
 
-    std::cout << " === scheduler destructed" << std::endl;
     if ( watch_nodes_ ) delete (watch_nodes_);
     if ( watch_edges_ ) delete (watch_edges_);
   }
@@ -221,8 +223,9 @@ namespace digedag
   bool scheduler::hook_dag_schedule (void)
   {
     // FIXME: check
-    util::scoped_lock sl ();
     // util::scoped_lock sl (mtx_);
+    util::scoped_lock sl ();
+
 
     if ( stopped_ ) 
     {
@@ -423,7 +426,7 @@ namespace digedag
       return false;
     }
 
-//  std::cout << " === node done: " << n->get_name () << std::endl;
+    std::cout << " === node done: " << n->get_name () << std::endl;
     
     return true;
   }
@@ -478,19 +481,24 @@ namespace digedag
 
   bool scheduler::hook_edge_run_pre (boost::shared_ptr <edge> e)           
   {
-    util::scoped_lock sl (mtx_);
+    std::cout << " --- schedule edge run pre 1 for " << e->get_name () << std::endl;
 
-    if ( stopped_ ) 
-    {
-      return false;
-    }
+    util::scoped_lock sl (mtx_);
 
     assert ( e );
 
+    std::cout << " --- schedule edge run pre 2 for " << e->get_name () << std::endl;
+
+    if ( stopped_ ) 
+    {
+    std::cout << " --- schedule stopped edge run pre for " << e->get_name () << std::endl;
+      return false;
+    }
+
     // add edge to queue
     queue_edges_.push_back (e);
-//  std::cout << " === adding   edge to   queue: " 
-//            << e->get_name () << std::endl;
+    std::cout << " === adding   edge to   queue: " 
+              << e->get_name () << std::endl;
 
     return true;
   }
@@ -505,7 +513,7 @@ namespace digedag
       return false;
     }
 
-//  std::cout << " === egde done: " << e->get_name () << std::endl;
+    std::cout << " === egde done: " << e->get_name () << std::endl;
 
     return true;
   }
@@ -544,14 +552,19 @@ namespace digedag
     //  - start new nodes/edges, removing them from the queue
     while ( true )
     {
+      std::cout << " === scheduler queue watch begins " << std::endl;
       while ( max_nodes_           > active_nodes_ &&
               queue_nodes_.size () > 0             )
       {
+        std::cout << " === scheduler is checking node queue " << std::endl;
+
+        // CHECK
         util::scoped_lock sl (mtx_);
 
         active_nodes_++;
         boost::shared_ptr <node> n = queue_nodes_.front ();
 
+        std::cout << " === scheduler starts node " << n->get_name () << std::endl;
         saga::task t = n->work_start ();
 
         // FIXME: we need to verify here if the task is valid (correct state
@@ -573,11 +586,15 @@ namespace digedag
       while ( max_edges_           > active_edges_ &&
               queue_edges_.size () > 0             )
       {
+        std::cout << " === scheduler is checking edge queue " << std::endl;
+
+        // CHECK
         util::scoped_lock sl (mtx_);
 
         active_edges_++;
         boost::shared_ptr <edge> e = queue_edges_.front ();
 
+        std::cout << " === scheduler starts edge " << e->get_name () << std::endl;
         saga::task t = e->work_start ();
         
         tc_edges_.add_task (t);
@@ -596,6 +613,7 @@ namespace digedag
         queue_edges_.pop_front ();
       }
 
+      std::cout << " === scheduler queue watch done " << std::endl;
       ::sleep (1);
     }
   }
@@ -603,39 +621,33 @@ namespace digedag
   void scheduler::work_finished (saga::task  t, 
                                  std::string flag)
   {
-    util::scoped_lock sl (mtx_);
-
-    if ( stopped_ ) 
     {
-      return;
+      util::scoped_lock sl (mtx_);
+
+      std::cout << " === work finished for task " << t.get_id () << std::endl;
+
+      if ( stopped_ ) 
+      {
+        return;
+      }
     }
 
+    // this flag should be an enum, so that we can do a proper switch
     if ( flag == "node" )
     {
-      active_nodes_--;
-      assert (active_nodes_ >= 0);
-
-      if ( node_task_map_.find (t) == node_task_map_.end () )
+      boost::shared_ptr <node> n;
       {
-        std::cout << " === Can't remap finished task to node:"
-                  << " [" << t.get_id () << "]"
-                  << std::endl;
-        return;
-        ::exit (7);
+        util::scoped_lock sl (mtx_);
+
+        active_nodes_--;
+        assert (active_nodes_ >= 0);
+
+        n = node_task_map_[t];
+
+        node_task_map_.erase (t);
       }
-
-      boost::shared_ptr <node> n = node_task_map_[t];
-
-      if ( ! n )
-      {
-        std::cout << " === Can't correctly remap finished task to node:"
-                  << " [" << t.get_id () << "]"
-                  << std::endl;
-        return;
-        ::exit (8);
-      }
-
-      node_task_map_.erase (t);
+      // scoped lock dies here, so that the work_done call below can call back
+      // into the scheduler.
 
 
       if ( t.get_state () == saga::task::Done )
@@ -644,57 +656,26 @@ namespace digedag
       }
       else 
       {
-        std::cout << " --- scheduler found failing task " 
-                  << " [" << t.get_id () << "]"
-                  << " (" << saga_state_to_string (t.get_state ()) << ")"
-                  << std::endl;
         n->work_failed ();
       }
     }
     else if ( flag == "edge" )
     {
-      active_edges_--;
-      assert (active_edges_ >= 0);
+      boost::shared_ptr <edge> e;
 
-
-      if ( edge_task_map_.find (t) == edge_task_map_.end () )
       {
-        std::cout << " == Can't remap finished task to edge:"
-                  << " [" << t.get_id () << "]"
-                  << std::endl;
+        util::scoped_lock sl (mtx_);
         
-        dump_map (edge_task_map_);
+        active_edges_--;
+        assert (active_edges_ >= 0);
 
-        return;
-        ::exit (9);
+        e = edge_task_map_[t];
+
+        node_task_map_.erase (t);
       }
+      // scoped lock dies here, so that the work_done call below can call back
+      // into the scheduler.
 
-
-      boost::shared_ptr <edge> e = edge_task_map_[t];
-
-      if ( ! e )
-      {
-        std::cout << " === Can't correctly remap finished task to edge:"
-                  << " [" << t.get_id () << "]"
-                  << std::endl;
-        return;
-        ::exit (10);
-      }
-
-      node_task_map_.erase (t);
-
-
-
-      if ( ! e )
-      {
-        std::cout << " === Can't use regained edge:"
-                  << " [" << t.get_id () << "]"
-                  << std::endl;
-        
-        dump_map (edge_task_map_);
-
-        ::exit (8);
-      }
 
       if ( t.get_state () == saga::task::Done )
       {

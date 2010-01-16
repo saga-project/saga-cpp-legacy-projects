@@ -160,6 +160,10 @@ namespace digedag
 
   saga::task edge::work_start (void)
   {
+    std::cout << " === edge run : " << get_name () 
+              << " (" << src_url_ << " -> " << tgt_url_ << ")"
+              << std::endl;
+
     if ( state_ == Stopped )
       return task_;
 
@@ -181,13 +185,14 @@ namespace digedag
 
       if ( f_src.get_size () == f_tgt.get_size () )
       {
-      //std::cout << " === edge run: " << get_name () << " optimized away ;-)" << std::endl;
+        std::cout << " === edge run: " << get_name () << " optimized away ;-)" << std::endl;
         optimize_ = true;
       }
     }
     catch ( const saga::exception & e )
     {
       // well, we need to run the edge operation to see what's missing...
+      optimize_ = false;
     }
 
 
@@ -214,8 +219,11 @@ namespace digedag
     return task_;
   }
 
+
   void edge::work_done (void)
   {
+    std::cout << " === edge done?" << std::endl;
+
     if ( state_ == Stopped )
       return;
 
@@ -225,12 +233,12 @@ namespace digedag
 
     state_ = Done;
 
-    std::cout << std::string (" === edge done: ") << get_name () 
+    std::cout << " === edge done: " << get_name () 
               << " (" << src_url_ << " -> " << tgt_url_ << ") : "
               << state_to_string (state_)
               << std::endl;
 
-    std::cout << std::string (" === edge done: ") << get_name () 
+    std::cout << " === edge done: " << get_name () 
               << " (" << src_url_ << " -> " << tgt_url_ << ") : "
               << state_to_string (get_state ())
               << std::endl;
