@@ -9,6 +9,7 @@ gnuplot < StagingAsAPortionOfIntelligence.gnuplot
 gnuplot < IntelligentFigureMake.gnuplot
 gnuplot < CloudStore3MachMake.gnuplot
 gnuplot < NumberResourcesMake.gnuplot
+gnuplot < CloudStoreVsGridFTP3ResourcesMake.gnuplot
 epstopdf CloudStoreCompute.eps
 epstopdf CloudStoreFigure.eps
 epstopdf CloudStoreNoComputeSmallerDataSet.eps
@@ -20,3 +21,4 @@ epstopdf StagingAsAPortionOfIntelligenceFigure.eps
 epstopdf IntelligentFigure.eps
 epstopdf CloudStore3Mach.eps
 epstopdf NumberResourcesFigure.eps
+epstopdf CloudStoreVsGridFTPFigure.eps
