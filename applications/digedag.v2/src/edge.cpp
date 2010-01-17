@@ -11,17 +11,17 @@ namespace digedag
               boost::shared_ptr <scheduler>   scheduler, 
               saga::session                   session, 
               edge_id_t                       id)
-    : src_url_   (             src)
-    , tgt_url_   (             tgt)
-    , state_     (      Incomplete)
-    , src_state_ (      Incomplete)
-    , is_void_   (           false)
-    , optimize_  (           false)
-    , fired_     (           false)
-    , task_      ( saga::task::New)
-    , scheduler_ (       scheduler)
-    , session_   (         session)
-    , id_        (              id)
+    : src_url_    (             src)
+    , tgt_url_    (             tgt)
+    , state_      (      Incomplete)
+    , src_state_  (      Incomplete)
+    , is_void_    (           false)
+    , optimize_   (           false)
+    , task_valid_ (           false)
+    , task_       ( saga::task::New)
+    , scheduler_  (       scheduler)
+    , session_    (         session)
+    , id_         (              id)
   {
     if ( tgt_url_ == "" )
     {
@@ -32,15 +32,17 @@ namespace digedag
   edge::edge (boost::shared_ptr <scheduler>   scheduler, 
               saga::session                   session,
               edge_id_t                       id)
-    : state_     (      Incomplete)
-    , src_state_ (      Incomplete)
-    , is_void_   (            true)
-    , optimize_  (           false)
-    , fired_     (           false)
-    , task_      ( saga::task::New)
-    , scheduler_ (       scheduler)
-    , session_   (         session)
-    , id_        (              id)
+    : src_url_    (              "")
+    , tgt_url_    (              "")
+    , state_      (      Incomplete)
+    , src_state_  (      Incomplete)
+    , is_void_    (            true)
+    , optimize_   (           false)
+    , task_valid_ (           false)
+    , task_       ( saga::task::New)
+    , scheduler_  (       scheduler)
+    , session_    (         session)
+    , id_         (              id)
   {
   }
 
@@ -148,11 +150,11 @@ namespace digedag
 
     if ( Pending != state_ )
     {
-      std::cout << " edge " << get_name () << " is not pending" << std::endl;
+      // std::cout << " edge " << get_name () << " is not pending" << std::endl;
       return;
     }
 
-    std::cout << " edge " << get_name () << " fired" << std::endl;
+    // std::cout << " edge " << get_name () << " fired" << std::endl;
 
     // ### scheduler hook
     scheduler_->hook_edge_run_pre (shared_from_this ());
@@ -160,10 +162,6 @@ namespace digedag
 
   saga::task edge::work_start (void)
   {
-    std::cout << " === edge run : " << get_name () 
-              << " (" << src_url_ << " -> " << tgt_url_ << ")"
-              << std::endl;
-
     if ( state_ == Stopped )
       return task_;
 
@@ -171,11 +169,6 @@ namespace digedag
 
     // we have work to do...
     state_ = Running;
-
-    std::cout << " === edge run : " << get_name () 
-              << " (" << src_url_ << " -> " << tgt_url_ << ")"
-              << std::endl;
-
 
     // lets see if we actually need to do anything
     try 
@@ -185,7 +178,6 @@ namespace digedag
 
       if ( f_src.get_size () == f_tgt.get_size () )
       {
-        std::cout << " === edge run: " << get_name () << " optimized away ;-)" << std::endl;
         optimize_ = true;
       }
     }
@@ -200,10 +192,13 @@ namespace digedag
     {
       // fake a noop task, which does nothing: simply returnh the empty
       // Done task...
-      std::cout << " === task e " << task_.get_id () << " is a void copy task " 
+      task_ = saga::task (saga::task::Done);
+
+      std::cout << " === edge run : " << get_name () 
+                << " (" << src_url_ << " -> " << tgt_url_ << ")"
+                << " [optimized] - " << task_.get_id () 
                 << std::endl;
 
-      task_ = saga::task (saga::task::Done);
     }
     else
     {
@@ -212,17 +207,20 @@ namespace digedag
       task_ = f_src.copy <saga::task::Async> (tgt_url_, saga::filesystem::Overwrite
                                                       | saga::filesystem::CreateParents);
 
-      std::cout << " === task e " << task_.get_id () << " copies " 
-                << src_url_ << " to " << tgt_url_ << std::endl;
+      std::cout << " === edge run : " << get_name () 
+                << " (" << src_url_ << " -> " << tgt_url_ << ") - "
+                << task_.get_id () 
+                << std::endl;
     }
-    
+
+    task_valid_ = true;
     return task_;
   }
 
 
   void edge::work_done (void)
   {
-    std::cout << " === edge done?" << std::endl;
+    // std::cout << " === edge done?" << std::endl;
 
     if ( state_ == Stopped )
       return;
@@ -238,11 +236,6 @@ namespace digedag
               << state_to_string (state_)
               << std::endl;
 
-    std::cout << " === edge done: " << get_name () 
-              << " (" << src_url_ << " -> " << tgt_url_ << ") : "
-              << state_to_string (get_state ())
-              << std::endl;
-
     // if we are done copying data, we fire the dependend node
     // this fire may succeed or not - that depends on the availability
     // of _other_ input data to that node.  Only if all data are Done,
@@ -250,10 +243,8 @@ namespace digedag
     // called on a node (i.e. called from its last Pending Edge) will
     // result in a Running node.
 
-    if ( tgt_node_ && ! fired_ )
+    if ( tgt_node_ )
     {
-      fired_ = true;
-
       std::cout << " === firing dep node " << tgt_node_->get_id () << std::endl;
       tgt_node_->fire (shared_from_this ());
     }

@@ -271,8 +271,11 @@ namespace digedag
         }
         else
         {
-          std::cerr << "cannot find job scheduler info for job " << id << std::endl;
-          // ::exit (6);
+          if ( id != "INPUT"  &&
+               id != "OUTPUT" )
+          {
+            std::cerr << " warning: cannot find job scheduler info for job " << id << std::endl;
+          }
         }
       }
     }
@@ -291,8 +294,8 @@ namespace digedag
     }
 
     // start watching the task containers, even if they are still empty
-    watch_nodes_ = new watch_tasks (shared_from_this(), tc_nodes_, "node");
-    watch_edges_ = new watch_tasks (shared_from_this(), tc_edges_, "edge");
+    watch_nodes_ = new watch_tasks (shared_from_this(), tc_nodes_, "node", mtx_);
+    watch_edges_ = new watch_tasks (shared_from_this(), tc_edges_, "edge", mtx_);
 
     // start the scheduler thread which executes nodes and edges
     thread_run ();
@@ -401,17 +404,20 @@ namespace digedag
     // only accept that node if it wasn't seen before
     if ( known_nodes_.end () != known_nodes_.find (n->get_name ()) )
     {
-      std::cout << " === scheduler ignores known node " << n->get_name () << std::endl;
+      std::cout << " === scheduler ignores node " 
+                << n->get_name () << " (known)" << std::endl;
       return false;
     }
 
-    // remember thid node
-    std::cout << " === scheduler registers known node " << n->get_name () << std::endl;
+
+    std::cout << " === scheduler registers node " << n->get_name () << std::endl;
+
+    // remember this node
     known_nodes_.insert (n->get_name ());
+
 
     // queue the node for work
     queue_nodes_.push_back (n);
-    // std::cout << " === adding   node to   queue: " << n->get_name () << std::endl;
 
     return true;
   }
@@ -426,7 +432,7 @@ namespace digedag
       return false;
     }
 
-    std::cout << " === node done: " << n->get_name () << std::endl;
+    // std::cout << " === node done: " << n->get_name () << std::endl;
     
     return true;
   }
@@ -481,24 +487,19 @@ namespace digedag
 
   bool scheduler::hook_edge_run_pre (boost::shared_ptr <edge> e)           
   {
-    std::cout << " --- schedule edge run pre 1 for " << e->get_name () << std::endl;
-
     util::scoped_lock sl (mtx_);
 
     assert ( e );
 
-    std::cout << " --- schedule edge run pre 2 for " << e->get_name () << std::endl;
-
     if ( stopped_ ) 
     {
-    std::cout << " --- schedule stopped edge run pre for " << e->get_name () << std::endl;
       return false;
     }
 
     // add edge to queue
     queue_edges_.push_back (e);
-    std::cout << " === adding   edge to   queue: " 
-              << e->get_name () << std::endl;
+
+    std::cout << " === adding   edge to   queue: " << e->get_name () << std::endl;
 
     return true;
   }
@@ -513,7 +514,7 @@ namespace digedag
       return false;
     }
 
-    std::cout << " === egde done: " << e->get_name () << std::endl;
+    // std::cout << " === egde done: " << e->get_name () << std::endl;
 
     return true;
   }
@@ -552,11 +553,12 @@ namespace digedag
     //  - start new nodes/edges, removing them from the queue
     while ( true )
     {
-      std::cout << " === scheduler queue watch begins " << std::endl;
+      // std::cout << " === scheduler queue watch begins " << std::endl;
+
       while ( max_nodes_           > active_nodes_ &&
               queue_nodes_.size () > 0             )
       {
-        std::cout << " === scheduler is checking node queue " << std::endl;
+        // std::cout << " === scheduler is checking node queue " << std::endl;
 
         // CHECK
         util::scoped_lock sl (mtx_);
@@ -571,11 +573,11 @@ namespace digedag
         // etc).  Or simply catch for SAGA exceptions?
 
         tc_nodes_.add_task (t);
-        std::cout << " === mapping task " 
-                  << t.get_id () 
-                  << " to node " 
-                  << n->get_name () 
-                  << std::endl;
+        // std::cout << " === mapping task " 
+        //           << t.get_id () 
+        //           << " to node " 
+        //           << n->get_name () 
+        //           << std::endl;
 
         node_task_map_[t] = n;
 
@@ -586,7 +588,7 @@ namespace digedag
       while ( max_edges_           > active_edges_ &&
               queue_edges_.size () > 0             )
       {
-        std::cout << " === scheduler is checking edge queue " << std::endl;
+        // std::cout << " === scheduler is checking edge queue " << std::endl;
 
         // CHECK
         util::scoped_lock sl (mtx_);
@@ -601,11 +603,11 @@ namespace digedag
         
         edge_task_map_[t] = e;
 
-        std::cout << " === mapping task " 
-                  << t.get_id () 
-                  << " to edge " 
-                  << e->get_name () 
-                  << std::endl;
+        // std::cout << " === mapping task " 
+        //           << t.get_id () 
+        //           << " to edge " 
+        //           << e->get_name () 
+        //           << std::endl;
 
         // dump_map (edge_task_map_);
 
@@ -613,7 +615,8 @@ namespace digedag
         queue_edges_.pop_front ();
       }
 
-      std::cout << " === scheduler queue watch done " << std::endl;
+      // std::cout << " === scheduler queue watch done " << std::endl;
+
       ::sleep (1);
     }
   }
@@ -624,7 +627,7 @@ namespace digedag
     {
       util::scoped_lock sl (mtx_);
 
-      std::cout << " === work finished for task " << t.get_id () << std::endl;
+      // std::cout << " === work finished for task " << t.get_id () << std::endl;
 
       if ( stopped_ ) 
       {
@@ -685,7 +688,6 @@ namespace digedag
       {
         e->work_failed ();
       }
-
     }
     else
     {

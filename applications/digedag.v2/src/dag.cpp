@@ -255,13 +255,9 @@ namespace digedag
 
     for ( it = begin; it != end; it++ )
     {
-      std::cout << std::string (" ===   dag checks node ") 
-                << it->second->get_id () << ": " << state_to_string (it->second->get_state ())
-                << std::endl;
-
       if ( Pending == it->second->get_state () )
       {
-        std::cout << std::string (" ===   dag fires node w/o incomplete edges ") 
+        std::cout << std::string (" ===   dag fires node w/o incomplete edges: ") 
                   << it->second->get_id () << std::endl;
         it->second->fire ();
         state_ = Running;
@@ -304,7 +300,7 @@ namespace digedag
       s = get_state ();
     }
 
-    std::cout << "dag state is final - exit wait" << std::endl;
+    std::cout << "dag state is final: " << state_to_string (s) << std::endl;
   }
 
 

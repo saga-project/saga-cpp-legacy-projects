@@ -36,7 +36,8 @@ namespace digedag
 
 
       bool                                    is_void_;     // void node?
-      bool                                    fired_;       // dependent edges fired after Done?
+      bool                                    valid_task_;  // a saga_task object got 
+                                                            // created and can be queried for state
 
       saga::task                              task_;        // our async workload
 

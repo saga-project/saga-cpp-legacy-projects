@@ -14,6 +14,7 @@
 
 #include "util/mutex.hpp"
 #include "util/thread.hpp"
+#include "util/scoped_lock.hpp"
 
 
 namespace digedag
@@ -68,7 +69,9 @@ namespace digedag
 
       util::mutex                            mtx_;
 
-      // list of known nodes and edges
+      // list of known nodes and edges, which helps to avoid scheduling them
+      // twice.  Its actually only used for nodes right now, as edges get only
+      // fired once anyway.  Nodes however can get fired multiple times.
       std::set <std::string>                known_nodes_;
       std::set <std::string>                known_edges_;
 
@@ -124,15 +127,18 @@ namespace digedag
       saga::task_container              tc_;
       boost::shared_ptr <scheduler>     s_;
       std::string                       f_;
+      util::mutex                       mtx_;
       bool                              todo_;
 
     public:
       watch_tasks (boost::shared_ptr <scheduler> s, 
                    saga::task_container          tc, 
-                   std::string                   flag) 
+                   std::string                   flag, 
+                   util::mutex                   mtx) 
         : tc_   (tc)
         , s_    (s)
         , f_    (flag)
+        , mtx_  (mtx)
         , todo_ (true)
 
       {
@@ -149,8 +155,18 @@ namespace digedag
       {
         while ( todo_ )
         {
-          std::vector <saga::task> tasks = tc_.list_tasks ();
+          std::vector <saga::task> tasks;
           
+          {
+            util::scoped_lock (mtx_);
+            tasks = tc_.list_tasks ();
+          }
+
+          // by default, so unless we find interesting task state changes, we
+          // sleep a little to avoid busy waits.  Task container notifications
+          // will help once implemented.
+          bool do_wait = true;
+
           for ( unsigned int i = 0; i < tasks.size (); i++ )
           {
             saga::task        t = tasks[i];
@@ -159,16 +175,24 @@ namespace digedag
             if ( s == saga::task::Done   || 
                  s == saga::task::Failed )
             {
-              std::cout << " === task " << t.get_id () << " finished: " << t.get_state () << std::endl;
+              std::cout << " === task " << t.get_id () << " is final: " 
+                        << saga_state_to_string (t.get_state ()) 
+                        << std::endl;
 
-              tc_.remove_task (t);
+              {
+                util::scoped_lock (mtx_);
+                tc_.remove_task (t);
+              }
 
               s_->work_finished (t, f_);
+
+              // just check task container again immediately
+              do_wait = false;
             }
           }
 
           // avoid busy wait
-          if ( tasks.size () == 0 )
+          if ( do_wait )
           {
             ::sleep (1);
           }
