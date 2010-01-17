@@ -165,43 +165,87 @@ studies for complex reservoirs in a reasonable amount of time would
 benefit greatly from the use of distributed, high performance, high
 throughput and on-demand computing resources.
 
-\begin{figure}
-\begin{center}
-\includegraphics*[scale=0.33,angle=0]{figures/3StageKalmanFilter}
-\end{center}
-\caption{Schematic illustrating the variability between stages of a typical
-  ensemble Kalman filter based simulation. The end-to-end
-  application consists of several stages; in general at each stage the
-  number of models generated varies in size and duration.}
-\label{fig:irregular_execution}
-\end{figure}
+% \begin{figure}
+% \begin{center}
+% \includegraphics*[scale=0.33,angle=0]{figures/3StageKalmanFilter}
+% \end{center}
+% \caption{Schematic illustrating the variability between stages of a typical
+%   ensemble Kalman filter based simulation. The end-to-end
+%   application consists of several stages; in general at each stage the
+%   number of models generated varies in size and duration.}
+% \label{fig:irregular_execution}
+% \end{figure}
 
+\section{Modelling CO$_2$ Sequestration}
 
-\section{Meeting the Requirements: Design and Architecture}
-
-Due to the complexity of the problem, involving reservoir simulation,
-geostatistics on one end, and simulation management, workflows, grid
-and high-throughput computing on another, a design decision was made
-early in development to make full use of existing tools and
-abstractions whenever possible. This resulted in a rapid development
-cycle and faster turn-over. The components we developed and use are as
-follows:
+\jhanote{This needs a couple of paragraphs --- all about injection
+  etc, what are the parameters etc. so that when the figures are shown
+  later, we'll know how to analyze them. This should contain
+  sufficient backgroud material that was used for the e-Science 2009
+  talk}
 
 \section{Analyzing The Computational Complexity}
 
-\subsection{Analyzing the Trade-offs}
+%\subsection{Single Machine Versus Distributed Infrastructure}
 
-\subsection{Single Machine Versus Distributed Infrastructure}
-\begin{figure}
-\begin{center}
-\includegraphics*[scale=0.5,angle=0]{figures/Figure7.png}
-\end{center}
-\caption{Time to completion with Lazarus. From Left to Right: (i)
-  Ranger (ii) Ranger when using BQP, (iii) QueenBee, (iii) Ranger
-  and QueenBee, (iv) Ranger, QueenBee and Abe, (v) Ranger, QueenBee 
-  and Abe when using BQP.}
-\label{fig:SingleVsDistributed}
-\end{figure}
+%\subsection{EnKF Scalability}
+
+An important parameter in the EnKF workflow is the size of the
+ensemble (number of ensemble members). The ensemble size should be
+large enough to propagate the information contained in the
+observations to the model variables. Smaller ensembles cause the
+analysis error to become larger. Too small an ensemble size can give
+poor approximations to the infinite ensemble case: the ensemble
+covariance underestimates the error covariance substantially. This
+effect can be monitored by comparing the actual forecasted model data
+differences to those expected on the basis of the forecasted ensemble
+covariance ~\ref{Burger98}.
+
+In contrast, Houtekamer and Mitchell ~\ref{Hout98} found that while
+the analysis error decreased as the number of ensembles increased,
+representative ensembles can be maintained with a relatively small
+ensemble size (order of hundreds) using a pair of
+ensembles. Furthermore, the required ensemble size remains constant
+irrespective of the state vetor size and observation size
+~\ref{Mitchell02}. However, if a small ensemble size requiring severe
+localization (as is sometimes the case with reservoir models), this
+can cause a significant amount of spatial incoherence.
+
+
+For these reasons, optimal ensemble size is considerably difficult to
+determine without any preliminary analysis. Large ensemble sizes
+directly translate to increased computational cost and delays in the
+time to completion. Conversely, smaller ensemble sizes, while more
+efficient require prior knowledge of localization requirement for
+reduced analysis errors.
+
+\subsection{Analyzing the Trade-offs}  
+
+Typically, reservoir characterization studies followed by forecast
+studies are run for a reservoir management recommendation to be
+made. The studies must be therefore completed within a fixed timeframe
+(few weeks at best). This imposes restrictions on the size of the
+ensemble used. Fortunatly, the ensemble members are independent
+therefore can be run across a distributed environment. It is for this
+reason that Lazarus was developed as a scalable autonomic framework
+for EnKF applications. The larger ensemble sizes also increase the
+computational cost of the EnKF application. For that reason, we
+developed a parallel EnKF.
+
+Since the choice of ensemble size has a direct impact on total time to
+completion, a tradeoff can be established: large ensembles of
+small/less detailed simulations as opposed to small ensembles of
+large/detailed simulations. The tradeoff can keep the number of SU's
+required constant, and with prior knowledge of available resources,
+the total time to completion as well. The question becomes: given a
+small time-frame of ten days for example, what ensemble size and what
+problem size can be completed so that by the tenth day results can be
+collected and a decision made. While we have not addressed this
+problem in the workflow manager or the reservoir simulator, we have
+built those tools with these tradeoffs in mind.
+
+\subsection{Computational Requirement: Current Capability}
+
 
 Consider a practical reservoir study that involves characterization,
 production forecast and sequestration forecast. Assuming we solve a
@@ -214,66 +258,38 @@ ensemble members, this equates to 250 hours (10 days) with a submitted
 BigJob size of 16 cores running one ensemble at a time or 2.5 hours
 with a submitted BigJob size of 1600 cores, all running concurrently.
 
-\jhanote{dont toggle between hours-days-years}
+\jhanote{don't toggle between hours-days-years}
 
 Assume for now that we are working with the ranger supercomputing
-system at TACC. We would have access to 1600 cores for a maximum of 2 days,
-which should allow us to run roughly 19 months worth of
+system at TACC. We would have access to 1600 cores for a maximum of 2
+days, which should allow us to run roughly 19 months worth of
 simulations. With 15 years of history matching, 15 years of forecasts
 and another 15 years of sequestration simulation, this totals to 540
-months, or 29 BigJobs with 1600 core size and 2 day duration. The
-wait time in the queue for such a job is, on average, 30 hours on
+months, or 29 BigJobs with 1600 core size and 2 day duration. The wait
+time in the queue for such a job is, on average, 30 hours on
 ranger. If we submit the subsequent job to the queuing system after
 the current job is finished, the total duration of the entire study
 will therefore be roughly 95 days.
 
-Certain improvements are possible obviously. Using three machines as a distributed infrastructure instead of just one machine, based on \ref{fig:SingleVsDistributed}, we can expect a reduction of the total time to completion by about a third, roughly 65 days. Futher optimization is of course possible.
+Certain improvements are possible obviously. Using three machines as a
+distributed infrastructure instead of just one machine, based on
+\ref{fig:SingleVsDistributed}, we can expect a reduction of the total
+time to completion by about a third, roughly 65 days. Futher
+optimization is of course possible.
 
 \yyenote{need to give examples on further optimization}	
 
+\subsection{Computational Requirement: What we need to solve}
 
-\section{Sensors}
+\section{Meeting the Requirements: Design and Architecture}
 
-
-To perform realtime reservoir characterization and forecast, live sensor data must be retrieved from the field and used in the data assimilation stage. The availability of new data also triggers a new EnKF stage in the workflow. To that end we implemented a communication layer based on data streaming from the data acquisition (sensor) platforms to a data spool in the form of a MySQL database ~\ref{fig:SensorRelay}. The EnKF application queries the data spool for the latest available sensor platform (field observations) data. Once the new field observations are retrieved they are labeled as ``assimilated'' to differentiate them from the next--in--line observations. It is worth mentioning that while currently we use a MySQL database, a more consistent solution would be to use the SAGA advert service, which would remove the need to access MySQL in Lazarus.
-
-%With a high performance reservoir simulator, a parallel, scalable ensemble Kalman filter, and a workflow manager that provides access to an abundance of high performance and high throughput resources optimized for lowest total--time--to--completion, we are well equipped to perform live, real--time reservoir characterization based on direct sensor data.
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.35]{./figures/SensorRelay.png}
-\end{center}
-\caption[Sensors to Simulations data flow]{Real-time transfer of field sensor data to the EnKF application is a two stage process: streaming from sensor platforms to database and queries from the EnKF.}
-\label{fig:SensorRelay}
-\end{figure}
-
-The use of an intermediate data--spool is necessary for many reasons: it is difficult to guarantee resource availability and synchronization with the EnKF. It is also prohibitively costly to maintain an active EnKF session throughout the life--time of the reservoir. With a data--spool we can also adjust the update rate at the EnKF session without losing any data from the reservoir. Updates to the models can be as immediate as the moment data is broadcast from the sensors in the field, or as late as when the reservoir is being abandoned. With immediate model updates, we can run forecast studies.
-
-% \begin{figure}
-% \begin{center}
-% \includegraphics[scale=0.65]{./figures/LabView.png}
-% \end{center}
-% \caption[Sensor side LabVIEW vi]{Sensor side LabVIEW vi. To stream data from sensor platforms to data spools we use a LabVIEW vi that makes calls to a shared library containing an interface to the database (MySQL). Initial tests were conducted using a Wii mote 3--axis accelerometer. Image courtesy of Richard G. Duff }
-% \label{fig:LabView}
-% \up
-% \up
-% \end{figure}
-
-%Special care had to be taken when interfacing to sensor platforms: there is no unified specification for communicating abstract sensor information. The simplest approach was to develop an interface to a common data acquisition application: LabVIEW from National Instruments ~\cite{LabVIEW}. To that end we developed a virtual instrument (vi) that makes function calls to a shared library which in turn interfaces to the MySQL database (Figure ~\ref{fig:LabView}). The vi has an adjustable streaming rate for polling sensor information and relaying it to the database, and is modular so it can be integrated in existing vi's as a sub--vi. This translates to painless integration with existing field and laboratory sensor platforms, in particular, the UCoMs sand tank experiment ~\cite{UCOMS}.
-
-%It is worth mentioning that the intention here was to develop an abstract interface to sensor data that can accommodate everything from drill--string modelling ~\cite{DrillingLab}, well--heads, weather stations and buoys. This is one of the reasons why a ProdML ~\cite{ProdML} was not the first choice of interfaces. However, should the need arise, we can develop a direct ProdML to PETSc interface which will have no significant impact on the closed loop performance.
-
-\section{EnKF Scalability}
-An important parameter in the EnKF workflow is the size of the ensemble (number of ensemble members). The ensemble size should be large enough to propagate the information contained in the observations to the model variables. Smaller ensembles cause the analysis error to become larger. Too small an ensemble size can give poor approximations to the infinite ensemble case: the ensemble covariance underestimates the error covariance substantially. This effect can be monitored by comparing the actual forecasted model data differences to those expected on the basis of the forecasted ensemble covariance ~\ref{Burger98}.
-
-In contrast, Houtekamer and Mitchell ~\ref{Hout98} found that while the analysis error decreased as the number of ensembles increased, representative ensembles can be maintained with a relatively small ensemble size (order of hundreds) using a  pair of ensembles. Furthermore, the required ensemble size remains constant irrespective of the state vetor size and observation size ~\ref{Mitchell02}. However, if a small ensemble size requiring severe localization (as is sometimes the case with reservoir models), this can cause a significant amount of spatial incoherence.
-
-For these reasons, optimal ensemble size is considerably difficult to determine without any preliminary analysis. Large ensemble sizes directly translate to increased computational cost and delays in the time to completion. Conversely, smaller ensemble sizes, while more efficient require prior knowledge of localization requirement for reduced analysis errors.
-
-Typically, reservoir characterization studies followed by forecast studies are run for a reservoir management recommendation to be made. The studies must be therefore completed within a fixed timeframe (few weeks at best). This imposes restrictions on the size of the ensemble used. Fortunatly, the ensemble members are independent therefore can be run across a distributed environment. It is for this reason that Lazarus was developed as a scalable autonomic framework for EnKF applications. The larger ensemble sizes also increase the computational cost of the EnKF application. For that reason, we developed a parallel EnKF.
-
-Since the choice of ensemble size has a direct impact on total time to completion, a tradeoff can be established: large ensembles of small/less detailed simulations as opposed to small ensembles of large/detailed simulations. The tradeoff can keep the number of SU's required constant, and with prior knowledge of available resources, the total time to completion as well. The question becomes: given a small time-frame of ten days for example, what ensemble size and what problem size can be completed so that by the tenth day results can be collected and a decision made. While we have not addressed this problem in the workflow manager or the reservoir simulator, we have built those tools with these tradeoffs in mind.
+Due to the complexity of the problem, involving reservoir simulation,
+geostatistics on one end, and simulation management, workflows, grid
+and high-throughput computing on another, a design decision was made
+early in development to make full use of existing tools and
+abstractions whenever possible. This resulted in a rapid development
+cycle and faster turn-over. The components we developed and use are as
+follows:
 
 \begin{itemize}
 
@@ -318,7 +334,8 @@ Since the choice of ensemble size has a direct impact on total time to completio
 
 \begin{figure}
 \begin{center}
-\includegraphics*[scale=0.7,angle=0]{figures/Picture2.png}
+%\includegraphics*[scale=0.7,angle=0]{figures/Picture2.png}
+  \includegraphics*[scale=0.33,angle=0]{figures/DetailedSensorFlow.png}
 \end{center}
 \caption{Schematic illustrating the interaction of BlackOil, EnKF, S2S
   and Lazarus. The blue arrows represent the flow of simulation data
@@ -329,24 +346,70 @@ Since the choice of ensemble size has a direct impact on total time to completio
 \label{fig:irregular_execution}
 \end{figure}
 
+\subsection{Sensors}
+
+To perform realtime reservoir characterization and forecast, live
+sensor data must be retrieved from the field and used in the data
+assimilation stage. The availability of new data also triggers a new
+EnKF stage in the workflow. To that end we implemented a communication
+layer based on data streaming from the data acquisition (sensor)
+platforms to a data spool in the form of a MySQL database
+~\ref{fig:SensorRelay}. The EnKF application queries the data spool
+for the latest available sensor platform (field observations)
+data. Once the new field observations are retrieved they are labeled
+as ``assimilated'' to differentiate them from the next--in--line
+observations. It is worth mentioning that while currently we use a
+MySQL database, a more consistent solution would be to use the SAGA
+advert service, which would remove the need to access MySQL in
+Lazarus.
+
+% With a high performance reservoir simulator, a parallel, scalable
+% ensemble Kalman filter, and a workflow manager that provides access
+% to an abundance of high performance and high throughput resources
+% optimized for lowest total--time--to--completion, we are well
+% equipped to perform live, real--time reservoir characterization
+% based on direct sensor data.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.25]{./figures/SensorRelay.png}
+\end{center}
+\caption[Sensors to Simulations data flow]{Real-time transfer of field
+  sensor data to the EnKF application is a two stage process:
+  streaming from sensor platforms to database and queries from the
+  EnKF.}
+\label{fig:SensorRelay}
+\end{figure}
+
+{\it Putting it all together: } The use of an intermediate data--spool
+is necessary for many reasons: it is difficult to guarantee resource
+availability and synchronization with the EnKF. It is also
+prohibitively costly to maintain an active EnKF session throughout the
+life--time of the reservoir. With a data--spool we can also adjust the
+update rate at the EnKF session without losing any data from the
+reservoir. Updates to the models can be as immediate as the moment
+data is broadcast from the sensors in the field, or as late as when
+the reservoir is being abandoned. With immediate model updates, we can
+run forecast studies.
+
 When used in conjunction, these components allow us to perform
-closed-loop large scale reservoir characterization studies as well as
-long term forecast, enhanced oil recovery and CO$_2$ sequestration
-studies. As more reservoir history data is generated during enhanced
-oil recovery and CO$_2$ injection, the closed-loop can continue to run
-and provide insight as the reservoir geological models are being
-updated by the EnKF.  Continuously running the latest models in
-forecast simulations with the latest sensor data will hopefully allow
-us to predict un-intended movement of CO$_2$, leaks into aquifers,
-critical pressure build-ups or huge pressure drops (fractures,
-blow-outs etc.). To that end we use the BlackOil reservoir simulator
-as an early prototype of what will eventually be an accurate simulator
-that can model CO$_2$ sequestration, geochemical and geomechanical
-phenomena. The S2S framework is also under heavy development to add
-sensor metadata allowing Lazarus, through autonomic logic, to
-distinguish between critical and non-critical sensor data, and
-ultimately making use of on-demand computing resources (should the
-sensor data prove critical).
+closed-loop\jhanote{define close-loop} large scale reservoir
+characterization studies as well as long term forecast, enhanced oil
+recovery and CO$_2$ sequestration studies. As more reservoir history
+data is generated during enhanced oil recovery and CO$_2$ injection,
+the closed-loop can continue to run and provide insight as the
+reservoir geological models are being updated by the EnKF.
+Continuously running the latest models in forecast simulations with
+the latest sensor data will hopefully allow us to predict un-intended
+movement of CO$_2$, leaks into aquifers, critical pressure build-ups
+or huge pressure drops (fractures, blow-outs etc.). To that end we use
+the BlackOil reservoir simulator as an early prototype of what will
+eventually be an accurate simulator that can model CO$_2$
+sequestration, geochemical and geomechanical phenomena. The S2S
+framework is also under heavy development to add sensor metadata
+allowing Lazarus, through autonomic logic, to distinguish between
+critical and non-critical sensor data, and ultimately making use of
+on-demand computing resources (should the sensor data prove critical).
 
 % \jhanote{Need some details of how this ``autonomic decision making'' is supported?}
 % \yyenote{haven't figure that bit out yet, but I am guessing I will just remove it}
@@ -361,9 +424,25 @@ We have previously run an EnKF based application on several TeraGrid
 resources and demonstrated effective {\it Scale-out} across three
 machines~\citep{gmac}.  Additionally, we incorporate the use of Condor
 pools in Lazarus for even higher throughput, demonstrating possible
-advantages to using multiple pilot job mechanisms.
+advantages to using multiple pilot job mechanisms. \jhanote{mention
+  that although this is for HM, the performance numbers are valid for
+  Sequestration problem too.}
 
-\subsection{Performance Data} \jhanote{We could either reproduce the
+\subsection{Performance Data} 
+
+\begin{figure}
+\begin{center}
+  \includegraphics*[scale=0.5,angle=0]{figures/Figure7.png}
+\end{center}
+\caption{Time to completion with Lazarus. From Left to Right: (i)
+  Ranger (ii) Ranger when using BQP, (iii) QueenBee, (iii) Ranger and
+  QueenBee, (iv) Ranger, QueenBee and Abe, (v) Ranger, QueenBee and
+  Abe when using BQP.}
+\label{fig:SingleVsDistributed}
+\end{figure}
+
+
+\jhanote{We could either reproduce the
   above data plot as is, or we could extend the data plot to include
   $T_c$ when Purdue's Condor Pool is introduced into the mix. I think
   there is some merit in extending to scale-out onto 4 resources (R,
@@ -477,4 +556,40 @@ The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.
 \item Based on sensor data, we might want to run fire control models, emergency response models, kill-well/well-shutdown models etc... So analysis of sensor data before we jam it in the workflow might be important
 \end{itemize}
 }
+
+% \begin{figure}
+% \begin{center}
+% \includegraphics[scale=0.65]{./figures/LabView.png}
+% \end{center}
+% \caption[Sensor side LabVIEW vi]{Sensor side LabVIEW vi. To stream data from sensor platforms to data spools we use a LabVIEW vi that makes calls to a shared library containing an interface to the database (MySQL). Initial tests were conducted using a Wii mote 3--axis accelerometer. Image courtesy of Richard G. Duff }
+% \label{fig:LabView}
+% \up
+% \up
+% \end{figure}
+
+% Special care had to be taken when interfacing to sensor platforms:
+% there is no unified specification for communicating abstract sensor
+% information. The simplest approach was to develop an interface to a
+% common data acquisition application: LabVIEW from National
+% Instruments ~\cite{LabVIEW}. To that end we developed a virtual
+% instrument (vi) that makes function calls to a shared library which
+% in turn interfaces to the MySQL database (Figure
+% ~\ref{fig:LabView}). The vi has an adjustable streaming rate for
+% polling sensor information and relaying it to the database, and is
+% modular so it can be integrated in existing vi's as a sub--vi. This
+% translates to painless integration with existing field and
+% laboratory sensor platforms, in particular, the UCoMs sand tank
+% experiment ~\cite{UCOMS}.
+
+%It is worth mentioning that the intention here was to develop an
+% abstract interface to sensor data that can accommodate everything
+% from drill--string modelling ~\cite{DrillingLab}, well--heads,
+% weather stations and buoys. This is one of the reasons why a ProdML
+% ~\cite{ProdML} was not the first choice of interfaces. However,
+% should the need arise, we can develop a direct ProdML to PETSc
+% interface which will have no significant impact on the closed loop
+% performance.
+
+
+
 
