@@ -490,9 +490,7 @@ distributed case (Figs. \ref{Fig:ExpIConventionalLocal:a}, and
 \ref{Fig:ExpIConventionalLocal:b}, respectively). Using our All-Pairs framework
 in a distributed environment has an overhead which can be noted by looking at
 the scales of both graphs. In figure
-\ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that
-\betynote{WHY is t(287, 8) $<$ t(144,16)??} 
-In figure \ref{Fig:ExpIConventionalLocal:b}, where we use gridFTP 
+\ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that working with a smaller data set ($c_s \sim 144MB$, $N_c = 8$, 1.15 GB total) takes about half the time than working with a data set double the size ($c_s = 287MB$, $N_c = 8$, 2.3 GB total). We also see that when working with the same data set size ($2.3 GB$), but partitioned differently, i.e., S0 ($c_s = 287MB$, $N_c = 8$) vs. S1 ($c_s = 144MB$, $N_c = 16$), we increase $t_c$ for S1, by adding transfer time by doubling the number of files, although we decrease the file size by half. \betynote{Only transfer? I/O is the same, right?}In figure \ref{Fig:ExpIConventionalLocal:b}, where we use gridFTP 
 to access the files, we see that a single 
 machine takes less time compared to the configurations that
 involve two machines. Also, having to access data remotely is a
@@ -518,8 +516,7 @@ I/O bound.
 file reads being compared to a completely local run. We plot the time to
 completion $t_c$ vs. the number of workers $N_w$. Note the scale, the
 local case takes less $t_c$  than the gridFTP case. In Fig.
-\ref{Fig:ExpIConventionalLocal:a}, \micnote{add explanation; redoing
-expiriment} In Fig. \ref{Fig:ExpIConventionalLocal:b}, the two-machine
+\ref{Fig:ExpIConventionalLocal:a}, we note that by doubling the data set size we double $t_c$, and that we create an overhead in S1 (vs. S0) by increasing $t_x$ as a result of having more files.  In Fig. \ref{Fig:ExpIConventionalLocal:b}, the two-machine
 configurations take more time than using a single machine. As expected,
 computing in one machine, while having the data stored in another
 $(C2)$, takes longer compared to having some data stored in the resource
@@ -639,7 +636,7 @@ $t_c$, except to the case of three machines and 2 workers.}
 
 As done above for the first experiment, we have attempted to capture how
 
-compute time scales under these configurations, see figure \ref{Fig:experiment3}. Having data remotely affects the performance. We can see that computing in one resource while the data is in another (S1), takes the most amount of time. Having some data in the resource that is computing helps performance (S2, S3, S4). The number of machines to which workload was assigned is also important. Placing workload in two machines also decreases $t_c$ (S2 vs. S3). We varied the degree of replication for our C4 and C5 configurations, i.e., for the case of two and three machines, where all the resources have workload assigned and data stored. In the case C4, having $r = 2$ improved $t_c$, but not considerably. For C5, different degrees of replication only made a difference in the case of two workers.
+compute time scales under these configurations, see figure \ref{Fig:experiment3}. Having data remotely affects the performance. We can see that computing in one resource while the data is in another (S1), takes the most amount of time. Having some data in the resource that is computing helps performance (S2, S3, S4). The number of machines to which workload was assigned is also important. Placing workload in two machines also decreases $t_c$ (S2 vs. S3). We varied the degree of replication for our $C4$ and $C5$ configurations, i.e., for the case of two and three machines, where all the resources have workload assigned and data stored. In the case $C4$, having $r = 2$ improved $t_c$, but not considerably. For $C5$, different degrees of replication only made a difference in the case of two workers.
 
 We now add our actual genome comparison function, i.e., $t_{compute} \ne 0$ and we compare it to our base case where $t_{compute} \ne 0$ . We define $\Delta t_c$ which is the time difference between these two cases. In figure \ref{Fig:experiment4}, we see that the time it takes to do the genome comparison is relatively small compared to the set up time, transfer, and I/O time added together. The fact that $\Delta t_c$ for a given $N_w$ is not the same for most of configurations, shows that there is still an overhead; our $t_x$ and $t_{I/O}$ were not the same at the times we run our All-pairs framework for both cases. \betynote{Guys, does this statement seem ``true''?}
 %Figure 4
@@ -652,45 +649,42 @@ We now add our actual genome comparison function, i.e., $t_{compute} \ne 0$ and 
 \end{center}
 \end{figure}
 
+We also compare our results with $t_{compute}=0$ for two different data set sizes, one with $c_s = 287MB$, and the other one with half the size, $c_s = 144MB$ (rounded value). Both use CloudStore, and have eight assignments. We define two quantities, $\Delta t_c^d = t_c(c_s = 287MB) -  t_c(c_s = 144MB)$, and $t_{common} = 2 \times t_c(c_s = 144MB) - t_c(c_s = 287MB)$. 
 
 
-\begin{center}
+
 \begin{figure}
-\subfigure[$\Delta t_c$]
+\begin{center}
+\subfigure[$\Delta t_c^d (= t_c(287MB) -  t_c(144MB)) * N_w$]
 {
-\includegraphics[scale=0.5]{data/graphs/CloudStoreNoCompute_287Minus144}
+\includegraphics[scale=0.48]{data/graphs/CloudStoreNoCompute_287Minus144TimesNw}
 \label{Fig:CloudStore287minus144:a}
 }
-\subfigure[$\Delta t_c * N_w$]
+\subfigure[$t_{common}=2*t_c(144MB)-t_c( 287MB)$]
 {
-\includegraphics[scale=0.5]{data/graphs/CloudStoreNoCompute_287Minus144TimesNw}
+\includegraphics[scale=0.48]{data/graphs/CloudStoreNoCompute_287Minus144CommonTime}
 \label{Fig:CloudStore287minus144:b}
 }
-\subfigure[$t_{common}=2*t(144)-t(287)$]
-{
-\includegraphics[scale=0.5]{data/graphs/CloudStoreNoCompute_287Minus144CommonTime}
-\label{Fig:CloudStore287minus144:c}
-}
-%%\subfigure[$t_{common}=(2*t(144)-t(287))$*N_w]
+%%\subfigure[$\Delta t_c$]
 %%{
-%%\includegraphics[scale=0.5]{data/graphs/CloudStoreNoCompute_287Minus144CommonTimeTimesNw}
-%%\label{Fig:CloudStore287minus144:d}
+%%\includegraphics[scale=0.5]{data/graphs/CloudStoreNoCompute_287Minus144}
+%%\label{Fig:CloudStore287minus144:c}
 %%}
-\caption{\textit{Fig. \ref{Fig:experiment3:a} - Fig. \ref{Fig:experiment4:b}, i.e., $\Delta t_c = t_c(c_s=287 MB, t_{compute}=0) - t_c(c_s=144 MB, t_{compute}=0)$, $(N_c, fs, m) = (\mbox{8, CloudStore, Direct})$}}
+\caption{\textit{$(N_c, fs, m) = (\mbox{8, CloudStore, Direct})$}}
 \label{Fig:CloudStore287minus144}
-\end{figure}
 \end{center}
+\end{figure}
 
-\begin{center}
 \begin{figure}
+\begin{center}
 \subfigure[$(c_s, N_c) = (\mbox{287 MB, 8})$]
 {
-\includegraphics[scale=0.5]{data/graphs/NumberResourcesFigure}
+\includegraphics[scale=0.48]{data/graphs/NumberResourcesFigure}
 \label{Fig:CloudStoreVsGridFTP:a}
 }
 \subfigure[$(c_s, N_c, M_c) = (\mbox{287 MB, 8, C5})$]
 {
-\includegraphics[scale=0.5]{data/graphs/CloudStoreVsGridFTPFigure}
+\includegraphics[scale=0.48]{data/graphs/CloudStoreVsGridFTPFigure}
 \label{Fig:CloudStoreVsGridFTP:b}
 }
 \caption{\textit{The figure on the left shows optimal times we achieved
@@ -698,8 +692,8 @@ for a given number of resources $(N_{r})$. The figure on the right
 demonstrates performance with 3 resources for both GridFTP and
 CloudStore.}}
 \label{Fig:CloudStoreVsGridFTP}
-\end{figure}
 \end{center}
+\end{figure}
 
 %\input{analysis}
 
