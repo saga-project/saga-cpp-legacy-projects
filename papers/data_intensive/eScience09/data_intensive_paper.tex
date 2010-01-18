@@ -221,8 +221,8 @@ comparisons to find the best matching gene in a genome.
      \includegraphics[width=0.40\textwidth]{data/allpairs-exp.pdf}
 \end{center}
 \caption{\small An example result from an All-Pairs enabled
-application.  Every matrix element is the percentage equivalent to the
-genomes on the axes.} \label{Fig:SAGA1}
+application.  Each matrix element describes the similarity between
+ the corresponding Gene Bases and Genomes.  (Larger values indicate more similarity.)} \label{Fig:SAGA1}
 \end{figure}
 
 The problem becomes determining which pairs to put into a set and with
@@ -427,14 +427,14 @@ configuration.
 
 \begin{table}
 \begin{center}
-    \begin{tabular}{ | l | l |}
+    \begin{tabular}{ | l | l | l |}
     \hline
-    Configurations & $X(c,d)$; $c= \mbox{compute}$, $d=\mbox{data storage}$  \\ \hline
-    $C1$ & $X_1(Y,Y)$  \\ \hline    
-    $C2$ & $X_1(Y,N), X_2(N,Y)$ \\ \hline
-    $C3$ & $X_1(Y,Y), X_2(N,Y)$ \\ \hline
-    $C4$ & $X_1(Y,Y), X_2(Y,Y)$ \\ \hline
-    $C5$ & $X_1(Y,Y), X_2(Y,Y), X_3(Y,Y)$ \\ 
+    Configurations & $X(c,d)$; $c= \mbox{compute}$, $d=\mbox{data storage}$ & Description  \\ \hline
+    $C1$ & $X_1(Y,Y)$  & $X_1$ computes and stores data\\ \hline    
+    $C2$ & $X_1(Y,N), X_2(N,Y)$  & $X_1$ computes, $X_2$ stores data \\ \hline
+    $C3$ & $X_1(Y,Y), X_2(N,Y)$  & $X_1$ computes, $X_1$, $X_2$ store data \\ \hline
+    $C4$ & $X_1(Y,Y), X_2(Y,Y)$  & $X_1$, $X_2$ compute and store data \\ \hline
+    $C5$ & $X_1(Y,Y), X_2(Y,Y), X_3(Y,Y)$  & $X_1$, $X_2$, $X_3$ compute and store data \\ 
     \hline
     \end{tabular}
 \end{center}
@@ -482,33 +482,44 @@ computational resource. All data is accessed via the gridFTP protocol.
 An important fact to notice is the essentially random mapping of data
 sets to computational resources based on availability. This is to mimic
 a naive data-based application. In figure
-\ref{Fig:ExpIConventionalLocal}, we show our results for one and two
-machines (Figs. \ref{Fig:ExpIConventionalLocal:a}, and
-\ref{Fig:ExpIConventionalLocal:b}, respectively). In figure
+\ref{Fig:ExpIConventionalLocal}, we show our results for the local and the 
+distributed case (Figs. \ref{Fig:ExpIConventionalLocal:a}, and
+\ref{Fig:ExpIConventionalLocal:b}, respectively). Using our All-Pairs framework in a distributed environment has an overhead which can be noted by looking at the scales of both graphs. In figure
 \ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that
 \betynote{WHY is t(287, 8) $<$ t(144,16)??} 
-\begin{center}
+In figure \ref{Fig:ExpIConventionalLocal:b}, where we use gridFTP 
+to access the files, we see that a single 
+machine takes less time compared to the configurations that
+involve two machines. Also, having to access data remotely is a
+disadvantage, $t_c(C2) > t_c(C4)$. For the number of workers $N_w$ used, we decrease $t_c$ as we add more workers. This is, however, not true for the case of one machine, where $t_c$ is approximately constant, probably caused by an I/O bound.
+
+
+
+
 \begin{figure}[!ht]
+\begin{center}
 \subfigure[ $(M_c, fs, m)=(C1, \mbox{local, local})$]{
-\includegraphics[scale=0.5]{data/graphs/LocalFigure}
+\includegraphics[scale=0.48]{data/graphs/LocalFigure}
 \label{Fig:ExpIConventionalLocal:a}
 }
 \subfigure[$(c_s, N_c, fs, m)=(\mbox{287 MB, 8, local, gridFTP})$]{
-\includegraphics[scale=0.5]{data/graphs/ConventionalFigure}
+\includegraphics[scale=0.48]{data/graphs/ConventionalFigure}
 \label{Fig:ExpIConventionalLocal:b}
 }
-\caption{\textit{Performance results for All-Pairs using GridFTP for
-file reads being compared to a completely local run. Note the scale.}}
+\caption{\textit{Performance results for All-Pairs using gridFTP for
+file reads being compared to a completely local run. We plot the time to completion $t_c$ vs. the number of workers $N_w$. Note the scale, the local case takes less $t_c$  than the gridFTP case. In Fig. \ref{Fig:ExpIConventionalLocal:a}, ********. In Fig. \ref{Fig:ExpIConventionalLocal:b}, the
+two-machine configurations take more time than using a single machine. As expected, computing in one machine, while having the data stored in another $(C2)$, takes longer compared to having some data stored in the resource performing computations $(C4)$. For up to 8 workers, $t_c$ decreases as $N_w$ increases, with the exception of a single machine where we reach and I/O bound.}}
 \label{Fig:ExpIConventionalLocal}
-\end{figure}
 \end{center}
+\end{figure}
+
 %%\vspace{-0.2in}
 
 In order to properly evaluate all properties of a data-intensive
 application in practical use, we add to our previous experiment the actual genome
 compare computation. The complexity added that is necessary to capture to is
 the scaling of computation time when multiple computational resources are
-collocated. \betynote{what?}
+collocated. \betynote{what? I don't think we have the data, should we erase this paragraph?}
 
 %Bety's graph goes here
 \jhanote{We need data for compute (comparison) and I/O (only) for
@@ -545,30 +556,20 @@ run-time depending on usage patterns. We leave this approach to future
 research.
 
 %Figure 2
+
+\begin{figure}[!ht]
 \begin{center}
-\begin{figure}
-\subfigure[*Remove this figure* $(c_s, N_c, fs, m)=(\mbox{287 MB, 8, local, gridFTP})$]
-{
-\includegraphics[scale=0.5]
-  {data/graphs/IntelligentVsConventionalFigure}
-  \label{Fig:IntelligentExp:a}
-  }  
-\subfigure[$(c_s, N_c, fs, m)=(\mbox{287 MB, 8, local, gridFTP})$]
-{\includegraphics[scale=0.5]
-  {data/graphs/IntelligentFigure}
-    \label{Fig:IntelligentExp:b}}
-\caption{\textit{The figure on the left demonstrations improved
-performance with minimal network awareness while the figure, while the
-figure on the right demonstrates less performance improvement when more
-resources are involved.}}
+   \includegraphics[scale=0.5] {data/graphs/IntelligentFigure}
+\end{center}
+\caption{\textit{$(c_s, N_c, fs, m)=(\mbox{287 MB, 8, local, gridFTP})$. We compare the gridFTP and the intelligent approaches, for two and three machines. In all cases, data is spread across all the resources.  For the two-machine case, we observe a performance improvement by using our intelligent approach. However, with more resources involved, out intelligent system does not improve $t_c$.}}
 \label{Fig:IntelligentExp}
 \end{figure}
-\end{center}
+
 
 The overhead of intelligence includes the time spent pinging hosts and
 building the graph data structure. The total time spent for this
 overhead was negligible at approximately two seconds per application
-run. In figure \ref{Fig:IntelligentExp:a}, we achieved a great reduction
+run. In figure \ref{Fig:IntelligentExp}, we achieved a great reduction
 in time to completion due to the use of intelligence.  However, when the
 same tests were performed utilising 3 resources instead of 2, the
 intelligence seemed to offer no significant reduction. The explanation
