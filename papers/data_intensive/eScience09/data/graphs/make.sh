@@ -10,6 +10,10 @@ gnuplot < IntelligentFigureMake.gnuplot
 gnuplot < CloudStore3MachMake.gnuplot
 gnuplot < NumberResourcesMake.gnuplot
 gnuplot < CloudStoreVsGridFTP3ResourcesMake.gnuplot
+gnuplot < CloudStoreComputeminusNoComputeMake.gnuplot
+gnuplot < CloudStoreNoCompute_287Minus144CommonTime.gnuplot
+gnuplot < CloudStoreNoCompute_287Minus144TimesNwMake.gnuplot
+gnuplot < CloudStoreNoCompute_287Minus144Make.gnuplot
 epstopdf CloudStoreCompute.eps
 epstopdf CloudStoreFigure.eps
 epstopdf CloudStoreNoComputeSmallerDataSet.eps
@@ -22,3 +26,7 @@ epstopdf IntelligentFigure.eps
 epstopdf CloudStore3Mach.eps
 epstopdf NumberResourcesFigure.eps
 epstopdf CloudStoreVsGridFTPFigure.eps
+epstopdf CloudStoreComputeMinusNoCompute144.eps
+epstopdf CloudStoreNoCompute_287Minus144CommonTime.eps
+epstopdf CloudStoreNoCompute_287Minus144TimesNw.eps
+epstopdf CloudStoreNoCompute_287Minus144.eps

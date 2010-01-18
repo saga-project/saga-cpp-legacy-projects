@@ -2,8 +2,8 @@ set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'CloudStoreComputeMinusNoCompute144.eps'
 set pointsize 2
 set key Left reverse
-set xlabel 'N_w' font "Times-Italic, 20"
-set ylabel '{/Symbol D} t_c(s)' font "Times-Italic, 20"
+set xlabel 'N_w' font "Times-Roman, 25"
+set ylabel '{/Symbol D} t_c(s)' font "Times-Roman, 25"
 set mxtics 2
 set mytics 5
 plot[0:9][0:500] "< paste CloudStoreComputeLocal.dat CloudStoreNoComputeLocal.dat" using 1:($2-$4) title 'S0: [C1, r = 1]' with lp lw 3,\
