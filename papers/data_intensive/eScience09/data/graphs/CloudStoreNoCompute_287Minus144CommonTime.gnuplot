@@ -3,7 +3,7 @@ set output 'CloudStoreNoCompute_287Minus144CommonTime.eps'
 set pointsize 2
 set key Left reverse
 set xlabel 'N_w' font "Times-Italic, 25"
-set ylabel 't_{O/H}(s)' font "Times-Italic, 25"
+set ylabel 't_{OH}(s)' font "Times-Italic, 25"
 set mxtics 2
 set mytics 5
 plot[0:9][-100:1000] "< paste localCloudStore.dat CloudStoreNoComputeLocal.dat" using 1:((2*$4)-$2) title 'S0: [C1, {/Times-Italic r} = 1]' with lp lw 3,\

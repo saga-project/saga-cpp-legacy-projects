@@ -476,16 +476,13 @@ file management. There are many questions we try to answer.  For
 example, does a distributed filesystem grow more slowly than manual
 placement of data?  When manually handling data, what are the advantages
 of being able to move work to data to the work? For this, we find the
-time to completion $t_c$, which is a function of pre-processing time
-$t_x$ -- the dominant component of which is the time for transfer --,
-I/O time $t_{I/O}$, which is the time it takes to read and write files,
-and the time to compute $t_{compute}$, which is the time it takes for
-genomes to be compared, i.e.,
+time to completion $t_c$, which is defined as
  \begin{equation}
-t_c = t_x + t_{I/O} + t_{compute}.
+t_c = t_x + t_{I/O} + t_{compute},
 \end{equation}
+where $t_x$ is the pre-processing time, whose the dominant component is the time for transfer, $t_{I/O}$ is the time it takes to read and write files, and $t_{compute}$ is the time it takes our comparison function to run.
 We focus on three variables to measure $t_c$: degree of distribution,
-data dependency, and workload. Degree of distribution is defined as
+data dependency, and workload. The degree of distribution ($D_d$) is defined as
 the number of resources that are utilized for a given
 computation/problem. For example, if data is distributed over 3
 machines $D_d$ is 3; if data is distributed over three machines but
@@ -496,11 +493,10 @@ the computational tasks over 4 machines, the $D_d$ is 4.
 As explained before, for our experiments, we used an All-Pairs
 implementation that utilises SAGA. An XML configuration file defines
 various initial parameters which alter the behavior of our All-Pairs
-implementation.  Such a file defines the location of the data that
-comprises the two input sets, the grouping of pairs from these sets into
-sets to be provided to the compute resources, and the available machines
+implementation. The configuration file defines the location of data that
+comprises the two input sets, the grouping of pairs from these sets to be provided to the compute resources, and the available machines
 that will perform the operation on these sets of pairs. The application
-takes these sets of pairs and maps them to a computational resource
+takes these groups of pairs and maps them to a computational resource
 dynamically at run-time.  
 
 Furthermore, variables external to the All-Pairs implementation also
@@ -513,7 +509,7 @@ completely described by a tuple of the following form
 where $c_s$ is the total amount of data in each file of a set (i.e.,
 $c_s=\mbox{\textit{chunk} size}$); $N_c$ is the number of work-loads
 that the total work is decomposed into, i.e., number of work
-assignments generated; $M_c$ is a comma separated list of the machine 
+assignments generated, and this a measure of granularity of work; $M_c$ is a comma separated list of the machine 
 configurations of the
 following form: $X(c, d)$ where $X$ is a shorthand reference for the
 computational resource, $c$ shows if the computational resource $X$
@@ -557,7 +553,7 @@ machines.}}
     \label{Tab:Configs}
 \end{table}
 
-An example description of an experiment will now be explained:
+An sample description of an experiment will now be explained:
  \begin{equation}
 (287 \mbox{MB}, 8, C2, C, D, 1),
 \end{equation}
@@ -566,7 +562,7 @@ assignments; the computational resource $X_1$ does calculations, but
 does not have data stored, while computational resource $X_2$ does not
 calculate, but stores the data; the filesystem used is CloudStore, it
 directly access the files, and we have a replication factor of 1 for our
-data. The machines $X_i$ we use for our experiments are in the grid LONI
+data. The machines $X_i$ we use for our experiments are part of LONI
 (Louisiana Optical Network Initiative). For most of our experiments, the
 number of assignments is 8, unless otherwise specified.  As described
 above, the All-Pairs implementation used for our experiments has a fixed
@@ -581,10 +577,8 @@ This variance is attributable to the amount of use that our computing
 environment (LONI) was experiencing at the time of the experiment.
 
 \subsection{Experiment I: Baseline Performance}
- In the first experiment, we have no actual operation begin applied on
-the pairs, this is, we set $t_{compute}=0$. The reasoning behind this is to
-evaluate data dependencies without the added variable of computation.
-We run the SAGA-based All-Pairs application on one, two, and three
+ In the first experiment, we have no actual operation being applied on
+the pairs, this is, $t_{compute}=0$, we evaluate data dependencies without the added variable of computation. We use this to examine the I/O, transfer and coordination costs. We run the SAGA-based All-Pairs application on one, two, and three
 unique machines on a grid (LONI), without any specific data placement
 strategy; also, no replication or fault-tolerance takes place. The
 application sequentially assigns sets of pairs to the first available
@@ -592,19 +586,16 @@ computational resource. All data is accessed via the gridFTP protocol.
 An important fact to notice is the essentially random mapping of data
 sets to computational resources based on availability. This is to mimic
 a naive data-based application. In figure
-\ref{Fig:ExpIConventionalLocal}, we show our results for the local and the 
-distributed case (Figs. \ref{Fig:ExpIConventionalLocal:a}, and
+\ref{Fig:ExpIConventionalLocal}, we find $t_c$ as we vary the number of workers $N_w$. We show our results for data accessed without any protocol (local case) and data accessed via gridFTP (Figs. \ref{Fig:ExpIConventionalLocal:a}, and
 \ref{Fig:ExpIConventionalLocal:b}, respectively). Using our All-Pairs framework
-in a distributed environment has an overhead which can be noted by looking at
-the scales of both graphs. In figure
-\ref{Fig:ExpIConventionalLocal:a}, our local experiments, we see that working with a smaller data set ($c_s \sim 144MB$, $N_c = 8$, 1.15 GB total) takes about half the time than working with a data set double the size ($c_s = 287MB$, $N_c = 8$, 2.3 GB total). We also see that when working with the same data set size ($2.3 GB$), but partitioned differently, i.e., S0 ($c_s = 287MB$, $N_c = 8$) vs. S1 ($c_s = 144MB$, $N_c = 16$), we increase $t_c$ for S1, by adding transfer time by doubling the number of files, although we decrease the file size by half. \betynote{Only transfer? I/O is the same, right?}In figure \ref{Fig:ExpIConventionalLocal:b}, where we use gridFTP 
+ accessing the data using gridFTP protocol has an overhead which can be noted by looking at
+the $y-$scales of both graphs. In figure
+\ref{Fig:ExpIConventionalLocal:a}, our local cases, we see that working with a smaller data set ($c_s \sim 144MB$, $N_c = 8$, 1.15 GB total) takes about half the time than working with a data set double the size ($c_s = 287MB$, $N_c = 8$, 2.3 GB total). We also see that when working with the same data set size ($2.3 GB$), but partitioned differently, i.e., S0 ($c_s = 287MB$, $N_c = 8$) vs. S1 ($c_s = 144MB$, $N_c = 16$), $t_c$ increases for S1, due to added transfer time by doubling the number of files, although we decrease the file size by half. \betynote{Only transfer? I/O is the same, right?}In figure \ref{Fig:ExpIConventionalLocal:b}, where we use gridFTP 
 to access the files, we see that a single 
 machine takes less time compared to the configurations that
 involve two machines. Also, having to access data remotely is a
-disadvantage, $t_c(C2) > t_c(C4)$. For the number of workers $N_w$ used, we
-decrease $t_c$ as we add more workers. This is, however, not true for the case
-of one machine, where $t_c$ is approximately constant, probably caused by an
-I/O bound.
+disadvantage, $t_c(S1) > t_c(S2)$. For the one machine configuration, $t_c$ is approximately constant, probably caused by an
+I/O bound. For all our cases, it is expected that $t_c$ will decrease with increasing number of workers; however, after a critical $N^c_w$, $t_c$ will start increasing because it will take more time to coordinate the workers.
 
 
 
@@ -644,7 +635,7 @@ machines (just one graph going from 1 machine to four machines}
 %Staging experiment
 \subsection{Experiment II: Intelligence Based System}
 The second experiment is similar to the first, except the All-Pairs
-application observes the data's location before determining whether or
+application is aware of  the data location before determining whether or
 not to assign a certain set of data-dependent computation to an idle
 job. Inspired by earlier work~\citep{netperf}, this version of the
 application performs an extra step during application startup that
@@ -656,7 +647,7 @@ to an unprocessed set of pairs defined in the XML file. This changes the
 first-available computational resource assignment mechanism described in
 the first experiment to an intelligent based system. Though ping is not
 very sophisticated in terms of describing a network's behavior, it is a
-first-approximation to performance model aware data-placement strategy.
+first-approximation to a model performance aware data-placement strategy.
 We also experimented with throughput via netperf \citep{netperf_web} as
 a method to describe a network's behavior, but since we were working
 with such a static set of resources (LONI), the same data graph was
@@ -693,8 +684,8 @@ run. In figure \ref{Fig:IntelligentExp}, we achieved a great reduction
 in time to completion due to the use of intelligence.  However, when the
 same tests were performed utilising three resources instead of two, the
 intelligence seemed to offer no significant reduction. The explanation
-that we propose for this, is that the sets of pairs defined in the XML
-file at application start were geographically dispersed throughout the
+that we propose for this, is that the sets of pairs defined in the configuration
+file at application start were geographically equally dispersed throughout the
 network.  Essentially, each set of pairs had approximately the same cost
 calculated by using the graph data structure. Each set of pairs would
 take the same time to compute using any computational resource.
@@ -710,16 +701,16 @@ variables of importance include number of data servers that store data,
 replication value for data in these data servers, and as above,
 placement and number of computational resources.  All read and writes
 also utilise the distributed filesystem. Again, for our first set of
-results, we focus on $t_{compute}=0$.  
+results, we don't add our comparison function, giving us $t_{compute}=0$.  
 %Figure 3
 \begin{figure}
 \begin{center}
-\subfigure[One and two machines, $r = 1, 2$]
+\subfigure[One and two machines]
 {
 \includegraphics[scale=0.48]  {data/graphs/CloudStoreFigure}
 \label{Fig:experiment3:a}
 }
-\subfigure[Three machines, $r = 1, 2, 3$]
+\subfigure[Three machines]
 {
 \includegraphics[scale=0.48] {data/graphs/CloudStore3Mach}
 \label{Fig:experiment3:b}
@@ -742,21 +733,20 @@ $t_c$, except to the case of three machines and 2 workers.}
 
 
 As done above for the first experiment, we have attempted to capture how
+compute time scales under these configurations, see figure \ref{Fig:experiment3}. Having data remotely affects the performance. We can see that computing in one resource while the data is on another (S1), takes the most amount of time. Having data in the resource that is computing helps performance (S2, S3, S4). The number of machines to which workload was assigned is also important. Placing workload on two machines also decreases $t_c$ (S2 vs. S3). We varied the degree of replication for the $C4$ and $C5$ configurations, i.e., for the case of two and three machines, where all the resources have workload assigned and data stored. For $C4$, having $r = 2$ improved $t_c$, but not considerably. For $C5$, different degrees of replication only made a difference in the case of two workers.
 
-compute time scales under these configurations, see figure \ref{Fig:experiment3}. Having data remotely affects the performance. We can see that computing in one resource while the data is in another (S1), takes the most amount of time. Having some data in the resource that is computing helps performance (S2, S3, S4). The number of machines to which workload was assigned is also important. Placing workload in two machines also decreases $t_c$ (S2 vs. S3). We varied the degree of replication for our $C4$ and $C5$ configurations, i.e., for the case of two and three machines, where all the resources have workload assigned and data stored. In the case $C4$, having $r = 2$ improved $t_c$, but not considerably. For $C5$, different degrees of replication only made a difference in the case of two workers.
-
-We now add our actual genome comparison function, i.e., $t_{compute} \ne 0$ and we compare it to our base case where $t_{compute} \ne 0$ . We define $\Delta t_c$ which is the time difference between these two cases. In figure \ref{Fig:experiment4}, we see that the time it takes to do the genome comparison is relatively small compared to the set up time, transfer, and I/O time added together. The fact that $\Delta t_c$ for a given $N_w$ is not the same for most of configurations, shows that there is still an overhead; our $t_x$ and $t_{I/O}$ were not the same at the times we run our All-pairs framework for both cases. \betynote{Guys, does this statement seem ``true''?}
+We now add our actual genome comparison function and we compare it to our base case where we did not have one . We define $\Delta t_c$ which is the time difference between these two cases. In figure \ref{Fig:experiment4}, we see that the time it takes to do the genome comparison is relatively small compared to the set up time, transfer, and I/O time added together. The fact that $\Delta t_c$ for a given $N_w$ is not the same for most of configurations, shows that there is still an overhead; our $t_x$ and $t_{I/O}$ were not the same at the times we run our All-pairs framework for both cases. \betynote{Guys, does this statement seem ``true''?}
 %Figure 4
 
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{data/graphs/CloudStoreComputeMinusNoCompute144}
-\caption{\textit{$(c_s, N_c, fs, m) = (\mbox{144 MB, 8, CloudStore, Direct})$. Comparison of CloudStore using the All-Pairs application with and without actual computation. $\Delta t_c$ is  defined as the time $t_c(t_{compute} \ne 0)$ where we include our genome comparison function, minus $t_c(t_{compute}=0)$, where we don't include the function. For the case of $c_s=144MB$, our genome function takes about two orders of magnitude less than $t_x$ and $t_{I/O}$ combined. $\Delta t_c$ at a given $N_w$ differ for most of our configurations, showing an overhead, probably caused by different network conditions at the times our runs were performed.}}
+\caption{\textit{$(c_s, N_c, fs, m) = (\mbox{144 MB, 8, CloudStore, Direct})$. Comparison of CloudStore using the All-Pairs application with and without actual computation. $\Delta t_c$ is  defined as the time it takes to run our framework where we include our genome comparison function, minus the time it takes to run it when we don't include the comparison function. For the case of $c_s=144MB$, our genome function takes about two orders of magnitude less than $t_x$ and $t_{I/O}$ combined. $\Delta t_c$ at a given $N_w$ differ for most of our configurations, showing an overhead, probably caused by different network conditions at the times our runs were performed.}}
 \label{Fig:experiment4}
 \end{center}
 \end{figure}
 
-We also compare our results with $t_{compute}=0$ for two different data set sizes, one with $c_s = 287MB$, and the other one with half the size, $c_s = 144MB$ (rounded value). Both use CloudStore, and have eight assignments. We define two quantities, $\Delta t_c^d = t_c(c_s = 287MB) -  t_c(c_s = 144MB)$, and $t_{O/H} = 2 \times t_c(c_s = 144MB) - t_c(c_s = 287MB)$. Figure \ref{Fig:CloudStore287minus144} shows us that there are multiple factors that can alter $t_c$. Some of the factors are network conditions, I/O time, as well as transferring time that can be size dependent, disk seek time, etc. In figure \ref{Fig:CloudStore287minus144:a}, we see that the difference does not scale linearly with the number of workers. It is worth noticing that $\Delta t_c$ is almost zero (and negative) for eight workers when all the resources have workload and data stored (C4); this is, it took about 10 seconds less for a 2.3GB set vs. a 1.15 GB set. \betynote {Why?}.  Figure \ref{Fig:CloudStore287minus144:b} shows that for most of our configurations, there is an overhead which decreases with the number of workers. It also show us that the remote data case is the one with the most overhead. Moreover, our $C4$ configuration seems to use a ``non scalable'' infrastructure, as the overhead increases with eight workers.
+We also compare our results with no comparison function ($t_{compute}=0$) for two different data set sizes, one with $c_s = 287MB$, and the other one with half the size, $c_s = 144MB$ (rounded value). Both use CloudStore, and have eight assignments. We define two quantities, $\Delta t_c^d = t_c(c_s = 287MB) -  t_c(c_s = 144MB)$, and $t_{OH} = 2 \times t_c(c_s = 144MB) - t_c(c_s = 287MB)$. Figure \ref{Fig:CloudStore287minus144} shows us that there are multiple factors that can alter $t_c$. Some of the factors are network conditions, I/O time, as well as transferring time that can be size dependent, disk seek time, etc. In figure \ref{Fig:CloudStore287minus144:a}, we see that the difference does not scale linearly with the number of workers. It is worth noticing that $\Delta t_c$ is almost zero (and negative) for eight workers when all the resources have workload and data stored (C4); this is, it took about 10 seconds less for a 2.3GB set vs. a 1.15 GB set. \betynote {Why?}.  Figure \ref{Fig:CloudStore287minus144:b} shows that for most of our cases, there is an overhead which decreases with the number of workers. It also show us that the remote data configuration is the one with the most overhead. Moreover, our $C4$ configuration seems to use a ``non scalable'' infrastructure, as the overhead increases with eight workers.
 
 
 \begin{figure}
@@ -766,7 +756,7 @@ We also compare our results with $t_{compute}=0$ for two different data set size
 \includegraphics[scale=0.48]{data/graphs/CloudStoreNoCompute_287Minus144TimesNw}
 \label{Fig:CloudStore287minus144:a}
 }
-\subfigure[$t_{O/H}=2*t_c(144MB)-t_c( 287MB)$]
+\subfigure[$t_{OH}=2\times t_c(144MB)-t_c( 287MB)$]
 {
 \includegraphics[scale=0.48]{data/graphs/CloudStoreNoCompute_287Minus144CommonTime}
 \label{Fig:CloudStore287minus144:b}
@@ -776,12 +766,12 @@ We also compare our results with $t_{compute}=0$ for two different data set size
 %%\includegraphics[scale=0.5]{data/graphs/CloudStoreNoCompute_287Minus144}
 %%\label{Fig:CloudStore287minus144:c}
 %%}
-\caption{\textit{$(N_c, fs, m) = (\mbox{8, CloudStore, Direct})$. Here we compare $t_c$ for data set sizes 1.15 GB and 2.3 GB, this is, for chunk sizes $c_s = 144\mbox{MB and } 287\mbox{MB}$. For this, we define two quantities, $\Delta t_c^d$, which is the difference between $t_c$ found for both $c_s$'s, and $t_{O/H}$, which is the overhead time of working with chunks of 287MB in size vs. half-size chunks. In figure \ref{Fig:CloudStore287minus144:a} we see that the difference decreases with the number of workers, but does not scale linearly with $N_w$. In figure \ref{Fig:CloudStore287minus144:b}, we see that the remote data case (C2) is the one with the most overhead.}}
+\caption{\textit{$(N_c, fs, m) = (\mbox{8, CloudStore, Direct})$. Here we define two quantities, $\Delta t_c^d$, and  and $t_{OH}$.  $\Delta t_c^d$ is the difference between $t_c$ found for  data set sizes 1.15 GB and 2.3 GB, this is, for chunk sizes $c_s = 144\mbox{MB and } 287\mbox{MB}$.  $t_{OH}$ is the overhead time of working with chunks of 287MB in size vs. 144MB chunks twice. In figure \ref{Fig:CloudStore287minus144:a} we see that the difference decreases with the number of workers, but does not scale linearly with $N_w$. In figure \ref{Fig:CloudStore287minus144:b}, we see that the remote data configuration (C2) is the one with the most overhead.}}
 \label{Fig:CloudStore287minus144}
 \end{center}
 \end{figure}
 
-We compared optimal times for both our intelligent approach and CloudStore as a function of the number of resources $N_r$ in figure \ref{Fig:CloudStoreVsGridFTP:a}. CloudStore performs better for one and two machines, but not for three resources, when CloudStore decreases its performance. Optimal times of our intelligent approach are about the same for $N_r=1,2,3$. In figure \ref{Fig:CloudStoreVsGridFTP:b} we plot our completion time as a function of the number of workers for three resources. All the resources have workload assigned and have data stored. CloudStore's performance did not vary significantly with the number of workers, while our intelligent approach performed better as we increased the number of resources from one to three.
+We compared the lowest times for both our intelligent approach and CloudStore as a function of the number of resources $N_r$ in figure \ref{Fig:CloudStoreVsGridFTP:a}. CloudStore performs better for one and two machines, but not for three resources, when CloudStore decreases its performance. Optimal times of our intelligent approach are about the same for $N_r=1,2,3$. In figure \ref{Fig:CloudStoreVsGridFTP:b} we plot our completion time as a function of the number of workers for three resources. All the resources have workload assigned and have data stored. CloudStore's performance did not vary significantly with the number of workers, while our intelligent approach performed better as we increased the number of resources from one to three.
 
 \begin{figure}
 \begin{center}
@@ -796,7 +786,7 @@ We compared optimal times for both our intelligent approach and CloudStore as a 
 \label{Fig:CloudStoreVsGridFTP:b}
 }
 \caption{\textit{Figure \ref{Fig:CloudStoreVsGridFTP:a}
- shows optimal times we achieved
+ shows the lowest times we achieved
 for a given number of resources $(N_{r})$. These optimal times do not vary much for our intelligent method, while for CloudStore they improve by adding number of resources (up to three). Figure \ref{Fig:CloudStoreVsGridFTP:b}
 demonstrates performance with three resources for both GridFTP and
 CloudStore. The three resources compute and have data stores. Performance using CloudStore remains about constant for two, four and eight workers, while our Intelligent approach improved its performance with the number of workers.}}
