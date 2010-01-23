@@ -288,78 +288,7 @@ designed for high-bandwidth networks.
 % also aims to determine how sensitive the performance is in the context
 % of a real data-intensive distributed applications.
 
-\section {Methodology (change to a better title)} We use an application
-based upon a grid-enabled All-Pairs abstraction in SAGA (Simple API for
-Grid Applications, see Sec. \ref{Sec:SAGA}). This abstraction applies an
-operation on two data-sets such that every possible pair containing one
-element from the first set and one element from the second set has some
-operation applied to it.~\citep{Interop, AllPairs} \jhanote{which paper
-is Interop?} Essentially,
-All-Pairs is a function of two sets, $A$ and $B$, with number of
-elements $m$ and $n$, respectively, which creates a matrix $M$. Each
-element $M_{i,j}$ is the result of the operation $f$ applied to the
-elements $A_i$ and $B_j$.
-\begin{eqnarray}
- AllPairs(A, B, f) & \rightarrow & M_{m \times n}, \\
-\mbox{where} \quad M_{i,j} & = & f(A_{i},B_{j})
- \end{eqnarray}
 
-The result of this application is stored in a matrix similar to Fig.
-\ref{Fig:AllPairsExplanation} . The application spawns distributed jobs
-to run sets of these function operations.  Examples of problems that
-fall into this category are image comparison for facial recognition, and
-genome comparison. This paper uses genome comparisons to find the best
-matching gene in a genome. The All-Pairs application was chosen because
-of its similarity to many other data-intensive distributed applications.
-This enables our results to be abstracted to describe and predict
-different applications besides ones based upon The All-Pairs construct.
-
-\begin{figure}[!ht]
- \begin{center}
-     \includegraphics[width=0.50\textwidth]{data/allpairs-exp.pdf}
-\end{center}
-\caption{\small An example result from an All-Pairs enabled
-application.  Each matrix element describes the similarity between
- the corresponding sets. (Larger values indicate more similarity.)}
- \label{Fig:AllPairsExplanation}
-\end{figure}
-
-The problem becomes determining which pairs to put into an assignment set and
-with which distributed resource to run that set. If transferring data to the
-job takes too long, we spend more time on data management than computation.
-There may be a resource capable of the work that may be slower than others,
-but able to be accessed in a relatively quick manner via the network,
-correcting for this lack of computational ability. An intelligent
-application would attempt to predict and determine a specific data set's
-affinity to a specific network resource.
-
-%Therefore, we introduce the idea of network-closeness. A network-close
-%data-set takes a small amount of time to transfer to the work location.
-%A network-far data-set is just the opposite. A network-far data-set
-%takes a long time to transfer to the work location. If there is an
-%unprocessed data-set collocated or network-close with the job, then the
-%assignment of that worker to that data-set would have benefits. If there
-%is no unprocessed data-set that is network-close to the job, still we
-%assign data that may be network-far, in case the network-close job
-%failed or there is no available jobs network-close to the data-set.
-
-%There are at least two types of data-intensive applications: the first
-%where the actual data generated is large; the second type is where the
-%data generated is small, but the volume of data on which computation
-%occurs is very large. The application we used, has relatively small
-%input and relatively small output, but the manner of processing causes
-%many data reads. This type of application can be classified as having
-%a large data throughput. \jhanote{Can you elaborate on different
-%types of data-intensive applications? What kind is an ImageMagic
-%based application?}
-
-Our genome comparison application can be classified as having a large
-data throughput, as, even though it has large input $O$(GB) and
-relatively small output $O$(KB), the manner of processing causes many
-data reads. SAGA~\citep{saga_url} allows our application to handle
-seamlessly the DFS and gridFTP based data stores on clouds and grids.
-This allows the same exact application to be used for all of our
-experiments. 
 
 \section{SAGA and SAGA-based Frameworks for Large-Scale and
   Distributed Computation}\label{Sec:SAGA}
@@ -434,9 +363,9 @@ category.
 Finally, (iii) applications that are developed using frameworks, where
 a framework is a generic name for a development tool that supports
 specific application characteristics (e.g., hierarchical job
-submission), and recurring patterns (e.g., MapReduce, data
-parallelism) and system functionality.  SAGA has been used to develop
-system-level tools and applications of each of these types.
+submission), and recurring patterns (e.g., MapReduce, All-Pairs).
+SAGA has been used to develop system-level tools and applications of
+each of these types.
 
 
 % \begin{figure}[!ht]
@@ -461,6 +390,83 @@ workflows. In this paper, we will discuss how SAGA can be used to
 implement runtime frameworks to support the efficient execution of the
 distributed applications.
 
+\section{SAGA-based All Pairs: Design and Development} We use an
+application based upon a grid-enabled All-Pairs abstraction in SAGA
+(Simple API for Grid Applications, see Sec. \ref{Sec:SAGA}).  The
+All-Pairs application was chosen because of its similarity to many
+other data-intensive distributed applications.  This enables our
+results to be abstracted to describe and predict different
+applications besides ones based upon the All-Pairs
+construct. \jhanote{a bit more describing the fact that this is a
+  pattern and how benefits will be general}. This abstraction
+applies an operation on two data-sets such that every possible pair
+containing one element from the first set and one element from the
+second set has some operation applied to it.~\citep{Interop,
+  AllPairs}. Essentially, All-Pairs is a function of two sets, $A$ and
+$B$, with number of elements $m$ and $n$, respectively, which creates
+a matrix $M$. Each element $M_{i,j}$ is the result of the operation
+$f$ applied to the elements $A_i$ and $B_j$.
+\begin{eqnarray}
+ AllPairs(A, B, f) & \rightarrow & M_{m \times n}, \\
+\mbox{where} \quad M_{i,j} & = & f(A_{i},B_{j})
+ \end{eqnarray}
+
+The result of this application is stored in a matrix similar to Fig.
+\ref{Fig:AllPairsExplanation} . The application spawns distributed jobs
+to run sets of these function operations.  Examples of problems that
+fall into this category are image comparison for facial recognition, and
+genome comparison. This paper uses genome comparisons to find the best
+matching gene in a genome. \jhanote{a bit more describing the application}.
+
+\begin{figure}[!ht]
+ \begin{center}
+     \includegraphics[width=0.50\textwidth]{data/allpairs-exp.pdf}
+\end{center}
+\caption{\small An example result from an All-Pairs enabled
+application.  Each matrix element describes the similarity between
+ the corresponding sets. (Larger values indicate more similarity.)}
+ \label{Fig:AllPairsExplanation}
+\end{figure}
+
+Our genome comparison application can be classified as having a large
+data throughput, as, even though it has large input $O$(GB) and
+relatively small output $O$(KB), the manner of processing causes many
+data reads. SAGA~\citep{saga_url} allows our application to handle
+seamlessly the DFS and gridFTP based data stores on clouds and grids.
+This allows the same exact application to be used for all of our
+experiments. 
+
+The problem becomes determining which pairs to put into an assignment set and
+with which distributed resource to run that set. If transferring data to the
+job takes too long, we spend more time on data transfer than computation.
+There may be a resource capable of the work that may be slower than others,
+but able to be accessed in a relatively quick manner via the network,
+correcting for this lack of computational ability. An intelligent
+application would attempt to predict and determine a specific data set's
+affinity to a specific network resource.
+
+%Therefore, we introduce the idea of network-closeness. A network-close
+%data-set takes a small amount of time to transfer to the work location.
+%A network-far data-set is just the opposite. A network-far data-set
+%takes a long time to transfer to the work location. If there is an
+%unprocessed data-set collocated or network-close with the job, then the
+%assignment of that worker to that data-set would have benefits. If there
+%is no unprocessed data-set that is network-close to the job, still we
+%assign data that may be network-far, in case the network-close job
+%failed or there is no available jobs network-close to the data-set.
+
+%There are at least two types of data-intensive applications: the first
+%where the actual data generated is large; the second type is where the
+%data generated is small, but the volume of data on which computation
+%occurs is very large. The application we used, has relatively small
+%input and relatively small output, but the manner of processing causes
+%many data reads. This type of application can be classified as having
+%a large data throughput. \jhanote{Can you elaborate on different
+%types of data-intensive applications? What kind is an ImageMagic
+%based application?}
+
+
+\jhanote{we need 1 paragraph about the development of adaptors for CloudStore}
 
 \section{Performance Measurement and Analysis} We developed three types
 of experiments in order to compare distributed filesystems with manual
