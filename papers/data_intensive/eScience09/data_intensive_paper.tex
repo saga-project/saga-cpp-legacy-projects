@@ -106,6 +106,7 @@ results and conclusions. Please note that footnotes are not used.}
   is to understand techniques for distributing data in a distributed
   environment and understand performance issues associated with these
   techniques.
+
 \end{abstract}
 
 % Grids, clouds and cloud-like
@@ -124,65 +125,66 @@ results and conclusions. Please note that footnotes are not used.}
 %   for distributing data in a distributed environment and understand
 %   performance issues associated with these techniques.
 
-\section{Introduction} The role of data-intensive computing is
-increasing in many aspect of science and
-engineering~\cite{fourthparadigm}.  For example, Google, processes
-around 20 petabytes of data per day ~\citep{google}, with trends
-showing continuing growth. New algorithmic, infrastructure and
-data-management techniques are required to handle large data-volumes
-effectively.  In particular at such scales data-placement and
-data-scheduling need increased attention, and thus distributed
-applications need to be take precautions when placing, scheduling, and
-managing large volumes of data.
-
 % As a simple example, local data-intensive applications are nearly
 % always I/O bound typically dominated by Bandwidth for Cluster/Parallel
 % systems, I/O dominated by latency.
 
+\section{Introduction} 
+
+The role of data-intensive computing is increasing in many aspect of
+science and engineering~\cite{fourthparadigm} and other
+disciplines. For example, Google, processes around 20 petabytes of
+data per day ~\citep{google}, with trends showing continuing
+growth. In addition to increasing volumes of data, there are several
+reasons driving the distribution of the data.
+
 The challenges in developing effective and efficient distributed
 data-intensive applications are a complex interplay of distributed
 applications and data-intensive applications, with different design \&
-performance metrics.  For distributed systems and applications the
-challenge is to find an optimal distribution strategy that takes into
-account the ratio of computation workload to data distribution. Data
-privacy, security and access policy are crucial issues but typically
-are not determinants of performance for distributed applications.
-However, inefficient data placement can adversely affect system
-performance greatly.  It is decisive then to determine whether to move
-input data to the computational resource, or the computational
-workload to the input data.
+performance metrics. New algorithmic, infrastructure and
+data-management techniques are required to handle large data-volumes
+effectively.  In particular at such scales data-placement and
+data-scheduling need increased attention, and thus distributed
+applications need to be take precautions when placing, scheduling, and
+managing large volumes of data.  For distributed systems and
+applications the challenge is to find an optimal distribution strategy
+that takes into account the ratio of computation workload to data
+distribution. Data privacy, security and access policy are crucial
+issues but typically are not determinants of performance for
+distributed applications.
 
-Distributed filesystems (DFS) have come of age, with multiple
-open-source, reliant file-systems now available. DFS are useful and
-effective tools to consider for data-intensive scientific
-applications. A DFS controls the data placement and provides a uniform
-interface for accessing files on multiple hosts. Thus it is worth
-considering DFS as a viable infrastructure. But as the underlying
-algorithms, scheduling strategies and implementations vary greatly
-between different infrastructure, it is difficult to estimate {\it a
-  priori} the application-level performance on a given DFS. In
-general, there are many degrees-of-freedom that determine the
+% However, inefficient data placement can adversely affect system
+% performance greatly.  It is decisive then to determine whether to move
+% input data to the computational resource, or the computational
+% workload to the input data.
+
+In general, there are many degrees-of-freedom that determine the
 performance of a given application on distributed infrastructure. Thus
 a rigorous benchmarking process, which provides repeatable, extensible
 and verifiable performance tests on different distributed platforms is
 required.  This is analogous to the situation of developing and
-testing benchmarks for high performance computing (HPC).
+testing benchmarks for high performance computing (HPC).  The aim of
+this paper is to provide some initial approaches to answer the
+question of whether ``to distribute or not to distribute data''...
+This paper uses a real data-intensive distributed applications to
+determine the performance ... Our research focuses on understanding
+the performance trade-offs of a DFS compared to ''regular''
+distribution and placement techniques, as well as more advanced
+intelligent distribution methods and finding how they handle different
+data-sets and what the performance patterns are.
 
-In this paper, we provide some initial approaches to answer the question of
-whether ``to distribute or not to distribute data''. Our research focuses on
-understanding the performance trade-offs of a DFS compared to ''regular''
-distribution and placement techniques, as well as more advanced intelligent
-distribution methods and finding how they handle different data-sets and what
-the performance patterns are. This paper also aims to determine how sensitive
-the performance is in the context of a real data-intensive distributed
-applications.
-
-\jhanote{Move to later section; not in introduction} In this paper, we
-investigate two ways to handle this issue... \jhanote{which issue?} --
-with distributed filesystems, which focus on data placement, or with
-the use of an intelligent framework, which focuses on worker
-placement.  .... Frequently, there is more than one copy of the input data
-for fault-tolerance reasons, consequently, the added issue of deciding
+\jhanote{Compact. Simplify. Possibly move parts to later section; not
+  in introduction} Distributed filesystems (DFS) have come of age,
+with multiple open-source, reliant file-systems now available. DFS are
+useful and effective tools to consider for data-intensive scientific
+applications.  A DFS controls the data placement and provides a
+uniform interface for accessing files on multiple hosts. Thus it is
+worth considering DFS as a viable infrastructure. But as the
+underlying algorithms, scheduling strategies and implementations vary
+greatly between different infrastructure, it is difficult to estimate
+{\it a priori} the application-level performance on a given DFS.
+.... Frequently, there is more than one copy of the input data for
+fault-tolerance reasons, consequently, the added issue of deciding
 between the two or more replicas becomes relevant.  While a DFS
 removes the responsibility of replica management and data server
 placement, the abstraction often increases the difficulty in
@@ -195,26 +197,23 @@ move the input data, or the computational workload. It can only focus
 on minimizing poor data management. The most common parameters in
 determining the performance of using a DFS are the performance
 overhead compared to a normal local filesystem, number of replicas of
-each datum/file, and the number of servers. In our experiments, we use
-the stable open source distributed filesystem CloudStore (formerly
-KFS), which is written in C++ released under the Apache License
-Version 2.0. It is inspired by the highly successful Google
-Filesystem, GFS ~\citep{cloudstore_web}, which is closed source and
-unavailable for research. CloudStore was chosen for its high
-performance focus, C++ implementation, and its source code
-availability. It also provides a means to automatically replicate data
-on different hosts to provide efficient data access and fault
-tolerance.
+each datum/file, and the number of servers.  Our intelligent framework
+method differs from a DFS in that it determines where data is and
+where the work should go.  Determining data location can be as simple
+as looking at the IP address of the worker and seeing geographically
+where it is located, or as complicated as using network analyses tools
+to determine the optimal data transfer minimization time.  For this
+method, we use gridFTP\jhanote{place proper citation for gridftp}, a
+tool that is used to transfer files across machines in a grid. It is
+specifically designed for high-bandwidth networks.
+ 
+In this paper, we investigate two ways to handle this
+issue... \jhanote{which issue?}  -- with distributed filesystems,
+which focus on data placement, or with the use of an intelligent
+framework, which focuses on worker placement. This paper is structured
+as follows...
 
-Our intelligent framework method differs from a DFS in that it
-determines where data is and where the work should go.  Determining
-data location can be as simple as looking at the IP address of the
-worker and seeing geographically where it is located, or as
-complicated as using network analyses tools to determine the optimal
-data transfer minimization time.  For this method, we use
-gridFTP\jhanote{place proper citation for gridftp}, a tool that is
-used to transfer files across machines in a grid. It is specifically
-designed for high-bandwidth networks.
+
 
 % \section{Introduction} Data-intensive computing is a fast growing area
 % of computer science. A good example of this is Google, which processes
@@ -404,7 +403,7 @@ developed.
 
 
 
-\section{SAGA-based All Pairs: Design and Development} We use an
+\section{All Pairs: Design, Development and Infrastructure} We use an
 application based upon a grid-enabled All-Pairs abstraction in SAGA
 (Simple API for Grid Applications, see Sec. \ref{Sec:SAGA}).  The
 All-Pairs application was chosen because of its similarity to many
@@ -412,14 +411,14 @@ other data-intensive distributed applications.  This enables our
 results to be abstracted to describe and predict different
 applications besides ones based upon the All-Pairs
 construct. \jhanote{a bit more describing the fact that this is a
-  pattern and how benefits will be general}. This abstraction
-applies an operation on two data-sets such that every possible pair
-containing one element from the first set and one element from the
-second set has some operation applied to it.~\citep{Interop,
-  AllPairs}. Essentially, All-Pairs is a function of two sets, $A$ and
-$B$, with number of elements $m$ and $n$, respectively, which creates
-a matrix $M$. Each element $M_{i,j}$ is the result of the operation
-$f$ applied to the elements $A_i$ and $B_j$.
+  pattern and how benefits will be general}. This abstraction applies
+an operation on two data-sets such that every possible pair containing
+one element from the first set and one element from the second set has
+some operation applied to it.~\citep{Interop, AllPairs}. Essentially,
+All-Pairs is a function of two sets, $A$ and $B$, with number of
+elements $m$ and $n$, respectively, which creates a matrix $M$. Each
+element $M_{i,j}$ is the result of the operation $f$ applied to the
+elements $A_i$ and $B_j$.
 \begin{eqnarray}
  AllPairs(A, B, f) & \rightarrow & M_{m \times n}, \\
 \mbox{where} \quad M_{i,j} & = & f(A_{i},B_{j})
@@ -478,6 +477,18 @@ specific data set's affinity to a specific network resource.
 %a large data throughput. \jhanote{Can you elaborate on different
 %types of data-intensive applications? What kind is an ImageMagic
 %based application?}
+
+\subsection{Infrastructure Used}
+
+In our experiments, we use the stable open source distributed
+filesystem CloudStore (formerly KFS), which is written in C++ released
+under the Apache License Version 2.0. It is inspired by the highly
+successful Google Filesystem, GFS ~\citep{cloudstore_web}, which is
+closed source and unavailable for research. CloudStore was chosen for
+its high performance focus, C++ implementation, and its source code
+availability. It also provides a means to automatically replicate data
+on different hosts to provide efficient data access and fault
+tolerance.
 
 To test CloudStore we wrote an adaptor for SAGA that implements the
 filesystem package.  This enables us to compare CloudStore with gridFTP,
