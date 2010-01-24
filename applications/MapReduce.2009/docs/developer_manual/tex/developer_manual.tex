@@ -1,0 +1,88 @@
+
+\documentclass{article}
+
+\usepackage{ifpdf}
+%\usepackage{subfigure}
+
+\ifpdf
+  \usepackage[pdftex]{graphicx}
+  \usepackage[pdftex]{hyperref}
+  \graphicspath{{Pics/}}
+  \DeclareGraphicsExtensions{.pdf, .png, .jpg}
+\else
+  \usepackage{graphicx}
+  \usepackage[hypertex]{hyperref}
+  \graphicspath{{Pics/}}
+  \DeclareGraphicsExtensions{.ps, .eps}
+\fi
+
+\usepackage{srcltx}
+%\usepackage{wrapfig}
+
+\newcommand{\I}{\textit}
+\newcommand{\B}{\textbf}
+\newcommand{\T}{\texttt}
+
+\newcommand{\F}[1]{\B{FIXME: #1}}
+
+\begin{document}
+
+\title{SAGA-MapReduce Framework -- Developer's Manual}
+\author{Miklos Erdelyi \footnotemark}
+\maketitle
+
+\footnotetext{made in the frame of Google Summer of Code 2009}
+
+\begin{abstract}
+
+  This document discusses the design and implementation of the SAGA-MapReduce framework, aimed at easing the contribution to it.
+
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+The MapReduce programming model has gained wide popularity in recent years \cite{mapreduce, hadoop}.
+
+The aim of this framework is to make large-scale parallel data processing tasks easily implementable in heterogenous environments supported by SAGA. There are several open-source solutions available, such as Hadoop \cite{hadoop}, Sector/Sphere \cite{sector}. SAGA-MapReduce differs from these solutions in that it is infrastructure-independent: different job scheduling systems (eg., Globus, Condor) and distributed file systems (eg., HDFS \cite{hdfs}, KFS \cite{kfs}) can be used in combination for performing MapReduce tasks, so the application is not inherently tied to any infrastructure.
+
+
+\subsection{Programming Model}
+
+The reader is invited to read about the MapReduce programming model in more depth in \cite{mapreduce}. Here, only the main ideas will be recalled.
+
+The computation is based on key/value pairs: from a set of \emph{input} key/value pairs a set of \emph{output} key/value pairs are produced. The user of the framework can express the computation as two functions: a \emph{Mapper} and a \emph{Reducer}.
+
+The \emph{Mapper} takes an input pair and produces a set of \emph{intermediate} key/value pairs. The framework collects all the intermediate values for a key \emph{K} and hands them over to the Reducer. Essentially, the Mapper performs a filtering operation.
+
+The \emph{Reducer} gets an intermediate key \emph{K} and a list of intermediate values, and merges these to form a usually smaller set of values. Typically only zero or one value is produced for each intermediate key, as the Reducer usually performs an aggregation of data.
+
+For an example of MapReduce computation, please see the SAGA-MapReduce User Manual.
+
+\section{Execution overview}
+
+In the following, a MapReduce job's execution will be described.
+%The general job execution flow can be seen in Figure TODO.
+
+While executing a MapReduce job, the following steps are made:
+\begin{itemize}
+  \item The executable linked to the SAGA-MapReduce library is started on the user's machine, and will take care of orchestrating the execution of the job. This machine will act as the master.
+  \item The master asks the \texttt{InputFormat} specified in the JobDescription to chunk the input data. The chunks are given each a UUID.
+  \item The master spawns workers on the host machines specified in the configuration file using the SAGA Job API. Currently as many workers are spawned as many hosts are specified in the configuration.
+  \item When a worker starts up, it puts put its status information into an advert directory. This will be updated throughout the lifetime of a worker. It tries to connect back to the server specified on the command-line through SAGA Streams, then waits for the commands of the master.
+  \item In the map phase, the master assigns chunks to idle workers. The workers will process the assigned chunk using the user-supplied function. On completion, the worker signals the master that it has finished a certain chunk. When all the chunks are finished, the master switches to the reduce phase.
+  \item In the reduce phase, the master assigns sets of partitions to be reduced to idle workers. When all the partitions have been processed by workers, the master returns with the results of the MapReduce computation to the user code.
+\end{itemize}
+
+\section{Basic Classes}
+
+\section{Input and Output Formats}
+
+\section{Protocols and Communication}
+
+\section{References}
+\bibliography{saga_mapreduce}
+\bibliographystyle{plain}
+
+\end{document}
