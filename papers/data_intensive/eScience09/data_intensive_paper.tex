@@ -544,7 +544,7 @@ for a given time, but could vary if run more than a few hours apart.
 This variance is attributable to the amount of use that our computing
 environment (LONI) was experiencing at the time of the experiment.
 
-\subsection{Experiment I: Baseline Performance}
+\subsection{Experiment I: Baseline Performance}\label{Sec:gridFTPExp}
 In the first experiment, we do not have an actual operation being
 applied on the pairs, giving us $t_{compute}=0$, this is, we evaluate
 data dependencies without the added variable of computation. We use
@@ -682,7 +682,7 @@ structure. Each set of pairs would take the same time to compute using
 any computational resource. % \jhanote{Perhaps define a test to verify
 % this, so a note can go in saying we investigated this}
 
-\subsection{Experiment III: CloudStore} 
+\subsection{Experiment III: CloudStore}\label{Sec:CloudStoreExp}
 The third experiment provides information into CloudStore's performance
 in handling data locality issues. The same All-Pairs application as in
 Experiments 1 and 2 is used, except all data is stored on the
@@ -738,13 +738,13 @@ considerably. For $C5$, different degrees of replication only made a
 difference in the case of two workers.
 
 We then added the actual genome comparison function and we compared it
-to our base case where we did not the function . We defined $\Delta t_c$
+to the base case where we did not include the function. We define $\Delta t_c$
 which is the time difference between these two cases. In figure
 \ref{Fig:experiment4}, we see that the time taken to do the genome
 comparison was relatively small compared to the set up time, transfer,
 and I/O time added together. The fact that $\Delta t_c$ for a given
 $N_w$ was not the same for most of configurations, shows that there was
-still an overhead; our $t_x$ and $t_{I/O}$ were not the same at the
+still an overhead; $t_x$ and $t_{I/O}$ were not the same at the
 times we run our All-pairs framework for both cases. \betynote{Guys,
 does this statement seem ``true''?}
 %Figure 4
@@ -766,13 +766,13 @@ network conditions at the times our runs were performed.}}
 \end{center}
 \end{figure}
 
-We also compared our results with no comparison function
+We also compared the results with no comparison function
 ($t_{compute}=0$) for two different data set sizes, one with $c_s =
 287MB$, and the other one with half the size, $c_s = 144MB$ (rounded
 value). Both used CloudStore, and have eight assignments. We defined two
 quantities, $\Delta t_c^d = t_c(c_s = 287MB) - t_c(c_s = 144MB)$, and
 $t_{OH} = 2 \times t_c(c_s = 144MB) - t_c(c_s = 287MB)$. Figure
-\ref{Fig:CloudStore287minus144} shows us that there are multiple factors
+\ref{Fig:CloudStore287minus144} shows that there are multiple factors
 that can alter $t_c$. Some of the factors are network conditions, I/O
 time, as well as transferring time that can be size dependent, disk seek
 time, etc. In figure \ref{Fig:CloudStore287minus144:a}, we see that the
@@ -851,7 +851,7 @@ increased the number of resources from one to three.
  demonstrates performance with three resources for both gridFTP and
  CloudStore. The three resources computed and had data store.
  Performance using CloudStore remained about constant for two, four and
- eight workers, while our Intelligent approach improved its performance
+ eight workers, while our intelligent approach improved its performance
  with the number of workers.}}
 \label{Fig:CloudStoreVsGridFTP}
 \end{center}
@@ -861,31 +861,19 @@ increased the number of resources from one to three.
 
 \section{Analysis}
 
-Overall, the use of CloudStore decreases the time to completion
-($t_c$) compared to the intelligent and the local approaches. Our
-simple intelligent approach did not performed as well as CloudStore, but
-works better than the local tests. For the parameters we used, the
-introduction of more workers, up to 8 in our case, decreases the time of
-completion; however, for the case of a single machine performing as both
-master and workers, we hit an I/O bound, probably caused by the network.
-For all of our approaches, gridFTP, Intelligent, and CloudStore, we find
-the time to completion for three cases: a single machine is the master
-and the workers, one machine does the computing while another has the
-data stored, and the case when we spread the data into both machines,
-while both of them compute. In all of our three approaches, the case of
-a single machine, shows the least $t_c$. In the case of two machines,
-having the data in one, and computing in the other one, increases the
-time to completion. By splitting the data in both of the machines, and
-computing in both, we decrease $t_c$. We then added another case, all
-the data in each of machines, and computing in both. This decreases the
+For all of our approaches, gridFTP, intelligent, and CloudStore, we find
+the time to completion $t_c$ as a function of the number of workers $N_w$ for a number of configurations: a single machine is the master and the workers (\textit{local}); one machine does the computing while another has the data stored (\textit{remote}); data is distributed evenly on all the machines, while all of them compute (\textit{mixed}); and when the replication degree $r$ is larger than 1, this is, when all the computing machines have all the data stored on them. In all of our three approaches, the local configuration shows the least $t_c$. The remote configuration shows the most increase in the time to completion, while with the mixed configuration $t_c$ decreases. Having all
+the data in each of machines, and computing in all, decreases the
 time even further, but not to the point of the local computations;
 perhaps, all the approaches are not guaranteed to use the data in the
-machine the job is being run, even thought the data is in both machines.
+machine the job is being run, even thought the data is in both machines. For all the configurations, $t_c$ may be bounded and decrease to $t_c(\mbox{local})$ as the number of workers $N_w$ increases, up to a critical
+$N^c_w$, after which $t_c$ will increase due to worker coordination
+overhead. With $t_c(\mbox{local})$ we hit an I/O bound probably caused by the network.
 
-For our three cases, $t_c$ may be bounded, and decrease to $t_c$(single
-machine) as the number of workers ($N_w$) increases, up to a critical
-$N_w$, after which $T_c$ will increase due to worker coordination
-overhead.
+Overall, the use of CloudStore lowers
+$t_c$ compared to the intelligent and the gridFTP approaches. Our
+simple intelligent approach did not performed as well as CloudStore, but
+works better than gridFTP. 
 
 \section{Conclusion} Our results show that CloudStore greatly changes the
 performance of a distributed application in a positive manner. Our
