@@ -685,7 +685,7 @@ any computational resource. % \jhanote{Perhaps define a test to verify
 \subsection{Experiment III: CloudStore}\label{Sec:CloudStoreExp}
 The third experiment provides information into CloudStore's performance
 in handling data locality issues. The same All-Pairs application as in
-Experiments 1 and 2 is used, except all data is stored on the
+Experiments I and II is used, except all data is stored on the
 distributed filesystem CloudStore under various configurations. Some
 variables of importance include number of data servers that store data,
 replication value for data in these data servers, and as above,
@@ -733,7 +733,8 @@ which workload was assigned was also important. Placing workload on two
 machines also decreased $t_c$ (S2 vs. S3). We varied the degree of
 replication for the $C4$ and $C5$ configurations, i.e., for the cases of
 two and three machines, where all the resources had workload assigned
-and data stored. For $C4$, having $r = 2$ improved $t_c$, but not
+and data stored. With a replication degree larger than one, data was
+almost certainly co-located with the computational resource. For $C4$, having $r = 2$ improved $t_c$, but not
 considerably. For $C5$, different degrees of replication only made a
 difference in the case of two workers.
 
@@ -869,35 +870,33 @@ perhaps, all the approaches are not guaranteed to use the data in the
 machine the job is being run, even thought the data is in both machines. For all the configurations, $t_c$ may be bounded and decrease to $t_c(\mbox{local})$ as the number of workers $N_w$ increases, up to a critical
 $N^c_w$, after which $t_c$ will increase due to worker coordination
 overhead. With $t_c(\mbox{local})$ we hit an I/O bound probably caused by the network.
+It should be noted that 
+our application utilised SAGA to access CloudStore based and gridFTP based
+files. There is an overhead that SAGA introduces. In addition, we were
+unable to utilise our entire distributed system, using at most 8 jobs to
+handle our work.
 
 Overall, the use of CloudStore lowers
 $t_c$ compared to the intelligent and the gridFTP approaches. Our
 simple intelligent approach did not performed as well as CloudStore, but
 works better than gridFTP. 
 
-\section{Conclusion} Our results show that CloudStore greatly changes the
+\section{Conclusion} Distributed filesystems are important abstractions for a data-intensive
+distributed application developers to consider. Our results show that CloudStore 
+greatly changes the
 performance of a distributed application in a positive manner. Our
 experiments that utilised this DFS to access and store data outperformed
 their gridFTP counterparts by an order of magnitude in most cases. Our
 results also indicate that CloudStore scales better as file sizes and
-number of files grow, although both seem to scale linearly. Before any
-conclusions may be drawn, there are issues that need to be addressed.
-Our application utilised SAGA to access CloudStore based and gridFTP based
-files. There is an overhead that SAGA introduces. In addition, we were
-unable to utilise our entire distributed system, using at most 8 jobs to
-handle our work. With a replication level of two in the DFS, data was
-almost certainly co-located with the computational resource. In the
-second experiment, utilizing information from first staging the network
-did improve upon the results of the naive first experiment, but still
-did not approach the DFS's performance levels.
-
-Distributed filesystems are important abstractions for a data-intensive
-distributed application developers to consider. It also appears that
-staging is worth the time required to build a graph representing the
-network. Also to note, the second experiment is also naive in the way
+number of files grow, although both seem to scale linearly \betynote{how did you
+ come up with this conclusion?}.  The second experiment is naive in the way
 that it attempts to optimise data and work assignments. Our staging
 only performed pings, not data transfer trials or reliability tests. A
-job could have low latency, but poor bandwidth. Perhaps CloudStore's
+job could have low latency, but poor bandwidth. However, it appears that staging is 
+worth the time required to build a graph representing the
+network. Staging the network
+did improve upon the results of the naive baseline performance experiment, but still
+did not approach the DFS's performance levels. Perhaps CloudStore's
 performance can be attributed to recent work that has shown that data in
 large scale distributed applications tends to be accessed together,
 despite being seemingly unrelated in the input data-set. Such
