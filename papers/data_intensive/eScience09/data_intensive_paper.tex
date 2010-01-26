@@ -852,67 +852,65 @@ increased the number of resources from one to three.
 For all of our approaches, gridFTP, intelligent, and CloudStore, we
 found the time to completion $t_c$ as a function of the number of
 workers $N_w$. The configurations we worked with are: a single machine
-is the master and the workers (\textit{local}); one machine does the
-computing while another has the data stored (\textit{remote}); data is
-distributed evenly on all the machines, while all of them compute
-(\textit{mixed}); and when the replication degree $r$ was larger than 1,
-this is, when all the computing machines had all the data stored on
-them. In all of our approaches, the local configuration showed the
-least $t_c$. \jhanote{although if volume of data increased a lot this
-would not be the case surely.} The remote configuration showed the most
-increase in the time to completion, while $t_c$ decreased with the mixed
-configuration. Having all the data in each of machines, and computing in
-all, decreased the time even further, but not to the point of the local
-computations; perhaps, all the approaches are not guaranteed to use the
-data in the machine the job is being run, even thought the data is in
-both machines. For all the configurations, $t_c$ may be bounded and
-decreased to $t_c(\mbox{local})$ as the number of workers $N_w$
-increases, up to a critical $N^c_w$, after which $t_c$ will increase due
-to worker coordination overhead. With $t_c(\mbox{local})$ we hit an I/O
-bound probably caused by the network. It should be noted that our
-application utilised SAGA to access CloudStore-based and gridFTP-based
-files. There is an overhead that SAGA introduces. In addition, we did
-not utilise our entire distributed system, using at most 3 distinct
-machines to handle our work. \jhanote{The previous sentence does not
-make sense to me. Please fix} Overall, the use of CloudStore lowers
-$t_c$ compared to the intelligent and the gridFTP approaches. Our simple
-intelligent approach did not perform as well as CloudStore for one and
-two machines, but works better than gridFTP.
+handled compute and data storage(\textit{local}); one machine did
+compute while another did data storage (\textit{remote}); all machines
+handled compute and data storage (\textit{mixed}); and when the
+replication degree $r$ was larger than 1. In all of our approaches, the
+local configuration showed the least $t_c$. \jhanote{although if volume
+of data increased a lot this would not be the case surely.} The remote
+configuration showed the most increase in the time to completion, while
+$t_c$ decreased with the mixed configuration. Having all the data in
+each of machines, and computing in all, decreased the time even further,
+but not to the point of the local computations; perhaps, all the
+approaches are not guaranteed to use the data in the machine the job is
+being run, even thought the data is in both machines. For all the
+configurations, $t_c$ may be bounded and decreased to
+$t_c(\mbox{local})$ as the number of workers $N_w$ increases, up to a
+critical $N^c_w$, after which $t_c$ will increase due to worker
+coordination overhead. With $t_c(\mbox{local})$ we hit an I/O bound
+probably caused by the network. It should be noted that our application
+utilised SAGA to access CloudStore-based and gridFTP-based files. There
+is an overhead that SAGA introduces. In addition, we did not utilise our
+entire distributed system, using at most 3 distinct machines to handle
+our work to keep the number of experiments low.  \jhanote{The previous
+sentence does not make sense to me. Please fix} Overall, the use of
+CloudStore lowers $t_c$ compared to the intelligent and the gridFTP
+approaches. Our simple intelligent approach did not perform as well as
+CloudStore for one and two machines, but works better than gridFTP.
 
-\section{Conclusion} Distributed filesystems are important abstractions
-for data-intensive distributed application developers to consider. Our
-results show that CloudStore greatly changes the performance of a
-distributed application in a positive manner. Our experiments that
-utilised CloudStore to access and store data outperformed their gridFTP
-counterparts by an order of magnitude in most cases. Our results also
-indicate that CloudStore scales better as file sizes and number of
-files grow, although both seem to scale linearly \betynote{how did you
-come up with this conclusion?}.  The second experiment is naïve in the
-way that it attempts to optimise data and work assignments. Our staging
-only performed pings, not data transfer trials or reliability tests. A
-job could have low latency, but poor bandwidth. However, it appears that
-staging is worth the time required to build a graph representing the
-network. Staging the network did improve upon the results of the naive
-baseline performance experiment, but still did not approach the DFS's
-performance
-levels. % CloudStore's performance can be attributed to recent work that
+\section{Conclusion} Distributed filesystems are important
+infrastructure for data-intensive distributed application developers to
+consider. Our results show that CloudStore greatly changes the
+performance of a distributed application in a positive manner. Our
+experiments that utilised CloudStore to access and store data
+outperformed their gridFTP counterparts by an order of magnitude in most
+cases. Our results show that gridFTP appears to scale better to multiple
+resources, while CloudStore had levels off. The second experiment is
+naïve in the way that it attempts to optimise data and work assignments.
+Our staging only performed pings, not data transfer trials or
+reliability tests. A job could have low latency, but poor bandwidth.
+However, it appears that staging is worth the time required to build a
+graph representing the network. Staging the network did improve upon the
+results of the naive baseline performance experiment, but still did not
+approach the DFS's performance levels.
+% CloudStore's performance can be attributed to recent work that
 % has shown that data in large scale distributed applications tends to
 % be accessed together, despite being seemingly unrelated in the input
 % data-set. Such correlation in data-access has been observed elsewhere,
 % and specific abstractions to support the access of ``aggregation of
 % such files'' has been referred to as a filecule, an application
 % specific group of files~\cite{filecule}.
-Attempting to determine if
-analogous abstractions could enhance performance for the All-Pair
-application could be interesting. In a DFS, however, if the data store
-is also capable of data processing, then the DFS is placing commonly
-used files together on machines needing them for work; in essence, the
-DFS is finding these groups for the developer. The fault tolerance,
-for which DFS are already well renowned for, also has added benefits
-to grid application developers in terms of performance. The
-distributed application does not have to be aware of where data has
-been copied to previously when assigning work; the DFS uses the best
-replica when data is being accessed.
+Attempting to determine if analogous abstractions could enhance
+performance for the All-Pair application could be interesting. In a DFS,
+however, if the data store is also capable of data processing, then a
+DFS has the information available to place commonly used files together
+on machines needing them for work; in essence, the DFS is capable of
+finding these groups for the developer. \jhanote{perhaps filecule
+here?}The fault tolerance, for which DFS are already well renowned for,
+also has added benefits to grid application developers in terms of
+performance.  The distributed application does not have to be aware of
+where data has been copied to previously when assigning work; the DFS
+uses the best replica when data is being accessed.
 
 {\bf Acknowledgment:} Important funding for SAGA has been provided by
 the UK EPSRC grant number GR/D0766171/1 (via OMII-UK) and HPCOPS
