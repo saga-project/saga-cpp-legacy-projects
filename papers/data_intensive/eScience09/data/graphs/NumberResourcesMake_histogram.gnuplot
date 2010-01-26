@@ -1,7 +1,7 @@
 set term postscript eps enhanced color solid "Times-Roman" 17
 set output 'NumberResourcesFigure_histogram.eps'
 set pointsize 2
-set auto x
+set xrange [-0.75:2.75]
 set yrange [0:600]
 set key Left reverse
 set style data histogram
