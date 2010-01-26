@@ -72,7 +72,12 @@ $^*$Corresponding Author sjha@cct.lsu.edu}} }
 
 % {\section*{\acknowledgementname}%\parindent=0pt% }
 
-\newif\ifdraft \drafttrue \ifdraft \newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1
+\newif\ifdraft 
+\drafttrue 
+\ifdraft 
+
+
+\newcommand{\fixme}[1]{ { \bf{ ***FIXME: #1
 }} } \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
 \newcommand{\micnote}[1]{ {\textcolor{blue} { ***Michael: #1 }}} 
 \newcommand{\betynote}[1]{ {\textcolor{orange} { ***Bety: #1 }}}
@@ -172,32 +177,36 @@ optimal data-computation distribution problem.  In the first approach,
 we encode a simple heuristic to determine the {\it workload} placement
 into an ``intelligent framework''. We contrast this approach with the
 use of an open-source available distributed filesystem (DFS) -- which
-natively supports effective {\it data} placement.  DFS are useful and
-effective tools to consider for data-intensive scientific applications
-which have come of age, with multiple open-source, reliant
-file-systems now available.  Our research focuses on understanding the
-performance trade-offs of a DFS compared to ''regular'' distribution
-and placement techniques, as well as more advanced intelligent
-distribution methods and finding how they handle different data-sets
-and what the performance patterns are.  A DFS controls the data
-placement and provides a uniform interface for accessing files on
-multiple hosts. But the underlying algorithms, scheduling strategies
-and implementations vary greatly between different infrastructure, it
-is difficult to estimate {\it a priori} the application-level
-performance on a given DFS.  Thus having the ability to compare and
-contrast different DFS for a given application is an important
-requirement. In Section 3 we will establish how the use of adaptors
-enables SAGA-based applications to make this comparision
-effectively. Data privacy, security and access policy are crucial
-issues but typically are not determinants of performance for
-distributed applications; thus we will not consider them in this
-paper.
+natively supports effective {\it data} placement. %  Our research
+% focuses on understanding the performance trade-offs of a DFS compared
+% to ''regular'' distribution and placement techniques, as well as more
+% advanced intelligent distribution methods and finding how they handle
+% different data-sets and what the performance patterns are.  
+A DFS controls the data placement and provides a uniform interface for
+accessing files on multiple hosts. But the underlying algorithms,
+scheduling strategies and implementations vary greatly between
+different infrastructure, hence it is difficult to estimate {\it a
+  priori} the application-level performance on a given DFS.  Thus
+having the ability to compare and contrast different DFS for a given
+application is an important requirement. In Section 3 we will
+establish how the use of adaptors enables SAGA-based applications to
+make this comparision effectively. Data privacy, security and access
+policy are crucial issues but typically are not determinants of
+performance for distributed applications; thus we will not consider
+them in this paper.
+
+In Section 2, we provide a very brief discussion of SAGA which
+provides the distributed programming capability to develop the
+All-Pairs based application (Section 3). Section 4 provides an
+overview of the various parameters used to understand the experimental
+configurations, discusses the experiments performed to understand the
+performance as well as providing a local analysis of the experimental
+results. Section 5 and 6 provide the overall analysis and conclusion.
+
 
 % Frequently, there is more than one copy of the input data for
 % fault-tolerance reasons, consequently, the added issue of deciding
 % between the two or more replicas becomes relevant.
-
-\jhanote{add stuff to conclude introduction...} 
 
 % This puts pressure on a DFS's protocols and internal algorithms to
 % perform well. Despite this, the DFS replication may alleviate this
@@ -375,22 +384,24 @@ resource.
 
 %\subsection{Infrastructure Used}
 
-{\it Infrastructure Used: } In our experiments, to find the performance
-of a DFS, we use the stable open
-source DFS CloudStore (formerly KFS), which is
-written in C++ released under the Apache License Version 2.0. It is
-inspired by the highly successful Google Filesystem, GFS
-~\citep{cloudstore_web}, which is closed source and unavailable for
-research. CloudStore was chosen for its high performance focus, C++
-implementation, and its source code availability. It also provides a
-means to automatically replicate data on different hosts to provide
-efficient data access and fault tolerance. \jhanote{Place somewhere
-  proper?} The most common parameters in determining the performance
-of using a DFS are the performance overhead compared to a normal local
-filesystem, number of replicas of each datum/file, and the number of
-servers.  While a DFS removes the responsibility of replica management
-and data server placement, the abstraction often increases the
-difficulty in determining where in the DFS the data is being stored.
+{\it Infrastructure Used: } In our experiments, to find the
+performance of a DFS, we use the stable open source DFS CloudStore
+(formerly KFS), which is written in C++ released under the Apache
+License Version 2.0. It is inspired by the highly successful Google
+Filesystem, GFS ~\citep{cloudstore_web}, which is closed source and
+unavailable for research. CloudStore was chosen for its high
+performance focus, C++ implementation, and its source code
+availability. It also provides a means to automatically replicate data
+on different hosts to provide efficient data access and fault
+tolerance. In general, DFS are useful and effective tools to consider
+for data-intensive scientific applications which have come of age,
+with multiple open-source, reliant file-systems now available.  The
+most common parameters in determining the performance of using a DFS
+are the performance overhead compared to a normal local filesystem,
+number of replicas of each datum/file, and the number of servers.
+While a DFS removes the responsibility of replica management and data
+server placement, the abstraction often increases the difficulty in
+determining where in the DFS the data is being stored.
 
 Our intelligent framework method differs from a DFS in that it
 determines where data is and where the work should go. Determining
@@ -427,13 +438,12 @@ be used for all of our experiments.
 
 
 
-\section{Performance Measurement and Analysis} We developed three types
-of experiments in order to compare DFS with manual
-file management. There are many questions we try to answer. For
-example, is a DFS slower than manual
-placement of data? When manually handling data, what are the advantages
-of being able to move work to data to the work? For this, we define
-the time to completion $t_c$ as:
+\section{Experiments and Performance Analysis} 
+We developed three types of experiments in order to compare DFS with
+manual file management. There are many questions we try to answer. For
+example, is a DFS slower than manual placement of data? When manually
+handling data, what are the advantages of being able to move work to
+data to the work? For this, we define the time to completion $t_c$:
  \begin{equation}
 t_c = t_x + t_{I/O} + t_{compute},
 \end{equation}
