@@ -90,10 +90,11 @@ relative placement of data and computational workload are required. We
 develop and study an All-Pairs based genome sequence matching
 application as a representative data-intensive application.  This
 paper aims to understand the factors that influence the performance of
-this application, and to understand their interplay.  We are not aware
-of similar approaches for data-intensive applications, even though
-analogous benchmarking HPC application on a new platform is
-established practise.  We also demonstrate how the SAGA approach can
+this application, and to understand their interplay.  % We are not aware
+% of similar approaches for data-intensive applications, even though
+% analogous benchmarking HPC application on a new platform is
+% established practise.  
+We also demonstrate how the SAGA approach can
 enable data-intensive applications to be extensible and interoperable
 over a range of infrastructure. This capability enables us to compare
 and contrast two different approaches -- simple application-level data
@@ -121,65 +122,64 @@ distributed data intensive applications.
 \section{Introduction} 
 The role of data-intensive computing is increasing in many aspects of
 science and engineering~\citep{fourthparadigm} and other
-disciplines. For example, Google processes around 20 petabytes of
-data per day~\citep{google}, with trends showing continuing
-growth. In addition to increasing volumes of data, there are several
-reasons driving the distribution of the data.  The challenges in
-developing effective and efficient distributed data-intensive
-applications are a complex interplay of the challenges in developing
-distributed applications on the one hand with those in developing
-data-intensive applications to meet a range of design \& performance
-metrics in the other. New algorithmic, infrastructure, and
-data-management techniques are required to handle large data-volumes
-effectively. More generally, at such scales data-placement,
-data-scheduling, as well as management need increased attention.
+disciplines. For example, Google processes around 20 petabytes of data
+per day~\citep{google}, with trends showing continuing growth. In
+addition to increasing volumes of data, there are several reasons
+driving the need for computation on distributed data, such as the
+proliferation of distributed services and the localisation of data due
+to security \& privacy issues. The challenges in developing effective
+and efficient distributed data-intensive applications are a complex
+interplay of the challenges in developing distributed applications on
+the one hand, with those in developing data-intensive applications to
+meet a range of design \& performance metrics in the other. New
+algorithmic, infrastructure, and data-management techniques are
+required to handle large data-volumes effectively. In general at such
+large scales data-placement, data-scheduling, as well as management
+need increased attention.
 
 An important design consideration and objective for data-intensive
-distributed applications and systems is the ability to support optimal
-distribution of data and computational workload; thus an important
-challenge is to find broadly applicable strategies to distribute data
-and computation that can support a range of different mechanisms to
-achieve the objectives. In general, there are many degrees-of-freedom
-that determine the performance of a given application on distributed
-infrastructure. Thus a rigorous benchmarking process, which provides
-repeatable, extensible, and verifiable performance tests on different
-distributed platforms is required in order to understand the interplay
-and trade-offs between these variables. This is analogous to the
-situation of developing and testing benchmarks for high performance
-computing (HPC). The aim of this paper is to present a credible
-initial benchmarking template and to suggest ways to answer the
-question of whether ``to distribute or not to distribute data''.  As
-we will show, the actual answer will depend significantly on the
-specific data-set sizes, algorithm/applications, and infrastructure
-used.
+distributed applications and systems is the ability to find and
+support optimal distribution of data and computational workload. Thus
+an important challenge is to find broadly applicable strategies to
+distribute data and computation that can support a range of different
+mechanisms to achieve this objective. In general, there are many
+degrees-of-freedom that determine the performance of a given
+application on distributed infrastructure. Thus a rigorous
+benchmarking process, which provides repeatable, extensible, and
+verifiable performance tests on different distributed platforms is
+required in order to understand the interplay and trade-offs between
+these variables. This is analogous to the situation of developing and
+testing benchmarks for high performance computing (HPC). 
 
 The work in this paper is performed in the context of a SAGA-based
-application to support genome matching to determine and analyse
-performance that we developed. SAGA encodes the All-Pairs pattern in a
-distributed context; we chose All-Pairs as a representative and
-common data-access pattern found in many data-intensive distributed
-applications.  In this paper, we investigate two ways to handle the
-optimal data-computation distribution problem.  In the first approach,
-we encode a simple heuristic to determine the {\it workload} placement
-into an ``intelligent framework''. We contrast this approach with the
-use of an open-source available distributed filesystem (DFS) -- which
-natively supports effective {\it data} placement. %  Our research
-% focuses on understanding the performance trade-offs of a DFS compared
-% to ''regular'' distribution and placement techniques, as well as more
-% advanced intelligent distribution methods and finding how they handle
-% different data-sets and what the performance patterns are.  
-A DFS controls the data placement and provides a uniform interface for
-accessing files on multiple hosts. But the underlying algorithms,
-scheduling strategies, and implementations vary greatly between
-different infrastructure, hence it is difficult to estimate {\it a
-  priori} the application-level performance on a given DFS.  Thus
-having the ability to compare and contrast different DFSs for a given
-application is an important requirement. In Section 3 we will
-establish how the use of adaptors enables SAGA-based applications to
-make this comparison effectively. Data privacy, security, and access
-policy are crucial issues but typically are not determinants of
-performance for distributed applications; thus we will not consider
-them in this paper.
+application to support genome sequence matching to determine and
+analyse performance that we developed. SAGA encodes the All-Pairs
+pattern in a distributed context; we chose All-Pairs as it is a
+representative and common data-access pattern found in many
+data-intensive distributed applications.  In this paper, we
+investigate two ways to handle the optimal data-computation
+distribution problem.  In the first approach, we encode a simple
+heuristic to determine the {\it workload} placement into an
+``intelligent framework''. We contrast this approach with the use of
+an open-source available distributed filesystem (DFS) -- which
+natively supports effective {\it data} placement.  A DFS controls the
+data placement and provides a uniform interface for accessing files on
+multiple hosts. But the underlying algorithms, scheduling strategies,
+and implementations vary greatly between different infrastructure,
+hence it is difficult to estimate {\it a priori} the application-level
+performance on a given DFS.  Thus having the ability to compare and
+contrast different DFSs for a given application is an important
+requirement. In Section 3 we will establish how the use of adaptors
+enables SAGA-based applications to make this comparison effectively.
+The aim of this paper is to present a credible initial benchmarking
+template, and to suggest ways to answer the question of whether ``to
+move computational workload to where data resides or to redistributed
+the data''.  As we will show, the actual answer will depend
+significantly on the specific data-set sizes, algorithm/applications,
+and infrastructure used.  Data privacy, security, and access policy
+are crucial issues but typically are not determinants of performance
+for distributed applications; thus we will not consider them in this
+paper.
 
 In Section 2, we provide a very brief discussion of SAGA which
 provides the distributed programming capability to develop the
@@ -220,34 +220,34 @@ functions at a sufficiently high-level of abstraction so as to be
 independent of the diverse and dynamic Grid environments. The SAGA
 specification defines interfaces for the most common Grid-programming
 functions grouped as a set of functional packages
-(Fig.~\ref{Fig:SAGA1}). Some key packages are:
+(Fig.~\ref{Fig:SAGA1}). Some key packages are: (i) File package -
+provides methods for accessing local and remote filesystems, browsing
+directories, moving, copying, and deleting files, setting access
+permissions, as well as zero-copy reading and writing. (ii) Job
+package - provides methods for describing, submitting, monitoring, and
+controlling local and remote jobs. Many parts of this package were
+derived from the largely adopted DRMAA specification. (iii) Stream
+package - provides methods for authenticated local and remote socket
+connections with hooks to support authorization and encryption
+schemes. (iv) Other Packages, such as the RPC (remote procedure call)
+and Replica package.
 
 \begin{figure}[!ht]
  \begin{center}
      \includegraphics[width=0.40\textwidth]{stci_saga_figures-1.pdf}
     \includegraphics[width=0.45\textwidth]{distributed_applications_saga_figure.pdf}
 \end{center}
-\caption{\small [Left] Layered schematic of the different components of
-  the SAGA landscape. At the topmost level is the simple integrated
+\caption{\small [Left] Layered schematic of the different components
+  of the SAGA landscape. At the topmost level is the simple integrated
   API which provides the basic functionality for distributed
   computing. Our BigJob abstraction is built upon this SAGA layer
-  using Python API bindings. [Right] Showing the ways in which SAGA can be
-  used to develop distributed applications. The different shaded box
-  represent the three different types; frameworks in turn can capture
-  either common patterns or common application
+  using Python API bindings. [Right] Showing the ways in which SAGA
+  can be used to develop distributed applications. The different
+  shaded box represent the three different types; frameworks in turn
+  can capture either common patterns or common application
   requirements/characteristics.} \label{Fig:SAGA1}
 \end{figure}
 
-(i) File package - provides methods for accessing local and remote
-filesystems, browsing directories, moving, copying, and deleting
-files, setting access permissions, as well as zero-copy reading and
-writing. (ii) Job package - provides methods for describing,
-submitting, monitoring, and controlling local and remote jobs. Many
-parts of this package were derived from the largely adopted DRMAA
-specification. (iii) Stream package - provides methods for
-authenticated local and remote socket connections with hooks to
-support authorization and encryption schemes. (iv) Other Packages,
-such as the RPC (remote procedure call) and Replica package.
 
 % \begin{itemize}
 % \item File package - provides methods for accessing local and remote
