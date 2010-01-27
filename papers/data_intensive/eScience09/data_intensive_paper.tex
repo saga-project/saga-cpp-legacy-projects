@@ -405,11 +405,13 @@ experiments.
 \vspace{-0.3cm}
 
 \section{Experiments and Performance Analysis} 
-We developed three types of experiments in order to compare DFS with
-manual file management. There are many questions we try to answer. For
-example, is a DFS slower than manual placement of data? When manually
-handling data, what are the advantages of being able to move work to
-data to the work? For this, we define the time to completion $t_c$:
+We developed three types of experiments in order to understand the
+interplay of different determinants of performance and make a
+meaningful comparision of CloudStore's behaviour to manual data
+placement and file management. We try to answer questions such as: Is
+a DFS slower than manual placement of data?  When manually handling
+data, what are the advantages of being able to move work to data to
+the work? For this, we define the time to completion $t_c$:
  \begin{equation}
 t_c = t_x + t_{I/O} + t_{compute},
 \end{equation}
@@ -849,23 +851,31 @@ increased the number of resources from one to three.
 For the volume of data we worked with, the local configuration $(C1)$
 took the least time to completion $t_c$ as a function of the number of
 workers $N_w$. However, this will not necessarily be the case as the
-volume of data is largely increased.  The remote configuration $(C2)$
-showed the highest time to completion, while $t_c$ decreased with the
-mixed configuration $(C3)$. Using configuration $C4$ decreased the
-time even further, but not to the point of the local computations;
-$t_c$ seemed to be bounded by $t_c(\mbox{local})$, where we exhausted
-the I/O bandwidth.  $t_c$ decreased as we added more workers, but it
-is expected that after a critical $N^c_w$, $t_c$ will increase due to
-worker coordination overhead. It should be noted that our application
-utilised SAGA to access CloudStore-based and gridFTP-based
-files. There is an overhead that SAGA introduces. In addition, we did
-not utilise our entire distributed system, because the Globus toolkit
-was installed in only three machines.  Overall, the use of CloudStore
-lowers $t_c$ compared to the intelligent and the gridFTP
-approaches. Our simple intelligent approach did not perform as well as
-CloudStore for one and two machines, but performs better than gridFTP.
-For three machines, the relative performance of CloudStore and the
-intelligent approach depended upon the $N_w$.
+volume of data is largely increased (which we anticipate to be tens of
+GB of data).  The remote configuration $(C2)$ showed the highest time
+to completion, while $t_c$ decreased for the mixed configuration
+$(C3)$. Using configuration $C4$ decreased the time even further, but
+not to the point of the local computations; $t_c$ seemed to be bounded
+by $t_c(\mbox{local})$, where we exhausted the I/O bandwidth.  In
+general, $t_c$ decreased as we added more workers, but it is expected
+that after a critical value of $N_w$ ($N^c_w$), $t_c$ will increase
+due to overhead of coordinating workers.
+
+It should be noted that our application utilised SAGA to access
+CloudStore-based and gridFTP-based files, which introduces a small
+overhead, which we established to be
+negligible. % In addition, we did not utilise
+% more than 3 distributed resources, because the Globus toolkit was installed in
+% only three machines. 
+Overall, the use of CloudStore lowers $t_c$ compared to the
+intelligent and the gridFTP approaches. Our simple intelligent
+approach did not perform as well as CloudStore for one and two
+machines, but performs better than gridFTP.  For three machines, the
+relative performance of CloudStore and the intelligent approach
+depended upon the $N_w$. Our experiments scaled to three distinct
+resources not due to any fundamental scalability limitation in our
+approach, but due to the inabilty to find more than three similar
+resources.
 
 \vspace{-0.3cm}
 
