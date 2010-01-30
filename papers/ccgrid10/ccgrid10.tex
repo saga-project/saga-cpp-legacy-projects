@@ -687,7 +687,6 @@ active
 
 \subsection{BigJob for Clouds}
 \up
-
 % espite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
 
 At the execution level, Clouds differ from Clusters/Grids in at least
@@ -720,18 +719,30 @@ prepares and uploads a virtual machine image for respective Cloud environment.
 This image should contain the application and possibly the
 application data. Once the image is setup, the user can initialize a
 \texttt{bigjob\_cloud} object specifying the Cloud environment, 
-the image-id of the prepared VM image as well as the number and type of the VMs. The 
-BigJob Manager then starts up the VM cluster on the requested Cloud. 
-For this purpose, the manager relies on a resource adaptor
-for each Cloud. This adaptor encapsulates Cloud specifics, such as the used
-security mechanism, the communication protocol and the required setup tasks. Currently,
-Amazon EC2, Eucalyptus and Nimbus Clouds are supported. Despite some similarities
-between these Clouds and the trend toward standardization on the
+the image-id of the prepared VM image as well as the number and type of the VMs. 
+A tutorial that describes the BigJob API can be found at~\cite{bigjob_cloud_tutorial}.
+
+Having received a request, the BigJob Manager initializes the requested resources, i.\,e.\
+it start the requested number of virtual machines.
+%For this purpose, the manager relies on a Cloud-specific resource adaptor. 
+In contrast to earlier work~\cite{10.1109/GPC.2009.17}, we do not rely
+on the SAGA/AWS adaptor for this purpose mainly due to the lack of support for 
+VM clusters and its limited runtime configurability. In particular the efficient support
+for groups of VMs is crucial for a pilot-job implementation.
+The Cloud BigJob addresses these limitations. The architecture encapsulates 
+Cloud specifics, such as the used security mechanism, the communication protocol and 
+the required setup tasks, into a Cloud resource adaptor. Currently,
+Amazon EC2, Eucalyptus and Nimbus Clouds are supported. The resource adaptor communicates
+with the different Cloud environments via the command line tools provided by 
+the respective Cloud infrastructure. Despite some similarities between these Clouds 
+and the trend toward standardization on the
 EC2 API, there are subtle differences, e.\,g.\ in the allocation
 of IP addresses, the SSH key handling, the metadata management or 
-the network setup. The Cloud BigJob attempts to hide these differences 
-from the user. However, a further standardization of such Cloud environments, 
-e.\,g.\ within the OCCI efforts~\cite{occi}, is necessary.
+the network setup. The Cloud BigJob attempts to hide most of these differences 
+from the user.  However,  the user is still required to perform some manual steps, such
+as setting up the VM image and keys, prior to using the Cloud BigJob.
+A further standardization of such Cloud environments, e.\,g.\ within the 
+OCCI efforts~\cite{occi}, is necessary to minimize the necessary steps.
 
 The Cloud BigJob supports basic fault tolerance features: failed requests e.\,g.\
 are automatically re-executed $n$ times. If not sufficient resources can be
@@ -743,8 +754,9 @@ Having finished all preparation tasks, the BigJob changes into the state
 \emph{Running}. 
 
 After the running state has been reached, the manager starts to
-process sub-jobs.  Unprocessed sub-jobs are stored in a FIFO queue. As
-resources become available, sub-jobs are assigned to these. For
+process sub-jobs. For this purpose the SAGA/SSH adaptor is 
+used~\cite{10.1109/GPC.2009.17}. Unprocessed sub-jobs are stored in 
+a FIFO queue. As resources become available, sub-jobs are assigned to these. For
 parallel jobs the manager generates a nodefile, which is then used for
 launching the application. Once the preparation work has been
 finished, the manager spawns the sub-job using the SAGA job API and
@@ -763,62 +775,6 @@ of all VMs can simply be maintained by the manager; remote launching
 can be done via the SSH protocol.
 
 
-\subsection{BigJob: Performance Overheads} 
-\up
-
-% \alnote{Should we move this section to Usage Model and Analysis?}
-% \jhanote{I think not. The performance referred to here is that of just
-%   BigJob startup and dispatch time -- which in principle should be
-%   independent of any usage mode/scenario. Right?}
-
-We now analyze the overheads resulting from the usage of BigJob across
-different infrastructures. Typically, the main overhead when using
-BigJob results from the queueing time at individual resources for
-%batch-queue based  
-Grids and from the VM creation time for Cloud environments.
-Figure~\ref{fig:performance_setup_time} compares the startup time of
-the different Pilot-Job backends for Grids, Condor pools and Clouds.
-
-\up
-\begin{figure}[htbp]
-    \centering
-        \includegraphics[width=0.45\textwidth]{performance/setup_time_xls.pdf}
-    \caption{\textbf{BigJob Startup Times:} In Grids the startup time
-      greatly depends upon the queuing time at the local resource
-      manager. However, in our experiments also Clouds showed a high
-      fluctuation in the queueing time.\up}
-    \label{fig:performance_setup_time}
-\end{figure}
-
-Interestingly for the experiments conducted, the startup times for the
-Cloud environments were observed to be larger than queue-waiting time
-for the LONI resource Poseidon, which coincidentally was very lightly
-loaded during the course of these experiments. Obviously, the startup
-of a VM involves higher overheads than spawning a job on an already
-running machine: a resource for the VM must be allocated, the VM must
-be staged to the target and booted up. The following experiments will
-also show that especially the already oversubscribed intra Cloud
-network and thus, the staging of the VM can be a bottleneck. Also,
-there is a large fluctuation in particular in the EC2 environment
-probably caused by the fact that insufficient resources were available
-at certain times.
-
-Also, Condor Glide-In and thus, the SAGA-Condor BigJob shows some
-overheads compared to the Grid BigJob. These overheads can mainly be
-attributed to the Condor architecture. Condor requires several
-lightweight daemons to be run on the target resource. The overhead is
-mainly caused by the time required to setup the pool, propagate the
-pool information to the main Condor pool \jhanote{pool and pool used} and the Condor matchmaking,
-resource allocation and job spawning mechanism. And although our
-somewhat limited performance analysis suggests that a BigJob can be
-launched in a shorter period of time, it is probably true that Condor
-Glide-in can scale to support a much greater number of
-workers/sub-jobs. But the take home message is that in spite of a
-further layer of abstraction and the advantages of interoperability
-and extensibility that arise as a consequence, basic performance is
-and can be preserved.  In the following section we show that the SAGA
-BigJob abstraction is suitable for running Pilot-Jobs on different
-kinds of distributed infrastructures supporting different usage modes.
 
  % A major
 % advantage of the SAGA-based BigJob is that it not only works across
@@ -961,6 +917,65 @@ Amazon offeres different VM types with up to 8 cores. We used
 the largest VM type (m2.4xlarge) with 8 cores and 68.4\,GB of memory
 and the m1.large instance type with 2 cores and 7.5\,GB, which compares
 best to the virtual machine provided by Nimbus. 
+
+\subsection{BigJob: Performance Overheads} 
+\up
+
+% \alnote{Should we move this section to Usage Model and Analysis?}
+% \jhanote{I think not. The performance referred to here is that of just
+%   BigJob startup and dispatch time -- which in principle should be
+%   independent of any usage mode/scenario. Right?}
+
+Initially, we analyze the overheads resulting from the usage of BigJob across
+different infrastructures. Typically, the main overhead when using
+BigJob results from the queueing time at individual resources for
+%batch-queue based  
+Grids and from the VM creation time for Cloud environments.
+Figure~\ref{fig:performance_setup_time} compares the average startup times of
+the different Pilot-Job backends for Grids, Condor pools and Clouds. Each 
+experiment was repeated at least 10 times.
+
+\up
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.45\textwidth]{performance/setup_time_xls.pdf}
+    \caption{\textbf{BigJob Startup Times:} In Grids the startup time
+      greatly depends upon the queuing time at the local resource
+      manager. However, in our experiments also Clouds showed a high
+      fluctuation in the queueing time.\up}
+    \label{fig:performance_setup_time}
+\end{figure}
+
+Interestingly for the experiments conducted, the startup times for the
+Cloud environments were observed to be larger than queue-waiting time
+for the LONI resource Poseidon, which coincidentally was very lightly
+loaded during the course of these experiments. Obviously, the startup
+of a VM involves higher overheads than spawning a job on an already
+running machine: a resource for the VM must be allocated, the VM must
+be staged to the target and booted up. The following experiments will
+also show that especially the already oversubscribed intra Cloud
+network and thus, the staging of the VM can be a bottleneck. Also,
+there is a large fluctuation in particular in the EC2 environment
+probably caused by the fact that insufficient resources were available
+at certain times.
+
+Also, Condor Glide-In and thus, the SAGA-Condor BigJob shows some
+overheads compared to the Grid BigJob. These overheads can mainly be
+attributed to the Condor architecture. Condor requires several
+lightweight daemons to be run on the target resource. The overhead is
+mainly caused by the time required to setup the pool, propagate the
+pool information to the main Condor pool \jhanote{pool and pool used} and the Condor matchmaking,
+resource allocation and job spawning mechanism. And although our
+somewhat limited performance analysis suggests that a BigJob can be
+launched in a shorter period of time, it is probably true that Condor
+Glide-in can scale to support a much greater number of
+workers/sub-jobs. But the take home message is that in spite of a
+further layer of abstraction and the advantages of interoperability
+and extensibility that arise as a consequence, basic performance is
+and can be preserved.  In the following section we show that the SAGA
+BigJob abstraction is suitable for running Pilot-Jobs on different
+kinds of distributed infrastructures supporting different usage modes.
+
 
 
 \subsection{Scenario A: \tc for Workload for Different Resource
