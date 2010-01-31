@@ -317,12 +317,12 @@ follows:
 
 \begin{itemize}
 
-\item The Reservoir Simulator: Based on the Cactus Code
-  ~\citep{cactus_web} high performance scientific computing framework
-  and the Portable Extensible Toolkit for Scientific Computing: PETSc
-  ~\citep{PETSc}, the BlackOil reservoir simulator solves the
-  equations for multiphase fluid flow through porous media, allowing
-  us to simulate the movement of oil and gas in subsurface
+\item The Reservoir Simulator: Based on the Cactus
+  Code~\citep{cactus_web} high performance scientific computing
+  framework and the Portable Extensible Toolkit for Scientific
+  Computing: PETSc~\citep{PETSc}, the BlackOil reservoir simulator
+  solves the equations for multiphase fluid flow through porous media,
+  allowing us to simulate the movement of oil and gas in subsurface
   formations. With a few parameter changes, BlackOil is also used for
   modelling the flow of CO$_2$, however it cannot simulate any
   geochemical interaction. While adequate as a first order
@@ -344,16 +344,29 @@ follows:
   matching studies on distributed high performance, high throughput
   and grid computing resources ~\citep{gmac}
 
-\item SensorsToSimulations (S2S): Developed, using Cactus and database
-  interfaces, initially to send measurement-while-drilling (MWD) data
-  from drilling bottom-hole-assemblies to drill-string simulators, the
-  S2S framework has been extended to accommodate sending sensor data
-  to the BlackOil reservoir simulator (production data required for
-  well modelling) and the Ensemble Kalman filter for history
-  matching. The S2S framework also announces the arrival of new
-  history data to Lazarus to trigger the launching of a new stage of
-  ensemble simulations ~\citep{Duff1,Duff2}.
-
+\item SensorsToSimulations (S2S): To perform realtime reservoir
+  characterization and forecast, live sensor data must be retrieved
+  from the field and used in the data assimilation stage. The
+  availability of new data also triggers a new EnKF stage in the
+  workflow. To that end we implemented a communication layer based on
+  data streaming from the data acquisition (sensor) platforms to a
+  data spool in the form of a MySQL database
+  ~\ref{fig:SensorRelay}. The EnKF application queries the data spool
+  for the latest available sensor platform (field observations)
+  data. Once the new field observations are retrieved they are labeled
+  as ``assimilated'' to differentiate them from the next--in--line
+  observations.  Developed, initially using Cactus and database
+  interfaces, to send measurement-while-drilling (MWD) data from
+  drilling bottom-hole-assemblies to drill-string simulators, the S2S
+  framework has been extended to accommodate sending sensor data to
+  the BlackOil reservoir simulator (production data required for well
+  modelling) and the Ensemble Kalman filter for history matching. The
+  S2S framework also announces the arrival of new history data to
+  Lazarus to trigger the launching of a new stage of ensemble
+  simulations ~\citep{Duff1,Duff2}.  It is worth mentioning that while
+  currently we use a MySQL database, a more consistent solution would
+  be to use the SAGA advert service, which would remove the need to
+  access MySQL in Lazarus.
 \end{itemize}
 
 \begin{figure}
@@ -370,23 +383,7 @@ follows:
 \label{fig:irregular_execution}
 \end{figure}
 
-\subsection{Sensors}
-
-To perform realtime reservoir characterization and forecast, live
-sensor data must be retrieved from the field and used in the data
-assimilation stage. The availability of new data also triggers a new
-EnKF stage in the workflow. To that end we implemented a communication
-layer based on data streaming from the data acquisition (sensor)
-platforms to a data spool in the form of a MySQL database
-~\ref{fig:SensorRelay}. The EnKF application queries the data spool
-for the latest available sensor platform (field observations)
-data. Once the new field observations are retrieved they are labeled
-as ``assimilated'' to differentiate them from the next--in--line
-observations. It is worth mentioning that while currently we use a
-MySQL database, a more consistent solution would be to use the SAGA
-advert service, which would remove the need to access MySQL in
-Lazarus.
-
+%\subsection{Sensors}
 % With a high performance reservoir simulator, a parallel, scalable
 % ensemble Kalman filter, and a workflow manager that provides access
 % to an abundance of high performance and high throughput resources
@@ -394,27 +391,17 @@ Lazarus.
 % equipped to perform live, real--time reservoir characterization
 % based on direct sensor data.
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.25]{./figures/SensorRelay2.png}
-\end{center}
-\caption[Sensors to Simulations data flow]{Real-time transfer of field
-  sensor data to the EnKF application is a two stage process:
-  streaming from sensor platforms to database and queries from the
-  EnKF.}
-\label{fig:SensorRelay}
-\end{figure}
 
-{\it Putting it all together: } The use of an intermediate data--spool
-is necessary for many reasons: it is difficult to guarantee resource
-availability and synchronization with the EnKF. It is also
-prohibitively costly to maintain an active EnKF session throughout the
-life--time of the reservoir. With a data--spool we can also adjust the
-update rate at the EnKF session without losing any data from the
-reservoir. Updates to the models can be as immediate as the moment
-data is broadcast from the sensors in the field, or as late as when
-the reservoir is being abandoned. With immediate model updates, we can
-run forecast studies.
+{\it Putting the Components together: } The use of an intermediate
+data--spool is necessary for many reasons: it is difficult to
+guarantee resource availability and synchronization with the EnKF. It
+is also prohibitively costly to maintain an active EnKF session
+throughout the life--time of the reservoir. With a data--spool we can
+also adjust the update rate at the EnKF session without losing any
+data from the reservoir. Updates to the models can be as immediate as
+the moment data is broadcast from the sensors in the field, or as late
+as when the reservoir is being abandoned. With immediate model
+updates, we can run forecast studies.
 
 When used in conjunction, these components allow us to perform
 closed-loop\jhanote{define close-loop} large scale reservoir
@@ -434,9 +421,6 @@ framework is also under heavy development to add sensor metadata
 allowing Lazarus, through autonomic logic, to distinguish between
 critical and non-critical sensor data, and ultimately making use of
 on-demand computing resources (should the sensor data prove critical).
-
-% \jhanote{Need some details of how this ``autonomic decision making'' is supported?}
-% \yyenote{haven't figure that bit out yet, but I am guessing I will just remove it}
 
 \jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The
   variability of sub-job sizes and requirements. We use BigJob on TG
@@ -463,6 +447,17 @@ advantages to using multiple pilot job mechanisms. \jhanote{mention
   QueenBee, (iv) Ranger, QueenBee and Abe, (v) Ranger, QueenBee and
   Abe when using BQP.}
 \label{fig:SingleVsDistributed}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.66]{CO2Injection.png}
+\end{center}
+\caption[Simulation Output]{Simulation output of the injection of
+  CO$_2$ as a function of time. The output for 5 different models are
+  plotted, showing the sensitivity of the injection amount to the
+  underlying model.}
+\label{fig:SensorRelay}
 \end{figure}
 
 
