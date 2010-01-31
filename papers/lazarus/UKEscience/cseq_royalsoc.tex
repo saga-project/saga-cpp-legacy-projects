@@ -134,36 +134,34 @@ environmentally and geologically and are therefore promising
 candidates for CO$_2$ sequestration ~\citep{GeoRPT,Luigi}. Our efforts
 are directed towards developing cyberinfrastructure tools,
 technologies and abstractions that facilitate large scale reservoir
-characterization and forecasting studies.
+characterization and forecasting studies.  Since the amount of
+information obtained directly from reservoirs is very small compared
+to the actual size of the reservoir, history matching techniques have
+been developed to match actual reservoir production with simulated
+reservoir production, therefore obtaining a more ``satisfactory'' set
+of models. One of the promising approaches to history matching is the
+use of Ensemble Kalman filters (EnKF) ~\citep{KalmanPaper, DO2007,
+  LiEnKF07, DO2006}. 
 
-\jhanote{Yaakoub: This is where the back-of-the-envelope quantitative
-  estimates of computational requirements will be placed. Having
-  established the scientific (and moral) imperative), we will now
-  establish the computational challenge of the problem/solution at
-  hand.}
+This paper is structured as follows: in the next we describe the basic
+physical processes and parameters that are used to understand
+sequestration. In the latter part of Section 2, we outline the
+computational approach adopted, computational complexity and the
+simulation parameter choice considerations that need to be determined.
+In Section 3 we present the architecture and the specific solution we
+implement to address the physical and engineering problem of CO$_2$
+sequestration. The focus in this section is not on the specific
+details of each component -- as each component of the solution was
+developed for a different original problem(s), but on how we bring the
+various components togethe.  The final section outlines some
+preliminary results that validate our solution -- both computational
+and scientific (inject rates for CO$_2$).
 
-Since the amount of information obtained directly from reservoirs is
-very small compared to the actual size of the reservoir, history
-matching techniques have been developed to match actual reservoir
-production with simulated reservoir production, therefore obtaining a
-more ``satisfactory'' set of models. One of the promising approaches
-to history matching is the use of Ensemble Kalman filters (EnKF)
-~\citep{KalmanPaper, DO2007, LiEnKF07, DO2006}.
-
-Ensemble Kalman filters are recursive filters that can be used to
-handle large, noisy data; the data in this case would be the results
-and parameters from ensembles of reservoir models that are sent
-through the filter to obtain the ``true '' state of the data. Since
-the reservoir model varies from one ensemble to another, the run-time
-characteristics of the ensemble simulation are irregular and hard to
-predict. Furthermore, at simulation times when real historical data is
-available, all the data from the different ensembles at that
-simulation time must be compared to the actual production data, before
-the simulations are allowed to proceed. This translates into a global
-synchronization point for all ensembles; hence performing large scale
-studies for complex reservoirs in a reasonable amount of time would
-benefit greatly from the use of distributed, high performance, high
-throughput and on-demand computing resources.
+% \jhanote{Yaakoub: This is where the back-of-the-envelope quantitative
+%   estimates of computational requirements will be placed. Having
+%   established the scientific (and moral) imperative), we will now
+%   establish the computational challenge of the problem/solution at
+%   hand.}
 
 % \begin{figure}
 % \begin{center}
@@ -178,22 +176,50 @@ throughput and on-demand computing resources.
 
 \section{Modelling CO$_2$ Sequestration}
 
-\jhanote{This needs a couple of paragraphs --- all about injection
-  etc, what are the parameters etc. so that when the figures are shown
-  later, we'll know how to analyze them. This should contain
-  sufficient backgroud material that was used for the e-Science 2009
-  talk}
+%\subsection{Scientific Problem}
 
-As mentioned earlier, CO$_2$ sequestration in oil/gas reservoirs typically involves
-history matching studies to obtain a better understanding of the reservoir geology and fluid flow properties.
-These history matching/reservoir characterization studies are then followed by forecast studies where
-CO$_2$ is injected at specified rates and pressures based on operational and regulatory constraints.
-These simulations answer key questions about the sequestration process: where will the CO$_2$ gas flow, 
-how much CO$_2$ can be injected safely, what is the long term fate of the injected CO$_2$.
+\jhanote{The Sceintific Problem: This needs a couple of paragraphs ---
+  all about injection etc, what are the parameters etc. so that when
+  the figures are shown later, we'll know how to analyze them. This
+  should contain sufficient backgroud material that was used for the
+  e-Science 2009 talk}
 
-For our purposes we make the same simplifying assumptions about the injected CO$_2$, as in ~\cite{Pawar}. Carbon
-dioxide is treated as a gas phase that is soluble in oil but not water, and compositional effects of CO$_2$
-injection are ignored. In our test/demonstration simulations, carbon dioxide is injected as a supercritical gas at 2800 psi. Regulartory constraints limit the bottom-hole injection pressure. The bottom hole pressure at the injection point does not exceed the hydrostatic pressure gradient by more than 0.2 psi/ft.
+\subsection{The Computational Approach}
+
+As mentioned earlier, CO$_2$ sequestration in oil/gas reservoirs
+typically involves history matching studies to obtain a better
+understanding of the reservoir geology and fluid flow properties.
+At the core of the history matching process is the EnKF -- 
+which are recursive filters that can be used to
+handle large, noisy data; the data in this case would be the results
+and parameters from ensembles of reservoir models that are sent
+through the filter to obtain the ``true '' state of the data. Since
+the reservoir model varies from one ensemble to another, the run-time
+characteristics of the ensemble simulation are irregular and hard to
+predict. Furthermore, at simulation times when real historical data is
+available, all the data from the different ensembles at that
+simulation time must be compared to the actual production data, before
+the simulations are allowed to proceed. This translates into a global
+synchronization point for all ensembles; hence performing large scale
+studies for complex reservoirs in a reasonable amount of time would
+benefit greatly from the use of distributed, high performance, high
+throughput and on-demand computing resources.
+
+These history matching/reservoir characterization studies are then
+followed by forecast studies where CO$_2$ is injected at specified
+rates and pressures based on operational and regulatory constraints.
+These simulations answer key questions about the sequestration
+process: where will the CO$_2$ gas flow, how much CO$_2$ can be
+injected safely, what is the long term fate of the injected CO$_2$.
+
+For our purposes we make the same simplifying assumptions about the
+injected CO$_2$, as in Ref~\cite{Pawar}. Carbon dioxide is treated as
+a gas phase that is soluble in oil but not water, and compositional
+effects of CO$_2$ injection are ignored. In our test/demonstration
+simulations, carbon dioxide is injected as a supercritical gas at 2800
+psi. Regulatory constraints limit the bottom-hole injection pressure;
+the bottom hole pressure at the injection point does not exceed the
+hydrostatic pressure gradient by more than 0.2 psi/ft.
 
 
 \subsection{Analyzing The Computational Complexity}
@@ -213,15 +239,15 @@ effect can be monitored by comparing the actual forecasted model data
 differences to those expected on the basis of the forecasted ensemble
 covariance ~\cite{Burger98}.
 
-In contrast, Houtekamer and Mitchell ~\cite{Hout98} found that while
-the analysis error decreased as the number of ensembles increased,
-representative ensembles can be maintained with a relatively small
-ensemble size (order of hundreds) using a pair of
-ensembles. Furthermore, the required ensemble size remains constant
-irrespective of the state vetor size and observation size
-~\cite{Mitchell02}. However, if a small ensemble size requiring severe
-localization (as is sometimes the case with reservoir models), this
-can cause a significant amount of spatial incoherence.
+In contrast, Ref~\cite{Hout98} found that while the analysis error
+decreased as the number of ensembles increased, representative
+ensembles can be maintained with a relatively small ensemble size
+(order of hundreds) using a pair of ensembles. Furthermore, the
+required ensemble size remains constant irrespective of the state
+vetor size and observation size ~\cite{Mitchell02}. However, if a
+small ensemble size requiring severe localization (as is sometimes the
+case with reservoir models), this can cause a significant amount of
+spatial incoherence.
 
 
 For these reasons, optimal ensemble size is considerably difficult to
