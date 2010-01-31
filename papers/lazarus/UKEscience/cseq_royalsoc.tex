@@ -221,7 +221,6 @@ psi. Regulatory constraints limit the bottom-hole injection pressure;
 the bottom hole pressure at the injection point does not exceed the
 hydrostatic pressure gradient by more than 0.2 psi/ft.
 
-
 \subsection{Analyzing The Computational Complexity}
 
 %\subsection{Single Machine Versus Distributed Infrastructure}
@@ -341,64 +340,222 @@ abstractions whenever possible. This resulted in a rapid development
 cycle and faster turn-over. The components we developed and use are as
 follows:
 
-\begin{itemize}
+\subsection{The Reservoir Simulator} 
 
-\item The Reservoir Simulator: Based on the Cactus
-  Code~\citep{cactus_web} high performance scientific computing
-  framework and the Portable Extensible Toolkit for Scientific
-  Computing: PETSc~\citep{PETSc}, the BlackOil reservoir simulator
-  solves the equations for multiphase fluid flow through porous media,
-  allowing us to simulate the movement of oil and gas in subsurface
-  formations. With a few parameter changes, BlackOil is also used for
-  modelling the flow of CO$_2$, however it cannot simulate any
-  geochemical interaction. While adequate as a first order
-  approximation, it is still under heavy development to enable it to
-  satisfactorily model geochemical phenomena.
+Based on the Cactus Code~\citep{cactus_web} high performance
+scientific computing framework and the Portable Extensible Toolkit for
+Scientific Computing: PETSc~\citep{PETSc}, the BlackOil reservoir
+simulator solves the equations for multiphase fluid flow through
+porous media, allowing us to simulate the movement of oil and gas in
+subsurface formations. With a few parameter changes, BlackOil is also
+used for modelling the flow of CO$_2$, however it cannot simulate any
+geochemical interaction. While adequate as a first order
+approximation, it is still under heavy development to enable it to
+satisfactorily model geochemical phenomena.
 
-\item The Ensemble Kalman filter: Also based on Cactus and PETSc, it
-  computes the Kalman gain matrix and updates the model parameters of
-  the ensembles. The Kalman filter requires live production data from
-  the reservoir for it to update the reservoir models in real-time,
-  and launch the subsequent long-term forecast, enhanced oil recovery
-  and CO$_2$ sequestration studies
+\subsection{The Ensemble Kalman filter} 
 
-\item Lazarus: Is a SAGA (Simple API for Grid Applications) based
-  autonomic computing framework for scientific pplications. Lazarus
-  utilizes SAGA , SAGA-based abstractions (BigJob) and provides an
-  autonomic, self-configuring, self optimizing, self monitoring and
-  self-healing job manager that facilitates the launch of history
-  matching studies on distributed high performance, high throughput
-  and grid computing resources ~\citep{gmac}
+Also based on Cactus and PETSc, it computes the Kalman gain matrix and
+updates the model parameters of the ensembles. The Kalman filter
+requires live production data from the reservoir for it to update the
+reservoir models in real-time, and launch the subsequent long-term
+forecast, enhanced oil recovery and CO$_2$ sequestration studies
 
-\item SensorsToSimulations (S2S): To perform realtime reservoir
-  characterization and forecast, live sensor data must be retrieved
-  from the field and used in the data assimilation stage. The
-  availability of new data also triggers a new EnKF stage in the
-  workflow. To that end we implemented a communication layer based on
-  data streaming from the data acquisition (sensor) platforms to a
-  data spool in the form of a MySQL database
-  ~\ref{fig:SensorRelay}. The EnKF application queries the data spool
-  for the latest available sensor platform (field observations)
-  data. Once the new field observations are retrieved they are labeled
-  as ``assimilated'' to differentiate them from the next--in--line
-  observations.  Developed, initially using Cactus and database
-  interfaces, to send measurement-while-drilling (MWD) data from
-  drilling bottom-hole-assemblies to drill-string simulators, the S2S
-  framework has been extended to accommodate sending sensor data to
-  the BlackOil reservoir simulator (production data required for well
-  modelling) and the Ensemble Kalman filter for history matching. The
-  S2S framework also announces the arrival of new history data to
-  Lazarus to trigger the launching of a new stage of ensemble
-  simulations ~\citep{Duff1,Duff2}.  It is worth mentioning that while
-  currently we use a MySQL database, a more consistent solution would
-  be to use the SAGA advert service, which would remove the need to
-  access MySQL in Lazarus.
-\end{itemize}
+
+\subsection{Developing Scalable and Extensbible Application
+  Frameworks: A SAGA-based autonomic computing framework for
+  scientific applications}
+
+\begin{figure}[!ht]
+     \includegraphics[scale=0.5]{stci-saga-figures-1.pdf}
+%      \includegraphics[scale=0.4]{remdmanager.pdf}
+ \caption{\small (Left) Layered schematic of the different components
+    of the SAGA landscape.  Middleware specific adaptors applications
+    developed using SAGA make applications developed using SAGA grid
+    portable. (Right) Schematic showing the different ways in which
+    SAGA can be used to develop distributed applications. (i) Using
+    direct, simple SAGA calls to implement distributed functionality;
+    (ii) Coordinating multiple components of an application, either
+    directly, or using high-level APIs; (iii) Through the use of
+    frameworks which provide either application-level usage modes,
+    patterns and thus shielding the application from directly
+    interfacing with the infrastructure.  SAGA facilitates the
+    creation of a framework made up of ``abstractions'' (Bigjob;
+    ManyJob) that supports the functionality desired for distributed
+    applications, but not confined to a specific infrastructure.  The
+    BigJob abstraction provides the capability to cluster sub-jobs
+    into a larger big-job, and acts like a Pilot-Job. The
+    abstractions, enable the allocation of resources to an application
+    and not to a specific job.}
+ \label{sagalayer}
+\end{figure}
+
+A fundamental question at the heart of all scientific applications, is
+the question of how scientific applications can be developed so as to
+use as broad a range of infrastructure as possible, without vendor or
+middleware lock-in, yet with the flexibility and performance that
+scientific applications demand. The SAGA programming system has been
+developed to address precisely these questions, and consists of a
+high-level application-oriented API, the SAGA {\it Engine} (a dynamic
+library implementing the functionality of the API), and backend,
+system-specific adaptors.  Our recent work using
+SAGA~\cite{saga-papers} has overcome a traditional limitation of RE
+simulations, viz., restricted set of platforms have been used and
+consequently, only small physical systems have been investigated so
+far. We have developed a general-purpose framework that can overcome
+traditional limitations and can be used over a wide-range of
+production distributed environments~\cite{saga-royalsoc} (and
+Fig.~\ref{fig:REMD-Manager-architecture}).  Interestingly, the same
+framework can be used to marshall different types and sizes of
+resources~\cite{saga-papers}. For example, the BigJob abstraction that
+we first employed on 512-node Linux Clusters on LONI can also be used
+for monolithic usage on the 64,000 core mammoth Ranger(TACC)
+machine~\cite{saga-iccs09}.  It is also important to mention that the
+SAGA-based framework discussed is extensible, in that it can be used
+to implement many other applications in addition to those discussed
+here.
+
+The power to do so arises from simple design decisions: the use of
+appropriate programmatic and system abstractions that allow users to
+do what they can do best (i.e., provide the simulation and
+orchestration logic), whilst ensuring that the middleware used
+provides required services (such as checkpoint management, application
+monitoring and recovery) seamlessly and effectively from the
+application developers perspective.  Fig.~\ref{fig:saga-perf} shows
+how the time-to-solution (i.e., wall-clock time) for a certain number
+of replica-exchange steps goes down as the number of resources
+increases. It is important to understand that there is a distinct
+advantage of going distributed \fixme{...}.  It is also useful to note
+that for the end-user, the complexity of using one resource is the
+same as using multiple resources; however, the gains increase with
+every added resource.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.66\textwidth]{./bigjob.pdf}
+   \caption{BigJob Architecture: The core of the framework, the
+      BigJob Manager, orchestrates a set of sub-jobs via a
+      BigJob Agent using the SAGA job and file APIs.  The
+      BigJob Agent is responsible for managing and monitoring sub-jobs.\up}
+   \label{fig:bigjob}
+\end{figure}
+
+\jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The
+  variability of sub-job sizes and requirements. We use BigJob on TG
+  and Condor Glide-in on Condor resources}.
+
+\begin{figure}
+\includegraphics[scale=0.33]{Lazarus_01.jpeg}
+\includegraphics[scale=0.44]{Architecture.png}
+\caption{Architecture of Lazarus -- a Framework for Developing
+  Autonomic Computational Science Applications. The ``Resource
+  Mapping'' Strategy input is provided by BQP. Given the size of the
+  individual tasks, the ``Historial Benchmarks'' help determine the
+  size of the sub-jobs. (For the specific workload chosen, it so
+  happens that the size of each sub-job is 16). [R] Block diagrams
+  outlining how Lazarus relates to other SAGA components. Lazarus is
+  built on several components: BigJob abstraction, SAGA file adaptor,
+  BQP python wrappers and fault tolerance functions that are based on
+  SAGA python bindings, BQP command line tools and HDF5 tools
+  respectively.}
+\label{fig:application_architecture}
+\end{figure}
+
+% \begin{figure}
+%   \begin{center} \includegraphics[scale=0.5]{./figures/Architecture.png} 
+%     \caption{Block diagrams outlining how Lazarus relates to other
+%       SAGA components. Lazarus is built on several components: BigJob
+%       abstraction, SAGA file adaptor, BQP python wrappers and fault
+%       tolerance functions that are based on SAGA python bindings, BQP
+%       command line tools and HDF5 tools
+%       respectively.}\label{fig:application_architecture}
+% \up\up\up\up\up\up\up%\up\up\up\up\up
+% \end{center}
+% \end{figure}
+
+Lazarus utilizes SAGA, SAGA-based abstractions (BigJob) and provides
+an autonomic, self-configuring, self optimizing, self monitoring and
+self-healing job manager that facilitates the launch of history
+matching studies on distributed high performance, high throughput and
+grid computing resources ~\citep{gmac}.
+
+Lazarus uses the BigJob abstraction to launch simulations,
+the SAGA file adaptor python bindings to move files from one machine
+to another and BQP data from a small python wrapper around the BQP
+command line tool to retrieve the optimal location and number of
+BigJobs required to satisfy the computation power required
+
+The Lazarus framework contains several aspects of autonomy: it has
+self-configuration (deployment on resources), self optimization (using
+BQP data), self monitoring (checking its own output) and of course
+self healing (resubmission of faulty simulations). These aspects have
+been implemented with varying level of intelligence: the self
+optimization for example is a basic algorithm that uses BQP data to
+assign big-jobs to resources, but does not take into consideration
+bandwidth requirement and the cost of copying files across
+machines. The self-healing on another hand can typically resurrect
+jobs that fail due to node failure as opposed to software
+failure. Many autonomic features of Lazarus will find their way into
+the FAUST framework, where they will be improved to incorporate
+sophisticated inherent intelligence.  
+
+For runs distributed across several machines, Lazarus needs to gather
+the data from all different machines into one location where the EnKF
+can run. To that end, the python bindings to the SAGA file adaptors
+are used to copy files over to the resource where the EnKF will run,
+and copied back to all other resources after the analysis stage. Since
+we are not working with a large scale production history matching run,
+the amount of data transfer involved does not impose any noticeable
+performance issues. Naturally, investigating the optimal location for
+placing the EnKF application, based upon network performance and
+real-time performance as discussed in Ref.~\cite{escience07}, will
+find its way into the next iteration of Lazarus implementation.
+
+Lazarus also uses non-SAGA components, such as a small python wrapper
+for BQP. This allows Lazarus, namely its resource management function,
+to query BQP for the ``optimal'' job size and duration for any given
+resource. Lazarus also uses a user specified check for the integrity
+of the simulation data. In our case, this is done through various
+system and HDF5 calls to make sure the files exist, are not sized
+zero, and a user specified command using HDF5 tools (h5ls) returns
+successfully.
+
+Lazarus is distinct to other well established and successful
+approaches such as Accord~\cite{accord} for autonomic computing, in
+that it is not a component-based programming system but it is a
+framework already composed of multiple components. Importantly the
+programming system that is used is SAGA -- both for the application
+and the Lazarus framework.
+
+
+\subsection{Sensors-to-Simulations (S2S)} 
+
+To perform realtime reservoir characterization and forecast, live
+sensor data must be retrieved from the field and used in the data
+assimilation stage. The availability of new data also triggers a new
+EnKF stage in the workflow. To that end we implemented a communication
+layer based on data streaming from the data acquisition (sensor)
+platforms to a data spool in the form of a MySQL database
+~\ref{fig:SensorRelay}. The EnKF application queries the data spool
+for the latest available sensor platform (field observations)
+data. Once the new field observations are retrieved they are labeled
+as ``assimilated'' to differentiate them from the next--in--line
+observations.  Developed, initially using Cactus and database
+interfaces, to send measurement-while-drilling (MWD) data from
+drilling bottom-hole-assemblies to drill-string simulators, the S2S
+framework has been extended to accommodate sending sensor data to the
+BlackOil reservoir simulator (production data required for well
+modelling) and the Ensemble Kalman filter for history matching. The
+S2S framework also announces the arrival of new history data to
+Lazarus to trigger the launching of a new stage of ensemble
+simulations ~\citep{Duff1,Duff2}.  It is worth mentioning that while
+currently we use a MySQL database, a more consistent solution would be
+to use the SAGA advert service, which would remove the need to access
+MySQL in Lazarus.
 
 \begin{figure}
 \begin{center}
-%\includegraphics*[scale=0.7,angle=0]{figures/Picture2.png}
-  \includegraphics*[scale=0.33,angle=0]{figures/DetailedSensorFlow.png}
+ \includegraphics*[scale=0.33,angle=0]{figures/DetailedSensorFlow.png}
 \end{center}
 \caption{Schematic illustrating the interaction of BlackOil, EnKF, S2S
   and Lazarus. The blue arrows represent the flow of simulation data
@@ -408,15 +565,6 @@ follows:
     graffle.. ahem}}
 \label{fig:irregular_execution}
 \end{figure}
-
-%\subsection{Sensors}
-% With a high performance reservoir simulator, a parallel, scalable
-% ensemble Kalman filter, and a workflow manager that provides access
-% to an abundance of high performance and high throughput resources
-% optimized for lowest total--time--to--completion, we are well
-% equipped to perform live, real--time reservoir characterization
-% based on direct sensor data.
-
 
 {\it Putting the Components together: } The use of an intermediate
 data--spool is necessary for many reasons: it is difficult to
@@ -448,9 +596,6 @@ allowing Lazarus, through autonomic logic, to distinguish between
 critical and non-critical sensor data, and ultimately making use of
 on-demand computing resources (should the sensor data prove critical).
 
-\jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The
-  variability of sub-job sizes and requirements. We use BigJob on TG
-  and Condor Glide-in on Condor resources}.
 
 \section{Performance Data and Analysis:} 
 
