@@ -264,18 +264,25 @@ made. The studies must be therefore completed within a fixed timeframe
 (few weeks at best). This imposes restrictions on the size of the
 ensemble used. Fortunatly, the ensemble members are independent
 therefore can be run across a distributed environment. It is for this
-reason that Lazarus was developed as a scalable autonomic framework
-for EnKF applications. The larger ensemble sizes also increase the
-computational cost of the EnKF application. For that reason, we
-developed a parallel EnKF.
+reason that we develop a scalable autonomic framework for EnKF
+applications (to be described in Section 3). The larger ensemble sizes
+also increase the computational cost of the EnKF application. For that
+reason, we developed a parallel EnKF.
 
 Since the choice of ensemble size has a direct impact on total time to
 completion, a tradeoff can be established: large ensembles of
 small/less detailed simulations as opposed to small ensembles of
-large/detailed simulations. The tradeoff can keep the number of SU's
-required constant, and with prior knowledge of available resources,
-the total time to completion as well. The question becomes: given a
-small time-frame of ten days for example, what ensemble size and what
+large/detailed simulations. If the ensemble is too small, it fails to
+span the space of possible models and moreover the inversion tends to
+be unstable. On the other hand, too-large ensembles are
+inefficient. The tradeoff can keep the number of SU's required
+constant, and with prior knowledge of available resources, the total
+time to completion as well. 
+
+
+
+The question becomes: given a small
+time-frame of ten days for example, what ensemble size and what
 problem size can be completed so that by the tenth day results can be
 collected and a decision made. While we have not addressed this
 problem in the workflow manager or the reservoir simulator, we have
@@ -354,12 +361,28 @@ satisfactorily model geochemical phenomena.
 
 \subsection{The Ensemble Kalman filter} 
 
-Also based on Cactus and PETSc, it computes the Kalman gain matrix and
-updates the model parameters of the ensembles. The Kalman filter
-requires live production data from the reservoir for it to update the
-reservoir models in real-time, and launch the subsequent long-term
-forecast, enhanced oil recovery and CO$_2$ sequestration studies
+The Kalman filter and its variants are being widely adopted to address
+the need for flexible, efficient inversion of nonlinear, stochastic
+problems \cite{Evensen2003}. However, many challenges remain,
+including a better understanding of filter behavior, methods to
+stabilize filters, and guidelines for optimal filter structure. In
+addition, because ensembles of large, nonlinear models impose a heavy
+computing burden, engineers and scientists need access to
+supercomputing resources. Efficient use of these resources requires a
+balanced cyber-infrastructure for ensemble inversion; the inversion
+infrastructure must (1) be sensor--aware, so that inversion proceeds
+when new data are available; (2) be able to manage parallel and
+distributed workflow elements; (3) distribute and load--balance
+simulations with a wide range of execution times; (4) move large data
+sets to initialize models, compute gains, and update models; and (5)
+recover from errors in ensemble member simulations.
 
+The EnKF we use is based on Cactus and PetSc\jhanote{reference please}
+--it computes the Kalman gain matrix and updates the model parameters
+of the ensembles. The Kalman filter requires live production data from
+the reservoir for it to update the reservoir models in real-time, and
+launch the subsequent long-term forecast, enhanced oil recovery and
+CO$_2$ sequestration studies
 
 \subsection{Developing Scalable and Extensbible Application
   Frameworks: A SAGA-based autonomic computing framework for
@@ -422,11 +445,16 @@ do what they can do best (i.e., provide the simulation and
 orchestration logic), whilst ensuring that the middleware used
 provides required services (such as checkpoint management, application
 monitoring and recovery) seamlessly and effectively from the
-application developers perspective.  It is important to understand
-that there is a distinct advantage of going distributed \fixme{...}.
-It is also useful to note that for the end-user, the complexity of
-using one resource is the same as using multiple resources; however,
-the gains increase with every added resource.
+application developers perspective. 
+
+Ensembles must be synchronized at each assimilation step. This makes
+the inversion process as slow as the slowest member. This might be
+addressed using (a) adaptive resource allocation and intelligent
+queuing; (b) use of subensembles, possibly adaptively; (c) adapting
+ensemble size.  Thus there that there is a distinct advantage of going
+distributed.  It is also useful to note that for the end-user, the
+complexity of using one resource is the same as using multiple
+resources; however, the gains increase with every added resource.
 
 \begin{figure}[ht]
     \centering
