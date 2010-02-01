@@ -114,9 +114,6 @@ consequently generate large volumes of carbon dioxide
 abated through capturing and sequestering significant fractions of the
 produced CO$_2$.
 
-\jhanote{should we insert a graphic here of time dependence of energy
-  demand?}
-
 For long-term storage of large volumes of CO$_2$, porous subsurface
 geologic formations are ideal candidates: these are the same
 formations responsible for the existence of oil and gas
@@ -178,12 +175,12 @@ and scientific (inject rates for CO$_2$).
 
 %\subsection{Scientific Problem}
 
-\jhanote{The Sceintific Problem: This needs a couple of paragraphs ---
-  all about injection etc, what are the parameters etc. so that when
-  the figures are shown later, we'll know how to analyze them. This
-  should contain sufficient backgroud material that was used for the
-  e-Science 2009 talk}
-\yyenote{See computational approach paragraphs 2 and 3}
+% \jhanote{The Sceintific Problem: This needs a couple of paragraphs ---
+%   all about injection etc, what are the parameters etc. so that when
+%   the figures are shown later, we'll know how to analyze them. This
+%   should contain sufficient backgroud material that was used for the
+%   e-Science 2009 talk}
+% \yyenote{See computational approach paragraphs 2 and 3}
 
 \subsection{The Computational Approach}
 
@@ -194,11 +191,13 @@ At the core of the history matching process is the EnKF --
 which are recursive filters that can be used to
 handle large, noisy data; the data in this case would be the results
 and parameters from ensembles of reservoir models that are sent
-through the filter to obtain the ``true '' state of the data. Since
-the reservoir model varies from one ensemble to another, the run-time
-characteristics of the ensemble simulation are irregular and hard to
-predict. Furthermore, at simulation times when real historical data is
-available, all the data from the different ensembles at that
+through the filter to obtain the ``true '' state of the data.
+The data is the porosity map and the permeability tensor maps.
+
+Since the reservoir model varies from one ensemble to another, the
+run-time characteristics of the ensemble simulation are irregular and
+hard to predict. Furthermore, at simulation times when real historical
+data is available, all the data from the different ensembles at that
 simulation time must be compared to the actual production data, before
 the simulations are allowed to proceed. This translates into a global
 synchronization point for all ensembles; hence performing large scale
@@ -284,38 +283,37 @@ built those tools with these tradeoffs in mind.
 
 \subsubsection{Computational Requirement: Current Capability}
 
-
 Consider a practical reservoir study that involves characterization,
-production forecast and sequestration forecast. Assuming we solve a
-one million grid cell model with our reservoir simulator, one
-iteration on 16 cores will require roughly 30 seconds. Also assume we
-will be performing data assimilation with observational data collected
-every month or 30 days. With 10 iterations per day and 30 days in a
-month, each model will require 2.5 hours on 16 cores. With 100
-ensemble members, this equates to 250 hours (10 days) with a submitted
-BigJob size of 16 cores running one ensemble at a time or 2.5 hours
-with a submitted BigJob size of 1600 cores, all running concurrently.
+production forecast and sequestration forecast. For a one million grid
+cell model with our reservoir simulator, one iteration on 16 cores
+requires roughly 30 seconds. Also assume we will be performing data
+assimilation with observational data collected every month or 30
+days. With 10 iterations per day and 30 days in a month, each model
+will require 2.5 hours on 16 cores. With 100 ensemble members, this
+equates to 250 hours using 16 cores running one ensemble at a time, or
+2.5 hours on a job of 1600 cores with all ensembles running
+concurrently (the details of which will be presented later)
 
-\jhanote{don't toggle between hours-days-years}\yyenote{Best I can do, 
-want to give an estimate in days of wall clock time and not hours}
+% \jhanote{don't toggle between hours-days-years}\yyenote{Best I can do, 
+% want to give an estimate in days of wall clock time and not hours}
 
 Assume for now that we are working with the ranger supercomputing
 system at TACC. We would have access to 1600 cores for a maximum of 2
-days, which should allow us to run roughly 19 months worth of
+days, which should allow us to run roughly 1.6 years worth of
 simulations. With 15 years of history matching, 15 years of forecasts
-and another 15 years of sequestration simulation, this totals to 540
-months, or 29 BigJobs with 1600 core size and 2 day duration. The wait
-time in the queue for such a job is, on average, 30 hours on
-ranger. If we submit the subsequent job to the queuing system after
-the current job is finished, the total duration of the entire study
-will therefore be roughly 95 days.
+and another 15 years of sequestration simulation, or 29 simulations
+with 1600 core size and 2 day duration. The wait time in the queue for
+such a job is, on average, 30 hours (1.25 days) on ranger. If we
+submit the subsequent job to the queuing system after the current job
+is finished, the total duration of the entire study will therefore be
+roughly 95 days (29 * (2 + 1.25)).
 
 Certain improvements are possible obviously. Using three machines as a
 distributed infrastructure instead of just one machine, based on
 \ref{fig:SingleVsDistributed}, we can expect a reduction of the total
-time to completion by about a third, roughly 65 days. Futher
-optimization is of course possible.
-
+time to completion by about a third, roughly 65 days. Clearly this is
+a very long time to solution and futher optimization both required and
+possible.
 
 \subsubsection{Computational Requirement: What we need to solve}
 It is generally understood that the ensemble determines the accuracy of the
@@ -324,12 +322,12 @@ Kalman filter ~\cite{JiaLi}. This being the case, whenever computational power
 and timeline restrictions permit, larger ensembles should be used.
 
 Consider a similar case to the one outlined earlier where instead of
-one hundred ensemble members, we use one thousand. This translates
-to 950 days running on 1600 cores or 95 days running on 16000 cores.
-This is a considerable commitment in both time and compute power. Even in terms
-of energy consumption; on a bluegene L, a low power 
-consumption supercomputer, the total amount of
-energy consumed is 0.62 Giga-Watt-hours.
+one hundred ensemble members, we use one thousand. This translates to
+950 days running on 1600 cores or 95 days running on 16000 cores.
+This is a considerable commitment in both time and compute power. Even
+in terms of energy consumption; on a bluegene L, a low power
+consumption supercomputer, the total amount of energy consumed is 0.62
+Giga-Watt-hours.
 
 \section{Meeting the Requirements: Design and Architecture}
 
@@ -440,9 +438,9 @@ the gains increase with every added resource.
    \label{fig:bigjob}
 \end{figure}
 
-\jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The
-  variability of sub-job sizes and requirements. We use BigJob on TG
-  and Condor Glide-in on Condor resources}.
+% \jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The
+%   variability of sub-job sizes and requirements. We use BigJob on TG
+%   and Condor Glide-in on Condor resources}.
 
 \begin{figure}
 \includegraphics[scale=0.33]{Lazarus_01.jpeg}
@@ -559,10 +557,11 @@ MySQL in Lazarus.
 \end{center}
 \caption{Schematic illustrating the interaction of BlackOil, EnKF, S2S
   and Lazarus. The blue arrows represent the flow of simulation data
-  while the red arrows represent the flow of sensor data. \jhanote{We
-    need a better figure than this. Where is the graffle figure that
-    you promised? Chris White is a step ahead of you in that he uses
-    graffle.. ahem}}
+  while the red arrows represent the flow of sensor data. % \jhanote{We
+%     need a better figure than this. Where is the graffle figure that
+%     you promised? Chris White is a step ahead of you in that he uses
+%     graffle.. ahem}
+}
 \label{fig:irregular_execution}
 \end{figure}
 
@@ -603,9 +602,9 @@ We have previously run an EnKF based application on several TeraGrid
 resources and demonstrated effective {\it Scale-out} across three
 machines~\citep{gmac}.  Additionally, we incorporate the use of Condor
 pools in Lazarus for even higher throughput, demonstrating possible
-advantages to using multiple pilot job mechanisms. \jhanote{mention
-  that although this is for HM, the performance numbers are valid for
-  Sequestration problem too.}
+advantages to using multiple pilot job mechanisms. % \jhanote{mention
+%   that although this is for HM, the performance numbers are valid for
+%   Sequestration problem too.}
 
 \subsection{Performance Data} 
 
@@ -621,12 +620,12 @@ advantages to using multiple pilot job mechanisms. \jhanote{mention
 \end{figure}
 
 
-\jhanote{We could either reproduce the
-  above data plot as is, or we could extend the data plot to include
-  $T_c$ when Purdue's Condor Pool is introduced into the mix. I think
-  there is some merit in extending to scale-out onto 4 resources (R,
-  Q, A + Purdue) -- obviously without worrying about BQP. We don't
-  have to use BigJob on the Purdue-Condor pool}\yyenote{No time...}
+% \jhanote{We could either reproduce the above data plot as is, or we
+%   could extend the data plot to include $T_c$ when Purdue's Condor
+%   Pool is introduced into the mix. I think there is some merit in
+%   extending to scale-out onto 4 resources (R, Q, A + Purdue) --
+%   obviously without worrying about BQP. We don't have to use BigJob on
+%   the Purdue-Condor pool}\yyenote{No time...}
 
 In this work, in addition to a different scientific problem, we
 integrate (simulated) sensor data into the computational loop; the
@@ -659,7 +658,10 @@ The next step is to determine what is the extent of sequestration in a
 reservoir characterised by the porosity and permeabilty.  The answer
 to this is provided by the relative proportion of CO$_2$ per grid
 cell. Figure 7 provides a measure of this relative proportion for the 
-reservoir characterised in Figure 6.
+reservoir characterised in Figure 6. Fig 8 provides a quantitative
+estimate for how the injection varies with time for 10 rather similar
+models. 
+
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.6]{figures/saturation.png} 
@@ -680,24 +682,31 @@ reservoir characterised in Figure 6.
 \label{fig:SensorRelay}
 \end{figure}
 
+% \jhanote{In this section we revisit the ``computational requirements
+%   of real problems'' as set out near the beginning. We then calibrate
+%   requirements based upon our results here -- showing (i) that we have
+%   met a fraction of the requirements, but, (ii) that we need to do
+%   much more in order to be able to meet the requirements laid out for
+%   real problems.}
 
-
-\jhanote{In this section we revisit the ``computational requirements
-  of real problems'' as set out near the beginning. We then calibrate
-  requirements based upon our results here -- showing (i) that we have
-  met a fraction of the requirements, but, (ii) that we need to do
-  much more in order to be able to meet the requirements laid out for
-  real problems.}
-
-{\it Conclusion: } A triad of unique aspects are developed in this
+{\it Conclusion: }A triad of unique aspects are developed in this
 paper: (i) We incorporate the use of EnKF in reservoir
 characterization for carbon dioxide sequestration studies, combining
 two developing research areas and investigating the forefront (ii) We
 extend our EnKF based approach further with the incorporation of live
-sensor data that influences the entire study (iii) We introduce Condor
-pools to our resources and use Condor's native pilot-job (Glide-In)
-for Condor resources and SAGA's BigJob abstraction for Teragrid
-resources transparently through Lazarus. 
+sensor data that influences the entire study (iii) We establish the
+ability to {\it scale-out} to a large number of distinct heterogeneous
+resources.
+
+The focus of this paper has been on developing the high-performance
+and distributed cyber-infrastructure required to simulate the CO$_2$
+sequestration properties of a reservoir. The aim has not been to
+perform a detailed analysis or analyse the underlying scientific
+problem, but to derive the infrastructure requirements from the
+scientific requirements, to implement a solution and to validate our
+solution. This is consistent with an application-oriented
+cyberinfrastructure development philosophy.
+
 
 \bibliographystyle{kluwer}
 \bibliography{cseq_abstract}
