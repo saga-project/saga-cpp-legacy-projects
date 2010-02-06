@@ -1,0 +1,117 @@
+#  Copyright (c) 2005-2008 Andre Merzky (andre@merzky.net)
+#
+#  Distributed under the Boost Software License, Version 1.0. (See accompanying
+#  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+SAGA_ROOT     = $(shell pwd)
+SAGA_VERSION  = $(shell grep 'Version:' $(SAGA_ROOT)/VERSION | cut -f 2 -d ' ')
+
+include $(SAGA_ROOT)/make/saga.util.mk
+
+SAGA_SUBDIRS  = config make external saga adaptors lite
+
+SAGA_SUBDIRS += bindings
+
+
+ifeq "$(SAGA_BOOST_HAVE_TEST)" "yes"
+  ifdef SAGA_IS_CHECKING
+    SAGA_SUBDIRS += test
+  endif
+else
+  ifdef SAGA_IS_CLEANING
+    SAGA_SUBDIRS += test
+  else
+    $(warning "skipping tests - BOOST_TEST is missing")
+  endif
+endif
+
+SAGA_SUBDIRS += examples tools docs
+
+
+include $(SAGA_ROOT)/make/saga.mk
+
+.PHONY: doxygen
+doxygen:
+	@$(MAKE) -C docs doxygen
+
+stats:
+	@cd saga && kloc -gs -d
+	@sloccount saga 2>>/dev/null
+
+distclean::
+	@$(RM) -r doc/doxygen/ doc/doxygen.*.conf doxygen.*.log
+	@$(RM) Makefile.ok install.log
+
+clean::
+	@$(RM) -r saga-a-$(SAGA_VERSION) saga-a-$(SAGA_VERSION).tgz
+	@$(RM) $(SAGA_ROOT)/.saga_check_failed
+
+dist:
+	@$(MAKE) distclean
+	@test   -e saga-a-$(SAGA_VERSION)      || ln    -s . saga-a-$(SAGA_VERSION)
+	@test ! -e saga-a-$(SAGA_VERSION).tgz  || rm         saga-a-$(SAGA_VERSION).tgz
+	@tar    chvf - --exclude CVS \
+	               --exclude .\#\* \
+	               --exclude .svn \
+	               saga-a-$(SAGA_VERSION)/{configure.in,configure,Makefile} \
+	               saga-a-$(SAGA_VERSION)/{VERSION,README,LICENSE,CHANGES,INSTALL} \
+	               saga-a-$(SAGA_VERSION)/external/{Makefile,boost,soci,u2nt} \
+	               saga-a-$(SAGA_VERSION)/{docs,config,make,saga,test,adaptors,project,examples,lite,tools,bindings} \
+	               | gzip -c > saga-a-$(SAGA_VERSION).tgz
+	@$(RM) saga-a-$(SAGA_VERSION)
+
+packages:
+	@./configure --prefix=`pwd`/usr
+	@$(MAKE) install
+	@tar zcvf libsaga++-$(SAGA_VERSION).tgz usr/
+	@sudo alien -to-deb libsaga++-$(SAGA_VERSION).tgz
+	@sudo alien -to-rpm libsaga++-$(SAGA_VERSION).tgz
+	@sudo alien -to-slp libsaga++-$(SAGA_VERSION).tgz
+	@sudo alien -to-pkg libsaga++-$(SAGA_VERSION).tgz
+	@$(RM) -r ./usr/
+
+check::
+	@$(TEST) ! -e $(SAGA_ROOT)/.saga_check_failed \
+    || { \
+        $(RM)  $(SAGA_ROOT)/.saga_check_failed ; \
+        $(ECHO)  "======================================================" ; \
+        $(ECHO)  "=== Some SAGA Check failed" ; \
+        $(ECHO)  "======================================================" ; \
+        $(FALSE) ; \
+    }
+
+ifeq "$(filter install,$(MAKECMDGOALS))" ""
+ TYPE_INSTALL = "\n      === you can type 'make install'"
+endif
+
+all::
+	@$(ECHO)  "      ======================================================"
+	@$(ECHO)  "      === make was successful"
+	@$(ECHO)  "      ======================================================"
+
+# install install.log twice: once for registering itself, then again to install
+# the log including the register entry
+# FIXME: this should be silent.
+install::
+	@$(INSTALL)      install.log share/saga
+	@$(INSTALL)      install.log share/saga
+	@$(ECHO)  "      ======================================================"
+	@$(ECHO)  "      === make install was successful" $(TYPE_INSTALL)
+	@$(ECHO)  "      ======================================================"
+
+uninstall::
+	@$(UNINSTALL)
+	@$(ECHO)  "      ======================================================"
+	@$(ECHO)  "      === SAGA uninstalled from $(SAGA_LOCATION)"
+	@$(ECHO)  "      ======================================================"
+
+# directory dependencies
+saga:     external
+adaptors: saga
+lite:     adaptors
+bindings: adaptors
+test:     adaptors
+examples: adaptors
+tools:    adaptors
+docs:     adaptors
+
