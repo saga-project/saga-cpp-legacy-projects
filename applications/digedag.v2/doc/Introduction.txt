@@ -14,14 +14,14 @@ workflow package.  It consists of four basic components:
 Introduction:
 -------------
 
-  Workflows are not expressed programatically, at least not
-  explicitely.  Instead, end users use graphical user interfaces
-  to define graphs of depending operations, which, if executed
-  in order, comprise the workflow.  In most cases, the
+  Workflows are often not expressed programatically, at least
+  not explicitely.  Instead, end users use graphical user
+  interfaces to define graphs of depending operations, which, if
+  executed in order, comprise the workflow.  In most cases, the
   transition from the GUI specification of the workflow to be
   executed, to the enacted workflow, includes a number of
-  intermediate steps which translate the specified 'abstract'
-  (*) workflow into a 'concrete' workflow, which specifically
+  intermediate steps which translate the specified 'abstract'(*) 
+  workflow into a 'concrete'(*)  workflow, which specifically
   includes information about resources to be utilized etc.  Both
   abstract and concrete workflows are stored and/or communicated
   in data files of one format or the other (a wide variety of
@@ -37,7 +37,10 @@ Introduction:
   of the scheme: instead of specifying a workflow in a GUI,
   digedag provides an API to specify tasks, task dependencies,
   and inter-task communication - i.e. to specify workflows
-  programatically.  
+  programatically.   (Of course, One could create a GUI
+  interface which *uses* digedag to translate the visual
+  representation created by the end user into abstract or
+  concrete workflows.)
 
   Further, digedag includes a workflow scheduler, i.e. an entity
   which translates the thus specified abstract workflow into an
@@ -54,14 +57,14 @@ Introduction:
   representations(**).
 
 
-Digedags workflow API
+Digedags Workflow API
 ---------------------
 
   Digedag allows to programatically express workflows.
   Basically, that statement translates well into: Digedag
-  provides an API to specify Acyclic Directed Graphs (DAG).  The
-  DAGs specified via that API consist of nodes and edges.
-  A node can have multiple incoming and outgoing edges.  An edge
+  provides an API to specify Acyclic Directed Graphs (DAG, ***).
+  The DAGs specified via that API consist of nodes and edges.  A
+  node can have multiple incoming and outgoing edges.  An edge
   has exactly one source node, and one target node.
 
   Loosely spoken, a node repesents a job to be executed, and
@@ -70,36 +73,42 @@ Digedags workflow API
 
   The digedag API allows to specify DAGs as follows:
 
-  {
+  ---------------------------------------------------------------
     // create a new and empty DAG instance
-    digedag::dag * d = new digedag::dag;
-
+    boost::shared_ptr <digedag::dag> d (new digedag::dag);
 
     // create two nodes for our dag.  A node description is
     // basically a saga::job::description, and can specify the
     // application to run when the node fires
+    // The dag instance from above functions as node factory
     digedag::node_description nd;
-    digedag::node * n1 = new digedag::node (nd);
-    digedag::node * n2 = new digedag::node (nd);
+    boost::shared_ptr <digedag::node> n1 = d->create_node (nd);
+    boost::shared_ptr <digedag::node> n2 = d->create_node (nd);
 
     // add two nodes to the dag, with identifiers
     d->add_node ("node_1", n1);
     d->add_node ("node_2", n2);
 
-    // specify data to be transfered between the two nodes
-    digedag::edge * e1 = new digedag::edge ("/tmp/src",
-                                            "/tmp/tgt");
+    // specify data to be transfered between the two nodes.
+    // Again, the dag instance serves as an edge factory.
+    boost::shared_ptr <digedag::edge> e1 
+           = dag->create_edge ("/tmp/src", "/tmp/tgt");
 
     // add that edge to the DAG
     d->add_edge (e1, n1, n2);
 
+    // the abstract DAG is complete, and can bew explicitely
+    // translated into a concrete DAG.  This step is optional
+    // though, and is implictely peformed on fire() if not
+    // called previously.  See infos about the Scheduler below.
+    d->schedule ();
 
-    // the DAG is complete, and can be run
+    // the (abstract or concrete) DAG is ready, and can be run
     d->fire ();
 
     std::cout << "dag    running..." << std::endl;
 
-    // wait til the dag had a chance to finish
+    // wait 'til the dag had a chance to finish
     while ( digedag::Running == d->get_state () )
     {
       ::sleep (1);
@@ -108,10 +117,7 @@ Digedags workflow API
     
     // this is the same as the loop above
     s.wait ();
-    
-    // done - delete all dag components recursively
-    delete d;
-  }
+  ---------------------------------------------------------------
     
 
   The fire() method on the DAG scans all nodes and selects those
@@ -121,12 +127,12 @@ Digedags workflow API
   outgoing edges for the node are fired, which causes the data
   represented by that edge to be transferred from src to tgt.
   If an edge succeeds with the transfer, the tgt node is then
-  fired, etc etc.  Eventually, the whole DAG (i.e. all nodes and
-  edges) is completed.
+  fired, etc etc.  Eventually, the whole DAG (with all its nodes
+  and edges) is completed.
 
 
-The Digedag Scheduler(***)
---------------------------
+The Digedag Scheduler(****)
+---------------------------
 
   A node's node_description and also an edge's src and tgt
   specification may leave the mapping of actions to be performed
@@ -138,13 +144,14 @@ The Digedag Scheduler(***)
 
   The Digedag scheduler is responsible for translating the
   abstract DAG into a concrete DAG, by assigning specific
-  resources to nodes and edges.  It is invoked when calling
+  resources to nodes and edges.  It is expolictely invoked when
+  calling
 
     dag->schedule ();
 
-  But the digedag scheduler is actually not limited to that
+  The digedag scheduler is actually not limited to that
   translation, but can in fact modify the complete DAG and its
-  elements if needed.  Also, the scheduler is invoked on the
+  elements as needed.  Also, the scheduler is invoked on the
   following occassions:
 
     - when dag.schedule() is called
@@ -163,9 +170,10 @@ The Digedag Scheduler(***)
     - when an edge's data transfer failed
     - when an edge's data transfer succeeded
 
-  Thus, the scheduler class is able to react on runtime errors
-  immediately, can obserev all actions on a dag, and on its
-  elements, and can globally optimize execution.
+  Thus, the scheduler class is able to react on dag creation or
+  runtime errors immediately, can obserev all actions on a dag,
+  and on its elements, and can globally optimize execution.
+  More details in the 'Internals' section below.
 
 
 The Digedag Workflow Enactor
@@ -174,14 +182,14 @@ The Digedag Workflow Enactor
   If a node's or edge's fire() method get called, the
   dependencies of that component are checked.  If they are all
   resolved (i.e. all upstrean nodes and edges have been
-  completed without error), the the component state is changed
-  to Running, and a separate thread is started to perform its
+  completed without error), the component state is changed to
+  'Running', and a separate thread is started to perform its
   specific action: for a node, a saga::job::job instance is
   created and started, according to the node_description; and
   for an edge, a saga::filesystem::file.copy operation is
-  started, from the edges src to its tgt location.  Once that
-  worker thread finishes, the components status changes to Done
-  or Failed.
+  started, from the edges src to its tgt location (ore details
+  below, in 'Internals').  Once that worker thread finishes, the
+  components status changes to 'Done' or 'Failed'.
 
   Note that the digedag enactor is actually a local enactment:
   it only knows about the operations to be performed by one
@@ -196,16 +204,27 @@ The Digedag Workflow Parsers
   Pegasus input and output workflow descriptions into digedag
   DAGs.  
 
-  The parsers are actually rather simple: the create on dag, and
-  for each node they encounter in the workflow description
-  files, they create a suitable node_description, and add that
-  node to the dag.  For each data transfer to be performed, the
-  parsers add a data transfer edge between the respectife nodes.
+  The parsers are actually rather simple: they create a dag
+  instance, and for each nodes they encounter in the workflow
+  description files, they create a suitable node_description,
+  and add that node to the dag.  For each data transfer to be
+  performed, the parsers add a data transfer edge between the
+  respective nodes.
 
-  After parsing the wf description files, the parser classes
-  return a pointer to the DAG via get_dag(), for further
-  manipulation by the end user.
+  After parsing the WF description files, the parser classes
+  return a the DAG instance via get_dag(), for further
+  manipulation or enactment by the end user.
 
+
+Digedag Internals
+-----------------
+
+  [ This section may be important for Digedag developers, but
+  notnecessarily beneficial for Digedag users ]
+
+  When starting to change the digedag code, it is important to
+  understand how scheduler and enactor interact with the DAG
+  tree.  
 
 ----------------------------------------------------------------
   
@@ -219,5 +238,12 @@ The Digedag Workflow Parsers
   in Pegasus format.  Adding additional parsers is straight
   forward.
 
-  (***) The Digedag scheduler is not really a scheduler...
+  (***) The name 'Digedag' refers to to an East German comic
+  series (see http://en.wikipedia.org/wiki/Mosaik#Digedags_years).  
+  Naming software is always painful, but digedag was the first 
+  German word coming to my mind which contained 'dag' ;-)  One
+  could stretch the argument though that Dig, Dag and Digedag
+  are three very different persons, acting in concertation...
+
+  (****) The Digedag scheduler is not really a scheduler...
 
