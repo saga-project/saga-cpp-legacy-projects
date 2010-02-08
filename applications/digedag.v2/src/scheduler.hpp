@@ -56,11 +56,8 @@ namespace digedag
 
       std::set <saga::url>                   active_files_; // see FIXME in task_run 
 
-      saga::task_container                   tc_nodes_;
-      saga::task_container                   tc_edges_;
-
-      enactor                              * enact_nodes_;
-      enactor                              * enact_edges_;
+      boost::shared_ptr <enactor>            enact_nodes_;
+      boost::shared_ptr <enactor>            enact_edges_;
 
       int                                    max_nodes_;
       int                                    max_edges_;

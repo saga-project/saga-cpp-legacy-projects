@@ -25,8 +25,6 @@ namespace digedag
     : session_       (  session)
     , dag_           (        d)
     , stopped_       (    false)
-    , enact_nodes_   (     NULL)
-    , enact_edges_   (     NULL)
     , max_nodes_     (MAX_NODES)
     , max_edges_     (MAX_EDGES)
     , active_nodes_  (        0)
@@ -47,9 +45,6 @@ namespace digedag
     util::scoped_lock sl (mtx_);
 
     thread_exit ();
-
-    if ( enact_nodes_ ) delete (enact_nodes_);
-    if ( enact_edges_ ) delete (enact_edges_);
   }
 
   void scheduler::stop (void)
@@ -295,8 +290,8 @@ namespace digedag
     }
 
     // start enacting the task containers, even if they are still empty
-    enact_nodes_ = new digedag::enactor (shared_from_this(), tc_nodes_, "node", mtx_);
-    enact_edges_ = new digedag::enactor (shared_from_this(), tc_edges_, "edge", mtx_);
+    enact_nodes_.reset (new digedag::enactor (shared_from_this(), "node", mtx_));
+    enact_edges_.reset (new digedag::enactor (shared_from_this(), "edge", mtx_));
 
     // start the scheduler thread which executes nodes and edges
     thread_run ();
@@ -580,7 +575,7 @@ namespace digedag
         // FIXME: we need to verify here if the task is valid (correct state
         // etc).  Or simply catch for SAGA exceptions?
 
-        tc_nodes_.add_task (t);
+        enact_nodes_->queue_task (t);
         // std::cout << " === mapping task " 
         //           << t.get_id () 
         //           << " to node " 
@@ -629,7 +624,7 @@ namespace digedag
         std::cout << " === scheduler starts edge " << e->get_name () << std::endl;
         saga::task t = e->work_start ();
         
-        tc_edges_.add_task (t);
+        enact_edges_->queue_task (t);
         
         edge_task_map_[t] = e;
 

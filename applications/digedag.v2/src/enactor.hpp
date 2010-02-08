@@ -35,11 +35,12 @@ namespace digedag
 
     public:
       enactor (boost::shared_ptr <scheduler> s, 
-               saga::task_container          tc, 
                std::string                   flag, 
                util::mutex                   mtx);
 
       ~enactor (void);
+
+      void queue_task (saga::task t);
 
       void thread_work (void);
   };

@@ -8,11 +8,9 @@
 namespace digedag
 {
   enactor::enactor (boost::shared_ptr <scheduler> s, 
-                    saga::task_container          tc, 
                     std::string                   flag, 
                     util::mutex                   mtx) 
-    : tc_   (tc)
-    , s_    (s)
+    : s_    (s)
     , f_    (flag)
     , mtx_  (mtx)
     , todo_ (true)
@@ -25,6 +23,11 @@ namespace digedag
   {
     todo_ = false;
     thread_join ();
+  }
+
+  void enactor::queue_task (saga::task t)
+  {
+    tc_.add_task (t);
   }
 
 
