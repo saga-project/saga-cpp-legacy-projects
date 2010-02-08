@@ -20,7 +20,9 @@
 namespace digedag
 {
   class dag;
-  class watch_tasks;
+  class node;
+  class edge;
+  class enactor;
   class scheduler : public digedag::util::thread, 
                     public util::enable_shared_from_this <scheduler>
   {
@@ -52,11 +54,13 @@ namespace digedag
       std::deque <boost::shared_ptr <node> > queue_nodes_;
       std::deque <boost::shared_ptr <edge> > queue_edges_;
 
+      std::set <saga::url>                   active_files_; // see FIXME in task_run 
+
       saga::task_container                   tc_nodes_;
       saga::task_container                   tc_edges_;
 
-      watch_tasks                          * watch_nodes_;
-      watch_tasks                          * watch_edges_;
+      enactor                              * enact_nodes_;
+      enactor                              * enact_edges_;
 
       int                                    max_nodes_;
       int                                    max_edges_;
@@ -115,89 +119,6 @@ namespace digedag
                                   std::string flag);
 
       void dump_map (const std::map <saga::task, boost::shared_ptr <edge> >  & map);
-  };
-
-  // task_container are broken, we use this watch_tasks class for notification
-  // on finished tasks.  It will constantly cycle over the contents of a given
-  // task container in its worker thread, and will call 'cb' in the main thread
-  // if any task changed its state to Done or Failed.
-  class watch_tasks : public digedag::util::thread
-  {
-    private:
-      saga::task_container              tc_;
-      boost::shared_ptr <scheduler>     s_;
-      std::string                       f_;
-      util::mutex                       mtx_;
-      bool                              todo_;
-
-    public:
-      watch_tasks (boost::shared_ptr <scheduler> s, 
-                   saga::task_container          tc, 
-                   std::string                   flag, 
-                   util::mutex                   mtx) 
-        : tc_   (tc)
-        , s_    (s)
-        , f_    (flag)
-        , mtx_  (mtx)
-        , todo_ (true)
-
-      {
-        thread_run ();
-      }
-
-      ~watch_tasks (void)
-      {
-        todo_ = false;
-        thread_join ();
-      }
-
-      void thread_work (void)
-      {
-        while ( todo_ )
-        {
-          std::vector <saga::task> tasks;
-          
-          {
-            util::scoped_lock (mtx_);
-            tasks = tc_.list_tasks ();
-          }
-
-          // by default, so unless we find interesting task state changes, we
-          // sleep a little to avoid busy waits.  Task container notifications
-          // will help once implemented.
-          bool do_wait = true;
-
-          for ( unsigned int i = 0; i < tasks.size (); i++ )
-          {
-            saga::task        t = tasks[i];
-            saga::task::state s = t.get_state ();
-
-            if ( s == saga::task::Done   || 
-                 s == saga::task::Failed )
-            {
-              std::cout << " === task " << t.get_id () << " is final: " 
-                        << saga_state_to_string (t.get_state ()) 
-                        << std::endl;
-
-              {
-                util::scoped_lock (mtx_);
-                tc_.remove_task (t);
-              }
-
-              s_->work_finished (t, f_);
-
-              // just check task container again immediately
-              do_wait = false;
-            }
-          }
-
-          // avoid busy wait
-          if ( do_wait )
-          {
-            ::sleep (1);
-          }
-        }
-      }
   };
 
 } // namespace digedag

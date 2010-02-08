@@ -327,8 +327,7 @@ namespace digedag
     if ( state_ == Stopped )
       return;
 
-    assert ( state_ != Failed );
-    assert ( state_ != Done   );
+    assert ( state_ != Done );
 
     try 
     {

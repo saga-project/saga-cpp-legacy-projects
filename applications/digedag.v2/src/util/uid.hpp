@@ -7,7 +7,7 @@ namespace digedag
   namespace util
   {
     // This class provides a trivial implementation for a unique ID.  
-    // That ID is not globally unique (!uuid), but simply a INT which is
+    // That ID is not globally unique (!uuid), but simply a int which is
     // increased after every query.
     //
     // NOTE that inheriting classes need to explicitely invoke the copy c'tor of

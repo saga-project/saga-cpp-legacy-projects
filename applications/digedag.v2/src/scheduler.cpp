@@ -11,6 +11,7 @@
 #include "enum.hpp"
 #include "node.hpp"
 #include "edge.hpp"
+#include "enactor.hpp"
 #include "scheduler.hpp"
 
 #define MAX_NODES 20
@@ -24,8 +25,8 @@ namespace digedag
     : session_       (  session)
     , dag_           (        d)
     , stopped_       (    false)
-    , watch_nodes_   (     NULL)
-    , watch_edges_   (     NULL)
+    , enact_nodes_   (     NULL)
+    , enact_edges_   (     NULL)
     , max_nodes_     (MAX_NODES)
     , max_edges_     (MAX_EDGES)
     , active_nodes_  (        0)
@@ -47,8 +48,8 @@ namespace digedag
 
     thread_exit ();
 
-    if ( watch_nodes_ ) delete (watch_nodes_);
-    if ( watch_edges_ ) delete (watch_edges_);
+    if ( enact_nodes_ ) delete (enact_nodes_);
+    if ( enact_edges_ ) delete (enact_edges_);
   }
 
   void scheduler::stop (void)
@@ -293,9 +294,9 @@ namespace digedag
       return false;
     }
 
-    // start watching the task containers, even if they are still empty
-    watch_nodes_ = new watch_tasks (shared_from_this(), tc_nodes_, "node", mtx_);
-    watch_edges_ = new watch_tasks (shared_from_this(), tc_edges_, "edge", mtx_);
+    // start enacting the task containers, even if they are still empty
+    enact_nodes_ = new digedag::enactor (shared_from_this(), tc_nodes_, "node", mtx_);
+    enact_edges_ = new digedag::enactor (shared_from_this(), tc_edges_, "edge", mtx_);
 
     // start the scheduler thread which executes nodes and edges
     thread_run ();
@@ -514,6 +515,9 @@ namespace digedag
       return false;
     }
 
+    active_files_.erase (e->get_src ());
+    active_files_.erase (e->get_tgt ());
+
     // std::cout << " === egde done: " << e->get_name () << std::endl;
 
     return true;
@@ -528,6 +532,9 @@ namespace digedag
     {
       return false;
     }
+
+    active_files_.erase (e->get_src ());
+    active_files_.erase (e->get_tgt ());
 
     std::cout << " === edge failed: " << e->get_name () << " - exit" << std::endl;
     ::exit (2);
@@ -551,6 +558,7 @@ namespace digedag
     //  - not more than max_nodes/max_edges are running
     // then
     //  - start new nodes/edges, removing them from the queue
+
     while ( true )
     {
       // std::cout << " === scheduler queue watch begins " << std::endl;
@@ -585,6 +593,7 @@ namespace digedag
         queue_nodes_.pop_front ();
       }
 
+
       while ( max_edges_           > active_edges_ &&
               queue_edges_.size () > 0             )
       {
@@ -593,8 +602,29 @@ namespace digedag
         // CHECK
         util::scoped_lock sl (mtx_);
 
-        active_edges_++;
+        // FIXME:  
+        // At the moment, the local file adaptor is not supporting atomic
+        // operations, not even close.  So, we need to take care not to run
+        // edges concurrently which operate on the same data files (src/tgt).
+        // Thus we have a peek at the next edge, and if it does not fit the
+        // bill, it is ignored for this while iteration.
+        //
+        // Note that active_files is emptied by the scheduler
+        // edge_run_done and edge_run_failed hooks.
         boost::shared_ptr <edge> e = queue_edges_.front ();
+
+        if ( active_files_.find (e->get_src ()) != active_files_.end () ||
+             active_files_.find (e->get_tgt ()) != active_files_.end () )
+        {
+          continue;  // stop handling that edge for now
+        }
+
+        // this edge is being executed - so lock src and tgt as long as it is
+        // active
+        active_files_.insert (e->get_src ());
+        active_files_.insert (e->get_tgt ());
+
+        active_edges_++;
 
         std::cout << " === scheduler starts edge " << e->get_name () << std::endl;
         saga::task t = e->work_start ();
