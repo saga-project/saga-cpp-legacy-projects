@@ -224,7 +224,86 @@ Digedag Internals
 
   When starting to change the digedag code, it is important to
   understand how scheduler and enactor interact with the DAG
-  tree.  
+  tree.  Here are some notes about that topic, for the current
+  implementation.
+
+  - On most interactions on a dag instance, the dag is
+    calling-out to its scheduler class.  The method names of the
+    scheduler provide a good idea on those callout points:
+
+    hook_dag_create       (void);
+    hook_dag_destroy      (void);
+    hook_dag_schedule     (void);
+    hook_dag_run_pre      (void);
+    hook_dag_run_post     (void);
+    hook_dag_run_done     (void);
+    hook_dag_run_fail     (void);
+    hook_dag_wait         (void);
+
+    hook_node_add         (boost::shared_ptr <node> n);
+    hook_node_remove      (boost::shared_ptr <node> n);
+    hook_node_run_pre     (boost::shared_ptr <node> n);
+    hook_node_run_done    (boost::shared_ptr <node> n);
+    hook_node_run_fail    (boost::shared_ptr <node> n);
+
+    hook_edge_add         (boost::shared_ptr <edge> e);
+    hook_edge_remove      (boost::shared_ptr <edge> e);
+    hook_edge_run_pre     (boost::shared_ptr <edge> e);
+    hook_edge_run_done    (boost::shared_ptr <edge> e);
+    hook_edge_run_fail    (boost::shared_ptr <edge> e);
+
+    In these hooks, the scheduler has access to the complete
+    dag, and can optimize it, check it for consistency, etc.
+    (not much is implemented, but new schedulers *can* do that.
+
+  - there are two independent enactors right now: one for edges,
+    one for nodes.  It is not neccessary to implement it that
+    way.
+
+  - if a dag gets fired, it tries to find any nodes which have
+    no input dependencies, and fires those.  That node's fire
+    will then call hook_node_run_pre(), which will register the
+    node with the enactor.  The enactor will move that node into
+    queued_nodes_ (a std::dequeue), and will serve them (i.e.
+    run them) first come, first served.
+
+  - the queue will get worked upon in a separate thread: as long
+    as not enough nodes or edges are active, the next element is
+    taken from the queue, and started.  Starting means:
+
+    - The thread calls back into the node or edge, so calls
+      either one of these
+      
+        saga::thread node::work_start (void);
+        saga::thread edge::work_start (void);
+
+      which returns a Running task which represent the workload.
+      That task is put into the enactors task container.
+      (note: eventually, the returned task should not be
+      running, but should be new, and should be started by the
+      enactor).
+
+    - the enactor is watching all active tasks.  If any task
+      finishes, it calls back to the scheduler
+
+        void work_finished (saga::task  t, 
+                            std::string flag);
+
+    - the scheduler can  figure out which node or edge that task
+      belonged to (it maintains a node_task_map_ and a
+      edge_task_map_ to do that), and in turn calls that
+      entities work_done or work_failed routine, depending on
+      the task's state.  That routine will then update the
+      entities state, and caus it to fire edges or tasks
+      depending on it (if state is Done).
+
+  - The above description leaves the distonction between
+    scheduler and enactor vague.  This is supposed to become
+    more clearly separated soon: the scheduler is to become a
+    mapper which only operates on the DAG structure and meta
+    data, and the enactor will take over all operations on the
+    workload tasks.
+
 
 ----------------------------------------------------------------
   
