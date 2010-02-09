@@ -294,9 +294,9 @@ namespace digedag
 
   void edge::dump (void)
   {
-    std::cout << "          edge "
+    std::cout << " -------- edge "
               << get_name ()
-              << " [" << src_url_.get_string ()   << "\t -> " << tgt_url_.get_string () << "] "
+              << " [" << get_src ().get_string ()   << "\t -> " << get_tgt ().get_string () << "] "
               << " (" << state_to_string (state_) << ")" 
               << std::endl;
   }

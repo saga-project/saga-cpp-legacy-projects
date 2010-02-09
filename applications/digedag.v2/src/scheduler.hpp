@@ -37,8 +37,6 @@ namespace digedag
 
       std::map <std::string, job_info_t>     job_info_;
 
-      std::string                            src_; // scheduling policy
-
       std::string                            data_src_pwd_;
       std::string                            data_tgt_pwd_;
 
@@ -47,14 +45,17 @@ namespace digedag
 
       saga::session                        & session_;
       dag                                  * dag_;
+      std::string                            policy_; // scheduling policy
 
+
+      bool                                   initialized_;
       bool                                   stopped_;
 
       // queues
       std::deque <boost::shared_ptr <node> > queue_nodes_;
       std::deque <boost::shared_ptr <edge> > queue_edges_;
 
-      std::set <saga::url>                   active_files_; // see FIXME in task_run 
+      std::set <std::string>                 active_files_; // see FIXME in task_run 
 
       boost::shared_ptr <enactor>            enact_nodes_;
       boost::shared_ptr <enactor>            enact_edges_;
@@ -78,8 +79,8 @@ namespace digedag
 
 
     public:
-      scheduler  (dag * d, 
-                  const std::string & src, 
+      scheduler  (dag               * d, 
+                  const std::string & policy, 
                   saga::session       session);
       ~scheduler (void);
 

@@ -34,8 +34,7 @@ namespace digedag
       std::map <edge_id_t, edge_map_t> edges_;     // dag edge names and instances
 
       state                            state_;     // see get_state ()
-   // boost::shared_ptr <scheduler>    scheduler_;
-      boost::shared_ptr <scheduler>    scheduler_;
+      boost::shared_ptr <scheduler>    scheduler_; // scheduler instance operating on the dag
 
       // special nodes which act as anchor for input and output edges
       boost::shared_ptr <node>         input_;     // node for data stagein 

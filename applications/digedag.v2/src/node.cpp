@@ -362,7 +362,7 @@ namespace digedag
 
   void node::dump (void)
   {
-    std::cout << "     node " << get_name () 
+    std::cout << " ### node " << get_name () 
               << " [" << host_ << ":" << pwd_  << " : " << cmd_ << "]" 
               << " (" << state_to_string (get_state ()) << ")" << std::endl;
 
@@ -447,12 +447,12 @@ namespace digedag
     // actually created
     if ( valid_task_ )
     {
-      std::cout << " === node " << get_name () 
-                << " : checking task state" << std::endl; 
+      // std::cout << " === node " << get_name () 
+      //           << " : checking task state" << std::endl; 
       switch ( task_.get_state () )
       {
         case saga::job::New:
-          std::cout << " === node is almost running: " << get_name () << std::endl;
+          // std::cout << " === node is almost running: " << get_name () << std::endl;
           state_ = Pending;
           break;
 
@@ -466,8 +466,7 @@ namespace digedag
           scheduler_->hook_node_run_done (shared_from_this ());
           break;
 
-
-          // Canceled, Failed, Unknown, New - all invalid
+        // Canceled, Failed, Unknown, New - all invalid
         default:
           state_ = Failed;
           std::cout << std::string ("       node ") << get_name () 

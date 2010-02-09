@@ -20,18 +20,18 @@
 namespace digedag
 {
   scheduler::scheduler (dag               * d, 
-                        const std::string & src, 
+                        const std::string & policy, 
                         saga::session       session)
     : session_       (  session)
     , dag_           (        d)
+    , policy_        (   policy)
+    , initialized_   (    false)
     , stopped_       (    false)
     , max_nodes_     (MAX_NODES)
     , max_edges_     (MAX_EDGES)
     , active_nodes_  (        0)
     , active_edges_  (        0)
   {
-    src_ = src;
-
     parse_src ();
   }
 
@@ -68,7 +68,7 @@ namespace digedag
       return;
     }
 
-    if ( src_.empty () )
+    if ( policy_.empty () )
     {
       return;
     }
@@ -76,11 +76,11 @@ namespace digedag
     std::fstream fin;
     std::string  line;
 
-    fin.open (src_.c_str (), std::ios::in);
+    fin.open (policy_.c_str (), std::ios::in);
 
     if ( fin.fail () )
     {
-      std::cerr << "opening " << src_ << " failed" << std::endl;
+      std::cerr << "opening " << policy_ << " failed" << std::endl;
       throw "Cannot open file";
     }
 
@@ -92,7 +92,7 @@ namespace digedag
 
       if ( words.size () < 1 )
       {
-        std::cerr << "parser error (1) in " << src_ << " at line " << lnum << std::endl;
+        std::cerr << "parser error (1) in " << policy_ << " at line " << lnum << std::endl;
       }
       else if ( words[0] == "#" )
       {
@@ -135,7 +135,7 @@ namespace digedag
         catch ( const saga::exception & e )
         {
           // error in handling context line
-          std::cerr << "context error in " << src_ 
+          std::cerr << "context error in " << policy_ 
                     << " at line " << lnum 
                     << ": \n" << e.what () 
                     << std::endl;
@@ -145,7 +145,7 @@ namespace digedag
       {
         if ( words.size () != 4 )
         {
-          std::cerr << "parser error (2) in " << src_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error (2) in " << policy_ << " at line " << lnum << std::endl;
         }
         else if ( words[1] == "INPUT" )
         {
@@ -159,14 +159,14 @@ namespace digedag
         }
         else
         {
-          std::cerr << "parser error (3) in " << src_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error (3) in " << policy_ << " at line " << lnum << std::endl;
         }
       }
       else if ( words[0] == "job" )
       {
         if ( words.size () < 5 )
         {
-          std::cerr << "parser error (4) in " << src_ << " at line " << lnum << std::endl;
+          std::cerr << "parser error (4) in " << policy_ << " at line " << lnum << std::endl;
         }
         else
         {
@@ -192,6 +192,12 @@ namespace digedag
   //
   bool scheduler::hook_dag_create (void)
   {
+    // shared_from_this() is only available from here on
+    enact_nodes_.reset (new digedag::enactor (shared_from_this (), "node", mtx_));
+    enact_edges_.reset (new digedag::enactor (shared_from_this (), "edge", mtx_));
+
+    initialized_ = true;
+
     util::scoped_lock sl (mtx_);
 
     if ( stopped_ ) 
@@ -288,10 +294,6 @@ namespace digedag
     {
       return false;
     }
-
-    // start enacting the task containers, even if they are still empty
-    enact_nodes_.reset (new digedag::enactor (shared_from_this(), "node", mtx_));
-    enact_edges_.reset (new digedag::enactor (shared_from_this(), "edge", mtx_));
 
     // start the scheduler thread which executes nodes and edges
     thread_run ();
@@ -510,8 +512,8 @@ namespace digedag
       return false;
     }
 
-    active_files_.erase (e->get_src ());
-    active_files_.erase (e->get_tgt ());
+    active_files_.erase (e->get_src ().get_string ());
+    active_files_.erase (e->get_tgt ().get_string ());
 
     // std::cout << " === egde done: " << e->get_name () << std::endl;
 
@@ -528,8 +530,8 @@ namespace digedag
       return false;
     }
 
-    active_files_.erase (e->get_src ());
-    active_files_.erase (e->get_tgt ());
+    active_files_.erase (e->get_src ().get_string ());
+    active_files_.erase (e->get_tgt ().get_string ());
 
     std::cout << " === edge failed: " << e->get_name () << " - exit" << std::endl;
     ::exit (2);
@@ -545,6 +547,13 @@ namespace digedag
 
   void scheduler::thread_work (void)
   {
+    // wait for proper initialization of the enactors
+    while ( ! initialized_ )
+    {
+      ::sleep (1);
+    }
+
+
     // work the node and edge queues:
     // 
     // if 
@@ -553,7 +562,6 @@ namespace digedag
     //  - not more than max_nodes/max_edges are running
     // then
     //  - start new nodes/edges, removing them from the queue
-
     while ( true )
     {
       // std::cout << " === scheduler queue watch begins " << std::endl;
@@ -566,14 +574,19 @@ namespace digedag
         // CHECK
         util::scoped_lock sl (mtx_);
 
-        active_nodes_++;
+        // get node from queue
         boost::shared_ptr <node> n = queue_nodes_.front ();
+        queue_nodes_.pop_front ();
 
-        std::cout << " === scheduler starts node " << n->get_name () << std::endl;
+        // n->dump ();
+
+        // std::cout << " === scheduler starts node " << n->get_name () << std::endl;
         saga::task t = n->work_start ();
 
         // FIXME: we need to verify here if the task is valid (correct state
         // etc).  Or simply catch for SAGA exceptions?
+
+        active_nodes_++;
 
         enact_nodes_->queue_task (t);
         // std::cout << " === mapping task " 
@@ -583,9 +596,6 @@ namespace digedag
         //           << std::endl;
 
         node_task_map_[t] = n;
-
-        // remove node from queue
-        queue_nodes_.pop_front ();
       }
 
 
@@ -606,22 +616,31 @@ namespace digedag
         //
         // Note that active_files is emptied by the scheduler
         // edge_run_done and edge_run_failed hooks.
-        boost::shared_ptr <edge> e = queue_edges_.front ();
 
-        if ( active_files_.find (e->get_src ()) != active_files_.end () ||
-             active_files_.find (e->get_tgt ()) != active_files_.end () )
+        // get edge from queue
+        boost::shared_ptr <edge> e = queue_edges_.front ();
+        queue_edges_.pop_front ();
+
+        // e->dump ();
+
+        if ( active_files_.find (e->get_src ().get_string ()) != active_files_.end () ||
+             active_files_.find (e->get_tgt ().get_string ()) != active_files_.end () )
         {
-          continue;  // stop handling that edge for now
+          // stop handling that edge for now, and put it to the back of the queue
+          queue_edges_.push_back (e);
+          continue;
         }
 
         // this edge is being executed - so lock src and tgt as long as it is
         // active
-        active_files_.insert (e->get_src ());
-        active_files_.insert (e->get_tgt ());
+
+        // only insert clones
+        active_files_.insert (e->get_src ().get_string ());
+        active_files_.insert (e->get_tgt ().get_string ());
 
         active_edges_++;
 
-        std::cout << " === scheduler starts edge " << e->get_name () << std::endl;
+        // std::cout << " === scheduler starts edge " << e->get_name () << std::endl;
         saga::task t = e->work_start ();
         
         enact_edges_->queue_task (t);
@@ -635,15 +654,14 @@ namespace digedag
         //           << std::endl;
 
         // dump_map (edge_task_map_);
-
-        // remove edge from queue
-        queue_edges_.pop_front ();
       }
 
       // std::cout << " === scheduler queue watch done " << std::endl;
 
       ::sleep (1);
     }
+
+    std::cout << " === scheduler queue watch finished " << std::endl;
   }
 
   void scheduler::work_finished (saga::task  t, 
