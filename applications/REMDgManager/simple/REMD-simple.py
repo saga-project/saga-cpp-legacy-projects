@@ -141,7 +141,7 @@ class ReManager():
             else:
                 try:
                     print "stage file: " + source_url.get_string() + " to " + dest_url.get_string()
-                    sagafile = saga.file.file(source_url)
+                    sagafile = saga.filesystem.file(source_url)
                     sagafile.copy(dest_url)
                 except saga.exception, e:
                     error_msg = "Input file %s failed to be staged in"%(ifile_basename)
@@ -154,10 +154,10 @@ class ReManager():
             try:
                 source_url = saga.url(remote_url_prefix)
                 source_url.path= os.path.join(remote_dir, ifile)
-                dest_url = saga.url("file://" + local_dir + "/")
-                dest_url.path = ifile
+                dest_url = saga.url("file:///" + local_dir + "/" + ifile)
+                #dest_url.path = ifile
                 print "(DEBUG) Staging out output.txt file at %s to %s"%(source_url.get_string(), dest_url.get_string())
-                sagafile = saga.file.file(source_url)
+                sagafile = saga.filesystem.file(source_url)
                 sagafile.copy(dest_url)
             except saga.exception, e:
                 error_msg = "File stage out failed: "+ source_url.get_string()
