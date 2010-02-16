@@ -104,11 +104,6 @@ namespace digedag
         std::cerr << "saga thread exception: " << e.what () << std::endl;
         thread_state_ = ThreadFailed;
       }
-      catch ( ... )
-      {
-        std::cerr << "some thread exception " << std::endl;
-        thread_state_ = ThreadFailed;
-      }
 
       // nothing more to do: close thread
 #ifdef DO_THREADS

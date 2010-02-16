@@ -8,7 +8,7 @@ int main (int argc, char** argv)
   {
     if ( 1 )
     {
-      boost::shared_ptr <digedag::dag>  d  (new digedag::dag (""));
+      boost::shared_ptr <digedag::dag>  d  (new digedag::dag);
 
       digedag::node_description nd; // inherits saga::job::description
 

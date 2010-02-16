@@ -51,10 +51,10 @@ int main (int argc, char** argv)
   {
     std::cerr << "saga exception: " << e.what () << std::endl;
   }
-  catch ( ... )
-  {
-    std::cerr << "oops exception " << std::endl;
-  }
+  // catch ( ... )
+  // {
+  //   std::cerr << "oops exception " << std::endl;
+  // }
 
   return 0;
 }

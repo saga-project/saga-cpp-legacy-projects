@@ -1,6 +1,7 @@
 
 #include "dag.hpp"
 #include "scheduler.hpp"
+#include "util/util.hpp"
 
 namespace digedag
 {
@@ -23,6 +24,8 @@ namespace digedag
 
   dag::~dag (void) 
   {
+    util::scoped_lock (mtx_);
+
     std::cout << " === dag destructed" << std::endl;
 
     // ### scheduler hook
@@ -65,6 +68,8 @@ namespace digedag
   boost::shared_ptr <node> dag::create_node (node_description & nd, 
                                              std::string        name)
   {
+    util::scoped_lock (mtx_);
+
     return boost::shared_ptr <node> (new node (nd, name, scheduler_, session_));
   }
 
@@ -72,12 +77,16 @@ namespace digedag
   boost::shared_ptr <node> dag::create_node (std::string cmd,
                                              std::string name)
   {
+    util::scoped_lock (mtx_);
+
     return boost::shared_ptr <node> (new node (cmd, name, scheduler_, session_));
   }
 
 
   boost::shared_ptr <node> dag::create_node (void)
   {
+    util::scoped_lock (mtx_);
+
     return boost::shared_ptr <node> (new node (scheduler_, session_));
   }
 
@@ -85,14 +94,20 @@ namespace digedag
   boost::shared_ptr <edge> dag::create_edge (const saga::url & src, 
                                              const saga::url & tgt)
   {
+    util::scoped_lock (mtx_);
+
     edge_cnt_++;
+
     return boost::shared_ptr <edge> (new edge (src, tgt, scheduler_, session_, edge_cnt_));
   }
 
 
   boost::shared_ptr <edge> dag::create_edge (void)
   {
+    util::scoped_lock (mtx_);
+
     edge_cnt_++;
+
     return boost::shared_ptr <edge> (new edge (scheduler_, session_, edge_cnt_));
   }
 
@@ -101,6 +116,8 @@ namespace digedag
   void dag::add_node (const node_id_t        & name, 
                       boost::shared_ptr <node> node)
   {
+    util::scoped_lock (mtx_);
+
     if ( ! node )
     {
       std::cout << "adding NULL node " << name << " ?" << std::endl;
@@ -125,6 +142,8 @@ namespace digedag
                       const node_id_t        & src, 
                       const node_id_t        & tgt)
   {
+    util::scoped_lock (mtx_);
+
     boost::shared_ptr <node> n_src;
     boost::shared_ptr <node> n_tgt;
 
@@ -156,6 +175,8 @@ namespace digedag
                       boost::shared_ptr <node> src, 
                       boost::shared_ptr <node> tgt)
   {
+    util::scoped_lock (mtx_);
+
     if ( ! src || ! tgt )
     {
       std::cout << " !!! add_edge: ignoring: either src or tgt node is invalid" << std::endl; 
@@ -181,6 +202,8 @@ namespace digedag
 
   void dag::reset (void)
   {
+    util::scoped_lock (mtx_);
+
     std::map <node_id_t, boost::shared_ptr <node> > :: iterator it;
     std::map <node_id_t, boost::shared_ptr <node> > :: iterator begin = nodes_.begin ();
     std::map <node_id_t, boost::shared_ptr <node> > :: iterator end   = nodes_.end ();
@@ -196,8 +219,9 @@ namespace digedag
 
   void dag::dryrun (void)
   {
-    if ( Pending != state_ )
-      return;
+    util::scoped_lock (mtx_);
+
+    if ( Pending != state_ ) return;
 
     std::cout << " dryun:  dag" << std::endl;
 
@@ -217,6 +241,8 @@ namespace digedag
 
   void dag::fire (void)
   {
+    util::scoped_lock (mtx_);
+
     std::cout << "fire   dag  " << std::endl;
 
     // dump ();
@@ -286,6 +312,8 @@ namespace digedag
 
   void dag::wait (void)
   {
+    util::scoped_lock (mtx_);
+
 //  std::cout << "dag    wait..." << std::endl;
 
     // ### scheduler hook
@@ -296,7 +324,7 @@ namespace digedag
             s != Failed )
     {
       std::cout << "dag    waiting..." << std::endl;
-      ::sleep (1);
+      util::ms_sleep (1000);
       s = get_state ();
     }
 
@@ -306,6 +334,8 @@ namespace digedag
 
   state dag::get_state (void)
   {
+    util::scoped_lock (mtx_);
+
     // these states are final - we can return immediately
     if ( Failed  == state_ ||
          Done    == state_ )
@@ -456,11 +486,15 @@ namespace digedag
 
   void dag::set_state (state s)
   {
+    util::scoped_lock (mtx_);
+
     state_ = s;
   }
 
   void dag::dump (void)
   {
+    util::scoped_lock (mtx_);
+
     std::cout << " -  DAG    ----------------------------------\n" << std::endl;
     std::cout << std::string (" state: ") << state_to_string (get_state ()) << std::endl;
 
@@ -494,6 +528,8 @@ namespace digedag
 
   void dag::dump_node (std::string name)
   {
+    util::scoped_lock (mtx_);
+
     if ( nodes_.find (name) != nodes_.end () )
     {
       nodes_[name]->dump ();
@@ -503,6 +539,8 @@ namespace digedag
 
   void dag::schedule (void)
   {
+    util::scoped_lock (mtx_);
+
     // ### scheduler hook
     scheduler_->hook_dag_schedule ();
 

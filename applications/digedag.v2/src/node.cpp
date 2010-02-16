@@ -4,10 +4,11 @@
 
 #include <saga/saga.hpp>
 
-#include "util/split.hpp"
 
 #include "node.hpp"
 #include "scheduler.hpp"
+#include "util/split.hpp"
+#include "util/util.hpp"
 
 
 namespace digedag
@@ -25,6 +26,7 @@ namespace digedag
     , task_       ( saga::task::New)
     , scheduler_  (       scheduler)
     , session_    (         session)
+    , this_fires_ (           false)
   {
     std::stringstream ss;
 
@@ -62,6 +64,7 @@ namespace digedag
     , task_       ( saga::task::New)
     , scheduler_  (       scheduler)
     , session_    (         session)
+    , this_fires_ (           false)
   {
     // parse cmd into node description
     std::vector <std::string> elems = split (cmd_);
@@ -85,21 +88,34 @@ namespace digedag
     , task_       ( saga::task::New)
     , scheduler_  (       scheduler)
     , session_    (         session)
+    , this_fires_ (           false)
   {
   }
 
   node::~node (void)
   {
+    util::scoped_lock (mtx_);
+
+    // We need to wait 'til fire of depending edge is done - the only unlocked
+    // piece of code
+    // FIXME: yes yes, should use cond var
+    while ( this_fires_ )
+    {
+      util::ms_sleep (100);
+    }
+
     std::cout << " === node destructed" << std::endl;
   }
 
   void node::set_name (const std::string name)
   {
+    util::scoped_lock (mtx_);
     name_ = name;
   }
 
   void node::add_edge_in (boost::shared_ptr <edge> e)
   {
+    util::scoped_lock (mtx_);
     edge_in_.push_back (e);
 
     // set initial input edge state
@@ -108,12 +124,14 @@ namespace digedag
 
   void node::add_edge_out (boost::shared_ptr <edge> e)
   {
+    util::scoped_lock (mtx_);
     edge_out_.push_back (e);
   }
 
 
   void node::dryrun (void)
   {
+    util::scoped_lock (mtx_);
     // check if all input data are ready
     std::map <std::string, state> :: iterator begin = edge_states_.begin ();
     std::map <std::string, state> :: iterator end   = edge_states_.end   ();
@@ -146,6 +164,8 @@ namespace digedag
 
   void node::reset (void)
   {
+    util::scoped_lock (mtx_);
+
     state_ = Incomplete;
 
     for ( unsigned int i = 0; i < edge_out_.size (); i++ )
@@ -164,8 +184,9 @@ namespace digedag
   // is then given as parameter.
   void node::fire (boost::shared_ptr <edge> e)
   {
-    if ( state_ == Stopped )
-      return;
+    util::scoped_lock (mtx_);
+
+    if ( state_ == Stopped ) return;
 
     // std::cout << std::string (" ===     node ") << get_name () << ": " 
     //           << e->get_name () << " fired me: " << state_to_string (e->get_state ()) 
@@ -181,6 +202,8 @@ namespace digedag
 
   void node::fire (void)
   {
+    util::scoped_lock (mtx_);
+
     // update own state - we got fired by an edge most likely, and state needs
     // to be updated for that edge at least.
     get_state ();
@@ -219,8 +242,9 @@ namespace digedag
 
   saga::task node::work_start (void)
   {
-    if ( state_ == Stopped )
-      return task_;
+    util::scoped_lock (mtx_);
+
+    if ( state_ == Stopped ) return task_;
 
     assert ( state_ == Pending );
 
@@ -290,21 +314,41 @@ namespace digedag
 
   void node::work_done (void)
   {
-    if ( state_ == Stopped )
-      return;
+    // scope for scoped lock
+    {
+      util::scoped_lock (mtx_);
 
-    // we don't assert here for state != Done and state_ != Failed, as
-    // get_state may have set these states meanwhile, looking at the job
-    // state.
-    
-    state_ = Done;
+      if ( state_ == Stopped ) return;
 
-    std::cout << std::string (" === node done: ")
-              << get_name () 
-              << " (" << get_cmd () << ") " 
-              << std::endl;
+      // we don't assert here for state != Done and state_ != Failed, as
+      // get_state may have set these states meanwhile, looking at the job
+      // state.
+      
+      state_ = Done;
 
-    if ( state_ == Done )
+      std::cout << std::string (" === node done: ")
+                << get_name () 
+                << " (" << get_cmd () << ") " 
+                << std::endl;
+
+      // we report done before we call the edge's fire, to be able to release the
+      // lock (see below)
+      // ### scheduler hook
+      scheduler_->hook_node_run_done (shared_from_this ());
+
+      // only one thread will fire the depending edges (this code is locked)
+      if ( ! this_fires_ )
+      {
+        this_fires_ = true;
+      }
+    }
+    // scope for scoped lock
+
+
+    // we don't lock the node here anymore, but the 'this_fires' flag should allow
+    // to run the edge fire only once (see above).  Not that it matters, as the 
+    // edge can deal with multiple ones, but anyway.
+    if ( this_fires_ )
     {
       // get data staged out, e.g. fire outgoing edges
       for ( unsigned int i = 0; i < edge_out_.size (); i++ )
@@ -314,18 +358,19 @@ namespace digedag
 
         edge_out_[i]->fire (shared_from_this ());
       }
-    }
 
-    // ### scheduler hook
-    scheduler_->hook_node_run_done (shared_from_this ());
+      // signal that fire is done
+      this_fires_ = false;
+    }
 
     return;
   }
 
   void node::work_failed (void)
   {
-    if ( state_ == Stopped )
-      return;
+    util::scoped_lock (mtx_);
+
+    if ( state_ == Stopped ) return;
 
     assert ( state_ != Done );
 
@@ -334,6 +379,7 @@ namespace digedag
       if ( task_.get_state () == saga::task::Failed )
       {
         // task_.rethrow ();
+        std::cout << cmd_ << std::endl;
         saga::no_success e (task_, "job failed for unknown reason");
         throw e;
       }
@@ -352,6 +398,8 @@ namespace digedag
 
   void node::stop ()
   {
+    util::scoped_lock (mtx_);
+
     if ( task_.get_state () == saga::task::Running )
     {
       task_.cancel ();
@@ -362,6 +410,8 @@ namespace digedag
 
   void node::dump (void)
   {
+    util::scoped_lock (mtx_);
+
     std::cout << " ### node " << get_name () 
               << " [" << host_ << ":" << pwd_  << " : " << cmd_ << "]" 
               << " (" << state_to_string (get_state ()) << ")" << std::endl;
@@ -374,21 +424,29 @@ namespace digedag
 
   std::string node::get_id (void) const
   {
+    util::scoped_lock (mtx_);
+
     return name_;
   }
 
   std::string node::get_name (void) const
   {
+    util::scoped_lock (mtx_);
+
     return name_;
   }
 
   node_description node::get_description (void) const
   {
+    util::scoped_lock (mtx_);
+
     return nd_;
   }
 
   void node::set_state (state s)
   {
+    util::scoped_lock (mtx_);
+
     state_ = s;
   }
 
@@ -397,6 +455,8 @@ namespace digedag
   // That code needs to eventually move into a callback on the job state metric.
   state node::get_state (void)
   {
+    util::scoped_lock (mtx_);
+
     // std::cout << " === node " << get_name () << " : state before check " << state_to_string (state_) << std::endl;
 
     // final states just return
@@ -480,13 +540,16 @@ namespace digedag
       } // switch
     }
 
-    // std::cout << " === node " << get_name () << " : state after  check " << state_to_string (state_) << std::endl;
+    // std::cout << " === node " << get_name () << " : state after  check " 
+    //           << state_to_string (state_) << std::endl;
 
     return state_;
   }
 
   void node::set_pwd (std::string pwd)
   {
+    util::scoped_lock (mtx_);
+
     pwd_ = pwd;
     saga::url u_pwd (pwd_);
 
@@ -506,6 +569,8 @@ namespace digedag
 
   void node::set_rm (std::string rm)
   {
+    util::scoped_lock (mtx_);
+
     // std::cout << " === setting rm   to " << rm   << std::endl;
     rm_ = rm;
   }
@@ -513,6 +578,8 @@ namespace digedag
 
   void node::set_host (std::string host)
   {
+    util::scoped_lock (mtx_);
+
     host_ = host;
 
     // std::cout << " === setting host to " << host << std::endl;
@@ -536,6 +603,8 @@ namespace digedag
 
   void node::set_path (std::string path)
   {
+    util::scoped_lock (mtx_);
+
     path_ = path;
 
     std::vector <std::string> new_env;
@@ -609,10 +678,9 @@ namespace digedag
 
   std::string node::get_cmd (void)
   {
-    if ( is_void_ )
-    {
-      return "void";
-    }
+    util::scoped_lock (mtx_);
+
+    if ( is_void_ ) return "void";
 
     std::string out (nd_.get_attribute ("Executable"));
 

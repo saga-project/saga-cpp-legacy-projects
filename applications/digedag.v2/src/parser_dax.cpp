@@ -3,6 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "util/util.hpp"
 #include "util/split.hpp"
 #include "ticpp.hpp"
 #include "parser_dax.hpp"

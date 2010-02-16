@@ -44,7 +44,11 @@ namespace digedag
       boost::shared_ptr <scheduler>           scheduler_;   
       saga::session                           session_;     // session from scheduler
 
+      bool                                    this_fires_;
+      util::mutex                             mtx_;
+
       std::string   get_cmd (void);
+
 
     public:
       node  (node_description              & nd, 

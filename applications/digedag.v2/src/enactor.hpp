@@ -30,13 +30,15 @@ namespace digedag
       saga::task_container              tc_;
       boost::shared_ptr <scheduler>     s_;
       std::string                       f_;
-      util::mutex                       mtx_;
       bool                              todo_;
+
+      util::mutex                       mtx_;
+      void lock                (void) { mtx_.lock   (); };
+      void unlock              (void) { mtx_.unlock (); };
 
     public:
       enactor (boost::shared_ptr <scheduler> s, 
-               std::string                   flag, 
-               util::mutex                   mtx);
+               std::string                   flag);
 
       ~enactor (void);
 

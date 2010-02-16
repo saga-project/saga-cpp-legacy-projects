@@ -4,6 +4,10 @@
 
 #include <map>
 
+#include "util/mutex.hpp"
+#include "util/scoped_lock.hpp"
+#include "util/thread.hpp"
+
 #include "config.hpp"
 #include "enum.hpp"
 #include "node.hpp"
@@ -41,6 +45,10 @@ namespace digedag
       boost::shared_ptr <node>         output_;    // node for data stageout 
 
       unsigned int                     edge_cnt_;  // serves as edge id
+
+      util::mutex                      mtx_;
+      void  lock              (void) { mtx_.lock   (); };
+      void  unlock            (void) { mtx_.unlock (); };
 
 
     protected:
@@ -89,10 +97,6 @@ namespace digedag
       // inspection
       void  dump      (void);
       void  dump_node (std::string name);
-
-      // other tools
-      void  lock      (void);
-      void  unlock    (void);
   };
 
 } // namespace digedag

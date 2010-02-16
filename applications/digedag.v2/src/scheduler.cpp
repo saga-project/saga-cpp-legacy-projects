@@ -13,6 +13,7 @@
 #include "edge.hpp"
 #include "enactor.hpp"
 #include "scheduler.hpp"
+#include "util/util.hpp"
 
 #define MAX_NODES 20
 #define MAX_EDGES 20
@@ -51,11 +52,6 @@ namespace digedag
   {
     util::scoped_lock sl (mtx_);
     
-    if ( stopped_ ) 
-    {
-      return;
-    }
-
     stopped_ = true;
   }
 
@@ -192,13 +188,13 @@ namespace digedag
   //
   bool scheduler::hook_dag_create (void)
   {
+    util::scoped_lock sl (mtx_);
+
     // shared_from_this() is only available from here on
-    enact_nodes_.reset (new digedag::enactor (shared_from_this (), "node", mtx_));
-    enact_edges_.reset (new digedag::enactor (shared_from_this (), "edge", mtx_));
+    enact_nodes_.reset (new digedag::enactor (shared_from_this (), "node"));
+    enact_edges_.reset (new digedag::enactor (shared_from_this (), "edge"));
 
     initialized_ = true;
-
-    util::scoped_lock sl (mtx_);
 
     if ( stopped_ ) 
     {
@@ -296,6 +292,7 @@ namespace digedag
     }
 
     // start the scheduler thread which executes nodes and edges
+    std::cout << "starting scheduler thread" << std::endl;
     thread_run ();
 
     return true;
@@ -505,15 +502,17 @@ namespace digedag
 
   bool scheduler::hook_edge_run_done (boost::shared_ptr <edge> e)           
   {
-    util::scoped_lock sl (mtx_);
-
     if ( stopped_ ) 
     {
       return false;
     }
 
+    lock ();
+
     active_files_.erase (e->get_src ().get_string ());
     active_files_.erase (e->get_tgt ().get_string ());
+
+    unlock ();
 
     // std::cout << " === egde done: " << e->get_name () << std::endl;
 
@@ -523,16 +522,19 @@ namespace digedag
 
   bool scheduler::hook_edge_run_fail (boost::shared_ptr <edge> e)           
   {
-    util::scoped_lock sl (mtx_);
-
     if ( stopped_ ) 
     {
       return false;
     }
 
+    lock ();
+
     active_files_.erase (e->get_src ().get_string ());
     active_files_.erase (e->get_tgt ().get_string ());
 
+    unlock ();
+
+    // FIXME: should be handled in the DAG
     std::cout << " === edge failed: " << e->get_name () << " - exit" << std::endl;
     ::exit (2);
   }
@@ -541,16 +543,19 @@ namespace digedag
   saga::session scheduler::hook_saga_get_session (void)
   {
     util::scoped_lock sl (mtx_);
+
     return session_;
   }
 
 
   void scheduler::thread_work (void)
   {
+    std::cout << "started scheduler thread" << std::endl;
+
     // wait for proper initialization of the enactors
     while ( ! initialized_ )
     {
-      ::sleep (1);
+      util::ms_sleep (100);
     }
 
 
@@ -569,10 +574,9 @@ namespace digedag
       while ( max_nodes_           > active_nodes_ &&
               queue_nodes_.size () > 0             )
       {
-        // std::cout << " === scheduler is checking node queue " << std::endl;
-
-        // CHECK
         util::scoped_lock sl (mtx_);
+
+        // std::cout << " === scheduler is checking node queue " << std::endl;
 
         // get node from queue
         boost::shared_ptr <node> n = queue_nodes_.front ();
@@ -602,10 +606,9 @@ namespace digedag
       while ( max_edges_           > active_edges_ &&
               queue_edges_.size () > 0             )
       {
-        // std::cout << " === scheduler is checking edge queue " << std::endl;
-
-        // CHECK
         util::scoped_lock sl (mtx_);
+
+        // std::cout << " === scheduler is checking edge queue " << std::endl;
 
         // FIXME:  
         // At the moment, the local file adaptor is not supporting atomic
@@ -656,9 +659,9 @@ namespace digedag
         // dump_map (edge_task_map_);
       }
 
-      // std::cout << " === scheduler queue watch done " << std::endl;
+      std::cout << " === scheduler queue watch done " << std::endl;
 
-      ::sleep (1);
+      util::ms_sleep (100);
     }
 
     std::cout << " === scheduler queue watch finished " << std::endl;
@@ -696,6 +699,13 @@ namespace digedag
       // into the scheduler.
 
 
+      if ( ! n )
+      {
+        // ouch
+        std::cerr << "got an invalid node from the task map!" << std::endl;
+      }
+
+
       if ( t.get_state () == saga::task::Done )
       {
         n->work_done ();
@@ -721,6 +731,13 @@ namespace digedag
       }
       // scoped lock dies here, so that the work_done call below can call back
       // into the scheduler.
+
+
+      if ( ! e )
+      {
+        // ouch
+        std::cerr << "got an invalid edge from the task map!" << std::endl;
+      }
 
 
       if ( t.get_state () == saga::task::Done )
@@ -754,6 +771,5 @@ namespace digedag
       std::cout << "     " << it->first.get_id () << " - " << it->second->get_name () << std::endl;
     }
   }
-
 } // namespace digedag
 

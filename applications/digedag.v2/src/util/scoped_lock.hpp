@@ -1,6 +1,8 @@
 #ifndef DIGEDAG_UTIL_SCOPEDLOCK_HPP
 #define DIGEDAG_UTIL_SCOPEDLOCK_HPP
 
+#define USE_BOOST
+
 #include "util/mutex.hpp"
 
 
@@ -8,6 +10,13 @@ namespace digedag
 {
   namespace util
   {
+
+#ifdef USE_BOOST
+
+    typedef boost::recursive_mutex::scoped_lock scoped_lock;
+
+#else // USE_BOOST
+
     // This class provides a simple scoped lock, based on the
     // util::mutex class.
     class scoped_lock 
@@ -33,6 +42,8 @@ namespace digedag
           mtx_.unlock ();
         }
     };
+
+#endif // USE_BOOST
 
   } // namespace util
 

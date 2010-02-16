@@ -70,6 +70,8 @@ namespace digedag
       std::map <saga::task, boost::shared_ptr <edge> > edge_task_map_;
 
       util::mutex                            mtx_;
+      void lock                     (void) { mtx_.lock   (); };
+      void unlock                   (void) { mtx_.unlock (); };
 
       // list of known nodes and edges, which helps to avoid scheduling them
       // twice.  Its actually only used for nodes right now, as edges get only
@@ -116,7 +118,7 @@ namespace digedag
       void work_finished         (saga::task  t, 
                                   std::string flag);
 
-      void dump_map (const std::map <saga::task, boost::shared_ptr <edge> >  & map);
+      void dump_map              (const std::map <saga::task, boost::shared_ptr <edge> >  & map);
   };
 
 } // namespace digedag

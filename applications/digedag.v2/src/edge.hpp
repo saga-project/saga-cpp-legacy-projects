@@ -18,28 +18,30 @@ namespace digedag
   class edge : public util::enable_shared_from_this <edge>
   {
     private:
-      saga::url                      src_url_;     // src location of data
-      saga::url                      tgt_url_;     // tgt location of data
+      saga::url                               src_url_;     // src location of data
+      saga::url                               tgt_url_;     // tgt location of data
 
-      state                          state_;       // state of instance
+      state                                   state_;       // state of instance
 
-      boost::shared_ptr <node>       src_node_;
-      boost::shared_ptr <node>       tgt_node_;
+      boost::shared_ptr <node>                src_node_;
+      boost::shared_ptr <node>                tgt_node_;
 
-      state                          src_state_;   // state of src node
-                                       
-      bool                           is_void_;     // void edge?
-      bool                           optimize_;    // src == tgt?
-      bool                           task_valid_;  // a saga_task object got 
-                                                   // created and can be queried for state
+      state                                   src_state_;   // state of src node
+                                                
+      bool                                    is_void_;     // void edge?
+      bool                                    optimize_;    // src == tgt?
+      bool                                    task_valid_;  // a saga_task object got 
+                                                            // created and can be queried for state
 
-      saga::task                     task_;        // our async workload
+      saga::task                              task_;        // our async workload
 
-      boost::shared_ptr <scheduler> scheduler_;
-      saga::session                 session_;     // session from scheduler
+      boost::shared_ptr <scheduler>           scheduler_;
+      saga::session                           session_;     // session from scheduler
 
-      edge_id_t                     id_;          // id assigned by dag
+      edge_id_t                               id_;          // id assigned by dag
 
+      bool                                    this_fires_;
+      util::mutex                             mtx_;
 
     protected:
       saga::url & get_src_url (void) { return src_url_; }
