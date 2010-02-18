@@ -706,9 +706,9 @@ From the waiting time measurement in Table~\ref{table:waitingtime}, we are able 
 \begin{figure}
 %\vspace{-1em}
 \centering
-\includegraphics[scale=0.22]{Waiting_Clusters_6Hrs}
+\includegraphics[scale=0.3]{Waiting_Clusters_6Hrs}
 \linebreak
-\includegraphics[scale=0.22]{Waiting_Clusters_24Hrs}
+\includegraphics[scale=0.3]{Waiting_Clusters_24Hrs}
 \caption{\small Waiting and inactive time for S0 (conventional job submissions) and S1 (a single BigJob submission), with the wall-time limit of 6 hours (upper graph) and 24 hours (lower graph). In both cases, S0 is submitted to use 2$\times$32 px and S1 requests 64 px on small and less crowded LONI clusters. Of 6 distinct experiments in each wall-time limit configuration, S1 showed faster time-to-start (i.e., the sum of waiting time and inactive mode) by 4 times in upper test and 5 in lower test; S0 even showed 2+1 failures to start the simulation due to the time-over of wall-time limit in the first-started job, denoted by $S0_F$.}
 \label{Fig:BJwaiting}
 \vspace{-1em}
@@ -723,7 +723,6 @@ Results for smaller systems ($\approx$ 500 px) are presented in a different fash
 
 \subsection{Scenario S1: Pilot-Job with Load Balancing}
 
-Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{table:oneBJ_Test}. For both small and large simulations, a default BigJob task takes about 1 percent longer than the conventional test. This is reasonable because a default BigJob has the same processor distribution between sub-jobs as the conventional job, while BigJob has the minor overhead of sub-jobs' status monitoring and communication with advert server. In cases of load-balanced BigJob simulations, there is a significant reduction in the runtime compared to successful conventional jobs -- 13\% and greater. For larger problem set, a load-balanced BigJob simulation relatively shows higher standard deviation (SD) due to the unexpected instability of a computing resource during one experiment, to be discussed in detail below.
 
 \begin{table}[t]
 %\setlength{\tabcolsep}{1pt}
@@ -752,6 +751,9 @@ Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{t
 \end{tabular}
 \vspace{-1em}
 \end{table}
+
+Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{table:oneBJ_Test}. For both small and large simulations, a default BigJob task takes about 1 percent longer than the conventional test. This is reasonable because a default BigJob has the same processor distribution between sub-jobs as the conventional job, while BigJob has the minor overhead of sub-jobs' status monitoring and communication with advert server. In cases of load-balanced BigJob simulations, there is a significant reduction in the runtime compared to successful conventional jobs -- 13\% and greater. For larger problem set, a load-balanced BigJob simulation relatively shows higher standard deviation (SD) due to the unexpected instability of a computing resource during one experiment, to be discussed in detail below.
+
 
 The validity of a load balancing function can be discussed by the change of processor distribution between subtasks throughout the simulation. For the result of a small simulation in Fig.~\ref{Fig:LBSmall}, both CFD and MD subtasks are assigned with 32 px initially. After two simulation loops, a load balancer converges to the processor distribution of 12 to 52 px between CFD and MD respectively; this processor distribution remains the same until the simulation completes. Runtime per loop is reduced from 153 sec for the first loop to 107 sec after the convergence. Total computation time is 596.19 sec, which is different from 663 sec counted from BigJob application manager. This time difference implies that the BigJob application manager spends about 13 sec per stage in executing its internal commands including the run of a load balancing function and sub-job re-launch.
 
@@ -809,28 +811,6 @@ The result of computation time evolution for a large simulation is seen in Fig.~
 \subsection{Scenario S2 and S3: Logically and Physically Distributed
   Pilot-Jobs}
 
-In Table~\ref{table:TwoBigJobs}, results from the four test runs
-representing scenarios S2 and S3 using two BigJobs are presented.  The
-general setup for scenarios S2 and S3 is that when two BigJobs are
-submitted, one BigJob becomes active first and the other BigJob
-becomes available later -- either on the same resource (S2) or on
-another resource (S3).  The MD and CFD request half of each
-BigJob. When the second BigJob becomes active, each application is
-immediately configured to run in each BigJob so as to consume all
-BigJob CPUs. Therefore, more CPUs allow each application to speed
-up. Conceptually the LB scheme adopted for S1 can be trivially applied
-here, but for simplicity and as proof-of-concept, we confine our test
-runs to the configuration in Fig.~\ref{Fig:TwoBigJobs}, i.e., without
-a load balancing scheme to determine an optimal distribution of
-resources.
-
-% \jhanote{I think
-%       we should revisit the way this is presented, i.e., the utility
-%       of using the time of the MD phase?}  \Jkimnote{I got rid of MD
-%       time as a measure since it causes unnecessary confusion}
-%     \jhanote{this caption is tooooo long and needs simplifying. Too
-%       many latex errors!} \jhanote{Look at all the wasted white
-%       space!!! We are running short of space. Fix}
 
 \begin{table}[!h]
 \begin{center}
@@ -872,6 +852,30 @@ ${T_{comm}}$ & 0.041 & 0.009 &  0.990 & 0.60 \\
 %   $T_{read_write}$. We need to also mention/determine if
 %   $T_{read_write}$ is the same -- when using 2 different machines as
 %   it is when using 1 machine. As would be expected.}
+
+In Table~\ref{table:TwoBigJobs}, results from the four test runs
+representing scenarios S2 and S3 using two BigJobs are presented.  The
+general setup for scenarios S2 and S3 is that when two BigJobs are
+submitted, one BigJob becomes active first and the other BigJob
+becomes available later -- either on the same resource (S2) or on
+another resource (S3).  The MD and CFD request half of each
+BigJob. When the second BigJob becomes active, each application is
+immediately configured to run in each BigJob so as to consume all
+BigJob CPUs. Therefore, more CPUs allow each application to speed
+up. Conceptually the LB scheme adopted for S1 can be trivially applied
+here, but for simplicity and as proof-of-concept, we confine our test
+runs to the configuration in Fig.~\ref{Fig:TwoBigJobs}, i.e., without
+a load balancing scheme to determine an optimal distribution of
+resources.
+
+% \jhanote{I think
+%       we should revisit the way this is presented, i.e., the utility
+%       of using the time of the MD phase?}  \Jkimnote{I got rid of MD
+%       time as a measure since it causes unnecessary confusion}
+%     \jhanote{this caption is tooooo long and needs simplifying. Too
+%       many latex errors!} \jhanote{Look at all the wasted white
+%       space!!! We are running short of space. Fix}
+
 
 As shown in the table, the results with these four test cases clearly
 demonstrate performance gains with additionally available CPUs when
@@ -931,7 +935,7 @@ requirements and implementing dynamic resource allocation mechanism
 were two main goals motivating a novel development and our test runs
 demonstrated its potential for large scale scientific simulations
 benefiting scientific problems that are only tackled by a coupled
-hybrid MD-CFD calculation.  Our development is built upon the BigJob
+hybrid CFD-MD calculation.  Our development is built upon the BigJob
 framework enabled by the SAGA which provides a simple and consistent
 interface for managing HPC resources and natively supports an agile
 and flexible execution model.
