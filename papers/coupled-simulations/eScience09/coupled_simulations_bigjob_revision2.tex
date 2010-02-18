@@ -462,6 +462,56 @@ The load balancing function is deployed on the BigJob application manager and it
 For the efficient functioning of the LB, application codes need to be able to restart from their checkpointing data effectively. Also, application codes should be equipped with generalized domain partitioning routine to run a simulation with any number of processors, without harming their parallel efficiency a lot. Finally, they shall be able to produce their performance data, by checking wall-clock time between inter-domain data exchange.
 
 
+
+%\skonote{Original text here}
+
+
+% The flexibility to re-distribute resources (processors) to the individual task does not imply efficient utilization. This is the responsibility of a load-balancer (LB). We will discuss the implementation and algorithm of this LB; it is important to mention that the LB functions in the context of the SAGA-BigJob framework.
+
+% Each application's load is determined by its elapsed time to run the evolution loop. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time events or irrelevant to application's performance. The efficient functioning of the LB is predicated on application codes being able to restart from their checkpointing data effectively.  Also, application codes should be equipped with generalized domain partitioning routine to run a simulation with any number of processors, without harming their parallel efficiency a lot. If above conditions are satisfied, it makes sense to load the LB within the pilot-job, to implement dynamic resource allocation between tasks. Conceptually, the load-balancing algorithm assigns more processors to a sub-task with greater runtime, until the two codes take the same wall-clock time between points when they communicate. Interestingly, our approach is very simple and the algorithm is independent of applications upon the predications of,
+% (1) each application code follows the ideal parallel efficiency.
+% (2) all processors in one node are assigned to one single task.
+
+% Let the computation time (between exchanges) of the two sub-jobs be $t_{CFD}$ and $t_{MD}$, and the number of processors assigned to each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts I and F denotes initial and final states. Based on assumption (1), total problem size of each application remains the same after resource re-allocation,
+
+%\vspace{-.2em}
+%\footnotesize
+%\begin{eqnarray}
+%W_{CFD}&=&PE_{CFD,I}\times t_{CFD,I}=PE_{CFD,F}\times t_{CFD,F} \nonumber \\
+%W_{MD}&=&PE_{MD,I}\times t_{MD,I}=PE_{MD,F}\times t_{MD,F}
+%\label{eq:SimTime_EachTask}
+%\end{eqnarray}
+%\normalsize
+
+% In spite of the re-allocation, the total number of processors utilized remains the same:
+
+%\vspace{-.2em}
+%\footnotesize
+%\begin{equation}
+%%\small
+%%\begin{center}
+%PE_{TOT}=PE_{CFD,I}+PE_{MD,I}=PE_{CFD,F}+PE_{MD,F}
+%%\end{center}
+%\label{eq:PECondition}
+%\end{equation}
+%\normalsize
+
+% Our objective is to reduce the computation time of a sub-job to the point until the two application components show the same computation between the exchange points, i.e., $t_{CFD,F} = t_{MD,F}$. From Equation~\ref{eq:SimTime_EachTask} and Equation~\ref{eq:PECondition} an optimal number of processors distributed for the CFD subtask would be:
+
+%\vspace{-.2em}
+%\footnotesize
+%\begin{eqnarray}
+%PE_{CFD,F} & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
+%\end{eqnarray}
+%\normalsize
+
+% The MD simulation (sub-job) will follow a similar expression.  The optimal processor distribution from above equation will return a non-integer value. Also, under the second assumption (which is the policy of many supercomputing centers), any load-balancing determined as above, will proceed in discrete values expressed as the multiples of the number of CPU cores in a node. We choose the nearest discrete number to our load balancing as the optimal number of processor on each application.
+
+
+%\skonote{End of original text}
+
+
+
 %-------------------------------------------------------------------------
 \section{Dynamic Resource Allocation for Coupled Simulations:
   Experiments and Analysis}
@@ -570,6 +620,14 @@ synchronization steps between two simulation components over the
 course of a single simulation run. For a rigorous test of a load
 balancer, larger coupled simulation task (which has 150 times more
 workload on CFD domain and 50 times on MD) also has been experimented. Total iterative loop is split into five launch/re-launch stages (25 times in larger simulation) after an application-level checkpointing, to facilitate the load balancing between sub-jobs or more BigJob allocations.
+
+
+
+%\skonote{Follows is merged into Section 4: so, it's dropped from here, except one paragraph.
+% No changes in the application codes were required in order to utilize the BigJob capabilty; however, in order to utilize load-balancing features or dynamic-resource assignement the application codes need to be equipped with the ability to carry out application-level checkpointing.  The application codes in addition to having application-level checkpointing need generalized domain partitioning method to work with a range of processor counts. In the current work, the application codes experience five launch/re-launches (25 times in larger simulation) to get assigned with changed number of processors, either by the result of load balancing or more resource allocations.
+% The use of a load balancing function requires one more change on application codes. As load balancer refers to the performance data from application codes, application codes need to return their actual runtime, which excludes idle waiting on inter-domain information exchange. This can be implemented by checking elapsed time on inter-domain data exchange and subtracting it from total iteration time.}
+
+
 
 Evaluation of the effectiveness of BigJob as a job-submission
 mechanism, requires carefully controlled experiments over different
@@ -700,7 +758,22 @@ Many factors affect the waiting times, arguably the most important of them are t
 We designed experiments to determine if running larger and/or longer simulations effects the actual waiting time on the queue. We performed tests by submitting jobs of different sizes with a specific wall-time limit at a certain instance, succeeded by a set of jobs with different wall-time limit at the next instance. Each time we submitted a job, we gathered the load-factor and the actual waiting time on the queue. Results for machines with more than 5000 px, Ranger and Queenbee, are presented in Table~\ref{table:waitingtime}. As can be seen, jobs with larger processor counts have typically lower waiting times for a range of values of requested wall-times over a range of ``high'' load-factors. Meanwhile, it is difficult to discern a relationship between waiting time with the requested wall-time limit of jobs; a slight change in load-factor (and different condition at job submission) raised the great variation in waiting time, mainly due to backfilling probability.
 
 
+
+%\skonote{Original paragraph was here:
+% We designed experiments to determine if running larger and/or longer simulations effects the actual waiting time on the queue. We performed our experiments on machines spanning two orders of magnitude in size (and peak performance)-- from approximately 500 px to 65000 px, and for a range of load-factors.  We submitted jobs of different sizes, requiring different wall-time limits. Each time we submitted a job, we gathered the load-factor and the actual waiting time on the queue. Many factors effect the waiting times, arguably the most important of them are the load-factor at the instant of submission, requested wall-time limit and also the number of processors requested. Two other factors that effect this are the backfilling that occurs when some other unrelated job finishes and the changes in the priority of the test job when a particular higher priority job joins the queue; however, unlike the first three factors, the last two are somewhat random and it is difficult to systematically account for them. Also, the internal queueing policy of supercomputing centers may effect the waiting time on the queue based on their queueing priority including credential, fairshare, resource and service priority.  As can be seen from Table~\ref{table:waitingtime}, the waiting time tends to decrease as the number of processors requested in a job increases.
+% Results for machines with more than 5000 px, Ranger and Queenbee are presented in Table~\ref{table:waitingtime}, and as can be seen, jobs with larger processor counts have typically lower waiting times. The observation holds true for a range of values of requested wall-times over a range of ``high'' load-factors.}
+
+
+
 From the waiting time measurement in Table~\ref{table:waitingtime}, we are able to establish that a single large job on average has to wait less at the queue than a smaller job does, most definitely the maximum waiting time of two small jobs will be even greater. In other words the sum total of the waiting time (of the first-to-run job) and the inactive time (defined as the difference between the waiting times of the two jobs) will be larger than the waiting time of a single large job. Controlling runtime in these two scenarios, i.e., we take a BigJob of size 2X and 2 conventional jobs of size X each, we compare the waiting time of a 64 px BigJob (with wall-clock limits of 2, 3, and 4hrs) which is smaller than the wait for a 32 px conventional job for the same values of wall-clock limits. As the individual simulations are assigned the same number of processors, the runtime performance will be similar in the two scenarios, and thus the total time-to-solution will be determined by the waiting times on queues -- which we show statistically to be lower for the larger BigJob submission mode.
+
+
+
+%\skonote{Original paragraph was here:
+% It is however, difficult to discern a relationship between waiting time with the requested wall-time limit of jobs; from experience there is greater variation in backfilling probability with varying wall-time requests.  However, as we are able to establish that a single large job on average has to wait less at the queue than a smaller job does, most definitely the maximum waiting time of two small jobs will be even greater. In other words the sum total of the waiting time (of the first-to-run job) and the inactive time (defined as the difference between the waiting time of the two jobs) will be larger than the waiting time of a single large job.
+% Controlling runtime in these two scenarios, i.e., we take a BigJob of size 2X and 2 conventional jobs of size X each, we compare the waiting time of a 64 px BigJob (with wall-clock limits of 2, 3, and 4hrs) which is smaller than the wait for a 32 px conventional job for the same values of wall-clock limits. As the individual simulations are assigned the same number of processors, the runtime performance will be similar in the two scenarios, and thus the total time-to-solution will be determined by the wait-times on queues -- which we show statistically to be lower for the larger BigJob submission mode.}
+
+
 
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -718,6 +791,51 @@ From the waiting time measurement in Table~\ref{table:waitingtime}, we are able 
 
 Results for smaller systems ($\approx$ 500 px) are presented in a different fashion in Fig.~\ref{Fig:BJwaiting}. In addition to the fact that a 64 px BigJob is now around 16\% of the machine resources, the load-factors of the smaller machines fluctuated much more than those of the larger machines. Consequently the data obtained for smaller resources is very noisy. As can be seen from Fig.~\ref{Fig:BJwaiting} although the waiting time for the first-to-start job was smaller in the conventional job submission (S0) than the BigJob (S1), the second job in S0 had a large subsequent waiting time; thus for conventional job submission mode there is a non-negligible inactive mode. There is no inactive mode for BigJob submission as by definition both simulations begin concurrently. Interestingly, a number of experiments failed to start the simulation, when the waiting time of the second job is greater than the wall-clock limit for the first-to-start job. In other words, the second job is still waiting on the queue in the duration that the first-to-start job is in active/run mode. This is typically alleviated with co-allocation of resources; however the number of production grid infrastructure that provides co-allocation (and co-scheduling) as a production service is very limited. This leads us to the heart of the advantage of the BigJob submission mode: circumventing the requirements of co-scheduling by providing an application level solution that preserves performance and guarantees non-failure due to large-fluctuations in queue waiting times. As we increase the wall-time limit, S1 is more likely to start faster than S0 and the failure to start the simulation in S0 tends to decrease.
 
+
+
+%\skonote{Change is made as follows: the table is replaced by a graph, to eliminate the misunderstandings by a high standard deviation.
+% Results for smaller systems ($\approx$ 500 px) are presented in a different fashion in Table~\ref{table:BJwaiting}. In addition to the fact that a 64 px BigJob is now around 16\% of the machine resources, the load-factors of the smaller machines fluctuated much more than those of the larger machines. Consequently the data obtained for smaller resources is far more noisier than the ``clean'' data for the larger machines -- Ranger and QueenBee. As can be seen from Table~\ref{table:BJwaiting} although the waiting time for the first-to-start job was smaller in the conventional job submission mode than the BigJob (S1), the second job (conventional job) had a large subsequent waiting time; thus for conventional job submission mode there is a non-negligible inactive mode (defined as the time difference between queue wait times between the two simulations). There is no inactive mode for BigJob submission as by defintion both simulations begin concurrently. Interestingly, the situation is somewhat worse for the conventional job submission; although the average waiting time is lower than the BigJob, there exist 2 (out of 6) cases (for 6hr wall-clock limit), when the waiting time of the second job is greater than the wall-clock limit for the first-to-start job. In other words, the second job fails to start in the duration that the first-to-start job is in active/run mode, but can't do anything useful as the second job is still waiting on the queue. This is typically alleviated with co-allocation of resources; however the number of production grid infrastucture that provide co-allocation (and co-scheduling) as a production service is very limited. This leads us to the heart of the advantage of the BigJob submission mode: circumventing the requirements of co-scheduling by providing an application level solution that preserves performance and guarantees non-failure due to large-fluctuations (see data for 24hr wall-time limit) in queue waiting times.}
+
+%\begin{table}[t]
+%  \caption{\small  Waiting and inactive time for conventional job submissions, and a single BigJob submission. All measured times are in seconds and expressed as 'mean$\pm$SD'. In both cases, conventional job is submitted to use 2$\times$32 px and a BigJob requests 64 px on small and less crowded LONI clusters. Conventional job submission mode showed faster time-to-start (i.e., the sum of waiting time and inactive mode) on small problem size with 6 hr of wall-time limit, while a BigJob gets allocated faster with longer wall-time limit. Conventional job submission showed 3 failures during the test due to the timeover of wall-time limit in the first-started job.}
+%\label{table:BJwaiting}
+%\centering
+%\begin{tabular} {p{0.55in} || p{0.7in} p{0.7in} p{0.7in}}
+%\multicolumn{4}{c}{\phantom{\tiny 100}}\\
+%\hline
+% \multirow{2}{0.55in}{}&
+% \multicolumn{3}{c}{Small simulation with 6 hr wall-time limit}
+%\\
+%\cline{2-4}
+% & \nyc Waiting time
+% & \nyc Inactive mode
+% & \multicolumn {1}{c}{Failed runs}
+%\\
+% \hline
+%   \nyc Conventional & \nyc 12318$\pm$14289 & \nyc 7407$\pm$10384 & \multicolumn {1}{c}{2} \\
+%  \nyc 1 BigJob & \nyc 29452$\pm$29163 & \nyc 0 & \multicolumn {1}{c}{0} \\
+% \hline
+
+%\multicolumn{4}{c}{\phantom{100}}\\
+%\hline
+% \multirow{2}{0.55in}{}&
+% \multicolumn{3}{c}{Large simulation with 24 hr wall-time limit}
+%\\
+%\cline{2-4}
+% & \nyc Waiting time
+% & \nyc Inactive mode
+% & \multicolumn {1}{c}{Failed runs}
+%\\
+%\hline
+% \nyc Conventional & \nyc 83102$\pm$70413 & \nyc 47488$\pm$50799 & \multicolumn{1}{c}{1}
+%\\
+% \nyc 1 BigJob & \nyc 76645$\pm$49728 & \nyc 0 & \multicolumn{1}{c}{0}
+%\\
+%\hline
+
+%\end{tabular}
+%\vspace{-1em}
+%\end{table}
 
 
 
