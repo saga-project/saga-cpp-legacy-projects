@@ -13,17 +13,19 @@
 
 namespace digedag
 {
-  // the 'dag' class represents a directed acyclic graph.  Its data model is
+  //
+  // the 'dag' class represents a directed acyclic graph. Its data model is
   // extremely simple: it maintains a list of nodes and edges.  The
   // depenedencies between them are stored implicitely: each edge knows its
   // source and target node, and each nodes knows about its incoming and
-  // outgoing edges.  Whe firing (i.e. running) a dag, those nodes with
-  // satisfied depencies are started, which upon completion activate their
+  // outgoing edges.  When firing (i.e. running) a dag, those nodes with
+  // satisfied dependencies are started, which upon completion activate their
   // outgoing edges, which activate their target nodes, etc etc.
   //
   // A dag also has a scheduler, which can traverse the dag, and change
   // attributes of edges and nodes, such as its assigment to a specific
   // resource.
+  //
   class scheduler;
   class dag : public util::enable_shared_from_this <dag>
   {
@@ -45,7 +47,7 @@ namespace digedag
 
 
     protected:
-      // allow our friend, the sxheduler, full access to the dag data.
+      // allow our friend, the scheduler, full access to the dag data.
       // FIXME: we need to make sure that the scheduler is not changing these
       // data when we are operating on them...
       std::map <node_id_t, node_map_t> get_nodes (void) { return nodes_; }
@@ -54,7 +56,7 @@ namespace digedag
 
 
     public:
-      dag  (const std::string & scheduler_src = "");
+      dag  (const std::string & scheduler_src = "", const std::string & dag_file = "");
       ~dag (void); 
 
       boost::shared_ptr <node> create_node  (node_description & nd, 

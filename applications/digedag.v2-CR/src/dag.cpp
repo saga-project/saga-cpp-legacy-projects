@@ -4,10 +4,10 @@
 
 namespace digedag
 {
-  dag::dag (const std::string & scheduler_src)
+  dag::dag (const std::string & scheduler_src, const std::string & dag_file)
     : session_   (saga::get_default_session ())
     , state_     (Pending)
-    , scheduler_ (new scheduler (this, scheduler_src, session_))
+    , scheduler_ (new scheduler (this, scheduler_src, dag_file, session_))
     , input_     (new node (scheduler_, session_))
     , output_    (new node (scheduler_, session_))
     , edge_cnt_  (0)
@@ -241,8 +241,8 @@ namespace digedag
     scheduler_->hook_dag_run_pre ();
 
 
-    // search for nodes which have resolved inputs (no peding edges), and
-    // fire them.  Whenever a node finishes, it fires it outgoing edges.
+    // search for nodes which have resolved inputs (no pending edges), and
+    // fire them.  Whenever a node finishes, it fires its outgoing edges.
     // If those finish copying their data, they'll fire those nodes which
     // they are incoming edges of.  Of those nodes happen to have all
     // input edges resolved, the fire will indeed lead to an execution of
