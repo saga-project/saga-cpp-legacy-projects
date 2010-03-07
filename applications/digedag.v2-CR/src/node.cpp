@@ -111,6 +111,32 @@ namespace digedag
     edge_out_.push_back (e);
   }
 
+  void node::sync_state (bool verbose)
+  {
+    for (unsigned int i=0; i<edge_in_.size(); i++)
+    {
+      if (verbose) {
+    	std::cout << "node::sync_edge_state: " << edge_in_[i]->get_name()
+                  << " / " << edge_in_[i]->get_state()
+                  << " internal state: " << edge_states_[edge_in_[i]->get_name()]
+                  << std::endl
+                  << "node::sync_edge_state: syncing internal node edge_states_ "
+                  << edge_states_[edge_in_[i]->get_name()] << " = " << edge_in_[i]->get_state()
+                  << std::endl;
+      }
+
+      edge_states_[edge_in_[i]->get_name()] = edge_in_[i]->get_state();	
+    }
+
+    set_state(Done);
+
+    for (unsigned int i=0; i<edge_out_.size(); i++)
+    {
+      if (edge_out_[i]->get_state() != Done)
+        set_state(Incomplete);
+    }
+
+  }
 
   void node::dryrun (void)
   {
@@ -393,6 +419,10 @@ namespace digedag
     state_ = s;
   }
 
+  state node::return_state (void)
+  {
+    return state_;
+  }
 
   // FIXME: it is not nice to have such fundamental side effects in get_state!
   // That code needs to eventually move into a callback on the job state metric.

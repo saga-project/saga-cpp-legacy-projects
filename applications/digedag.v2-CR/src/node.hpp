@@ -66,6 +66,7 @@ namespace digedag
       void             add_edge_in     (boost::shared_ptr <edge> e);
       void             add_edge_out    (boost::shared_ptr <edge> e);
 
+      void             sync_state      (bool verbose);
       void             dryrun          (void);
       void             reset           (void);
       void             fire            (void);
@@ -80,6 +81,7 @@ namespace digedag
       node_description get_description (void) const;
       void             set_state       (state s);
       state            get_state       (void);
+      state            return_state    (void);
       void             set_pwd         (std::string pwd);
       void             set_rm          (std::string rm);
       void             set_host        (std::string host);
