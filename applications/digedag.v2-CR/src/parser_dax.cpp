@@ -33,7 +33,7 @@ namespace digedag
     // to be relative to the applications working directory.
     void parser::parse_dag (void)
     {
-      dag_ = boost::shared_ptr <dag> (new dag (scheduler_file_));
+      dag_ = boost::shared_ptr <dag> (new dag (scheduler_file_, dag_file_));
 
       std::cout << "parsing " << dag_file_ << std::endl;
       try
