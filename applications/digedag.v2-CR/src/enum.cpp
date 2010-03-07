@@ -25,5 +25,13 @@ namespace digedag
     else                                         return "saga::Unknown"   ;
   }
 
+  std::string checkpoint_method_to_string (checkpoint_method m)
+  {
+    if      ( m == 1 ) return "LocalFile";
+    else if ( m == 2 ) return "AdvertService";
+    else if ( m == 0 ) return "None";
+    else               return "Undefined";
+  } 
+
 } // namespace digedag
 
