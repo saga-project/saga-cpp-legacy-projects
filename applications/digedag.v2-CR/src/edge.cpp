@@ -190,7 +190,7 @@ namespace digedag
 
     if ( optimize_ || is_void_ )
     {
-      // fake a noop task, which does nothing: simply returnh the empty
+      // fake a noop task, which does nothing: simply return the empty
       // Done task...
       task_ = saga::task (saga::task::Done);
 
