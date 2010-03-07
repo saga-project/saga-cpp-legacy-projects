@@ -21,7 +21,7 @@ namespace digedag
 
     	public:
     	hash (std::string filename);
-	~hash (void);
+	~hash                (void);
 	std::string get_hash (void);
     };
   }

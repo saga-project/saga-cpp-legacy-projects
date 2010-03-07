@@ -6,6 +6,7 @@
 */
 
 
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -52,14 +53,14 @@ namespace digedag
 		EVP_DigestUpdate(&mdctx, buf, size);
 
 		if (fp != NULL) {
-		    fclose(fp);
+		  fclose(fp);
 		}
 
 		EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
 		EVP_MD_CTX_cleanup(&mdctx);
 
 		for (unsigned int i = 0; i < md_len; i++) {
-		    daghash << std::hex << int(md_value[i]);
+		  daghash << std::hex << std::setw(2) << std::setfill('0') << int(md_value[i]);
 		}
 
         }
@@ -68,7 +69,7 @@ namespace digedag
 
         std::string hash::get_hash (void)
         {
-		return daghash.str();
+           return daghash.str();
 	}
 
   } // namespace util
