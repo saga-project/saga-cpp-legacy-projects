@@ -3,6 +3,7 @@
 #define DIGEDAG_UTIL_MUTEX_HPP
 
 #include <pthread.h>
+#include <assert.h>
 
 // FIXME: check mutex call return values
 
