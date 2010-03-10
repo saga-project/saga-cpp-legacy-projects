@@ -21,9 +21,9 @@ $| = 1;
 my $name   = "m101";
 my $survey = "2mass";
 my $band   = "j";
-my $x      = 1.0;
-my $y      = 1.0;
-my $cdelt  = 0.000278;
+my $x      = "1.0";
+my $y      = "1.0";
+my $cdelt  = "0.000278";
 my $root   = `pwd`;
 my $help   = 0;
 my $debug  = 0;
@@ -75,13 +75,15 @@ EOT
 #
 # main
 #
-my $tgt    = "$root/$name.$survey.$x.$y.$cdelt"; 
-my $data   = "$root/$name.$survey.$x.$y.$cdelt/data"; 
-my $list   = "$root/$name.$survey.$x.$y.$cdelt/files.tbl"; 
+my $tgt    = "$root/${name}_${survey}_${x}_${y}_${cdelt}"; 
+my $data   = "$root/${name}_${survey}_${x}_${y}_${cdelt}/data"; 
+my $list   = "$root/${name}_${survey}_${x}_${y}_${cdelt}/files.tbl"; 
 
-print_debug ("tgt dir    : '$tgt'");
-print_debug ("data dir   : '$data'");
-print_debug ("file list  : '$list'");
+print "tgt x:     : '$x'\n";
+print "tgt y:     : '$y'\n";
+print "tgt dir    : '$tgt'\n";
+print "data dir   : '$data'\n";
+print "file list  : '$list'\n\n";
 
 if ( ! -d $tgt  ) { run_debug ("mkdir -v $tgt "); }
 if ( ! -d $data ) { run_debug ("mkdir -v $data"); }

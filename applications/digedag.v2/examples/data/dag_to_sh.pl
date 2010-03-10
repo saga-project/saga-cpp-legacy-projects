@@ -9,7 +9,13 @@ BEGIN {
 }
 
 my $in  = shift || usage ("No input given");
-my $out = `basename $in` . ".sh";
+my $out = `basename -s .xml $in`;
+chomp ($out);
+$out .= ".sh";
+
+open (OUT, ">$out") || die "Cannot open target $out: $!\n";
+print OUT "#!/bin/sh -x\n\n";
+
 
 my $parser = new XML::DOM::Parser;
 my $doc    = $parser->parsefile ($in);
@@ -67,8 +73,11 @@ foreach my $job ( @jobs )
     }
   }
 
-  print "$exe $args\n";
+  print OUT "$exe $args\n";
 }
+
+print OUT "\n";
+close (OUT);
 
 
 
