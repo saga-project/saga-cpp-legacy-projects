@@ -116,16 +116,16 @@ namespace digedag
   void node::add_edge_in (boost::shared_ptr <edge> e)
   {
     util::scoped_lock (mtx_);
-    edge_in_.push_back (e);
+    edges_in_.push_back (e);
 
     // set initial input edge state
-    edge_states_[e->get_name ()] = e->get_state ();
+    edges_state_[e->get_name ()] = e->get_state ();
   }
 
   void node::add_edge_out (boost::shared_ptr <edge> e)
   {
     util::scoped_lock (mtx_);
-    edge_out_.push_back (e);
+    edges_out_.push_back (e);
   }
 
 
@@ -133,8 +133,8 @@ namespace digedag
   {
     util::scoped_lock (mtx_);
     // check if all input data are ready
-    std::map <std::string, state> :: iterator begin = edge_states_.begin ();
-    std::map <std::string, state> :: iterator end   = edge_states_.end   ();
+    std::map <std::string, state> :: iterator begin = edges_state_.begin ();
+    std::map <std::string, state> :: iterator end   = edges_state_.end   ();
     std::map <std::string, state> :: iterator it;
 
     for ( it = begin; it != end; it++ )
@@ -155,9 +155,9 @@ namespace digedag
 
     state_ = Done;
 
-    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    for ( unsigned int i = 0; i < edges_out_.size (); i++ )
     {
-      edge_out_[i]->dryrun ();
+      edges_out_[i]->dryrun ();
     }
   }
 
@@ -168,9 +168,9 @@ namespace digedag
 
     state_ = Incomplete;
 
-    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    for ( unsigned int i = 0; i < edges_out_.size (); i++ )
     {
-      edge_out_[i]->reset ();
+      edges_out_[i]->reset ();
     }
   }
 
@@ -193,7 +193,7 @@ namespace digedag
     //           << std::endl;
 
     // store state of firing edge
-    edge_states_[e->get_name ()] = Done;
+    edges_state_[e->get_name ()] = Done;
 
     // proceed with the normal fire procedure
     fire ();
@@ -227,6 +227,7 @@ namespace digedag
     {
       std::cout << std::string (" ===     node ") << get_name () 
                 << " [" << state_to_string (state_) << "] "
+                << " (" << get_cmd () << ") " 
                 << " was accepted by scheduler" 
                 << std::endl;
     }
@@ -234,6 +235,7 @@ namespace digedag
     {
       std::cout << std::string (" ===     node ") << get_name () 
                 << " [" << state_to_string (state_) << "] "
+                << " (" << get_cmd () << ") " 
                 << " was declined by scheduler" 
                 << std::endl;
     }
@@ -351,12 +353,12 @@ namespace digedag
     if ( this_fires_ )
     {
       // get data staged out, e.g. fire outgoing edges
-      for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+      for ( unsigned int i = 0; i < edges_out_.size (); i++ )
       {
         std::cout << " === node " << get_id () << " fires edge " 
-                  << edge_out_[i]->get_name () << std::endl;
+                  << edges_out_[i]->get_name () << std::endl;
 
-        edge_out_[i]->fire (shared_from_this ());
+        edges_out_[i]->fire (shared_from_this ());
       }
 
       // signal that fire is done
@@ -416,9 +418,9 @@ namespace digedag
               << " [" << host_ << ":" << pwd_  << " : " << cmd_ << "]" 
               << " (" << state_to_string (get_state ()) << ")" << std::endl;
 
-    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    for ( unsigned int i = 0; i < edges_in_.size (); i++ )
     {
-      edge_in_[i]->dump ();
+      edges_in_[i]->dump ();
     }
   }
 
@@ -471,8 +473,8 @@ namespace digedag
     if ( state_ == Incomplete )
     {
       // check if any input data failed
-      std::map <std::string, state> :: iterator begin = edge_states_.begin ();
-      std::map <std::string, state> :: iterator end   = edge_states_.end   ();
+      std::map <std::string, state> :: iterator begin = edges_state_.begin ();
+      std::map <std::string, state> :: iterator end   = edges_state_.end   ();
       std::map <std::string, state> :: iterator it;
 
       for ( it = begin; it != end; it++ )
@@ -556,14 +558,14 @@ namespace digedag
     nd_.set_attribute (node_attributes::working_directory, u_pwd.get_path ());
 
     // set pwd for all incoming and outgoing edges
-    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    for ( unsigned int i = 0; i < edges_in_.size (); i++ )
     {
-      edge_in_[i]->set_pwd_tgt (pwd);
+      edges_in_[i]->set_pwd_tgt (pwd);
     }
 
-    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    for ( unsigned int i = 0; i < edges_out_.size (); i++ )
     {
-      edge_out_[i]->set_pwd_src (pwd);
+      edges_out_[i]->set_pwd_src (pwd);
     }
   }
 
@@ -589,14 +591,14 @@ namespace digedag
     nd_.set_vector_attribute (node_attributes::candidate_hosts, chosts);
 
     // set host for all incoming and outgoing edges
-    for ( unsigned int i = 0; i < edge_in_.size (); i++ )
+    for ( unsigned int i = 0; i < edges_in_.size (); i++ )
     {
-      edge_in_[i]->set_host_tgt (host);
+      edges_in_[i]->set_host_tgt (host);
     }
 
-    for ( unsigned int i = 0; i < edge_out_.size (); i++ )
+    for ( unsigned int i = 0; i < edges_out_.size (); i++ )
     {
-      edge_out_[i]->set_host_src (host);
+      edges_out_[i]->set_host_src (host);
     }
   }
 

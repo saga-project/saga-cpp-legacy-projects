@@ -22,9 +22,9 @@ namespace digedag
     private:
       node_description                        nd_;          // node application to run
 
-      std::vector <boost::shared_ptr <edge> > edge_in_;     // input  data
-      std::vector <boost::shared_ptr <edge> > edge_out_;    // output data
-      std::map    <std::string, state>        edge_states_; // states of incoming edges
+      std::vector <boost::shared_ptr <edge> > edges_in_;    // input  data
+      std::vector <boost::shared_ptr <edge> > edges_out_;   // output data
+      std::map    <std::string, state>        edges_state_; // states of incoming edges
 
       std::string                             rm_;
       std::string                             cmd_;
@@ -88,6 +88,19 @@ namespace digedag
       void             set_rm          (std::string rm);
       void             set_host        (std::string host);
       void             set_path        (std::string path);
+
+      std::vector <boost::shared_ptr <edge> > 
+                       get_edges_in    (void) const
+      {
+        return edges_in_;
+      }
+
+      std::vector <boost::shared_ptr <edge> > 
+                       get_edges_out   (void) const
+      {
+        return edges_out_;
+      }
+
   };
 
 } // namespace digedag

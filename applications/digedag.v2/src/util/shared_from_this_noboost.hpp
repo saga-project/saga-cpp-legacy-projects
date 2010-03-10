@@ -6,7 +6,6 @@
 # error "Oops - USE_BOOST defined for non-boost version of shared_ptr"
 #endif
 
-#include "util/scoped_lock.hpp"
 #include <string>
 #include <sstream>
 

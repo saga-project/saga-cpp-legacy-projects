@@ -1,6 +1,5 @@
 
 #include "util/thread.hpp"
-#include "util/scoped_lock.hpp"
 
 #include <errno.h>
 #include <stdio.h>
@@ -133,8 +132,6 @@ namespace digedag
     // allow the consumer to wait for thread completion
     void thread::thread_join (void)
     {
-      scoped_lock l;
-
       if ( joined_ ) return;
 
 #ifdef DO_THREADS
@@ -142,6 +139,17 @@ namespace digedag
 #endif
 
       joined_ = true;
+    }
+
+    thread::state thread::thread_state (void)
+    {
+      // reap threads at this opportunity
+      if ( thread_state_ == ThreadDone && ! joined_ )
+      {
+        thread_join ();
+      }
+
+      return thread_state_; 
     }
 
   } // namespace util

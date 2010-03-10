@@ -20,15 +20,14 @@ namespace digedag
     }
 
     // This class provides simple threading ability.  The consumer inherits
-    // this class, and overloads the following methods
-    //   void thread_main (void)  // the thread workload
-    //   void thread_cb   (void)  // callback on thread termination
+    // this class, and overloads the following method
+    //   void thread_work (void)
     //
     class thread
     {
       public:
         // thread states
-        enum thread_state
+        enum state
         {
           ThreadNew       = 0,
           ThreadRunning   = 1,
@@ -39,7 +38,7 @@ namespace digedag
 
       private:
         // state management
-        thread_state  thread_state_;
+        state         thread_state_;
         pthread_t     thread_;
         bool          joined_;
 
@@ -59,11 +58,8 @@ namespace digedag
         // thread startup method, which manages the workload
         void * thread_start  (void);
 
-        // workload methods, to be overloaded by consumer
+        // workload method, to be overloaded by consumer
         virtual void thread_work (void) { };
-
-        // notification callback - does not need to be defined by consumer
-        virtual void thread_cb   (void) { };
 
 
       public:
@@ -72,16 +68,7 @@ namespace digedag
         void          thread_wait        (void);
         void          thread_join        (void);
         void          thread_exit        (void);
-        thread_state  thread_state       (void)
-        {
-          // reap threads at this opportunity
-          if ( thread_state_ == ThreadDone && ! joined_ )
-          {
-            thread_join ();
-          }
-
-          return thread_state_; 
-        }
+        state         thread_state       (void);
     };
 
   } // namespace util
