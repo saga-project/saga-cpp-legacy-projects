@@ -149,13 +149,15 @@ class FileInputFormat : public RawInputFormat {
     const std::vector<saga::url>& locations, std::vector<InputChunk*>& result) {
     // Take maximum chunk size into consideration.
     int max_chunk_size = job.get_attribute("file.input.max_chunk_size",
-      64*1024*1024);
+        64*1024*1024);
     saga::filesystem::file file(url);
-    int offset = 0;
-    int remaining_size = file.get_size();
+    saga::off_t offset = 0;
+    saga::off_t remaining_size = file.get_size();
     while (remaining_size > 0) {
-      int chunk_size = std::min(max_chunk_size, remaining_size);
-      result.push_back(new FileInputChunk(url, offset, chunk_size, locations));
+      int chunk_size = (remaining_size < max_chunk_size) ?
+          static_cast<int>(remaining_size) : max_chunk_size;
+      result.push_back(new FileInputChunk(url, static_cast<int>(offset),
+          chunk_size, locations));
       offset += chunk_size;
       remaining_size -= chunk_size;
     }
