@@ -14,7 +14,7 @@ src=$1
 data=`pwd`
 
 if test "x$src" = "x"; then
-  src=m101.2mass.1.1.0.000278
+  src=m101_2mass_1.0_1.0_0.000278
 fi
 
 if ! test -d $data/$src/data; then
