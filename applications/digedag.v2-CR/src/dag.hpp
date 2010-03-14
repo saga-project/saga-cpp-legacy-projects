@@ -96,6 +96,8 @@ namespace digedag
       // other tools
       void  lock      (void);
       void  unlock    (void);
+      int get_nodes_count (void) { return nodes_.size(); }
+      int get_edges_count (void) { return edges_.size(); }
   };
 
 } // namespace digedag
