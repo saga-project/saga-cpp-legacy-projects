@@ -312,9 +312,21 @@ class bigjob_agent:
                 pass
             if job_dir != None:
                 self.execute_job(job_dir)  
+    
+    def read_energy(self, replica_id):
+        enfile = open("/work/athota1/new_bigjob/bigjob/agent/rep-" + str(replica_id) + "/stdout-" + str(replica_id) + ".txt")
+        lines = enfile.readlines()
+        for line in lines:
+            items = line.split()
+            if len(items) > 0:
+                if items[0] in ("ENERGY:"):
+                    en = items[11]
+       # print "(DEBUG) energy : " + str(en) 
+        return en  
 
     def monitor_jobs(self):
-        """Monitor running processes. """   
+        """Monitor running processes. """ 
+        rid=0   
         for i in self.jobs:
             if self.processes.has_key(i): # only if job has already been starteds
                 p = self.processes[i]
@@ -323,16 +335,20 @@ class bigjob_agent:
                 if (p_state != None and (p_state==0 or p_state==255)):
                     print self.print_job(i)  + " finished. "
                     i.set_attribute("state", str(saga.job.Done))
-                    enfile = open("/work/athota1/new_bigjob/bigjob/agent/stdout.txt", "r")
-                    lines = enfile.readlines()
-        	    for line in lines:
-            		items = line.split()
-            		if len(items) > 0:
-                		if items[0] in ("ENERGY:"):
-                    			en = items[11]
-        	    print "(DEBUG) energy : " + str(en)
-                    i.set_attribute("energy", en)
-		    self.free_nodes(i)
+                 
+                    en = self.read_energy(rid)
+                    
+                   # enfile = open("/work/athota1/new_bigjob/bigjob/agent/stdout.txt", "r") ##
+                   # lines = enfile.readlines()
+        	   # for line in lines:
+            	#	items = line.split()
+            #		if len(items) > 0:
+             #   		if items[0] in ("ENERGY:"):
+              #      			en = items[11]
+        	 #   print "(DEBUG) energy : " + str(en)
+                    i.set_attribute("energy", str(en))##
+		   
+                    self.free_nodes(i)
                     del self.processes[i]
                 elif p_state!=0 and p_state!=255 and p_state != None:
                     print self.print_job(i) + " failed.  "
@@ -346,7 +362,7 @@ class bigjob_agent:
                     else:
                         print "do not restart job " + self.print_job(i)
                         i.set_attribute("state", str(saga.job.Failed))
-    
+            rid=rid+1
     def print_job(self, job_dir):
         return  "Job: " + job_dir.get_url().get_string() + " Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
                                 
@@ -426,5 +442,4 @@ if __name__ == "__main__" :
         print "Usage: \n " + args[0] + " <advert-host> <advert-director>"
         sys.exit(1)
     
-    bigjob_agent = bigjob_agent(args)    
-    
+    bigjob_agent = bigjob_agent(args)
