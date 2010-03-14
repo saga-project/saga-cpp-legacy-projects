@@ -567,10 +567,14 @@ namespace digedag
     {
       return false;
     }
+    
+    if (cr_enabled)
+    {
+      std::map <node_id_t, node_map_t> nodes = dag_->get_nodes();
+      cr_mgr_.node_commit ( n, nodes );
+      // checkpoint_dag_dump();
+    }
 
-    std::map <node_id_t, node_map_t> nodes = dag_->get_nodes();
-    cr_mgr_.node_commit ( n, nodes );
-    // checkpoint_dag_dump();
     // std::cout << " === node done: " << n->get_name () << std::endl;
     
     return true;
@@ -653,9 +657,13 @@ namespace digedag
       return false;
     }
 
-    std::map <edge_id_t, edge_map_t> edges = dag_->get_edges();
-    cr_mgr_.edge_commit ( e, edges );
-    // checkpoint_dag_dump();
+    if (cr_enabled)
+    {
+      std::map <edge_id_t, edge_map_t> edges = dag_->get_edges();
+      cr_mgr_.edge_commit ( e, edges );
+      // checkpoint_dag_dump();
+    }
+
     // std::cout << " === egde done: " << e->get_name () << std::endl;
 
     return true;
