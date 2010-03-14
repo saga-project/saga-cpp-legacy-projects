@@ -49,6 +49,7 @@ namespace digedag
       checkpoint_mgr  ();
       ~checkpoint_mgr (void);
 
+      void set_dag_size		   (int node_size, int edge_size);
       void set_file                (std::string daghash);
       std::string get_filename     (void);
       void set_filepath            (std::string fpath);

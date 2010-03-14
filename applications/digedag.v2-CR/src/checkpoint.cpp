@@ -32,12 +32,16 @@ namespace digedag
 	checkpoint_.method   = LocalFile;
 	checkpoint_.hashlog  = true;
 	//checkpoint_.rm_log_on_complete = false;
-	nodeset.resize(55);
-	edgeset.resize(302);
   }
 
   checkpoint_mgr::~checkpoint_mgr (void)
   {
+  }
+
+  void checkpoint_mgr::set_dag_size (int node_size, int edge_size)
+  {
+	nodeset.resize(node_size);
+	edgeset.resize(edge_size);
   }
 
   void checkpoint_mgr::set_file (std::string dagfile)

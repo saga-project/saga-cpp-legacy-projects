@@ -38,6 +38,7 @@ namespace digedag
 
     // cr_mgr_ = checkpoint_mgr(); 
     cr_mgr_.set_file(dag_file);
+    cr_mgr_.set_dag_size(d->get_nodes_count(), d->get_edges_count());
   }
 
   scheduler::~scheduler (void)
