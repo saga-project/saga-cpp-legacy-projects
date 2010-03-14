@@ -38,7 +38,6 @@ namespace digedag
 
     // cr_mgr_ = checkpoint_mgr(); 
     cr_mgr_.set_file(dag_file);
-    cr_mgr_.set_dag_size(d->get_nodes_count(), d->get_edges_count());
   }
 
   scheduler::~scheduler (void)
@@ -422,6 +421,7 @@ namespace digedag
 
     if ( cr_enabled )
     {
+      cr_mgr_.set_dag_size(dag_->get_nodes_count(), dag_->get_edges_count());
       std::cout << "CHECKPOINT: attempting to restore state" << std::endl;
       std::map <node_id_t, node_map_t> nodes = dag_->get_nodes ();
       std::map <edge_id_t, edge_map_t> edges = dag_->get_edges ();
