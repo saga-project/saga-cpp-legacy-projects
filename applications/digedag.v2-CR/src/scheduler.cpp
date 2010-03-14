@@ -20,6 +20,7 @@ namespace digedag
 {
   scheduler::scheduler (dag               * d, 
                         const std::string & src, 
+                        const std::string & dag_file,
                         saga::session       session)
     : session_       (  session)
     , dag_           (        d)
@@ -34,6 +35,9 @@ namespace digedag
     src_ = src;
 
     parse_src ();
+
+    // cr_mgr_ = checkpoint_mgr(); 
+    cr_mgr_.set_file(dag_file);
   }
 
   scheduler::~scheduler (void)
@@ -184,9 +188,131 @@ namespace digedag
           }
         }
       }
-      
-
+      else if ( words[0] == "checkpoint-enabled" )
+      {
+	if ( words.size () != 2 )
+	{
+	  std::cerr << "parser error (5) in " << src_ << " at line " << lnum << std::endl;
+	}
+	else
+	{
+	  // reverse this check, CR should default to enabled, with localfile method
+	  if ( words[1] == "true" )
+	  {
+            cr_enabled = true;
+	  }
+	  else
+	  {
+	    cr_enabled = false;
+	  }
+	}
+      }
+      else if ( words[0] == "checkpoint-method" )
+      {
+	if ( words.size () != 2 )
+	{
+	  std::cerr << "parser error (6) in " << src_ << " at line " << lnum << std::endl;
+        }
+        else
+        {
+	  if ( words[1] == "file" )
+	  {
+	    cr_mgr_.set_method(LocalFile);
+	  }
+	  else if ( words[1] == "advert" )
+	  {
+	    cr_mgr_.set_method(AdvertService);
+	  }
+	  else
+	  {
+	    std::cerr << "parser error (6) in " << src_ << " at line " << lnum << std::endl;
+	    std::cerr << "checkpoint supported methods are: 'file', 'advert', 'none'." << std::endl;
+	    std::cerr << "unkown checkpoint method: " << words[1] << std::endl;
+	    throw("configuration syntax error");
+	  }
+	}
+      }	        
+      else if ( words[0] == "checkpoint-compress" )
+      {
+        if ( words.size () != 2 )
+        {
+	  std::cerr << "parser error (8) in " << src_ << " at line " << lnum << std::endl;
+	}
+	else
+	{
+	  if ( words[1] == "true" )
+	  {
+	     cr_mgr_.set_compress(true);
+	  }
+	  else
+	  {
+	     cr_mgr_.set_compress(false);
+	  }
+	}
+      }
+      else if ( words[0] == "checkpoint-hashlog")
+      {
+	if ( words[1] == "true" )
+	{
+	   cr_mgr_.set_hashlog(true);
+	}
+        else if ( words[1] == "false" )
+	{
+	   cr_mgr_.set_hashlog(false);
+	}
+	else
+	{
+	   std::cerr << "parser error in " << src_ << " at line " << lnum << std::endl;
+	   std::cerr << "checkpoint-hashlog can be set to: 'true', 'false'." << std::endl;
+	   std::cerr << "unknown keyword: " << words[1] << std::endl;
+	   throw("configuration syntax error");
+	}
+      }
+      else if ( (words [0] == "checkpoint-verbose") && (words.size() ==2) )
+      {
+	if ( words[1] == "true" )
+	{  
+           cr_mgr_.set_verbose(true); // transform this into a verbosity bitmap, enable various debug output
+	   std::cout << cr_mgr_.get_verbose() << std::endl;
+	}
+	else if ( words[1] == "false" )
+	{  
+	   cr_mgr_.set_verbose(false);
+	}
+        else 
+        {
+	   std::cerr << "parser error (9) in " << src_ << " at line " << lnum << std::endl;
+	   std::cerr << "checkpoint-verbose can be set to: 'true', 'false'." << std::endl;
+	   std::cerr << "unknown keyword: " << words[1] << std::endl;
+	   throw("configuration syntax error");
+        }
+      }
+      else if ( (words [0] == "checkpoint-filepath") && (words.size() == 2) )
+      {
+	cr_mgr_.set_filepath(words[1]);
+      }
+     
       lnum++;
+    } // end while loop
+
+      // report configuration to stdout
+      std::cout << "checkpoint enabled: " << cr_enabled << std::endl;
+      std::cout << "checkpoint method set to: " << checkpoint_method_to_string(cr_mgr_.get_method()) << std::endl;
+      std::cout << "checkpoint status bitmap compression: " << cr_mgr_.get_compress() << std::endl;
+      std::cout << "checkpoint verbosity: " << cr_mgr_.get_verbose() << std::endl;
+      if ( !cr_mgr_.get_filename().empty() )
+      	std::cout << "checkpoint filepath: " << cr_mgr_.get_filename() << std::endl;
+
+  }
+
+  void scheduler::checkpoint_dag_dump (void)
+  {
+    if ( cr_enabled )
+    { 
+      std::cout << "CHECKPOINT: attempting to dump state" << std::endl;
+      std::map <node_id_t, node_map_t> nodes = dag_->get_nodes();
+      std::map <edge_id_t, edge_map_t> edges = dag_->get_edges();
+      cr_mgr_.dump(nodes, edges);
     }
   }
 
@@ -232,7 +358,7 @@ namespace digedag
       return false;
     }
 
-    // walk throgh the dag, and assign execution host for nodes, and data
+    // walk through the dag, and assign execution host for nodes, and data
     // prefixes for edges
     std::map <node_id_t, node_map_t> nodes = dag_->get_nodes ();
     std::map <edge_id_t, edge_map_t> edges = dag_->get_edges ();
@@ -291,6 +417,15 @@ namespace digedag
     if ( stopped_ ) 
     {
       return false;
+    }
+
+    if ( cr_enabled )
+    {
+      std::cout << "CHECKPOINT: attempting to restore state" << std::endl;
+      std::map <node_id_t, node_map_t> nodes = dag_->get_nodes ();
+      std::map <edge_id_t, edge_map_t> edges = dag_->get_edges ();
+      //checkpoint_mgr cmgr = checkpoint_mgr();
+      cr_mgr_.restore(nodes, edges);
     }
 
     // start watching the task containers, even if they are still empty
@@ -432,6 +567,9 @@ namespace digedag
       return false;
     }
 
+    std::map <node_id_t, node_map_t> nodes = dag_->get_nodes();
+    cr_mgr_.node_commit ( n, nodes );
+    // checkpoint_dag_dump();
     // std::cout << " === node done: " << n->get_name () << std::endl;
     
     return true;
@@ -514,6 +652,9 @@ namespace digedag
       return false;
     }
 
+    std::map <edge_id_t, edge_map_t> edges = dag_->get_edges();
+    cr_mgr_.edge_commit ( e, edges );
+    // checkpoint_dag_dump();
     // std::cout << " === egde done: " << e->get_name () << std::endl;
 
     return true;

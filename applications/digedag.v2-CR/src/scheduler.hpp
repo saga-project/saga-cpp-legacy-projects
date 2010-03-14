@@ -11,6 +11,7 @@
 #include "dag.hpp"
 #include "node.hpp"
 #include "edge.hpp"
+#include "checkpoint.hpp"
 
 #include "util/mutex.hpp"
 #include "util/thread.hpp"
@@ -75,10 +76,14 @@ namespace digedag
       std::set <std::string>                known_nodes_;
       std::set <std::string>                known_edges_;
 
+      void checkpoint_dag_dump              (void);
+      checkpoint_mgr                        cr_mgr_;
+      bool                                  cr_enabled;
 
     public:
       scheduler  (dag * d, 
                   const std::string & src, 
+                  const std::string & dag_file,
                   saga::session       session);
       ~scheduler (void);
 
