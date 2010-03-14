@@ -127,8 +127,12 @@ namespace digedag
 	std::map <node_id_t, boost::shared_ptr <node> > :: iterator node_end = dag_nodes.end ();
 
 	int nodepos = std::distance ( node_begin, dag_nodes.find(n->get_name()) );
-	std::cout << "CR: node position in map: " << nodepos << std::endl;
-	std::cout << "CR: node id: " << n->get_name() << std::endl;
+
+	if (checkpoint_.verbose)
+        {
+	  std::cout << "CR: node position in map: " << nodepos << std::endl;
+	  std::cout << "CR: node id: " << n->get_name() << std::endl;
+        }
 
 	nodeset[nodepos] = 1;
 	dumptofile();
@@ -143,8 +147,12 @@ namespace digedag
         std::map <edge_id_t, boost::shared_ptr <edge> > :: iterator edge_end = dag_edges.end ();
 
         int edgepos = std::distance ( edge_begin, dag_edges.find(e->get_id()) );
-        std::cout << "CR: edge position in map: " << edgepos << std::endl;
-	std::cout << "CR: edge id: " << e->get_id() << std::endl;
+
+	if (checkpoint_.verbose)
+        {
+          std::cout << "CR: edge position in map: " << edgepos << std::endl;
+          std::cout << "CR: edge id: " << e->get_id() << std::endl;
+	}
 
 	edgeset[edgepos] = 1;
 	dumptofile();
