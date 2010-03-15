@@ -59,7 +59,7 @@ if __name__ == "__main__":
       jds.append(jd)
       sj = bigjob.subjob(advert_host)
       sjs.append(sj)
-      sjs[i].submit_job(bjs[i].pilot_url, jds[i])
+      sjs[i].submit_job(bjs[i].pilot_url, jds[i],str(i))
     
     # busy wait for completion
     while 1:
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     
     for i in range(0,2):
       prepare_NAMD_config()
-      sjs[i].submit_job(bjs[i].pilot_url, jds[i])
+      sjs[i].submit_job(bjs[i].pilot_url, jds[i], str(i))
     
     while 1:
       state0 = str(sjs[0].get_state())

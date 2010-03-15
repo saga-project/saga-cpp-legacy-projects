@@ -178,7 +178,7 @@ class subjob():
         self.job_url = self.saga_pilot_url.get_string() + "/" + str(self.uuid)
         return self.job_url
 
-    def submit_job(self, pilot_url, jd):
+    def submit_job(self, pilot_url, jd, rid):
         """ submit job via advert service to NAMD-Launcher 
             dest_url - url reference to advert job or host on which the advert job is going to run"""
         print "submit job: " + str(pilot_url)
@@ -201,8 +201,9 @@ class subjob():
                             self.job_dir.set_attribute(i, jd.get_attribute(i))
 
                 self.job_dir.set_attribute("state", str(saga.job.Unknown))
-                self.job_dir.set_attribute("energy", "unknown energy")
-		# return self object for get_state() query    
+		self.job_dir.set_attribute("energy", "unknown energy")
+		self.job_dir.set_attribute("replica_id", rid)
+                # return self object for get_state() query    
                 #logging.debug("Submission time (time to create advert entries): " + str(time.time()-start) + " s")
                 return self    
             except:
@@ -213,7 +214,7 @@ class subjob():
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
-    
+
     def get_energy(self):
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("energy")
