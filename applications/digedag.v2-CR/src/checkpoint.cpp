@@ -146,11 +146,13 @@ namespace digedag
   void checkpoint_mgr::edge_commit (boost::shared_ptr <edge> e,
                                     std::map <edge_id_t, edge_map_t> dag_edges)
   {
+	/*
         std::map <edge_id_t, boost::shared_ptr <edge> > :: iterator edge_it;
         std::map <edge_id_t, boost::shared_ptr <edge> > :: iterator edge_begin = dag_edges.begin ();
         std::map <edge_id_t, boost::shared_ptr <edge> > :: iterator edge_end = dag_edges.end ();
 
         int edgepos = std::distance ( edge_begin, dag_edges.find(e->get_id()) );
+	*/
 
 	if (checkpoint_.verbose)
         {
@@ -158,7 +160,8 @@ namespace digedag
           std::cout << "CR: edge id: " << e->get_id() << std::endl;
 	}
 
-	edgeset[edgepos] = 1;
+	// edgeset[edgepos] = 1;
+	edgeset[e->get_id()-1];
 	dumptofile();
   }
 
