@@ -13,8 +13,34 @@ advert_host = "fortytwo.cct.lsu.edu"
 """ Test Job Submission via Advert """
 if __name__ == "__main__":
 
-    ##########################################################################################
-    # Start BigJob
+    #range of temperatures
+    temps=[]
+    t=300
+    for i in range(0,2):
+      temp = t
+      t = t+10
+      temps.append(temp)
+
+    def NAMD_config():
+# The idea behind this is that we can simply modify NPT.conf before submit a job to set temp and other variables
+        ifile = open("NPT.conf")   # should be changed if a different name is going to be used
+        lines = ifile.readlines()
+        for line in lines:
+            if line.find("desired_temp") >= 0 and line.find("set") >= 0:
+               # items = line.split()
+               # temp = items[2]
+                if(i==0):
+                 #   print "\n (DEBUG) temperature is changing to " + str(self.temperatures[replica_id]) + " from " + temp + " for rep" + str(replica_id)
+                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
+                else:
+                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
+        ifile.close()
+        ofile = open("NPT.conf","w")
+        for line in lines:
+            ofile.write(line)
+        ofile.close()
+##################################################################################  
+  # Start BigJob
     # Parameter for BigJob
     bigjob_agent = os.getcwd() + "/bigjob_agent_launcher.sh" # path to agent
     #bigjob_agent = "/bin/echo"
@@ -30,7 +56,7 @@ if __name__ == "__main__":
       if(i==0):
         lrms_url = "gram://eric1.loni.org/jobmanager-pbs"
       else:
-        lrms_url = "gram://eric1.loni.org/jobmanager-pbs"
+        lrms_url = "gram://qb1.loni.org/jobmanager-pbs"
       bjs[i].start_pilot_job(lrms_url,
                             bigjob_agent,
                             nodes,
@@ -54,11 +80,16 @@ if __name__ == "__main__":
     jd.working_directory = os.getcwd() 
     sjs=[]
     for i in range(0, 2):
+    #  jd.arguments = ["NPT" + str(i) + ".conf"]
       jd.output = "rep-" + str(i) + "/stdout-" + str(i) + ".txt"
       jd.error = "rep-" + str(i) + "/stderr-" + str(i) + ".txt"  	
       jds.append(jd)
       sj = bigjob.subjob(advert_host)
       sjs.append(sj)
+      #prepare config and scp other files to remote machine
+      NAMD_config()
+      if(i==1):
+        os.system("gsiscp NPT.conf qb1.loni.org:/work/athota1/new_bigjob/") 
       sjs[i].submit_job(bjs[i].pilot_url, jds[i],str(i))
     
     # busy wait for completion
@@ -84,7 +115,7 @@ if __name__ == "__main__":
             if line.find("desired_temp") >= 0 and line.find("set") >= 0:
                # items = line.split()
                # temp = items[2]
-                if(sjs[i]==sjs[0]):
+                if(i==0):
                  #   print "\n (DEBUG) temperature is changing to " + str(self.temperatures[replica_id]) + " from " + temp + " for rep" + str(replica_id)
                     lines[lines.index(line)] = "set desired_temp %s \n"%(str(energy1))
                 else:
@@ -97,6 +128,8 @@ if __name__ == "__main__":
     
     for i in range(0,2):
       prepare_NAMD_config()
+      if(i==1):
+         os.system("gsiscp NPT.conf qb1.loni.org:/work/athota1/new_bigjob/bigjob")
       sjs[i].submit_job(bjs[i].pilot_url, jds[i], str(i))
     
     while 1:
@@ -115,4 +148,3 @@ if __name__ == "__main__":
 # Cleanup - stop BigJob
     bjs[0].cancel()
     bjs[1].cancel()
-

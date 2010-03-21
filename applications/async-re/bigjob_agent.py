@@ -320,7 +320,7 @@ class bigjob_agent:
             items = line.split()
             if len(items) > 0:
                 if items[0] in ("ENERGY:"):
-                    en = items[11]
+                    en = items[12]
         print "(DEBUG) energy : " + str(en) 
         return en  
 
@@ -432,3 +432,4 @@ if __name__ == "__main__" :
         sys.exit(1)
     
     bigjob_agent = bigjob_agent(args)    
+    
