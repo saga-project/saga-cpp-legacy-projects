@@ -10,6 +10,39 @@ import pdb
 
 advert_host = "fortytwo.cct.lsu.edu"
 
+def prepare_NAMD_config():
+# The idea behind this is that we can simply modify NPT.conf before submit a job to set temp and other variables
+   ifile = open("NPT.conf")   # should be changed if a different name is going to be used
+   lines = ifile.readlines()
+   for line in lines:
+      if line.find("desired_temp") >= 0 and line.find("set") >= 0:
+         if(i==0):
+            lines[lines.index(line)] = "set desired_temp %s \n"%(str(energy1))
+         else:
+            lines[lines.index(line)] = "set desired_temp %s \n"%(str(energy0))
+   ifile.close()
+   ofile = open("NPT.conf","w")
+   for line in lines:
+     ofile.write(line)
+   ofile.close()
+
+def NAMD_config():
+# The idea behind this is that we can simply modify NPT.conf before submit a job to set temp and other variables
+  ifile = open("NPT.conf")   # should be changed if a different name is going to be used
+  lines = ifile.readlines()
+  for line in lines:
+     if line.find("desired_temp") >= 0 and line.find("set") >= 0:
+       if(i==0):
+          lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
+       else:
+          lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
+  ifile.close()
+  ofile = open("NPT.conf","w")
+  for line in lines:
+    ofile.write(line)
+  ofile.close()
+
+
 """ Test Job Submission via Advert """
 if __name__ == "__main__":
 
@@ -21,24 +54,6 @@ if __name__ == "__main__":
       t = t+10
       temps.append(temp)
 
-    def NAMD_config():
-# The idea behind this is that we can simply modify NPT.conf before submit a job to set temp and other variables
-        ifile = open("NPT.conf")   # should be changed if a different name is going to be used
-        lines = ifile.readlines()
-        for line in lines:
-            if line.find("desired_temp") >= 0 and line.find("set") >= 0:
-               # items = line.split()
-               # temp = items[2]
-                if(i==0):
-                 #   print "\n (DEBUG) temperature is changing to " + str(self.temperatures[replica_id]) + " from " + temp + " for rep" + str(replica_id)
-                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
-                else:
-                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
-        ifile.close()
-        ofile = open("NPT.conf","w")
-        for line in lines:
-            ofile.write(line)
-        ofile.close()
 ##################################################################################  
   # Start BigJob
     # Parameter for BigJob
@@ -106,25 +121,6 @@ if __name__ == "__main__":
          break
       time.sleep(10)
     ##########################################################################################
-    
-    def prepare_NAMD_config():
-# The idea behind this is that we can simply modify NPT.conf before submit a job to set temp and other variables
-        ifile = open("NPT.conf")   # should be changed if a different name is going to be used
-        lines = ifile.readlines()
-        for line in lines:
-            if line.find("desired_temp") >= 0 and line.find("set") >= 0:
-               # items = line.split()
-               # temp = items[2]
-                if(i==0):
-                 #   print "\n (DEBUG) temperature is changing to " + str(self.temperatures[replica_id]) + " from " + temp + " for rep" + str(replica_id)
-                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(energy1))
-                else:
-                    lines[lines.index(line)] = "set desired_temp %s \n"%(str(energy0))    
-        ifile.close()
-        ofile = open("NPT.conf","w")
-        for line in lines:
-            ofile.write(line)
-        ofile.close()
     
     for i in range(0,2):
       prepare_NAMD_config()

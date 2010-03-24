@@ -177,7 +177,7 @@ class subjob():
         # create dir for job
         self.job_url = self.saga_pilot_url.get_string() + "/" + str(self.uuid)
         return self.job_url
-
+#rid is used to identify each of the sub-jobs, and is useful when monitoring the jobs, reading the energies of different replicas
     def submit_job(self, pilot_url, jd, rid):
         """ submit job via advert service to NAMD-Launcher 
             dest_url - url reference to advert job or host on which the advert job is going to run"""

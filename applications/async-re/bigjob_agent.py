@@ -317,10 +317,10 @@ class bigjob_agent:
         enfile = open("/work/athota1/new_bigjob/bigjob/agent/rep-" + str(replica_id) + "/stdout-" + str(replica_id) + ".txt")
         lines = enfile.readlines()
         for line in lines:
-            items = line.split()
-            if len(items) > 0:
-                if items[0] in ("ENERGY:"):
-                    en = items[12]
+          items = line.split()
+          if len(items) > 0:
+            if items[0] in ("ENERGY:"):
+               en = items[12]
         print "(DEBUG) energy : " + str(en) 
         return en  
 
