@@ -1,4 +1,4 @@
-set term postscript eps enhanced color solid "Times-Roman" 17
+set term postscript eps enhanced color solid "Times-Roman" 21
 set output 'CloudStoreNoCompute_287Minus144.eps'
 set pointsize 2
 set key Left reverse

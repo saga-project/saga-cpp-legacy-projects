@@ -1,4 +1,4 @@
-set term postscript eps enhanced color solid "Times-Roman" 17
+set term postscript eps enhanced color solid "Times-Roman" 21
 set output 'IntelligentFigure.eps'
 set pointsize 2
 set key Left reverse

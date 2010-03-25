@@ -1,4 +1,4 @@
-set term postscript eps enhanced color solid "Times-Roman" 17
+set term postscript eps enhanced color solid "Times-Roman" 21
 set output 'NumberResourcesFigure_histogram.eps'
 set pointsize 2
 set xrange [-0.75:2.75]

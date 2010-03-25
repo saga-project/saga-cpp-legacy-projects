@@ -1,12 +1,12 @@
-set term postscript eps enhanced color solid "Times-Roman" 17
+set term postscript eps enhanced color solid "Times-Roman" 23
 set output 'ConventionalandIntelligent.eps'
 set pointsize 2
-set key Left reverse
+set key Left reverse width -7
 set xlabel 'N_w' font "Times-Italic, 25"
 set ylabel 't_c(s)' font "Times-Italic, 25"
 set mxtics 2
 set mytics 5
-plot[0:10][0:4000] './LocalGridFTP.dat' using 1:2 title 'S0: [C1]' with lp lw 3,\
+plot[0:10][0:5000] './LocalGridFTP.dat' using 1:2 title 'S0: [C1]' with lp lw 3,\
 './RemoteGridFTP.dat' using 1:2 title 'S1: [C2]' with lp lw 3,\
 './IntelligentGridFTP.dat' using 1:2 title 'S2: [C4, Intelligence]' with lp lw 3,\
 './MixedGridFTP.dat' using 1:2 title 'S3: [C4]' with lp lw 3,\

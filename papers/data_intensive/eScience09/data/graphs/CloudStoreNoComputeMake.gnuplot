@@ -1,4 +1,4 @@
-set term postscript eps enhanced color solid "Times-Roman" 17
+set term postscript eps enhanced color solid "Times-Roman" 21
 set output 'CloudStoreNoComputeSmallerDataSet.eps'
 set xlabel 'N_w' font "Times-Italics, 25"
 set ylabel 't_c(s)' font "Times-Italics, 25"
