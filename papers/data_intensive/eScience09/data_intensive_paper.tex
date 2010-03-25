@@ -12,8 +12,8 @@
 \usepackage{times}
 \usepackage{multirow}
 \usepackage{listings}
-\usepackage{paralist}
-\usepackage{wrapfig}
+%\usepackage{paralist}
+%\usepackage{wrapfig}
 \usepackage[small,it]{caption}
 \usepackage{ifpdf}
 \usepackage{subfigure}
@@ -157,27 +157,26 @@ analyse performance that we developed. SAGA encodes the All-Pairs
 pattern in a distributed context; we chose All-Pairs as it is a
 representative and common data-access pattern found in many
 data-intensive distributed applications.  In this paper, we
-investigate two ways to handle the optimal data-computation
-distribution problem.  In the first approach, we encode a simple
-heuristic to determine the {\it workload} placement into an
-``intelligent framework''. We contrast this approach with the use of
-an open-source distributed filesystem (DFS) -- which natively supports
-effective {\it data} placement.  A DFS controls the data placement and
-provides a uniform interface for accessing files on multiple
-hosts. DFS are becoming increasing common as part of Cloud
-infrastructures and available machine images. But the underlying
-algorithms, scheduling strategies, and implementations vary greatly
-between different infrastructure, hence it is difficult to estimate
-{\it a priori} the application-level performance on a given DFS.  Thus
-having the ability to compare and contrast different DFSs for a given
-application is an important requirement. In Section 3 we will
+investigate two ways to handle the optimal data-computation distribution
+problem.  In the first approach, we encode a simple metric to determine
+the {\it workload} placement into a ``heuristic framework''. We contrast
+this approach with the use of an open-source distributed filesystem
+(DFS) -- which natively supports effective {\it data} placement.  A DFS
+controls the data placement and provides a uniform interface for
+accessing files on multiple hosts. DFS are becoming increasing common as
+part of Cloud infrastructures and available machine images. But the
+underlying algorithms, scheduling strategies, and implementations vary
+greatly between different infrastructure, hence it is difficult to
+estimate {\it a priori} the application-level performance on a given
+DFS.  Thus having the ability to compare and contrast different DFSs for
+a given application is an important requirement. In Section 3 we will
 establish how the use of adaptors enables SAGA-based applications to
-make this comparison effectively.  An aim of this paper is to present
-a credible initial benchmarking template, and to suggest ways to
-answer the question of whether ``to move computational workload to
-where data resides or to redistributed the data''.  As we will show,
-the actual answer will depend significantly on the specific data-set
-sizes, algorithm/applications, and infrastructure used.  Data privacy,
+make this comparison effectively.  An aim of this paper is to present a
+credible initial benchmarking template, and to suggest ways to answer
+the question of whether ``to move computational workload to where data
+resides or to redistributed the data''.  As we will show, the actual
+answer will depend significantly on the specific data-set sizes,
+algorithm/applications, and infrastructure used.  Data privacy,
 security, and access policy are crucial issues but typically are not
 determinants of performance for distributed applications; thus we will
 not consider them in this paper.
@@ -348,9 +347,9 @@ transferring data to the job takes too long, we spend more time on
 data transfer than computation. There may be a resource capable of the
 work that may be slower than others, but able to be accessed in a
 relatively quick manner via the network, correcting for this lack of
-computational ability. An intelligent application attempts to predict
-and determine a specific data set's affinity to a specific network
-resource.
+computational ability. An application can uses simple heuristics to
+predict and determine a specific data set's affinity to a specific
+network resource.
 
 %\subsection{Infrastructure Used}
 
@@ -373,12 +372,12 @@ While a DFS removes the responsibility of replica management and data
 server placement, the abstraction often increases the difficulty in
 determining where in the DFS the data is being stored.
 
-Our intelligent framework method differs from a DFS in that it
+Our heuristic framework method differs from a DFS in that it
 determines where data is and where the work should go. Determining
 data location can be as simple as looking at the IP address of the
 worker and seeing geographically where it is located, or as
 complicated as using network analyses tools to determine the optimal
-data transfer minimization time. For the intelligent method, we use
+data transfer minimization time. For the heuristic method, we use
 gridFTP -- a tool that can support high-performance transfer.
 
 To test CloudStore and gridFTP, we wrote adaptors for SAGA that
@@ -409,7 +408,7 @@ experiments.
 \section{Experiments and Performance Analysis} 
 We developed three types of experiments in order to understand the
 interplay of different determinants of performance and make a
-meaningful comparision of CloudStore's behaviour to manual data
+meaningful comparison of CloudStore's behaviour to manual data
 placement and file management. We try to answer questions such as: Is
 a DFS slower than manual placement of data?  When manually handling
 data, what are the advantages of being able to move work to data or
@@ -588,11 +587,11 @@ machine, while having the data stored in another (S1-- not pictured $t_c(N_w=1)=
 compared to having some data stored in the resource performing
 computations (S3). For up to 8 workers, $t_c$ decreased as $N_w$
 increased, with the exception of a single machine where we reached an
-I/O bound. Here, we also compare the gridFTP and the intelligent
-approaches for two and three machines (Sec. \ref{Sec:Intelligence}). For
+I/O bound. Here, we also compare the gridFTP and the heuristic
+approaches for two and three machines (Sec. \ref{Sec:Heuristic}). For
 the two-machine case, we observed a performance improvement by using our
-intelligent approach (S2 vs. S3). However, with more resources involved, our
-intelligent system did not improve $t_c$ (S4 vs. S5).}
+heuristic approach (S2 vs. S3). However, with more resources involved,
+our heuristic system did not improve $t_c$ (S4 vs. S5).}
 \label{Fig:ExpIConventionalLocal}
 \end{center}
 \vspace{-0.3cm}
@@ -622,7 +621,7 @@ intelligent system did not improve $t_c$ (S4 vs. S5).}
 \vspace{-0.3cm}
 
 %Staging experiment
-\subsection{Experiment II: Intelligence Based System}\label{Sec:Intelligence}
+\subsection{Experiment II: Heuristic Based System}\label{Sec:Heuristic}
 The second experiment is similar to the first, except the All-Pairs
 application is aware of the data location before determining whether or
 not to assign a certain set of data-dependent computation to an idle
@@ -634,13 +633,13 @@ is then assembled into a graph data structure. This graph is utilised at
 runtime when the application needs to map an idle worker to an
 unprocessed set of pairs defined in the XML file. This changes the
 first-available computational resource assignment mechanism described in
-the first experiment to an intelligent based system. Though ping is not
+the first experiment to a heuristic based system. Though ping is not
 very sophisticated in terms of describing a network's behavior, it is a
 first-approximation to a performance aware data-placement strategy. We
 also experimented with the netperf application \citep{netperf_web} as a
 method to describe a network's behavior, but since we were working with
 such a static set of resources (LONI), the same data graph was generated
-as with ping. The netperf-based intelligent system added approximately 8
+as with ping. The netperf-based heuristic system added approximately 8
 seconds per resource of overhead due to the nature of the network
 evaluation, but yielded no benefit.  Netperf has the advantage of being
 able to determine throughput and bandwidth over multiple protocols.
@@ -652,13 +651,13 @@ dynamically at run-time depending on usage patterns. We leave this
 approach to future research. 
 %Figure 2
 
-The overhead of intelligence includes the time spent pinging hosts and
+The overhead of heuristics includes the time spent pinging hosts and
 building the graph data structure. The total time spent for this
 overhead was negligible at approximately two seconds per application
 run. In figure \ref{Fig:ExpIConventionalLocal:b}, we see we achieved a
-reduction in time to completion due to the use of intelligence. However,
+reduction in time to completion due to the use of heuristics. However,
 when the same tests were performed utilising three resources instead of
-two, the intelligence seemed to offer no significant reduction. The
+two, the heuristic seemed to offer no significant reduction. The
 explanation that we propose for this, is that the sets of pairs defined
 in the configuration file at application start were geographically
 equally dispersed throughout the network. Essentially, each set of pairs
@@ -697,7 +696,7 @@ Direct})$. The figure on the left demonstrates All-Pairs' performance
 with CloudStore locally and on two different machines. The figure on the
 right demonstrates how this scales to three machines, for degree of
 replication $r=1,2,\mbox{and } 3$. CloudStore performed better than our
-local and intelligent approaches (see Fig.
+local and heuristic-based approaches (see Fig.
 \ref{Fig:ExpIConventionalLocal}). Again,
 having data in the resource with the workload decreased $t_c$. When data
 was spread across all the computational resources, having a degree of
@@ -806,16 +805,16 @@ was the one with the most overhead.}
 \vspace{-0.4cm}
 \end{figure}
 
-We compared the lowest times for both our intelligent approach and
+We compared the lowest times for both our heuristic approach and
 CloudStore as a function of the number of resources $N_r$ in figure
 \ref{Fig:CloudStoreVsGridFTP:a}. CloudStore performed better for one and
 two machines, but not for three resources, when CloudStore decreased its
-performance. The lowest times of our intelligent approach were about the
+performance. The lowest times of our heuristic approach were about the
 same for $N_r=1,2,3$. In figure \ref{Fig:CloudStoreVsGridFTP:b} we
 plotted our completion time as a function of the number of workers for
 three resources. All the resources had workload assigned and data
 stored. CloudStore's performance did not vary significantly with the
-number of workers, while our intelligent approach performed better as we
+number of workers, while our heuristic approach performed better as we
 increased the number of resources from one to three.
 
 \begin{figure}
@@ -832,13 +831,13 @@ increased the number of resources from one to three.
 }
 \caption{Figure \ref{Fig:CloudStoreVsGridFTP:a}
  shows the lowest times we achieved for a given number of resources
- $(N_{r})$. These lowest times did not vary much for our intelligent
+ $(N_{r})$. These lowest times did not vary much for our heuristic-based 
  method, while CloudStore decreased its performance by adding number of
  resources (up to three). Figure \ref{Fig:CloudStoreVsGridFTP:b}
  demonstrates performance with three resources for both gridFTP and
  CloudStore. The three resources computed and had data stored.
  Performance using CloudStore remained about constant for two, four, and
- eight workers, while our intelligent approach improved its performance
+ eight workers, while our heuristic approach improved its performance
  with the number of workers.}
 \label{Fig:CloudStoreVsGridFTP}
 \end{center}
@@ -886,13 +885,13 @@ staging phase is worth the time required to build a network graph, as
 it improved upon the results of the naive baseline performance
 experiment. Our experiments scaled to three distinct resources not due
 to any fundamental scalability limitation in our approach, but due to
-the inabilty to find more than three similar resources.
+the inability to find more than three similar resources.
  
 Overall, the use of CloudStore lowers $t_c$ compared to the
-intelligent and the gridFTP approaches. Our simple intelligent
+heuristic and the gridFTP approaches. Our simple heuristic 
 approach did not perform as well as CloudStore for one and two
 machines, but performed better than gridFTP.  For three machines, the
-relative performance of CloudStore and the intelligent approach
+relative performance of CloudStore and the heuristic approach
 depended upon the $N_w$.  Our results for three resources showed that
 gridFTP continued to experience improvements in performance as the
 number of resources increased, while CloudStore leveled off.  
