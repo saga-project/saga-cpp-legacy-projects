@@ -1,7 +1,7 @@
-set term postscript eps enhanced color solid "Times-Roman" 21
+set term postscript eps enhanced color solid "Times-Roman" 23
 set output 'CloudStoreVsGridFTPFigure.eps'
 set pointsize 2
-#set key Left reverse
+set key Left reverse width -12
 set xlabel 'N_w' font "Times-Italic, 25"
 set ylabel 't_c(s)' font "Times-Italic, 25"
 set mxtics 2
