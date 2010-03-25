@@ -2,6 +2,7 @@ gnuplot < CloudStoreComputeMake.gnuplot
 gnuplot < CloudStoreMake.gnuplot
 gnuplot < CloudStoreNoComputeMake.gnuplot
 gnuplot < ConventionalMake.gnuplot
+gnuplot < ConventionalandIntelligent.gnuplot
 gnuplot < IntelligentExtremes.gnuplot
 gnuplot < IntelligentVsConventionalMake.gnuplot
 gnuplot < LocalFigure.gnuplot
@@ -14,8 +15,11 @@ gnuplot < CloudStoreComputeminusNoComputeMake.gnuplot
 gnuplot < CloudStoreNoCompute_287Minus144CommonTime.gnuplot
 gnuplot < CloudStoreNoCompute_287Minus144TimesNwMake.gnuplot
 gnuplot < CloudStoreNoCompute_287Minus144Make.gnuplot
+gnuplot < NumberResourcesMake_histogram.gnuplot
 epstopdf CloudStoreCompute.eps
+epstopdf NumberResourcesFigure_histogram.eps
 epstopdf CloudStoreFigure.eps
+epstopdf ConventionalandIntelligent.eps
 epstopdf CloudStoreNoComputeSmallerDataSet.eps
 epstopdf ConventionalFigure.eps
 epstopdf IntelligentExtremes.eps
