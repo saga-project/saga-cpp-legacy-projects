@@ -14,5 +14,5 @@ set xtics 1
 set mytics 2
 #plot newhistogram , './GridFTPVsNumberResources.dat' using 1:2 title 'S0: [{/Times-Italic fs} = gridFTP, {/Times-Italic m} = Local, Intelligence]' \
 # newhistogram , './CloudStoreVsNumberResources.dat' using 1:2 title 'S1: [{/Times-Italic fs} = CloudStore, {/Times-Italic m} = Direct]'
-plot './GridFTPVsNumberResources.dat'    using 2:xtic(1) title 'S0: [{/Times-Italic fs} = gridFTP, {/Times-Italic m} = Local, Intelligence]' , \
-     './CloudStoreVsNumberResources.dat' using 2        title 'S1: [{/Times-Italic fs} = CloudStore, {/Times-Italic m} = Direct]'
+plot './GridFTPVsNumberResources.dat'    using 2:xtic(1) title 'S0: [gridFTP, heuristic]' , \
+     './CloudStoreVsNumberResources.dat' using 2        title 'S1: [CloudStore]'
