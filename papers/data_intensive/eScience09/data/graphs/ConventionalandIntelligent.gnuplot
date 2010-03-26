@@ -8,8 +8,8 @@ set mxtics 2
 set mytics 5
 plot[0:10][0:5000] './LocalGridFTP.dat' using 1:2 title 'S0: [C1]' with lp lw 3,\
 './RemoteGridFTP.dat' using 1:2 title 'S1: [C2]' with lp lw 3,\
-'./IntelligentGridFTP.dat' using 1:2 title 'S2: [C4, Intelligence]' with lp lw 3,\
+'./IntelligentGridFTP.dat' using 1:2 title 'S2: [C4, heuristic]' with lp lw 3,\
 './MixedGridFTP.dat' using 1:2 title 'S3: [C4]' with lp lw 3,\
-'./IntelligentGridFTP3Resources.dat' using 1:2 title 'S4: [C5, Intelligence]' with lp lw 3,\
+'./IntelligentGridFTP3Resources.dat' using 1:2 title 'S4: [C5, heuristic]' with lp lw 3,\
 './NonIntelligentGridFTP3Resources.dat' using 1:2 title 'S5: [C5]' with lp lw 3 lt 7
 
