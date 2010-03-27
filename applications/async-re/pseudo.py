@@ -1,3 +1,5 @@
+"comments: find_partners_exchange() is supposed to be called after the replica are submitted to the bigjob for the first time. It in itself monitors and also finds replicas which are done and matches them with suitable partners to do the exchange. the other methods - search(), select() and update_states_energies() - do the work needed."
+
 def update_states_energies():#gets the states and energies
       for i in number of replicas:
         state[i] = str(sjs[i].get_state())
