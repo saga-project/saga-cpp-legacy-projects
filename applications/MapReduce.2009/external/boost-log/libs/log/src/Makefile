@@ -33,6 +33,7 @@ else
 endif
 
 SAGA_OBJ   = $(SAGA_SRC:%.cpp=%.o)
+SAGA_LIB   = boost_log
 
 
 include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
