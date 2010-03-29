@@ -12,4 +12,5 @@ include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 SAGA_CPPINCS += -I../ 
 SAGA_CPPINCS += -I../../../external/factory
+SAGA_CPPINCS += -I../../../external/boost-log/
 

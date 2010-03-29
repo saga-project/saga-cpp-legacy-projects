@@ -42,6 +42,7 @@ SAGA_CPPINCS  += -I./
 SAGA_CPPINCS  += -I../ 
 SAGA_CPPINCS  += -I../../external/factory/
 SAGA_CPPINCS  += -I../../external/boost-log/
+SAGA_LDFLAGS  += -L../../external/boost-log/log/libs/src/ -lboost_log
 
 lib:: $(SAGA_SUBDIRS)
 
