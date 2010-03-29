@@ -38,7 +38,7 @@ namespace BOOST_LOG_NAMESPACE {
 template< typename T >
 struct BOOST_LOG_NO_VTABLE type_visitor
 {
-    virtual ~type_visitor (void);
+    virtual ~type_visitor (void) { };
 
     //! The type, which the visitor is able to consume
     typedef T supported_type;
@@ -64,7 +64,7 @@ struct BOOST_LOG_NO_VTABLE type_visitor
 struct BOOST_LOG_NO_VTABLE type_dispatcher
 {
 public:
-    virtual ~type_dispatcher (void);
+    virtual ~type_dispatcher (void) { };
 
     /*!
      * The method requests a type visitor for a value of type \c T
