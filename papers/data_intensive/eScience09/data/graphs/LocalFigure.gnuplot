@@ -6,6 +6,6 @@ set xlabel 'N_w' font "Times-Italic, 28"
 set ylabel 't_c(s)' font "Times-Italic, 28"
 set mxtics 2
 set mytics 5
-plot[0:9][0:140]'./LocalFileSystem.dat' using 1:2 title 'S0: [{/Times-Italic c_s} = 287MB; {/Times-Italic N_c} = 8]' with lp lw 3,\
-'./LocalFileSystemHalfChunkSize16Assignments.dat' using 1:2 title 'S1: [{/Times-Italic c_s} = 144MB; {/Times-Italic N_c} = 16] ' with lp lw 3,\
-'./LocalFileSystemHalfChunkSize8Assignments.dat' using 1:2 title 'S2: [{/Times-Italic c_s} = 144MB; {/Times-Italic N_c} = 8] ' with lp lw 3
+plot[0:9][0:140]'./LocalFileSystem.dat' using 1:2 title 'S0: ({/Times-Italic c_s} = 287MB; {/Times-Italic N_c} = 8)' with lp lw 3,\
+'./LocalFileSystemHalfChunkSize16Assignments.dat' using 1:2 title 'S1: ({/Times-Italic c_s} = 144MB; {/Times-Italic N_c} = 16) ' with lp lw 3,\
+'./LocalFileSystemHalfChunkSize8Assignments.dat' using 1:2 title 'S2: ({/Times-Italic c_s} = 144MB; {/Times-Italic N_c} = 8) ' with lp lw 3
