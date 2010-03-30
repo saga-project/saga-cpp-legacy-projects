@@ -1,7 +1,7 @@
 set term postscript eps enhanced color solid "Times-Roman" 21
 set output 'CloudStoreNoComputeSmallerDataSet.eps'
-set xlabel 'N_w' font "Times-Italics, 25"
-set ylabel 't_c(s)' font "Times-Italics, 25"
+set xlabel 'N_w' font "Times-Italic, 25"
+set ylabel 't_c(s)' font "Times-Italic, 25"
 set mxtics 5
 set mytics 5
 plot[0:8][0:2000] './CloudStoreNoComputeLocal.dat' using 1:2 title 'C1 - [144 MB; E(Y, Y); CloudStore; Direct; 1]' with lp lw 3,\

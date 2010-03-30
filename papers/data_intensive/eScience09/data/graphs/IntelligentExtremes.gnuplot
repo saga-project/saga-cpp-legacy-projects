@@ -1,7 +1,7 @@
 set term postscript eps enhanced color solid "Times-Roman" 21
 set output 'IntelligentExtremes.eps'
-set xlabel 'N_w' font "Times-Italics, 25"
-set ylabel 't_c(s)' font "Times-Italics, 25"
+set xlabel 'N_w' font "Times-Italic, 25"
+set ylabel 't_c(s)' font "Times-Italic, 25"
 set mxtics 5
 set mytics 5
 plot[0:8] './LocalGridFTP.dat' using 1:2 title 'C1 - [287 MB; P(Y, Y), O(N, N); Local; GridFTP]' with lp lw 3,\
