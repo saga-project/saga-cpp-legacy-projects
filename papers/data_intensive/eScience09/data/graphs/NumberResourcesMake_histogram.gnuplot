@@ -8,8 +8,8 @@ set style data histogram
 set style histogram cluster gap 1
 set style fill pattern 4 border -1
 set boxwidth 1
-set xlabel 'N_r' font "Times-Italic, 25"
-set ylabel 't_c(s)' font "Times-Italic, 25"
+set xlabel 'N_r' font "Times-Italic, 28"
+set ylabel 't_c(s)' font "Times-Italic, 28"
 set xtics 1
 set mytics 2
 #plot newhistogram , './GridFTPVsNumberResources.dat' using 1:2 title 'S0: [{/Times-Italic fs} = gridFTP, {/Times-Italic m} = Local, Intelligence]' \
