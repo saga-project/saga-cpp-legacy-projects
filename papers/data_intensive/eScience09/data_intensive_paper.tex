@@ -277,7 +277,7 @@ applications~\citep{saga_gmac09}. SAGA has been used to develop
 system-level tools and applications of each of these types.
 In~\cite{saga_montage_escience09} we discussed how SAGA was used to
 implement a higher-level API to support workflows.
-In~\cite{saga_ccgrid09} we discussed how MapReduce could be developed.
+In~\cite{saga_ccgrid09} we discussed how a saga-based MapReduce was developed.
 
 % In this paper, we will discuss how SAGA can be used to implement
 % runtime frameworks to support the efficient execution of the
@@ -322,7 +322,8 @@ The result of this application is stored in a matrix similar to Fig.
 to run sets of these function operations. Examples of problems that fall
 into this category are image comparison for facial recognition, and
 genome comparison.  The usefulness of All-Pairs comes from the ability
-to easily change the function.  We use a SAGA-based All-Pairs framework
+to easily change the function without whole-scale refactoring.
+  We use a SAGA-based All-Pairs framework
 and simply implemented the comparison function.  Our comparison function
 compares genome to find the best matching gene in a genome.  The
 function finds the number of similarities among the genes and returns
@@ -341,8 +342,9 @@ sets. (Larger values indicate greater similarity.)}
  \label{Fig:AllPairsExplanation}
 \end{figure}
 
-The problem becomes determining which pairs to put into an assignment
-set and with which distributed resource to run that set.  If
+The problem becomes a two-level assignment problem: first,
+which pairs to put into an assignment
+set, and second, with which distributed resource to run that set.  If
 transferring data to the job takes too long, we spend more time on
 data transfer than computation. There may be a resource capable of the
 work that may be slower than others, but able to be accessed in a
@@ -353,17 +355,16 @@ network resource.
 
 %\subsection{Infrastructure Used}
 
-{\it Infrastructure Used: } In our experiments, to find the
-performance of a DFS, we use the stable, open-source DFS CloudStore
+{\it Infrastructure Used: } In our experiments we use the stable, open-source DFS CloudStore
 (formerly KFS), which is written in C++ and released under the Apache
-License Version 2.0. It is inspired by the highly successful Google
-Filesystem, GFS ~\citep{cloudstore_web}, which is closed source and
+License Version 2.0 ~\citep{cloudstore_web}. It is inspired by the highly successful Google
+Filesystem, GFS, which is closed source and
 unavailable for research. CloudStore was chosen for its high
 performance focus, C++ implementation, and its source code
 availability. It also provides a means to automatically replicate data
 on different hosts to provide efficient data access and fault
 tolerance. In general, DFS are useful and effective tools to consider
-for data-intensive scientific applications which have come of age,
+for data-intensive scientific applications,
 with multiple open-source, reliable file-systems now available.  The
 most common parameters in determining the performance of using a DFS
 are the performance overhead compared to a normal local filesystem,
@@ -372,25 +373,24 @@ While a DFS removes the responsibility of replica management and data
 server placement, the abstraction often increases the difficulty in
 determining where in the DFS the data is being stored.
 
-Our heuristic framework method differs from a DFS in that it
-determines where data is and where the work should go. Determining
+Here we define our \textit{heuristic framework} method, it differs from a DFS in that it
+determines where data is located and where the work should be placed. Determining
 data location can be as simple as looking at the IP address of the
-worker and seeing geographically where it is located, or as
+worker and finding where it is located, or as
 complicated as using network analysis tools to determine the optimal
 data transfer minimization time. For file transfer during these
-heuristic framework-based experiments, we use gridFTP -- a tool that can
-support high-performance transfers.
+heuristic framework-based experiments, we use GridFTP -- a tool that can
+support high-performance transfers ~\citep{gridftp_web}.
 
-To test CloudStore and gridFTP, we wrote adaptors for SAGA that
-implement the filesystem package. This enables us to compare CloudStore
-with gridFTP, while still using the same application. Doing this with
-SAGA is really simple. For accurate comparisons, we must consider the
+To test the performance of CloudStore and GridFTP, we wrote adaptors for SAGA that
+implement the filesystem package. 
+SAGA allows our application
+to handle seamlessly the DFS and GridFTP based data stores on clouds and
+grids, enabling us to compare both.
+For accurate comparisons, we must consider the
 overhead introduced by SAGA. We have measured a slight difference in
 times; however, the adaptor implementations grew at the same rate as
-gridFTP and CloudStore usage without SAGA.  SAGA allows our application
-to handle seamlessly the DFS and gridFTP based data stores on clouds and
-grids.  This allows the same exact application to be used for all of our
-experiments.
+GridFTP and CloudStore usage without SAGA.  
 
 % While a DFS removes the responsibility of
 % replica management and data server placement, the abstraction often
@@ -412,15 +412,15 @@ interplay of different determinants of performance and make a
 meaningful comparison of CloudStore's behaviour to manual data
 placement and file management. We try to answer questions such as: Is
 a DFS slower than manual placement of data?  When manually handling
-data, what are the advantages of being able to move work to data or
-data to the work? For this, we define the time to completion $t_c$:
+data, what are the advantages of being able to move work to data, or
+data to the work? To answer these questions, we define the time to completion $t_c$:
  \begin{equation}
 t_c = t_x + t_{I/O} + t_{compute},
 \end{equation}
 where $t_x$ is the pre-processing time, the dominant component of which is
 the time for transfer, $t_{I/O}$ is the time it takes to read and write
 files, and $t_{compute}$ is the time it takes our comparison function to
-run. We focus on three variables to measure $t_c$: degree of
+run. We focus on three variables to calculate $t_c$: degree of
 distribution, data dependency, and workload. The degree of distribution
 ($D_d$) is defined as the number of resources that are utilized for a
 given computation/problem. For example, if data is distributed over 3
@@ -433,7 +433,7 @@ computational tasks over 4 machines, $D_d=4$.
 
 As explained before, for our experiments, we use an All-Pairs
 implementation that utilises SAGA. An XML configuration file defines
-various initial parameters which alter the behavior of our All-Pairs
+various initial parameters of the All-Pairs
 implementation. The configuration file defines the location of data that
 comprises the two input sets, the grouping of pairs from these sets to
 be provided to the compute resources, and the available machines that
@@ -442,7 +442,7 @@ these groups of pairs and maps them to a computational resource
 dynamically at run-time.
 
 Furthermore, variables external to the All-Pairs implementation also
-influence experimental results. The following experiments can be
+influence experimental results. Our experiments can be
 completely described by a tuple of the following form
  \begin{equation}
 (c_s, N_c, M_c, f\!s, m,r),
@@ -467,7 +467,7 @@ performance with $r = 1, 2
 
 In our experiments, we have three $(f\!s, m)$ configurations, and five
 $X$ configurations. Our $(f\!s, m)$ configurations are (local, local),
-(local, gridFTP), and (CloudStore, direct). By direct we mean CloudStore
+(local, GridFTP), and (CloudStore, direct). By direct we mean CloudStore
 controls the data access. Our $X$ configurations are enumerated in Table
 \ref{Tab:Configs}. For one machine, $\textit{C1}=X_1(Y,Y)$, where resource $X_1$
 has both the data and the computing; for two machines, we have three
@@ -537,15 +537,15 @@ SAGA-based All-Pairs application on one, two, and three unique
 machines on a grid (LONI), without any specific data placement
 strategy; also, no replication or fault-tolerance takes place. The
 application sequentially assigns sets of pairs to the first available
-computational resource. All data is accessed via the gridFTP
+computational resource. All data is accessed via the GridFTP
 protocol. An important fact to notice is the essentially random
 mapping of data sets to computational resources based on
 availability. This is to mimic a naive data-intensive application.
 
 In figure \ref{Fig:ExpIConventionalLocal}, we show our results for
 data accessed without any protocol (local case) and data accessed via
-gridFTP. Using our All-Pairs framework accessing the data using
-gridFTP protocol had an overhead which can be noted by looking at the
+GridFTP. Using our All-Pairs framework accessing the data using
+GridFTP protocol had an overhead which can be noted by looking at the
 $y-$scales of both graphs. In figure
 \ref{Fig:ExpIConventionalLocal:a}, our local cases, we see that
 working with a smaller data set ($c_s \sim 144\mbox{MB}$, $N_c = 8$, for 1.15GB
@@ -556,7 +556,7 @@ differently, i.e., S0 ($c_s = 287\mbox{MB}$, $N_c = 8$) vs. S1 ($c_s =
 144\mbox{MB}$, $N_c = 16$), $t_c$ increased for S1, due to added transfer
 time by doubling the number of files, although we decreased the file
 size by half. In figure \ref{Fig:ExpIConventionalLocal:b}, where we
-used gridFTP to access the files, we see that a single machine took
+used GridFTP to access the files, we see that a single machine took
 less time compared to the configurations that involved two
 machines. Also, having to access data remotely was a disadvantage,
 $t_c(\mbox{S1}) > t_c(\mbox{S2})$. For the one machine configuration,
@@ -572,13 +572,13 @@ coordinate the workers.
 \includegraphics[scale=0.48]{data/graphs/LocalFigure}
 \label{Fig:ExpIConventionalLocal:a}
 }
-\subfigure[$c_s=\mbox{287MB}$, gridFTP case]{
+\subfigure[$c_s=\mbox{287MB}$, GridFTP case]{
 \includegraphics[scale=0.48]{data/graphs/ConventionalandIntelligent}
 \label{Fig:ExpIConventionalLocal:b}
 }
 \caption{GridFTP vs. local run. We plot the time to
 completion $t_c$ vs. the number of workers $N_w$. Note the scale, the
-local case took less $t_c$ than the gridFTP case. In Fig.
+local case took less $t_c$ than the GridFTP case. In Fig.
 \ref{Fig:ExpIConventionalLocal:a}, we note that by doubling the data set
 size we doubled $t_c$ (S2 vs. S0), and that we created an overhead in S1 (vs. S2) by
 increasing $t_x$ as a result of having more files. In Fig.
@@ -588,7 +588,7 @@ machine, while having the data stored in another ($t_c=7360s$ for $N_w=1$ in S1 
 compared to having some data stored in the resource performing
 computations (S3). For up to 8 workers, $t_c$ decreased as $N_w$
 increased, with the exception of a single machine where we reached an
-I/O bound. Here, we also compare the gridFTP and the heuristic
+I/O bound. Here, we also compare the GridFTP and the heuristic
 approaches for two and three machines (Sec. \ref{Sec:Heuristic}). For
 the two-machine case, we observed a performance improvement by using our
 heuristic approach (S2 vs. S3). However, with more resources involved,
@@ -834,7 +834,7 @@ increased the number of resources from one to three.
  $(N_{r})$. These lowest times did not vary much for our heuristic-based 
  method, while CloudStore decreased its performance by adding number of
  resources (up to three). [Right] The figure
- demonstrates performance with three resources for both gridFTP and
+ demonstrates performance with three resources for both GridFTP and
  CloudStore. The three resources computed and had data stored.
  Performance using CloudStore remained about constant for two, four, and
  eight workers, while our heuristic approach improved its performance
@@ -861,7 +861,7 @@ range of infrastructure.  This capability enabled us to compare and
 contrast two different approaches -- simple application-level data
 placement heuristics versus distributed file systems -- for executing
 distributed data-intensive applications. It should be noted that 
-utilising SAGA to access CloudStore-based and gridFTP-based files
+utilising SAGA to access CloudStore-based and GridFTP-based files
 introduced a small but negligible overhead.
 
 For the volume of data we worked with in the first set of experiments,
@@ -888,12 +888,12 @@ to any fundamental scalability limitation in our approach, but due to
 the inability to find more than three similar resources.
  
 Overall, the use of CloudStore lowers $t_c$ compared to the
-heuristic and the gridFTP approaches. Our simple heuristic 
+heuristic and the GridFTP approaches. Our simple heuristic 
 approach did not perform as well as CloudStore for one and two
-machines, but performed better than a naive use of gridFTP.  For three
+machines, but performed better than a naive use of GridFTP.  For three
 machines, the relative performance of CloudStore and the heuristic
 approach depended upon the $N_w$.  Our results for three resources
-showed that an heuristics-based use of gridFTP continued to experience
+showed that an heuristics-based use of GridFTP continued to experience
 improvements in performance as the number of resources increased, while
 CloudStore leveled off.  
 
