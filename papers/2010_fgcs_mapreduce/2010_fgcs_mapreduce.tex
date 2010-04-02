@@ -58,7 +58,7 @@
 }
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1c }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
@@ -95,21 +95,22 @@
   independent way. In an earlier paper, we discussed how SAGA was used
   to develop a version of MapReduce which provided the user with the
   ability to control the relative placement of compute and data,
-  whilst utilizing different distributed infrastructure. In this
-  paper, we use the SAGA-based implementation of MapReduce, and
-  demonstrate its interoperability across Clouds and Grids.  We
-  discuss how a range of {\it cloud adaptors} have been developed for
-  SAGA.  The major contribution of this paper is the demonstration --
-  possibly the first ever, of interoperability between different
-  Clouds and Grids, without any changes to the application. We analyse
-  the performance of \sagamapreduce when using multiple, different,
-  heterogeneous infrastructure concurrently for the same problem
-  instance; However, we do not strive to provide a rigorous
-  performance model, but to provide a proof-of-concept of
+  whilst utilizing different distributed infrastructure. And we
+  established how simple interoperability between grids and clouds was
+  established. In this paper, we use a SAGA-based applciation that
+  uses the SAGA-based implementation of MapReduce, and demonstrate its
+  interoperability across Clouds and Grids at three different levels.
+  \jhanote{revisit} We analyse the performance of \sagamapreduce when
+  using multiple, different, heterogeneous infrastructure concurrently
+  for the same problem instance. However, we do not strive to provide
+  a rigorous performance model, but to provide a proof-of-concept of
   application-level interoperability and illustrate its importance.
 \end{abstract}
 
 \section{Introduction} 
+
+\jhanote{Compress}
+
 Although Clouds are a nascent infrastructure, there is a ground swell
 in interest to adapt these emerging powerful infrastructure for
 large-scale scientific applications~\cite{montagecloud}. Inevitably,
@@ -517,7 +518,30 @@ either GRAM or SSH.  In either case, file I/O was performed either via
 ssh, or via a shared Lustre filesystem -- the GridFTP functionality
 were not used for experiments in this paper.
 
-\upup
+\subsection{Sector-Sphere Adaptors}
+
+\jhanote{SAURABH: This is your section. Please fill up. Ignore the
+  existing text; This is a cut and paste. }
+
+{\it Sector/Sphere Adaptors: }Sphere represents a programming paradigm
+that is different from MapReduce, and allows for a more general and
+wider approach to performing data intensive computations. Instead of
+using the more specific map/reduce implementations, an application can
+define any arbitrary functions to operate on data stored in the Sector
+cloud at multiple levels[1]. The Sector/Sphere adaptor drives the
+translation of the SAGA job submission APIs into executing the User
+Defined Functions or UDFs through Sphere on the Sector data cloud.
+Specifically, the Sector/Sphere adaptor in conjunction with others
+(KFS, HDFS, Amazon EC2) naturally give us the opportunity to
+experiment with various distinct frameworks running on infrastructures
+best suited for their purposes. The SAGA MapReduce implementation
+utilizes these adaptors to submit jobs to the underlying heterogeneous
+infrastructure. With the enhancements to the SAGA Map-Reduce
+implementation combined with the Sector/Sphere adaptor, we describe in
+this paper, our approach to introduce intelligence in relative
+data-compute placement whilst demonstrating and utilizing the
+interoperability features inherent in the design of SAGA.
+
 \section{SAGA-based MapReduce}
 After \sagamapreduce we have also developed real scientific
 applications using SAGA based implementations of patterns for
@@ -529,6 +553,10 @@ Ref.~\cite{saga_ccgrid09}).
 
 \upup
 \subsection{\sagamapreduce Implementation}
+
+
+\jhanote{this needs to be compressed}
+
 Our implementation of \sagamapreduce interleaves the core logic with
 explicit instructions on where processes are to be scheduled.  The
 advantage of this approach is that our implementation is no longer
@@ -590,6 +618,32 @@ be distributed; this is an important mechanism to avoid limitations in
 network bandwidth and data distribution.  These files could then be
 recognized by a distributed File-System, such as HDFS. 
 
+\subsection{Enhancing SAGA-based Map-Reduce Performance:} 
+
+\jhanote{Miklos: This is your section. Please fill up. Ignore the
+  existing text; This is a cut and paste. }
+
+To orchestrate the functioning of the various different frameworks, we
+use the master-worker programming pattern, on which the SAGA
+Map-Reduce implementation is also based. This pattern allows the
+workers to execute on the different infrastructures (including
+Sector/Sphere) while communicating their progress and results through
+an advert database to the master~\cite{saga_ccgrid09}. The performance
+enhancements to the existing SAGA Map-Reduce implementation come
+partly from reduced network bandwidth usage and partly from more
+efficient processing when reading or writing serialized data by the
+workers. Network traffic is primarily reduced by applying
+data-locality optimization: the master tries to assign chunks of the
+input to workers such that the data to be processed will reside near
+or on the worker node itself, thus avoiding the need for transferring
+data blocks by the distributed filesystem implementation. Information
+for this decision is obtained by the master through SAGA's "Replica"
+interface. The amount of network usage is further reduced when the
+user specifies a combiner function which is then used for aggregating
+key/values locally on the worker. The processing of input and output
+key/value pairs is enhanced by minimizing expensive memory I/O
+operations.
+
 \subsection{\sagamapreduce Set-Up}
 When deploying compute clients on a \I{diverse} set of resources, the
 question arises if and how these clients need to be configured to
@@ -643,16 +697,46 @@ absence of precise knowledge of the execution system).
 % can utilize a variety of mechanisms for accessing the data in
 % question.
 % include as needed
-\section{SAGA-MapReduce on Clouds and Grids}
 
-% \subsection*{Infrastructure Used} We first describe the infrastructure
-% that we employ for the interoperabilty tests.  \jhanote{Kate}
-% {\it Amazon EC2:} 
-% {\it Eucalyptus, ECP:} 
-% {\it Eucalyptus, GumboCloud:}
-% % And describe in a few sentences. 
 
-%\subsection{Demonstrating Interoperabilty}
+\section{SAGA-MapReduce on Clouds and Grids: Three Levels of
+  Interoperabilty}
+
+\subsection{Establish there are 3 ways to provide application level
+  interoperabilty}
+
+Case I: 
+
+\begin{verbatim}
+
+Application 
+===========
+SAGA-MR
+===========
+Different Adaptors
+
+Case II:
+
+
+      Application
+    |            |
+SAGA-Sphere    SAGA-MapReduce
+  |                |
+ OCC             Cluster/Clouds
+
+
+Case III:
+
+        Application
+            |           
+ SAGA-Sphere or SAGA-MapReduce
+            |
+    OCC or Cluster or rids
+
+\end{verbatim}
+
+\jhanote{SAURABH: Please describe Case II}
+
 
 There are several aspects to interoperability. A simple form of
 interoperability is that any application can use any Clouds systems
@@ -812,6 +896,43 @@ can differ as well as useful for our experiments.
 % it is
 % important to be able to vary the number of workers per VM -- as
 % details of the VM can differ.
+
+\subsection{Resources used in Experiments}
+
+Simulations were performed on a range of supercomputing resources on
+TeraGrid machines, shared TeraGrid-LONI (Louisiana Optical Network
+Initiative)~\cite{LONI_web} resources and smaller LONI clusters such
+as Eric, Oliver, Louie and Poseidon (512 cores).  We also used
+Amazon's EC2 and Nimbus as part of the ScienceCloud at Argonne.
+
+\subsubsection*{Resource I: TeraGrid/LONI Cluster (QB)}
+
+To evaluate the performance of BigJob, several experiments have been
+conducted on different LONI resources. The resources used are:
+QueenBee (QB), Poseidon and Oliver. For accessing these resources
+Globus GRAM and an underlying Torque resource manager and Moab
+scheduler are used.
+
+\subsubsection*{Resource II: LONI Clusters}
+\jhanote{not sure we need this. but just a place-holder for the moment}
+
+
+\subsubsection*{Resource III: Cloud Environments}
+\jhanote{not sure we need this. but just a place-holder for the
+  moment; not sure this subsection makes sense. Needs fixing. As does
+  the following}
+
+For our experiments we used different Cloud environments: the Nimbus
+Science Cloud of the University of Chicago and the Amazon EC2
+environment is used. In general, each Cloud has its
+characteristics. The Nimbus Cloud is accessed via the WSRF interface,
+while for EC2 the Amazon command line client is used. Each Nimbus VM
+provides 2 virtual cores and 3.7\,GB memory.  Amazon offeres different
+VM types with up to 8 cores. We used the largest VM type (m2.4xlarge)
+with 8 cores and 68.4\,GB of memory and the m1.large instance type
+with 2 cores and 7.5\,GB, which compares best to the virtual machine
+provided by Nimbus.
+
 
 \subsection{Results and Analysis}
 
@@ -1024,15 +1145,7 @@ the classical trade-off between simplicity and completeness.
 
 \section{Conclusion and Some Future Directions}
 
-% We have demonstrated the power of SAGA as a programming interface and
-% as a mechanism for codifying computational patterns, such as
-% MapReduce.  We have shown the power of abstractions for data-intensive
-% computing by demonstrating how SAGA, whilst providing the required
-% controls and supporting relevant programming models, 
-
-% We have shown in this work how SAGA can be used to implement mapreduce
-% which can utilize a wide range of underlying infrastructure; in other
-% words, 
+\jhanote{Recap three levels of Application Level Interoperability}
 
 \sagamapreduce demonstrates how to decouple the development of
 applications from the deployment and details of the run-time
@@ -1041,16 +1154,14 @@ applications remain insulated from any underlying changes in the
 infrastructure -- not just Grids and different middleware layers, but
 also different systems with very different semantics and
 characteristics, whilst being exposed to the important distributed
-functionality. % SAGA based application and tool development provides
-% one way Grids and Clouds will converge. 
-MapReduce has trivial data-parallelism, so in the near future we will
-develop applications with non-trivial data-access, transfer and
-scheduling characteristics and requirements, and deploy different
-parts on different underlying infrastructure guided by optimal
-performance.  EC2 and Eucalyptus although distinct systems have
-similar interfaces; we will work towards developing SAGA based
-applications that can use very different infrastructures, e.g., Google's
-AppEngine, such that \sagamapreduce uses Google's Cloud
+functionality.  MapReduce has trivial data-parallelism, so in the near
+future we will develop applications with non-trivial data-access,
+transfer and scheduling characteristics and requirements, and deploy
+different parts on different underlying infrastructure guided by
+optimal performance.  EC2 and Eucalyptus although distinct systems
+have similar interfaces; we will work towards developing SAGA based
+applications that can use very different infrastructures, e.g.,
+Google's AppEngine, such that \sagamapreduce uses Google's Cloud
 infrastructure.  Finally, it is worth mentioning that computing in the
 Clouds for this project cost us upwards of \$300 to perform these
 experiments on EC2.
