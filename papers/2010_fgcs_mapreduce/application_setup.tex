@@ -1,0 +1,97 @@
+
+ The single most prominent feature of ous SAGA based MapReduce
+ implementation is the ability to run the application withoude code
+ changes in a wide range of infrastructures, such as clusters, Grids,
+ Clouds, and in fact any other local or distributed compute system
+ which can be accessed by the respective set of SAGA adaptors.  When
+ deploying compute clients on a \I{diverse} set of remote nodes, the
+ question arises if and how these clients need to be configured to
+ function properly in the overall application scheme.
+
+ Our MapReduce compute clients (aka 'workers') require two 
+ pieces of information to function: (a) the contact address of the
+ advert service used for coordinating the clients, and for
+ distributing work items to them; and (b) a unique worker ID to
+ register with in that advert service, so that the master can start to
+ assign work items.  Both information are provided via command line
+ parameters to the worker, at startup time.
+
+ The master application requires a number of additional information:
+ it needs a set of systems where the workers are supposed to be
+ running, the location of the input data, the location of the output
+ data, and also the contact point for the advert service for
+ coordination and communication.
+
+%  A typical configuration file looks like this (slightly shortened for
+%  presentation):
+
+%  \verb|
+%   <?xml version="1.0" encoding="..."?>
+%   <MRDL version="1.0" xmlns="..." xmlns:xsi="..."
+    
+%     <MapReduceSession name="WordCount" ...>
+  
+%       <OrchestratorDB>
+%         <Host> advert://fortytwo.cct.lsu.edu/ </Host>
+%       </OrchestratorDB>
+  
+%       <TargetHosts>
+%         <Host OS="globus" ...> gram://qb1.loni.org:2119/jobmanager-pbs </Host>
+%         <Host OS="ec2" ...>    ec2://i-760c8c1f/                       </Host>
+%         <Host OS="ec2" ...>    ec2://                                  </Host>
+%       </TargetHosts>
+  
+%       <ApplicationBinaries>
+%         <BinaryImage arch="i386" OS="globus" ...> /lustre/merzky/saga/bin/mapreduce_worker </BinaryImage>
+%         <BinaryImage arch="i386" OS="ec2"    ...> /usr/local/saga/bin/mapreduce_worker     </BinaryImage>
+%       </ApplicationBinaries>
+  
+%       <OutputPrefix>any://qb3.loni.org/lustre/merzky/mapreduce/</OutputPrefix>
+  
+%       <ApplicationFiles>
+%         <File> any://merzky@qb4.loni.org/lustre/merzky/mapreduce/1GB.txt </File>
+%       </ApplicationFiles>
+  
+%     </MapReduceSession>
+  
+%   </MRDL>
+%  |
+
+ In this example, we will create three worker instances: on is started
+ via gram and PBS on qb1.loni.org, one is started on a
+ pre-instantiared ec2 image (instance-id \T{i-760c8c1f}), and one will
+ be running on a dynamically deployed ec2 instance (no instance id
+ given).  Note that the startup times for the individual workers may
+ vary over several orders of magnitutes, depending on the PBS queue
+ waiting time and VM startup time.  The mapreduce master will start to
+ utilize workers as soon as they are able to register themselfs, so
+ will not wait until all workers are available.  That mechanism both
+ minimizes time-to-solution, and maximizes resilience against worker
+ loss.
+
+ The example configuration file above also includes another important
+ feature, in the  URL of the input data set, which is given as
+ \T{any://merzky@qb4.loni.org/lustre/merzky/mapreduce/1GB.txt}.  The
+ scheme \T{any} acts here as a placeholder for SAGA, so that the SAGA
+ engine can choose whatever adaptor fits the task best.  The master
+ would access the file via the default local file adaptor.  The Globus
+ clients may use either the GridFTP or ssh adaptor for remote file
+ success (but in our experimental setup would actually also suceed
+ with using the local file adaptor, as the lustre FS is mounted on the
+ cluster nodes), and the ec2 workers would use the ssh file adaptor
+ for remote access.  Thus, the use of the placeholder scheme frees us
+ from specifying and maintaining a concise list of remote data access
+ mechanisms per worker.  Also, it allows for additional resilience
+ against service errors and changing configurations, as it leaves it
+ up to the SAGA engine's adaptor selection mechanism to fund a
+ suitable access mechanism at runtime -- as we have seen above, the
+ globus nodes can utilize a variety of mechanisms for accessing the
+ data in question.
+
+ % include as needed
+ A parameter not shown in the above configuration example controls the
+ number of workers created on each compute node.  By increasing that
+ number, the chances are good that copute and communication times can
+ be interleaved, and that the overall system utilization can increase.
+ 
+
