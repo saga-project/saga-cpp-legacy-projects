@@ -52,10 +52,12 @@
 \newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1c }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 \newcommand{\katenote}[1]{ {\textcolor{blue} { ***KS: #1 }}}
+\newcommand{\ssnote}[1]{ {\textcolor{blue} { ***SS: #1 }}}
 \else
 \newcommand{\amnote}[1]{}
 \newcommand{\jhanote}[1]{}
-\newcommand{\katenote}[1]{ {\textcolor{blue} { ***KS: #1 }}}
+\newcommand{\katenote}[1]{}
+\newcommand{\ssnote}[1]{}
 \fi
 
 \newcommand{\sagamapreduce }{SAGA-MapReduce }
@@ -75,8 +77,7 @@
  
 
 \begin{document}
-
-
+%\maketitle
 \begin{abstract}
   SAGA is a high-level programming interface which provides the
   ability to develop distributed applications in an infrastructure
@@ -94,7 +95,7 @@
   a rigorous performance model, but to provide a proof-of-concept of
   application-level interoperability and illustrate its importance.
 \end{abstract}
-\maketitle
+%\maketitle
 
 \section{Introduction \textcolor{red}{SJ}}
 
@@ -417,46 +418,54 @@ functionality was not used for experiments in this paper.
 
 {\it Sector/Sphere Adaptors: }
 
-Sector and Sphere is a cloud framework specifically designed for writing 
-applications able to utilize the stream processing paradigm. Sector is a 
-distributed file system that manages data across physical compute nodes at the file level, 
-and provides the infrastructure to manipulate data in the cloud. Sphere, on the 
-other hand, provides the framework to utilize the stream processing paradigm for 
-processing the data residing on Sector. Applications that utilize the stream 
-processing paradigm define a single common function (often referred to as a kernel function) 
-that is applied to segments of a given data set. The Sphere system is composed of 
-SPEs or Sphere Processing Units running on the same physical nodes as the Sector file 
-system.  When the application invokes Sphere to process data on Sector, the Sphere system 
-retrieves the stream of data, segments the data and assigns chunks of these segments 
-to the available SPEs for processing. Sphere allows the user to encode the kernel 
-function in a dynamically linked library written using Sphere APIs. The SPEs apply this 
-user defined function to its assigned segments and write the processing results 
-back to Sector in files. This stream of output files can be retrieved by the user from 
-Sector, after the processing is complete. Thanks to the low overhead of developing SAGA 
-adaptors, we were able to implement the Sector file adaptor, and the Sphere job adaptor 
-for applications to utilize the stream processing paradigm through SAGA. Figure xx and Figure xx 
-give simple examples of how SAGA APIs can be used to manipulate data in the Sector systems, 
-and how jobs can be submitted to the Sphere system to process this data. 
-The enhancement of SAGA Map Reduce, along with the implementation of the Sector/Sphere 
-adaptors naturally gives us the opportunity to compare and study the two 
-distinct programming models. 
+Sector and Sphere is a cloud framework specifically designed for
+writing applications able to utilize the stream processing
+paradigm. Sector is a distributed file system that manages data across
+physical compute nodes at the file level, and provides the
+infrastructure to manipulate data in the cloud. Sphere, on the other
+hand, provides the framework to utilize the stream processing paradigm
+for processing the data residing on Sector. Applications that utilize
+the stream processing paradigm define a single common function (often
+referred to as a kernel function) that is applied to segments of a
+given data set. The Sphere system is composed of SPEs or Sphere
+Processing Units running on the same physical nodes as the Sector file
+system.  When the application invokes Sphere to process data on
+Sector, the Sphere system retrieves the stream of data, segments the
+data and assigns chunks of these segments to the available SPEs for
+processing. Sphere allows the user to encode the kernel function in a
+dynamically linked library written using Sphere APIs. The SPEs apply
+this user defined function to its assigned segments and write the
+processing results back to Sector in files. This stream of output
+files can be retrieved by the user from Sector, after the processing
+is complete. Thanks to the low overhead of developing SAGA adaptors,
+we were able to implement the Sector file adaptor, and the Sphere job
+adaptor for applications to utilize the stream processing paradigm
+through SAGA. Figure xx and Figure xx give simple examples of how SAGA
+APIs can be used to manipulate data in the Sector systems, and how
+jobs can be submitted to the Sphere system to process this data.  The
+enhancement of SAGA Map Reduce, along with the implementation of the
+Sector/Sphere adaptors naturally gives us the opportunity to compare
+and study the two distinct programming models.
 
-<< Maybe add a different section here >>
+\ssnote{Maybe add a different section here}
 SAGA adaptor overhead
 
-We execute a simple experiment to measure the overhead introduced by submitting 
-Sphere jobs and Sector file operations through SAGA. A sample Sphere kernel function, 
-wrapped in a dynamically linked library was used for this purpose. The kernel function 
-accepts a buffer of text and utilizes the Sphere framework to hash words into Sphere 
-buckets using the first letter as the key. One Gigabyte of text data was uploaded to 
-the Sector file system for this purpose.  Furthermore,  traces were implemented in the 
-adaptors to measure the exact time spent in SAGA processing and translation before the 
-raw Sphere APIs were called.  As seen in Figure xx, the SAGA overhead compared to the overall 
-execution time of the application is negligible. This makes SAGA an excellent 
-platform to compare Sphere with other distinct programming models. 
+We execute a simple experiment to measure the overhead introduced by
+submitting Sphere jobs and Sector file operations through SAGA. A
+sample Sphere kernel function, wrapped in a dynamically linked library
+was used for this purpose. The kernel function accepts a buffer of
+text and utilizes the Sphere framework to hash words into Sphere
+buckets using the first letter as the key. One Gigabyte of text data
+was uploaded to the Sector file system for this purpose.  Furthermore,
+traces were implemented in the adaptors to measure the exact time
+spent in SAGA processing and translation before the raw Sphere APIs
+were called.  As seen in Figure xx, the SAGA overhead compared to the
+overall execution time of the application is negligible. This makes
+SAGA an excellent platform to compare Sphere with other distinct
+programming models.
 
 
-\sectio{SAGA-based MapReduce}
+\section{SAGA-based MapReduce}
 
 After \sagamapreduce we have also developed real scientific
 applications using SAGA based implementations of patterns for
