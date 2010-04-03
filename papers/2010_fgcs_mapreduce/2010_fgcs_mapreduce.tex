@@ -268,18 +268,16 @@ follows...
 The SAGA~\cite{saga-core} programming system contains a high level API
 that provides a simple, standard and uniform interface for the most
 commonly required distributed functionality.  SAGA can be used to
-encode distributed applications~\cite{saga_escience07_short,
-  saga_tg08}, tool-kits to manage distributed applications as well as
+program distributed applications~\cite{saga_escience07_short,
+saga_tg08}, tool-kits to manage distributed applications as well as
 implement abstractions that support commonly occurring programming,
 access and usage patterns.
 
 \begin{figure}[t]
-\vspace{-2em}
-\includegraphics[scale=0.5]{saga-figure02.pdf}
-\caption{In addition to the programmer's interface,
-  the other important components of the landscape are the SAGA engine,
-  and functional adaptors.} \vspace{-3em}
-\label{saga_figure}
+ \includegraphics[scale=0.5]{saga-figure02.pdf}
+ \caption{The SAGA runtime engine dynamically dispatches high level
+          API calls to a variety of middlewares.}
+ \label{saga_figure}
 \end{figure}
 
 Fig.~\ref{saga_figure} provides an overview of the SAGA programming
@@ -288,237 +286,137 @@ interface to. Based upon an analysis of more than twenty applications,
 the most commonly required functionality involve job submission across
 different distributed platforms, support for file access and transfer,
 as well as logical file support.  Additionally there is support for
-Checkpoint and Recovery (CPR) and Service Discovery (SD).  The API is
-written in C++, with Python, C and Java language support. The {\it
-  engine} is the main library, which provides dynamic support for
-run-time environment decision making through loading relevant
-adaptors. We will not discuss details of SAGA here; details can be
-found elsewhere~\cite{saga_url}.
+Checkpoint and Recovery (CPR), Service Discovery (SD), and other
+areas.  The API is implemented in C++ and Java, with Python supported
+as a wrapper. The {\it saga\_core} is the main library, which provides
+dynamic support for run-time environment decision making through
+loading relevant adaptors. We will not discuss details of SAGA here;
+details can be found elsewhere~\cite{saga_url,saga_design}.
 
-\section{Interfacing SAGA to Grids and Clouds \textcolor{red}{Andre}}
+\subsection{Interfacing SAGA to Grids and Clouds}
 
-\jhanote{Compress?}
+\amnote{TODO: compress, update}
 
-SAGA was originally developed primarily for compute-intensive
-Grids. This was a user-driven design decision, i.e., the majority of
+SAGA was originally developed primarily for compute-intensive Grids.
+This was a user-driven design decision, i.e., the majority of
 applications that motivated the design and formulation of version 1.0
 of the API were HPC applications attempting to utilize distributed
 resources.  Ref~\cite{saga_ccgrid09} demonstrated that in spite of its
 original design constraints, SAGA can be used to develop
 data-intensive applications in diverse distributed environments,
-including Clouds.  This in part is due to the fact that much of the
-``distributed functionality'' required for data-intensive applications
-remains the same -- namely the ability to submit jobs to different
-back-ends, the ability to move files between distributed resources
-etc. Admittedly, and as we will discuss, the semantics of, say the
-basic {\texttt job\_submit()} changes in going from Grid environments
-to Cloud environments.  So how, in spite of such significant changes
-in the semantics does SAGA keep the application immune to change? The
-basic feature that enables this capability is a context-aware adaptor
-that is dynamically loaded.  In the remainder of this section, we will
-describe how, through the creation of a set of simple {\it adaptors},
-the primary functionality of most applications is supported and on
-which the interoperability is predicated.
+including Clouds.  This is in part due to the fact that, at least on
+application level, much of the ``distributed functionality'' required
+for data-intensive applications remains the same.  In the remainder of
+this section, we will describe how, through the creation of a set of
+simple context-sensitive {\it adaptors}, the primary functionality of
+most applications is supported in an interoperable way.
 
-\upup
-\subsection{Adaptors: Design and Implementation}
 
-\jhanote{compress?}
+\subsubsection{Adaptors: Design and Implementation}
 
-\subsubsection{Local Adaptors}
-Although SAGA's default local adaptors do not have much to do with
-interoperability, their importance for the implementation of other
-remote adaptors will become clear later on.  The local job adaptor
-utilizes \T{boost::process} (on Windows) and plain \T{fork/exec} (on
-Unix derivatives) to spawn, control and watch local job instances.  The
-local file adaptor uses \T{boost::filesystem} classes for filesystem
-navigation, and \T{std::fstream} for local file I/O. % 'nuf said?
 
-\subsubsection{SSH adaptors}
+\paragraph{SSH adaptors}
+
 The SSH adaptors are based on three different command line tools,
-namely {\texttt{ssh, scp}} and {\texttt{sshfs}}.  Further, all ssh
-adaptors rely on the availability of SSH security credentials for
-remote operations.  The SSH context adaptor implements some mechanisms
-to (a) discover available key-pairs automatically, and (b) to verify
-the validity and usability of the found and otherwise specified
-credentials.
+namely \ssh, \scp and \sshfs.  Further, all ssh adaptors rely on the
+availability of SSH security credentials for remote operations.  The
+SSH context adaptor implements some mechanisms to (a) discover
+available key-pairs automatically, and (b) to verify the validity and
+usability of the found or otherwise specified credentials.
   
-{\texttt{\ssh}} is used to spawn remote job instances, for which the
-SSH job adaptor instantiates a \I{local} \T{saga::job::service}
-instance, and submits the respective SSH command lines to it.  The
-local job adaptor described above then takes care of process I/O,
-detachment, etc.  A significant drawback of this approach is that
-several SAGA methods act upon the local ssh process instead of the
-remote application instance, which is far from ideal. Some of these
-operations can be migrated to the remote hosts, via separate ssh
-calls, but that process is complicated due to the fact that ssh does
-not report the remote process ID back to the local job adaptor.  We
-circumvent this problem by setting a uniquely identifying environment
-variable for the remote process, which allows us to identify the process.
+\ssh is used to spawn remote job instances, for which the SSH job
+adaptor instantiates a \I{local} \T{saga::job::service} instance, and
+submits the respective SSH command lines to it.  The local job adaptor
+then takes care of process I/O, detachment, etc.  A significant
+drawback of this approach is that several SAGA methods act upon the
+local ssh process instead of the remote application instance, which is
+far from ideal. Some of these operations can be migrated to the remote
+hosts, via separate ssh calls, but that process is complicated due to
+the fact that ssh does not report the remote process ID back to the
+local job adaptor.  We circumvent this problem by setting a uniquely
+identifying environment variable for the remote process, which allows
+us to identify the process.
 
-{\texttt{\sshfs}} is used to access remote files via ssh services.
-{\texttt{\sshfs}} is a user space file system driver which uses FUSE,
-and is available for MacOS, Linux, and some other Unix derivatives.
-It enables a remote file system to be mounted into the local
-namespace, and transparently forwards all file access operations via
-ssh to the remote host.  The ssh file adaptor uses the local job
-adaptor to call the sshfs process, to mount the remote filesystem, and
-then forward all file access requests to the local file adaptor, which
-operates on the locally mounted file system.  The ssh adaptor thus
-translates URLs from the ssh namespace into the local namespace, and
-back.
+\sshfs is used to access remote files via ssh services.  \sshfs is a
+user space file system driver which uses FUSE\ref{fuse}, and is
+available for MacOS, Linux, and some other Unix derivatives.  It
+enables a remote file system to be mounted into the local namespace,
+and transparently forwards all file access operations via ssh to the
+remote host.  The ssh file adaptor uses the local job adaptor to call
+the sshfs process, to mount the remote filesystem, and then forwards
+all file access requests to the local file adaptor, which operates on
+the locally mounted file system.  The ssh adaptor thus translates URLs
+from the ssh namespace into the local namespace, and back.
 
-{\texttt{\scp}} is used by both the ssh job and file adaptor to
-transfer utility scripts to the remote host, e.g. to check for remote
-system configuration, or to distribute ssh credentials.
 
-\subsubsection{SSH/SSHFS credential management}
-When starting a remote application via ssh, we assume valid SSH
-credentials (i.e. private/public key pairs, or gsi credentials etc.)
-are available.  The type and location of these credentials is
-specified by the local application, by using the respective
-\T{saga::context} instances.  In order to facilitate home-calling,
-i.e. the ability of the remotely started application to use the same
-ssh infrastructure to call back to the original host, e.g. by spawning
-jobs in the opposite direction, or by accessing the original host's
-file system via sshfs, we install the originally used ssh credential
-in a temporary location on the remote host. The remote application is
-informed about these credentials, and the ssh context adaptor picks
-them up by default, so that home-calling is available without the need
-for any application level intervention.  Also, a respective entry to
-the local \T{authorized\_keys} file is added.
+\paragraph{AWS adaptors} 
 
-\subsubsection{AWS adaptors} 
+SAGA's AWS (Amazon Web Service) adaptor suite is an interface to
+services which implement the cloud web service interfaces as specified
+by Amazon~\ref{ec2-url}.  These interfaces are not only used by Amazon
+to allow programmatic access to their Cloud infrastructures -- EC2 and
+S3, amongst others, but are also used by several other Cloud service
+providers, such as Eucalyptus\cite{eucalyptus} and Nimbus.  The AWS
+job adaptor is thus able to interface to a variety of Cloud
+infrastructures, as long as they adhere to the AWS interfaces.
+\amnote{add ref to OCCI, CDMI}
 
-\jhanote{Compress?}
-
-SAGA's AWS (Amazon Web Service) adaptor suite is
-an interface to services which implement the cloud web service
-interfaces as specified by Amazon. %\ref{aws-devel-url}.
-These interfaces are not only used by Amazon to allow programmatic
-access to their Cloud infrastructures -- EC2 and S3, amongst others,
-but are also used by several other Cloud service providers, such as
-Eucalyptus\cite{eucalyptus} and Nimbus.  The AWS job adaptor is thus able to
-interface to a variety of Cloud infrastructures, as long as they
-adhere to the AWS interfaces.
-
-The AWS adaptors do not directly communicate with the remote services,
-but instead rely on Amazon's set of java based command line tools.
-Those are able to access the different infrastructures, when configured
-correctly via specific environment variables.  The AWS job adaptor
-uses the local job adaptor to manage the invocation of the command
-line tools, e.g. to spawn new virtual machine (VM) instances, to
-search for existing VM instances, etc.  Once a VM instance is found to
-be available and ready to accept jobs, a ssh job service instance for
-that VM is created, and henceforth takes care of all job management
-operations.  The AWS job adaptor is thus only responsible for VM
-discovery and management -- the actual job creation and operations are
-performed by the ssh job adaptor (which in turn utilizes the local job
-adaptor).
-
-The security credentials used by the internal ssh job service
-instance are derived from the credentials used to create 
-the VM instance; upon VM instance creation, an AWS keypair is
-used to authenticate the user against her 'cloud account'.  That
-keypair is automatically registered at the new VM instance to allow
-for remote ssh access.  The AWS context adaptor collects both the
-public and private AWS keys\footnote{The public key needs to be
-  collected from the remote instance.}, creates a respective ssh
-context, and thus allows the ssh adaptors to perform job and file
-based SAGA operations on the VM instance.
+The AWS job adaptor uses the local job adaptor to manage the
+invocation of the EC2 command line tools, e.g. to spawn new virtual
+machine (VM) instances, to search for existing VM instances, etc.
+Once a VM instance is found to be available and ready to accept jobs,
+a ssh job service instance for that VM is created, and henceforth
+takes care of all job management operations.  The AWS job adaptor is
+thus only responsible for VM discovery and management -- the actual
+job creation and operations are performed by the ssh job adaptor.  The
+security credentials used by the internal ssh job service instance are
+derived from the credentials used to create the VM instance.
 
 Note that there is an important semantic difference between 'normal'
 (e.g. Grid based) and 'Cloud' job services in SAGA: a normal job
 service is assumed to have a lifetime which is completely independent
-from the application which accesses that service.  For example, a GRAM
-gatekeeper has a lifetime of days and weeks, and allows a large number
-of applications to utilize it.  An AWS job service however points to a
-potentially volatile resource, or even to a non-existing resource --
-the resource needs then to be created on the fly.  There are two
-important implications.  Firstly, the startup time for a AWS job
-service is typically much larger than other remote job service, at
-least in the case where a VM is created on the fly: the VM image needs
-to be deployed to some remote resource, the image must be booted, and
-potentially needs to be configured to enable the hosting of custom
-applications\footnote{The AWS job adaptor allows the execution of
-  custom startup scripts on newly instantiated VMs, to allow for
-  example, the installation of additional software packages, or to
-  test for the availability of certain resources.}.  The second
-implication is that the \I{end} of the job service lifetime is usually
-of no consequence for normal remote job services.  For a dynamically
-provisioned VM instance, however, it raises the question if that
-instance should be closed down, or if it should automatically shut
-down after all remote applications finish, or even if it should
+from the application which accesses that service.  An AWS job service
+however points to a potentially volatile resource, or even to a
+non-existing resource -- the resource needs then to be created on the
+fly.  There are two important implications.  Firstly, the startup time
+for a AWS job service is typically much larger than other remote job
+service, at least in the case where a VM is created on the fly.  The
+second implication is that the \I{end} of the job service lifetime is
+usually of no consequence for normal remote job services.  For a
+dynamically provisioned VM instance, however, it raises the question
+if that instance should be shut down, or if it should automatically
+shut down after all remote applications finish, or even if it should
 survive for a specific time, or forever.  Ultimately, it is not
 possible to control these VM lifetime attributes via the current SAGA
-API (by design).  Instead, we allow one of these policies to be
-chosen either implicitly (e.g. by using special URLs to request
-dynamic provisioning), or explicitly over SAGA config files or
-environment variables\footnote{only some of these policies are
-  implemented at the moment.}.  Future SAGA extensions, in particular
-Resource Discovery and Resource Reservation extensions, may have a
-more direct and explicit notion of resource lifetime management.
+API (by design).  Instead, we allow one of these policies to be chosen
+either implicitly (e.g. by using special URLs to request dynamic
+provisioning), or explicitly over SAGA config files or environment
+variables.  Future SAGA extensions, in particular Resource Discovery
+and Resource Reservation extensions, may have a more direct and
+explicit notion of resource lifetime management.
 
-\begin{figure}[!ht]
-\upp 
- \begin{center}
-  \begin{mycode}[label=SAGA Job Launch via GRAM gatekeeper]
-  { // contact a GRAM gatekeeper
-    saga::job::service     js;
-    saga::job::description jd;
-    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
-    // translate job description to RSL
-    // submit RSL to gatekeeper, and obtain job handle
-    saga:job::job j = js.create_job (jd);
-    j.run ():
-    // watch handle until job is finished
-    j.wait ();
-   } // break contact to GRAM
-  \end{mycode}
-  \caption{\label{gramjob}Job launch on a Grid via GRAM\vspace*{-2em}}
- \end{center}
 
-\end{figure}
+\paragraph{Globus Adaptors}
 
-\begin{figure}[!ht]
-\begin{center}
-  \begin{mycode}[label=SAGA create a VM instance on a Cloud]
-   {// create a VM instance on Eucalyptus/Nimbus/EC2
-    saga::job::service     js;
-    saga::job::description jd;
-    jd.set_attribute (``Executable'', ``/tmp/my_prog'');
-    // translate job description to ssh command
-    // run the ssh command on the VM
-    saga:job::job j = js.create_job (jd);
-    j.run ():
-    // watch command until done
-    j.wait ();
-   } // shut down VM instance
-  \end{mycode}
-  \caption{\label{vmjob} Job launch on a VM via ssh\vspace*{-2em}}
- \end{center}
-\upp
-\end{figure}
-
-\subsection{Globus Adaptors}
-SAGA's Globus adaptor suite is amongst the most-utilized adaptors.  As
-with SSH, security credentials are expected to be managed
+SAGA's globus adaptor suite is amongst its most-utilized adaptors.  As
+with ssh, security credentials are expected to be created
 out-of-bound, but different credentials can be utilized by pointing
-\T{saga::context} instances to them as needed.  Other than the AWS and
-ssh adaptors, the Globus adaptors do not rely on command line tools,
-but rather link directly against the respective Globus libraries: the
-Globus job adaptor is thus a GRAM client, the Globus file adaptor a
-GridFTP client.  In experiments, non-Cloud jobs were started using
-either GRAM or SSH.  In either case, file I/O was performed either via
-ssh, or via a shared Lustre filesystem -- the GridFTP functionality
-were not used for experiments in this paper.
+\T{saga::context} instances to them as needed.  Other than the aws and
+ssh adaptors, the globus adaptors do not rely on command line tools,
+but rather link directly against the respective globus client
+libraries: the globus job adaptor is thus a GRAM client, the globus
+file adaptor a GridFTP client.  In the experiments, non-Cloud jobs
+were started using either GRAM or ssh.  File I/O was performed either
+via sshfs, or via a shared Lustre filesystem -- the GridFTP
+functionality was not used for experiments in this paper.
 
-\subsection{Sector-Sphere Adaptors}
+\paragraph{Sector-Sphere Adaptors}
 
 \jhanote{SAURABH: This is your section. Please fill up. Ignore the
   existing text; This is a cut and paste. }
 
 {\it Sector/Sphere Adaptors: }
+
 Sector and Sphere is a cloud framework specifically designed for writing 
 applications able to utilize the stream processing paradigm. Sector is a 
 distributed file system that manages data across physical compute nodes at the file level, 
@@ -544,6 +442,7 @@ adaptors naturally gives us the opportunity to compare and study the two distinc
 
 
 \section{SAGA-based MapReduce}
+
 After \sagamapreduce we have also developed real scientific
 applications using SAGA based implementations of patterns for
 data-intensive computing: multiple sequence alignment can be
@@ -608,7 +507,7 @@ Both the master and the worker processes use the SAGA-API as an
 abstract interface to the used infrastructure, making the application
 portable between different architectures and systems. The worker
 processes are launched using the SAGA job package, allowing the jobs
-to launch either locally, using Globus/GRAM, Amazon Web Services, or
+to launch either locally, using globus/GRAM, Amazon Web Services, or
 on a Condor pool. The communication between the master and the worker
 processes is ensured by using the SAGA advert package, abstracting an
 information database in a platform independent way (this can also be
@@ -678,7 +577,7 @@ time-to-solution, and maximizes resilience against worker loss.
 
 The scheme \T{any} acts here as a placeholder for SAGA, so that the
 SAGA engine can choose an appropriate adaptor.  The master would
-access the file via the default local file adaptor.  The Globus
+access the file via the default local file adaptor.  The globus
 clients may use either the GridFTP or SSH adaptor for remote file
 success (but in our experimental setup would also succeed 
 using the local file adaptor, as the Lustre FS is mounted on the
@@ -909,7 +808,7 @@ Amazon's EC2 and Nimbus as part of the ScienceCloud at Argonne.
 To evaluate the performance of BigJob, several experiments have been
 conducted on different LONI resources. The resources used are:
 QueenBee (QB), Poseidon and Oliver. For accessing these resources
-Globus GRAM and an underlying Torque resource manager and Moab
+globus GRAM and an underlying Torque resource manager and Moab
 scheduler are used.
 
 \subsubsection*{Resource II: LONI Clusters}
@@ -937,81 +836,86 @@ provided by Nimbus.
 
 
 \begin{table}
-\upp
-\begin{tabular}{cccccc}
-  \hline
-  \multicolumn{2}{c}{Number-of-Workers}  &  Data size   &  $T_s$  & $T_{spawn}$ & $T_s - T_{spawn}$\\   
-  TeraGrid &  AWS &   (MB)  & (sec) & (sec)  & (sec) \\
-  \hline
-%  \textcolor{blue}{4} & - & 10  &  8.8 &  6.8 & 2.0 \\
-  { {\bf 4}} & - & 10  &  8.8 &  6.8 & 2.0 \\
-%  \textcolor{blue}{6} & - & 10  &  12.4 &  10.2 & 2.2 \\
-%  10 & -  & 100 & 10.4 & 8.86 \\
-%  \textcolor{blue}{10} & - & 10  & 20.8 & 17.3 & 3.5 \\  
-  \hline 
-  - & 1 & 10 & 4.3 & 2.8 & 1.5 \\
-  - & 2 & 10 & 7.8 & 5.3 & 2.5 \\ 
-  - & 3 & 10 & 8.7 & 7.7 & 1.0 \\
-  - & {\bf 4} & 10 & 13.0 & 10.3 & 2.7 \\
-  - & 4 (1) & 10 & 11.3 & 8.6 & 2.7 \\
-  - & 4 (2) & 10 & 11.6 & 9.5 & 2.1 \\
-  \hline 
-  -  & 2  & 100 & 7.9  & 5.3 & 2.6 \\
-  -  & {\bf 4}  & 100 & 12.4 & 9.2 & 3.2\\
-  -  & 10 & 100 & 29.0 & 25.1 & 3.9 \\
-  \hline
-  - & {\bf 4 (1)} & 100 & 16.2 & 8.7 & 7.5 \\ 
-  - & {\bf 4 (2)} & 100 & 12.3 & 8.5 & 3.8 \\
-  - & 6 (3) & 100 & 18.7 & 13.5 & 5.2\\
-  - & 8 (1) & 100 & 31.1 & 18.3 & 12.8 \\
-  - & 8 (2) & 100 & 27.9 & 19.8 & 8.1\\
-  - & 8 (4) & 100 & 27.4 & 19.9 & 7.5\\
-  \hline \hline
-\end{tabular}
-\upp
-\caption{Performance data for different configurations of worker placements. The master places the workers on either Clouds or on the TeraGrid (TG). The configurations -- separated by horizontal lines, are classified as either all workers on the TG or having all workers on EC2. For the latter, unless otherwise explicitly indicated
-  by a number in parenthesis, every worker is assigned to a unique VM. In the
-  final set of rows, the number  in parenthesis indicates the number of VMs used. It is interesting to note the significant spawning times, and its dependence on the number of VM, which typically increase with the number of VMs. $T_{spawn}$ does not include instantiation of the VM.}
-\label{stuff-1}
-\upp
-\upp
+  \upp
+  \footnotesize
+  \begin{tabular}{cccccc}
+    \hline
+    \multicolumn{2}{c}{\#workers}  &  Data size   &  $T_s$  & $T_{sp}$ & $T_s - T_{sp}$\\   
+    TG &  AWS &   (MB)  & (sec) & (sec)  & (sec) \\
+    \hline
+  %  \textcolor{blue}{4} & - & 10  &  8.8 &  6.8 & 2.0 \\
+    { {\bf 4}} & - & 10  &  8.8 &  6.8 & 2.0 \\
+  %  \textcolor{blue}{6} & - & 10  &  12.4 &  10.2 & 2.2 \\
+  %  10 & -  & 100 & 10.4 & 8.86 \\
+  %  \textcolor{blue}{10} & - & 10  & 20.8 & 17.3 & 3.5 \\  
+    \hline 
+    - & 1 & 10 & 4.3 & 2.8 & 1.5 \\
+    - & 2 & 10 & 7.8 & 5.3 & 2.5 \\ 
+    - & 3 & 10 & 8.7 & 7.7 & 1.0 \\
+    - & {\bf 4} & 10 & 13.0 & 10.3 & 2.7 \\
+    - & 4 (1) & 10 & 11.3 & 8.6 & 2.7 \\
+    - & 4 (2) & 10 & 11.6 & 9.5 & 2.1 \\
+    \hline 
+    -  & 2  & 100 & 7.9  & 5.3 & 2.6 \\
+    -  & {\bf 4}  & 100 & 12.4 & 9.2 & 3.2\\
+    -  & 10 & 100 & 29.0 & 25.1 & 3.9 \\
+    \hline
+    - & {\bf 4 (1)} & 100 & 16.2 & 8.7 & 7.5 \\ 
+    - & {\bf 4 (2)} & 100 & 12.3 & 8.5 & 3.8 \\
+    - & 6 (3) & 100 & 18.7 & 13.5 & 5.2\\
+    - & 8 (1) & 100 & 31.1 & 18.3 & 12.8 \\
+    - & 8 (2) & 100 & 27.9 & 19.8 & 8.1\\
+    - & 8 (4) & 100 & 27.4 & 19.9 & 7.5\\
+    \hline \hline
+  \end{tabular}
+  \caption{Performance data for different configurations of worker
+  placements. The master places the workers on either Clouds or on the
+  TeraGrid (TG). The configurations -- separated by horizontal lines,
+  are classified as either all workers on the TG or having all workers
+  on EC2. For the latter, unless otherwise explicitly indicated by a
+  number in parenthesis, every worker is assigned to a unique VM. In
+  the final set of rows, the number  in parenthesis indicates the
+  number of VMs used. It is interesting to note the significant
+  spawning times, and its dependence on the number of VM, which
+  typically increase with the number of VMs. $T_{sp}$ (spawn) does not
+  include instantiation of the VM.
+  \label{stuff-1}}
+
+  
 \end{table}
 
 \begin{table}
-\upp
-\begin{tabular}{ccccccc}
-  \hline
-  \multicolumn{3}{c}{Number-of-Workers}  &  Size   &  $T_s$  & $T_{spawn}$ & $T_s - T_{spawn}$\\   
-  TG &  AWS & Eucalyptus &  (MB)  & (sec) & (sec) & (sec) \\
-  \hline
-  - & 1 & 1 & 10   & 5.3 & 3.8 & 1.5\\
-  - & 2 & 2 & 10   & 10.7 & 8.8 & 1.9 \\
-  - & 1 & 1 & 100  & 6.7 & 3.8 & 2.9\\
-  - & 2 & 2 & 100  & 10.3 & 7.3 & 3.0\\
-  \hline 
-  1 & - & 1 & 10   & 4.7 & 3.3 & 1.4\\
-  1 & - & 1 & 100  & 6.4 & 3.4 & 3.0\\
-  \hline 
-  {\bf 2} &   {\bf 2} & - & 10 & 7.4 & 5.9 & 1.5 \\
-  3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
-  4 & 4 & - & 10 & 13.7 & 11.6 & 2.1 \\
-  5 & 5 & - & 10 & 33.2 & 29.4 & 3.8 \\ 
-%\textcolor{blue}{5} & \textcolor{blue}{5} & - & 10 & 33.2 & 29.4 & 3.8 \\ 
-  10 & 10 & - & 10 & 32.2 & 28.8 & 2.4 \\
-  \hline
-   \hline 
-%   1 & 1 & - & 100 & 5.4 & 3.1 & 2.3\\
-%   3 & 3 & - & 100 & 11.1 & 8.7 & 2.4 \\
-\end{tabular}
-\upp
-\caption{Performance data for different configurations of worker placements
-  on TG, Eucalyptus-Cloud and EC2. The first set of data
-  establishes Cloud-Cloud interoperability. The second set 
-  (rows 5- 11) shows interoperability between Grids-Clouds (EC2). 
-  The experimental conditions and measurements are similar to Table 1.\vspace*{-1em}}
-\label{stuff-2}
-\upp
-\upp
+  \footnotesize
+  \begin{tabular}{ccccccc}
+    \hline
+    \multicolumn{3}{c}{\# workers}  &  Size   &  $T_s$  & $T_{sp}$ & $T_s - T_{sp}$\\   
+    TG &  AWS & Eucal. &  (MB)  & (sec) & (sec) & (sec) \\
+    \hline
+    - & 1 & 1 & 10   & 5.3 & 3.8 & 1.5\\
+    - & 2 & 2 & 10   & 10.7 & 8.8 & 1.9 \\
+    - & 1 & 1 & 100  & 6.7 & 3.8 & 2.9\\
+    - & 2 & 2 & 100  & 10.3 & 7.3 & 3.0\\
+    \hline 
+    1 & - & 1 & 10   & 4.7 & 3.3 & 1.4\\
+    1 & - & 1 & 100  & 6.4 & 3.4 & 3.0\\
+    \hline 
+    {\bf 2} &   {\bf 2} & - & 10 & 7.4 & 5.9 & 1.5 \\
+    3 & 3 & - & 10 & 11.6 & 10.3 & 1.6 \\
+    4 & 4 & - & 10 & 13.7 & 11.6 & 2.1 \\
+    5 & 5 & - & 10 & 33.2 & 29.4 & 3.8 \\ 
+  %\textcolor{blue}{5} & \textcolor{blue}{5} & - & 10 & 33.2 & 29.4 & 3.8 \\ 
+    10 & 10 & - & 10 & 32.2 & 28.8 & 2.4 \\
+    \hline
+     \hline 
+  %   1 & 1 & - & 100 & 5.4 & 3.1 & 2.3\\
+  %   3 & 3 & - & 100 & 11.1 & 8.7 & 2.4 \\
+  \end{tabular}
+  \caption{Performance data for different configurations of worker
+  placements on TG, Eucalyptus-Cloud and EC2. The first set of data
+  establishes Cloud-Cloud interoperability. The second set (rows 5-
+  11) shows interoperability between Grids-Clouds (EC2).  The
+  experimental conditions and measurements are similar to Table
+  1.\label{stuff-2}}
 \end{table}
 
 
@@ -1138,7 +1042,7 @@ deploying distributed application. But this is also a consequence of
 the fact that Grid interfaces tend to be ``complete'' or very close
 thereof.  For example, while certainly not true of all cases, consider
 the following numbers, which we believe represent the above points
-well: Globus 4.2 provides, in its Java version,
+well: globus 4.2 provides, in its Java version,
 approximately 2,000 distinct method calls.  The complete SAGA Core
 API~\cite{saga-core} provides roughly 200 distinct method calls.  The
 SOAP rendering of the Amazon EC2 cloud interface provides,
