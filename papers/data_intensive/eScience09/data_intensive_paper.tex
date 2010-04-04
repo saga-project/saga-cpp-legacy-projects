@@ -277,7 +277,8 @@ applications~\citep{saga_gmac09}. SAGA has been used to develop
 system-level tools and applications of each of these types.
 In~\cite{saga_montage_escience09} we discussed how SAGA was used to
 implement a higher-level API to support workflows.
-In~\cite{saga_ccgrid09} we discussed how a saga-based MapReduce was developed.
+In~\cite{saga_ccgrid09} we discussed how a saga-based MapReduce was
+developed.
 
 % In this paper, we will discuss how SAGA can be used to implement
 % runtime frameworks to support the efficient execution of the
@@ -342,55 +343,54 @@ sets. (Larger values indicate greater similarity.)}
  \label{Fig:AllPairsExplanation}
 \end{figure}
 
-The problem becomes a two-level assignment problem: first,
-which pairs to put into an assignment
-set, and second, with which distributed resource to run that set.  If
-transferring data to the job takes too long, we spend more time on
-data transfer than computation. There may be a resource capable of the
-work that may be slower than others, but able to be accessed in a
-relatively quick manner via the network, correcting for this lack of
-computational ability. An application can uses simple heuristics to
-predict and determine a specific data set's affinity to a specific
-network resource.
+The problem becomes a two-level assignment problem: first, which pairs
+to put into an assignment set, and second, with which distributed
+resource to run that set.  If transferring data to the job takes too
+long, we spend more time on data transfer than computation. There may be
+a resource capable of the work that may be slower than others, but able
+to be accessed in a relatively quick manner via the network, correcting
+for this lack of computational ability. An application can uses simple
+heuristics to predict and determine a specific data set's affinity to a
+specific network resource.
 
 %\subsection{Infrastructure Used}
 
-{\it Infrastructure Used: } In our experiments we use the stable, open-source DFS CloudStore
-(formerly KFS), which is written in C++ and released under the Apache
-License Version 2.0 ~\citep{cloudstore_web}. It is inspired by the highly successful Google
-Filesystem, GFS, which is closed source and
-unavailable for research. CloudStore was chosen for its high
-performance focus, C++ implementation, and its source code
-availability. It also provides a means to automatically replicate data
-on different hosts to provide efficient data access and fault
-tolerance. In general, DFS are useful and effective tools to consider
-for data-intensive scientific applications,
-with multiple open-source, reliable file-systems now available.  The
-most common parameters in determining the performance of using a DFS
-are the performance overhead compared to a normal local filesystem,
-number of replicas of each datum/file, and the number of servers.
-While a DFS removes the responsibility of replica management and data
-server placement, the abstraction often increases the difficulty in
-determining where in the DFS the data is being stored.
+{\it Infrastructure Used: } In our experiments we use the stable,
+open-source DFS CloudStore (formerly KFS), which is written in C++ and
+released under the Apache License Version 2.0 ~\citep{cloudstore_web}.
+It is inspired by the highly successful Google Filesystem, GFS, which is
+closed source and unavailable for research ~\citep{GFS}. CloudStore was
+chosen for its high performance focus, C++ implementation, and its
+source code availability. It also provides a means to automatically
+replicate data on different hosts to provide efficient data access and
+fault tolerance.  In general, DFS are useful and effective tools to
+consider for data-intensive scientific applications, with multiple
+open-source, reliable file-systems now available.  The most common
+parameters in determining the performance of using a DFS are the
+performance overhead compared to a normal local filesystem, number of
+replicas of each datum/file, and the number of servers.  While a DFS
+removes the responsibility of replica management and data server
+placement, the abstraction often increases the difficulty in determining
+where in the DFS the data is being stored.
 
-Here we define our \textit{heuristic framework} method, it differs from a DFS in that it
-determines where data is located and where the work should be placed. Determining
-data location can be as simple as looking at the IP address of the
-worker and finding where it is located, or as
+Here we define our \textit{heuristic framework} method, it differs from
+a DFS in that it determines where data is located and where the work
+should be placed. Determining data location can be as simple as looking
+at the IP address of the worker and finding where it is located, or as
 complicated as using network analysis tools to determine the optimal
 data transfer minimization time. For file transfer during these
 heuristic framework-based experiments, we use GridFTP -- a tool that can
 support high-performance transfers ~\citep{gridftp_web}.
 
-To test the performance of CloudStore and GridFTP, we wrote adaptors for SAGA that
-implement the filesystem package. 
-SAGA allows our application
-to handle seamlessly the DFS and GridFTP based data stores on clouds and
-grids, enabling us to compare both.
-For accurate comparisons, we must consider the
-overhead introduced by SAGA. We have measured a slight difference in
-times; however, the adaptor implementations grew at the same rate as
-GridFTP and CloudStore usage without SAGA.  
+For our experimens, to utilise both CloudStore and GridFTP within one
+application, we wrote adaptors for SAGA that implement the filesystem
+package.  SAGA allows our application to handle seamlessly the DFS and
+GridFTP based data stores on clouds and grids, enabling us to compare
+both.  For accurate comparisons, we must consider the overhead
+introduced by SAGA. We have measured a slight difference in times when
+utilising SAGA compared to native applications; however, the adaptor
+implementations grew at the same rate as GridFTP and CloudStore usage
+without SAGA.  
 
 % While a DFS removes the responsibility of
 % replica management and data server placement, the abstraction often
@@ -408,12 +408,12 @@ GridFTP and CloudStore usage without SAGA.
 
 \section{Experiments and Performance Analysis} 
 We developed three types of experiments in order to understand the
-interplay of different determinants of performance and make a
-meaningful comparison of CloudStore's behaviour to manual data
-placement and file management. We try to answer questions such as: Is
-a DFS slower than manual placement of data?  When manually handling
-data, what are the advantages of being able to move work to data, or
-data to the work? To answer these questions, we define the time to completion $t_c$:
+interplay of different determinants of performance and make a meaningful
+comparison of CloudStore's behaviour to manual data placement and file
+management. We try to answer questions such as: Is a DFS slower than
+manual placement of data?  When manually handling data, what are the
+advantages of being able to move work to data, or data to the work? To
+answer these questions, we define the time to completion $t_c$:
  \begin{equation}
 t_c = t_x + t_{I/O} + t_{compute},
 \end{equation}
