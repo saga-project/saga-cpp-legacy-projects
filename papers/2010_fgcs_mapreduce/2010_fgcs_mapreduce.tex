@@ -104,9 +104,7 @@
 \end{abstract}
 \maketitle
 
-\section{Introduction \textcolor{red}{SJ}}
-
-\jhanote{Compress?}
+\section{Introduction}
 
 % Although Clouds are a nascent infrastructure, there is a ground swell
 % in interest to adapt these emerging powerful infrastructure for
@@ -510,77 +508,18 @@ programming models.
 \ssnote{Add another section here for experiments, or maybe later after
 MapReduce description} 
 
-\section{SAGA-based MapReduce}
-
-{\it Application - wordcount: }
-We implemented two kernel functions to do a word count on four gigabytes text data. 
-The first kernel function is responsible for hashing the words in the data set 
-into different hashing "buckets". The standard C++ collate hashing function was 
-used for this purpose. The second kernel function reads each hash bucket, sorts 
-the words in memory and outputs the final count value of the words in the data set. 
-For example, a file containing the words ("bread"  "bee" "bee"  "honey" ) 
-would be hashed into buckets as - ("bread" "bee" "bee") and ("honey"). 
-The second kernel function would read these intermediate bucket files, sort 
-the words, and produce the following result . (.bread 1., .bee 2., .honey 1.).  
-The Sphere system is responsible for assigning files for processing, 
-synchronization, and writing output results back to Sector. 
-
-
-{\it Experimental Data: }
-
-Varying chunk sizes:
-
-Sector maintains and tracks file in the cloud at the file level. There is no 
-support in Sphere to control the chunk sizes of files assigned to 
-the Sphere processing engines. Therefore, to experiment with different 
-chunk sizes, the files were split manually into smaller chunks before 
-the word count application was launched. In this set of experiments, we 
-vary the chunk size from 16MB to 256 MB, while keeping the number of 
-SPEs constant to 8, and the data size constant to 4 GB. Each SPE 
-is running on a separate physical node in the cluster. These results are 
-presented in Figure xx. As evident from the results we collected, a 
-correlation exists between the chunk sizes and performance of Sphere. 
-As the chunk sizes increase, the performance deteriorates. Also, we see 
-a major decline in performance right after the 64 MB data point. Note that 
-this behaviour is inherent to the implementation details 
-of Sphere, as opposed to a fundamental trend of the stream processing paradigm. 
-
-On the other hand, we perform the same set of experiments with SAGA-MapReduce 
-and observe a completely different trend with respect to chunk 
-size and performance. SAGA-MapReduce performance increases with varying 
-chunk sizes, outperforming Sphere at the 256 MB data point.  
-
-\ssnote { Miklos add input here }
-
-Varying workers:
-
-We perform two sets of experiments with Sphere while keeping the chunk size 
-constant at 64 MB, the data size fixed at 4GB (as previously) but varying 
-the number of workers. In the first set of experiments, we use Sphere on a 
-local data and local computer configuration. We then analyze how 
-the solution scales to a distributed data and distributed compute 
-configuration. These results are illustrated in Figure xx and xx. 
-For the local-local configuration, we launch 
-Sector and Sphere on a single physical node. For the distribute-distribute 
-configuration, we launch Sector and Sphere on one physical node per SPE. 
-We observe the maximum peak performance at 6 distributed workers. Sector 
-replicates files to achieve optimal data distribution between SPEs 
-and minimize synchronization overhead. For the purpose of our 
-experiments, we limited Sector to not create any replicas. 
-
-
 
 \section{SAGA-based MapReduce}
 
-After \sagamapreduce we have also developed real scientific
-applications using SAGA based implementations of patterns for
-data-intensive computing: multiple sequence alignment can be
-orchestrated using the SAGA-All-pairs implementation, and genome
-searching can be implemented using SAGA-MapReduce (see
-Ref.~\cite{saga_ccgrid09}).
+% After \sagamapreduce we have also developed real scientific
+% applications using SAGA based implementations of patterns for
+% data-intensive computing: multiple sequence alignment can be
+% orchestrated using the SAGA-All-pairs implementation, and genome
+% searching can be implemented using SAGA-MapReduce (see
+% Ref.~\cite{saga_ccgrid09}).
 
 
-\upup
+% \upup
 \subsection{\sagamapreduce Implementation}
 
 
@@ -729,9 +668,65 @@ absence of precise knowledge of the execution system).
 % question.
 % include as needed
 
+\section{Application Performance Using SAGA-based Sphere and MapReduce}
 
-\section{SAGA-MapReduce on Clouds and Grids: Three Levels of
-  Interoperabilty}
+{\it Application - wordcount: }
+We implemented two kernel functions to do a word count on four gigabytes text data. 
+The first kernel function is responsible for hashing the words in the data set 
+into different hashing "buckets". The standard C++ collate hashing function was 
+used for this purpose. The second kernel function reads each hash bucket, sorts 
+the words in memory and outputs the final count value of the words in the data set. 
+For example, a file containing the words ("bread"  "bee" "bee"  "honey" ) 
+would be hashed into buckets as - ("bread" "bee" "bee") and ("honey"). 
+The second kernel function would read these intermediate bucket files, sort 
+the words, and produce the following result . (.bread 1., .bee 2., .honey 1.).  
+The Sphere system is responsible for assigning files for processing, 
+synchronization, and writing output results back to Sector. 
+
+
+{\it Experimental I -- Varying chunk sizes:}
+
+Sector maintains and tracks file in the cloud at the file level. There is no 
+support in Sphere to control the chunk sizes of files assigned to 
+the Sphere processing engines. Therefore, to experiment with different 
+chunk sizes, the files were split manually into smaller chunks before 
+the word count application was launched. In this set of experiments, we 
+vary the chunk size from 16MB to 256 MB, while keeping the number of 
+SPEs constant to 8, and the data size constant to 4 GB. Each SPE 
+is running on a separate physical node in the cluster. These results are 
+presented in Figure xx. As evident from the results we collected, a 
+correlation exists between the chunk sizes and performance of Sphere. 
+As the chunk sizes increase, the performance deteriorates. Also, we see 
+a major decline in performance right after the 64 MB data point. Note that 
+this behaviour is inherent to the implementation details 
+of Sphere, as opposed to a fundamental trend of the stream processing paradigm. 
+
+On the other hand, we perform the same set of experiments with
+SAGA-MapReduce and observe a completely different trend with respect
+to chunk size and performance. SAGA-MapReduce performance increases
+with varying chunk sizes, outperforming Sphere at the 256 MB data
+point.  \ssnote { Miklos add input here } \jhanote{Saurabh: nice
+  write-up. Can you specify the number of workers here. I think it is
+  8, but please verify and write}
+
+{\it Experiment II -- Varying Workers:} We perform two sets of
+experiments with Sphere \jhanote{Do you mean SAGA-based Sphere for
+  Word-Count?} while keeping the chunk size constant at 64 MB, the
+data size fixed at 4GB (as previously) but varying the number of
+workers. In the first set of experiments, we use Sphere on a local
+data and local computer configuration. We then analyze how the
+solution scales to a distributed data and distributed compute
+configuration. These results are illustrated in Figure xx and xx.  For
+the local-local configuration, we launch Sector and Sphere on a single
+physical node. For the distribute-distribute configuration, we launch
+Sector and Sphere on one physical node per SPE.  We observe the
+maximum peak performance at 6 distributed workers. Sector replicates
+files to achieve optimal data distribution between SPEs and minimize
+synchronization overhead. For the purpose of our experiments, we
+limited Sector to not create any replicas.
+
+
+\section{SAGA-based Applications: Three Levels of Interoperabilty}
 
 \subsection{Establish there are 3 ways to provide application level
   interoperabilty \textcolor{red}{SJ}}
