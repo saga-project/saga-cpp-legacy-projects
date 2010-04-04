@@ -668,68 +668,11 @@ absence of precise knowledge of the execution system).
 % question.
 % include as needed
 
-\section{Application Performance Using SAGA-based Sphere and MapReduce}
-
-{\it Application - wordcount: }
-We implemented two kernel functions to do a word count on four gigabytes text data. 
-The first kernel function is responsible for hashing the words in the data set 
-into different hashing "buckets". The standard C++ collate hashing function was 
-used for this purpose. The second kernel function reads each hash bucket, sorts 
-the words in memory and outputs the final count value of the words in the data set. 
-For example, a file containing the words ("bread"  "bee" "bee"  "honey" ) 
-would be hashed into buckets as - ("bread" "bee" "bee") and ("honey"). 
-The second kernel function would read these intermediate bucket files, sort 
-the words, and produce the following result . (.bread 1., .bee 2., .honey 1.).  
-The Sphere system is responsible for assigning files for processing, 
-synchronization, and writing output results back to Sector. 
-
-
-{\it Experimental I -- Varying chunk sizes:}
-
-Sector maintains and tracks file in the cloud at the file level. There is no 
-support in Sphere to control the chunk sizes of files assigned to 
-the Sphere processing engines. Therefore, to experiment with different 
-chunk sizes, the files were split manually into smaller chunks before 
-the word count application was launched. In this set of experiments, we 
-vary the chunk size from 16MB to 256 MB, while keeping the number of 
-SPEs constant to 8, and the data size constant to 4 GB. Each SPE 
-is running on a separate physical node in the cluster. These results are 
-presented in Figure xx. As evident from the results we collected, a 
-correlation exists between the chunk sizes and performance of Sphere. 
-As the chunk sizes increase, the performance deteriorates. Also, we see 
-a major decline in performance right after the 64 MB data point. Note that 
-this behaviour is inherent to the implementation details 
-of Sphere, as opposed to a fundamental trend of the stream processing paradigm. 
-
-On the other hand, we perform the same set of experiments with
-SAGA-MapReduce and observe a completely different trend with respect
-to chunk size and performance. SAGA-MapReduce performance increases
-with varying chunk sizes, outperforming Sphere at the 256 MB data
-point.  \ssnote { Miklos add input here } \jhanote{Saurabh: nice
-  write-up. Can you specify the number of workers here. I think it is
-  8, but please verify and write}
-
-{\it Experiment II -- Varying Workers:} We perform two sets of
-experiments with Sphere \jhanote{Do you mean SAGA-based Sphere for
-  Word-Count?} while keeping the chunk size constant at 64 MB, the
-data size fixed at 4GB (as previously) but varying the number of
-workers. In the first set of experiments, we use Sphere on a local
-data and local computer configuration. We then analyze how the
-solution scales to a distributed data and distributed compute
-configuration. These results are illustrated in Figure xx and xx.  For
-the local-local configuration, we launch Sector and Sphere on a single
-physical node. For the distribute-distribute configuration, we launch
-Sector and Sphere on one physical node per SPE.  We observe the
-maximum peak performance at 6 distributed workers. Sector replicates
-files to achieve optimal data distribution between SPEs and minimize
-synchronization overhead. For the purpose of our experiments, we
-limited Sector to not create any replicas.
-
 
 \section{SAGA-based Applications: Three Levels of Interoperabilty}
 
-\subsection{Establish there are 3 ways to provide application level
-  interoperabilty \textcolor{red}{SJ}}
+\subsection{Case I: Application Interoperability on Different
+  infrastructure via Adaptors}
 
 \begin{verbatim}
 Case I:      Application 
@@ -738,6 +681,13 @@ Case I:      Application
                   |
               Different Adaptors
 
+
+\end{verbatim}
+
+\subsection{Case II: Application Interopability using programming
+  models suited for different infrastructure}
+
+\begin{verbatim} 
 Case II:     Application 
                  |
           Instance-1 Instance-2
@@ -746,18 +696,22 @@ Case II:     Application
             |            |
           SAGA-Sphere  SAGA-MapReduce
             |            |
-          OCC          Cluster/Clouds/Grids
-              
+Sector-Sphere Clouds    Cluster/Grids
+\end{verbatim}
+
+\subsection{Case III: Application Interoperability using different
+  programming models for concurrent execution}
+
+
+\begin{verbatim} 
 Case III:   Application Instance
                 |           
            SAGA-Sphere and SAGA-MapReduce
                 |
-        OCC and (Cluster/Clouds/Grids)
+ Sector-Sphere Clouds and (Cluster/Grids)
 \end{verbatim}
             
-\jhanote{SAURABH: Please describe Case II}
-
-
+\jhanote{following paragraph needs attention}
 There are several aspects to interoperability. A simple form of
 interoperability is that any application can use any Clouds systems
 without changes to the application: the application simply needs to
@@ -776,7 +730,26 @@ local installation of Eucalyptus at LSU -- GumboCloud) and
 Nimbus.  In this paper, we focus on EC2, Eucalyptus and the TeraGrid
 (TG).
 
-\subsection{Deployment Details \textcolor{red}{Andre}}
+\section{Experiments Demonstrating 3 Types of Interoperabiltiy}
+
+{\it Application - Wordcount: } We implemented two kernel functions to
+do a word count on four gigabytes text data.  The first kernel
+function is responsible for hashing the words in the data set into
+different hashing "buckets". The standard C++ collate hashing function
+was used for this purpose. The second kernel function reads each hash
+bucket, sorts the words in memory and outputs the final count value of
+the words in the data set.  For example, a file containing the words
+("bread" "bee" "bee" "honey" ) would be hashed into buckets as -
+("bread" "bee" "bee") and ("honey").  The second kernel function would
+read these intermediate bucket files, sort the words, and produce the
+following result . (.bread 1., .bee 2., .honey 1.).  The Sphere system
+is responsible for assigning files for processing, synchronization,
+and writing output results back to Sector.
+
+
+\subsection{Case I: Interoperability via Adaptors}
+
+\subsubsection{Deployment Details}
 
 In order to fully utilize cloud infrastructures for SAGA applications,
 the VM instances need to fulfill a couple of prerequisites: the SAGA
@@ -845,8 +818,44 @@ favourable, where the bulk software installation is statically done
 via a custom VM image, but software configuration and application
 deployment are done dynamically during VM startup.
 
+\subsubsection{Resources used in Experiments}
 
-\subsection{Experiments} 
+Simulations were performed on a range of supercomputing resources on
+TeraGrid machines, shared TeraGrid-LONI (Louisiana Optical Network
+Initiative)~\cite{LONI_web} resources and smaller LONI clusters such
+as Eric, Oliver, Louie and Poseidon (512 cores).  We also used
+Amazon's EC2 and Nimbus as part of the ScienceCloud at Argonne.
+
+\subsubsection*{Resource I: TeraGrid/LONI Cluster (QB)}
+
+To evaluate the performance of BigJob, several experiments have been
+conducted on different LONI resources. The resources used are:
+QueenBee (QB), Poseidon and Oliver. For accessing these resources
+globus GRAM and an underlying Torque resource manager and Moab
+scheduler are used.
+
+\subsubsection*{Resource II: LONI Clusters}
+\jhanote{not sure we need this. but just a place-holder for the moment}
+
+
+\subsubsection*{Resource III: Cloud Environments}
+\jhanote{not sure we need this. but just a place-holder for the
+  moment; not sure this subsection makes sense. Needs fixing. As does
+  the following}
+
+For our experiments we used different Cloud environments: the Nimbus
+Science Cloud of the University of Chicago and the Amazon EC2
+environment is used. In general, each Cloud has its
+characteristics. The Nimbus Cloud is accessed via the WSRF interface,
+while for EC2 the Amazon command line client is used. Each Nimbus VM
+provides 2 virtual cores and 3.7\,GB memory.  Amazon offeres different
+VM types with up to 8 cores. We used the largest VM type (m2.4xlarge)
+with 8 cores and 68.4\,GB of memory and the m1.large instance type
+with 2 cores and 7.5\,GB, which compares best to the virtual machine
+provided by Nimbus.
+
+
+\subsubsection{Experiments} 
 
 In an earlier paper (Ref~\cite{saga_ccgrid09}), we performed tests to
 demonstrate how \sagamapreduce utilizes different infrastructures and
@@ -920,44 +929,9 @@ can differ as well as useful for our experiments.
 \jhanote{Needs major addition and rewrite. Saurabh and Miklos take a
   first pass please at adding}
 
-\subsection{Resources used in Experiments}
-
-Simulations were performed on a range of supercomputing resources on
-TeraGrid machines, shared TeraGrid-LONI (Louisiana Optical Network
-Initiative)~\cite{LONI_web} resources and smaller LONI clusters such
-as Eric, Oliver, Louie and Poseidon (512 cores).  We also used
-Amazon's EC2 and Nimbus as part of the ScienceCloud at Argonne.
-
-\subsubsection*{Resource I: TeraGrid/LONI Cluster (QB)}
-
-To evaluate the performance of BigJob, several experiments have been
-conducted on different LONI resources. The resources used are:
-QueenBee (QB), Poseidon and Oliver. For accessing these resources
-globus GRAM and an underlying Torque resource manager and Moab
-scheduler are used.
-
-\subsubsection*{Resource II: LONI Clusters}
-\jhanote{not sure we need this. but just a place-holder for the moment}
 
 
-\subsubsection*{Resource III: Cloud Environments}
-\jhanote{not sure we need this. but just a place-holder for the
-  moment; not sure this subsection makes sense. Needs fixing. As does
-  the following}
-
-For our experiments we used different Cloud environments: the Nimbus
-Science Cloud of the University of Chicago and the Amazon EC2
-environment is used. In general, each Cloud has its
-characteristics. The Nimbus Cloud is accessed via the WSRF interface,
-while for EC2 the Amazon command line client is used. Each Nimbus VM
-provides 2 virtual cores and 3.7\,GB memory.  Amazon offeres different
-VM types with up to 8 cores. We used the largest VM type (m2.4xlarge)
-with 8 cores and 68.4\,GB of memory and the m1.large instance type
-with 2 cores and 7.5\,GB, which compares best to the virtual machine
-provided by Nimbus.
-
-
-\subsection{Results and Analysis}
+\subsubsection{Results and Analysis}
 
 
 \begin{table}
@@ -1118,8 +1092,53 @@ work-loads across different systems remains a distinct possibility,
 however, we believe more systematic studies are required.
 
 
-\jhanote{Needs major addition and rewrite. Saurabh and Miklos take a
-  first pass please at adding}
+% \jhanote{Needs major addition and rewrite. Saurabh and Miklos take a
+%   first pass please at adding}
+
+\subsection{Case II: Application Performance Using SAGA-based Sphere and MapReduce}
+
+{\it Experiment I -- Varying chunk sizes:} Sector maintains and tracks
+file in the cloud at the file level. There is no support in Sphere to
+control the chunk sizes of files assigned to the Sphere processing
+engines. Therefore, to experiment with different chunk sizes, the
+files were split manually into smaller chunks before the word count
+application was launched. In this set of experiments, we vary the
+chunk size from 16MB to 256 MB, while keeping the number of SPEs
+constant to 8, and the data size constant to 4 GB. Each SPE is running
+on a separate physical node in the cluster. These results are
+presented in Figure xx. As evident from the results we collected, a
+correlation exists between the chunk sizes and performance of Sphere.
+As the chunk sizes increase, the performance deteriorates. Also, we
+see a major decline in performance right after the 64 MB data
+point. Note that this behaviour is inherent to the implementation
+details of Sphere, as opposed to a fundamental trend of the stream
+processing paradigm.
+
+On the other hand, we perform the same set of experiments with
+SAGA-MapReduce and observe a completely different trend with respect
+to chunk size and performance. SAGA-MapReduce performance increases
+with varying chunk sizes, outperforming Sphere at the 256 MB data
+point.  \ssnote { Miklos add input here } \jhanote{Saurabh: nice
+  write-up. Can you specify the number of workers here. I think it is
+  8, but please verify and write}
+
+{\it Experiment II -- Varying Workers:} We perform two sets of
+experiments with Sphere \jhanote{Do you mean SAGA-based Sphere for
+  Word-Count?} while keeping the chunk size constant at 64 MB, the
+data size fixed at 4GB (as previously) but varying the number of
+workers. In the first set of experiments, we use Sphere on a local
+data and local computer configuration. We then analyze how the
+solution scales to a distributed data and distributed compute
+configuration. These results are illustrated in Figure xx and xx.  For
+the local-local configuration, we launch Sector and Sphere on a single
+physical node. For the distribute-distribute configuration, we launch
+Sector and Sphere on one physical node per SPE.  We observe the
+maximum peak performance at 6 distributed workers. Sector replicates
+files to achieve optimal data distribution between SPEs and minimize
+synchronization overhead. For the purpose of our experiments, we
+limited Sector to not create any replicas.
+
+\subsection{Case III: Interoperability Concurrency}
 
 
 \section{Discussion}
