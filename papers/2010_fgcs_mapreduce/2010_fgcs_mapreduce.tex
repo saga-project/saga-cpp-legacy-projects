@@ -37,8 +37,8 @@
 }
 
 %Andre Merzky$^{1}$,  Katerina Stamou$^{2}$, Shantenu Jha$^{123}$
-\title{Application Level Interoperability between Clouds and Grids: A
-  Case Study based upon MapReduce}
+\title{Understanding Application Level Interoperability: Scaling-Out
+  MapReduce From High-Performance Grids to Web-Scale Resources}
 \author{TBD$^{12}$ \\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
       State University, USA}}\\
@@ -79,25 +79,29 @@
 \begin{document}
 %\maketitle
 \begin{abstract}
-
-  SAGA is a high-level programming interface which provides the ability
-  to develop distributed applications in an infrastructure independent
-  way. In an earlier paper, we discussed how SAGA was used to develop
-  a version of MapReduce which provided the user with the ability to
-  control the relative placement of compute and data, whilst utilizing
-  different distributed infrastructure.  We also described how simple
-  interoperability between grids and clouds was established. In this
-  paper, we use an application that uses the SAGA-based implementation
-  of MapReduce, and demonstrate its interoperability across Clouds and
-  Grids at three different levels.  \jhanote{revisit} We analyse the
-  performance of \sagamapreduce when using multiple, different,
-  heterogeneous infrastructures concurrently for the same problem
-  instance. However, we do not strive to provide a rigorous performance
-  model, but to provide a proof-of-concept of application-level
-  interoperability and illustrate its importance.
-
+  SAGA is a high-level programming interface which provides the
+  ability to develop distributed applications in an infrastructure
+  independent way. We discuss how SAGA enables interoperability across
+  different distributed infrastructure, but also is to develop a
+  version of MapReduce which provides the user with the ability to
+  control the relative placement of compute and data.  In this paper,
+  we use an application based on SAGA-MapReduce, and demonstrate its
+  interoperability across Clouds and Grids at three different levels.
+  The primary aim of this paper is to understand different ways in
+  which application-level interoperabilty across distributed
+  infrastructure can be provided. We achieve this by, (i) developing
+  and validating an enhanced verison of MapReduce that scales-out
+  across clusters, clouds and HPC resources, (ii) establishing how
+  SAGA enables the execution of a scientific application concurrently
+  using MapReduce and comparable programming models such as Sphere.
+  We also provide a simple performance analysis of \sagamapreduce when
+  using multiple, different, heterogeneous infrastructures
+  concurrently for the same problem instance.
+% However, we do not strive to provide a rigorous performance
+%   model, but to provide a proof-of-concept of application-level
+%   interoperability and illustrate its importance.
 \end{abstract}
-%\maketitle
+\maketitle
 
 \section{Introduction \textcolor{red}{SJ}}
 
@@ -117,13 +121,31 @@
 % Cloud based infrastructure; this is reminiscent of the plethora of
 % Grid middleware distributions.
 
-In addition to issues of scale, the transition of existing distributed
-programming models and styles, must be as seamless and as least
-disruptive as possible.  A fundamental question at the heart of all
-these important considerations, is the question of how scientific
-applications can be developed so as to utilize as broad a range of
-distributed systems as possible, without vendor lock-in, yet with the
-flexibility and performance that scientific applications demand?
+There are numerous scientific applications that utilize data and
+resources distributed over vast heterogeneous infrastructures and
+networks with varying speeds and characteristics. However, despite the
+drastic differences in hardware capabilities of such distributed
+systems, applications usually tend to utilize a single infrastructure
+for all of their computational and data processing needs. Since most
+distributed frameworks are designed with specific assumptions and
+infrastructures in mind, dependence on a single technology in a
+heterogeneous environment is not always an optimal choice to gain
+maximum runtime performance. For example, the Sector/Sphere data cloud
+is exclusively designed to support data-intensive computing on high
+speed networks, while other distributed filesystems like GFS/Hadoop
+assume limited bandwidth among infrastructure node\cite{}. Thus, for
+applications to efficiently utilize heterogeneous environments,
+abstractions must be developed for the efficient utilization of and
+orchestration across such distinct distributed infrastructure. 
+
+In addition to issues of performance and scale, the transition of
+existing distributed programming models and styles, must be as
+seamless and as least disruptive as possible.  A fundamental question
+at the heart of all these important considerations, is the question of
+how scientific applications can be developed so as to utilize as broad
+a range of distributed systems as possible, without vendor lock-in,
+yet with the flexibility and performance that scientific applications
+demand?
 
 Currently, it is unclear what kind of programming models (PM) and
 programming systems (PS) will emerge for Clouds; this will
@@ -236,6 +258,18 @@ requirements.
 %   relative compute-date placement. This does not really change
 %   just because we are using virtualization!}
 
+SAGA or “Simple API for Grid Applications” is a high level API that
+provides a simple, standard and uniform interface to the most commonly
+required distributed functionality [2]. SAGA can be used to encode
+grid applications, tool-kits to manage distributed applications as
+well as implement abstractions that support commonly occurring
+programming, access and usage patterns. Popular programming
+abstractions such as Map-Reduce and All-Pairs have been successfully
+implemented with SAGA to showcase its utilization as a flexible
+framework to scale-out data-intensive computations on different
+flavours of grids and clouds, and attain a high level of
+interoperability at the application level. 
+ 
 We focus on MapReduce, which is an application with multiple
 homogeneous workers (although the data-load per worker can vary);
 however, it is easy to conceive of an application where workers
@@ -259,6 +293,14 @@ focus of this paper is to build upon and use SAGA-based MapReduce as
 an exemplar to discuss multiple levels and types of interoperability
 that can exist between grids and clouds. This paper is structured as
 follows...
+
+
+
+% Thanks to the ease of
+% developing SAGA “Adaptors”, developers can provide SAGA the interfaces
+% to interact with widely different infrastructures simultaneously
+% throughout the execution of a single application.
+
 
 % It is worth mentioning that most
 % data-intensive scientific applications fall into this category e.g.,
