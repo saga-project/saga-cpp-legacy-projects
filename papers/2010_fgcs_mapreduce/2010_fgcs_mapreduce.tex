@@ -37,15 +37,16 @@
   numberblanklines=false
 }
 
-%Andre Merzky$^{1}$,  Katerina Stamou$^{2}$, Shantenu Jha$^{123}$
+\begin{document}
+
 \title{Understanding Application Level Interoperability: Scaling-Out
   MapReduce From High-Performance Grids to Web-Scale Resources}
-\author{TBD$^{12}$ \\
-  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana
-      State University, USA}}\\
-  \small{\emph{$^{2}$Department of Computer Science, Louisiana State
-      University, USA}}\\
-}
+\author{Saurabh Sehgal$^?$, Andre Merzky$^{1}$, Shantenu Jha$^{*12}$,  Miklos Erdelyi$^3$ \\
+\small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
+\small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
+\small{\emph{$^{4}$Department of Computer Science, University of
+    Pannonia, Veszprem, Hungary}}\\
+\small{\emph{$^{*}$ Contact Author \texttt{sjha@cct.lsu.edu}}}}
 
 \newif\ifdraft
 \drafttrue
@@ -77,7 +78,7 @@
 \newcommand{\sshfs}[1]{\texttt{sshfs}}
  
 
-\begin{document}
+
 %\maketitle
 \begin{abstract}
   SAGA is a high-level programming interface which provides the
@@ -455,58 +456,58 @@ via sshfs, or via a shared Lustre filesystem -- the GridFTP
 functionality was not used for experiments in this paper.
 
 \paragraph{Sector-Sphere Adaptors}
+Sector and Sphere is a cloud framework specifically designed for
+writing applications able to utilize the stream processing
+paradigm. Sector is a distributed file system that manages data across
+physical compute nodes at the file level, and provides the
+infrastructure to manipulate data in the cloud. Sphere, on the other
+hand, provides the framework to utilize the stream processing paradigm
+for processing the data residing on Sector. The Sphere system is
+composed of SPEs or Sphere Processing Units running on the same
+physical nodes as the Sector file system.
 
-\jhanote{SAURABH: This is your section. Please fill up. Ignore the
-  existing text; This is a cut and paste. }
-
-{\it Sector/Sphere Adaptors: } Sector and Sphere is a cloud framework
-specifically designed for writing applications able to utilize the
-stream processing paradigm. Sector is a distributed file system that
-manages data across physical compute nodes at the file level, and
-provides the infrastructure to manipulate data in the cloud. Sphere,
-on the other hand, provides the framework to utilize the stream
-processing paradigm for processing the data residing on
-Sector. Applications that utilize the stream processing paradigm
-define a single common function (often referred to as a kernel
-function) that is applied to segments of a given data set. The Sphere
-system is composed of SPEs or Sphere Processing Units running on the
-same physical nodes as the Sector file system.  When the application
+Applications that utilize the stream processing paradigm define a
+single common function (often referred to as a kernel function) that
+is applied to segments of a given data set. When the application
 invokes Sphere to process data on Sector, the Sphere system retrieves
 the stream of data, segments the data and assigns chunks of these
-segments to the available SPEs for processing. Sphere allows the user
-to encode the kernel function in a dynamically linked library written
-using Sphere APIs. The SPEs apply this user defined function to its
-assigned segments and write the processing results back to Sector in
-files. This stream of output files can be retrieved by the user from
-Sector, after the processing is complete. Thanks to the low overhead
-of developing SAGA adaptors, we were able to implement the Sector file
-adaptor, and the Sphere job adaptor for applications to utilize the
-stream processing paradigm through SAGA. Figure xx and Figure xx give
-simple examples of how SAGA APIs can be used to manipulate data in the
-Sector systems, and how jobs can be submitted to the Sphere system to
-process this data.  The enhancement of SAGA Map Reduce, along with the
-implementation of the Sector/Sphere adaptors naturally gives us the
-opportunity to compare and study the two distinct programming models.
+segments to the available SPEs for processing.
 
-\ssnote{Maybe add a different section here}
-SAGA adaptor overhead
+Sphere allows the user to encode the kernel function in a dynamically
+linked library written using Sphere APIs. The SPEs apply this user
+defined function to its assigned segments and write the processing
+results back to Sector in files. This stream of output files can be
+retrieved by the user from Sector, after the processing is
+complete. 
 
-We execute a simple experiment to measure the overhead introduced by
-submitting Sphere jobs and Sector file operations through SAGA. A
-sample Sphere kernel function, wrapped in a dynamically linked library
-was used for this purpose. The kernel function accepts a buffer of
-text and utilizes the Sphere framework to hash words into Sphere
-buckets using the first letter as the key. One Gigabyte of text data
-was uploaded to the Sector file system for this purpose.  Furthermore,
-traces were implemented in the adaptors to measure the exact time
-spent in SAGA processing and translation before the raw Sphere APIs
-were called.  As seen in Figure xx, the SAGA overhead compared to the
-overall execution time of the application is negligible. This makes
-SAGA an excellent platform to compare Sphere with other distinct
-programming models.
+% \ssnote{Maybe add a different section here}
+% \ssnote{Add another section here for experiments, or maybe later after
+% MapReduce description} 
 
-\ssnote{Add another section here for experiments, or maybe later after
-MapReduce description} 
+{\it SAGA adaptor overhead: } We execute a simple experiment to
+measure the overhead introduced by submitting Sphere jobs and Sector
+file operations through SAGA. A sample Sphere kernel function, wrapped
+in a dynamically linked library was used for this purpose. The kernel
+function accepts a buffer of text and utilizes the Sphere framework to
+hash words into Sphere buckets using the first letter as the key. One
+Gigabyte of text data was uploaded to the Sector file system for this
+purpose.  Furthermore, traces were implemented in the adaptors to
+measure the exact time spent in SAGA processing and translation before
+the raw Sphere APIs were called.  As seen in Figure xx, the SAGA
+overhead compared to the overall execution time of the application is
+negligible. This makes SAGA an excellent platform to compare Sphere
+with other distinct programming models.
+
+Thanks to the low overhead of developing SAGA adaptors, we were able
+to implement the Sector file adaptor, and the Sphere job adaptor for
+applications to utilize the stream processing paradigm through
+SAGA. Figure xx and Figure xx give simple examples of how SAGA APIs
+can be used to manipulate data in the Sector systems, and how jobs can
+be submitted to the Sphere system to process this data.  The
+enhancement of SAGA Map Reduce, along with the implementation of the
+Sector/Sphere adaptors naturally gives us the opportunity to compare
+and study the two distinct programming models.
+
 
 
 \section{SAGA-based MapReduce}
@@ -517,13 +518,9 @@ MapReduce description}
 % orchestrated using the SAGA-All-pairs implementation, and genome
 % searching can be implemented using SAGA-MapReduce (see
 % Ref.~\cite{saga_ccgrid09}).
-
-
 % \upup
+
 \subsection{\sagamapreduce Implementation}
-
-
-\jhanote{this needs to be compressed}
 
 Our implementation of \sagamapreduce interleaves the core logic with
 explicit instructions on where processes are to be scheduled.  The
@@ -586,10 +583,9 @@ be distributed; this is an important mechanism to avoid limitations in
 network bandwidth and data distribution.  These files could then be
 recognized by a distributed File-System, such as HDFS. 
 
-\subsection{Enhancing SAGA-based Map-Reduce Performance \textcolor{red}{Miklos}}
+\subsection{Enhancing SAGA-based Map-Reduce Performance}
 
-\jhanote{Miklos: This is your section. Please fill up. Ignore the
-  existing text; This is a cut and paste. }
+\jhanote{Miklos: This is your section. Please complete/refine/add}
 
 To orchestrate the functioning of the various different frameworks, we
 use the master-worker programming pattern, on which the SAGA
@@ -671,11 +667,36 @@ absence of precise knowledge of the execution system).
 
 \section{SAGA-based Applications: Three Levels of Interoperabilty}
 
-\subsection{Case I: Application Interoperability on Different
+There are several aspects to interoperability. In this section, we
+outline
+3 different levels/types of interoperabiltiy...
+
+
+\subsection{Type I: Application Interoperability on Different
   infrastructure via Adaptors}
 
+A simple form of interoperability is that any application can use any
+Clouds systems without changes to the application: the application
+simply needs to instantiate a different set of security credentials
+for the respective runtime environment. We refer to this as
+Cloud-Cloud interoperability. By almost trivial extension, SAGA also
+provides Grid-Cloud interoperability, as shown in Fig.~\ref{gramjob}
+and ~\ref{vmjob}, where exactly the same interface and functional
+calls lead to job submission on Grids or on Clouds. Although
+syntactically identical, the semantics of the calls and back-end
+management are somewhat different.  As discussed, SAGA provides
+interoperability quite trivially thanks to the dynamic loading of
+adaptors.  We refer to this as Type I ALI.
+
+hanks to the low overhead of developing adaptors, SAGA has been
+deployed on three Cloud Systems -- Amazon,
+Eucalyptus~\cite{eucalyptus} (we have a local installation of
+Eucalyptus at LSU -- GumboCloud) and Nimbus.
+
+
+
 \begin{verbatim}
-Case I:      Application 
+Type I:      Application 
                   |
               SAGA-MR
                   |
@@ -684,11 +705,11 @@ Case I:      Application
 
 \end{verbatim}
 
-\subsection{Case II: Application Interopability using programming
+\subsection{Type II: Application Interopability using programming
   models suited for different infrastructure}
 
 \begin{verbatim} 
-Case II:     Application 
+Type II:     Application 
                  |
           Instance-1 Instance-2
               /        \
@@ -699,36 +720,18 @@ Case II:     Application
 Sector-Sphere Clouds    Cluster/Grids
 \end{verbatim}
 
-\subsection{Case III: Application Interoperability using different
+\subsection{Type III: Application Interoperability using different
   programming models for concurrent execution}
 
 
 \begin{verbatim} 
-Case III:   Application Instance
+Type III:   Application Instance
                 |           
            SAGA-Sphere and SAGA-MapReduce
                 |
  Sector-Sphere Clouds and (Cluster/Grids)
 \end{verbatim}
             
-\jhanote{following paragraph needs attention}
-There are several aspects to interoperability. A simple form of
-interoperability is that any application can use any Clouds systems
-without changes to the application: the application simply needs to
-instantiate a different set of security credentials for the respective
-runtime environment. We refer to this as Cloud-Cloud
-interoperability. By almost trivial extension, SAGA also provides
-Grid-Cloud interoperability, as shown in Fig.~\ref{gramjob} and
-~\ref{vmjob}, where exactly the same interface and functional calls
-lead to job submission on Grids or on Clouds. Although syntactically
-identical, the semantics of the calls and back-end management are
-somewhat different.  As discussed, SAGA provides interoperability
-quite trivially thanks to the dynamic loading of adaptors.  Thanks to
-the low overhead of developing adaptors, SAGA has been deployed on
-three Cloud Systems -- Amazon, Eucalyptus~\cite{eucalyptus} (we have a
-local installation of Eucalyptus at LSU -- GumboCloud) and
-Nimbus.  In this paper, we focus on EC2, Eucalyptus and the TeraGrid
-(TG).
 
 \section{Experiments Demonstrating 3 Types of Interoperabiltiy}
 
@@ -747,7 +750,7 @@ is responsible for assigning files for processing, synchronization,
 and writing output results back to Sector.
 
 
-\subsection{Case I: Interoperability via Adaptors}
+\subsection{Type I: Interoperability via Adaptors}
 
 \subsubsection{Deployment Details}
 
@@ -1091,11 +1094,18 @@ ability to enhance performance by distributed (heterogeneous)
 work-loads across different systems remains a distinct possibility,
 however, we believe more systematic studies are required.
 
-
 % \jhanote{Needs major addition and rewrite. Saurabh and Miklos take a
 %   first pass please at adding}
 
-\subsection{Case II: Application Performance Using SAGA-based Sphere and MapReduce}
+{\it Enhanced SAGA-MR Performance versus Early-version of SAGA-MR}
+\jhanote{Miklos: You have the data for this in the``WordCount
+  Measurement'' tab of
+  \url{http://spreadsheets.google.com/ccc?key=0AvHZsmPSSmBmdHVUMWFuWEpQdFQyak5GeHhQRVJrMlE&hl=en}
+  Please plot and Explain. Related to the earlier sub-section
+  (``Enhancing SAGA-based MapReduce performance) }
+
+\subsection{Type II: Application Performance Using SAGA-based Sphere
+  and MapReduce}
 
 {\it Experiment I -- Varying chunk sizes:} Sector maintains and tracks
 file in the cloud at the file level. There is no support in Sphere to
@@ -1138,10 +1148,10 @@ files to achieve optimal data distribution between SPEs and minimize
 synchronization overhead. For the purpose of our experiments, we
 limited Sector to not create any replicas.
 
-\subsection{Case III: Interoperability Concurrency}
+\subsection{Type  III: Interoperability Concurrency}
 
 
-\section{Discussion}
+\section{Discussion \& Conclusions}
 
 % \subsubsection*{Experience}
 
@@ -1162,10 +1172,24 @@ limited Sector to not create any replicas.
 % general-purpose and extensible, iii) provides greater control to the
 % end-user if required.
 
+\jhanote{Recap three levels of Application Level Interoperability}
 
-\subsubsection*{Programming Models for Clouds}Ref~\cite{jha_ccpe09}
-introduced the notion of {\it affinity} for Clouds to capture the idea
-of relative data-compute placement and locality; it is imperative that
+At the lowest level, \sagamapreduce demonstrates how to decouple the
+development of applications from the deployment and details of the
+run-time environment.  It is critical to reiterate that using this
+approach applications remain insulated from any underlying changes in
+the infrastructure -- not just Grids and different middleware layers,
+but also different systems with very different semantics and
+characteristics, whilst being exposed to the important distributed
+functionality.  MapReduce has trivial data-parallelism, so in the near
+future we will develop applications with non-trivial data-access,
+transfer and scheduling characteristics and requirements, and deploy
+different parts on different underlying infrastructure guided by
+optimal performance.
+
+{\it Programming Models for Clouds: } Ref~\cite{jha_ccpe09} introduced
+the notion of {\it affinity} for Clouds to capture the idea of
+relative data-compute placement and locality; it is imperative that
 any programming model/system be cognizant of the notion of
 affinity. We have implemented the first steps in a PM which provides
 easy control over relative data-compute placement; a possible next
@@ -1178,53 +1202,6 @@ important to distinguish the infrastructure independence of
 MapReduce~\cite{mapreduce-paper} on a number of capabilities of the
 underlying system -- mostly related to file operations, but including
 system features related to process/data allocation.
-
-% A feature worth noting in MapReduce is that the ultimate dataset is
-% not on one machine, it is partitioned on multiple machines
-% distributed.
-
-% Google use their distributed file system (Google File System) to keep
-% track of where each file is located.  Additionally, they coordinate
-% this effort with Bigtable.
-
-{\it Simplicity versus Completeness:} There exist both technical
-reasons and social engineering problems responsible for low uptake of
-Grids. One universally accepted reason is the complexity of Grid
-systems -- the interface, software stack and underlying complexity of
-deploying distributed application. But this is also a consequence of
-the fact that Grid interfaces tend to be ``complete'' or very close
-thereof.  % For example, while certainly not true of all cases, consider
-% the following numbers, which we believe represent the above points
-% well: globus 4.2 provides, in its Java version,
-% approximately 2,000 distinct method calls.  The complete SAGA Core
-% API~\cite{saga-core} provides roughly 200 distinct method calls.  The
-% SOAP rendering of the Amazon EC2 cloud interface provides,
-% approximately 30 method calls (and similar for other Amazon Cloud
-% interfaces, such as Eucalyptus~\cite{eucalyptus}). 
-The number of
-calls provided by these interfaces is no guarantee of simplicity of
-use, but is a strong indicator of the extent of system semantics
-exposed.  But to a first approximation, (simplicity of) interface
-determines the programming models that can be supported. Thus there is
-the classical trade-off between simplicity and completeness.
-
-\section{Conclusion and Some Future Directions}
-
-\jhanote{Recap three levels of Application Level Interoperability}
-
-\sagamapreduce demonstrates how to decouple the development of
-applications from the deployment and details of the run-time
-environment.  It is critical to reiterate that using this approach
-applications remain insulated from any underlying changes in the
-infrastructure -- not just Grids and different middleware layers, but
-also different systems with very different semantics and
-characteristics, whilst being exposed to the important distributed
-functionality.  MapReduce has trivial data-parallelism, so in the near
-future we will develop applications with non-trivial data-access,
-transfer and scheduling characteristics and requirements, and deploy
-different parts on different underlying infrastructure guided by
-optimal performance.
-
 
 We will generalise our approach to most efficiently execute it by
 taking into consideration the data-locality, as well as the access
@@ -1243,6 +1220,38 @@ requirements~\cite{}. More generically, it is worth mentioning that
 these approaches can be extend to support certain kinds of {\it
   affinities}.
 
+
+% A feature worth noting in MapReduce is that the ultimate dataset is
+% not on one machine, it is partitioned on multiple machines
+% distributed.
+
+% Google use their distributed file system (Google File System) to keep
+% track of where each file is located.  Additionally, they coordinate
+% this effort with Bigtable.
+
+% {\it Simplicity versus Completeness:} There exist both technical
+% reasons and social engineering problems responsible for low uptake of
+% Grids. One universally accepted reason is the complexity of Grid
+% systems -- the interface, software stack and underlying complexity of
+% deploying distributed application. But this is also a consequence of
+% the fact that Grid interfaces tend to be ``complete'' or very close
+% thereof.  % For example, while certainly not true of all cases, consider
+% % the following numbers, which we believe represent the above points
+% % well: globus 4.2 provides, in its Java version,
+% % approximately 2,000 distinct method calls.  The complete SAGA Core
+% % API~\cite{saga-core} provides roughly 200 distinct method calls.
+% % The
+% % SOAP rendering of the Amazon EC2 cloud interface provides,
+% % approximately 30 method calls (and similar for other Amazon Cloud
+% % interfaces, such as Eucalyptus~\cite{eucalyptus}).
+% The number of
+% calls provided by these interfaces is no guarantee of simplicity of
+% use, but is a strong indicator of the extent of system semantics
+% exposed.  But to a first approximation, (simplicity of) interface
+% determines the programming models that can be supported. Thus there is
+% the classical trade-off between simplicity and completeness.
+
+%\section{Conclusion and Some Future Directions}
 
 % EC2 and Eucalyptus although distinct systems
 % have similar interfaces; we will work towards developing SAGA based
@@ -1271,25 +1280,31 @@ these approaches can be extend to support certain kinds of {\it
 % abstractions at multiple-levels.
 
 
-\section{Acknowledgments}
+%\section{Acknowledgments}
+\footnotesize{ {\noindent \bf Acknowledgments: }SJ acknowledges UK EPSRC grant
+  number GR/D0766171/1 for supporting SAGA and the e-Science
+  Institute, Edinburgh for the research theme, ``Distributed
+  Programming Abstractions''.  SJ also acknowledges financial support
+  from NSF-Cybertools and NIH-INBRE Grants.  We also acknowledge
+  internal resources of the Center for Computation \& Technology (CCT)
+  at LSU and computer resources provided by LONI/TeraGrid for
+  QueenBee.  We thank Chris Miceli, Michael Miceli, Katerina Stamou \&
+  Hartmut Kaiser for their collaborative efforts on early parts of
+  this work. We thank Mario Antonioletti and Neil Chue Hong for
+  supporting this work through GSoC-2009 (OMII-UK Mentor
+  Organisation).}
 
-SJ acknowledges UK EPSRC grant number GR/D0766171/1 for supporting
-SAGA and the e-Science Institute, Edinburgh for the research theme,
-``Distributed Programming Abstractions''.  SJ also acknowledges
-financial support from NSF-Cybertools and NIH-INBRE Grants. % This work
-% would not have been possible without the efforts and support of other
-% members of the SAGA team.  In particular, \sagamapreduce was
-% originally written by Chris and Michael Miceli, as part of a Google
-% Summer of Code Project, with assistance from Hartmut Kaiser. We also
-% thank Hartmut for great support during the testing and deployment
-% phases of this project. We are greatful to Dmitrii Zagorodnov (UCSB)
-% and Archit Kulshrestha (CyD group, CCT) for the support in deployment
-% with Eucalyptus.  KS would like to acknowledge the LSU Networking
-% Infrastructure \& Research IT Enablement team for their help and
-% support. 
-We also acknowledge internal resources of the Center for
-Computation \& Technology (CCT) at LSU and computer resources provided
-by LONI/TeraGrid for QueenBee.  \bibliographystyle{plain}
+\bibliographystyle{plain}
 \bibliography{saga_data_intensive}
 \end{document}
 
+% This work would not have been possible without the efforts and
+% support of other members of the SAGA team.  In particular,
+% \sagamapreduce was originally written by Chris and Michael Miceli,
+% as part of a Google Summer of Code Project, with assistance from
+% Hartmut Kaiser. We also thank Hartmut for great support during the
+% testing and deployment phases of this project. We are greatful to
+% Dmitrii Zagorodnov (UCSB) and Archit Kulshrestha (CyD group, CCT)
+% for the support in deployment with Eucalyptus.  KS would like to
+% acknowledge the LSU Networking Infrastructure \& Research IT
+% Enablement team for their help and support.
