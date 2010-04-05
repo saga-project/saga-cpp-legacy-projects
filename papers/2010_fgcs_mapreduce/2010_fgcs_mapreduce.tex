@@ -44,7 +44,7 @@
 \author{Saurabh Sehgal$^?$, Andre Merzky$^{1}$, Shantenu Jha$^{*12}$,  Miklos Erdelyi$^3$ \\
 \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
 \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
-\small{\emph{$^{4}$Department of Computer Science, University of
+\small{\emph{$^{4}$Department of Computer Science and Systems Technology, University of
     Pannonia, Veszprem, Hungary}}\\
 \small{\emph{$^{*}$ Contact Author \texttt{sjha@cct.lsu.edu}}}}
 
@@ -53,7 +53,7 @@
 \ifdraft
 \newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1c }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
-\newcommand{\miklosnote}[1]{ {\textcolor{blue} { ***KS: #1 }}}
+\newcommand{\miklosnote}[1]{ {\textcolor{blue} { ***ME: #1 }}}
 \newcommand{\ssnote}[1]{ {\textcolor{blue} { ***SS: #1 }}}
 \else
 \newcommand{\amnote}[1]{}
@@ -585,7 +585,7 @@ recognized by a distributed File-System, such as HDFS.
 
 \subsection{Enhancing SAGA-based Map-Reduce Performance}
 
-\jhanote{Miklos: This is your section. Please complete/refine/add}
+%\jhanote{Miklos: This is your section. Please complete/refine/add}
 
 The performance enhancements to the existing \sagamapreduce implementation
 are based on two important changes: (i) rearranging the shuffle phase and (ii)
@@ -1098,11 +1098,35 @@ however, we believe more systematic studies are required.
 %   first pass please at adding}
 
 {\it Enhanced SAGA-MR Performance versus Early-version of SAGA-MR}
-\jhanote{Miklos: You have the data for this in the``WordCount
-  Measurement'' tab of
-  \url{http://spreadsheets.google.com/ccc?key=0AvHZsmPSSmBmdHVUMWFuWEpQdFQyak5GeHhQRVJrMlE&hl=en}
-  Please plot and Explain. Related to the earlier sub-section
-  (``Enhancing SAGA-based MapReduce performance) }
+%\jhanote{Miklos: You have the data for this in the``WordCount
+%  Measurement'' tab of
+%  \url{http://spreadsheets.google.com/ccc?key=0AvHZsmPSSmBmdHVUMWFuWEpQdFQyak5GeHhQRVJrMlE&hl=en}
+%  Please plot and Explain. Related to the earlier sub-section
+%  (``Enhancing SAGA-based MapReduce performance) }
+
+\miklosnote{Shantenu: Please correct figure's placement as suitable.}
+
+\begin{figure}[htb!]
+ \includegraphics[scale=0.3]{sagamr_original_vs_enhanced.pdf}
+ \caption{Comparison of enhanced SAGA-MR performance versus early-version
+          of SAGA-MR.}
+ \label{sagamr_comparison}
+\end{figure}
+
+Since the original \sagamapreduce version chunked the input files and
+the enhanced one only creates logical chunks (i.e., no file writing takes
+place), it is fair to compare their time-to-solution performance by subtracting
+the chunking time from the early-version's job completion time.
+Fig.~\ref{sagamr_comparison} shows the performance comparison of the early-version and
+enhanced version of \sagamapreduce in such a way.
+There were 8 workers spawned via the SAGA SSH job adaptor on 8 physical
+machines which exchanged data through a filesystem commonly accessible for all
+nodes via NFS. As it can be seen in the figure, the enhancements to \sagamapreduce
+start to make a difference when processing at least 4GBs of data.
+This can be attributed to the fact that, at this amount of data, the
+more efficient shuffle phase implementation which reduces disk I/O and CPU
+usage in the reduce phase by doing only a merge outperforms the one with
+a merge-sort of all the intermediate output files at once.
 
 \subsection{Type II: Application Performance Using SAGA-based Sphere
   and MapReduce}
