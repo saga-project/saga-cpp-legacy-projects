@@ -581,32 +581,34 @@ partitions of data (referred to as chunking, analogous to Google's
 MapReduce), so the data-set does not have to be on one machine and can
 be distributed; this is an important mechanism to avoid limitations in
 network bandwidth and data distribution.  These files could then be
-recognized by a distributed File-System, such as HDFS. 
+recognized by a distributed File-System, such as HDFS.
 
 \subsection{Enhancing SAGA-based Map-Reduce Performance}
 
 \jhanote{Miklos: This is your section. Please complete/refine/add}
 
-To orchestrate the functioning of the various different frameworks, we
-use the master-worker programming pattern, on which the SAGA
-Map-Reduce implementation is also based. This pattern allows the
-workers to execute on the different infrastructures (including
-Sector/Sphere) while communicating their progress and results through
-an advert database to the master~\cite{saga_ccgrid09}. The performance
-enhancements to the existing SAGA Map-Reduce implementation come
-partly from reduced network bandwidth usage and partly from more
-efficient processing when reading or writing serialized data by the
-workers. Network traffic is primarily reduced by applying
-data-locality optimization: the master tries to assign chunks of the
-input to workers such that the data to be processed will reside near
-or on the worker node itself, thus avoiding the need for transferring
-data blocks by the distributed filesystem implementation. Information
-for this decision is obtained by the master through SAGA's "Replica"
-interface. The amount of network usage is further reduced when the
-user specifies a combiner function which is then used for aggregating
-key/values locally on the worker. The processing of input and output
-key/value pairs is enhanced by minimizing expensive memory I/O
-operations.
+The performance enhancements to the existing \sagamapreduce implementation
+are based on two important changes: (i) rearranging the shuffle phase and (ii)
+using a serialized binary format instead of plain textual format for intermediate
+data storage (also available as an input and output format).  The previous
+change means that, instead of having the master merge and then sort the
+intermediate data by key before doing the reduce phase, the workers buffer
+key/value pairs from the map phase and store them in sorted order
+on disk by doing an in-memory sort before writing. Also, since intermediate
+key/value pairs from a map worker are already sorted, the reduce workers need
+to only merge these pairs coming from different map workers while applying the
+user-defined reduce function to the merged intermediate key and value list.
+The second important performance enhancement comes from storing intermediate
+key/value pairs in a so-called \emph{sequence file format}. This file format
+allows storing of serialized key/value objects which can be read and merged
+much faster in the reduce phase than textual data because there is no need for
+costly parsing.  We used the Google Protocol Buffers library for implementing
+serialization.
+
+\miklosnote{Shall we cite protobuf?}
+
+The processing of input and output key/value pairs is further enhanced by
+minimizing unnecessary memory I/O operations using a zero-copy scheme.
 
 \subsection{\sagamapreduce Set-Up \textcolor{red}{Andre}}
 
