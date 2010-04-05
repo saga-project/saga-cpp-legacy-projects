@@ -314,7 +314,7 @@ class bigjob_agent:
                 self.execute_job(job_dir)  
     
     def read_energy(self, replica_id):
-        enfile = open("/work/athota1/new_bigjob/bigjob/agent/rep-" + str(replica_id) + "/stdout-" + str(replica_id) + ".txt")
+        enfile = open("/work/athota1/new_bigjob/bigjob/agent/" + "stdout-" + str(replica_id) + ".txt")
         lines = enfile.readlines()
         for line in lines:
           items = line.split()
