@@ -121,11 +121,9 @@ if __name__ == "__main__":
       bj = bigjob.bigjob(advert_host)
       bjs.append(bj)
       if(i==0):
-        lrms_url = HOST
-      elif(i==1):
-        lrms_url = REMOTE1
+        lrms_url = "gram://" + HOST + "/jobmanager-pbs" 
       else:
-        lrms_url = REMOTE2
+        lrms_url = "gram://" REMOTE1 + "/jobmanager-pbs"
       bjs[i].start_pilot_job(lrms_url,
                             bigjob_agent,
                             nodes,
@@ -148,7 +146,7 @@ if __name__ == "__main__":
     jd.arguments = ["NPT.conf"]
     jd.working_directory = os.getcwd() 
     sjs=[]
-    for i in range(0, 6):
+    for i in range(0, NUMBER_REPLICAS):
     #  jd.arguments = ["NPT" + str(i) + ".conf"]
       jd.output = "stdout-" + str(i) + ".txt"
       jd.error = "stderr-" + str(i) + ".txt"  	
