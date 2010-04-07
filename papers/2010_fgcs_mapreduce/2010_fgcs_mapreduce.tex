@@ -867,8 +867,15 @@ QueenBee (QB), Poseidon and Oliver. For accessing these resources
 globus GRAM and an underlying Torque resource manager and Moab
 scheduler are used.
 
-\subsubsection*{Resource II: LONI Clusters}
+\subsubsection*{Resource II: ILAB Cluster}
+
+To evaluate the performance of SAGA-Sphere and \sagamapreduce, several
+experiments have been conducted on the 50 node cluster of the Informatics
+Laboratory (ILAB) of the Hungarian Academy of Sciences. For accessing this
+resource no scheduler or resource manager is used.
 \jhanote{not sure we need this. but just a place-holder for the moment}
+\miklosnote{What is necessary to have described about the ILAB cluster?
+Feel free to move this section to somewhere else where more appropriate.}
 
 
 \subsubsection*{Resource III: Cloud Environments}
@@ -1142,7 +1149,9 @@ however, we believe more systematic studies are required.
 \begin{figure}[htb!]
  \includegraphics[scale=0.3]{sagamr_original_vs_enhanced.pdf}
  \caption{Comparison of enhanced SAGA-MR performance versus
-   early-version of SAGA-MR.}
+   early-version of SAGA-MR on the ILAB cluster using 8 workers running on 8
+   physical machines. Jobs were launched via SSH and used NFS for file
+   operations.}
  \label{sagamr_comparison}
 \end{figure}
 
@@ -1181,9 +1190,16 @@ point.
 
 On the other hand, we perform the same set of experiments with
 SAGA-MapReduce and observe a completely different trend with respect
-to chunk size and performance. SAGA-MapReduce performance increases
-with varying chunk sizes, outperforming Sphere at the 256 MB data
-point.  \ssnote { Miklos add input here } \jhanote{Saurabh: nice
+to chunk size and performance. We use a local file system accessible
+through NFS for all the 8 workers and set the number of reduce tasks to 8.
+In case of SAGA-MapReduce performance increases with larger chunk sizes,
+outperforming Sphere at the 256 MB data point. As it can be seen in Fig.xx
+this can be attributed to the fact that $t_{coord}$ dominates total
+time-to-solution for smaller chunk sizes. The larger the chunk size the
+smaller the number of map tasks launched, hence $t_{coord}$ decreases with
+increasing chunk size.
+
+\jhanote{Saurabh: nice
   write-up. Can you specify the number of workers here. I think it is
   8, but please verify and write}
 \ssnote{ Shantenu: I mention the number of workers in the above para.}
@@ -1204,6 +1220,14 @@ file replicas to achieve optimal data distribution between SPEs and minimize
 synchronization overhead. For the purpose of our experiments, we
 limited Sector to not create any replicas.
 
+We perform similar measurements with \sagamapreduce as the SAGA-Sphere experiments
+described above.  While keeping the chunk size constant at 64MB and the
+data size at 4GB, we note the time-to-solution of the word count application
+in the two configurations described for SAGA-Sphere.  For the
+distribute-distribute configuration we used HDFS as the distributed file
+system and launched jobs using the SAGA SSH job adaptor.  Similarly to the
+varying chunk size experiments, we set the number of reduce tasks to 8.
+\miklosnote{Will describe local-local configuration here.}
 
 SAGA gives us the opportunity to experiment with different programming models very easily. 
 As evident from the data plots in Figure xx and Figure yy, certain behavioural 
