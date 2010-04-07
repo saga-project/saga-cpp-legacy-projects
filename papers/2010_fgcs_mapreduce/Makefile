@@ -1,4 +1,6 @@
 
+again: pdf
+
 pdf:
 	@pdflatex 2010_fgcs_mapreduce
 	@bibtex   2010_fgcs_mapreduce

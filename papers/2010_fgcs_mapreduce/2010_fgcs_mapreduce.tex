@@ -10,6 +10,7 @@
 \usepackage{pdfsync}
 \usepackage{fancyvrb}
 \usepackage{hyperref}
+\usepackage{xspace}
 
 \setlength\parskip{-0.015em}
 \setlength\parsep{-0.15em}
@@ -40,58 +41,65 @@
 \begin{document}
 
 \title{Understanding Application Level Interoperability: Scaling-Out
-  MapReduce From High-Performance Grids to Web-Scale Resources}
-\author{Saurabh Sehgal$^?$, Andre Merzky$^{1}$, Shantenu Jha$^{*12}$,  Miklos Erdelyi$^3$ \\
+       MapReduce From High-Performance Grids to Web-Scale Resources}
+
+% author order is inverse alphabetical, because we have April... ;-)
+\author{Saurabh Sehgal$^?$, Andre Merzky$^{1}$, Shantenu Jha$^{*12}$, Miklos Erdelyi$^3$
+%
 \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
 \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
 \small{\emph{$^{4}$Department of Computer Science and Systems Technology, University of
-    Pannonia, Veszprem, Hungary}}\\
-\small{\emph{$^{*}$ Contact Author \texttt{sjha@cct.lsu.edu}}}}
+                   Pannonia, Veszprem, Hungary}}\\
+\small{\emph{$^{*}$Contact Author \texttt{sjha@cct.lsu.edu}}}
+}
 
 \newif\ifdraft
 \drafttrue
 \ifdraft
-\newcommand{\amnote}[1]{ {\textcolor{magenta} { ***AM: #1c }}}
-\newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
-\newcommand{\miklosnote}[1]{ {\textcolor{blue} { ***ME: #1 }}}
-\newcommand{\ssnote}[1]{ {\textcolor{blue} { ***SS: #1 }}}
+ \newcommand{\amnote}[1]{     {\textcolor{magenta} { ***AM: #1 }}}
+ \newcommand{\jhanote}[1]{    {\textcolor{red}     { ***SJ: #1 }}}
+ \newcommand{\miklosnote}[1]{ {\textcolor{blue}    { ***ME: #1 }}}
+ \newcommand{\ssnote}[1]{     {\textcolor{blue}    { ***SS: #1 }}}
 \else
-\newcommand{\amnote}[1]{}
-\newcommand{\jhanote}[1]{}
-\newcommand{\miklosnote}[1]{}
-\newcommand{\ssnote}[1]{}
+ \newcommand{\amnote}[1]{}
+ \newcommand{\jhanote}[1]{}
+ \newcommand{\miklosnote}[1]{}
+ \newcommand{\ssnote}[1]{}
 \fi
 
-\newcommand{\sagamapreduce }{SAGA-MapReduce }
-\newcommand{\tc }{ $T_c$ }
+\newcommand{\sagamapreduce}{SAGA-MapReduce\xspace}
+\newcommand{\smr}{\sagamapreduce}
+\newcommand{\MR}{MapReduce\xspace}
+\newcommand{\tc }{$T_c$\xspace}
 
-\newcommand{\upup}{\vspace*{-0.6em}}
-\newcommand{\upp}{\vspace*{-0.6em}}
-\newcommand{\up}{\vspace*{-0.3em}}
+\newcommand{\uppp}{\vspace*{-1em}}
+\newcommand{\upp}{\vspace*{-0.66em}}
+\newcommand{\up}{\vspace*{-0.33em}}
 
 \newcommand{\T}[1]{\texttt{#1}}
 \newcommand{\I}[1]{\textit{#1}}
 \newcommand{\B}[1]{\textbf{#1}}
 
-\newcommand{\ssh}[1]{\texttt{ssh}}
-\newcommand{\scp}[1]{\texttt{scp}}
-\newcommand{\sshfs}[1]{\texttt{sshfs}}
+\newcommand{\ssh}[1]{\T{ssh}\xspace}
+\newcommand{\scp}[1]{\T{scp}\xspace}
+\newcommand{\sshfs}[1]{\T{sshfs}\xspace}
  
 
 
 %\maketitle
 \begin{abstract}
+
   SAGA is a high-level programming interface which provides the
   ability to develop distributed applications in an infrastructure
-  independent way. We discuss how SAGA enables interoperability across
-  different distributed infrastructure, but also is to develop a
-  version of MapReduce which provides the user with the ability to
+  independent way. We discuss how SAGA allows to implement a version
+  of \MR which is interoperabile across different distributed
+  infrastructures, while providing the user with the ability to
   control the relative placement of compute and data.  In this paper,
-  we use an application based on SAGA-MapReduce, and demonstrate its
-  interoperability across Clouds and Grids at three different levels.
+  we use an application based on \sagamapreduce, and demonstrate its
+  interoperability across clouds and grids at three different levels.
   The primary aim of this paper is to understand different ways in
   which application-level interoperabilty across distributed
-  infrastructure can be provided. We achieve this by, (i) developing
+  infrastructure can be provided.  We achieve this by, (i) developing
   and validating an enhanced verison of MapReduce that scales-out
   across clusters, clouds and HPC resources, (ii) establishing how
   SAGA enables the execution of a scientific application concurrently
@@ -99,27 +107,32 @@
   We also provide a simple performance analysis of \sagamapreduce when
   using multiple, different, heterogeneous infrastructures
   concurrently for the same problem instance.
+  
+  \amnote{check: are we actually showing data/compute co-location, as
+  we state above!}
+
 % However, we do not strive to provide a rigorous performance
-%   model, but to provide a proof-of-concept of application-level
-%   interoperability and illustrate its importance.
+% model, but to provide a proof-of-concept of application-level
+% interoperability and illustrate its importance.
 \end{abstract}
 \maketitle
 
 \section{Introduction}
+\label{sec:intro}
 
-% Although Clouds are a nascent infrastructure, there is a ground swell
+% Although clouds are a nascent infrastructure, there is a ground swell
 % in interest to adapt these emerging powerful infrastructure for
 % large-scale scientific applications~\cite{montagecloud}. Inevitably,
-% and as with any emerging technology, the unified concept of a Cloud --
+% and as with any emerging technology, the unified concept of a cloud --
 % if ever there was one, is evolving into different flavours and
 % implementations, with distinct underlying system interfaces, semantics
 % and infrastructure. For example, the operating environment of Amazon's
-% Cloud (EC2) is very different from that of Google's
-% Cloud. Specifically for the latter, there already exist multiple
+% cloud (EC2) is very different from that of Google's
+% cloud. Specifically for the latter, there already exist multiple
 % implementations of Google's Bigtable, such as HyberTable, Cassandra
 % and HBase. There is bound to be a continued proliferation of such
-% Cloud based infrastructure; this is reminiscent of the plethora of
-% Grid middleware distributions.
+% cloud based infrastructure; this is reminiscent of the plethora of
+% grid middleware distributions.
 
 There are numerous scientific applications that utilize data and
 resources distributed over vast heterogeneous infrastructures and
@@ -133,39 +146,39 @@ heterogeneous environment is not always an optimal choice to gain
 maximum runtime performance. For example, the Sector/Sphere data cloud
 is exclusively designed to support data-intensive computing on high
 speed networks, while other distributed filesystems like GFS/Hadoop
-assume limited bandwidth among infrastructure node~\cite{???}. Thus, for
-applications to efficiently utilize heterogeneous environments,
+assume limited bandwidth among infrastructure node~\cite{GFS}. Thus,
+for applications to efficiently utilize heterogeneous environments,
 abstractions must be developed for the efficient utilization of and
 orchestration across such distinct distributed infrastructure. 
 
 In addition to issues of performance and scale, the transition of
-existing distributed programming models and styles, must be as
+existing distributed programming models and styles must be as
 seamless and as least disruptive as possible.  A fundamental question
-at the heart of all these important considerations, is the question of
+at the heart of all these important considerations is the question of
 how scientific applications can be developed so as to utilize as broad
 a range of distributed systems as possible, without vendor lock-in,
 yet with the flexibility and performance that scientific applications
-demand?
+demand.
 
 Currently, it is unclear what kind of programming models (PM) and
-programming systems (PS) will emerge for Clouds; this will
-depend, amongst other things, on the kinds of applications that will
-come forward to try to utilise Clouds and system-level interfaces that
-are exposed by Cloud providers.  Additionally, there are
-infrastructure specific features -- technical and policy, that might
-influence the design of PM and PS. For example, EC2 -- the archetypal
-Cloud System, has a well-defined cost model for data transfer across
-{\it its} network. Hence, any PM for Clouds must be cognizant of the
+programming systems (PS) will emerge for clouds; this will depend,
+amongst other things, on the kinds of applications that will come
+forward to try to utilise clouds and system-level interfaces that are
+exposed by cloud providers.  Additionally, there are infrastructure
+specific features -- technical and policy, that might influence the
+design of PM and PS. For example, EC2 -- the archetypal cloud system,
+has a well-defined cost model for data transfer across {\it its}
+network. Hence, any PM for clouds should be cognizant of the
 requirement to programmatically control the placement of compute and
-data relative to each other -- both statically (pre-run time) and at
-run-time.  In general, for most Cloud applications the same
-computational task can be priced very differently for possibly the
-same performance; conversely, the same computational task can have
-very different performance for the same price. It is important for
-effective scientific application development on Clouds that, any PM or
-PS should not be constrained to a specific infrastructure, i.e.,
-should support infrastructure interoperability at the
-application-level.
+data relative to each other -- both statically (pre-run time) and
+dynamically (at run-time).  In general, for most cloud applications
+the same computational task can be priced very differently for
+possibly the same performance; conversely, the same computational task
+can have very different performance for the same price. It is
+important for effective scientific application development on clouds
+that any PM and PS are not constrained to a specific infrastructure,
+but instead should support infrastructure interoperability.  
+
 
 % , we established that the SAGA programming
 % system which provides a standard interface, % is an {\it
@@ -180,69 +193,80 @@ application-level.
 % computation and the payload-per-worker helped enhance performance. 
 
 
-% {\it The Case for Interoperabilty:} Interoperability amongst Clouds
-% and Grids can be achieved at different levels. For example,
-% service-level interoperability amongst Grids has been demonstrated by
+% {\it The Case for Interoperabilty:} Interoperability amongst clouds
+% and grids can be achieved at different levels. For example,
+% service-level interoperability amongst grids has been demonstrated by
 % the OGF-GIN group; application-level interoperability (ALI) remains a
 % harder goal to achieve.  Clouds provide services at different levels
 % (Iaas, PaaS, SaaS); standard interfaces to these different levels do
-% not exist.  With an unsettled and rapidly changing Cloud Computing
+% not exist.  With an unsettled and rapidly changing cloud Computing
 % landscape, it is unclear if the community is ready for standards-based
 % service-level interoperability at the moment.  In addition, t
 
-{\it The Case for Application-level Interoperabilty: } \jhanote{Define
-  ALI} ALI arises when, say other than compiling on a different or new
-platform, there are no further changes required of the
-application. Also, ALI provides automated, generalized and extensible
-solutions to use new resources; in some ways, ALI is strong
-interoperability, whilst service-level interoperability is weak
-interoperability.  The complexity of providing ALI is non-uniform and
-depends upon the application under consideration. For example, it is
-somewhat easier for simple ``execution unaware'' applications to
-utilize heterogeneous multiple distributed environments, than for
-applications with multiple distinct and possibly distributed
-components. A pre-requisite for ALI is infrastructure independent
-programming. Google's MapReduce is tied to Google's file-system;
-Hadoop is intrinsically linked to Hadoop file-system (HDFS), as is
-Pig.
+\paragraph{The Case for Application-level Interoperabilty:}
 
-There is little business motivation for Cloud providers to define,
-implement and support new/standard interfaces, there is a case to be
-made that applications would benefit from Cloud interoperability.  We
-argue that by addressing interoperability at the application-level
-this can be easily achieved for both scientific and enterprise
-applications.  
+We define as Application Level Interoperability (\I{ALI}) if that
+interoperability is achieved by user level means, without direct support
+from the distributed system middleware.  ALI arises when, other than say
+compiling on a new platform, there are no further changes required of
+the application to function properly.  Also, ALI provides automated,
+generalized and extensible solutions to use new resources.
+\amnote{Woah, that is a strong claim we are not discussing well, and
+which I am actually disagreeing with ;-): "in some ways, ALI is strong
+interoperability, whilst service-level interoperability is weak
+interoperability."} The complexity of providing ALI varies and depends
+upon the application under consideration.  For example, it is somewhat
+easier for simple ``distribution unaware'' applications to utilize
+multiple heterogeneous distributed environments, than for applications
+where multiple distinct and possibly distributed components need to
+coordinate and communicate.  A pre-requisite for ALI is infrastructure
+independent programming.  Counterexamples are Google's MapReduce, which
+is tied to Google's file-system, or Hadoop is intrinsically linked to
+Hadoop file-system (HDFS), as is Pig.
+
+As there is as of yet little business motivation for cloud providers to
+define, implement and support new/standard interfaces, there is a case
+to be made that applications would benefit from cloud interoperability.
+We argue that by addressing interoperability at the application-level
+this can be easily achieved.  \amnote{we know not much about enterprice
+apps, and don't discuss them - so leave that claim out: "for both
+scientific and enterprise applications."}  
 
 In addition there exist a wide range of applications that have
 decomposable but heterogeneous computational tasks. It is conceivable,
-that some of these tasks are better suited for traditional Grids,
-whilst some are better placed in Cloud environments. Montage -- a very
-popular Astronomy application provides a prominent example of such an
+that some of these tasks are better suited for traditional grids, whilst
+some are better placed in cloud environments. Montage -- a very popular
+Astronomy application, provides a prominent example of such an
 application.  Additionally, due to different data-compute affinity
 requirement amongst the tasks, some workers might be better placed on
-a Cloud~\cite{jha_ccpe09}, whilst some may optimally be located on
-regular Grids.  Complex dependencies and inter-relationships between
-sub-tasks make this often difficult to determine before run-time.
+a cloud~\cite{jha_ccpe09}, whilst some may optimally be located on
+regular grids\amnote{ that second claim needs justification --
+I actually think that all Montage tasks could happily run on cloud
+nodes.  Do we have better examples, maybe for apps which have infrequent
+dynamic scale-up requirements?}.  Complex dependencies and
+inter-relationships between sub-tasks make this often difficult to
+determine before run-time.
 
-Additionally, with different Clouds providers, fronting different
-Economic Models of computing, it is important to be able to utilise
-the ``right resource'', in the right way. We briefly discussed how
-moving prodigious amounts of data across Cloud networks, as opposed to
-moving the compute unit could be expensive.  As current programming
-models don't provide explicit support or control for
-affinity~\cite{jha_ccpe09}, and in the absence of autonomic
-performance models, the end-user is left with performance management,
-and with the responsibility of explicitly determining which resource
-is optimal. Clearly interoperability between different flavours of
-Clouds, and Clouds and Grids is an important pre-requisite.  Finally,
-effort directed towards ALI on Clouds/Grids in addition to satisfying
-basic curiosity of ``if and how to interoperate'', might also possibly
-provide different insight into the programming challenges and
-requirements.
+Additionally, with different clouds providers, fronting different
+Economic Models of computing, it is important to be able to utilise the
+``right resource'', in the right way. We briefly discussed how moving
+prodigious amounts of data across cloud networks, as opposed to moving
+the compute unit, could be expensive.  As current programming models
+don't provide explicit support or control for
+affinity~\cite{jha_ccpe09}, and in the absence of autonomic performance
+models, the end-user is left with performance management, and with the
+responsibility of explicitly determining which resource is optimal.
+Clearly interoperability between different flavours of clouds, and
+clouds and grids is an important pre-requisite.  Finally, effort
+directed towards ALI on clouds/grids in addition to satisfying basic
+curiosity of ``if and how to interoperate'', might also possibly provide
+different insight into the programming challenges and requirements.
+\amnote{if short on space, we can remove the previous paragraph IMHO.
+motivation before should be good enough.}
 
-% It can be asked if the emphasis on utilising multiple Clouds or Clouds
-% and Grids concurrently is premature, given that programming
-% models/systems for Clouds are just emerging? In many ways the emphasis
+% It can be asked if the emphasis on utilising multiple clouds or clouds
+% and grids concurrently is premature, given that programming
+% models/systems for clouds are just emerging? In many ways the emphasis
 % on interoperability is an appreciation and acknowledgement of an
 % application-centric perspective -- that is, as infrastructure changes
 % and evolves it is critical to provide seamless transition and
@@ -260,39 +284,49 @@ requirements.
 
 SAGA or “Simple API for Grid Applications” is a high level API that
 provides a simple, standard and uniform interface to the most commonly
-required distributed functionality [2]. SAGA can be used to encode
-grid applications, tool-kits to manage distributed applications as
-well as implement abstractions that support commonly occurring
-programming, access and usage patterns. Popular programming
+required distributed functionality (see Sec.~\ref{sec:saga}). SAGA can
+be used to encode grid applications, tool-kits to manage distributed
+applications as well as implement abstractions that support commonly
+occurring programming, access and usage patterns. Popular programming
 abstractions such as Map-Reduce and All-Pairs have been successfully
 implemented with SAGA to showcase its utilization as a flexible
-framework to scale-out data-intensive computations on different
-flavours of grids and clouds, and attain a high level of
-interoperability at the application level. 
+framework to scale-out data-intensive computations on different flavours
+of grids and clouds, and attain a high level of interoperability at the
+application level. 
  
-We focus on MapReduce, which is an application with multiple
-homogeneous workers (although the data-load per worker can vary);
-however, it is easy to conceive of an application where workers
-(tasks) can be heterogeneous, i.e., each worker is different and may
-have different data-compute ratios.  In Ref.~\cite{saga_ccgrid09} we
-implemented a simple data-parallel programming task (MapReduce) using
-SAGA; this involved the concurrent execution of simple,
-embarrassingly-parallel data-analysis tasks.  We demonstrated that the
-SAGA-based implementation is infrastructure independent whilst still
-providing control over the deployment, distribution and run-time
-decomposition.  Specifically, we demonstrated that \sagamapreduce is
-usable on traditional (Grids) and emerging (Clouds) distributed
-infrastructure {\it concurrently and cooperatively towards a solution
-  of the same problem instance}.  Our approach was to take
-\sagamapreduce and to use the {\it same} implementation of
-\sagamapreduce to solve the same instance of the word counting
-problem, by using different worker distributions over Clouds and Grid
-systems, and thereby also test for interoperability between different
-flavours of Clouds as well as between Clouds and Grids.  The primary
-focus of this paper is to build upon and use SAGA-based MapReduce as
-an exemplar to discuss multiple levels and types of interoperability
-that can exist between grids and clouds. This paper is structured as
-follows...
+We focus on MapReduce, which is an application with multiple homogeneous
+workers (although the data-load per worker can vary); however, it is
+easy to conceive of an application where workers (tasks) can be
+heterogeneous, i.e., each worker is different and may have different
+data-compute ratios.  In Ref.~\cite{saga_ccgrid09} we implemented
+a simple MapReduce based data-parallel programming task using SAGA; this
+involved the concurrent execution of simple, embarrassingly-parallel
+data-analysis tasks.  We demonstrated that the SAGA-based implementation
+is infrastructure independent whilst still providing control over the
+deployment, distribution and run-time decomposition.  Specifically, we
+demonstrated that \sagamapreduce is usable on traditional (grids) and
+emerging (clouds) distributed infrastructure \I{concurrently and
+cooperatively towards a solution of the same problem instance}.  Our
+approach was to take \sagamapreduce and to use the \I{same}
+implementation of \sagamapreduce to solve the same instance of the word
+counting problem, by using different worker distributions over clouds
+and grid systems, and thereby also test for interoperability between
+different flavours of clouds as well as between clouds and grids.  The
+primary focus of this paper is to build upon and use SAGA-based
+MapReduce as an exemplar to discuss multiple levels and types of
+interoperability that can exist between grids and clouds. 
+
+\amnote{the last two paragraphs need some work IMHO, possibly shorten to
+avoid repetitions.}
+
+This paper is structured as follows: Section~\ref{sec:saga} gives
+a short overview over those SAGA extensions which enable specifically
+the ALI work discussed in this paper.  Section~\ref{sec:mr} describes
+our the \smr implementation.  Section~\ref{sec:interop} discusses the
+different levels of ALI we are demonstrating with this paper, with more
+detailes on the experiments in Section~\ref{sec:exp}.
+Section~\ref{sec:discuss} concludes the paper with a discussion of the
+results.
 
 
 
@@ -309,6 +343,7 @@ follows...
 
 
 \section{SAGA}
+\label{sec:saga}
 
 The SAGA~\cite{saga-core} programming system contains a high level API
 that provides a simple, standard and uniform interface for the most
@@ -342,14 +377,14 @@ details can be found elsewhere~\cite{saga_url,Kaiser:2006qp}.
 
 \amnote{TODO: compress, update}
 
-SAGA was originally developed primarily for compute-intensive Grids.
+SAGA was originally developed primarily for compute-intensive grids.
 This was a user-driven design decision, i.e., the majority of
 applications that motivated the design and formulation of version 1.0
 of the API were HPC applications attempting to utilize distributed
 resources.  Ref~\cite{saga_ccgrid09} demonstrated that in spite of its
 original design constraints, SAGA can be used to develop
 data-intensive applications in diverse distributed environments,
-including Clouds.  This is in part due to the fact that, at least on
+including clouds.  This is in part due to the fact that, at least on
 application level, much of the ``distributed functionality'' required
 for data-intensive applications remains the same.  In the remainder of
 this section, we will describe how, through the creation of a set of
@@ -399,10 +434,10 @@ from the ssh namespace into the local namespace, and back.
 SAGA's AWS (Amazon Web Service) adaptor suite is an interface to
 services which implement the cloud web service interfaces as specified
 by Amazon~\cite{ec2-url}.  These interfaces are not only used by Amazon
-to allow programmatic access to their Cloud infrastructures -- EC2 and
-S3, amongst others, but are also used by several other Cloud service
+to allow programmatic access to their cloud infrastructures -- EC2 and
+S3, amongst others, but are also used by several other cloud service
 providers, such as Eucalyptus~\cite{eucalyptus} and Nimbus.  The AWS
-job adaptor is thus able to interface to a variety of Cloud
+job adaptor is thus able to interface to a variety of cloud
 infrastructures, as long as they adhere to the AWS interfaces.
 \amnote{add ref to OCCI, CDMI}
 
@@ -418,7 +453,7 @@ security credentials used by the internal ssh job service instance are
 derived from the credentials used to create the VM instance.
 
 Note that there is an important semantic difference between 'normal'
-(e.g. Grid based) and 'Cloud' job services in SAGA: a normal job
+(e.g. grid based) and 'cloud' job services in SAGA: a normal job
 service is assumed to have a lifetime which is completely independent
 from the application which accesses that service.  An AWS job service
 however points to a potentially volatile resource, or even to a
@@ -450,7 +485,7 @@ out-of-bound, but different credentials can be utilized by pointing
 ssh adaptors, the globus adaptors do not rely on command line tools,
 but rather link directly against the respective globus client
 libraries: the globus job adaptor is thus a GRAM client, the globus
-file adaptor a GridFTP client.  In the experiments, non-Cloud jobs
+file adaptor a GridFTP client.  In the experiments, non-cloud jobs
 were started using either GRAM or ssh.  File I/O was performed either
 via sshfs, or via a shared Lustre filesystem -- the GridFTP
 functionality was not used for experiments in this paper.
@@ -511,6 +546,7 @@ and study the two distinct programming models.
 
 
 \section{SAGA-based MapReduce}
+\label{sec:mr}
 
 % After \sagamapreduce we have also developed real scientific
 % applications using SAGA based implementations of patterns for
@@ -518,7 +554,7 @@ and study the two distinct programming models.
 % orchestrated using the SAGA-All-pairs implementation, and genome
 % searching can be implemented using SAGA-MapReduce (see
 % Ref.~\cite{saga_ccgrid09}).
-% \upup
+% \upp
 
 \subsection{\sagamapreduce Implementation}
 
@@ -665,6 +701,7 @@ absence of precise knowledge of the execution system).
 
 
 \section{SAGA-based Applications: Three Types of Interoperabilty}
+\label{sec:interop}
 
 There are several aspects to interoperability. In this section, we
 outline
@@ -675,17 +712,17 @@ outline
   infrastructure via Adaptors}
 
 A simple form of interoperability is that any application can use any
-Clouds systems without changes to the application: the application
+clouds systems without changes to the application: the application
 simply needs to instantiate a different set of security credentials
 for the respective runtime environment. We refer to this as
-Cloud-Cloud interoperability. By almost trivial extension, SAGA also
-provides Grid-Cloud interoperability, where exactly the same interface
-and functional calls lead to job submission on Grids or on Clouds.  As
+cloud-cloud interoperability. By almost trivial extension, SAGA also
+provides grid-cloud interoperability, where exactly the same interface
+and functional calls lead to job submission on grids or on clouds.  As
 discussed, SAGA provides interoperability quite trivially thanks to
 the dynamic loading of adaptors.  We refer to this as Type I ALI.
 
 Thanks to the low overhead of developing adaptors, SAGA has been
-deployed on three Cloud Systems -- Amazon,
+deployed on three cloud systems -- Amazon,
 Eucalyptus~\cite{eucalyptus} (on a local installation of Eucalyptus at
 LSU) and Nimbus~\cite{nimbus}.
 
@@ -711,7 +748,7 @@ LSU) and Nimbus~\cite{nimbus}.
 %             |            |
 %           SAGA-Sphere  SAGA-MapReduce
 %             |            |
-% Sector-Sphere Clouds    Cluster/Grids
+% Sector-Sphere clouds    Cluster/grids
 % \end{verbatim}
 
 \subsection{Type III: Application Interoperability using different
@@ -723,11 +760,12 @@ LSU) and Nimbus~\cite{nimbus}.
 %                 |           
 %            SAGA-Sphere and SAGA-MapReduce
 %                 |
-%  Sector-Sphere Clouds and (Cluster/Grids)
+%  Sector-Sphere clouds and (Cluster/grids)
 % \end{verbatim}
             
 
 \section{Experiments Demonstrating 3 Types of Interoperabiltiy}
+\label{sec:exp}
 
 {\it Application - Wordcount: } We implemented two kernel functions to
 do a word count on four gigabytes text data.  The first kernel
@@ -783,7 +821,7 @@ Xen hypervisor images, as are EC2 VM images.  Customized in this
 context means that the images are accompanied by a set of metadata
 which tie it to a specific kernel and ramdisk images.  Also, the
 images contain specific configurations and startup services which
-allow the VM to bootstrap cleanly in the respective Cloud environment,
+allow the VM to bootstrap cleanly in the respective cloud environment,
 e.g. to obtain the necessary user credentials, and to perform the
 wanted firewall setup etc.  As these systems all use Xen based images,
 a conversion of these images for the different cloud systems is in
@@ -791,13 +829,13 @@ principle straight-forward.  But sparse documentation and lack of
 automatic tools however, make it challenging, at least to the average
 end user. Compared to that, the derivation of customized images from
 existing images is well documented with well supported tools -- as
-long as the target image is to be used on the same Cloud system as the
+long as the target image is to be used on the same cloud system as the
 original one.
 
-% We have also deployed \sagamapreduce to work on Cloud platforms.  It
+% We have also deployed \sagamapreduce to work on cloud platforms.  It
 % is critical to mention that the \sagamapreduce code did not undergo
 % any changes whatsoever. 
-In executing \sagamapreduce on different Clouds, the change lies in
+In executing \sagamapreduce on different clouds, the change lies in
 the run-time system and deployment architecture. For example, when
 running \sagamapreduce on EC2, the master process resides on one VM,
 while workers reside on different VMs.  Depending on the available
@@ -840,10 +878,10 @@ scheduler are used.
   moment; not sure this subsection makes sense. Needs fixing. As does
   the following}
 
-For our experiments we used different Cloud environments: the Nimbus
+For our experiments we used different cloud environments: the Nimbus
 Science Cloud of the University of Chicago and the Amazon EC2
-environment is used. In general, each Cloud has its
-characteristics. The Nimbus Cloud is accessed via the WSRF interface,
+environment is used. In general, each cloud has its
+characteristics. The Nimbus cloud is accessed via the WSRF interface,
 while for EC2 the Amazon command line client is used. Each Nimbus VM
 provides 2 virtual cores and 3.7\,GB memory.  Amazon offeres different
 VM types with up to 8 cores. We used the largest VM type (m2.4xlarge)
@@ -857,23 +895,23 @@ provided by Nimbus.
 In an earlier paper (Ref~\cite{saga_ccgrid09}), we performed tests to
 demonstrate how \sagamapreduce utilizes different infrastructures and
 provides control over task-data placement; this led to insight into
-performance on ``vanilla'' Grids. The primary aim of this work is to
+performance on ``vanilla'' grids. The primary aim of this work is to
 establish, via well-structured and designed experiments, the fact that
-\sagamapreduce has been used to demonstrate Cloud-Cloud
-interoperability and Cloud-Grid interoperability. In this paper, we
+\sagamapreduce has been used to demonstrate cloud-cloud
+interoperability and cloud-grid interoperability. In this paper, we
 perform the following experiments:
 \begin{enumerate}
 \item We compare the performance of \sagamapreduce when exclusively
-  running on a Cloud platform to that when on Grids. We vary the
+  running on a cloud platform to that when on grids. We vary the
   number of workers (1 to 10) and the data-set sizes varying from 10MB
   to 1GB.
-\item For Clouds, we then vary the number of workers per VM, such that
+\item For clouds, we then vary the number of workers per VM, such that
   the ratio is 1:2; we repeat with the ratio at 1:4 -- that is the
   number of workers per VM is 4.
 \item We then distribute the same number of workers across two
-  different Clouds - EC2 and Eucalyptus.
-\item Finally, for a single master, we distribute workers across Grids
-  (QueenBee on the TG) and Clouds (EC2 and Eucalyptus) with one job
+  different clouds - EC2 and Eucalyptus.
+\item Finally, for a single master, we distribute workers across grids
+  (QueenBee on the TG) and clouds (EC2 and Eucalyptus) with one job
   per VM.
   % We provide selected performance data.  performance from the two
   % hybrid (EC2-Grid, EC2-Eucalyptus
@@ -886,8 +924,8 @@ performance figures, it is not the aim of this work to analyze the
 data and provide a performance model. In fact it is difficult to
 understand performance implications, as a detailed analysis of the
 data and understanding the performance will involve the generation of
-``system probes'', as there are differences in the specific Cloud
-system implementation and deployment.  For example, in EC2 Clouds % the
+``system probes'', as there are differences in the specific cloud
+system implementation and deployment.  For example, in EC2 clouds % the
 % default scenario is probably that the VMs are distributed with respect
 % to each other. There
 there exists the notion of availability zone, which is really just a
@@ -899,8 +937,8 @@ established that the same cluster is used and thus it is fair to
 assume that the VMs are local with respect to each other.  Similarly,
 without explicit tests, it is often unclear whether data is local or
 distributed.  It should also be assumed that for Eucalpytus based
-Clouds, data is also locally distributed (i.e.  same cluster with
-respect to a VM), whereas for EC2 Clouds this cannot be assumed to be
+clouds, data is also locally distributed (i.e.  same cluster with
+respect to a VM), whereas for EC2 clouds this cannot be assumed to be
 true for every experiment/test. In a nutshell without adjusting for
 different system implementations, it is difficult to rigorously
 compare performance figures for different configurations on different
@@ -965,7 +1003,7 @@ can differ as well as useful for our experiments.
     \hline \hline
   \end{tabular}
   \caption{Performance data for different configurations of worker
-  placements. The master places the workers on either Clouds or on the
+  placements. The master places the workers on either clouds or on the
   TeraGrid (TG). The configurations -- separated by horizontal lines,
   are classified as either all workers on the TG or having all workers
   on EC2. For the latter, unless otherwise explicitly indicated by a
@@ -1008,8 +1046,8 @@ can differ as well as useful for our experiments.
   \end{tabular}
   \caption{Performance data for different configurations of worker
   placements on TG, Eucalyptus-Cloud and EC2. The first set of data
-  establishes Cloud-Cloud interoperability. The second set (rows 5-
-  11) shows interoperability between Grids-Clouds (EC2).  The
+  establishes cloud-cloud interoperability. The second set (rows 5-
+  11) shows interoperability between grids-clouds (EC2).  The
   experimental conditions and measurements are similar to Table
   1.\label{stuff-2}}
 \end{table}
@@ -1200,6 +1238,7 @@ general case, but a noticeable aspect that emerges through its comparison with S
 
 
 \section{Discussion \& Conclusions}
+\label{sec:discuss}
 
 % \subsubsection*{Experience}
 
@@ -1210,9 +1249,9 @@ general case, but a noticeable aspect that emerges through its comparison with S
 % initially accessing/addressing the VMs directly.
 
 % We began this paper
-% with a discussion of programming systems/model for Clouds, and
+% with a discussion of programming systems/model for clouds, and
 % There is a fundamental need for support forfor a programming
-% system/model for Clouds.
+% system/model for clouds.
 
 
 % however we re-emphasise that the primary strength of SAGA in addition
@@ -1226,7 +1265,7 @@ At the lowest level, \sagamapreduce demonstrates how to decouple the
 development of applications from the deployment and details of the
 run-time environment.  It is critical to reiterate that using this
 approach applications remain insulated from any underlying changes in
-the infrastructure -- not just Grids and different middleware layers,
+the infrastructure -- not just grids and different middleware layers,
 but also different systems with very different semantics and
 characteristics, whilst being exposed to the important distributed
 functionality.  MapReduce has trivial data-parallelism, so in the near
@@ -1236,7 +1275,7 @@ different parts on different underlying infrastructure guided by
 optimal performance.
 
 {\it Programming Models for Clouds: } Ref~\cite{jha_ccpe09} introduced
-the notion of {\it affinity} for Clouds to capture the idea of
+the notion of {\it affinity} for clouds to capture the idea of
 relative data-compute placement and locality; it is imperative that
 any programming model/system be cognizant of the notion of
 affinity. We have implemented the first steps in a PM which provides
@@ -1279,10 +1318,10 @@ these approaches can be extend to support certain kinds of {\it
 
 % {\it Simplicity versus Completeness:} There exist both technical
 % reasons and social engineering problems responsible for low uptake of
-% Grids. One universally accepted reason is the complexity of Grid
+% grids. One universally accepted reason is the complexity of grid
 % systems -- the interface, software stack and underlying complexity of
 % deploying distributed application. But this is also a consequence of
-% the fact that Grid interfaces tend to be ``complete'' or very close
+% the fact that grid interfaces tend to be ``complete'' or very close
 % thereof.  % For example, while certainly not true of all cases, consider
 % % the following numbers, which we believe represent the above points
 % % well: globus 4.2 provides, in its Java version,
@@ -1290,7 +1329,7 @@ these approaches can be extend to support certain kinds of {\it
 % % API~\cite{saga-core} provides roughly 200 distinct method calls.
 % % The
 % % SOAP rendering of the Amazon EC2 cloud interface provides,
-% % approximately 30 method calls (and similar for other Amazon Cloud
+% % approximately 30 method calls (and similar for other Amazon cloud
 % % interfaces, such as Eucalyptus~\cite{eucalyptus}).
 % The number of
 % calls provided by these interfaces is no guarantee of simplicity of
@@ -1304,10 +1343,10 @@ these approaches can be extend to support certain kinds of {\it
 % EC2 and Eucalyptus although distinct systems
 % have similar interfaces; we will work towards developing SAGA based
 % applications that can use very different infrastructures, e.g.,
-% Google's AppEngine, such that \sagamapreduce uses Google's Cloud
+% Google's AppEngine, such that \sagamapreduce uses Google's cloud
 % infrastructure.
 
-% Finally, it is worth mentioning that computing in the Clouds for
+% Finally, it is worth mentioning that computing in the clouds for
 % this project cost us upwards of \$300 to perform these experiments
 % on EC2.
 
