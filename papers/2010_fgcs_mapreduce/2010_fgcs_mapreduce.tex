@@ -425,6 +425,7 @@ is complete.
 % MapReduce description} 
 
 \paragraph{SAGA adaptor overhead: }
+\label{ssec:overhead}
 
 We execute a simple experiment to measure the overhead introduced by
 submitting Sphere jobs and Sector file operations through SAGA.  The
@@ -434,7 +435,7 @@ the first letter as the key. One Gigabyte of text data was uploaded to
 the Sector file system for this test.  Furthermore, traces were
 implemented in the adaptors to measure the exact time spent in SAGA
 processing and translation before the raw Sphere APIs were called.  As
-seen in Figure \F{!}, the SAGA overhead is, if compared to the overall
+seen in Figure \F{}, the SAGA overhead is, if compared to the overall
 execution time of the application, negligible.  This makes SAGA an
 excellent platform to compare Sphere with other distinct programming
 models.
@@ -442,7 +443,7 @@ models.
 Thanks to the low overhead of developing SAGA adaptors, we were able
 to implement the Sector file adaptor, and the Sphere job adaptor for
 applications to utilize the stream processing paradigm through SAGA.
-Figure \F{!} and Figure \F{!} give simple examples of how SAGA APIs
+Figure \F{} and Figure \F{} give simple examples of how SAGA APIs
 can be used to manipulate data in the Sector systems, and how jobs can
 be submitted to the Sphere system to process this data.  The
 enhancement of SAGA Map Reduce, along with the implementation of the
@@ -565,7 +566,8 @@ implementing serialization~\cite{protobuf}.  The processing of input
 and output key/value pairs is further enhanced by minimizing
 unnecessary memory I/O operations using a zero-copy scheme.
 
-\subsection{\sagamapreduce Set-Up \TODO{Andre}}
+
+\subsection{\sagamapreduce Set-Up}
 
 As with any application which concurrently spans multiple diverse
 resources or infrastructures, the coordination between the different
@@ -621,65 +623,72 @@ absence of precise knowledge of the execution system).
 \section{SAGA-based Applications: Three Types of Interoperability}
 \label{sec:interop}
 
+\amnote{Uhm, this section needs more attention - I am not sure I
+captured the gist of the discussion we had.  Also, intro paragraph is
+a stub.}
+
 There are several aspects to interoperability. In this section, we
-outline
-3 different levels/types of interoperability...
+outline 3 different levels/types of interoperability...
 
 
-\subsection{Type I: Application Interoperability on Different
-  infrastructure via Adaptors}
+\subsection{Type I: Application Interoperability on different
+  infrastructures, via adaptors}
 
-A simple form of interoperability is that any application can use any
-clouds systems without changes to the application: the application
-simply needs to instantiate a different set of security credentials
-for the respective runtime environment. We refer to this as
-cloud-cloud interoperability. By almost trivial extension, SAGA also
-provides grid-cloud interoperability, where exactly the same interface
-and functional calls lead to job submission on grids or on clouds.  As
+% Type I:  Application 
+%              |
+%           SAGA-MR
+%              |
+%           Adaptors
+%      /     /   \      \
+%    ... Clouds  Grids ...
+
+A simple form of interoperability is that an application can use any
+distributed systems without changes to the application, thus
+experiencing cloud-cloud or grid-cloud interoperability.  As
 discussed, SAGA provides interoperability quite trivially thanks to
 the dynamic loading of adaptors.  We refer to this as Type I ALI.
 
-Thanks to the low overhead of developing adaptors, SAGA has been
-deployed on three cloud systems -- Amazon,
-Eucalyptus~\cite{eucalyptus} (on a local installation of Eucalyptus at
-LSU) and Nimbus~\cite{nimbus}.
+Thanks to the relative simplicity of developing SAGA adaptors, SAGA
+has been successfuly interfaced to three cloud systems -- Amazon's
+EC2, Eucalyptus~\cite{eucalyptus} (a local installation of Eucalyptus
+at LSU) and Nimbus~\cite{nimbus};  and also to a multitude of grid
+based environments, including TeraGrid, Loni and NGS.  SAGA based
+applications are thus inherently able to utilize this form of ALI.
 
-% \begin{verbatim}
-% Type I:      Application 
-%                   |
-%               SAGA-MR
-%                   |
-%               Different Adaptors
-
-
-% \end{verbatim}
 
 \subsection{Type II: Application Interoperability using programming
   models suited for different infrastructure}
 
-% \begin{verbatim} 
-% Type II:     Application 
-%                  |
-%           Instance-1 Instance-2
-%               /        \
-%              /          \
-%             |            |
-%           SAGA-Sphere  SAGA-MapReduce
-%             |            |
-% Sector-Sphere clouds    Cluster/grids
-% \end{verbatim}
+% Type II:      Application 
+%                    |
+%          Instance-1 Instance-2
+%            |            |
+%         SAGA-Sphere SAGA-MapReduce
+%            |            |
+%       Sector-Sphere cluster/grids
+
+On a different abstraction level, an application can be considered
+interoperable if they are able to switch between backend specific
+programming models.  We will discuss an example where the wordcount
+application is implemented so that it can utilize either a
+Sector-Sphere framework via SAGA for the OCC backend, or the \smr
+framework for generic grid and cloud backends.
+
 
 \subsection{Type III: Application Interoperability using different
   programming models for concurrent execution}
 
-
-% \begin{verbatim} 
-% Type III:   Application Instance
+% Type III:   Application
 %                 |           
-%            SAGA-Sphere and SAGA-MapReduce
+%     SAGA-Sphere / SAGA-MapReduce
 %                 |
-%  Sector-Sphere clouds and (Cluster/grids)
-% \end{verbatim}
+%   Sector-Sphere / cluster / grids / clouds
+
+On yet another abstraction level, an application can be considered
+interoperable when it can \I{concurrently} a programming model over
+multiple, diverse backends.  We demonstrate that on a wordcount
+application which, at the same time, uses Sector-Sphere \MR and \smr
+to span multiple backends.
             
 
 \section{Experiments Demonstrating 3 Types of Interoperabiltiy}
@@ -1102,7 +1111,7 @@ application was launched. In this set of experiments, we vary the
 chunk size from 16MB to 256 MB, while keeping the number of SPEs
 constant to 8, and the data size constant to 4 GB. Each SPE is running
 on a separate physical node in the cluster. These results are
-presented in Figure xx. As evident from the results we collected, a
+presented in Figure \FIXME{}. As evident from the results we collected, a
 correlation exists between the chunk sizes and performance of Sphere.
 As the chunk sizes increase, the performance deteriorates. Also, we
 observe a major decline in performance right after the 64 MB data
@@ -1192,7 +1201,7 @@ and 64 MB chunk sizes. The data transfer time to the Sector
 cloud took a total of 97.8 seconds and 10.4 seconds to the 
 SAGA-MapReduce master node. The longer transfer time to Sector 
 can be credited to the overhead incurred from registering 
-the files in the cloud. The data transfer was done sequentially. 
+the files in Sector. The data transfer was done sequentially. 
 
 We found that SAGA-Sphere took a total of 441.3 seconds to 
 process the 2.0 GB data, while SAGA-MapReduce took a total of 
