@@ -347,13 +347,14 @@ results.
 \section{SAGA}
 \label{sec:saga}
 
-The SAGA~\cite{saga-core, Kaiser:2006qp} programming system provides
-a high level API that forms a simple, standard and uniform interface for
-the most commonly required distributed functionality.  SAGA can be used
-to program distributed applications~\cite{saga_escience07, saga_tg08},
-tool-kits to manage distributed applications as well as implement
-abstractions that support commonly occurring programming, access and
-usage patterns.
+The SAGA~\cite{saga-core, Kaiser:2006qp} programming system provides a
+high level API that forms a simple, standard and uniform interface for
+the most commonly required distributed functionality.  SAGA can be
+used to program distributed applications~\cite{saga_escience07,
+saga_tg08} or tool-kits to manage distributed
+applications~\cite{Luckow:2008xy}, as well as implement abstractions
+that support commonly occurring programming, access and usage
+patterns.
 
 \begin{figure}[t]
  \includegraphics[scale=0.5]{saga-figure02.pdf}
@@ -363,190 +364,99 @@ usage patterns.
 \end{figure}
 
 Fig.~\ref{fig:saga} provides an overview of the SAGA programming
-system's architecture.  The SAGA API provides covers job submission,
-file access and transfer, as well as logical file management.
-Additionally there is support for Checkpoint and Recovery (CPR), Service
-Discovery (SD), and other areas.  The API is implemented in C++ and
-Java, with Python supported as a wrapper. \I{saga\_core} is the main
-library, which provides dynamic support for run-time environment
-decision making through loading relevant adaptors. We will not discuss
-SAGA internals here; details can be found
-elsewhere~\cite{saga_url,Kaiser:2006qp}.
+system's architecture.  The SAGA API covers job submission, file
+access and transfer, as well as logical file management.  Additionally
+there is support for Checkpoint and Recovery (CPR), Service Discovery
+(SD), and other areas.  The API is implemented in C++ and Java, with
+Python supported as a wrapper. \I{saga\_core} is the main library,
+which provides dynamic support for run-time environment decision
+making through loading relevant adaptors. We will not discuss SAGA
+internals here; details can be found elsewhere~\cite{saga_url,Kaiser:2006qp}.
+
 
 \subsection{Interfacing SAGA to Grids and Clouds}
 
 \amnote{TODO: compress, update}
 
 SAGA was originally developed primarily for compute-intensive grids.
-This was a user-driven design decision, i.e., the majority of
-applications that motivated the design and formulation of version 1.0
-of the API were HPC applications attempting to utilize distributed
-resources.  Ref~\cite{saga_ccgrid09} demonstrated that in spite of its
-original design constraints, SAGA can be used to develop
-data-intensive applications in diverse distributed environments,
-including clouds.  This is in part due to the fact that, at least on
-application level, much of the ``distributed functionality'' required
-for data-intensive applications remains the same.  In the remainder of
-this section, we will describe how, through the creation of a set of
-simple context-sensitive {\it adaptors}, the primary functionality of
-most applications is supported in an interoperable way.
+Ref~\cite{saga_ccgrid09} demonstrated that in spite of its original
+design constraints, SAGA can be used to develop data-intensive
+applications in diverse distributed environments, including clouds.
+This is in part due to the fact that, at least on application level,
+much of the ``distributed functionality'' required for data-intensive
+applications remains the same.  How the respective functionality for
+grid systems and for EC2 based cloud environments is provided in SAGA
+is also documented in~\cite{saga_ccgrid09}.  Based on those
+experiences, we added another backend to the set, which allows to
+extend the range of backend architectures available to SAGA-C++ to
+Sector-Sphere~\cite{sectorsphere09}.
 
 
-\subsubsection{Adaptors: Design and Implementation}
+\subsubsection{Sector-Sphere Adaptors: Design and Implementation}
 
-
-\paragraph{SSH adaptors}
-
-The SSH adaptors are based on three different command line tools,
-namely \ssh, \scp and \sshfs.  Further, all ssh adaptors rely on the
-availability of SSH security credentials for remote operations.  The
-SSH context adaptor implements some mechanisms to (a) discover
-available key-pairs automatically, and (b) to verify the validity and
-usability of the found or otherwise specified credentials.
-  
-\ssh is used to spawn remote job instances, for which the SSH job
-adaptor instantiates a \I{local} \T{saga::job::service} instance, and
-submits the respective SSH command lines to it.  The local job adaptor
-then takes care of process I/O, detachment, etc.  A significant
-drawback of this approach is that several SAGA methods act upon the
-local ssh process instead of the remote application instance, which is
-far from ideal. Some of these operations can be migrated to the remote
-hosts, via separate ssh calls, but that process is complicated due to
-the fact that ssh does not report the remote process ID back to the
-local job adaptor.  We circumvent this problem by setting a uniquely
-identifying environment variable for the remote process, which allows
-us to identify the process.
-
-\sshfs is used to access remote files via ssh services.  \sshfs is a
-user space file system driver which uses FUSE~\cite{fuse-url}, and is
-available for MacOS, Linux, and some other Unix derivatives.  It
-enables a remote file system to be mounted into the local namespace,
-and transparently forwards all file access operations via ssh to the
-remote host.  The ssh file adaptor uses the local job adaptor to call
-the sshfs process, to mount the remote filesystem, and then forwards
-all file access requests to the local file adaptor, which operates on
-the locally mounted file system.  The ssh adaptor thus translates URLs
-from the ssh namespace into the local namespace, and back.
-
-
-\paragraph{AWS adaptors} 
-
-SAGA's AWS (Amazon Web Service) adaptor suite is an interface to
-services which implement the cloud web service interfaces as specified
-by Amazon~\cite{ec2-url}.  These interfaces are not only used by Amazon
-to allow programmatic access to their cloud infrastructures -- EC2 and
-S3, amongst others, but are also used by several other cloud service
-providers, such as Eucalyptus~\cite{eucalyptus} and Nimbus.  The AWS
-job adaptor is thus able to interface to a variety of cloud
-infrastructures, as long as they adhere to the AWS interfaces.
-\amnote{add ref to OCCI, CDMI}
-
-The AWS job adaptor uses the local job adaptor to manage the
-invocation of the EC2 command line tools, e.g. to spawn new virtual
-machine (VM) instances, to search for existing VM instances, etc.
-Once a VM instance is found to be available and ready to accept jobs,
-a ssh job service instance for that VM is created, and henceforth
-takes care of all job management operations.  The AWS job adaptor is
-thus only responsible for VM discovery and management -- the actual
-job creation and operations are performed by the ssh job adaptor.  The
-security credentials used by the internal ssh job service instance are
-derived from the credentials used to create the VM instance.
-
-Note that there is an important semantic difference between 'normal'
-(e.g. grid based) and 'cloud' job services in SAGA: a normal job
-service is assumed to have a lifetime which is completely independent
-from the application which accesses that service.  An AWS job service
-however points to a potentially volatile resource, or even to a
-non-existing resource -- the resource needs then to be created on the
-fly.  There are two important implications.  Firstly, the startup time
-for a AWS job service is typically much larger than other remote job
-service, at least in the case where a VM is created on the fly.  The
-second implication is that the \I{end} of the job service lifetime is
-usually of no consequence for normal remote job services.  For a
-dynamically provisioned VM instance, however, it raises the question
-if that instance should be shut down, or if it should automatically
-shut down after all remote applications finish, or even if it should
-survive for a specific time, or forever.  Ultimately, it is not
-possible to control these VM lifetime attributes via the current SAGA
-API (by design).  Instead, we allow one of these policies to be chosen
-either implicitly (e.g. by using special URLs to request dynamic
-provisioning), or explicitly over SAGA config files or environment
-variables.  Future SAGA extensions, in particular Resource Discovery
-and Resource Reservation extensions, may have a more direct and
-explicit notion of resource lifetime management.
-
-
-\paragraph{Globus Adaptors}
-
-SAGA's globus adaptor suite is amongst its most-utilized adaptors.  As
-with ssh, security credentials are expected to be created
-out-of-bound, but different credentials can be utilized by pointing
-\T{saga::context} instances to them as needed.  Other than the aws and
-ssh adaptors, the globus adaptors do not rely on command line tools,
-but rather link directly against the respective globus client
-libraries: the globus job adaptor is thus a GRAM client, the globus
-file adaptor a GridFTP client.  In the experiments, non-cloud jobs
-were started using either GRAM or ssh.  File I/O was performed either
-via sshfs, or via a shared Lustre filesystem -- the GridFTP
-functionality was not used for experiments in this paper.
-
-\paragraph{Sector-Sphere Adaptors}
 Sector and Sphere is a cloud framework specifically designed for
-writing applications able to utilize the stream processing
-paradigm. Sector is a distributed file system that manages data across
-physical compute nodes at the file level, and provides the
-infrastructure to manipulate data in the cloud. Sphere, on the other
-hand, provides the framework to utilize the stream processing paradigm
-for processing the data residing on Sector. The Sphere system is
-composed of SPEs or Sphere Processing Units running on the same
-physical nodes as the Sector file system.
+writing applications able to utilize the stream processing paradigm.
+Sector is a distributed file system that manages data across physical
+compute nodes at the file level, and provides the infrastructure to
+manipulate data in the cloud.  Sphere, on the other hand, provides the
+framework to utilize the stream processing paradigm for processing the
+data residing on Sector.  The Sphere system is composed of Sphere
+Processing Engines (SPEs) running on the same physical nodes as the
+Sector file system.
 
 Applications that utilize the stream processing paradigm define a
-single common function (often referred to as a kernel function) that
-is applied to segments of a given data set. When the application
-invokes Sphere to process data on Sector, the Sphere system retrieves
-the stream of data, segments the data and assigns chunks of these
-segments to the available SPEs for processing.
+single common function (aka kernel) that is applied to segments of a
+given data set.  When the application invokes Sphere to process data
+on Sector, the Sphere system retrieves the stream of data, segments
+the data and assigns chunks of these segments to the available SPEs
+for processing.
 
 Sphere allows the user to encode the kernel function in a dynamically
-linked library written using Sphere APIs. The SPEs apply this user
-defined function to its assigned segments and write the processing
-results back to Sector in files. This stream of output files can be
-retrieved by the user from Sector, after the processing is
-complete. 
+linked library written against the Sphere APIs.  The SPEs apply this
+user defined function to its assigned segments and write the
+processing results back to files in Sector.  This stream of output
+files can be retrieved by the user from Sector, after the processing
+is complete. 
 
 % \ssnote{Maybe add a different section here}
 % \ssnote{Add another section here for experiments, or maybe later after
 % MapReduce description} 
 
-{\it SAGA adaptor overhead: } We execute a simple experiment to
-measure the overhead introduced by submitting Sphere jobs and Sector
-file operations through SAGA. A sample Sphere kernel function, wrapped
-in a dynamically linked library was used for this purpose. The kernel
-function accepts a buffer of text and utilizes the Sphere framework to
-hash words into Sphere buckets using the first letter as the key. One
-Gigabyte of text data was uploaded to the Sector file system for this
-purpose.  Furthermore, traces were implemented in the adaptors to
-measure the exact time spent in SAGA processing and translation before
-the raw Sphere APIs were called.  As seen in Figure xx, the SAGA
-overhead compared to the overall execution time of the application is
-negligible. This makes SAGA an excellent platform to compare Sphere
-with other distinct programming models.
+\paragraph{SAGA adaptor overhead: }
+
+We execute a simple experiment to measure the overhead introduced by
+submitting Sphere jobs and Sector file operations through SAGA.  The
+used sample Sphere kernel function accepts a buffer of text and
+utilizes the Sphere framework to hash words into Sphere buckets, using
+the first letter as the key. One Gigabyte of text data was uploaded to
+the Sector file system for this test.  Furthermore, traces were
+implemented in the adaptors to measure the exact time spent in SAGA
+processing and translation before the raw Sphere APIs were called.  As
+seen in Figure \F{!}, the SAGA overhead is, if compared to the overall
+execution time of the application, negligible.  This makes SAGA an
+excellent platform to compare Sphere with other distinct programming
+models.
 
 Thanks to the low overhead of developing SAGA adaptors, we were able
 to implement the Sector file adaptor, and the Sphere job adaptor for
-applications to utilize the stream processing paradigm through
-SAGA. Figure xx and Figure xx give simple examples of how SAGA APIs
+applications to utilize the stream processing paradigm through SAGA.
+Figure \F{!} and Figure \F{!} give simple examples of how SAGA APIs
 can be used to manipulate data in the Sector systems, and how jobs can
 be submitted to the Sphere system to process this data.  The
 enhancement of SAGA Map Reduce, along with the implementation of the
 Sector/Sphere adaptors naturally gives us the opportunity to compare
-and study the two distinct programming models.
+and study these two distinct programming models.
 
 
 
 \section{SAGA-based MapReduce}
 \label{sec:mr}
+
+ Given its relevance~\cite{saga_ccgrid09}, we choose the \smr
+ implementation to compare both different backend systems (grids,
+ clouds, clusters) and different programming models (master/slave,
+ Sector-Sphere streams).  A simple wordcount application on top of
+ \smr has been used as a close-to-reality test case.
 
 % After \sagamapreduce we have also developed real scientific
 % applications using SAGA based implementations of patterns for
@@ -561,66 +471,71 @@ and study the two distinct programming models.
 \jhanote{Miklos to fix and update to reflect latest version of
   MapReduce}
 
-Our implementation of \sagamapreduce interleaves the core logic with
-explicit instructions on where processes are to be scheduled.  The
-advantage of this approach is that our implementation is no longer
+Our implementation of \sagamapreduce interleaves the core \MR logic
+with explicit instructions on where processes are to be scheduled.
+The advantage of this approach is that our implementation is no longer
 bound to run on a system providing the appropriate semantics
 originally required by MapReduce, and is portable to a broader range
-of generic systems as well.  The drawback is that it is relatively
-more complicated to extract performance.% -- for there is a need to add system
-% semantic capabilities at some level, and it is inherently slower -- as
-% it is difficult to reproduce system-specific optimizations to work
-% generically.
-The fact that the current implementation is single-threaded
-currently is a primary factor for slowdown.  Critically, however, none
-of these complexities are transferred to the end-user, and they remain
-hidden within the framework. Also many of these are due to the
+of generic systems as well.  The drawback is that it is more
+complicated to extract performance, as some system level semantics has
+to be recreated in application space (i.e., on SAGA or \smr) level.
+% -- for there is a need to add system
+% semantic capabilities at some level, and it is inherently slower --
+% as it is difficult to reproduce system-specific optimizations to
+% work generically.
+The fact that the implementation is single-threaded proved to be the
+primary current performance inhibitor.  However, none of these
+complexities are exposed to the end-user, as they remain hidden within
+the framework. Also many of the complexities are due to the
 early-stages of SAGA and incomplete implementation of features, and
 not a fundamental limitation of the design or concept of the interface
-or programming models that it supports.
+or programming models that it supports.  Future SAGA API packages will
+allow to alleviate some of these issues.
 
-% The overall architecture of the SAGA-MapReduce implementation is shown
-% in Fig.~\ref{saga-mapreduce_controlflow}. 
-This simple interface provides the complete functionality needed by
-any MapReduce algorithm, while hiding the more complex functionality,
-such as chunking of the input, sorting the intermediate results,
-launching and coordinating the workers, etc. as these are implemented
-by the framework.  The application consists of two independent
-processes, a master and worker processes. The master process is
-responsible for:
+% The overall architecture of the SAGA-MapReduce implementation is
+% shown in Fig.~\ref{saga-mapreduce_controlflow}. 
+\smr exposes a simple interface which provides the complete
+functionality needed by any MapReduce algorithm, while hiding the more
+complex functionality, such as chunking of the input, sorting the
+intermediate results, launching and coordinating the workers, etc. --
+these are generically implemented by the framework.  The application
+consists of two independent processes, a master and worker processes.
+The master process is responsible for:
 
 \begin{itemize}
-\item Launching all workers for the map and reduce steps as described
-  in a configuration file provided by the user 
-\item Coordinating the executed workers, including the chunking of the
+\item launching all workers for the map and reduce steps, as described
+  in a configuration file provided by the user; and
+\item coordinating the workers, chunking of the
   data, assigning the input data to the workers of the map step,
-  handling the intermediate data files produced by the map step and
-  passing the names of the sorted output files to the workers of the
-  reduce step, and collecting the generated outputs from the reduce
-  steps and relaunching single worker instances in case of failures,
+  handling the intermediate data files produced by the map step, 
+  passing the location of the sorted output files to the workers of the
+  reduce step, and collecting the outputs from the reduce
+  steps.  
+\item relaunching single worker instances in case of failures, thus
+  providing fail safety.
 \end{itemize}
 
 The master process is readily available to the user and needs no
-modification for different Map and Reduce functions to execute.  The
+modification for different map and reduce functions to execute.  The
 worker processes get assigned work either from the map or the reduce
 step. The functionality for the different steps have to be provided by
-the user, which means the user has to write 2 C++ functions
-implementing the required MapReduce algorithm.
+the user, which means the user has to write two C++ functions
+implementing the respective MapReduce kernels.
 
 Both the master and the worker processes use the SAGA-API as an
 abstract interface to the used infrastructure, making the application
-portable between different architectures and systems. The worker
+portable between different architectures and systems.  The worker
 processes are launched using the SAGA job package, allowing the jobs
-to launch either locally, using globus/GRAM, Amazon Web Services, or
-on a Condor pool. The communication between the master and the worker
-processes is ensured by using the SAGA advert package, abstracting an
-information database in a platform independent way (this can also be
-achieved through SAGA-Bigtable adaptors).  The Master process creates
-partitions of data (referred to as chunking, analogous to Google's
-MapReduce), so the data-set does not have to be on one machine and can
-be distributed; this is an important mechanism to avoid limitations in
-network bandwidth and data distribution.  These files could then be
-recognized by a distributed File-System, such as HDFS.
+to launch either locally, on globus/GRAM backends, on EC2 instances,
+or on a Condor pool. The communication between the master and workers
+is ensured by using the SAGA advert package, abstracting an
+information database in a platform independent way.  The master
+partitions the data (referred to as chunking, analogous to Google's
+MapReduce), so the data-set does not have to be on one machine, and
+can be distributed; this is an important mechanism to avoid network
+bandwidth limitations.  These files could also be stored on a
+distributed File-System, such as HDFS.
+
 
 \subsection{Enhancing SAGA-based Map-Reduce Performance}
 
