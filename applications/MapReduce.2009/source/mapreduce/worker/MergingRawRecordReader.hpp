@@ -54,6 +54,13 @@ class ReaderWrapperComparator {
  public:
   ReaderWrapperComparator() {}
   bool operator()(ReaderWrapper* a, ReaderWrapper* b) {
+    // Exhausted readers are always go to back of the queue.
+    if (a->exhausted()) {
+      return true;
+    } else if (b->exhausted()) {
+      return false;
+    }
+    // Compare keys from these two readers.
     const uint8* a_buffer;
     const uint8* b_buffer;
     int a_size, b_size;
