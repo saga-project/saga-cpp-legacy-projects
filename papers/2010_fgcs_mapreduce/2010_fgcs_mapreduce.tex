@@ -512,11 +512,11 @@ The master process is responsible for:
   data, assigning the input data to the workers of the map step,
   handling the intermediate data files produced by the map step, 
   passing the location of the sorted output files to the workers of the
-  reduce step, and collecting the outputs from the reduce
-  steps.  
-\item relaunching single worker instances in case of failures, thus
-  providing fail safety.
+  reduce step.  
+%\item relaunching single worker instances in case of failures, thus
+%  providing fail safety.
 \end{itemize}
+\miklosnote{Andre: removed fail safety since it's not actually present...}
 
 The master process is readily available to the user and needs no
 modification for different map and reduce functions to execute.  The
@@ -529,20 +529,19 @@ Both the master and the worker processes use the SAGA-API as an
 abstract interface to the used infrastructure, making the application
 portable between different architectures and systems.  The worker
 processes are launched using the SAGA job package, allowing the jobs
-to launch either locally, on globus/GRAM backends, on EC2 instances,
+to launch either locally, on globus/GRAM backends, on EC2 instances, through SSH
 or on a Condor pool. The communication between the master and workers
 is ensured by using the SAGA advert package, abstracting an
-information database in a platform independent way.  The master
-partitions the data (referred to as chunking, analogous to Google's
-MapReduce), so the data-set does not have to be on one machine, and
-can be distributed; this is an important mechanism to avoid network
-bandwidth limitations.  These files could also be stored on a
-distributed File-System, such as HDFS.
+information database in a platform independent way, and the SAGA stream
+package, abstracting streaming data access between network endpoints.
+The master creates logical partitions of the data (referred to as chunking,
+analogous to Google's MapReduce), so the data-set does not have to be split
+and distributed manually.  The input data can be located on any filesystem
+supported by SAGA, such as the local filesystem or a distributed filesystem
+like HDFS or KFS. \miklosnote{KFS citation needed}
 
 
 \subsection{Enhancing SAGA-based Map-Reduce Performance}
-
-%\jhanote{Miklos: This is your section. Please complete/refine/add}
 
 The performance enhancements to the \sagamapreduce implementation as
 discussed in~\cite{saga_ccgrid09} are based on two important changes:
