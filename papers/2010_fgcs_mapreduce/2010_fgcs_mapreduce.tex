@@ -75,6 +75,7 @@
 \newcommand{\uppp}{\vspace*{-1em}}
 \newcommand{\upp}{\vspace*{-0.66em}}
 \newcommand{\up}{\vspace*{-0.33em}}
+\newcommand{\shift}{\hspace*{1.00em}}
 
 \newcommand{\T}[1]{\texttt{#1}}
 \newcommand{\I}[1]{\textit{#1}}
@@ -622,20 +623,18 @@ that the overall system utilization can increase (especially in the
 absence of precise knowledge of the execution system).
  
 
-\section{SAGA-based Applications: Three Types of Interoperability}
+\section{Demonstrating 3 Types of Interoperability}
 \label{sec:interop}
 
-\amnote{Uhm, this section needs more attention - I am not sure I
-captured the gist of the discussion we had.  Also, intro paragraph is
-a stub.}
+\subsection{Interoperability Types}
 
 There are several aspects to interoperability. In this section, we
-outline 3 different levels/types of interoperability...
+outline 3 different levels/types of interoperability.\amnote{expand}
 
 
-\subsection{Type I: Application Interoperability on different
+\subsubsection{Type I: Application Interoperability on different
   infrastructures, via adaptors}
-
+%
 % Type I:  Application 
 %              |
 %           SAGA-MR
@@ -643,7 +642,7 @@ outline 3 different levels/types of interoperability...
 %           Adaptors
 %      /     /   \      \
 %    ... Clouds  Grids ...
-
+%
 A simple form of interoperability is that an application can use any
 distributed systems without changes to the application, thus
 experiencing cloud-cloud or grid-cloud interoperability.  As
@@ -658,9 +657,9 @@ based environments, including TeraGrid, Loni and NGS.  SAGA based
 applications are thus inherently able to utilize this form of ALI.
 
 
-\subsection{Type II: Application Interoperability using programming
+\subsubsection{Type II: Application Interoperability using programming
   models suited for different infrastructure}
-
+%
 % Type II:      Application 
 %                    |
 %          Instance-1 Instance-2
@@ -668,7 +667,7 @@ applications are thus inherently able to utilize this form of ALI.
 %         SAGA-Sphere SAGA-MapReduce
 %            |            |
 %       Sector-Sphere cluster/grids
-
+%
 On a different abstraction level, an application can be considered
 interoperable if they are able to switch between backend specific
 programming models.  We will discuss an example where the wordcount
@@ -677,15 +676,15 @@ Sector-Sphere framework via SAGA for the OCC backend, or the \smr
 framework for generic grid and cloud backends.
 
 
-\subsection{Type III: Application Interoperability using different
+\subsubsection{Type III: Application Interoperability using different
   programming models for concurrent execution}
-
+%
 % Type III:   Application
-%                 |           
+%                 |
 %     SAGA-Sphere / SAGA-MapReduce
 %                 |
 %   Sector-Sphere / cluster / grids / clouds
-
+%
 On yet another abstraction level, an application can be considered
 interoperable when it can \I{concurrently} a programming model over
 multiple, diverse backends.  We demonstrate that on a wordcount
@@ -693,142 +692,72 @@ application which, at the same time, uses Sector-Sphere \MR and \smr
 to span multiple backends.
             
 
-\section{Experiments Demonstrating 3 Types of Interoperability}
-\label{sec:exp}
+\subsection{Experimental Setup}
 
-{\it Application - Wordcount: } We implemented two kernel functions to
-do a word count on four gigabytes text data.  The first kernel
-function is responsible for hashing the words in the data set into
-different hashing "buckets", depending on the word's starting letter.
-The standard C++ collate hashing function was used for this purpose.
-The second kernel function reads each hash bucket, sorts the words in
-memory and outputs the final count value of the words in the data set.
-For example, a file containing the words ("bread" "bee" "bee" "honey"
-) would be hashed into buckets as - ("bread" "bee" "bee") and
-("honey").  The second kernel function would read these intermediate
-bucket files, sort the words, and produce the following result .
-(.bread 1., .bee 2., .honey 1.).  The Sphere system is responsible for
-assigning files for processing, synchronization, and writing output
-results back to Sector.  
+\subsubsection{Application: Wordcount}
 
-\jhanote{please update -- Andre \& Miklos}
+We implemented two kernel functions to do a word count on four
+gigabytes text data.  The first kernel function is responsible for
+hashing the words in the data set into different hashing "buckets",
+depending on the word's starting letter.  The standard C++ collate
+hashing function was used for this purpose.  The second kernel
+function reads each hash bucket, sorts the words in memory and outputs
+the final count value of the words in the data set.  For example, a
+file containing the words ("bread" "bee" "bee" "honey") would be
+hashed into buckets as - ("bread" "bee" "bee") and ("honey").  The
+second kernel function would read these intermediate bucket files,
+sort the words, and produce the following result .  (.bread 1., .bee
+2., .honey 1.).  The Sphere system is responsible for assigning files
+for processing, synchronization, and writing output results back to
+Sector.  
+\amnote{check}
 
-\subsection{Type I: Interoperability via Adaptors}
 
-\subsubsection{Deployment Details}
+\subsubsection{Testbed}
 
-In order to fully utilize cloud infrastructures for SAGA applications,
-the VM instances need to fulfill a couple of prerequisites: the SAGA
-libraries and its dependencies need to be deployed, need some external
-tools which are used by the SAGA adaptors at runtime -- such as ssh,
-SCP, and sshfs.  The latter needs the FUSE kernel module to function
--- so if remote access to the cloud compute node's file system is
-wanted, the respective kernel module needs to be installed as well.
-There are two basic options to achieve the above, either a customized
-VM image which includes all the software that is used, or the
-respective packages that are installed after VM instantiation (on the
-fly).  Hybrid approaches are possible too.
+Simulations were performed on shared TeraGrid-LONI (Louisiana Optical
+Network Initiative)~\cite{loni-url} resources running Globus and ssh;
+on GumboGrid, a small cluster at LSU running Eucalyptus; on Amazon's
+EC2; on a bare 50 node cluster of the Hungarian Academy of Sciences;
+and on the OCC testbed~\cite{occ_testbed} running Sector-Sphere.  Jobs
+are started via the respectively available middlewares, via SAGA's job
+API.  Data exchange is either performed via streams, or  via SAGA's
+file transfer API which can dynamically switch between the various
+available protocols.
 
-We support the runtime configuration of VM instances by staging a
-preparation script to the VM after its creation, and executing it with
-root permissions.  In particular for apt-get Linux distribution, the
-post-instantiation software deployment is actually fairly painless,
-but naturally adds a significant amount of time to the overall VM
-startup (which encourages the use of asynchronous operations).
-% \footnote{The long VM startup times encourage the use of SAGA's
-%   asynchronous operations.}. 
+For the could environments, we support the runtime configuration of VM
+instances by staging a preparation script to the VM after its
+creation, and executing it with root permissions.  In particular for
+apt-get Linux distribution, the post-instantiation software deployment
+is actually fairly painless, but naturally adds a significant amount
+of time to the overall VM startup (which encourages the use of
+preconfigured images).
+
 For experiments in this paper, we prepared custom VM images with all
 prerequisites pre-installed.  We utilize the preparation script solely
 for some fine tuning of parameters: for example, we are able to deploy
 custom saga.ini files, or ensure the finalization of service startups
-before application deployment\footnote{For example, when starting SAGA
-  applications are started before the VM's random generator is
-  initialized, our current uuid generator failed to function properly
-  -- the preparation script checks for the availability of proper
-  uuids, and delays the application deployment as needed.}.
+before application deployment
 
-\jhanote{Maybe reduce?} Eucalyptus VM images are basically customized
-Xen hypervisor images, as are EC2 VM images.  Customized in this
-context means that the images are accompanied by a set of metadata
-which tie it to a specific kernel and ramdisk images.  Also, the
-images contain specific configurations and startup services which
-allow the VM to bootstrap cleanly in the respective cloud environment,
-e.g. to obtain the necessary user credentials, and to perform the
-wanted firewall setup etc.  As these systems all use Xen based images,
-a conversion of these images for the different cloud systems is in
-principle straight-forward.  But sparse documentation and lack of
-automatic tools however, make it challenging, at least to the average
-end user. Compared to that, the derivation of customized images from
-existing images is well documented with well supported tools -- as
-long as the target image is to be used on the same cloud system as the
-original one.
+Deploying \sagamapreduce framework and the wordcound application on
+different grids, clouds or clusters requires to adapt the configuratin
+to the specific environment.  For example, when running \sagamapreduce
+on EC2, the master process resides on one VM, while workers reside on
+different VMs.  Depending on the available adaptors, Master and Worker
+can either perform local I/O on a global/distributed file system, or
+remote I/O on a remote, non-shared file system.
 
-% We have also deployed \sagamapreduce to work on cloud platforms.  It
-% is critical to mention that the \sagamapreduce code did not undergo
-% any changes whatsoever. 
-In executing \sagamapreduce on different clouds, the change lies in
-the run-time system and deployment architecture. For example, when
-running \sagamapreduce on EC2, the master process resides on one VM,
-while workers reside on different VMs.  Depending on the available
-adaptors, Master and Worker can either perform local I/O on a
-global/distributed file system, or remote I/O on a remote, non-shared
-file system.  % In our current implementation, the VMs hosting the
-% master and workers share the same ssh credentials and a shared
-% file-system (using sshfs/FUSE). 
-Application deployment and configuration (as discussed above) are also
-performed via sshfs.  On EC2, we created a custom virtual machine
-(VM) image with pre-installed SAGA.  For Eucalyptus, a boot strapping
-script equips a standard VM instance with SAGA, and SAGA's
-prerequisites (mainly boost).  To us, a mixed approach seemed most
-favorable, where the bulk software installation is statically done
-via a custom VM image, but software configuration and application
-deployment are done dynamically during VM startup.
-
-\subsubsection{Resources used in Experiments}
-
-Simulations were performed on a range of supercomputing resources on
-TeraGrid machines, shared TeraGrid-LONI (Louisiana Optical Network
-Initiative)~\cite{loni-url} resources and smaller LONI clusters such
-as Eric, Oliver, Louie and Poseidon (512 cores).  We also used
-Amazon's EC2 and Nimbus as part of the ScienceCloud at Argonne.
-
-\subsubsection*{Resource I: TeraGrid/LONI Cluster (QB)}
-
-To evaluate the performance of BigJob, several experiments have been
-conducted on different LONI resources. The resources used are:
-QueenBee (QB), Poseidon and Oliver. For accessing these resources
-globus GRAM and an underlying Torque resource manager and Moab
-scheduler are used.
-
-\subsubsection*{Resource II: ILAB Cluster}
-
-To evaluate the performance of SAGA-Sphere and \sagamapreduce, several
-experiments have been conducted on the 50 node cluster of the Informatics
-Laboratory (ILAB) of the Hungarian Academy of Sciences. For accessing this
-resource no scheduler or resource manager is used.
-\jhanote{not sure we need this. but just a place-holder for the moment}
-\miklosnote{What is necessary to have described about the ILAB cluster?
-Feel free to move this section to somewhere else where more appropriate.}
+It must be noted that we utilized different \smr versions for the
+described experiments: the work described in this paper spans more
+than 18 months, and the \smr implementation has simply evolved over
+time.  As our primary goal is to dmeonstrate interoperability, and not
+to document maximal performance, we consider those results valid
+nonetheless.
 
 
-\subsubsection*{Resource III: Cloud Environments}
-\jhanote{not sure we need this. but just a place-holder for the
-  moment; not sure this subsection makes sense. Needs fixing. As does
-  the following}
+\section{Experiments} 
 
-For our experiments we used different cloud environments: the Nimbus
-Science Cloud of the University of Chicago and the Amazon EC2
-environment is used. In general, each cloud has its
-characteristics. The Nimbus cloud is accessed via the WSRF interface,
-while for EC2 the Amazon command line client is used. Each Nimbus VM
-provides 2 virtual cores and 3.7\,GB memory.  Amazon offers different
-VM types with up to 8 cores. We used the largest VM type (m2.4xlarge)
-with 8 cores and 68.4\,GB of memory and the m1.large instance type
-with 2 cores and 7.5\,GB, which compares best to the virtual machine
-provided by Nimbus.
-
-
-\subsubsection{Experiments} 
+\subsection{Type I: Interoperability via Adaptors}
 
 In an earlier paper (Ref~\cite{saga_ccgrid09}), we performed tests to
 demonstrate how \sagamapreduce utilizes different infrastructures and
@@ -904,7 +833,7 @@ can differ as well as useful for our experiments.
 
 
 
-\subsubsection{Results and Analysis}
+\subsubsection*{Results and Analysis}
 
 
 \begin{table}
@@ -1190,6 +1119,7 @@ general case, but a noticeable aspect that emerges through its comparison with S
 
 
 \subsection{Type  III: Interoperability Concurrency}
+
 We introduce a third type of interoperability in this section 
 where SAGA-MapReduce and SAGA-Sphere are used in conjunction 
 to solve the word count problem. We first use the "netperf" 
