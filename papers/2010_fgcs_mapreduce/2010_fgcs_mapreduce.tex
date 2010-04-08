@@ -80,6 +80,7 @@
 \newcommand{\I}[1]{\textit{#1}}
 \newcommand{\B}[1]{\textbf{#1}}
 \newcommand{\F}[1]{\B{FIXME: #1}}
+\newcommand{\TODO}[1]{\textcolor{red}{\B{TODO: #1}}}
 
 \newcommand{\ssh}[1]{\T{ssh}\xspace}
 \newcommand{\scp}[1]{\T{scp}\xspace}
@@ -448,7 +449,6 @@ enhancement of SAGA Map Reduce, along with the implementation of the
 Sector/Sphere adaptors naturally gives us the opportunity to compare
 and study these two distinct programming models.
 
-u
 
 \section{SAGA-based MapReduce}
 \label{sec:mr}
@@ -457,7 +457,8 @@ u
  implementation to compare both different backend systems (grids,
  clouds, clusters) and different programming models (master/slave,
  Sector-Sphere streams).  A simple wordcount application on top of
- \smr has been used as a close-to-reality test case.
+ \smr has been used as a close-to-reality test case, which is
+ described in Sec.~\ref{sec:apps}.
 
 % After \sagamapreduce we have also developed real scientific
 % applications using SAGA based implementations of patterns for
@@ -542,82 +543,80 @@ distributed File-System, such as HDFS.
 
 %\jhanote{Miklos: This is your section. Please complete/refine/add}
 
-The performance enhancements to the existing \sagamapreduce implementation
-are based on two important changes: (i) rearranging the shuffle phase and (ii)
-using a serialized binary format instead of plain textual format for intermediate
-data storage (also available as an input and output format).  The previous
-change means that, instead of having the master merge and then sort the
-intermediate data by key before doing the reduce phase, the workers buffer
-key/value pairs from the map phase and store them in sorted order
-on disk by doing an in-memory sort before writing. Also, since intermediate
-key/value pairs from a map worker are already sorted, the reduce workers need
-to only merge these pairs coming from different map workers while applying the
-user-defined reduce function to the merged intermediate key and value list.
-The second important performance enhancement comes from storing intermediate
-key/value pairs in a so-called \emph{sequence file format}. This file format
-allows storing of serialized key/value objects which can be read and merged
-much faster in the reduce phase than textual data because there is no need for
-costly parsing.  We used the Google Protocol Buffers library for implementing
-serialization~\cite{protobuf}.
-The processing of input and output key/value pairs is further enhanced by
-minimizing unnecessary memory I/O operations using a zero-copy scheme.
+The performance enhancements to the \sagamapreduce implementation as
+discussed in~\cite{saga_ccgrid09} are based on two important changes:
+(i) rearranging the shuffle phase, and (ii) using a serialized binary
+format instead of plain text for intermediate data storage (also
+available as an input and output format).  The first change means
+that, instead of having the master merge and then sort the
+intermediate data by key before doing the reduce phase, the workers
+buffer key/value pairs from the map phase and store them in sorted
+order on disk, doing an in-memory sort before writing. Also, since
+intermediate key/value pairs from a map worker are already sorted, the
+reduce workers need to only merge these pairs coming from different
+map workers while applying the user-defined reduce function to the
+merged intermediate key and value list.  The second enhancement
+applies to the storage of the intermediate key/value pairs in a
+so-called \emph{sequence file format}. This file format allows storing
+of serialized key/value objects which can be read and merged much
+faster in the reduce phase than text data, as there is no need for
+costly parsing.  We used the Google Protocol Buffers library for
+implementing serialization~\cite{protobuf}.  The processing of input
+and output key/value pairs is further enhanced by minimizing
+unnecessary memory I/O operations using a zero-copy scheme.
 
-\subsection{\sagamapreduce Set-Up \textcolor{red}{Andre}}
+\subsection{\sagamapreduce Set-Up \TODO{Andre}}
 
-\jhanote{compress}
-When deploying compute clients on a \I{diverse} set of resources, the
-question arises if and how these clients need to be configured to
-function properly in the overall application scheme.  \sagamapreduce
-compute clients (workers) require two pieces of information to
-function: (a) the contact address of the advert service used for
-coordinating the clients, and for distributing work items to them; and
-(b) a unique worker ID to register with in that advert service, so
-that the master can start to assign work items.  Both information are
-provided via command line parameters to the worker, at startup time.
+As with any application which concurrently spans multiple diverse
+resources or infrastructures, the coordination between the different
+application components becomes challenging.  The \smr implementation
+uses the SGA advert API for that task, and can thus limit the a-priory
+information needed for bootstrapping the application: the compute
+clients (workers) require (i) the contact address of the used advert
+service instance, and (ii) a unique worker ID to register with in that
+advert service, so that the master can start to assign work items.
+Both information are provided by the master via command line
+parameters to the worker, at startup time.
 
 The master application requires the following additional information:
-i) a set of resources where the workers can execute, ii) location of
-the input data, iii) the location of the output data, and iv) the
-contact point for the advert service for coordination and
-communication.  
+(i) a set of resources where the workers can execute, (ii) the
+location of the input data, (iii) the target location for the output
+data, and (iv) the contact point for the advert service for
+coordination and communication.  
 
-In a typical configuration file, for example, three worker instances
-could be started; the first could be started via gram and PBS on
-qb1.loni.org, second started on a pre-instantiated EC2 image
-(instance-id \T{i-760c8c1f}), and finally will be running on a
-dynamically deployed EC2 instance (no instance id given).  Note that
-the startup times for the individual workers may vary over several
-orders of magnitudes, depending on the PBS queue waiting time and VM
-startup time.  The mapreduce master will start to utilize workers as
-soon as they are able to register themselves, so will not wait until
-all workers are available.  That mechanism both minimizes
-time-to-solution, and maximizes resilience against worker loss.
-
-The scheme \T{any} acts here as a placeholder for SAGA, so that the
-SAGA engine can choose an appropriate adaptor.  The master would
-access the file via the default local file adaptor.  The globus
-clients may use either the GridFTP or SSH adaptor for remote file
-success (but in our experimental setup would also succeed 
-using the local file adaptor, as the Lustre FS is mounted on the
-cluster nodes), and the EC2 workers would use the ssh file adaptor for
-remote access.  Thus, the use of the placeholder scheme frees us from
-specifying and maintaining a concise list of remote data access
-mechanisms per worker.  Also, it facilitates additional resilience
-against service errors and changing configurations, as it leaves it up
-to the SAGA engine's adaptor selection mechanism to find a suitable
-access mechanism at runtime.
-%A parameter not shown in the above configuration example 
-A simple parameter can control the number of workers created on each
+In a typical configuration, for example, three worker instances could
+be started; the first could be started via GRAM and PBS on
+qb.teragrid.org, the second on a pre-instantiated EC2 image
+(instance-id \T{i-760c8c1f}), and the third on a dynamically deployed
+EC2 instance (no instance id given).  Note that the startup times for
+the individual workers may vary over several orders of magnitudes,
+depending on the PBS queue waiting time and VM startup time.  The
+mapreduce master will start to utilize workers as soon as they are
+able to register themselves, so will not wait until all workers are
+available.  That mechanism both minimizes time-to-solution, and
+maximizes resilience against worker loss.
+%
+% The scheme \T{any} acts here as a placeholder for SAGA, so that the
+% SAGA engine can choose an appropriate adaptor.  The master would
+% access the file via the default local file adaptor.  The globus
+% clients may use either the GridFTP or SSH adaptor for remote file
+% success (but in our experimental setup would also succeed using the
+% local file adaptor, as the Lustre FS is mounted on the cluster
+% nodes), and the EC2 workers would use the ssh file adaptor for
+% remote access.  Thus, the use of the placeholder scheme frees us
+% from specifying and maintaining a concise list of remote data access
+% mechanisms per worker.  Also, it facilitates additional resilience
+% against service errors and changing configurations, as it leaves it
+% up to the SAGA engine's adaptor selection mechanism to find a
+% suitable access mechanism at runtime.  A parameter not shown in the
+% above configuration example 
+%
+A simple parameter controls the number of workers created on each
 compute node; as we will see by varying this parameter, the chances
 are good that compute and communication times can be interleaved, and
 that the overall system utilization can increase (especially in the
 absence of precise knowledge of the execution system).
  
-% As we have seen above, the globus nodes
-% can utilize a variety of mechanisms for accessing the data in
-% question.
-% include as needed
-
 
 \section{SAGA-based Applications: Three Types of Interoperability}
 \label{sec:interop}
