@@ -769,82 +769,85 @@ nonetheless.
 In an earlier paper (Ref~\cite{saga_ccgrid09}), we performed tests to
 demonstrate how \sagamapreduce utilizes different infrastructures and
 provides control over task-data placement; this led to insight into
-performance on ``vanilla'' grids. The primary aim of this work is to
-establish, via well-structured and designed experiments, the fact that
-\sagamapreduce has been used to demonstrate cloud-cloud
-interoperability and cloud-grid interoperability. In this paper, we
-perform the following experiments:
+performance on ``vanilla'' grids.  The primary aim of the work
+presented here is to establish the fact that \sagamapreduce can
+provide cloud-cloud interoperability and cloud-grid interoperability.
+We performed the following experiments:
+
 \begin{enumerate}
-\item We compare the performance of \sagamapreduce when exclusively
-  running on a cloud platform to that when on grids. We vary the
-  number of workers (1 to 10) and the data-set sizes varying from 10MB
-  to 1GB.
-\item For clouds, we then vary the number of workers per VM, such that
-  the ratio is 1:2; we repeat with the ratio at 1:4 -- that is the
-  number of workers per VM is 4.
-\item We then distribute the same number of workers across two
-  different clouds - EC2 and Eucalyptus.
-\item Finally, for a single master, we distribute workers across grids
-  (QueenBee on the TeraGrid) and clouds (EC2 and Eucalyptus) with one job
-  per VM.
-  % We provide selected performance data.  performance from the two
-  % hybrid (EC2-Grid, EC2-Eucalyptus
-  % distribution) cases to the pure distributed case.
+
+ \item We compare the performance of \sagamapreduce when exclusively
+ running on a cloud platform to that when on grids. We vary the number
+ of workers (1 to 10) and the data-set sizes varying from 10MB to 1GB.
+
+ \item For clouds, we then vary the number of workers per VM, such
+ that the ratio is 1:2 and 1:4, respectively.
+
+ \item We then distribute the same number of workers across two
+ different clouds - EC2 and Eucalyptus.
+
+ \item Finally, for a single master, we distribute workers across
+ grids (QueenBee on the TeraGrid) and clouds (EC2 and Eucalyptus) with
+ one job per VM.
+
 \end{enumerate}
-% Unless mentioned otherwise, we set the number of workers per VM to be
-% 1. 
+
 It is worth reiterating, that although we have captured concrete
 performance figures, it is not the aim of this work to analyze the
 data and provide a performance model. In fact it is difficult to
 understand performance implications, as a detailed analysis of the
 data and understanding the performance will involve the generation of
 ``system probes'', as there are differences in the specific cloud
-system implementation and deployment.  For example, in EC2 clouds % the
-% default scenario is probably that the VMs are distributed with respect
-% to each other. There
-there exists the notion of availability zone, which is really just a
-control on which data-center/cluster the VM is placed. In the absence
-of explicit mention of the availability zone, it is difficult to
-determine or assume that the availability zones for multiple,
-distributed workers are the same. However, for GumboCloud, it can be
-established that the same cluster is used and thus it is fair to
-assume that the VMs are local with respect to each other.  Similarly,
-without explicit tests, it is often unclear whether data is local or
-distributed.  It should also be assumed that for Eucalyptus based
-clouds, data is also locally distributed (i.e.  same cluster with
-respect to a VM), whereas for EC2 clouds this cannot be assumed to be
-true for every experiment/test. In a nutshell without adjusting for
-different system implementations, it is difficult to rigorously
+system implementation and deployment.  In a nutshell without adjusting
+for different system implementations, it is difficult to rigorously
 compare performance figures for different configurations on different
 machines. At best we can currently derive trends and qualitative
-information.
+information.  Any further analysis is considered out of scope for this
+paper.
 
-It takes SAGA about 45s to instantiate a VM on Eucalyptus
-\jhanote{Andre is this still true?}  and about 200s on average on EC2.
-We find that the size of the image (say 5GB versus 10GB) influences
-the time to instantiate an image, but is within image-to-image
-instantiation time fluctuation.  Once instantiated, it takes from
-1-10s to assign a job to an existing VM on Eucalyptus, or EC2.  The
-option to tie the VM lifetime to the \texttt{job\_service} object
-lifetime is a configurable option.  It is also a matter of simple
-configuration to vary how many jobs (in this case workers) are
-assigned to a single VM. The default case is 1 worker per VM; the
-ability to vary this number is important -- as details of actual VMs
-can differ as well as useful for our experiments.
-% it is
-% important to be able to vary the number of workers per VM -- as
-% details of the VM can differ.
-
-\jhanote{Needs major addition and rewrite. Saurabh and Miklos take a
-  first pass please at adding}
-
+It takes SAGA about 45s to instantiate a VM on Eucalyptus and about
+200s on average on EC2.  We find that the size of the image (say 5GB
+versus 10GB) influences the time to instantiate an image, but is
+within image-to-image instantiation time fluctuation.  Once
+instantiated, it takes from 1-10s to assign a job to an existing VM on
+Eucalyptus, or EC2.  The option to tie the VM lifetime to the
+\T{saga::job\_service} object lifetime is a configurable option.  It
+is also a matter of simple configuration to vary how many jobs (in
+this case workers) are assigned to a single VM:  the default is 1
+worker per VM.  The ability to vary this number is important -- as
+details of actual VMs can differ as well as useful for our
+experiments.
 
 
 \subsubsection*{Results and Analysis}
 
+The total time to solution ($T_s$) of a \sagamapreduce job can be
+decomposed as the sum of three primary components -- $t_{pre},
+t_{comp}$ and $t_{coord}$.  Here $t_{pre}$ is defined as
+pre-processing time, which covers the time to chunk the data into
+fixed size data units, to distribute them, and also to spawn the job.
+$t_{pre}$ does not includes the time required to start VM instances.
+$t_{comp}$ is the time to actually compute the map and reduce function
+on a given worker, whilst $t_{coord}$ is the time taken to assign the
+payload to a worker, update records and to possibly move workers to a
+destination resource; in general, $t_{coord}$ scales as the number of
+workers increases.
 
-\begin{table}
-  \upp
+Table~\ref{tab:1a} shows performance measurements for a variety of
+worker placement configurations.  The master places the workers on
+either clouds or on the TeraGrid (TG). The configurations -- separated
+by horizontal lines, are classified as either all workers on the TG or
+having all workers on EC2. For the latter, unless otherwise indicated
+parenthesis, every worker is assigned to a unique VM. In the final set
+of rows, the number in parenthesis indicates the number of VMs used.
+Note that the spawning times depends on the number of VMs, even if it
+does not include the VM startup times.  Table~\ref{tab:1b} shows data
+from our interoperability tests.  The first set of data establishes
+cloud-cloud interoperability. The second set (rows 5--11) shows
+interoperability between grids-clouds (EC2).  The experimental
+conditions and measurements are similar to Table 1.
+
+\begin{table}[h!]
   \footnotesize
   \begin{tabular}{cccccc}
     \hline
@@ -877,22 +880,30 @@ can differ as well as useful for our experiments.
     \hline \hline
   \end{tabular}
   \caption{Performance data for different configurations of worker
-  placements. The master places the workers on either clouds or on the
-  TeraGrid (TG). The configurations -- separated by horizontal lines,
-  are classified as either all workers on the TG or having all workers
-  on EC2. For the latter, unless otherwise explicitly indicated by a
-  number in parenthesis, every worker is assigned to a unique VM. In
-  the final set of rows, the number  in parenthesis indicates the
-  number of VMs used. It is interesting to note the significant
-  spawning times, and its dependence on the number of VM, which
-  typically increase with the number of VMs. $T_{sp}$ (spawn) does not
-  include instantiation of the VM.
-  \label{stuff-1}}
-
-  
+  placements.\uppp
+  \label{tab:1a}}
 \end{table}
 
-\begin{table}
+We find that in our experiments $t_{comp}$ is typically greater than
+$t_{coord}$, but when the number of workers gets large, and/or the
+computational load per worker small, $t_{coord}$ can dominate
+(internet-scale communication) and increase faster than $t_{comp}$
+decreases, thus overall $T_s$ can increase for the same data-set size,
+even though the number of independent workers increases.  The number
+of workers associated with a VM also influences the performance, as
+well as the time to spawn; for example -- as shown by the three lower
+boldface entries in Table 1, although 4 identical workers are used
+depending upon the number of VMs used, $T_c$ (defined as $T_S -
+T_{spawn} $) can be different.  In this case, when 4 workers are
+spread across 4 VMs (i.e. default case), $T_c$ is lowest, even though
+$T_{spawn}$ is the highest; $T_c$ is highest when all four are
+clustered onto 1 VM. When exactly the same experiment is performed
+using data-set of size 10MB, it is interesting to observe that $T_c$
+is the same for 4 workers distributed over 1 VM as it is for 4 VMs,
+whilst when the performance for the case when  4 workers are
+spread-over 2 VMs out-perform both (2.1s).
+
+\begin{table}[h!]
   \footnotesize
   \begin{tabular}{ccccccc}
     \hline
@@ -919,63 +930,9 @@ can differ as well as useful for our experiments.
   %   3 & 3 & - & 100 & 11.1 & 8.7 & 2.4 \\
   \end{tabular}
   \caption{Performance data for different configurations of worker
-  placements on TG, Eucalyptus-Cloud and EC2. The first set of data
-  establishes cloud-cloud interoperability. The second set (rows 5-
-  11) shows interoperability between grids-clouds (EC2).  The
-  experimental conditions and measurements are similar to Table
-  1.\label{stuff-2}}
+  placements on TG, Eucalyptus-Cloud and EC2. \uppp
+  \label{tab:exp1b}}
 \end{table}
-
-
-
-The total time to solution ($T_s$) of a \sagamapreduce job, can be
-decomposed as the sum of three primary components -- $t_{over},
-t_{comp}$ and $t_{coord}$.  The first term $t_{over}$, is defined as
-the time for pre-processing -- which is the time to chunk into fixed
-size data units, to distribute them and also to spawn the job. This is
-in some ways the overhead of the process (hence the subscript).
-Another component of the overhead is the time it takes to instantiate
-a VM ($T_{spawn}$).
-% It is worth mentioning that currently we instantiate VMs serially as
-% opposed to doing this concurrently. This is not a design decision
-% but just a quirk, with a trivial fix to eliminate it.
-Our performance figures take the net instantiation time into account
-and thus normalize for multiple VM instantiation -- whether serial or
-concurrent started-up. In fact, for data we report in Table 1 and 2,
-the spawning time does not consider instantiation, i.e., the job is
-dynamically assigned an existing VM; thus numbers indicate relative
-performance and are amenable to direct comparison irrespective of the
-number of VMs.  $t_{comp}$ is the time to actually compute the map and
-reduce function on a given worker, whilst $t_{coord}$ is the time
-taken to assign the payload to a worker, update records and to
-possibly move workers to a destination resource; in general,
-$t_{coord}$ scales as the number of workers increases.
-% In general: \vspace{-1em}
-% \begin{eqnarray}
-% T_s = t_{over} + t_{comp} + t_{coord} 
-% \end{eqnarray}
-
-% We will define $t_{comp} + t_{coord} = T_c = T_s - T_{spawn}$; 
-We find that $t_{comp}$ is typically greater than $t_{coord}$, but
-when the number of workers gets large, and/or the computational load
-per worker small, $t_{coord}$ can dominate (internet-scale
-communication) and increase faster than $t_{comp}$ decreases, thus
-overall $T_s$ can increase for the same data-set size, even though the
-number of independent workers increases.  The number of workers
-associated with a VM also influences the performance, as well as the
-time to spawn; for example -- as shown by the three lower boldface
-entries in Table 1, although 4 identical workers are used depending
-upon the number of VMs used, $T_c$ (defined as $T_S - T_{spawn} $) can
-be different.  In this case, when 4 workers are spread across 4 VMs
-(i.e. default case), $T_c$ is lowest, even though $T_{spawn}$ is the
-highest; $T_c$ is highest when all four are clustered onto 1 VM. When
-exactly the same experiment is performed using data-set of size 10MB,
-it is interesting to observe that $T_c$ is the same for 4 workers
-distributed over 1 VM as it is for 4 VMs, whilst when the performance
-for the case when  4 workers are spread-over 2 VMs out-perform both (2.1s).
-% Interestingly for 100MB and 8 workers -- although the $T_s$ is larger
-% than when 4 workers are used, the $T_c$ is lower when 4VMs
-% are use
 
 Table 2 shows performance figures when equal number of workers are
 spread across two different systems; for the first set of rows,
@@ -999,11 +956,11 @@ experiment-to-experiment fluctuations (typically less than 1s).  The
 ability to enhance performance by distributed (heterogeneous)
 work-loads across different systems remains a distinct possibility,
 however, we believe more systematic studies are required.
-
 % \jhanote{Needs major addition and rewrite. Saurabh and Miklos take a
 %   first pass please at adding}
 
-{\it Enhanced SAGA-MR Performance versus Early-version of SAGA-MR}
+
+\jhanote{Enhanced SAGA-MR Performance versus Early-version of SAGA-MR}
 %\jhanote{Miklos: You have the data for this in the``WordCount
 %  Measurement'' tab of
 %  \url{http://spreadsheets.google.com/ccc?key=0AvHZsmPSSmBmdHVUMWFuWEpQdFQyak5GeHhQRVJrMlE&hl=en}
