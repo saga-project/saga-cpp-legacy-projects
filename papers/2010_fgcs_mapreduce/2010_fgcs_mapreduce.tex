@@ -784,7 +784,7 @@ remote I/O on a remote, non-shared file system.
 It must be noted that we utilized different \smr versions for the
 described experiments: the work described in this paper spans more
 than 18 months, and the \smr implementation has simply evolved over
-time.  As our primary goal is to dmeonstrate interoperability, and not
+time.  As our primary goal is to demonstrate interoperability, and not
 to document maximal performance, we consider those results valid
 nonetheless.
 
@@ -797,10 +797,10 @@ nonetheless.
 In an earlier paper (Ref~\cite{saga_ccgrid09}), we performed tests to
 demonstrate how \sagamapreduce utilizes different infrastructures and
 provides control over task-data placement; this led to insight into
-performance on ``vanilla'' grids.  The primary aim of the work
-presented here is to establish the fact that \sagamapreduce can
-provide cloud-cloud interoperability and cloud-grid interoperability.
-We performed the following experiments:
+performance on ``vanilla'' grids.  This work extends earlier work and
+establishes that \sagamapreduce can provide cloud-cloud
+interoperability and cloud-grid interoperability.  We performed the
+following experiments:
 
 \begin{enumerate}
 
@@ -869,11 +869,13 @@ having all workers on EC2. For the latter, unless otherwise indicated
 parenthesis, every worker is assigned to a unique VM. In the final set
 of rows, the number in parenthesis indicates the number of VMs used.
 Note that the spawning times depends on the number of VMs, even if it
-does not include the VM startup times.  Table~\ref{tab:1b} shows data
-from our interoperability tests.  The first set of data establishes
-cloud-cloud interoperability. The second set (rows 5--11) shows
-interoperability between grids-clouds (EC2).  The experimental
-conditions and measurements are similar to Table 1.
+does not include the VM startup times.  
+
+
+Table~\ref{tab3} shows data from our interoperability tests.  The
+first set of data establishes cloud-cloud interoperability. The second
+set (rows 5--11) shows interoperability between grids-clouds (EC2).
+The experimental conditions and measurements are similar to Table 1.
 
 \begin{table}[h!]
   \footnotesize
@@ -959,10 +961,10 @@ spread-over 2 VMs out-perform both (2.1s).
   \end{tabular}
   \caption{Performance data for different configurations of worker
   placements on TG, Eucalyptus-Cloud and EC2. \uppp
-  \label{tab:1b}}
+  \label{tab3}}
 \end{table}
 
-Table 2 shows performance figures when equal number of workers are
+Table~\ref{tab3} shows performance figures when equal number of workers are
 spread across two different systems; for the first set of rows,
 workers are distributed on EC2 and Eucalyptus. For the next set of
 rows, workers are distributed over the TG and Eucalyptus, and in the
@@ -1176,64 +1178,88 @@ a 64 MB chunk size.
 \section{Discussion \& Conclusions}
 \label{sec:discuss}
 
-\jhanote{Recap three levels of Application Level Interoperability}
+The aim of this paper has been to show several types (and levels) of
+interoperability; although driven by experiments, there are deeper
+questions that motivate this work. As alluded to in the opening
+sections, the volume and the degree-of-distributedness of data is
+increasing rapidly. In order to build empirical models, or validate
+existing predictions of performance, it is important to establish \&
+experiment with programming models and data-oriented algorithms (e.g.,
+streaming) on a range of systems. This is an important step towards
+general-purpose programming models, the first-step of which is
+interoperability of the types discussed.
 
 At the lowest level, \sagamapreduce demonstrates how to decouple the
 development of applications from the deployment and details of the
 run-time environment (Type I ALI).  It is critical to reiterate that
-using this approach applications remain insulated from any underlying
+using this approach, applications remain insulated from any underlying
 changes in the infrastructure -- not just grids and different
 middleware layers, but also different systems with very different
 semantics and characteristics, whilst being exposed to the important
-distributed functionality.  MapReduce has trivial data-parallelism, so
-in the near future we plan to develop applications with non-trivial
-data-access, transfer and scheduling characteristics and requirements,
-and deploy different parts on different underlying infrastructure
-guided by optimal performance.
+distributed functionality.
 
-With our two implementations of the same application framework, the
-SAGA based Sector-Sphere framework, and the \smr implementation, we
-demonstrated the Type II ALI: applications can seemlessly switch
-between backends by switching frameworks.  Finally, by concurrently
-using Sector-Sphere \mr and \smr, we demonstrated Type III ALI,
-allowing the application to span a wide variety of backends
-concurrently, and efficiently.
+With two implementations of the same application framework, the SAGA
+based Sector-Sphere framework, and the \smr implementation, we also
+demonstrated Type II ALI: applications can seemlessly switch between
+backends by switching frameworks.  Finally, by concurrently using
+Sector-Sphere \mr and \smr, we demonstrated Type III ALI, allowing the
+application to span a wide variety of backends concurrently, and
+efficiently.
 
-{\it Programming Models for Clouds: } Ref~\cite{jha_ccpe09} introduced
-the notion of {\it affinity} for clouds to capture the idea of
-relative data-compute placement and locality; it is imperative that
-any programming model/system be cognizant of the notion of
-affinity. We have implemented the first steps in a PM which provides
-easy control over relative data-compute placement; a possible next
-step would be to extend SAGA to directly support affinity (data-data,
-data-compute).  There exist other emerging programming systems like
-Dryad, Sawzall and Pig, which could be used in principle to support
-the notion of affinity as well as develop/use MapReduce.  But it is
-important to distinguish the infrastructure independence of
-\sagamapreduce with the reliance of Google's
-MapReduce~\cite{mapreduce-paper} on a number of capabilities of the
-underlying system -- mostly related to file operations, but including
-system features related to process/data allocation.
+Tests at all three levels, were performed using SAGA-\mr -- which from
+an execution perspective is a relatively straight-forward application.
+However, we are not confined to \mr and applications based upon \mr;
+SAGA is also capable of supporting additional programming models, like
+Dryad. 
 
-We will generalize our approach to most efficiently execute it by
-taking into consideration the data-locality, as well as the access
-patterns of the execution steps required to complete the work flow.
+We are also developing applications with non-trivial data-access,
+transfer and scheduling characteristics and requirements and deploying
+them on different underlying infrastructure guided by heuristics to
+seek optimised performance.
+% We will generalize our approach to most efficiently execute it by
+% taking into consideration the data-locality, as well as the access
+% patterns of the execution steps required to complete the work flow.
 This analysis is done through developing performance models of
 transferring data between frameworks, as well as the distribution of
 the computing resources in the environment. Based on this analysis,
 the data is placed efficiently, and a subset of nodes and frameworks
 maybe chosen to perform the necessary computations. The shuffled data
 is also cached for future computations.  We have embarked on the
-creation of components that facilitate flexibility in data placement
-relative to the computational resource -- that is either data can be
-transferred intelligently to match computational workloads or
-computational workloads can be placed to match (prevent) data
-requirements~\cite{???}. More generically, it is worth mentioning that
-these approaches can be extend to support certain kinds of {\it
-affinities}.
+creation of components that facilitate intelligence and flexibility in
+data placement relative to the computational resource
+~\cite{saga_dic_royalsoc09}. These components are connected in
+frameworks using SAGA, thus further the agenda of general-purpose
+programming models with efficient run-time support that can utilize
+multiple heterogeneous resources.
+
+
+
+% -- that is either data can be transferred intelligently to match
+% computational workloads or computational workloads can be placed to
+% match (prevent) data requirements
 
 \amnote{someone needs to check the paragraph above. Sounds like a lot
 of handwaving ;-) What is the citation supposed to be?}
+\jhanote{Addressed. Please comment if insufficient still..}
+
+% In all of this, important to distinguish the infrastructure
+% independence of \sagamapreduce with the reliance of Google's
+% MapReduce~\cite{mapreduce-paper} on a number of capabilities of the
+% underlying system -- mostly related to file operations, but including
+% system features related to process/data allocation.
+
+% {\it Programming Models for Clouds: } Ref~\cite{jha_ccpe09} introduced
+% the notion of {\it affinity} for clouds to capture the idea of
+% relative data-compute placement and locality; it is imperative that
+% any programming model/system be cognizant of the notion of
+% affinity. We have implemented the first steps in a PM which provides
+% easy control over relative data-compute placement; a possible next
+% step would be to extend SAGA to directly support affinity (data-data,
+% data-compute).  
+
+% More generically, it is worth mentioning that these approaches can be
+% extend to support certain kinds of {\it affinities}.
+
 
 
 % A feature worth noting in MapReduce is that the ultimate dataset is
