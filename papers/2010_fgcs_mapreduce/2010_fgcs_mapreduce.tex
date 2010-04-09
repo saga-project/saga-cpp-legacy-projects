@@ -253,7 +253,11 @@ sub-tasks make this often difficult to determine before run-time.
 \amnote{ that second claim needs justification -- I actually think
   that all Montage tasks could happily run on cloud nodes.  Do we have
   better examples, maybe for apps which have infrequent dynamic
-  scale-up requirements?}. \jhanote{Addressed, I think}
+  scale-up requirements?}. \jhanote{Addressed, I think} Last, but not
+the least an application may be better suited to execution using
+different programming models on different systems.  It is also the aim
+of our studies to investigate interoperability of different
+programming models for the same application.
 
 % Finally, effort directed towards ALI on clouds/grids in addition to
 % satisfying basic curiosity of ``if and how to interoperate'', might
@@ -413,8 +417,7 @@ is complete.
 % \ssnote{Add another section here for experiments, or maybe later after
 % MapReduce description} 
 
-\paragraph{SAGA adaptor overhead:}
-\label{ssec:overhead}
+\paragraph{SAGA adaptor overhead:} \label{ssec:overhead}
 
 We execute a simple experiment to measure the overhead introduced by
 submitting Sphere jobs and Sector file operations through SAGA.  The
@@ -633,43 +636,48 @@ that the overall system utilization can increase (especially in the
 absence of precise knowledge of the execution system).
  
 
-\section{Demonstrating 3 Types of Application Level Interoperability}
+\section{Application Level Interoperability: Three-levels}
 \label{sec:interop}
+
+The motivation of ALI across multiple, heteregenous and distributed
+resources follows from large-scale scientific applications, such as
+the Earth Science Grid and LEAD. However for simplicity of treatment
+and to focus on the levels of interoperability we will use a simple,
+self-contained application, that has also become the {\it canonical}
+\mr application-driver -- \wc.
 
 \subsection{Application: \Wc}
 \label{ssec:app}
 
-We use our own implementations of the well known \wc application
-for our experiments.  \Wc has a well understood runtime and
-scaling behaviour, and thus serves us well for focusing the tests on
-the used frameworks and middlewares.
+We use our own implementations of the well known \wc application for
+our experiments.  \Wc has a well understood runtime and scaling
+behaviour, and thus serves us well for focusing the tests on the used
+frameworks and middlewares.
 
-The \mr based \wc implementation is described
-in~\cite{saga_ccgrid09}.  For the Sector-Sphere version of \wc,
-we implemented two kernel functions. The first kernel function is
-responsible for hashing the words in the data set into different
-hashing "buckets", depending on the word's starting letter.  The
-standard C++ collate hashing function was used for this purpose.  The
-second kernel function reads each hash bucket, sorts the words in
-memory and outputs the final count value of the words in the data set.
-For example, a file containing the words \T{('bread' 'bee' 'bee'
-'honey')} would be hashed into buckets as \T{('bread' 'bee' 'bee')} and
-\T{('honey')}.  The second kernel function would read these
-intermediate bucket files, sort the words, and produce the following
-result .  \T{(.bread 1., .bee 2., .honey 1.)}.  The Sphere system is
-responsible for assigning files for processing, synchronization, and
-writing output results back to Sector.
-
+The \mr based \wc implementation is described in~\cite{saga_ccgrid09}.
+For the Sector-Sphere version of \wc, we implemented two kernel
+functions. The first kernel function is responsible for hashing the
+words in the data set into different hashing "buckets", depending on
+the word's starting letter.  The standard C++ collate hashing function
+was used for this purpose.  The second kernel function reads each hash
+bucket, sorts the words in memory and outputs the final count value of
+the words in the data set.  For example, a file containing the words
+\T{('bread' 'bee' 'bee' 'honey')} would be hashed into buckets as
+\T{('bread' 'bee' 'bee')} and \T{('honey')}.  The second kernel
+function would read these intermediate bucket files, sort the words,
+and produce the following result .  \T{(.bread 1., .bee 2., .honey
+  1.)}.  The Sphere system is responsible for assigning files for
+processing, synchronization, and writing output results back to
+Sector.
 
 \subsection{Interoperability Types}
 
-Using the \wc application, we are able to demonstrate several
-aspects to application level interoperability. In this section, we
-outline 3 different levels/types of interoperability.
+Using the \wc application, we will demonstrate three types of
+application level interoperability. We outline them here:
 
+% different levels/types of interoperability.
 
-\subsubsection{Type I: Application Interoperability on different
-  infrastructures, via adaptors}
+\subsubsection{Type I: Application Interoperability via adaptors}
 %
 % Type I:  Application 
 %              |
@@ -679,22 +687,27 @@ outline 3 different levels/types of interoperability.
 %      /     /   \      \
 %    ... Clouds  Grids ...
 %
-A simple form of interoperability is that an application can use any
-distributed systems without changes to the application, thus
-experiencing cloud-cloud or grid-cloud interoperability.  As
-discussed, SAGA provides interoperability quite trivially thanks to
-the dynamic loading of adaptors.  We refer to this as Type I ALI.
+
+As discussed, SAGA provides the ability to load a wide-range of
+system-specifc adaptors dynamically. Thus a simple form of
+interoperability, possibly specific to applications developed using
+SAGA, is that an application can use any distributed systems without
+changes to the application, thus experiencing cloud-cloud or
+grid-cloud interoperability.  We refer to this as Type I
+interoperabilty.
+
+% interoperability quite trivially thanks to the dynamic loading of
+% adaptors.  A
 
 Thanks to the relative simplicity of developing SAGA adaptors, SAGA
-has been successful interfaced to three cloud systems -- Amazon's
-EC2, Eucalyptus~\cite{eucalyptus} (a local installation of Eucalyptus
-at LSU) and Nimbus~\cite{nimbus};  and also to a multitude of grid
-based environments, including TeraGrid, Loni and NGS.  SAGA based
+has been successful interfaced to three cloud systems -- Amazon's EC2,
+Eucalyptus~\cite{eucalyptus} (a local installation of Eucalyptus at
+LSU) and Nimbus~\cite{nimbus}; and also to a multitude of grid based
+environments, including TeraGrid, Loni and NGS.  SAGA based
 applications are thus inherently able to utilize this form of ALI.
 
-
 \subsubsection{Type II: Application Interoperability using programming
-  models suited for different infrastructure}
+  models} % suited for different infrastructure}
 %
 % Type II:      Application 
 %                    |
@@ -704,12 +717,14 @@ applications are thus inherently able to utilize this form of ALI.
 %            |            |
 %       Sector-Sphere cluster/grids
 %
-On a different abstraction level, an application can be considered
-interoperable if they are able to switch between backend specific
-programming models.  We will discuss an example where the \wc
-application is implemented so that it can utilize either a
-Sector-Sphere framework via SAGA for the OCC backend, or the \smr
-framework for generic grid and cloud backends.
+
+Interoperabilty at a higher level than adaptors is both possible and
+often desirable. An application can be considered interoperable if it
+is able to switch between backend specific programming models.  We
+will discuss an example where the \wc application is implemented so
+that it can utilize either a Sector-Sphere framework via SAGA for the
+OCC backend, or the \smr framework for generic grid and cloud
+backends.
 
 
 \subsubsection{Type III: Application Interoperability using different
@@ -721,12 +736,16 @@ framework for generic grid and cloud backends.
 %                 |
 %   Sector-Sphere / cluster / grids / clouds
 %
-On yet another abstraction level, an application can be considered
-interoperable when it can \I{concurrently} a programming model over
-multiple, diverse backends.  We demonstrate that on a \wc
-application which, at the same time, uses Sector-Sphere and \smr
-to span multiple backends.
-            
+
+At another abstraction level, an application can also be considered
+interoperable when it can \I{concurrently} execute multiple
+programming model over multiple, diverse backends.  We demonstrate
+that a \wc application uses Sector-Sphere and \smr to span multiple
+backends.  The challenges of having different parts of an application
+execute concurrently using different programming models is
+conceptually different to loading different adaptors
+concurrently. Thus we describe this as a separate type of
+interoperability.
 
 \subsection{Experimental Setup}
 
@@ -736,7 +755,7 @@ on GumboGrid, a small cluster at LSU running Eucalyptus; on Amazon's
 EC2; on a bare 50 node cluster of the Hungarian Academy of Sciences;
 and on the OCC testbed~\cite{occ_testbed} running Sector-Sphere.  Jobs
 are started via the respectively available middlewares, via SAGA's job
-API.  Data exchange is either performed via streams, or  via SAGA's
+API.  Data exchange is either performed via streams, or via SAGA's
 file transfer API which can dynamically switch between the various
 available protocols.
 
