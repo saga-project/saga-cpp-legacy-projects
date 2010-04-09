@@ -460,7 +460,7 @@ and study these two distinct programming models.
  clouds, clusters) and different programming models (master/slave,
  Sector-Sphere streams).  A simple wordcount application on top of
  \smr has been used as a close-to-reality test case, and is
- described in Sec.~\ref{sec:apps}.
+ described in Sec.~\ref{ssec:app}.
 
 % After \sagamapreduce we have also developed real scientific
 % applications using SAGA based implementations of patterns for
@@ -625,13 +625,39 @@ that the overall system utilization can increase (especially in the
 absence of precise knowledge of the execution system).
  
 
-\section{Demonstrating 3 Types of Interoperability}
+\section{Demonstrating 3 Types of Application Level Interoperability}
 \label{sec:interop}
+
+\subsection{Application: Wordcount}
+\label{ssec:app}
+
+We use our own implementations of the well known wordcount application
+for our experiments.  Wordcount has a well understood runtime and
+scaling behaviour, and thus serves us well for focusing the tests on
+the used frameworks and middlewares.
+
+The \MR based wordcount implementation is described
+in~\cite{saga_ccgrid09}.  For the Sector-Sphere version of wordcount,
+we implemented two kernel functions. The first kernel function is
+responsible for hashing the words in the data set into different
+hashing "buckets", depending on the word's starting letter.  The
+standard C++ collate hashing function was used for this purpose.  The
+second kernel function reads each hash bucket, sorts the words in
+memory and outputs the final count value of the words in the data set.
+For example, a file containing the words \T{('bread' 'bee' 'bee'
+'honey')} would be hashed into buckets as \T{('bread' 'bee' 'bee')} and
+\T{('honey')}.  The second kernel function would read these
+intermediate bucket files, sort the words, and produce the following
+result .  \T{(.bread 1., .bee 2., .honey 1.)}.  The Sphere system is
+responsible for assigning files for processing, synchronization, and
+writing output results back to Sector.
+
 
 \subsection{Interoperability Types}
 
-There are several aspects to interoperability. In this section, we
-outline 3 different levels/types of interoperability.\amnote{expand}
+Using the wordcount application, we are able to demonstrate several
+aspects to application level interoperability. In this section, we
+outline 3 different levels/types of interoperability.
 
 
 \subsubsection{Type I: Application Interoperability on different
@@ -695,27 +721,6 @@ to span multiple backends.
             
 
 \subsection{Experimental Setup}
-
-\subsubsection{Application: Wordcount}
-
-We implemented two kernel functions to do a word count on four
-gigabytes text data.  The first kernel function is responsible for
-hashing the words in the data set into different hashing "buckets",
-depending on the word's starting letter.  The standard C++ collate
-hashing function was used for this purpose.  The second kernel
-function reads each hash bucket, sorts the words in memory and outputs
-the final count value of the words in the data set.  For example, a
-file containing the words ("bread" "bee" "bee" "honey") would be
-hashed into buckets as - ("bread" "bee" "bee") and ("honey").  The
-second kernel function would read these intermediate bucket files,
-sort the words, and produce the following result .  (.bread 1., .bee
-2., .honey 1.).  The Sphere system is responsible for assigning files
-for processing, synchronization, and writing output results back to
-Sector.  
-\amnote{check}
-
-
-\subsubsection{Testbed}
 
 Simulations were performed on shared TeraGrid-LONI (Louisiana Optical
 Network Initiative)~\cite{loni-url} resources running Globus and ssh;
