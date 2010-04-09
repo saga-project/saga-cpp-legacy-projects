@@ -2,6 +2,7 @@
 again: pdf
 
 pdf:
+	@cd figures && ./make_figures.sh
 	@pdflatex 2010_fgcs_mapreduce
 	@bibtex   2010_fgcs_mapreduce
 	@pdflatex 2010_fgcs_mapreduce | grep undef
