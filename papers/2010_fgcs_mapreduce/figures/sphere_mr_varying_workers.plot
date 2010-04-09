@@ -2,7 +2,7 @@ set term postscript eps enhanced color solid "Times-Roman" 23
 set output 'sphere_mr_varying_workers.eps'
 set pointsize 2
 set key Left reverse
-set xlabel 'Number of workers (MB)' font "Times-Italic, 28"
+set xlabel 'Number of workers' font "Times-Italic, 28"
 set ylabel 'Time (s)' font "Times-Italic, 28"
 set mxtics 2
 set mytics 5
