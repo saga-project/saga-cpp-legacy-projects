@@ -314,13 +314,13 @@ class bigjob_agent:
                 self.execute_job(job_dir)  
     
     def read_energy(self, replica_id):
-        enfile = open("/work/athota1/new_bigjob/bigjob/agent/" + "stdout-" + str(replica_id) + ".txt")
+        enfile = open("stdout-" + str(replica_id) + ".txt")
         lines = enfile.readlines()
         for line in lines:
           items = line.split()
           if len(items) > 0:
             if items[0] in ("ENERGY:"):
-               en = items[12]
+               en = items[11]
         print "(DEBUG) energy : " + str(en) 
         return en  
 
