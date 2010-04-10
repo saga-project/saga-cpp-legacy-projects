@@ -1087,15 +1087,17 @@ engines. Therefore, to experiment with different chunk sizes, the
 files were split manually into smaller chunks before the \wc
 application was launched. In this set of experiments, we vary the
 chunk size from 16 MB to 256 MB, while keeping the number of SPEs
-constant to 8, and the data size constant to 4 GB. Each SPE is running
+constant at 8, and the data size constant at 4 GB. Each SPE is running
 on a separate physical node in the cluster. These results are
 presented in Fig.~\ref{fig:sphere_mr_chunksize}.  As evident from the
 results we collected, a correlation exists between the chunk sizes and
 performance of Sphere.  As the chunk sizes increase, the performance
-deteriorates. Also, we observe a decline in performance after the 64
-MB data, in that there is an increase in the gradient of the plot,
-after chunk sizes have reached 64 MB.
+deteriorates. In particular, we observe a decline in performance after
+the 64 MB data, in that there is an increase in the gradient of the
+plot, after chunk sizes have reached 64 MB.
 
+\jhanote{Please describe the configurations used for Sphere and
+  MapReduce explicitly (distributed-distributed?).}
 %\jhanote{With the new data, does this
 %  still hold? ie., 64 MB or do we remove this sentence?}
 
@@ -1112,17 +1114,19 @@ after chunk sizes have reached 64 MB.
    }
 \end{figure}
 
-We performed the same set of experiments with SAGA-MapReduce based
-\wc and observe a completely different trend with respect to
-chunk size and performance.
-We use an HDFS file system running datanodes on each of the 8 workers
-and set the number of reduce tasks to 8.
-In case of SAGA-MapReduce performance increases with larger
-chunk sizes, reaching Sphere's performance at the 256 MB data point.
-According to our analysis, this can be attributed to the fact that
-$t_{coord}$ dominates total time-to-solution for smaller chunk sizes.
-The larger the chunk size the smaller the number of map tasks
-launched, hence $t_{coord}$ decreases with increasing chunk size.
+We performed the same set of experiments with SAGA-MapReduce based \wc
+and observe a completely different performance trend as the chunk size
+varied.  We use an HDFS file system running datanodes on each of the 8
+workers and set the number of reduce tasks to 8.  In case of
+SAGA-MapReduce, performance increases with larger chunk sizes,
+reaching Sphere's performance at the 256 MB data point.  According to
+our analysis, this can be attributed to the fact that for
+SAGA-MapReduce, $t_{coord}$ can dominate the total time-to-solution
+for large number of workers (or equivalently smaller chunk sizes).
+The larger the chunk size, the smaller the number of map tasks
+launched (workers), and provided the data work-load assigned to each
+worker is not too high, $t_{coord}$ decreases with increasing chunk
+size.
 
 
 \subsubsection{Experiment II -- Varying Workers}
@@ -1138,17 +1142,21 @@ launched, hence $t_{coord}$ decreases with increasing chunk size.
 \end{figure}
 
 We perform two sets of experiments with SAGA-Sphere running the same
-\wc application.  We keep the chunk size constant at 64 MB, the
-data size fixed at 4GB (as previously) but vary the number of workers
-in two configurations. In the first configuration, we use Sphere on a
+\wc application.  We keep the chunk size constant at 64 MB, the data
+size fixed at 4GB (as previously) but vary the number of workers in
+two configurations. In the first configuration, we use Sphere on a
 local data and local compute configuration. In the second
 configuration, we observe how the solution scales to a distributed
 data and distributed compute configuration. These results are
-illustrated in Fig.~\ref{fig:sphere_varying_workers}.  For the local-local
-configuration, we launch Sector and Sphere on a single physical node.
-For the distribute-distribute configuration, we launch Sector and
-Sphere on one physical node per SPE.  We observe the maximum peak
-performance at 6 distributed workers. Sector can maintain file
+illustrated in Fig.~\ref{fig:sphere_varying_workers}.  For the
+local-local configuration, we launch Sector and Sphere on a single
+physical node.  For the distribute-distribute configuration, we launch
+Sector and Sphere on one physical node per SPE.  We observe the good
+performance from 4 to 6 distributed workers, before which the
+coordination costs due to the number of SPEs starts to get high, with
+a concomitant increase in time-to-solution. This is a nice but simple
+demonstration of the advantage of distribution (logically distributed
+in this case, if not physically distributed). Sector can maintain file
 replicas to achieve optimal data distribution between SPEs and
 minimize synchronization overhead. For the purpose of our experiments,
 we limited Sector to not create any replicas.
@@ -1163,55 +1171,62 @@ we limited Sector to not create any replicas.
    }
 \end{figure}
 \miklosnote{Shantenu: Please correct figure placement as needed.}
+\jhanote{this is ok, i think}
 
 We perform similar measurements via \sagamapreduce: while keeping the
 chunk size constant at 64MB and the data size at 4GB, we note the
-time-to-solution of the \wc application in the two
-configurations described for SAGA-Sphere above.  For the
-distribute-distribute configuration we use HDFS as the distributed
-file system and launch jobs using the SAGA SSH job adaptor.
-In contrary to the varying chunk size experiments, we set the number of
-reduce tasks to be equal to the number of workers spawned.
-For the local-local configuration we launch workers on the machine running
-the master as separate processes and use the local file system for file
-operations.  As it can be seen in Fig.~\ref{fig:sagamr_varying_workers}
-\sagamapreduce scales as expected in the distribute-distribute configuration.
-However, in the local-local configuration performance degrades when adding
-more workers.  Since each map task writes as many files as the number of
-reduce tasks at the same time and each reduce task needs to read from as many
-files as the number of input chunks in turns, concurrent disk I/O can cause the
-bottleneck when performing computations on one pysical node.  According to
-Fig.~\ref{fig:sagamr_varying_workers} the optimal number of workers is 6 for
-the local-local configuration.
-\miklosnote{Shall we note why we don't include results for 10 workers in the
-local-local configuration (takes toooooo much time)?}
+time-to-solution of the \wc application in the two configurations
+described for SAGA-Sphere above.  For the distribute-distribute
+configuration we use HDFS as the distributed file system and launch
+jobs using the SAGA SSH job adaptor.  In contrast to the varying chunk
+size experiments, we set the number of reduce tasks to be equal to the
+number of workers spawned.  For the local-local configuration we
+launch workers on the machine running the master as separate processes
+and use the local file system for file operations.  As can be seen in
+Fig.~\ref{fig:sagamr_varying_workers} \sagamapreduce scales as
+expected in the distribute-distribute configuration.  However, in the
+local-local configuration performance degrades when adding more
+workers.  Since each map task writes as many files as the number of
+reduce tasks at the same time and each reduce task needs to read from
+as many files as the number of input chunks in turns, concurrent disk
+I/O can cause the bottleneck when performing computations on one
+pysical node.  According to Fig.~\ref{fig:sagamr_varying_workers} the
+optimal number of workers is 6 for the local-local configuration.  We
+did not include results for more than 10 workers in order to preserve
+the linear scale. \miklosnote{Shall we note why we don't include
+  results for 10 workers in the local-local configuration (takes
+  toooooo much time)?}\jhanote{done}
 
-SAGA gives us the opportunity to experiment with different programming models very easily. 
-As evident from the data plots in Fig.~\ref{fig:sphere_mr_chunksize}, certain behavioral 
-trends for SAGA-Sphere and \sagamapreduce emerge.  In Experiment 1, where we keep the 
-number of workers constant and vary the chunk sizes, the trends between 
-\sagamapreduce and Sphere are inversed: the Sphere performance deteriorates with 
-increasing chunk sizes, while the performance of \sagamapreduce increases. This behavior
-suggests that \sagamapreduce's synchronization overhead to manage smaller 
-chunk sizes compared to the speed up achieved through parallelism is much higher. 
-In the case of the \wc application, \sagamapreduce suggests to be more 
-suitable for coarse grained computations. SAGA-Sphere, on the other hand, yields 
-better performance from smaller chunks sizes (a larger amount of files) making it 
-suitable for finer grained computations with better data distribution.
+SAGA gives us the opportunity to experiment with different programming
+models very easily.  As evident from the data plots in
+Fig.~\ref{fig:sphere_mr_chunksize}, certain behavioral trends for
+SAGA-Sphere and \sagamapreduce emerge.  In Experiment 1, where we keep
+the number of workers constant and vary the chunk sizes, the trends
+between \sagamapreduce and Sphere are inversed: the Sphere performance
+deteriorates with increasing chunk sizes, while the performance of
+\sagamapreduce increases. This behavior suggests that \sagamapreduce's
+synchronization overhead to manage smaller chunk sizes compared to the
+speed up achieved through parallelism is much higher.  In the case of
+the \wc application, \sagamapreduce appears to be more suitable for
+coarse grained computations. SAGA-Sphere, on the other hand, yields
+better performance from smaller chunks sizes (a larger amount of
+files) making it suitable for finer grained computations with better
+data distribution.
 
-In Experiment 2, where we keep the chunk size to a constant of 64 MB, SAGA-Sphere 
-exhibits a trend where adding more SPEs has a positive impact on performance. However, 
-at the 8 SPEs and 10 SPEs data points, we see a decline in performance, possibly 
-due to high synchronization costs between the workers. What is interesting to 
-notice are the two data points at 64 MB chunk size and at 16 MB chunk size for
-SAGA-Sphere in Fig.~\ref{fig:sphere_mr_chunksize}.
-Reducing the chunk size by 75\%, 
-thereby providing better data distribution with a larger number of files, we 
-see almost a 65\% increase in performance. This further confirms our 
-supposition that good data distribution had a major impact on Sphere's performance for
-the \wc application. We do not claim that fine grained computation 
-granularity is a concrete determinant of SAGA-Sphere's performance in a 
-general case, but a noticeable aspect that emerges through its comparison with
+In Experiment 2, where we keep the chunk size to a constant of 64 MB,
+SAGA-Sphere exhibits a trend where adding more SPEs has a positive
+impact on performance. However, at the 8 SPEs and 10 SPEs data points,
+we see a decline in performance, possibly due to high synchronization
+costs between the workers. What is interesting to notice are the two
+data points at 64 MB chunk size and at 16 MB chunk size for
+SAGA-Sphere in Fig.~\ref{fig:sphere_mr_chunksize}.  Reducing the chunk
+size by 75\%, thereby providing better data distribution with a larger
+number of files, we see almost a 65\% increase in performance. This
+further confirms our supposition that good data distribution had a
+major impact on Sphere's performance for the \wc application. We do
+not claim that fine grained computation granularity is a concrete
+determinant of SAGA-Sphere's performance in a general case, but a
+noticeable aspect that emerges through its comparison with
 \sagamapreduce.
 
 
