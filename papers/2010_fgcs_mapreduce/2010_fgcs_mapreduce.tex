@@ -612,7 +612,7 @@ discussed in~\cite{saga_ccgrid09} are based on two important changes:
 format instead of plain text for intermediate data storage (also
 available as an input and output format).  The first change means
 that, instead of having the master merge and then sort the
-intermediate data by key before doing the reduce phase, the workers
+intermediate data by key before entering the reduce phase, the workers
 buffer key/value pairs from the map phase and store them in sorted
 order on disk, doing an in-memory sort before writing. Also, since
 intermediate key/value pairs from a map worker are already sorted, the
@@ -628,13 +628,19 @@ implementing serialization~\cite{protobuf}.  The processing of input
 and output key/value pairs is further enhanced by minimizing
 unnecessary memory I/O operations using a zero-copy scheme.
 
+\jhanote{(A) Why do we think these are the most important performance
+  enhancements that should be attempted? Or was/is it a case of -- we
+  can, therefore we do? (B) Can the performance improvement that arise
+  from (i) and (ii) be quantified separately?  (C) What other
+  improvements can be and should be implemented?}
+  
 
 \subsection{\sagamapreduce Set-Up}
 
 As with any application which concurrently spans multiple diverse
 resources or infrastructures, the coordination between the different
 application components becomes challenging.  The \smr implementation
-uses the SAGA advert API for that task, and can thus limit the a-priory
+uses the SAGA advert API for that task, and can thus limit the a-priori
 information needed for bootstrapping the application: the compute
 clients (workers) require (i) the contact address of the used advert
 service instance, and (ii) a unique worker ID to register with in that
@@ -772,7 +778,6 @@ that it can utilize either a Sector-Sphere framework via SAGA for the
 OCC backend, or the \smr framework for generic grid and cloud
 backends.
 
-
 \subsubsection{Type III: Application Interoperability using different
   programming models for concurrent execution}
 %
@@ -783,15 +788,14 @@ backends.
 %   Sector-Sphere / cluster / grids / clouds
 %
 
-At another abstraction level, an application can also be considered
-interoperable when it can \I{concurrently} execute multiple
-programming models over multiple, diverse backends.  We demonstrate
-that a \wc application uses Sector-Sphere and \smr to span multiple
-backends.  The challenges of having different parts of an application
-execute concurrently using different programming models is
-conceptually different to loading different adaptors
-concurrently. Thus we describe this as a separate type of
-interoperability.
+At another level, an application can also be considered interoperable
+when it executes multiple programming models \I{concurrently} over
+diverse backends.  We demonstrate that a \wc application uses both
+Sector-Sphere and \smr when spanning  multiple backends.  The
+challenges of having different parts of an application execute
+concurrently using different programming models is conceptually
+different to loading different adaptors concurrently. Thus we describe
+this as a separate type of interoperability.
 
 \subsection{Experimental Setup}
 
@@ -805,7 +809,7 @@ API.  Data exchange is either performed via streams, or via SAGA's
 file transfer API which can dynamically switch between the various
 available protocols.
 
-For the could environments, we support the runtime configuration of VM
+For cloud environments, we support the runtime configuration of VM
 instances by staging a preparation script to the VM after its
 creation, and executing it with root permissions.  In particular for
 apt-get Linux distribution, the post-instantiation software deployment
@@ -820,7 +824,7 @@ custom saga.ini files, or ensure the finalization of service startups
 before application deployment
 
 Deploying \sagamapreduce framework and the \wc application on
-different grids, clouds or clusters requires to adapt the configuration
+different grids, clouds or clusters requires adapting the configuration
 to the specific environment.  For example, when running \sagamapreduce
 on EC2, the master process resides on one VM, while workers reside on
 different VMs.  Depending on the available adaptors, Master and Worker
@@ -1089,15 +1093,16 @@ application was launched. In this set of experiments, we vary the
 chunk size from 16 MB to 256 MB, while keeping the number of SPEs
 constant at 8, and the data size constant at 4 GB. Each SPE is running
 on a separate physical node in the cluster. These results are
-presented in Fig.~\ref{fig:sphere_mr_chunksize}.  As evident from the
-results we collected, a correlation exists between the chunk sizes and
-performance of Sphere.  As the chunk sizes increase, the performance
-deteriorates. In particular, we observe a decline in performance after
-the 64 MB data, in that there is an increase in the gradient of the
-plot, after chunk sizes have reached 64 MB.
+presented in Fig.~\ref{fig:sphere_mr_chunksize}.  Note that both data
+and computation were distributed for these experiments.  As evident
+from the results we collected, a correlation exists between the chunk
+sizes and performance of Sphere.  As the chunk sizes increase, the
+performance deteriorates. In particular, we observe a decline in
+performance after the 64 MB data, in that there is an increase in the
+gradient of the plot, after chunk sizes have reached 64 MB.
 
-\jhanote{Please describe the configurations used for Sphere and
-  MapReduce explicitly (distributed-distributed?).}
+% \jhanote{Please describe the configurations used for Sphere and
+%   MapReduce explicitly (distributed-distributed?).}
 %\jhanote{With the new data, does this
 %  still hold? ie., 64 MB or do we remove this sentence?}
 
@@ -1151,15 +1156,16 @@ data and distributed compute configuration. These results are
 illustrated in Fig.~\ref{fig:sphere_varying_workers}.  For the
 local-local configuration, we launch Sector and Sphere on a single
 physical node.  For the distribute-distribute configuration, we launch
-Sector and Sphere on one physical node per SPE.  We observe the good
-performance from 4 to 6 distributed workers, before which the
-coordination costs due to the number of SPEs starts to get high, with
-a concomitant increase in time-to-solution. This is a nice but simple
-demonstration of the advantage of distribution (logically distributed
-in this case, if not physically distributed). Sector can maintain file
-replicas to achieve optimal data distribution between SPEs and
-minimize synchronization overhead. For the purpose of our experiments,
-we limited Sector to not create any replicas.
+Sector and Sphere on one physical node per SPE.  For the data-set
+sizes considered, we observe good performance from 4 to 6 distributed
+workers, before which the coordination costs due to the number of SPEs
+starts to get high, with a concomitant increase in
+time-to-solution. This is a nice but simple demonstration of the
+advantage of distribution (logically distributed in this case, if not
+physically distributed). Sector can maintain file replicas to achieve
+optimal data distribution between SPEs and minimize synchronization
+overhead. For the purpose of our experiments, we limited Sector to not
+create any replicas.
 
 \begin{figure}[htb!]
  \includegraphics[width=0.5\textwidth]{figures/sagamr_varying_workers.pdf}
@@ -1170,8 +1176,8 @@ we limited Sector to not create any replicas.
    \label{fig:sagamr_varying_workers}
    }
 \end{figure}
-\miklosnote{Shantenu: Please correct figure placement as needed.}
-\jhanote{this is ok, i think}
+% \miklosnote{Shantenu: Please correct figure placement as needed.}
+% \jhanote{this is ok, i think}
 
 We perform similar measurements via \sagamapreduce: while keeping the
 chunk size constant at 64MB and the data size at 4GB, we note the
@@ -1180,22 +1186,29 @@ described for SAGA-Sphere above.  For the distribute-distribute
 configuration we use HDFS as the distributed file system and launch
 jobs using the SAGA SSH job adaptor.  In contrast to the varying chunk
 size experiments, we set the number of reduce tasks to be equal to the
-number of workers spawned.  For the local-local configuration we
-launch workers on the machine running the master as separate processes
-and use the local file system for file operations.  As can be seen in
+number of workers spawned.  \jhanote{I can't determine where we
+  establish that for varying chunk size we say that the number of
+  workers in the map phase is not the same as the reduce phase. We
+  only say that the number of reduce workers is set to 8 and imply
+  that it is kept fixed.} For the local-local configuration we launch
+workers on the machine running the master as separate processes and
+use the local file system for file operations.  As can be seen in
 Fig.~\ref{fig:sagamr_varying_workers} \sagamapreduce scales as
-expected in the distribute-distribute configuration.  However, in the
+expected in the distribute-distribute configuration.  However, for the
 local-local configuration performance degrades when adding more
 workers.  Since each map task writes as many files as the number of
-reduce tasks at the same time and each reduce task needs to read from
-as many files as the number of input chunks in turns, concurrent disk
-I/O can cause the bottleneck when performing computations on one
-pysical node.  According to Fig.~\ref{fig:sagamr_varying_workers} the
+reduce tasks at the same time, and each reduce task needs to read from
+as many files as the number of input chunks, the number of concurrent
+disk I/O increases very quickly\jhanote{Miklos, please check, I did
+  not change the meaning of what was intended}; this can cause a
+bottleneck when performing computations on one physical node (I/O
+system).  According to Fig.~\ref{fig:sagamr_varying_workers} the
 optimal number of workers is 6 for the local-local configuration.  We
 did not include results for more than 10 workers in order to preserve
-the linear scale. \miklosnote{Shall we note why we don't include
-  results for 10 workers in the local-local configuration (takes
-  toooooo much time)?}\jhanote{done}
+the linear
+scale. % \miklosnote{Shall we note why we don't include results for 10
+%   workers in the local-local configuration (takes toooooo much
+%   time)?}\jhanote{done}
 
 SAGA gives us the opportunity to experiment with different programming
 models very easily.  As evident from the data plots in
