@@ -1153,15 +1153,38 @@ replicas to achieve optimal data distribution between SPEs and
 minimize synchronization overhead. For the purpose of our experiments,
 we limited Sector to not create any replicas.
 
+\begin{figure}[htb!]
+ \includegraphics[width=0.5\textwidth]{figures/sagamr_varying_workers.pdf}
+ \caption{
+   Comparison of \sagamapreduce when varying the number of workers
+   between 2 and 10 in two configurations: (1) local data and computation
+   and (2) distributed data and computation.
+   \label{fig:sagamr_varying_workers}
+   }
+\end{figure}
+\miklosnote{Shantenu: Please correct figure placement as needed.}
+
 We perform similar measurements via \sagamapreduce: while keeping the
 chunk size constant at 64MB and the data size at 4GB, we note the
 time-to-solution of the \wc application in the two
 configurations described for SAGA-Sphere above.  For the
-distribute-distribute configuration we used HDFS as the distributed
-file system and launched jobs using the SAGA SSH job adaptor.
-Similarly to the varying chunk size experiments, we set the number of
-reduce tasks to 8.  \miklosnote{Will describe local-local
-configuration here.}
+distribute-distribute configuration we use HDFS as the distributed
+file system and launch jobs using the SAGA SSH job adaptor.
+In contrary to the varying chunk size experiments, we set the number of
+reduce tasks to be equal to the number of workers spawned.
+For the local-local configuration we launch workers on the machine running
+the master as separate processes and use the local file system for file
+operations.  As it can be seen in Fig.~\ref{fig:sagamr_varying_workers}
+\sagamapreduce scales as expected in the distribute-distribute configuration.
+However, in the local-local configuration performance degrades when adding
+more workers.  Since each map task writes as many files as the number of
+reduce tasks at the same time and each reduce task needs to read from as many
+files as the number of input chunks in turns, concurrent disk I/O can cause the
+bottleneck when performing computations on one pysical node.  According to
+Fig.~\ref{fig:sagamr_varying_workers} the optimal number of workers is 6 for
+the local-local configuration.
+\miklosnote{Shall we note why we don't include results for 10 workers in the
+local-local configuration (takes toooooo much time)?}
 
 SAGA gives us the opportunity to experiment with different programming models very easily. 
 As evident from the data plots in Fig.~\ref{fig:sphere_mr_chunksize}, certain behavioral 
@@ -1198,7 +1221,7 @@ We discuss the third type of interoperability in this section,
 where SAGA-MapReduce and SAGA-Sphere are used in conjunction 
 to solve the \wc problem. We first use the 'netperf' 
 utility to measure the throughput from the client host to 
-the SAGA-MapReduce master node and SAGA-Sphere master node. 
+the \sagamapreduce master node and SAGA-Sphere master node. 
 In our case, the throughput measured to the two nodes was 
 approximately equal (935 MB/s to SAGA-Sphere and 925 MB/s to SAGA-MapReduce). 
 Based on these metrics, we split the 4.0 GB data set 
@@ -1210,9 +1233,11 @@ cloud took a total of 97.8 seconds and 10.4 seconds to the
 SAGA-MapReduce master node. The longer transfer time to Sector 
 can be credited to the overhead incurred from registering 
 the files in Sector. The data transfer was done sequentially. 
+\miklosnote{Should describe here the configurations used for Sphere and
+MapReduce too.}
 
 We found that SAGA-Sphere took a total of 441.3 seconds to 
-process the 2.0 GB data, while SAGA-MapReduce took a total of 
+process the 2.0 GB data, while \sagamapreduce took a total of 
 769 seconds. Aggregating the output results from the two systems 
 took a negligible amount of time (only 0.9 seconds). The data was 
 already sorted and hence could be merged in O(n) complexity. 
