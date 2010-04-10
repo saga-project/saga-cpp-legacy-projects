@@ -5,7 +5,7 @@ pdf:
 	@cd figures && ./make_figures.sh
 	@pdflatex 2010_fgcs_mapreduce
 	@bibtex   2010_fgcs_mapreduce
-	@pdflatex 2010_fgcs_mapreduce | grep undef
+	@pdflatex 2010_fgcs_mapreduce | grep undef || true
 
 clean:
 	@rm -f 2010_fgcs_mapreduce.aux
