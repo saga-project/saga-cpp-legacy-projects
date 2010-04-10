@@ -535,6 +535,22 @@ The master process is responsible for:
 
 \end{itemize}
 
+When launching a job, the master is the executable run by the client itself
+which means the resource from which the client program is run determines
+from where the master will be available.
+A MapReduce job is specified by a JobDescription object in which the user
+sets the Mapper and Reducer classes, input and output paths and formats.  The
+used InputFormat creates the logical partitions of the input data for the
+master which information is then sent to idle workers.  A RawRecordReader
+implementation is responsible for interpreting an InputChunk and providing
+a record iterator for the Mapper. It is possible to support any kind of data
+source for which a record oriented view makes sense by writing a custom
+RawRecordReader.  The output from the Mapper is further processed by the
+Partitioner which assigns emitted key/value pairs from the Mapper to reducers.
+Finally, a RawRecordWriter writes output data to files.  Custom RawRecordWriter
+and Partitioner classes can be also implemented to suit an application's needs.
+\miklosnote{Andre/Shantenu: Please check coherence of the above paragraph.}
+
 The master process is readily available to the user and needs no
 modification for different map and reduce functions to execute.  The
 worker processes get assigned work either from the map or the reduce
