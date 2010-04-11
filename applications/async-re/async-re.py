@@ -28,23 +28,23 @@ advert_host = "fortytwo.cct.lsu.edu"
 HOST_DIR = "/work/athota1/new_bigjob/bigjob/agent"
 REMOTE_DIR = "/work/athota1/new_bigjob/bigjob/agent"
              
-def prepare_NAMD_config(r):
+def prepare_NAMD_config(r, i):
 # config prep when re-launching replicas   
-   ifile = open("NPT.conf")   # should be changed if a different name is going to be used
+   ifile = open("NPT-" + str(i) + ".conf")   # should be changed if a different name is going to be used
    lines = ifile.readlines()
    for line in lines:
       if line.find("desired_temp") >= 0 and line.find("set") >= 0:
          lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[r]))
          print "new temperatures being set, re-launching" + str(temps[r])
    ifile.close()
-   ofile = open("NPT.conf","w")
+   ofile = open("NPT-" + str(i) + ".conf","w")
    for line in lines:
      ofile.write(line)
    ofile.close()
 
 def NAMD_config():
 #initial prep of config,for the first launch of replicas
-  ifile = open("NPT.conf")   # should be changed if a different name is going to be used
+  ifile = open("NPT-" + str(i) + ".conf")   # should be changed if a different name is going to be used
   lines = ifile.readlines()
   for line in lines:
      if line.find("desired_temp") >= 0 and line.find("set") >= 0:
@@ -54,7 +54,7 @@ def NAMD_config():
       # else:
        #   lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
   ifile.close()
-  ofile = open("NPT.conf","w")
+  ofile = open("NPT-" + str(i) + ".conf","w")
   for line in lines:
     ofile.write(line)
   ofile.close()
@@ -108,11 +108,12 @@ if __name__ == "__main__":
     jd.executable = "namd2"
     jd.number_of_processes = "8"
     jd.spmd_variation = "mpi"
-    jd.arguments = ["NPT.conf"]
+   # jd.arguments = ["NPT.conf"]
     jd.working_directory = os.getcwd() 
     sjs=[]
     for i in range(0, NUMBER_REPLICAS):
-    #  jd.arguments = ["NPT" + str(i) + ".conf"]
+      os.system("cp NPT.conf NPT-" + str(i) + ".conf")
+      jd.arguments = ["NPT-" + str(i) + ".conf"]
       jd.output = "stdout-" + str(i) + ".txt"
       jd.error = "stderr-" + str(i) + ".txt"  	
       jds.append(jd)
@@ -163,12 +164,12 @@ if __name__ == "__main__":
                 print "replica chosen for exchange is" + str(k)
                 print "replica for which selection was made" + str(i)
                 print "assigning the new temepratures and re-starting the replicas"
-                prepare_NAMD_config(k)
+                prepare_NAMD_config(k, i)
 #will use SAGA
 #             os.system(gsiscp NPT.conf #to corresponding machines/dir
 #should submit to the corresponding bigjob
                 sjs[i].submit_job(bjs[0].pilot_url, jds[i], str(i))
-                prepare_NAMD_config(i)
+                prepare_NAMD_config(i, i)
             # os.system(gsiscp NPT.conf #to corresponding machine/dir)
                 sjs[k].submit_job(bjs[0].pilot_url, jds[k], str(k))
                 count = count + 1
