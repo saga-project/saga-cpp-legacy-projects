@@ -6,6 +6,7 @@
 #  Created by athota1 on 08/04/10.
 #  Copyright (c) 2010 __MyCompanyName__. All rights reserved.
 #
+
 """ Example application demonstrating job submission via bigjob 
     advert_job implementation of BigJob is used
 """
@@ -17,16 +18,28 @@ import time
 import pdb
 
 #Configure here:
+BIGJOB_SIZE = 8
 NUMBER_EXCHANGES = 3
-NUMBER_BIGJOBS = 1
+NUMBER_BIGJOBS = 2
 NUMBER_REPLICAS = 4
-HOST = "qb1.loni.org"
-REMOTE1 = "eric1.loni.org"
+HOST = "eric1.loni.org"
+REMOTE1 = "qb1.loni.org"
 REMOTE2 = "oliver1.loni.org"
 advert_host = "fortytwo.cct.lsu.edu"
 #dirs for replicas
-HOST_DIR = "/work/athota1/new_bigjob/bigjob/agent"
-REMOTE_DIR = "/work/athota1/new_bigjob/bigjob/agent"
+WORK_DIR = "/work/athota1/new_bigjob/bigjob/"
+
+def copy_with_saga(i):
+    source_url = saga.url('file://' + WORK_DIR + 'NPT-' + str(i) + '.conf')
+    dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR)
+
+    sagafile = saga.filesystem.file(source_url)
+    try:
+        sagafile.copy(dest_url)
+    except saga.exception, e:
+        print "\n(ERROR) remote file copy from %s to %s failed"%(HOST, REMOTE1)
+
+    return None
              
 def prepare_NAMD_config(r, i):
 # config prep when re-launching replicas   
@@ -35,7 +48,7 @@ def prepare_NAMD_config(r, i):
    for line in lines:
       if line.find("desired_temp") >= 0 and line.find("set") >= 0:
          lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[r]))
-         print "new temperatures being set, re-launching" + str(temps[r])
+         print "new temperatures being set, re-launching#" + str(r) + "whose new temp=" + str(temps[r])
    ifile.close()
    ofile = open("NPT-" + str(i) + ".conf","w")
    for line in lines:
@@ -76,7 +89,7 @@ if __name__ == "__main__":
     # Parameter for BigJob
     bigjob_agent = os.getcwd() + "/bigjob_agent_launcher.sh" # path to agent
     #bigjob_agent = "/bin/echo"
-    nodes = 32 # number nodes for agent
+    nodes = BIGJOB_SIZE # number nodes for agent
     workingdirectory=os.getcwd() +"/agent"  # working directory for agent
     userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
 
@@ -121,10 +134,15 @@ if __name__ == "__main__":
       sjs.append(sj)
       #prepare config and scp other files to remote machine
       NAMD_config()
-#should copy file to the corresponding machine, should create a system tying each replica to a machine 
-    #  os.system("gsiscp NPT.conf qb1.loni.org:/work/athota1/new_bigjob/") 
-      sjs[i].submit_job(bjs[0].pilot_url, jds[i],str(i))
-	  
+      if not i%2:
+        j = 0   
+        sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
+      else: 
+        j = 1
+        #os.system("gsiscp NPT-" + str(i) + ".conf %s:%s"%(REMOTE1, WORK_DIR))
+        copy_with_saga(i)
+        sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
+        
     count=0
     while (count < NUMBER_EXCHANGES):
       print "exchange count=" + str(count)
@@ -164,14 +182,25 @@ if __name__ == "__main__":
                 print "replica chosen for exchange is" + str(k)
                 print "replica for which selection was made" + str(i)
                 print "assigning the new temepratures and re-starting the replicas"
-                prepare_NAMD_config(k, i)
-#will use SAGA
-#             os.system(gsiscp NPT.conf #to corresponding machines/dir
-#should submit to the corresponding bigjob
-                sjs[i].submit_job(bjs[0].pilot_url, jds[i], str(i))
-                prepare_NAMD_config(i, i)
-            # os.system(gsiscp NPT.conf #to corresponding machine/dir)
-                sjs[k].submit_job(bjs[0].pilot_url, jds[k], str(k))
+                prepare_NAMD_config(k, i) 
+                if not i%2:
+                  j=0
+                  sjs[i].submit_job(bjs[j].pilot_url, jds[i], str(i))
+                else:
+                  j=1                  
+                  #os.system("gsiscp NPT-" + str(i) + ".conf %s:%s"%(REMOTE1, WORK_DIR))  
+                  copy_with_saga(i)
+                  sjs[i].submit_job(bjs[j].pilot_url, jds[i], str(i))
+                                  
+                prepare_NAMD_config(i, k)
+                if not k%2:
+                  j=0
+                  sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
+                else:
+                  j=1
+                  #os.system("gsiscp NPT-" + str(k) + ".conf %s:%s"%(REMOTE1, WORK_DIR))
+                  copy_with_saga(k)
+                  sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
                 count = count + 1
                 break
               else:
@@ -187,5 +216,4 @@ if __name__ == "__main__":
    # Cleanup - stop BigJob
     for i in range(0, NUMBER_BIGJOBS):
      bjs[i].cancel()
-  #  bjs[1].cancel()
 
