@@ -23,11 +23,12 @@ NUMBER_EXCHANGES = 3
 NUMBER_BIGJOBS = 2
 NUMBER_REPLICAS = 4
 HOST = "eric1.loni.org"
-REMOTE1 = "qb1.loni.org"
+REMOTE1 = "louie1.loni.org"
 REMOTE2 = "oliver1.loni.org"
 advert_host = "fortytwo.cct.lsu.edu"
 #dirs for replicas
 WORK_DIR = "/work/athota1/new_bigjob/bigjob/"
+WALLTIME = 60
 
 def copy_with_saga(i):
     source_url = saga.url('file://' + WORK_DIR + 'NPT-' + str(i) + '.conf')
@@ -48,7 +49,7 @@ def prepare_NAMD_config(r, i):
    for line in lines:
       if line.find("desired_temp") >= 0 and line.find("set") >= 0:
          lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[r]))
-         print "new temperatures being set, re-launching#" + str(r) + "whose new temp=" + str(temps[r])
+         print "new temperatures being set, re-launching#" + str(i) + "whose new temp=" + str(temps[r])
    ifile.close()
    ofile = open("NPT-" + str(i) + ".conf","w")
    for line in lines:
@@ -109,7 +110,7 @@ if __name__ == "__main__":
                             None,
                             workingdirectory, 
                             userproxy,
-                            None)
+                            WALLTIME)
       print "Start Pilot Job/BigJob: " + bigjob_agent + " at: " + lrms_url
       print "Pilot Job/BigJob URL: " + bjs[i].pilot_url + " State: " + str(bjs[i].get_state())
 
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     jds=[]
     jd = saga.job.description()
     jd.executable = "namd2"
-    jd.number_of_processes = "8"
+    jd.number_of_processes = "4"
     jd.spmd_variation = "mpi"
    # jd.arguments = ["NPT.conf"]
     jd.working_directory = os.getcwd() 
@@ -201,7 +202,7 @@ if __name__ == "__main__":
                   #os.system("gsiscp NPT-" + str(k) + ".conf %s:%s"%(REMOTE1, WORK_DIR))
                   copy_with_saga(k)
                   sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
-                count = count + 1
+                  count = count + 1
                 break
               else:
                 print str(len(list))+ " = length of list, compared replica not selected, comparing other replicas"
