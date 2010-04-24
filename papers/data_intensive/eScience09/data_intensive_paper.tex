@@ -1,4 +1,4 @@
->%\documentclass[times, 10pt, twocolumn]{article}
+%\documentclass[times, 10pt, twocolumn]{article}
 %\documentclass[conference,final]{IEEEtran}
 
 \documentclass{rspublic}
@@ -87,16 +87,22 @@ interesting and unique performance issues that appear as the volume of
 data and degree of distribution increases. New scalable data placement
 and management techniques, as well as novel approaches to determine
 the relative placement of data and computational workload are
-required. We develop and study an All-Pairs based genome sequence
-matching application as a representative data-intensive
-application. This paper aims to understand the factors that influence
-the performance of this application and their interplay. We also
-demonstrate how the SAGA approach can enable data-intensive
-applications to be extensible and interoperable over a range of
-infrastructure. This capability enables us to compare and contrast two
-different approaches -- simple application-level data placement
-strategies versus distributed file systems -- for executing
+required.  We develop and study genome sequence matching application
+as a prototype of a data-intensive application yet simple to control
+and deploy; the application uses a SAGA-based implementation of the
+All-Pairs pattern.  This paper aims to understand some of the factors
+that influence the performance of this application and their
+interplay. We also demonstrate how the SAGA approach can enable
+data-intensive applications to be extensible and interoperable over a
+range of infrastructure. This capability enables us to compare and
+contrast two different approaches -- simple application-level data
+placement strategies versus distributed file systems -- for executing
 distributed data-intensive applications.
+
+% We develop and study an All-Pairs based genome sequence matching
+% application as a representative data-intensive application. This paper
+% aims to understand the factors that influence the performance of this
+% application and their interplay.
 
 % Grids, clouds and cloud-like infrastructures are capable of supporting a
 % broad range of data-intensive applications. There are interesting and
@@ -120,72 +126,78 @@ distributed data-intensive applications.
 The role of data-intensive computing is increasing in many aspects of
 science and engineering~\citep{fourthparadigm} and other
 disciplines. For example, Google processes around 20 petabytes of data
-per day~\citep{google}, with trends showing continuing growth. In
+per day~\citep{google}; trends show this growth continuing. In
 addition to increasing volumes of data, there are several reasons
 driving the need for computation on distributed data, such as the
 proliferation of distributed services and the localisation of data due
 to security \& privacy issues. The challenges in developing effective
-and efficient distributed data-intensive applications are a complex
-interplay of the challenges in developing distributed applications on
-the one hand with those in developing data-intensive applications to
-meet a range of design \& performance metrics on the other. New
-algorithmic, infrastructure, and data-management techniques are
-required to handle large data-volumes effectively. In general at such
+and efficient distributed data-intensive applications that meet a
+range of design \& performance metrics arise from a complex interplay
+of the challenges in developing distributed applications on the one
+hand with those in developing data-intensive applications on the
+other. New algorithmic, infrastructure, and data-management techniques
+are required to handle large data-volumes effectively. In general at
 large scales, data-placement, scheduling and management need increased
 attention.
 
 An important design consideration and objective for data-intensive
 distributed applications and systems is the ability to find and
-support optimal distribution of data and computational workload. Thus
+support optimal distribution of data and computational workloads. Thus
 an important challenge is to find broadly applicable strategies to
 distribute data and computation that can support a range of different
 mechanisms to achieve this objective. In general, there are many
-degrees-of-freedom that determine the performance of a given
-application on distributed infrastructure. Thus a rigorous
-benchmarking process, which provides repeatable, extensible, and
-verifiable performance tests on different distributed platforms is
-required in order to understand the interplay and trade-offs between
-these variables. This is analogous to the situation of developing and
-testing benchmarks for high performance computing (HPC). 
+variable factors that determine the performance of a given application
+on distributed infrastructure, such as the degree of distribution,
+granularity of workload decomposition and type of infrastructure to
+name just a few.  In this paper, we investigate two ways to handle the
+optimal data-computation distribution problem and try to understand
+their performance as a function of these factors.
 
-The work in this paper is performed in the context of a SAGA-based
-application to support genome sequence matching to determine and
-analyse performance that we developed. SAGA encodes the All-Pairs
-pattern in a distributed context; we chose All-Pairs as it is a
-representative and common data-access pattern found in many
-data-intensive distributed applications. In this paper, we
-investigate two ways to handle the optimal data-computation distribution
-problem. In the first approach, we encode a simple metric to determine
-the {\it workload} placement into a ``heuristic framework''. We contrast
-this approach with the use of an open-source distributed filesystem
-(DFS) -- which natively supports effective {\it data} placement. A DFS
-controls the data placement and provides a uniform interface for
-accessing files on multiple hosts. DFS are becoming increasing common as
-part of Cloud infrastructures and available machine images. But the
-underlying algorithms, scheduling strategies, and implementations vary
-greatly between different infrastructures, hence it is difficult to
-estimate {\it a priori} the application-level performance on a given
-DFS. Thus having the ability to compare and contrast different DFS for
-a given application is an important requirement. In Section 3 we will
-establish how the use of adaptors enables SAGA-based applications to
-make this comparison effectively. An aim of this paper is to present a
-credible initial benchmarking template, and to suggest ways to answer
-the question of whether ``to move computational workload to where data
-resides or to redistribute the data''. As we will show, the actual
-answer will depend significantly on the specific data-set sizes,
-algorithm/applications, and infrastructure used. Data privacy,
-security, and access policy are crucial issues but typically are not
-determinants of performance for distributed applications; thus we will
-not consider them in this paper.
+In the first approach, we encode a simple metric to determine the {\it
+  workload} placement into a ``heuristic framework''. We contrast this
+approach with the use of an open-source distributed filesystem (DFS)
+-- which natively supports effective {\it data} placement.  DFS are
+becoming increasing common as part of Cloud infrastructures and
+available machine images. A DFS controls the data placement and
+provides a uniform interface for accessing files on multiple hosts.
+But the underlying algorithms, scheduling strategies, and
+implementations vary greatly between different infrastructures, hence
+it is difficult to estimate {\it a priori} the application-level
+performance on a given DFS.  Thus having the ability to compare and
+contrast different DFS for a given application is an important
+requirement.
 
+Therefore a rigorous benchmarking process, which provides repeatable,
+extensible, and verifiable performance tests on different distributed
+platforms is required in order to understand the interplay and
+trade-offs between these variables. This is analogous to the situation
+of developing and testing benchmarks for high performance computing
+(HPC).  In Section 3 we will establish how the use of adaptors enables
+SAGA-based applications to make this comparison effectively. An aim of
+this paper is to present a credible initial benchmarking template, and
+to suggest ways to answer the question of whether ``to move
+computational workload to where data resides or to redistribute the
+data''. As we will show, the actual answer will depend significantly
+on the specific data-set sizes, algorithm/applications, and
+infrastructure used. Data privacy, security, and access policy are
+crucial issues but typically are not determinants of performance for
+distributed applications; thus we will not consider them in this
+paper.
+ 
 In Section 2, we present a very brief discussion of SAGA which
 provides the distributed programming capability to develop the
-All-Pairs based application (Section 3). Section 4 offers an
-overview of the various parameters used to understand the experimental
-configurations, discusses the experiments carried out to understand
-the performance, as well as provides a local analysis of the
-results. In Section 5 we review the
-understanding gained and look ahead.
+All-Pairs based application (Section 3). The work in this paper uses a
+SAGA-based application that we developed to support genome sequence
+matching to determine and analyse performance that we developed. SAGA
+encodes the All-Pairs pattern in a distributed context; we chose
+All-Pairs as it is a representative and common data-access pattern
+found in many data-intensive distributed applications.
+
+Section 4 offers an overview of the various parameters used to
+understand the experimental configurations, discusses the experiments
+carried out to understand the performance, as well as provides a local
+analysis of the results. In Section 5 we review the understanding
+gained and look ahead.
 
 % Frequently, there is more than one copy of the input data for
 % fault-tolerance reasons, consequently, the added issue of deciding
