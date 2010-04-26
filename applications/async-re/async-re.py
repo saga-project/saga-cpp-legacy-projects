@@ -202,7 +202,7 @@ if __name__ == "__main__":
                   #os.system("gsiscp NPT-" + str(k) + ".conf %s:%s"%(REMOTE1, WORK_DIR))
                   copy_with_saga(k)
                   sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
-                  count = count + 1
+                count = count + 1
                 break
               else:
                 print str(len(list))+ " = length of list, compared replica not selected, comparing other replicas"
