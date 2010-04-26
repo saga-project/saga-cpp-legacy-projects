@@ -19,7 +19,7 @@ if __name__ == "__main__":
     bigjob_agent = os.getcwd() + "/bigjob_agent_launcher.sh" # path to agent
     #bigjob_agent = "/bin/echo"
     nodes = 8 # number nodes for agent
-    lrms_url = "gram://eric1.loni.org/jobmanager-pbs" # resource url
+    lrms_url = "gram://qb1.loni.org/jobmanager-pbs" # resource url
     workingdirectory=os.getcwd() +"/agent"  # working directory for agent
     userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
 
@@ -33,34 +33,35 @@ if __name__ == "__main__":
                             None,
                             workingdirectory, 
                             userproxy,
-                            None)
+                            15)
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
 
     ##########################################################################################
     # Submit SubJob through BigJob
     jd = saga.job.description()
-   # jd.executable = "/bin/date"
-    jd.executable = "/work/athota1/new_bigjob/bigjob/async_agent.py"
+    #jd.executable = "/bin/date"
+    jd.executable = "python"
     jd.number_of_processes = "8"
     jd.spmd_variation = "single"
-    jd.arguments = [""]
+    jd.arguments = ["async_agent.py"]
     jd.working_directory = os.getcwd() 
-    jd.output = "stdout.txt"
-    jd.error = "stderr.txt"
+    jd.output = "stdout-main.txt"
+    jd.error = "stderr-main.txt"
     
     sj = bigjob.subjob(advert_host)
-    sj.submit_job(bj.pilot_url, jd)
+    sj.submit_job(bj.pilot_url, jd, str(0))
     
     # busy wait for completion
     while 1:
         state = str(sj.get_state())
-        energy = str(sj.get_energy())
+    
 	print "state: " + state
-        print "energy: " + energy
+   
 	if(state=="Failed" or state=="Done"):
-            break
+            pass
         time.sleep(10)
 
     ##########################################################################################
     # Cleanup - stop BigJob
     bj.cancel()
+
