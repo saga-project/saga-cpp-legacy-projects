@@ -5,10 +5,11 @@ if __name__ == "__main__":
 
  try:
   jd = saga.job.description()
-  jd.executable = "/work/athota1/new_bigjob/bigjob/namd2"
-  jd.number_of_processes = "8"
-  jd.spmd_variation = "mpi"
-  jd.arguments = ["NPT.conf"]
+  jd.executable = "/bin/date"
+  jd.number_of_processes = "1"
+  jd.spmd_variation = "single"
+ # jd.arguments = ["NPT.conf"]
+  jd.arguments = [""]
   jd.working_directory ="/work/athota1/new_bigjob/bigjob/"
  # jd.job_project = ["loni_jhabig09"]
   jd.output = "stdout.txt"
