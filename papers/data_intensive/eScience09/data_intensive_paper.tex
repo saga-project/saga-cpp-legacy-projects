@@ -259,36 +259,38 @@ such as the RPC (remote procedure call) and Replica package.
   requirements/characteristics.} \label{Fig:SAGA1}
 \end{figure}
 
-In the absence of a formal theoretical taxonomy of distributed
-applications, Fig.~\ref{Fig:SAGA1} can act a guide. Using this
-classification system, there are three types of distributed
-applications: (i) Applications where local functionality is swapped
-for distributed functionality, or where distributed execution modes
-are provided. % A simple but illustrative example is an ensemble of an
+% A simple but illustrative example is an ensemble of an
 % application that uses distributed resources for bulk submission. Here,
 % the application remains unchanged and even unaware of its distributed
 % execution, and the staging, coordination, and management are done by
 % external tools or agents. Most application in this category are
-% classified as implicitly distributed 
-(ii) Applications that are naturally decomposable or have multiple
-components are then aggregated or coordinated by some unifying or
-explicit mechanism. %  DAG-based workflows are probably the most common
+% classified as implicitly distributed  
+
+%  DAG-based workflows are probably the most common
 % example of applications in this category.
-Finally, (iii) applications that are developed using frameworks, where a
-framework is a generic name for a development tool that supports
-specific application characteristics (e.g., hierarchical job
-submission), and/or recurring patterns (e.g., MapReduce, All-Pairs).
+
 SAGA provides the basic API to implement distributed functionality
-required by applications (typically used directly by the first category
-of applications), and is also used to implement higher-level APIs,
-abstractions, and frameworks that, in turn, support the development,
-deployment, and execution of distributed
-applications~\citep{saga_gmac09}. SAGA has been used to develop
-system-level tools and applications of each of these types.
-In~\cite{saga_montage_escience09} we discussed how SAGA was used to
-implement a higher-level API to support workflows.
-In~\cite{saga_ccgrid09} we discussed how a saga-based MapReduce was
-developed.
+required by applications, and is also used to implement higher-level
+APIs, abstractions, and frameworks that, in turn, support the
+development, deployment, and execution of distributed
+applications~\citep{saga_gmac09}. In the absence of a formal
+theoretical taxonomy of distributed applications, Fig.~\ref{Fig:SAGA1}
+can act a guide. Using this classification system, there are three
+types of distributed applications: (i) Applications where local
+functionality is swapped for distributed functionality, or where
+distributed execution modes are provided.  (ii) Applications that are
+naturally decomposable or have multiple components are then aggregated
+or coordinated by some unifying or explicit mechanism.  Finally, (iii)
+applications that are developed using frameworks, where a
+framework %is a generic name for a development tool that
+supports specific application characteristics (e.g., hierarchical job
+submission), and/or recurring patterns (e.g., MapReduce, All-Pairs).
+SAGA has been used to develop system-level tools and applications of
+each of these types.  In~\cite{saga_montage_escience09} we discussed
+how SAGA was used to implement a higher-level API to support
+workflows.  In~\cite{saga_ccgrid09} we discussed how a saga-based
+MapReduce was developed; here we will discuss a SAGA-based All-Pairs
+application.
 
 % In this paper, we will discuss how SAGA can be used to implement
 % runtime frameworks to support the efficient execution of the
@@ -355,14 +357,19 @@ sets. (Larger values indicate greater similarity.)}
  \label{Fig:AllPairsExplanation}
 \end{figure}
 
+% If transferring the set to the compute
+% resource is expensive, computation time will be less than transfer time.
+% This allows the possibility that a relatively slow compute resource may
+% have a lower time to completion by having small transfer times. 
+ 
 The problem becomes a two-level assignment problem: first, which pairs
-to put into an assignment set, and second, with which distributed
-resource to run that set. If transferring the set to the compute
-resource is expensive, computation time will be less than transfer time.
-This allows the possibility that a relatively slow compute resource may
-have a lower time to completion by having small transfer times. An
-application can use simple heuristics to predict and determine a
-specific data set's affinity to a specific network resource.
+to put into an assignment set, and second, which distributed resource
+to use to compute on that set.  In a distributed context, it is
+important to consider time to transfer a data-set to an assigned
+resource.  Simple heuristics based upon transfer times \& network
+performance can in conjunction with a knowledge of the affinity of
+data (set) to a specific resource be used for an efficient assignment.
+
 
 %\subsection{Infrastructure Used}
 
@@ -386,14 +393,17 @@ replica management and data server placement, the abstraction often
 increases the difficulty in determining where in the DFS the data is
 being stored.
 
-Here we define the \textit{heuristic framework} method, it differs from
-a DFS in that it determines where data is located and where the work
-should be placed. Determining data location can be as simple as looking
-at the IP address of the worker and finding where it is located, or as
+%Here we define the \textit{heuristic framework} method, 
+
+We use a heuristic based method, which differs from a DFS in that it
+determines where data is located and based upon upon application-level
+information decides where the work should be placed.
+Determining data location can be as simple as looking at the IP
+address of the worker and finding where it is located, or as
 complicated as using network analysis tools to determine the optimal
 data transfer minimization time. For file transfer during these
-heuristic framework-based experiments, we use GridFTP -- a tool that can
-support high-performance transfers ~\citep{gridftp_web}.
+heuristic framework-based experiments, we use GridFTP -- a tool that
+can support high-performance transfers ~\citep{gridftp_web}.
 
 For the experiments, to utilise both CloudStore and GridFTP within one
 application, we wrote adaptors for SAGA that implement the filesystem
@@ -420,28 +430,36 @@ without SAGA.
 \vspace{-0.5cm}
 
 \section{Experiments and Performance Analysis} 
+
+% Is a DFS slower than manual
+% placement of data? When manually handling data, what are the
+% advantages of being able to move work to data, or data to the work?
+
 We developed three types of experiments in order to understand the
-interplay of different determinants of performance and make a meaningful
-comparison of CloudStore's behaviour to manual data placement and file
-management. We try to answer questions such as: Is a DFS slower than
-manual placement of data? When manually handling data, what are the
-advantages of being able to move work to data, or data to the work? To
-answer these questions, we define the time to completion $t_c$:
+interplay of different determinants of performance and make a
+meaningful comparison of CloudStore's behaviour to heuristic-based
+data placement and file management. To help understand the issues at
+play, we define the time to completion $t_c$:
 
 \vspace{-0.3cm}
 
  \begin{equation}
 t_c = t_x + t_{I/O} + t_{compute},
 \end{equation}
-where $t_x$ is the pre-processing time, the dominant component of which is
-the time for transfer, $t_{I/O}$ is the time it takes to read and write
-files, and $t_{compute}$ is the time it takes the comparison function to
-run. We focus on three variables to calculate $t_c$: degree of
-distribution, data dependency, and workload. The degree of distribution
-($D_d$) is defined as the number of resources that are utilized for a
-given computation/problem. For example, if data is distributed over 3
+where $t_x$ is the pre-processing time, the dominant component of
+which is the time for transfer, $t_{I/O}$ is the time it takes to read
+and write files, and $t_{compute}$ is the time it takes the comparison
+function to run. We focus on three variables that determine that
+influence the value of $t_c$: degree of distribution, data dependency,
+and workload. The degree of distribution ($D_d$) is defined as the
+number of resources that are utilized for a given
+computation/problem. For example, if data is distributed over 3
 machines, $D_d=3$; if data is distributed over three machines but the
-computational tasks over 4 machines, $D_d=4$.
+computational tasks over 4 machines, $D_d=4$. We try to answer
+questions such as: How does t$_c$ for KFS compare to a heuristic-based
+approach as data-set sizes vary and the degree of distribution
+changes.
+
 
 \vspace{-0.4cm}
 
@@ -461,43 +479,43 @@ dynamically at run-time.
 
 Furthermore, variables external to the All-Pairs implementation also
 influence experimental results. The experiments can be completely
-described by a tuple of the form
-
+described by a system configuration (S$_i$) that is captured by tuple
+of the form:
 \vspace{-0.2cm}
-
- \begin{equation}
+\begin{equation}
 (c_s, N_c, M_c, f\!s, m,r),
 \label{Eq:tuple}
 \end{equation}
 where $c_s$ is the total amount of data in each file of a set (i.e.,
-$c_s=\mbox{\textit{chunk} size}$); $N_c$ is the number of work-loads
-that the total work is decomposed into, i.e., number of work assignments
-generated. $M_c$ will be
-represented by configurations \textit{C1, C2, C3, C4}, or \textit{C5}, each of
-which is a comma separated list of the machine configurations of the
-following form: $X(c, d)$ where $X$ is a shorthand reference for the
-computational resource, $c$ shows if the computational resource $X$ was
-used in the computational workloads/calculations, and $d$ if the
-computational resource $X$ assisted in data storage, both have a yes/no
-$(Y/N)$ value (see Table \ref{Tab:Configs}); $f\!s$ is the type of
+$c_s=\mbox{\textit{chunk} size}$); $N_c$ is the number of work-load
+assignments generated. $M_c$ represents machine configurations
+\textit{C1, C2, C3, C4}, or \textit{C5}, $f\!s$ is the type of
 filesystem used; $m$ is the method used to access that filesystem; and
 $r$ is the degree of replication utilized in the experiment (with a
-default value of 1). However, for CloudStore, we investigate the
-performance with $r = 1, 2
-\mbox{ and } 3$.
+default value of 1). However, for CloudStore, we investigate
+performance with $r = 1, 2 \mbox{ and } 3$.
+
+Furthermore, each machine configuration (M$_c$) is a comma separated
+list of the machine configurations of the following form: $X(c, d)$
+where $X$ is a shorthand reference for the computational resource. $c$
+shows if the computational resource $X$ was used in the computational
+workloads/calculations, and $d$ if the computational resource $X$
+assisted in data storage; both have a yes/no $(Y/N)$ value (see
+Table~\ref{Tab:Configs}).
 
 In the experiments, we have three $(f\!s, m)$ configurations, and five
 $X$ configurations. The $(f\!s, m)$ configurations are (local, local),
-(local, GridFTP), and (CloudStore, direct). By direct we mean CloudStore
-controls the data access. The $X$ configurations are enumerated in Table
-\ref{Tab:Configs}. For one machine, $\textit{C1}=X_1(Y,Y)$, where resource $X_1$
-has both the data and the computing; for two machines, we have three
+(local, GridFTP), and (CloudStore, direct). By direct we mean
+CloudStore controls the data access. The $X$ configurations are
+enumerated in Table \ref{Tab:Configs}. For one machine,
+$\textit{C1}=X_1(Y,Y)$, where resource $X_1$ is used for both data and
+the computing workloads; for two machines, we have three
 configurations, and for three machines we only work with only one
 configuration. $N_c$ is a very important configuration parameter as it
-determines the granularity of work. By granularity, we mean the ability
-to be distributed to many resources. If $N_c$ is too small, there may
-exist idle resources unable to assist the workload while the ones that
-are participating are overloaded.
+determines the granularity of work, which in turn determines the
+ability for distribution. If $N_c$ is too small, there may exist idle
+resources unable to assist the workload while the ones that are
+participating could be overloaded.
 
 \begin{table}
 \begin{center}
@@ -522,30 +540,30 @@ machines.}
 %%\vspace{-0.5cm}
 \end{table}
 
-
-A sample description of an experiment will now be explained, 
-(287MB, $N_c=8$, \textit{C2}, CloudStore, $r=1$),
-shows that each element of a set is 287MB in size (i.e., $c_s=287\mbox{MB}$); we have 8
-assignments; the computational resource $X_1$ does calculations, but
-does not have data stored, while computational resource $X_2$ does not
-calculate, but stores the data; the filesystem used is CloudStore, therefore, it
-directly accesses the files, and we have a replication factor of 1 for the
+A sample description of an experiment will now be explained: (287MB,
+$N_c=8$, \textit{C2}, CloudStore, $r=1$), shows that each element of a
+set is 287MB in size (i.e., $c_s=287\mbox{MB}$); we have 8
+assignments; the computational resource $X_1$ support computational
+work-loads, but does not have data stored, while computational
+resource $X_2$ does not take part in calculations, but stores the
+data; the filesystem used is CloudStore, therefore, it directly
+accesses the files, and we have a replication factor of 1 for the
 data. The machines $X_i$ we use for the experiments are part of LONI
-(Louisiana Optical Network Initiative). For most of the experiments, we
-find $t_c$ as we vary the number of workers $N_w$, keeping $N_c=8$,
- unless otherwise specified. As described
-above, the All-Pairs implementation used for the experiments has a fixed
-distribution of data, fixed available computational resources, and fixed
-sets of pairs to operate with. These variabilities listed above (tuple
-\ref{Eq:tuple}) are manipulated to determine causes for different I/O
-complexities observed in an attempt to build an understanding of issues
-that arise when utilising data-intensive applications. It is also
-notable that the following experiments were consistent and reproducible
-for a given time, but could vary if run more than a few hours apart.
-This variance is attributable to the amount of use that the computing
-environment (LONI) was experiencing at the time of the experiment.
-However, since there are no standardised mechanisms to determine the
-amount of load of compute systems we could not quantify this variance.
+(Louisiana Optical Network Initiative). In the experiments, we find
+$t_c$ as we vary the number of workers $N_w$, keeping $N_c=8$, unless
+otherwise specified. As described above, the All-Pairs implementation
+used for the experiments has a fixed distribution of data, fixed
+available computational resources, and fixed sets of pairs to operate
+with.  It is also notable that the experiments were reproducible and
+consistent over a given time of a few hours, but could vary if run
+more than a few hours apart.  This variance is attributable to the
+load-factor of the computing environment (LONI) experienced over the
+course of the experiments.  However, it is beyond the cope of this
+paper to quantify the variance with the load of compute systems.
+% These variabilities listed above (tuple \ref{Eq:tuple}) are
+% manipulated to determine causes for different I/O complexities
+% observed in an attempt to build an understanding of issues that
+% arise when utilising data-intensive applications.
 
 \vspace{-0.4cm}
 
@@ -553,21 +571,22 @@ amount of load of compute systems we could not quantify this variance.
 
 \vspace{-0.1cm}
 
-In the first experiment, we do not have an actual operation being
-applied on the pairs, giving us $t_{compute}=0$, that is, we evaluate
-data dependencies without the added variable of computation. We use
-this to examine the I/O, transfer and coordination costs. We run the
+In the first experiment, we assign a null computational workload
+applied on the pairs, giving us $t_{compute}=0$. We evaluate data
+dependencies without the added variable of computation. We use this to
+examine the I/O, transfer and coordination costs. We run the
 SAGA-based All-Pairs application on one, two, and three unique
-machines on a grid (LONI), without any specific data placement
-strategy; also, no replication or fault-tolerance takes place. The
-application sequentially assigns sets of pairs to the first available
-computational resource. All data is accessed via the GridFTP
-protocol. An important fact to notice is the essentially random
-mapping of data sets to computational resources based on
+machines on the LONI grid of Linux Clusters, without any specific data
+placement strategy; also, no replication or fault-tolerance is
+invoked.  The application sequentially assigns sets of pairs to the
+first available computational resource. All data is accessed via the
+GridFTP protocol. An important fact to notice is the essentially
+random mapping of data sets to computational resources based on
 availability. This is to mimic a naive data-intensive application.
 
 In Fig. \ref{Fig:ExpIConventionalLocal}, we show the results for
-data accessed without any protocol (local case) and data accessed via
+t$_c$, for
+data accessed locally, and data accessed via
 GridFTP. Using the All-Pairs framework accessing the data using
 GridFTP protocol had an overhead which can be noted by looking at the
 $y-$scales of both graphs. In Fig.
@@ -576,14 +595,17 @@ working with a smaller data set ($c_s \sim 144\mbox{MB}$, $N_c = 8$, for 1.15GB
 total) took about half the time than working with a data set double
 the size ($c_s = 287\mbox{MB}$, $N_c = 8$, for 2.3GB total). We also see that
 when working with the same data set size (2.3GB), but partitioned
-differently, i.e., S0 ($c_s = 287\mbox{MB}$, $N_c = 8$) vs. S1 ($c_s =
+differently t$_c$ can differ, e.g., S0 ($c_s = 287\mbox{MB}$, $N_c = 8$) vs. S1 ($c_s =
 144\mbox{MB}$, $N_c = 16$), $t_c$ increased for S1, due to added transfer
 time by doubling the number of files, although we decreased the file
-size by half. In Fig. \ref{Fig:ExpIConventionalLocal:b}, where we
+size by half. 
+
+In Fig. \ref{Fig:ExpIConventionalLocal:b}, where we
 used GridFTP to access the files, we see that a single machine took
 less time compared to the configurations that involved two
 machines. Also, having to access data remotely was a disadvantage,
-$t_c(\mbox{S1}) > t_c(\mbox{S2})$. For the one machine configuration,
+%$t_c(\mbox{S1}) > t_c(\mbox{S2})$. 
+$t_c(\mbox{S0}) > t_c(\mbox{S1})$. For the one machine configuration,
 $t_c$ was approximately constant, probably caused by an I/O bound. For
 all the cases, it is expected that $t_c$ decreases with increasing
 number of workers; however, after a critical value of $N_w$ (defined
@@ -600,23 +622,26 @@ coordinate the workers.
 \includegraphics[scale=0.48]{data/graphs/ConventionalandIntelligent}
 \label{Fig:ExpIConventionalLocal:b}
 }
-\caption{GridFTP vs. local run. We plot the time to
-completion $t_c$ vs. the number of workers $N_w$. Note the scale. The
-local case took less $t_c$ than the GridFTP case. In Fig.
-\ref{Fig:ExpIConventionalLocal:a}, we note that by doubling the data set
-size $t_c$ doubled (S2 vs. S0), and that we created an overhead in S1 (vs. S2) by
-increasing $t_x$ as a result of having more files. In Fig.
-\ref{Fig:ExpIConventionalLocal:b}, the two-machine configurations took
-more time than using a single machine. As expected, computing on one
-machine, while having the data stored on another ($t_c=7360s$ for $N_w=1$ in S1 -- not pictured), took longer
-compared to having some data stored on the resource performing
-computations (S3). For up to 8 workers, $t_c$ decreased as $N_w$
-increased, with the exception of a single machine where we reached an
-I/O bound. Here, we also compare the GridFTP and heuristic
-approaches for two and three machines (Sec. \ref{Sec:Heuristic}). For
-the two-machine case, we observed a performance improvement by using the
-heuristic approach (S2 vs. S3). However, with more resources involved,
-the heuristic system did not improve $t_c$ (S4 vs. S5).}
+\caption{GridFTP vs. local run. We plot the time to completion $t_c$
+  vs. the number of workers $N_w$. Note the scale. In general for
+  similar configurations, the local case took less $t_c$ than the
+  GridFTP case. In Fig.  \ref{Fig:ExpIConventionalLocal:a}, we note
+  that on doubling the data set size $t_c$ also doubled (S2
+  vs. S0). As a result of having more files, we created an overhead in
+  S1 (vs. S2) by increasing $t_x$. In Fig.
+  \ref{Fig:ExpIConventionalLocal:b}, the two-machine configurations
+  took more time than using a single machine. As expected, computing
+  on one machine, while having the data stored on another ($t_c=7360s$
+  for $N_w=1$ in S1 -- not pictured), took longer compared to having
+  some data stored on the resource performing computations (S3). In
+  general, $t_c$ decreased as $N_w$ increased, for up to 8 workers
+  (with the posisble exception of a single machine where we reached an
+  I/O bound). Here, we also compare the GridFTP and heuristic
+  approaches for two and three machines
+  (Sec. \ref{Sec:Heuristic}). For the two-machine case, we observed a
+  performance improvement by using a data-placement heuristic approach
+  (S2 vs. S3). However, with more resources involved, the heuristic
+  did not improve $t_c$ (S4 vs. S5).}
 \label{Fig:ExpIConventionalLocal}
 \end{center}
 \vspace{-0.3cm}
@@ -646,37 +671,43 @@ the heuristic system did not improve $t_c$ (S4 vs. S5).}
 \vspace{-0.4cm}
 
 %Staging experiment
-\subsection{Experiment II: Heuristic Based System}\label{Sec:Heuristic}
+\subsection{Experiment II: Heuristic Based Data-Placement}\label{Sec:Heuristic}
 
 \vspace{-0.1cm}
 
-The second experiment is similar to the first, except the All-Pairs
-application is aware of the data location before determining whether or
-not to assign a certain set of data-dependent computation to an idle
-worker. Inspired by earlier work~\citep{netperf}, this version of the
+The second experiment is similar to the first, except that the
+application is aware of the location of data before determining where
+to assign a set of data-dependent computation to an idle worker.
+% the All-Pairs application is aware of the data location before
+% determining whether or not to assign a certain set of data-dependent
+% computation to an idle worker.
+Inspired by earlier work~\citep{netperf}, this version of the
 application performs an extra step during application startup that
 approximates the performance of the network by pinging the hosts that
-may be either a computational resource or a data store. This information
-is then assembled into a graph data structure. This graph is utilised at
-runtime when the application needs to map an idle worker to an
-unprocessed set of pairs defined in the XML file. This changes the
-first-available computational resource assignment mechanism described in
-the first experiment to a heuristic based system. Though ping is not
-very sophisticated in terms of describing a network's behavior, it is a
-first-approximation to a performance aware data-placement strategy. We
-also experimented with the netperf application \citep{netperf_web} as a
-method to describe a network's behavior, but since we were working with
-such a static set of resources (LONI), the same data graph was generated
-as with ping. The netperf-based heuristic system added approximately 8
-seconds per resource of overhead due to the nature of the network
-evaluation, but yielded no benefit. Netperf has the advantage of being
-able to determine throughput and bandwidth over multiple protocols.
-These approaches know where the files are located and their distance to
-available computational resources, thus allowing more intelligent
+may be either a computational resource or a data store. This
+information is then assembled into a graph data structure. This graph
+is utilised at runtime when the application needs to map an idle
+worker to an unprocessed workload (set of pairs) defined in the XML
+file. This changes the first-available computational resource
+assignment mechanism described in the first experiment to a heuristic
+based approach. Though ping is not very sophisticated in terms of
+describing a network's behavior, it is a first-approximation to a
+performance aware data-placement strategy. We also experimented with
+the netperf application \citep{netperf_web} as a method to describe a
+network's behavior.  Even though Netperf has the advantage of being
+able to determine throughput and bandwidth over multiple protocols, it
+did not yield different results. We attribute this to the fact that we
+were working with such a static set of resources (LONI), the same data
+graph was generated as with ping. The netperf-based heuristic system
+added approximately 8 seconds per resource of overhead; hence we
+stayed with a ping-based approach.
+
+These approaches know where the files are located and their distance
+to available computational resources, thus allowing more intelligent
 decisions when mapping a set of pairs to a computational resource. An
 even more involved approach would be to manage locations of files
 dynamically at run-time depending on usage patterns. We leave this
-approach to future research. 
+approach to future research.
 %Figure 2
 
 The overhead of heuristics includes the time spent pinging hosts and
@@ -721,37 +752,39 @@ $t_{compute}=0$.
 \includegraphics[scale=0.48] {data/graphs/CloudStore3Mach}
 \label{Fig:experiment3:b}
 }
-\caption{(287MB,  CloudStore).
-Fig. \ref{Fig:experiment3:a} demonstrates All-Pairs' performance
-with CloudStore locally and on two different machines. Fig. \ref{Fig:experiment3:b} demonstrates how this scales to three machines, for degree of
-replication $r=1,2,\mbox{and } 3$. CloudStore performed better than the
-local and heuristic-based approaches (see Fig.
-\ref{Fig:ExpIConventionalLocal}). Again,
-having data in the resource with the workload decreased $t_c$. When data
-was spread across all the computational resources, having a degree of
-replication $r = 1, 2, \mbox{or } 3$ did not significantly decrease
-$t_c$, except to the case of three machines and 2 workers.}
+\caption{(287MB, CloudStore).  Fig. \ref{Fig:experiment3:a}
+  demonstrates All-Pairs' performance with CloudStore locally and on
+  two different machines. Fig. \ref{Fig:experiment3:b} demonstrates
+  how this scales to three machines, for degree of replication
+  $r=1,2,\mbox{and } 3$. CloudStore performed better than the local
+  and heuristic-based approaches (see Fig.
+  \ref{Fig:ExpIConventionalLocal}). Again, having data in the resource
+  with the workload decreased $t_c$. When data was spread across all
+  the computational resources, having a degree of replication $r = 1,
+  2, \mbox{or } 3$ did not significantly decrease $t_c$, except to the
+  case of three machines and 2 workers.}
 %\jhanote{This caption needs attention}}
 \label{Fig:experiment3}
 \end{center}
 \vspace{-0.3cm}
 \end{figure}
 
-As done above for the first experiment, we attempted to capture how
-compute time scales under these configurations, see Fig.
+As with the first experiment, we attempted to capture how compute time
+scales for different configurations, see Fig.
 \ref{Fig:experiment3}. Accessing data remotely adversely affected the
 performance. We can see that computing in one resource while the data
-was on another (S1) took the greatest amount of time. Having data in the
-resource that was computing helped performance (S2, S3, S4). The number
-of machines to which workload was assigned was also important. Placing
-workload on two machines also decreased $t_c$ (S2 vs. S3). We varied the
-degree of replication for the \textit{C4} and \textit{C5} configurations, i.e., for
-the cases of two and three machines, where all the resources had
-workload assigned and data stored. With a replication degree larger than
-one, data was almost certainly co-located with the computational
-resource. For \textit{C4}, having $r = 2$ improved $t_c$, but not considerably.
-For \textit{C5}, different degrees of replication only made a difference in the
-case of two workers.
+was on another (S1) took the greatest amount of time. Having data in
+the resource that was computing helped performance (S2, S3, S4). The
+number of machines to which workload was assigned was also
+important. Placing workload on two machines also decreased $t_c$ (S2
+vs. S3). We varied the degree of replication for the \textit{C4} and
+\textit{C5} configurations, i.e., for the cases of two and three
+machines, where all the resources had workload assigned and data
+stored. With a replication degree larger than one, data was almost
+certainly co-located with the computational resource. For \textit{C4},
+having $r = 2$ improved $t_c$, but not considerably.  For \textit{C5},
+different degrees of replication only made a difference in the case of
+two workers.
 
 We then added the actual genome comparison function and we compared it
 to the base case where we did not include the function. We define $\Delta t_c$
@@ -759,7 +792,7 @@ which is the time difference between these two cases. In Fig.
 \ref{Fig:experiment4}, we see that the time taken to do the genome
 comparison was relatively small compared to the set up time, transfer,
 and I/O time added together. The fact that $\Delta t_c$ for a given
-$N_w$ was not the same for most of configurations, shows that there was
+$N_w$ was not the same for most configurations, shows that there was
 still an overhead; $t_x$ and $t_{I/O}$ were not the same at the
 times we ran the All-Pairs framework for both cases.
 %Figure 4
@@ -769,7 +802,7 @@ times we ran the All-Pairs framework for both cases.
 \includegraphics[scale=0.5]{data/graphs/CloudStoreComputeMinusNoCompute144}
 \caption{(144MB, CloudStore). Comparison of CloudStore using the All-Pairs application with
 and without actual computation. $\Delta t_c$ is defined as the time it
-takes to run the framework where we include the genome comparison
+takes to run to completion, where we include the genome comparison
 function, minus the time it takes to run it when we don't include the
 comparison function. For the case of $c_s=144\mbox{MB}$, the genome function
 took about two orders of magnitude less than $t_x$ and $t_{I/O}$
@@ -797,7 +830,7 @@ eight workers when all the resources had workload and data stored (S3);
 this is, it took about 10 seconds less for a 2.3GB set vs. a 1.15GB
 set. Fig. \ref{Fig:CloudStore287minus144:b} shows that for most of the
 cases, there was an overhead which decreased with the number of workers.
-It also shows us that the remote data configuration was the one with the
+It also shows that the remote data configuration was the one with the
 most overhead. Moreover, the S3 case seemed to use a ``non scalable''
 infrastructure, as the overhead increased with eight workers.
 
@@ -833,17 +866,18 @@ was the one with the most overhead.}
 \vspace{-0.4cm}
 \end{figure}
 
-We compared the lowest times for both the heuristic approach and
-CloudStore as a function of the number of resources $N_r$ in Fig. 
-\ref{Fig:CloudStoreVsGridFTP:a}. CloudStore performed better for one and
-two machines, but not for three resources, when the performance of 
-CloudStore decreased. Using the heuristic approach, the lowest times were about the
-same for $N_r=1,2,3$. In Fig. \ref{Fig:CloudStoreVsGridFTP:b} we
-plotted the completion time as a function of the number of workers for
-three resources. All the resources had workload assigned and data
-stored. CloudStore's performance did not vary significantly with the
-number of workers, while the heuristic approach performed better as we
-increased the number of resources from one to three.
+In Fig.  \ref{Fig:CloudStoreVsGridFTP:a}, we compared the lowest times
+for both the heuristic approach and CloudStore as a function of the
+number of resources $N_r$. CloudStore performed better for one and two
+machines, but not three resources, where the performance of CloudStore
+decreased. Using the heuristic approach, the lowest times were about
+the same as $N_r$ was incrased from 1 up to 3. In
+Fig. \ref{Fig:CloudStoreVsGridFTP:b} we plot the time-to-completion as
+a function of the number of workers when three resources are used. All
+the resources had workload assigned and data stored. CloudStore's
+performance did not vary significantly with the number of workers,
+while the heuristic approach performed better as we increased the
+number of resources from one to three.
 
 \begin{figure}
 \begin{center}
@@ -859,7 +893,7 @@ increased the number of resources from one to three.
 }
 \caption{(287MB). Fig. \ref{Fig:CloudStoreVsGridFTP:a}
  shows the lowest times obtained for a given number of resources
- $(N_{r})$. These lowest times did not vary much for the heuristic-based 
+ $(N_{r})$. The lowest times did not vary much for the heuristic-based 
  method, while the performance of CloudStore decreased with increasing number of
  resources (up to three). Fig. \ref{Fig:CloudStoreVsGridFTP:b}
  demonstrates performance with three resources for both GridFTP and
@@ -885,26 +919,26 @@ We set out to understand the factors that influence the performance of
 a representative data-intensive application, and to understand their
 interplay. We also aimed to demonstrate how the SAGA approach enables
 data-intensive applications to be extensible and interoperable over a
-range of infrastructure. This capability enabled us to compare and
-contrast two different approaches -- simple application-level data
-placement heuristics versus distributed file systems -- for executing
-distributed data-intensive applications. It should be noted that 
-utilising SAGA to access CloudStore-based and GridFTP-based files
-introduced a small but negligible overhead.
+range of infrastructure. It should be noted that utilising SAGA to
+access CloudStore-based and GridFTP-based files introduced a small but
+negligible overhead; in contrast, the capability enabled us to compare
+and contrast two different approaches for executing distributed
+data-intensive applications -- simple application-level data placement
+heuristics versus distributed file systems.
 
 For the volume of data we worked with in the first set of experiments,
-the local configuration (\textit{C1}) took the least time to completion $t_c$
-as a function of the number of workers $N_w$. However, this will not
-necessarily be the case as the volume of data is largely increased
-(which we anticipate to be tens of GB of data). The remote
-configuration (\textit{C2}) showed the highest time to completion, while
-$t_c$ decreased for the mixed configuration (\textit{C3}). Using
-configuration \textit{C4} decreased the time even further, but not to the
-point of \textit{C1}. $t_c$ appears to be bounded by $t_c(\mbox{local})$,
-where we exhausted the I/O bandwidth. In general, $t_c$ decreased as
-we added more workers, but it is expected that after a critical value
-of $N_w$ ($N^c_w$), $t_c$ will increase due to overhead of
-coordinating workers.
+the local configuration (\textit{C1}) took the least time to
+completion $t_c$ as a function of the number of workers
+$N_w$. However, this will not necessarily continue to be the case as
+the volume of data is increases (which we anticipate to be
+tens of GB of data). Configuration (\textit{C2}) showed the
+highest time to completion, while $t_c$ decreased for the mixed
+configuration (\textit{C3}). Using configuration \textit{C4} decreased
+the time even further, but not to the point of \textit{C1}. $t_c$
+appears to be bounded by $t_c(\mbox{local})$, where we exhausted the
+I/O bandwidth. In general, $t_c$ decreased as we added more workers,
+but it is expected that after a critical value of $N_w$ ($N^c_w$),
+$t_c$ will increase due to overhead of coordinating workers.
 
 The second experiment implements a simple heuristic for efficient data
 and work resource assignments. This staging phase only required
@@ -921,7 +955,7 @@ approach did not perform as well as CloudStore for one and two
 machines, but performed better than a naive use of GridFTP For three
 machines, the relative performance of CloudStore and the heuristic
 approach depended upon the $N_w$. The results for three resources
-showed that an heuristics-based use of GridFTP continued to experience
+showed that a heuristics-based use of GridFTP continued to experience
 improvements in performance as the number of resources increased, while
 CloudStore leveled off. 
 
