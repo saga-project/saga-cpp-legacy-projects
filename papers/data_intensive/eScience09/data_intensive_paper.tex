@@ -46,9 +46,12 @@ breakautoindent=true, breaklines=true tabsize=2, captionpos=b,
   %numbers=left, numberstyle=\tiny
 }
 
-\title[Understanding Performance Implications of Distributed Data for
-Data-Intensive Applications]{Understanding Performance Implications of
-Distributed Data for Data-Intensive Applications}
+\title[Understanding Performance of Distributed Data-Intensive
+Applciations]{Understanding Performance of Distributed Data-Intensive
+  Applciations}
+% \title[Understanding Performance Implications of Distributed Data for
+% Data-Intensive Applications]{Understanding Performance Implications of
+% Distributed Data for Data-Intensive Applications}
 
 \author[Miceli, Miceli, Rodriguez-Milla, Jha]{ Christopher Miceli$^{1}$,
 Michael Miceli$^{1}$, Bety Rodriguez-Milla$^{1}$, Shantenu Jha$^{1,2,*}$ \\
@@ -85,17 +88,18 @@ interesting and unique performance issues that appear as the volume of
 data and degree of distribution increases. New scalable data placement
 and management techniques, as well as novel approaches to determine
 the relative placement of data and computational workload are
-required.  We develop and study genome sequence matching application
-as a prototype of a data-intensive application yet simple to control
-and deploy; the application uses a SAGA-based implementation of the
-All-Pairs pattern.  This paper aims to understand some of the factors
-that influence the performance of this application and their
-interplay. We also demonstrate how the SAGA approach can enable
-data-intensive applications to be extensible and interoperable over a
-range of infrastructure. This capability enables us to compare and
-contrast two different approaches -- simple application-level data
-placement strategies versus distributed file systems -- for executing
-distributed data-intensive applications.
+required.  We develop and study a genome sequence matching application
+as a prototype of a data-intensive application, yet that is still
+simple to control and deploy the application uses a SAGA-based
+implementation of the All-Pairs pattern.  This paper aims to
+understand some of the factors that influence the performance of this
+application and the interplay of those factors. We also demonstrate
+how the SAGA approach can enable data-intensive applications to be
+extensible and interoperable over a range of infrastructure. This
+capability enables us to compare and contrast two different approaches
+for executing distributed data-intensive applications -- simple
+application-level data placement heuristics versus distributed file
+systems.
 
 % We develop and study an All-Pairs based genome sequence matching
 % application as a representative data-intensive application. This paper
@@ -124,64 +128,63 @@ distributed data-intensive applications.
 The role of data-intensive computing is increasing in many aspects of
 science and engineering~\citep{fourthparadigm} and other
 disciplines. For example, Google processes around 20 petabytes of data
-per day~\citep{google}; trends show this growth continuing. In
-addition to increasing volumes of data, there are several reasons
-driving the need for computation on distributed data, such as the
-proliferation of distributed services and the localisation of data due
-to security \& privacy issues. The challenges in developing effective
-and efficient distributed data-intensive applications that meet a
-range of design \& performance metrics arise from a complex interplay
-of the challenges in developing distributed applications on the one
-hand with those in developing data-intensive applications on the
-other. New algorithmic, infrastructure, and data-management techniques
-are required to handle large data-volumes effectively. In general at
-large scales, data-placement, scheduling and management need increased
-attention.
+per day~\citep{google}; trends suggest a continued growth in
+volumes. In addition to increasing volumes of data, there are several
+reasons driving the need for computation on distributed data, such as:
+the proliferation of distributed services and the localisation of data
+due to security \& privacy issues. The challenges in developing
+effective and efficient distributed data-intensive applications that
+meet a range of design \& performance metrics arise from a complex
+interplay of the challenges in developing distributed applications on
+the one hand with those in developing data-intensive applications on
+the other. New programming, infrastructure, and data-management
+techniques are required to handle and analyse large data-volumes
+effectively. In general at large scales, data-placement, scheduling
+and management need increased attention.
 
 An important design consideration and objective for data-intensive
 distributed applications and systems is the ability to find and
-support optimal distribution of data and computational workloads. Thus
-an important challenge is to find broadly applicable strategies to
-distribute data and computation that can support a range of different
-mechanisms to achieve this objective. In general, there are many
-variable factors that determine the performance of a given application
-on distributed infrastructure, such as the degree of distribution,
-granularity of workload decomposition and type of infrastructure to
-name just a few.  In this paper, we investigate two ways to handle the
-optimal data-computation distribution problem and try to understand
-their performance as a function of these factors.
+support an optimal distribution of data and computational
+workloads. An important challenge is to find broadly applicable
+strategies to distribute data and computation that can support a range
+of different mechanisms to achieve this objective. In general, there
+are many factors that determine the performance of a given
+application on distributed infrastructure, such as the degree of
+distribution, granularity of workload decomposition and type of
+infrastructure to name just a few.  In this paper, we investigate two
+ways to handle the optimal data-computation distribution problem and
+try to understand their relative performance as a function of these factors.
 
 In the first approach, we encode a simple metric to determine the {\it
   workload} placement into a ``heuristic framework''. We contrast this
-approach with the use of an open-source distributed filesystem (DFS)
--- which natively supports effective {\it data} placement.  DFS are
-becoming increasing common as part of Cloud infrastructures and
-available machine images. A DFS controls the data placement and
+approach with the use of an open-source distributed filesystem (DFS).
+A DFS typically controls the {\it distributed} data placement and
 provides a uniform interface for accessing files on multiple hosts.
 But the underlying algorithms, scheduling strategies, and
-implementations vary greatly between different infrastructures, hence
-it is difficult to estimate {\it a priori} the application-level
-performance on a given DFS.  Thus having the ability to compare and
-contrast different DFS for a given application is an important
-requirement.
+implementations vary greatly between different offerings, hence it is
+difficult to estimate {\it a priori} the application-level performance
+on a given DFS.  Thus having the ability to compare and contrast
+different DFS for a given application is an important requirement.
+More generally, the ability to provide repeatable, extensible, and
+verifiable performance tests on different distributed platforms is
+required in order to understand the interplay and trade-offs between
+these factors.  In general, we hope to provide the first steps towards
+a comprehensive and a rigorous benchmarking process for distributed
+data-intensive applications, analogous to the suite of benchmarks for
+high performance computing.
 
-Therefore a rigorous benchmarking process, which provides repeatable,
-extensible, and verifiable performance tests on different distributed
-platforms is required in order to understand the interplay and
-trade-offs between these variables. This is analogous to the situation
-of developing and testing benchmarks for high performance computing
-(HPC).  In Section 3 we will establish how the use of adaptors enables
-SAGA-based applications to make this comparison effectively. An aim of
-this paper is to present a credible initial benchmarking template, and
-to suggest ways to answer the question of whether ``to move
-computational workload to where data resides or to redistribute the
-data''. As we will show, the actual answer will depend significantly
-on the specific data-set sizes, algorithm/applications, and
-infrastructure used. Data privacy, security, and access policy are
-crucial issues but typically are not determinants of performance for
-distributed applications; thus we will not consider them in this
-paper.
- 
+In Section 3 we will establish how the use of adaptors enables
+SAGA-based applications to make comparisons across platforms
+effectively. Specifically, an aim of this paper is to present a
+credible initial benchmarking template, and to suggest ways to answer
+the question of whether ``to move computational workload to where data
+resides or to redistribute the data''. As we will show, the actual
+answer will depend significantly on the specific data-set sizes,
+algorithm/applications, and infrastructure used. Data privacy,
+security, and access policy are crucial issues but typically are not
+determinants of performance for distributed applications; thus we will
+not consider them in this paper.
+
 In Section 2, we present a very brief discussion of SAGA which
 provides the distributed programming capability to develop the
 All-Pairs based application (Section 3). The work in this paper uses a
@@ -219,26 +222,26 @@ gained and look ahead.
 % high-level of abstraction so as to be independent of the divers\ e and
 % dynamic Grid environments.
 
-The Simple API for Grid Applications (SAGA) is an API
 % standardization effort within the Open Grid Forum
 % (OGF)~\cite{saga_gfd90}, an international standards development body
 % concerned primarily with standards for distributed computing. 
-that provides a simple, POSIX-style API to the most common distributed
-functions at a sufficiently high-level of abstraction so as to be
-independent of the diverse and dynamic Grid environments. The SAGA
-specification defines interfaces for the most common Grid-programming
-functions grouped as a set of functional packages
-(Fig.~\ref{Fig:SAGA1}). Some key packages are: (i) File package -
-provides methods for accessing local and remote filesystems, browsing
-directories, moving, copying, and deleting files, setting access
-permissions, as well as zero-copy reading and writing. (ii) Job
-package - provides methods for describing, submitting, monitoring, and
-controlling local and remote jobs. Many parts of this package were
-derived from the largely adopted DRMAA specification. (iii) Stream
-package - provides methods for authenticated local and remote socket
-connections with hooks to support authorization and encryption
-schemes. (iv) Other Packages, such as the RPC (remote procedure call)
-and Replica package.
+
+The Simple API for Grid Applications (SAGA) provides a simple,
+POSIX-style API to the most common distributed functions at a
+sufficiently high-level of abstraction so as to be independent of
+diverse Grid environments. The SAGA specification defines interfaces
+for the most common Grid-programming functions grouped as a set of
+functional packages (Fig.~\ref{Fig:SAGA1}). Some key packages are: (i)
+File package - provides methods for accessing local and remote
+filesystems, browsing directories, moving, copying, and deleting
+files, setting access permissions, as well as zero-copy reading and
+writing. (ii) Job package - provides methods for describing,
+submitting, monitoring, and controlling local and remote jobs. Many
+parts of this package were derived from the largely adopted DRMAA
+specification. (iii) Stream package - provides methods for
+authenticated local and remote socket connections with hooks to
+support authorization and encryption schemes. (iv) Other Packages,
+such as the RPC (remote procedure call) and Replica package.
 
 \begin{figure}[!ht]
  \begin{center}
@@ -366,20 +369,22 @@ specific data set's affinity to a specific network resource.
 {\it Infrastructure Used: } In the experiments we use the stable,
 open-source DFS CloudStore (formerly KFS), which is written in C++ and
 released under the Apache License Version 2.0 ~\citep{cloudstore_web}.
-It is inspired by the highly successful Google Filesystem, GFS, which is
-closed source and unavailable for research ~\citep{GFS}. CloudStore was
-chosen for its high performance focus, C++ implementation, and its
+It is inspired by the highly successful Google Filesystem, GFS, which
+is closed source and unavailable for research ~\citep{GFS}. CloudStore
+was chosen for its high performance focus, C++ implementation, and its
 source code availability. It also provides a means to automatically
 replicate data on different hosts to provide efficient data access and
 fault tolerance. In general, DFS are useful and effective tools to
 consider for data-intensive scientific applications, with multiple
-open-source, reliable file-systems now available. The most common
-parameters in determining the performance of using a DFS are the
-performance overhead compared to a normal local filesystem, number of
-replicas of each datum/file, and the number of servers. While a DFS
-removes the responsibility of replica management and data server
-placement, the abstraction often increases the difficulty in determining
-where in the DFS the data is being stored.
+open-source, reliable file-systems now available. DFS are becoming
+increasing common as part of Cloud infrastructures and available
+machine images. The most common parameters in determining the
+performance of using a DFS are the performance overhead compared to a
+normal local filesystem, number of replicas of each datum/file, and
+the number of servers. While a DFS removes the responsibility of
+replica management and data server placement, the abstraction often
+increases the difficulty in determining where in the DFS the data is
+being stored.
 
 Here we define the \textit{heuristic framework} method, it differs from
 a DFS in that it determines where data is located and where the work
