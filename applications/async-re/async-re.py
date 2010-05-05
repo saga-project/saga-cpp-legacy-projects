@@ -18,47 +18,99 @@ import time
 import pdb
 
 #Configure here:
-BIGJOB_SIZE = 8
-NUMBER_EXCHANGES = 3
+BIGJOB_SIZE = 32
+NUMBER_EXCHANGES = 32
 NUMBER_BIGJOBS = 2
-NUMBER_REPLICAS = 4
+NUMBER_REPLICAS = 8
 HOST = "eric1.loni.org"
-REMOTE1 = "louie1.loni.org"
+REMOTE1 = "qb1.loni.org"
 REMOTE2 = "oliver1.loni.org"
 advert_host = "fortytwo.cct.lsu.edu"
 #dirs for replicas
 WORK_DIR = "/work/athota1/new_bigjob/bigjob/"
-WALLTIME = 60
+WALLTIME = 120
+REPLICA_DIR = "/work/athota1/new_bigjob/bigjob/NAMD_files/"
+
+
+def stage_files(i):
+   if not i%2:
+     try:
+        os.mkdir(WORK_DIR + 'agent/' + str(i))
+     except OSError:
+        pass
+     os.system("cp -r " + REPLICA_DIR + "* " + WORK_DIR+ "agent/" + str(i)+ "/")
+   else:
+     try:
+        os.mkdir(WORK_DIR + 'agent/' + str(i))
+     except OSError:
+        pass
+     os.system("gsiscp -r " + WORK_DIR + "agent/" + str(i) + " " + REMOTE1 + ":" + WORK_DIR + "agent/" ) 
+   os.system("gsiscp -r " + REPLICA_DIR + "* " + REMOTE1 + ":" + WORK_DIR+ "agent/" + str(i)+ "/")
+
+def stage_files1(i):
+   if not i%2:
+     try:
+        os.mkdir(WORK_DIR + 'agent/' + str(i))
+     except OSError:
+        pass
+   else:
+     try:
+        os.mkdir(WORK_DIR + 'agent/' + str(i))
+     except OSError:
+        pass
+     os.system("gsiscp -r " + WORK_DIR + "agent/" + str(i) + " " + REMOTE1 + ":" + WORK_DIR + "agent/" ) 
+    # s_url = saga.url('file://' + WORK_DIR + 'agent/' + str(i)+'/')
+    # d_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR + 'agent/')
+    # sagadir = saga.filesystem.directory(s_url)
+    # try: 
+    #    sagadir.copy(d_url)
+    # except saga.exception, e:
+    #    print "\n(ERROR) creating directories on remote machine %s  failed or directory already exists"%(REMOTE1)
+   for ifile in os.listdir(REPLICA_DIR):
+      source_url = saga.url('file://' + REPLICA_DIR + ifile)
+      if not i%2:
+        dest_url = saga.url('file://' +'localhost'+ WORK_DIR + 'agent/'+ str(i)+'/')
+      else:
+        dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR + 'agent/' + str(i)+'/')
+      sagafile = saga.filesystem.file(source_url) 
+      try: 
+         sagafile.copy(dest_url)
+      except saga.exception, e:
+         print str(e) + "\n(ERROR) remote file ####STAGING### copy from %s to %s failed"%(HOST, REMOTE1)
 
 def copy_with_saga(i):
-    source_url = saga.url('file://' + WORK_DIR + 'NPT-' + str(i) + '.conf')
-    dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR)
-
-    sagafile = saga.filesystem.file(source_url)
-    try:
+    if not i%2:
+      os.system("cp "+ REPLICA_DIR + "/NPT.conf " + WORK_DIR + "agent/" + str(i) + "/NPT.conf")
+      #source_url = saga.url('file://' + REPLICA_DIR + 'NPT.conf')
+      #dest_url = saga.url('file://' +'localhost'+ WORK_DIR + 'agent/' + str(i) + '/NPT.conf')
+    else:
+      source_url = saga.url('file://' + REPLICA_DIR + 'NPT.conf')
+      dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR+'agent/'+str(i)+'/')
+      sagafile = saga.filesystem.file(source_url)
+      try:
         sagafile.copy(dest_url)
-    except saga.exception, e:
-        print "\n(ERROR) remote file copy from %s to %s failed"%(HOST, REMOTE1)
+      except saga.exception, e:
+        print "\n(ERROR) remote ###NPT.CONF####file copy from %s to %s failed"%(HOST, REMOTE1)
 
     return None
              
 def prepare_NAMD_config(r, i):
 # config prep when re-launching replicas   
-   ifile = open("NPT-" + str(i) + ".conf")   # should be changed if a different name is going to be used
+   ifile = open(REPLICA_DIR+ "NPT.conf")   # should be changed if a different name is going to be used
    lines = ifile.readlines()
    for line in lines:
       if line.find("desired_temp") >= 0 and line.find("set") >= 0:
          lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[r]))
          print "new temperatures being set, re-launching#" + str(i) + "whose new temp=" + str(temps[r])
    ifile.close()
-   ofile = open("NPT-" + str(i) + ".conf","w")
+   ofile = open(REPLICA_DIR+ "NPT.conf", "w")
    for line in lines:
      ofile.write(line)
    ofile.close()
 
-def NAMD_config():
+def NAMD_config(i):
 #initial prep of config,for the first launch of replicas
-  ifile = open("NPT-" + str(i) + ".conf")   # should be changed if a different name is going to be used
+  ifile = open(REPLICA_DIR+ "NPT.conf")   # should be changed if a different name is going to be used
   lines = ifile.readlines()
   for line in lines:
      if line.find("desired_temp") >= 0 and line.find("set") >= 0:
@@ -68,7 +120,7 @@ def NAMD_config():
       # else:
        #   lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
   ifile.close()
-  ofile = open("NPT-" + str(i) + ".conf","w")
+  ofile = open(REPLICA_DIR+ "NPT.conf", "w")
   for line in lines:
     ofile.write(line)
   ofile.close()
@@ -76,7 +128,7 @@ def NAMD_config():
 
 """ Test Job Submission via Advert """
 if __name__ == "__main__":
-
+    print str(time.time()) + "= start time######################"
     #range of temperatures
     temps=[]
     t=300
@@ -118,25 +170,27 @@ if __name__ == "__main__":
     # Submit SubJob through BigJob
     i=0
     jds=[]
-    jd = saga.job.description()
-    jd.executable = "namd2"
-    jd.number_of_processes = "4"
-    jd.spmd_variation = "mpi"
-   # jd.arguments = ["NPT.conf"]
-    jd.working_directory = os.getcwd() 
     sjs=[]
     for i in range(0, NUMBER_REPLICAS):
-      os.system("cp NPT.conf NPT-" + str(i) + ".conf")
-      jd.arguments = ["NPT-" + str(i) + ".conf"]
-      jd.output = "stdout-" + str(i) + ".txt"
-      jd.error = "stderr-" + str(i) + ".txt"  	
+      stage_files(i)
+      jd = saga.job.description()
+      jd.executable = "namd2"
+      jd.number_of_processes = "8"
+      jd.spmd_variation = "mpi"
+   # jd.arguments = ["NPT.conf"]
+      jd.working_directory = WORK_DIR + "agent/" + str(i)+"/"
+      #os.system("cp NPT.conf NPT.conf")
+      jd.arguments = ["NPT.conf"]
+      jd.output = str(i) + "/stdout-" + str(i) + ".txt"
+      jd.error = str(i) + "/stderr-" + str(i) + ".txt"  	
       jds.append(jd)
       sj = bigjob.subjob(advert_host)
       sjs.append(sj)
       #prepare config and scp other files to remote machine
-      NAMD_config()
+      NAMD_config(i)
       if not i%2:
         j = 0   
+        copy_with_saga(i)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       else: 
         j = 1
@@ -186,6 +240,7 @@ if __name__ == "__main__":
                 prepare_NAMD_config(k, i) 
                 if not i%2:
                   j=0
+                  copy_with_saga(i)
                   sjs[i].submit_job(bjs[j].pilot_url, jds[i], str(i))
                 else:
                   j=1                  
@@ -194,8 +249,9 @@ if __name__ == "__main__":
                   sjs[i].submit_job(bjs[j].pilot_url, jds[i], str(i))
                                   
                 prepare_NAMD_config(i, k)
-                if not k%2:
+                if not i%2:
                   j=0
+                  copy_with_saga(k)
                   sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
                 else:
                   j=1
@@ -213,8 +269,9 @@ if __name__ == "__main__":
 #################################################################################          
           
       print "count=" + str(count)
-
+    print str(time.time()) + "= end time######################"
    # Cleanup - stop BigJob
     for i in range(0, NUMBER_BIGJOBS):
      bjs[i].cancel()
+
 
