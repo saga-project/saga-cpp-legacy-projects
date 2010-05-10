@@ -18,7 +18,7 @@
 \usepackage{multirow}
 \usepackage{ifpdf}
 \usepackage{subfig}
-\usepackage[pdftex]{graphicx}
+%\usepackage[pdftex]{graphicx}
 % \usepackage{natbib}
 %\usepackage{listings}
 %\usepackage{keyval}
@@ -127,21 +127,30 @@ Christopher D. White\\
 
 \maketitle
 
-\begin{abstract}{ensemble simulations, sequestration, distributed
-    applications, scale-out} In this paper, we layout the
+\begin{abstract} In this paper, we layout the
   computational challenges involved in effectively simulating complex
-  phenomenon such as sequestrating CO$_2$ in existing oil
+  phenomenon such as sequestering CO$_2$ in  oil and gas
   reservoirs. The challenges arise at multiple levels: (i) the
   computational complexity of simulating the fundamental processes;
   (ii) the resource requirements of the computationally demanding
   simulations; (iii) the need for integrating real-time data
-  (intensive) and computational intensive simulations; (iv) and the
+  (intensive) and computationally intensive simulations; (iv) and the
   need to implement all of these in a robust, scalable and extensible
   approach. We will outline the architecture and implementation of the
   solution we develop in response to these requirements, and discuss
   results to validate claims that our solution scales to effectively
   solve desired problems sizes and thus provides the capability to
   generate novel scientific insight.\end{abstract}
+
+
+% A category with the (minimum) three required fields
+\category{D.1.3}{Concurrent Programming}{Parallel Programming}
+
+\terms{ALGORITHMS,DESIGN,PERFORMANCE,MANAGEMENT}
+
+\keywords{Ensemble Simulations, Sequestration, Distributed
+    Applications, Scale-out} % NOT required for Proceedings
+%Workflow Management, CO$_2$ Sequestration, Grid Computing, Coupled Simulation
 
 \section{Introduction and Motivation}
 
@@ -240,13 +249,13 @@ pressure and saturation) field maps that are generated using
 geostatistically methods from a base case. If we start with a
 close enough base case, generate an ensemble of representative models
 and run sufficient analysis steps, the true state of the reservoir
-will lie somewhere between ensemble members.
+will lie somewhere between statistically representative ensemble members.
 
 Since the reservoir model varies from one ensemble to another, the
 run-time characteristics of the ensemble simulation are irregular and
 hard to predict. Furthermore, at simulation times when real historical
 data is available, all the data from the different ensembles at that
-simulation time must be compared to the actual production data, before
+simulation time must be compared to the actual production data (i.e. analysis step), before
 the simulations are allowed to proceed. This translates into a global
 synchronization point for all ensembles; hence performing large scale
 studies for complex reservoirs in a reasonable amount of time would
@@ -267,7 +276,7 @@ effects of CO$_2$ injection are ignored. In our test/demonstration
 simulations, carbon dioxide is injected as a supercritical gas at 2800
 psi. Regulatory constraints limit the bottom-hole injection pressure;
 the bottom hole pressure at the injection point does not exceed the
-hydrostatic pressure gradient by more than 0.2 psi/ft.
+hydrostatic pressure gradient by more than $0.2$ psi/ft.
 \up\up\up
 \subsection{Analyzing The Computational Complexity}
 
@@ -286,8 +295,8 @@ effect can be monitored by comparing the actual forecasted model data
 differences to those expected on the basis of the forecasted ensemble
 covariance ~\cite{Burger98}.
 
-In contrast, Ref~\cite{Hout98} found that while the analysis error
-decreased as the number of ensembles increased, representative
+In contrast, Hout et al ~\cite{Hout98} found that while the analysis error
+decreased as the number of ensembles increased, i.e. representative
 ensembles can be maintained with a relatively small ensemble size
 (order of hundreds) using a pair of ensembles. Furthermore, the
 required ensemble size remains constant irrespective of the state
@@ -301,7 +310,7 @@ For these reasons, optimal ensemble size is considerably difficult to
 determine without any preliminary analysis. Large ensemble sizes
 directly translate to increased computational cost and delays in the
 time to completion. Conversely, smaller ensemble sizes, while more
-efficient require prior knowledge of localization requirement for
+efficient, require prior knowledge of localization requirement for
 reduced analysis errors.
 \up\up\up\up
 \subsubsection{Analyzing the Trade-offs}  
@@ -321,15 +330,13 @@ Since the choice of ensemble size has a direct impact on total time to
 completion, a tradeoff can be established: large ensembles of
 small/less detailed simulations as opposed to small ensembles of
 large/detailed simulations. If the ensemble is too small, it fails to
-span the space of possible models and moreover the inversion tends to
-be unstable. On the other hand, too-large ensembles are
+span the space of possible models and the inversion tends to
+be unstable. On the other hand, large ensembles are
 inefficient. The tradeoff can keep the number of SU's
 \footnote{An SU is a system unit: an accounting unit
 amounting to one core on one node for one hour} required
 constant, and with prior knowledge of available resources, the total
 time to completion as well.
-
-
 
 The question becomes: given a small
 time-frame of ten days for example, what ensemble size and what
@@ -420,7 +427,7 @@ problems \cite{DataAssim}. However, many challenges remain,
 including a better understanding of filter behavior, methods to
 stabilize filters, and guidelines for optimal filter structure. In
 addition, because ensembles of large, nonlinear models impose a heavy
-computing burden, engineers and scientists need access to
+computing burden, engineers and scientists will need greater access to
 supercomputing resources. Efficient use of these resources requires a
 balanced cyber-infrastructure for ensemble inversion; the inversion
 infrastructure must (1) be sensor--aware, so that inversion proceeds
@@ -443,36 +450,30 @@ studies
 
 \begin{figure}[!ht]
 \begin{center}
-     \includegraphics[scale=0.4]{stci-saga-figures-1.pdf}
+     \includegraphics[scale=0.53]{stci-saga-figures-1.pdf}
 \end{center}
 %      \includegraphics[scale=0.4]{remdmanager.pdf}
- \caption{\small (Left) Layered schematic of the different components
+ \caption{\small Layered schematic of the different components
     of the SAGA landscape.  Middleware specific adaptors applications
     developed using SAGA make applications developed using SAGA grid
-    portable. (Right) Schematic showing the different ways in which
-    SAGA can be used to develop distributed applications. (i) Using
-    direct, simple SAGA calls to implement distributed functionality;
-    (ii) Coordinating multiple components of an application, either
-    directly, or using high-level APIs; (iii) Through the use of
-    frameworks which provide either application-level usage modes,
-    patterns and thus shielding the application from directly
-    interfacing with the infrastructure.  SAGA facilitates the
+    portable. SAGA facilitates the
     creation of a framework made up of ``abstractions'' (Bigjob;
     ManyJob) that supports the functionality desired for distributed
-    applications, but not confined to a specific infrastructure.  The
-    BigJob abstraction provides the capability to cluster sub-jobs
-    into a larger big-job, and acts like a Pilot-Job. The
-    abstractions, enable the allocation of resources to an application
-    and not to a specific job.}
+    applications, but not confined to a specific infrastructure.}
+%   The
+%     BigJob abstraction provides the capability to cluster sub-jobs
+%     into a larger big-job, and acts like a Pilot-Job. The
+%     abstractions, enable the allocation of resources to an application
+%     and not to a specific job.
  \label{sagalayer}
 \end{figure}
 
 A fundamental question at the heart of all scientific applications, is
-the question of how scientific applications can be developed so as to
+ how can scientific applications be developed so as to
 use as broad a range of infrastructure as possible, without vendor or
 middleware lock-in, yet with the flexibility and performance that
 scientific applications demand. The SAGA programming system has been
-developed to address precisely these questions, and consists of a
+developed to address precisely this question. It consists of a
 high-level application-oriented API, the SAGA {\it Engine} (a dynamic
 library implementing the functionality of the API), and backend,
 system-specific adaptors.  Our recent work using
@@ -499,7 +500,7 @@ provides required services (such as checkpoint management, application
 monitoring and recovery) seamlessly and effectively from the
 application developers perspective. 
 
-Ensembles must be synchronized at each assimilation step. This makes
+As mentioned earlier, ensembles must be synchronized at each assimilation step. This makes
 the inversion process as slow as the slowest member. This might be
 addressed using (a) adaptive resource allocation and intelligent
 queuing; (b) use of subensembles, possibly adaptively; (c) adapting
@@ -508,41 +509,35 @@ distributed resources.  It is also useful to note that for the end-user, the
 complexity of using one resource is the same as using multiple
 resources; however, the gains increase with every added resource.
 
-\begin{figure*}[ht]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.45\textwidth]{./bigjob.pdf}
+    \includegraphics[width=0.5\textwidth]{./bigjob.pdf}
    \caption{BigJob Architecture: The core of the framework, the
       BigJob Manager, orchestrates a set of sub-jobs via a
       BigJob Agent using the SAGA job and file APIs.  The
       BigJob Agent is responsible for managing and monitoring sub-jobs.\up}
    \label{fig:bigjob}
-\end{figure*}
+\end{figure}
 
 % \jhanote{Motivate why we need to use BigJob and Condor-GlideIn. The
 %   variability of sub-job sizes and requirements. We use BigJob on TG
 %   and Condor Glide-in on Condor resources}.
 
-\begin{figure*}
-\begin{tabular}{c|c}
-\includegraphics[scale=0.3]{Lazarus_01.jpeg}
-\includegraphics[scale=0.6]{Architecture.png}
-\end{tabular}
+\begin{figure}
+\centering
+\includegraphics[scale=0.4]{Lazarus_01.jpeg}
+%\includegraphics[scale=0.5]{Architecture.png}
 
 \caption{Architecture of Lazarus -- a Framework for Developing
   Autonomic Computational Science Applications. The ``Resource
   Mapping'' Strategy input is provided by BQP. Given the size of the
   individual tasks, the ``Historical Benchmarks'' help determine the
   size of the sub-jobs. (For the specific workload chosen, it so
-  happens that the size of each sub-job is 16). [R] Block diagrams
-  outlining how Lazarus relates to other SAGA components. Lazarus is
-  built on several components: BigJob abstraction, SAGA file adaptor,
-  BQP python wrappers and fault tolerance functions that are based on
-  SAGA python bindings, BQP command line tools and HDF5 tools
-  respectively.}
+  happens that the size of each sub-job is 16).}
 \label{fig:application_architecture}
-\up\up
-\end{figure*}
-\up\up\up
+
+\end{figure}
+
 
 % \begin{figure}
 %   \begin{center} \includegraphics[scale=0.5]{./figures/Architecture.png} 
@@ -569,7 +564,7 @@ machine to another and BQP\footnote{BQP: Batch Queue Prediction, a tool
 used to predict the time spent by a job (of known size and duration)
 in the queuing system for a particular machine.} data from a small python wrapper around the
 BQP command line tool to retrieve the optimal location and number of
-BigJobs required to satisfy the computation power required. Lazarus
+BigJobs required to satisfy the computation power required. The Lazarus
 resource management function queries BQP for the ``optimal'' job size
 and duration for any given resource.
 
@@ -588,12 +583,12 @@ a user specified check for the integrity of the simulation data. In
 our case, this is done through various system and HDF5 calls to make
 sure the files exist, are not sized zero, and a user specified command
 using HDF5 tools (h5ls) returns successfully.
- 
+
 The Lazarus framework contains several aspects of autonomy: it has
 self-configuration (deployment on resources), self optimization (using
 BQP data), self monitoring (checking its own output) and of course
 self healing (resubmission of faulty simulations). These aspects have
-been implemented with varying level of intelligence: the self
+been implemented with varying levels of intelligence: the self
 optimization for example is a basic algorithm that uses BQP data to
 assign big-jobs to resources, but does not take into consideration
 bandwidth requirement and the cost of copying files across
