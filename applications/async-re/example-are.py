@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Parameter for BigJob
     bigjob_agent = os.getcwd() + "/bigjob_agent_launcher.sh" # path to agent
     #bigjob_agent = "/bin/echo"
-    nodes = 8 # number nodes for agent
+    nodes = 4 # number nodes for agent
     lrms_url = "gram://qb1.loni.org/jobmanager-pbs" # resource url
     workingdirectory=os.getcwd() +"/agent"  # working directory for agent
     userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     jd = saga.job.description()
     #jd.executable = "/bin/date"
     jd.executable = "python"
-    jd.number_of_processes = "8"
+    jd.number_of_processes = "4"
     jd.spmd_variation = "single"
     jd.arguments = ["async_agent.py"]
     jd.working_directory = os.getcwd() 
