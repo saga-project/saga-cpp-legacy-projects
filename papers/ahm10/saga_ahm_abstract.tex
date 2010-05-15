@@ -13,6 +13,7 @@
 \usepackage[hypertex]{hyperref}
 \usepackage{subfigure}
 \usepackage{color}
+\usepackage{xspace}
 
 %\documentclass{rspublic}
 
@@ -22,6 +23,12 @@
 \newcommand{\B}[1]{\textbf{#1}}
 \newcommand{\BI}[1]{\textbf{\textit{#1}}}
 \newcommand{\T}[1]{\texttt{#1}}
+
+\newcommand{\sagaspec}{\textit{SAGA}\xspace}
+\newcommand{\sagaimpl}{\textit{SAGA}\xspace}
+
+\newcommand{\spec}{\sagaspec}
+\newcommand{\impl}{\sagaimpl}
 
 \setlength\topmargin{0in}
 \setlength\headheight{0in}
@@ -54,44 +61,122 @@
  
  \maketitle
  
- IDEAS / STRUCTURE:
- 
- \begin{itemize}
- 
-  \item describe the general painpoints:
-   \begin{itemize}
-    \item various Grid/Cloud middlewares
-    \item in various versions
-    \item deployed in different ways
-    \item most having bugs
-   \end{itemize}
- 
-  \item dealing with that should not happen in userspace, but someone
-   needs to deal with it.  Well, SAGA (adaptors) is the level where it
-   shows up.
- 
-  \item describe different approaches and experiences on how to handle
-   the above problems
-   \begin{itemize}
-    \item try to keep in sync with middleware evolution 
-     -- tedious
-    \item try to abstract and reuse MW commonalities 
-     -- not always possible
-    \item try to outsource adaptor development to MW developers
-     -- chicken/egg problem, so far of limited success
-    \item limit scope of SAGA adaptors
-     -- some success, but kind of ignores the problem
-    \item try to widen the contributing community
-     -- hard to plan / ensure, GSOC of limited success in the long run
-    \item use standardized interfaces
-     -- works, but those are rarely available
-   \end{itemize}
- 
-  \item Describe how we use a combination of above approaches.  One
-   can  suspect that this is in fact the only possible 'solution'.
-   Stop whining ;-)  
- 
- \end{itemize}
+
+\subsection{\spec \BI{API Specification}}
+A set of application groups conceived of the need and role for the
+API, by expressing the desire for a simple programmatic interface that
+would be widely-adopted and widely-available.  The goal of such an
+interface is to provide a ``distributed computing counterpart to MPI''
+(at least in impact, if not in details), and to supply developers with
+a simple, uniform, and standard programmatic interface with which to
+develop applications.  Thanks to the efforts of many contributors, but
+in particular the efforts of the PI's group, an initial specification
+of such an interface was released in 2008: the Simple API for Grid
+Applications (\spec)~\cite{ogf-gfd-90}. The scope and requirements of
+the \spec API have been formally defined by OGF's \spec Research Group
+(SAGA-RG).  The SAGA-RG collected use cases from a broad user
+community and published them as GFD.70 \cite{ogf-gfd-70}. The
+requirements and design for the \spec API were directly derived from
+these use cases; this process has been documented and published in
+GFD.71 \cite{ogf-gfd-71}. The end result of this process is the 1.0
+version of the \spec core specification (GFD.90 \cite{ogf-gfd-90}),
+which defines language-independent syntax and semantics for the SAGA
+core API (error handling, session and context management, permissions,
+monitoring, attribute and task model) and functional packages (jobs,
+name-spaces, files, replicas, streams, rpc). Several API extension,
+such as CPR (GWD-R.96~\cite{ogf-gwd-r-96}), Adverts
+(GFD-R-P.XX~\cite{ogf-gwd-r-p-xx}), and Messages
+(GWD-R.94~\cite{ogf-gwd-r-94}) are currently under development and
+follow a similar, well-defined community-driven standardization and
+approval process. SAGA is now an Open Grid Forum (OGF)~\cite{ogf}
+proposed recommendation on the path to becoming a standard.  The
+standardization is not important in and of itself, but rather because
+it makes it more likely that other infrastructures will also support
+SAGA, which makes it, in essence, a de facto standard for users of
+most national CI projects.
+
+\subsection{\BI{Core Components} and \BI{Adaptors}}
+
+The \impl \I{Core Components} and \I{Adaptors} are an implementation
+of the \spec API Specification written in C++ and Python. \impl is
+Open Source software, released under the Boost Software
+License\footnote{Boost Software License 1.0:
+  \url{http://www.boost.org/LICENSE_1_0.txt}}. It can be divided into
+three major components (as depicted in Fig. \ref{sagalayer} \I{l.}):
+the \I{Core Components} which provide the API functionality, the
+\I{Adaptors} which translate API calls into native middleware calls,
+the Python API \I{Language Bindings} and a set of \I{Command Line
+  Tools}. The \impl \I{Core Components} are a collection of dynamic
+libraries and header files that represent the functional API packages
+(see section 2.1) along with a lightweight, highly-configurable
+\I{Engine Component} that manages call dispatching and the dynamic
+runtime loading of the \I{Middleware Adaptors}.
+
+%\begin{wrapfigure}{l}{0.44\textwidth}
+%  \vspace{-1.0em}
+%  \includegraphics[width=0.44\textwidth]{./figures/figure_02}
+% \vspace{-2em}	
+%  \caption{\footnotesize Layered schematic of the different
+%    components of \impl.  Middleware specific adaptors make
+%    applications developed using \impl portable.  Schematic showing
+%    the different ways in which \impl can be used to develop
+%    distributed applications. (i) Using native \impl calls to
+%    implement distributed functionality; (ii) Through the use of
+%    frameworks which provide either application-level usage modes,
+%    patterns and thus shielding the application from directly
+%    interfacing with the infrastructure.}
+%\vspace{-1.5em}
+%  \label{sagalayer}
+%\end{wrapfigure}
+
+Each of these \I{Adaptors} implements the functionality of a specific
+functional package (e.g., job adaptors, file adaptors) for a specific
+middleware system. Adaptors are also realized as dynamic
+libraries. \impl provides adaptors for many grid and distributed
+computing middleware, including the Globus Toolkit, Condor, Platform
+LSF and Amazon EC2. Several other adaptors, notably adaptors for PBS,
+gLite and BES are under development. The Python API \I{Language
+  Bindings} are an optional component of \impl that adds a thin Python
+layer on top of the native C++ API. This simple but very popular
+component allows application developers to quickly prototype and
+implement \impl-based applications in Python.  The layered, decoupled
+architecture of \impl allows for maximum flexibility at compile and
+runtime. It allows the user of to freely and selectively combine the
+library components and easily develop additional components orthogonal
+to the existing ones. More details on \impl's architecture and its
+implementation details can be found in \cite{OOPSLA_PAPER}.
+
+%  The forth and last
+% component are the \I{Command Line Tools}. They provide a
+% non-programmatic access to each of \impl's functional packages: the
+% \I{file tool} provides access to file operations, like read, copy,
+% delete, move, etc., the \textit{job tool} allows simple submission and
+% control ofcompute jobs, and so on.
+
+
+\subsection{Engineering Process\label{engineering}}
+
+The \impl engineering process is closely supervised by the technical project manager. It follows an iterative and incremental model in which the evaluation and learning phase is strongly community driven. \impl roughly follows a bi-monthly release cycle. These releases are fed into a very responsive community of users, which subsequently files bugs and suggests improvement through a central ticket system\footnote{SAGA Trac: \url{http://faust.cct.lsu.edu/trac/saga/}} which is tightly integrated into the development process. These reports along with strategic long-term development goals form the requirements for the next iteration. Individual developers are usually responsible for specific components over the component's whole lifetime. This does not only ensure clearly defined targets for task assignments, but also results in growing expertise and specialization for the individual developers. The core \impl development team has been working together for more than three years and has evolved into a very smooth running operation. Nevertheless, the \impl development process is completely open: community involvement is not only accepted but encouraged and has lead to successful collaborations and enrichment of the \impl landscape in the past. \I{WP-3} aims to further improve this process.
+
+\BI{Release
+  Practice:} % Verification of the OGF \spec specification and extensions goes hand-in-hand with the development of the \impl \I{Core Components} and \I{Adaptors}. We always try to incorporate the latest changes and additions at the specification level as new or modified functional packages, along with prototype adaptors, in order to provide feedback on usability and implementability. Of course this strategy can and in most cases will interfere with another
+%\jhanote{Ole: Please fix....} goal: providing stable, consistent and
+production-level \impl releases to our growing user community. To be
+able to fulfill both of these seemingly contradictory goals, we are
+using a two-tier code-repository structure consisting of a \I{release}
+branch and several \I{development} branches. The release branch is
+closely monitored and tested against and serves as the source for our
+bi-monthly public source releases. The code in the release branch is
+never modified directly. Once a specific feature or bugfix in one of
+the development branches is considered as \I{``safe''}, meaning that
+it is stable and won't break any existing application code, it is
+merged into the release branch. All development branches are publicly
+accessible to allow early-adopters to check out and evaluate new and
+experimental features which are not part of the current release.
+
+\BI{Software Testing Practice:} Along with the development of \impl, we maintain and constantly extend a broad set of unit and conformance tests to verify proper functioning and to validate standard compliance. Most of the tests are written on a per-package basis using of the Boost Test library~\cite{boost_test_web} and Python's built-in unit test framework. Although certainly not complete, the tests are trying to cover a very broad spectrum of \impl's functionality. To facilitate the continuous integration aspect in our development process, we run all tests constantly and automated using an automated test rig\cite{buildbot_web} which presents the latest test results on a public website~\cite{saga_buildbot_web}. A complete test run is triggered every time a change in the source tree is detected. This way build problems and failing tests are pinpointed quickly and the responsible developer can take action. These automated tests are  our most valuable tool for early error and bug detection and has lead to a constantly higher quality of our releases since its introduction. \I{WP-2} proposes further enhancements in this area.
+
+
  
  \bibliographystyle{IEEEtran} 
  \bibliography{saga_ahm_abstract}
