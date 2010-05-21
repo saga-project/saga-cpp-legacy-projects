@@ -202,6 +202,7 @@ class subjob():
 
                 self.job_dir.set_attribute("state", str(saga.job.Unknown))
 		self.job_dir.set_attribute("energy", "unknown energy")
+                self.job_dir.set_attribute("temp", "unknown temp")
 		self.job_dir.set_attribute("replica_id", rid)
                 # return self object for get_state() query    
                 #logging.debug("Submission time (time to create advert entries): " + str(time.time()-start) + " s")
@@ -218,6 +219,10 @@ class subjob():
     def get_energy(self):
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("energy")
+
+    def get_temp(self):
+        """ duck typing for get_state of saga.cpr.job and saga.job.job  """
+        return self.job_dir.get_attribute("temp")
 
     def delete_job(self):
         print "delete job and close dirs: " + self.job_url

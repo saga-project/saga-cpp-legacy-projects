@@ -205,9 +205,12 @@ class bigjob_agent:
                 host = "localhost"
                 try:
                     machine_file_handler = open(machinefile, "r")
+                    os.system("cp "+ machinefile + " /work/athota1/machinefile")
                     node= machine_file_handler.readlines()
                     machine_file_handler.close()
-                    host = node[0].strip()
+                   # host = node[0].strip()
+                   # print str(node) + "abhinav"
+                   # os.system("export PBS_NODEFILE="+machinefile)
                 except:
                     pass
                 # start application process
@@ -314,7 +317,7 @@ class bigjob_agent:
                 self.execute_job(job_dir)  
     
     def read_energy(self, replica_id):
-        enfile = open("stdout-" + str(replica_id) + ".txt")
+        enfile = open(str(replica_id) + "/stdout-" + str(replica_id) + ".txt")
         lines = enfile.readlines()
         for line in lines:
           items = line.split()
@@ -322,7 +325,18 @@ class bigjob_agent:
             if items[0] in ("ENERGY:"):
                en = items[11]
         print "(DEBUG) energy : " + str(en) 
-        return en  
+        return en 
+ 
+    def read_temp(self, replica_id):
+        enfile = open(str(replica_id) + "/stdout-" + str(replica_id) + ".txt")
+        lines = enfile.readlines()
+        for line in lines:
+          items = line.split()
+          if len(items) > 0:
+            if items[0] in ("ENERGY:"):
+               en = items[12]
+        print "(DEBUG) energy : " + str(en)
+        return en
 
     def monitor_jobs(self):
         """Monitor running processes. """ 
@@ -337,6 +351,8 @@ class bigjob_agent:
                     rid=i.get_attribute("replica_id")
                     en = self.read_energy(str(rid))  
                     i.set_attribute("energy", str(en))##
+                    temp = self.read_temp(str(rid))  
+                    i.set_attribute("temp", str(temp))
                     self.free_nodes(i)
                     del self.processes[i]
                 elif p_state!=0 and p_state!=255 and p_state != None:

@@ -28,7 +28,7 @@ REMOTE2 = "oliver1.loni.org"
 advert_host = "fortytwo.cct.lsu.edu"
 #dirs for replicas
 WORK_DIR = "/work/athota1/new_bigjob/bigjob/"
-WALLTIME = 120
+WALLTIME = "10"
 REPLICA_DIR = "/work/athota1/new_bigjob/bigjob/NAMD_files/"
 
 
@@ -45,14 +45,22 @@ def stage_files(i):
      except OSError:
         pass
      os.system("gsiscp -r " + WORK_DIR + "agent/" + str(i) + " " + REMOTE1 + ":" + WORK_DIR + "agent/" ) 
-   os.system("gsiscp -r " + REPLICA_DIR + "* " + REMOTE1 + ":" + WORK_DIR+ "agent/" + str(i)+ "/")
+     os.system("gsiscp -r " + REPLICA_DIR + "* " + REMOTE1 + ":" + WORK_DIR+ "agent/" + str(i)+ "/")
 
-def stage_files1(i):
+def stage_ifiles(i):
    if not i%2:
      try:
         os.mkdir(WORK_DIR + 'agent/' + str(i))
      except OSError:
         pass
+     for ifile in os.listdir(REPLICA_DIR):
+        source_url = saga.url('file://' + REPLICA_DIR + ifile)
+        dest_url = saga.url('file://' + WORK_DIR + 'agent/'+ str(i)+'/')
+        sagafile = saga.filesystem.file(source_url) 
+        try: 
+           sagafile.copy(dest_url)
+        except saga.exception, e:
+           print str(e) + "\n(ERROR) local file ####STAGING### copy from %s to %s failed"%(REPLICA_DIR, HOST)
    else:
      try:
         os.mkdir(WORK_DIR + 'agent/' + str(i))
@@ -66,51 +74,48 @@ def stage_files1(i):
     #    sagadir.copy(d_url)
     # except saga.exception, e:
     #    print "\n(ERROR) creating directories on remote machine %s  failed or directory already exists"%(REMOTE1)
-   for ifile in os.listdir(REPLICA_DIR):
-      source_url = saga.url('file://' + REPLICA_DIR + ifile)
-      if not i%2:
-        dest_url = saga.url('file://' +'localhost'+ WORK_DIR + 'agent/'+ str(i)+'/')
-      else:
-        dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR + 'agent/' + str(i)+'/')
-      sagafile = saga.filesystem.file(source_url) 
-      try: 
+     for ifile in os.listdir(REPLICA_DIR):
+       source_url = saga.url('file://' + REPLICA_DIR + ifile)
+       dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR + 'agent/' + str(i)+'/')
+       sagafile = saga.filesystem.file(source_url) 
+       try: 
          sagafile.copy(dest_url)
-      except saga.exception, e:
+       except saga.exception, e:
          print str(e) + "\n(ERROR) remote file ####STAGING### copy from %s to %s failed"%(HOST, REMOTE1)
 
 def copy_with_saga(i):
     if not i%2:
-      os.system("cp "+ REPLICA_DIR + "/NPT.conf " + WORK_DIR + "agent/" + str(i) + "/NPT.conf")
-      #source_url = saga.url('file://' + REPLICA_DIR + 'NPT.conf')
-      #dest_url = saga.url('file://' +'localhost'+ WORK_DIR + 'agent/' + str(i) + '/NPT.conf')
+      os.system("cp "+ WORK_DIR + "/NPT.conf " + WORK_DIR + "agent/" + str(i) + "/NPT.conf")
+     # source_url = saga.url('file://' + WORK_DIR + 'NPT.conf')
+     # dest_url = saga.url('file://' + WORK_DIR + 'agent/' + str(i) + '/')
     else:
-      source_url = saga.url('file://' + REPLICA_DIR + 'NPT.conf')
+      source_url = saga.url('file://' + WORK_DIR + 'NPT.conf')
       dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR+'agent/'+str(i)+'/')
       sagafile = saga.filesystem.file(source_url)
       try:
         sagafile.copy(dest_url)
       except saga.exception, e:
         print "\n(ERROR) remote ###NPT.CONF####file copy from %s to %s failed"%(HOST, REMOTE1)
-
+    #  print str(i)
     return None
              
 def prepare_NAMD_config(r, i):
 # config prep when re-launching replicas   
-   ifile = open(REPLICA_DIR+ "NPT.conf")   # should be changed if a different name is going to be used
+   ifile = open(WORK_DIR+ "NPT.conf")   # should be changed if a different name is going to be used
    lines = ifile.readlines()
    for line in lines:
       if line.find("desired_temp") >= 0 and line.find("set") >= 0:
-         lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[r]))
-         print "new temperatures being set, re-launching#" + str(i) + "whose new temp=" + str(temps[r])
+         lines[lines.index(line)] = "set desired_temp %s \n"%(str(temperature[r]))
+         print "new temperatures being set, re-launching#" + str(i) + "whose new temp=" + str(temperature[r])
    ifile.close()
-   ofile = open(REPLICA_DIR+ "NPT.conf", "w")
+   ofile = open(WORK_DIR+ "NPT.conf", "w")
    for line in lines:
      ofile.write(line)
    ofile.close()
 
 def NAMD_config(i):
 #initial prep of config,for the first launch of replicas
-  ifile = open(REPLICA_DIR+ "NPT.conf")   # should be changed if a different name is going to be used
+  ifile = open(WORK_DIR+ "NPT.conf")   # should be changed if a different name is going to be used
   lines = ifile.readlines()
   for line in lines:
      if line.find("desired_temp") >= 0 and line.find("set") >= 0:
@@ -120,7 +125,7 @@ def NAMD_config(i):
       # else:
        #   lines[lines.index(line)] = "set desired_temp %s \n"%(str(temps[i]))
   ifile.close()
-  ofile = open(REPLICA_DIR+ "NPT.conf", "w")
+  ofile = open(WORK_DIR+ "NPT.conf", "w")
   for line in lines:
     ofile.write(line)
   ofile.close()
@@ -160,9 +165,7 @@ if __name__ == "__main__":
                             nodes,
                             None,
                             None,
-                            workingdirectory, 
-                            userproxy,
-                            WALLTIME)
+                            workingdirectory,userproxy,320)
       print "Start Pilot Job/BigJob: " + bigjob_agent + " at: " + lrms_url
       print "Pilot Job/BigJob URL: " + bjs[i].pilot_url + " State: " + str(bjs[i].get_state())
 
@@ -205,12 +208,15 @@ if __name__ == "__main__":
       i = 0
       state=[]
       energy=[]
+      temperature=[]
       for i in range(0,NUMBER_REPLICAS):
        states = str(sjs[i].get_state())
        energies = str(sjs[i].get_energy())
+       temperatures = str(sjs[i].get_temp())
        state.append(states)
        energy.append(energies)
-       print "current state= " + str(state[i]) + " where: replica# is" +str(i) + ", also current energy: " + str(energy[i])
+       temperature.append(temperatures)
+       print "current state= " + str(state[i]) + " where: replica# is" +str(i) + ", current energy: " + str(energy[i])+ "current temp " + str(temperature[i])
        time.sleep(2)
 #################################################################################             
       for i in range(0, NUMBER_REPLICAS):
@@ -221,6 +227,7 @@ if __name__ == "__main__":
           list=[]
           for f in range(0, NUMBER_REPLICAS):
             print "found a replica in Done state, looking for other replicas in Done state"
+            print str(time.time())+ "######## searching for replica for exchange"
             if((state[f]=="Done") and (f!=j)):
               list.append(f)
               print str(f) + "-- replica is in Done state"
@@ -234,6 +241,7 @@ if __name__ == "__main__":
             k = 0
             for k in list:
               if (float(energy[k]) < 1):
+                print str(time.time())+ "######## replica selected for exchange"
                 print "replica chosen for exchange is" + str(k)
                 print "replica for which selection was made" + str(i)
                 print "assigning the new temepratures and re-starting the replicas"
@@ -259,6 +267,7 @@ if __name__ == "__main__":
                   copy_with_saga(k)
                   sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
                 count = count + 1
+                print str(time.time())+ "######## exchange completed"
                 break
               else:
                 print str(len(list))+ " = length of list, compared replica not selected, comparing other replicas"
