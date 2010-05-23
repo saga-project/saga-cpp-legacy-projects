@@ -146,6 +146,18 @@ replicas available which are paired to their partners.  This puts a
 strain on the number of exchanges that can take place within a certain
 time.  \athotanote{is it better to have a wide group of replicas?
   need some input here!}
+
+\jhanote{The point is really the following: Paired-replicas are Ok if
+  it can be guaranteed that equal resources will be available, or the
+  resource availabilty can be predicted in advance. However, in
+  distributed systems, whereby definition, resource availability
+  fluctates it is important to have a scheme/implementation that does
+  not depend on a static, well-defined model of resource availability
+  and execution. This forms the motivation for coming up with a
+  formulation of a well known algorithm that makes it suitable for a
+  range of infrastruture.}
+  
+
   
 \subsection{Asynchronous Replica Exchange}
 %- Introduce asynchronous Replica Exchange --  1 para on case II and case III (algorithmically)
@@ -185,12 +197,21 @@ partners and will make the exchange.
 %\vspace{-1em}
 \end{figure}
 
-We are calling the centralized version of the replica exchange case 2. In this case, one or more BigJobs are
-launched and the replicas are submitted to the BigJobs as and when they become active. The master, which also launches the BigJob,
-now monitors the replicas. When a replica is done running, the master will start a search for an appropriate partner from all the available replicas. The matching mechanism
-that is being used here is the Metropolis scheme. The energies of the two replicas which are negotiating an exchange are compared and a decision is reached.
-Whether or not a successful exchange was possible, the master again monitors the replicas and when it finds a replica which has finished running, it tries to find it a partner.
-After each successful exchange the replicas are resubmitted to the BigJob(s) and restarted.
+We are calling the centralized version of the replica exchange case
+2. \jhanote{Bad English. ``We are calling.. ``} \jhanote{Also, Case I
+  has not been explicitly defined/mentioned}
+In this case, one or more BigJobs are launched and the replicas are
+submitted to the BigJobs as and when they become active. The master,
+which also launches the BigJob, now monitors the replicas. When a
+replica is done running, the master will start a search for an
+appropriate partner from all the available replicas. The matching
+mechanism that is being used here is the Metropolis scheme. The
+energies of the two replicas which are negotiating an exchange are
+compared and a decision is reached.  Whether or not a successful
+exchange was possible, the master again monitors the replicas and when
+it finds a replica which has finished running, it tries to find it a
+partner.  After each successful exchange the replicas are resubmitted
+to the BigJob(s) and restarted.
 
 \subsubsection{Decentralized Asynchronous RE}
 
@@ -214,17 +235,19 @@ After each successful exchange the replicas are resubmitted to the BigJob(s) and
 \end{figure}
 %%%%% FIGURE %%%%%
 
-Case 3 is the decentralized version. In this case, similar to the
-above case, one or more BigJobs are launched but instead of submitting
-the replicas as sub-jobs, the sub-job now is a wrapper script inside
-which is the replica. The script then launches the replica as the
-sub-job and monitors the replica and looks for partners to exchange as
-and when the replica is done. In this case the too the various
-functions needed to make the exchange are carried out by the wrapper
-script. In this case the replicas will only have to restarted but not
-resubmitted to the BigJob(s). The temperatures, energies and states of
-a replica are reported to and retrieved from the SAGA advert service
-in real-time.
+Case 3 is the decentralized version. \jhanote{The distinction between
+  Case 3 and 2 needs to be made more clear. The following is
+  ``implementation detail''. What is the conceptual difference between
+  Case 3 and Case 2?}  In this case, similar to the above case, one or
+more BigJobs are launched but instead of submitting the replicas as
+sub-jobs, the sub-job now is a wrapper script inside which is the
+replica. The script then launches the replica as the sub-job and
+monitors the replica and looks for partners to exchange as and when
+the replica is done. In this case the too the various functions needed
+to make the exchange are carried out by the wrapper script. In this
+case the replicas will only have to restarted but not resubmitted to
+the BigJob(s). The temperatures, energies and states of a replica are
+reported to and retrieved from the SAGA advert service in real-time.
 
 \section{Conclusion}
 With this asynchronous replica exchange mechanism we can improve the
@@ -233,11 +256,13 @@ performance of a replica-exchange mechanism. \athotanote{is this
   right? }  We are also going to have a wider group of replicas to
 look at for each replica as we are not pairing the replicas. Also, we
 have the usual advantages of using a pilot-job, such as reduced queue
-wait times by not having to submit to the queue.  - unfortunately we
-dont have results, so we will say, (i) we establish the ability to
-scale-out (distributed and exa-scale) across different infrastructure
-(ii) compare the Async versus sync formulation at unprecedented scales
-(iii) compare different implementations of the Async version
+wait times by not having to submit to the queue.  Unfortunately we
+dont have results \jhanote{What results can we present -- any? some?},
+so we will say, (i) we establish the ability to scale-out (distributed
+and exa-scale) across different infrastructure (ii) compare the Async
+versus sync formulation at unprecedented scales \jhanote{At least
+  outline what infrastructure we / you are planning to use?} (iii)
+compare different implementations of the Async version
  
  \bibliographystyle{IEEEtran} 
  \bibliography{literature,saga}
