@@ -114,24 +114,28 @@ replicas. Previously, we demonstrated the usage of the SAGA Pilot-Job
 framework~\cite{saga_bigjob_condor_cloud} -- called the BigJob, to run
 replica exchange simulations across multiple, heterogeneous
 distributed Grid and Cloud infrastructures~\cite{Luckow:2008fp}.
-\alnote{maybe we should also intro SAGA at some point} \jhanote{Yes}
+%\alnote{maybe we should also intro SAGA at some point} \jhanote{Yes}
 The Simple API for Grid Applications (SAGA) is an
 API standardization effort within the Open Grid Forum
 (OGF) ~\cite{}, an international standards development body
 concerned primarily with standards for distributed computing.
-Further, we introduced several adaptivity modes, e.\,g.\ adaptive
-sampling that are able to react to dynamic changes in resource
-availabilities.
+The various tasks that are carried out using the SAGA APIs include file staging, jobspawning and the conduction of the exchange attempts.
+%Further, we introduced several adaptivity modes, e.\,g.\ adaptive
+%sampling that are able to react to dynamic changes in resource
+%availabilities.
 
-\alnote{Not sure how many technical we need to provide...}  Depending
-on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
-of replicas.  Before launching a job, the manager ensures that all
-required input files are transferred to the respective resource. %For
+%\alnote{Not sure how many technical we need to provide...}  
+
+%Traditionally, depending
+%on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
+%of replicas.  Before launching a job, the manager ensures that all
+%required input files are transferred to the respective resource. For
 %this purpose, the SAGA File API and the GridFTP adaptor are used. The
 %replica jobs are then submitted to the resource using the SAGA CPR
-%API and the MIGOL/GRAM middleware.%%%%%%%%%%%%%%%%%%%%%%%
-
-For the vanilla implementation of RE(Case I), when the replicas reach a
+%API and the MIGOL/GRAM middleware.
+For the vanilla implementation of RE(Case I), depending
+on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
+of replicas. When the replicas reach a
 pre-determined state (e.g. the NAMD job finishes after a fixed number
 of steps), a decision as to whether to exchange temperatures between
 previously paired replicas is determined using the Metropolis scheme.
@@ -228,21 +232,33 @@ After each successful exchange the replicas are resubmitted to the BigJob(s) and
 
 Case III is the decentralized version. In this version(Figure 2(b)), one or more BigJobs are launched but instead of submitting the replicas as sub-jobs, an agent is launched in place of the replica. The agent is nothing but a wrapper script for the replica. The script then runs the replica and monitors the replica and looks for partners to exchange as and when the replica is ready. In this case the various functions needed to make the exchange are carried out by the wrapper script. The temperatures, energies and states of a replica are reported to and retrieved from the SAGA advert service in real-time.
 
-Case II and Case III subtly differ in their models. We have to bear in mind that while Case II and Case III both implement the same asynchronous RE algorithm, they do it differently. At first glance it appears to be a question of philosophy, whether to let the replicas be managed by a master or to let each replica be managed individually. But there could be implications effecting the performance of the algorithm. Where as in Case II, the master has to manager all the replicas and since it can only manage one replica at a time, the performance could be inefficient after crossing a certain number of replicas. The effect could be negligible and might now effect the overall performance. But the decentralized version(Case III) has no such issues. Each replica is managed individually and need not wait for its turn.
+Case II and Case III differ subtly in their models. We have to bear in mind that while Case II and Case III both implement the same asynchronous RE algorithm, they do it differently. At first glance it appears to be a question of philosophy, whether to let the replicas be managed by a master or to let each replica be managed individually. But there could be implications effecting the performance of the algorithm. Where as in Case II, the master has to manager all the replicas and since it can only manage one replica at a time, the performance could be inefficient after crossing a certain number of replicas. The effect could be negligible and might now effect the overall performance. But the decentralized version(Case III) has no such issues. Each replica is managed individually and need not wait for its turn.
 \jhanote{The distinction between
   Case 3 and 2 needs to be made more clear. The following is
   ``implementation detail''. What is the conceptual difference between
   Case 3 and Case 2?} 
+  
 
 \section{Conclusion}
 With an asynchronous replica exchange mechanism we can improve the number of exchanges per unit time, 
 a key parameter in judging the performance of a replica-exchange mechanism. %\athotanote{is this right? } 
 We are also going to have a wider group of replicas to look at for each replica as we are not pairing 
-the replicas. Also, we have the usual advantages of using a pilot-job, such as reduced queue wait 
+the replicas. As mentioned earlier, it is important to have a scheme that does not depend on a static, well defined model of resource availability. Also, we have the usual advantages of using a pilot-job, such as reduced queue wait 
 times by not having to submit to the queue at every step. 
-We also provide major advantages when compared to Parashar et al. We are using Teragrid and LONI resources to run the asynchronous replica exchange simulations. We also have the ability to run MPI jobs. We need to evaluate the performance of our models and compare with other models for conducting replica exchange simulations. 
+We also provide major advantages when compared to Parashar et al. We are using production level grids such as Teragrid and LONI~\cite{} to run the asynchronous RE simulations, including the ability to run MPI jobs. %??We need to evaluate the performance of our models and compare with other models for conducting replica exchange simulations. 
 
-Unfortunately we have results only for Case II, but we will establish the ability to scale-out across different infrastructure. We will provide a comparison of the performance of the asynchronous RE versus the synchronous RE at unprecedented scales. Lastly, we will compare the two different implementations of the asynchronous replica exchange.
+%%%%% FIGURE %%%%%
+\begin{figure}
+\centering
+\includegraphics[scale=0.5]{figures/graph_async.pdf}
+\caption{\small The configuration used here is of 16 replicas and two 64 core BigJobs - one on QB and one on Louie}
+\label{fig:graph}
+%\vspace{-1em}
+\end{figure}
+
+The preliminary results obtained from Case II suggest strong performance. It performs well even after doubling and quadrupling the number of exchanges required to complete the simulation. The time to completion only increases by 35\% after doubling and 117\% after quadrupling the number of exchanges.
+
+Unfortunately we have results only for Case II currently, but we have established the ability to scale-out across different infrastructures. Further. we will provide a comparison of the performance of the asynchronous RE versus the synchronous RE at unprecedented scales. And finally, we will compare and analyze the two differing implementations of the asynchronous replica exchange.
 
 
 %With this asynchronous replica exchange mechanism we can improve the
