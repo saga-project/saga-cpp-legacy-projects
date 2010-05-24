@@ -2,7 +2,7 @@
 
 ##############################################################################
 ##
-##  Copyright (c) 2009 Ole Weidner 2009 (oweidner <at> cct.ct.lsu.edu)
+##  Copyright (c) 2009-2010 Ole Weidner  (oweidner <at> cct.ct.lsu.edu)
 ##
 ##  Use, modification and distribution is subject to the Boost Software
 ##  License, Version 1.0. (See accompanying file LICENSE or copy at
@@ -12,7 +12,10 @@
 
 ##############################################################################
 ## CHANGELOG
-## 
+##
+## 24/05/2010 - Ole Weidner
+##   - Migrated repository to http://static.saga.cct.lsu.edu/mephisto/
+##
 ## 10/01/2009 - Ole Weidner
 ##   - Migrated repository to http://faust.cct.lsu.edu/mephisto/
 ##   - The latest repository version dosn't need to be set in the
@@ -29,7 +32,7 @@ use Getopt::Long;
 use LWP::Simple;
 
 $meph_version     = "latest";
-$meph_repository  = "http://faust.cct.lsu.edu/mephisto";
+$meph_repository  = "http://static.saga.cct.lsu.edu/mephisto/";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
 
