@@ -97,7 +97,7 @@ concurrently (and autonomically/adaptively), that supports different
 coordination mechanisms (publish-subscribe, centralised notification),
 different replica pairing mechanisms (synchronous versus asynchronous)
 and thereby different variants of the RE algorithm. We implement and
-demonstrate how flexible and robust implementation enables the
+demonstrate how a flexible and robust implementation enables the
 efficient use of a broad range of infrastructure.
 
 % Several classes of applications, which are well suited for loosely
@@ -126,10 +126,10 @@ availabilities.
 \alnote{Not sure how many technical we need to provide...}  Depending
 on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
 of replicas.  Before launching a job, the manager ensures that all
-required input files are transferred to the respective resource. For
-this purpose, the SAGA File API and the GridFTP adaptor are used. The
-replica jobs are then submitted to the resource using the SAGA CPR
-API and the MIGOL/GRAM middleware.
+required input files are transferred to the respective resource. %For
+%this purpose, the SAGA File API and the GridFTP adaptor are used. The
+%replica jobs are then submitted to the resource using the SAGA CPR
+%API and the MIGOL/GRAM middleware.%%%%%%%%%%%%%%%%%%%%%%%
 
 For the vanilla implementation of RE(Case I), when the replicas reach a
 pre-determined state (e.g. the NAMD job finishes after a fixed number
@@ -139,45 +139,47 @@ The run of an ensemble of replicas in parallel and the subsequent
 pairwise exchange attempt are referred to as generation. No two
 replicas can belong to different generations. If the exchange attempt
 is successful, parameters such as the temperature are swapped. Both
-jobs are then relaunched.  \athotanote{I have tried to put here how
-  the adaptive repex was done, supposing that it was case 1. Or should
-  a general explanation of a replica exchange be here?} \jhanote{I
-  think this is ok}
+jobs are then relaunched. % \athotanote{I have tried to put here how
+  %the adaptive repex was done, supposing that it was case 1. Or should
+ % a general explanation of a replica exchange be here?} \jhanote{I
+  %think this is ok}
  
 % 1 para limitation on traditional replica exchange
-The major limitation of this model is that the replicas are paired and that exchanges can only take place between the paired replicas. 
+The major limitation of this model is that the replicas are paired and the exchanges can only take place between the paired replicas.
 This limits the group of replicas which are available for exchange. Moreover, the replicas are attached to their partners, 
 sometimes waiting for them to complete while there are possibly other replicas available which are paired to their partners.
-This puts a strain on the number of exchanges that can take place within a certain time.  \athotanote{is it better to have a wide group of replicas?
-  need some input here!}
+This puts a strain on the number of exchanges that can take place within a certain time.
+Replica pairing works well in the ideal scenario but in the case of distributed systems, where the resource availability fluctuates, it is far from ideal. It is important to have a scheme that does not depend on a static, well defined model of resource availability. This forms the motivation for coming up with a formulation that makes it possible to run RE simulations on a range of infrastructures.
+ % \athotanote{is it better to have a wide group of replicas?
+  %need some input here!}
 
-\jhanote{The point is really the following: Paired-replicas are Ok if
-  it can be guaranteed that equal resources will be available, or the
-  resource availabilty can be predicted in advance. However, in
-  distributed systems, whereby definition, resource availability
-  fluctates it is important to have a scheme/implementation that does
-  not depend on a static, well-defined model of resource availability
-  and execution. This forms the motivation for coming up with a
-  formulation of a well known algorithm that makes it suitable for a
-  range of infrastruture.}
+%\jhanote{The point is really the following: Paired-replicas are Ok if
+  %it can be guaranteed that equal resources will be available, or the
+  %resource availabilty can be predicted in advance. However, in
+  %distributed systems, whereby definition, resource availability
+  %fluctates it is important to have a scheme/implementation that does
+  %not depend on a static, well-defined model of resource availability
+  %and execution. This forms the motivation for coming up with a
+  %formulation of a well known algorithm that makes it suitable for a
+  %range of infrastruture.}
   
 
   
 \subsection{Asynchronous Replica Exchange}
 %- Introduce asynchronous Replica Exchange --  1 para on case II and case III (algorithmically)
 
-To overcome these limitations we propose an asynchronous replica
-exchange algorithm similar to Parashar et al.~\cite{parashar_arepex}
+To overcome these limitations we propose an asynchronous RE algorithm similar to Parashar et al.~\cite{parashar_arepex}
 where replicas can perform exchanges asynchronously. The possibility
 to conduct exchanges asynchronously also eliminates the need to limit
 exchanges to fixed pairs of replicas and allows exchanges with any
-other replica available.
+other replica available. We differ from the model described in Parashar et al. in some important ways. The asynchronous RE model we developed runs on production level grids such as Teragrid and LONI~\cite{}, unlike a specialized infrastructure such as CometG. We also have the ability to run MPI jobs.
  
-\alnote{We need to highlight how we particularly differ from Parashar
-  et al: no comet, no MPI jobs, production Grids, understand
-  performance sentence...}
+%\alnote{We need to highlight how we particularly differ from Parashar
+  %et al: no comet, no MPI jobs, production Grids, understand
+  %performance sentence...}
 
 The asynchronous replica exchange framework builds upon the SAGA BigJob and RE frameworks discussed previously.
+The architecture is shown in Figure 1.
 We present two variants of the Asynchronous RE algorithm. The first is a centralized 
 mechanism where all the replicas are managed by a master. The master will closely monitor the replicas and will make the exchanges when feasible. 
 The second is a decentralized mechanism where each replica is managed individually and independently. An agent is launched in place of the replica and will perform the the required actions on behalf of the replica.
@@ -196,7 +198,7 @@ The second is a decentralized mechanism where each replica is managed individual
 %\vspace{-1em}
 \end{figure}
 
-In the case of the centralized version of the asynchronous replica exchange(Case II), one or more BigJobs are
+In the case of the centralized version(Figure 2(a)) of the asynchronous replica exchange(Case II), one or more BigJobs are
 launched and the replicas are submitted to the BigJobs as and when they become active. The master, which also launches the BigJob,
 now monitors the replicas. When a replica is in done state, the master will start a search for an appropriate partner from all the available replicas. The decision as to make the exchange or not is made using the Metropolis scheme. 
 Whether or not a successful exchange takes place, the master again monitors all the replicas and  repeats the steps mentioned.
@@ -224,7 +226,7 @@ After each successful exchange the replicas are resubmitted to the BigJob(s) and
 \end{figure}
 %%%%% FIGURE %%%%%
 
-Case III is the decentralized version. In this version, one or more BigJobs are launched but instead of submitting the replicas as sub-jobs, an agent is launched in place of the replica. The agent is nothing but a wrapper script for the replica. The script then runs the replica and monitors the replica and looks for partners to exchange as and when the replica is ready. In this case the various functions needed to make the exchange are carried out by the wrapper script. The temperatures, energies and states of a replica are reported to and retrieved from the SAGA advert service in real-time.
+Case III is the decentralized version. In this version(Figure 2(b)), one or more BigJobs are launched but instead of submitting the replicas as sub-jobs, an agent is launched in place of the replica. The agent is nothing but a wrapper script for the replica. The script then runs the replica and monitors the replica and looks for partners to exchange as and when the replica is ready. In this case the various functions needed to make the exchange are carried out by the wrapper script. The temperatures, energies and states of a replica are reported to and retrieved from the SAGA advert service in real-time.
 \jhanote{The distinction between
   Case 3 and 2 needs to be made more clear. The following is
   ``implementation detail''. What is the conceptual difference between
