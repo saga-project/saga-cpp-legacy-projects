@@ -181,7 +181,7 @@ other replica available. We differ from the model described in Parashar et al. i
 The asynchronous replica exchange framework builds upon the SAGA BigJob and RE frameworks discussed previously.
 The architecture is shown in Figure 1.
 We present two variants of the Asynchronous RE algorithm. The first is a centralized 
-mechanism where all the replicas are managed by a master. The master will closely monitor the replicas and will make the exchanges when feasible. 
+mechanism where all the replicas are managed by a master. The master closely monitors the replicas and makes the exchanges when appropriate. 
 The second is a decentralized mechanism where each replica is managed individually and independently. An agent is launched in place of the replica and will perform the the required actions on behalf of the replica.
 %Describe how we implement Case II and Case III (you can use figures)
 %using SAGA and the advantages
@@ -198,7 +198,7 @@ The second is a decentralized mechanism where each replica is managed individual
 %\vspace{-1em}
 \end{figure}
 
-In the case of the centralized version(Figure 2(a)) of the asynchronous replica exchange(Case II), one or more BigJobs are
+The centralized version(Figure 2(a)) of the asynchronous replica exchange is Case II. In this case, one or more BigJobs are
 launched and the replicas are submitted to the BigJobs as and when they become active. The master, which also launches the BigJob,
 now monitors the replicas. When a replica is in done state, the master will start a search for an appropriate partner from all the available replicas. The decision as to make the exchange or not is made using the Metropolis scheme. 
 Whether or not a successful exchange takes place, the master again monitors all the replicas and  repeats the steps mentioned.
@@ -227,6 +227,8 @@ After each successful exchange the replicas are resubmitted to the BigJob(s) and
 %%%%% FIGURE %%%%%
 
 Case III is the decentralized version. In this version(Figure 2(b)), one or more BigJobs are launched but instead of submitting the replicas as sub-jobs, an agent is launched in place of the replica. The agent is nothing but a wrapper script for the replica. The script then runs the replica and monitors the replica and looks for partners to exchange as and when the replica is ready. In this case the various functions needed to make the exchange are carried out by the wrapper script. The temperatures, energies and states of a replica are reported to and retrieved from the SAGA advert service in real-time.
+
+Case II and Case III subtly differ in their models. We have to bear in mind that while Case II and Case III both implement the same asynchronous RE algorithm, they do it differently. At first glance it appears to be a question of philosophy, whether to let the replicas be managed by a master or to let each replica be managed individually. But there could be implications effecting the performance of the algorithm. Where as in Case II, the master has to manager all the replicas and since it can only manage one replica at a time, the performance could be inefficient after crossing a certain number of replicas. The effect could be negligible and might now effect the overall performance. But the decentralized version(Case III) has no such issues. Each replica is managed individually and need not wait for its turn.
 \jhanote{The distinction between
   Case 3 and 2 needs to be made more clear. The following is
   ``implementation detail''. What is the conceptual difference between
@@ -234,10 +236,10 @@ Case III is the decentralized version. In this version(Figure 2(b)), one or more
 
 \section{Conclusion}
 With an asynchronous replica exchange mechanism we can improve the number of exchanges per unit time, 
-a key parameter in judging the performance of a replica-exchange mechanism. \athotanote{is this right? } 
+a key parameter in judging the performance of a replica-exchange mechanism. %\athotanote{is this right? } 
 We are also going to have a wider group of replicas to look at for each replica as we are not pairing 
 the replicas. Also, we have the usual advantages of using a pilot-job, such as reduced queue wait 
-times by not having to submit to the queue. 
+times by not having to submit to the queue at every step. 
 We also provide major advantages when compared to Parashar et al. We are using Teragrid and LONI resources to run the asynchronous replica exchange simulations. We also have the ability to run MPI jobs. We need to evaluate the performance of our models and compare with other models for conducting replica exchange simulations. 
 
 Unfortunately we have results only for Case II, but we will establish the ability to scale-out across different infrastructure. We will provide a comparison of the performance of the asynchronous RE versus the synchronous RE at unprecedented scales. Lastly, we will compare the two different implementations of the asynchronous replica exchange.
