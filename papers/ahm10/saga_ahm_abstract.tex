@@ -93,7 +93,7 @@ With \impl, the \textit{Simple API for Grid Applications}, we introduce a commun
 
 \subsection*{A Powerful, Community-Driven Standard}
 \vspace{-0.5em}
- The \spec effort was initially triggered by several early grid adopter communities, which perceived the need for a simple, uniform, and stable programmatic interface for distributed (grid) applications that is widely-adopted and widely-available. The distributed computing community was looking for something similar to what the Message Passing Interface (MPI) standard is for the parallel computing community - a ``\textit{grid-counterpart to MPI}``, that allows the development of portable distributed applications.
+ The \spec effort was initially triggered by several early grid adopter communities, which perceived the need for a simple, uniform, and stable programmatic interface for distributed (grid) applications that is widely-adopted and widely-available. The distributed computing community was looking for something similar to what the Message Passing Interface (MPI) standard is for the parallel computing community - a ``\textit{grid-counterpart to MPI}'' that allows the development of portable distributed applications.
  
  
  The scope and requirements of the \spec API is
@@ -120,39 +120,14 @@ The \spec interface follows a clean class-based object-oriented design paradigm 
 \vspace{-0.8em}
 
 
-\subsection*{A Modular and Extensible Grid Programming System}
+\subsection*{A Modular and Extensible C++ / Python Implementation}
 \vspace{-0.5em}
-The \impl \I{Core Components} and \I{Adaptors} an implementation
-of the \spec API Specification written in C++ and Python. \impl is
-Open Source software, released under the Boost Software
-License 1.0~\cite{boost_license_web}. It can be divided into
-three major components (as depicted in Fig. \ref{fig:saga_arch}):
-the \I{Core Components} which provide the API functionality, the
-\I{Adaptors} which translate API calls into native middleware calls,
-the Python API \I{Language Bindings} and a set of \I{Command Line
-  Tools}. The \impl \I{Core Components} are a collection of dynamic
-libraries and header files that represent the functional API packages
-(see section 2.1) along with a lightweight, highly-configurable
-\I{Engine Component} that manages call dispatching and the dynamic
-runtime loading of the \I{Middleware Adaptors}.
 
+Along with the evolution of the \spec standard, our group developed a \impl reference implementation using the C++ and Python programming languages. Initially started as a proof-of-concept and to ensure the implementability of the standard, our \impl implementation has evolved into a stable and widely-used production-level software library -- with extensive support for commonly used distributed grid middleware. It implements the \spec \textit{Core} and \textit{Functional Packages} (GFD.90) as well as experimental packages for \textit{Adverts}, \textit{Messaging} and \textit{CPR} as a set of independent dynamic libraries. \impl is Open Source software, released under the Boost Software License 1.0~\cite{boost_license_web}. 
 
-Each of these \I{Adaptors} implements the functionality of a specific
-functional package (e.g., job adaptors, file adaptors) for a specific
-middleware system. Adaptors are also realized as dynamic
-libraries. \impl provides adaptors for many grid and distributed
-computing middleware, including the Globus Toolkit, Condor, Platform
-LSF and Amazon EC2. Several other adaptors, notably adaptors for PBS,
-gLite and BES are under development. The Python API \I{Language
-  Bindings} are an optional component of \impl that adds a thin Python
-layer on top of the native C++ API. This simple but very popular
-component allows application developers to quickly prototype and
-implement \impl-based applications in Python.  The layered, decoupled
-architecture of \impl allows for maximum flexibility at compile and
-runtime. It allows the user of to freely and selectively combine the
-library components and easily develop additional components orthogonal
-to the existing ones. More details on \impl's architecture and its
-implementation details can be found in \cite{OOPSLA_PAPER}.
+With flexibility and extensibility as one of its main design goals, \impl's structure is highly modular. It can be divided into four major components as depicted in Fig. \ref{fig:saga_arch} (left): (1) the \I{Core} which implements a lightweight runtime system, (2) the \I{Functional Packages}, (3) the Python API \I{Language Bindings} -- a thin wrapper layer on top of the native C++ interface and (4) the \I{Adaptors} (plug-ins) which translate calls from the \I{Functional Packages} API into native middleware calls The runtime-system is capable of loading \I{Adaptors} (also realized as dynamic libraries) at runtime and dispatch the API calls to those \I{Adaptors} that are capable of executing them on a specific grid middleware [Fig. \ref{fig:saga_arch} (right)]. Each \I{Adaptor} implements the functionality of a specific functional package (e.g., job adaptors, file adaptors) for a specific middleware system. \impl provides support for a plethora grid and distributed computing middleware, including the Globus Toolkit, Condor, Platform LSF, GridSAM and Amazon EC2. Several other adaptors, notably adaptors for PBS, gLite-CREM and BES/Unicore are under development. 
+
+The layered, decoupled architecture of \impl allows for maximum flexibility at compile and runtime. It allows the user of to freely and selectively combine the library components and easily develop additional components orthogonal to the existing ones (e.g., a new functional package API). The exclusive use of the PIMPL idiom (pointer to implementation) makes the SAGA API objects very lightweight and allows a clean separation between the fa\c{c}ade (API) and the implementation (CPI/Adaptors). A pleasant side-effect of this design decision is the complete absence of pointers and references in the \impl C++ API.
 
 %  The forth and last
 % component are the \I{Command Line Tools}. They provide a
@@ -196,10 +171,10 @@ Along with the development of \impl, we maintain and constantly extend a broad s
 \subsection*{SAGA: Sustainability}
 \vspace{-0.5em}
 \subsection*{Addressing the needs of the e-Science Community}
-\jhanote{SJ Will write} \note{Shantenu's playground: talk about
-  scientific applications using saga directly (...), talk about CS
-  people taking saga and use it to build higher-level frameworks and
-  tools (faust, bigjob, diggedag...). The usual stuff ;-)}
+%\jhanote{SJ Will write} \note{Shantenu's playground: talk about
+%  scientific applications using saga directly (...), talk about CS
+%  people taking saga and use it to build higher-level frameworks and
+%  tools (faust, bigjob, diggedag...). The usual stuff ;-)}
 
 SAGA is being used by a broad set of users in many different ways --
 both to support production-grade science as well as to facilitate
@@ -233,22 +208,19 @@ deeper integration via frameworks.
 \vspace{-0.8em}
 \pagebreak
 
-\begin{figure}[hb]
+\begin{figure}%[hb]
   \centering
-  \includegraphics[width=4in]{./figures/saga-architecture}
+  \includegraphics[width=3.23in]{./figures/saga-architecture}
+  \includegraphics[width=3.23in]{./figures/saga-call-dispatch}
+
  \vspace{-1em}	
-  \caption{\footnotesize Layered schematic of the different
-    components of \impl.  Middleware specific adaptors make
-    applications developed using \impl portable.  Schematic showing
-    the different ways in which \impl can be used to develop
-    distributed applications. (i) Using native \impl calls to
-    implement distributed functionality; (ii) Through the use of
-    frameworks which provide either application-level usage modes,
-    patterns and thus shielding the application from directly
-    interfacing with the infrastructure.}
+  \caption{\footnotesize \B{Left:} Layered schematic of the modular and extensible architecture of \impl. A lightweight runtime dispatches API calls to a set of middleware adaptors (plug-ins). An optional Python API wrapper adds Python scripting support to SAGA.
+   \B{Right: } Sequence-diagram showing the execution sequence through the different object instances for any SAGA API call: The fa\c{c}ade object calls the internal (private) implementation object which triggers the dynamic adaptor selection mechanism. Once an adaptor is found, the implementation object calls the appropriate adaptor method, which tries to execute the call on the middleware. }
+    
 %\vspace{-1.5em}
   \label{fig:saga_arch}
 \end{figure}
+
 
  \bibliographystyle{IEEEtran} 
  \bibliography{saga_ahm_abstract,saga_ogf}
