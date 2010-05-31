@@ -11,6 +11,8 @@
     advert_job implementation of BigJob is used
 """
 
+#If 2 bigjobs, make the number of subjobs a multiple of two, if 3 BJs - a multiple of 3 and so on.
+
 import saga
 import os
 import bigjob
@@ -18,34 +20,43 @@ import time
 import pdb
 
 #Configure here:
-BIGJOB_SIZE = 32
-NUMBER_EXCHANGES = 32
-NUMBER_BIGJOBS = 2
-NUMBER_REPLICAS = 8
+BIGJOB_SIZE = 72
+NUMBER_EXCHANGES = 64
+NUMBER_BIGJOBS=  3
+NUMBER_REPLICAS = 18
+CPR = 8 # cores per replica
 HOST = "eric1.loni.org"
-REMOTE1 = "qb1.loni.org"
+REMOTE1 = "louie1.loni.org"
 REMOTE2 = "oliver1.loni.org"
 advert_host = "fortytwo.cct.lsu.edu"
 #dirs for replicas
 WORK_DIR = "/work/athota1/new_bigjob/bigjob/"
 WALLTIME = "10"
 REPLICA_DIR = "/work/athota1/new_bigjob/bigjob/NAMD_files/"
+RPB = 6 #NUMBER_REPLICAS/BIGJOB
 
 
 def stage_files(i):
-   if not i%2:
+   if i<RPB:
      try:
         os.mkdir(WORK_DIR + 'agent/' + str(i))
      except OSError:
         pass
      os.system("cp -r " + REPLICA_DIR + "* " + WORK_DIR+ "agent/" + str(i)+ "/")
-   else:
+   elif (i>=RPB and i<(2*RPB)):
      try:
         os.mkdir(WORK_DIR + 'agent/' + str(i))
      except OSError:
         pass
      os.system("gsiscp -r " + WORK_DIR + "agent/" + str(i) + " " + REMOTE1 + ":" + WORK_DIR + "agent/" ) 
      os.system("gsiscp -r " + REPLICA_DIR + "* " + REMOTE1 + ":" + WORK_DIR+ "agent/" + str(i)+ "/")
+   else:
+     try:
+        os.mkdir(WORK_DIR + 'agent/' + str(i))
+     except OSError:
+        pass
+     os.system("gsiscp -r " + WORK_DIR + "agent/" + str(i) + " " + REMOTE2 + ":" + WORK_DIR + "agent/" ) 
+     os.system("gsiscp -r " + REPLICA_DIR + "* " + REMOTE2 + ":" + WORK_DIR+ "agent/" + str(i)+ "/")        
 
 def stage_ifiles(i):
    if not i%2:
@@ -84,13 +95,21 @@ def stage_ifiles(i):
          print str(e) + "\n(ERROR) remote file ####STAGING### copy from %s to %s failed"%(HOST, REMOTE1)
 
 def copy_with_saga(i):
-    if not i%2:
+    if i<RPB:
       os.system("cp "+ WORK_DIR + "/NPT.conf " + WORK_DIR + "agent/" + str(i) + "/NPT.conf")
      # source_url = saga.url('file://' + WORK_DIR + 'NPT.conf')
      # dest_url = saga.url('file://' + WORK_DIR + 'agent/' + str(i) + '/')
-    else:
+    elif (i>=RPB and i<(2*RPB)):
       source_url = saga.url('file://' + WORK_DIR + 'NPT.conf')
       dest_url = saga.url('gridftp://' + REMOTE1 + WORK_DIR+'agent/'+str(i)+'/')
+      sagafile = saga.filesystem.file(source_url)
+      try:
+        sagafile.copy(dest_url)
+      except saga.exception, e:
+        print "\n(ERROR) remote ###NPT.CONF####file copy from %s to %s failed"%(HOST, REMOTE1)
+    else:
+      source_url = saga.url('file://' + WORK_DIR + 'NPT.conf')
+      dest_url = saga.url('gridftp://' + REMOTE2 + WORK_DIR+'agent/'+str(i)+'/')
       sagafile = saga.filesystem.file(source_url)
       try:
         sagafile.copy(dest_url)
@@ -158,8 +177,10 @@ if __name__ == "__main__":
       bjs.append(bj)
       if(i==0):
         lrms_url = "gram://" + HOST + "/jobmanager-pbs" 
-      else:
+      elif(i==1):
         lrms_url = "gram://" + REMOTE1 + "/jobmanager-pbs"
+      else:
+        lrms_url = "gram://" + REMOTE2 + "/jobmanager-pbs"
       bjs[i].start_pilot_job(lrms_url,
                             bigjob_agent,
                             nodes,
@@ -178,7 +199,7 @@ if __name__ == "__main__":
       stage_files(i)
       jd = saga.job.description()
       jd.executable = "namd2"
-      jd.number_of_processes = "8"
+      jd.number_of_processes = "12"
       jd.spmd_variation = "mpi"
    # jd.arguments = ["NPT.conf"]
       jd.working_directory = WORK_DIR + "agent/" + str(i)+"/"
@@ -191,12 +212,16 @@ if __name__ == "__main__":
       sjs.append(sj)
       #prepare config and scp other files to remote machine
       NAMD_config(i)
-      if not i%2:
+      if i<RPB:
         j = 0   
         copy_with_saga(i)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
+      elif (i>=RPB and i<(2*RPB)):
+        j = 1   
+        copy_with_saga(i)
+        sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       else: 
-        j = 1
+        j = 2
         #os.system("gsiscp NPT-" + str(i) + ".conf %s:%s"%(REMOTE1, WORK_DIR))
         copy_with_saga(i)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
@@ -217,7 +242,7 @@ if __name__ == "__main__":
        energy.append(energies)
        temperature.append(temperatures)
        print "current state= " + str(state[i]) + " where: replica# is" +str(i) + ", current energy: " + str(energy[i])+ "current temp " + str(temperature[i])
-       time.sleep(2)
+       time.sleep(1)
 #################################################################################             
       for i in range(0, NUMBER_REPLICAS):
         if(state[i]=="Done"):
@@ -246,23 +271,32 @@ if __name__ == "__main__":
                 print "replica for which selection was made" + str(i)
                 print "assigning the new temepratures and re-starting the replicas"
                 prepare_NAMD_config(k, i) 
-                if not i%2:
+                if i<RPB:
                   j=0
                   copy_with_saga(i)
                   sjs[i].submit_job(bjs[j].pilot_url, jds[i], str(i))
-                else:
+                elif (i>=RPB and i<(2*RPB)):
                   j=1                  
                   #os.system("gsiscp NPT-" + str(i) + ".conf %s:%s"%(REMOTE1, WORK_DIR))  
                   copy_with_saga(i)
                   sjs[i].submit_job(bjs[j].pilot_url, jds[i], str(i))
-                                  
+                else:
+                  j=2                  
+                  #os.system("gsiscp NPT-" + str(i) + ".conf %s:%s"%(REMOTE1, WORK_DIR))  
+                  copy_with_saga(i)
+                  sjs[i].submit_job(bjs[j].pilot_url, jds[i], str(i))                
                 prepare_NAMD_config(i, k)
-                if not k%2:
+                if k<RPB:
                   j=0
                   copy_with_saga(k)
                   sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
-                else:
+                elif (k>=RPB and k<(2*RPB)):
                   j=1
+                  #os.system("gsiscp NPT-" + str(k) + ".conf %s:%s"%(REMOTE1, WORK_DIR))
+                  copy_with_saga(k)
+                  sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
+                else:
+                  j=2
                   #os.system("gsiscp NPT-" + str(k) + ".conf %s:%s"%(REMOTE1, WORK_DIR))
                   copy_with_saga(k)
                   sjs[k].submit_job(bjs[j].pilot_url, jds[k], str(k))
