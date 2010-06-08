@@ -346,7 +346,7 @@ problem in the workflow manager or the reservoir simulator, we have
 built those tools with these tradeoffs in mind.
 
 \jhanote{Why do traditional workflow systems/tools not work? Why are
-  we using SAGA?}
+  we using SAGA?} \yyenote{This comment cannot be addressed here, it is discussed in section 3.3}
 
 \up\up\up\up
 \subsubsection{Computational Requirement: Current Capability}
@@ -483,7 +483,7 @@ system-specific adaptors.  Our recent work using
 SAGA~\cite{saga-papers} has overcome a traditional limitation of RE \footnote{RE: Replica Exchange}
 simulations, viz., restricted set of platforms have been used and
 consequently, only small physical systems have been investigated so
-far. We have developed a general-purpose framework (Lazarus) that can overcome
+far. We have developed a general-purpose framework (Lazarus~\cite{gmac}) that can overcome
 traditional limitations and can be used over a wide-range of
 production distributed environments~\cite{saga-royalsoc}.
 Interestingly, the same framework can be used to marshall different
@@ -528,7 +528,7 @@ resources; however, the gains increase with every added resource.
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.4]{Lazarus_01.jpeg}
+\includegraphics[scale=0.55]{figures/Lazarus.pdf}
 %\includegraphics[scale=0.5]{Architecture.png}
 
 \caption{Architecture of Lazarus -- a Framework for Developing
@@ -541,7 +541,7 @@ resources; however, the gains increase with every added resource.
     what to say.  Poor quality figures are a sure way to get the paper
     killed. Compare this figure and its quality/effectiveness to that
     of Bigjob architecture. It tells me a lot about how this work is
-    prioritised!}}
+    prioritised!} \yyenote{Addressed} }
 \label{fig:application_architecture}
 
 \end{figure}
@@ -566,8 +566,9 @@ resources; however, the gains increase with every added resource.
 % grid computing resources ~\citep{gmac}.
 
 \jhanote{We haven't really said what Lazarus is.. nor discussed the
-  figure}
-Lazarus uses the BigJob abstraction to launch simulations on
+  figure}\yyenote{Actually it is mentioned in the first paragraph of 3.3 and given a reference}
+
+Lazarus~\cite{gmac} uses the BigJob abstraction to launch simulations on
 distributed high performance, high throughput and grid computing
 resources ~\cite{gmac}, the SAGA file adaptor to move files from one
 machine to another and BQP\footnote{BQP: Batch Queue Prediction, a tool
@@ -628,9 +629,9 @@ data. Once the new field observations are retrieved they are labeled
 as ``assimilated'' to differentiate them from the next--in--line
 observations.  
 
-\jhanote{Bad sentence..} Developed, initially using Cactus and
-database interfaces, to send measurement-while-drilling (MWD) data
-from drilling bottom-hole-assemblies to drill-string simulators, the
+\jhanote{Bad sentence..} \yyenote{Fixed}Initially developed using Cactus and
+database interfaces to send measurement-while-drilling (MWD) data
+from drilling bottom-hole-assemblies to drill-string simulators~\cite{Duff1, Duff2}, the
 S2S framework has been extended to accommodate sending sensor data to
 the BlackOil reservoir simulator (production data required for well
 modelling) and the Ensemble Kalman filter for history matching. The
@@ -638,15 +639,28 @@ S2S framework also announces the arrival of new history data to
 Lazarus to trigger the launching of a new stage of ensemble
 simulations ~\cite{Duff1,Duff2}.  It is worth mentioning that while
 currently we use a MySQL database, a more consistent solution would be
-to use the SAGA advert service, which would remove the need to access
-MySQL in Lazarus. \jhanote{Same mistakes.. terms/concepts are used
+to use the SAGA advert service~\cite{saga_sc05}, which would remove the need to access
+MySQL in Lazarus.
+
+The data streamed to the database and queried by Lazarus is the observed
+(history) data of the actual reservoir at the specified simulation time. Typically,
+the data is the flow rate, well flowing pressure and flow composition
+at the well. This data is stored as a small array of doubles.
+In terms of analysis, it is favorable to have as many observed variables
+at distinct locations as possible, as they serve as constraints to the inverse
+problem. Due to practical limitations in the field, observations are typically made at a
+small number of locations with a small number of sensors. Thus the use
+of a database is to automate real-time analysis, not to warehouse large amounts of data.
+
+
+\jhanote{Same mistakes.. terms/concepts are used
 that mean nothing to others and we don't bother definining
-them. e.g. advert service.}
+them. e.g. advert service.}\yyenote{Added references}
 
 \jhanote{very unsatisfactory section/paragraph. Has nothing off
   use/effect and is full of irrelevant details}
 \jhanote{what kind of data is stream? what is the format? what is the
-  volume, rate of transfer?} 
+  volume, rate of transfer?} \yyenote{explained above, data is very small}
 
 
 
@@ -697,9 +711,9 @@ on-demand computing resources (should the sensor data prove critical).
 
 We have previously run an EnKF based application on several TeraGrid
 resources and demonstrated effective {\it Scale-out} across three
-machines~\cite{gmac}.  Additionally, we incorporate the use of Condor
-pools in Lazarus for even higher throughput, demonstrating possible
-advantages to using multiple pilot job mechanisms. % \jhanote{mention
+machines~\cite{gmac}.  %Additionally, we incorporate the use of Condor
+%pools in Lazarus for even higher throughput, demonstrating possible
+%advantages to using multiple pilot job mechanisms. % \jhanote{mention
 %   that although this is for HM, the performance numbers are valid for
 %   Sequestration problem too.}
 
@@ -720,13 +734,20 @@ advantages to using multiple pilot job mechanisms. % \jhanote{mention
 
 
 \jhanote{We should refrain from submitting if there is no new data in
-  this section?}
+  this section?}\yyenote{Fixed}
 \jhanote{We talk about condor, but there is not data, no mention of 
- if it used?}
-
+ if it used?} \yyenote{Fixed}
 
 
 % Added from GMAC ICAC
+
+We defined the workload used for our experiments and performance tests, and define \tc as the time in seconds it 
+takes to complete this workload. The workload is a reduced version of a typical history matching run. We start 
+with an ensemble of one hundred members and we need to perform five stages/Kalman-filter runs. Since this sample 
+workload is representative of the size of a typical large history matching run and a reduced form of its 
+duration, any consistent reduction in the total time to completion will eventually have a larger impact on larger 
+runs with more stages.
+
 Figure~\ref{fig:SingleVsDistributed} shows the time to completion \tc
 for various TeraGrid machines and combinations thereof.There are
 several components to \tc worth discussing. The first, is the time
@@ -861,25 +882,25 @@ These are amongst the first simulations
 that use general purpose frameworks (as distinguished from specialized
 frameworks, for example LEAD) on production infrastructure.
 
-\subsection{Reservoir Characterization}
-
-After several iterations of the workflow and the convergence of the
-EnKF to within a fixed value, a 3D map of the permeability (a measure
-of the flow of the rocks, figure~\ref{fig:permpor} top) and porosity
-(a measure of the capacity of the rocks, figure~\ref{fig:permpor}
-bottom) is output and defines the properties of the reservoir to a
-first approximation. \begin{figure}
-\begin{center}
-\includegraphics[scale=0.45]{figures/permeability.png}
-\includegraphics[scale=0.45]{figures/porosity.png}
-\end{center}
-\caption[Simulation Output]{[Top] Reservoir as characterised by the
-  permeability, and [Bottom] porosity. \jhanote{So what?}
-  \jhanote{Remember a caption should have description + analysis}}
-\label{fig:permpor}
-\end{figure}
-
-\jhanote{So what? Why should the reader care?}
+% \subsection{Reservoir Characterization}
+% 
+% After several iterations of the workflow and the convergence of the
+% EnKF to within a fixed value, a 3D map of the permeability (a measure
+% of the flow of the rocks, figure~\ref{fig:permpor} top) and porosity
+% (a measure of the capacity of the rocks, figure~\ref{fig:permpor}
+% bottom) is output and defines the properties of the reservoir to a
+% first approximation. \begin{figure}
+% \begin{center}
+% \includegraphics[scale=0.45]{figures/permeability.png}
+% \includegraphics[scale=0.45]{figures/porosity.png}
+% \end{center}
+% \caption[Simulation Output]{[Top] Reservoir as characterised by the
+%   permeability, and [Bottom] porosity. \jhanote{So what?}
+%   \jhanote{Remember a caption should have description + analysis}}
+% \label{fig:permpor}
+% \end{figure}
+% 
+% \jhanote{So what? Why should the reader care?}
 
 \subsection{Analysis} 
 
