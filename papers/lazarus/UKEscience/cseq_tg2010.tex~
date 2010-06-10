@@ -222,7 +222,6 @@ and scientific (inject rates for CO$_2$) -- on the TeraGrid (TG).
 % \label{fig:irregular_execution}
 % \end{figure}
 
-\up\up
 \section{Modelling CO$_2$ Sequestration}
 
 %\subsection{Scientific Problem}
@@ -233,25 +232,25 @@ and scientific (inject rates for CO$_2$) -- on the TeraGrid (TG).
 %   should contain sufficient backgroud material that was used for the
 %   e-Science 2009 talk}
 % \yyenote{See computational approach paragraphs 2 and 3}
-\up
+
 \subsection{The Computational Approach}
-\up 
+
 
 CO$_2$ sequestration in oil/gas reservoirs typically involves
 history matching studies to obtain a better understanding of the
 reservoir geology and fluid flow properties.  At the core of the
-history matching process is the EnKF -- which are recursive filters
+history matching process is the EnKF -- which is a recursive filter
 that can be used to handle large, noisy data; the data in this case
 would be the results and parameters from an ensemble of reservoir models
 that are sent through the filter to obtain the ``true '' state of the
 reservoir. The models start with permeability, porosity (possibly
 pressure and saturation) field maps that are generated using
-geostatistically methods from a base case. If we start with a
+geostatistical methods from a base case. If we start with a
 close enough base case, generate an ensemble of representative models
 and run sufficient analysis steps, the true state of the reservoir
-will lie somewhere between statistically representative ensemble members.
+will lie somewhere in between the statistically representative ensemble members.
 
-Since the reservoir model varies from one ensemble to another, the
+Since the reservoir model varies from one ensemble member to another, the
 run-time characteristics of the ensemble simulation are irregular and
 hard to predict. Furthermore, at simulation times when real historical
 data is available, all the data from the different ensembles at that
@@ -277,8 +276,8 @@ simulations, carbon dioxide is injected as a supercritical gas at 2800
 psi. Regulatory constraints limit the bottom-hole injection pressure;
 the bottom hole pressure at the injection point does not exceed the
 hydrostatic pressure gradient by more than $0.2$ psi/ft.
-\up\up\up
-\subsection{Analyzing The Computational Complexity}
+
+\subsection{Analyzing the Computational Complexity}
 
 %\subsection{Single Machine Versus Distributed Infrastructure}
 
@@ -287,24 +286,25 @@ hydrostatic pressure gradient by more than $0.2$ psi/ft.
 An important parameter in the EnKF workflow is the size of the
 ensemble (number of ensemble members). The ensemble size should be
 large enough to propagate the information contained in the
-observations to the model variables. Smaller ensembles cause the
+observations to the model variables. Ideally, an infinitely large ensemble containing
+an infinite number of members (i.e. simulations) would reduce the analysis
+error but naturally increase the computational requirement. Smaller ensembles cause the
 analysis error to become larger. Too small an ensemble size can give
-poor approximations to the infinite ensemble case: the ensemble
+poor approximations compared to the infinite ensemble case: the ensemble
 covariance underestimates the error covariance substantially. This
 effect can be monitored by comparing the actual forecasted model data
 differences to those expected on the basis of the forecasted ensemble
 covariance ~\cite{Burger98}.
 
-In contrast, Hout et al ~\cite{Hout98} found that while the analysis error
+Hout et al ~\cite{Hout98} found that the analysis error
 decreased as the number of ensembles increased, i.e. representative
 ensembles can be maintained with a relatively small ensemble size
-(order of hundreds) using a pair of ensembles. Furthermore, the
+(order of hundreds) but using more than a one ensemble, typically a pair. Furthermore, the
 required ensemble size remains constant irrespective of the state
 vector size and observation size ~\cite{Mitchell02}. However, if a
-small ensemble size requiring severe localization (as is sometimes the
-case with reservoir models), this can cause a significant amount of
+small ensemble size requires severe localization (as is sometimes the
+case with reservoir models), it can cause a significant amount of
 spatial incoherence.
-
 
 For these reasons, optimal ensemble size is considerably difficult to
 determine without any preliminary analysis. Large ensemble sizes
@@ -312,7 +312,7 @@ directly translate to increased computational cost and delays in the
 time to completion. Conversely, smaller ensemble sizes, while more
 efficient, require prior knowledge of localization requirement for
 reduced analysis errors.
-\up\up\up\up
+
 \subsubsection{Analyzing the Trade-offs}  
 
 Typically, reservoir characterization studies followed by forecast
@@ -346,9 +346,9 @@ problem in the workflow manager or the reservoir simulator, we have
 built those tools with these tradeoffs in mind.
 
 \jhanote{Why do traditional workflow systems/tools not work? Why are
-  we using SAGA?} \yyenote{This comment cannot be addressed here, it is discussed in section 3.3}
+  we using SAGA?} \yyenote{This comment cannot be addressed here, it
+  is discussed in section 3.3} \jhanote{Not sure it is enough in §3.3} \yyenote{I think we should address it when we go over components, not here, so I added the paragraph there}
 
-\up\up\up\up
 \subsubsection{Computational Requirement: Current Capability}
 
 Consider a practical reservoir study that involves characterization,
@@ -382,7 +382,7 @@ distributed infrastructure instead of just one machine, based on figure
 time to completion by about a third, roughly 65 days. Clearly this is
 a very long time to solution and further optimizations are both
 required and possible.
-\up\up
+
 % \subsubsection{Computational Requirement: Typical Problems that Need to be Solved}
 % It is generally understood that the ensemble determines the accuracy
 % of the EnKF and as the ensemble size increases, the EnKF should
@@ -398,7 +398,7 @@ required and possible.
 % consumption supercomputer, the total amount of energy consumed is 0.62
 % Giga-Watt-hours.
 
-\up\up
+
 \section{Meeting the Requirements: Design and Architecture}
 
 Due to the complexity of the problem, involving reservoir simulation,
@@ -438,7 +438,13 @@ when new data are available; (2) be able to manage parallel and
 distributed workflow elements; (3) distribute and load--balance
 simulations with a wide range of execution times; (4) move large data
 sets to initialize models, compute gains, and update models; and (5)
-recover from errors in ensemble member simulations.
+recover from errors in ensemble member simulations. These features
+were not available in many of the workflow managers we initially considered
+including Pegasus~\cite{Pegasus} and Triana~\cite{Triana}. Therefore
+the workflow manager had to be custom built using components from existing
+tools. The result was Lazarus~\cite{gmac}: a high level workflow manager
+and a framework for developing autonomic computational science applications.
+
 
 The EnKF we use is based on Cactus and PETSc --it computes the Kalman
 gain matrix and updates the model parameters of the ensembles. The
@@ -472,28 +478,35 @@ studies
 \end{figure}
 
 A fundamental question at the heart of all scientific applications, is
- how can scientific applications be developed so as to
-use as broad a range of infrastructure as possible, without vendor or
-middleware lock-in, yet with the flexibility and performance that
-scientific applications demand. The SAGA programming system has been
-developed to address precisely this question. It consists of a
-high-level application-oriented API, the SAGA {\it Engine} (a dynamic
-library implementing the functionality of the API), and backend,
+how can scientific applications be developed so as to use as broad a
+range of infrastructure as possible, without vendor or middleware
+lock-in, yet with the flexibility and performance that scientific
+applications demand. The SAGA programming system has been developed to
+address precisely this question. It consists of a high-level
+application-oriented API, the SAGA {\it Engine} (a dynamic library
+implementing the functionality of the API), and backend,
 system-specific adaptors.  Our recent work using
-SAGA~\cite{saga-papers} has overcome a traditional limitation of RE \footnote{RE: Replica Exchange}
-simulations, viz., restricted set of platforms have been used and
-consequently, only small physical systems have been investigated so
-far. We have developed a general-purpose framework (Lazarus~\cite{gmac}) that can overcome
-traditional limitations and can be used over a wide-range of
-production distributed environments~\cite{saga-royalsoc}.
-Interestingly, the same framework can be used to marshall different
-types and sizes of resources~\cite{saga-papers}. For example, the
-BigJob abstraction that we first employed on 512-node Linux Clusters
-on LONI can also be used for monolithic usage on the 64,000 core
-mammoth Ranger(TACC) machine~\cite{saga-iccs09}.  It is also important
-to mention that the SAGA-based framework discussed is extensible, in
-that it can be used to implement many other applications in addition
-to those discussed here.
+SAGA~\cite{saga-papers} has overcome a traditional limitation of RE
+\footnote{RE: Replica Exchange} simulations, viz., restricted set of
+platforms have been used and consequently, only small physical systems
+have been investigated so far.
+
+Using SAGA we can develop general-purpose frameworks that can overcome
+traditional limitations and can be used over a wide-range of production
+distributed environments~\cite{saga-royalsoc}. We have developed a general-purpose
+framework (Lazarus) that can overcome traditional
+limitations and can be used over a wide-range of production
+distributed environments~\cite{saga-royalsoc}.  \jhanote{Lazarus is
+  part defined here}\yyenote{definition moved up to 3.2} Interestingly, the same framework can be used to
+marshall different types and sizes of
+resources~\cite{saga-papers}. For example, the BigJob abstraction that
+we first employed on 512-node Linux Clusters on LONI can also be used
+for monolithic usage on the 64,000 core mammoth Ranger(TACC)
+machine~\cite{saga-iccs09}\yyenote{Here you move from lazarus to bigjob, have a look please}.
+It is also important to mention that the
+SAGA-based framework discussed is extensible, in that it can be used
+to implement many other applications in addition to those discussed
+here.
 
 The power to do so arises from simple design decisions: the use of
 appropriate programmatic and system abstractions that allow users to
@@ -503,14 +516,15 @@ provides required services (such as checkpoint management, application
 monitoring and recovery) seamlessly and effectively from the
 application developers perspective. 
 
-As mentioned earlier, ensembles must be synchronized at each assimilation step. This makes
-the inversion process as slow as the slowest member. This might be
-addressed using (a) adaptive resource allocation and intelligent
-queuing; (b) use of subensembles, possibly adaptively; (c) adapting
-ensemble size.  Thus there is a distinct advantage of utilizing
-distributed resources.  It is also useful to note that for the end-user, the
-complexity of using one resource is the same as using multiple
-resources; however, the gains increase with every added resource.
+As mentioned earlier, ensembles must be synchronized at each
+assimilation step. This makes the inversion process as slow as the
+slowest member. This might be addressed using (a) adaptive resource
+allocation and intelligent queuing; (b) use of subensembles, possibly
+adaptively; (c) adapting ensemble size.  Thus there is a distinct
+advantage of utilizing distributed resources.  It is also useful to
+note that for the end-user, the complexity of using one resource is
+the same as using multiple resources; however, the gains increase with
+every added resource.
 
 \begin{figure}[ht]
     \centering
@@ -518,7 +532,7 @@ resources; however, the gains increase with every added resource.
    \caption{BigJob Architecture: The core of the framework, the
       BigJob Manager, orchestrates a set of sub-jobs via a
       BigJob Agent using the SAGA job and file APIs.  The
-      BigJob Agent is responsible for managing and monitoring sub-jobs.\up}
+      BigJob Agent is responsible for managing and monitoring sub-jobs.}
    \label{fig:bigjob}
 \end{figure}
 
@@ -532,16 +546,15 @@ resources; however, the gains increase with every added resource.
 %\includegraphics[scale=0.5]{Architecture.png}
 
 \caption{Architecture of Lazarus -- a Framework for Developing
-  Autonomic Computational Science Applications. The ``Resource
-  Mapping'' Strategy input is provided by BQP. Given the size of the
-  individual tasks, the ``Historical Benchmarks'' help determine the
-  size of the sub-jobs. (For the specific workload chosen, it so
-  happens that the size of each sub-job is 16). \jhanote{1 year and we
-    haven't been able to improve on this figure... I really don't know
-    what to say.  Poor quality figures are a sure way to get the paper
-    killed. Compare this figure and its quality/effectiveness to that
-    of Bigjob architecture. It tells me a lot about how this work is
-    prioritised!} \yyenote{Addressed} }
+  Autonomic Computational Science Applications. Historical benchmarks
+of the application, along with the number of simulations and ``sub-tasks''
+per ``bigjob'' allow Lazarus to map the application computaional requirements
+and submit those to the resource request component. The resource request
+(i.e. the number, size and duration of ``bigjobs'' as well as their location: Queen Bee, Ranger or Abe)
+is shaped by the the resource mapping strategy, in our case the batch queue
+prediction tool ``BQP'' that adjusts the request's mapping. Once all ``subtasks''
+are finished, a sanity check is performed on the results. When simulations fail, the fault
+tolerance routine submits a new resource request to recover from the failed simulations.}
 \label{fig:application_architecture}
 
 \end{figure}
@@ -555,7 +568,7 @@ resources; however, the gains increase with every added resource.
 %       tolerance functions that are based on SAGA python bindings, BQP
 %       command line tools and HDF5 tools
 %       respectively.}\label{fig:application_architecture}
-% \up\up\up\up\up\up\up%\up\up\up\up\up
+% %
 % \end{center}
 % \end{figure}
 
@@ -566,7 +579,7 @@ resources; however, the gains increase with every added resource.
 % grid computing resources ~\citep{gmac}.
 
 \jhanote{We haven't really said what Lazarus is.. nor discussed the
-  figure}\yyenote{Actually it is mentioned in the first paragraph of 3.3 and given a reference}
+  figure}\yyenote{Actually it is mentioned in the first paragraph of 3.3 and given a reference}\yyenote{Fixed again}
 
 Lazarus~\cite{gmac} uses the BigJob abstraction to launch simulations on
 distributed high performance, high throughput and grid computing
@@ -610,9 +623,10 @@ incorporate sophisticated inherent intelligence.  Lazarus is distinct
 to other well established and successful approaches such as
 Accord~\cite{accord} for autonomic computing, in that it is not a
 component-based programming system but it is a framework already
-composed of multiple components. Importantly the programming system
-that is used is SAGA -- both for the application and the Lazarus
-framework.
+composed of multiple components.
+% Importantly the programming system
+% that is used is SAGA -- both for the application and the Lazarus
+% framework.
 
 
 \subsection{Sensors-to-Simulations (S2S)} 
@@ -640,7 +654,7 @@ Lazarus to trigger the launching of a new stage of ensemble
 simulations ~\cite{Duff1,Duff2}.  It is worth mentioning that while
 currently we use a MySQL database, a more consistent solution would be
 to use the SAGA advert service~\cite{saga_sc05}, which would remove the need to access
-MySQL in Lazarus.
+MySQL databases through Lazarus.
 
 The data streamed to the database and queried by Lazarus is the observed
 (history) data of the actual reservoir at the specified simulation time. Typically,
@@ -671,8 +685,14 @@ them. e.g. advert service.}\yyenote{Added references}
 \caption{Schematic illustrating the interaction of BlackOil, EnKF, S2S
   and Lazarus. The blue arrows represent the flow of simulation data
   while the red arrows represent the flow of sensor
-  data. \jhanote{Once again, I find this figure of poor quality and
-    highly damaging to the paper.} }
+  data. Assume that we perform an analysis step every $15$ simulation days. If
+  we have just performed an assimilation at time $T$, Lazarus checks
+  for new sensor data at the Relay/data-spool. Lazarus expects history
+  data at $T+15$. If the data is available, a new stage of simulations are launched,
+  and subsequently run through the EnKF with the $T+15$ historical data. Lazarus
+  then queries the database for $T+30$ historical data. If the data is not available yet,
+  Lazarus continues to query the database with a 1-second timed delay until $T+30$ is
+  streamed to the database from the sensors and sensor platform. }
 \label{fig:irregular_execution}
 \end{figure*}
 
@@ -808,7 +828,7 @@ hours utilized does not increase.
 \caption{Table showing the configurations chosen
   on Ranger, with and without BQP. Notice how the use
   of BQP has a small, but significant change in the queue, size and duration
-  requested.}\up\up\up\up\up\up\up
+  requested.}
 \label{table:RangerBQP}
 \end{center}
 \end{table}
@@ -876,11 +896,36 @@ performance.
 In this work, in addition to a different scientific problem, we
 integrate (simulated) sensor data into the computational loop; the
 time-dependent sensor-data dynamically drives the application, and
-influences the controls and execution trajectory in phase-space.
+influences the controls and execution trajectory in phase-space. The
+particular experiment we run is a 10 member ensemble of a modified SPE 15 comparative study problem
+with CO$_2$ injection at the center of the domain. Figure \ref{fig:saturation}
+shows the saturation of carbon dioxide for ensemble member rank $0$. Figure \ref{fig:carbon}
+shows the cumulative amount of CO$_2$ injected over time.
 
-These are amongst the first simulations
-that use general purpose frameworks (as distinguished from specialized
-frameworks, for example LEAD) on production infrastructure.
+Historical data is spooled in a database that is queried by Lazarus. If the data is available,
+Lazarus retrieves the data (bandwidth slightly over $57$ kb/sec) and launches
+simulations. If the data is not available, Lazarus ``sleeps'' for $1$ second
+and tries again. Since the amount of historical data is small and hosted
+on a third party machine with a commercial grade network connection, sensor
+data retrieval did not adversely affect performance.
+
+There are two possible states for the ensemble: the simulations are lagging behind
+the historical data, therefore the simulations are running, will perform analysis
+and launch again, or the simulations have finished assimilating the latest history
+data available and Lazarus is frequently querying the database to check if new data
+is available. This removes the need to maintain a BigJob presence in the queue
+thus conserving SUs. On the other hand, intelligent pre-emptive BigJob queuing is possible:
+if we know when history data is inbound, we can submit container jobs to the queues
+so that by the time the data is available, the jobs have started or are about to start. Prediction
+on how early jobs need to be submitted can be made through BQP. In fact, for best performance,
+BigJobs should be submitted and all the simulations successfully completed at the exact moment
+sensor data is available, since it is required for the analysis step not the simulations
+themselves. This capability will be part of an upcoming revision of Lazarus.
+
+% These are amongst the first simulations that use general purpose
+% frameworks (as distinguished from specialized frameworks, for example
+% LEAD \jhanote{What is LEAD?? Reference or linkage?}) on production
+% infrastructure.
 
 % \subsection{Reservoir Characterization}
 % 
@@ -902,23 +947,28 @@ frameworks, for example LEAD) on production infrastructure.
 % 
 % \jhanote{So what? Why should the reader care?}
 
-\subsection{Analysis} 
+% \subsection{Analysis} 
+% 
+% The next step is to determine what is the extent of sequestration in a
+% reservoir characterised by the porosity and permeability.  The answer
+% to this is provided by the relative proportion of CO$_2$ per grid
+% cell. Figure 7 provides a measure of this relative proportion for the
+% reservoir characterised in Figure 6. Fig 8 provides a quantitative
+% estimate for how the injection varies with time for 10 rather similar
+% models. \jhanote{the y label in fig §7 shows cumulative
+%   injection. here we claim it is relative proportion}
+% 
+% \jhanote{What does the data mean? How do the models differ?}
 
-The next step is to determine what is the extent of sequestration in a
-reservoir characterised by the porosity and permeability.  The answer
-to this is provided by the relative proportion of CO$_2$ per grid
-cell. Figure 7 provides a measure of this relative proportion for the 
-reservoir characterised in Figure 6. Fig 8 provides a quantitative
-estimate for how the injection varies with time for 10 rather similar
-models. 
+
 
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.2]{figures/visit0001.png} 
 \end{center}
 \caption[Simulation Output]{The saturation (relative proportion) of
-  CO$_2$ for the reservoir characterised in Fig 6.}
-\label{}
+  CO$_2$ for the reservoir}
+\label{fig:saturation}
 \end{figure}
 
 \begin{figure}
@@ -929,7 +979,7 @@ models.
   CO$_2$ as a function of time since start of injection. The output for 10  different models are
   plotted, showing the sensitivity of the injection amount to the
   underlying model.}
-\label{fig:SensorRelay}
+\label{fig:carbon}
 \end{figure}
 
 % \jhanote{In this section we revisit the ``computational requirements
@@ -940,9 +990,9 @@ models.
 %   real problems.}
 
 \jhanote{Why is the sectioning so bizarre? WHy is conclusion not even
-  a subsection?}
-
-{\it Conclusion: }A triad of unique aspects are developed in this
+  a subsection?} \yyenote{Fixed}
+\section{Conclusion}
+A triad of unique aspects are developed in this
 paper: (i) We incorporate the use of EnKF in reservoir
 characterization for carbon dioxide sequestration studies, combining
 two developing research areas and investigating the forefront (ii) We
@@ -1023,7 +1073,27 @@ vary wildly
 
 \item While the application in this case is CO2 seq, this can be really anything in the real world EnKF for atmospherics, EnKF for radar, or simply hurricane simulations 
 
-\item Keeping tabs, book-keeping is incredibly difficult, you will need to archive data effectively for larger runs (list this in the challenges) \item In terms of autonomics, we have: sensor driven workflow (i.e. throughput), sensor driven simulations, i.e. data-aware workflows and data-aware simulations. We do not have this now but a natural extension is checking whether the data is critical or not, this would make the application data-criticality aware (not just availability of data but nature of the data... need better term for that one) \jhanote{this needs a bit of clarification} \yyenote{a pressure loss of let's say -5 psi is not the same as -5000 psi, one would not cause panic the other would. It is a good idea to have a person at the helm who would notice that big of a drop and realize: hey we need the results of those simulations immediately, and jump the queues or do something special. What would be even great: Lazarus is made aware of this, does things so that everything is optimized for faster turnover and results are on hand asap. If the clarification is the application of EnKF: the method has its origins in atmospherics: radar, hurricane tracking, meteorology that sort of thing. This not being my domain I do not know much about it but all books on EnKF say this}
+\item Keeping tabs, book-keeping is incredibly difficult, you will
+  need to archive data effectively for larger runs (list this in the
+  challenges) \item In terms of autonomics, we have: sensor driven
+  workflow (i.e. throughput), sensor driven simulations,
+  i.e. data-aware workflows and data-aware simulations. We do not have
+  this now but a natural extension is checking whether the data is
+  critical or not, this would make the application data-criticality
+  aware (not just availability of data but nature of the data... need
+  better term for that one) \jhanote{this needs a bit of
+    clarification} \yyenote{a pressure loss of let's say -5 psi is not
+    the same as -5000 psi, one would not cause panic the other
+    would. It is a good idea to have a person at the helm who would
+    notice that big of a drop and realize: hey we need the results of
+    those simulations immediately, and jump the queues or do something
+    special. What would be even great: Lazarus is made aware of this,
+    does things so that everything is optimized for faster turnover
+    and results are on hand asap. If the clarification is the
+    application of EnKF: the method has its origins in atmospherics:
+    radar, hurricane tracking, meteorology that sort of thing. This
+    not being my domain I do not know much about it but all books on
+    EnKF say this}
 
 \item Need for autonomics is driven by the requirement to either respond to external sensors or internal compute data-output. \jhanote{Elaborate on how this arises, what this means..}
 
@@ -1069,8 +1139,8 @@ The sensor data can be quite critical: if you are injecting CO2 and suddenly (i.
 % \end{center}
 % \caption[Sensor side LabVIEW vi]{Sensor side LabVIEW vi. To stream data from sensor platforms to data spools we use a LabVIEW vi that makes calls to a shared library containing an interface to the database (MySQL). Initial tests were conducted using a Wii mote 3--axis accelerometer. Image courtesy of Richard G. Duff }
 % \label{fig:LabView}
-% \up
-% \up
+% 
+% 
 % \end{figure}
 
 % Special care had to be taken when interfacing to sensor platforms:
