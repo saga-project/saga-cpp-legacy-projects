@@ -437,7 +437,7 @@ simulations with a wide range of execution times; (4) move large data
 sets to initialize models, compute gains, and update models; and (5)
 recover from errors in ensemble member simulations. These features
 were not available in many of the workflow managers we initially considered
-including Pegasus~\cite{Pegasus} and Triana~\cite{Triana}. Therefore
+including Pegasus and Triana. Therefore
 the workflow manager had to be custom built using components from existing
 tools. The result was Lazarus~\cite{gmac}: a high level workflow manager
 and a framework for developing autonomic computational science applications.
@@ -641,7 +641,13 @@ platforms to a data spool in the form of a MySQL database (figure
 spool for the latest available sensor platform (field observations)
 data. Once the new field observations are retrieved they are labeled
 as ``assimilated'' to differentiate them from the next--in--line
-observations.  
+observations.
+
+The use of an intermediate data--spool is necessary for many reasons:
+it is difficult to guarantee resource availability and synchronization
+with the EnKF. It is also prohibitively costly to maintain an active
+EnKF session throughout the life--time of the reservoir. With a data--spool
+historical data can be assimilated as it comes in from the field.
 
 % \jhanote{Bad sentence..} \yyenote{Fixed} \jhanote{it is fixed now..}
 
@@ -709,17 +715,21 @@ of a database is to automate real-time analysis, not to warehouse large amounts 
 \end{figure*}
 
 \subsection{Assembling the Components } 
-The use of an intermediate data--spool is necessary for many reasons:
-it is difficult to guarantee resource availability and synchronization
-with the EnKF. It is also prohibitively costly to maintain an active
-EnKF session throughout the life--time of the reservoir. With a
-data--spool we can also adjust the update rate at the EnKF session
-without losing any data from the reservoir. Updates to the models can
-be as immediate as the moment data is broadcast from the sensors in
-the field, or as late as when the reservoir is being abandoned. With
-immediate model updates, we can run forecast studies.  \jhanote{I find
-  the above paragraph slightly out of place. The flow is somewhat
-  abrupt too}
+% The use of an intermediate data--spool is necessary for many reasons:
+% it is difficult to guarantee resource availability and synchronization
+% with the EnKF. It is also prohibitively costly to maintain an active
+% EnKF session throughout the life--time of the reservoir. With a data--spool
+% historical data can be assimilated as it comes in from the field.
+
+%  With a
+% data--spool we can adjust the frequency of EnKF analysis
+% without losing any data from the reservoir. Updates to the models can
+% be as immediate as the moment data is broadcast from the sensors in
+% the field, or as late as when the reservoir is being abandoned. With
+% immediate model updates, we can run forecast studies. 
+%  \jhanote{I find
+%   the above paragraph slightly out of place. The flow is somewhat
+%   abrupt too}
 
 
 When used in conjunction, these components allow us to perform
@@ -992,9 +1002,15 @@ themselves. This capability will be part of an upcoming revision of Lazarus.
 \includegraphics[scale=0.2]{figures/visit0001.png} 
 \end{center}
 \caption[Simulation Output]{The saturation (relative proportion) of
-  CO$_2$ for the reservoir \jhanote{And does this label deserve no
-    more detail?} \jhanote{RULE No. 1: Each figure caption should be
-    self-contained. This is not} }
+  CO$_2$ for the reservoir. CO$_2$ is injected at the center of the
+  reservoir modeled in BlackOil with roughly 1.2 million grid cells.
+  This particular model is model rank $0$. Tracking the movement of
+  CO$_2$ is critical to a sequestration operation for many environmental
+  and safety reasons, especially the acidic effect it has on water.
+%    \jhanote{And does this label deserve no
+%     more detail?} \jhanote{RULE No. 1: Each figure caption should be
+%     self-contained. This is not}
+ }
 \label{fig:saturation}
 \end{figure}
 
@@ -1025,8 +1041,7 @@ themselves. This capability will be part of an upcoming revision of Lazarus.
 A triad of unique aspects are developed in this paper: (i) We
 incorporate the use of EnKF in reservoir characterization for carbon
 dioxide sequestration studies, combining two developing research areas
-and investigating the forefront \yyenote{Of what? Which forefront}(ii)
-We extend our EnKF based approach further with the incorporation of
+(ii) We extend our EnKF based approach further with the incorporation of
 live sensor data that influences the entire study (iii) We establish
 the ability to {\it scale-out} to a large number of distinct
 heterogeneous resources.
