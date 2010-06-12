@@ -697,19 +697,27 @@ of a database is to automate real-time analysis, not to warehouse large amounts 
 \begin{center}
  \includegraphics*[scale=0.3,angle=0]{figures/EnKF.png}
 \end{center}
-\caption{Schematic illustrating the interaction of BlackOil, EnKF, S2S
-  and Lazarus. The blue arrows represent the flow of simulation data
-  while the red arrows represent the flow of sensor data. Assume that
-  we perform an analysis step every $15$ simulation days. If we have
-  just performed an assimilation at time $T$, Lazarus checks for new
-  sensor data at the Relay/data-spool. Lazarus expects history data at
-  $T+15$. If the data is available, a new stage of simulations are
-  launched, and subsequently run through the EnKF with the $T+15$
-  historical data. Lazarus then queries the database for $T+30$
-  historical data. If the data is not available yet, Lazarus continues
-  to query the database with a 1-second timed delay until $T+30$ is
-  streamed to the database from the sensors and sensor
-  platform. 
+\caption{
+  Schematic illustrating the interaction of BlackOil, EnKF, S2S
+  and Lazarus. Typically, sensor data is collected from field
+  sensors to a sensor platform and streamed to a data spool (1). The
+  available data is queried by Lazarus to check if new data is available (2).
+  If new data is available, another ensemble of simulations must be launched. Alternatively,
+  if no new data is available, Lazarus will ``sleep'' for 1 second and query the data
+  spool again. Once all the ensemble members successfully terminate, the data is collected
+  and the EnKF application is run (4). Control of the workflow is returned to Lazarus
+  (5) and the cycle begins again.
+%   Schematic illustrating the interaction of BlackOil, EnKF, S2S
+%   and Lazarus. Assume that  we perform an analysis step every $15$ simulation days. If we have
+%   just performed an assimilation at time $T$, Lazarus checks for new
+%   sensor data at the Relay/data-spool. Lazarus expects history data at
+%   $T+15$. If the data is available, a new stage of simulations are
+%   launched, and subsequently run through the EnKF with the $T+15$
+%   historical data. Lazarus then queries the database for $T+30$
+%   historical data. If the data is not available yet, Lazarus continues
+%   to query the database with a 1-second timed delay until $T+30$ is
+%   streamed to the database from the sensors and sensor
+%   platform. 
 % \jhanote{This is another diagram I'm not comfortable
 %     with}
 }
