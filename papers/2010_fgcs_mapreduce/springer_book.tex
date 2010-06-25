@@ -1253,6 +1253,357 @@ taken to execute the \wc application in this case was approximately
 lies between 1329.96 seconds for 8 SPEs and 716 seconds for 8
 SAGA-MapReduce workers at a 64 MB chunk size.
 
+\section{Future Work}
+
+\jhanote{Azure section will need refinement}
+
+\subsection{Azure} 
+
+Azure provides different abstractions, building blocks for creating
+scalable and reliable scientific applications without the need for
+on-premise hardware. Azure follows the platform as a service paradigm
+offering an integrated solution for managing compute and
+data-intensive tasks as well as web applications. The platform is able
+to dynamically scale applications without the need to manually manage
+tasks and deployments on virtual machine level. After a brief
+introduction of the abstractions that are provided of Azure, we
+discuss how Azure's abstractions and capabilities can be utilized
+within scientific applications.
+
+\subsection{Understanding Azure-system Abstractions}
+
+Azure provides different higher level services, e.\,g.\ the Azure
+AppFabric or Azure Storage, that can be accessed via HTTP/REST from
+anywhere. Windows Azure offers a platform for on-demand computing and
+for hosting generic server-side applications. The so-called Azure
+fabric controller automatically monitors alls VMs, automatically
+reacts to hardware and software failures and manages application
+upgrades.
+
+\subsubsection{Compute}
+Windows Azure formalizes different types of virtual machines into
+so called roles. Web roles e.\,g.\ are used to host web applications
+and frontend code, while worker roles are well suited for background
+processing. While these roles target specific scenarios, they are also
+highly customizable. Worker roles can e.\,g.\ run native code. The
+application must solely implemented a defined entry point, which is
+then called by Azure. The Azure fabric controller automatically
+manages and monitors applications, handles hardware and software
+failures as well as updates to the operating system or to the
+application.  Commonly, scientific applications utilize worker roles
+for compute- and data-intensive tasks. AzureBlast~\cite{azure_blast}
+e.\,g.\ heavily relies on worker roles for computing bio-sequences.
+
+\subsubsection{Storage}
+For storing large amounts of data the Azure storage platform
+provides three key services: the \emph{Azure Blob Storage} for storing
+large objects of raw data, the \emph{Azure Table Storage} for
+semi-structured data and the \emph{Azure Queue Storage} for
+implementing message queues.  The data is storage replicated across
+multiple data centers to protect it against hardware and software
+failures. In contrast to other cloud offerings (e.\,g.\ Amazon S3) the
+Azure Storage Services provide strong consistency guarantees, i.\,e.\
+all changes are immediately visible to all future calls. While
+eventual consistency as implemented by S3~\cite{1294281} usually
+offers a better performance and scalability, it has some disadvantages
+mainly caused by the fact that the complexity is moved to the
+application space.
+
+The blob storage can store file up to a size of 1\,TB, which makes it
+particularly well suited for data-intensive application. The Amazon S3
+service e.\,g.\ restricts the maximum file size to 5\,GB. Further, the
+access to the blob storage can be optimized for certain usage modes:
+\emph{block blob} can be split into chunks which can be uploaded and
+downloaded separately and in parallel.  Thus, block blobs are well
+suited for uploading and streaming large amounts of data. \emph{Page
+  blob} manage the storage as an array of pages. Each of these pages
+can be addressed individually, which makes page blobs a good tool for
+random read/write scenarios. \emph{Azure XDrive} provides a durable
+NTFS volume, which is backed by a page blob. In particular legacy
+applications that heavily utilize file-based storage can simply be
+ported to Azure using XDrive.
+
+The Azure Queue Service provides a reliable storage for the delivery
+of messages within distributed applications.  The queue service is
+ideal to orchestrate the various components of a distributed
+applications, e.\,g.\ by distributing work packages or collecting
+results, which could be running on Azure or on another resource,
+e.\,g.\ a science cloud.
+
+The Azure Table Storage is ideally suited for storing structured
+data. Unlike traditional relational database systems, the table
+storage is designed with respect to scale-out, low cost and high
+performance similar to Google's BigTable~\cite{bigtable2006}
+system. For legacy application Azure also provides a SQL-Server based,
+relational datastores called SQL Azure. In contrast to Azure tables,
+SQL storage supports common relation database features, such as
+foreign keys, joins and SQL as query language.
+
+
+\subsection{Azure: Understanding the Applications}
+
+The Azure platform provides many capabilities and characteristics that
+are useful for scientific applications. Clouds like Azure are
+particularly well suited for loosely-coupled applications that demand
+a large number of processors, but do not require a low latency
+interconnect. Table~\ref{tab:app_azure_mapping} maps the requirements
+of the scientific applications in \S2 to the abstractions/services of
+the Azure platform.
+% \begin{table}[t]
+%     \centering
+%     \footnotesize
+%     \hspace*{-1em}
+% 	\begin{tabular}{|p{3cm}|p{6cm}|p{6cm}|}
+%           \hline
+%           \textbf{Application} &\textbf{Necessary Azure Services} &\textbf{Additional Capabilities}\\
+%           \hline
+%           \multirow{2}{3cm}{\textbf{Bio-EnMD}}
+%           &\bull Blob/Queue/Table Storage  &\bull  Pilot-Jobs \\
+%           &\bull Worker/Web Roles &\bull Adaptive/Autonomic Scheduling\\
+%           &                       &\bull MPI-Support \\
+%           \hline
+%           \multirow{2}{3cm}{\textbf{EnKF-Based Sequestration}}
+%           &\bull Blob/Queue/Table Storage  & \bull Pilot-Jobs\\
+%           &\bull xDrive                     & \bull Data management system\\
+%           & \bull Worker/Web Roles           & \bull Adaptive/Autonomic Scheduling\\
+%           \hline
+%           \multirow{2}{3cm}{\textbf{DAG-based Montage}}  
+%           &\bull Blob/Queue/Table Storage     
+%           &\multirow{2}{5.6cm}{\bull Workflow engine with support for dynamic 
+%             and distributed workflows (modeling and enactment)}        \\
+%           &\bull Worker/Web Roles             & \\
+%           &\bull AppFabric (Service Bus)      &\\
+%           \hline
+%           \multirow{2}{3cm}{\textbf{MapReduce-based Genome App.}}
+%           &\bull Blob/Queue/Table Storage       &\bull Dryad\\         
+%           &\bull Worker/Web Roles               &\bull Distributed filesystem\\             
+%           \hline
+% 	\end{tabular}
+% 	\upp
+% 	\caption{Scientific Applications and Windows Azure}
+%     \upp\upp
+% 	\label{tab:app_azure_mapping}
+% \end{table}
+Although loosely-coupled ensemble-based simulations are
+computationally well suited for cloud infrastructures, coordinating
+multiple ensemble-members remains a challenge, as does
+data-management.
+% A growing limitation in all these
+% scenarios is that workflow, data management, and analysis have become
+% rate limiting steps. 
+In the following we discuss a generic Azure-based architecture that
+addresses these concerns and is able to facilitate a range of
+applications execution scenarios.
+
+\subsubsection{Azure and Bio-EnMD}
+\begin{figure}%{R}{0.4\textwidth}
+   \includegraphics[width=.4\textwidth]{figures/re-azure}
+    \caption{\textbf{Azure-based Bio-Ensembles:} The ensemble-based
+      application utilizes the queue storage for distributing work
+      packages from the Replica Manager running on a web role to the
+      replica agents running on multiple worker roles.}
+    \label{fig:figures_re_azure}
+\end{figure}
+Figure~\ref{fig:figures_re_azure} illustrates an example of a
+framework for ensemble-based simulations built on top of the Azure
+building blocks. The Replica Manager (RM), also called Ensemble
+Manager, utilizes a web role to communicate with the end-user. This
+role is mainly responsible for accepting simulation requests from the
+end-user and for orchestrating the simulation runs. Later these
+capabilities can be extended by supporting more advanced steering and
+visualization features. The RM creates work packages -- the so called
+\emph{replicas}, distributes them via the Azure Queue Service and
+later collects the results stored by the replicas in the Azure
+storage.  The Replica Agents run within Azure worker roles, which are
+ideally suited for running background tasks. Azure enables users to
+run native code within worker roles, i.\,e.\ the framework will be
+able to support numerous MD codes, e.\,g.\ NAMD~\cite{Phillips:2005gd}
+and AMBER~\cite{cheatham-5}.  Azure currently does not support MPI
+computations across multiple worker roles, thus each MD
+simulation is limited to 8 cores.
+
+The worker roles running the replica agent are managed by the RM using
+the Azure Service Management API. In the initial version we will
+support the automatic start and stop of hosted services. In the final
+version there will be a possibility to automatically deploy agent code
+without the need to pre-configuring the VMs. Once the agents are
+started, they query the Azure queue for new work items. If a work item
+is found, a simulation task is started, e.\,g.\ by running the requested
+MD code with right parameters.  The number of
+MD jobs per worker role depends on the size of the worker role --
+Azure currently supports worker roles up to 8 cores.
+
+% \alnote{Kalman Filter option: we need to convey how we make decisions?
+% we need to understand the various trade-offs}
+
+The ensemble use case can greatly benefit from the
+capabilities of Azure. If greater accuracy is required or a deadline
+must be met, it can seamlessly scale-out to more worker roles.  The
+Azure fabric controller monitors all VMs running the worker roles and
+automatically restarts the worker roles if necessary. Further, Azure
+provides various kinds of reliable and scalable storage options to
+express different coordination schemes, e.\,g.\ the master-worker
+communication can be conducted via the described message queue. 
+
+
+
+\subsection{Assessment of Windows Azure}
+\upp
+\subsubsection{Assessing Azure-system Abstractions and Applications}
+% \upp
+% \begin{wrapfigure}{R}{0.6\textwidth}
+%  \centering
+%  \upp\upp
+%  \includegraphics[width=0.6\textwidth]{figures/cloud_ontology_apps}
+%  \caption{\footnotesize \textbf{Cloud Taxonomy and Application Examples}:
+%    Clouds provide services at different levels (IaaS, PaaS, SaaS).
+%    The amount of control available to users and developers decreases
+%    with the level of abstraction. According to their deployment model
+%    clouds can be categorized into public and private clouds.
+%    \label{fig:cloud_layers}}
+%    \upp\upp
+% \end{wrapfigure}
+
+To aid an understanding of application characteristics suited to the
+Azure platform, we briefly introduce a common categorization of cloud
+services (see fig.~\ref{fig:cloud_layers}). The proposed service
+layers consist of the following: the software as a service layer
+(SaaS), the platform as a service (PaaS) layer and the infrastructure
+as a service (IaaS) layer. Further, clouds can also be classified
+according to their deployment model into public and private clouds
+(for further details refer to~\cite{Jha:2010kx}).  Azure offers
+services on the platform as a service layer and thus, generally
+removes the need to manually manage low-level details as virtual
+machine configurations, operating system installations and updates
+etc.  At the same time worker roles provide an attractive environment
+for running compute- and data-intensive applications. In contrast to
+IaaS clouds, applications can benefit from features, such as failure
+tolerance: the fabric controller e.\,g.\ monitors all applications
+running in a role environment and restarts them if necessary.
+
+% Several scientific applications from different domains (e.g., life
+% sciences, high energy physics, astrophysics, computational chemistry)
+% have been ported to cloud environments (see~\cite{Hill,Begin:2008rq,saga_grid_cloud_interop} 
+% for examples). 
+
+The majority of scientific applications (e.\,g.\ applications from life
+sciences, high energy physics, astrophysics, computational chemistry)
+that have been ported to cloud environments
+(see~\cite{Hill,Begin:2008rq,saga_grid_cloud_interop} for examples),
+rely on low-level IaaS cloud services and solely utilize static
+execution modes: A scientist leases some virtual resources in order to
+deploy their testing services. One may select different number of
+instances to run their tests on. An instance of a VM is perceived as a
+node or a processing unit. 
+
+
+We engaged with Microsofts eXtreme Computing Group (Roger Barga) to assess
+Azure in a both theoretical and practical way. In contrast to traditional 
+IaaS clouds, Azure provides different benefits: Azure operates on a higher level of
+abstractions and removes the need to manage details, such as
+configuration and patching of the operating system. Azure applications
+are declaratively described and packaged; the fabric controller
+automatically handles the mapping of these applications to available
+hardware.
+
+Azure provides several core services supporting various interesting
+application characteristics and patterns. Com\-pute-intensive tasks can
+naturally be mapped to worker roles, while the communication and
+coordination between these roles is commonly done via the Azure
+storage services. Worker roles can run not only run .NET code, but are
+also capable of executing native code. However, Azure imposes some
+limitations in the ability to scale up and out. The largest supported
+VM has 8\,cores, 14\,GB of memory and 2\,TB of disk space.  Further,
+MPI applications can currently not be run on Azure. While other IaaS
+clouds can run MPI jobs, the performance usually degrades
+significantly when running jobs across multiple VMs (see
+figure~\ref{fig:performance_namd_run}a)). % \jhanote{Can first sentence
+%   be merged into previous paragraph?}  While clouds support different
+% application types, e.\,g. tightly and/or loosely-coupled applications,
+% tightly coupled applications are less well suited, mainly due to the
+% lack of high-end, low-latency interconnects.
+
+We have identified a representative set of applications that does not
+require high-end HPC hardware and interconnects and can easily scale
+out on Azure benefiting from the ability to acquire and release
+resources on-demand.  An increasing number of applications directly
+target distributed infrastructures instead of high-end machines. For
+example, an ensemble-based MD (EnMD) approach
+(\S\ref{sec:ensemble-based-science-sim}), multiple sets of simulations
+of shorter duration instead of a single longer simulation leads to
+more efficient phase-space sampling. Also, such simulations often
+require the ability to acquire additional resources, if e.\,g.\ a
+certain simulation event occurs that requires the spawning of an
+additional replica.  Such an application can greatly benefit from
+Azure capability to dynamically allocate resources on demand. This
+capability is also useful for EnKF-based applications where the
+execution time and resource requirements cannot be determined exactly
+in advance, either due to changes in runtime requirements or
+interesting changes in application structure (e.\,g.\ different solver
+with different resource requirement or a different workflow
+path~\cite{enkf_hybrid_grid_cloud}).
+
+
+% There can be a multiple number of instances under the same VM, depending on
+% the SLA one has agreed on. Once deploying the service, a scientist is
+% ready to begin testing on the virtual nodes, likewise one would do on
+% a traditional set of local clusters.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.45\textwidth]{figures/namd_run.pdf}
+  \label{tbd}
+  \includegraphics[width=0.5\textwidth]{figures/namd_ec2_azure}
+  \label{fig:perf_namd_ec2_azure}
+  \caption{\textbf{(a) NAMD Runtimes on Different Resource Types: }
+    The graph shows that native HPC resource generally outperform
+    cloud resources in particular when running applications across
+    multiple nodes. However, the new high memory eight core EC2
+    instance type was able to complete a replica run faster than QB or
+    Poseidon. \textbf{(b) NAMD Performance on Azure and EC2:} In particular on
+    smaller VM sizes Azure outperforms EC2.  On 8 core VMs EC2 shows a
+    slightly better performance.}
+   \label{fig:performance_namd_run}
+\end{figure}
+
+Most research has solely attempted to manually customize legacy
+scientific applications in order to accommodate them into a cloud
+infrastructure. Benchmark tests on both cloud infrastructures (EC2,
+Azure) where a VM does not cross physical nodes, and conventional
+computational clusters indicated no significant difference in the
+performance as measured by execution (wall-clock) time and number of
+processors used. Figure~\ref{fig:performance_namd_run}b presents an
+initial performance assessment of Azure for MD simulations. Azure
+outperforms
+EC2; % Especially on smaller % instances Azure outperforms EC2. This
+which is in noteworthy, since the costs for 2, 4 and 8 core VMs are
+drastically lower on Azure. Since the underlying hardware is not known
+one can only speculate about the reason. Microsoft controls the
+hardware in its data center und optimizes its custom-built Azure
+Hypervisor with respect to this hardware~\cite{Krishnan:2010nx}, which
+could be a reason for the better performance. In summary, Azure offers
+a good price/performance ratio in particular in comparison with EC2.
+
+
+For data-intensive applications Azure provides several interesting
+storage options: xDrive offers file system access to the Azure storage
+service, which is in particular relevant for applications that manage
+file-based data flows, e.\,g.\ the EnKF application. The blob storage
+is capable of storing large amounts of data -- a page blob e.\,g.\ can
+store files up to a size of 1\,TB.  In comparison, Amazon S3 is only
+capable of storing file with a size of up to 5\,GB, the Google Storage
+for Developer file size limit is at 100\,GB. The blob storage supports
+two different data access patterns: block blobs are designed for
+continuous access, such as data streaming, while page blobs can
+address each page individually and are particularly well suited for
+random access. These properties can be mapped to the characteristics
+of the respective application, e.\,g.\ a MapReduce application usually
+accesses data in large chunks, which is well supported by the block
+blob. We will further investigate these implementation alternatives
+and performance trade-offs in conjunction with the proposed
+applications as part of this project.
+
+
 \section{Discussion \& Conclusions}
 \label{sec:discuss}
 
@@ -1318,87 +1669,6 @@ frameworks using SAGA, thus further the agenda of general-purpose
 programming models with efficient run-time support that can utilize
 multiple heterogeneous resources.
 
-% -- that is either data can be transferred intelligently to match
-% computational workloads or computational workloads can be placed to
-% match (prevent) data requirements
-
-% In all of this, important to distinguish the infrastructure
-% independence of \sagamapreduce with the reliance of Google's
-% MapReduce~\cite{mapreduce-paper} on a number of capabilities of the
-% underlying system -- mostly related to file operations, but including
-% system features related to process/data allocation.
-
-% {\it Programming Models for Clouds: } Ref~\cite{jha_ccpe09} introduced
-% the notion of {\it affinity} for clouds to capture the idea of
-% relative data-compute placement and locality; it is imperative that
-% any programming model/system be cognizant of the notion of
-% affinity. We have implemented the first steps in a PM which provides
-% easy control over relative data-compute placement; a possible next
-% step would be to extend SAGA to directly support affinity (data-data,
-% data-compute).  
-
-% More generically, it is worth mentioning that these approaches can be
-% extend to support certain kinds of {\it affinities}.
-
-
-
-% A feature worth noting in MapReduce is that the ultimate dataset is
-% not on one machine, it is partitioned on multiple machines
-% distributed.
-
-% Google use their distributed file system (Google File System) to keep
-% track of where each file is located.  Additionally, they coordinate
-% this effort with BigTable.
-
-% {\it Simplicity versus Completeness:} There exist both technical
-% reasons and social engineering problems responsible for low uptake of
-% grids. One universally accepted reason is the complexity of grid
-% systems -- the interface, software stack and underlying complexity of
-% deploying distributed application. But this is also a consequence of
-% the fact that grid interfaces tend to be ``complete'' or very close
-% thereof.  % For example, while certainly not true of all cases, consider
-% % the following numbers, which we believe represent the above points
-% % well: globus 4.2 provides, in its Java version,
-% % approximately 2,000 distinct method calls.  The complete SAGA Core
-% % API~\cite{saga-core} provides roughly 200 distinct method calls.
-% % The
-% % SOAP rendering of the Amazon EC2 cloud interface provides,
-% % approximately 30 method calls (and similar for other Amazon cloud
-% % interfaces, such as Eucalyptus~\cite{eucalyptus}).
-% The number of
-% calls provided by these interfaces is no guarantee of simplicity of
-% use, but is a strong indicator of the extent of system semantics
-% exposed.  But to a first approximation, (simplicity of) interface
-% determines the programming models that can be supported. Thus there is
-% the classical trade-off between simplicity and completeness.
-
-%\section{Conclusion and Some Future Directions}
-
-% EC2 and Eucalyptus although distinct systems
-% have similar interfaces; we will work towards developing SAGA based
-% applications that can use very different infrastructures, e.g.,
-% Google's AppEngine, such that \sagamapreduce uses Google's cloud
-% infrastructure.
-
-% Finally, it is worth mentioning that computing in the clouds for
-% this project cost us upwards of \$300 to perform these experiments
-% on EC2.
-
-%   somewhat similar; a very different beast is Google's AppEngine.  We
-%   will in the near future be working towards providing \sagamapreduce
-%   via Google's AppEngine
-
-% {Mention that Amazon and Eucalyptus although distinct are
-%   somewhat similar; a very different beast is Google's AppEngine.  We
-%   will in the near future be working towards providing \sagamapreduce
-%   via Google's AppEngine}
-
-
-% Patterns capture a dominant and recurring computational mode; by
-% providing explicit support for such patterns, end-users and domain
-% scientists can reformulate their scientific problems/applications so
-% as to use these patterns.  This provides further motivation for
-% abstractions at multiple-levels.
 
 
 %\section{Acknowledgments}
