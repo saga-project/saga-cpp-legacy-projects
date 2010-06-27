@@ -672,30 +672,6 @@ and to focus on the levels of interoperability we will use a simple,
 self-contained application, that has also become the {\it canonical}
 \mr application-driver -- \wc.
 
-\subsection{Application: \Wc}
-\label{ssec:app}
-
-We use our own implementations of the well known \wc application for
-our experiments.  \Wc has a well understood runtime and scaling
-behaviour, and thus serves us well for focusing the tests on the used
-frameworks and middlewares.
-
-The \mr based \wc implementation is described in~\cite{saga_ccgrid09}.
-For the Sector-Sphere version of \wc we implemented two kernel
-functions. The first one is responsible for hashing the
-words in the data set into different "buckets", depending on
-the word's starting letter.  The standard C++ collate hashing function
-was used for this purpose.  The second kernel function reads each hash
-bucket, sorts the words in memory and outputs the final count of
-the words in the data set.  For example, a file containing the words
-\T{('bread' 'bee' 'bee' 'honey')} would be hashed into buckets as
-\T{('bread' 'bee' 'bee')} and \T{('honey')}.  The second kernel
-function would read these intermediate bucket files, sort the words,
-and produce the result \T{(.bread 1., .bee 2., .honey
-  1.)}.  The Sphere system is responsible for assigning files for
-processing, synchronization, and writing output results back to
-Sector.
-
 \subsection{Interoperability Types}
 
 Using the \wc application, we will demonstrate three types of
@@ -812,9 +788,30 @@ time.  As our primary goal is to demonstrate interoperability, and not
 to document maximal performance, we consider those results valid
 nonetheless.
 
-
-\section{Experiments} 
+\section{Interoperability Experiments: \Wc}
 \label{sec:exp}
+
+
+We use our own implementations of the well known \wc application for
+our experiments.  \Wc has a well understood runtime and scaling
+behaviour, and thus serves us well for focusing the tests on the used
+frameworks and middlewares.
+
+The \mr based \wc implementation is described in~\cite{saga_ccgrid09}.
+For the Sector-Sphere version of \wc we implemented two kernel
+functions. The first one is responsible for hashing the
+words in the data set into different "buckets", depending on
+the word's starting letter.  The standard C++ collate hashing function
+was used for this purpose.  The second kernel function reads each hash
+bucket, sorts the words in memory and outputs the final count of
+the words in the data set.  For example, a file containing the words
+\T{('bread' 'bee' 'bee' 'honey')} would be hashed into buckets as
+\T{('bread' 'bee' 'bee')} and \T{('honey')}.  The second kernel
+function would read these intermediate bucket files, sort the words,
+and produce the result \T{(.bread 1., .bee 2., .honey
+  1.)}.  The Sphere system is responsible for assigning files for
+processing, synchronization, and writing output results back to
+Sector.
 
 \subsection{Type I ALI: Interoperability via Adaptors}
 
@@ -1053,7 +1050,6 @@ performed a merge-sort of all the intermediate output files.
    }
 \end{figure}
 
-
 \subsection{Type II ALI: Application Performance Using SAGA-based
 Sphere and MapReduce}
 
@@ -1254,6 +1250,210 @@ taken to execute the \wc application in this case was approximately
 877.9 seconds. It is interesting to note that this performance measure
 lies between 1329.96 seconds for 8 SPEs and 716 seconds for 8
 SAGA-MapReduce workers at a 64 MB chunk size.
+
+\section{Interoperability Experiments: Ensemble of Biomolecular
+  Simulations}
+
+Several classes of applications are well suited for distributed
+environments. Probably the best known and most powerful examples are
+those that involve an ensemble of decoupled tasks, such as simple
+parameter sweep applications~\cite{1239909}. In the following
+we investigate an ensemble of (parallel HPC) MD simulations. 
+Ensemble based approaches represent an important and promising attempt
+to overcome the general limitations of insufficient time-scales, as
+well as specific limitations of inadequate conformational sampling
+arising from kinetic trappings.  The fact that one single long-running
+simulation can be substituted for an ensemble of simulations, make
+these ideal candidates for distributed environments.  This 
+provides an important general motivation for researching ways to
+support scale-out and thus enhance sampling and to thereby increase
+``effective'' time-scales studied.
+
+The physical system we investigate is the HCV internal ribosome entry 
+site and is recognized specifically by the small ribosomal subunit and 
+eukaryotic initiation factor 3 (eIF3) before viral translation initiation.  
+This makes it a good candidate for new drugs targeting HCV. 
+The initial conformation of the RNA is taken from the NMR
+structure (PDB ID: 1PK7).  By using multiple replicas, the aim is to
+enhance the sampling of the conformational flexibility of the molecule
+as well as the equilibrium energetics.
+
+To efficiently execute the ensemble of batch jobs without the necessity to queue 
+each individual job, the application utilizes the SAGA BigJob 
+framework~\cite{saga_bigjob_condor_cloud}. BigJob is a  
+Pilot-Job framework that provides the user a uniform abstraction to grids and clouds
+independent of any particular cloud or grid provider that can be
+instantiated dynamically. Pilot-Jobs are an execution abstraction that have 
+been used by many communities to increase the predictability and time-to-solution of
+such applications.  Pilot-Jobs have been used to (i) improve the
+utilization of resources, (ii) to reduce the net wait time of a
+collection of tasks, (iii) facilitate bulk or high-throughput
+simulations where multiple jobs need to be submitted which would
+otherwise saturate the queuing system, and (iv) as a basis to
+implement application specific scheduling decisions and policy
+decisions.
+
+As shown in Figure~\ref{fig:figures_distributed_pilot_job}, BigJob currently
+provides an abstraction to grids, Condor pools and
+clouds. Using the same API, applications can dynamically allocate
+resources via the big-job interface and bind sub-jobs to these
+resources. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/distributed_pilot_job.pdf}
+    \caption{
+      \footnotesize
+      \label{fig:figures_distributed_pilot_job}
+      An overview of the SAGA-based Pilot Job:     The SAGA Pilot Job API 
+      is currently implemented by three different backends - one for grids,
+      Condor and for clouds.}
+\end{figure}
+
+In the following we use an ensemble of MD simulations to investigate different 
+BigJob usage modes and analyze the time-to-completion \tc in different scenarios.
+
+
+\subsubsection{Scenario A: \tc for Workload for Different Resource
+  Configurations\\}
+
+In this scenario and as proof of scale-out capabilities, we use SAGA
+BigJob to run replicas across different types of infrastructures.
+% , the LONI clusters -- Poseidon, Oliver, and the Nimbus Cloud.
+At the beginning of the experiment a particular set of Pilot-Jobs is
+started in each environment. Once a Pilot-Job becomes active, the
+application assigns replicas to this job.  We measure \tc for different
+resource configurations using a workload of 8 replicas each running on
+8 cores. The following setups have been used
+\begin{itemize}
+\item Scenario 1 (A1): Resource I and III -- Clouds and GT2 based grids. 
+\item Scenario 2 (A2): Resource II and III -- Clouds and Condor grids.
+\item Scenario 3 (A3): Resource I, II and III -- Clouds, GT2 and Condor grids.
+\end{itemize} 
+For this experiment the LONI clusters: Poseidon and Oliver are used as
+grid and Condor resources and Nimbus as cloud resource.
+
+\begin{figure}[tbp]
+    \centering
+        \includegraphics[width=0.4\textwidth]{figures/8replica_scenario_grid_condor_cloud}
+        \caption{
+          \footnotesize
+          \label{fig:performance_8replica_grid_cloud_condor}
+          \textbf{A1 - A3: Collective Usage of Grid, Condor and
+          Cloud Resources for Workload of 8 Replicas: } The experiments showed 
+          that if the grid and Condor resource Poseidon has only a light load, 
+          no benefits for using additional cloud resources exist. However, the 
+          introduction of an additional Condor or grid resource significantly 
+          decreases \tc.}
+\end{figure}
+
+Figure~\ref{fig:performance_8replica_grid_cloud_condor} shows the
+results. For the first three bars, only one infrastructure was used to
+complete the 8-replica workload. Running the whole scenario in the
+Science Cloud resulted in a quite poor but predictable performance --
+the standard deviation for this scenario is very low. The LONI
+resources are about 3 times faster than the Science Cloud, which
+corresponds to our earlier findings.  The performance of the Condor
+and grid BigJob is similar, which can be expected since the underlying
+physical LONI resources are the same.  Solely, a slightly higher
+startup overhead can be observed in the Condor runtimes.
+
+In the next set of 3 experiments, multiple resources were used. For
+Scenario A1 (the fourth bar from left), 2 replicas were executed on
+the Science Cloud. The offloading of 2 replicas to an additional cloud
+resource resulted in a light improvement of \tc compared to using
+just LONI resources. Thus, the usage of cloud resources must be carefully
+considered since \tc is determined by the slowest resource, i.e., Nimbus. As
+described earlier, the startup time for Nimbus images is in particular
+for such short runs significant. Also, NAMD performs significantly
+worse in the Nimbus cloud than on Poseidon or Oliver. Since the
+startup time on Nimbus averages to 357\,sec and each 8 core replica runs
+for about 363\,sec at least 720\,sec must be allowed for running a single replica on
+Nimbus. Thus, it can be concluded that if resources in the grids or
+Condor pool are instantly available, it is not reasonable to start
+additional cloud resources.  However, it must be noted that there are
+virtual machines types with a better performance available, e.g., in
+the Amazon cloud. These VMs are usually associated with higher costs
+(up to 2.40\,\$ per CPU hour) than the Science Cloud VMs. For a
+further discussion of cost trade-offs for scientific computations in
+clouds see Deelman et\,al.~\cite{1413421}.
+
+
+\subsubsection{Scenario B: \tc for Workload for Different Resource
+  Configurations\\}
+
+Given that clouds provide the illusion of infinite capacity, or at
+least queue wait-times are non-existent, it is likely that when using
+multiple resource types and with loaded grids/clusters (e.g., TeraGrid
+is currently over-subscribed and typical queue wait times often exceed
+24hours), most sub-jobs will end up on the cloud infrastructure.
+Thus, in Scenario B, the resource assignment algorithm we use is as
+follows: We submit tasks to non-cloud resources first and periodically
+monitor the progress of the tasks. If insufficient jobs have finished
+when time equal to $T_{X}$ has elapsed (determined per criteria
+outlined below),
+%(completion being  reached at current rates of progress),
+%(defined as: \tmax - 2 average \tc on all Clouds)  
+than we move the workload to utilize clouds.  The underlying basis is
+that clouds have an explicit cost associated with them and if jobs can
+be completed on the TG/Condor-pool while preserving the performance
+constraints, we opt for such a solution. However, if queue loads
+prevent the performance requirements being met, we move the jobs to a
+cloud-resource, which we have shown has less fluctuation in \tc of the
+workload.
+
+For this experiment we integrated a progress manager that implements
+the described algorithm into the replica application.  The user has
+the possibility to specify a maximum runtime and a check interval.  At
+the beginning of each check interval the progress manager compares the
+number of jobs done with the total number of jobs and estimates the
+total number of jobs that can be completed within the requested
+timeframe. If the total number of jobs is higher than this estimate,
+the progress monitor instantiates another BigJob object request
+additional cloud resources for a single replica.  In this scenario,
+each time an intermediate target is not met four additional Nimbus VMs
+sufficient for running another eight core replica are instantiated.
+Table~\ref{tab:app_deadline} summarizes the results.
+
+% \begin{table}
+% %	\begin{tabular}{|l|l|l|}
+% 	\hline
+%     Result & \#\,Occurrences &Average \tc \\ \hline
+% 	No VM started &6 &7.8\,min\\ \hline
+% 	1 VMs started &1 &36.4\,min\\ \hline
+% 	2 VMs started &1 &47.3\,min\\ \hline
+% 	3 VMs started &2 &44.2\,min\\ \hline
+% %	\end{tabular}
+% 	\caption{\footnotesize  Usage of Cloud Pilot-Jobs to Ensure Deadline \label{tab:app_deadline}}
+% \end{table}
+
+% \begin{table}[ht]
+%     \centering
+% 	\begin{tabular}{|l|l|l|}
+% 	\hline
+%     Result & \#\,Occurrences &Average \tc \\ \hline
+% 	No VM started &6 &7.8\,min\\ \hline
+% 	1 VMs started &1 &36.4\,min\\ \hline
+% 	2 VMs started &1 &47.3\,min\\ \hline
+% 	3 VMs started &2 &44.2\,min\\ \hline
+% 	\end{tabular}
+% 	\caption{
+%     \footnotesize
+%     Usage of Cloud Pilot-Jobs to Ensure Deadline \label{tab:app_deadline}}
+% \end{table}
+
+In the investigated scenario, we configured a maximum runtime of
+45\,minutes and a progress check interval of 4 minutes. We repeated
+the same experiment 10\,times at different times of the day. In 6 out
+of 10\,cases the scenario completed in about 8\,minutes. However, the
+fluctuation in particular in the waiting time on typical grid
+resources can be very high. Thus, in 4 cases it was necessary to start
+additional VMs to meet the application deadline.  In two cases
+3\,Pilot-Jobs each with 8 cores had to be started, and in one case a
+single Pilot-Job was sufficient.  In a single case the deadline was
+missed solely due to the fact that not enough cloud resources were
+available, i.e., we are only able to start 2 instead of 3
+Pilot-Jobs.
 
 \section{Future Work}
 
