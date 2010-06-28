@@ -1276,7 +1276,8 @@ This makes it a good candidate for new drugs targeting HCV.
 The initial conformation of the RNA is taken from the NMR
 structure (PDB ID: 1PK7).  By using multiple replicas, the aim is to
 enhance the sampling of the conformational flexibility of the molecule
-as well as the equilibrium energetics.
+as well as the equilibrium energetics. NAMD~\cite{Phillips:2005gd} is
+used as MD code.
 
 To efficiently execute the ensemble of batch jobs without the necessity to queue 
 each individual job, the application utilizes the SAGA BigJob 
@@ -1460,14 +1461,13 @@ missed solely due to the fact that not enough cloud resources were
 available, i.e., we are only able to start 2 instead of 3
 Pilot-Jobs.
 
-\section{Future Work}
+\section{Future Work: Wind Azure}
 
 \jhanote{Azure section will need refinement}
 \alnote{Are we solely targeting Type I interoperability or 
 do we aim for type II and III?}
 
-\subsection{Azure} 
-
+Azure is an emerging cloud platform developed and operated by Microsoft.
 Azure provides different abstractions, building blocks for creating
 scalable and reliable scientific applications without the need for
 on-premise hardware. Azure follows the platform as a service paradigm
@@ -1555,9 +1555,11 @@ The Azure platform provides many capabilities and characteristics that
 are useful for scientific applications. Clouds like Azure are
 particularly well suited for loosely-coupled applications that demand
 a large number of processors, but do not require a low latency
-interconnect. Table~\ref{tab:app_azure_mapping} maps the requirements
-of the scientific applications in \S2 to the abstractions/services of
-the Azure platform.
+interconnect. 
+
+% Table~\ref{tab:app_azure_mapping} maps the requirements
+% of the scientific applications in \S2 to the abstractions/services of
+% the Azure platform.
 % \begin{table}[t]
 %     \centering
 %     \footnotesize
@@ -1654,24 +1656,36 @@ provides various kinds of reliable and scalable storage options to
 express different coordination schemes, e.\,g.\ the master-worker
 communication can be conducted via the described message queue. 
 
+\subsubsection{Azure and MapReduce}
+
+For data-intensive applications, such as MapReduce-based applications,
+Azure provides various interesting services: 
+The blob storage is well suited for storing large amounts of file data, 
+which can also be accessed via a NTFS file system. Data can be processed 
+via worker roles. Further, Azure offers the possibility to express data/compute 
+co-locations using so called affinity groups. MapReduce application require capabilities 
+similar to the Bio-EnMD: mapping and reduction tasks can be spawned dynamically using the Service 
+Management API. For storing and transferring data Azure provides various options
+(xDrive versus block blob versus page blob). We will further evaluate these alternatives
+in particular in comparison to distributed filesystems in the future. 
 
 
-\subsection{Assessment of Windows Azure}
-\upp
-\subsubsection{Assessing Azure-system Abstractions and Applications}
+% \subsection{Assessment of Windows Azure}
 % \upp
-% \begin{wrapfigure}{R}{0.6\textwidth}
-%  \centering
-%  \upp\upp
-%  \includegraphics[width=0.6\textwidth]{figures/cloud_ontology_apps}
-%  \caption{\footnotesize \textbf{Cloud Taxonomy and Application Examples}:
-%    Clouds provide services at different levels (IaaS, PaaS, SaaS).
-%    The amount of control available to users and developers decreases
-%    with the level of abstraction. According to their deployment model
-%    clouds can be categorized into public and private clouds.
-%    \label{fig:cloud_layers}}
-%    \upp\upp
-% \end{wrapfigure}
+\subsection{Assessing Azure-system Abstractions and Applications}
+% \upp
+\begin{figure}[ht]
+ \centering
+ \upp\upp
+ \includegraphics[width=0.45\textwidth]{figures/cloud_ontology_apps}
+ \caption{\footnotesize \textbf{Cloud Taxonomy and Application Examples}:
+   Clouds provide services at different levels (IaaS, PaaS, SaaS).
+   The amount of control available to users and developers decreases
+   with the level of abstraction. According to their deployment model
+   clouds can be categorized into public and private clouds.
+   \label{fig:cloud_layers}}
+   \upp\upp
+\end{figure}
 
 To aid an understanding of application characteristics suited to the
 Azure platform, we briefly introduce a common categorization of cloud
@@ -1704,16 +1718,16 @@ execution modes: A scientist leases some virtual resources in order to
 deploy their testing services. One may select different number of
 instances to run their tests on. An instance of a VM is perceived as a
 node or a processing unit. 
-
-
-We engaged with Microsofts eXtreme Computing Group (Roger Barga) to assess
-Azure in a both theoretical and practical way. In contrast to traditional 
-IaaS clouds, Azure provides different benefits: Azure operates on a higher level of
-abstractions and removes the need to manage details, such as
+In contrast to traditional IaaS clouds, Azure provides different benefits: 
+Azure operates on a higher level of abstractions and removes the need to manage details, such as
 configuration and patching of the operating system. Azure applications
 are declaratively described and packaged; the fabric controller
 automatically handles the mapping of these applications to available
 hardware.
+
+
+% We engaged with Microsofts eXtreme Computing Group (Roger Barga) to assess
+% Azure in a both theoretical and practical way. 
 
 Azure provides several core services supporting various interesting
 application characteristics and patterns. Com\-pute-intensive tasks can
@@ -1737,10 +1751,9 @@ require high-end HPC hardware and interconnects and can easily scale
 out on Azure benefiting from the ability to acquire and release
 resources on-demand.  An increasing number of applications directly
 target distributed infrastructures instead of high-end machines. For
-example, an ensemble-based MD (EnMD) approach
-(\S\ref{sec:ensemble-based-science-sim}), multiple sets of simulations
-of shorter duration instead of a single longer simulation leads to
-more efficient phase-space sampling. Also, such simulations often
+example, ensemble-based MD (EnMD) approaches utilize multiple sets 
+of simulations of shorter duration instead of a single longer simulation 
+to support a more efficient phase-space sampling. Also, such simulations often
 require the ability to acquire additional resources, if e.\,g.\ a
 certain simulation event occurs that requires the spawning of an
 additional replica.  Such an application can greatly benefit from
