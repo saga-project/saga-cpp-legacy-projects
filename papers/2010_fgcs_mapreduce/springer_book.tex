@@ -39,11 +39,11 @@
 }
 \begin{document}
 
-\title{needs to change..}
-% \title{Understanding Application-Level Interoperability: Scaling-Out
+\title{Application-Level Interoperability Across Grids and Clouds}
+% \title{Application-Level Interoperability: Scaling-Out
 %   MapReduce From High-Performance Grids to Web-Scale Resources}
-\author{Andre Luckow, Saurabh Sehgal$^1$, Andre Merzky$^{1}$, Miklos
-  Erdelyi$^{3,4}$, Shantenu Jha$^{*1,2}$,
+\author{Andre Luckow, Andre Merzky$^{1}$, Miklos Erdelyi$^{3,4}$,
+  Saurabh Sehgal$^1$, Shantenu Jha$^{*1,2}$,
   \\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
   \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
@@ -57,7 +57,7 @@
   \upp\upp\upp\upp\upp }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
  \newcommand{\amnote}[1]{     {\textcolor{magenta} { ***AM: #1 }}}
  \newcommand{\jhanote}[1]{    {\textcolor{red}     { ***SJ: #1 }}}
@@ -100,29 +100,26 @@
 
 %\maketitle
 \begin{abstract}
- Application-level interoperability is defined as the ability of an
+  Application-level interoperability is defined as the ability of an
   application to utilise multiple distributed heterogenous resources.
   Such interoperability is becoming increasingly important with
   increasing volumes of data, multiple sources of data as well as
-  resource types.  The primary aim of this paper is to understand
+  resource types.  The primary aim of this Chapter is to understand
   different ways in which application-level interoperability can be
   provided across distributed infrastructure. We achieve this by, (i)
   using the canonical \wc application, based on an enhanced version of
   \mr that scales-out across clusters, clouds and HPC resources, (ii)
   establishing how SAGA enables the execution of \wc application using
-  \mr and other programming models such as Sphere concurrently.  We
-  also discuss how a SAGA-based \mr enables a version of \mr which in
-  addition to being interoperable across different distributed
-  infrastructures, also provides user-level control of the relative
-  placement of compute and data.  We also provide simple performance
-  measures and analysis of \sagamapreduce when using multiple,
-  different, heterogeneous infrastructures concurrently for the same
-  problem instance.
-
-% However, we do not strive to provide a rigorous performance
-% model, but to provide a proof-of-concept of application-level
-% interoperability and illustrate its importance.
-
+  \mr and other programming models such as Sphere concurrently, and
+  (iii) demonstrating the scale-out of ensemble-based bio-molecular
+  simulations across multiple resources.  We We show user-level
+  control of the relative placement of compute and data and also
+  provide simple performance measures and analysis of \sagamapreduce
+  when using multiple, different, heterogeneous infrastructures
+  concurrently for the same problem instance. Finally, we discuss
+  Azure and some of the system-level abstractions that it provides and
+  show how it is a used to support ensemble-based bio-molecular
+  simulations.
 \end{abstract}
 \maketitle
 
@@ -299,13 +296,13 @@ use the \I{same} %instance of \sagamapreduce to solve the same
 instance of the {\wc}ing problem, by using different worker
 distributions over clouds and grid systems.
 
-The primary focus of this paper is to build upon and use SAGA-based
+A primary focus of this chapter is to build upon and use SAGA-based
 MapReduce as an exemplar to discuss multiple levels and types of
 interoperability that can exist between grids and clouds. We will
 also, show that our approach to ALI helps break the coupling between
-programming models and infrastructure on the one hand, whilst providing
-empirically-driven insight about the performance of an application
-with different programming models.
+programming models and infrastructure on the one hand, whilst
+providing empirically-driven insight about the performance of an
+application with different programming models.
 
 % and thereby also test for interoperability between different flavors
 % of clouds as well as between clouds and grids.
@@ -318,9 +315,14 @@ short overview over those SAGA extensions which enable specifically
 the ALI work discussed in this paper.  Section~\ref{sec:mr} describes
 our \smr implementation.  Section~\ref{sec:interop} discusses the
 different levels of ALI we are demonstrating with this paper, with
-more details on the experiments in Section~\ref{sec:exp}.
-Section~\ref{sec:discuss} concludes the paper with a discussion of the
-results.
+more details on the experiments in Section~\ref{sec:exp}.  We change
+the focus to a more traditional compute-intensive applications in
+Section 6; although very commonly used and needed, it still remains a
+challenge to effectively utilize multiple resources for the effective
+solution of ensemble-based simulations. This provides the motivation
+for our work in \S6. In \S7, we discuss Azure in the context of
+ensemble-based bio-molecular simulations. Section~\ref{sec:discuss}
+concludes the paper with a discussion of the results.
 
 % Thanks to the ease of
 % developing SAGA “Adaptors”, developers can provide SAGA the interfaces
@@ -1319,12 +1321,14 @@ BigJob usage modes and analyze the time-to-completion \tc in different scenarios
   Configurations\\}
 
 \alnote{Not sure whether we should introduce ensemble-based approaches
-as programming models for type II and III interop?? Probably too 
-artificial.}
+  as programming models for type II and III interop?? Probably too
+  artificial.} \jhanote{I agree that it would be too artificial. I
+  have put a note about Type I interop}
 
-In this scenario and as proof of scale-out capabilities, we use SAGA
-BigJob to run replicas across different types of infrastructures (type I 
-interoperability).
+In this scenario and as proof of scale-out capabilities using type I
+interoperabiltiy provided by SAGA, we use SAGA-BigJob (a higher-level
+package) to run replicas across different types of infrastructures
+%(type I interoperability).
 % , the LONI clusters -- Poseidon, Oliver, and the Nimbus Cloud.
 At the beginning of the experiment a particular set of Pilot-Jobs is
 started in each environment. Once a Pilot-Job becomes active, the
@@ -1463,21 +1467,32 @@ Pilot-Jobs.
 
 \section{Future Work: Wind Azure}
 
-\jhanote{Azure section will need refinement}
-\alnote{Are we solely targeting Type I interoperability or 
-do we aim for type II and III?}
+\jhanote{Azure section will need refinement} \alnote{Are we solely
+  targeting Type I interoperability or do we aim for type II and III?}
+\jhanote{Yes, we're using Type I here too ONLY I think, although there
+  is scope for type II/III interop too, but we're not there yet.}
 
-Azure is an emerging cloud platform developed and operated by Microsoft.
-Azure provides different abstractions, building blocks for creating
-scalable and reliable scientific applications without the need for
-on-premise hardware. Azure follows the platform as a service paradigm
-offering an integrated solution for managing compute and
-data-intensive tasks as well as web applications. The platform is able
-to dynamically scale applications without the need to manually manage
-tasks and deployments on virtual machine level. After a brief
-introduction of the abstractions that are provided of Azure, we
-discuss how Azure's abstractions and capabilities can be utilized
-within scientific applications.
+As alluded to in earlier parts of this chapter, we have investigated
+and analyzed multiple platforms -- existing (GT2-based canonical
+Grids) and emerging infrastructure (EC2). Azure is an emerging cloud
+platform developed and operated by Microsoft.  Azure provides
+different abstractions, building blocks for creating scalable and
+reliable scientific applications without the need for on-premise
+hardware; we believe Azure-based abstractions and services have the
+potential to be very effective in the design, development and
+deployment of distributed applications. Due to these capabilities, we
+will focus on Azure in the closing section of this chapter, but as
+many details are still being worked out, we present this analysis as
+future (high-potential) work.
+
+Azure follows the platform as a service paradigm offering an
+integrated solution for managing compute and data-intensive tasks as
+well as web applications. The platform is able to dynamically scale
+applications without the need to manually manage tasks and deployments
+on virtual machine level. After a brief introduction of the
+abstractions that are provided of Azure, we discuss how Azure's
+abstractions and capabilities can be utilized for ensemble-based
+bio-molecular simulations of the type discussed in \S6.
 
 \subsection{Understanding Azure-system Abstractions}
 
@@ -1746,24 +1761,27 @@ figure~\ref{fig:performance_namd_run}a)). % \jhanote{Can first sentence
 % tightly coupled applications are less well suited, mainly due to the
 % lack of high-end, low-latency interconnects.
 
-We have identified a representative set of applications that does not
-require high-end HPC hardware and interconnects and can easily scale
-out on Azure benefiting from the ability to acquire and release
-resources on-demand.  An increasing number of applications directly
-target distributed infrastructures instead of high-end machines. For
-example, ensemble-based MD (EnMD) approaches utilize multiple sets 
-of simulations of shorter duration instead of a single longer simulation 
-to support a more efficient phase-space sampling. Also, such simulations often
-require the ability to acquire additional resources, if e.\,g.\ a
-certain simulation event occurs that requires the spawning of an
-additional replica.  Such an application can greatly benefit from
-Azure capability to dynamically allocate resources on demand. This
-capability is also useful for EnKF-based applications where the
-execution time and resource requirements cannot be determined exactly
-in advance, either due to changes in runtime requirements or
-interesting changes in application structure (e.\,g.\ different solver
-with different resource requirement or a different workflow
-path~\cite{enkf_hybrid_grid_cloud}).
+% We have identified a representative set of physical problems
+% applications that does
+
+There exist a large number of physical problems that do not require
+high-end HPC hardware and interconnects and can easily scale out on
+Azure benefiting from the ability to acquire and release resources
+on-demand.  An increasing number of applications directly target
+distributed infrastructures instead of high-end machines. For example,
+ensemble-based molecular dynamics approaches utilize multiple
+sets of simulations of shorter duration instead of a single longer
+simulation to support a more efficient phase-space sampling. Also,
+such simulations often require the ability to acquire additional
+resources, if e.\,g.\ a certain simulation event occurs that requires
+the spawning of an additional replica.  Such an application can
+greatly benefit from Azure capability to dynamically allocate
+resources on demand. This capability is also useful for % EnKF-based
+applications where the execution time and resource requirements cannot
+be determined exactly in advance, either due to changes in runtime
+requirements or interesting changes in application structure (e.\,g.\
+different solver with different resource requirement or a different
+workflow path~\cite{enkf_hybrid_grid_cloud}).
 
 
 % There can be a multiple number of instances under the same VM, depending on
@@ -1810,26 +1828,26 @@ a good price/performance ratio in particular in comparison with EC2.
 For data-intensive applications Azure provides several interesting
 storage options: xDrive offers file system access to the Azure storage
 service, which is in particular relevant for applications that manage
-file-based data flows, e.\,g.\ the EnKF application. The blob storage
-is capable of storing large amounts of data -- a page blob e.\,g.\ can
-store files up to a size of 1\,TB.  In comparison, Amazon S3 is only
-capable of storing file with a size of up to 5\,GB, the Google Storage
-for Developer file size limit is at 100\,GB. The blob storage supports
-two different data access patterns: block blobs are designed for
-continuous access, such as data streaming, while page blobs can
-address each page individually and are particularly well suited for
-random access. These properties can be mapped to the characteristics
-of the respective application, e.\,g.\ a MapReduce application usually
-accesses data in large chunks, which is well supported by the block
-blob. We will further investigate these implementation alternatives
-and performance trade-offs in conjunction with the proposed
-applications as part of this project.
+file-based data flows %, e.\,g.\ the EnKF application.
+The blob storage is capable of storing large amounts of data -- a page
+blob e.\,g.\ can store files up to a size of 1\,TB.  In comparison,
+Amazon S3 is only capable of storing file with a size of up to 5\,GB,
+the Google Storage for Developer file size limit is at 100\,GB. The
+blob storage supports two different data access patterns: block blobs
+are designed for continuous access, such as data streaming, while page
+blobs can address each page individually and are particularly well
+suited for random access. These properties can be mapped to the
+characteristics of the respective application, e.\,g.\ a MapReduce
+application usually accesses data in large chunks, which is well
+supported by the block blob. In future we will investigate these
+implementation alternatives and performance trade-offs in conjunction
+with the proposed applications as part of this project.
 
 
 \section{Discussion \& Conclusions}
 \label{sec:discuss}
 
-The aim of this paper has been to show several types (and levels) of
+The aim of this chapter has been to show several types (and levels) of
 interoperability; although driven by proof-of-capability experiments
 and results therein, there are deeper questions that motivate this
 work and define the research methodology.  As alluded to in the
@@ -1849,17 +1867,21 @@ range of systems. % This is an important step towards general-purpose
 A critical and necessary step to achieve both is to provide
 application-level interoperability as discussed.
 
-In this paper, we posit three levels of interoperability; tests at all
-three levels, were performed using SAGA-\mr, which from an execution
-perspective is a relatively straight-forward application.  At the
-lowest level, \sagamapreduce demonstrates how to decouple the
-development of applications from the deployment details of the
-run-time environment (Type I ALI).  It is critical to reiterate that
-using this approach, applications remain insulated from any underlying
-changes in the infrastructure -- not just grids and different
-middleware layers, but also different systems with very different
-semantics and characteristics, whilst being exposed to the important
-distributed functionality.
+In this chapter, we discussed two important (classes) of applications
+-- data-intensive, \sagamapreduce \wc and compute-intensive
+ensemble-based molecular-dynamics simulations. We posited three levels
+of interoperability, and for \sagamapreduce \wc carried out
+performance tests at all three levels. %  were performed using SAGA-\mr,
+% which from an execution perspective is a relatively straight-forward
+% application. 
+At the lowest level, \sagamapreduce demonstrates how to
+decouple the development of applications from the deployment details
+of the run-time environment (Type I ALI).  It is critical to reiterate
+that using this approach, applications remain insulated from any
+underlying changes in the infrastructure -- not just grids and
+different middleware layers, but also different systems with very
+different semantics and characteristics, whilst being exposed to the
+important distributed functionality.
 
 With implementations of the two application frameworks -- SAGA based
 Sector-Sphere and the \smr implementation, we also demonstrated Type
@@ -1891,23 +1913,32 @@ frameworks using SAGA, thus further the agenda of general-purpose
 programming models with efficient run-time support that can utilize
 multiple heterogeneous resources.
 
+In \S6, we showed how SAGA can be used to develop frameworks such as
+infrastructure independent Pilot-Jobs, and demonstrated the
+scaling-out over multiple distinct resources. Finally, in \S7 we
+discussed Azure, some of the system-level abstractions that it
+provides and analyzed how these can be utilized for ensemble-based
+molecular dynamics simulations. We anticipate significant activity in
+both scaling-up the use of Azure (for both applications discussed here
+as well as other novel applications), as well as integrating Azure
+with other infrastructure via the use of SAGA in the near future.
 
 
 %\section{Acknowledgments}
 \subsection*{Acknowledgments}
 
 \small{ SJ acknowledges UK EPSRC grant number GR/D0766171/1 for
-supporting SAGA and the e-Science Institute, Edinburgh for the
-research theme, ``Distributed Programming Abstractions''.  SJ also
-acknowledges financial support from NSF-Cybertools and NIH-INBRE
-Grants, while ME acknowledges support from the grant OTKA NK 72845.
-We also acknowledge internal resources of the Center for Computation
-\& Technology (CCT) at LSU and computer resources provided by
-LONI/TeraGrid for QueenBee.  We thank Chris Miceli, Michael Miceli,
-Katerina Stamou \& Hartmut Kaiser for their collaborative efforts on
-early parts of this work. We thank Mario Antonioletti and Neil Chue
-Hong for supporting this work through GSoC-2009 (OMII-UK Mentor
-Organization).}
+  supporting SAGA and the e-Science Institute, Edinburgh for the
+  research theme, ``Distributed Programming Abstractions''.  SJ also
+  acknowledges financial support from NSF-Cybertools and NIH-INBRE
+  Grants, while ME acknowledges support from the grant OTKA NK 72845.
+  We also acknowledge internal resources of the Center for Computation
+  \& Technology (CCT) at LSU and computer resources provided by
+  LONI/TeraGrid for QueenBee.  We thank Chris Miceli, Michael Miceli,
+  Katerina Stamou, Hartmut Kaiser \& Lukasz Lacinski for their
+  collaborative efforts on early parts of this work. We thank Mario
+  Antonioletti and Neil Chue Hong for supporting this work through
+  GSoC-2009 (OMII-UK Mentor Organization).}
 
 \bibliographystyle{plain}
 \bibliography{saga_data_intensive,cloud,saga}
