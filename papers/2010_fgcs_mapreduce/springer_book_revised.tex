@@ -3,13 +3,10 @@
 
 \documentclass[graybox]{svmult}
 
-\usepackage{color}
+
 \usepackage{graphicx}
+%\usepackage{color}
 \usepackage{url}
-
-
-%\usepackage[colorlinks=false]{hyperref}
-
 \usepackage{float}
 \usepackage{listings}   
 \usepackage[small,it]{caption}
@@ -18,7 +15,7 @@
 \usepackage{fancyvrb}
 \usepackage{hyperref}
 \usepackage{xspace}
-\usepackage{wrapfig}
+
 
 \usepackage{mathptmx}       % selects Times Roman as basic font
 \usepackage{helvet}         % selects Helvetica as sans-serif font
@@ -62,11 +59,12 @@
   gobble=0,
   numberblanklines=false
 }
+
 \begin{document}
 
-\title{Application-Level Interoperability Across Grids and Clouds}
+\title*{Application-Level Interoperability Across Grids and Clouds}
 
-\author{Andre Luckow, Andre Merzky, Miklos Erdely, Saurabh Sehgal,\\  Shantenu Jha}
+\author{Shantenu Jha, Andre Luckow, Andre Merzky, Miklos Erdely, Saurabh Sehgal}
 
 % \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
 %   \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
@@ -79,14 +77,16 @@
 %   \small{\emph{$^{*}$Contact Author \texttt{sjha@cct.lsu.edu}}}
 %   \upp\upp\upp\upp\upp }
 
-\institute{Andre Luckow @ Louisiana Statue University, Baton Rouge,
-  USA 70803 \and Andre Merzky @ Louisiana State University, Baton
-  Rouge, USA 70803 \and Miklos Erdely @ University of Pannonia,
-  Veszprem, Hungary \and Shantenu Jha @ Louisiana State University,
-  Baton Rouge, USA 70803}
+\institute{Shantenu Jha \at Louisiana State University, Baton Rouge,
+  USA 70803 \email{sjha@cct.lsu.edu} \and Andre Luckow \at Louisiana
+  Statue University, Baton Rouge, USA 70803
+  \email{aluckow@cct.lsu.edu} \and Andre Merzky \at Louisiana State
+  University, Baton Rouge, USA 70803 \email{andre@merzky.net} \and
+  Miklos Erdely \at University of Pannonia, Veszprem, Hungary
+  \email{erdelyim@gmail.com}}
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
  \newcommand{\amnote}[1]{     {\textcolor{magenta} { ***AM: #1 }}}
  \newcommand{\jhanote}[1]{    {\textcolor{red}     { ***SJ: #1 }}}
@@ -117,7 +117,7 @@
 \newcommand{\shift}{\hspace*{1.00em}}
 
 \newcommand{\T}[1]{\texttt{#1}}
-% \newcommand{\I}[1]{\textit{#1}}
+%\newcommand{\I}[1]{\textit{#1}}
 \newcommand{\B}[1]{\textbf{#1}}
 \newcommand{\F}[1]{\B{[FIXME: #1]}}
 \newcommand{\TODO}[1]{\textcolor{red}{\B{TODO: #1}}}
@@ -130,7 +130,28 @@
 \maketitle
 %\begin{abstract}
 
-\abstract{Application-level interoperability is defined as the ability of an
+\abstract*{Application-level interoperability is defined as the ability of an
+  application to utilise multiple distributed heterogenous resources.
+  Such interoperability is becoming increasingly important with
+  increasing volumes of data, multiple sources of data as well as
+  resource types.  The primary aim of this Chapter is to understand
+  different ways in which application-level interoperability can be
+  provided across distributed infrastructure. We achieve this by, (i)
+  using the canonical \wc application, based on an enhanced version of
+  \mr that scales-out across clusters, clouds and HPC resources, (ii)
+  establishing how SAGA enables the execution of \wc application using
+  \mr and other programming models such as Sphere concurrently, and
+  (iii) demonstrating the scale-out of ensemble-based bio-molecular
+  simulations across multiple resources.  We We show user-level
+  control of the relative placement of compute and data and also
+  provide simple performance measures and analysis of \sagamapreduce
+  when using multiple, different, heterogeneous infrastructures
+  concurrently for the same problem instance. Finally, we discuss
+  Azure and some of the system-level abstractions that it provides and
+  show how it is a used to support ensemble-based bio-molecular
+  simulations.}
+  
+  \abstract{Application-level interoperability is defined as the ability of an
   application to utilise multiple distributed heterogenous resources.
   Such interoperability is becoming increasingly important with
   increasing volumes of data, multiple sources of data as well as
@@ -209,10 +230,10 @@ performance that scientific applications demand.
 % possibly the same performance; conversely, the same computational
 % task can have very different performance for the same price.
 
-We define Application Level Interoperability (\I{ALI}) as a feature
+We define Application Level Interoperability (ALI) as a feature
 that arises, when other than say compiling, there
 are no further changes required of the application to utilize a new
-platform.  If service-level interoperability can be considered as weak
+platform.  If service-level \index{interoperability} can be considered as weak
 interoperability, ALI can be considered to be {\it strong}
 interoperability.  
 The complexity of providing ALI varies and depends upon the
@@ -260,11 +281,11 @@ optimised for a specific infrastructure. But where this is not
 necessarily the case, or more importantly, where/when different
 application or PM can utilise ``non-native'' infrastructure, mix and
 match across the layers of application, PM and infrastructure should
-be supported.  Currently, many programming models and abstractions are
-tied to a specific back-end infrastructure.  For example, Google's
-MapReduce, which is tied to Google's file system, or
-Sphere\cite{sectorsphere09} which is linked to the Sector file
-system. Thus there is a need to investigate interoperability of
+be supported.  Currently, many \index{programming models} and
+\index{abstractions} are tied to a specific back-end infrastructure.
+For example, Google's MapReduce, which is tied to Google's file
+system, or Sphere\cite{sectorsphere09} which is linked to the Sector
+file system. Thus there is a need to investigate interoperability of
 different programming models for the same application on different
 systems.
 
@@ -311,7 +332,7 @@ systems.
 
 In our effort to understand these issues, to establish and investigate
 ALI, we will work with MapReduce and an application based on \mr --
-the canonical \wc application.  We use SAGA --- “Simple API for Grid
+the canonical \wc application.  We use \index{SAGA} --- “Simple API for Grid
 Applications'' (see Sec.~\ref{sec:saga}) as the programing system.  In
 Ref.~\cite{saga_ccgrid09}, for example, we implemented a simple \mr
 based \wc application using SAGA.  We demonstrated that the SAGA-based
@@ -319,9 +340,9 @@ implementation is infrastructure independent, whilst still providing
 control over deployment, distribution and run-time decomposition.
 We demonstrated that \sagamapreduce is interoperable on traditional
 (grids) and emerging (clouds) distributed infrastructure
-\I{concurrently and cooperatively towards a solution of the same
-  problem instance}.  Our approach was to % take \sagamapreduce and to
-use the \I{same} %instance of \sagamapreduce to solve the same
+concurrently and cooperatively towards a solution of the same
+  problem instance.  Our approach was to % take \sagamapreduce and to
+use the same %instance of \sagamapreduce to solve the same
 instance of the {\wc}ing problem, by using different worker
 distributions over clouds and grid systems.
 
@@ -348,10 +369,11 @@ more details on the experiments in Section~\ref{sec:exp}.  We change
 the focus to a more traditional compute-intensive applications in
 Section 6; although very commonly used and needed, it still remains a
 challenge to effectively utilize multiple resources for the effective
-solution of ensemble-based simulations. This provides the motivation
-for our work in \S6. In \S7, we discuss Azure in the context of
-ensemble-based bio-molecular simulations. Section~\ref{sec:discuss}
-concludes the paper with a discussion of the results.
+solution of \index{ensemble-based simulations}. This provides the
+motivation for our work in \S6. In \S7, we discuss \index{Azure} in
+the context of ensemble-based bio-molecular
+simulations. Section~\ref{sec:discuss} concludes the paper with a
+discussion of the results.
 
 % Thanks to the ease of
 % developing SAGA “Adaptors”, developers can provide SAGA the interfaces
@@ -376,12 +398,11 @@ that support commonly occurring programming, access and usage
 patterns.
 
 \begin{figure}[t]
- \centering
- \includegraphics[width=0.8\textwidth]{figures/saga-figure02-gray.pdf}
+ \dnnn
+ \includegraphics[width=1.0\textwidth]{figures/saga-figure02-gray}
  \caption{The SAGA runtime engine dynamically dispatches high level
           API calls to a variety of middlewares.}
  \label{fig:saga}
- \alnote{Do we have a scalable vector graphic version?}
 \end{figure}
 
 Fig.~\ref{fig:saga} provides an overview of the SAGA programming
@@ -389,7 +410,7 @@ system's architecture.  The SAGA API covers job submission, file
 access and transfer, as well as logical file management.  Additionally
 there is support for Checkpoint and Recovery (CPR), Service Discovery
 (SD), and other areas.  The API is implemented in C++ and Java, with
-Python supported as a wrapper. \I{saga\_core} is the main library,
+Python supported as a wrapper. \textit{saga\_core} is the main library,
 which provides dynamic support for run-time environment decision
 making through loading relevant adaptors. We will not discuss SAGA
 internals here; details can be found elsewhere~\cite{saga_url,Kaiser:2006qp}.
@@ -418,7 +439,7 @@ Sector-Sphere~\cite{sectorsphere09}.
 % interoperability at the application level.
 
 
-\subsection{Sector-Sphere Adaptors: Design and Implementation}
+\subsubsection{Sector-Sphere Adaptors: Design and Implementation}
 
 Sector and Sphere is a cloud framework specifically designed for
 writing applications able to utilize the stream processing paradigm.
@@ -448,7 +469,7 @@ is complete.
 % \ssnote{Add another section here for experiments, or maybe later after
 % MapReduce description} 
 
-\paragraph{SAGA Adaptor Overhead} \label{ssec:overhead}
+\paragraph{SAGA adaptor overhead} \label{ssec:overhead}
 
 We execute a simple experiment to measure the overhead introduced by
 submitting Sphere jobs and Sector file operations through SAGA.  The
@@ -464,7 +485,7 @@ This makes SAGA an excellent platform to compare Sphere with other distinct
 programming models.
 
 \begin{table}
-\centering
+  \centering
   \footnotesize
   \begin{tabular}{cccc}
     \hline
@@ -503,7 +524,7 @@ and study these two distinct programming models.
  clouds, and clusters) and different programming models (master/slave,
  Sector-Sphere streams).  A simple \wc application on top of
  \smr has been used as a close-to-reality test case, and is
- described in Sec.~\ref{ssec:app}.
+ described in Sec.~\ref{sec:exp}.
 
 % After \sagamapreduce we have also developed real scientific
 % applications using SAGA based implementations of patterns for
@@ -513,10 +534,7 @@ and study these two distinct programming models.
 % Ref.~\cite{saga_ccgrid09}).
 % \upp
 
-\subsection{\sagamapreduce Implementation}
-
-\jhanote{Miklos to fix and update to reflect latest version of
-  MapReduce}
+\subsection{\sagamapreduce Implementation}\label{ssec:app}
 
 Our implementation of \sagamapreduce interleaves the core \mr logic
 with explicit instructions on where processes are to be scheduled.
@@ -700,16 +718,16 @@ resources follows from large-scale scientific applications, such as
 the Earth Science Grid and LEAD. However for simplicity of treatment
 and to focus on the levels of interoperability we will use a simple,
 self-contained application, that has also become the {\it canonical}
-\mr application-driver -- \wc.%
-%
-%\subsection{Interoperability Types}
-%
+\mr application-driver -- \wc.
+
+\subsection{Interoperability Types}
+
 Using the \wc application, we will demonstrate three types of
 application level interoperability. We outline them here:
 
 % different levels/types of interoperability.
 
-\subsection{Type I: Application Interoperability via adaptors}
+\subsubsection{Type I: Application Interoperability via adaptors}
 %
 % Type I:  Application 
 %              |
@@ -721,12 +739,12 @@ application level interoperability. We outline them here:
 %
 
 As discussed, SAGA provides the ability to load a wide-range of
-system-specific adaptors dynamically. Thus a simple form of
+system-specifc adaptors dynamically. Thus a simple form of
 interoperability, possibly specific to applications developed using
 SAGA, is that an application can use any distributed systems without
 changes to the application, thus experiencing cloud-cloud or
 grid-cloud interoperability.  We refer to this as Type I
-interoperability.
+interoperabilty.
 
 % interoperability quite trivially thanks to the dynamic loading of
 % adaptors.  A
@@ -738,7 +756,7 @@ LSU) and Nimbus~\cite{nimbus}; and also to a multitude of grid based
 environments, including TeraGrid, Loni and NGS.  SAGA based
 applications are thus inherently able to utilize this form of ALI.
 
-\subsection{Type II: Application Interoperability using programming
+\subsubsection{Type II: Application Interoperability using programming
   models} % suited for different infrastructure}
 %
 % Type II:      Application 
@@ -758,7 +776,7 @@ that it can utilize either a Sector-Sphere framework via SAGA for the
 OCC backend, or the \smr framework for generic grid and cloud
 backends.
 
-\subsection{Type III: Application Interoperability using different
+\subsubsection{Type III: Application Interoperability using different
   programming models for concurrent execution}
 %
 % Type III:   Application
@@ -769,7 +787,7 @@ backends.
 %
 
 At another level, an application can also be considered interoperable
-when it executes multiple programming models \I{concurrently} over
+when it executes multiple programming models \textit{concurrently} over
 diverse backends.  We demonstrate that a \wc application uses both
 Sector-Sphere and \smr when spanning  multiple backends.  The
 challenges of having different parts of an application execute
@@ -778,7 +796,7 @@ different to loading different adaptors concurrently. Thus we describe
 this as a separate type of interoperability.
 
 \subsection{Experimental Setup}
-\alnote{WE should consider to move this subsection to ~\ref{sec:exp}}
+
 Simulations were performed on shared TeraGrid-LONI (Louisiana Optical
 Network Initiative)~\cite{loni-url} resources running Globus and ssh;
 on GumboGrid, a small cluster at LSU running Eucalyptus; on Amazon's
@@ -929,8 +947,8 @@ set (rows 5--11) shows interoperability between grids-clouds (EC2).
 The experimental conditions and measurements are similar to Table 1.
 
 \begin{table}[h!]
-    \centering
   \footnotesize
+  \centering  
   \begin{tabular}{cccccc}
     \hline
     \multicolumn{2}{c}{\#workers}  &  Data size   &  $T_s$  & $T_{sp}$ & $T_s - T_{sp}$\\   
@@ -1023,8 +1041,8 @@ however, we believe more systematic studies are required.
 %   and what the configuration was}
 
 \begin{table}[h!]
-  \centering
   \footnotesize
+  \centering  
   \begin{tabular}{ccccccc}
     \hline
     \multicolumn{3}{c}{\# workers}  &  Size   &  $T_s$  & $T_{sp}$ & $T_s - T_{sp}$\\   
@@ -1071,9 +1089,8 @@ phase by doing only a merge, outperforms the old implementation, which
 performed a merge-sort of all the intermediate output files.
 
 \begin{figure}[htb!]
-    \centering
-% \includegraphics[width=0.5\textwidth]{figures/sagamr_comparison.pdf}
- \includegraphics[width=0.8\textwidth]{figures/sagamr_comparison-gray.pdf}
+% \includegraphics[width=0.5\textwidth]{sagamr_comparison.pdf}
+ \includegraphics[width=1.0\textwidth]{figures/sagamr_comparison-gray}
  \caption{
    Comparison of enhanced SAGA-MR performance versus
    early-version of SAGA-MR on the ILAB cluster using 8 workers running on 8
@@ -1081,7 +1098,6 @@ performed a merge-sort of all the intermediate output files.
    operations.
    \label{fig:sagamr_comparison}
    }
-   \alnote{do we have a scalable version of this picture}
 \end{figure}
 
 \subsection{Type II ALI: Application Performance Using SAGA-based
@@ -1113,8 +1129,7 @@ gradient of the plot, after chunk sizes have reached 64 MB.
 
 \begin{figure}[htb!]
  \dnnn\dnnn
- \centering
- \includegraphics[width=0.8\textwidth]{figures/sphere_mr_varying_chunksize-gray.pdf}
+ \includegraphics[width=1.0\textwidth]{figures/sphere_mr_varying_chunksize-gray}
  \caption{
    Performance of \sagamapreduce (left axis) and
    SAGA-Sphere (right axis) when varying chunk size while keeping the amount
@@ -1151,8 +1166,7 @@ data and distributed compute configuration. These results are
 illustrated in Fig.~\ref{fig:sphere_varying_workers}.  
 
 \begin{figure}[htb!]
- \centering
- \includegraphics[width=0.8\textwidth]{figures/sphere_varying_workers-gray.pdf}
+ \includegraphics[width=1.0\textwidth]{figures/sphere_varying_workers-gray}
  \caption{
    Comparison of SAGA-Sphere performance when varying the number of workers
    between 2 and 10 in two configurations: (1) local data and computation
@@ -1177,8 +1191,7 @@ create any replicas.
 
 \begin{figure}[htb!]
  \dnnn\dnnn
- \centering
- \includegraphics[width=0.8\textwidth]{figures/sagamr_varying_workers-gray.pdf}
+ \includegraphics[width=1.0\textwidth]{figures/sagamr_varying_workers-gray}
  \caption{
    Comparison of \sagamapreduce when varying the number of workers
    between 2 and 10 in two configurations: (1) local data and computation
@@ -1339,7 +1352,7 @@ resources.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{figures/distributed_pilot_job.pdf}
+    \includegraphics[width=1.0\textwidth]{figures/distributed_pilot_job}
     \caption{
       \footnotesize
       \label{fig:figures_distributed_pilot_job}
@@ -1352,7 +1365,7 @@ In the following we use an ensemble of MD simulations to investigate different
 BigJob usage modes and analyze the time-to-completion \tc in different scenarios.
 
 
-\subsection{Scenario A: \tc for Workload for Different Resource
+\subsection*{Scenario A: \tc for Workload for Different Resource
   Configurations\\}
 
 \alnote{Not sure whether we should introduce ensemble-based approaches
@@ -1380,7 +1393,7 @@ grid and Condor resources and Nimbus as cloud resource.
 
 \begin{figure}[tbp]
     \centering
-        \includegraphics[width=0.8\textwidth]{figures/8replica_scenario_grid_condor_cloud}
+        \includegraphics[width=1.0\textwidth]{figures/8replica_scenario_grid_condor_cloud}
         \caption{
           \footnotesize
           \label{fig:performance_8replica_grid_cloud_condor}
@@ -1423,8 +1436,7 @@ the Amazon cloud. These VMs are usually associated with higher costs
 further discussion of cost trade-offs for scientific computations in
 clouds see Deelman et\,al.~\cite{1413421}.
 
-
-\subsection{Scenario B: Investigating Workload Distribution 
+\subsection*{Scenario B: Investigating Workload Distribution 
             for a Given $T_{max}$\\}
 
 Given that clouds provide the illusion of infinite capacity, or at
@@ -1500,7 +1512,7 @@ missed solely due to the fact that not enough cloud resources were
 available, i.e., we are only able to start 2 instead of 3
 Pilot-Jobs.
 
-\section{Future Work: Windows Azure}
+\section{Future Work: Wind Azure}
 
 \jhanote{Azure section will need refinement} \alnote{Are we solely
   targeting Type I interoperability or do we aim for type II and III?}
@@ -1658,8 +1670,7 @@ applications execution scenarios.
 
 \subsubsection{Azure and Bio-EnMD}
 \begin{figure}%{R}{0.4\textwidth}
-    \centering
-   \includegraphics[width=0.8\textwidth]{figures/re-azure-gray}
+   \includegraphics[width=1.0\textwidth]{figures/re-azure-gray}
     \caption{\textbf{Azure-based Bio-Ensembles:} The ensemble-based
       application utilizes the queue storage for distributing work
       packages from the Replica Manager running on a web role to the
@@ -1727,7 +1738,8 @@ in particular in comparison to distributed filesystems in the future.
 % \upp
 \begin{figure}[ht]
  \centering
- \includegraphics[width=0.8\textwidth]{figures/cloud_ontology_apps-gray}
+ \upp\upp
+ \includegraphics[width=1.0\textwidth]{figures/cloud_ontology_apps-gray}
  \caption{\footnotesize \textbf{Cloud Taxonomy and Application Examples}:
    Clouds provide services at different levels (IaaS, PaaS, SaaS).
    The amount of control available to users and developers decreases
@@ -1753,7 +1765,6 @@ for running compute- and data-intensive applications. In contrast to
 IaaS clouds, applications can benefit from features, such as failure
 tolerance: the fabric controller e.\,g.\ monitors all applications
 running in a role environment and restarts them if necessary.
-
 
 Table~\ref{tab:saga-azure-mapping} illustrates how the
 different Azure functionalities naturally map to existing SAGA API
@@ -1782,11 +1793,6 @@ usable across multiple infrastructure as a consequence.
 \end{table}
 
 
-% However, to efficiently enable science application
-% to express such usage modes explicit application-level support is
-% required.
-
-
 % Several scientific applications from different domains (e.g., life
 % sciences, high energy physics, astrophysics, computational chemistry)
 % have been ported to cloud environments (see~\cite{Hill,Begin:2008rq,saga_grid_cloud_interop} 
@@ -1807,7 +1813,6 @@ configuration and patching of the operating system. Azure applications
 are declaratively described and packaged; the fabric controller
 automatically handles the mapping of these applications to available
 hardware.
-
 
 % We engaged with Microsofts eXtreme Computing Group (Roger Barga) to assess
 % Azure in a both theoretical and practical way. 
@@ -1859,7 +1864,7 @@ workflow path~\cite{enkf_hybrid_grid_cloud}).
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.45\textwidth]{figures/namd_run-gray.pdf}
+  \includegraphics[width=0.45\textwidth]{figures/namd_run-gray}
   \label{tbd}
   \includegraphics[width=0.5\textwidth]{figures/namd_ec2_azure}
   \label{fig:perf_namd_ec2_azure}
@@ -2008,8 +2013,188 @@ with other infrastructure via the use of SAGA in the near future.
   Antonioletti and Neil Chue Hong for supporting this work through
   GSoC-2009 (OMII-UK Mentor Organization).}
 
-\bibliographystyle{plain}
-\bibliography{saga_data_intensive,cloud,saga}
+\providecommand{\noopsort}[1]{}
+\begin{thebibliography}{10}
+
+\bibitem{jha_ccpe09}
+S Jha, A Merzky and G Fox, Clouds Provide Grids With Higher Levels of
+  Abstractions and Support for Explicit Usage Modes, Concurrency and
+  Computation: Practise and Engineering Vol 21, no 8, 1087-1108 (2009).
+
+\bibitem{saga_escience07}
+S Jha, {\it et al}, Design and Implementation of Network Performance Aware
+  Applications Using SAGA and Cactus, pp 143-150, IEEE Conference on e-Science
+  2007, Bangalore, ISBN 978-0-7695-3064-2.
+
+\bibitem{saga_tg08}
+S Jha {\it et al}, Developing Adaptive Scientific Applications with Hard to
+  Predict Runtime Resource Requirements, Proceedings of TeraGrid 2008
+  Conference (Performance Challenge Award).
+
+\bibitem{saga_url}
+{SAGA Web-Page: \url{http://saga.cct.lsu.edu}}.
+
+\bibitem{protobuf}
+Protocol Buffers. Google's Data Interchange Format.
+  \url{http://code.google.com/p/protobuf}.
+
+\bibitem{nimbus}
+NIMBUS http://workspace.globus.org/.
+
+\bibitem{loni-url}
+{\url{http://www.loni.org/}}.
+
+\bibitem{occ_testbed}
+{\url{http://opencloudconsortium.org/testbed/}}.
+
+\bibitem{saga_dic_royalsoc09}
+C Miceli, M Miceli, B. Rodgriguez-Milla and S Jha$^*$, Understanding
+  Performance Implications of Distributed Data for Data-Intensive Applications,
+  Accepted for Philosophical Transactions of the Royal Society A.
+
+\bibitem{Begin:2008rq}
+Marc-Ellian B\'egin.
+\newblock Grids and clouds -- evolution or revolution.
+\newblock \url{https://edms.cern.ch/file/925013/3/EGEE-Grid-Cloud.pdf}, 2008.
+
+\bibitem{HDFS}
+Dhruba Borthaku.
+\newblock {The Hadoop Distributed File System: Architecture and Design}.
+\newblock Retrieved from \url{http://hadoop.apache.org/common/}, 2010.
+
+\bibitem{1239909}
+Henri Casanova, Graziano Obertelli, Francine Berman, and Richard Wolski.
+\newblock The apples parameter sweep template: User-level middleware for the
+  grid.
+\newblock {\em Sci. Program.}, 8(3):111--126, 2000.
+
+\bibitem{cheatham-5}
+D.~A. Case, III Cheatham, T.~E., T.~A. Darden, H.~Gohlker, R.~Luo, Jr. Merz,
+  K.~M., A.V. Onufriev, C.~Simmerling, B.~Wang, and R.~Woods.
+\newblock The amber biomolecular simulation programs.
+\newblock {\em J. Comp. Chem.}, 26:1668--1688, 2005.
+
+\bibitem{bigtable2006}
+Fay Chang, Jeffrey Dean, Sanjay Ghemawat, Wilson~C. Hsieh, Deborah~A. Wallach,
+  Mike Burrows, Tushar Chandra, Andrew Fikes, and Robert~E. Gruber.
+\newblock Bigtable: a distributed storage system for structured data.
+\newblock In {\em OSDI '06: Proceedings of the 7th USENIX Symposium on
+  Operating Systems Design and Implementation}, pages 15--15, Berkeley, CA,
+  USA, 2006. USENIX Association.
+
+\bibitem{KFS}
+Cloudstore.
+\newblock {Cloudstore distributed file system (formerly, Kosmos file system).
+  \url{http://kosmosfs.sourceforge.net/}.}
+
+\bibitem{1294281}
+Giuseppe DeCandia, Deniz Hastorun, Madan Jampani, Gunavardhan Kakulapati,
+  Avinash Lakshman, Alex Pilchin, Swaminathan Sivasubramanian, Peter Vosshall,
+  and Werner Vogels.
+\newblock Dynamo: amazon's highly available key-value store.
+\newblock {\em SIGOPS Oper. Syst. Rev.}, 41(6):205--220, 2007.
+
+\bibitem{1413421}
+Ewa Deelman, Gurmeet Singh, Miron Livny, Bruce Berriman, and John Good.
+\newblock The cost of doing science on the cloud: the montage example.
+\newblock In {\em SC '08: Proceedings of the 2008 ACM/IEEE conference on
+  Supercomputing}, pages 1--12. IEEE Press, 2008.
+
+\bibitem{eucalyptus}
+Daniel~Nurmi {\it et al}.
+\newblock {The Eucalyptus Open-source Cloud-computing System}.
+\newblock October 2008.
+
+\bibitem{Hill}
+Constantinos Evangelinos and Chris~N. Hill.
+\newblock Cloud computing for parallel scientific {HPC} applications:
+  Feasibility of running coupled atmosphere-ocean climate models on {Amazon's
+  EC2}.
+\newblock In {\em Cloud Computing and its Applications (CCA-08)}, 2008.
+
+\bibitem{GFS}
+S.~Ghemawat, H.~Gobioff, and S.T. Leung.
+\newblock {The Google file system}.
+\newblock {\em ACM SIGOPS Operating Systems Review}, 37(5):43, 2003.
+
+\bibitem{sectorsphere09}
+Y.~{Gu} and R.~L. {Grossman}.
+\newblock {Sector and Sphere: the design and implementation of a
+  high-performance data cloud}.
+\newblock {\em Royal Society of London Philosophical Transactions Series A},
+  367:2429--2445, May 2009.
+
+\bibitem{Jha:2010kx}
+Shantenu Jha, Daniel~S. Katz, Andre Luckow, Andre Merzky, and Katerina Stamou.
+\newblock {\em Cloud Computing: Principles and Paradigms}, chapter
+  {Understanding Scientific Applications for Cloud Environments}.
+\newblock Wiley, 2010.
+
+\bibitem{Kaiser:2006qp}
+H.~Kaiser, A.~Merzky, S.~Hirmer, and G.~Allen.
+\newblock {The SAGA C++ Reference Implementation}.
+\newblock In {\em {Object-Oriented Programming, Systems, Languages and
+  Applications (OOPSLA'06) - Library-Centric Software Design (LCSD'06)}},
+  Portland, OR, USA, October, 22-26 2006.
+
+\bibitem{enkf_hybrid_grid_cloud}
+Hyunjoo Kim, Yaakoub el~Khamra, S.~Jha, and Manish Parashar.
+\newblock Exploring application and infrastructure adaptations on hybrid
+  grid-cloud infrastructure.
+\newblock In {\em First Workshop on Scientific Cloud Computing (Science Cloud
+  2010)}. ACM, 2010.
+
+\bibitem{Krishnan:2010nx}
+Sriram Krishnan.
+\newblock {\em {Programming Windows Azure}}.
+\newblock O'Reilly Media, 2010.
+
+\bibitem{azure_blast}
+Wei Lu, Jared Jackson, and Roger Barga.
+\newblock {AzureBlast: A Case Study of Developing Science Applications on the
+  Cloud}.
+\newblock In {\em First Workshop on Scientific Cloud Computing (Science Cloud
+  2010)}. ACM, 2010.
+
+\bibitem{Luckow:2008xy}
+A.~Luckow, S.~Jha, A.~Merzky, B.~Schnor, and J.~Kim.
+\newblock {Reliable Replica Exchange Molecular Dynamics Simulation in the Grid
+  using SAGA CPR and Migol}.
+\newblock In {\em Proceedings of UK e-Science 2008 All Hands Meeting},
+  Edinburgh, UK, 2008.
+
+\bibitem{saga_bigjob_condor_cloud}
+A.~Luckow, L.~Lacinski, and S.~Jha.
+\newblock Saga bigjob: An extensible and interoperable pilot-job abstraction
+  for distributed applications and systems.
+\newblock In {\em The 10th IEEE/ACM International Symposium on Cluster, Cloud
+  and Grid Computing}, 2010.
+
+\bibitem{saga_grid_cloud_interop}
+A.~Merzky, K.~Stamou, and S.~Jha.
+\newblock Application level interoperability between clouds and grids.
+\newblock In {\em Grid and Pervasive Computing Conference, 2009. GPC '09.
+  Workshops at the}, pages 143--150, May 2009.
+
+\bibitem{saga_ccgrid09}
+C.~Miceli, M.~Miceli, S.~Jha, H.~Kaiser, and A.~Merzky.
+\newblock Programming abstractions for data intensive computing on clouds and
+  grids.
+\newblock In {\em Cloud 2009, Cluster Computing and the Grid, 2009. CCGRID'09.
+  9th IEEE/ACM International Symposium on}, pages 478--483, May 2009.
+
+\bibitem{Phillips:2005gd}
+J.~Phillips, R.~Braun, W.~Wang, J.~Gumbart, E.~Tajkhorshid, E.~Villa,
+  C.~Chipot, R.~Skeel, L.~Kale, and K.~Schulten.
+\newblock {Scalable molecular dynamics with NAMD}.
+\newblock {\em Journal of Computational Chemistry}, 26:1781--1802, 2005.
+
+\bibitem{saga-core}
+{T Goodale {\it et al} }.
+\newblock {A Simple API for Grid Applications (SAGA)}.
+\newblock http://www.ogf.org/documents/GFD.90.pdf.
+
+\end{thebibliography}
 
 \end{document}
 
