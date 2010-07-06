@@ -23,6 +23,7 @@ import os
 import traceback
 import logging
 
+
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
 

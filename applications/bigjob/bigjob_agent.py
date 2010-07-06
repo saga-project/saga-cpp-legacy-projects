@@ -262,6 +262,42 @@ class bigjob_agent:
             return machine_file_name
         return None
     
+    
+    def setup_charmpp_nodefile(self, allocated_nodes):
+        """ Setup charm++ nodefile to use for executing NAMD  
+            HACK!! Method violates layering principle
+            File $HOME/machinefile in charm++ nodefileformat is written to first node in list
+        """
+        # Nodelist format:
+        # 
+        # host tp-x001 ++cpus 2 ++shell ssh 
+        # host tp-x002 ++cpus 2 ++shell ssh
+        
+        nodefile_string=""
+        for i in allocated_nodes:
+            
+            
+            if i.has_key("private_hostname"):
+                nodefile_string=nodefile_string + "host "+ i["private_hostname"] + " ++cpus " + str(i["cpu_count"]) + " ++shell ssh\n"
+            else:
+                nodefile_string=nodefile_string + "host "+ i["hostname"] + " ++cpus " + str(i["cpu_count"]) + " ++shell ssh\n"
+            
+        # copy nodefile to rank 0 node
+        jd = saga.job.description()
+        jd.executable = "echo"
+        jd.number_of_processes = "1"
+        jd.spmd_variation = "single"
+        # ssh root@tp-x001.ci.uchicago.edu "cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys"
+        jd.arguments = ["\""+nodefile_string+"\"", ">", "machinefile"]
+        jd.output = "stdout.txt"
+        jd.error = "stderr.txt"
+        
+        job_service_url = saga.url("ssh://root@"+allocated_nodes[0]["hostname"])
+        job_service = saga.job.service(self.session, job_service_url)
+        job = job_service.create_job(jd)
+        job.run()
+        job.wait()
+    
     def print_machine_file(self, filename):
          fh = open(filename, "r")
          lines = fh.readlines()
