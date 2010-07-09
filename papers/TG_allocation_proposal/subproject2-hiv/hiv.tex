@@ -1,0 +1,105 @@
+\begin{compactenum}[a)]
+
+\item \emph{Scientific objectives} 
+
+The long term scientific objective of our project is to develop molecular dynamics simulations of HIV-1 Pol enzymes into a tool for clinicians to use in determining the cocktail of drugs to administer to an HIV-infected individual. This work is supported by grants under EU FP7 and FP6 via the VPH-NOE (EU FP7-ICT-2007-5.3 223920), Contra Cancrum (EU FP7-ICT-2007-5.3 223979) and Virolab (EU FP7 223131) projects. For such applications, reproducible accuracy at the level which can rank drug efficacies, and rapidity of acquisition of results (for clinical relevance) are all essential. This takes the application of bio-MD techniques into an entirely new domain.
+
+We have developed an automated protocol to perform simulations and calculate binding affinities in the case of the protease (PR) enzyme\cite{Stoica2008} which we have recently enhanced based on the discovery that ensembles of short simulations produce better sampling than single long timescale simulations\cite{Genheden2009,Sadiq2010}. Molecular dynamics simulations require a crystal structure from which to start, but there will always be far less structures than there are HIV \emph{pol} genotypes. Therefore we need to ensure that we can computationally mutate a crystal structure into any desired 
+genotype whilst still accurately calculating binding energy values. Our recent work has successfully reproduced the experimental binding free energy ranking of a series of multiply drug resistant (MDR) mutants of increasing resistance (see Table \ref{tab:mutations}) to the inhibitor lopinavir (LPV) as published by Ohtaka \emph{et al.}\cite{Ohtaka2003}. This selection of six PR sequences will be refered to as the MDR genotype set in the rest of this document. Our next aim is to validate the use of our simulation and analysis protocol by reproducing the results for the other five FDA approved inhibitors included in this study (a list of the inhibitors included is given in Table \ref{tab:inhibitors}).
+
+\begin{table}[h! b! p!]
+\begin{center}
+\begin{tabular}{ l  l  l }
+\textbf{Sequence Code} & \textbf{Description} & \textbf{Mutations}\\
+\hline
+\textbf{WT} & Wildtype & HXB2\\
+\textbf{HM} & MDR hexa-mutant & L10I, M46I, I54V, V82A, I84V, L90M\\
+\textbf{QM} & MDR quatro-mutant & M46I, I54V, V82A, I84V\\
+\textbf{AS} & Active site mutant & V82A, I84V\\
+\textbf{FL} & Flap mutants & M46I, I54V\\
+\textbf{DM} & Dimer interface mutants & L10I, L90M\\ 
+\hline
+\end{tabular}
+\end{center}
+\caption{Codename and mutational composition of HIV-1 protease sequences investigated.}
+\label{tab:mutations}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{l l}
+\textbf{Inhibitor Code} & \textbf{Inhibitor Name}\\
+\hline
+APV & amprenavir\\
+IDV & indinavir\\
+LPV & lopinavir\\
+NFV & nelfinavir\\
+RTV & ritonavir\\
+%\textbf{SQV} & \textbf{saquinavir - Better to Remove?}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Code and full names of the HIV-1 protease inhibitors investigated.}
+\label{tab:inhibitors}
+\end{table}
+
+In the last year we have expanded our protocol to include the reverse transcriptase (RT) enzyme and the Non-Nucleotide Reverse Transcriptase Inhibitor (NNRTI) class of drugs for which the required system is more than 3 times larger than PR (solvated RT systems contain 180,000 atoms compared to 50,000 for PR). Our work indicates that the effects of active site mutations can be successfully descriminated using enzyme bound simulations alone (as we do in the protease case), without the need for additional simulations of the apo enzyme. Our intention is to study the inhibitors efavirenz (EFZ) and nevirapine (NVP) bound to wildtype, Y181C, L100I and K103N single mutants, the L100I/Y181C and L100I/K103 double mutants and the L100I/K103N/Y181C triple mutant RT sequences. Our previous work focussed on the L100I and K103N mutations but we have now added the Y181C mutation to this set. Unlike the previous mutations, this gives differing levels of resistance to EFZ and NVP (according to the Stanford database - http://hivdb.stanford.edu/pages/algs/HIVdb.html). Along with calculating the binding free energies of the ligand-bound enzymes, we also intend to extend the individual simulations to investigate the impact of these mutations on the rigid body motions between the fingers and thumb subdomains of the p66 subunit of RT. A recent molecular dynamics study shows that NVP operates as a molecular wedge constraining these catalytically important protein motions\cite{Ivetac2009}. This work indicates that our simulations will need to be of order of at least 30ns in length in order to observe the appropriate properties; along with the evidence from our previous work that free energies calculated for RT simulations vary less than those of PR this informs our decision to perform ensemble-based calculations containing fewer replicas but of longer duration. This second line of investigation provides further justification for including the Y181C mutation as, by replacing the bulky tyrosine residue with the smaller cysteine, a much larger perturbation of the binding pocket geometry is produced which might be expected to invoke more marked alterations in the motions of the fingers and thumb domains.
+
+\item \emph{Computational Requirements} 
+
+We have performed our simulations via the widely used molecular dynamics package NAMD \cite{Phillips2005} with the AMBER \cite{Case2005} suite of MD routines used to parameterise the models prior to simulation and then to analyse the resultant trajectories and calculate the free energy ($\Delta$G) values. In addition to these packages in our future work we plan to use the Nucleic Acid Builder module of AMBER on TeraGrid resources in order to compute the entropy changes via normal mode analysis for the RT system.
+
+Previous work on Ranger benchmarked at 7 hours wallclock time per nanosecond on 32 cores for the protease system and 6.5 hours per nanosecond on 128 cores for reverse transcriptase. These values have been used to estimate the required SUs in Table \ref{t:hiv_req}. We have recently gained access to the Kraken system and have benchmarked the protease system to take 5 hours per nanosecond which, combined with the fast turn-around times, makes Kraken an appealing platform upon which to run our simulations.
+
+The disk requirements for all of the simulations listed in Table \ref{t:hiv_req} will not be required simultaneously; at any
+one time it will not exceed 5TB. The majority of this data is *.dcd formatted trajectories output as simulations progress which can be archived once analysis has been completed. The trajectories can be transferred quickly between the TeraGrid and our local storage making use of the optical fibre network infrastructure. We currently have access to 6TB of storage at UCL (UK) and also make extensive use of the Ranch archiving system available at TACC.
+
+\begin{table}[h]
+\centering
+\begin{tabular}[b]
+{|>{\scriptsize}c|>{\scriptsize}c|>{\scriptsize}
+c|>{\scriptsize}c|>{\scriptsize}c|>{\scriptsize}c|>{\scriptsize}c|}
+\hline
+\textbf{Sim Description} & \textbf{No. Sims} &
+\textbf{No. Cores} & \textbf{Disk} &
+\textbf{Code} & \textbf{TG machine} & \textbf{Total SUs}\\
+\hline
+\multicolumn{7}{|c|}{\textbf{PR Multiple Drug Resistance Study}}\\
+\hline
+APV - 6 MDR systems & 400 & 32 & 250GB & NAMD & Ranger & 448,000 \\
+\hline
+IDV - 6 MDR systems & 400 & 32 & 250GB & NAMD & Ranger & 448,000 \\
+\hline
+NFV - 6 MDR systems & 400 & 32 & 250GB & NAMD & Ranger & 448,000 \\
+\hline
+RTV - 6 MDR systems & 400 & 32 & 250GB & NAMD & Ranger & 448,000 \\
+\hline
+\multicolumn{7}{|c|}{\textbf{RT Drug Resistance Study}}\\
+\hline
+RT Wildtype EFZ & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT L100I EFZ & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT K103N EFZ & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT Y181C EFZ & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT L100I/K103N EFZ & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT L100I/Y181C EFZ & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT L100I/K103N/Y181C EFZ & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT Y181C NVP & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT L100I/Y181C NVP & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+RT L100I/K103N/Y181C NVP & 10 & 128 & 300GB & NAMD & Kraken & 208,000\\
+\hline
+Grand total of SUs required & & & & & & 3,872,000\\
+\hline
+\end{tabular} \caption{Planned simulations and associated computational requirements.}
+\label{t:hiv_req}
+\end{table}
+\end{compactenum}
+      
