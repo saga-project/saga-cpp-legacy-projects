@@ -227,9 +227,10 @@ if __name__ == "__main__":
       print "####################" + time.asctime(time.localtime(time.time())) + "end bigjob lauch, start config, staging file##################"
       print "time to laucnh bjs: " + str(time.time() - start)
       uuid = uuid.uuid1()
-      app_url = saga.url("advert://" + advert_host + "/"+"BigJob/BigJob" + "-" + str(uuid) + "/")
+      app_url = saga.url("advert://" + advert_host + "/"+"BigJob/BigJob" + "-" + str(uuid) + "/Count/")
       app_dir = saga.advert.directory(app_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
        # self.state=saga.job.Unknown
+      app_dir.set_attribute("count", str(0))
       print "advert dir created for async agents at " + app_url.get_string()
 
 
@@ -250,31 +251,35 @@ if __name__ == "__main__":
      # jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)]
       jd.output = str(i) + "/stdout-" + str(i) + ".txt"
       jd.error = str(i) + "/stderr-" + str(i) + ".txt"  	
-      jds.append(jd)
+    #  jds.append(jd)
       sj = bigjob.subjob(advert_host)
       sjs.append(sj)
       #prepare config and scp other files to remote machine
       NAMD_config(i)
       if i<RPB:
-        j = 0  
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(j)]
+        j = 0 
+        qq = 2 
+        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
         copy_with_saga(i)
+        jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       elif (i>=RPB and i<(2*RPB)):
         j = 1   
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(j)]
+        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
         copy_with_saga(i)
+        jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       elif (i>=(2*RPB) and i<(3*RPB)):
         j = 2   
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(j)]
+        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
         copy_with_saga(i)
+        jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       else: 
         j = 3
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(j)]
-    
+        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
         copy_with_saga(i)
+        jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
     print "####################" + time.asctime(time.localtime(time.time())) + "end prep of sub jobs##################"    
     
@@ -299,9 +304,8 @@ if __name__ == "__main__":
        print str(state[i]) + "replica #" + str(i)
       time.sleep(1)
       print "####################" + time.asctime(time.localtime(time.time())) + "end get attributes##################"
-#################################################################################             
-    while 1:
-      pass
+      count =  int(app_dir.get_attribute("count"))
+#################################################################################                   
            # Cleanup - stop BigJob
     for i in range(0, NUMBER_BIGJOBS):
      bjs[i].cancel()

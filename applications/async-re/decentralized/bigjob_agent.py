@@ -198,14 +198,15 @@ class bigjob_agent:
                 print "stdout: " + output_file + " stderr: " + error_file
                 stdout = open(output_file, "w")
                 stderr = open(error_file, "w")
-                command = executable + " " + arguments
+               # command = executable + " " + arguments
                 
                 # special setup for MPI NAMD jobs
                 machinefile = self.allocate_nodes(job_dir)
+                command = executable + " " + arguments + " " + machinefile
                 host = "localhost"
                 try:
                     machine_file_handler = open(machinefile, "r")
-                    os.system("cp "+ machinefile + " /work/athota1/machinefile")
+                   # os.system("cp "+ machinefile + " /work/athota1/machinefile")
                     node= machine_file_handler.readlines()
                     machine_file_handler.close()
                     host = node[0].strip()
