@@ -23,9 +23,10 @@ namespace BigjobAzureAgent
         String applicationName;
         String STATE = "state";
 
-        CloudBlobClient blobClient;
-        CloudQueueClient queueClient;
-                
+        CloudBlobClient blobClient = null;
+        CloudQueueClient queueClient = null;
+        CloudBlobContainer blobContainer = null;
+
 
         public override void Run()
         {
@@ -39,35 +40,58 @@ namespace BigjobAzureAgent
             queue.CreateIfNotExist();
             while (true)
             {
-                IAsyncResult result = queue.BeginGetMessage(null, null);
-                CloudQueueMessage jobId = queue.EndGetMessage(result);
-                if (jobId == null)
+                //IAsyncResult result = queue.BeginGetMessage(null, null);
+                //CloudQueueMessage jobId = queue.EndGetMessage(result);
+                CloudQueueMessage queueMessage = queue.GetMessage();
+
+                if (queueMessage == null)
                 {
                     Thread.Sleep(1000);
                     continue;
                 }
-                if (jobId.AsString == "STOP")
+                else
                 {
+                    Trace.WriteLine("BigjobAzureAgent got queue message: " + queueMessage.AsString, "Information");
+                }
+                if (queueMessage.AsString == "STOP")
+                {
+                    //put STOP message back in queue
+                    queue.AddMessage(queueMessage);
                     break; //exit while loop and worker role
                 }
                 else
                 {
-                    ExecuteSubJob(jobId.AsString);
+                    string jobId = queueMessage.AsString; //queue message contains id of subjob to execute
+                    if (ExecuteSubJob(jobId)) 
+                    {
+                        //success - delete message
+                        updateState(jobId, "Done");
+                        queue.DeleteMessage(queueMessage);
+                    }
+                    else
+                    {
+                        //failure
+                        updateState(jobId, "New");
+                        queue.AddMessage(queueMessage); //put message back in queue 
+                    }
+                    
                 }
             } //end while loop
         }
 
-        public void ExecuteSubJob(String jobId)
+        public void updateState(string jobId, string newState)
+        {
+            Dictionary<string, object> jobDict = getJobDictFromBlob(jobId);
+            jobDict[STATE] = newState;
+            uploadJobDictToBlob(jobId, jobDict);
+        }
+
+        public bool ExecuteSubJob(String jobId)
         {
             //get reference to blob client
-            blobClient = new CloudBlobClient(storageAccount.BlobEndpoint, storageAccount.Credentials);
-            CloudBlobContainer blobContainer = blobClient.GetContainerReference(applicationName);
-            CloudBlob jobBlob = blobContainer.GetBlobReference(jobId);
+            Dictionary<string, object> jobDict = getJobDictFromBlob(jobId);
 
-            String jobString = jobBlob.DownloadText();
-            Dictionary<string, object> jobDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(jobString);
-
-            string state = (string)jobDict[STATE];
+            string state = (string) jobDict[STATE];
             if (state == "New" || state == "Unknown")
             {
                 jobDict[STATE] = "New";
@@ -86,7 +110,7 @@ namespace BigjobAzureAgent
                 String arguments = "";
                 if (jobDict.ContainsKey("Arguments"))
                 {
-                    JArray argumentArray = (JArray) jobDict["Arguments"];
+                    JArray argumentArray = (JArray)jobDict["Arguments"];
                     foreach (JValue a in argumentArray)
                     {
                         arguments = arguments + " " + a.ToString();
@@ -111,35 +135,53 @@ namespace BigjobAzureAgent
                     error = (string)jobDict["Error"];
                 }
 
-                
-
-                //String command = executable + " " + arguments;
-                string localPath = Path.Combine(Environment.GetEnvironmentVariable("RoleRoot")); // + @"\", @"approot\resources\namd\");
-                //string exeFileName = "namd2.exe";
-                //ProcessStartInfo info = new ProcessStartInfo(localPath + exeFileName, "+p8 NPT.conf");
-
-                Trace.WriteLine("Executable: " + localPath + @"\" + executable + " Arguments: " + arguments 
-                    + " WorkingDirectory: " + Path.Combine(localPath + @"\", workingdirectory), "Information");
-                ProcessStartInfo info = new ProcessStartInfo(localPath + @"\" + executable, arguments);
-                info.UseShellExecute = false;
-                info.ErrorDialog = false;
-                info.WorkingDirectory = Path.Combine(localPath + @"\", workingdirectory);
-                info.CreateNoWindow = true;
-                info.RedirectStandardOutput = true;
-                info.RedirectStandardError = true;
-                Stopwatch swComputeTime = Stopwatch.StartNew();
-
-                Trace.WriteLine("Starting .exe in directory " + Environment.CurrentDirectory, "Information");
-                Process applicationProcess = Process.Start(info);
-                Trace.WriteLine("Started .exe on host " + applicationProcess.MachineName, "Information");
-
-                applicationProcess.WaitForExit();
-                swComputeTime.Stop();
-                Trace.WriteLine("Runtime: " + swComputeTime.ElapsedMilliseconds + " ms");
-
-                #region get output and store in subjob blbo
                 try
                 {
+                    #region execute subjob
+                    //String command = executable + " " + arguments;
+                    string localPath = Path.Combine(Environment.GetEnvironmentVariable("RoleRoot")); // + @"\", @"approot\resources\namd\");
+                    //string exeFileName = "namd2.exe";
+                    //ProcessStartInfo info = new ProcessStartInfo(localPath + exeFileName, "+p8 NPT.conf");
+
+                    Trace.WriteLine("Executable: " + localPath + @"\" + executable + " Arguments: " + arguments
+                        + " WorkingDirectory: " + Path.Combine(localPath + @"\", workingdirectory), "Information");
+                    ProcessStartInfo info = new ProcessStartInfo(localPath + @"\" + executable, arguments);
+                    info.UseShellExecute = false;
+                    info.ErrorDialog = false;
+                    info.WorkingDirectory = Path.Combine(localPath + @"\", workingdirectory);                    
+                    info.CreateNoWindow = true;
+                    info.RedirectStandardOutput = true;
+                    info.RedirectStandardError = true;
+                    Stopwatch swComputeTime = Stopwatch.StartNew();
+                    updateState(jobId, "Running");
+                    Trace.WriteLine("Starting .exe in directory " + Path.Combine(localPath + @"\", workingdirectory), "Information");
+                    Process applicationProcess = Process.Start(info);
+                    Trace.WriteLine("Started .exe on host " + applicationProcess.MachineName, "Information");
+
+                    #region Grap Output
+                    StreamReader reader = applicationProcess.StandardOutput;
+                    string CompleteOutput = string.Empty;
+                    string line = string.Empty;
+                    line = reader.ReadLine();
+                    Trace.WriteLine(line, "Information");
+                    while (line != null)
+                    {
+                        line = reader.ReadLine();
+                        CompleteOutput += line != null ? line : string.Empty;
+                        CompleteOutput += "\n";
+                        Trace.WriteLine(line != null ? line : "<EOL>", "Information");
+                    }
+                    #endregion
+
+
+
+                    applicationProcess.WaitForExit();
+                    swComputeTime.Stop();
+                    Trace.WriteLine("Runtime: " + swComputeTime.ElapsedMilliseconds + " msec");
+                    #endregion
+
+                    #region get output and store in subjob blob
+
                     string outputString = applicationProcess.StandardOutput.ReadToEnd();
                     string errorString = applicationProcess.StandardError.ReadToEnd();
 
@@ -151,7 +193,8 @@ namespace BigjobAzureAgent
                         + "******************************************************************************************"
                         + "\nOutput:\n" + outputString);
                     CloudBlob stderrBlob = blobContainer.GetBlobReference(error + "-" + dateString + ".txt");
-                    stdoutBlob.UploadText(errorString);
+                    stdoutBlob.UploadText(errorString);                    
+                    #endregion
                 }
                 catch (Exception ex)
                 {
@@ -165,9 +208,45 @@ namespace BigjobAzureAgent
                         "\nTargetSite ---\n{0}", ex.TargetSite);
                     Console.WriteLine(
                       "\nInner Exception ---\n{0}", ex.InnerException.StackTrace);
+                    return false;
                 }
-                #endregion
+                return true;
             }
+            return false;
+        }
+
+        private Dictionary<string, object> getJobDictFromBlob(String jobId)
+        {
+            CloudBlob jobBlob = getCloudBlobContainer().GetBlobReference(jobId);
+            String jobString = jobBlob.DownloadText();
+            Dictionary<string, object> jobDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(jobString);
+            return jobDict;
+        }
+
+        private void uploadJobDictToBlob(String jobId, Dictionary<string,object> jobDict)
+        {
+            CloudBlob jobBlob = getCloudBlobContainer().GetBlobReference(jobId);
+            String jobString = JsonConvert.SerializeObject(jobDict);            
+            jobBlob.UploadText(jobString);            
+        }
+        
+        private CloudBlobClient getCloudBlobClient()
+        {
+            if (blobClient == null)
+            {
+                blobClient = new CloudBlobClient(storageAccount.BlobEndpoint, storageAccount.Credentials);
+            }
+            return blobClient;
+        }
+
+        private CloudBlobContainer getCloudBlobContainer()
+        {
+            if (blobContainer == null)
+            {
+                blobContainer = getCloudBlobClient().GetContainerReference(applicationName); 
+            }
+            return blobContainer;
+        
         }
 
         public override bool OnStart()
@@ -175,7 +254,6 @@ namespace BigjobAzureAgent
 
             // Set the maximum number of concurrent connections 
             ServicePointManager.DefaultConnectionLimit = 12;
-
 
             DiagnosticMonitor.Start("DiagnosticsConnectionString");
 
