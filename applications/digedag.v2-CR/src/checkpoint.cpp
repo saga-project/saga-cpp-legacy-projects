@@ -156,12 +156,12 @@ namespace digedag
 
 	if (checkpoint_.verbose)
         {
-          std::cout << "CR: edge position in map: " << edgepos << std::endl;
-          std::cout << "CR: edge id: " << e->get_id() << std::endl;
+          //std::cout << "CR: edge position in map: " << edgepos << std::endl;
+          std::cout << "CR: edge_commit edge-id: " << e->get_id() << std::endl;
 	}
 
 	// edgeset[edgepos] = 1;
-	edgeset[e->get_id()-1];
+	edgeset[e->get_id()-1] = 1;
 	dumptofile();
   }
 
