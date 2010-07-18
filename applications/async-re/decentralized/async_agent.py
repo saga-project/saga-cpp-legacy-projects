@@ -102,6 +102,8 @@ if __name__ == "__main__":
         agent_dir.set_attribute("state", str("Free"))
         logging.debug("now the replica is in Free state")
         break
+      else:
+        time.sleep(5)
     while 1:    
      if (str(agent_dir.get_attribute("state"))=="Ready"):
        logging.debug("state is pending/ready, set by another replica")              
@@ -117,14 +119,16 @@ if __name__ == "__main__":
             agent_dir.set_attribute("temp", local_temp)               
             agent_dir.set_attribute("state", str("Free"))
             break
+          else:
+            time.sleep(5)
      elif (str(agent_dir.get_attribute("state"))== "Free"):
         logging.debug("replica is in free state, case II, checking for another rep in free state")
         for i in range(0, int(tot_reps)):
          if i!=int(replica_id): 
           temp_url=saga.url("advert://fortytwo.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/"+str(i)+"/") 
           logging.debug("looking in this replica url,:" + temp_url.get_string())
-          logging.debug("the sttae is: " + str(temp_dir.get_attribute("state")))
           temp_dir = saga.advert.directory(temp_url, saga.advert.Create | saga.advert.ReadWrite)  
+          logging.debug("the sttae is: " + str(temp_dir.get_attribute("state")))
           if str(temp_dir.get_attribute("state"))=="Free" and str(agent_dir.get_attribute("state"))== "Free":           
             logging.debug("found another replica in free state, both replicas in free state, start making exchange")
             temp_dir.set_attribute("state", str("Pending"))
@@ -159,6 +163,8 @@ if __name__ == "__main__":
                  agent_dir.set_attribute("state", str("Free"))
                  logging.debug("state now free")
                  break
+              else:
+                 time.sleep(5) 
             logging.debug("getting out of the for loop")
             break          
           elif str(temp_dir.get_attribute("state"))!="Free": #temp replica's state changed from free to pending, look for other replicas

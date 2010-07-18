@@ -20,12 +20,12 @@ import time
 import pdb
 
 #Configure here:
-BIGJOB_SIZE = 32
-NUMBER_EXCHANGES = 2
+BIGJOB_SIZE = 64
+NUMBER_EXCHANGES = 16
 NUMBER_BIGJOBS= 1
-NUMBER_REPLICAS = 2
+NUMBER_REPLICAS = 4
 CPR = 16 # cores per replica
-HOST = "eric1.loni.org"
+HOST = "louie1.loni.org"
 REMOTE1 = "louie1.loni.org"
 REMOTE2 = "qb1.loni.org"
 REMOTE3 = "painter1.loni.org"
@@ -34,7 +34,7 @@ advert_host = "fortytwo.cct.lsu.edu"
 WORK_DIR = "/work/athota1/new_bigjob/decentralized/"
 WALLTIME = "10"
 REPLICA_DIR = "/work/athota1/new_bigjob/decentralized/NAMD_files/"
-RPB = 2 #NUMBER_REPLICAS/BIGJOB
+RPB = 4 #NUMBER_REPLICAS/BIGJOB
 
 
 def stage_files(i):
@@ -258,7 +258,7 @@ if __name__ == "__main__":
       NAMD_config(i)
       if i<RPB:
         j = 0 
-        qq = 2 
+        qq = 4 
         jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
         copy_with_saga(i)
         jds.append(jd)
