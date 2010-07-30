@@ -13,6 +13,10 @@
 ##############################################################################
 ## CHANGELOG
 ##
+## 30/06/2010 - Ole Weidner
+##   - Updated Mephisto to make it work with the new SAGA repository
+##     structure. 
+##
 ## 24/05/2010 - Ole Weidner
 ##   - Migrated repository to http://static.saga.cct.lsu.edu/mephisto/
 ##
@@ -30,6 +34,8 @@
 
 use Getopt::Long;
 use LWP::Simple;
+use File::Basename;
+use Term::ANSIColor;
 
 $meph_version     = "latest";
 $meph_repository  = "http://static.saga.cct.lsu.edu/mephisto/";
@@ -39,6 +45,7 @@ $meph_install_dir = "/tmp/meph_inst" . $< . "/";
 ##############################################################################
 ##
 sub print_mephisto_logo {
+    print color 'bold blue';
     print "                       _     _     _        \n";
     print "                      | |   (_)   | |       \n";
     print "  _ __ ___   ___ _ __ | |__  _ ___| |_ ___  \n";
@@ -47,6 +54,7 @@ sub print_mephisto_logo {
     print " |_| |_| |_|\\___| .__/|_| |_|_|___/\\__\\___/ \n";
     print "                | |                         \n";
     print "                |_| Simplified SAGA Deployment\n";
+    print color 'reset';
 }
 ##
 ##############################################################################
@@ -99,9 +107,26 @@ sub list_packages {
 	my @index = split( "\n", $content );
 	foreach my $line (@index) {
 	    my @packages = split( ";;", $line );
-	    print "  o $packages[1]: $packages[2]\n";
+	    print "  o $packages[1]: " . basename($packages[2]) . "\n";
 	}
 	print "\n";
+}
+
+##############################################################################
+##
+sub print_green_ok {
+    print color 'bold green';
+    print " [OK]";
+    print color 'reset'
+}
+
+##############################################################################
+##
+sub print_red_failed_and_die {
+    print color 'bold red';
+    print " [FAILED]\nf";
+    print color 'reset';
+    die;
 }
 
 ##############################################################################
@@ -135,7 +160,7 @@ sub pull_package {
       my $ret_val = getstore( $package_bin_path, $package_store_path );
       die "  !! Couldn't get $package_bin_path\n" unless $ret_val == 200;
 
-      print " [OK]\n";
+      print_green_ok(); print "\n";
     }
     elsif($package[0] eq "SVN") # LF: Subversion
     {
@@ -147,10 +172,10 @@ sub pull_package {
       $retval = system(@checkout_cmd);
       restore_console();
 
-      die "  [FAILED]\n" unless $retval == 0;
+      print_red_failed_and_die() unless $retval == 0;
       
       chdir "$package_store_path";
-      print " [OK]\n";
+      print_green_ok(); print "\n";
     }
     else 
     {
@@ -170,7 +195,7 @@ sub pull_package {
       $retval = system(@untar_cmd);
       restore_console();
 
-      die "  [FAILED]\n" unless $retval == 0;
+      print_red_failed_and_die() unless $retval == 0;
 
       open(TARLOG, "$meph_tmp_dir/$package[1].unpack.log"); 
       my $package_dir_name = readline(TARLOG); # This should be the base directory
@@ -183,7 +208,7 @@ sub pull_package {
      
       chdir "$meph_tmp_dir/$package_dir_name";
 
-      print " [OK]\n";
+      print_green_ok(); print "\n";
     }
 
     #my $tar = Archive::Tar->new;
@@ -222,11 +247,15 @@ sub pull_package {
         push( @configure_cmd, "--libdir=$meph_install_dir/lib");
     }
 	elsif ($package[1] eq "SAGA" ) {
-		push( @configure_cmd, "--with-python=$meph_install_dir" );
 		push( @configure_cmd, "--with-boost=$meph_install_dir" );
 		push( @configure_cmd, "--with-postgresql=$meph_install_dir" );
 		push( @configure_cmd, "--with-sqlite3=$meph_install_dir" );
 	}
+	elsif ($package[1] eq "SAGA-PYTHON" ) {
+		push( @configure_cmd, "--with-python=$meph_install_dir" );
+		push( @configure_cmd, "--with-boost=$meph_install_dir" );
+	}
+
     #
     #########################################
 
@@ -237,8 +266,8 @@ sub pull_package {
     my $retval = system(@configure_cmd);
     restore_console();
 
-    die "  [FAILED]\n" unless $retval == 0;
-    print " [OK]\n";
+    print_red_failed_and_die() unless $retval == 0;
+    print_green_ok(); print "\n";
     ##
     ####
 
@@ -257,8 +286,8 @@ sub pull_package {
     $retval = system(@build_cmd);
     restore_console();
 
-    die "  [FAILED]\n" unless $retval == 0;
-    print " [OK]\n";
+    print_red_failed_and_die() unless $retval == 0;
+    print_green_ok(); print "\n";
 
     ##
     ####
@@ -277,8 +306,8 @@ sub pull_package {
     $retval = system(@install_cmd);
     restore_console();
 
-    die "  [FAILED]\n" unless $retval == 0;
-    print " [OK]\n";
+    print_red_failed_and_die() unless $retval == 0;
+    print_green_ok(); print "\n";
     ##
     ####
 
@@ -313,10 +342,17 @@ sub write_setenv() {
 ##############################################################################
 ## 
 sub print_usage () {
-    print "\n Usage: mephisto.pl list <options>\n";
+    print "\n Usage: ";
+    print color 'bold red';
+    print "mephisto.pl list";
+    print color 'reset';
+    print " <options>\n";
     print "        Lists all packages that are available in the repository.\n\n";
-
-	print "        mephisto.pl install --target-dir=<dir> <options>\n";
+    
+    print color 'bold red';
+	print "        mephisto.pl install ";
+	print color 'reset';
+	print "--target-dir=<dir> <options>\n";
     print "        Installs all or just selected packages from the repository.\n\n";
 
     print " Options and Arguments:\n\n";
@@ -452,7 +488,7 @@ if(!(-w $meph_install_dir) ) {
 
 my $meph_rep_full = $meph_repository . "/repository/" . $meph_version;
 
-print "\n Source repository: $meph_rep_full\n";
+print "\n Source repository: $meph_rep_full\n\n";
 
 # Retrieve the repository index and get the paths to
 # mephisto's software source packages.
