@@ -252,6 +252,7 @@ sub pull_package {
 		push( @configure_cmd, "--with-sqlite3=$meph_install_dir" );
 	}
 	elsif ($package[1] eq "SAGA-PYTHON" ) {
+        #unshift( @configure_cmd, "SAGA_LOCATION=$meph_install_dir");
 		push( @configure_cmd, "--with-python=$meph_install_dir" );
 		push( @configure_cmd, "--with-boost=$meph_install_dir" );
 	}
@@ -263,6 +264,7 @@ sub pull_package {
     $|++;
 
     redirect_console($configure_logfile);
+    $ENV{SAGA_LOCATION} = $meph_install_dir;
     my $retval = system(@configure_cmd);
     restore_console();
 
