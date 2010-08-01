@@ -107,17 +107,8 @@ efficient use of a broad range of infrastructure.
 The RE algorithm involves the concurrent execution of multiple similar
 simulations, the \emph{replicas}.  There is a loose-coupling between
 the replicas in form of periodic exchange attempts between paired
-replicas. Previously, we demonstrated the usage of the SAGA Pilot-Job
-framework~\cite{saga_bigjob_condor_cloud} -- called the BigJob, to run
-RE simulations across multiple, heterogeneous
-distributed Grid and Cloud infrastructures~\cite{Luckow:2008fp}.
-%\alnote{maybe we should also intro SAGA at some point} \jhanote{Yes}
-The Simple API for Grid Applications (SAGA)~\cite{saga_gfd90} is an
-API standardization effort within the Open Grid Forum
-(OGF)~\cite{ogf_web}, an international standards development body
-concerned primarily with standards for distributed computing.
-The various tasks that are carried out using the SAGA APIs include file staging, job
-spawning and the conduction of the exchange attempts.
+replicas. %Previously, we demonstrated the usage of the SAGA Pilot-Job framework~\cite{saga_bigjob_condor_cloud} -- called the BigJob, to run RE simulations across multiple, heterogeneous distributed Grid and Cloud infrastructures~\cite{Luckow:2008fp}.
+%\alnote{maybe we should also intro SAGA at some point} \jhanote{Yes} The Simple API for Grid Applications (SAGA)~\cite{saga_gfd90} is an API standardization effort within the Open Grid Forum (OGF)~\cite{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. The various tasks that are carried out using the SAGA APIs include file staging, job spawning and the conduction of the exchange attempts.
 %Further, we introduced several adaptivity modes, e.\,g.\ adaptive
 %sampling that are able to react to dynamic changes in resource
 %availabilities.
@@ -186,7 +177,7 @@ where a replica can perform exchanges asynchronously with any other replica in t
 %\alnote{We need to highlight how we particularly differ from Parashar
   %et al: no comet, no MPI jobs, production Grids, understand
   %performance sentence...}
-The asynchronous replica exchange framework builds upon the SAGA BigJob and RE frameworks discussed previously.
+%The asynchronous replica exchange framework builds upon the SAGA BigJob and RE frameworks discussed previously.
 %The architecture is shown in Figure 1.
 We present two variants of the Asynchronous RE algorithm. The first is a centralized 
 mechanism where all the replicas are managed by a master. %The master closely monitors the replicas and makes the exchanges when appropriate. 
@@ -207,13 +198,10 @@ The second is a decentralized mechanism where each replica is managed independen
 % \end{figure}
 
 
-In the centralized version (Figure~\ref{fig:async}(a)) of the
-asynchronous replica exchange (Case II), the master launches one or more BigJobs and submits each replica to its respective BigJob. The master now monitors the replicas. As and when it finds a replica in done state, the master starts searching for an appropriate partner from any other replicas in done state. The decision as to make the exchange or not is made using
-the Metropolis scheme.  %Whether or not a successful exchange takes
+In the centralized version (Figure~\ref{fig:async}(a)) of the asynchronous replica exchange (Case II), the master launches and monitors the replicas. As and when it finds a replica in done state, the master starts searching for an appropriate partner from any other replicas in done state. The decision as to make the exchange or not is made using the Metropolis scheme.  %Whether or not a successful exchange takes
 %place, the master again monitors all the replicas and repeats the
 %steps mentioned.
-After each successful exchange the master resubmits the replicas
-to their respective BigJob(s) and goes back to monitoring the replicas. 
+After each successful exchange the master re-launches the replicas involved in the exchange and continues to monitor the replicas.
 
 \subsubsection{Decentralized Asynchronous RE}
 
@@ -222,15 +210,15 @@ to their respective BigJob(s) and goes back to monitoring the replicas.
 \begin{figure}
 \centering
 \subfigure[Control Flow: Centralized Replica Exchange]{
-\includegraphics[width=0.46\textwidth]{figures/centralized.pdf}
-%\label{fig:async:a}
+\includegraphics[width=0.46\textwidth]{figures/cent_control.pdf}
+%\label{fig:async:b}
 }
 \subfigure[Control Flow: Decentralized Replica Exchange]{
-\includegraphics[width=0.46\textwidth]{figures/asyncre.pdf}
+\includegraphics[width=0.46\textwidth]{figures/dec_control.pdf}
 %\label{fig:async:b}
 }
 % \includegraphics[scale=0.50]{figures/decentralized_architecture.pdf}
-\caption{\small In the centralized version(Figure 1(a)), all the replicas are managed by the master, where as in the decentralized version(Figure 1(b), for each replica there is a replica agent which individually and independently manages the replica.}
+\caption{\small In the centralized asynchronous RE (Figure 1(a))all the replicas are managed by the master, where as in the decentralized asynchronous RE version(Figure 1(b)), for each replica there is a replica agent which individually manages the replica.}
 \label{fig:async}
 %\vspace{-1em}
 \end{figure}
@@ -241,7 +229,7 @@ to their respective BigJob(s) and goes back to monitoring the replicas.
 \begin{figure}
 \centering
 \includegraphics[scale=0.50]{figures/sd_cent_decent.pdf}
-\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized and decentralized RE simulations. In each case, one 64 core BigJob was launched and was assigned 4 replicas. The size of each replica is 16 cores. Each experiment has been repeated at least 6 times. Improved run times can be observed in asynchronous RE simulations. This is due to the overhead involved in synchronizing and sequentially restarting the replicas after each exchange. }
+\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized and decentralized RE simulations. In each case, one 64 core BigJob was launched and was assigned 4 replicas. The size of each replica is 16 cores. Each experiment has been repeated at least 6 times. Improved run times can be observed in asynchronous RE simulations. This is due to the overhead involved in synchronizing and sequentially restarting the replicas after each exchange. The standard errors are 19, 13 and 2 respectively. \athotanote{still can't set individual error bars, will do asap}}
 \label{fig:graph}
 \vspace{-1em}
 \end{figure}
@@ -271,20 +259,29 @@ is managed individually (Case III). We propose Case III so as to not let the cen
 %  be made more clear. The following is ``implementation detail''. What
 %  is the conceptual difference between Case 3 and Case 2?}
 
+\section{SAGA BigJob - A Pilot-job Framework}
+
+The Simple API for Grid Applications (SAGA)~\cite{saga_gfd90} is an API standardization effort within the Open Grid Forum (OGF)~\cite{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. The various tasks that are carried out using the SAGA APIs include file staging, job spawning and the conduction of the exchange attempts.
+
+Previously, we demonstrated the usage of the SAGA Pilot-Job framework~\cite{saga_bigjob_condor_cloud} -- called the BigJob, to run RE simulations across multiple, heterogeneous, distributed Grid and Cloud infrastructures~\cite{Luckow:2008fp}. Here we are using the SAGA BigJob to efficiently request and manage computational resources. 
+
+
 \section{Analysis}
 
-While the traditional RE limits the exchanges to only neighboring temperatures, an asynchronous RE does not. This is not a concern when the number of replicas is small and there is little chance of an exchange between non-adjacent temperatures. However, as the number of replicas increases, the difference between the target temperatures becomes small enough to allow exchanges between non-adjacent temperatures. This also allows for 'crosswalks' to happen. The larger the number of crosswalks, the better is the performance of the simulation.
+%While the traditional RE limits the exchanges to only neighboring temperatures, an asynchronous RE does not. This is not a concern when the number of replicas is small and there is little chance of an exchange between non-adjacent temperatures. However, as the number of replicas increases, the difference between the target temperatures becomes small enough to allow exchanges between non-adjacent temperatures. This also allows for 'crosswalks' to happen. The larger the number of crosswalks, the better is the performance of the simulation.
 
 %To evaluate the performance of the various models of RE we have discussed in the abstract, we conducted several experiments on Teragrid and LONI resources. 
 %In the following sentences we will analyze the performance of synchronous RE(Case I) with centralized asynchronous RE(Case II). 
-We configured both the Cases I \& II to run a parallel NAMD simulation with 4 replicas sampling a temperature between 300 and 450 K. One 64 core BigJob is launched and each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16 attempted exchanges. %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
+We configured both the Cases I, II \& III to run a parallel NAMD simulation with 4 replicas sampling a temperature between 300 and 450 K. One 64 core BigJob is launched and each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16 attempted exchanges. %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
 
 %The experiments could be potentially run across an infinite number of dissimilar machines.  
 %The initial results suggest that the performance has improved at two levels: (i) the time to completion of Case II is reduced by over 200\% compared to Case I and (ii) there is considerable reduction in the time to completion when running across four machines instead of only 1 machine, by as much as 65\%.
 
-The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. To understand the performance gains(Figure~\ref{fig:graph}) we need to understand the RE logic of Case I and Case II. In Case I, the pair-wise replica exchange can occur only between replicas of the same generation. Therefore, each exchange step is attempted only after all the replicas have finished running. After the exchange, all the replicas are restarted sequentially. This inserts a delay between the start time of the first replica, the last replica and the replicas in between. %As more resources become available at different times, the replicas already running or done are forced to wait for the newly running replicas to finish before moving on to the next exchange step. %Each exchange step is counted as an exchange.
-In Case II, the pair-wise replica exchange can take place between any two replicas in the ensemble irrespective of generation. As more resources become available, the new replicas join the ensemble immediately and the replicas already running are not restrained from attempting exchanges or restarting. This gives the asynchronous or synchronous RE a slight advantage. But with a large number of replicas we could easily see large difference.
-\athotanote{Further, we show performance gains by running across more than one machine. By running across more than one machine, we demonstrate the ability to divide the jobs into smaller sub-jobs and then distribute them across a number of machines, thereby reducing the risk of long queue wait times on an over-crowded resource. In Figure~\ref{fig:graph}, it can be seen that the asynchronous RE time to completion improves almost by a factor of 3 when moving from one machine to four machines. This was caused due to the fact that when the experiment was done on one machine, by the time the experiment ended, only 64 cores were allocated by the resource manager. But on the other hand, when the experiment was launched across four machines, it received an allocation of 64 cores on each of the four resources. The improvement that is seen in the case of synchronous RE from one to four machines is also due to a similar reason.} %The asynchronous RE appears faster by a couple of minutes due to the fact that when the BigJobs become available randomly, the synchronous RE has to wait for the newly running replicas to finish.
+The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. To understand the performance gains(Figure~\ref{fig:graph}) we need to understand the logic behind synchronous and asynchronous RE and how it inevitably influences the implementation. Ideally, synchronous RE should perform better than asynchronous RE. But, in Case I, the master alone manages the whole simulation. And when it comes to re-launching the replicas after the exchange step, there is always a gap between the time the first replica is re-launched and the last replica re-launched. The gap only grows with more number of replicas. In Case II, the master only has to re-launch two replicas at any one time. In Case III, the each replica has its own manager and this eliminates the delays caused by a central master. This is the difference that we see in the graph. 
+
+%In Case I, the pair-wise replica exchange can occur only between replicas of the same generation. Therefore, each exchange step is attempted only after all the replicas have finished running. After the exchange, all the replicas are restarted sequentially. This inserts a delay between the start time of the first replica, the last replica and the replicas in between. %As more resources become available at different times, the replicas already running or done are forced to wait for the newly running replicas to finish before moving on to the next exchange step. %Each exchange step is counted as an exchange.
+%In Case II, the pair-wise replica exchange can take place between any two replicas in the ensemble irrespective of generation. As more resources become available, the new replicas join the ensemble immediately and the replicas already running are not restrained from attempting exchanges or restarting. This gives the asynchronous or synchronous RE a slight advantage. But with a large number of replicas we could easily see large difference.
+%\athotanote{Further, we show performance gains by running across more than one machine. By running across more than one machine, we demonstrate the ability to divide the jobs into smaller sub-jobs and then distribute them across a number of machines, thereby reducing the risk of long queue wait times on an over-crowded resource. In Figure~\ref{fig:graph}, it can be seen that the asynchronous RE time to completion improves almost by a factor of 3 when moving from one machine to four machines. This was caused due to the fact that when the experiment was done on one machine, by the time the experiment ended, only 64 cores were allocated by the resource manager. But on the other hand, when the experiment was launched across four machines, it received an allocation of 64 cores on each of the four resources. The improvement that is seen in the case of synchronous RE from one to four machines is also due to a similar reason.} %The asynchronous RE appears faster by a couple of minutes due to the fact that when the BigJobs become available randomly, the synchronous RE has to wait for the newly running replicas to finish.
 
 %slightly over 2 machines, but again increases over 4 machines. This is due to the fact that the experiments have been run only a handful of times but, over time, it can be assumed that it will result in reduced queue wait times.
 
@@ -329,7 +326,7 @@ An important motivation for this work is to implement a scheme that does not dep
 static, well defined model of resource availability. %We test and scale
 %our implementation on production level grids such as Teragrid and
 %LONI~\cite{LONI_web}.
-Preliminary results, shown in Figure~\ref{fig:graph}, indicate the two most important advantages of asynchronous RE and SAGA/BigJob over traditional RE: (a) allows for exchanges to occur between replicas with non-nearest temperatures, which in turn allows crosswalks to happen (b) a reduced time to completion when running on more than one machine due to improved resource availabilities, (c) the advantage of using a pilot-job mechanism, which eliminates the waiting times at the local resource manager, and (d) the ability to scale out across different production level infrastructure, such as, the Teragrid and LONI.
+Preliminary results, shown in Figure~\ref{fig:graph}, indicate the most important advantages of asynchronous RE and SAGA/BigJob over traditional RE: (a) allows for exchanges to occur between replicas with non-nearest temperatures, which in turn allows crosswalks to happen (b) a reduced time to completion when running on more than one machine due to improved resource availabilities, (c) the advantage of using a pilot-job mechanism, which eliminates the waiting times at the local resource manager, and (d) the ability to scale out across different production level infrastructure, such as, the Teragrid and LONI.
 % It performs well even after doubling and quadrupling the number of
 % exchanges required to complete the simulation. The time to
 % completion only increases by 35\% after doubling and 117\% after
