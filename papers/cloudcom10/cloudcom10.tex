@@ -111,6 +111,9 @@ Scope:
 \begin{itemize}
     \item Running Bio-ensembles on Azure and hybrid Grid/Clouds
     \item Amazon Cluster Compute benchmark
+    \item Synchronous ARepex
+    \item Fluctuation of runtime on the different VMs (set case for an asynchronous algorithm)
+    \item Performance/cost as metric and argument
 \end{itemize}
 
 
@@ -389,10 +392,9 @@ distributed infrastructure.
 
 
 
-
 \subsection{BigJob for Azure}
 \up
-% espite a standardized interface, big difference on how to obtain meta-data (internal ip etc.)
+
 
 Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of the BigJob
 for Azure building blocks. The BigJob Manager (BM) is responsible for accepting 
@@ -423,7 +425,7 @@ simulation is limited to 8 cores.
 \end{figure}
 
 
-The worker roles running the replica agent are managed by the RM using
+The worker roles running the BigJob agent are managed by the BigJob Manager using
 the Azure Service Management API. In the initial version we will
 support the automatic start and stop of hosted services. In the final
 version there will be a possibility to automatically deploy agent code
@@ -457,6 +459,53 @@ how applications would typically use multiple distributed
 infrastructures. We focus our attention on replica-based Molecular Dynamics (MD)
 simulations and a workload as \numrep replicas of a Hepatatis-C virus
 (HCV) model, each replica running for 500 timesteps.  
+
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.48\textwidth]{performance/namd_run}
+    \caption{\textbf{NAMD Runtimes on Different Resource Types: } The
+          graph shows that the new EC2 cluster compute instances are 
+          able to outperform other Cloud resources as well as traditional
+          HPC resources as QB and Poseidon.}
+    \label{fig:performance_namd_run}
+\end{figure}
+
+We run experiments in different Cloud environments: the Nimbus Science 
+Cloud of the University of Chicago and the Amazon EC2 environment is used. In general, each Cloud has 
+its characteristics. The Nimbus Cloud is accessed via the WSRF
+interface, while for EC2 the Amazon command line client is used. 
+Each Nimbus VM provides 2 virtual cores and 3.7\,GB memory. 
+Amazon offeres different VM types with up to 8 cores. We used the largest 
+VM type (m2.4xlarge) with 8 cores and 68.4\,GB of memory,
+the m1.large instance type with 2 cores and 7.5\,GB  and the recently launched
+cluster compute instances~\cite{ec2-cc}, which provide a pair of quad-core Intel 
+X5570 (Nehalem) processors with 23\,GB memory. In contrast to other instance types,
+cluster compute instances are connected using 10 Gbps Ethernet.
+
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.48\textwidth]{performance/namd_ec2_azure.pdf}
+    \caption{\textbf{NAMD Performance on Azure and EC2:} In particular on smaller VM sizes (1-4 cores) Azure 
+    outperforms EC2. The 8 core EC2 VM c1.xlarge shows a slightly better performance than the Azure 8 core VM,
+    however at a higher cost (1.16\,\$ in comparison to 0.96\,\$).}
+    \label{fig:performance_namd_ec2_azure}
+\end{figure}
+
+Figure~\ref{fig:performance_namd_ec2_azure} presents an performance 
+benchmark consisting of a NAMD simulation run on Azure and on comparable 
+EC2 resources. For this purpose, an EC2 instance type with a similar core
+count and price is chosen. Azure outperforms EC2 in most cases;
+which is in noteworthy, since the costs for 2, 4 and 8 core VMs are
+drastically lower on Azure. Since the underlying hardware is not known
+one can only speculate about the reason. Microsoft controls the
+hardware in its data center und optimizes its custom-built Azure
+Hypervisor with respect to this hardware~\cite{Krishnan:2010nx}, which
+could be a reason for the better performance. In summary, Azure offers
+a good price/performance ratio in particular in comparison with EC2.
+
+
 
 
 \section{Conclusion and Future Directions}
