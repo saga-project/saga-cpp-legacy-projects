@@ -59,8 +59,8 @@
 
 \author{
  ~\\[-2em]
- Soon-Heum Ko$^{1}$, Nayong Kim$^{1}$, Abhinav Thota$^{1,2}$ (?), \\
- Dimitris Nikitopoulos$^{3}$, Dorel Moldovan$^{3}$ (?), Shantenu Jha$^{*1,2}$\\
+ Soon-Heum Ko$^{1}$, Nayong Kim$^{1}$, Abhinav Thota$^{1,2}$, \\
+ Dimitris Nikitopoulos$^{3}$, Dorel Moldovan$^{3}$, Shantenu Jha$^{*1,2}$\\
  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
  \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
  \small{\emph{$^{3}$Department of Mechanical Engineering, Louisiana State University, USA}}\\
@@ -104,6 +104,7 @@ An example of the macroscopic flow changes due to different atomistic interactio
 The cost of force calculation to evaluate the potential energy is the slowest part of MD simulation. The computational cost of a classical MD simulation is very expensive, $\it O(N^{2})$ in $\it big O$ notation with $\it N$ particles, i.e. it will be demanded more and more CPU cost when the number of particle increase in MD simulation~\cite{Allen}.
 \skonote{I could not clearly understand the meaning of this paragraph. Let me rewrite the text after getting more information from Nayong.}
 \Nkimnote {This sentence is related with the explanation about MD particle size VS simulation time. In classical MD, simulation time will increase as ratio of $it N^{2}$ when number of atom N increase.  The exact relationship b/w them has too many factors including number of CPU, number of atoms, type of computation, size of memory and so on. The point of this sentence is that MD's computation time dramatically increases as increasing number of atom. So, it is hard to simulate whole physical domain using pure MD. It will be one of the main purpose why we need the hybrid simulation.}
+
 
 %\skonote{Raise unsolved issues and the necessity for parametric study in view of numerics}
 The above benefit of hybrid CFD-MD approach over pure CFD or pure MD simulations attracted the interest of many CFD and MD researchers, which resulted in the fast progress of hybrid schemes in 15 years since the first work~\cite{Thompson} was in press, as to be addressed in Section 2. Nevertheless, it is still very hard for an individual scientist to apply this approach to his/her domain of interest. We assume that the difficulty to determine the state-of-the-art coupling condition is one possible reason. Even with accurate numerical schemes for solving each domain and coupling hybrid interface, the solution is strongly affected by the specification of coupling parameters. Layer size of data exchange zone with its position, sampling duration and the interval are major factors which affect the accuracy of coupled solution, and these conditions vary by the fluid and solid elements, flow condition and geometric characteristics.
@@ -578,60 +579,10 @@ The first problem is the Couette flow simulation, which have been in wide use fo
 
 As we have argued earlier, MD solution inherently describes the fluctuating pattern of particles, which becomes a noise in CFD solution. Thus, the first thing to do for coupled simulation is to determine coupling conditions including layer size (layer width and height), sampling duration, sampling interval and MD timescale, which defines the scale and pattern of noise. For continuum approach, averaging more particles on bigger layers for a long time would be preferred to eliminate the systematic noise of molecular vibration. However, in view of MD, smaller layer is preferred to accurately apply the velocity gradient from CFD solution. Also, shorter sampling interval who updates boundary condition more frequently is required for the time-accurate solution. Thus, optimal coupling condition will be to set the smallest sampling interval (it is noteworthy that our new temporal coupling approach enables the sampling duration to be as long as the sampling interval.) whose statistical error is within the range of acceptable error.
 
-Our idea of numerically detecting the strength of statistical noise is to solve the stationary flow of the full fluid domain by pure MD method. According to statistical error analyses on periodic MD system by Hadjiconstantinou et al~\cite{Hadjicon2} and Delgado-Buscalioni and Coveney~\cite{Time_Mechanism}, the statistical error is inversely proportional to ${u_{max}}^2$. This implies that the statistical error in stationary flow is going to be the upper bound of the fluctuation strength as long as this relation remains valid on wall-bounded flows. Computational cost on solving pure MD system is fairly acceptable as we can start gathering the data right after the minimization process is done.
+Our idea of numerically detecting the strength of statistical noise is to solve the stationary flow in the full-scale fluid domain by pure MD method. According to statistical error analyses on periodic MD system by Hadjiconstantinou et al~\cite{Hadjicon2} and Delgado-Buscalioni and Coveney~\cite{Time_Mechanism}, the statistical error is inversely proportional to ${u_{max}}^2$. This implies that the statistical error in stationary flow is going to be the upper bound of the fluctuation strength as long as this relation remains valid on our wall-bounded flows. Also, solving a stationary flow is quite acceptable in view of computational cost as we can start gathering the data right after the minimization process is done.
 
-Table \ref{MD_Vel0} shows the averaged velocity on different layer size and sampling duration.
+Table \ref{table:MD_Vel0} shows the averaged velocity on different layer size and sampling duration. Experiments were conducted with different system width changing from 40 $\sigma$ to 80 and 160 $\sigma$. From the individual test, we can find that increasing sampling duration or layer height does not linearly decrease the statistical error. At the first test, increasing layer height from 0.1 $\sigma$ to 6.4 $\sigma$ only reduces the statistical error by 3.5 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration. Next, comparing the first and second experiments, the reduction of statistical error by increasing system scale is quite more helpful. Comparing each element of these two tables, doubling the computational cost results in the reduction of statistical error by about 1.5 times. However, this is not always valid if we compare the solutions from second and third tables. It is still valid in poor coupling conditions (narrow layer height or short sampling duration), but this reduction ratio degrades on better coupling conditions. We assume that statistical error does not reduce much with increased system size if the width of the system (i.e., periodic direction) is longer than system height. Lastly, though not included in this table, we also conducted numbers of experiments by changing time step in MD simulation, $\Delta t_{MD}$. We could not find much difference in the strength of statistical noise with different time step and this concludes us that this fluctuation and its scale is physically natural phenomenon.
 
-
-% Table formats; h,t,b,p - here,top,bottom,page of floats
-\begin{table}[t]
-  \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of whole fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability. The first one with x=35 $\sigma$}
-  \label{table:MD_Vel0}
-  \centering
-  \begin{tabular}{c || c c c c c c c}
-\hline
-	&	1 tau	&	2 tau	&	4 tau	&	8 tau	&	16 tau	&	32 tau	&	64 tau	\\
-\hline
-0.1 $\sigma$ &	35.184 	&	27.888 	&	22.167 	&	18.043 	&	14.819 	&	12.820 	&	12.835 	\\
-0.2 $\sigma$ &	29.890 	&	24.546 	&	20.020 	&	17.499 	&	14.836 	&	14.252 	&	14.246 	\\
-0.4 $\sigma$ &	26.610 	&	22.440 	&	18.793 	&	17.053 	&	14.464 	&	13.238 	&	13.234 	\\
-0.8 $\sigma$	&	23.458 	&	20.640 	&	17.489 	&	15.782 	&	13.879 	&	12.475 	&	12.463 	\\
-1.6 $\sigma$ &	18.902 	&	17.514 	&	15.837 	&	14.448 	&	12.813 	&	11.459 	&	11.035 	\\
-3.2 $\sigma$	&	14.055 	&	13.552 	&	12.942 	&	12.322 	&	11.225 	&	10.027 	&	9.770 	\\
-6.4 $\sigma$	&	10.040 	&	9.873 	&	9.640 	&	9.270 	&	8.937 	&	8.141 	&	7.961 	\\
-12.8 $\sigma$	&	6.701 	&	6.649 	&	6.579 	&	6.454 	&	6.315 	&	6.007 	&	5.282 	\\
-\hline
-\hline
-	&	1 tau	&	2 tau	&	4 tau	&	8 tau	&	16 tau	&	32 tau	&	64 tau	\\
-\hline
-0.1 sigma	&	24.969 	&	20.608 	&	15.674 	&	12.683 	&	9.161 	&	7.165 	&	6.157 	\\
-0.2 sigma	&	20.826 	&	17.397 	&	13.052 	&	10.833 	&	7.867 	&	6.622 	&	5.567 	\\
-0.4 sigma	&	18.000 	&	15.210 	&	12.028 	&	10.261 	&	7.412 	&	6.063 	&	5.810 	\\
-0.8 sigma	&	15.209 	&	13.108 	&	11.059 	&	9.478 	&	7.358 	&	5.679 	&	5.556 	\\
-1.6 sigma	&	12.034 	&	10.998 	&	9.809 	&	8.477 	&	7.157 	&	5.751 	&	5.522 	\\
-3.2 sigma	&	8.802 	&	8.453 	&	7.923 	&	7.052 	&	6.762 	&	5.634 	&	5.486 	\\
-6.4 sigma	&	6.163 	&	5.952 	&	5.795 	&	5.538 	&	5.355 	&	5.019 	&	4.928 	\\
-12.8 sigma	&	4.760 	&	4.712 	&	4.691 	&	4.578 	&	4.385 	&	4.120 	&	4.120 	\\
-\hline
-\hline
-	&	1 tau	&	2 tau	&	4 tau	&	8 tau	&	16 tau	&	32 tau	&	64 tau	\\
-\hline
-0.1 sigma	&	17.929 	&	14.024 	&	10.980 	&	9.595 	&	7.386 	&	6.409 	&	5.744 	\\
-0.2 sigma	&	14.887 	&	12.077 	&	9.924 	&	8.638 	&	7.167 	&	6.310 	&	5.736 	\\
-0.4 sigma	&	12.823 	&	10.849 	&	9.326 	&	8.081 	&	7.202 	&	6.466 	&	5.771 	\\
-0.8 sigma	&	11.546 	&	10.226 	&	9.223 	&	8.033 	&	7.402 	&	6.307 	&	5.832 	\\
-1.6 sigma	&	9.565 	&	8.970 	&	8.367 	&	7.648 	&	6.997 	&	6.247 	&	5.983 	\\
-3.2 sigma	&	7.705 	&	7.558 	&	7.291 	&	6.962 	&	6.400 	&	5.966 	&	5.817 	\\
-6.4 sigma	&	5.717 	&	5.657 	&	5.574 	&	5.338 	&	5.070 	&	4.999 	&	4.958 	\\
-12.8 sigma	&	4.293 	&	4.271 	&	4.219 	&	4.137 	&	4.079 	&	3.940 	&	3.906		\\
-\hline
-\end{tabular}
-\vspace{-1em}
-\end{table}
-
-
-
-Figure \ref{MD_Regular_Vel0} shows the fluctuation of averaged velocity in pure MD simulations of stationary flow. Domain size is the same as our validation problem and this domain is split to 6, 12, 24, 48 layers in Y-direction to compute the flow velocity. As the flow is stationary, all averaged velocities should be zero regardless of the number of layers. However, the L2 norm of averaged velocity tends to increase with more layers (from 6 to 48), meaning that bigger layer size is required to reduce the noise in hybrid boundary. The strength of fluctuation converges to 0.01$\sigma$/$\tau$ as we increase the sampling interval, which implies that the fluctuation of $\pm$0.01 in hybrid boundary is unavoidable. The fluctuation did not decrease with smaller MD timescale and this concludes us that this fluctuation and its scale is physically natural phenomenon. From this test, we decide the coupling condition as $\Delta{t_{MD}}=5\times{10^{3}}$ with each layer size to be 2$\sigma$ (which is nearly equivalent to having 24 layer), sampling duration of 10$\tau$ and sampling interval is set up the double of sampling duration.
 
 %
 %\begin{figure}[ht]
@@ -646,58 +597,69 @@ Figure \ref{MD_Regular_Vel0} shows the fluctuation of averaged velocity in pure 
 
 
 
-This simple and direct approach can be still valid on micro-scaled domains by reducing the domain size in periodic direction. Again from statistical error analyses~\cite{Hadjicon2},\cite{Time_Mechanism}, statistical error is inversely proportional to the number of particles. increasing the system domain in periodic direction will reduce the statistical error proportionally. Also, for more accurate error computation
-
-
-
-
-
-
-
-
-
 % Table formats; h,t,b,p - here,top,bottom,page of floats
 \begin{table}[t]
-  \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of whole fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
-  \label{table:MD_Vel0_L}
+  \caption{\small Statistical Error in Stationary Flow Simulation; Pure MD simulations at system width of L = 40, 80 and 160 $\sigma$ are conducted. Initial data up to 100 $\tau$ are disregarded to provide enough time for minimization. Velocity of particles around the central layer are accumulated over 512 $\tau$ by using {\it{fix-ave-spatial}} function in LAMMPS package and post-processed to get the average velocity at different layer sizes and sampling duration conditions. The unit is 1/1000 of non-dimensional MD velocity, $\sigma / \tau$.}
+  \label{table:MD_Vel0}
   \centering
+  \resizebox{1.0\linewidth}{!} {
   \begin{tabular}{c || c c c c c c c}
 \hline
-	&	10 $\tau$	&	20 $\tau$	&	40 $\tau$	&	80 $\tau$	&	160 $\tau$	&	320 $\tau$	&	640 $\tau$	\\
+	&	1 $\tau$	&	2 $\tau$	&	4 $\tau$	&	8 $\tau$	&	16 $\tau$	 &	32 $\tau$	&	64 $\tau$ \\
 \hline
-1 $\sigma$	&	13.188 	&	11.573 	&	9.725 	&	8.640 	&	6.604 	&	3.666 	&	2.625 	\\
-2 $\sigma$	&	11.594 	&	10.522 	&	9.329 	&	8.285 	&	6.690 	&	3.715 	&	3.129 	\\
-4 $\sigma$	&	9.964 	&	9.436 	&	8.488 	&	7.619 	&	6.531 	&	4.006 	&	3.582 	\\
-8 $\sigma$	&	7.887 	&	7.571 	&	6.948 	&	6.439 	&	5.292 	&	3.681 	&	3.492 	\\
-16 $\sigma$	&	5.725 	&	5.638 	&	5.361 	&	5.206 	&	4.420 	&	3.143 	&	2.712 	\\
-32 $\sigma$	&	3.910 	&	3.854 	&	3.752 	&	3.748 	&	3.599 	&	3.186 	&	2.247 	\\
-64 $\sigma$	&	2.470 	&	2.457 	&	2.421 	&	2.420 	&	2.303 	&	2.277 	&	1.877 	\\
-128 $\sigma$	&	1.640 	&	1.631 	&	1.622 	&	1.613 	&	1.613 	&	1.595 	&	1.557 	\\
+0.1 $\sigma$ &	35.184 	&	27.888 	&	22.167 	&	18.043 	&	14.819 	&	 12.820 	&	12.835 	\\
+0.2 $\sigma$ &	29.890 	&	24.546 	&	20.020 	&  17.499 	&	14.836 	&	 14.252 	&	14.246 	\\
+0.4 $\sigma$ &	26.610 	&	22.440 	&	18.793 	&	17.053 	&	14.464 	&	 13.238 	&	13.234 	\\
+0.8 $\sigma$	&	23.458 	&	20.640 	&	17.489 	&	15.782 	&	13.879 	&	 12.475 	&	12.463 	\\
+1.6 $\sigma$ &	18.902 	&	17.514 	&	15.837 	&	14.448 	&	12.813 	&	 11.459 	&	11.035 	\\
+3.2 $\sigma$	&	14.055 	&	13.552 	&	12.942 	&	12.322 	&	11.225 	&	 10.027 	&	9.770 	\\
+6.4 $\sigma$	&	10.040 	&	9.873 	&	9.640 	&	9.270 	&	8.937 	&	 8.141 	&	7.961 	\\
+%12.8 $\sigma$	&	6.701 	&	6.649 	&	6.579 	&	6.454 	&	6.315 	&	 6.007 	&	5.282 	\\
 \hline
-\end{tabular}
+\hline
+	&	1 $\tau$	&	2 $\tau$	&	4 $\tau$	&	8 $\tau$	&	16 $\tau$	 &	32 $\tau$	&	64 $\tau$	\\
+\hline
+0.1 $\sigma$&	24.969 	&	20.608 	&	15.674 	&	12.683 	&	9.161 	&	7.165 	 &	6.157 	\\
+0.2 $\sigma$&	20.826 	&	17.397 	&	13.052 	&	10.833 	&	7.867 	&	6.622 	 &	5.567 	\\
+0.4 $\sigma$&	18.000 	&	15.210 	&	12.028 	&	10.261 	&	7.412 	&	6.063 	 &	5.810 	\\
+0.8 $\sigma$&	15.209 	&	13.108 	&	11.059 	&	9.478 	&	7.358 	&	5.679 	 &	5.556 	\\
+1.6 $\sigma$&	12.034 	&	10.998 	&	9.809 	&	8.477 	&	7.157 	&	5.751 	 &	5.522 	\\
+3.2 $\sigma$&	8.802 	&	8.453 	&	7.923 	&	7.052 	&	6.762 	&	5.634 	 &	5.486 	\\
+6.4 $\sigma$&	6.163 	&	5.952 	&	5.795 	&	5.538 	&	5.355 	&	5.019 	 &	4.928 	\\
+%12.8 $\sigma$&	4.760 	&	4.712 	&	4.691 	&	4.578 	&	4.385 	&	4.120 	 &	4.120 	\\
+\hline
+\hline
+	&	1 $\tau$	&	2 $\tau$	&	4 $\tau$	&	8 $\tau$	&	16 $\tau$	 &	32 $\tau$	&	64 $\tau$	\\
+\hline
+0.1 $\sigma$&	17.929 	&	14.024 	&	10.980 	&	9.595 	&	7.386 	&	6.409 	 &	5.744 	\\
+0.2 $\sigma$&	14.887 	&	12.077 	&	9.924 	&	8.638 	&	7.167 	&	6.310 	 &	5.736 	\\
+0.4 $\sigma$&	12.823 	&	10.849 	&	9.326 	&	8.081 	&	7.202 	&	6.466 	 &	5.771 	\\
+0.8 $\sigma$&	11.546 	&	10.226 	&	9.223 	&	8.033 	&	7.402 	&	6.307 	 &	5.832 	\\
+1.6 $\sigma$&	9.565 	&	8.970 	&	8.367 	&	7.648 	&	6.997 	&	6.247 	 &	5.983 	\\
+3.2 $\sigma$&	7.705 	&	7.558 	&	7.291 	&	6.962 	&	6.400 	&	5.966 	 &	5.817 	\\
+6.4 $\sigma$&	5.717 	&	5.657 	&	5.574 	&	5.338 	&	5.070 	&	4.999 	 &	4.958 	\\
+%12.8 $\sigma$&	4.293 	&	4.271 	&	4.219 	&	4.137 	&	4.079 	&	3.940 	 &	3.906		\\
+\hline
+\end{tabular} }
 \vspace{-1em}
 \end{table}
 
 
 
+%\begin{figure}[ht]
+%\centering
+%\includegraphics[width=0.9\linewidth]{MD_Regular_Vel0_5e-3.pdf}
+%\hskip 1cm
+%\includegraphics[width=0.9\linewidth]{MD_Regular_Vel0_1e-3.pdf}
+%\vskip-0.2cm
+%\caption{\small L2 Norm of Averaged Velocity with Different Layer Sizes and Sampling Duration, at $\Delta{t_{MD}}=5\times{10^{3}}$ (Left) and $\Delta{t_{MD}}=1\times{10^{3}}$ (Right); Solution tends to produce less noise with bigger layer size and smaller MD timescale in short sampling duration. As sampling interval is increased, all solutions converges to the same fluctuation strength, which is 0.01$\sigma/\tau$.}
+%\label{MD_Regular_Vel0}
+%\end{figure}
 
 
 
+CFD and MD computational domains are generated based on the above experiment, as depicted in Fig.~\ref{Couette_Val_Domain}. First, pure MD region is specified to be 10$\sigma$, which was reported to be sufficient to prevent strong fluctuation between fluid particles and wall materials from directly transported to CFD domains. This implies that the steady-state velocity in the hybrid domain will exceed 0.2 $\sigma$/$\tau$. So, we generate the the cell size of CFD mesh to be 2$\sigma$ in Y-direction, where the statistical error is guaranteed to be less than 5 percent of steady-state velocity. Two layer boundary zones from particle to continuum domain is placed ahead of pure MD region, from 10 to 14$\sigma$. Continuum to particle boundary is positioned from 18 to 22$\sigma$ and external force region is place at the top of hybrid region, from 24 to 26$\sigma$. The width of MD domain in the principal flow direction is determined to be 80 $\sigma$ based on above experiment. Regarding the temporal conditions, MD time scale $\Delta{t_{MD}}$ is set $5\times{10^{3}}\tau$. CFD solver evolves by  $\Delta{t_{CFD}}=0.1\tau$. Finally, sampling duration and interval are set 10 $\tau$, to have enough time for sampling but frequent enough to exchange the physical variation from individual domain.
 
-
-
-
-
-
-
-
-
-
-Multiple datasets with different layer sizes and sampling time are gathered by a single simulation run using \it{fix-ave-spatial} function on LAMMPS package. Initial data up to 96 $\tau$ are dropped off to have enough time for minimization process and data at the central layer are averaged over 512 $\tau$ for the reliability.
-
-
-
-Resulting CFD and MD computational domains are depicted in Fig.~\ref{Couette_Val_Domain}. In CFD mesh, the cell size in Y-direction is 2$\sigma$. Pure MD region is specified to be 10$\sigma$, which was observed to be sufficient to prevent strong fluctuation between fluid particles and wall materials from directly transported to CFD domains by iterative testruns. Two layer boundary zones from particle to continuum domain is placed ahead of pure MD region, from 10 to 14$\sigma$. Continuum to particle boundary is positioned from 18 to 22$\sigma$ and external force region is place at the top of hybrid region, from 24 to 26$\sigma$. MD domain has sufficiently large length in the principal flow direction, to include enough number of particles in the hybrid data average region.
 
 %
 \begin{figure}[ht]
@@ -708,12 +670,57 @@ Resulting CFD and MD computational domains are depicted in Fig.~\ref{Couette_Val
 \label{Couette_Val_Domain}
 \end{figure}
 
+A sudden-start Couette flow profile by CFD, MD and hybrid simulations are presented in Fig.~\ref{Flat_Plate_Sol}. Pure CFD produces identically the same result as analytic solution and MD simulations also describes the same flow physics. In MD simulation, fluctuating pattern is observed during the evolution. This causes the slight variation in hybrid solution initially, but the steady-state solution demonstrates the same flow pattern as analytic solution.
+%, along with the time-lagging in current algorithm.
+This proves that the hybrid approach can accurately analyze the steady flow profile in micro-scaled systems.
+
+%
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.7\linewidth]{Flat_Plate_Sol1_New.pdf}
+\hskip 1cm
+\includegraphics[width=0.7\linewidth]{Flat_Plate_Sol2_New.pdf}
+\vskip-0.2cm
+\caption{\small Unsteady Couette Flow Profile; (Left) Pure CFD solution is exactly the same as analytic solution. MD solution shows the same flow pattern as analytic solution, though some fluctuation is observed. This verifies that CFD and MD represents the same flow physics. (Right) The steady result by hybrid approach produces the same numerical result as analytic solution, though the time-lagging in the hybrid boundary is observed during the evolution.}
+\label{Flat_Plate_Sol}
+\end{figure}
+
+We now apply our framework on solving the flow field with O(100) nanometer scale. In this simulation, all conditions are identical to above simulation, except the height of the system becomes 10 times bigger (520$\sigma$) in height. As was argued by Yen et al~\cite{Yen}, hybrid simulation becomes quite sensitive as the shear speed reduces. \skonote{Check the correct text from Yen's paper!} We believe that this numerical analysis evaluates the accuracy of our framework.
+
+Again, we start from the measurement of statistical error in stationary flow. Table~\ref{table:MD_Vel0_L} shows the strength of statistical error at different layer height and sampling duration. According to the result, we can expect the statistical error is about $5 \times 10^3$ with
+\skonote{Update data table!}
+
+In the above experiment, we set the width of system domain $\approx$ 150 $\sigma$.
 
 
+This simple and direct approach can be still valid on setting coupling conditions for larger domains, by reducing the domain size in periodic direction. According to statistical error analyses~\cite{Hadjicon2},\cite{Time_Mechanism}, statistical error is inversely proportional to the number of particles and our numerical experiments (by comparing first and second tables in Table~\ref{table:MD_Vel0}) support these analyses in cases the length of periodic direction is shorter than the height.
+
+increasing the system domain in periodic direction will reduce the statistical error proportionally. Also, for more accurate error computation
 
 
+% Table formats; h,t,b,p - here,top,bottom,page of floats
+\begin{table}[t]
+  \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of whole fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
+  \label{table:MD_Vel0_L}
+  \centering
+    \resizebox{1.0\linewidth}{!} {
+  \begin{tabular}{c || c c c c c c c}
+\hline
+	&	10 $\tau$	&	20 $\tau$	&	40 $\tau$	&	80 $\tau$	&	160 $\tau$	&	320 $\tau$	&	640 $\tau$	\\
+\hline
+1 $\sigma$	&	13.188 	&	11.573 	&	9.725 	&	8.640 	&	6.604 	&	3.666 	 &	2.625 	\\
+2 $\sigma$	&	11.594 	&	10.522 	&	9.329 	&	8.285 	&	6.690 	&	3.715 	 &	3.129 	\\
+4 $\sigma$	&	9.964 	&	9.436 	&	8.488 	&	7.619 	&	6.531 	&	4.006 	 &	3.582 	\\
+8 $\sigma$	&	7.887 	&	7.571 	&	6.948 	&	6.439 	&	5.292 	&	3.681 	 &	3.492 	\\
+16 $\sigma$	&	5.725 	&	5.638 	&	5.361 	&	5.206 	&	4.420 	&	3.143 	 &	2.712 	\\
+32 $\sigma$	&	3.910 	&	3.854 	&	3.752 	&	3.748 	&	3.599 	&	3.186 	 &	2.247 	\\
+64 $\sigma$	&	2.470 	&	2.457 	&	2.421 	&	2.420 	&	2.303 	&	2.277 	 &	1.877 	\\
+%128 $\sigma$	&	1.640 	&	1.631 	&	1.622 	&	1.613 	&	1.613 	&	 1.595 	&	1.557 	\\
+\hline
+\end{tabular} }
+\vspace{-1em}
+\end{table}
 
-Unsteady Couette flow profile by CFD, MD and hybrid simulations are presented in Fig.~\ref{Flat_Plate_Sol}. Pure CFD produces identically the same result as analytic solution and MD simulations also describes the same flow physics. In MD simulation, fluctuating pattern is observed during the evolution. This causes the slight variation in hybrid solution, along with the time-lagging in current algorithm. After convergence, the solution follows the same flow pattern as steady profile, which proves that the hybrid approach can accurately analyze the steady flow profile in micro-scaled systems.
 
 %
 \begin{figure}[ht]
@@ -727,6 +734,8 @@ Unsteady Couette flow profile by CFD, MD and hybrid simulations are presented in
 \end{figure}
 
 
+
+\subsection{Numerical Simulation of a Physically Unsteady Problem: Oscillating Boundary Problem}
 
 The same domain with coupling condition is applied to solve the Stokes boundary layer problem, which is purely unsteady problem. In this case, the upper wall boundary condition changes from the fixed velocity to oscillatory wall, which is $u_{wall}(t)=({\sigma}/{\tau}){\times}sin(2{\pi}t/T)$. Period $T$ is set 200$\tau$. Velocity in the hybrid region becomes far slower than the Couette flow profile, so the influence of noise from MD side is concerned to be more critical in the current flow simulation.
 
@@ -742,13 +751,6 @@ Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and h
 \caption{\small Unsteady Flow Profile of Stokes Boundary Layer Problem; Solution by pure CFD simulation is denoted by a solid line and solution by hybrid simulation is presented by symbols. Hybrid flow profile globally matches well with CFD solution, though slight time-lagging in the MD side is observed. This evaluates that current hybrid approach can be applied to purely unsteady problem.}
 \label{Stokes_Sol}
 \end{figure}
-
-
-
-
-\subsection{Numerical Simulation of a Physically Unsteady Problem: Stokes Boundary Layer Problem}
-
-\skonote{Additional context after real-scale simulation}
 
 
 \subsection{Performance Analysis of a Multi-physics Simulation Framework}
