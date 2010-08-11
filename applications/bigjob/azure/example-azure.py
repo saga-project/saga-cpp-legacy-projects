@@ -2,13 +2,12 @@
     Azure implementation of BigJob is used
 """
 
-import saga
 import os
 import bigjob_azure
 import time
 import pdb
 
-NUMBER_JOBS=2
+NUMBER_JOBS=5
 
 
 """ Test Job Submission via Azure BigJob """
@@ -29,11 +28,11 @@ if __name__ == "__main__":
 
     ##########################################################################################
     # Submit SubJob through BigJob
-    jd = saga.job.description()
+    jd = description() #TODO: move to SAGA JD
     jd.executable = "approot\\resources\\namd\\namd2.exe"
     jd.number_of_processes = "1"
     jd.spmd_variation = "single"
-    jd.arguments = ["+p8", "NPT.conf"]
+    jd.arguments = ["+p1", "NPT.conf"]
     jd.working_directory = "approot\\resources\\namd\\"
     jd.output = "stdout.txt"
     jd.error = "stderr.txt"

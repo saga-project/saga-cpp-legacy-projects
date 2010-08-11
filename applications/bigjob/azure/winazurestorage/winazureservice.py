@@ -11,24 +11,22 @@ SERVICE_MANAGEMENT_HOST = 'management.core.windows.net'
 # User Configuration
 USER_CERTIFICATE = 'azure-certificate.pem'
 SUBSCRIPTION_ID='c86aebd3-affe-4feb-aaa1-e69e7ee65d10'
+            
 
-
-class ServiceManagement(object):
-
-        def __init__(self):
-            self.h = httplib.HTTPSConnection(SERVICE_MANAGEMENT_HOST, 443, cert_file=USER_CERTIFICATE)
+class HostedService():
+    
+        def __init__(self, subscription_id=SUBSCRIPTION_ID, user_certificate=USER_CERTIFICATE):
+            logging.debug("init hosted service")
+            self.subscription_id = subscription_id
+            self.user_certificate = user_certificate
+            
+            self.h = httplib.HTTPSConnection(SERVICE_MANAGEMENT_HOST, 443, cert_file=user_certificate, timeout=120)
             if(logging.getLogger('').isEnabledFor(logging.DEBUG)):
                self.h.set_debuglevel(7)
-
-
-class HostedService(ServiceManagement):
-        def __init__(self):
-            logging.debug("init hosted service")
-            super(HostedService, self).__init__()
                 
         def list(self):        
             """ list all hosted services """    
-            self.h.request('GET', '/' + SUBSCRIPTION_ID +'/services/hostedservices', headers={"x-ms-version":"2009-10-01"})
+            self.h.request('GET', '/' + self.subscription_id +'/services/hostedservices', headers={"x-ms-version":"2009-10-01"})
             response = self.h.getresponse()
             logging.debug("HTTP Response: " + str(response.status) + " " + str(response.reason) + "\n"+response.read())
             
@@ -48,7 +46,7 @@ class HostedService(ServiceManagement):
             </CreateDeployment>""" % (deploymentName, serviceLocation, base64.encodestring(deploymentName), base64.encodestring(configuration))
             
             logging.debug(data)
-            url = "/" + SUBSCRIPTION_ID +"/services/hostedservices/" + serviceName + "/deploymentslots/"+ slotName
+            url = "/" + self.subscription_id +"/services/hostedservices/" + serviceName + "/deploymentslots/"+ slotName
             logging.debug("URL: " + url)
             self.h.request('POST', url, body=data, 
                            headers={"x-ms-version":"2009-10-01", "Content-Type": "application/xml"})
@@ -61,7 +59,7 @@ class HostedService(ServiceManagement):
         
         def deleteDeployment(self, serviceName, slotName):
             """ delete Azure deployment """
-            url = "/" + SUBSCRIPTION_ID +"/services/hostedservices/" + serviceName + "/deploymentslots/"+ slotName
+            url = "/" + self.subscription_id +"/services/hostedservices/" + serviceName + "/deploymentslots/"+ slotName
             self.h.request('DELETE', url, headers={"x-ms-version":"2009-10-01"})
             response = self.h.getresponse()
             requestId = response.getheader("x-ms-request-id")  
@@ -71,7 +69,7 @@ class HostedService(ServiceManagement):
             return requestId      
             
         def getOperationStatus(self, requestId):
-            url = "/" + SUBSCRIPTION_ID +"/operations/" + requestId
+            url = "/" + self.subscription_id +"/operations/" + requestId
             self.h.request('GET', url, headers={"x-ms-version":"2009-10-01"})
             response = self.h.getresponse()
             responseData = response.read()
@@ -96,7 +94,7 @@ class HostedService(ServiceManagement):
                 logging.error("Invalid status: " + status + " (should be either Running or Suspended)")
                 return
             #build URL and payload
-            url = "/" + SUBSCRIPTION_ID +"/services/hostedservices/" + serviceName + "/deploymentslots/"+ slotName  + "/?comp=status"
+            url = "/" + self.subscription_id +"/services/hostedservices/" + serviceName + "/deploymentslots/"+ slotName  + "/?comp=status"
             data ="""<?xml version="1.0" encoding="utf-8"?>
                     <UpdateDeploymentStatus xmlns="http://schemas.microsoft.com/windowsazure">
                           <Status>%s</Status>
