@@ -3,7 +3,10 @@ import base64
 from xml.dom import minidom
 import time
 import logging
-logging.basicConfig(level=logging.DEBUG)
+
+from xml.etree.ElementTree import ElementTree, QName, tostring, dump
+
+#logging.basicConfig(level=logging.Info)
 
 # Azure Configuration
 SERVICE_MANAGEMENT_HOST = 'management.core.windows.net'
@@ -30,12 +33,9 @@ class HostedService():
             response = self.h.getresponse()
             logging.debug("HTTP Response: " + str(response.status) + " " + str(response.reason) + "\n"+response.read())
             
-        def createDeployment(self, serviceName, deploymentName, slotName, serviceLocation, serviceConfiguration):
-            #read config
-            configFile = open(serviceConfiguration, 'r')
-            configuration = configFile.read()
-            configFile.close()
-            
+        def createDeployment(self, serviceName, deploymentName, slotName, serviceLocation, serviceConfiguration, numberNodes):
+           
+            configuration = self.prepareConfiguration(serviceConfiguration, numberNodes)
             #create payload string
             data = """<?xml version="1.0" encoding="utf-8"?>
             <CreateDeployment xmlns="http://schemas.microsoft.com/windowsazure">
@@ -52,10 +52,20 @@ class HostedService():
                            headers={"x-ms-version":"2009-10-01", "Content-Type": "application/xml"})
             response = self.h.getresponse()
             requestId = response.getheader("x-ms-request-id")
-            responseData = response.read();
+            responseData = response.read()
             logging.debug("HTTP Response: " + str(response.status) + " " + str(response.reason) 
                           + "\nRequest-Id: " + requestId)
-            return requestId            
+            return requestId        
+        
+        def prepareConfiguration(self, serviceConfiguration, numberNodes):
+            """ read configuration and adjust number of nodes """
+            tree = ElementTree(file=serviceConfiguration)
+            instanceElement = tree.find("*/{http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration}Instances") 
+            instanceElement.set("count", str(numberNodes))            
+            configuration = tostring(tree.getroot())
+            logging.debug("Configuration: " + configuration)
+            return configuration
+            
         
         def deleteDeployment(self, serviceName, slotName):
             """ delete Azure deployment """
@@ -63,7 +73,7 @@ class HostedService():
             self.h.request('DELETE', url, headers={"x-ms-version":"2009-10-01"})
             response = self.h.getresponse()
             requestId = response.getheader("x-ms-request-id")  
-            responseData = response.read();          
+            responseData = response.read()          
             logging.debug("HTTP Response: " + str(response.status) + " " + str(response.reason) 
                           + "\nRequest-Id: " + requestId)     
             return requestId      
@@ -114,11 +124,12 @@ class HostedService():
         
         
 def main():
-    h = HostedService(); 
+    h = HostedService(subscription_id="2ffebf74-01b0-4ee8-a4e7-3a9178002908") 
+    h.list()
     
     requestId = h.createDeployment( "drelu", "bigjob", "staging", 
                        "http://drelu.blob.core.windows.net/namd-service/BigJobService.cspkg",
-                       "BigJobService/deploy/ServiceConfiguration.cscfg")
+                       "BigJobService/deploy/ServiceConfiguration.cscfg", 1)
     # wait for deployment to be done
     status = h.waitForRequest(requestId);
     

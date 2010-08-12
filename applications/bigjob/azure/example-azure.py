@@ -3,7 +3,7 @@
 """
 
 import os
-import bigjob_azure
+from bigjob_azure import *
 import time
 import pdb
 
@@ -21,10 +21,15 @@ if __name__ == "__main__":
 
     # start pilot job (bigjob_agent)
     print "Start Pilot Job/BigJob in the cloud. "
-    bj = bigjob_azure.bigjob_azure()
+    start = time.time()
+    bj = bigjob_azure()
     bj.start_pilot_job(number_nodes=nodes, 
                        working_directory=current_directory)
-    print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
+    print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())\
+        + " Launch Time: " + str(time.time()-start) + " sec"    
+    if(bj.get_state()=="Failed"):
+        print "Start of BigJob failed."
+        sys.exit(-1)
 
     ##########################################################################################
     # Submit SubJob through BigJob
@@ -40,7 +45,7 @@ if __name__ == "__main__":
     jobs = []
     for i in range (0, NUMBER_JOBS):
         print "Start job no.: " + str(i)
-        sj = bigjob_azure.subjob(bigjob=bj)
+        sj = subjob(bigjob=bj)
         sj.submit_job(jd)        
         jobs.append(sj)
     

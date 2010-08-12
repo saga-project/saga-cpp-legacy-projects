@@ -31,6 +31,9 @@ logging.basicConfig(level=logging.DEBUG)
 from winazurestorage import *
 from winazureservice import *
 
+import xml.etree.ElementTree
+from  xml.etree.ElementTree import *
+
 """ Config parameters (will move to config file in future) """
 """ Used as blob storage keys """
 APPLICATION_NAME="bigjob"
@@ -52,7 +55,8 @@ class bigjob_azure():
         config.read(conf_file)
         default_dict = config.defaults()
         self.account_name_storage = default_dict["account_name_storage"]
-        self.account_name_compute = default_dict["account_name_storage"]
+        self.account_name_compute = default_dict["account_name_compute"]
+        self.slot = default_dict["slot"]
         self.secret_key = default_dict["secret_key"]
         self.user_certificate = default_dict["user_certificate"]
         self.subscription_id = default_dict["subscription_id"]
@@ -77,29 +81,34 @@ class bigjob_azure():
         logging.debug("created azure blob: " + self.app_url)
     
     def start_azure_worker_roles(self, number=1):
-        h = HostedService(self.subscription_id, self.user_certificate); 
-        requestId = h.createDeployment( self.account_name_compute, APPLICATION_NAME, "staging", 
+        self.h = HostedService(self.subscription_id, self.user_certificate); 
+        requestId = self.h.createDeployment( self.account_name_compute, APPLICATION_NAME, self.slot, 
                        "http://saga.blob.core.windows.net/namd-service/BigJobService.cspkg",
-                       "BigJobService/deploy/ServiceConfiguration.cscfg")
+                       "BigJobService/deploy/ServiceConfiguration.cscfg", number)
         # wait for deployment to be done
-        status = h.waitForRequest(requestId);
+        status = self.h.waitForRequest(requestId);
     
         if status != "Succeeded":
             logging.debug("Deployment Failed")
+            self.set_state(state.Failed)
             return
     
         # change status to running    
         logging.debug("Setting deployment status to Running")
-        requestId = h.updateDeploymentStatus(self.account_name_compute, "staging", "Running")
-        status = h.waitForRequest(requestId);
+        requestId = self.h.updateDeploymentStatus(self.account_name_compute, self.slot, "Running")
+        status = self.h.waitForRequest(requestId);
+        if status != "Succeeded":
+            logging.debug("Update Deployment Failed")
+            self.set_state(state.Failed)
+            return
         
     def stop_azure_worker_roles(self):
         logging.debug("Deleting deployment")
-        requestId = h.updateDeploymentStatus(self.account_name_compute, "staging", "Suspended")
-        status = h.waitForRequest(requestId)
+        requestId = self.h.updateDeploymentStatus(self.account_name_compute, self.slot, "Suspended")
+        status = self.h.waitForRequest(requestId)
     
-        requestId = h.deleteDeployment(self.account_name_compute, "staging")    
-        status = h.waitForRequest(requestId)     
+        requestId = self.h.deleteDeployment(self.account_name_compute, self.slot)    
+        status = self.h.waitForRequest(requestId)     
     
     def start_pilot_job(self, 
                  lrms_url=None,                     # in future version one can specify a URL for a cloud (ec2:// vs. nimbus:// vs. eu://)
@@ -115,13 +124,18 @@ class bigjob_azure():
      
         self.pilot_url = self.app_url
         #update state blob
-        self.blob.put_blob(self.app_id, STATE, str(state.Unknown), "text/plain")
+        #self.blob.put_blob(self.app_id, STATE, str(state.Unknown), "text/plain")
+        self.set_state(str(state.Unknown))
         logging.debug("set pilot state to: " + str(state.Unknown))
  
         # use service management api to spawn azure images
         logging.debug("init azure worker roles") 
         self.start_azure_worker_roles(number_nodes)
+        self.set_state(str(state.Running))
      
+    def set_state(self, new_state):
+        self.blob.put_blob(self.app_id, STATE, new_state, "text/plain")
+    
     def get_state(self):        
         return self.blob.get_blob(self.app_id, STATE)
     
@@ -159,13 +173,18 @@ class bigjob_azure():
     
     def create_jd_json(self, jd):
         jd_dict = {}
-        attributes = jd.list_attributes()                
-        for i in attributes:          
-               if jd.attribute_is_vector(i):
-                   jd_dict[i]=jd.get_vector_attribute(i)
-               else:
-                   logging.debug("Add attribute: " + str(i) + " Value: " + jd.get_attribute(i))
-                   jd_dict[i] = jd.get_attribute(i)
+        for i in dir(jd):          
+              if not str(i).startswith("__"):
+                  logging.debug("Add attribute: " + str(i) + " Value: " + str(getattr(jd, i)))              
+                  jd_dict[i]=getattr(jd, i)
+        
+        #attributes = jd.list_attributes()                
+        #for i in attributes:          
+              #if jd.attribute_is_vector(i):
+              #     jd_dict[i]=jd.get_vector_attribute(i)
+              # else:
+              #     logging.debug("Add attribute: " + str(i) + " Value: " + jd.get_attribute(i))
+              #     jd_dict[i] = jd.get_attribute(i)
         # state should be stored as metadata to avoid that the entire blob must
         # be read (not supported by winazurestorage yet)
         jd_dict["state"] = str(state.Unknown)       
@@ -226,8 +245,14 @@ class description():
         self.working_directory = ""
         self.output = ""
         self.error = ""
+
                     
 class state():
    Unknown = "Unknown"
-    
+   Failed = "Failed"
+   New = "New"
+   Running = "Running"
+   Done = "Done"
+   Suspended = "Suspended"
+   Canceled = "Canceled"
         
