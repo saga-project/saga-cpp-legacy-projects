@@ -67,7 +67,7 @@ namespace BigjobAzureAgent
                     if (ExecuteSubJob(jobId)) 
                     {
                         //success - delete message
-                        updateState(jobId, "Done");
+                        UpdateState(jobId, "Done");
                         queue.DeleteMessage(queueMessage);
                         //queue.DeleteMessage(queueMessage.Id, queueMessage.PopReceipt);
                         
@@ -76,7 +76,7 @@ namespace BigjobAzureAgent
                     else
                     {
                         //failure
-                        updateState(jobId, "New");
+                        UpdateState(jobId, "New");
                         queue.AddMessage(queueMessage); //put message back in queue 
                     }
                     
@@ -84,7 +84,37 @@ namespace BigjobAzureAgent
             } //end while loop
         }
 
-        public void updateState(string jobId, string newState)
+        public void StageInFiles(string jobId, Dictionary<string, object> jobDict, string workingDirectory)
+        {
+            if (jobDict.ContainsKey("filetransfer"))
+            {
+                JArray sourceArray = (JArray)jobDict["filetransfer"];
+                //Dictionary<string, object> transfers 
+                //    = (Dictionary<string, object>)jobDict["filetransfer"];
+                //JArray sourceArray = (JArray) jobject.SelectToken("source");
+                foreach (JObject a in sourceArray)
+                {
+                    try
+                    {                        
+                        string source = (string)a.SelectToken("source");
+                        source = Path.GetFileName(source);
+                        string sourceFileName = jobId + "/" + source;
+
+                        string localPath = Path.Combine(Environment.GetEnvironmentVariable("RoleRoot"));
+                        string targetFileName = Path.Combine(localPath, workingDirectory);
+                        targetFileName = Path.Combine(targetFileName, source);
+                        CloudBlobContainer blobContainer = getCloudBlobContainer();
+                        Trace.WriteLine("Download from Blob: " + sourceFileName + " to: " + targetFileName);
+                        blobContainer.GetBlobReference(sourceFileName).DownloadToFile(targetFileName);
+                    }
+                    catch (DirectoryNotFoundException dnf) {
+                        Trace.WriteLine(dnf.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void UpdateState(string jobId, string newState)
         {
             Dictionary<string, object> jobDict = getJobDictFromBlob(jobId);
             jobDict[STATE] = newState;
@@ -95,7 +125,7 @@ namespace BigjobAzureAgent
         {
             //get reference to blob client
             Dictionary<string, object> jobDict = getJobDictFromBlob(jobId);
-
+            
             string state = (string) jobDict[STATE];
             if (state == "New" || state == "Unknown")
             {
@@ -140,6 +170,9 @@ namespace BigjobAzureAgent
                     error = (string)jobDict["error"];
                 }
 
+                //stage files
+                StageInFiles(jobId, jobDict, workingdirectory);
+
                 try
                 {
                     #region execute subjob
@@ -158,7 +191,7 @@ namespace BigjobAzureAgent
                     info.RedirectStandardOutput = true;
                     info.RedirectStandardError = true;
                     Stopwatch swComputeTime = Stopwatch.StartNew();
-                    updateState(jobId, "Running");
+                    UpdateState(jobId, "Running");
                     Trace.WriteLine("Starting .exe in directory " + Path.Combine(localPath + @"\", workingdirectory), "Information");
                     Process applicationProcess = Process.Start(info);
                     Trace.WriteLine("Started .exe on host " + applicationProcess.MachineName, "Information");
@@ -193,12 +226,12 @@ namespace BigjobAzureAgent
 
                     DateTime date = DateTime.Now;
                     string dateString = date.ToString("yyyyMMdd_HHmm", CultureInfo.InvariantCulture);
-                    CloudBlob stdoutBlob = getCloudBlobContainer().GetBlobReference(output + "-" + jobId + ".txt");
+                    CloudBlob stdoutBlob = getCloudBlobContainer().GetBlobReference(output + "-" + jobId);
                     stdoutBlob.UploadText("VMSize: " + "n/a" + "\n" + "Runtime: "
                         + swComputeTime.ElapsedMilliseconds + " ms\n\n"
                         + "******************************************************************************************"
                         + "\nOutput:\n" + outputString);
-                    CloudBlob stderrBlob = getCloudBlobContainer().GetBlobReference(error + "-" + jobId + ".txt");
+                    CloudBlob stderrBlob = getCloudBlobContainer().GetBlobReference(error + "-" + jobId);
                     stderrBlob.UploadText(errorString);                    
                     #endregion
                 }
@@ -220,6 +253,15 @@ namespace BigjobAzureAgent
             }
             return false;
         }
+
+       /* private JObject getJobDictFromBlob(String jobId)
+        {
+            CloudBlob jobBlob = getCloudBlobContainer().GetBlobReference(jobId);
+            String jobString = jobBlob.DownloadText();
+            Dictionary<string, object> jobDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(jobString);
+            return jobDict;
+        }*/
+
 
         private Dictionary<string, object> getJobDictFromBlob(String jobId)
         {
