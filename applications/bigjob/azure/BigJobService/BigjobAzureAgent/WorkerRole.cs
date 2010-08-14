@@ -42,7 +42,7 @@ namespace BigjobAzureAgent
             {
                 //IAsyncResult result = queue.BeginGetMessage(null, null);
                 //CloudQueueMessage jobId = queue.EndGetMessage(result);
-                CloudQueueMessage queueMessage = queue.GetMessage();
+                CloudQueueMessage queueMessage = queue.GetMessage(new TimeSpan(1,0,0));
 
                 if (queueMessage == null)
                 {
@@ -51,7 +51,9 @@ namespace BigjobAzureAgent
                 }
                 else
                 {
-                    Trace.WriteLine("BigjobAzureAgent got queue message: " + queueMessage.AsString, "Information");
+                    Trace.WriteLine("BigjobAzureAgent got queue message: " + queueMessage.AsString + " MsgId: " 
+                        + queueMessage.Id + " Pop Receipt: " + queueMessage.PopReceipt
+                        + " Visibility: " + queueMessage.NextVisibleTime, "Information");
                 }
                 if (queueMessage.AsString == "STOP")
                 {
@@ -67,6 +69,9 @@ namespace BigjobAzureAgent
                         //success - delete message
                         updateState(jobId, "Done");
                         queue.DeleteMessage(queueMessage);
+                        //queue.DeleteMessage(queueMessage.Id, queueMessage.PopReceipt);
+                        
+                        //getCloudBlobContainer().GetBlobReference(jobId).Delete();
                     }
                     else
                     {
@@ -97,42 +102,42 @@ namespace BigjobAzureAgent
                 jobDict[STATE] = "New";
                 Trace.WriteLine(jobDict, "Information");
                 String numberOfProcesses = "1";
-                if (jobDict.ContainsKey("NumberOfProcesses"))
+                if (jobDict.ContainsKey("number_of_processes"))
                 {
-                    numberOfProcesses = (string)jobDict["NumberOfProcesses"];
+                    numberOfProcesses = (string)jobDict["number_of_processes"];
                 }
 
                 String spmdvariation = "single";
-                if (jobDict.ContainsKey("SPMDVariation"))
+                if (jobDict.ContainsKey("spmd_variation"))
                 {
-                    spmdvariation = (string)jobDict["SPMDVariation"];
+                    spmdvariation = (string)jobDict["spmd_variation"];
                 }
                 String arguments = "";
-                if (jobDict.ContainsKey("Arguments"))
+                if (jobDict.ContainsKey("arguments"))
                 {
-                    JArray argumentArray = (JArray)jobDict["Arguments"];
+                    JArray argumentArray = (JArray)jobDict["arguments"];
                     foreach (JValue a in argumentArray)
                     {
                         arguments = arguments + " " + a.ToString();
                     }
                 }
-                String executable = (string)jobDict["Executable"];
+                String executable = (string)jobDict["executable"];
 
                 String workingdirectory = Environment.GetEnvironmentVariable("RoleRoot");
-                if (jobDict.ContainsKey("WorkingDirectory"))
+                if (jobDict.ContainsKey("working_directory"))
                 {
-                    workingdirectory = (string)jobDict["WorkingDirectory"];
+                    workingdirectory = (string)jobDict["working_directory"];
                 }
                 String output = "stdout";
-                if (jobDict.ContainsKey("Output"))
+                if (jobDict.ContainsKey("output"))
                 {
-                    output = (string)jobDict["Output"];
+                    output = (string)jobDict["output"];
                 }
 
                 String error = "stderr";
-                if (jobDict.ContainsKey("Error"))
+                if (jobDict.ContainsKey("error"))
                 {
-                    error = (string)jobDict["Error"];
+                    error = (string)jobDict["error"];
                 }
 
                 try
@@ -160,21 +165,20 @@ namespace BigjobAzureAgent
 
                     #region Grap Output
                     StreamReader reader = applicationProcess.StandardOutput;
-                    string CompleteOutput = string.Empty;
+                    string completeOutput = string.Empty;
                     string line = string.Empty;
                     line = reader.ReadLine();
                     Trace.WriteLine(line, "Information");
                     while (line != null)
                     {
                         line = reader.ReadLine();
-                        CompleteOutput += line != null ? line : string.Empty;
-                        CompleteOutput += "\n";
+                        completeOutput += line != null ? line : string.Empty;
+                        completeOutput += "\n";
                         Trace.WriteLine(line != null ? line : "<EOL>", "Information");
                     }
                     #endregion
 
-
-
+                    
                     applicationProcess.WaitForExit();
                     swComputeTime.Stop();
                     Trace.WriteLine("Runtime: " + swComputeTime.ElapsedMilliseconds + " msec");
@@ -182,18 +186,20 @@ namespace BigjobAzureAgent
 
                     #region get output and store in subjob blob
 
-                    string outputString = applicationProcess.StandardOutput.ReadToEnd();
+                    //string outputString = applicationProcess.StandardOutput.ReadToEnd();
+
+                    string outputString = completeOutput;
                     string errorString = applicationProcess.StandardError.ReadToEnd();
 
                     DateTime date = DateTime.Now;
                     string dateString = date.ToString("yyyyMMdd_HHmm", CultureInfo.InvariantCulture);
-                    CloudBlob stdoutBlob = blobContainer.GetBlobReference(output + "-" + dateString + ".txt");
+                    CloudBlob stdoutBlob = getCloudBlobContainer().GetBlobReference(output + "-" + jobId + ".txt");
                     stdoutBlob.UploadText("VMSize: " + "n/a" + "\n" + "Runtime: "
                         + swComputeTime.ElapsedMilliseconds + " ms\n\n"
                         + "******************************************************************************************"
                         + "\nOutput:\n" + outputString);
-                    CloudBlob stderrBlob = blobContainer.GetBlobReference(error + "-" + dateString + ".txt");
-                    stdoutBlob.UploadText(errorString);                    
+                    CloudBlob stderrBlob = getCloudBlobContainer().GetBlobReference(error + "-" + jobId + ".txt");
+                    stderrBlob.UploadText(errorString);                    
                     #endregion
                 }
                 catch (Exception ex)
@@ -255,7 +261,18 @@ namespace BigjobAzureAgent
             // Set the maximum number of concurrent connections 
             ServicePointManager.DefaultConnectionLimit = 12;
 
-            DiagnosticMonitor.Start("DiagnosticsConnectionString");
+
+            //Get the default initial configuration for Windows Azure Diagnostics
+            DiagnosticMonitorConfiguration diagConfig = DiagnosticMonitor.GetDefaultInitialConfiguration();
+
+            //Add the Windows Event Log data source to the default initial configuration
+            diagConfig.WindowsEventLog.DataSources.Add("Application!*");
+
+            //Specify the scheduled transfer
+            diagConfig.WindowsEventLog.ScheduledTransferPeriod = System.TimeSpan.FromMinutes(1.0); 
+
+
+            DiagnosticMonitor.Start("DiagnosticsConnectionString", diagConfig);
 
             // Config Change Handling
             CloudStorageAccount.SetConfigurationSettingPublisher((configName, configSetter) =>
