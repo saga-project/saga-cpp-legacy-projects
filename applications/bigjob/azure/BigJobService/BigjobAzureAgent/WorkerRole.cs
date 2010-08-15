@@ -162,7 +162,7 @@ namespace BigjobAzureAgent
                 {
                     workingdirectory = (string)jobDict["working_directory"];
                     workingdirectory = substituteTempDir(workingdirectory);
-                    copyDirectory(Path.Combine(Environment.GetEnvironmentVariable("RoleRoot"), @"approot\resources\namd\"),
+                    copyDirectory(Environment.GetEnvironmentVariable("RoleRoot") + @"\approot\resources\namd\",
                                   workingdirectory);
                 }
                 String output = "stdout";
@@ -261,23 +261,36 @@ namespace BigjobAzureAgent
             return false;
         }
 
-        public static void copyDirectory(string Src,string Dst)
+        public static void copyDirectory(string Src, string Dst)
         {
-            String[] Files;
-            if(Dst[Dst.Length-1]!=Path.DirectorySeparatorChar) 
-                Dst+=Path.DirectorySeparatorChar;
-            if(!Directory.Exists(Dst)) Directory.CreateDirectory(Dst);
-            Files=Directory.GetFileSystemEntries(Src);
-            foreach(string Element in Files){
-                // Sub directories
-
-                if(Directory.Exists(Element)) 
-                    copyDirectory(Element,Dst+Path.GetFileName(Element));
-                // Files in directory
-
-                else 
-                    File.Copy(Element,Dst+Path.GetFileName(Element),true);
+            Trace.WriteLine("Copy resources from: " + Src + " to: " + Dst);
+            try
+            {
+                String[] Files;
+                if (Dst[Dst.Length - 1] != Path.DirectorySeparatorChar)
+                    Dst += Path.DirectorySeparatorChar;
+                if (!Directory.Exists(Dst)) Directory.CreateDirectory(Dst);
+                Files = Directory.GetFileSystemEntries(Src);
+                foreach (string Element in Files)
+                {
+                    // Sub directories
+                    if (Directory.Exists(Element))
+                    {
+                        copyDirectory(Element, Dst + Path.GetFileName(Element));
+                        // Files in directory
+                    }
+                    else
+                    {
+                        string destinationFile = Dst + @"\" + Path.GetFileName(Element);
+                        Trace.WriteLine("Copy: " + Element + " to: " + destinationFile);
+                        File.Copy(Element, destinationFile, true);
+                    }
                 }
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Trace.WriteLine(e.StackTrace);                
+            }
        }
 
        private static string substituteTempDir(string newArg)
