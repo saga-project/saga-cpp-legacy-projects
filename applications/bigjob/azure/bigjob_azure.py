@@ -11,14 +11,14 @@ cp bigjob_azure.conf.template bigjob_azure.conf
 """
 
 import sys
-sys.path.append("./winazurestorage")
+import os
+sys.path.append(os.path.dirname( __file__ ) + "/winazurestorage/")
 
 import getopt
 import time
 import uuid
 import pdb
 import socket
-import os
 import traceback
 import json
 import ConfigParser
@@ -49,7 +49,7 @@ class bigjob_azure():
     def __init__(self, database_host=None):
         
         # read config file
-        conf_file =  CONFIG_FILE
+        conf_file =  os.path.dirname( __file__ ) + "/" + CONFIG_FILE
         logging.debug("read config file: " + conf_file)
         config = ConfigParser.ConfigParser()
         config.read(conf_file)
@@ -58,8 +58,12 @@ class bigjob_azure():
         self.account_name_compute = default_dict["account_name_compute"]
         self.slot = default_dict["slot"]
         self.secret_key = default_dict["secret_key"]
-        self.user_certificate = default_dict["user_certificate"]
+        self.user_certificate = os.path.dirname(__file__) +"/"+default_dict["user_certificate"]
         self.subscription_id = default_dict["subscription_id"]
+        self.pilot_url = "http://localhost"
+        
+        self.service_package = default_dict["service_package"]
+        self.service_configuration = os.path.dirname(__file__) +"/"+default_dict["service_configuration"]
                 
         logging.debug("init azure storage: blob and queue") 
         self.uuid = str(uuid.uuid1())        
@@ -83,8 +87,9 @@ class bigjob_azure():
     def start_azure_worker_roles(self, number=1):
         self.h = HostedService(self.subscription_id, self.user_certificate); 
         requestId = self.h.createDeployment( self.account_name_compute, APPLICATION_NAME, self.slot, 
-                       "http://saga.blob.core.windows.net/namd-service/BigJobService.cspkg",
-                       "BigJobService/deploy/ServiceConfiguration.cscfg", number)
+                       self.service_package, 
+                       self.service_configuration, 
+                       number)
         # wait for deployment to be done
         status = self.h.waitForRequest(requestId);
     
@@ -143,15 +148,20 @@ class bigjob_azure():
         return self.blob.get_blob(self.app_id, STATE)
     
     def cancel(self):        
-        print "Cancel Pilot Job"        
-        self.queue.put_message(self.app_id, "STOP")
-        self.blob.delete_container(self.app_id)
+        logging.debug("Cancel Pilot Job")     
+        #self.queue.put_message(self.app_id, "STOP")
         self.stop_azure_worker_roles()
+        #self.blob.delete_container(self.app_id)
+        self.queue.delete_queue(self.app_id);
         
         
     def add_subjob(self, jd):
         logging.debug("add subjob to queue")
         job_id = "subjob-" + str(uuid.uuid1())
+        # handle file staging
+        if (len(jd.filetransfer)>0):
+            self.stage_in_files(job_id, jd.filetransfer)
+        
         json_jd = json.dumps(self.create_jd_json(jd))
         logging.debug(json_jd)
         # create subjob blob
@@ -161,12 +171,29 @@ class bigjob_azure():
         logging.debug ("Results: subjob blob creation: " +str(result1) 
                        + " subjob queue message: " + str(result2))
         return job_id 
+
     
+    def stage_in_files(self, job_id, file_list):
+        """ Upload file into Azure Blob storage so that they can later be retrieved by the BigJob Agent """
+        for ifile in file_list:
+            ifile_basename = os.path.basename(ifile["source"])           
+            if not os.path.isfile(ifile["source"]):
+                error_msg = "Input file %s does not exist in %s"%(ifile_basename, os.path.dirname(ifile["source"]))
+                logging.error(error_msg)
+            else:
+                fd = open (ifile["source"], "r")
+                self.blob.put_blob(self.app_id, job_id + "/" + ifile_basename, fd.read(), "text/plain")
+                fd.close()     
+       
+     
     def get_subjob_state(self, job_id):
         json_jd = self.blob.get_blob(self.app_id, job_id)  
         jd_dict = json.loads(json_jd)
         return jd_dict["state"]
     
+    def get_blob_as_string(self, blob_name):
+        return self.blob.get_blob(self.app_id, blob_name)
+ 
     def delete_subjob(self, job_id):
         # winazurestorage currently does not support the deletion of blobs
         pass
@@ -207,12 +234,14 @@ class subjob():
         self.bigjob=bigjob
         self.job_url=None
         self.job_id=None
+        self.job_jd = None
  
     def submit_job(self, jd):
         """ submit job via Azure queue and Azure agent
             dest_url - url reference to advert job or host on which the advert job is going to run"""
         print "submit job: " + str(self.bigjob)
         #queue subjob add bigjob
+        self.job_jd=jd
         self.job_id=self.bigjob.add_subjob(jd)
         self.job_url=self.bigjob.pilot_url + "/"+ str(self.job_id)
         
@@ -226,6 +255,10 @@ class subjob():
             self.bigjob.delete_subjob(self.job_id)
         except:
             pass
+        
+    def get_stdout(self):
+        """ return stdout of subjob as string """
+        return self.bigjob.get_blob_as_string(self.job_jd.output + "-" +self.job_id)
 
     def __del__(self):
         self.bigjob.delete_subjob(self.job_id)
@@ -245,6 +278,7 @@ class description():
         self.working_directory = ""
         self.output = ""
         self.error = ""
+        self.filetransfer = []
 
                     
 class state():

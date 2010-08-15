@@ -17,14 +17,13 @@ if __name__ == "__main__":
     # Start BigJob
     # Parameter for BigJob 
     nodes = 1 # number nodes for agent
-    current_directory=os.getcwd() +"/agent"  # working directory for agent
+   # current_directory=os.getcwd() +"/agent"  # working directory for agent
 
     # start pilot job (bigjob_agent)
     print "Start Pilot Job/BigJob in the cloud. "
     start = time.time()
     bj = bigjob_azure()
-    bj.start_pilot_job(number_nodes=nodes, 
-                       working_directory=current_directory)
+    bj.start_pilot_job(number_nodes=nodes)
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())\
         + " Launch Time: " + str(time.time()-start) + " sec"    
     if(bj.get_state()=="Failed"):
@@ -39,8 +38,8 @@ if __name__ == "__main__":
     jd.spmd_variation = "single"
     jd.arguments = ["+p1", "NPT.conf"]
     jd.working_directory = "approot\\resources\\namd\\"
-    jd.output = "stdout.txt"
-    jd.error = "stderr.txt"
+    jd.output = "stdout"
+    jd.error = "stderr"
     
     jobs = []
     for i in range (0, NUMBER_JOBS):
@@ -55,13 +54,13 @@ if __name__ == "__main__":
             number_done = 0
             for i in jobs:
                 state = str(i.get_state())
-                print "job: " + str(i) + " state: " + str(state)
+                print "job: " + str(i) + " state: " + str(state) + " Time passed: " + str(time.time()-start) + " sec"    
                 if(state=="Failed" or state=="Done"):
                     number_done = number_done + 1                    
                 
             if (number_done == len(jobs)):
                 break
-            time.sleep(10)
+            time.sleep(20)
         except KeyboardInterrupt:
             break
 
