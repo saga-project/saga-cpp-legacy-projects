@@ -95,20 +95,22 @@ namespace BigjobAzureAgent
                 foreach (JObject a in sourceArray)
                 {
                     try
-                    {                        
+                    {
                         string source = (string)a.SelectToken("source");
                         source = Path.GetFileName(source);
                         string sourceFileName = jobId + "/" + source;
 
-                        string localPath = Path.Combine(Environment.GetEnvironmentVariable("RoleRoot"));
-                        string targetFileName = Path.Combine(localPath, workingDirectory);
-                        targetFileName = Path.Combine(targetFileName, source);
+                        //string localPath = Path.Combine(Environment.GetEnvironmentVariable("RoleRoot"));
+                        string localPath = Path.Combine(Environment.GetEnvironmentVariable("temp"));
+                        //string targetFileName = Path.Combine(localPath, workingDirectory);
+                        string targetFileName = Path.Combine(localPath, source);
                         CloudBlobContainer blobContainer = getCloudBlobContainer();
                         Trace.WriteLine("Download from Blob: " + sourceFileName + " to: " + targetFileName);
                         blobContainer.GetBlobReference(sourceFileName).DownloadToFile(targetFileName);
-                    }
-                    catch (DirectoryNotFoundException dnf) {
-                        Trace.WriteLine(dnf.StackTrace);
+                    }                   
+                    catch (Exception e)
+                    {
+                        Trace.WriteLine(e.StackTrace);
                     }
                 }
             }
@@ -148,7 +150,9 @@ namespace BigjobAzureAgent
                     JArray argumentArray = (JArray)jobDict["arguments"];
                     foreach (JValue a in argumentArray)
                     {
-                        arguments = arguments + " " + a.ToString();
+                        string newArg = a.ToString();
+                        newArg = substituteTempDir(newArg);
+                        arguments = arguments + " " + newArg;
                     }
                 }
                 String executable = (string)jobDict["executable"];
@@ -157,6 +161,9 @@ namespace BigjobAzureAgent
                 if (jobDict.ContainsKey("working_directory"))
                 {
                     workingdirectory = (string)jobDict["working_directory"];
+                    workingdirectory = substituteTempDir(workingdirectory);
+                    copyDirectory(Path.Combine(Environment.GetEnvironmentVariable("RoleRoot"), @"approot\resources\namd\"),
+                                  workingdirectory);
                 }
                 String output = "stdout";
                 if (jobDict.ContainsKey("output"))
@@ -254,15 +261,37 @@ namespace BigjobAzureAgent
             return false;
         }
 
-       /* private JObject getJobDictFromBlob(String jobId)
+        public static void copyDirectory(string Src,string Dst)
         {
-            CloudBlob jobBlob = getCloudBlobContainer().GetBlobReference(jobId);
-            String jobString = jobBlob.DownloadText();
-            Dictionary<string, object> jobDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(jobString);
-            return jobDict;
-        }*/
+            String[] Files;
+            if(Dst[Dst.Length-1]!=Path.DirectorySeparatorChar) 
+                Dst+=Path.DirectorySeparatorChar;
+            if(!Directory.Exists(Dst)) Directory.CreateDirectory(Dst);
+            Files=Directory.GetFileSystemEntries(Src);
+            foreach(string Element in Files){
+                // Sub directories
 
+                if(Directory.Exists(Element)) 
+                    copyDirectory(Element,Dst+Path.GetFileName(Element));
+                // Files in directory
 
+                else 
+                    File.Copy(Element,Dst+Path.GetFileName(Element),true);
+                }
+       }
+
+       private static string substituteTempDir(string newArg)
+       {
+            if (newArg.Contains("$TEMP"))
+            {
+                string temp = Environment.GetEnvironmentVariable("temp");
+                Trace.WriteLine("Set $TEMP in: " + newArg + " to " + temp);
+                newArg = newArg.Replace("$TEMP", temp);
+            }
+            return newArg;
+        }
+
+     
         private Dictionary<string, object> getJobDictFromBlob(String jobId)
         {
             CloudBlob jobBlob = getCloudBlobContainer().GetBlobReference(jobId);
@@ -305,16 +334,25 @@ namespace BigjobAzureAgent
 
 
             //Get the default initial configuration for Windows Azure Diagnostics
-            DiagnosticMonitorConfiguration diagConfig = DiagnosticMonitor.GetDefaultInitialConfiguration();
-
-            //Add the Windows Event Log data source to the default initial configuration
-            diagConfig.WindowsEventLog.DataSources.Add("Application!*");
-
+            DiagnosticMonitorConfiguration diagnosticMonitorConfiguration = DiagnosticMonitor.GetDefaultInitialConfiguration();
+                     
             //Specify the scheduled transfer
-            diagConfig.WindowsEventLog.ScheduledTransferPeriod = System.TimeSpan.FromMinutes(1.0); 
+            diagnosticMonitorConfiguration.WindowsEventLog.ScheduledTransferPeriod = System.TimeSpan.FromMinutes(1.0);
 
+            diagnosticMonitorConfiguration.Directories.ScheduledTransferPeriod = TimeSpan.FromMinutes(5.0);
+            diagnosticMonitorConfiguration.Logs.ScheduledTransferPeriod = TimeSpan.FromMinutes(1.0);
+            diagnosticMonitorConfiguration.WindowsEventLog.ScheduledTransferPeriod = TimeSpan.FromMinutes(5.0);
+            diagnosticMonitorConfiguration.PerformanceCounters.ScheduledTransferPeriod = TimeSpan.FromMinutes(1.0);
 
-            DiagnosticMonitor.Start("DiagnosticsConnectionString", diagConfig);
+            diagnosticMonitorConfiguration.WindowsEventLog.DataSources.Add("Application!*");
+            diagnosticMonitorConfiguration.WindowsEventLog.DataSources.Add("System!*");
+
+            PerformanceCounterConfiguration performanceCounterConfiguration = new PerformanceCounterConfiguration();
+            performanceCounterConfiguration.CounterSpecifier = @"\Processor(*)\% Processor Time";
+            performanceCounterConfiguration.SampleRate = System.TimeSpan.FromSeconds(1.0);
+            diagnosticMonitorConfiguration.PerformanceCounters.DataSources.Add(performanceCounterConfiguration);
+
+            DiagnosticMonitor.Start("DiagnosticsConnectionString", diagnosticMonitorConfiguration);
 
             // Config Change Handling
             CloudStorageAccount.SetConfigurationSettingPublisher((configName, configSetter) =>
