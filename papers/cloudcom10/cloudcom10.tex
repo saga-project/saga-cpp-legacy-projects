@@ -457,9 +457,50 @@ representative usage modes BigJob can support, and to explain how they
 are supported.  We discuss two scenarios that are representative of
 how applications would typically use multiple distributed
 infrastructures. We focus our attention on replica-based Molecular Dynamics (MD)
-simulations and a workload as \numrep replicas of a Hepatatis-C virus
+simulations and a workload as \numrep replicas of a Hepatitis-C virus
 (HCV) model, each replica running for 500 timesteps.  
 
+\subsection{BigJob Startup Times} 
+\up
+
+% \alnote{Should we move this section to Usage Model and Analysis?}
+% \jhanote{I think not. The performance referred to here is that of just
+%   BigJob startup and dispatch time -- which in principle should be
+%   independent of any usage mode/scenario. Right?}
+
+Initially, we analyze the overheads resulting from the usage of BigJob across
+different infrastructures. Typically, the main overhead when using
+BigJob results from the queueing time at individual resources for
+Grids and from the VM creation time for Cloud environments.
+Figure~\ref{fig:performance_setup_time} compares the average startup times of
+the different Pilot-Job backends for Grids, Condor pools and Clouds. Each 
+experiment was repeated at least 10 times.
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.45\textwidth]{performance/setup-times}
+    \caption{\textbf{BigJob Startup Times:} In Grids the startup time
+      greatly depends upon the queuing time at the local resource
+      manager. However, in our experiments also Clouds showed a high
+      fluctuation in the queueing time. Azure shows a slightly higher
+      startup time than the science and the EC2 clouds.\up}
+    \label{fig:performance_setup_time}
+\end{figure}
+
+Interestingly for the experiments conducted, the startup times for the
+Cloud environments were observed to be larger than queue-waiting time
+for the LONI resource Poseidon, which coincidentally was very lightly
+loaded during the course of these experiments. Obviously, the startup
+of a VM involves higher overheads than spawning a job on an already
+running machine: a resource for the VM must be allocated, the VM must
+be staged to the target and booted up. The following experiments will
+also show that especially the already oversubscribed intra Cloud
+network and thus, the staging of the VM can be a bottleneck. Also,
+there is a large fluctuation in particular in the EC2 environment
+probably caused by the fact that insufficient resources were available
+at certain times.
+
+\subsection{Running Replicas on different resource types}
 
 \begin{figure}[htbp]
     \centering
@@ -488,7 +529,7 @@ cluster compute instances are connected using 10 Gbps Ethernet.
     \centering
         \includegraphics[width=0.48\textwidth]{performance/namd_ec2_azure.pdf}
     \caption{\textbf{NAMD Performance on Azure and EC2:} In particular on smaller VM sizes (1-4 cores) Azure 
-    outperforms EC2. The 8 core EC2 VM c1.xlarge shows a slightly better performance than the Azure 8 core VM,
+    outperforms EC2. The 8 core EC2 VM cc1.xlarge shows a slightly better performance than the Azure 8 core VM,
     however at a higher cost (1.16\,\$ in comparison to 0.96\,\$).}
     \label{fig:performance_namd_ec2_azure}
 \end{figure}
@@ -505,6 +546,7 @@ Hypervisor with respect to this hardware~\cite{Krishnan:2010nx}, which
 could be a reason for the better performance. In summary, Azure offers
 a good price/performance ratio in particular in comparison with EC2.
 
+\subsection{Replica-Exchange on Azure}
 
 
 

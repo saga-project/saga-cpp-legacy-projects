@@ -50,20 +50,20 @@ plot "namd_run.txt" using 1:7 title "EC2 (cc1.4xlarge)" with lp lt 8 linewidth 4
 ##########################################################################
 # Setup Times
 
-#set nokey
-##set xdata time
-##set timefmt "%d.%m%y"
-##set format x "%d.%m."
-##set format y "%.0f"
-#set xrange [0.5:3.5] 
-#set yrange [0:700] 
-##set boxwidth 0.8 relative
-##set style fill solid 0.9
-## set linestyle 1 lt 1 lw 50
-#set output "setup_time.eps"  
-#set xtics ("EC2" 1, "Nimbus" 2.0, "Poseidon" 3.0, "QB" 4.0)
-##plot "setup_time.txt" using 1:2:(0.7) title "Setup Times" with boxes linetype 1  fs solid 0.25
-#
+set nokey
+#set xdata time
+#set timefmt "%d.%m%y"
+#set format x "%d.%m."
+#set format y "%.0f"
+set xrange [0.5:3.5] 
+set yrange [0:700] 
 #set boxwidth 0.8 relative
 #set style fill solid 0.9
-#plot "setup_time.txt" using 1:2:3:(0.75)  title "Setup Times" with boxerrorbars linetype 1  fs solid 0.5
+# set linestyle 1 lt 1 lw 50
+set output "setup_time.eps"  
+set xtics ("EC2" 1, "Nimbus" 2.0, "Poseidon" 3.0, "QB" 4.0)
+#plot "setup_time.txt" using 1:2:(0.7) title "Setup Times" with boxes linetype 1  fs solid 0.25
+
+set boxwidth 0.8 relative
+set style fill solid 0.9
+plot "setup_time.txt" using 1:2:3:(0.75)  title "Setup Times" with boxerrorbars linetype 1  fs solid 0.5
