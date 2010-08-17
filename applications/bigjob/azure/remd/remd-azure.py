@@ -57,7 +57,6 @@ class ReManager():
         self.total_number_replica = config.getint("DEFAULT", "total_number_replica")
         self.number_of_nodes = config.getint("DEFAULT", "number_of_nodes")
         """ Config parameters (will be moved to config file in the future) """
-        self.glide_in  = config.getboolean("DEFAULT", "glide_in")
         self.adaptive_sampling  =  config.getboolean("DEFAULT", "adaptive_sampling") 
         self.adaptive_replica_size  = config.getboolean("DEFAULT", "adaptive_replica_size") 
         
@@ -185,13 +184,11 @@ class ReManager():
         start = time.time()
         numEX = self.exchange_count    
         ofilename = "remd-temp.out"
-        if self.glide_in == True:
-            print "Start Bigjob"
-            self.bj = self.start_bigjob(self.number_of_nodes)
-        else:
-            print "Start without pilot job not supported"
-            return
-    
+        print "Start Bigjob"
+        self.bj = self.start_bigjob(self.number_of_nodes)
+        if self.bj==None or self.bj.get_state_detail()=="Failed":
+            return       
+       
         iEX = 0
         total_number_of_namd_jobs = 0
         while 1:
@@ -281,11 +278,7 @@ class ReManager():
     
             if iEX == numEX:
                 break
-    
-            ########################## delete old jobs #####################
-            if self.glide_in == True:    
-                for i in self.replica_jobs:
-                    i.delete_job()
+          
         
         print "REMD Runtime: " + str(time.time()-start) + " sec; Pilot URL: " + str(self.bj.pilot_url) \
                 + "; number replica: " + str(self.total_number_replica) \

@@ -24,8 +24,8 @@ class HostedService():
             self.user_certificate = user_certificate
             
             self.h = httplib.HTTPSConnection(SERVICE_MANAGEMENT_HOST, 443, cert_file=user_certificate, timeout=120)
-            if(logging.getLogger('').isEnabledFor(logging.DEBUG)):
-               self.h.set_debuglevel(7)
+            #if(logging.getLogger('').isEnabledFor(logging.DEBUG)):
+            #   self.h.set_debuglevel(7)
                 
         def list(self):        
             """ list all hosted services """    

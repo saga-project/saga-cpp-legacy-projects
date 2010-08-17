@@ -23,6 +23,12 @@ import traceback
 import json
 import ConfigParser
 
+# multiprocessing
+import threading
+#from multiprocessing import Process, Pool, Lock
+#from multiprocessing.sharedctypes import Value, Array
+
+
 # for logging
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -44,6 +50,9 @@ NODE_FILE = "nodefile"
 CONFIG_FILE="bigjob_azure.conf"
 
 
+
+
+
 class bigjob_azure():
     
     def __init__(self, database_host=None):
@@ -55,7 +64,7 @@ class bigjob_azure():
         config.read(conf_file)
         default_dict = config.defaults()
         self.account_name_storage = default_dict["account_name_storage"]
-        self.account_name_compute = default_dict["account_name_compute"]
+        self.account_names_compute = default_dict["account_names_compute"]
         self.slot = default_dict["slot"]
         self.secret_key = default_dict["secret_key"]
         self.user_certificate = os.path.dirname(__file__) +"/"+default_dict["user_certificate"]
@@ -83,37 +92,75 @@ class bigjob_azure():
         
         self.app_url=self.blob.get_base_url()+"/"+self.app_id
         logging.debug("created azure blob: " + self.app_url)
+        
+        self.stopped = False
     
     def start_azure_worker_roles(self, number=1):
-        self.h = HostedService(self.subscription_id, self.user_certificate); 
-        requestId = self.h.createDeployment( self.account_name_compute, APPLICATION_NAME, self.slot, 
-                       self.service_package, 
-                       self.service_configuration, 
+        self.stopped = False
+        service_names = self.account_names_compute.split()
+        results = []
+        for i in service_names:
+            r = self.start_single_azure_worker_role(i, number, self.slot, self.service_package, self.service_configuration)
+            results.append(r)
+            
+        return all(results)
+        #threads = []
+        #for i in service_names:
+        #    thread=threading.Thread(target=self.start_single_azure_worker_role, 
+        #                            args=(i, number, self.slot, self.service_package, self.service_configuration))
+        #    thread.start()      
+        #    threads.append(thread)
+        #    time.sleep(20)
+             
+        # join threads
+        #for t in threads:
+        #    t.join()     
+              
+           
+    def start_single_azure_worker_role(self, service_name, number, slot, service_package, service_configuration):
+        logging.debug("Initiate service: " + service_name + " number instances: " + str(number))
+        hostedService = HostedService(self.subscription_id, self.user_certificate); 
+        requestId = hostedService.createDeployment(service_name, APPLICATION_NAME, slot, 
+                       service_package, 
+                       service_configuration, 
                        number)
         # wait for deployment to be done
-        status = self.h.waitForRequest(requestId);
+        status = hostedService.waitForRequest(requestId);
     
         if status != "Succeeded":
             logging.debug("Deployment Failed")
-            self.set_state(state.Failed)
-            return
-    
+            return False
+            
         # change status to running    
         logging.debug("Setting deployment status to Running")
-        requestId = self.h.updateDeploymentStatus(self.account_name_compute, self.slot, "Running")
-        status = self.h.waitForRequest(requestId);
+        requestId = hostedService.updateDeploymentStatus(service_name, self.slot, "Running")
+        status = hostedService.waitForRequest(requestId);
         if status != "Succeeded":
             logging.debug("Update Deployment Failed")
-            self.set_state(state.Failed)
-            return
+            return False
+        self.stopped = True
+        return True    
         
-    def stop_azure_worker_roles(self):
-        logging.debug("Deleting deployment")
-        requestId = self.h.updateDeploymentStatus(self.account_name_compute, self.slot, "Suspended")
-        status = self.h.waitForRequest(requestId)
+        
+        #for service_name in :
+        #    self.start_single_azure_worker_role(service_name, number)
+                    
+        
+    def stop_azure_worker_roles(self):        
+        if self.stopped == False:
+            for service_name in self.account_names_compute.split():
+                logging.debug("Deleting deployment for service: " + service_name)
+                hostedService = HostedService(self.subscription_id, self.user_certificate); 
+                requestId = hostedService.updateDeploymentStatus(service_name, self.slot, "Suspended")
+                status = hostedService.waitForRequest(requestId)
     
-        requestId = self.h.deleteDeployment(self.account_name_compute, self.slot)    
-        status = self.h.waitForRequest(requestId)     
+                requestId = hostedService.deleteDeployment(service_name, self.slot)    
+                status = hostedService.waitForRequest(requestId)     
+            
+            self.stopped = True
+        else:
+            logging.debug("BigJob already stopped")
+        
     
     def start_pilot_job(self, 
                  lrms_url=None,                     # in future version one can specify a URL for a cloud (ec2:// vs. nimbus:// vs. eu://)
@@ -135,8 +182,11 @@ class bigjob_azure():
  
         # use service management api to spawn azure images
         logging.debug("init azure worker roles") 
-        self.start_azure_worker_roles(number_nodes)
-        self.set_state(str(state.Running))
+        if self.start_azure_worker_roles(number_nodes):
+             self.set_state(str(state.Running))
+        else:
+             self.set_state(state.Failed)
+        
      
     def set_state(self, new_state):
         self.blob.put_blob(self.app_id, STATE, new_state, "text/plain")
