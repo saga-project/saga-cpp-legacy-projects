@@ -411,7 +411,6 @@ simulations and a workload as \numrep replicas of a Hepatitis-C virus
 
 \subsection{BigJob Startup Times} 
 
-
 Initially, we analyze the overheads resulting from the usage of BigJob across
 different infrastructures. Typically, the main overhead when using
 BigJob results from the queueing time at individual resources for
@@ -422,7 +421,7 @@ experiment was repeated at least 10 times.
 
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.45\textwidth]{performance/setup-times}
+        \includegraphics[width=0.46\textwidth]{performance/setup-times}
     \caption{\textbf{BigJob Startup Times:} In Grids the startup time
       greatly depends upon the queuing time at the local resource
       manager. However, in our experiments also Clouds showed a high
@@ -431,7 +430,6 @@ experiment was repeated at least 10 times.
     \label{fig:performance_setup_time}
 \end{figure}
 \alnote{advantages of bigjob: no fluctution, manage a set of VMs}
-\alnote{ScienceCloud to Future Grid/Nimbus}
 
 Interestingly for the experiments conducted, the startup times for the
 Cloud environments were observed to be larger than queue-waiting time
@@ -441,16 +439,31 @@ of a VM involves higher overheads than spawning a job on an already
 running machine: a resource for the VM must be allocated, the VM must
 be staged to the target and booted up. The following experiments will
 also show that especially the already oversubscribed intra Cloud
-network and thus, the staging of the VM can be a bottleneck. Also,
-there is a large fluctuation in particular in the EC2 environment
-probably caused by the fact that insufficient resources were available
-at certain times.
+network and thus, the staging of the VM can be a bottleneck. Azure VMs
+showed the longest waiting time (about 200\,sec longer than EC2). Further,
+high fluctuations in the waiting times can be observed. These waiting time
+usually correlate to the current load of the chosen data center, which again
+depends on external factors, such as the location of the data center or 
+the date/time of the request.
+
+BigJob provides the possibility to manage a set of VM and removes the
+need of the application to manage individual VMs. By utilizing
+the different BigJob cloud and grid backends, fluctuation in the waiting 
+times can be equalized. Further, BigJob provides the possibility
+to dynamically add resources to an application, e.\,g.\ in case a
+resource is heavily loaded and is showing long wait times.
+
+
+% Also,
+% there is a large fluctuation in particular in the EC2 environment
+% probably caused by the fact that insufficient resources were available
+% at certain times.
 
 \subsection{Replica Ensembles on Different Resource Types}
 \label{sec:performance_namd}
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.48\textwidth]{performance/namd_run}
+        \includegraphics[width=0.46\textwidth]{performance/namd_run}
     \caption{\textbf{NAMD Runtimes on Different Resource Types: } The
           graph shows that the new EC2 cluster compute instances are 
           able to outperform other Cloud resources as well as traditional
@@ -473,7 +486,7 @@ cluster compute instances are connected using 10 Gbps Ethernet.
 
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.48\textwidth]{performance/namd_ec2_azure.pdf}
+        \includegraphics[width=0.46\textwidth]{performance/namd_ec2_azure.pdf}
     \caption{\textbf{NAMD Performance on Azure and EC2:} In particular on smaller VM sizes (1-4 cores) Azure 
     outperforms EC2. The 8 core EC2 VM cc1.xlarge shows a slightly better performance than the Azure 8 core VM,
     however at a higher cost (1.16\,\$ in comparison to 0.96\,\$).}
@@ -495,20 +508,29 @@ a good price/performance ratio in particular in comparison with EC2.
 \subsection{Data-Management on Azure}
 
 Azure provides various options to distribute data and
-compute. Affinity groups e.\,g.  are abstractions that can be used to
-control the co-location of data/compute. To evaluate the available
-bandwidths and storage options, we conducted the following experiment:
-a file with a size of 4.3 GB is stored in the Azure Blob Storage in
+compute. Users can either select one of the currently six data centers or 
+specify a geographic region (i.\,e.\ US, Europe, Asia) for storing data and
+conducting computation. Further, Azure offers so-called affinity groups, 
+an abstractions that can be used to control the co-location of data/compute.
+
+To evaluate the available bandwidths and storage options, we conducted 
+the following experiment: a file with a size of 4.3 GB is stored in the Azure Blob Storage in
 the ``Anywhere Europe'' region. This file is then downloaded by worker
 roles with different configurations: ``Anywhere US'', ``Anywhere
-Asia'', ``Anywhere Europe'' and a worker role with the same affinity
-group. \jhanote{How does 'same affinity group' differ from ``Anywhere
-  Europe-Anywhere Europe'' case?}
+Asia'', ``Anywhere Europe'', a worker role located in the same
+data center and one in the same affinity group. 
+
+\jhanote{How does 'same affinity group' differ from ``Anywhere
+  Europe-Anywhere Europe'' case?}\alnote{hopefully improved description}
 
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.48\textwidth]{performance/azure-data-transfer.pdf}
-    \caption{Azure Blob Storage Bandwidths Between Different Regions: }
+        \includegraphics[width=0.46\textwidth]{performance/azure-data-transfer.pdf}
+    \caption{Azure Blob Storage Bandwidths Between Different Regions: The achievable vary
+    greatly with the distance between data and compute. Using affinity groups a bandwidth
+    of approx. 12 MiB/s is achievable, which is comparable to the bandwidth that can
+    be achieved by manually co-locating data and compute to the same data center.
+    }
     \label{fig:performance_azure-data-transfer}
 \end{figure}
 Figure~\ref{fig:performance_azure-data-transfer} shows the measured
@@ -516,13 +538,24 @@ bandwidths. Obviously, the further away the worker role, the smaller
 the available bandwidth. Interestingly, even when staying in the same
 region (``Anywhere Europe'') not the most optimal bandwidth could be
 achieved. The best result (approx. 12 MiB/s) can be achieved when
-placing worker roles and storage in the same affinity group.
+placing worker roles and storage in the same data center or the 
+same affinity group. While affinity groups provide a good abstraction
+to manage the compute and storage location, the achievable bandwidths
+are comparable to a manually placements of VMs and storage. That means 
+that Azure does not provide an option to control data locality within
+a data center.
+
+While data locality is not critical for the BioEn and RE use case --
+the Azure service package has a size of 8\,MByte -- for data-intensive
+application, such as MapReduce-based application, this is an important
+feature. By supporting the Azure affinities within the BigJob framework,
+these requirements can be addressed.
 
 \subsection{Replica-Exchange on Azure}
 
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.48\textwidth]{performance/repex_runtime_per_region.pdf}
+        \includegraphics[width=0.46\textwidth]{performance/repex_runtime_per_region.pdf}
     \caption{\textbf{Replica-Exchange Runtime in Different Azure Regions:} Runtime for a RE simulation with 
     16 replicas each running on a small VM with 1 core for 500 timesteps and a total of 4 generations. The performance of
     the Azure fluctuates with the data center region. }
@@ -549,8 +582,11 @@ depends on the slowest machine.
 
 
 SAGA adaptors for Azure
+
 Azure for in-house deployment
 
+Further, we will expand this work to data-intensive applications, such as 
+application that are based on MapReduce.
 
 
 \begin{acknowledgement} 
@@ -563,8 +599,8 @@ Azure for in-house deployment
     the internal resources of the Center for Computation \& Technology
     at Louisiana State University and computer resources provided by
     LONI. We thank Joohyun Kim (CCT) for
-    assistance with the RNA models. We thank FutureGrid and
-    ScienceCloud for Nimbus resources.}
+    assistance with the RNA models. We thank FutureGrid and Microsoft
+    for providing the cloud resources for the conducted experiments. }
 \end{acknowledgement}
 
 \up
