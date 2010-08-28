@@ -166,17 +166,19 @@ resources.  In~\cite{10.1109/CCGRID.2010.91} we extended this work to
 support production grid infrastructures based on Condor as well as
 EC2-style clouds (such as the FutureGrid).
  
-As part of this paper, we expand this work to the Windows Azure
-platform. \jhanote{Given that we're not using SAGA BigJob here, should
+The aim of this paper is to explore the abstractions of the 
+Windows Azure platform with respect to the enMD and REMD use
+case. \jhanote{Given that we're not using SAGA BigJob here, should
   we call this an extension of the earlier work?}  
 We analyze the suitability of the different abstraction provided by the Azure
 platform. We show that Azure abstractions, such as the Azure Queue and
 Blob storage as well as the Worker Role API, provide powerful tools
 for orchestrating distributed workload as found in the RE use case.
-By utilizing the SAGA BigJob API as common abstraction and
-encapsulating Azure specifics into a resource adaptor, the RE use case
-could be easily ported to Azure.  \jhanote{Should we propose BigJob as
-  an additional abstraction for Azure?}
+We propose the BigJob API as a novel abstraction for managing a 
+group of Azure worker roles and for remotely executing sub-jobs on 
+them. The proposed framework will encapsulate Azure specifics so that 
+the REMD and enMD use cases can easily ported to Azure.  \jhanote{Should we propose BigJob as
+  an additional abstraction for Azure?} \alnote{rephrased paragraphe}
 
 This paper is structured as follows: In section~\ref{sec:azure} we
 present an overview of the Azure platform and analyse the abstractions
@@ -215,7 +217,7 @@ reacts to hardware and software failures and manages application
 upgrades.
 
 \subsubsection{Compute}
-\up
+
 Windows Azure formalizes different types of virtual machines into
 so called roles. Web roles e.\,g.\ are used to host web applications
 and frontend code, while worker roles are well suited for background
@@ -230,7 +232,7 @@ for compute- and data-intensive tasks. AzureBlast~\cite{azure_blast}
 e.\,g.\ heavily relies on worker roles for computing bio-sequences.
 
 \subsubsection{Storage}
-\up
+
 For storing large amounts of data the Azure storage platform provides
 three key services: the \emph{Azure Blob Storage} for storing large
 objects of raw data, the \emph{Azure Table Storage} for
@@ -276,7 +278,7 @@ SQL storage supports common relation database features, such as
 foreign keys, joins and SQL as query language.
 
 
-\section{Extending BigJob to Azure }
+\section{Azure BigJob}
 \label{sec:bigjob-saga}
 \up
 \emph{BigJob} is a SAGA-based Pilot-Job implementation. SAGA~\cite{saga_url} 
@@ -297,7 +299,7 @@ Using the same API, applications can dynamically allocate
 resources via the big-job interface and bind sub-jobs to these
 resources. 
 
-\begin{figure}[htbp]
+\begin{figure}[t]
     \centering
         \includegraphics[width=0.45\textwidth]{figures/distributed_pilot_job}
         \caption{\textbf{Overview of the SAGA-based Pilot Job:} The
@@ -309,22 +311,22 @@ resources.
 \end{figure}
 
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.45\textwidth]{figures/bigjob}
-   \caption{BigJob Architecture: The core of the framework, the
-      BigJob Manager, orchestrates a set of sub-jobs via a
-      BigJob Agent using the SAGA job and file APIs.  The
-      BigJob Agent is responsible for managing and monitoring sub-jobs.\up}
-   \label{fig:figures_bigjob}
-   \up
-\end{figure}
-Figure~\ref{fig:figures_bigjob} shows an overview of the SAGA BigJob
-implementation for computational Grids. The Grid BigJob comprises of
-three components: (i) the BigJob Manager (BM) that provides the Pilot-Job
-abstraction and manages the orchestration and scheduling of BigJobs
-(which in turn allows the management of both big-job objects and
-sub-jobs), (ii) the BigJob Agent that represents the pilot job.
+% \begin{figure}[ht]
+%     \centering
+%     \includegraphics[width=0.45\textwidth]{figures/bigjob}
+%    \caption{BigJob Architecture: The core of the framework, the
+%       BigJob Manager, orchestrates a set of sub-jobs via a
+%       BigJob Agent using the SAGA job and file APIs.  The
+%       BigJob Agent is responsible for managing and monitoring sub-jobs.\up}
+%    \label{fig:figures_bigjob}
+%    \up
+% \end{figure}
+% Figure~\ref{fig:figures_bigjob} shows an overview of the SAGA BigJob
+% implementation for computational Grids. The Grid BigJob comprises of
+% three components: (i) the BigJob Manager (BM) that provides the Pilot-Job
+% abstraction and manages the orchestration and scheduling of BigJobs
+% (which in turn allows the management of both big-job objects and
+% sub-jobs), (ii) the BigJob Agent that represents the pilot job.
 
 
 Applications can utilize the framework via the big-job and sub-job
@@ -345,6 +347,9 @@ processes.
 \jhanote{I am a bit confused about if we're using BigJob-Azure in
   conjuction with other BigJob agents, i.e i.e., SAGA-BigJob API is
   used, but not SAGA in the execution?  Is this correct?}
+\alnote{The Azure BigJob is completely self-contained and
+has nothing in common with the SAGA BigJob except the API. Hope this gets
+clearer once I remove the SAGA BigJob stuff.}
 
 Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of
 the Azure-based BigJob. Similarly, the BM is responsible for accepting
@@ -386,6 +391,7 @@ level of abstractions ensuring atomicity and an at least once semantic.
       packages from the BigJob Manager to the
       BigJob agents running on multiple worker roles.}
     \label{fig:figures_bigjob_azure}
+    \up
 \end{figure}
 
 Once the agents are started, they query the Azure queue for new work items. 
