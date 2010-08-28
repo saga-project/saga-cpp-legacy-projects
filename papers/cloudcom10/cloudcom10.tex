@@ -429,7 +429,6 @@ experiment was repeated at least 10 times.
       startup time than the science and the EC2 clouds.\up}
     \label{fig:performance_setup_time}
 \end{figure}
-\alnote{advantages of bigjob: no fluctution, manage a set of VMs}
 
 Interestingly for the experiments conducted, the startup times for the
 Cloud environments were observed to be larger than queue-waiting time
@@ -440,7 +439,8 @@ running machine: a resource for the VM must be allocated, the VM must
 be staged to the target and booted up. The following experiments will
 also show that especially the already oversubscribed intra Cloud
 network and thus, the staging of the VM can be a bottleneck. Azure VMs
-showed the longest waiting time (about 200\,sec longer than EC2). Further,
+showed with $>10$\,min the longest waiting time (about 200\,sec longer than EC2), which
+is consistent Hill et\,al.~\cite{hill10}.  Further,
 high fluctuations in the waiting times can be observed. These waiting time
 usually correlate to the current load of the chosen data center, which again
 depends on external factors, such as the location of the data center or 
@@ -566,7 +566,7 @@ are comparable to a manually placements of VMs and storage. That means
 that Azure does not provide an option to control data locality within
 a data center.
 
-While data locality is not critical for the BioEn and RE use case --
+While data locality is not critical for the EnMD and RE use case --
 the Azure service package has a size of 8\,MByte -- for data-intensive
 applications, such as MapReduce-based applications, this is an important
 feature. By supporting the Azure affinities within the BigJob framework,
@@ -623,15 +623,34 @@ was executed in 26\,minutes  (see~\cite{Luckow:2008fp} for details).
 \alnote{startup time based on different data center?}
 \section{Conclusion and Future Directions}
 
-azure are good infrastructure for high-throughput, parallel task
-certain abstractions which help
+RE is a popular algorithm often used by molecular dynamics approaches to
+enhance the sampling and rate of convergence for a biological system. We have
+ported RE including the underlying BigJob framework to Azure utilizing 
+its native abstractions, such as worker roles, the Azure storage and 
+affinity groups. In contrast to
+other cloud offerings, Azure provides not only bare-metal VMs to applications, 
+but a managed PaaS environment for running them. It also monitors and automatically 
+restarts VMs and applications if necessary. Further, it provides an integrated
+development environment and a higher-level API, which simplifies the 
+development considerable in particular comparing to the efforts necessary when
+running an application distributed across multiple TeraGrid sites.
+Using Azure we were able to achieve almost the same sampling speed as 
+on comparable Grid resources, such as QueenBee.
 
-SAGA adaptors for Azure
+SAGA~\cite{saga_url}  provides a simple, single interface to the common 
+distributed functionality (file/data, job/VM launch \& management etc.), 
+for a range of distributed cloud and grid infrastructure. SAGA is heavily used
+by scientific applications  for distributed coordination – either 
+fine grained as in MapReduce applications, or coarse-grained as in the RE case. 
+Given this putative benefit, it makes eminent sense to support Azure from
+within SAGA and to provide SAGA adaptors to important Azure services.
 
-Azure for in-house deployment
+Many scientific applications, e.\,g.\ DAG-based  or MapReduce-based
+application involve the management of large amounts of data. In the future, 
+we will further investigate different task placement algorithms for data-intensive
+applications in conjunction with different Azure worker roles, storage and 
+affinity group setups.
 
-Further, we will expand this work to data-intensive applications, such as 
-application that are based on MapReduce.
 
 
 \begin{acknowledgement} 
