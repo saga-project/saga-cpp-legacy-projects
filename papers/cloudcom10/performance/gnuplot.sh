@@ -2,6 +2,8 @@
 # set term postscript eps enhanced linewidth 1.42
 #set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+#set term postscript eps monochrome linewidth 1.42 "Helvetica" 17 
+
 #set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
 set encoding iso_8859_1
@@ -36,6 +38,19 @@ plot "namd_run.txt" using 1:7 title "EC2 (cc1.4xlarge)" with lp lt 8 linewidth 4
      "namd_run.txt" using 1:4 title "Science Cloud" with lp  lt 3 linewidth 4,\
      "namd_run.txt" using 1:2 title "LONI (QB)" with lp lt 1 linewidth 4,\
      "namd_run.txt" using 1:3 title "LONI (Poseidon)" with lp  lt 2 linewidth 4
+      
+set output "repex-azure.eps"      
+set xlabel "Number of Replicas"   
+set ylabel "Runtime (in min)"   
+set xrange [2:32]
+set logscale x 2 
+set xtics (2,4,8,16,32)
+set yrange [20:125] 
+plot "repex-azure.txt" using 1:2 title "small (1 cores)" with lp lt 8 linewidth 4,\
+     "repex-azure.txt" using 1:3 title "medium (2 cores)" with lp  lt 4 linewidth 4,\
+     "repex-azure.txt" using 1:4 title "large (4 cores)" with lp  lt 5 linewidth 4,\
+     "repex-azure.txt" using 1:5 title "extra-large (8 cores)" with lp  lt 3 linewidth 4
+
          
 ##########################################################################
 # Scenarios Times
@@ -50,20 +65,20 @@ plot "namd_run.txt" using 1:7 title "EC2 (cc1.4xlarge)" with lp lt 8 linewidth 4
 ##########################################################################
 # Setup Times
 
-set nokey
-#set xdata time
-#set timefmt "%d.%m%y"
-#set format x "%d.%m."
-#set format y "%.0f"
-set xrange [0.5:3.5] 
-set yrange [0:700] 
+#set nokey
+##set xdata time
+##set timefmt "%d.%m%y"
+##set format x "%d.%m."
+##set format y "%.0f"
+#set xrange [0.5:3.5] 
+#set yrange [0:700] 
+##set boxwidth 0.8 relative
+##set style fill solid 0.9
+## set linestyle 1 lt 1 lw 50
+#set output "setup_time.eps"  
+#set xtics ("EC2" 1, "Nimbus" 2.0, "Poseidon" 3.0, "QB" 4.0)
+##plot "setup_time.txt" using 1:2:(0.7) title "Setup Times" with boxes linetype 1  fs solid 0.25
+#
 #set boxwidth 0.8 relative
 #set style fill solid 0.9
-# set linestyle 1 lt 1 lw 50
-set output "setup_time.eps"  
-set xtics ("EC2" 1, "Nimbus" 2.0, "Poseidon" 3.0, "QB" 4.0)
-#plot "setup_time.txt" using 1:2:(0.7) title "Setup Times" with boxes linetype 1  fs solid 0.25
-
-set boxwidth 0.8 relative
-set style fill solid 0.9
-plot "setup_time.txt" using 1:2:3:(0.75)  title "Setup Times" with boxerrorbars linetype 1  fs solid 0.5
+#plot "setup_time.txt" using 1:2:3:(0.75)  title "Setup Times" with boxerrorbars linetype 1  fs solid 0.5
