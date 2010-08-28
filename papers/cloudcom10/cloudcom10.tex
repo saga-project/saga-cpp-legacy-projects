@@ -172,7 +172,7 @@ case. \jhanote{Given that we're not using SAGA BigJob here, should
   we call this an extension of the earlier work?}  
 We analyze the suitability of the different abstraction provided by the Azure
 platform. We show that Azure abstractions, such as the Azure Queue and
-Blob storage as well as the Worker Role API, provide powerful tools
+ABS as well as the Worker Role API, provide powerful tools
 for orchestrating distributed workload as found in the RE use case.
 We propose the BigJob API as a novel abstraction for managing a 
 group of Azure worker roles and for remotely executing sub-jobs on 
@@ -234,9 +234,9 @@ e.\,g.\ heavily relies on worker roles for computing bio-sequences.
 \subsubsection{Storage}
 
 For storing large amounts of data the Azure storage platform provides
-three key services: the \emph{Azure Blob Storage} for storing large
+three key services: the \emph{Azure Blob Storage} (ABS) for storing large
 objects of raw data, the \emph{Azure Table Storage} for
-semi-structured data and the \emph{Azure Queue Storage} for
+semi-structured data and the \emph{Azure Queue Storage} (AQS) for
 implementing message queues.  The data is storage replicated across
 multiple data centers to protect it against hardware and software
 failures. In contrast to other cloud offerings (e.\,g.\ Amazon S3) the
@@ -247,10 +247,10 @@ offers a better performance and scalability, it has some disadvantages
 mainly caused by the fact that the complexity is moved to the
 application space.
 
-The blob storage can store file up to a size of 1\,TB, which makes it
+ABS can store file up to a size of 1\,TB, which makes it
 particularly well suited for data-intensive application. The Amazon S3
 service e.\,g.\ restricts the maximum file size to 5\,GB. Further, the
-access to the blob storage can be optimized for certain usage modes:
+access to the ABS blob storage can be optimized for certain usage modes:
 \emph{block blob} can be split into chunks which can be uploaded and
 downloaded separately and in parallel.  Thus, block blobs are well
 suited for uploading and streaming large amounts of data. \emph{Page
@@ -261,7 +261,7 @@ NTFS volume, which is backed by a page blob. In particular legacy
 applications that heavily utilize file-based storage can simply be
 ported to Azure using XDrive.
 
-The Azure Queue Service provides a reliable storage for the delivery
+The AQS provides a reliable storage for the delivery
 of messages within distributed applications.  The queue service is
 ideal to orchestrate the various components of a distributed
 applications, e.\,g.\ by distributing work packages or collecting
@@ -373,7 +373,7 @@ roles, thus each MD simulation is limited to 8 cores.
 
 
 The BM creates work packages for each sub-job and distributes them 
-to the agents using the Azure Queue Service. The Azure Queue Service provides 
+to the agents using the AQS. The AQS provides 
 the ideal abstraction for this purpose by offering a reliable and scalable 
 way for delivering messages to distributed components. These can but do not
 have to be hosted on Azure. The SAGA-based BigJob in contrast utilizes
@@ -394,18 +394,20 @@ level of abstractions ensuring atomicity and an at least once semantic.
     \up
 \end{figure}
 
-Once the agents are started, they query the Azure queue for new work items. 
-If a work item is found, a simulation task is started, e.\,g.\ by running the requested
-MD code with right parameters. The framework supports both the staging of 
-parameter files as well as of the executable. Files are staged through the 
-Azure Blob storage, i.\,e.\ the manager uploads the respective files
-to the storage and the agents downloads them before the run.
+Once the agents are started, they query the Azure queue for new work
+items.  If a work item is found, a simulation task is started, e.\,g.\
+by running the requested MD code with right parameters. The framework
+supports both the staging of parameter files as well as of the
+executable. Files are staged through the ABS, i.\,e.\ the manager
+uploads the respective files to the storage and the agents downloads
+them before the run.
 
-The BigJob Azure supports the notion of Azure affinity groups, which can be used
-to co-locate compute tasks and storage. This is particularly useful for data-intensive
-tasks, e.\,g.\ MapReduce application, which need to transfer large amounts of data
-to worker roles. At the same time the BM can also orchestrate worker roles that are distributed
-across multiple affinity groups.
+The BigJob Azure supports the notion of Azure affinity groups, which
+can be used to co-locate compute tasks and storage. This is
+particularly useful for data-intensive tasks, e.\,g.\ MapReduce
+application, which need to transfer large amounts of data to worker
+roles. At the same time the BM can also orchestrate worker roles that
+are distributed across multiple affinity groups.
 
 
 % The worker roles running the BigJob agent are managed by the BigJob Manager using
@@ -433,7 +435,7 @@ sub-job. The sub-jobs per worker role depends on the size of the worker role --
 Azure currently supports worker roles up to 8 cores. In contrast
 to other infrastructure types such as EC2 and the TeraGrid, MD jobs
 cannot be spawned across multiple nodes. After the sub-job terminates,
-the master can collect the result via the Azure blob storage. In the REMD
+the master can collect the result via the ABS. In the REMD
 case the output is parsed to obtain the energy level of the replica. 
 The Metropolis scheme~\cite{metropolis:1087} is used to determine whether
 an exchange is conducted. Finally, a new generation of replicas is launched.
@@ -590,11 +592,11 @@ conducting computation. Further, Azure offers so-called affinity groups,
 an abstractions that can be used to control the co-location of data/compute.
 
 To evaluate the available bandwidths and storage options, we conducted
-the following experiment: a file with a size of 4.3 GB is stored in
-the Azure Blob Storage in the ``Anywhere Europe'' region. This file is
-then downloaded by worker roles with different configurations:
-``Anywhere US'', ``Anywhere Asia'', ``Anywhere Europe'', a worker role
-located in the same data center and one in the same affinity group.
+the following experiment: a 4.3GB file is stored in the Azure Blob
+Storage in the ``Anywhere Europe'' region. This file is then
+downloaded by worker roles with different configurations: ``Anywhere
+US'', ``Anywhere Asia'', ``Anywhere Europe'', a worker role located in
+the same data center and one in the same affinity group.
 
 % \jhanote{How does 'same affinity group' differ from ``Anywhere
 %   Europe-Anywhere Europe'' case?}\alnote{hopefully improved
@@ -603,7 +605,7 @@ located in the same data center and one in the same affinity group.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.46\textwidth]{performance/azure-data-transfer.pdf}
-        \caption{\textbf{Azure Blob Storage Bandwidths Between
+        \caption{\textbf{ABS Bandwidths Between
             Different Regions:} The achievable vary greatly with the
           distance between data and compute. Using affinity groups a
           bandwidth of approx. 12 MiB/s is achievable, which is
@@ -720,17 +722,18 @@ algorithms for data-intensive applications in conjunction with
 different Azure worker roles, storage and affinity group setups.
 
 \begin{acknowledgement} 
-  \up \footnotesize{Important funding for SAGA has been provided by
-    the UK EPSRC grant number GR/D0766171/1 (via OMII-UK) and HPCOPS
-    NSF-OCI 0710874. SJ acknowledges the e-Science Institute,
-    Edinburgh for supporting the research theme, ``Distributed
-    Programming Abstractions'' and theme members for shaping many
-    important ideas. This work has also been made possible thanks to
-    the internal resources of the Center for Computation \& Technology
-    at Louisiana State University and computer resources provided by
-    LONI. We thank Joohyun Kim (CCT) for
-    assistance with the RNA models. We thank FutureGrid and Microsoft
-    for providing the cloud resources for the conducted experiments. }
+  \up \footnotesize{% Important funding for SAGA has been provided by
+%     the UK EPSRC grant number GR/D0766171/1 (via OMII-UK) and HPCOPS
+%     NSF-OCI 0710874.
+    SJ acknowledges the e-Science Institute, Edinburgh for supporting
+    the research theme. ``Distributed Programming Abstractions''%  and
+%     theme members for shaping many important ideas. This work has also
+%     been made possible thanks to the internal resources of the Center
+%     for Computation \& Technology at Louisiana State University and
+%     computer resources provided by LONI.
+    We thank Joohyun Kim (CCT) for assistance with the RNA models. We
+    thank FutureGrid and Microsoft for providing the cloud resources
+    for the conducted experiments. }
 \end{acknowledgement}
 
 \up
