@@ -114,7 +114,7 @@ Azure is an emerging cloud platform developed and operated by Microsoft.
 Azure provides different abstractions, building blocks for creating 
 scalable and reliable scientific applications;    
 In this paper we investigate the applicability of the Azure  abstractions
-to a well-known class of loosely coupled and ensemble-based application.
+to a well-known class of loosely coupled and ensemble-based applications.
 
 \jhanote{I guess we should have one, even if this is a 4page paper}
 \up
@@ -267,75 +267,78 @@ objects of raw data, the \emph{Azure Table Storage} for
 semi-structured data and the \emph{Azure Queue Storage} (AQS) for
 implementing message queues.  The data is storage replicated across
 multiple data centers to protect it against hardware and software
-failures. In contrast to other cloud offerings (e.\,g.\ Amazon S3), the
+failures. In contrast to other services (e.\,g.\ Amazon S3)~\cite{1294281}, the
 Azure Storage Services provide strong consistency guarantees, i.\,e.\
 all changes are immediately visible to all future calls. While
-eventual consistency as implemented by S3~\cite{1294281} usually
-offers a better performance and scalability, it has some disadvantages
-mainly caused by the fact that the complexity is moved to the
-application space.
+eventual consistency offers a better performance and scalability, 
+it has some disadvantages mainly caused by the fact that the 
+complexity is moved to the application space.
 
 ABS can store file up to a size of 1\,TB, which makes it
-particularly well suited for data-intensive application. The Amazon S3
-service e.\,g.\ restricts the maximum file size to 5\,GB. Further, the
+particularly well suited for data-intensive applications. S3
+e.\,g.\ restricts the maximum file size to 5\,GB. Further, the
 access to the ABS blob storage can be optimized for certain usage modes:
 \emph{block blob} can be split into chunks which can be uploaded and
 downloaded separately and in parallel.  Thus, block blobs are well
-suited for uploading and streaming large amounts of data. \emph{Page
+suited for large amounts of data. \emph{Page
   blob} manage the storage as an array of pages. Each of these pages
 can be addressed individually, which makes page blobs a good tool for
-random read/write scenarios. \emph{Azure XDrive} provides a durable
-NTFS volume, which is backed by a page blob. In particular legacy
-applications that heavily utilize file-based storage can simply be
-ported to Azure using XDrive.
+random read/write scenarios. 
+
+% \emph{Azure XDrive} provides a durable
+% NTFS volume, which is backed by a page blob. In particular legacy
+% applications that heavily utilize file-based storage can simply be
+% ported to Azure using XDrive.
 
 The AQS provides a reliable storage for the delivery
 of messages within distributed applications.  The queue service is
 ideal to orchestrate the various components of a distributed
 applications, e.\,g.\ by distributing work packages or collecting
-results, which could be running on Azure or on another resource,
-e.\,g.\ a science cloud.
+results. 
+%, which could be running on Azure or on another resource,
+%e.\,g.\ the TeraGrid.
 
-The Azure Table Storage is ideally suited for storing structured
-data. Unlike traditional relational database systems, the table
-storage is designed with respect to scale-out, low cost and high
-performance similar to Google's BigTable~\cite{bigtable2006}
-system. For legacy application Azure also provides a SQL-Server based,
-relational datastores called SQL Azure. In contrast to Azure tables,
-SQL storage supports common relation database features, such as
-foreign keys, joins and SQL as query language.
+% The Azure Table Storage is ideally suited for storing structured
+% data. Unlike traditional relational database systems, the table
+% storage is designed with respect to scale-out, low cost and high
+% performance similar to Google's BigTable~\cite{bigtable2006}
+% system. For legacy application Azure also provides a SQL-Server based,
+% relational datastores called SQL Azure. In contrast to Azure tables,
+% SQL storage supports common relation database features, such as
+% foreign keys, joins and SQL as query language.
+\alnote{removed Azure components that are not used by REMD}
 
-
+\up
 \section{Azure BigJob}
 \label{sec:bigjob-saga}
 \up
-\emph{BigJob} is a SAGA-based Pilot-Job implementation. SAGA~\cite{saga_url} 
-is a simple, POSIX-style API to the most common distributed functions, which 
-is a sufficiently high-level of abstraction so as to be 
-independent of the diverse and dynamic Grid environments. 
-In contrast to other Pilot-Job implementations, e.\,g.\ Falkon, BigJob can
-natively works independent of the underlying distributed infrastructure across different
-heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
-advantage of using a SAGA-based approach. Further, the framework is
-extensible and provides several hooks that can be used to support
-other resource types and Pilot-Job frameworks.
+% \emph{BigJob} is a SAGA-based Pilot-Job implementation. SAGA~\cite{saga_url} 
+% is a simple, POSIX-style API to the most common distributed functions, which 
+% is a sufficiently high-level of abstraction so as to be 
+% independent of the diverse and dynamic Grid environments. 
+% In contrast to other Pilot-Job implementations, e.\,g.\ Falkon, BigJob can
+% natively works independent of the underlying distributed infrastructure across different
+% heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
+% advantage of using a SAGA-based approach. Further, the framework is
+% extensible and provides several hooks that can be used to support
+% other resource types and Pilot-Job frameworks.
 
+
+\emph{BigJob} is a infrastructure-independent Pilot-Job implementation~\cite{10.1109/CCGRID.2010.91}.
 As shown in Figure~\ref{fig:figures_distributed_pilot_job}, BigJob 
-provides a unified abstraction to Grids, Condor pools,
-EC2-style Cloud as well as to the Windows Azure platform.
-Using the same API, applications can dynamically allocate
-resources via the big-job interface and bind sub-jobs to these
-resources. 
+provides a unified abstraction to grids, Condor pools,
+EC2-style clouds and to Windows Azure. Using the same API, applications 
+can dynamically allocate resources via the big-job interface and 
+bind sub-jobs to these resources. 
 
 \begin{figure}[t]
     \centering
-        \includegraphics[width=0.45\textwidth]{figures/distributed_pilot_job}
-        \caption{\textbf{Overview of the SAGA-based Pilot Job:} The
-          SAGA Pilot Job API is currently implemented by four
-          different backends - one for Grids, Condor and for
-          EC2-style and Azure Clouds.\up}
+        \includegraphics[width=0.42\textwidth]{figures/distributed_pilot_job}
+        \caption{\textbf{Overview of the BigJob Architecture:} BigJob can 
+        currently be used with four different infrastructures: grids, Condor pools, 
+        EC2-style and Azure clouds.\up}
     \label{fig:figures_distributed_pilot_job}
-    \up
+
 \end{figure}
 
 
@@ -357,19 +360,19 @@ resources.
 % sub-jobs), (ii) the BigJob Agent that represents the pilot job.
 
 
-Applications can utilize the framework via the big-job and sub-job
-classes. Both interfaces are syntactically and semantically consistent
-with the other SAGA APIs: a sub-job e.\,g.\ is described using 
-the standard SAGA job description; job states are expressed
-using the SAGA state model. Before running sub-jobs, an application must initialize
-a big-job object. The BigJob Manager then queues a job,
-which actually runs a BigJob Agent on the respective remote
-resource. For this agent a specified number of resources is
-requested. Subsequently, sub-jobs can be submitted through the BigJob
-Manager using the job-id of the BigJob as reference. The BigJob
-Manager ensures that sub-jobs are launched onto the correct
-resource based upon the specified job-id using the right number of
-processes. 
+% Applications can utilize the framework via the big-job and sub-job
+% classes. Both interfaces are syntactically and semantically consistent
+% with the other SAGA APIs: a sub-job e.\,g.\ is described using 
+% the standard SAGA job description; job states are expressed
+% using the SAGA state model. Before running sub-jobs, an application must initialize
+% a big-job object. The BigJob Manager then queues a job,
+% which actually runs a BigJob Agent on the respective remote
+% resource. For this agent a specified number of resources is
+% requested. Subsequently, sub-jobs can be submitted through the BigJob
+% Manager using the job-id of the BigJob as reference. The BigJob
+% Manager ensures that sub-jobs are launched onto the correct
+% resource based upon the specified job-id using the right number of
+% processes. 
 
 %%%%%%%%%%%%%%
 \jhanote{I am a bit confused about if we're using BigJob-Azure in
@@ -380,35 +383,38 @@ has nothing in common with the SAGA BigJob except the API. Hope this gets
 clearer once I remove the SAGA BigJob stuff.}
 
 Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of
-the Azure-based BigJob. Similarly, the BM is responsible for accepting
+the Azure-based BigJob. The BigJob-Manager (BM) is responsible for accepting
 simulation requests from the end-user and for orchestrating the
-sub-job runs.  In contrast, to the Grid BigJob, which heavily utilizes
-different SAGA API, such as the job, file and advert APIs, the Azure
-BigJob is built directly on top of the Azure APIs.
-
-In the BM launches the BigJob Agents using the Azure Service
+sub-job runs.  In contrast, to the grid BigJob, which heavily utilizes
+different SAGA API~\cite{saga_url}, the Azure BigJob is built directly 
+on top of the Azure APIs. Initially, the BM launches the requested number
+of worker roles (also referred to as VM) using the Service
 Management API.  The Service Management API is a RESTful HTTP API - as
 part of this project we developed a Python library that can be used to
 access this Azure capability~\cite{azure-service-python}. The BigJob
-Agents run within Azure worker roles, which are the Azure abstraction
-for compute-intensive background tasks. The agent itself is
-implemented in C\#/.NET. Azure also enables users to run native code
-within worker roles, i.\,e.\ the agent is able to execute existing
-native molecular dynamic (MD) codes, e.\,g.\
-NAMD~\cite{Phillips:2005gd} and AMBER~\cite{cheatham-5}.  Azure
-currently does not support MPI computations across multiple worker
-roles, thus each MD simulation is limited to 8 cores.
+Agents run within the worker roles and is
+implemented in C\#/.NET. The main responsibility of the agent is
+to execute the specified application, e.\,g.\ the
+NAMD~\cite{Phillips:2005gd} or AMBER~\cite{cheatham-5} MD code,
+on the worker. Azure restricts inter-worker communication to 
+a set of in advance defined endpoints. Thus, MPI computations 
+cannot be run across multiple worker roles. The size of 
+a parallel simulation is therefore limited to the VM size
+(the largest Azure VM has currently 8 cores). 
 
 
-The BM creates work packages for each sub-job and distributes them 
+For each sub-job the BM creates a work package. Packages are distributed
 to the agents using the AQS. The AQS provides 
 the ideal abstraction for this purpose by offering a reliable and scalable 
-way for delivering messages to distributed components. These can but do not
-have to be hosted on Azure. The SAGA-based BigJob in contrast utilizes
-the SAGA advert service, a central key/value store, for this purpose. 
-For each new job, an advert entry is created by the BigJob Manager. 
-The agent periodically polls for new jobs. Azure Queues provide a higher
-level of abstractions ensuring atomicity and an at least once semantic.
+way -- it ensures atomicity and an at least once 
+semantic -- for delivering messages to distributed components. These can but do not
+have to be hosted on Azure. 
+
+% The SAGA-based BigJob in contrast utilizes
+% the SAGA advert service, a central key/value store, for this purpose. 
+% For each new job, an advert entry is created by the BigJob Manager. 
+% The agent periodically polls for new jobs. Azure Queues provide a higher
+% level of abstractions ensuring atomicity and an at least once semantic.
 
 %\begin{wrapfigure}{R}{0.4\textwidth}
 \begin{figure}
@@ -419,22 +425,21 @@ level of abstractions ensuring atomicity and an at least once semantic.
       packages from the BigJob Manager to the
       BigJob agents running on multiple worker roles.}
     \label{fig:figures_bigjob_azure}
-    \up
+    \up\up
 \end{figure}
 
-Once the agents are started, they query the Azure queue for new work
-items.  If a work item is found, a simulation task is started, e.\,g.\
+Once the agents are started, they query the AQS for new work
+packages.  If a package is found, a simulation task is started, e.\,g.\
 by running the requested MD code with right parameters. The framework
 supports both the staging of parameter files as well as of the
-executable. Files are staged through the ABS, i.\,e.\ the manager
+executable using the ABS, i.\,e.\ the manager
 uploads the respective files to the storage and the agents downloads
 them before the run.
 
-The BigJob Azure supports the notion of Azure affinity groups, which
+The framework supports Azure affinity groups, which
 can be used to co-locate compute tasks and storage. This is
 particularly useful for data-intensive tasks, e.\,g.\ MapReduce
-application, which need to transfer large amounts of data to worker
-roles. At the same time the BM can also orchestrate worker roles that
+applications. At the same time the BM can also orchestrate worker roles that
 are distributed across multiple affinity groups.
 
 
@@ -447,8 +452,8 @@ are distributed across multiple affinity groups.
 
 % \alnote{Kalman Filter option: we need to convey how we make decisions?
 % we need to understand the various trade-offs}
-
-\section{Ensemble and Replia-Exchange Simulations on Azure}
+\up
+\section{EnMD and RE Simulations on Azure}
 \label{sec:enMD-REMD}
 \up
 Based on the BigJob framework both the scenarios, i.\,e.\ the
@@ -478,7 +483,7 @@ express different coordination schemes, e.\,g.\ the master-worker
 communication can be conducted via the described message queue.
 
 
-
+\up
 \section{Performance Analysis}
 \label{sec:performance}
 \up
@@ -596,7 +601,8 @@ instances Azure provides a favorable optimum.
 % could be a reason for the better performance. 
 
 \begin{table}[ht]
-	\begin{footnotesize}
+    \centering
+	\begin{scriptsize}
 		\begin{tabular}{|l|c|c|c|c|c|}
 	        \hline
 	        VM Type                 &CPU h  &\#Core &\#VM &\tc &Costs  \\ \hline
@@ -606,9 +612,9 @@ instances Azure provides a favorable optimum.
 	        EC2 c1.xlarge   (Win)   &1.16\$  &8          &1      &290\,sec    &0,09\$ \\ \hline
 	        Azure XL (Win)  &0.96\$ &8          &1      &301\,sec    &0,08\$ \\ \hline
 		\end{tabular}
-	\end{footnotesize}
+	\end{scriptsize}
 	\caption{EC2 vs. Azure Costs\label{tbl:costs}}
-	\up
+	\up\up
 \end{table}
 
 \subsection{Data-Management on Azure}
@@ -751,19 +757,20 @@ future, we will further investigate different task placement
 algorithms for data-intensive applications in conjunction with
 different Azure worker roles, storage and affinity group setups.
 
+\up
 \begin{acknowledgement} 
   \up \footnotesize{% Important funding for SAGA has been provided by
 %     the UK EPSRC grant number GR/D0766171/1 (via OMII-UK) and HPCOPS
 %     NSF-OCI 0710874.
     SJ acknowledges the e-Science Institute, Edinburgh for supporting
-    the research theme. ``Distributed Programming Abstractions''%  and
+    the research theme. ``Distributed Programming Abstractions''. %  and
 %     theme members for shaping many important ideas. This work has also
 %     been made possible thanks to the internal resources of the Center
 %     for Computation \& Technology at Louisiana State University and
 %     computer resources provided by LONI.
     We thank Joohyun Kim (CCT) for assistance with the RNA models. We
-    thank FutureGrid and Microsoft for providing the cloud resources
-    for the conducted experiments. }
+    thank FutureGrid and Microsoft for providing the resources
+    for the experiments. }
 \end{acknowledgement}
 
 \up
