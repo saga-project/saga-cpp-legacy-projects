@@ -29,8 +29,8 @@ set yrange [50:380]
 set xrange [7:33]        
 #set xtics (2,4,8,16)
 #set logscale x
-set ylabel "Runtime (in s)" #font "Helvetica, 20"
-set xlabel "Number of Cores"   
+set ylabel "Runtime (in s)" font "Helvetica, 24"
+set xlabel "Number of Cores"  font "Helvetica,24" 
 
 plot "namd_run.txt" using 1:7 title "EC2 (cc1.4xlarge)" with lp lt 8 linewidth 4,\
      "namd_run.txt" using 1:5 title "EC2 (m2.4xlarge)" with lp  lt 4 linewidth 4,\
@@ -40,8 +40,8 @@ plot "namd_run.txt" using 1:7 title "EC2 (cc1.4xlarge)" with lp lt 8 linewidth 4
      "namd_run.txt" using 1:3 title "LONI (Poseidon)" with lp  lt 2 linewidth 4
       
 set output "repex-azure.eps"      
-set xlabel "Number of Replicas"   
-set ylabel "Runtime (in min)"   
+set xlabel "Number of Replicas"  font "Helvetica,24"
+set ylabel "Runtime (in min)"   font "Helvetica,24"
 set xrange [2:32]
 set logscale x 2 
 set xtics (2,4,8,16,32)
