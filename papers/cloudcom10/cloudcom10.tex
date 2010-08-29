@@ -94,7 +94,7 @@ Andr\'e Luckow$^{1}$, Shantenu Jha$^{1,2,3,*}$\\
 }
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\llnote}[1]{ {\textcolor{green} { ***JK: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***AL: #1 }}}
@@ -110,18 +110,16 @@ Andr\'e Luckow$^{1}$, Shantenu Jha$^{1,2,3,*}$\\
 \maketitle    
 
 \begin{abstract}
-Azure is an emerging cloud platform developed and operated by Microsoft. 
-It provides different abstractions, building blocks for creating 
-scalable and reliable scientific applications;    
-In this paper we investigate the applicability of the Azure  abstractions
-to the well-known class of loosely coupled and ensemble-based applications.
-We propose the BigJob API as a novel abstraction for managing groups
-of Azure worker roles and for remotely executing sub-jobs on them. Further,
-we demonstrate that Azure provides a reasonable performance for 
-loosely coupled applications.
-\jhanote{I guess we should have one, even if this is a 4page paper}
-\up
-\up\up
+  Azure is an emerging cloud platform developed and operated by
+  Microsoft.  It provides different abstractions and building blocks
+  for creating scalable and reliable scientific applications.  In this
+  paper we investigate the applicability of the Azure abstractions to
+  the well-known class of loosely coupled and ensemble-based
+  applications.  We propose the BigJob API as a novel abstraction for
+  managing groups of Azure worker roles and for remotely executing
+  sub-jobs on them. We demonstrate that Azure enhanced with BigJob
+  functionality provides a reasonable \jhanote{good? comparable?}
+  performance for loosely-coupled applications.  \up \up
 \end{abstract}
 
 \section{Introduction}
@@ -132,7 +130,7 @@ loosely coupled applications.
 % distributed computational resources, for both data-intensive and
 % compute-intensive applications. 
 In spite of the promise of clouds as a viable platform for Science \&
-Engineering (SEA) applications, many fundamental questions persist about how
+Engineering applications, many fundamental questions persist about how
 scientific applications will utilize clouds as presented, both now and
 into the future? Many existing legacy applications no doubt will adapt
 and take advantage of new capabilities, but it is unclear how clouds
@@ -144,20 +142,20 @@ application-level questions as well as system-level questions. For
 example, what kind of CI do clouds present, and how should clouds be
 provisioned and what services should be provided to the scientific
 community? \jhanote{The aim of this paper is to
-explore... integrate..fill...} Emerging cloud platforms such
-as Microsoft's Azure~\cite{winazure}, particularly arises as a consequence of the novelty and
-relative simplicity of the cloud operating environment \alnote{don't
-understand the first part of the sentence.}– resource
-management, capacity planning capabilities, software environment \&
-control etc. The aim of this paper is to explore 
-the Azure cloud platform. In contrast to infrastructure as a service clouds (IaaS)
-as Amazon EC2/S3, Azure follows the platform as a service paradigm (PaaS). 
-The platform encapsulates common application patterns into so-called roles
-removing the need to manually manage low-level details
-on virtual machine level.
-\alnote{not sure whether we should explain the difference to IaaS - space
-is tight}
-
+  explore... integrate..fill...} Emerging cloud platforms such as
+Microsoft's Azure~\cite{winazure}, particularly arises as a
+consequence of the novelty and relative simplicity of the cloud
+operating environment \alnote{don't understand the first part of the
+  sentence.} \jhanote{Sorry -- this was a note to myself. I'll fix}–
+resource management, capacity planning capabilities, software
+environment \& control etc. The aim of this paper is to explore the
+Azure cloud platform. In contrast to infrastructure as a service
+clouds (IaaS) as Amazon EC2/S3, Azure follows the platform as a
+service paradigm (PaaS).  The platform encapsulates common application
+patterns into so-called roles removing the need to manually manage
+low-level details on virtual machine level.  \alnote{not sure whether
+  we should explain the difference to IaaS - space is tight}
+\jhanote{Probably not}
 
  
 % Cloud are posed to have a broad impact on scientific applications, as
@@ -212,17 +210,17 @@ ensemble-based bio-molecular simulations.
 We propose the BigJob API as a novel abstraction for managing a group
 of Azure worker roles and for remotely executing sub-jobs on them. The
 proposed framework will encapsulate Azure specifics so that the REMD
-and enMD use cases can easily ported to Azure.  \jhanote{Should we
-  propose BigJob as an additional abstraction for Azure?}
-\alnote{rephrased paragraph}\jhanote{Yes, reads better now. Tweaked a
-  bit upstream in this paragraph too.}
+and enMD use cases can easily ported to Azure.  % \jhanote{Should we
+%   propose BigJob as an additional abstraction for Azure?}
+% \alnote{rephrased paragraph}\jhanote{Yes, reads better now. Tweaked a
+%   bit upstream in this paragraph too.}
 
-This paper is structured as follows: In sec.~\ref{sec:azure} we
-present an overview of the Azure platform. The BigJob framework 
-is presented in sec.~\ref{sec:bigjob-saga}. In sec.~\ref{sec:enMD-REMD} we
-discuss the architecture of the Azure-based enMD and RE application.
-A significant issue in cloud computing is performance. We provide an
-in-depth performance analysis in sec.~\ref{sec:performance}.
+This paper is structured as follows: In \S~\ref{sec:azure} we present
+an overview of the Azure platform. The BigJob framework is presented
+in \S~\ref{sec:bigjob-saga}. In \S~\ref{sec:enMD-REMD} we discuss the
+architecture of the Azure-based enMD and RE application.  A
+significant issue in cloud computing is performance. We provide an
+in-depth performance analysis in \S~\ref{sec:performance}.
 
 
 
@@ -238,27 +236,26 @@ in-depth performance analysis in sec.~\ref{sec:performance}.
 % Azure provides different higher level services, e.\,g.\ the Azure
 % AppFabric or Azure Storage, that can be accessed via HTTP/REST from
 % anywhere. 
-Windows Azure offers a platform for on-demand computing and
-for hosting generic server-side applications. The so-called Azure
-fabric controller automatically monitors alls VMs, 
-reacts to hardware and software failures and manages application
-upgrades.
+Windows Azure offers a platform for on-demand computing and for
+hosting generic server-side applications. The so-called Azure fabric
+controller automatically monitors alls virutal machines (VM), reacts
+to hardware and software failures and manages application upgrades.
 
 \subsubsection{Compute}
 
-Windows Azure formalizes different types of virtual machines into
-so called roles. Web roles e.\,g.\ are used to host web applications
-and frontend code, while worker roles are well suited for background
-processing. While these roles target specific scenarios and are not
-as flexible as bare EC2 images, they are also customizable to
-a certain extent. Worker roles can e.\,g.\ run native code. The
-application must solely implemented a defined entry point, which is
-then called by Azure. The Azure fabric controller automatically
-manages and monitors applications, handles hardware and software
-failures as well as updates to the operating system or to the
-application.  Commonly, scientific applications utilize worker roles
-for compute- and data-intensive tasks. AzureBlast~\cite{azure_blast}
-e.\,g.\ heavily relies on worker roles for computing bio-sequences.
+Windows Azure formalizes different types of VM into so called
+roles. Web roles e.\,g.\ are used to host web applications and
+front-end code, while worker roles are well suited for background
+processing. While these roles target specific scenarios and are not as
+flexible as bare EC2 images, they are also customizable to a certain
+extent, e.g., Worker roles can run native code. The application must
+solely implement a defined entry point, which is then called by
+Azure. The Azure fabric controller automatically manages and monitors
+applications, handles hardware and software failures as well as
+updates to the operating system or to the application.  Commonly,
+scientific applications utilize worker roles for compute- and
+data-intensive tasks. AzureBlast~\cite{azure_blast} e.\,g.\ heavily
+relies on worker roles for computing bio-sequences.
 
 \subsubsection{Storage}
 
@@ -307,7 +304,8 @@ results.
 % relational datastores called SQL Azure. In contrast to Azure tables,
 % SQL storage supports common relation database features, such as
 % foreign keys, joins and SQL as query language.
-\alnote{removed Azure components that are not used by REMD}
+\alnote{removed Azure components that are not used by
+  REMD}\jhanote{OK}
 
 \up
 \section{Azure BigJob}
@@ -378,38 +376,38 @@ bind sub-jobs to these resources.
 %%%%%%%%%%%%%%
 \jhanote{I am a bit confused about if we're using BigJob-Azure in
   conjuction with other BigJob agents, i.e i.e., SAGA-BigJob API is
-  used, but not SAGA in the execution?  Is this correct?}
-\alnote{The Azure BigJob is completely self-contained and
-has nothing in common with the SAGA BigJob except the API. Hope this gets
-clearer once I remove the SAGA BigJob stuff.}
+  used, but not SAGA in the execution?  Is this correct?}  \alnote{The
+  Azure BigJob is completely self-contained and has nothing in common
+  with the SAGA BigJob except the API. Hope this gets clearer once I
+  remove the SAGA BigJob stuff.}\jhanote{Yes, it reads better. But
+  please leave this comment on for a while. Want to revisit it later}
 
 Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of
-the Azure-based BigJob. The BigJob-Manager (BM) is responsible for accepting
-simulation requests from the end-user and for orchestrating the
-sub-job runs.  In contrast, to the grid BigJob, which heavily utilizes
-different SAGA API~\cite{saga_url}, the Azure BigJob is built directly 
-on top of the Azure APIs. Initially, the BM launches the requested number
-of worker roles (also referred to as VM) using the Service
-Management API.  The Service Management API is a RESTful HTTP API - as
-part of this project we developed a Python library that can be used to
-access this Azure capability~\cite{azure-service-python}. The BigJob
-Agents run within the worker roles and is
-implemented in C\#/.NET. The main responsibility of the agent is
-to execute the specified application, e.\,g.\ the
-NAMD~\cite{Phillips:2005gd} or AMBER~\cite{cheatham-5} MD code,
-on the worker. Azure restricts inter-worker communication to 
-a set of in advance defined endpoints. Thus, MPI computations 
-cannot be run across multiple worker roles. The size of 
-a parallel simulation is therefore limited to the VM size
-(the largest Azure VM has currently 8 cores). 
+the Azure-based BigJob. The BigJob-Manager (BM) is responsible for
+accepting simulation requests from the end-user and for orchestrating
+the sub-job runs.  In contrast, to the grid BigJob, which heavily
+utilizes different SAGA API~\cite{saga_url}, the Azure BigJob is built
+directly on top of the Azure APIs. Initially, the BM launches the
+requested number of worker roles (also referred to as VM) using the
+Service Management API.  The Service Management API is a RESTful HTTP
+API; as part of this project we developed a Python library that can be
+used to access this Azure capability~\cite{azure-service-python}. The
+BigJob Agents run within the worker roles and is implemented in
+C\#/.NET. The main responsibility of the agent is to execute the
+specified application, e.\,g.\ the NAMD~\cite{Phillips:2005gd} or
+AMBER~\cite{cheatham-5} MD code, on the worker. Azure restricts
+inter-worker communication to a set of \jhanote{something missing..}in
+advance defined endpoints. Thus, MPI computations cannot be run across
+multiple worker roles. The size of a parallel simulation is therefore
+limited to the VM size (the largest Azure VM has currently 8 cores).
 
-
-For each sub-job the BM creates a work package. Packages are distributed
-to the agents using the AQS. The AQS provides 
-the ideal abstraction for this purpose by offering a reliable and scalable 
-way -- it ensures atomicity and an at least once 
-semantic -- for delivering messages to distributed components. These can but do not
-have to be hosted on Azure. 
+For each sub-job the BM creates a work package. Packages are
+distributed to the agents using the AQS. The AQS provides the ideal
+abstraction for this purpose by offering a reliable and scalable way
+-- it ensures atomicity and an at least once semantic \jhanote{this
+  sub-clause needs attention.. something amiss} -- for delivering
+messages to distributed components. These can but do not have to be
+hosted on Azure.
 
 % The SAGA-based BigJob in contrast utilizes
 % the SAGA advert service, a central key/value store, for this purpose. 
@@ -487,25 +485,25 @@ an exchange is conducted. Finally, a new generation of replicas is launched.
 \up
 \section{Performance Analysis}
 \label{sec:performance}
-\up
-The aim of this section is not to perform detailed systematic
+\up The aim of this section is not to perform detailed systematic
 performance measures and analysis, but to illustrate the
 representative usage modes BigJob can support, and to explain how they
-are supported.  We discuss two scenarios that are representative of
-how applications would typically use multiple distributed
-infrastructures. We focus our attention on RE MD (REMD)
-simulations and a workload as \numrep replicas of a Hepatitis-C virus
-(HCV) model, each replica running for 500 timesteps.
-\up
-\subsection{BigJob Startup Times} 
-\up
-Initially, we analyze the overheads resulting from the usage of BigJob across
-different infrastructures. Typically, the main overhead when using
-BigJob results from the queueing time at individual resources for
-grids and from the VM creation time for cloud environments.
-Figure~\ref{fig:performance_setup_time} compares the average startup times of
-the different Pilot-Job backends for grids, Condor pools and clouds. Each 
-experiment was repeated at least 10 times.
+are supported.  We discuss two scenarios\jhanote{Can we illustrate
+  which two scenarios please?} that are representative of how
+applications would typically use multiple distributed
+infrastructures. We focus our attention on RE MD (REMD) simulations
+and a workload as \numrep replicas of a Hepatitis-C virus (HCV) model,
+each replica running for 500 timesteps.  \up
+
+\subsection{BigJob Startup Times}
+\up Initially, we analyze the overhead resulting from the usage of
+BigJob across different infrastructures. Typically, the main overhead
+when using BigJob results from either the queueing time at individual
+resources for grids or from the VM creation time for cloud
+environments.  Figure~\ref{fig:performance_setup_time} compares the
+average startup times of the different Pilot-Job backends for grids,
+Condor pools and clouds. Each experiment was repeated at least 10
+times.
 
 \begin{figure}[htbp]
     \centering
@@ -524,22 +522,23 @@ for the LONI resource Poseidon, which coincidentally was very lightly
 loaded during the course of these experiments. Obviously, the startup
 of a VM involves higher overheads than spawning a job on an already
 running machine: a resource for the VM must be allocated, the VM must
-be staged to the target and booted up. The following experiments will
-also show that especially the already oversubscribed intra cloud
-network and thus, the staging of the VM can be a bottleneck. Azure VMs
-showed with $>10$\,min the longest waiting time (about 200\,sec longer than EC2), which
-is consistent with Hill et\,al.~\cite{hill10}.  Further,
-high fluctuations in the waiting times can be observed. These waiting time
-usually correlate to the current load of the chosen data center, which again
-depends on external factors, such as the location of the data center or 
-the date/time of the request.
+be staged to the target and booted up. The data show that
+% also show that especially
+the already oversubscribed intra cloud network and thus, the staging
+of the VM can be a bottleneck. Azure VMs had the longest waiting time
+($>10$\,min; about 200\,sec longer than EC2).
+%which is consistent with Hill et\,al.~\cite{hill10}.  
+Further, high fluctuations in waiting times can be observed. These
+waiting time usually correlate to the current load of the chosen data
+center, which again depends on external factors, such as the location
+of the data center and/or the date/time of the request.
 
-BigJob can manage sets of VMs and removes the
-need of the application to manage individual VMs. By utilizing
-the different BigJob cloud and grid backends, fluctuation in the waiting 
-times can be equalized. Further, BigJob provides the possibility
-to dynamically add resources to an application, e.\,g.\ in case a
-resource is heavily loaded and thus, showing long wait times.
+BigJob can manage sets of VMs and removes the need of the application
+to manage individual VMs. By utilizing the different BigJob cloud and
+grid backends, fluctuations in the waiting times can be smoothened
+out. Furthermore, BigJob provides the possibility to dynamically add
+resources to an application, e.\,g.\ in case a resource is heavily
+loaded and thus has long wait-times.
 
 
 % Also,
@@ -562,11 +561,11 @@ resource is heavily loaded and thus, showing long wait times.
     \up
 \end{figure}
 
-We run experiments with NAMD in different environments: the FutureGrid (Nimbus),
+We ran experiments with NAMD in different environments: the FutureGrid (Nimbus),
 Amazon EC2, Azure and LONI/TeraGrid. 
 In general, each cloud has its characteristics. 
-% The FutureGrid Nimbus cloud is accessed via the WSRF
-% interface, while for EC2 the Amazon command line client is used. 
+% The FutureGrid Nimbus cloud is accessed via the WSRF interface,
+% while for EC2 the Amazon command line client is used.
 Each FutureGrid VM provides 2 virtual cores and 3.7\,GB memory. 
 Amazon offeres different VM types with up to 8 cores. We used the largest 
 VM type (m2.4xlarge) with 8 cores and 68.4\,GB of memory,
