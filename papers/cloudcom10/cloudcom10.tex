@@ -74,7 +74,7 @@
 %Azure}
 
 \title{Abstractions for Loosely-Coupled and Ensemble-based Simulations
-  on Azure}
+  on Azure\up}
 
 \author{
 Andr\'e Luckow$^{1}$, Shantenu Jha$^{1,2,3,*}$\\
@@ -82,6 +82,7 @@ Andr\'e Luckow$^{1}$, Shantenu Jha$^{1,2,3,*}$\\
   \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
   \small{\emph{$^{3}$e-Science Institute, Edinburgh, UK}}\\
   \small{\emph{$^{*}$Contact Author: \texttt{sjha@cct.lsu.edu}}}\\
+  \up\up\up\up
 }
 
 %\date{}
@@ -112,10 +113,11 @@ Andr\'e Luckow$^{1}$, Shantenu Jha$^{1,2,3,*}$\\
 Azure is an emerging cloud platform developed and operated by Microsoft. 
 Azure provides different abstractions, building blocks for creating 
 scalable and reliable scientific applications;    
-In this paper we investigate the applicability of Azure 
-to a well-known class of molecular dynamics applications.
+In this paper we investigate the applicability of the Azure  abstractions
+to a well-known class of loosely coupled and ensemble-based application.
 
 \jhanote{I guess we should have one, even if this is a 4page paper}
+\up
 \end{abstract}
 
 \section{Introduction}
@@ -126,7 +128,7 @@ to a well-known class of molecular dynamics applications.
 % distributed computational resources, for both data-intensive and
 % compute-intensive applications. 
 In spite of the promise of clouds as a viable platform for Science \&
-Engineering (SEA) applications, many fundamental persist about how
+Engineering (SEA) applications, many fundamental questions persist about how
 scientific applications will utilize clouds as presented, both now and
 into the future? Many existing legacy applications no doubt will adapt
 and take advantage of new capabilities, but it is unclear how clouds
@@ -143,8 +145,7 @@ as Azure, particularly arises as a consequence of the novelty and
 relative simplicity of the cloud operating environment – resource
 management, capacity planning capabilities, software environment \&
 control etc. The aim of this paper is to explore the applicability 
-of cloud services as provided by the Microsoft Azure platform to 
-a well-known class of ensemble-based 
+of cloud services as provided by Azure to a well-known class of ensemble-based 
 molecular dynamics applications.
  
 % Cloud are posed to have a broad impact on scientific applications, as
@@ -166,19 +167,19 @@ MD simulations; % by simply performing the same simulation repeatedly
 in some scenarios, sampling of physical-states can be improved by the
 infrequent attempt to exchange partial or complete simulation state
 between a pair of replicas. The replica-exchange (RE)
-algorithm~\cite{hansmann} is a well-known example of this class. In
-spite of the exchange attempts, the coupling is small (a few state
-variables are typically exchanged) and loose (not frequent).
+algorithm~\cite{hansmann} is a well-known example of this class. 
+% In spite of the exchange attempts, the coupling is small (a few state
+% variables are typically exchanged) and loose (not frequent).
 
-In Luckow et\,al.~\cite{repex_ptrs} although efficient scale-out of RE
+In Luckow et\,al.~\cite{repex_ptrs} although an efficient scale-out of RE
 simulation was established, all resources utilized were TeraGrid
-resources. We utilize the BigJob framework to decouple workload
+resources. We use the BigJob framework to decouple workload
 submission from resource assignment; this results in a flexible
 execution model, which in turn enables the distributed scale-out of
 applications on multiple and possibly heterogeneous resources.
 In~\cite{10.1109/CCGRID.2010.91} we extended this work to support
 production grid infrastructures based on Condor as well as EC2-style
-clouds (such as the FutureGrid).
+clouds (e.\,g.\ FutureGrid).
  
 % This is not a research paper, but an experience and experiment
 % paper. 
@@ -189,7 +190,7 @@ abstractions for distributed computing can be extended to Azure.
 % REMD use case.
 \jhanote{Given that we're not using SAGA BigJob here, should we call
   this an extension of the earlier work?}  We analyze the suitability
-of the different abstraction provided by the Azure platform, such as
+of the different Azure abstractions, such as
 the AQS, ABS and the Worker Role API; we find that they provide
 powerful tools for orchestrating distributed workloads, as found in
 ensemble-based bio-molecular simulations.
@@ -205,10 +206,8 @@ and enMD use cases can easily ported to Azure.  \jhanote{Should we
   bit upstream in this paragraph too.}
 
 This paper is structured as follows: In section~\ref{sec:azure} we
-present an overview of the Azure platform and analyse the abstractions
-provided it. The BigJob framework that provides the basis for the
-Azure-based RE application is presented in
-section~\ref{sec:bigjob-saga}. In section~\ref{sec:enMD-REMD} we
+present an overview of the Azure platform. The BigJob framework 
+is presented in section~\ref{sec:bigjob-saga}. In section~\ref{sec:enMD-REMD} we
 discuss the architecture of the Azure-based enMD and RE application.
 A significant issue in cloud computing is performance. We provide an
 in-depth performance analysis in section~\ref{sec:performance}.
@@ -235,11 +234,12 @@ in-depth performance analysis in section~\ref{sec:performance}.
 \section{Windows Azure}
 \label{sec:azure}
 \up
-Azure provides different higher level services, e.\,g.\ the Azure
-AppFabric or Azure Storage, that can be accessed via HTTP/REST from
-anywhere. Windows Azure offers a platform for on-demand computing and
+% Azure provides different higher level services, e.\,g.\ the Azure
+% AppFabric or Azure Storage, that can be accessed via HTTP/REST from
+% anywhere. 
+Windows Azure offers a platform for on-demand computing and
 for hosting generic server-side applications. The so-called Azure
-fabric controller automatically monitors alls VMs, automatically
+fabric controller automatically monitors alls VMs, 
 reacts to hardware and software failures and manages application
 upgrades.
 
@@ -248,8 +248,9 @@ upgrades.
 Windows Azure formalizes different types of virtual machines into
 so called roles. Web roles e.\,g.\ are used to host web applications
 and frontend code, while worker roles are well suited for background
-processing. While these roles target specific scenarios, they are also
-highly customizable. Worker roles can e.\,g.\ run native code. The
+processing. While these roles target specific scenarios and are not
+as flexible as bare EC2 images, they are also customizable to
+a certain extent. Worker roles can e.\,g.\ run native code. The
 application must solely implemented a defined entry point, which is
 then called by Azure. The Azure fabric controller automatically
 manages and monitors applications, handles hardware and software
@@ -260,13 +261,13 @@ e.\,g.\ heavily relies on worker roles for computing bio-sequences.
 
 \subsubsection{Storage}
 
-For storing large amounts of data the Azure storage platform provides
+For storing large amounts of data Azure provides
 three key services: the \emph{Azure Blob Storage} (ABS) for storing large
 objects of raw data, the \emph{Azure Table Storage} for
 semi-structured data and the \emph{Azure Queue Storage} (AQS) for
 implementing message queues.  The data is storage replicated across
 multiple data centers to protect it against hardware and software
-failures. In contrast to other cloud offerings (e.\,g.\ Amazon S3) the
+failures. In contrast to other cloud offerings (e.\,g.\ Amazon S3), the
 Azure Storage Services provide strong consistency guarantees, i.\,e.\
 all changes are immediately visible to all future calls. While
 eventual consistency as implemented by S3~\cite{1294281} usually
@@ -706,7 +707,7 @@ VM. The largest ensemble comprised of 32 replicas running on
 extra-large VMs on a total of 256 cores.  With a runtime of
 30\,minutes for the 16 replica case this setup is able to almost match
 the performance of the TeraGrid resource QueenBee, where the same
-scenario was executed in 26\,minutes (see~\cite{Luckow:2008fp} for
+scenario was executed in 26\,minutes (see~\cite{repex_ptrs} for
 details).
 
 
