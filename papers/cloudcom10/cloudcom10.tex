@@ -140,7 +140,7 @@ application-level questions as well as system-level questions. For
 example, what kind of CI do clouds present, and how should clouds be
 provisioned and what services should be provided to the scientific
 community? \jhanote{The aim of this paper is to
-explore... integrate..fill...} Emerging Cloud platforms such
+explore... integrate..fill...} Emerging cloud platforms such
 as Azure, particularly arises as a consequence of the novelty and
 relative simplicity of the cloud operating environment – resource
 management, capacity planning capabilities, software environment \&
@@ -205,23 +205,12 @@ and enMD use cases can easily ported to Azure.  \jhanote{Should we
 \alnote{rephrased paragraph}\jhanote{Yes, reads better now. Tweaked a
   bit upstream in this paragraph too.}
 
-This paper is structured as follows: In section~\ref{sec:azure} we
+This paper is structured as follows: In sec.~\ref{sec:azure} we
 present an overview of the Azure platform. The BigJob framework 
-is presented in section~\ref{sec:bigjob-saga}. In section~\ref{sec:enMD-REMD} we
+is presented in sec.~\ref{sec:bigjob-saga}. In sec.~\ref{sec:enMD-REMD} we
 discuss the architecture of the Azure-based enMD and RE application.
 A significant issue in cloud computing is performance. We provide an
-in-depth performance analysis in section~\ref{sec:performance}.
-
-
-\alnote{old notes:
-\begin{itemize}
-    \item Bio-ensembles on Azure and hybrid Grid/Clouds
-    \item Amazon Cluster Compute benchmark
-    \item Synchronous ARepex
-    \item Fluctuation of runtime on the different VMs (set case for an
-      asynchronous algorithm)
-    \item Performance/cost as metric and argument
-\end{itemize}}
+in-depth performance analysis in sec.~\ref{sec:performance}.
 
 
 
@@ -230,7 +219,7 @@ in-depth performance analysis in section~\ref{sec:performance}.
 %   sufficient?}  AzureBlast~\cite{azure_blast} \jhanote{I think
 %   references are good enough. I don't know if there is a
 %   protocol/space-economics of a 4page paper..}
-
+\up
 \section{Windows Azure}
 \label{sec:azure}
 \up
@@ -457,30 +446,30 @@ are distributed across multiple affinity groups.
 \label{sec:enMD-REMD}
 \up
 Based on the BigJob framework both the scenarios, i.\,e.\ the
-independent ensemble enMD and the coupled ensemble REMD,
+independent and coupled ensemble (enMD \& REMD),
 have been ported to Azure. NAMD is used to carry out MD simulations.
 Both applications utilize the BigJob API to create pilot jobs
 and subsequently to submit sub-jobs to these. When a pilot job is
 created the BigJob framework initializes the requested number
-of worker roles with the specified size using the defined 
-Azure service package. The replicas themselves are submitted as
-sub-job. The sub-jobs per worker role depends on the size of the worker role --
-Azure currently supports worker roles up to 8 cores. In contrast
-to other infrastructure types such as EC2 and the TeraGrid, MD jobs
-cannot be spawned across multiple nodes. After the sub-job terminates,
-the master can collect the result via the ABS. In the REMD
-case the output is parsed to obtain the energy level of the replica. 
+of worker roles with the specified size. The replicas themselves are submitted as
+sub-jobs. 
+% The sub-jobs per worker role depends on the size of the worker role --
+% Azure currently supports worker roles up to 8 cores. In contrast
+% to other infrastructure types such as EC2 and the TeraGrid, MD jobs
+% cannot be spawned across multiple nodes. 
+After the sub-job terminates,the master can collect the result via the BigJob API. 
+In the REMD case the output is parsed to obtain the energy level of the replica. 
 The Metropolis scheme~\cite{metropolis:1087} is used to determine whether
 an exchange is conducted. Finally, a new generation of replicas is launched.
 
-Both enMD and REMD can greatly benefit from the capabilities of Azure. If greater 
-accuracy is required or a deadline must be met, it can 
-seamlessly scale-out to more worker roles.  The
-Azure fabric controller monitors all VMs running the worker roles and
-automatically restarts the worker roles if necessary. Further, Azure
-provides various kinds of reliable and scalable storage options to
-express different coordination schemes, e.\,g.\ the master-worker
-communication can be conducted via the described message queue.
+% Both enMD and REMD can greatly benefit from the capabilities of Azure. If greater 
+% accuracy is required or a deadline must be met, it can 
+% seamlessly scale-out to more worker roles.  The
+% Azure fabric controller monitors all VMs running the worker roles and
+% automatically restarts the worker roles if necessary. Further, Azure
+% provides various kinds of reliable and scalable storage options to
+% express different coordination schemes, e.\,g.\ the master-worker
+% communication can be conducted via the described message queue.
 
 
 \up
@@ -495,36 +484,36 @@ how applications would typically use multiple distributed
 infrastructures. We focus our attention on RE MD (REMD)
 simulations and a workload as \numrep replicas of a Hepatitis-C virus
 (HCV) model, each replica running for 500 timesteps.
-
+\up
 \subsection{BigJob Startup Times} 
 \up
 Initially, we analyze the overheads resulting from the usage of BigJob across
 different infrastructures. Typically, the main overhead when using
 BigJob results from the queueing time at individual resources for
-Grids and from the VM creation time for Cloud environments.
+grids and from the VM creation time for cloud environments.
 Figure~\ref{fig:performance_setup_time} compares the average startup times of
-the different Pilot-Job backends for Grids, Condor pools and Clouds. Each 
+the different Pilot-Job backends for grids, Condor pools and clouds. Each 
 experiment was repeated at least 10 times.
 
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.46\textwidth]{performance/setup-times}
-    \caption{\textbf{BigJob Startup Times:} In Grids the startup time
+        \includegraphics[width=0.4\textwidth]{performance/setup-times}
+    \caption{\textbf{BigJob Startup Times:} In grids the startup time
       greatly depends upon the queuing time at the local resource
-      manager. However, in our experiments also Clouds showed a high
+      manager. However, in our experiments also clouds showed a high
       fluctuation in the queueing time. Azure shows a slightly higher
       startup time than the science and the EC2 clouds.\up}
     \label{fig:performance_setup_time}
 \end{figure}
 
 Interestingly for the experiments conducted, the startup times for the
-Cloud environments were observed to be larger than queue-waiting time
+cloud environments were observed to be larger than the queue waiting time
 for the LONI resource Poseidon, which coincidentally was very lightly
 loaded during the course of these experiments. Obviously, the startup
 of a VM involves higher overheads than spawning a job on an already
 running machine: a resource for the VM must be allocated, the VM must
 be staged to the target and booted up. The following experiments will
-also show that especially the already oversubscribed intra Cloud
+also show that especially the already oversubscribed intra cloud
 network and thus, the staging of the VM can be a bottleneck. Azure VMs
 showed with $>10$\,min the longest waiting time (about 200\,sec longer than EC2), which
 is consistent with Hill et\,al.~\cite{hill10}.  Further,
@@ -533,12 +522,12 @@ usually correlate to the current load of the chosen data center, which again
 depends on external factors, such as the location of the data center or 
 the date/time of the request.
 
-BigJob provides the possibility to manage a set of VM and removes the
+BigJob can manage sets of VMs and removes the
 need of the application to manage individual VMs. By utilizing
 the different BigJob cloud and grid backends, fluctuation in the waiting 
 times can be equalized. Further, BigJob provides the possibility
 to dynamically add resources to an application, e.\,g.\ in case a
-resource is heavily loaded and is showing long wait times.
+resource is heavily loaded and thus, showing long wait times.
 
 
 % Also,
@@ -549,22 +538,24 @@ resource is heavily loaded and is showing long wait times.
 \subsection{Replica Ensembles on Different Resource Types}
 \up
 \label{sec:performance_namd}
-\begin{figure}[htbp]
+
+\begin{figure}[t]
     \centering
-        \includegraphics[width=0.46\textwidth]{performance/namd_run}
+        \includegraphics[width=0.4\textwidth]{performance/namd_run}
     \caption{\textbf{NAMD Runtimes on Different Resource Types: } The
           graph shows that the new EC2 cluster compute instances are 
-          able to outperform other Cloud resources as well as traditional
-          HPC resources as QB and Poseidon.}
+          able to outperform other cloud resources as well as traditional
+          HPC resources as QB and Poseidon.\up}
     \label{fig:performance_namd_run}
     \up
 \end{figure}
 
-We run experiments in different Cloud environments: the Nimbus Science 
-Cloud of the University of Chicago and the Amazon EC2 environment is used. In general, each Cloud has 
-its characteristics. The Nimbus Cloud is accessed via the WSRF
-interface, while for EC2 the Amazon command line client is used. 
-Each Nimbus VM provides 2 virtual cores and 3.7\,GB memory. 
+We run experiments with NAMD in different environments: the FutureGrid (Nimbus),
+Amazon EC2, Azure and LONI/TeraGrid. 
+In general, each cloud has its characteristics. 
+% The FutureGrid Nimbus cloud is accessed via the WSRF
+% interface, while for EC2 the Amazon command line client is used. 
+Each FutureGrid VM provides 2 virtual cores and 3.7\,GB memory. 
 Amazon offeres different VM types with up to 8 cores. We used the largest 
 VM type (m2.4xlarge) with 8 cores and 68.4\,GB of memory,
 the m1.large instance type with 2 cores and 7.5\,GB  and the recently launched
@@ -573,19 +564,18 @@ X5570 (Nehalem) processors with 23\,GB memory. In contrast to other instance typ
 cluster compute instances are connected using 10 Gbps Ethernet.
 
 
-\begin{figure}[htbp]
+\begin{figure}[t]
     \centering
-        \includegraphics[width=0.46\textwidth]{performance/namd_ec2_azure.pdf}
+        \includegraphics[width=0.4\textwidth]{performance/namd_ec2_azure.pdf}
     \caption{\textbf{NAMD Performance on Azure and EC2:} In particular on smaller VM sizes (1-4 cores) Azure 
     outperforms EC2. The 8 core EC2 VM cc1.xlarge shows a slightly better performance than the Azure 8 core VM,
-    however at a higher cost (1.16\,\$ in comparison to 0.96\,\$).}
+    however at a higher cost.} %(1.16\,\$ in comparison to 0.96\,\$).}
     \label{fig:performance_namd_ec2_azure}
     \up
 \end{figure}
 
-Figure~\ref{fig:performance_namd_ec2_azure} presents an performance 
-benchmark consisting of a NAMD simulation run on Azure and on comparable 
-EC2 resources. For this purpose, an EC2 instance type with a similar core
+Figure~\ref{fig:performance_namd_ec2_azure} compares the performances
+of Azure and EC2. For this purpose, an EC2 instance type with a similar core
 count and price is chosen. Azure outperforms EC2 Windows instances in 
 most cases; which is in noteworthy, since the costs for 2, 4 and 8 core VMs are
 drastically lower on Azure. Table~\ref{tbl:costs} summarizes the
@@ -621,65 +611,71 @@ instances Azure provides a favorable optimum.
 \up
 Azure provides various options to distribute data and
 compute. Users can either select one of the currently six data centers or 
-specify a geographic region (i.\,e.\ US, Europe, Asia) for storing data and
-conducting computation. Further, Azure offers so-called affinity groups, 
-an abstractions that can be used to control the co-location of data/compute.
+a geographic region (i.\,e.\ US, Europe, Asia). Further, Azure offers 
+so-called affinity groups, an abstractions to control 
+the co-location of data/compute.
 
 To evaluate the available bandwidths and storage options, we conducted
-the following experiment: a 4.3GB file is stored in the Azure Blob
-Storage in the ``Anywhere Europe'' region. This file is then
-downloaded by worker roles with different configurations: ``Anywhere
-US'', ``Anywhere Asia'', ``Anywhere Europe'', a worker role located in
-the same data center and one in the same affinity group.
+an experiment: a 4.3\,GB file is stored in the ABS in 
+the ``West-EU`'' data center. This file is then
+downloaded by worker roles in different locations: the same data center,
+``Anywhere US'', ``Anywhere Asia'', ``Anywhere Europe'' and 
+the same affinity group.
 
 % \jhanote{How does 'same affinity group' differ from ``Anywhere
 %   Europe-Anywhere Europe'' case?}\alnote{hopefully improved
 %   description} \jhanote{Yes}
 
-\begin{figure}[htbp]
+\begin{figure}[t]
     \centering
-        \includegraphics[width=0.46\textwidth]{performance/azure-data-transfer.pdf}
+        \includegraphics[width=0.4\textwidth]{performance/azure-data-transfer.pdf}
         \caption{\textbf{ABS Bandwidths Between
             Different Regions:} The achievable vary greatly with the
           distance between data and compute. Using affinity groups a
-          bandwidth of approx. 12 MiB/s is achievable, which is
-          comparable to the bandwidth that can be achieved by manually
-          co-locating data and compute to the same data center.  }
+          bandwidth of approx. 12 MiB/s is achievable.}
+          % , which is comparable to the bandwidth that can be achieved by manually
+          % co-locating data and compute to the same data center.  }
     \label{fig:performance_azure-data-transfer}
-    \up
+    \up\up
 \end{figure}
-Figure~\ref{fig:performance_azure-data-transfer} shows the measured
-bandwidths. Obviously, the further away the worker role, the smaller
+Figure~\ref{fig:performance_azure-data-transfer} shows the results. 
+Obviously, the further away the worker role, the smaller
 the available bandwidth. Interestingly, even when staying in the same
-region (``Anywhere Europe'') not the most optimal bandwidth could be
+region (``Anywhere Europe'') not the most optimal bandwidth can be
 achieved. The best result (approx. 12 MiB/s) can be achieved when
 placing worker roles and storage in the same data center or the 
 same affinity group. While affinity groups provide a good abstraction
-to manage the compute and storage location, the achievable bandwidths
-are comparable to a manually placements of VMs and storage. That means 
-that Azure does not provide an option to control data locality within
-a data center.
+to manage compute/storage locations, it influences the placement
+solely on data-center level. The same bandwidths can be achieved by 
+a manual placement. Enhanced affinity groups that can be used
+to control the locality on rack/switch-level would be desirable.
+
+% the achievable bandwidths
+% are comparable to a manually placements of VMs and storage. That means 
+% that Azure does not provide an option to control data locality within
+% a data center.
 
 While data locality is not critical for the EnMD and RE use case --
 the Azure service package has a size of 8\,MByte -- for data-intensive
 applications, such as MapReduce-based applications, this is an
 important feature. By supporting the Azure affinities within the
 BigJob framework, these requirements can be addressed.
-
+\up
 \subsection{Replica-Exchange on Azure}
 \up
 \begin{figure}[htbp]
     \centering
-        \includegraphics[width=0.46\textwidth]{performance/repex_runtime_per_region.pdf}
+        \includegraphics[width=0.4\textwidth]{performance/repex_runtime_per_region.pdf}
     \caption{\textbf{\tc for RE Run in Different Azure Regions:} Runtime for a RE simulation with 
     16 replicas each running on a small VM with 1 core for 500 timesteps and a total of 4 generations. The performance of
-    the Azure fluctuates with the data center region. }
+    the Azure fluctuates with the data center region. \up}
     \label{fig:performance_repex_runtime_per_region}
+    \up
 \end{figure}
 
 Figure~\ref{fig:performance_repex_runtime_per_region} shows the
-runtime of RE simulation with 16 replicas each running on a single
-core VM for 500 NAMD timesteps. In total, we measured the time for 4
+time-to-completion (\tc) of an RE simulation with 16 replicas each running on a single
+core VM for 500 NAMD timesteps on Azure. In total, we measured the time for 4
 generations, i.\,e.\ for 64 attempted exchanges. As the graph shows
 the runtime of this scenario fluctuates with the chosen Azure
 region. The EU and Asia show a better performance than the US data
@@ -687,20 +683,21 @@ centers. BigJob also supports the distribution of sub-jobs across
 multiple data centers. However, due to the coupling between the
 replicas, the performance in this case depends on the slowest machine.
 
-Figure~\ref{fig:performance_repex_scaleout_vmsizes} shows the runtime
-of RE simulations with a different number of replicas on different VM
-types. Again, each replica is run for 500 timesteps before an exchange
+Figure~\ref{fig:performance_repex_scaleout_vmsizes} shows \tc
+for different numbers of replicas and VM types. 
+Again, each replica is run for 500 timesteps before an exchange
 is attempted. The more replicas the higher the coordination overhead
 at the master. As seen in the results, this overhead is hardly
 observable.
 \begin{figure}[ht]
     \centering
-        \includegraphics[width=0.46\textwidth]{performance/repex-azure.pdf}
+        \includegraphics[width=0.4\textwidth]{performance/repex-azure.pdf}
     \caption{\textbf{\tc for Different VM Sizes and Number of Replicas:} With
     an increasing number of replicas a small coordination can be observed in most 
-    scenarios. The chosen VM type has a great impact on the overall runtime. The larger
-    the VM, the short \tc}
+    scenarios. The VM type has a great impact on the overall runtime. The larger
+    the VM, the shorter \tc. }
     \label{fig:performance_repex_scaleout_vmsizes}
+    \up
 \end{figure}
 
 The chosen VM type greatly influences the overall runtime. Azure currently offers four
@@ -735,12 +732,15 @@ roles, the Azure storage and affinity groups.
 In contrast to other cloud offerings, Azure provides not only
 bare-metal VMs to applications, but a managed PaaS environment for
 running them. It also monitors and automatically restarts VMs and
-applications if necessary. Further, it provides an integrated
+applications if necessary. Additional resources can be dynamically
+spawned e.\,g.\ if a higher accuracy is required or a deadline must
+be met. Further, Azure provides an integrated
 development environment and a higher-level API, which simplifies the
 development considerable in particular comparing to the efforts
 necessary when running an application distributed across multiple
 TeraGrid sites.  Using Azure we were able to achieve almost the same
-sampling speed as on comparable Grid resources, such as QueenBee.
+sampling speed as on comparable grid resources, such as QueenBee.
+
 
 SAGA~\cite{saga_url} provides a simple, single interface to the common
 distributed functionality (file/data, job/VM launch \& management
