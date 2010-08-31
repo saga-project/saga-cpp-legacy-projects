@@ -45,7 +45,7 @@ set ylabel "Runtime (in min)"   font "Helvetica,24"
 set xrange [2:32]
 set logscale x 2 
 set xtics (2,4,8,16,32)
-set yrange [20:125] 
+set yrange [20:115] 
 plot "repex-azure.txt" using 1:2 title "small (1 cores)" with lp lt 8 linewidth 4,\
      "repex-azure.txt" using 1:3 title "medium (2 cores)" with lp  lt 4 linewidth 4,\
      "repex-azure.txt" using 1:4 title "large (4 cores)" with lp  lt 5 linewidth 4,\
