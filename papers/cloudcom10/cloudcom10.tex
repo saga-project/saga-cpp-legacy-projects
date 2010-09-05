@@ -335,19 +335,20 @@ packages or collecting results.
 % other resource types and Pilot-Job frameworks.
 
 
-\emph{BigJob} is a infrastructure-independent Pilot-Job implementation~\cite{10.1109/CCGRID.2010.91}.
-As shown in Figure~\ref{fig:figures_distributed_pilot_job}, BigJob 
-provides a unified abstraction to grids, Condor pools,
-EC2-style clouds and to Windows Azure. Using the same API, applications 
-can dynamically allocate resources via the big-job interface and 
-bind sub-jobs to these resources. 
+\emph{BigJob} is a infrastructure-independent Pilot-Job
+implementation~\cite{10.1109/CCGRID.2010.91}.  As shown in
+Figure~\ref{fig:figures_distributed_pilot_job}, BigJob provides a
+unified abstraction to grids, Condor pools, EC2-style clouds and to
+Windows Azure. Using the same API, applications can dynamically
+allocate resources via the big-job interface and bind sub-jobs to
+these resources.
 
 \begin{figure}[t]
     \centering
         \includegraphics[width=0.42\textwidth]{figures/distributed_pilot_job}
-        \caption{\textbf{Overview of the BigJob Architecture:} BigJob can 
-        currently be used with four different infrastructures: grids, Condor pools, 
-        EC2-style and Azure clouds.\up}
+        \caption{\textbf{Overview of the BigJob Architecture:} BigJob
+          can currently be used with four different infrastructures:
+          grids, Condor pools, EC2-style and Azure clouds.\up}
     \label{fig:figures_distributed_pilot_job}
 \end{figure}
 
@@ -385,43 +386,47 @@ bind sub-jobs to these resources.
 % processes. 
 
 %%%%%%%%%%%%%%
-\jhanote{I am a bit confused about if we're using BigJob-Azure in
-  conjuction with other BigJob agents, i.e i.e., SAGA-BigJob API is
-  used, but not SAGA in the execution?  Is this correct?}  \alnote{The
-  Azure BigJob is completely self-contained and has nothing in common
-  with the SAGA BigJob except the API. Hope this gets clearer once I
-  remove the SAGA BigJob stuff.}\jhanote{Yes, it reads better. But
-  please leave this comment on for a while. Want to revisit it later}
+% \jhanote{I am a bit confused about if we're using BigJob-Azure in
+%   conjuction with other BigJob agents, i.e i.e., SAGA-BigJob API is
+%   used, but not SAGA in the execution?  Is this correct?}  \alnote{The
+%   Azure BigJob is completely self-contained and has nothing in common
+%   with the SAGA BigJob except the API. Hope this gets clearer once I
+%   remove the SAGA BigJob stuff.}\jhanote{Yes, it reads better. But
+%   please leave this comment on for a while. Want to revisit it later}
 
 Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of
 the Azure-based BigJob. The BigJob-Manager (BM) is responsible for
 accepting simulation requests from the end-user and for orchestrating
-the sub-job runs.  In contrast, to the grid BigJob, which heavily
-utilizes different SAGA API~\cite{saga_url}, the Azure BigJob is built
-directly on top of the Azure APIs. Initially, the BM launches the
-requested number of worker roles (also referred to as VM) using the
-Service Management API.  The Service Management API is a RESTful HTTP
-API; as part of this project we developed a Python library that can be
-used to access this Azure capability~\cite{azure-service-python}. The
-BigJob Agents run within the worker roles and is implemented in
+the sub-job runs.  In contrast, to the grid BigJob, which utilizes
+different packages of the SAGA API~\cite{saga_url}, the Azure BigJob
+is built directly on top of the Azure APIs; Azure BigJob is completely
+self-contained and has nothing in common with the SAGA BigJob, except
+the API. \jhanote{Andre: Please check this makes sense?} Initially,
+the BM launches the requested number of worker roles % (also referred to
+% as VM) 
+using the Service Management API -- which is a RESTful HTTP API;
+%The Service Management API is a RESTful HTTP API
+as part of this project we developed a Python library that can be used
+to access this Azure capability~\cite{azure-service-python}. The
+BigJob Agents run within the worker roles and are implemented in
 C\#/.NET. The main responsibility of the agent is to execute the
-specified application, e.\,g.\ the NAMD~\cite{Phillips:2005gd} or
-AMBER~\cite{tec2} MD code, on the worker. Azure restricts
-communication between worker roles to a set of pre-defined endpoints.
-\jhanote{something missing..}\alnote{hopefully better now} 
-Since MPI utilizes dynamically assigned ports, MPI computations 
-cannot be run across multiple worker roles. 
-The size of a parallel simulation is therefore
-limited to the VM size (the largest Azure VM has currently 8 cores).
+specified MD code, (e.\,g.\ NAMD~\cite{Phillips:2005gd}, or
+AMBER~\cite{tec2}), on the worker. Azure restricts communication
+between worker roles to a set of pre-defined endpoints.
+% \jhanote{something missing..}\alnote{hopefully better now}
+Since MPI utilizes dynamically assigned ports, MPI computations cannot
+be run across multiple worker roles.  The size of a parallel
+simulation is therefore limited to the VM size (the largest Azure VM
+has currently 8 cores).
 
-For each sub-job the BM creates a work package. Packages are
-distributed to the agents using the AQS. The AQS provides the ideal
-abstraction for this purpose by offering a reliable and scalable way
+For each sub-job the BM creates a work-package. These are distributed
+to the agents using the AQS, which by offering a reliable and scalable
+way for delivering messages to distributed components, provide an
+ideal abstraction. These can, but do not have to be hosted on Azure.
+
 %-- it ensures atomicity and an at least once semantic --
 % \jhanote{this sub-clause needs attention.. something amiss}
 % \alnote{removed clause}%
-for delivering messages to distributed components. These can, but do
-not have to be hosted on Azure.
 
 % The SAGA-based BigJob in contrast utilizes
 % the SAGA advert service, a central key/value store, for this purpose. 
@@ -441,19 +446,19 @@ not have to be hosted on Azure.
     \up\up
 \end{figure}
 
-Once the agents are started, they query the AQS for new work
-packages.  If a package is found, a simulation task is started, e.\,g.\
-by running the requested MD code with right parameters. The framework
+Once the agents are started, they query the AQS for new work packages.
+If a package is found, a simulation task is started, e.\,g.\ by
+running the requested MD code with right parameters. The framework
 supports both the staging of parameter files as well as of the
-executable using the ABS, i.\,e.\ the manager
-uploads the respective files to the storage and the agents downloads
-them before the run.
+executable using ABS, i.\,e.\ the manager uploads the respective files
+to the storage and the agents downloads them before the run.
 
-The framework supports Azure affinity groups, which
-can be used to co-locate compute tasks and storage. This is
-particularly useful for data-intensive tasks, e.\,g.\ MapReduce
-applications. At the same time the BM can also orchestrate worker roles that
-are distributed across multiple affinity groups.
+The framework supports Azure affinity groups, \jhanote{Can you clarify
+  which kinds of affinity are supported?} which can be used to
+co-locate compute tasks and storage. This is particularly useful for
+data-intensive tasks, e.\,g.\ MapReduce applications. At the same time
+the BM can also orchestrate worker roles that are distributed across
+multiple affinity groups.
 
 
 % The worker roles running the BigJob agent are managed by the BigJob Manager using
