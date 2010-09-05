@@ -473,28 +473,27 @@ multiple affinity groups.
 \up
 \section{EnMD and RE Simulations on Azure}
 \label{sec:enMD-REMD}
-\up
-Based on the BigJob framework both the scenarios, i.\,e.\ the
-independent and coupled ensemble (enMD \& REMD),
-have been ported to Azure. NAMD is used to carry out MD simulations.
-Both applications utilize the BigJob API to create pilot jobs
-and subsequently to submit sub-jobs to these. When a pilot job is
-created the BigJob framework initializes the requested number
-of worker roles with the specified size. The replicas themselves are submitted as
-sub-jobs. 
-% The sub-jobs per worker role depends on the size of the worker role --
-% Azure currently supports worker roles up to 8 cores. In contrast
-% to other infrastructure types such as EC2 and the TeraGrid, MD jobs
-% cannot be spawned across multiple nodes. 
-After the sub-job terminates,the master can collect the result via the BigJob API. 
-In the REMD case the output is parsed to obtain the energy level of the replica. 
-The Metropolis scheme is used to determine whether
-an exchange is conducted. Finally, a new generation of replicas is launched.
+\up Both the independent and coupled ensemble scenarios (enMD \&
+REMD), have been ported to Azure using the BigJob framework.  NAMD is
+used to perform MD simulations.  Both scenarios utilize the BigJob API
+to create pilot-jobs, and subsequently to submit sub-jobs. When a
+pilot-job is created the BigJob framework initializes the requested
+number of worker roles with the specified size. The replicas
+themselves are submitted as sub-jobs.  After the sub-job terminates,
+the master can collect results via the BigJob API.  In the REMD case
+the output is parsed to obtain the energy level of the replica.  The
+Metropolis scheme is used to determine whether an exchange is
+conducted. Finally, a new generation of replicas is launched.
 
-% Both enMD and REMD can greatly benefit from the capabilities of Azure. If greater 
-% accuracy is required or a deadline must be met, it can 
-% seamlessly scale-out to more worker roles.  The
-% Azure fabric controller monitors all VMs running the worker roles and
+% The sub-jobs per worker role depends on the size of the worker role
+% -- Azure currently supports worker roles up to 8 cores. In contrast
+% to other infrastructure types such as EC2 and the TeraGrid, MD jobs
+% cannot be spawned across multiple nodes.
+
+% Both enMD and REMD can greatly benefit from the capabilities of
+% Azure. If greater accuracy is required or a deadline must be met, it
+% can seamlessly scale-out to more worker roles.  The Azure fabric
+% controller monitors all VMs running the worker roles and
 % automatically restarts the worker roles if necessary. Further, Azure
 % provides various kinds of reliable and scalable storage options to
 % express different coordination schemes, e.\,g.\ the master-worker
@@ -511,9 +510,9 @@ are supported.  % We discuss two scenarios\jhanote{Can we illustrate
 % which two scenarios please?} that are representative of how
 % applications would typically use multiple distributed
 % infrastructures.
-We focus our attention on RE MD (REMD) simulations
-and a workload as \numrep replicas of a Hepatitis-C virus (HCV) model,
-each replica running for 500 timesteps.  \up
+We focus our attention on RE MD-simulations, and a workload of \numrep
+replicas of a Hepatitis-C virus (HCV) model, with each replica running
+for 500 timesteps.  \up
 
 \subsection{BigJob Startup Times}
 \up Initially, we analyze the overhead resulting from the usage of
@@ -537,14 +536,15 @@ times.
 \end{figure}
 
 Interestingly for the experiments conducted, the startup times for the
-cloud environments were observed to be larger than the queue waiting time
-for the LONI resource Poseidon, which coincidentally was very lightly
-loaded during the course of these experiments. Obviously, the startup
-of a VM involves higher overheads than spawning a job on an already
-running machine: a resource for the VM must be allocated, the VM must
-be staged to the target and booted up. The data show that
+cloud environments were observed to be larger than the queue waiting
+time for the LONI resource Poseidon. \jhanote{which coincidentally was
+  very lightly loaded during the course of these experiments.}
+Obviously, the startup of a VM involves higher overheads than spawning
+a job on an already running machine: a resource for the VM must be
+allocated, the VM must be staged to the target and booted up. The data
+show that
 % also show that especially
-the already oversubscribed intra cloud network and thus, the staging
+the already oversubscribed intra-cloud network and thus, the staging
 of the VM can be a bottleneck. Azure VMs had the longest waiting time
 ($>10$\,min; about 200\,sec longer than EC2).
 %which is consistent with Hill et\,al.~\cite{hill10}.  
@@ -553,12 +553,12 @@ waiting time usually correlate to the current load of the chosen data
 center, which again depends on external factors, such as the location
 of the data center and/or the date/time of the request.
 
-BigJob can manage sets of VMs and removes the need of the application
-to manage individual VMs. By utilizing the different BigJob cloud and
-grid backends, fluctuations in the waiting times can be smoothened
-out. Furthermore, BigJob provides the possibility to dynamically add
-resources to an application, e.\,g.\ in case a resource is heavily
-loaded and thus has long wait-times.
+BigJob can manage sets of VMs, and thus removes the need of the
+application to manage individual VMs. By utilizing the different
+BigJob cloud and grid backends, fluctuations in the waiting times can
+be smoothened out. Furthermore, BigJob provides the possibility to
+dynamically add resources to an application, e.\,g.\ in case a
+resource is heavily loaded and thus has long wait-times.
 
 
 % Also,
@@ -566,7 +566,7 @@ loaded and thus has long wait-times.
 % probably caused by the fact that insufficient resources were available
 % at certain times.
 
-\subsection{Replica Ensembles on Different Resource Types}
+\subsection{Ensembles on Different Resource Types}
 \up
 \label{sec:performance_namd}
 
@@ -581,18 +581,19 @@ loaded and thus has long wait-times.
 
 \end{figure}
 
-We ran experiments with NAMD in different environments: the FutureGrid (Nimbus),
-Amazon EC2, Azure and LONI/TeraGrid. 
-In general, each cloud has its characteristics. 
 % The FutureGrid Nimbus cloud is accessed via the WSRF interface,
 % while for EC2 the Amazon command line client is used.
-Each FutureGrid VM provides 2 virtual cores and 3.7\,GB memory. 
-Amazon offeres different VM types with up to 8 cores. We used the largest 
-VM type (m2.4xlarge) with 8 cores and 68.4\,GB of memory,
-the m1.large instance type with 2 cores and 7.5\,GB  and the recently launched
-cluster compute instances~\cite{ec2-cc}, which provide a pair of quad-core Intel 
-X5570 (Nehalem) processors with 23\,GB memory. In contrast to other instance types,
-cluster compute instances are connected using 10 Gbps Ethernet.
+
+We ran experiments with NAMD in different environments with varying
+characteristics: FutureGrid (Nimbus), Amazon EC2, Azure and
+LONI/TeraGrid.  Each FutureGrid VM provides 2 virtual cores and
+3.7\,GB memory.  Amazon offeres different VM types with up to 8
+cores. We used the largest VM type (m2.4xlarge) with 8 cores and
+68.4\,GB of memory, the m1.large instance type with 2 cores and
+7.5\,GB and the recently launched cluster compute
+instances~\cite{ec2-cc}, which provide a pair of quad-core Intel X5570
+(Nehalem) processors with 23\,GB memory. In contrast to other instance
+types, cluster compute instances are connected using 10 Gbps Ethernet.
 
 
 \begin{figure}[t]
@@ -633,8 +634,8 @@ instances Azure provides a favorable optimum.
 	        %EC2 m1.large  (Linux)   &2          &4     &355\,sec    &0.27\$  \\ \hline
 	        EC2 m2.4xlarge (Lin)  &2.40\$  &8          &1      &128\,sec     &0.08\$ \\ \hline
 	        EC2 cc1.4xlarge (Lin) &1.60\$  &8          &1      &45\,sec     &0.04\$ \\ \hline
-	        EC2 c1.xlarge   (Win)   &1.16\$  &8          &1      &290\,sec    &0,09\$ \\ \hline
-	        Azure XL (Win)  &0.96\$ &8          &1      &301\,sec    &0,08\$ \\ \hline
+	        EC2 c1.xlarge   (Win)   &1.16\$  &8          &1      &290\,sec    &0.09\$ \\ \hline
+	        Azure XL (Win)  &0.96\$ &8          &1      &301\,sec    &0.08\$ \\ \hline
 		\end{tabular}
 	\end{scriptsize}
 	\caption{EC2 vs. Azure Costs\label{tbl:costs}}
@@ -655,10 +656,6 @@ downloaded by worker roles in different locations: the same data center,
 ``Anywhere US'', ``Anywhere Asia'', ``Anywhere Europe'' and 
 the same affinity group.
 
-% \jhanote{How does 'same affinity group' differ from ``Anywhere
-%   Europe-Anywhere Europe'' case?}\alnote{hopefully improved
-%   description} \jhanote{Yes}
-
 \begin{figure}[t]
     \centering
         \includegraphics[width=0.4\textwidth]{performance/azure-data-transfer.pdf}
@@ -669,7 +666,7 @@ the same affinity group.
           % , which is comparable to the bandwidth that can be achieved by manually
           % co-locating data and compute to the same data center.  }
     \label{fig:performance_azure-data-transfer}
-    \up\up
+%    \up\up
 \end{figure}
 Figure~\ref{fig:performance_azure-data-transfer} shows the results.
 Obviously, the further away the worker role, the smaller the available
@@ -699,7 +696,7 @@ important feature. By supporting the Azure affinities within the
 BigJob framework, these requirements can be addressed.  \up
 
 \subsection{Replica-Exchange on Azure}
-\up
+
 \begin{figure}[t]
     \centering
         \includegraphics[width=0.4\textwidth]{performance/repex_runtime_per_region.pdf}
@@ -708,9 +705,10 @@ BigJob framework, these requirements can be addressed.  \up
           Runtime for a RE simulation with 16 replicas each running on
           a small VM with 1 core for 500 timesteps and a total of 4
           generations. The performance of the Azure fluctuates with
-          the data center region.%  \jhanote{Maybe legends could be made
-%             larger -- without using more space?}
-          \up}
+          the data center region.}
+        % \jhanote{Maybe legends could be made larger -- without us
+        %ing more space?}
+        %\up}
     \label{fig:performance_repex_runtime_per_region}
     \up
 \end{figure}
