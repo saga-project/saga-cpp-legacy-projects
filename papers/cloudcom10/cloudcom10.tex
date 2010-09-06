@@ -334,9 +334,10 @@ packages or collecting results.
 % extensible and provides several hooks that can be used to support
 % other resource types and Pilot-Job frameworks.
 
-
-\emph{BigJob} is a infrastructure-independent pilot-job
-implementation~\cite{10.1109/CCGRID.2010.91}.  As shown in
+The BigJob API is a SAGA-style API that utilizes common SAGA idioms
+and classes (e.\,g.\ saga.job.description) for managing pilot-jobs and
+for starting sub-jobs.  \emph{BigJob} is a infrastructure-independent
+pilot-job implementation~\cite{10.1109/CCGRID.2010.91}.  As shown in
 Figure~\ref{fig:figures_distributed_pilot_job}, BigJob provides a
 unified abstraction to grids, Condor pools, EC2-style clouds and to
 Windows Azure. Using the same API, applications can dynamically
@@ -352,6 +353,49 @@ these resources.
     \label{fig:figures_distributed_pilot_job}
 \end{figure}
 
+Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of
+the Azure-based BigJob. The BigJob-Manager (BM) is responsible for
+accepting simulation requests from the end-user and for orchestrating
+the sub-job runs.  In contrast, to the grid BigJob, which utilizes
+different packages of the SAGA API~\cite{saga_url}, the Azure BigJob
+is built directly on top of the Azure APIs. With the exception of
+using the BigJob API -- and thus presenting an interface that is
+identical to the SAGA-based pilot-jobs that can be used for other
+infrastructure, Azure BigJob is self-contained and independent of any
+(SAGA) details used to implement a SAGA-based pilot-job.
+
+
+
+
+%a common for the; other than the SAGA BigJob, 
+
+% \jhanote{Andre: Please check this makes sense?} \alnote{make sense and
+%   is correct. Just a note: the API is SAGA style and actually uses
+%   some SAGA classes, e.g. saga.job.description. But I think this does
+%   not need to go here.}  
+
+Initially, the BM launches the requested number of worker
+roles % (also referred to
+% as VM) 
+using the Service Management API -- which is a RESTful HTTP API;
+%The Service Management API is a RESTful HTTP API
+as part of this project we developed a Python library that can be used
+to access this Azure capability~\cite{azure-service-python}. The
+BigJob Agents run within the worker roles and are implemented in
+C\#/.NET. The main responsibility of the agent is to execute the
+specified MD code, (e.\,g.\ NAMD~\cite{Phillips:2005gd}, or
+AMBER~\cite{tec2}), on the worker. Azure restricts communication
+between worker roles to a set of pre-defined endpoints.
+% \jhanote{something missing..}\alnote{hopefully better now}
+Since MPI utilizes dynamically assigned ports, MPI computations cannot
+be run across multiple worker roles.  The size of a parallel
+simulation is therefore limited to the VM size (the largest Azure VM
+has currently 8 cores).
+
+For each sub-job the BM creates a work-package. These are distributed
+to the agents using the AQS, which by offering a reliable and scalable
+way for delivering messages to distributed components, provide an
+ideal abstraction. These can, but do not have to be hosted on Azure.
 
 % \begin{figure}[ht]
 %     \centering
@@ -393,40 +437,6 @@ these resources.
 %   with the SAGA BigJob except the API. Hope this gets clearer once I
 %   remove the SAGA BigJob stuff.}\jhanote{Yes, it reads better. But
 %   please leave this comment on for a while. Want to revisit it later}
-
-Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of
-the Azure-based BigJob. The BigJob-Manager (BM) is responsible for
-accepting simulation requests from the end-user and for orchestrating
-the sub-job runs.  In contrast, to the grid BigJob, which utilizes
-different packages of the SAGA API~\cite{saga_url}, the Azure BigJob
-is built directly on top of the Azure APIs; Azure BigJob is completely
-self-contained and has nothing in common with the SAGA BigJob, except
-the BigJob API. The BigJob API is a SAGA-style API that utilizes common
-SAGA idioms and classes (e.\,g.\ saga.job.description) for managing 
-pilot-jobs and for starting sub-jobs. 
-
-\jhanote{Andre: Please check this makes sense?} \alnote{make sense and is correct. Just a note: the API is SAGA style and actually uses some SAGA classes, e.g. saga.job.description. But I think this does not need to go here.}
-Initially, the BM launches the requested number of worker roles % (also referred to
-% as VM) 
-using the Service Management API -- which is a RESTful HTTP API;
-%The Service Management API is a RESTful HTTP API
-as part of this project we developed a Python library that can be used
-to access this Azure capability~\cite{azure-service-python}. The
-BigJob Agents run within the worker roles and are implemented in
-C\#/.NET. The main responsibility of the agent is to execute the
-specified MD code, (e.\,g.\ NAMD~\cite{Phillips:2005gd}, or
-AMBER~\cite{tec2}), on the worker. Azure restricts communication
-between worker roles to a set of pre-defined endpoints.
-% \jhanote{something missing..}\alnote{hopefully better now}
-Since MPI utilizes dynamically assigned ports, MPI computations cannot
-be run across multiple worker roles.  The size of a parallel
-simulation is therefore limited to the VM size (the largest Azure VM
-has currently 8 cores).
-
-For each sub-job the BM creates a work-package. These are distributed
-to the agents using the AQS, which by offering a reliable and scalable
-way for delivering messages to distributed components, provide an
-ideal abstraction. These can, but do not have to be hosted on Azure.
 
 %-- it ensures atomicity and an at least once semantic --
 % \jhanote{this sub-clause needs attention.. something amiss}
@@ -802,7 +812,7 @@ job/VM launch etc.) for a range of distributed infrastructure.  Given
 the benefit of using the same application across different
 infrastructures, it makes eminent sense to support Azure from within
 SAGA and to provide SAGA adaptors to important Azure services. % As
-% part of ongoing research into data-intensive applications, 
+% part of ongoing research into data-intensive applications,
 We are exploring novel as well as extensions to the abstractions
 already provided by Azure for data-intensive applications, as well as
 task placement algorithms in conjunction with different Azure worker
