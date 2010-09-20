@@ -227,6 +227,7 @@ class bigjob_agent:
                 shell = self.SHELL 
                 print "execute: " + command + " in " + workingdirectory + " from: " + str(socket.gethostname()) + " (Shell: " + shell +")"
                 # bash works fine for launching on QB but fails for Abe :-(
+                
                 p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
                 print "started " + command
                 self.processes[job_dir] = p
@@ -406,7 +407,7 @@ class bigjob_agent:
                         
     def start_background_thread(self):
         self.stop=False
-        print "\n"
+        print "####################" + time.asctime(time.localtime(time.time())) + "##################"
         print "##################################### New POLL/MONITOR cycle ##################################"
         print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while True and self.stop==False:
@@ -419,7 +420,7 @@ class bigjob_agent:
             try:
                 self.poll_jobs()
                 self.monitor_jobs()            
-                time.sleep(5)
+                #time.sleep(5)
                 self.failed_polls=0
             except saga.exception:
                 traceback.print_exc(file=sys.stdout)

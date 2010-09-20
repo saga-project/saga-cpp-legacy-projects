@@ -20,13 +20,13 @@ import time
 import pdb
 
 #Configure here:
-BIGJOB_SIZE = 64
-NUMBER_EXCHANGES = 16
+BIGJOB_SIZE = 1024
+NUMBER_EXCHANGES = 256
 NUMBER_BIGJOBS= 1
-NUMBER_REPLICAS = 4
-CPR = 16 # cores per replica
-HOST = "louie1.loni.org"
-REMOTE1 = "louie1.loni.org"
+NUMBER_REPLICAS = 64
+CPR = 4 # cores per replica
+HOST = "qb1.loni.org"
+REMOTE1 = "qb1.loni.org"
 REMOTE2 = "qb1.loni.org"
 REMOTE3 = "painter1.loni.org"
 advert_host = "fortytwo.cct.lsu.edu"
@@ -34,7 +34,7 @@ advert_host = "fortytwo.cct.lsu.edu"
 WORK_DIR = "/work/athota1/new_bigjob/decentralized/"
 WALLTIME = "10"
 REPLICA_DIR = "/work/athota1/new_bigjob/decentralized/NAMD_files/"
-RPB = 4 #NUMBER_REPLICAS/BIGJOB
+RPB = 64 #NUMBER_REPLICAS/BIGJOB
 
 
 def stage_files(i):
@@ -221,13 +221,13 @@ if __name__ == "__main__":
                             nodes,
                             None,
                             None,
-                            workingdirectory,userproxy,150)
+                            workingdirectory,userproxy,40)
       print "Start Pilot Job/BigJob: " + bigjob_agent + " at: " + lrms_url
       print "Pilot Job/BigJob URL: " + bjs[i].pilot_url + " State: " + str(bjs[i].get_state())
       print "####################" + time.asctime(time.localtime(time.time())) + "end bigjob lauch, start config, staging file##################"
       print "time to laucnh bjs: " + str(time.time() - start)
-      uuid = uuid.uuid1()
-      app_url = saga.url("advert://" + advert_host + "/"+"BigJob/BigJob" + "-" + str(uuid) + "/Count/")
+      duid = uuid.uuid1()
+      app_url = saga.url("advert://" + advert_host + "/"+"BigJob/BigJob" + "-" + str(duid) + "/Count/")
       app_dir = saga.advert.directory(app_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
        # self.state=saga.job.Unknown
       app_dir.set_attribute("count", str(0))
@@ -240,9 +240,12 @@ if __name__ == "__main__":
     jds=[]
     sjs=[]
     for i in range(0, NUMBER_REPLICAS):
+      agent_url = saga.url("advert://fortytwo.cct.lsu.edu/"+"BigJob/BigJob" + "-" + str(duid) + "/"+str(i)+"/")
+      agent_dir = saga.advert.directory(agent_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+      agent_dir.set_attribute("state", str("unknown"))
       stage_files(i)
       jd = saga.job.description()
-      jd.executable = "python"
+      jd.executable = "/bin/bash"
       jd.number_of_processes = "16"
       jd.spmd_variation = "single"
    # jd.arguments = ["NPT.conf"]
@@ -257,27 +260,26 @@ if __name__ == "__main__":
       #prepare config and scp other files to remote machine
       NAMD_config(i)
       if i<RPB:
-        j = 0 
-        qq = 4 
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
+        j = 0        
+        jd.arguments = ["async_agent_launcher.sh " +WORK_DIR+"agent/"+str(i)+"/ "+ str(duid) +" "+ str(i)+" "+str(NUMBER_REPLICAS)]
         copy_with_saga(i)
         jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       elif (i>=RPB and i<(2*RPB)):
         j = 1   
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
+        jd.arguments = ["async_agent.py " + str(duid) +" "+ str(i)+" "+str(NUMBER_REPLICAS)]
         copy_with_saga(i)
         jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       elif (i>=(2*RPB) and i<(3*RPB)):
         j = 2   
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
+        jd.arguments = ["async_agent.py " + str(duid) +" "+ str(i)+" "+str(NUMBER_REPLICAS)]
         copy_with_saga(i)
         jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
       else: 
         j = 3
-        jd.arguments = ["async_agent.py " + str(uuid) +" "+ str(i)+" "+str(qq)]
+        jd.arguments = ["async_agent.py " + str(duid) +" "+ str(i)+" "+str(NUMBER_REPLICAS)]
         copy_with_saga(i)
         jds.append(jd)
         sjs[i].submit_job(bjs[j].pilot_url, jds[i],str(i))
@@ -302,7 +304,7 @@ if __name__ == "__main__":
       # temperature.append(temperatures)
       # print "current state= " + str(state[i]) + " where: replica# is" +str(i) + ", current energy: " + str(energy[i])+ "current temp " + str(temperature[i])
        print str(state[i]) + "replica #" + str(i)
-      time.sleep(1)
+      time.sleep(10)
       print "####################" + time.asctime(time.localtime(time.time())) + "end get attributes##################"
       count =  int(app_dir.get_attribute("count"))
 #################################################################################                   

@@ -84,8 +84,8 @@ class bigjob():
             jd.working_directory = "$(HOME)"
             
             
-        if not os.path.isdir(jd.working_directory):
-            os.mkdir(jd.working_directory)
+      #  if not os.path.isdir(jd.working_directory):
+       #     os.mkdir(jd.working_directory)
             
         print "Working directory: " + jd.working_directory
         
@@ -209,7 +209,7 @@ class subjob():
                 return self    
             except:
                 traceback.print_exc(file=sys.stdout)
-                time.sleep(2)
+                #time.sleep(2)
                 #raise Exception("Unable to submit job")      
 
     def get_state(self):        

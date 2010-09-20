@@ -347,12 +347,14 @@ class bigjob_agent:
                 print self.print_job(i) + " state: " + str(p_state)
                 if (p_state != None and (p_state==0 or p_state==255)):
                     print self.print_job(i)  + " finished. "
-                    i.set_attribute("state", str(saga.job.Done))                 
+                   # i.set_attribute("state", str(saga.job.Done))                 
                     rid=i.get_attribute("replica_id")
                     en = self.read_energy(str(rid))  
                     i.set_attribute("energy", str(en))##
                     temp = self.read_temp(str(rid))  
                     i.set_attribute("temp", str(temp))
+                    time.sleep(1)
+                    i.set_attribute("state", str(saga.job.Done))
                     self.free_nodes(i)
                     del self.processes[i]
                 elif p_state!=0 and p_state!=255 and p_state != None:
@@ -403,7 +405,8 @@ class bigjob_agent:
                         
     def start_background_thread(self):
         self.stop=False
-        print "\n"
+        print "\n"+ str(time.time())
+        print "####################" + time.asctime(time.localtime(time.time())) + "##################"
         print "##################################### New POLL/MONITOR cycle ##################################"
         print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while True and self.stop==False:
@@ -411,12 +414,15 @@ class bigjob_agent:
                 print "Job dir deleted - terminate agent"
                 break
             else:
-                print "Job dir: " + str(self.base_dir) + "exists."
+                print "Job dir: " + str(self.base_dir) + "exists."+ str(time.time())
 
             try:
+                print "####################" + time.asctime(time.localtime(time.time())) + "##################"
                 self.poll_jobs()
-                self.monitor_jobs()            
-                time.sleep(5)
+                print "####################" + time.asctime(time.localtime(time.time())) + "##################"
+                self.monitor_jobs()   
+                print "####################" + time.asctime(time.localtime(time.time())) + "##################"
+               # time.sleep(5)
                 self.failed_polls=0
             except saga.exception:
                 traceback.print_exc(file=sys.stdout)
