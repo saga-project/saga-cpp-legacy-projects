@@ -1067,19 +1067,17 @@ Sphere and MapReduce}
 \subsubsection{Experiment I -- Varying chunk sizes} 
 
 For the Sector-Sphere based \wc, Sector maintains and tracks data in
-the cloud at the file level. There is no support in Sphere to control
-the chunk sizes of files assigned to the Sphere processing
-engines. Therefore, to experiment with different chunk sizes, the
+the cloud at the file level. To experiment with different chunk sizes, the
 files were split manually into smaller chunks before the \wc
 application was launched. In this set of experiments, we vary the
 chunk size from 16 MB to 256 MB, while keeping the number of SPEs
-constant at 8, and the data size constant at 4 GB. Each SPE is running
+constant at 8, and the total data size constant at 4 GB. Each SPE is running
 on a separate physical node in the cluster. These results are
 presented in Fig.~\ref{fig:sphere_mr_chunksize}.  Note that both data
 and computation were distributed for these experiments.  As evident
 from the results we collected, a correlation exists between the chunk
 sizes and performance of Sphere.  As the chunk sizes increase, the
-performance deteriorates. In particular, we observe a decline in
+time-to-solution also increases. In particular, we observe a decline in
 performance after the 64 MB data, in that there is an increase in the
 gradient of the plot, after chunk sizes have reached 64 MB.
 
@@ -1210,6 +1208,16 @@ better performance from smaller chunks sizes (a larger amount of
 files) making it suitable for finer grained computations with better
 data distribution.
 
+We instrumented the Sphere code to analyze this behavior further. 
+The processing of larger files (i.e. reading the file from disk to memory, 
+computing the hash for the words contained in the file, as 
+well as writing the file into the Sphere output buffer) did not 
+contribute significantly to the time taken for solution. We did 
+observe that once the Sphere framework took over the responsibility 
+of processing the output buffer, it took more time to process larger 
+buffers than smaller ones. Identifying exactly what module is 
+responsible for this bottleneck is out of the scope of this paper.
+
 In Experiment 2, where we keep the chunk size to a constant of 64 MB,
 SAGA-Sphere exhibits a trend where adding more SPEs has a positive
 impact on performance. However, at the 8 SPEs and 10 SPEs data points,
@@ -1220,8 +1228,19 @@ SAGA-Sphere in Fig.~\ref{fig:sphere_mr_chunksize}.  Reducing the chunk
 size by 75\%, thereby providing better data distribution with a larger
 number of files, we see almost a 65\% increase in performance. This
 further confirms our supposition that good data distribution had a
-major impact on Sphere's performance for the \wc application. We do
-not claim that fine grained computation granularity is a concrete
+major impact on Sphere's performance for the \wc application. 
+
+We instrumented the Sphere code to analyze this behavior further.
+The processing of larger files (i.e. reading the file from disk to memory,
+computing the hash for the words contained in the file, as
+well as writing the file into the Sphere output buffer) did not
+contribute significantly to the time taken for solution. We did
+observe that once the Sphere framework took over the responsibility
+of processing the output buffer, it took more time to process larger
+buffers than smaller ones. Identifying exactly what module is
+responsible for this bottleneck is out of the scope of this paper.
+
+We do not claim that fine grained computation granularity is a concrete
 determinant of SAGA-Sphere's performance in a general case, but a
 noticeable aspect that emerges through its comparison with
 \sagamapreduce.
