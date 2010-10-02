@@ -227,7 +227,9 @@ roles and for remotely executing tasks on them.
 
 This paper is structured as follows: In \S~\ref{sec:azure} we present
 an overview of the Azure platform. The BigJob framework is presented
-in \S~\ref{sec:bigjob-saga}. In \S~\ref{sec:enMD-REMD} we discuss the
+in \S~\ref{sec:bigjob-saga}. In \S~\ref{sec:pilot-bj} the pilot-job 
+concept and the BigJob framework is introduced. 
+In \S~\ref{sec:enMD-REMD} we discuss the
 architecture of the Azure-based enMD and RE application.  A
 significant issue in cloud computing is performance. We provide an
 in-depth performance analysis in \S~\ref{sec:performance}.
@@ -320,29 +322,104 @@ packages or collecting results.
 %   REMD}\jhanote{OK}
 
 \up
+\section{Pilot-Jobs and SAGA BigJob}
+\label{sec:pilot-bj}
+\up
+
+Pilot-Jobs are a useful abstraction for efficiently executing an
+ensemble of batch jobs on grids without the necessity to queue each individual
+job.  The pilot-job itself is a regular grid job, which is started
+through a grid resource manager, such as the Globus GRAM.  Once the
+batch queue assigned the requested resources to the pilot-job, the
+pilot-job circumvents the necessity to queue each individual sub-job
+and is responsible for managing these and assigning them to so-called
+sub-jobs. That way queuing times for sub-jobs can be reduced and the
+predictability for application scenarios can be increased.  Pilot-Jobs
+decouple resource allocation from resource binding and allow the
+efficient utilization of resources. By delaying the resource binding
+decision into the application-level, dynamic usage modes, e.\,g.\ the
+load-depended sizing of sub-jobs or the dynamic addition of resources
+to meet deadlines, can be supported.
+
+As more applications take advantage of dynamic execution, the
+pilot-job concept has grown in popularity and has been extensively
+researched and implemented for different usage scenarios and
+infrastructure including clouds. 
+Nimbus~\cite{10.1109/MIC.2009.94} e.\,g. provides a pilot-job like
+abstractions for clouds. For this purpose, Nimbus allows the launch of
+auto-configured virtual machine clusters that contain a Torque and
+Globus installation.  The Atlas computing framework developed at CERN
+also heavily relies on the PanDA pilot-job framework~\cite{1742-6596-219-6-062041} 
+to implement resource leases. Using the VIRM API, PanDA was extended to support
+different virtualization backends, e.\,g.\ OpenNebula and
+Nimbus. Both frameworks are strongly coupled to a particular backend infrastructure
+-- Globus in the case of Nimbus and gLite in the case of PanDA. The
+advantage of the SAGA pilot-job is that it allows applications to
+seamlessly utilize different backend infrastructure, e.\,g.\ Condor,
+Globus and different kinds of clouds, at the same time.
+
+\emph{BigJob} is a SAGA-based pilot-job implementation~\cite{10.1109/CCGRID.2010.91}. 
+SAGA~\cite{saga_url} is a simple, POSIX-style API to the most 
+common distributed functions, which 
+is a sufficiently high-level of abstraction so as to be 
+independent of the diverse and dynamic grid environments. 
+In contrast to other pilot-job implementations, BigJob can
+natively works independent of the underlying distributed infrastructure across different
+heterogeneous backend, e.\,g.\ grids, Condor pools and EC2-based and Azure clouds, 
+reflecting the advantage of using a SAGA-based approach (see 
+Figure~\ref{fig:figures_distributed_pilot_job}). Further, the framework is
+extensible and provides several hooks that can be used to support
+other resource types and pilot-job frameworks.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.45\textwidth]{figures/bigjob}
+   \caption{BigJob Architecture: The core of the framework, the
+      BigJob Manager, orchestrates a set of sub-jobs via a
+      BigJob Agent using the SAGA job and file APIs.  The
+      BigJob Agent is responsible for managing and monitoring sub-jobs.\up}
+   \label{fig:figures_bigjob}   
+\end{figure}
+
+Figure~\ref{fig:figures_bigjob} shows an overview of the SAGA BigJob
+implementation for computational grids. The grid BigJob comprises of
+three components: (i) the BigJob Manager (BM) that provides the pilot-job
+abstraction and manages the orchestration and scheduling of BigJobs
+(which in turn allows the management of both big-job objects and
+sub-jobs), (ii) the BigJob Agent that represents the pilot-job.
+
+Applications can utilize the framework via the big-job and sub-job
+classes. Both interfaces are syntactically and semantically consistent
+with the other SAGA APIs: a sub-job e.\,g.\ is described using 
+the standard SAGA job description; job states are expressed
+using the SAGA state model. Before running sub-jobs, an application must initialize
+a big-job object. The BigJob Manager then queues a job,
+which actually runs a BigJob Agent on the respective remote
+resource. For this agent a specified number of resources is
+requested. Subsequently, sub-jobs can be submitted through the BigJob
+Manager using the job-id of the BigJob as reference. The BigJob
+Manager ensures that sub-jobs are launched onto the correct
+resource based upon the specified job-id using the right number of
+processes.
+
+% The BigJob API is a SAGA-style API that utilizes common SAGA idioms
+% and classes (e.\,g.\ saga.job.description) for managing pilot-jobs and
+% for starting sub-jobs.  
+
+
+
+\up
 \section{Azure BigJob}
 \label{sec:bigjob-saga}
 \up
-% \emph{BigJob} is a SAGA-based Pilot-Job implementation. SAGA~\cite{saga_url} 
-% is a simple, POSIX-style API to the most common distributed functions, which 
-% is a sufficiently high-level of abstraction so as to be 
-% independent of the diverse and dynamic Grid environments. 
-% In contrast to other Pilot-Job implementations, e.\,g.\ Falkon, BigJob can
-% natively works independent of the underlying distributed infrastructure across different
-% heterogeneous backend, e.\,g.\ Grids and Cloud, reflecting the
-% advantage of using a SAGA-based approach. Further, the framework is
-% extensible and provides several hooks that can be used to support
-% other resource types and Pilot-Job frameworks.
 
-The BigJob API is a SAGA-style API that utilizes common SAGA idioms
-and classes (e.\,g.\ saga.job.description) for managing pilot-jobs and
-for starting sub-jobs.  \emph{BigJob} is a infrastructure-independent
-pilot-job implementation~\cite{10.1109/CCGRID.2010.91}.  As shown in
-Figure~\ref{fig:figures_distributed_pilot_job}, BigJob provides a
-unified abstraction to grids, Condor pools, EC2-style clouds and to
-Windows Azure. Using the same API, applications can dynamically
-allocate resources via the big-job interface and bind sub-jobs to
-these resources.
+% \emph{BigJob} is a infrastructure-independent
+% pilot-job implementation~\cite{10.1109/CCGRID.2010.91}.  As shown in
+% Figure~\ref{fig:figures_distributed_pilot_job}, BigJob provides a
+% unified abstraction to grids, Condor pools, EC2-style clouds and to
+% Windows Azure. Using the same API, applications can dynamically
+% allocate resources via the big-job interface and bind sub-jobs to
+% these resources.
 
 \begin{figure}[t]
     \centering
@@ -367,12 +444,6 @@ infrastructure, Azure BigJob is self-contained and independent of any
 
 
 
-%a common for the; other than the SAGA BigJob, 
-
-% \jhanote{Andre: Please check this makes sense?} \alnote{make sense and
-%   is correct. Just a note: the API is SAGA style and actually uses
-%   some SAGA classes, e.g. saga.job.description. But I think this does
-%   not need to go here.}  
 
 Initially, the BM launches the requested number of worker
 roles % (also referred to
@@ -397,37 +468,7 @@ to the agents using the AQS, which by offering a reliable and scalable
 way for delivering messages to distributed components, provide an
 ideal abstraction. These can, but do not have to be hosted on Azure.
 
-% \begin{figure}[ht]
-%     \centering
-%     \includegraphics[width=0.45\textwidth]{figures/bigjob}
-%    \caption{BigJob Architecture: The core of the framework, the
-%       BigJob Manager, orchestrates a set of sub-jobs via a
-%       BigJob Agent using the SAGA job and file APIs.  The
-%       BigJob Agent is responsible for managing and monitoring sub-jobs.\up}
-%    \label{fig:figures_bigjob}
-%    \up
-% \end{figure}
-% Figure~\ref{fig:figures_bigjob} shows an overview of the SAGA BigJob
-% implementation for computational Grids. The Grid BigJob comprises of
-% three components: (i) the BigJob Manager (BM) that provides the Pilot-Job
-% abstraction and manages the orchestration and scheduling of BigJobs
-% (which in turn allows the management of both big-job objects and
-% sub-jobs), (ii) the BigJob Agent that represents the pilot job.
 
-
-% Applications can utilize the framework via the big-job and sub-job
-% classes. Both interfaces are syntactically and semantically consistent
-% with the other SAGA APIs: a sub-job e.\,g.\ is described using 
-% the standard SAGA job description; job states are expressed
-% using the SAGA state model. Before running sub-jobs, an application must initialize
-% a big-job object. The BigJob Manager then queues a job,
-% which actually runs a BigJob Agent on the respective remote
-% resource. For this agent a specified number of resources is
-% requested. Subsequently, sub-jobs can be submitted through the BigJob
-% Manager using the job-id of the BigJob as reference. The BigJob
-% Manager ensures that sub-jobs are launched onto the correct
-% resource based upon the specified job-id using the right number of
-% processes. 
 
 %%%%%%%%%%%%%%
 % \jhanote{I am a bit confused about if we're using BigJob-Azure in
