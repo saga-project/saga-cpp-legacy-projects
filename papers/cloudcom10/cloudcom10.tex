@@ -258,8 +258,8 @@ application upgrades.
 
 \subsubsection{Compute}
 
-Windows Azure formalizes different types of VM into so called
-roles. Web roles e.\,g.\ are used to host web applications and
+Windows Azure currently provides two kind of 
+roles: Web roles e.\,g.\ are used to host web applications and
 front-end code, while worker roles are well suited for background
 processing. While these roles target specific scenarios and are not as
 flexible as bare EC2 images, they are customizable, % to a certain
@@ -269,7 +269,7 @@ implement a defined entry point, which is then called by Azure. The
 Azure fabric controller automatically manages and monitors
 applications, handles hardware and software failures as well as
 updates to the operating system or the application.  Scientific
-applications Commonly utilize worker roles for compute- and
+applications commonly utilize worker roles for compute- and
 data-intensive tasks. AzureBlast~\cite{azure_blast} e.\,g.\ heavily
 relies on worker roles for computing bio-sequences.
 
@@ -277,7 +277,7 @@ relies on worker roles for computing bio-sequences.
 
 For storing large amounts of data Azure provides three key services:
 the \emph{Azure Blob Storage} (ABS) for storing large objects of raw
-data; the \emph{Azure Table Storage} for semi-structured data, and the
+data; the \emph{Azure Table Storage} (ATS) for semi-structured data, and the
 \emph{Azure Queue Storage} (AQS) for implementing message queues.  The
 stored data is % storage
 replicated across multiple data centers to protect it against hardware
@@ -327,7 +327,8 @@ packages or collecting results.
 \up
 
 Pilot-Jobs are a useful abstraction for efficiently executing an
-ensemble of batch jobs on grids without the necessity to queue each individual
+ensemble of batch jobs on distributed infrastructures without 
+the necessity to queue each individual
 job.  The pilot-job itself is a regular grid job, which is started
 through a grid resource manager, such as the Globus GRAM.  Once the
 batch queue assigned the requested resources to the pilot-job, the
@@ -358,14 +359,15 @@ advantage of the SAGA pilot-job is that it allows applications to
 seamlessly utilize different backend infrastructure, e.\,g.\ Condor,
 Globus and different kinds of clouds, at the same time.
 
-\emph{BigJob} is a SAGA-based pilot-job implementation~\cite{10.1109/CCGRID.2010.91}. 
+As previously described, \emph{BigJob} is a SAGA-based 
+pilot-job implementation~\cite{10.1109/CCGRID.2010.91}. 
 SAGA~\cite{saga_url} is a simple, POSIX-style API to the most 
 common distributed functions, which 
 is a sufficiently high-level of abstraction so as to be 
 independent of the diverse and dynamic grid environments. 
 In contrast to other pilot-job implementations, BigJob can
 natively works independent of the underlying distributed infrastructure across different
-heterogeneous backend, e.\,g.\ grids, Condor pools and EC2-based and Azure clouds, 
+heterogeneous backend, e.\,g.\ grids, Condor pools as well as EC2-based and Azure clouds, 
 reflecting the advantage of using a SAGA-based approach (see 
 Figure~\ref{fig:figures_distributed_pilot_job}). Further, the framework is
 extensible and provides several hooks that can be used to support
@@ -431,26 +433,23 @@ processes.
 \end{figure}
 
 Figure~\ref{fig:figures_bigjob_azure} illustrates the architecture of
-the Azure-based BigJob. The BigJob-Manager (BM) is responsible for
+the Azure-based BigJob. Similarly, the BigJob Manager is responsible for
 accepting simulation requests from the end-user and for orchestrating
 the sub-job runs.  In contrast, to the grid BigJob, which utilizes
 different packages of the SAGA API~\cite{saga_url}, the Azure BigJob
 is built directly on top of the Azure APIs. With the exception of
 using the BigJob API -- and thus presenting an interface that is
-identical to the SAGA-based pilot-jobs that can be used for other
-infrastructure, Azure BigJob is self-contained and independent of any
+identical to the SAGA-based pilot-job and that can be used for other
+infrastructure --  Azure BigJob is self-contained and independent of any
 (SAGA) details used to implement a SAGA-based pilot-job.
-
-
-
 
 
 Initially, the BM launches the requested number of worker
 roles % (also referred to
 % as VM) 
-using the Service Management API -- which is a RESTful HTTP API;
+using the Service Management API -- a RESTful HTTP API.
 %The Service Management API is a RESTful HTTP API
-as part of this project we developed a Python library that can be used
+As part of this project we developed a Python library that can be used
 to access this Azure capability~\cite{azure-service-python}. The
 BigJob Agents run within the worker roles and are implemented in
 C\#/.NET. The main responsibility of the agent is to execute the
@@ -505,7 +504,8 @@ Once the agents are started, they query the AQS for new work packages.
 If a package is found, a simulation task is started, e.\,g.\ by
 running the requested MD code with right parameters. The framework
 supports both the staging of parameter files as well as of the
-executable using ABS, i.\,e.\ the manager uploads the respective files
+executable using ABS. If staging is requested in the job description, 
+the manager uploads the respective files
 to the storage and the agents downloads them before the run.
 
 The framework supports Azure affinity groups.
@@ -538,7 +538,8 @@ REMD), have been ported to Azure using the BigJob framework.  NAMD is
 used to perform MD simulations.  Both scenarios utilize the BigJob API
 to create pilot-jobs, and subsequently to submit sub-jobs. When a
 pilot-job is created the BigJob framework initializes the requested
-number of worker roles with the specified size. The replicas
+number of worker roles with the specified size and launches a virtual
+cluster of Azure workers. The replicas
 themselves are submitted as sub-jobs.  After the sub-job terminates,
 the master can collect results via the BigJob API.  In the REMD case
 the output is parsed to obtain the energy level of the replica.  The
@@ -620,13 +621,17 @@ be smoothened out. Furthermore, BigJob provides the possibility to
 dynamically add resources to an application, e.\,g.\ in case a
 resource is heavily loaded and thus has long wait-times.
 
+Another critical issue is the time needed to launch a sub-job onto
+a remote resource. Figure~\ref{fig:performance_startup} compares
+the grid and Azure sub-job launch times. Both BigJob implementation are
+comparable and delivery a solid performance requiring in average
+1-2\,sec for launching a single sub-job.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.4\textwidth]{performance/startup.pdf}
-    \caption{BigJob Sub-Job Submission: The startup time of the Azure
-    BigJob could be improved in comparison to the traditional Grid
-    BigJob mainly by relying on the AQS abstraction, which removes
-    the need to repeatedly poll the advert service.}
+    \caption{BigJob Sub-Job Submission: The submission time for sub-jobs 
+    of the Azure  and grid are comparable. 
+    \alnote{TODO: add precise data from Abhinav for grid bj}}
     \label{fig:performance_startup}
     \up\up
 \end{figure}
