@@ -3,7 +3,8 @@
 # set term postscript eps enhanced linewidth 1.42
 #set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
-set term postscript eps enhanced color linewidth 1.42 "Helvetica" 17 
+#set term postscript eps enhanced color linewidth 1.42 "Helvetica" 22 
+set term postscript eps linewidth 1.42 "Helvetica" 22 
                                       
 
 set encoding iso_8859_1
@@ -55,7 +56,7 @@ set xrange [0.5:2.5]
 set style fill solid 0.9   
 set ylabel "Runtime (in min)"  
 set ylabel "Time-to-Completion (in min)"     
-plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
+#plot "data_remd_glidein_16re.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
 
 
 set output "perf_distributed_number_replica.eps"
@@ -96,8 +97,8 @@ set ylabel "Runtime (in min)" #font "Helvetica, 20"
 set xlabel "Monitoring Intervall (in s)"    
 f(x)=21.3                           
 set key
-plot "data-monitoring.txt" using 1:2  title "With Migol" with lp 13,\
-     f(x) title "Without Migol" with line  14
+#plot "data-monitoring.txt" using 1:2  title "With Migol" with lp 13,\
+#     f(x) title "Without Migol" with line  14
      
 set output "perf_remd.eps"       
 #set logscale x 2
@@ -132,8 +133,8 @@ set xrange [0.9:4.1]
 set xtics (1,2,4)
 set yrange [10:130]    
 set ytics (20, 40, 60, 80, 100, 120) 
-plot  "data_remd_distributed_numberre.txt" using 1:3 title "Runtime (normalized)" with lp,\
-      "data_remd_distributed_numberre.txt" using 1:5 title "Runtime (abolute)" with lp
+#plot  "data_remd_distributed_numberre.txt" using 1:3 title "Runtime (normalized)" with lp,\
+#      "data_remd_distributed_numberre.txt" using 1:5 title "Runtime (abolute)" with lp
 
 # plot "data-remd.txt" using 1:7 title "SAGA/Migol (QB/Poseidon/Eric)" with lp,\
 #      "data-remd.txt" using 1:6 title "SAGA/GRAM (QB/Poseidon/Eric)" with lp,\
@@ -178,5 +179,5 @@ set nokey
 set nologscale
 set ylabel "Time-to-Completion (in min)"   
 set noxlabel  
-plot "data-remd-glidein_tc_64ex.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
+#plot "data-remd-glidein_tc_64ex.txt" using 1:2:3:(0.75)  title "Runtime" with boxerrorbars linetype 1  fs solid 0.5
 
