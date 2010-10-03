@@ -298,7 +298,7 @@ if __name__ == "__main__" :
     op.add_option('--numreplica','-n', default='2')
     options, arguments = op.parse_args()
     
-    if options.type != None and options.type in ("REMD"):
+    if options != None and options.configfile!=None and options.type != None and options.type in ("REMD"):
         re_manager = ReManager(options.configfile)
         try:
             re_manager.run_REMDg() 

@@ -102,8 +102,10 @@ class bigjob_azure():
         for i in service_names:
             r = self.start_single_azure_worker_role(i, number, self.slot, self.service_package, self.service_configuration)
             results.append(r)
-            
         return all(results)
+        #return True
+        
+    
         #threads = []
         #for i in service_names:
         #    thread=threading.Thread(target=self.start_single_azure_worker_role, 
@@ -138,7 +140,7 @@ class bigjob_azure():
         if status != "Succeeded":
             logging.debug("Update Deployment Failed")
             return False
-        self.stopped = True
+        self.stopped = False
         return True    
         
         
@@ -182,10 +184,11 @@ class bigjob_azure():
  
         # use service management api to spawn azure images
         logging.debug("init azure worker roles") 
-        if self.start_azure_worker_roles(number_nodes):
-             self.set_state(str(state.Running))
-        else:
-             self.set_state(state.Failed)
+        #if self.start_azure_worker_roles(number_nodes):
+        #     self.set_state(str(state.Running))
+        #else:
+        #     self.set_state(state.Failed)
+        self.set_state(str(state.Running))
         
      
     def set_state(self, new_state):
@@ -201,7 +204,7 @@ class bigjob_azure():
         logging.debug("Cancel Pilot Job")     
         #self.queue.put_message(self.app_id, "STOP")
         self.stop_azure_worker_roles()
-        #self.blob.delete_container(self.app_id)
+        self.blob.delete_container(self.app_id)
         self.queue.delete_queue(self.app_id);
         
         
