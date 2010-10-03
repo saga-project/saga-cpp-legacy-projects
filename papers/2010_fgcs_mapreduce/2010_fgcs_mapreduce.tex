@@ -492,9 +492,6 @@ and study these two distinct programming models.
 
 \subsection{\sagamapreduce Implementation}
 
-\jhanote{Miklos to fix and update to reflect latest version of
-  MapReduce}
-
 Our implementation of \sagamapreduce interleaves the core \mr logic
 with explicit instructions on where processes are to be scheduled.
 The advantage of this approach is that our implementation is no longer
@@ -585,35 +582,38 @@ supported by SAGA, such as the local file system or a distributed file system
 like HDFS or KFS \cite{KFS}.
 
 
-\subsection{Enhancing SAGA-based Map-Reduce Performance}
+\subsection{Improving SAGA-based Map-Reduce Performance}
 
 The performance enhancements to the \sagamapreduce implementation as
-discussed in~\cite{saga_ccgrid09} are based on two important changes:
-(i) rearranging the shuffle phase, and (ii) using a serialized binary
-format instead of plain text for intermediate data storage (also
-available as an input and output format).  The first change means
-that, instead of having the master merge and then sort the
-intermediate data by key before entering the reduce phase, the workers
-buffer key/value pairs from the map phase and store them in sorted
-order on disk, doing an in-memory sort before writing. Also, since
-intermediate key/value pairs from a map worker are already sorted, the
-reduce workers need to only merge these pairs coming from different
-map workers while applying the user-defined reduce function to the
-merged intermediate key and value list.  The second enhancement
-applies to the storage of the intermediate key/value pairs in a
-so-called \emph{sequence file format}. This file format allows storing
-of serialized key/value objects which can be read and merged much
-faster in the reduce phase than text data, as there is no need for
-costly parsing.  We used the Google Protocol Buffers library for
-implementing serialization~\cite{protobuf}.  The processing of input
-and output key/value pairs is further enhanced by minimizing
-unnecessary memory I/O operations using a zero-copy scheme.
+used and discussed in~\cite{saga_ccgrid09} are based on two important
+changes: (i) rearranging the shuffle phase, \jhanote{shuffle phase has
+  not been defined} and (ii) using a serialized binary format instead
+of plain text for intermediate data storage (also available as an
+input and output format).  \jhanote{it is not established what what
+  the primary components for old saga-mapreduce are nor is the
+  performance bottleneck established.}  The first change means that,
+instead of having the master merge and then sort the intermediate data
+by key before entering the reduce phase, the workers buffer key/value
+pairs from the map phase and store them in sorted order on disk, doing
+an in-memory sort before writing. Also, since intermediate key/value
+pairs from a map worker are already sorted, the reduce workers need to
+only merge these pairs coming from different map workers while
+applying the user-defined reduce function to the merged intermediate
+key and value list.  The second enhancement applies to the storage of
+the intermediate key/value pairs in a so-called \emph{sequence file
+  format}. This file format allows storing of serialized key/value
+objects which can be read and merged much faster in the reduce phase
+than text data, as there is no need for costly parsing.  We used the
+Google Protocol Buffers library for implementing
+serialization~\cite{protobuf}. The processing of input and output
+key/value pairs is further enhanced by minimizing unnecessary memory
+I/O operations using a zero-copy scheme.
 
-\jhanote{(A) Why do we think these are the most important performance
-  enhancements that should be attempted? Or was/is it a case of -- we
-  can, therefore we do? (B) Can the performance improvement that arise
-  from (i) and (ii) be quantified separately?  (C) What other
-  improvements can be and should be implemented?}
+% \jhanote{(A) Why do we think these are the most important performance
+%   enhancements that should be attempted? Or was/is it a case of -- we
+%   can, therefore we do? (B) Can the performance improvement that arise
+%   from (i) and (ii) be quantified separately?  (C) What other
+%   improvements can be and should be implemented?}
   
 
 \subsection{\sagamapreduce Set-Up}
@@ -784,11 +784,15 @@ Simulations were performed on shared TeraGrid-LONI (Louisiana Optical
 Network Initiative)~\cite{loni-url} resources running Globus and ssh;
 on GumboGrid, a small cluster at LSU running Eucalyptus; on Amazon's
 EC2; on a bare 50 node cluster of the Hungarian Academy of Sciences;
-and on the OCC testbed~\cite{occ_testbed} running Sector-Sphere.  Jobs
-are started via the respectively available middlewares, via SAGA's job
-API.  Data exchange is either performed via streams, or via SAGA's
-file transfer API which can dynamically switch between the various
-available protocols.
+and on the OCC testbed~\cite{occ_testbed} running Sector-Sphere.  We
+also use FutureGrid (\url{http://www.futuregrid.org}) and the IBM
+iDataPlex (India), which as 256/1024 nodes/cores (for full details
+see: \url{http://futuregrid.org/hardware}).
+
+Jobs are started via the respectively available middlewares, via
+SAGA's job API.  Data exchange is either performed via streams, or via
+SAGA's file transfer API which can dynamically switch between the
+various available protocols.
 
 For cloud environments, we support the runtime configuration of VM
 instances by staging a preparation script to the VM after its
@@ -1432,18 +1436,23 @@ multiple heterogeneous resources.
 %\section{Acknowledgments}
 \subsection*{Acknowledgments}
 
-\small{ SJ acknowledges UK EPSRC grant number GR/D0766171/1 for
-supporting SAGA and the e-Science Institute, Edinburgh for the
-research theme, ``Distributed Programming Abstractions''.  SJ also
-acknowledges financial support from NSF-Cybertools and NIH-INBRE
-Grants, while ME acknowledges support from the grant OTKA NK 72845.
-We also acknowledge internal resources of the Center for Computation
-\& Technology (CCT) at LSU and computer resources provided by
-LONI/TeraGrid for QueenBee.  We thank Chris Miceli, Michael Miceli,
-Katerina Stamou \& Hartmut Kaiser for their collaborative efforts on
-early parts of this work. We thank Mario Antonioletti and Neil Chue
-Hong for supporting this work through GSoC-2009 (OMII-UK Mentor
-Organization).}
+\small{SJ acknowledges UK EPSRC grant number GR/D0766171/1 for
+  supporting SAGA and the e-Science Institute, Edinburgh for the
+  research theme, ``Distributed Programming Abstractions''.  SJ also
+  acknowledges financial support from NSF-Cybertools and NIH-INBRE
+  Grants, while ME acknowledges support from the grant OTKA NK 72845.
+  We also acknowledge internal resources of the Center for Computation
+  \& Technology (CCT) at LSU and computer resources provided by
+  LONI/TeraGrid for QueenBee.  We thank Chris Miceli, Michael Miceli,
+  Katerina Stamou \& Hartmut Kaiser for their collaborative efforts on
+  early parts of this work. We thank Mario Antonioletti and Neil Chue
+  Hong for supporting this work through GSoC-2009 (OMII-UK Mentor
+  Organization). This document was developed with support from the
+  National Science Foundation (NSF) under Grant No. 0910812 to Indiana
+  University for "FutureGrid: An Experimental, High-Performance Grid
+  Test-bed." Any opinions, findings, and conclusions or
+  recommendations expressed in this material are those of the
+  author(s) and do not necessarily reflect the views of the NSF.}
 
 \bibliographystyle{plain}
 \bibliography{saga_data_intensive}
