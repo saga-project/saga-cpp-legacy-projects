@@ -41,7 +41,7 @@ $meph_version     = "latest";
 $meph_repository  = "http://static.saga.cct.lsu.edu/mephisto/";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
-
+$boost_check 	  = "boost/1.44.0";											######added########
 ##############################################################################
 ##
 sub print_mephisto_logo {
@@ -133,7 +133,8 @@ sub print_red_failed_and_die {
 ##
 sub pull_package {
     my (@package) = @_;
-
+	my @value = split("/", $boost_check);						#####added########
+	
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
     
@@ -145,7 +146,8 @@ sub pull_package {
     else {
        $package_store_path .= "/$package[2]";
     }
-    
+    if ($package[0] eq "RF") {									######added########
+		$package_store_path .= # ??
 
     print "\n\n Processing package $package[1]\n";
     chdir($meph_tmp_dir);
@@ -370,6 +372,7 @@ sub print_usage () {
 	print "      --with-packages=  Comma-separated list of optional packages to\n";
 	print "                        install. By default, mephisto installs all\n";
 	print "                        available packages.\n\n";
+	print "                        any boost library used should be specified 'boost/x.yy.z' ";
 }
 
 ##############################################################################
@@ -381,6 +384,7 @@ sub check_options () {
 	my $tmp_dir     = 0;
 	my $repository  = 0;
 	my $mode        = 0;
+	my $boostv   = 0;
 	
 	# The first option HAS to be the mode (list/install/etc)
 	if( @ARGV < 1)
@@ -416,7 +420,6 @@ sub check_options () {
 			print_usage();
 			exit();	
 		}
-		
 		if($install_dir eq 0)
 		{
 			print "\n You have to set the '--target-dir' argument.\n";
@@ -426,6 +429,53 @@ sub check_options () {
 		else
 		{
 			$meph_install_dir = $install_dir;
+			#if(!(-w $meph_install_dir))
+			#{
+            #  print "\n You don't have write permission for $install_dir.\n\n";
+            #  exit();
+			#}
+		}
+		
+		if( !($tmp_dir eq 0))
+		{
+			$meph_tmp_dir = $tmp_dir;
+		}
+		
+		if( !($repository eq 0))
+		{
+		    $meph_version = $repository;
+        }
+	}
+	elsif( $ARGV[0] eq "check")				#code for checking boost version ######added########
+	{	
+		$mode = "check";
+		my $retval= GetOptions('target-dir=s' => \$install_dir,
+							   'help|?' 	  => \$help,
+				         	   'tmp-dir=s'    => \$tmp_dir,
+				         	   'repository=s' => \$repository,
+							   'with-packages=s' => \$boostv) ;
+		if(!$retval)
+		{
+			print_usage();
+			exit();	
+		}
+		
+		if($install_dir eq 0)
+		{
+			print "\n You have to set the '--target-dir' argument.\n";
+			print_usage();
+			exit();
+		}
+		elsif ($boostv eq 0)
+		{
+			print "\n You have to set the '--with-package' argument. \n";
+			print_usage();
+			exit();
+		}
+		else
+		{
+			$meph_install_dir = $install_dir;
+			$boost_check      = $boostv;
 			#if(!(-w $meph_install_dir))
 			#{
             #  print "\n You don't have write permission for $install_dir.\n\n";
@@ -488,26 +538,36 @@ if(!(-w $meph_install_dir) ) {
   exit();
 }
 
+
 my $meph_rep_full = $meph_repository . "/repository/" . $meph_version;
+
 
 print "\n Source repository: $meph_rep_full\n\n";
 
 # Retrieve the repository index and get the paths to
 # mephisto's software source packages.
+if (!boost_check) {						######added########
 my $content = get $meph_rep_full. "/INDEX";
 die "Couldn't get $meph_rep_full" unless defined $content;
+}
+else {
+my $content = get $meph_rep_full. "/INDEX2";
+die "Couldn't get $meph_rep_full" unless defined $content;
+}
 
 my @index = split( "\n", $content );
 foreach my $line (@index) {
     my @packages = split( ";;", $line );
     print "  o $packages[1]: $packages[2]\n";
-}
+	}
 
 my @index2 = split( "\n", $content );
 foreach my $line (@index2) {
     my @packages = split( ";;", $line );
     pull_package(@packages);
-}
+	}
+
+	
 
 write_setenv();
 
