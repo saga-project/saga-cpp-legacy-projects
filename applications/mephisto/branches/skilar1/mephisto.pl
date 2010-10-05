@@ -38,7 +38,7 @@ use File::Basename;
 use Term::ANSIColor;
 
 $meph_version     = "latest";
-$meph_repository  = "http://static.saga.cct.lsu.edu/mephisto/";
+$meph_repository  = "http://static.saga.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
 $boost_check 	  = "boost/1.44.0";											######added########
@@ -133,7 +133,8 @@ sub print_red_failed_and_die {
 ##
 sub pull_package {
     my (@package) = @_;
-	my @value = split("/", $boost_check);						#####added########
+	my @value = split("-", $boost_check);						#####added#######
+	my @no = split(".", $value[1]);					                  ###added##
 	
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
@@ -143,12 +144,15 @@ sub pull_package {
     if($package[0] eq "SVN") {
        $package_store_path .= "/SVN_$package[1]";
     }
+    elsif ($package[0] eq "RF") {
+  $package_store_path .= "/$package[1]";
+  $package_bin_path .= "http://sourceforge.net/projects/boost/files/boost/" . $value[1] . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
+    }
+  
     else {
        $package_store_path .= "/$package[2]";
     }
-    if ($package[0] eq "RF") {									######added########
-		$package_store_path .= # ??
-
+    
     print "\n\n Processing package $package[1]\n";
     chdir($meph_tmp_dir);
 
@@ -371,8 +375,8 @@ sub print_usage () {
 	
 	print "      --with-packages=  Comma-separated list of optional packages to\n";
 	print "                        install. By default, mephisto installs all\n";
-	print "                        available packages.\n\n";
-	print "                        any boost library used should be specified 'boost/x.yy.z' ";
+	print "                        available packages.\n";
+	print "                        any boost library used should be specified 'boost-x.yy.z'\n\n";
 }
 
 ##############################################################################
@@ -546,14 +550,14 @@ print "\n Source repository: $meph_rep_full\n\n";
 
 # Retrieve the repository index and get the paths to
 # mephisto's software source packages.
-if (!boost_check) {						######added########
+#if (!boost_check) {						######added########
 my $content = get $meph_rep_full. "/INDEX";
 die "Couldn't get $meph_rep_full" unless defined $content;
-}
-else {
-my $content = get $meph_rep_full. "/INDEX2";
-die "Couldn't get $meph_rep_full" unless defined $content;
-}
+
+#else {
+#my $content = get $meph_rep_full. "/INDEX2";
+#die "Couldn't get $meph_rep_full" unless defined $content;
+#}
 
 my @index = split( "\n", $content );
 foreach my $line (@index) {
