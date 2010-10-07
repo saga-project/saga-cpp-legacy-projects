@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 ##############################################################################
 ##
@@ -41,7 +41,7 @@ $meph_version     = "latest";
 $meph_repository  = "http://static.saga.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
-$boost_check 	  = "boost/1.44.0";											######added########
+$boost_check 	  = "boost-1.44.0";											######added########
 ##############################################################################
 ##
 sub print_mephisto_logo {
@@ -134,7 +134,7 @@ sub print_red_failed_and_die {
 sub pull_package {
     my (@package) = @_;
 	my @value = split("-", $boost_check);						#####added#######
-	my @no = split(".", $value[1]);					                  ###added##
+	my @no = split(/\./, $value[1]);					                  ###added##
 	
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
@@ -144,9 +144,9 @@ sub pull_package {
     if($package[0] eq "SVN") {
        $package_store_path .= "/SVN_$package[1]";
     }
-    elsif ($package[0] eq "RF") {
+    elsif (($package[1] eq "BOOST") && ($boost_check)  ) {
   $package_store_path .= "/$package[1]";
-  $package_bin_path .= "http://sourceforge.net/projects/boost/files/boost/" . $value[1] . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
+$package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $value[1] . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
     }
   
     else {
@@ -154,6 +154,7 @@ sub pull_package {
     }
     
     print "\n\n Processing package $package[1]\n";
+    print "\n\n package path is $package_bin_path \n\n";
     chdir($meph_tmp_dir);
 
     #try to download the packages
@@ -562,8 +563,13 @@ die "Couldn't get $meph_rep_full" unless defined $content;
 my @index = split( "\n", $content );
 foreach my $line (@index) {
     my @packages = split( ";;", $line );
-    print "  o $packages[1]: $packages[2]\n";
+    if ($packages[1] eq "BOOST") {
+    print "  o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n\n";
 	}
+    else {
+    print "  o $packages[1]: $packages[2]\n";
+         }  
+    }
 
 my @index2 = split( "\n", $content );
 foreach my $line (@index2) {
