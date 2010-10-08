@@ -635,15 +635,26 @@ Another critical issue is the time needed to launch a sub-job onto
 a remote resource. Figure~\ref{fig:performance_startup} compares
 the grid and Azure sub-job launch times. Both BigJob implementation are
 comparable and delivery a solid performance requiring in average
-1-2\,sec for launching a single sub-job.
+1-2\,sec for launching a single sub-job. A sub-job submission comprises
+of two phases: the submission phase, i.\,e.\ the writing of the sub-job
+meta-data to the advert respectively to the AQS service, and the spawning
+phase. In the spawning phase the agent reads the sub-job meta-data from
+the information service and starts the sub-job process. The Azure BigJob
+requires about 0.7\,sec more time for submitting a subjob mainly due 
+to the fact that Azure submissions were conducted from a remote machine 
+outside of an Azure datacenter. In the grid case the submission machine,
+advert service and HPC resource were located on the same site. 
+However, the spawning time of the Azure BigJob is much lower than of the 
+grid BigJob. The grid BigJob agent is required to eagerly poll the 
+advert service for new sub-job entries, while the Azure BigJob can utilize AQS, 
+which allows threads to sleep until new queue messages arrive.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.4\textwidth]{performance/startup.pdf}
         \caption{BigJob Sub-Job Submission: The submission time for
           a single sub-job. The submission times to Azure and a grid
           resource are comparable. Experiments are repeated 20 times.
-          \alnote{TODO: add precise data from Abhinav for grid
-            bj}\jhanote{Is this dependent on the number of subjobs?
+          \jhanote{Is this dependent on the number of subjobs?
             If so how many subjobs was this for?}\alnote{This was for
             just one subjob concurrently. The experiment was repeated
             ~20 times.  Probably the times depend on the
