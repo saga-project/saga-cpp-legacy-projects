@@ -260,13 +260,13 @@ in-depth performance analysis in \S~\ref{sec:performance}.
 % anywhere. 
 Windows Azure offers a platform for on-demand computing and for
 hosting generic server-side applications.  In contrast to
-infrastructure as a service clouds (IaaS) as Amazon EC2/S3, Azure
-follows the platform as a service paradigm (PaaS).  The platform
-encapsulates common application patterns into so-called roles removing
-the need to manually manage low-level details on virtual machine (VM)
-level.  The so-called Azure fabric controller automatically monitors
-all VMs, reacts to hardware and software failures and manages
-application upgrades.
+infrastructure as a service clouds (IaaS), such as Amazon EC2/S3,
+Azure follows the platform as a service paradigm (PaaS).  The platform
+encapsulates common application patterns into so-called {\it roles},
+removing the need to manually manage low-level details on virtual
+machine (VM) level.  The so-called Azure fabric controller
+automatically monitors all VMs, reacts to hardware and software
+failures and manages application upgrades.
 
 \subsubsection{Compute}
 
@@ -277,25 +277,27 @@ processing. While these roles target specific scenarios and are not as
 flexible as bare EC2 images, they are customizable, % to a certain
 % extent,
 e.g., Worker roles can run native code. The application must solely
-implement a defined entry point, which is then called by Azure. The
-Azure fabric controller automatically manages and monitors
+implement a defined entry point, \jhanote{This is a bit unclear to the
+  reader: What is an 'entry point' here..? What is important about an
+  application 'must soley implement' it?} which is then called by
+Azure. The Azure fabric controller automatically manages and monitors
 applications, handles hardware and software failures as well as
 updates to the operating system or the application.  Scientific
-applications commonly utilize worker roles for compute- and
+applications commonly utilize worker roles for compute and/or
 data-intensive tasks. AzureBlast~\cite{azure_blast} e.\,g.\ heavily
 relies on worker roles for computing bio-sequences.
 
 \subsubsection{Storage}
 
-For storing large amounts of data Azure provides three key services:
+Azure provides three key services or storing large amounts of data:
 the \emph{Azure Blob Storage} (ABS) for storing large objects of raw
-data; the \emph{Azure Table Storage} (ATS) for semi-structured data, and the
-\emph{Azure Queue Storage} (AQS) for implementing message queues.  The
-stored data is % storage
+data; the \emph{Azure Table Storage} (ATS) for semi-structured data,
+and the \emph{Azure Queue Storage} (AQS) for implementing message
+queues.  The stored data is % storage
 replicated across multiple data centers to protect it against hardware
 and software failures. In contrast to other services (e.\,g.\ Amazon
 S3)~\cite{1294281}, the Azure Storage Services provide strong
-consistency guarantees, i.\,e.\ all changes are immediately visible to
+consistency guarantees, i.\,e.,\ all changes are immediately visible to
 all future calls. While eventual consistency offers a better
 performance and scalability, it has some disadvantages mainly caused
 by the fact that the complexity is moved to the application space.
@@ -339,51 +341,52 @@ packages or collecting results.
 \up
 
 Pilot-Jobs are a useful abstraction for efficiently executing an
-ensemble of batch jobs on distributed infrastructures without 
-the necessity to queue each individual
-job.  The pilot-job itself is a regular grid job, which is started
-through a grid resource manager, such as the Globus GRAM.  Once the
-batch queue assigned the requested resources to the pilot-job, the
-pilot-job circumvents the necessity to queue each individual sub-job
-and is responsible for managing these. 
-That way queuing times for sub-jobs can be reduced and the
-predictability for application scenarios can be increased.  Pilot-Jobs
-decouple resource allocation from resource binding and allow the
-efficient utilization of resources. By delaying the resource binding
-decision into the application-level, dynamic usage modes, e.\,g.\ the
-load-depended sizing of sub-jobs or the dynamic addition of resources
-to meet deadlines, can be supported.
+ensemble of batch jobs on distributed infrastructures without the
+necessity to queue each individual job.  The pilot-job itself is a
+regular grid job, which is started through a grid resource manager,
+such as the Globus GRAM.  Once the batch queue assigns the requested
+resources to the pilot-job, the pilot-job circumvents the necessity to
+queue each individual sub-job, and is responsible for managing the
+resources.  Thus queuing times for sub-jobs can be reduced and the
+predictability for application execution can be increased. In effect,
+pilot-jobs decouple resource allocation from resource binding and
+allow the efficient utilization of resources. By delaying the resource
+binding, and enabling scheduling decision at the application-level,
+dynamic execution and usage modes can be supported.  For example, the
+load-dependent sizing of sub-jobs, or the dynamic addition of
+resources to meet deadlines~\cite{10.1109/CCGRID.2010.91}.
 
 As more applications take advantage of dynamic execution, the
 pilot-job concept has grown in popularity and has been extensively
 researched and implemented for different usage scenarios and
-infrastructure including clouds. 
-Nimbus~\cite{10.1109/MIC.2009.94} e.\,g. provides a pilot-job like
-abstractions for clouds. For this purpose, Nimbus allows the launch of
-auto-configured virtual machine clusters that contain a Torque and
-Globus installation.  The Atlas computing framework developed at CERN
-also heavily relies on the PanDA pilot-job framework~\cite{1742-6596-219-6-062041} 
-to implement resource leases. Using the VIRM API, PanDA was extended to support
-different virtualization backends, e.\,g.\ OpenNebula and
-Nimbus. Both frameworks are strongly coupled to a particular backend infrastructure
+infrastructure including clouds.  Nimbus~\cite{10.1109/MIC.2009.94}
+e.\,g. provides a pilot-job like abstractions for clouds. For this
+purpose, Nimbus allows the launch of auto-configured virtual machine
+clusters that contain a Torque and Globus installation.  The Atlas
+computing framework developed at CERN also heavily relies on the PanDA
+pilot-job framework~\cite{1742-6596-219-6-062041} to implement
+resource leases. Using the VIRM API, PanDA was extended to support
+different virtualization backends, e.\,g.\ OpenNebula and Nimbus. Both
+frameworks are strongly coupled to a particular backend infrastructure
 -- Globus in the case of Nimbus and gLite in the case of PanDA. The
 advantage of the SAGA pilot-job is that it allows applications to
 seamlessly utilize different backend infrastructure, e.\,g.\ Condor,
 Globus and different kinds of clouds, at the same time.
 
-As previously described, \emph{BigJob} is a SAGA-based 
-pilot-job implementation~\cite{10.1109/CCGRID.2010.91}. 
-SAGA~\cite{saga_url} is a simple, POSIX-style API to the most 
-common distributed functions, which 
-is a sufficiently high-level of abstraction so as to be 
-independent of the diverse and dynamic grid environments. 
-In contrast to other pilot-job implementations, BigJob can
-natively works independent of the underlying distributed infrastructure across different
-heterogeneous backend, e.\,g.\ grids, Condor pools as well as EC2-based and Azure clouds, 
-reflecting the advantage of using a SAGA-based approach (see 
-Figure~\ref{fig:figures_distributed_pilot_job}). Further, the framework is
-extensible and provides several hooks that can be used to support
-other resource types and pilot-job frameworks.
+SAGA~\cite{saga_url} is a simple, POSIX-style API to the most common
+distributed functions, which is a sufficiently high-level of
+abstraction so as to be independent of the diverse and dynamic grid
+environments.  \emph{BigJob} is a SAGA-based pilot-job
+implementation~\cite{10.1109/CCGRID.2010.91}, which can, in contrast
+to other pilot-job implementations, natively works independent of the
+underlying distributed infrastructure and across different
+heterogeneous backend, e.\,g.\ grids, Condor pools as well as
+EC2-based and Azure clouds, reflecting the advantage of using a
+SAGA-based approach (see
+Figure~\ref{fig:figures_distributed_pilot_job}). Furthermore, the
+framework is extensible and provides several hooks that can be used to
+support other resource types, pilot-job frameworks and
+application-specific customization.
 
 \begin{figure}[ht]
     \centering
@@ -397,22 +400,23 @@ other resource types and pilot-job frameworks.
 
 Figure~\ref{fig:figures_bigjob} shows an overview of the SAGA BigJob
 implementation for computational grids. The grid BigJob comprises of
-three components: (i) the BigJob Manager (BM) that provides the pilot-job
-abstraction and manages the orchestration and scheduling of BigJobs
-(which in turn allows the management of both big-job objects and
-sub-jobs), (ii) the BigJob Agent that represents the pilot-job.
+three components: (i) the BigJob Manager (BM) that provides the
+pilot-job abstraction to the application, and manages the
+orchestration and scheduling of BigJobs (which in turn allows the
+management of both big-job objects and sub-jobs), (ii) the BigJob
+Agent that represents the pilot-job. \jhanote{Andre, the third
+  component, or at least (iii) is missing!}
 
 Applications can utilize the framework via the big-job and sub-job
 classes. Both interfaces are syntactically and semantically consistent
-with the other SAGA APIs: a sub-job e.\,g.\ is described using 
-the standard SAGA job description; job states are expressed
-using the SAGA state model. Before running sub-jobs, an application must initialize
-a big-job object. The BigJob Manager then queues a job,
-which actually runs a BigJob Agent on the respective remote
-resource. For this agent a specified number of resources is
-requested. Subsequently, sub-jobs can be submitted through the BigJob
-Manager using the job-id of the BigJob as reference. The BigJob
-Manager ensures that sub-jobs are launched onto the correct
+with the other SAGA APIs: a sub-job for example, is described using
+the standard SAGA job description; job states are expressed using the
+SAGA state model. Before running sub-jobs, an application must
+initialize a big-job object. The BM then queues a job, which actually
+runs a BigJob Agent on the respective remote resource. For this agent
+a specified number of resources is requested. Subsequently, sub-jobs
+can be submitted through the BM using the job-id of the BigJob as
+reference. The BM ensures that sub-jobs are launched onto the correct
 resource based upon the specified job-id using the right number of
 processes.
 
