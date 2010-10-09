@@ -277,15 +277,14 @@ front-end code, while worker roles are well suited for background
 processing. While these roles target specific scenarios and are not as
 flexible as bare EC2 images, they are also customizable, % to a certain
 % extent,
-e.g., Worker roles can run native code. The application must solely
-implement the worker role API, which provides a \texttt{run} method as 
-a defined entry point for executing the actual compute task. Further,
-several additional API callbacks, e.\,g.\ for state or configuration
-change notifications, are provided.%
-\jhanote{This is a bit unclear to the
-  reader: What is an 'entry point' here..? What is important about an
-  application 'must soley implement' it?} \alnote{added some
-  more worker role API background}
+e.g., Worker roles can run native code. The application must implement
+the worker role API, which provides a \texttt{run} method as a defined
+entry point for executing the actual compute task. Further, several
+additional API callbacks, e.\,g.,\ for state or configuration change
+notifications, are provided.%
+% \jhanote{This is a bit unclear to the reader: What is an 'entry point'
+%   here..? What is important about an application 'must soley
+%   implement' it?} \alnote{added some more worker role API background}
 The Azure fabric controller automatically manages and monitors
 applications, handles hardware and software failures as well as
 updates to the operating system or the application.  Scientific
@@ -410,10 +409,10 @@ three components: (i) the BigJob Manager (BM) that provides the
 pilot-job abstraction to the application, and manages the
 orchestration and scheduling of BigJobs (which in turn allows the
 management of both big-job objects and sub-jobs), (ii) the BigJob
-Agent (BA) that represents the pilot-job, and (iii) the advert service 
-which is used for communication between the BM and BA. 
-\jhanote{Andre, the third
-  component, or at least (iii) is missing!}\alnote{fixed}
+Agent (BA) that represents the pilot-job, and (iii) the advert service
+which is used for communication between the BM and BA.
+% \jhanote{Andre, the third
+%   component, or at least (iii) is missing!}\alnote{fixed}
 
 Applications can utilize the framework via the big-job and sub-job
 classes. Both interfaces are syntactically and semantically consistent
@@ -564,14 +563,17 @@ subsequently to submit sub-jobs. When a pilot-job is created the
 BigJob framework initializes the requested number of worker roles with
 the specified size and launches a virtual cluster of Azure
 workers. The replicas themselves are submitted as sub-jobs.  After the
-sub-job terminates, the replica master \jhanote{what is the master -- is it
-  with respect to ``roles'' or with respect to ``workers'' i.e
-  ensemble members?} \alnote{Master with respect to the ensemble members. Renamed
-  it to replica master} can collect results via the BigJob API.  NAMD is
-used to perform MD simulations.  In the REMD case the output is parsed
-to obtain the energy level of the replica.  The Metropolis scheme is
-used to determine whether an exchange is accepted. Finally, a new
-generation of replicas is launched.
+sub-job terminates, the replica master \jhanote{what is the master --
+  is it with respect to ``roles'' or with respect to ``workers'' i.e
+  ensemble members?} \alnote{Master with respect to the ensemble
+  members. Renamed it to replica master} \jhanote{Is that an agent
+  (i.e. part of the BigJob framework, or is it a special replica? I
+  think it is the former, but isn't obvious from current text.}  can
+collect results via the BigJob API.  NAMD is used to perform MD
+simulations.  In the REMD case the output is parsed to obtain the
+energy level of the replica.  The Metropolis scheme is used to
+determine whether an exchange is accepted. Finally, a new generation
+of replicas is launched.
 
 % The sub-jobs per worker role depends on the size of the worker role
 % -- Azure currently supports worker roles up to 8 cores. In contrast
@@ -608,10 +610,12 @@ BigJob across different infrastructures. Typically, the main overhead
 when using BigJob results from either the queueing time at individual
 resources for grids or from the VM creation time for cloud
 environments.  Figure~\ref{fig:performance_setup_time} compares the
-average startup times of the different BigJob backends
-\jhanote{should we use BigJob backend in lieu of pilot-job backend
-  here?} \alnote{Makes sense. Replaced it.} for grids, Condor pools and clouds. Each experiment was
-repeated at least 10 times.
+average startup times of the different BigJob
+backends % \jhanote{should
+%   we use BigJob backend in lieu of pilot-job backend here?}
+% \alnote{Makes sense. Replaced it.}
+for grids, Condor pools and clouds. Each experiment was repeated at
+least 10 times.
 
 \begin{figure}[htbp]
     \centering
@@ -658,20 +662,21 @@ single sub-job.
 % and delivery a solid performance requiring in average 1-2\,sec for
 % launching a single sub-job.
 A sub-job submission comprises of two phases: the submission phase,
-i.\,e.\ the writing of the sub-job meta-data to the advert
+i.\,e.,\ the writing of the sub-job meta-data to the advert
 respectively to the AQS service, \jhanote{please check}
-\alnote{removed ``or''} and the
-spawning phase. In the spawning phase the agent reads the sub-job
-meta-data from the information service and starts the sub-job
-process. The Azure BigJob requires about 0.7\,sec more time for
-submitting a subjob mainly due to the fact that Azure submissions were
-conducted from a remote machine outside of an Azure datacenter. In the
-grid case the submission machine, advert service and HPC resource were
-located on the same site.  However, the spawning time of the Azure
-BigJob is much lower than of the grid BigJob. The grid BigJob agent is
-required to eagerly poll the advert service for new sub-job entries,
-while the Azure BigJob can utilize AQS, which allows threads to sleep
-until new queue messages arrive.
+\alnote{removed ``or''} \jhanote{Andre: Sentence doesn't read
+  proper. There remains a problem..} and the spawning phase. In the
+spawning phase the agent reads the sub-job meta-data from the
+information service and starts the sub-job process. The Azure BigJob
+requires about 0.7\,sec more time for submitting a subjob mainly due
+to the fact that Azure submissions were conducted from a remote
+machine outside of an Azure datacenter. In the grid case the
+submission machine, advert service and HPC resource were located on
+the same site.  However, the spawning time of the Azure BigJob is much
+lower than of the grid BigJob. The grid BigJob agent is required to
+eagerly poll the advert service for new sub-job entries, while the
+Azure BigJob can utilize AQS, which allows threads to sleep until new
+queue messages arrive.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.4\textwidth]{performance/startup.pdf}
@@ -707,8 +712,9 @@ until new queue messages arrive.
     \caption{\textbf{NAMD Runtimes on Different Resource Types: } The
           graph shows that the new EC2 cluster compute instances are 
           able to outperform other cloud resources as well as traditional
-          HPC resources as QB and Poseidon. \jhanote{this figure is
-            not referenced from/in the text anywhere!} \alnote{fixed} \up}
+          HPC resources as QB and Poseidon. % \jhanote{this figure is
+%             not referenced from/in the text anywhere!} \alnote{fixed}
+          \up}
     \label{fig:performance_namd_run}
 
 \end{figure}
@@ -862,16 +868,18 @@ Figure~\ref{fig:performance_repex_scaleout_vmsizes} shows \tc for
 different numbers of replicas and VM types.  Again, each replica is
 run for 500 timesteps before an exchange is attempted. As the number
 of replicas increases, it is expected that the coordination overhead
-at the replica master \jhanote{I think the master here is infrastructure level
-  and not application level? Need clarification please} \alnote{In this
-  case I mean the application-level master since we are talking about
-  the replica exchange (renamed it to replica master). 
-  Of course, the overhead for the BM also increases.} will
-increase. As seen in
-Figure~\ref{fig:performance_repex_scaleout_vmsizes}, this
-overhead for upto 32 replicas is {\it at maximum} 2.3\,percent of the
-overall runtime. \jhanote{please check} \alnote{sounds good, computed the
-overhead from my data and added it to sentence}
+at the replica master \jhanote{I think the master here is
+  infrastructure level and not application level? Need clarification
+  please} \alnote{In this case I mean the application-level master
+  since we are talking about the replica exchange (renamed it to
+  replica master).  Of course, the overhead for the BM also
+  increases.}\jhanote{OK, I see your point. Hopefully addressing thee
+  earlier point about the replica master will make this clearer too}
+will increase. As seen in
+Figure~\ref{fig:performance_repex_scaleout_vmsizes}, this overhead for
+upto 32 replicas is {\it at maximum} 2.3\,percent of the overall
+runtime. \jhanote{please check} \alnote{sounds good, computed the
+  overhead from my data and added it to sentence}
 \begin{figure}[ht]
     \centering
         \includegraphics[width=0.4\textwidth]{performance/repex-azure.pdf}
@@ -887,17 +895,17 @@ overhead from my data and added it to sentence}
 The chosen VM type greatly influences \tcnsp. Azure currently offers
 four types: small VMs with 1 core, medium VMs with 2 cores, large VMs
 with 8 cores and extra-large VMs with 8 cores. The larger the VM, the
-shorter the overall runtime.  However, the efficiency
-defined as run-time on one resource divided by the run-time on multiple 
-resources scaled by the number of resources, for this problem
-set drops to $<0.4$ when going from the 4 to 8 cores. This
-is mainly a limitation of the used setup: in this scenario
-the replicas consist of relatively short-running NAMD tasks. 
-For longer-running tasks a better efficiency can be expected.
-\jhanote{Can you
-  elaborate here. For example, we haven't defined efficiency... The
-  reader will find it difficult to see this point}\alnote{defined efficiency
-  and elaborated a little why the efficiency is not so good.}
+shorter the overall runtime.  However, the efficiency -- defined as,
+the run-time on one resource divided by the run-time on multiple
+resources scaled by the number of resources, for this problem instance
+on going from the 4 to 8 cores drops to less than $0.4$. This is
+mainly a limitation of the used setup: in this scenario the replicas
+consist of relatively short-running NAMD tasks.  For longer-running
+tasks greater efficiency can be
+expected.  % \jhanote{Can you elaborate here. For example, we
+%   haven't defined efficiency... The reader will find it difficult to
+%   see this point}\alnote{defined efficiency and elaborated a little
+%   why the efficiency is not so good.}
 
 Nevertheless, the best performance is achieved on an extra-large
 VM. The largest ensemble comprised of 32 replicas running on
