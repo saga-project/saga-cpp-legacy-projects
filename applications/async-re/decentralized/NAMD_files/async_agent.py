@@ -20,7 +20,7 @@ REMOTE2 = "qb1.loni.org"
 REMOTE3 = "painter1.loni.org"
 #dirs for replicas
 WORK_DIR = "/work/athota1/new_bigjob/decentralized/"
-RPB = 64 #NUMBER_REPLICAS/BIGJOB
+RPB = 128 #NUMBER_REPLICAS/BIGJOB
 
 def copy_with_saga(i):
    # print "####################start time(npt.conf copy)" + time.asctime(time.localtime(time.time())) + "##################"
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     logging.debug("command is :" + str(command))
     stdout = open("/work/athota1/new_bigjob/decentralized/agent/"+str(replica_id)+"/"+"stdout-"+str(replica_id), "w")
     stderr = open("/work/athota1/new_bigjob/decentralized/agent/"+str(replica_id)+"/"+"stderr-"+str(replica_id), "w")    
-    agent_url = saga.url("advert://fortytwo.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/"+str(replica_id)+"/")
+    agent_url = saga.url("advert://advert.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/"+str(replica_id)+"/")
     logging.debug("the replica's advert url is:" + agent_url.get_string())
     agent_dir = saga.advert.directory(agent_url, saga.advert.Create | saga.advert.ReadWrite)        
     p = subprocess.Popen(args=command, executable="/bin/bash", stderr=stderr,stdout=stdout,cwd=os.getcwd(),shell=True)
@@ -126,6 +126,8 @@ if __name__ == "__main__":
      logging.debug("####################" + time.asctime(time.localtime(time.time())) + "##################")
      if (str(agent_dir.get_attribute("state"))=="Ready"):
        logging.debug("state is pending/ready, set by another replica")              
+       new_temp = str(agent_dir.get_attribute("temp"))
+       NAMD_config(str(new_temp))
        p = subprocess.Popen(args=command, executable="/bin/bash", stderr=stderr,stdout=stdout,cwd=os.getcwd(),shell=True)
        agent_dir.set_attribute("state", str("Running"))
        logging.debug("subprocess started, command")
@@ -145,10 +147,18 @@ if __name__ == "__main__":
      elif (str(agent_dir.get_attribute("state"))== "Free"):
         logging.debug("replica is in free state, case II, checking for another rep in free state")
         logging.debug("####################" + time.asctime(time.localtime(time.time())) + "##################")
-        for i in range(0, int(tot_reps)):
+        if int(replica_id) < RPB/2:
+           low_limit = 0
+           upper_limit = int(tot_reps)-int(1)
+           incre = 1
+        else:        
+           low_limit = int(tot_reps)-int(1)
+           upper_limit = -1
+           incre = -1
+        for i in range(int(low_limit), int(upper_limit), int(incre)):
          if i!=int(replica_id): 
           logging.debug("####################" + time.asctime(time.localtime(time.time())) + "##################")
-          temp_url=saga.url("advert://fortytwo.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/"+str(i)+"/") 
+          temp_url=saga.url("advert://advert.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/"+str(i)+"/") 
           logging.debug("looking in this replica url,:" + temp_url.get_string())
           temp_dir = saga.advert.directory(temp_url, saga.advert.Create | saga.advert.ReadWrite)  
           logging.debug("the sttae is: " + str(temp_dir.get_attribute("state")))
@@ -160,8 +170,9 @@ if __name__ == "__main__":
             local_temp = agent_dir.get_attribute("temp")
             remote_temp = temp_dir.get_attribute("temp")   
             logging.debug("####################" + time.asctime(time.localtime(time.time())) + "##################")         
-            NAMD_config(str(local_temp))            
-            copy_with_saga(i)
+           # NAMD_config(str(local_temp))            
+           # copy_with_saga(i)
+            temp_dir.set_attribute("temp", str(local_temp))
             logging.debug("local replica temp is: " + str(local_temp) +", assigned to remote replica")
             NAMD_config(str(remote_temp))
            # copy_with_saga(str(replica_id))
@@ -172,7 +183,7 @@ if __name__ == "__main__":
             p = subprocess.Popen(args=command, executable="/bin/bash", stderr=stderr,stdout=stdout,cwd=os.getcwd(),shell=True) 
             logging.debug("restarted replica, states of both replicas set to Running")
             logging.debug("####################" + time.asctime(time.localtime(time.time())) + "##################")            
-            count_url = saga.url("advert://fortytwo.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/Count")
+            count_url = saga.url("advert://advert.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/Count")
             logging.debug("monitoring and setting the count at: " + count_url.get_string())
             count_dir = saga.advert.directory(count_url, saga.advert.Create | saga.advert.ReadWrite)
             count = int(count_dir.get_attribute("count"))
@@ -207,4 +218,4 @@ if __name__ == "__main__":
             break
          else: #pass if it's the same replica
           logging.debug(" same replica####################" + time.asctime(time.localtime(time.time())) + "##################")
-          pass   
+          pass  
