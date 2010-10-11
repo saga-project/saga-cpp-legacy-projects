@@ -1,7 +1,7 @@
 set term postscript eps enhanced color solid "Times-Roman" 23
 set output 'sagamr_comparison.eps'
 set pointsize 3
-set key Left reverse
+set key Left
 set xlabel 'Data size (GB)' font "Times-Italic, 28"
 set ylabel 'T_s (sec)' font "Times-Italic, 28"
 set mxtics 2
