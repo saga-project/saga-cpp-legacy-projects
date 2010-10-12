@@ -376,7 +376,7 @@ internals here; details can be found elsewhere~\cite{saga_url,Kaiser:2006qp}.
 \subsection{Interfacing SAGA to Grids and Clouds}
 
 SAGA was originally developed primarily for compute-intensive grids.
-Ref~\cite{saga_ccgrid09} demonstrated that in spite of its original
+\cite{saga_ccgrid09} demonstrated that in spite of its original
 design constraints, SAGA can be used to develop data-intensive
 applications in diverse distributed environments, including clouds.
 This is in part due to the fact that, at least on application level,
@@ -438,6 +438,7 @@ implemented in the adaptors to measure the exact time spent in SAGA
 processing and translation before the raw Sphere APIs were called.  As
 seen in Table ~\ref{tab:sphere_overhead}, the SAGA overhead is, if compared
 to the overall execution time of the application, negligible.
+\amnote{Are 30\% negligible?  Hmm....  Also, 4.1 - 3.2 != 0.43}
 This makes SAGA an excellent platform to compare Sphere with other distinct
 programming models.
 \miklosnote{Saurabh: Please check/update the description for the table.}
@@ -614,20 +615,20 @@ changes: (i) optimizing how sorting is done after the map phase,
 \jhanote{shuffle phase has not been defined}
 \miklosnote{true; will use other wording}
 and (ii) using a serialized binary format instead
-of plain text for intermediate data storage (also available as an
-input and output format). We identified these improvements as ones
-having a low implementation effort and reasonable impact on performance.
- \jhanote{it is not established what what
-  the primary components for old saga-mapreduce are nor is the
-  performance bottleneck established.}  The first change means that,
+of plain text for intermediate data storage (also available as
+input and output format). We expected those improvements to have
+a relatively small implementation effort, and to show a significant 
+impact on performance.  The first change means that,
 instead of having the master merge and then sort the intermediate data
 by key before entering the reduce phase, the workers buffer key/value
 pairs from the map phase and store them in sorted order on disk, doing
 an in-memory sort before writing. Also, since intermediate key/value
 pairs from a map worker are already sorted, the reduce workers need to
-only merge these pairs coming from different map workers while
+only merge these pairs coming from different map workers, by
 applying the user-defined reduce function to the merged intermediate
-key and value list.  The second enhancement applies to the storage of
+key and value list. 
+
+The second enhancement applies to the storage of
 the intermediate key/value pairs in a so-called \emph{sequence file
   format}. This file format allows storing of serialized key/value
 objects which can be read and merged much faster in the reduce phase
@@ -635,7 +636,7 @@ than text data, as there is no need for costly parsing.  We used the
 Google Protocol Buffers library for implementing
 serialization~\cite{protobuf}. The processing of input and output
 key/value pairs is further enhanced by minimizing unnecessary memory
-I/O operations using a zero-copy scheme.
+I/O operations, using a zero-copy scheme.
 
 % \jhanote{(A) Why do we think these are the most important performance
 %   enhancements that should be attempted? Or was/is it a case of -- we
@@ -651,28 +652,29 @@ resources or infrastructures, the coordination between the different
 application components becomes challenging.  The \smr implementation
 uses the SAGA advert API for that task, and can thus limit the a-priori
 information needed for bootstrapping the application: the compute
-clients (workers) require (i) the contact address of the used advert
+clients (workers) require (i) the contact URL of the used advert
 service instance, and (ii) a unique worker ID to register with in that
 advert service, so that the master can start to assign work items.
 Both information are provided by the master via command line
 parameters to the worker, at startup time.
 
 The master application requires the following additional information:
-(i) a set of resources where the workers can execute, (ii) the
+(i) a set of resources to execute the workers on, (ii) the
 location of the input data, (iii) the target location for the output
-data, and (iv) the contact point for the advert service for
+data, and (iv) the contact URL for the advert service for
 coordination and communication.
 
-In a typical configuration, for example, three worker instances could
-be started; the first could be started via GRAM and PBS on
+For example: in a typical configuration, three worker instances may
+get started; the first could be started via GRAM and PBS on
 qb.teragrid.org, the second on a pre-instantiated EC2 image
-(instance-id \T{i-760c8c1f}), and the third on a dynamically deployed
+(with known instance id), and the third on a dynamically deployed
 EC2 instance (no instance id given).  Note that the startup times for
 the individual workers may vary over several orders of magnitudes,
-depending on the PBS queue waiting time and VM startup time.  The
+depending on PBS queue waiting time and VM startup time.  The
 MapReduce master will start to utilize workers as soon as they are
 able to register themselves, so will not wait until all workers are
-available.  That mechanism both minimizes time-to-solution, and
+available.  \amnote{Is that true?  IIRC, the job.run() is a synchronous call?}
+That mechanism both minimizes time-to-solution, and
 maximizes resilience against worker loss.
 %
 % The scheme \T{any} acts here as a placeholder for SAGA, so that the
@@ -690,19 +692,18 @@ maximizes resilience against worker loss.
 % suitable access mechanism at runtime.  A parameter not shown in the
 % above configuration example
 %
-A simple parameter controls the number of workers created on each
-compute node; as we will see by varying this parameter, the chances
-are good that compute and communication times can be interleaved, and
-that the overall system utilization can increase (especially in the
-absence of precise knowledge of the execution system).
+A parameter controls the number of workers created per
+compute node; varying that parameter allows to exploit
+compute and communication interleaving, which
+may allow to increase the overall system utilization (even in the
+absence of precise knowledge of the target system).
 
-Further enhancements to \sagamapreduce might include asynchronous master-worker
-communication and off-loading coordination tasks using the advert service to
-the stream-based protocol.
-Such task is specifying the pieces of intermediate data to be processed
-in the reduce phase. However, the advert service could be advantageous for
-backing up data present in the master's memory to make master-failure
-recoverable.
+Future enhancements to \sagamapreduce might include asynchronous master-worker
+communication, and off-loading coordination tasks from the advert service to
+a stream-based protocol.  For example, information about the pieces of
+intermediate data to be processed in the reduce phase could be directly
+interchanged via streams.  The advert service could be used for maintaining
+master state, in order to make the master failure-recoverable.
 
 
 \section{Application Level Interoperability: Three-levels}
@@ -711,7 +712,7 @@ recoverable.
 The motivation of ALI across multiple, heteregenous and distributed
 resources follows from large-scale scientific applications, such as
 the Earth Science Grid and LEAD. However for simplicity of treatment
-and to focus on the levels of interoperability we will use a simple,
+and to focus on the levels of interoperability, we will use a simple,
 self-contained application, that has also become the {\it canonical}
 \mr application-driver -- \wc.
 
@@ -734,8 +735,8 @@ the words in the data set.  For example, a file containing the words
 \T{('bread' 'bee' 'bee' 'honey')} would be hashed into buckets as
 \T{('bread' 'bee' 'bee')} and \T{('honey')}.  The second kernel
 function would read these intermediate bucket files, sort the words,
-and produce the result \T{(.bread 1., .bee 2., .honey
-  1.)}.  The Sphere system is responsible for assigning files for
+and produce the result \T{('bread 1', 'bee 2', 'honey
+  1')}.  The Sphere system is responsible for assigning files for
 processing, synchronization, and writing output results back to
 Sector.
 
@@ -760,7 +761,7 @@ application level interoperability. We outline them here:
 As discussed, SAGA provides the ability to load a wide-range of
 system-specifc adaptors dynamically. Thus a simple form of
 interoperability, possibly specific to applications developed using
-SAGA, is that an application can use any distributed systems without
+SAGA, is that an application can use any distributed system without
 changes to the application, thus experiencing cloud-cloud or
 grid-cloud interoperability.  We refer to this as Type I
 interoperabilty.
@@ -793,7 +794,7 @@ is able to switch between backend specific programming models.  We
 will discuss an example where the \wc application is implemented so
 that it can utilize either a Sector-Sphere framework via SAGA for the
 OCC backend, or the \smr framework for generic grid and cloud
-backends.
+backends. \amnote{will we?}
 
 \subsubsection{Type III: Application Interoperability using different
   programming models for concurrent execution}
@@ -808,8 +809,8 @@ backends.
 At another level, an application can also be considered interoperable
 when it executes multiple programming models \I{concurrently} over
 diverse backends.  We demonstrate that a \wc application uses both
-Sector-Sphere and \smr when spanning  multiple backends.  The
-challenges of having different parts of an application execute
+Sector-Sphere and \smr when spanning  multiple backends \amnote{do we?}.
+The challenges of having different parts of an application execute
 concurrently using different programming models is conceptually
 different to loading different adaptors concurrently. Thus we describe
 this as a separate type of interoperability.
@@ -821,14 +822,14 @@ Network Initiative)~\cite{loni-url} resources running Globus and ssh;
 on GumboGrid, a small cluster at LSU running Eucalyptus; on Amazon's
 EC2; on a bare 50 node cluster of the Hungarian Academy of Sciences;
 and on the OCC testbed~\cite{occ_testbed} running Sector-Sphere.  We
-also use FutureGrid (\url{http://www.futuregrid.org}) and the IBM
+also use FutureGrid (\url{http://www.futuregrid.org}) and its IBM
 iDataPlex (India), which as 256/1024 nodes/cores (for full details
 see: \url{http://futuregrid.org/hardware}).
 
 Jobs are started via the respectively available middlewares, via
 SAGA's job API.  Data exchange is either performed via streams, or via
 SAGA's file transfer API which can dynamically switch between the
-various available protocols.
+various available protocols.  
 
 For cloud environments, we support the runtime configuration of VM
 instances by staging a preparation script to the VM after its
@@ -868,7 +869,7 @@ nonetheless.
 In an earlier paper (Ref~\cite{saga_ccgrid09}), we performed tests to
 demonstrate how \sagamapreduce utilizes different infrastructures and
 provides control over task-data placement; this led to insight into
-performance on ``vanilla'' grids.  This work extends earlier work and
+performance on ``vanilla'' grids.  The work presented here extends this, and
 establishes that \sagamapreduce can provide cloud-cloud
 interoperability and cloud-grid interoperability.  We performed the
 following experiments:
@@ -1104,11 +1105,13 @@ performed a merge-sort of all the intermediate output files.
 \subsection{Type II ALI: Application Performance Using SAGA-based
 Sphere and MapReduce}
 
+\amnote{add an intro sentence here}
+
 \subsubsection{Experiment I -- Varying chunk sizes}
 
 For the Sector-Sphere based \wc, Sector maintains and tracks data in
 the cloud at the file level. To experiment with different chunk sizes, the
-files were split manually into smaller chunks before the \wc
+data files (totalling 4GB) were split manually into smaller chunks before the \wc
 application was launched. In this set of experiments, we vary the
 chunk size from 16 MB to 256 MB, while keeping the number of SPEs
 constant at 8, and the total data size constant at 4 GB. Each SPE is running
@@ -1117,9 +1120,8 @@ presented in Fig.~\ref{fig:sphere_mr_chunksize}.  Note that both data
 and computation were distributed for these experiments.  As evident
 from the results we collected, a correlation exists between the chunk
 sizes and performance of Sphere.  As the chunk sizes increase, the
-time-to-solution also increases. In particular, we observe a decline in
-performance after the 64 MB data, in that there is an increase in the
-gradient of the plot, after chunk sizes have reached 64 MB.
+time-to-solution also increases. In particular, we observe that performance
+declines for chunk sizes larger than 64 MB.
 
 % \jhanote{Please describe the configurations used for Sphere and
 %   MapReduce explicitly (distributed-distributed?).}
@@ -1146,23 +1148,29 @@ SAGA-MapReduce, performance increases with larger chunk sizes,
 reaching Sphere's performance at the 256 MB data point.  According to
 our analysis, this can be attributed to the fact that for
 SAGA-MapReduce, $t_{coord}$ can dominate the total time-to-solution
-for large number of workers (or equivalently smaller chunk sizes).
-The larger the chunk size, the smaller the number of map tasks
-launched (workers), and provided the data work-load assigned to each
-worker is not too high, $t_{coord}$ decreases with increasing chunk
+for large number of worker tasks (or equivalently smaller chunk sizes).
+The larger the chunk size, the smaller the number of map tasks,
+and (provided the data work-load assigned to each
+worker is not too high) $t_{coord}$ decreases with increasing chunk
 size.
+
+These experiments have been run on both the Hungary cluster, and on Futuregrid's
+India, which have rather different hardware charasteristics.  The graph shows
+the discussed trends are independently of the used backend, but rather depend on
+the utilized programming model (implementation).
 
 
 \subsubsection{Experiment II -- Varying Workers}
 
-We perform two sets of experiments with SAGA-Sphere running the same
-\wc application.  We keep the chunk size constant at 64 MB, the data
-size fixed at 4GB (as previously) but vary the number of workers in
-two configurations. In the first configuration, we use Sphere on a
-local data and local compute configuration. In the second
-configuration, we observe how the solution scales to a distributed
-data and distributed compute configuration. These results are
-illustrated in Fig.~\ref{fig:sphere_varying_workers}.
+We performed a similar set of experiments, on both the Hungary cluster and on
+india, for varying worker numbers.  Fig.~\ref{fig:sphere_varying_workers} shows
+the results for Sector-Sphere, Fig.~\ref{fig:sagamr_varying_workers} for
+SAGA-MapReduce.  The chunk size was set constant at 64 MB, the data size again
+4GB.
+
+In the first configuration (``local''), we used Sphere on a local data and local
+compute configuration. In the second configuration (``dist.''), we observe how
+the solution scales to a distributed data and distributed compute configuration. 
 
 \begin{figure}[htb!]
  \includegraphics[width=0.5\textwidth]{figures/sphere_varying_workers.pdf}
@@ -1188,6 +1196,10 @@ optimal data distribution between SPEs and minimize synchronization
 overhead. For the purpose of our experiments, we limited Sector to not
 create any replicas.
 
+The data for local-local on the Hungary cluster shows obvious performance
+problems.  The hardware was, both in terms of memory and CPU, not able to cope
+with the workload in that configuration.
+
 \begin{figure}[htb!]
  \dnnn\dnnn
  \includegraphics[width=0.5\textwidth]{figures/sagamr_varying_workers.pdf}
@@ -1201,19 +1213,17 @@ create any replicas.
 % \miklosnote{Shantenu: Please correct figure placement as needed.}
 % \jhanote{this is ok, i think}
 
-We perform similar measurements via \sagamapreduce: while keeping the
-chunk size constant at 64MB and the data size at 4GB, we note the
-time-to-solution of the \wc application in the two configurations
-described for SAGA-Sphere above.  For the distribute-distribute
+We performed similar measurements via \sagamapreduce. 
+For the distribute-distribute
 configuration we use HDFS as the distributed file system and launch
 jobs using the SAGA SSH job adaptor.  We set the number of reduce tasks
 to be equal to the number of workers spawned.
-\miklosnote{Removed reference to previous experiment.}
 \jhanote{I can't determine where we
   establish that for varying chunk size we say that the number of
   workers in the map phase is not the same as the reduce phase. We
   only say that the number of reduce workers is set to 8 and imply
-  that it is kept fixed.} For the local-local configuration we launch
+  that it is kept fixed.} 
+For the local-local configuration we launch
 workers on the machine running the master as separate processes and
 use the local file system for file operations.  As can be seen in
 Fig.~\ref{fig:sagamr_varying_workers} \sagamapreduce does not scale as
@@ -1229,12 +1239,20 @@ disk I/O increases very quickly\jhanote{Miklos, please check, I did
 not change the meaning of what was intended}; this can cause a
 bottleneck when performing computations on one physical node (I/O
 system).  According to Fig.~\ref{fig:sagamr_varying_workers} the
-optimal number of workers is 4 for the local-local configuration.  We
-did not include results for more than 10 workers in order to preserve
-the linear
-scale. % \miklosnote{Shall we note why we don't include results for 10
+optimal number of workers is 4 for the local-local configuration.  
+% We % did not include results for more than 10 workers in order to 
+% preserve the linear scale. 
+%
+% \miklosnote{Shall we note why we don't include results for 10
 %   workers in the local-local configuration (takes toooooo much
-%   time)?}\jhanote{done}
+%   time)?} \jhanote{done} \amnote{does not add up IMHO, and rather 
+%   confuses}
+
+Consistent with the Sphere results, the \sagamapreduce data for the local-local
+configuration on the Hungary cluster shows rge same node saturation for
+increasing worker numbers.
+
+\paragraph{Discussion:}
 
 SAGA gives us the opportunity to experiment with different programming
 models very easily.  As evident from the data plots in
@@ -1252,7 +1270,7 @@ better performance from smaller chunks sizes (a larger amount of
 files) making it suitable for finer grained computations with better
 data distribution.
 
-We instrumented the Sphere code to analyze this behavior further.
+We instrumented the Sphere code to analyze it's behavior in more detail.
 The processing of larger files (i.e. reading the file from disk to memory,
 computing the hash for the words contained in the file, as
 well as writing the file into the Sphere output buffer) did not
@@ -1274,15 +1292,15 @@ number of files, we see almost a 65\% increase in performance. This
 further confirms our supposition that good data distribution had a
 major impact on Sphere's performance for the \wc application.
 
-We instrumented the Sphere code to analyze this behavior further.
-The processing of larger files (i.e. reading the file from disk to memory,
-computing the hash for the words contained in the file, as
-well as writing the file into the Sphere output buffer) did not
-contribute significantly to the time taken for solution. We did
-observe that once the Sphere framework took over the responsibility
-of processing the output buffer, it took more time to process larger
-buffers than smaller ones. Identifying exactly what module is
-responsible for this bottleneck is out of the scope of this paper.
+% We instrumented the Sphere code to analyze this behavior further.
+% The processing of larger files (i.e. reading the file from disk to memory,
+% computing the hash for the words contained in the file, as
+% well as writing the file into the Sphere output buffer) did not
+% contribute significantly to the time taken for solution. We did
+% observe that once the Sphere framework took over the responsibility
+% of processing the output buffer, it took more time to process larger
+% buffers than smaller ones. Identifying exactly what module is
+% responsible for this bottleneck is out of the scope of this paper.
 
 We do not claim that fine grained computation granularity is a concrete
 determinant of SAGA-Sphere's performance in a general case, but a
