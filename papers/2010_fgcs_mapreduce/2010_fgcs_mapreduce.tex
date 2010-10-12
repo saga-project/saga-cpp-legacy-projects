@@ -8,7 +8,6 @@
 \usepackage[small,it]{caption}
 \usepackage{ifpdf}
 \usepackage{pdfsync}
-\usepackage{fancyvrb}
 \usepackage{hyperref}
 \usepackage{xspace}
 
@@ -24,19 +23,6 @@
 	\vspace*{-0.6em}
 }
 
-\DefineShortVerb{\|}
-\DefineVerbatimEnvironment{mycode}{Verbatim}
-{
-  label=Code Example,
-  fontsize=\scriptsize,
-  frame=single,
-% framerule=1pt,
-  framesep=0.25em,
-  numbers=right,  %numbers=right,
-  numbersep=0.5pt,
-  gobble=0,
-  numberblanklines=false
-}
 \begin{document}
 
 \title{Understanding Application-Level Interoperability: Scaling-Out
@@ -193,10 +179,11 @@ performance that scientific applications demand.
 We define Application Level Interoperability (\I{ALI}) as a feature
 that arises, when other than say compiling, there
 are no further changes required of the application to utilize a new
-platform.  If service-level interoperability can be considered as weak
-interoperability, ALI can be considered to be {\it strong}
-interoperability.\amnote{weak versus strong is badly motivated
-here - add reference?}
+platform.  
+% If service-level interoperability can be considered as weak
+% interoperability, ALI can be considered to be {\it strong}
+% interoperability.\amnote{weak versus strong is badly motivated
+% here - add reference?}
 The complexity of providing ALI varies and depends upon the
 application under consideration.  For example, it is somewhat easier
 for simple ``distribution unaware'' applications to utilize multiple
@@ -259,21 +246,21 @@ systems.
 % It is important for effective
 % scientific application development on clouds that any PM is not
 % constrained to a specific infrastructure.
-
+%
 % \jhanote{Place somewhere appropriate} Counterexamples are Google's
 % MapReduce, which is tied to Google's file system, or
 % Sphere\cite{sectorsphere09} which is linked to the Sector file system.
-
+%
 % An application may be better suited to execution using different
 % programming models on different systems.
-
+%
 %It is also the aim of our studies to
-
+%
 % Finally, effort directed towards ALI on clouds/grids in addition to
 % satisfying basic curiosity of ``if and how to interoperate'', might
 % also possibly provide different insight into the programming
 % challenges and requirements.
-
+%
 % Additionally, with different clouds providers, fronting different
 % Economic Models of computing, it is important to be able to utilize the
 % ``right resource'', in the right way. We briefly discussed how moving
@@ -285,7 +272,7 @@ systems.
 % responsibility of explicitly determining which resource is optimal.
 % Clearly interoperability between different flavors of clouds, and
 % clouds and grids is an important pre-requisite.
-
+%
 % which is an application with multiple homogeneous workers (although
 % the data-load per worker can vary) however, it is easy to conceive of
 % an application where workers (tasks) can be heterogeneous, i.e., each
@@ -420,14 +407,14 @@ linked library written against the Sphere APIs.  The SPEs apply this
 user defined function to its assigned segments and write the
 processing results back to files in Sector.  This stream of output
 files can be retrieved by the user from Sector, after the processing
-is complete.
+is complete.\\
 
 % \ssnote{Maybe add a different section here}
 % \ssnote{Add another section here for experiments, or maybe later after
 % MapReduce description}
 
-\paragraph{SAGA adaptor overhead} \label{ssec:overhead}
-
+\textit{SAGA adaptor overhead.}
+%
 We execute a simple experiment to measure the overhead introduced by
 submitting Sphere jobs and Sector file operations through SAGA.  The
 used sample Sphere kernel function accepts a buffer of text and
@@ -435,31 +422,41 @@ utilizes the Sphere framework to hash words into Sphere buckets, using
 the first letter as the key. One Gigabyte of text data was uploaded to
 the Sector file system for this test.  Furthermore, traces were
 implemented in the adaptors to measure the exact time spent in SAGA
-processing and translation before the raw Sphere APIs were called.  As
-seen in Table ~\ref{tab:sphere_overhead}, the SAGA overhead is, if compared
-to the overall execution time of the application, negligible.
-\amnote{Are 30\% negligible?  Hmm....  Also, 4.1 - 3.2 != 0.43}
-This makes SAGA an excellent platform to compare Sphere with other distinct
-programming models.
-\miklosnote{Saurabh: Please check/update the description for the table.}
+processing and translation before the raw Sphere APIs were called.
+The measured SAGA overhead was about $26 \pm 4$ seconds for 8 SPEs on
+8 physical nodes, which is almost neglible if compared to the overall
+execution time of the application.
 
-\begin{table}[h!]
-  \footnotesize
-  \begin{tabular}{cccc}
-    \hline
-    & Vanilla Sphere &  SAGA-Sphere & Adaptor \\
-    &                &              & overhead \\
-    \hline
-    { {\bf Mean}} & 3.2    & 4.1    & 0.43  \\
-    \hline
-    { {\bf Stdev}} & 0.5    & 1.2    & 0.07   \\
-    \hline \hline
-  \end{tabular}
-  \caption{Adaptor overhead measurements from processing 8GBs of data with 8
-  SPEs running the \wc application on 8 physical nodes on Poseidon (a
-  LONI cluster).  All times are in minutes, aggregated from 10 runs.
-  \label{tab:sphere_overhead}}
-\end{table}
+% Total Overhead
+% 2.63  0.35 
+% 3.01  0.56
+% 3.07  0.37
+% 3.18  0.39
+% 3.68  0.35
+% 3.76  0.48
+% 4.93  0.44
+% 5.03  0.52
+% 5.33  0.38
+% 6.42  0.52
+
+
+% \begin{table}[h!]
+%   \footnotesize
+%   \begin{tabular}{cccc}
+%     \hline
+%     & Vanilla Sphere &  SAGA-Sphere & Adaptor \\
+%     &                &              & overhead \\
+%     \hline
+%     { {\bf Mean}} & 3.2    & 4.1    & 0.43  \\
+%     \hline
+%     { {\bf Stdev}} & 0.5    & 1.2    & 0.07   \\
+%     \hline \hline
+%   \end{tabular}
+%   \caption{Adaptor overhead measurements from processing 8GBs of data with 8
+%   SPEs running the \wc application on 8 physical nodes on Poseidon (a
+%   LONI cluster).  All times are in minutes, aggregated from 10 runs.
+%   \label{tab:sphere_overhead}}
+% \end{table}
 
 
 % \clearpage
@@ -670,10 +667,7 @@ qb.teragrid.org, the second on a pre-instantiated EC2 image
 (with known instance id), and the third on a dynamically deployed
 EC2 instance (no instance id given).  Note that the startup times for
 the individual workers may vary over several orders of magnitudes,
-depending on PBS queue waiting time and VM startup time.  The
-MapReduce master will start to utilize workers as soon as they are
-able to register themselves, so will not wait until all workers are
-available.  \amnote{Is that true?  IIRC, the job.run() is a synchronous call?}
+depending on PBS queue waiting time and VM startup time.  
 That mechanism both minimizes time-to-solution, and
 maximizes resilience against worker loss.
 %
@@ -1105,7 +1099,13 @@ performed a merge-sort of all the intermediate output files.
 \subsection{Type II ALI: Application Performance Using SAGA-based
 Sphere and MapReduce}
 
-\amnote{add an intro sentence here}
+The various experiments described in this section have been performed
+in two configurations.  In the first configuration (``local''), all
+application processes used a single compute node, with local data
+access.  In the second configuration (``dist.''), the application
+processes were distributed over multiple physical nodes, and
+potentially utilized remote data access techniques.
+
 
 \subsubsection{Experiment I -- Varying chunk sizes}
 
@@ -1124,7 +1124,7 @@ time-to-solution also increases. In particular, we observe that performance
 declines for chunk sizes larger than 64 MB.
 
 % \jhanote{Please describe the configurations used for Sphere and
-%   MapReduce explicitly (distributed-distributed?).}
+%   MapReduce explicitly (distributed?).}
 %\jhanote{With the new data, does this
 %  still hold? ie., 64 MB or do we remove this sentence?}
 
@@ -1142,7 +1142,7 @@ declines for chunk sizes larger than 64 MB.
 
 We performed the same set of experiments with SAGA-MapReduce based \wc
 and observe a completely different performance trend as the chunk size
-varied.  We use an HDFS file system running datanodes on each of the 8
+varied.  We use an HDFS file system running data nodes on each of the 8
 workers and set the number of reduce tasks to 8.  In case of
 SAGA-MapReduce, performance increases with larger chunk sizes,
 reaching Sphere's performance at the 256 MB data point.  According to
@@ -1157,7 +1157,8 @@ size.
 These experiments have been run on both the Hungary cluster, and on Futuregrid's
 India, which have rather different hardware charasteristics.  The graph shows
 the discussed trends are independently of the used backend, but rather depend on
-the utilized programming model (implementation).
+the utilized programming model (implementation).  The experiment's
+standard deviations are usually below 10\% of the measured data points.
 
 
 \subsubsection{Experiment II -- Varying Workers}
@@ -1167,10 +1168,6 @@ india, for varying worker numbers.  Fig.~\ref{fig:sphere_varying_workers} shows
 the results for Sector-Sphere, Fig.~\ref{fig:sagamr_varying_workers} for
 SAGA-MapReduce.  The chunk size was set constant at 64 MB, the data size again
 4GB.
-
-In the first configuration (``local''), we used Sphere on a local data and local
-compute configuration. In the second configuration (``dist.''), we observe how
-the solution scales to a distributed data and distributed compute configuration. 
 
 \begin{figure}[htb!]
  \includegraphics[width=0.5\textwidth]{figures/sphere_varying_workers.pdf}
@@ -1183,8 +1180,8 @@ the solution scales to a distributed data and distributed compute configuration.
 \end{figure}
 
 For the
-local-local configuration, we launch Sector and Sphere on a single
-physical node.  For the distribute-distribute configuration, we launch
+local configuration, we launch Sector and Sphere on a single
+physical node.  For the distribute configuration, we launch
 Sector and Sphere on one physical node per SPE.  For the data-set
 sizes considered, we observe good performance from 4 to 6 distributed
 workers, before which the coordination costs due to the number of SPEs
@@ -1196,7 +1193,7 @@ optimal data distribution between SPEs and minimize synchronization
 overhead. For the purpose of our experiments, we limited Sector to not
 create any replicas.
 
-The data for local-local on the Hungary cluster shows obvious performance
+The data for local on the Hungary cluster shows obvious performance
 problems.  The hardware was, both in terms of memory and CPU, not able to cope
 with the workload in that configuration.
 
@@ -1214,7 +1211,7 @@ with the workload in that configuration.
 % \jhanote{this is ok, i think}
 
 We performed similar measurements via \sagamapreduce. 
-For the distribute-distribute
+For the distribute
 configuration we use HDFS as the distributed file system and launch
 jobs using the SAGA SSH job adaptor.  We set the number of reduce tasks
 to be equal to the number of workers spawned.
@@ -1223,12 +1220,12 @@ to be equal to the number of workers spawned.
   workers in the map phase is not the same as the reduce phase. We
   only say that the number of reduce workers is set to 8 and imply
   that it is kept fixed.} 
-For the local-local configuration we launch
+For the local configuration we launch
 workers on the machine running the master as separate processes and
 use the local file system for file operations.  As can be seen in
 Fig.~\ref{fig:sagamr_varying_workers} \sagamapreduce does not scale as
-expected in the distribute-distribute configuration.  \miklosnote{Explain why.}
-For the local-local configuration performance shows similar trends to the
+expected in the distribute configuration.  \miklosnote{Explain why.}
+For the local configuration performance shows similar trends to the
 previous configuration with a consistent difference in time-to-solution.
 \miklosnote{This should be explained with mentioning communication cost and
 pointing at good machine hardware which makes gains by distributing workers diminishing.}
@@ -1239,18 +1236,20 @@ disk I/O increases very quickly\jhanote{Miklos, please check, I did
 not change the meaning of what was intended}; this can cause a
 bottleneck when performing computations on one physical node (I/O
 system).  According to Fig.~\ref{fig:sagamr_varying_workers} the
-optimal number of workers is 4 for the local-local configuration.  
+optimal number of workers is 4 for the local configuration.  
 % We % did not include results for more than 10 workers in order to 
 % preserve the linear scale. 
 %
 % \miklosnote{Shall we note why we don't include results for 10
-%   workers in the local-local configuration (takes toooooo much
+%   workers in the local configuration (takes toooooo much
 %   time)?} \jhanote{done} \amnote{does not add up IMHO, and rather 
 %   confuses}
 
-Consistent with the Sphere results, the \sagamapreduce data for the local-local
-configuration on the Hungary cluster shows rge same node saturation for
-increasing worker numbers.
+Consistent with the Sphere results, the \sagamapreduce data for the
+local configuration on the Hungary Cluster shows the same node
+saturation for increasing worker numbers.  The standard deviations for
+these runs have also been below 10\% in most cases.
+
 
 \paragraph{Discussion:}
 
