@@ -101,7 +101,7 @@ std::string WorkerThread::getFrontendCommand_(void) {
             if(question == MASTER_REQUEST_IDLE) {
                server_.write(saga::buffer(WORKER_RESPONSE_ACKNOWLEDGE, 11));
                state_ = WORKER_STATE_IDLE;
-               sleep(1);
+               sleep(5);
                //server_.close();
                return std::string("");
             }
