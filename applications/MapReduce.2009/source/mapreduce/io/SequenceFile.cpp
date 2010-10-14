@@ -4,6 +4,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include "SequenceFile.hpp"
+#include <climits>
 #include "../io/saga_file_adaptors.hpp" 
 
 namespace mapreduce { namespace io {
@@ -37,6 +38,8 @@ void SequenceFileReader::Initialize(const saga::url& path, long offset) {
   input_adaptor_.reset(new CopyingInputStreamAdaptor(input_stream_));
   input_adaptor_->SetOwnsCopyingStream(true);
   input_ = new CodedInputStream(input_adaptor_.get());
+  // Disable warning about too many bytes read from input.
+  input_->SetTotalBytesLimit(INT_MAX, -1);
 }
 
 // Copy a block of given size from the input stream into the output stream.
