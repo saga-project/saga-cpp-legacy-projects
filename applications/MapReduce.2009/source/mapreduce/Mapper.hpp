@@ -46,7 +46,8 @@ class MapperContext {
 template <typename KeyIn, typename ValueIn, typename KeyOut, typename ValueOut>
 class Mapper {
  public:
-  //typedef MapperContext<KeyIn, ValueIn, KeyOut, ValueOut> Context;
+  virtual ~Mapper() {}
+  // Context suitable for Mapper.
   class Context : public MapperContext<KeyIn, ValueIn, KeyOut, ValueOut>  {
    public:
     Context(RecordReader<KeyIn, ValueIn>* reader,
