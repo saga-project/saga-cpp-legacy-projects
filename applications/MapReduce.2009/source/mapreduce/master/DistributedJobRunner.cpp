@@ -251,7 +251,7 @@ void DistributedJobRunner::spawnAgents_(void) {
                           << hostListIT->rmURL << std::endl;
               } else {
                 log->write(agentJob.get_job_id (), MR_LOGLEVEL_INFO);
-                jobs_.push_back(agentJob); // Hack to prevent destructor of job object from being called
+                jobs_.push_back(agentJob);  // Save job object.
               }
             }
             message += "SUCCESS";
@@ -294,27 +294,15 @@ void DistributedJobRunner::executeJob() {
 
 
 void DistributedJobRunner::sendQuit_(void) {
-  char buff[255];
-  int successCounter = 0;
-  std::vector<saga::url> list = workersDir_.list("*");
-  int workersSize = list.size();
+  // Cancel all worker jobs.
   try {
-    while(successCounter < workersSize) {
-      saga::stream::server *service = new saga::stream::server(serverURL_);
-      saga::stream::stream worker = service->serve(5);
-      std::string message("Established connection to ");
-      message += worker.get_url().get_string();
-      log->write(message, MR_LOGLEVEL_INFO);
-      worker.write(saga::buffer(WORKER_COMMAND_QUIT, 4));
-      saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
-      if(std::string(buff, read_bytes) != WORKER_RESPONSE_ACKNOWLEDGE) {
-        log->write(std::string("Misbehaving worker!"), MR_LOGLEVEL_WARNING);
-      } else {
-        successCounter++;
-      }
-      service->close();
-      delete service;
+    log->write("cancelling jobs", MR_LOGLEVEL_INFO);
+    for ( unsigned int i = 0; i < jobs_.size (); i++ )
+    {
+      log->write(jobs_[i].get_job_id (), MR_LOGLEVEL_INFO);
+      jobs_[i].cancel ();
     }
+    log->write("cancelling jobs done", MR_LOGLEVEL_INFO);
   }
   catch(saga::exception const& e) {
     std::cerr << e.what() << std::endl;
