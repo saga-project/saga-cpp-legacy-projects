@@ -4,6 +4,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include "WorkerThread.hpp"
+#include "../../utils/saga_stream_utils.hpp"
 
 namespace mapreduce { namespace worker {
 
@@ -82,6 +83,12 @@ std::string WorkerThread::getFrontendCommand_(void) {
    try {
       saga::stream::stream server_(serverURL_);
       server_.connect();
+      // Wait for master's question.
+      if (!SagaStreamUtils::TimedWaitForRead(
+            server_, WORKER_READ_TIMEOUT)) {
+        return "";
+      }
+      // Read master's question.
       saga::ssize_t read_bytes = server_.read(saga::buffer(buff));
       std::string question(buff, read_bytes);
       LOG_DEBUG << "QUESTION = " << question;

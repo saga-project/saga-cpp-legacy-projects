@@ -28,6 +28,9 @@ namespace mapreduce { namespace worker {
 // Buffer size used for communication with the master.
 #define MSG_BUFFER_SIZE 2048
 
+// Read timeout used when reading from the master.
+#define WORKER_READ_TIMEOUT 20
+
 class WorkerThread {
  public:
   /*********************************************************

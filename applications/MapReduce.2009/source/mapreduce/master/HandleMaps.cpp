@@ -4,8 +4,9 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include "HandleMaps.hpp"
-#include "../protocol.hpp"
 #include <sstream>
+#include "../protocol.hpp"
+#include "../../utils/saga_stream_utils.hpp"
 
 /*********************************************************
  * The HandleMaps class handles all the details of       *
@@ -83,8 +84,16 @@ void HandleMaps::issue_command_() {
           message += worker.get_url().get_string();
           log_->write(message, MR_LOGLEVEL_INFO);
 
-          //Ask worker for state
+          // Ask worker for state.
           worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
+          if (!SagaStreamUtils::TimedWaitForRead(
+                   worker, job_.get_attribute("protocol.read_timeout", 10))) {
+            log_->write("Worker didn't respond -- retrying.", MR_LOGLEVEL_DEBUG);
+            delete service_;
+            service_ = new saga::stream::server(serverURL_);
+            continue;
+          }
+
           char buff[MSG_BUFFER_SIZE];
           saga::ssize_t read_bytes = worker.read(saga::buffer(buff));
           std::string state(buff, read_bytes);
