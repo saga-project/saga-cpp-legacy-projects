@@ -12,7 +12,7 @@ import subprocess
 import logging
 import sys
 import time
-
+import random
 #Configure here:
 HOST = "qb1.loni.org"
 REMOTE1 = "qb1.loni.org"
@@ -155,7 +155,9 @@ if __name__ == "__main__":
            low_limit = int(tot_reps)-int(1)
            upper_limit = -1
            incre = -1
-        for i in range(int(low_limit), int(upper_limit), int(incre)):
+      #  for i in range(int(low_limit), int(upper_limit), int(incre)):
+        while 1:
+         i = random.randint(0,127)
          if i!=int(replica_id): 
           logging.debug("####################" + time.asctime(time.localtime(time.time())) + "##################")
           temp_url=saga.url("advert://advert.cct.lsu.edu/"+"BigJob/BigJob" + "-" + sys.argv[1] + "/"+str(i)+"/") 
