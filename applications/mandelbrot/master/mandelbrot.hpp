@@ -27,8 +27,8 @@ class mandelbrot
     void job_startup (void);
 
   public:
-    mandelbrot (std::string odev  = "x11",  // default output device
-                int         njobs = 1);     // default number of client jobs
+    mandelbrot (std::string  odev  = "x11",  // default output device
+                unsigned int njobs = 1);     // default number of client jobs
     ~mandelbrot (void);
 
     void compute    (void);

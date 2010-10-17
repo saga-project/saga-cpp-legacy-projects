@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <saga/saga.hpp>
+#include <saga/saga/adaptors/utils.hpp>
 
 #include "logger.hpp"
 
@@ -56,7 +57,7 @@ int main (int argc, char** argv)
       if ( 0 == work_ads.size () )
       {
         l.log ("waiting for work (1)\n");
-        :: sleep (1);
+        :: sleep (5);
 
         if ( work_done ) 
         {
@@ -73,7 +74,7 @@ int main (int argc, char** argv)
 
       // found some ads.  Now pick those which are flagged active, and work on
       // them
-      for ( int i = 0; i < work_ads.size (); i++ )
+      for ( unsigned int i = 0; i < work_ads.size (); i++ )
       {
         // TODO: this loop circles over 'done' items forever, until the master
         // deletes those.  Better move them somewhere else, and let the master
@@ -92,7 +93,8 @@ int main (int argc, char** argv)
             std::stringstream ss;
             ss << "found work in " << work_ads[i].get_path () << "\n";
             l.log (ss.str ().c_str ());
-
+            
+#ifdef FAST_ADVERT
             double off_x = ::atof (ad.get_attribute ("off_x").c_str ());
             double off_y = ::atof (ad.get_attribute ("off_y").c_str ());
             double res_x = ::atof (ad.get_attribute ("res_x").c_str ());
@@ -101,13 +103,30 @@ int main (int argc, char** argv)
             double num_y = ::atof (ad.get_attribute ("num_y").c_str ());
             int    limit = ::atoi (ad.get_attribute ("limit").c_str ());
             int    escap = ::atoi (ad.get_attribute ("escap").c_str ());
-            int    jobid = ::atoi (ad.get_attribute ("jobid").c_str ());
+#else // FAST_ADVERT
+            std::string work = ad.get_attribute ("work");
+            std::vector <std::string> words = saga::adaptors::utils::split (work, ' ');
+
+            if ( words.size () < 9 )
+            {
+              l.log ("Cannot parse work attribute!");
+              l.log (work.c_str ());
+              exit  (-1);
+            }
+
+            double off_x = ::atof (words[0].c_str ());
+            double off_y = ::atof (words[1].c_str ());
+            double res_x = ::atof (words[2].c_str ());
+            double res_y = ::atof (words[3].c_str ());
+            double num_x = ::atof (words[4].c_str ());
+            double num_y = ::atof (words[5].c_str ());
+            int    limit = ::atoi (words[6].c_str ());
+            int    escap = ::atoi (words[7].c_str ());
+#endif // FAST_ADVERT
 
             l.log ("handling request\n");
 
-            // point in complex plane to iterate over
-            double c0;
-            double c1;
+            // point in complex plane to iterate over is (c0, c1)
 
             // data to paint
             std::stringstream data;

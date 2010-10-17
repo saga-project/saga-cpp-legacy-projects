@@ -25,27 +25,27 @@ class output_x11 : public output_base
     int                  posy_;
     GC                   gc_;
 
+    // window size
+    unsigned int         size_x_;
+    unsigned int         size_y_;
+
     // colormap
-    int                  cnum_; // nuimber of colors
+    unsigned int         cnum_; // nuimber of colors
     Colormap             cmap_;
     std::vector <long>   colors_;
-
-    // window size
-    int                  size_x_;
-    int                  size_y_;
 
 
   public:
     // the c'tor takes the size the window.  The user of the device needs to
     // ensure that all drawinf requests lie inside that window.
-     output_x11  (int size_x, 
-                  int size_y, 
-                  int cnum);
+     output_x11  (unsigned int size_x, 
+                  unsigned int size_y, 
+                  unsigned int cnum);
     ~output_x11 (void);
 
     // paint a rectangular box
-    void paint_box (int x0, int n_x, 
-                    int y0, int n_y,
+    void paint_box (unsigned int x0, unsigned int n_x, 
+                    unsigned int y0, unsigned int n_y,
                     std::vector <std::vector <int> > & data, 
                     std::string ident = "");
 };

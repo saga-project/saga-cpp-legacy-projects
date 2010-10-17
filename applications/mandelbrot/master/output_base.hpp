@@ -18,8 +18,8 @@ class output_base
     // computed the data, and can optionally be printed into the
     // box.  Also, the box boundaries can optionally be printed
     // in a different color, to demonstrate the spatial chop up.
-    virtual void paint_box (int x0, int n_x, 
-                            int y0, int n_y,
+    virtual void paint_box (unsigned int x0, unsigned int n_x, 
+                            unsigned int y0, unsigned int n_y,
                             std::vector <std::vector <int> > & data,
                             std::string ident = "") = 0;
 };

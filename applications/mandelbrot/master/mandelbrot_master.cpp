@@ -9,6 +9,8 @@ int main (int argc, char** argv)
   try
   {
     {
+      system ("/bin/date");
+
       // create our mandelbrot master, open the x11 
       // output device, and start 5 client jobs
       mandelbrot m ("x11", 5); 
@@ -19,6 +21,7 @@ int main (int argc, char** argv)
 
       // done
       std::cout << "\n done - press key to finish\n";
+      system ("/bin/date");
       ::getchar ();
     }
   }

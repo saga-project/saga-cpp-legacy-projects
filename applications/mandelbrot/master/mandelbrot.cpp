@@ -16,10 +16,10 @@
 // Or whatever.  But hey, it's just an example, right? ;-)
 
 #define BOX_SIZE_X         750
-#define BOX_SIZE_Y          50
+#define BOX_SIZE_Y         100
 
 #define BOX_NUM_X            2
-#define BOX_NUM_Y           20
+#define BOX_NUM_Y           10
 
 #define PLANE_X_0           -2
 #define PLANE_Y_0           -1
@@ -31,7 +31,7 @@
 #define ESCAPE               4
 
 // all job buckets are created under that advert directory, by
-// appending the posix jobid.
+// appending the jobnum.
 #define ADVERT_DIR         "/applications/mandelbrot/merzky"
 
 
@@ -39,8 +39,8 @@
 //
 // constructor
 //
-mandelbrot::mandelbrot (std::string odev,
-                        int         njobs)
+mandelbrot::mandelbrot (std::string  odev,
+                        unsigned int njobs)
     : odev_    (odev),  // output device to open
       njobs_   (njobs), // number of compute jobs
       running_ (false)  // no jobs running, yet
@@ -139,32 +139,29 @@ void mandelbrot::job_startup (void)
 
   // create a job description, which can be reused for all jobs
   saga::job::description jd;
-  jd.set_attribute (saga::job::attributes::description_executable, "/tmp/mandelbrot_client");
+  jd.set_attribute (saga::job::attributes::description_executable, "/home/merzky/projects/saga/applications/mandelbrot/client/mandelbrot_client");
 
   // client parameters:
   // 0: path to advert directory to be used (job bucket)
-  // 1: jobid, == name of work bucket for that job
+  // 1: jobnum, == name of work bucket for that job
   std::vector <std::string> args (2);
   args[0] = job_bucket_name_;
 
 
-  // create a session to create jobs in.  We add a number of credentials the job
-  // service can use.
-  saga::context c_ssh_1 ("ssh"); 
-  saga::context c_ssh_2 ("ssh"); 
-  saga::context c_ec2   ("ec2"); 
-
-  c_ssh_1.set_defaults  (); 
-  c_ssh_2.set_defaults  (); 
-  c_ec2  .set_defaults  (); 
-
-  c_ssh_1.set_attribute (saga::attributes::context_userid, "merzky"); 
-  c_ssh_2.set_attribute (saga::attributes::context_userid, "amerzky"); 
-
+  // create a session to create jobs in.  
   saga::session s;
-  s.add_context (c_ssh_1);
-  s.add_context (c_ssh_2);
-  s.add_context (c_ec2  );
+
+  // add a number of credentials the job service can use.
+  // saga::context c_ssh_1 ("ssh"); 
+  // saga::context c_ssh_2 ("ssh"); 
+  // saga::context c_ec2   ("ec2"); 
+  
+  // c_ssh_1.set_attribute (saga::attributes::context_userid, "merzky"); 
+  // c_ssh_2.set_attribute (saga::attributes::context_userid, "amerzky"); 
+  
+  // s.add_context (c_ssh_1);
+  // s.add_context (c_ssh_2);
+  // s.add_context (c_ec2  );
 
 
   // create a list of job service URLs to be used.  Ideally, we get those from
@@ -180,7 +177,7 @@ void mandelbrot::job_startup (void)
   // from these URLs, create a set of job services.
   std::vector <saga::job::service> job_services;
 
-  for ( int k = 0; k < job_service_urls.size (); k++ )
+  for ( unsigned int k = 0; k < job_service_urls.size (); k++ )
   {
     saga::job::service js  (s, job_service_urls[k]);
     job_services.push_back (js);
@@ -190,14 +187,14 @@ void mandelbrot::job_startup (void)
 
 
   // create the client jobs
-  for ( int n = 0; n < njobs_; n++ )
+  for ( unsigned int n = 0; n < njobs_; n++ )
   {
     // cycle over the job services
     saga::job::service js = job_services[n % job_services.size ()];
 
     // set second job parameter is the job's identifier (serial number)
     std::stringstream ident;
-    ident << n;
+    ident << n + 1;
     args[1] = ident.str ();
 
     jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
@@ -211,28 +208,35 @@ void mandelbrot::job_startup (void)
       throw "Could not start client\n";
     }
 
-    // make sure clients get up and running
-    std::cout << "waiting for jobs " << ident.str () << " to bootstrap\n";
-    while ( ! job_bucket_.exists (ident.str ()) &&
-            ! job_bucket_.is_dir (ident.str ()) )
-    {
-      if ( saga::job::Running != j.get_state () )
-      {
-        throw "Could not start client\n";
-      }
-      ::sleep (1);
-      std::cout << "waiting for jobs " << ident.str () << " to bootstrap\n";
-    }
-
 
     // keep job
     jobs_.push_back (j);
 
     std::cout << "created job number " 
-              << n << "/" << njobs_ 
+              << n + 1 << "/" << njobs_ 
               << " on " 
               << job_service_urls[n % job_service_urls.size ()] 
               << std::endl;
+  }
+
+  for ( unsigned int n = 0; n < njobs_; n++ )
+  {
+    // set second job parameter is the job's identifier (serial number)
+    std::stringstream ident;
+    ident << n + 1;
+
+    std::cout << "waiting for job " << ident.str () << " to bootstrap\n";
+    // make sure clients get up and running
+    while ( ! job_bucket_.exists (ident.str ()) &&
+            ! job_bucket_.is_dir (ident.str ()) )
+    {
+
+      if ( saga::job::Running != jobs_[n].get_state () )
+      {
+        throw "Could not start client\n";
+      }
+      ::sleep (1);
+    }
   }
 
   // flag that jobs are running
@@ -275,12 +279,12 @@ void mandelbrot::compute (void)
       int boxnum = x * BOX_NUM_Y + y;
 
       // this boxed is assigned to jobs in round robin fashion
-      int job_id = boxnum % jobs_.size ();
+      int jobnum = (boxnum % jobs_.size ()) + 1;
 
-      // the jobs work bucket is its job_id, the work item advert
+      // the jobs work bucket is its jobnum, the work item advert
       // is simply numbered by its serial number, i
       std::stringstream advert_name;
-      advert_name << job_id << "/" << boxnum;
+      advert_name << jobnum << "/" << boxnum;
 
       // create a work item in the jobs work bucket
       saga::advert::entry ad = job_bucket_.open (advert_name.str (),
@@ -288,9 +292,8 @@ void mandelbrot::compute (void)
                                                  saga::advert::CreateParents |
                                                  saga::advert::ReadWrite     );
 
+#ifdef FAST_ADVERT
       // determine the work item parameters...
-      std::stringstream box_x;  box_x << x;                               // box location     in x
-      std::stringstream box_y;  box_y << y;                               //                     y
       std::stringstream off_x;  off_x << PLANE_X_0 + x * plane_box_ext_x; // pixel offset     in x
       std::stringstream off_y;  off_y << PLANE_Y_0 + y * plane_box_ext_y; //                     y
       std::stringstream res_x;  res_x << plane_box_step_x;                // pixel resolution in x
@@ -299,12 +302,8 @@ void mandelbrot::compute (void)
       std::stringstream num_y;  num_y << BOX_SIZE_Y;                      //                     y
       std::stringstream limit;  limit << LIMIT;                           // iteration limit for algorithm
       std::stringstream escap;  escap << ESCAPE;                          // escape boundary for algorithm
-      std::stringstream ident;  ident << boxnum;                          // box identifier
-      std::stringstream jobid;  jobid << job_id;                          // job identifier
 
       // ...and store them in the work item advert.
-      ad.set_attribute ("box_x", box_x.str ());
-      ad.set_attribute ("box_y", box_y.str ());
       ad.set_attribute ("off_x", off_x.str ());
       ad.set_attribute ("off_y", off_y.str ());
       ad.set_attribute ("res_x", res_x.str ());
@@ -313,8 +312,34 @@ void mandelbrot::compute (void)
       ad.set_attribute ("num_y", num_y.str ());
       ad.set_attribute ("limit", limit.str ());
       ad.set_attribute ("escap", escap.str ());
+
+#else // FAST_ADVERT
+      std::stringstream work;  
+
+      work << PLANE_X_0 + x * plane_box_ext_x   << " "; // pixel offset     in x
+      work << PLANE_Y_0 + y * plane_box_ext_y   << " "; //                     y
+      work << plane_box_step_x                  << " "; // pixel resolution in x
+      work << plane_box_step_y                  << " "; //                     y
+      work << BOX_SIZE_X                        << " "; // number of pixels in x
+      work << BOX_SIZE_Y                        << " "; //                     y
+      work << LIMIT                             << " "; // iteration limit for algorithm
+      work << ESCAPE                            << " "; // escape boundary for algorithm
+
+      // ...and store them in the work item advert.
+      ad.set_attribute ("work", work.str ());
+#endif // FAST_ADVERT
+
+      // some attribs are always set, for the sake of the master itself
+      std::stringstream box_x;  box_x << x;             // box location     in x
+      std::stringstream box_y;  box_y << y;             //                     y
+      std::stringstream j_num;  j_num << jobnum;        // job identifier
+      std::stringstream ident;  ident << boxnum;        // box identifier
+
+      ad.set_attribute ("box_x", box_x.str ());
+      ad.set_attribute ("box_y", box_y.str ());
+   // ad.set_attribute ("j_num", j_num.str ());
       ad.set_attribute ("ident", ident.str ());
-      ad.set_attribute ("jobid", jobid.str ());
+
 
       // signal for work to do
       ad.set_attribute ("state", "work");
@@ -322,8 +347,8 @@ void mandelbrot::compute (void)
       // keep a list of active work items
       ads.push_back (ad);
 
-      std::cout << "compute: assigned work item " << boxnum
-                << " to job " << job_id << "\n";
+      std::cout << "compute: assigned work item " << boxnum + 1
+                << " to job " << jobnum << "\n";
     }
   }
 
@@ -363,6 +388,7 @@ void mandelbrot::compute (void)
         std::string s_box_x (ads[j].get_attribute ("box_x"));
         std::string s_box_y (ads[j].get_attribute ("box_y"));
         std::string s_ident (ads[j].get_attribute ("ident"));
+     // std::string s_j_num (ads[j].get_attribute ("j_num"));
         std::string s_jobid (ads[j].get_attribute ("jobid"));
 
         std::cout << "compute: work item " << s_ident

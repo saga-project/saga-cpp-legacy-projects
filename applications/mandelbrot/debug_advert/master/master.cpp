@@ -18,7 +18,7 @@ int main (int argc, char** argv)
 
     saga::job::description jd;
     jd.set_attribute (saga::job::attributes::description_executable,
-                      "/Users/merzky/links/saga/applications/mandelbrot/debug_advert/client/client");
+                      "/home/merzky/projects/saga/applications/mandelbrot/debug_advert/client/client");
 
     saga::job::service js ("fork://localhost/");
 

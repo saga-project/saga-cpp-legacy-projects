@@ -7,9 +7,9 @@
 // toggle for box borders and labels
 #define DEMO true
 
-output_x11::output_x11 (int size_x, 
-                        int size_y, 
-                        int cnum)
+output_x11::output_x11 (unsigned int size_x, 
+                        unsigned int size_y, 
+                        unsigned int cnum)
     : size_x_ (size_x),
       size_y_ (size_y),
       cnum_   (cnum)
@@ -72,7 +72,7 @@ output_x11::output_x11 (int size_x,
   // TODO: colormap should actually be filled logarithmic or so, as the
   // mandelbrotset values raise later, but fairly steep, so the image is rather
   // dark when drawn with a linear color map
-  for ( int c = 0; c < cnum_; c++ )
+  for ( unsigned int c = 0; c < cnum_; c++ )
   {
     XcmsColor color;
 
@@ -112,8 +112,8 @@ output_x11::~output_x11 (void)
 
 // paint a rectangular box.  The given data determine the color index of the
 // pixels to be drawn.  The identifier determines the box's label to be printed.
-void output_x11::paint_box (int x0, int n_x, 
-                            int y0, int n_y,
+void output_x11::paint_box (unsigned int x0, unsigned int n_x, 
+                            unsigned int y0, unsigned int n_y,
                             std::vector <std::vector <int> > & data, 
                             std::string ident)
 {
@@ -126,7 +126,7 @@ void output_x11::paint_box (int x0, int n_x,
   }
 
   // iterate over all lines
-  for ( int x = 0; x < n_x; x++ )
+  for ( unsigned int x = 0; x < n_x; x++ )
   {
     std::vector <int> line = data[x];
 
@@ -139,7 +139,7 @@ void output_x11::paint_box (int x0, int n_x,
     }
 
     // iterate over all pixels in line
-    for ( int y = 0; y < n_y; y++ )
+    for ( unsigned int y = 0; y < n_y; y++ )
     {
       // set paint color according to data value
       // (first two colors are reserved
@@ -155,14 +155,14 @@ void output_x11::paint_box (int x0, int n_x,
   if ( DEMO )
   {
     // for demo purposes, we also draw box boundaries
-    for ( int bx = 0; bx < n_x; bx++ )
+    for ( unsigned int bx = 0; bx < n_x; bx++ )
     {
       XSetForeground (dpy_, gc_, colors_[cnum_ + (bx % 2)]);
       XDrawPoint     (dpy_, win_, gc_, x0 + bx, y0 + 0);
       XDrawPoint     (dpy_, win_, gc_, x0 + bx, y0 + n_y);
     }
 
-    for ( int by = 0; by < n_y; by++ )
+    for ( unsigned int by = 0; by < n_y; by++ )
     {
       XSetForeground (dpy_, gc_, colors_[cnum_ + (by % 2)]);
       XDrawPoint     (dpy_, win_, gc_, x0 + 0,   y0 + by);

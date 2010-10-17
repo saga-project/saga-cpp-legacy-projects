@@ -23,7 +23,7 @@ int main (int argc, char** argv)
     {
       std::vector <saga::url> work_ads = dir.list ();
 
-      for ( int i = 0; i < work_ads.size (); i++ )
+      for ( unsigned int i = 0; i < work_ads.size (); i++ )
       {
         l.log ("handling ad");
         try 
