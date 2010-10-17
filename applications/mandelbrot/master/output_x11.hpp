@@ -34,6 +34,9 @@ class output_x11 : public output_base
     Colormap             cmap_;
     std::vector <long>   colors_;
 
+    // others
+    bool                 fallback_;
+
 
   public:
     // the c'tor takes the size the window.  The user of the device needs to
