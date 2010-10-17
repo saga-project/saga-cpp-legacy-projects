@@ -334,11 +334,13 @@ void mandelbrot::compute (void)
       std::stringstream box_y;  box_y << y;             //                     y
       std::stringstream j_num;  j_num << jobnum;        // job identifier
       std::stringstream ident;  ident << boxnum;        // box identifier
+      std::stringstream j_id ;  ident << jobs_[jobnum - 1].get_job_id (); // job id
 
       ad.set_attribute ("box_x", box_x.str ());
       ad.set_attribute ("box_y", box_y.str ());
    // ad.set_attribute ("j_num", j_num.str ());
       ad.set_attribute ("ident", ident.str ());
+      ad.set_attribute ("jobid", j_id.str ());
 
 
       // signal for work to do
