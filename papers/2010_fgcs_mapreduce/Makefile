@@ -15,6 +15,6 @@ clean:
 	@rm -f 2010_fgcs_mapreduce.log
 	@rm -f 2010_fgcs_mapreduce.pdfsync
 
-distclean:
+distclean: clean
 	@rm -f 2010_fgcs_mapreduce.pdf
 
