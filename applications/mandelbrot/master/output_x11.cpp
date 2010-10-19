@@ -15,8 +15,6 @@ output_x11::output_x11 (unsigned int size_x,
       cnum_     (cnum), 
       fallback_ (false)
 {
-  std::cout << "init x11 output\n";
-
   // Open the display
   dpy_ = XOpenDisplay (NULL);
 
@@ -24,10 +22,13 @@ output_x11::output_x11 (unsigned int size_x,
   // print a message of what we *would* paint
   if ( dpy_ == NULL )
   {
+    std::cout << "init x11 output failed - continue without graphics\n";
     fallback_ = true;
   }
   else
   {
+    std::cout << "init x11 output\n";
+    
     // get default screen
     scr_ = DefaultScreen (dpy_);
 
@@ -191,9 +192,21 @@ void output_x11::paint_box (unsigned int x0, unsigned int n_x,
     // print identifier as box label
     if ( ! fallback_ )
     {
+      std::string tmp (ident);
+      int         len = tmp.size ();
+
+      if ( tmp.size () > 53 )
+      {
+        tmp[51] = '.';
+        tmp[52] = '.';
+        tmp[53] = '.';
+        len     = 53;
+      }
+
+
       XSetForeground (dpy_, gc_, WhitePixel (dpy_, scr_));
       XDrawString    (dpy_, win_, gc_, x0 + 10, y0 + 20, 
-                      ident.c_str (), ident.length ());
+                      tmp.c_str (), len);
     }
     else
     {

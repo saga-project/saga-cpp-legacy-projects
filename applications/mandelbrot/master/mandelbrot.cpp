@@ -8,6 +8,7 @@
 #include <string>
 
 #include "mandelbrot.hpp"
+#include "job_starter.hpp"
 
 
 // well, we could be fancy and create a GUI to allow to set
@@ -34,7 +35,6 @@
 // appending the jobnum.
 #define ADVERT_DIR         "/applications/mandelbrot/merzky"
 
-
 ///////////////////////////////////////////////////////////////////////
 //
 // constructor
@@ -42,8 +42,7 @@
 mandelbrot::mandelbrot (std::string  odev,
                         unsigned int njobs)
     : odev_    (odev),  // output device to open
-      njobs_   (njobs), // number of compute jobs
-      running_ (false)  // no jobs running, yet
+      njobs_   (njobs)  // number of compute jobs
 {
   // check if we suport the requested device
   if ( odev_ == "x11" )
@@ -113,16 +112,12 @@ mandelbrot::~mandelbrot (void)
   // when running out of work.  But in case we finish
   // prematurely, we take care of termination
 
-  // count backwards, so that erase is not confusing the counter
-  for ( int i = jobs_.size () - 1;
-        i >= 0;
-        i-- )
+  for ( unsigned int i = 0; i < jobs_.size (); i++)
   {
     if ( saga::job::Running == jobs_[i].get_state () )
     {
       std::cout << "killing job " << i << "\n";
       jobs_[i].cancel ();
-      jobs_.erase (jobs_.begin () + i);
     }
   }
 }
@@ -137,110 +132,31 @@ void mandelbrot::job_startup (void)
 {
   std::cout << "job_startup: starting " << njobs_ << " jobs\n";
 
-  // create a job description, which can be reused for all jobs
-  saga::job::description jd;
-  jd.set_attribute (saga::job::attributes::description_executable, "/home/merzky/projects/saga/applications/mandelbrot/client/mandelbrot_client");
+  job_starter js (njobs_, job_bucket_name_);
 
-  // client parameters:
-  // 0: path to advert directory to be used (job bucket)
-  // 1: jobnum, == name of work bucket for that job
-  std::vector <std::string> args (2);
-  args[0] = job_bucket_name_;
+  jobs_ = js.get_jobs ();
 
 
-  // create a session to create jobs in.  
-  saga::session s;
-
-  // add a number of credentials the job service can use.
-  // saga::context c_ssh_1 ("ssh"); 
-  // saga::context c_ssh_2 ("ssh"); 
-  // saga::context c_ec2   ("ec2"); 
-  
-  // c_ssh_1.set_attribute (saga::attributes::context_userid, "merzky"); 
-  // c_ssh_2.set_attribute (saga::attributes::context_userid, "amerzky"); 
-  
-  // s.add_context (c_ssh_1);
-  // s.add_context (c_ssh_2);
-  // s.add_context (c_ec2  );
-
-
-  // create a list of job service URLs to be used.  Ideally, we get those from
-  // service discovery - but for the time being, we just use this static list.
-  std::vector <saga::url> job_service_urls;
-
-  job_service_urls.push_back ("fork://localhost/");
-//job_service_urls.push_back ("ec2://i-3d850354/");
-//job_service_urls.push_back ("ssh://qb.loni.org/");
-//job_service_urls.push_back ("ssh://gg101.cct.lsu.edu/");
-
-
-  // from these URLs, create a set of job services.
-  std::vector <saga::job::service> job_services;
-
-  for ( unsigned int k = 0; k < job_service_urls.size (); k++ )
-  {
-    saga::job::service js  (s, job_service_urls[k]);
-    job_services.push_back (js);
-    std::cout << "created job service for " << job_service_urls[k] << std::endl;
-  }
-
-
-
-  // create the client jobs
-  for ( unsigned int n = 0; n < njobs_; n++ )
-  {
-    // cycle over the job services
-    saga::job::service js = job_services[n % job_services.size ()];
-
-    // set second job parameter is the job's identifier (serial number)
-    std::stringstream ident;
-    ident << n + 1;
-    args[1] = ident.str ();
-
-    jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
-
-    // create and run a client job
-    saga::job::job j = js.create_job (jd);
-    j.run ();
-
-    if ( saga::job::Running != j.get_state () )
-    {
-      throw "Could not start client\n";
-    }
-
-
-    // keep job
-    jobs_.push_back (j);
-
-    std::cout << "created job number " 
-              << n + 1 << "/" << njobs_ 
-              << " on " 
-              << job_service_urls[n % job_service_urls.size ()] 
-              << std::endl;
-  }
-
-  for ( unsigned int n = 0; n < njobs_; n++ )
+  for ( unsigned int n = 0; n < jobs_.size (); n++ )
   {
     // set second job parameter is the job's identifier (serial number)
     std::stringstream ident;
     ident << n + 1;
 
     std::cout << "waiting for job " << ident.str () << " to bootstrap\n";
+
     // make sure clients get up and running
     while ( ! job_bucket_.exists (ident.str ()) &&
             ! job_bucket_.is_dir (ident.str ()) )
     {
-
       if ( saga::job::Running != jobs_[n].get_state () )
       {
+        std::cout << "job state: " << jobs_[n].get_state () << std::endl;
         throw "Could not start client\n";
       }
       ::sleep (1);
     }
   }
-
-  // flag that jobs are running
-  running_ = true;
 }
 
 
@@ -334,13 +250,26 @@ void mandelbrot::compute (void)
       std::stringstream box_y;  box_y << y;             //                     y
       std::stringstream j_num;  j_num << jobnum;        // job identifier
       std::stringstream ident;  ident << boxnum;        // box identifier
-      std::stringstream j_id ;  ident << jobs_[jobnum - 1].get_job_id (); // job id
+      std::stringstream j_id ;  j_id << jobs_[jobnum - 1].get_job_id (); // job id
+
+      // trim jobid for readability
+      std::string j_id_s (j_id.str ());
+
+      if ( j_id_s.size () > 54 )
+      {
+        j_id_s.erase (55);
+
+        j_id_s[51] = '.';
+        j_id_s[52] = '.';
+        j_id_s[53] = '.';
+      }
+
 
       ad.set_attribute ("box_x", box_x.str ());
       ad.set_attribute ("box_y", box_y.str ());
    // ad.set_attribute ("j_num", j_num.str ());
       ad.set_attribute ("ident", ident.str ());
-      ad.set_attribute ("jobid", j_id.str ());
+      ad.set_attribute ("jobid", j_id_s);
 
 
       // signal for work to do
@@ -425,6 +354,7 @@ void mandelbrot::compute (void)
 
         int box_off_x = box_x * BOX_SIZE_X;
         int box_off_y = box_y * BOX_SIZE_Y;
+
 
         std::string id = s_ident + " (" + s_jobid + ")";
 

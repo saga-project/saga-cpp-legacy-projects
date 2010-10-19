@@ -42,13 +42,21 @@ int main (int argc, char** argv)
                                                         saga::advert::ReadWrite );
 
     // work as long as there is work
-    bool wait_for_work = true;
-    bool work_done     = false;
+    bool busy      = true;
+    bool work_done = false;
 
-    ::sleep (15);
+    // avoid busy wait on idle looping
+    bool last_loop_was_idle = false;
 
-    while ( wait_for_work )
+    while ( busy )
     {
+      if ( last_loop_was_idle )
+      {
+        ::sleep (5);
+      }
+
+      last_loop_was_idle = true;
+
       // find work ads for this job
       std::vector <saga::url> work_ads = job_dir.list ();
 
@@ -63,7 +71,7 @@ int main (int argc, char** argv)
         {
           // if we found work items previously, we continue to work 'til they are
           // finished.  Once the work bucket is empty though, we stop.
-          wait_for_work = false;
+          busy = false;
         }
         continue;
       }
@@ -164,9 +172,10 @@ int main (int argc, char** argv)
             ad.set_attribute ("data",  data.str ());
             ad.set_attribute ("state", "done");
 
-            // flag that we did some work.  So, once we run out of work, we
-            // can terminate
-            work_done = true;
+            // flag that we did some work.  (a) we don't sleep before next work
+            // item check, and also, once we run out of work, we can terminate
+            work_done          = true;
+            last_loop_was_idle = false;
 
           } // if ad.state == "work"
 
@@ -178,6 +187,7 @@ int main (int argc, char** argv)
           // Simply continue with the next one.
           l.log ("SAGA Exception for advert op");
           l.log (e.what ());
+          ::sleep (1); // relax chance of race conditions.
         }
 
       } // for all ads in job_bucket

@@ -21,7 +21,7 @@ class logger
             saga::filesystem::Create |
             saga::filesystem::Write  | 
             saga::filesystem::Append ) 
-        // FIXME: append seems to be broken in thye default file adaptor?
+        // FIXME: append seems to be broken in the default file adaptor?
     {
       log ("\n -- opening log ------------------------------ \n");
     }
@@ -37,7 +37,7 @@ class logger
       std::stringstream ss;
 
       ss        << t1;
-      std::cout << t1;
+      std::cout << t1 << std::endl;
 
       f_.write (saga::buffer (ss.str ()));
     }

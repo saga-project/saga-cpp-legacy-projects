@@ -16,7 +16,6 @@ class mandelbrot
     std::string   odev_;     // name of output device
     output_base * dev_;      // output device
     unsigned int  njobs_;    // number of jobs to use
-    bool          running_;  // flag true if compute jobs are running
 
     std::vector <saga::job::service> job_services_;    // list of saga job services
     std::vector <saga::job::job>     jobs_;            // list of saga jobs
