@@ -56,19 +56,19 @@ job_starter::job_starter (unsigned int njobs,
   // first, initialize all endpoint info.  There is likely a more elegant way to
   // do that, but for now, hardcoding may suffice
 
-  // // ssh endpoint (qb)
-  // endpoints_.push_back (endpoint_ (
-  //  "ssh"                                               , // name
-  //  "ssh://cyder.cct.lsu.edu/"                          , // url
-  //  "ssh"                                               , // ctype
-  //  "amerzky"                                           , // user
-  //  ""                                                  , // pass
-  //  ""                                                  , // cert
-  //  ""                                                  , // key
-  //  ""                                                  , // cadir
-  //  "/home/amerzky/install/bin/saga-run.sh"             , // exe
-  //  "/tmp"                                                // pwd
-  //  ));
+  // ssh endpoint (qb)
+  endpoints_.push_back (endpoint_ (
+   "ssh"                                               , // name
+   "ssh://cyder.cct.lsu.edu/"                          , // url
+   "ssh"                                               , // ctype
+   "amerzky"                                           , // user
+   ""                                                  , // pass
+   ""                                                  , // cert
+   ""                                                  , // key
+   ""                                                  , // cadir
+   "/home/amerzky/install/bin/saga-run.sh"             , // exe
+   "/tmp"                                                // pwd
+   ));
 
   // local endpoint (fork)
   endpoints_.push_back (endpoint_ (
@@ -84,19 +84,19 @@ job_starter::job_starter (unsigned int njobs,
    "/tmp"                                                // pwd
    ));
 
-  // // SMOA endpoint (BES)
-  // endpoints_.push_back (endpoint_ (
-  //  "smoa"                                              , // name
-  //  "https://grass1.man.poznan.pl:19021"                , // url
-  //  "UserPass"                                          , // ctype
-  //  "ogf"                                               , // user
-  //  "smoa-project.org"                                  , // pass
-  //  ""                                                  , // cert
-  //  ""                                                  , // key
-  //  "/home/merzky/.saga/certificates/"                  , // cadir
-  //  "/home/ogf/install/bin/saga-run.sh"                 , // exe
-  //  "/home/ogf/"                                          // pwd
-  //  ));
+  // SMOA endpoint (BES)
+  endpoints_.push_back (endpoint_ (
+   "smoa"                                              , // name
+   "https://grass1.man.poznan.pl:19021"                , // url
+   "UserPass"                                          , // ctype
+   "ogf"                                               , // user
+   "smoa-project.org"                                  , // pass
+   ""                                                  , // cert
+   ""                                                  , // key
+   "/home/merzky/.saga/certificates/"                  , // cadir
+   "/home/ogf/install/bin/saga-run.sh"                 , // exe
+   "/home/ogf/"                                          // pwd
+   ));
 
 
   for ( unsigned int n = 0; n < njobs; n++ )

@@ -108,8 +108,12 @@ int main (int argc, char** argv)
             if ( words.size () != 13 )
             {
               std::cout << "client: " << work.c_str () << std::endl;
-              std::cout << "client: " << work.size () << std::endl;
+              std::cout << "client: " << words.size () << std::endl;
               std::cout << "client: Cannot parse work attribute!" << std::endl;
+              for ( unsigned int u = 0; u < words.size (); u++ )
+              {
+                std::cout << u << " : " << words[u] << std::endl;
+              }
               exit  (-1);
             }
 

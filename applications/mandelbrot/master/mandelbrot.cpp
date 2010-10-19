@@ -294,7 +294,7 @@ void mandelbrot::compute (void)
       work << BOX_SIZE_X                        << " "; // number of pixels in x
       work << BOX_SIZE_Y                        << " "; //                     y
       work << LIMIT                             << " "; // iteration limit for algorithm
-      work << ESCAPE                            << " "; // escape boundary for algorithm
+      work << ESCAPE                                  ; // escape boundary for algorithm
 
       // ...and store them in the work item advert.
       ad.set_attribute ("work", work.str ());
@@ -357,10 +357,10 @@ void mandelbrot::compute (void)
         }
 
         std::string s_jobid (words[0]);
-        std::string s_j_num (words[0]);
-        std::string s_ident (words[0]);
-        std::string s_box_x (words[0]);
-        std::string s_box_y (words[0]);
+        std::string s_j_num (words[1]);
+        std::string s_ident (words[2]);
+        std::string s_box_x (words[3]);
+        std::string s_box_y (words[4]);
 #endif // FAST_ADVERT
 
         std::cout << "compute: work item " << s_ident

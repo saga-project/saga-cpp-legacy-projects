@@ -20,7 +20,8 @@ class mandelbrot
     std::vector <saga::job::service> job_services_;    // list of saga job services
     std::vector <saga::job::job>     jobs_;            // list of saga jobs
     std::string                      job_bucket_name_; // name of job directory
-    saga::advert::directory          job_bucket_;      // advert container for jobs 
+    saga::advert::directory          job_bucket_;      // advert container for new jobs 
+    saga::advert::directory          done_bucket_;     // advert container for finished jobs 
 
     // jobs startup
     void job_startup (void);
