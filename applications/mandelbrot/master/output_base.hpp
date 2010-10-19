@@ -22,6 +22,7 @@ class output_base
                             unsigned int y0, unsigned int n_y,
                             std::vector <std::vector <int> > & data,
                             std::string ident = "") = 0;
+    virtual ~output_base (void) {};
 };
 
 #endif // OUTPUT_BASE_HPP

@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 
+#include <saga/saga/adaptors/utils.hpp>
+
 #include "mandelbrot.hpp"
 #include "job_starter.hpp"
 
@@ -114,9 +116,11 @@ mandelbrot::~mandelbrot (void)
 
   for ( unsigned int i = 0; i < jobs_.size (); i++)
   {
+    std::cout << "killing job " << i << " (" 
+              << jobs_[i].get_state () << ")" << std::endl;
+
     if ( saga::job::Running == jobs_[i].get_state () )
     {
-      std::cout << "killing job " << i << "\n";
       jobs_[i].cancel ();
     }
   }
@@ -202,6 +206,9 @@ void mandelbrot::compute (void)
       std::stringstream advert_name;
       advert_name << jobnum << "/" << boxnum;
 
+      std::cout << "compute: assigning work item " << boxnum + 1
+                << " to job " << jobnum << "\n";
+
       // create a work item in the jobs work bucket
       saga::advert::entry ad = job_bucket_.open (advert_name.str (),
                                                  saga::advert::Create        |
@@ -210,6 +217,11 @@ void mandelbrot::compute (void)
 
 #ifdef FAST_ADVERT
       // determine the work item parameters...
+      std::stringstream j_id ;  j_id << jobs_[jobnum - 1].get_job_id ();  // job id
+      std::stringstream j_num;  j_num << jobnum;                          // job identifier
+      std::stringstream ident;  ident << boxnum;                          // box identifier
+      std::stringstream box_x;  box_x << x;                               // box location     in x
+      std::stringstream box_y;  box_y << y;                               //                     y
       std::stringstream off_x;  off_x << PLANE_X_0 + x * plane_box_ext_x; // pixel offset     in x
       std::stringstream off_y;  off_y << PLANE_Y_0 + y * plane_box_ext_y; //                     y
       std::stringstream res_x;  res_x << plane_box_step_x;                // pixel resolution in x
@@ -218,39 +230,6 @@ void mandelbrot::compute (void)
       std::stringstream num_y;  num_y << BOX_SIZE_Y;                      //                     y
       std::stringstream limit;  limit << LIMIT;                           // iteration limit for algorithm
       std::stringstream escap;  escap << ESCAPE;                          // escape boundary for algorithm
-
-      // ...and store them in the work item advert.
-      ad.set_attribute ("off_x", off_x.str ());
-      ad.set_attribute ("off_y", off_y.str ());
-      ad.set_attribute ("res_x", res_x.str ());
-      ad.set_attribute ("res_y", res_y.str ());
-      ad.set_attribute ("num_x", num_x.str ());
-      ad.set_attribute ("num_y", num_y.str ());
-      ad.set_attribute ("limit", limit.str ());
-      ad.set_attribute ("escap", escap.str ());
-
-#else // FAST_ADVERT
-      std::stringstream work;  
-
-      work << PLANE_X_0 + x * plane_box_ext_x   << " "; // pixel offset     in x
-      work << PLANE_Y_0 + y * plane_box_ext_y   << " "; //                     y
-      work << plane_box_step_x                  << " "; // pixel resolution in x
-      work << plane_box_step_y                  << " "; //                     y
-      work << BOX_SIZE_X                        << " "; // number of pixels in x
-      work << BOX_SIZE_Y                        << " "; //                     y
-      work << LIMIT                             << " "; // iteration limit for algorithm
-      work << ESCAPE                            << " "; // escape boundary for algorithm
-
-      // ...and store them in the work item advert.
-      ad.set_attribute ("work", work.str ());
-#endif // FAST_ADVERT
-
-      // some attribs are always set, for the sake of the master itself
-      std::stringstream box_x;  box_x << x;             // box location     in x
-      std::stringstream box_y;  box_y << y;             //                     y
-      std::stringstream j_num;  j_num << jobnum;        // job identifier
-      std::stringstream ident;  ident << boxnum;        // box identifier
-      std::stringstream j_id ;  j_id << jobs_[jobnum - 1].get_job_id (); // job id
 
       // trim jobid for readability
       std::string j_id_s (j_id.str ());
@@ -265,11 +244,61 @@ void mandelbrot::compute (void)
       }
 
 
+      // ...and store them in the work item advert.
+      ad.set_attribute ("jobid", j_id_s);
+      ad.set_attribute ("j_num", j_num.str ());
+      ad.set_attribute ("ident", ident.str ());
       ad.set_attribute ("box_x", box_x.str ());
       ad.set_attribute ("box_y", box_y.str ());
-   // ad.set_attribute ("j_num", j_num.str ());
-      ad.set_attribute ("ident", ident.str ());
-      ad.set_attribute ("jobid", j_id_s);
+      ad.set_attribute ("off_x", off_x.str ());
+      ad.set_attribute ("off_y", off_y.str ());
+      ad.set_attribute ("res_x", res_x.str ());
+      ad.set_attribute ("res_y", res_y.str ());
+      ad.set_attribute ("num_x", num_x.str ());
+      ad.set_attribute ("num_y", num_y.str ());
+      ad.set_attribute ("limit", limit.str ());
+      ad.set_attribute ("escap", escap.str ());
+
+#else // FAST_ADVERT
+      std::stringstream work;  
+
+      std::stringstream j_id ;  j_id << jobs_[jobnum - 1].get_job_id (); // job id
+
+      // trim jobid for readability
+      std::string j_id_s (j_id.str ());
+
+      if ( j_id_s.size () > 54 )
+      {
+        j_id_s.erase (55);
+
+        j_id_s[51] = '.';
+        j_id_s[52] = '.';
+        j_id_s[53] = '.';
+      }
+
+      // make sure that jobid has no spaces!
+      for ( unsigned int n = 0; n < j_id_s.size (); n++ )
+        if ( j_id_s[n] == ' ' )
+          j_id_s[n] = '_';
+
+
+      work << j_id_s                            << " "; // job identifier
+      work << jobnum                            << " "; // job number
+      work << boxnum                            << " "; // box identifier
+      work << x                                 << " "; // box offset       in x
+      work << y                                 << " "; //                     y
+      work << PLANE_X_0 + x * plane_box_ext_x   << " "; // pixel offset     in x
+      work << PLANE_Y_0 + y * plane_box_ext_y   << " "; //                     y
+      work << plane_box_step_x                  << " "; // pixel resolution in x
+      work << plane_box_step_y                  << " "; //                     y
+      work << BOX_SIZE_X                        << " "; // number of pixels in x
+      work << BOX_SIZE_Y                        << " "; //                     y
+      work << LIMIT                             << " "; // iteration limit for algorithm
+      work << ESCAPE                            << " "; // escape boundary for algorithm
+
+      // ...and store them in the work item advert.
+      ad.set_attribute ("work", work.str ());
+#endif // FAST_ADVERT
 
 
       // signal for work to do
@@ -278,7 +307,7 @@ void mandelbrot::compute (void)
       // keep a list of active work items
       ads.push_back (ad);
 
-      std::cout << "compute: assigned work item " << boxnum + 1
+      std::cout << "compute: assigned  work item " << boxnum + 1
                 << " to job " << jobnum << "\n";
     }
   }
@@ -294,14 +323,6 @@ void mandelbrot::compute (void)
   {
     std::cout << "compute: " << ads.size () << " open adverts: ";
 
-    for ( int j = ads.size () - 1; j >= 0; j-- )
-    {
-      std::string s_ident (ads[j].get_attribute ("ident"));
-      std::cout << s_ident << " ";
-    }
-    std::cout << "\n";
-
-
     // if no box is done at all, we sleep for a bit.  On anything else, we loop
     // again immediately.
     bool should_wait = true;
@@ -310,17 +331,37 @@ void mandelbrot::compute (void)
     {
       if ( ads[j].get_attribute ("state") == "work" )
       {
-        // nothing to do, go to sleep if that is true for all items
+        // nothing to do, go to sleep if that is true for all items:
+        // should_sleep remains true
+        //
         // FIXME: polling is bad!
       }
       else if ( ads[j].get_attribute ("state") == "done" )
       {
+#ifdef FAST_ADVERT
         // get data, and paint
         std::string s_box_x (ads[j].get_attribute ("box_x"));
         std::string s_box_y (ads[j].get_attribute ("box_y"));
         std::string s_ident (ads[j].get_attribute ("ident"));
      // std::string s_j_num (ads[j].get_attribute ("j_num"));
         std::string s_jobid (ads[j].get_attribute ("jobid"));
+#else // FAST_ADVERT
+        std::string work (ads[j].get_attribute ("work"));
+
+        std::vector <std::string> words = saga::adaptors::utils::split (work, ' ');
+
+        std::cout << "work: " << work << std::endl;
+        if ( words.size () != 13 )
+        {
+          throw "Cannot parse work attribute!";
+        }
+
+        std::string s_jobid (words[0]);
+        std::string s_j_num (words[0]);
+        std::string s_ident (words[0]);
+        std::string s_box_x (words[0]);
+        std::string s_box_y (words[0]);
+#endif // FAST_ADVERT
 
         std::cout << "compute: work item " << s_ident
                   << " (" << s_jobid << ") done\n";
@@ -376,7 +417,7 @@ void mandelbrot::compute (void)
     // well idle for a bit...
     if ( should_wait )
     {
-      ::sleep (1);
+      ::sleep (5);
     }
   }
 }

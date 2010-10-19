@@ -12,8 +12,8 @@ int main (int argc, char** argv)
       system ("/bin/date");
 
       // create our mandelbrot master, open the x11 
-      // output device, and start 5 client jobs
-      mandelbrot m ("x11", 2); 
+      // output device, and start n client jobs
+      mandelbrot m ("x11", 1); 
 
       // compute() distributes the work, gathers the
       // results, and displays the mandelbrot set

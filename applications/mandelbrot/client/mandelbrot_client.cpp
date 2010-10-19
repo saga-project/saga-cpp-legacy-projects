@@ -7,8 +7,6 @@
 #include <saga/saga.hpp>
 #include <saga/saga/adaptors/utils.hpp>
 
-#include "logger.hpp"
-
 int main (int argc, char** argv)
 {
 
@@ -17,10 +15,6 @@ int main (int argc, char** argv)
     std::cerr << "usage: " << argv[0] << " <advert_dir> <job_id>\n";
     return -1;
   }
-
-  std::stringstream ss;
-  ss << "file://localhost/tmp/client." << argv[2] << ".log";
-  logger l (ss.str ());
 
   try
   {
@@ -46,16 +40,16 @@ int main (int argc, char** argv)
     bool work_done = false;
 
     // avoid busy wait on idle looping
-    bool last_loop_was_idle = false;
+    bool should_wait = false;
 
     while ( busy )
     {
-      if ( last_loop_was_idle )
+      if ( should_wait )
       {
         ::sleep (5);
       }
 
-      last_loop_was_idle = true;
+      should_wait = true;
 
       // find work ads for this job
       std::vector <saga::url> work_ads = job_dir.list ();
@@ -64,7 +58,7 @@ int main (int argc, char** argv)
       // TODO: replace with notification
       if ( 0 == work_ads.size () )
       {
-        l.log ("waiting for work (1)\n");
+        std::cout << "client: waiting for work" << std::endl;
         :: sleep (5);
 
         if ( work_done ) 
@@ -76,9 +70,7 @@ int main (int argc, char** argv)
         continue;
       }
 
-      std::stringstream ss;
-      ss << "client: found " << work_ads.size () << " work ads\n";
-      l.log (ss.str ().c_str ());
+      std::cout << "client: found " << work_ads.size () << " work ads" << std::endl;
 
       // found some ads.  Now pick those which are flagged active, and work on
       // them
@@ -98,9 +90,7 @@ int main (int argc, char** argv)
           // still an active item?
           if ( ad.get_attribute ("state") == "work" )
           {
-            std::stringstream ss;
-            ss << "found work in " << work_ads[i].get_path () << "\n";
-            l.log (ss.str ().c_str ());
+            std::cout << "client: found work in " << work_ads[i].get_path () << std::endl;
             
 #ifdef FAST_ADVERT
             double off_x = ::atof (ad.get_attribute ("off_x").c_str ());
@@ -115,24 +105,25 @@ int main (int argc, char** argv)
             std::string work = ad.get_attribute ("work");
             std::vector <std::string> words = saga::adaptors::utils::split (work, ' ');
 
-            if ( words.size () < 9 )
+            if ( words.size () != 13 )
             {
-              l.log ("Cannot parse work attribute!");
-              l.log (work.c_str ());
+              std::cout << "client: " << work.c_str () << std::endl;
+              std::cout << "client: " << work.size () << std::endl;
+              std::cout << "client: Cannot parse work attribute!" << std::endl;
               exit  (-1);
             }
 
-            double off_x = ::atof (words[0].c_str ());
-            double off_y = ::atof (words[1].c_str ());
-            double res_x = ::atof (words[2].c_str ());
-            double res_y = ::atof (words[3].c_str ());
-            double num_x = ::atof (words[4].c_str ());
-            double num_y = ::atof (words[5].c_str ());
-            int    limit = ::atoi (words[6].c_str ());
-            int    escap = ::atoi (words[7].c_str ());
+            double off_x = ::atof (words[ 5].c_str ());
+            double off_y = ::atof (words[ 6].c_str ());
+            double res_x = ::atof (words[ 7].c_str ());
+            double res_y = ::atof (words[ 8].c_str ());
+            double num_x = ::atof (words[ 9].c_str ());
+            double num_y = ::atof (words[10].c_str ());
+            int    limit = ::atoi (words[11].c_str ());
+            int    escap = ::atoi (words[12].c_str ());
 #endif // FAST_ADVERT
 
-            l.log ("handling request\n");
+            std::cout << "client: handling request" << std::endl;
 
             // point in complex plane to iterate over is (c0, c1)
 
@@ -174,8 +165,8 @@ int main (int argc, char** argv)
 
             // flag that we did some work.  (a) we don't sleep before next work
             // item check, and also, once we run out of work, we can terminate
-            work_done          = true;
-            last_loop_was_idle = false;
+            work_done   = true;
+            should_wait = false;
 
           } // if ad.state == "work"
 
@@ -185,8 +176,8 @@ int main (int argc, char** argv)
         {
           // this advert failed for some reason.  
           // Simply continue with the next one.
-          l.log ("SAGA Exception for advert op");
-          l.log (e.what ());
+          std::cout << "client: SAGA Exception for advert op" << std::endl;
+          std::cout << e.what () << std::endl;
           ::sleep (1); // relax chance of race conditions.
         }
 
@@ -198,8 +189,6 @@ int main (int argc, char** argv)
   catch ( saga::exception const & e )
   {
     std::cerr << "SAGA exception: " << e.what () << "\n";
-    l.log ("SAGA Exception");
-    l.log (e.what ());
     return -2;
   }
 
