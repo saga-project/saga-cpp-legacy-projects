@@ -11,6 +11,7 @@ job_starter::endpoint_::endpoint_ (std::string  name,
                                    std::string  pass,
                                    std::string  cert,
                                    std::string  key,
+                                   std::string  proxy,
                                    std::string  cadir,
                                    std::string  exe,
                                    std::string  pwd)
@@ -21,6 +22,7 @@ job_starter::endpoint_::endpoint_ (std::string  name,
     pass_        (pass ),
     cert_        (cert ),
     key_         (key  ),
+    proxy_       (proxy),
     cadir_       (cadir),
     exe_         (exe  ),
     pwd_         (pwd  )
@@ -32,9 +34,9 @@ job_starter::endpoint_::endpoint_ (std::string  name,
   c.set_attribute (saga::attributes::context_certrepository, cadir);
   c.set_attribute (saga::attributes::context_usercert      , cert);
   c.set_attribute (saga::attributes::context_userkey       , key);
+  c.set_attribute (saga::attributes::context_userproxy     , proxy);
   c.set_attribute (saga::attributes::context_userid        , user);
   c.set_attribute (saga::attributes::context_userpass      , pass);
-  c.set_attribute (saga::attributes::context_userproxy     , "");
   c.set_attribute (saga::attributes::context_uservo        , "");
   c.set_attribute (saga::attributes::context_lifetime      , "");
   c.set_attribute (saga::attributes::context_remoteid      , "");
@@ -56,47 +58,90 @@ job_starter::job_starter (unsigned int njobs,
   // first, initialize all endpoint info.  There is likely a more elegant way to
   // do that, but for now, hardcoding may suffice
 
-  // ssh endpoint (qb)
-  endpoints_.push_back (endpoint_ (
-   "ssh"                                               , // name
-   "ssh://cyder.cct.lsu.edu/"                          , // url
-   "ssh"                                               , // ctype
-   "amerzky"                                           , // user
-   ""                                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   ""                                                  , // cadir
-   "/home/amerzky/install/bin/saga-run.sh"             , // exe
-   "/tmp"                                                // pwd
-   ));
+//// ssh endpoint (qb)
+//endpoints_.push_back (endpoint_ (
+// "cct-ssh"                                           , // name
+// "ssh://cyder.cct.lsu.edu/"                          , // url
+// "ssh"                                               , // ctype
+// "amerzky"                                           , // user
+// ""                                                  , // pass
+// ""                                                  , // cert
+// ""                                                  , // key
+// ""                                                  , // proxy
+// ""                                                  , // cadir
+// "/home/amerzky/install/bin/saga-run.sh"             , // exe
+// "/tmp"                                                // pwd
+// ));
+//
+//// local endpoint (fork)
+//endpoints_.push_back (endpoint_ (
+// "local-fork"                                        , // name
+// "fork://localhost/"                                 , // url
+// "UserPass"                                          , // ctype
+// ""                                                  , // user
+// ""                                                  , // pass
+// ""                                                  , // cert
+// ""                                                  , // key
+// ""                                                  , // proxy
+// ""                                                  , // cadir
+// "/home/merzky/projects/saga/install/bin/saga-run.sh", // exe
+// "/tmp"                                                // pwd
+// ));
+//
+//// SMOA endpoint (BES)
+//endpoints_.push_back (endpoint_ (
+// "smoa-bes"                                          , // name
+// "https://grass1.man.poznan.pl:19021"                , // url
+// "UserPass"                                          , // ctype
+// "ogf"                                               , // user
+// "smoa-project.org"                                  , // pass
+// ""                                                  , // cert
+// ""                                                  , // key
+// ""                                                  , // proxy
+// "/home/merzky/.saga/certificates/"                  , // cadir
+// "/home/ogf/install/bin/saga-run.sh"                 , // exe
+// "/home/ogf/"                                          // pwd
+// ));
+//
+//
+//// LONI endpoint (GRAM)
+//endpoints_.push_back (endpoint_ (
+// "loni-gram"                                         , // name
+// "gram://qb1.loni.org/"                              , // url
+// "x509"                                              , // ctype
+// ""                                                  , // user
+// ""                                                  , // pass
+// ""                                                  , // cert
+// ""                                                  , // key
+// "/tmp/x509up_u501"                                  , // proxy
+// "/home/merzky/.globus/certificates/"                , // cadir
+// "/home/merzky/install/bin/saga-run.sh"              , // exe
+// "/home/merzky/"                                       // pwd
+// ));
+//
+// url      = "https://interop.grid.niif.hu:60000/arex-ut";
+//    user     = "ogf30";
+//    pass     = "ogf30";
+//    cert     = "/tmp/x509up_u501";
+//    key      = "/tmp/x509up_u501";
+//    cadir    = "/home/merzky/.saga/certificates/";
+//    exe      = "/usr/local/saga/bin/saga-run.sh";
 
-  // local endpoint (fork)
+  // ARC endpoint (BES)
   endpoints_.push_back (endpoint_ (
-   "local"                                             , // name
-   "fork://localhost/"                                 , // url
+   "arc-bes"                                           , // name
+   "https://interop.grid.niif.hu:60000/arex-ut"        , // url
    "UserPass"                                          , // ctype
-   ""                                                  , // user
-   ""                                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   ""                                                  , // cadir
-   "/home/merzky/projects/saga/install/bin/saga-run.sh", // exe
-   "/tmp"                                                // pwd
-   ));
-
-  // SMOA endpoint (BES)
-  endpoints_.push_back (endpoint_ (
-   "smoa"                                              , // name
-   "https://grass1.man.poznan.pl:19021"                , // url
-   "UserPass"                                          , // ctype
-   "ogf"                                               , // user
-   "smoa-project.org"                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
+   "ogf30"                                             , // user
+   "ogf30"                                             , // pass
+   "/tmp/x509up_u501"                                  , // cert
+   "/tmp/x509up_u501"                                  , // key
+   ""                                                  , // proxy
    "/home/merzky/.saga/certificates/"                  , // cadir
-   "/home/ogf/install/bin/saga-run.sh"                 , // exe
-   "/home/ogf/"                                          // pwd
+   "/usr/local/saga/bin/saga-run.sh"                   , // exe
+   "/home/arc/"                                          // pwd
    ));
+
 
 
   for ( unsigned int n = 0; n < njobs; n++ )
@@ -111,7 +156,7 @@ job_starter::job_starter (unsigned int njobs,
     // 0: path to advert directory to be used (job bucket)
     // 1: jobnum, == name of work bucket for that job (is that in loop later)
     std::vector <std::string> args;
-    args.push_back ("mandelbrot_client");
+    args.push_back ("mandelbrot_client ");
     args.push_back (a_dir);
 
     std::stringstream ident;
@@ -140,6 +185,8 @@ job_starter::job_starter (unsigned int njobs,
               << n + 1 << "/" << njobs 
               << " on " 
               << ep.url_
+              << " : " 
+              << j.get_job_id ()
               << std::endl;
 
     // keep job

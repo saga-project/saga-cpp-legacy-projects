@@ -24,7 +24,6 @@ int main (int argc, char** argv)
     // open application job bucket.  Fail if that does not exist, as it means
     // that the master did not yet run
     saga::advert::directory app_dir (advert_root, 
-                                     saga::advert::Create    | 
                                      saga::advert::ReadWrite );
 
     // create this job's work item bucket.  

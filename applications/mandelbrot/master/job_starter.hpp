@@ -21,6 +21,7 @@ class job_starter
                    std::string  pass,
                    std::string  cert,
                    std::string  key,
+                   std::string  proxy,
                    std::string  cadir,
                    std::string  exe,
                    std::string  pwd);
@@ -33,6 +34,7 @@ class job_starter
         std::string        pass_;
         std::string        cert_;
         std::string        key_;
+        std::string        proxy_;
         std::string        cadir_;
         std::string        exe_;
         std::string        pwd_;
