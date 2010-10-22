@@ -27,6 +27,8 @@ job_starter::endpoint_::endpoint_ (std::string  name,
     exe_         (exe  ),
     pwd_         (pwd  )
 {
+
+  std::cout << "adding  endpoint '" << name_ << "' (" << url_ << ")" << std::endl;
   saga::session s;
 
   saga::context c (ctype_);
@@ -58,9 +60,41 @@ job_starter::job_starter (unsigned int njobs,
   // first, initialize all endpoint info.  There is likely a more elegant way to
   // do that, but for now, hardcoding may suffice
 
-#define USE 1
+#ifdef SAGA_APPLE
+# define HOME "/Users/merzky"
+#else
+# define HOME "/home/merzky"
+#endif
 
-#ifndef USE
+// #define FORK     //  OK
+// #define SSH      //  OK
+// #define SMOA     //  OK
+// #define GRAM     //  OK ?
+// #define ARC      //  OK
+   #define GENESIS  // NOK
+// #define UNICORE  // NOK
+// #define EC2      // NOK
+// #define gLite    // NOK
+
+
+#ifdef FORK
+  // local endpoint (fork) ok
+  endpoints_.push_back (endpoint_ (
+   "local-fork"                                        , // name
+   "fork://localhost/"                                 , // url
+   "UserPass"                                          , // ctype
+   ""                                                  , // user
+   ""                                                  , // pass
+   ""                                                  , // cert
+   ""                                                  , // key
+   ""                                                  , // proxy
+   ""                                                  , // cadir
+   HOME "/install/bin/saga-run.sh"                     , // exe
+   "/tmp"                                                // pwd
+   ));
+#endif
+  
+#ifdef SSH
   // ssh endpoint (cyder) ok
   endpoints_.push_back (endpoint_ (
    "cct-ssh"                                           , // name
@@ -77,24 +111,7 @@ job_starter::job_starter (unsigned int njobs,
    ));
 #endif
 
-#ifndef USE
-  // local endpoint (fork) ok
-  endpoints_.push_back (endpoint_ (
-   "local-fork"                                        , // name
-   "fork://localhost/"                                 , // url
-   "UserPass"                                          , // ctype
-   ""                                                  , // user
-   ""                                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   ""                                                  , // proxy
-   ""                                                  , // cadir
-   "/Users/merzky/install/bin/saga-run.sh"             , // exe
-   "/tmp"                                                // pwd
-   ));
-#endif
-  
-#ifndef USE
+#ifdef SMOA
   // SMOA endpoint (BES) ok
   endpoints_.push_back (endpoint_ (
    "smoa-bes"                                          , // name
@@ -105,13 +122,13 @@ job_starter::job_starter (unsigned int njobs,
    ""                                                  , // cert
    ""                                                  , // key
    ""                                                  , // proxy
-   "/Users/merzky/.saga/certificates/"                 , // cadir
+   HOME "/.saga/certificates/"                         , // cadir
    "/home/ogf/install/bin/saga-run.sh"                 , // exe
    "/home/ogf/"                                          // pwd
    ));
 #endif
   
-#ifndef USE
+#ifdef GRAM
   // LONI endpoint (GRAM)
   endpoints_.push_back (endpoint_ (
    "loni-gram"                                         , // name
@@ -122,13 +139,13 @@ job_starter::job_starter (unsigned int njobs,
    ""                                                  , // cert
    ""                                                  , // key
    "/tmp/x509up_u501"                                  , // proxy
-   "/Users/merzky/.globus/certificates/"               , // cadir
+   HOME "/.globus/certificates/"                       , // cadir
    "/home/merzky/install/bin/saga-run.sh"              , // exe
    "/home/merzky/"                                       // pwd
    ));
 #endif
   
-#ifdef USE
+#ifdef ARC
   // ARC endpoint (BES)
   endpoints_.push_back (endpoint_ (
    "arc-bes"                                           , // name
@@ -139,30 +156,48 @@ job_starter::job_starter (unsigned int njobs,
    "/tmp/x509up_u501"                                  , // cert
    "/tmp/x509up_u501"                                  , // key
    ""                                                  , // proxy
-   "/home/merzky/.saga/certificates/"                  , // cadir
+   HOME "/.saga/certificates/"                         , // cadir
    "/usr/local/saga/bin/saga-run.sh"                   , // exe
    "/home/arc/"                                          // pwd
    ));
 #endif
   
-#ifdef USE
+#ifdef GENESIS
   // Genesis-II endpoint (BES)
   endpoints_.push_back (endpoint_ (
    "genesis2-bes"                                      , // name
-   "epr://localhost/Users/merzky/.saga/fg_india.epr"   , // url
+   "epr://localhost/" HOME "/.saga/fg_india.epr"       , // url
    "UserPass"                                          , // ctype
    "ogf30"                                             , // user
    "ogf30"                                             , // pass
    "/tmp/x509up_u501"                                  , // cert
    "/tmp/x509up_u501"                                  , // key
    ""                                                  , // proxy
-   "/home/merzky/.saga/certificates/"                  , // cadir
-   "/usr/local/saga/bin/saga-run.sh"                   , // exe
-   "/home/arc/"                                          // pwd
+   HOME "/.saga/certificates/"                         , // cadir
+   "/home/merzky/install/bin/saga-run.sh"              , // exe
+   "/home/merzky/"                                       // pwd
    ));
 #endif
-  
-#ifdef USE
+
+#ifdef UNICORE
+  // Unicore endpoint (BES)
+  endpoints_.push_back (endpoint_ (
+   "unicore-bes"                                      , // name
+   "https://zam1161v01.zam.kfa-juelich.de:8002/DEMO-SITE/services/BESFactory?res=default_bes_factory"
+                                                       , // url
+   "UserPass"                                          , // ctype
+   "ogf"                                               , // user
+   "ogf"                                               , // pass
+   "/tmp/x509up_u501"                                  , // cert
+   "/tmp/x509up_u501"                                  , // key
+   ""                                                  , // proxy
+   HOME "/.saga/certificates/"                         , // cadir
+   "/home/unicoreinterop/install/bin/saga-run.sh"      , // exe
+   "/home/unicoreinterop/"                               // pwd
+   ));
+#endif
+ 
+#ifdef EC2
   // EC2 endpoint (AWS)
   endpoints_.push_back (endpoint_ (
    "ec2-aws"                                           , // name
@@ -173,7 +208,7 @@ job_starter::job_starter (unsigned int njobs,
    "/tmp/x509up_u501"                                  , // cert
    "/tmp/x509up_u501"                                  , // key
    ""                                                  , // proxy
-   "/home/merzky/.saga/certificates/"                  , // cadir
+   HOME "/.saga/certificates/"                         , // cadir
    "/usr/local/saga/bin/saga-run.sh"                   , // exe
    "/home/arc/"                                          // pwd
    ));
