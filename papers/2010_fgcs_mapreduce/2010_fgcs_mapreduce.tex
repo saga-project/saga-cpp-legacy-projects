@@ -97,16 +97,17 @@
   its wide-spread usage, and its ability to capture the primary
   challenges of developing distributed applications, use \mr as the
   underlying exemplar; we develop an interoperable implementation of
-  \mr using SAGA, (ii) Using the canonical \wc application that uses
-  SAGA-based \mr, we investigate its scale-out across clusters, clouds
-  and HPC resources, (iii) Establish the execution of \wc application
-  using \mr and other programming models such as Sphere concurrently.
-  SAGA-based \mr in addition to being interoperable
-  across different distributed infrastructures, also provides
-  user-level control of the relative placement of compute and data.
-  We provide performance measures and analysis of \sagamapreduce when
-  using multiple, different, heterogeneous infrastructures
-  concurrently for the same problem instance.
+  \mr using SAGA -- an API to support distributed programming, (ii)
+  Using the canonical \wc application that uses SAGA-based \mr, we
+  investigate its scale-out across clusters, clouds and HPC resources,
+  (iii) Establish the execution of \wc application using \mr and other
+  programming models such as Sphere concurrently.  SAGA-based \mr in
+  addition to being interoperable across different distributed
+  infrastructures, also provides user-level control of the relative
+  placement of compute and data.  We provide performance measures and
+  analysis of \sagamapreduce when using multiple, different,
+  heterogeneous infrastructures concurrently for the same problem
+  instance.
 
 % However, we do not strive to provide a rigorous performance
 % model, but to provide a proof-of-concept of application-level
@@ -200,9 +201,9 @@ coordinate and communicate.
 In either case, ALI is not only of theoretical interest. There exist
 many applications which involve large volumes of data on distributed
 heterogeneous resources and which benefit from ALI. For examples, the
-Earth-Science Grid involves peta to exa-bytes of data, and one thus
-cannot move all data (given current transfer capabilities), nor
-compute at a centralized location.  Thus there is an imperative to
+Earth System Grid~\cite{esg} involves peta to exa-bytes of data, and
+one thus cannot move all data (given current transfer capabilities),
+nor compute at a centralized location.  Thus there is an imperative to
 operate on the data {\it in situ}, which in turn involves computation
 across heterogeneous distributed platforms as part of the same
 application.
@@ -226,21 +227,21 @@ a case to be made that by providing ALI, such barriers can be overcome
 and cross-cloud applications can be easily achieved.
 
 Currently, many programming models and abstractions are tied to a
-specific back-end infrastructure.  For example, Google's MapReduce,
-which is tied to Google's file system, or Sphere\cite{sectorsphere09}
-which is linked to the Sector file system.  It is often the case that
-an application maybe significantly better suited to a specific
-programming model; similarly a specific programming model maybe
-optimised for a specific infrastructure. However, where this is not
-necessarily the case, or more importantly, when different
-applications or programming models can utilise ``non-native''
-infrastructure, the ability to mix-and-match across the layers of
-applications, programming models and infrastructure should be
-supported.  Ideally, an application should be able to utilize any
-programming model, and any programming model should be executable on
-any underlying infrastructure.  Thus there is a need to investigate
-interoperability of different programming models for the same
-application on different systems.
+specific back-end infrastructure.  For example, Google's
+MapReduce~\cite{mapreduce-paper}, which is tied to Google's file
+system, or Sphere\cite{sectorsphere09} which is linked to the Sector
+file system.  It is often the case that an application maybe
+significantly better suited to a specific programming model; similarly
+a specific programming model maybe optimised for a specific
+infrastructure. However, where this is not necessarily the case, or
+more importantly, when different applications or programming models
+can utilise ``non-native'' infrastructure, the ability to
+mix-and-match across the layers of applications, programming models
+and infrastructure should be supported.  Ideally, an application
+should be able to utilize any programming model, and any programming
+model should be executable on any underlying infrastructure.  Thus
+there is a need to investigate interoperability of different
+programming models for the same application on different systems.
 
 We will work with MapReduce and an application based on \mr -- the
 canonical \wc application.  We use SAGA --- “Simple API for Grid
@@ -642,15 +643,15 @@ location of the input data, (iii) the target location for the output
 data, and (iv) the contact URL for the advert service for
 coordination and communication.
 
-For example: in a typical configuration, three worker instances may
-be started; the first could be started via GRAM and PBS on
-qb.teragrid.org, the second on a pre-instantiated EC2 image
-(with known instance id), and the third on a dynamically deployed
-EC2 instance (no instance id given).  Note that the start-up times for
-the individual workers may vary over several orders of magnitudes,
-depending on PBS queue waiting time and VM start-up time.  
-That mechanism both minimizes time-to-solution, and
-maximizes resilience against worker loss.
+For example: in a typical configuration, three worker instances may be
+started; the first could be started via GRAM and PBS on
+qb.teragrid.org, the second on a pre-instantiated EC2 image (with
+known instance id), and the third on a dynamically deployed EC2
+instance (no instance id given).  Note that the start-up times for the
+individual workers may vary over several orders of magnitudes,
+depending on PBS queue waiting time and virtual machine (VM) start-up
+time.  That mechanism both minimizes time-to-solution, and maximizes
+resilience against worker loss.
 %
 % The scheme \T{any} acts here as a placeholder for SAGA, so that the
 % SAGA engine can choose an appropriate adaptor.  The master would
@@ -672,13 +673,22 @@ varying that parameter permits compute and communication interleaving,
 which may lead to an increase in the overall system utilization (even
 in the absence of precise knowledge of the target system).
 
-Future enhancements to \sagamapreduce might include asynchronous master-worker
-communication, and off-loading coordination tasks from the advert service to
-a stream-based protocol.  For example, information about the pieces of
-intermediate data to be processed in the reduce phase could be directly
-interchanged via streams.  The advert service could be used for maintaining
-master state, in order to make the master failure-recoverable.
-
+Future enhancements to \sagamapreduce might include asynchronous
+master-worker communication, and off-loading coordination tasks from
+the advert service to a stream-based protocol.  For example,
+information about the pieces of intermediate data to be processed in
+the reduce phase could be directly interchanged via streams.  The
+advert service could be used for maintaining master state, in order to
+make the master failure-recoverable.  The advert service itself is a
+candidate for performance engineering and optimization.  For example,
+in case of \sagamapreduce we observed that the latency of the advert
+service used during computation has a significant impact on
+time-to-solution. The results reported herein have been obtained by
+employing a local advert service solely used for our experiments;
+using a shared capabilty, having several concurrent users can possibly
+double the time-to-solution in configurations having high coordination
+overhead, i.e., in case of a small chunk size or large number of
+workers.
 
 \section{Application Level Interoperability: Three-levels}
 \label{sec:interop}
@@ -792,7 +802,7 @@ Thus we describe this as a separate type of interoperability.
 \subsection{Experimental Setup}
 
 Simulations were performed on shared TeraGrid-LONI (Louisiana Optical
-Network Initiative)~\cite{loni-url} resources running Globus and ssh;
+Network Initiative)~\cite{loni} resources running Globus and ssh;
 on GumboGrid, a small cluster at LSU running Eucalyptus; on Amazon's
 EC2; and on a bare 50 node cluster of the Hungarian Academy of Sciences;
 A significant set of experiments were performed on FutureGrid
@@ -1372,49 +1382,54 @@ SAGA-MapReduce workers at a 64 MB chunk size.
 \section{Discussion \& Conclusions}
 \label{sec:discuss}
 
-SAGA gives us the opportunity to experiment with different programming
-models on different infrastructure and with varying configuration.
-For example, in case of \sagamapreduce we observed that the latency of
-the advert service used during computation has a significant impact on
-time-to-solution. The results reported therein have been obtained by
-employing an advert service solely used for our experiments.  We found
-that using a publicly available one having several concurrent users
-can even double time-to-solution in configurations having high
-coordination overhead, i.e., in case of a small chunk size or large
-number of workers.
-
-The aim of this paper has been to show several types (and levels) of
-interoperability; although driven by proof-of-capability experiments
-and results therein, there are deeper questions that motivate this
-work and define the research methodology.  As alluded to in the
-opening section, the volume and the degree-of-distribution of data is
-increasing rapidly; this imposes a need for applications to work
-across a range of distributed infrastructures using several
-programming models; this is consistent with the fact that it is not
-possible to localize exa-bytes of data.  Thus, on the one hand there
-is a need to decouple PM from infrastructures, and provide a range of
-PM at the application developer's disposal. On the other hand, in
-order to build empirical models, or validate existing predictions of
+As alluded to in the opening section, the volume and the
+degree-of-distribution of data is increasing rapidly; this is
+consistent with the fact that it is not possible to localize
+peta-bytes of data, let alone exa-bytes.  This imposes a need for
+applications to work across a range of heterogeneous distributed
+infrastructures, possibly using several different programming
+models. Thus, on the one hand there is a need to decouple programming
+models from infrastructures, and provide a range of programming models
+at the application developer's disposal. On the other hand, in order
+to build empirical models, or validate existing predictions of
 performance, it is important to establish \& experiment with
 programming models and data-oriented algorithms (e.g., streaming) on a
-range of systems. % This is an important step towards general-purpose
-% programming models, the first-step of which is interoperability of the
-% types discussed.
-A critical and necessary step to achieve both is to provide
-application-level interoperability as discussed.
+range of systems.  A critical and necessary step to achieve both is to
+provide application-level interoperability as discussed.  
 
-In this paper, we posit three levels of interoperability; tests at all
-three levels, were performed using SAGA-\mr, which from an execution
-perspective is a relatively straight-forward application.  At the
-lowest level, \sagamapreduce demonstrates how to decouple the
-development of applications from the deployment details of the
-run-time environment (Type I ALI).  It is critical to reiterate that
-using this approach, applications remain insulated from any underlying
-changes in the infrastructure -- not just grids and different
-middleware layers, but also different systems with very different
-semantics and characteristics, whilst being exposed to the important
-distributed functionality.
+The fundamental aim and contribution of this paper has been to
+demonstrate and understand several types of appliation-level
+interoperability, and the levels at which such interoperability can be
+provided. Although driven by proof-of-capability experiments and
+results therein, there are deeper questions that motivate this work
+and define the research methodology.  For example, for a given
+application, it is not known {\it a priori} how to engineer
+production-grade application-level interoperabilty, i.e., at what
+level and how it should be provided. Through our implementation and
+analysis of the three levels, we establish that different performance
+challenges and functional capabilities arise; understanding these
+"trade-offs" is important in order to reason and thus implement
+interoperabilty at the "right level".  It is worth noting, that the
+impact of application-level interoperabilty goes beyond just the
+``practical'' ability to utilize multiple production-grade
+cyberinfrastructure: it is an important step towards understanding
+general-purpose programming models.
 
+In this paper, we analyze three levels of interoperability.  All three levels
+were implemented using SAGA-\mr, which from an
+execution perspective is a relatively straight-forward application.
+In general, SAGA gives us the opportunity to experiment with different
+programming models on different infrastructure and with varying
+configuration. At the lowest level, \sagamapreduce demonstrates how to
+decouple the development of applications from the deployment details
+of the run-time environment (Type I ALI).  It is critical to reiterate
+that using this approach, applications remain insulated from any
+underlying changes in the infrastructure -- not just grids and
+different middleware layers, but also different systems with very
+different semantics and characteristics, whilst being exposed to the
+important distributed functionality.
+% the
+% first-step of which is interoperability of the types discussed.
 With implementations of the two application frameworks -- SAGA based
 Sector-Sphere and the \smr implementation, we also demonstrated Type
 II ALI: applications can seamlessly switch between back-ends by
@@ -1441,7 +1456,7 @@ is also cached for future computations.  We have embarked on the
 creation of components that facilitate intelligence and flexibility in
 data placement relative to the computational resource
 ~\cite{saga_dic_royalsoc09}. These components are connected in
-frameworks using SAGA, thus further the agenda of general-purpose
+frameworks using SAGA, thus furthering the agenda of general-purpose
 programming models with efficient run-time support that can utilize
 multiple heterogeneous resources.
 
