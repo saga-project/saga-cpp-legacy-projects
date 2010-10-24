@@ -54,6 +54,7 @@ class bigjob_agent:
         print "Open advert: " + self.base_url
         try:
             self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
+            self.new_job_dir = saga.advert.directory(saga.url(self.base_url+"/new/"), saga.advert.Create| saga.advert.ReadWrite)
         except:
             print "No advert entry found at specified url: " + self.base_url
 
@@ -334,6 +335,22 @@ class bigjob_agent:
     def poll_jobs(self):
         """Poll jobs from advert service. """
         jobs = []
+        # new algorithm separates new jobs and old jobs in separate dirs
+        new_jobs = self.new_job_dir.list()
+        for i in new_jobs:            
+            if (i.attribute_exists("joburl") == True):
+                job_url = i.get_attribute("joburl")
+                #print i.get_string()
+                job_dir = None
+                try: #potentially racing condition (dir could be already deleted by RE-Manager
+                    job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
+                except:
+                    pass
+                #if job_dir != None:
+                #    self.execute_job(job_dir)
+                #    if job_dir.get_attribute("state")=="Running":
+                #        i.remove(i.get_url(), saga.name_space.Recursive)
+        
         #try:
         jobs = self.base_dir.list()
         print "Found " + "%d"%len(jobs) + " jobs in " + str(self.base_dir.get_url().get_string())

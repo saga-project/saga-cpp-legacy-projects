@@ -32,6 +32,8 @@ EC2_ENV_FILE="/home/luckow/.ec2/ec2rc"
 EC2_KEYNAME="lsu-keypair"
 EC2_SSH_PRIVATE_KEY_FILE="/home/luckow/.ec2/id-lsu-keypair"
 EC2_INSTANCE_TYPE="m1.large"
+EC2_PLACEMENT_GROUP="namd-cluster"
+
 
 # EUCA
 EUCA_ENV_FILE="/home/luckow/.euca/eucarc"
@@ -264,9 +266,15 @@ class bigjob_cloud():
     def start_ec2_images_in_background(self, number_nodes):
         """Start EC2 image (either on Eucalyptus or Amazon EC2) """
  
-        
-        command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  self.image_name \
-                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + EC2_INSTANCE_TYPE
+        if EC2_INSTANCE_TYPE == "cc1.4xlarge":
+            # cluster compute instances require a placement group
+            command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  self.image_name \
+                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + EC2_INSTANCE_TYPE \
+                + "--placement-group " + EC2_PLACEMENT_GROUP
+        else:
+            command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  self.image_name \
+                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + EC2_INSTANCE_TYPE 
+                
         print "execute: " + command + " in " + self.working_directory
         
         stdout = self.execute_command(command, self.working_directory, self.env_dict)

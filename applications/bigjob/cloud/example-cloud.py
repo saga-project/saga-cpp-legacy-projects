@@ -25,7 +25,8 @@ if __name__ == "__main__":
     print "Start Pilot Job/BigJob in the cloud. "
     bj = bigjob_cloud.bigjob_cloud()
     bj.start_pilot_job(number_nodes=nodes, 
-                       working_directory=current_directory)
+                       working_directory=current_directory,
+                       cloud_type="EC2")
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
 
     ##########################################################################################

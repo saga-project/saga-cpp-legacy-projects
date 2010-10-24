@@ -206,6 +206,13 @@ class subjob():
                             self.job_dir.set_attribute(i, jd.get_attribute(i))
 
                 self.job_dir.set_attribute("state", str(saga.job.Unknown))
+                
+                print "create notification flag in NEW dir"
+                self.new_job_url = self.saga_pilot_url.get_string() + "/new/" + str(self.uuid)
+                self.new_job_dir = saga.advert.directory(saga.url(new_job_url), 
+                                             saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
+                self.new_job_dir.set_attribute("joburl", self.job_url)
+                                
                 # return self object for get_state() query    
                 #logging.debug("Submission time (time to create advert entries): " + str(time.time()-start) + " s")
                 return self    

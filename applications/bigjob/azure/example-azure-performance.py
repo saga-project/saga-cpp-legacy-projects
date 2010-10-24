@@ -51,10 +51,10 @@ if __name__ == "__main__":
         jd.error = "stderr"
         
            # file staging
-        transfer = {}
-        transfer ["source"] = os.getcwd() + "/remd/NPT.conf" # source for staging in (see JSDL spec) 
-        transfer ["target"] = jd.working_directory + "NPT.conf"     # target for staging out (see JSDL spec)   
-        jd.filetransfer = [transfer]   
+        #transfer = {}
+        #transfer ["source"] = os.getcwd() + "/remd/NPT.conf" # source for staging in (see JSDL spec) 
+        #transfer ["target"] = jd.working_directory + "NPT.conf"     # target for staging out (see JSDL spec)   
+        #jd.filetransfer = [transfer]   
         
         
         
