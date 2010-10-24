@@ -133,14 +133,18 @@ class bigjob():
 
     def cancel(self):        
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
-        print "Cancel Glidin Job"
+        print "Cancel Pilot Job"
         try:
             self.job.cancel()
-            #self.app_dir.change_dir("..")
-            print "delete job: " + str(self.app_url)
-            self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
         except:
             pass
+            #traceback.print_stack()
+        try:
+            #self.app_dir.change_dir("..")
+            print "delete pilot job: " + str(self.app_url)
+            self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
+        except:
+            traceback.print_stack()
 
     def __repr__(self):
         return self.pilot_url 
