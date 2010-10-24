@@ -337,20 +337,22 @@ class bigjob_agent:
         jobs = []
         # new algorithm separates new jobs and old jobs in separate dirs
         new_jobs = self.new_job_dir.list()
+        print "New jobs: " + str(new_jobs);
         for i in new_jobs:            
-            if (i.attribute_exists("joburl") == True):
-                job_url = i.get_attribute("joburl")
-                #print i.get_string()
-                job_dir = None
-                try: #potentially racing condition (dir could be already deleted by RE-Manager
-                    job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
-                except:
-                    pass
-                #if job_dir != None:
-                #    self.execute_job(job_dir)
-                #    if job_dir.get_attribute("state")=="Running":
-                #        i.remove(i.get_url(), saga.name_space.Recursive)
-        
+                 print "check job: " + i.get_string()
+                # new_job_dir = self.base_dir.open_dir(i)
+                # job_url = new_job_dir.get_attribute("joburl")
+                # print "Found new job: " + str(job_url)
+        #        job_dir = None
+        #        try: #potentially racing condition (dir could be already deleted by RE-Manager
+        #            job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
+        #        except:
+        #            pass
+        #        #if job_dir != None:
+        #        #    self.execute_job(job_dir)
+        #        #    if job_dir.get_attribute("state")=="Running":
+        #        #        i.remove(i.get_url(), saga.name_space.Recursive)
+        #
         #try:
         jobs = self.base_dir.list()
         print "Found " + "%d"%len(jobs) + " jobs in " + str(self.base_dir.get_url().get_string())
