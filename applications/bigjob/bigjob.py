@@ -81,12 +81,10 @@ class bigjob():
 
         if working_directory != None:
             jd.working_directory = working_directory
+            if not os.path.isdir(jd.working_directory):
+                os.mkdir(jd.working_directory)
         else:
             jd.working_directory = "$(HOME)"
-            
-            
-        if not os.path.isdir(jd.working_directory):
-            os.mkdir(jd.working_directory)
             
         print "Working directory: " + jd.working_directory
         
@@ -144,7 +142,8 @@ class bigjob():
             print "delete pilot job: " + str(self.app_url)
             self.app_dir.remove(self.app_url, saga.name_space.Recursive)    
         except:
-            traceback.print_stack()
+            pass
+            #traceback.print_stack()
 
     def __repr__(self):
         return self.pilot_url 

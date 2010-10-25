@@ -337,36 +337,39 @@ class bigjob_agent:
         jobs = []
         # new algorithm separates new jobs and old jobs in separate dirs
         new_jobs = self.new_job_dir.list()
-        print "New jobs: " + str(new_jobs);
+        print "Base dir: " + self.new_job_dir.get_url().get_string() + " Number New jobs: " + str(len(new_jobs));
         for i in new_jobs:            
                  print "check job: " + i.get_string()
-                # new_job_dir = self.base_dir.open_dir(i)
-                # job_url = new_job_dir.get_attribute("joburl")
-                # print "Found new job: " + str(job_url)
-        #        job_dir = None
-        #        try: #potentially racing condition (dir could be already deleted by RE-Manager
-        #            job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
-        #        except:
-        #            pass
-        #        #if job_dir != None:
-        #        #    self.execute_job(job_dir)
-        #        #    if job_dir.get_attribute("state")=="Running":
-        #        #        i.remove(i.get_url(), saga.name_space.Recursive)
-        #
+                 #job_entry = self.new_job_dir.open_dir(i)
+                 new_job_item = self.new_job_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
+                 job_url = new_job_item.get_attribute("joburl")
+                 print "Found new job: " + str(job_url)
+                 job_dir = None
+                 try: #potentially racing condition (dir could be already deleted by RE-Manager
+                     job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
+                 except:
+                     pass
+                 if job_dir != None:
+                     self.execute_job(job_dir)
+                     print "Execute: " + job_dir.get_attribute("Executable")
+                     if job_dir.get_attribute("state")=="Running":
+                          self.new_job_dir.remove(new_job_item.get_url(), saga.name_space.Recursive)
+        
+        # OLD unoptimized code
         #try:
-        jobs = self.base_dir.list()
-        print "Found " + "%d"%len(jobs) + " jobs in " + str(self.base_dir.get_url().get_string())
-        #except:
-        #    pass
-        for i in jobs:  
-            #print i.get_string()
-            job_dir = None
-            try: #potentially racing condition (dir could be already deleted by RE-Manager
-                job_dir = self.base_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
-            except:
-                pass
-            if job_dir != None:
-                self.execute_job(job_dir)
+        #jobs = self.base_dir.list()
+        #print "Found " + "%d"%len(jobs) + " jobs in " + str(self.base_dir.get_url().get_string())
+        ##except:
+        ##    pass
+        #for i in jobs:  
+        #    #print i.get_string()
+        #    job_dir = None
+        #    try: #potentially racing condition (dir could be already deleted by RE-Manager
+        #        job_dir = self.base_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
+        #    except:
+        #        pass
+        #    if job_dir != None:
+        #        self.execute_job(job_dir)
                 
     
     def monitor_jobs(self):

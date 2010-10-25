@@ -17,7 +17,7 @@ import bigjob
 import logging
 import many_job
 
-NUMBER_JOBS=16
+NUMBER_JOBS=4096
 
 def has_finished(state):
         state = state.lower()
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
         # submit via mj abstraction
         resource_list = []
-        resource_list.append( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "16", "allocation" : "loni_jhabig10", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
+        resource_list.append( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "loni_jhabig10", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
 
 #                           {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "8", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"}  )
 

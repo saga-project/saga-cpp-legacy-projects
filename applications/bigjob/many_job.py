@@ -172,7 +172,7 @@ class many_job_service():
             if isinstance(subjob, sub_job):
                 self.run_subjob(subjob)
                 if self.last_queue_size == self.subjob_queue.qsize() or self.get_total_free_cores()==0:
-                    time.sleep(5) # sleep 30 s        
+                    time.sleep(2) # sleep 30 s        
 
         logging.debug("Re-Scheduler terminated")
 
