@@ -291,10 +291,10 @@ if __name__ == "__main__":
         jd.output = "output.txt"
         jd.error = "error.txt"
         # submit via mj abstraction
-        #resource_list =  ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "128", "allocation" : "loni_jha_big", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"},
-        #                   {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "loni_jha_big", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"})
+        #resource_list =  ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "128", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"},
+        #                   {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"})
         resource_list = []
-        resource_list.append({"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "16", "allocation" : "loni_jhabig10", "queue" : "workq", "re_agent": os.getcwd() + "/bigjob_agent_launcher.sh"})
+        resource_list.append({"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "16", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": os.getcwd() + "/bigjob_agent_launcher.sh"})
         print "Create manyjob service " 
         mjs = many_job_service(resource_list, None)
         print "Create sub-job using manyjob " + str(mjs) 
