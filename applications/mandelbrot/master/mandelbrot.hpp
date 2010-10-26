@@ -17,7 +17,6 @@ class mandelbrot
     output_base * dev_;      // output device
     unsigned int  njobs_;    // number of jobs to use
 
-    std::vector <saga::job::service> job_services_;    // list of saga job services
     std::vector <saga::job::job>     jobs_;            // list of saga jobs
     std::string                      job_bucket_name_; // name of job directory
     saga::advert::directory          job_bucket_;      // advert container for new jobs 

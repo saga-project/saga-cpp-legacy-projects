@@ -66,13 +66,14 @@ job_starter::job_starter (unsigned int njobs,
 # define HOME "/home/merzky"
 #endif
 
-// #define FORK     //  OK
-// #define SSH      //  OK
-// #define SMOA     //  OK
-// #define GRAM     //  OK ?
-// #define ARC      //  OK
-   #define GENESIS  // NOK
-// #define UNICORE  // NOK
+   #define FORK     //  OK
+// #define BESPP    //  OK
+   #define SSH      //  OK
+   #define SMOA     //  OK
+   #define GRAM     //  OK ?
+   #define ARC      //  OK
+// #define GENESIS  //  OK
+// #define UNICORE  //  OK
 // #define EC2      // NOK
 // #define gLite    // NOK
 
@@ -85,6 +86,23 @@ job_starter::job_starter (unsigned int njobs,
    "UserPass"                                          , // ctype
    ""                                                  , // user
    ""                                                  , // pass
+   ""                                                  , // cert
+   ""                                                  , // key
+   ""                                                  , // proxy
+   ""                                                  , // cadir
+   HOME "/install/bin/saga-run.sh"                     , // exe
+   "/tmp"                                                // pwd
+   ));
+#endif
+  
+#ifdef BESPP
+  // local endpoint (bes) ok
+  endpoints_.push_back (endpoint_ (
+   "local-bes"                                         , // name
+   "https://localhost:1235/"                           , // url
+   "UserPass"                                          , // ctype
+   "merzky"                                            , // user
+   "aaa"                                               , // pass
    ""                                                  , // cert
    ""                                                  , // key
    ""                                                  , // proxy
@@ -138,7 +156,7 @@ job_starter::job_starter (unsigned int njobs,
    ""                                                  , // pass
    ""                                                  , // cert
    ""                                                  , // key
-   "/tmp/x509up_u501"                                  , // proxy
+   "/tmp/x509up_u503"                                  , // proxy
    HOME "/.globus/certificates/"                       , // cadir
    "/home/merzky/install/bin/saga-run.sh"              , // exe
    "/home/merzky/"                                       // pwd
@@ -149,12 +167,13 @@ job_starter::job_starter (unsigned int njobs,
   // ARC endpoint (BES)
   endpoints_.push_back (endpoint_ (
    "arc-bes"                                           , // name
-   "https://interop.grid.niif.hu:60000/arex-ut"        , // url
+// "https://interop.grid.niif.hu:60000/arex-ut"        , // url
+   "https://localhost:10001/arex-ut"                   , // url
    "UserPass"                                          , // ctype
    "ogf30"                                             , // user
    "ogf30"                                             , // pass
-   "/tmp/x509up_u501"                                  , // cert
-   "/tmp/x509up_u501"                                  , // key
+   "/tmp/x509up_u503"                                  , // cert
+   "/tmp/x509up_u503"                                  , // key
    ""                                                  , // proxy
    HOME "/.saga/certificates/"                         , // cadir
    "/usr/local/saga/bin/saga-run.sh"                   , // exe
@@ -166,12 +185,12 @@ job_starter::job_starter (unsigned int njobs,
   // Genesis-II endpoint (BES)
   endpoints_.push_back (endpoint_ (
    "genesis2-bes"                                      , // name
-   "epr://localhost/" HOME "/.saga/fg_india.epr"       , // url
+   "epr://localhost/" HOME "/.saga/fg_india.short.epr" , // url
    "UserPass"                                          , // ctype
    "ogf30"                                             , // user
    "ogf30"                                             , // pass
-   "/tmp/x509up_u501"                                  , // cert
-   "/tmp/x509up_u501"                                  , // key
+   "/tmp/x509up_u503"                                  , // cert
+   "/tmp/x509up_u503"                                  , // key
    ""                                                  , // proxy
    HOME "/.saga/certificates/"                         , // cadir
    "/home/merzky/install/bin/saga-run.sh"              , // exe
@@ -188,8 +207,8 @@ job_starter::job_starter (unsigned int njobs,
    "UserPass"                                          , // ctype
    "ogf"                                               , // user
    "ogf"                                               , // pass
-   "/tmp/x509up_u501"                                  , // cert
-   "/tmp/x509up_u501"                                  , // key
+   "/tmp/x509up_u503"                                  , // cert
+   "/tmp/x509up_u503"                                  , // key
    ""                                                  , // proxy
    HOME "/.saga/certificates/"                         , // cadir
    "/home/unicoreinterop/install/bin/saga-run.sh"      , // exe
@@ -205,8 +224,8 @@ job_starter::job_starter (unsigned int njobs,
    "aws"                                               , // ctype
    "ogf30"                                             , // user
    "ogf30"                                             , // pass
-   "/tmp/x509up_u501"                                  , // cert
-   "/tmp/x509up_u501"                                  , // key
+   "/tmp/x509up_u503"                                  , // cert
+   "/tmp/x509up_u503"                                  , // key
    ""                                                  , // proxy
    HOME "/.saga/certificates/"                         , // cadir
    "/usr/local/saga/bin/saga-run.sh"                   , // exe
@@ -262,6 +281,25 @@ job_starter::job_starter (unsigned int njobs,
 
     // keep job
     jobs_.push_back (j);
+  }
+}
+
+
+job_starter::~job_starter (void)
+{
+  // Usually, we don't need to cancel jobs, as they'll terminate
+  // when running out of work.  But in case we finish
+  // prematurely, we take care of termination
+
+  for ( unsigned int i = 0; i < jobs_.size (); i++)
+  {
+    std::cout << "killing job " << i << " (" 
+              << jobs_[i].get_state () << ")" << std::endl;
+
+    if ( saga::job::Running == jobs_[i].get_state () )
+    {
+      jobs_[i].cancel ();
+    }
   }
 }
 
