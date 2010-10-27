@@ -18,11 +18,11 @@
 // Or a command line interface.  Or use the advert service.
 // Or whatever.  But hey, it's just an example, right? ;-)
 
-#define BOX_SIZE_X         600
-#define BOX_SIZE_Y          80
+#define BOX_SIZE_X        600
+#define BOX_SIZE_Y         80
 
-#define BOX_NUM_X            2
-#define BOX_NUM_Y           10
+#define BOX_NUM_X           2
+#define BOX_NUM_Y          10
 
 #define PLANE_X_0           -2
 #define PLANE_Y_0           -1
@@ -107,6 +107,28 @@ mandelbrot::~mandelbrot (void)
     std::cout << "deleting output device" << std::endl;
     delete dev_;
     dev_ = NULL;
+  }
+
+
+  // Usually, we don't need to cancel jobs, as they'll terminate
+  // when running out of work.  But in case we finish
+  // prematurely, we take care of termination
+  for ( unsigned int i = 0; i < jobs_.size (); i++)
+  {
+    std::cout << "killing job " << i << " (" 
+              << jobs_[i].get_state () << ")" << std::endl;
+
+    if ( saga::job::Running == jobs_[i].get_state () )
+    {
+      try
+      {
+        jobs_[i].cancel ();
+      }
+      catch ( const saga::exception & e )
+      {
+        // so what? ;-)
+      }
+    }
   }
 }
 

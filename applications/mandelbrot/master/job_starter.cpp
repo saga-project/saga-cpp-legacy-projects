@@ -4,6 +4,29 @@
 
 #include "job_starter.hpp"
 
+
+#ifdef SAGA_APPLE
+# define HOME "/Users/merzky"
+#else
+# define HOME "/home/merzky"
+#endif
+
+   #define FORK                //  OK
+// #define BESPP               //  OK ?
+   #define SSH                 //  OK
+   #define GRAM                //  OK 
+   #define SMOA1               //  OK
+   #define SMOA2               //  OK
+// #define ARC                 //  OK ?
+   #define GENESIS             //  OK 
+   #define UNICORE             //  OK
+// #define UNICORE_FG_INDIA    //  OK ?
+// #define GRIDSAM             // NOK      sec
+// #define EC2                 // NOK      sec deploy
+// #define OCCI                // NOK impl sec deploy
+// #define gLite               // NOK will not work
+
+
 job_starter::endpoint_::endpoint_ (std::string  name,
                                    std::string  url,
                                    std::string  ctype,
@@ -36,14 +59,18 @@ job_starter::endpoint_::endpoint_ (std::string  name,
   c.set_attribute (saga::attributes::context_certrepository, cadir);
   c.set_attribute (saga::attributes::context_usercert      , cert);
   c.set_attribute (saga::attributes::context_userkey       , key);
-  c.set_attribute (saga::attributes::context_userproxy     , proxy);
   c.set_attribute (saga::attributes::context_userid        , user);
   c.set_attribute (saga::attributes::context_userpass      , pass);
-  c.set_attribute (saga::attributes::context_uservo        , "");
-  c.set_attribute (saga::attributes::context_lifetime      , "");
-  c.set_attribute (saga::attributes::context_remoteid      , "");
-  c.set_attribute (saga::attributes::context_remotehost    , "");
-  c.set_attribute (saga::attributes::context_remoteport    , "");
+
+  if ( ! proxy.empty () )
+  {
+    c.set_attribute (saga::attributes::context_userproxy     , proxy);
+  }
+  // c.set_attribute (saga::attributes::context_uservo        , "");
+  // c.set_attribute (saga::attributes::context_lifetime      , "");
+  // c.set_attribute (saga::attributes::context_remoteid      , "");
+  // c.set_attribute (saga::attributes::context_remotehost    , "");
+  // c.set_attribute (saga::attributes::context_remoteport    , "");
 
   s.add_context (c);
 
@@ -59,24 +86,6 @@ job_starter::job_starter (unsigned int njobs,
 {
   // first, initialize all endpoint info.  There is likely a more elegant way to
   // do that, but for now, hardcoding may suffice
-
-#ifdef SAGA_APPLE
-# define HOME "/Users/merzky"
-#else
-# define HOME "/home/merzky"
-#endif
-
-   #define FORK     //  OK
-// #define BESPP    //  OK
-   #define SSH      //  OK
-   #define SMOA     //  OK
-   #define GRAM     //  OK ?
-   #define ARC      //  OK
-// #define GENESIS  //  OK
-// #define UNICORE  //  OK
-// #define EC2      // NOK
-// #define gLite    // NOK
-
 
 #ifdef FORK
   // local endpoint (fork) ok
@@ -129,7 +138,7 @@ job_starter::job_starter (unsigned int njobs,
    ));
 #endif
 
-#ifdef SMOA
+#ifdef SMOA1
   // SMOA endpoint (BES) ok
   endpoints_.push_back (endpoint_ (
    "smoa-bes"                                          , // name
@@ -139,6 +148,23 @@ job_starter::job_starter (unsigned int njobs,
    "smoa-project.org"                                  , // pass
    ""                                                  , // cert
    ""                                                  , // key
+   ""                                                  , // proxy
+   HOME "/.saga/certificates/"                         , // cadir
+   "/home/ogf/install/bin/saga-run.sh"                 , // exe
+   "/home/ogf/"                                          // pwd
+   ));
+#endif
+  
+#ifdef SMOA2
+  // SMOA endpoint (BES) ok
+  endpoints_.push_back (endpoint_ (
+   "smoa-bes"                                          , // name
+   "https://grass1.man.poznan.pl:19022"                , // url
+   "UserPass"                                          , // ctype
+   "ogf"                                               , // user
+   "smoa-project.org"                                  , // pass
+   "/tmp/x509up_u503"                                  , // cert
+   "/tmp/x509up_u503"                                  , // key
    ""                                                  , // proxy
    HOME "/.saga/certificates/"                         , // cadir
    "/home/ogf/install/bin/saga-run.sh"                 , // exe
@@ -182,10 +208,18 @@ job_starter::job_starter (unsigned int njobs,
 #endif
   
 #ifdef GENESIS
+  //  type     = "UserPass";
+  //  url      = "epr://localhost/" HOME ".saga/fg.india.short.epr";
+  //  user     = "ogf30";
+  //  pass     = "ogf30";
+  //  cert     = "/tmp/x509up_u503";
+  //  key      = "/tmp/x509up_u503";
+  //  cadir    = HOME ".saga/certificates/";
+  //  exe      = "/N/u/merzky/install/bin/saga-run.sh";
   // Genesis-II endpoint (BES)
   endpoints_.push_back (endpoint_ (
    "genesis2-bes"                                      , // name
-   "epr://localhost/" HOME "/.saga/fg_india.short.epr" , // url
+   "epr://localhost/" HOME "/.saga/fg.india.short.epr" , // url
    "UserPass"                                          , // ctype
    "ogf30"                                             , // user
    "ogf30"                                             , // pass
@@ -193,13 +227,21 @@ job_starter::job_starter (unsigned int njobs,
    "/tmp/x509up_u503"                                  , // key
    ""                                                  , // proxy
    HOME "/.saga/certificates/"                         , // cadir
-   "/home/merzky/install/bin/saga-run.sh"              , // exe
-   "/home/merzky/"                                       // pwd
+   "/N/u/merzky/install/bin/saga-run.sh"               , // exe
+   ""                                                    // pwd
    ));
 #endif
 
 #ifdef UNICORE
   // Unicore endpoint (BES)
+  //   type     = "UserPass";
+  //   url      = "https://zam1161v01.zam.kfa-juelich.de:8002/DEMO-SITE/services/BESFactory?res=default_bes_factory";
+  //   user     = "ogf";
+  //   pass     = "ogf";
+  //   cert     = "/tmp/x509up_u503";
+  //   key      = "/tmp/x509up_u503";
+  //   cadir    = HOME ".saga/certificates/";
+  //   exe      = "/home/unicoreinterop/install/bin/saga-run.sh";
   endpoints_.push_back (endpoint_ (
    "unicore-bes"                                      , // name
    "https://zam1161v01.zam.kfa-juelich.de:8002/DEMO-SITE/services/BESFactory?res=default_bes_factory"
@@ -212,9 +254,48 @@ job_starter::job_starter (unsigned int njobs,
    ""                                                  , // proxy
    HOME "/.saga/certificates/"                         , // cadir
    "/home/unicoreinterop/install/bin/saga-run.sh"      , // exe
-   "/home/unicoreinterop/"                               // pwd
+   ""                                                    // pwd
    ));
 #endif
+
+#ifdef UNICORE_FG_INDIA
+  // Unicore endpoint on FG (BES)
+  endpoints_.push_back (endpoint_ (
+   "unicore.fg.india-bes"                              , // name
+// "https://198.202.120.85:8080/DEMO-SITE/services/BESFactory?res=default_bes_factory"
+   "https://localhost:10003/DEMO-SITE/services/BESFactory?res=default_bes_factory"
+                                                       , // url
+   "UserPass"                                          , // ctype
+   "ogf"                                               , // user
+   "ogf"                                               , // pass
+   "/tmp/x509up_u503"                                  , // cert
+   "/tmp/x509up_u503"                                  , // key
+   ""                                                  , // proxy
+   HOME "/.saga/certificates/"                         , // cadir
+   "/N/u/merzky/install/bin/saga-run.sh"               , // exe
+   ""                                                    // pwd
+   ));
+#endif
+
+
+#ifdef GRIDSAM
+  // GridSAM endpoint (BES)
+  endpoints_.push_back (endpoint_ (
+   "gridsam-bes"                                      , // name
+   "https://gridsam-test.oerc.ox.ac.uk:18443/gridsam/services/hpcbp"
+                                                       , // url
+   "UserPass"                                          , // ctype
+   "ogf30"                                             , // user
+   "ogf30"                                             , // pass
+   "/tmp/x509up_u503"                                  , // cert
+   "/tmp/x509up_u503"                                  , // key
+   ""                                                  , // proxy
+   HOME "/.saga/certificates/"                         , // cadir
+   "/home/amerzky/install/bin/saga-run.sh"             , // exe
+   "/home/amerzky/"                                      // pwd
+   ));
+#endif
+ 
  
 #ifdef EC2
   // EC2 endpoint (AWS)
@@ -270,13 +351,24 @@ job_starter::job_starter (unsigned int njobs,
       throw "Could not start client\n";
     }
 
+    std::string jobid (j.get_job_id ());
+
+    // trim jobid for readability
+    if ( jobid.size () > 54 )
+    {
+      jobid.erase (55);
+
+      jobid[51] = '.';
+      jobid[52] = '.';
+      jobid[53] = '.';
+    }
 
     std::cout << "created job number " 
               << n + 1 << "/" << njobs 
               << " on " 
               << ep.url_
               << " : " 
-              << j.get_job_id ()
+              << jobid
               << std::endl;
 
     // keep job
@@ -287,19 +379,5 @@ job_starter::job_starter (unsigned int njobs,
 
 job_starter::~job_starter (void)
 {
-  // Usually, we don't need to cancel jobs, as they'll terminate
-  // when running out of work.  But in case we finish
-  // prematurely, we take care of termination
-
-  for ( unsigned int i = 0; i < jobs_.size (); i++)
-  {
-    std::cout << "killing job " << i << " (" 
-              << jobs_[i].get_state () << ")" << std::endl;
-
-    if ( saga::job::Running == jobs_[i].get_state () )
-    {
-      jobs_[i].cancel ();
-    }
-  }
 }
 
