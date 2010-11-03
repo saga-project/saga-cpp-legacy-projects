@@ -6,6 +6,7 @@
 
 #include "output_base.hpp"
 #include "output_x11.hpp"
+#include "output_png.hpp"
 
 // this class encapsulates a master/worker paradigm.  We start
 // njobs_ jobs, and distribute work items to them.

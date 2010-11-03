@@ -18,11 +18,11 @@
 // Or a command line interface.  Or use the advert service.
 // Or whatever.  But hey, it's just an example, right? ;-)
 
-#define BOX_SIZE_X        600
-#define BOX_SIZE_Y         80
-
-#define BOX_NUM_X           2
-#define BOX_NUM_Y          10
+#define BOX_SIZE_X         600
+#define BOX_SIZE_Y          80
+ 
+#define BOX_NUM_X            2
+#define BOX_NUM_Y           10
 
 #define PLANE_X_0           -2
 #define PLANE_Y_0           -1
@@ -51,6 +51,13 @@ mandelbrot::mandelbrot (std::string  odev,
   {
     // initialize output device
     dev_  = new output_x11 (BOX_SIZE_X * BOX_NUM_X, // window size, x
+                            BOX_SIZE_Y * BOX_NUM_Y, // window size, y
+                            LIMIT);                 // number of colors
+  }
+  else if ( odev_ == "png" )
+  {
+    // initialize output device
+    dev_  = new output_png (BOX_SIZE_X * BOX_NUM_X, // window size, x
                             BOX_SIZE_Y * BOX_NUM_Y, // window size, y
                             LIMIT);                 // number of colors
   }
@@ -104,7 +111,7 @@ mandelbrot::~mandelbrot (void)
   // close output device
   if ( NULL != dev_ )
   {
-    std::cout << "deleting output device" << std::endl;
+    std::cout << "closing output device" << std::endl;
     delete dev_;
     dev_ = NULL;
   }

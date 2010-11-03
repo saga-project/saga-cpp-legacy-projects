@@ -13,13 +13,13 @@
 
    #define FORK                //  OK
 // #define BESPP               //  OK ?
-   #define SSH                 //  OK
-   #define GRAM                //  OK 
-   #define SMOA1               //  OK
-   #define SMOA2               //  OK
+// #define SSH                 //  OK
+// #define GRAM                //  OK 
+// #define SMOA1               //  OK
+// #define SMOA2               //  OK
 // #define ARC                 //  OK ?
-   #define GENESIS             //  OK 
-   #define UNICORE             //  OK
+// #define GENESIS             //  OK 
+// #define UNICORE             //  OK
 // #define UNICORE_FG_INDIA    //  OK ?
 // #define GRIDSAM             // NOK      sec
 // #define EC2                 // NOK      sec deploy
@@ -99,7 +99,7 @@ job_starter::job_starter (unsigned int njobs,
    ""                                                  , // key
    ""                                                  , // proxy
    ""                                                  , // cadir
-   HOME "/install/bin/saga-run.sh"                     , // exe
+   HOME "/projects/saga/install/bin/saga-run.sh"       , // exe
    "/tmp"                                                // pwd
    ));
 #endif

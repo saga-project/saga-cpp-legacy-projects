@@ -2,18 +2,17 @@
 #include <sstream>
 #include <iostream>
 
-#include "output_x11.hpp"
+#include <stdio.h>
+#include <stdlib.h>
 
-// toggle for box borders and labels
-#define DEMO true
+#include "output_x11.hpp"
 
 output_x11::output_x11 (unsigned int size_x, 
                         unsigned int size_y, 
                         unsigned int cnum)
     : size_x_   (size_x),
       size_y_   (size_y),
-      cnum_     (cnum), 
-      fallback_ (false)
+      cnum_     (cnum)
 {
   // Open the display
   dpy_ = XOpenDisplay (NULL);
@@ -22,8 +21,8 @@ output_x11::output_x11 (unsigned int size_x,
   // print a message of what we *would* paint
   if ( dpy_ == NULL )
   {
-    std::cout << "init x11 output failed - continue without graphics\n";
-    fallback_ = true;
+    std::cout << "init x11 output failed\n";
+    ::exit (-1);
   }
   else
   {
@@ -114,13 +113,11 @@ output_x11::output_x11 (unsigned int size_x,
 
 output_x11::~output_x11 (void)
 {
-  if ( ! fallback_ )
-  {
-    // shut down X11
-    XFreeGC        (dpy_, gc_);
-    XDestroyWindow (dpy_, win_);
-    XCloseDisplay  (dpy_);
-  }
+  ::getchar ();
+  // shut down X11
+  XFreeGC        (dpy_, gc_);
+  XDestroyWindow (dpy_, win_);
+  XCloseDisplay  (dpy_);
 }
 
 
@@ -155,69 +152,51 @@ void output_x11::paint_box (unsigned int x0, unsigned int n_x,
     // iterate over all pixels in line
     for ( unsigned int y = 0; y < n_y; y++ )
     {
-      if ( ! fallback_ )
-      {
-        // set paint color according to data value
-        // (first two colors are reserved
-        XSetForeground (dpy_, gc_, colors_[line[y] % (cnum_ - 2) + 2]);
+      // set paint color according to data value
+      // (first two colors are reserved
+      XSetForeground (dpy_, gc_, colors_[line[y] % (cnum_ - 2) + 2]);
 
-        // draw the point at given coordinates
-        XDrawPoint     (dpy_, win_, gc_, 
-                        x0 + x, 
-                        y0 + y);
-      }
+      // draw the point at given coordinates
+      XDrawPoint     (dpy_, win_, gc_, 
+                      x0 + x, 
+                      y0 + y);
     }
   }
 
-  if ( DEMO )
+  // for demo purposes, we also draw box boundaries
+  for ( unsigned int bx = 0; bx < n_x; bx++ )
   {
-    if ( ! fallback_ )
-    {
-      // for demo purposes, we also draw box boundaries
-      for ( unsigned int bx = 0; bx < n_x; bx++ )
-      {
-        XSetForeground (dpy_, gc_, colors_[cnum_ + (bx % 2)]);
-        XDrawPoint     (dpy_, win_, gc_, x0 + bx, y0 + 0);
-        XDrawPoint     (dpy_, win_, gc_, x0 + bx, y0 + n_y);
-      }
-
-      for ( unsigned int by = 0; by < n_y; by++ )
-      {
-        XSetForeground (dpy_, gc_, colors_[cnum_ + (by % 2)]);
-        XDrawPoint     (dpy_, win_, gc_, x0 + 0,   y0 + by);
-        XDrawPoint     (dpy_, win_, gc_, x0 + n_x, y0 + by);
-      }
-    }
-
-    // print identifier as box label
-    if ( ! fallback_ )
-    {
-      std::string tmp (ident);
-      int         len = tmp.size ();
-
-      if ( tmp.size () > 53 )
-      {
-        tmp[51] = '.';
-        tmp[52] = '.';
-        tmp[53] = '.';
-        len     = 53;
-      }
-
-
-      XSetForeground (dpy_, gc_, WhitePixel (dpy_, scr_));
-      XDrawString    (dpy_, win_, gc_, x0 + 10, y0 + 20, 
-                      tmp.c_str (), len);
-    }
-    else
-    {
-      std::cout << " draw box for " << ident << std::endl;
-    }
+    XSetForeground (dpy_, gc_, colors_[cnum_ + (bx % 2)]);
+    XDrawPoint     (dpy_, win_, gc_, x0 + bx, y0 + 0);
+    XDrawPoint     (dpy_, win_, gc_, x0 + bx, y0 + n_y);
   }
 
-  if ( ! fallback_ )
+  for ( unsigned int by = 0; by < n_y; by++ )
   {
-    // flush window contents to make sure everything gets drawn
-    XFlush (dpy_);
+    XSetForeground (dpy_, gc_, colors_[cnum_ + (by % 2)]);
+    XDrawPoint     (dpy_, win_, gc_, x0 + 0,   y0 + by);
+    XDrawPoint     (dpy_, win_, gc_, x0 + n_x, y0 + by);
   }
+  
+
+  // print identifier as box label
+  std::string tmp (ident);
+  int         len = tmp.size ();
+
+  if ( tmp.size () > 53 )
+  {
+    tmp[51] = '.';
+    tmp[52] = '.';
+    tmp[53] = '.';
+    len     = 53;
+  }
+
+
+  XSetForeground (dpy_, gc_, WhitePixel (dpy_, scr_));
+  XDrawString    (dpy_, win_, gc_, x0 + 10, y0 + 20, 
+                  tmp.c_str (), len);
+
+  // flush window contents to make sure everything gets drawn
+  XFlush (dpy_);
 }
 
