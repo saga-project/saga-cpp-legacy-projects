@@ -238,7 +238,7 @@ std::vector<std::string> HandleReduces::groupFiles_(int partition) {
         "map", chunk_it->first, partition)));
       if (data.exists(fileurl)) {
         saga::advert::entry adv(data.open(fileurl, mode));
-        std::string path = adv.retrieve_object<std::string>();
+        std::string path = adv.retrieve_string();
         intermediate_files.push_back(path);
         log_->write(("Added file " + path + " to input list"), MR_LOGLEVEL_INFO);
       } else {

@@ -164,7 +164,7 @@ class WorkerThread {
           boost::lexical_cast<std::string>(timestamp));
 
         saga::advert::entry server_name(master.open(ADVERT_ENTRY_SERVER, mode));
-        serverURL_ = saga::url(server_name.retrieve_object<std::string>());
+        serverURL_ = saga::url(server_name.retrieve_string());
         LOG_DEBUG << "SERVER_URL = " << serverURL_.get_string();
      }
      catch(saga::exception const & e) {

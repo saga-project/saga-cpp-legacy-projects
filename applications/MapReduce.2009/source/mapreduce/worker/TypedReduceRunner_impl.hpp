@@ -28,7 +28,7 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
     int mode = saga::advert::ReadWrite;
     while(entries_it != entries.end()) {
       saga::advert::entry adv(input_dir.open(*entries_it, mode));
-      input_files.push_back(adv.retrieve_object<std::string>());
+      input_files.push_back(adv.retrieve_string());
       LOG_DEBUG << "Added reduce input " << input_files.back();
       ++entries_it;
     }
