@@ -1,0 +1,152 @@
+
+\documentclass{article}
+
+\usepackage{ifpdf}
+%\usepackage{subfigure}
+
+\ifpdf
+  \usepackage[pdftex]{graphicx}
+  \usepackage[pdftex]{hyperref}
+  \graphicspath{{Pics/}}
+  \DeclareGraphicsExtensions{.pdf, .png, .jpg}
+\else
+  \usepackage{graphicx}
+  \usepackage[hypertex]{hyperref}
+  \graphicspath{{Pics/}}
+  \DeclareGraphicsExtensions{.ps, .eps}
+\fi
+
+\usepackage{srcltx}
+%\usepackage{wrapfig}
+
+\newcommand{\I}{\textit}
+\newcommand{\B}{\textbf}
+\newcommand{\T}{\texttt}
+
+\newcommand{\F}[1]{\B{FIXME: #1}}
+
+\begin{document}
+
+\title{SAGA-MapReduce Framework -- Developer's Manual}
+\author{Miklos Erdelyi \footnotemark}
+\maketitle
+
+\footnotetext{made in the frame of Google Summer of Code 2009}
+
+\begin{abstract}
+
+  This document discusses the design and implementation of the SAGA-MapReduce framework, aimed at easing the contribution to it.
+
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+The MapReduce programming model has gained wide popularity in recent years \cite{mapreduce, hadoop}.
+
+The aim of this framework is to make large-scale parallel data processing tasks easily implementable in heterogenous environments supported by SAGA. There are several open-source solutions available, such as Hadoop \cite{hadoop}, Sector/Sphere \cite{sector}. SAGA-MapReduce differs from these solutions in that it is infrastructure-independent: different job scheduling systems (eg., Globus, Condor) and distributed file systems (eg., HDFS \cite{hdfs}, KFS \cite{kfs}) can be used in combination for performing MapReduce tasks, so the application is not inherently tied to any infrastructure.
+
+
+\subsection{Programming Model}
+
+The reader is invited to read about the MapReduce programming model in more depth in \cite{mapreduce}. Here, only the main ideas will be recalled.
+
+The computation is based on key/value pairs: from a set of \emph{input} key/value pairs a set of \emph{output} key/value pairs are produced. The user of the framework can express the computation as two functions: a \emph{Mapper} and a \emph{Reducer}.
+
+The \emph{Mapper} takes an input pair and produces a set of \emph{intermediate} key/value pairs. The framework collects all the intermediate values for a key \emph{K} and hands them over to the Reducer. Essentially, the Mapper performs a filtering operation.
+
+The \emph{Reducer} gets an intermediate key \emph{K} and a list of intermediate values, and merges these to form a usually smaller set of values. Typically only zero or one value is produced for each intermediate key, as the Reducer usually performs an aggregation of data.
+
+For an example of MapReduce computation, please see the SAGA-MapReduce User Manual.
+
+\section{Execution Overview}
+
+In the following, a MapReduce job's execution will be described.
+%The general job execution flow can be seen in Figure TODO.
+
+While executing a MapReduce job, the following steps are made:
+\begin{itemize}
+  \item The executable linked to the SAGA-MapReduce library is started on the user's machine, and will take care of orchestrating the execution of the job. This machine will act as the master.
+  \item The master asks the \texttt{InputFormat} specified in the JobDescription to chunk the input data. The chunks are given each a UUID.
+  \item The master spawns workers on the host machines specified in the configuration file using the SAGA Job API. Currently as many workers are spawned as many hosts are specified in the configuration.
+  \item When a worker starts up, it puts put its status information into an advert directory. This will be updated throughout the lifetime of a worker. It tries to connect back to the server specified on the command-line through SAGA Streams, then waits for the commands of the master.
+  \item In the map phase, the master assigns chunks to idle workers. The workers will process the assigned chunk using the user-supplied function. On completion, the worker signals the master that it has finished a certain chunk. When all the chunks are finished, the master switches to the reduce phase.
+  \item In the reduce phase, the master assigns sets of partitions to be reduced to idle workers. When all the partitions have been processed by workers, the master returns with the results of the MapReduce computation to the user code.
+\end{itemize}
+
+
+\section{Important Classes}
+
+In this section the main building elements of SAGA-MapReduce will be described in more detail.
+
+\subsection{User-definable}
+
+
+\subsection{Master}
+
+The SAGA-MapReduce executable decides upon startup, whether it should be run as a master or as a worker. This is done by checking the \texttt{-w} command-line parameter (the master appends this command-line parameter to the launched worker executables).
+
+
+
+\subsection{Worker}
+
+If the ran SAGA-MapReduce executable must behave as a worker, an instance of the class \texttt{WorkerThread} is spawned.
+\texttt{WorkerThread::Run} is the main entry point of this class: it registers the worker in the advert and starts the main loop.
+
+In the main loop the worker polls the server for instructions (\texttt{WorkerThread::getFrontendCommand\_}) and acts according to these. The protocol used for master-worker communication will be described later in Section \ref{sect:protocol}. In the next subsections the map and reduce tasks will be described in detail.
+
+\subsubsection{Map Task Execution}
+\label{sect:worker_map_task}
+
+A map task is specified by the master with the following data:
+\begin{itemize}
+  \item a \texttt{JobDescription},
+  \item a chunk id (string) and
+  \item a serialized InputChunk.
+\end{itemize}
+
+Upon receiving a request to perform a map task, the worker creates an instance of \texttt{MapTaskRunner} which will start executing the task. \texttt{MapTaskRunner} creates the \texttt{MapRunner} class needed for this specific task using the class factory (see Section \ref{sect:class_factory}) and stores the to-be-processed chunk's ID in the job's description.
+
+The real work is done in \texttt{TypedMapRunner::RunTask}. This method sets up a \texttt{RecordReader} for reading the data specified in the given input chunk. If there is no need to partition the output (ie., there will be no reduce phase), it creates a \texttt{RecordWriter} which will directly store data in the output directory specified by the user. Otherwise it instantiates a \texttt{MapPartitionedOutput} which buffers and partitions intermediate data. \emph{Note: currently the aforementioned class buffers data till the end of the map task which might not be desirable in case large amount of intermediate data is produced.}
+
+After having finished processing the input chunk, the worker stores the places of intermediate data in the advert.
+
+\subsubsection{Reduce Task Execution}
+
+A reduce task is specified by the master by sending the \texttt{JobDescription} and the partition number for the worker. The paths of intermediate files relevant to the reduce task are put into the worker's advert directory.
+
+Similar to map task execution, the worker creates an instance of \texttt{ReduceTaskRunner} which instantiates the proper \texttt{ReduceRunner} needed for performing the job using the class factory.
+
+Actual work is done in \texttt{TypedReduceRunner::RunTask}. This method reads out intermediate file paths from the advert and creates either a \texttt{SequenceFileReader} or a \texttt{MergingRecordReader}, depending on whether there is only one intermediate file or more intermediate files are available for the to-be-reduced partition. \texttt{MergingRecordReader} reads out one record from each intermediate file incrementally and returns them in increasing order of keys by employing a heap. This is possible because intermediate data produced in the map phase is written out in increasing order of keys. The comparator specified in the \texttt{Reducer} class's \texttt{comparator\_type} field is used for ordering the keys.
+
+For iterating through keys and values a \texttt{Reducer::Context} is created. This class acts both as an iterator of values and as an iterator of keys obtained from a \texttt{RecordReader}. \emph{Note: the value iterator is not thread-safe.} When iterating through keys, \texttt{Reducer::Context} compares the raw bytes of keys of successive key/value pairs got from the \texttt{RecordReader} using a \texttt{RawComparator} implementation. \emph{Note: currently always \texttt{RawBytesComparator} is instantiated as the \texttt{RawComparator} implementation because the comparator implementation cannot be overridden by the user yet.} When iterating through values for a key, it keeps returning values till the respective key/value pairs have the same key.
+
+Using a context object, \texttt{Reducer::Run} will loop through all keys and invoke the user-specified \texttt{Reduce} function on each. The user-specified function uses \texttt{Reducer::Context} as an iterator for the underlying keys of the currently processed key.
+
+\subsection{Class Factory}
+\label{sect:class_factory}
+
+Since the same executable can be used for performing chained MapReduce jobs, the exact mapper and reducer functions to be used for the computations are not ''wired in''. Runtime creation and invocation of the proper mapper and reducer functions is ensured by a class factory which is responsible for creating the mapper and reducer classes containing these functions.
+
+SAGA-MapReduce has class factories for the following base classes and interfaces:
+\begin{itemize}
+  \item RawInputFormat, RawOutputFormat (see Section \ref{sect:input_output_formats}),
+  \item Partitioner,
+  \item MapRunner, ReduceRunner (see Section \ref{sect:worker_map_task}).
+\end{itemize}
+
+\texttt{MapRunner} and \texttt{ReduceRunner} classes are created by the respective registering macros \texttt{REGISTER\_MAPPER\_CLASS} and \texttt{REGISTER\_REDUCER\_CLASS}.
+
+
+\section{Input and Output Formats}
+\label{sect:input_output_formats}
+
+\section{Protocols and Communication}
+\label{sect:protocol}
+
+\section{References}
+\bibliography{saga_mapreduce}
+\bibliographystyle{plain}
+
+\end{document}

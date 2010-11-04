@@ -1,0 +1,20 @@
+Import('env')
+
+libEnv = env.Clone()
+
+libEnv.Append(LIBS = ['boost_program_options', 'boost-log_static',
+        'saga_engine', 'saga_package_namespace', 'saga_package_filesystem',
+        'saga_package_job', 'saga_package_advert', 'saga_package_stream'])
+
+libEnv.Object(['mapreduce.cpp', 'job.cpp', 'Partitioner.cpp'])
+libEnv.Object(Glob('io/*.cpp'))
+libEnv.Object(Glob('input/*.cpp'))
+libEnv.Object(Glob('output/*.cpp'))
+libEnv.Object(Glob('worker/*.cpp'))
+libEnv.Object(Glob('master/*.cpp'))
+
+lib_shared_sources = [Glob('*.cpp'), Glob('io/*.cpp'), Glob('input/*.cpp'),
+    Glob('output/*.cpp'), Glob('worker/*.cpp'), Glob('master/*.cpp'),
+    '../utils/LogWriter.cpp', '../xmlParser/xmlParser.cpp']
+
+libEnv.SharedLibrary('saga_mapreduce_shared', lib_shared_sources)
