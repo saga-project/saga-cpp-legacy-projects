@@ -2,7 +2,7 @@
 #ifndef SAGA_PM_MASTER_WORKER_WORKER_HPP
 #define SAGA_PM_MASTER_WORKER_WORKER_HPP
 
-#include "master_worker.hpp"
+#include "util.hpp"
 #include "advert.hpp"
 
 namespace saga_pm
@@ -15,7 +15,7 @@ namespace saga_pm
     {
       private:
         call_map_t call_map_;
-        advert ad_;
+        advert          ad_;
 
       protected:
         void init (call_map_t call_map);

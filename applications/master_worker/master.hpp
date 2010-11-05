@@ -2,8 +2,8 @@
 #ifndef SAGA_PM_MASTER_WORKER_MASTER_HPP
 #define SAGA_PM_MASTER_WORKER_MASTER_HPP
 
-#include "master_worker.hpp"
-#include "w.hpp"
+#include "util.hpp"
+#include "advert.hpp"
 
 namespace saga_pm
 {
@@ -14,10 +14,12 @@ namespace saga_pm
     class master
     {
       private:
-        saga::job::service       js_;
-        unsigned int             nworker_;
-        std::string              worker_exe_;
-        std::vector <w>          worker_;
+        unsigned int              nworker_;
+        std::string               worker_exe_;
+        std::vector <std::string> worker_args_;
+        std::vector <advert>      worker_ads_;
+        std::string               master_ad_;
+        saga::advert::directory   ad_;
 
 
       protected:
@@ -27,8 +29,9 @@ namespace saga_pm
 
 
       public:
-        master (unsigned int nworker, 
-                std::string  worker_exe);
+        master (unsigned int              nworker, 
+                std::string               worker_exe, 
+                std::vector <std::string> worker_args);
         ~master (void);
 
         void shutdown (void);

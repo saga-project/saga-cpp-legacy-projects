@@ -5,103 +5,225 @@ namespace saga_pm
 {
   namespace master_worker
   {
-
     ////////////////////////////////////////////////////////////////////
     advert::advert (void)
-      : url_ ("")
+      : ok_     (false)
+      , s_      (Unknown)
+      , url_    ("")
     {
+      // we touch the advert object here. to ensure its early construction.
+      // That way, the object should stay alive to be used in the
+      // destructor.
+      ad_.get_id ();
     }
 
 
     ////////////////////////////////////////////////////////////////////
-    advert::advert  (saga::url u, 
-                     bool      create)
-      : url_ (u)
+    advert::advert (saga::url url)
+      : ok_     (false)
+      , create_ (true) // client creates the advert
+      , s_      (Unknown)
+      , url_    (url_)
     {
-      std::cout << "advert: new URL" << url_ << std::endl;
-
-      if ( create )
-      {
-        if ( is_master () )
-        {
-          std::cout << "master MUST NOT create ads!" << std::endl;
-          throw saga::no_success ("Master must not create worker adverts.");
-        }
-
-        // if the ad exists, we remove it before (ads don't have Truncate :-/ )
-        //
-        // FIXME: make this optional, so that old ads can be preserved if needed,
-        // different instances don't clash, and/or performance can be optimized
-        try {
-          saga::advert::entry (url_, saga::advert::Write).remove ();
-        } catch ( const saga::exception & e ) { /* ignore errors */ }
-
-
-        // create the advert, initialize all attributes, set id and 
-        // state (Started)
-        ad_ = saga::advert::entry (url_, saga::advert::Read          | 
-                                   saga::advert::Create        | 
-                                   saga::advert::CreateParents | 
-                                   saga::advert::Exclusive     );
-
-        std::string               empty ("");
-        std::vector <std::string> empty_vec;
-
-        empty_vec.push_back (empty);
-
-        id_ = get_worker_id ();
-
-        ad_.set_attribute        ("id",       id_);
-        ad_.set_attribute        ("task",     empty);
-        ad_.set_attribute        ("error",    empty);
-        ad_.set_attribute        ("task",     empty);
-        ad_.set_vector_attribute ("par_in",   empty_vec);
-        ad_.set_vector_attribute ("par_out",  empty_vec);
-
-        // advert is initalized, we can set the state to notify master of
-        // successfull startup
-        ad_.set_attribute ("state", "Started");
-      }
-      else
-      {
-        std::cout << "open ad" << std::endl;
-        // simply open advert in rw mode, and cache id
-        ad_ = saga::advert::entry (url_, saga::advert::ReadWrite);
-        id_ = ad_.get_attribute ("id");
-
-        // FIXME: verify/reset state
-        std::cout << "open ad ok " << id_ << std::endl;
-      }
+      // we touch the advert object here. to ensure its early construction.
+      // That way, the object should stay alive to be used in the
+      // destructor.
+      ad_.get_id ();
     }
+
 
     ////////////////////////////////////////////////////////////////////
-    advert::advert (const advert & orig)
+    advert::advert (saga::job::service js, 
+                    saga::job::job     job, 
+                    saga::url          url)
+      : ok_     (false)
+      , create_ (false) // master does not create the adverts
+      , s_      (Unknown)
+      , js_     (js_)
+      , job_    (job_)
+      , url_    (url_)
     {
-      id_   = orig.id_;
-      url_  = orig.url_;
-      ad_   = orig.ad_;
+      // we touch the advert object here. to ensure its early construction.
+      // That way, the object should stay alive to be used in the
+      // destructor.
+      ad_.get_id ();
     }
+
 
     ////////////////////////////////////////////////////////////////////
     advert::~advert (void)
     {
-      std::cout << "closing advert " << url_ << std::endl;
     }
 
 
     ////////////////////////////////////////////////////////////////////
-    std::string advert::get_id (void)
+    bool advert::init (void)
     {
-      return id_;
+      if ( ! ok_ ) 
+      {
+        try 
+        {
+          if ( create_ )
+          {
+            // if the ad exists, it is simply being reused, and re-initialized.
+            // Not that this can cause race conditions if different runs have
+            // overlapping name spaces!
+            //
+            // FIXME: make cleaning optional, so that old ads can be preserved if needed,
+
+            // create the advert, initialize all attributes, set id and 
+            // state (Started)
+            ad_ = saga::advert::entry (url_, saga::advert::Read     | 
+                                             saga::advert::Create   );
+
+            std::string               empty ("");
+            std::vector <std::string> empty_vec;
+
+            empty_vec.push_back (empty);
+
+            id_ = get_worker_id ();
+
+            ad_.set_attribute        ("id",       id_);
+            ad_.set_attribute        ("task",     empty);
+            ad_.set_attribute        ("error",    empty);
+            ad_.set_attribute        ("task",     empty);
+            ad_.set_vector_attribute ("par_in",   empty_vec);
+            ad_.set_vector_attribute ("par_out",  empty_vec);
+
+            // advert is initalized, we can set the state to notify master of
+            // successfull startup
+            ad_.set_attribute ("state", "Started");
+          }
+          else
+          {
+            // simply open advert in rw mode, and cache id
+            ad_ = saga::advert::entry (url_, saga::advert::ReadWrite);
+            id_ = ad_.get_attribute ("id");
+
+            // FIXME: verify/reset state
+            std::cout << "open ad ok " << id_ << std::endl;
+          }
+
+          ok_ = true; // no exception means success :-)
+
+          return true; // signal that this run actually *did* something
+        }
+        catch ( const saga::does_not_exist & e )
+        {
+          // do nothing, not yet ok, retry later
+        }
+        // other exceptions fall through
+      }
+
+      return false; // this run did nothing (useful)
     }
 
 
     ////////////////////////////////////////////////////////////////////
-    state advert::get_state (void )
+    void advert::run (std::string command, 
+                 argvec_t    args)
     {
+      argvec_t ret;
+
+      std::cout << " running test on 0: " << get_state () << std::endl;
+
+      if ( (! ok_) || (Idle != get_state ()) )
+      {
+        throw saga::no_success ("Cannot run command - worker not idle");
+      }
+
+      set_task    (command);
+      set_par_in  (args);
+      set_state   (Assigned);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////
+    argvec_t advert::wait (void)
+    {
+      if ( ! ok_ )
+      {
+        throw saga::no_success ("worker in incorrect state");
+      }
+
+      state s = get_state ();
+
+      if ( Done == s )
+        return get_par_out ();
+
+      if ( Failed == s )
+        throw saga::no_success ("command failed");
+
+      if ( Busy != s )
+        throw saga::no_success ("worker in incorrect state");
+
+      while ( Busy == get_state () )
+      {
+        :: sleep (1);
+        std::cout << "waiting for worker " << job_.get_job_id () << std::endl;
+      }
+
+      if ( Failed == s )
+        throw saga::no_success ("command failed");
+
+      if ( Done != s )
+        throw saga::no_success ("worker in incorrect state");
+
+      return get_par_out ();
+    }
+
+
+    ////////////////////////////////////////////////////////////////////
+    void advert::purge (void)
+    {
+      if ( ! ok_ )
+      {
+        throw saga::no_success ("worker in incorrect state");
+      }
+
+      ad_.remove ();
+    }
+    
+
+
+    ////////////////////////////////////////////////////////////////////
+    saga::job::job advert::get_job (void) 
+    { 
+      return job_;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////
+    void advert::set_state (state s) 
+    { 
+      if ( ! ok_ )
+      {
+        throw saga::no_success ("worker in incorrect state");
+      }
+
       if ( ! ad_.attribute_exists ("state") )
       {
-        std::cout << " --- get_state: problem " << std::endl;
+        throw saga::no_success ("no state found");
+      }
+
+      std::string old = ad_.get_attribute ("state");
+      ad_.set_attribute ("state", state_to_string (s));
+
+      std::cout << " --- set_state: " << old << " -> " << s << " -> " << state_to_string (s) << std::endl;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////
+    state advert::get_state (void) 
+    { 
+      if ( ! ok_ )
+      {
+        return Unknown;
+        // throw saga::no_success ("worker in incorrect state");
+      }
+
+      if ( ! ad_.attribute_exists ("state") )
+      {
         throw saga::no_success ("no state found");
       }
 
@@ -111,57 +233,56 @@ namespace saga_pm
       return string_to_state (s);
     }
 
-    ////////////////////////////////////////////////////////////////////
-    void advert::set_state (state s)
-    {
-      std::cout << " --- set_state: " << std::endl;
-      std::string old   = "Unknown";
-      std::string check = "Unknown";
 
-      if ( ! ad_.attribute_exists ("state") )
+    ////////////////////////////////////////////////////////////////////
+    void advert::set_error (std::string e) 
+    { 
+      if ( ! ok_ )
       {
-        std::cout << " --- set_state: problem " << std::endl;
-        exit (0);
-        // throw saga::no_success ("no state found");
+        throw saga::no_success ("worker in incorrect state");
       }
 
-      old   = ad_.get_attribute ("state");
-      ad_.set_attribute ("state", state_to_string (s));
-      check = ad_.get_attribute ("state");
-
-      std::cout << " --- set_state: " << old << " -> " << s << " -> " << check << std::endl;
+      ad_.set_attribute ("error", e);
     }
 
 
     ////////////////////////////////////////////////////////////////////
-    std::string advert::get_task (void )
-    {
-      return (ad_.get_attribute ("task"));
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    void advert::set_task (std::string t)
-    {
-
-      try 
+    std::string advert::get_error (void) 
+    { 
+      if ( ! ok_ )
       {
-        std::cout << " advert " << ad_.get_url () << " task setting to " << t << std::endl;
-        ad_.set_attribute ("task", t);
-
-        std::string check = ad_.get_attribute ("task");
-        std::cout << " advert " << ad_.get_url () << " task set     to " << check << std::endl;
-
+        return ("worker not yet alive");
       }
-      catch ( const saga::exception & e )
+
+      if ( ! ad_.attribute_exists ("error") )
       {
-        std::cout << " ad set exception: " << e.what () << std::endl;
+        return ("no error");
       }
+
+      std::string error = ad_.get_attribute ("error");
+
+      std::cout << " --- get_error: " << error << std::endl;
+      return error;
+
     }
 
 
     ////////////////////////////////////////////////////////////////////
     std::vector <std::string> advert::get_par_in (void )
     {
+      if ( ! ok_ )
+      {
+        throw saga::no_success ("worker in incorrect state");
+      }
+
+      if ( ! ad_.attribute_exists ("par_in") )
+      {
+        throw saga::no_success ("worker does not have in parameters, yet");
+
+        // std::vector <std::string> par_in;
+        // return par_in;
+      }
+
       return (ad_.get_vector_attribute ("par_in"));
     }
 
@@ -175,8 +296,22 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     std::vector <std::string> advert::get_par_out (void )
     {
+      if ( ! ok_ )
+      {
+        throw saga::no_success ("worker in incorrect state");
+      }
+
+      if ( ! ad_.attribute_exists ("par_out") )
+      {
+        throw saga::no_success ("worker does not have out parameters, yet");
+
+        // std::vector <std::string> par_out;
+        // return par_out;
+      }
+
       return (ad_.get_vector_attribute ("par_out"));
     }
+
 
     ////////////////////////////////////////////////////////////////////
     void advert::set_par_out (std::vector <std::string> po)
@@ -186,17 +321,32 @@ namespace saga_pm
 
 
     ////////////////////////////////////////////////////////////////////
-    std::string advert::get_error (void )
+    std::string advert::get_task (void )
     {
-      return (ad_.get_attribute ("error"));
+      if ( ! ok_ )
+      {
+        throw saga::no_success ("worker in incorrect state");
+      }
+
+      if ( ! ad_.attribute_exists ("task") )
+      {
+        throw saga::no_success ("worker does not have a task, yet");
+      }
+
+      std::string t = ad_.get_attribute ("task");
+      std::cout << " worker " << id_ << " : task found: " << t << std::endl;
+
+      return t;
     }
 
+
     ////////////////////////////////////////////////////////////////////
-    void advert::set_error (std::string e)
+    void advert::set_task (std::string t)
     {
-      ad_.set_attribute ("error", e);
+      ad_.set_attribute ("task", t);
+      std::cout << " worker " << id_ << " : task set to " << t << std::endl;
     }
-    ////////////////////////////////////////////////////////////////////
+
 
   } // namespace master_worker
 

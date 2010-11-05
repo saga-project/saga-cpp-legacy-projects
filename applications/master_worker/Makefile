@@ -7,7 +7,14 @@ SAGA_SRC     = $(wildcard *.cpp)
 SAGA_LIB_OBJ = $(SAGA_SRC:%.cpp=%.o)
 SAGA_LIB     = saga_pm_master_worker
 
-SAGA_SUBDIRS_DELAYED = example
+.PHONY: example
+example: $(SAGA_LIBNAME)
+	@$(MAKE) -C example
+
+clean::
+	@$(MAKE) -C example clean
+
+# SAGA_SUBDIRS_DELAYED = example
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 

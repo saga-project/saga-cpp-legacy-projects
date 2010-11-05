@@ -42,7 +42,7 @@ namespace saga_pm
       std::cout << "adurl: " << adurl << std::endl;
 
       // create that advert URL
-      ad_ = advert  (adurl, true);
+      ad_ = advert  (adurl);
 
       ad_.set_state (Started);
     }
