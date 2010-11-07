@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 DEFAULT_ADVERT_HOST="advert.cct.lsu.edu"
 
-class many_job_service():
+class many_job_service(object):
 
     def __init__(self, bigjob_list, advert_host):
         """ accepts resource list as key/value pair:
