@@ -22,8 +22,14 @@ class many_job_affinity_service(many_job_service):
             free_cores = i["free_cores"]
             bigjob_url = bigjob.pilot_url
             state = bigjob.get_state_detail()
-            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + i["number_cores"] + " Affinity: " + affinity + " State: " + state)
-            if state.lower() == "running" and free_cores >= int(subjob.job_description.number_of_processes) and affinity == subjob.environment["affinity"]:
+            env  = subjob.job_description.environment[0]
+            sj_affinity=None
+            if env.find("affinity") >=0:
+                sj_affinity = env.split("=")[1]            
+            logging.debug("Subjob Env: " + str(sj_affinity))
+            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + i["number_cores"] + " Affinity: " 
+                          + affinity + " SJ affinity: " + sj_affinity + " State: " + state)
+            if state.lower() == "running" and free_cores >= int(subjob.job_description.number_of_processes) and affinity == sj_affinity:
                 free_cores = i["free_cores"]
                 free_cores = free_cores - int(subjob.job_description.number_of_processes)
                 i["free_cores"]=free_cores

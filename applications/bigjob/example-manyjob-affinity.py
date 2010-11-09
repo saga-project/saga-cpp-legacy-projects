@@ -54,7 +54,7 @@ if __name__ == "__main__":
             jd.working_directory = "/Users/luckow"
             jd.output =  os.getcwd() + "/stdout-" + str(i) + ".txt"
             jd.error = os.getcwd() + "/stderr-" + str(i) + ".txt"
-            jd.environment = {"affinity": "affinity1"}
+            jd.environment = ["affinity=affinity1"]
             subjob = mjs.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."

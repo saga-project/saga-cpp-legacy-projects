@@ -58,7 +58,7 @@ if __name__ == "__main__":
     try:
         resource_list = []
         resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "64", "allocation" : "<your allocation>", 
-                               "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), "affinity" : "affinity1"})
+                               "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"), "affinity" : "affinity1"})
 
         print "Create manyjob service "
         mjs = many_job_affinity.many_job_affinity_service(resource_list, "localhost")
@@ -77,7 +77,7 @@ if __name__ == "__main__":
             jd.working_directory = "/Users/luckow"
             jd.output =  os.getcwd() + "/stdout-" + str(i) + ".txt"
             jd.error = os.getcwd() + "/stderr-" + str(i) + ".txt"
-            jd.environment = {"affinity": "affinity1"}
+            jd.environment = ["affinity=affinity1"]
             subjob = mjs.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."

@@ -77,7 +77,7 @@ class many_job_service(object):
                                     i["number_cores"],
                                     i["queue"],
                                     i["allocation"],
-                                    "$(HOME)", 
+                                    "agent", 
                                     None,
                                     None)
             i["bigjob"]=bj # store bigjob for later reference in dict
@@ -101,6 +101,7 @@ class many_job_service(object):
         job = subjob.job 
         if job == None:
             #create new subjob
+            bigjob = bigjob_info["bigjob"]
             job = bigjob.subjob(self.advert_host)
 
         if bigjob_info == None:
