@@ -11,7 +11,7 @@ import os
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-class pilot_data:  
+class pilot_store:  
     """ abstractions for managing a group of files 
         files within a pilot_data object have the affinity 'weight' to each other
         pilot_data object owns physical file, i.e. location of file 
@@ -20,7 +20,7 @@ class pilot_data:
       
     def __init__(self, name="", base_dir="", weight=0):
         """ name: string, base_dir: saga.url, weight: int"""
-        self.pilot_store=pilot_store
+        #self.pilot_store=pilot_store
         self.name=name
         self.base_dir=saga.url(str(base_dir)) # make sure base_dir is a SAGA URL!!
         self.weight=weight
@@ -144,35 +144,35 @@ class pilot_data:
     def __repr__(self): 
         return self.name
     
-class pilot_store:
+class pilot_data:
     """ 
         A pilot store consists of multiple 
         file groups (pilot data).
     """
     def __init__(self):
-        self.pilot_data={}
+        self.pilot_store={}
     
     ##############################################################################
-    def create_pilot_data(self, name, base_dir):
-        new_pilot_data = pilot_data(name, base_dir)
-        self.add_pilot_data(new_pilot_data)
-        return new_pilot_data
+    def create_pilot_store(self, name, base_dir):
+        new_pilot_store = pilot_store(name, base_dir)
+        self.add_pilot_store(new_pilot_store)
+        return new_pilot_store
     
-    def add_pilot_data(self, pilot_data):
-        self.pilot_data[pilot_data.name] = pilot_data
+    def add_pilot_store(self, pilot_store):
+        self.pilot_store[pilot_store.name] = pilot_store
     
-    def remove_pilot_data(self, pilot_data):
-        self.pilot_data.remove(pilot_data)
+    def remove_pilot_store(self, pilot_data):
+        self.pilot_store.remove(pilot_store)
     
-    def list_pilot_data(self):
+    def list_pilot_store(self):
         return self.pilot_data.values()
 
     # helper methods for convinient access to pilot_data elements of the pilot store  
     def __getitem__(self, name):
-        return pilot_data[name]
+        return pilot_store[name]
     
     def __iter__(self):
-        return self.pilot_data.itervalues()
+        return self.pilot_store.itervalues()
 
     
     ##############################################################################
