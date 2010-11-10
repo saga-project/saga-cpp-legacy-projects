@@ -495,24 +495,31 @@ We sense that the statistical noise is a function of the characteristics of flui
 
 
 
-\subsection{Simulation of Moderate Velocity Flow}
+\subsection{Simulation of Moderate Velocity Flow Field}
+According to the mathematical expression in statistical error~\cite{Hadjicon3,Time_Mechanism}, the ratio of sampling noise compared to the velocity at that position is described as,
 
+\vspace{-.2em}
+\begin{eqnarray}
+E = c \times \frac{1}{\sqrt{M}} \times \frac{1}{\sqrt{N}} \times \frac{1}{u_{\infty}}
+ \label{eq:noise}
+\end{eqnarray}
+where M is the number of independent samples, N is the number of particles spatially contained in that layer, and ${u_{\infty}}$ denotes the far field velocity.
 
-- 1 sentence, change random parameters and run individually (schedule multiple jobs by a BigJob)
+Eqn.~\ref{eq:noise} implies that the increase of system size or sampling duration is inevitable to solve the slower velocity field. Sampling duration is bound by the sampling interval and sampling interval is determined by the hydrodynamic characteristic time for time-accurate simulation. Since the hydrodynamic time scale is a function of characteristic size and kinematic viscosity, the sampling duration cannot be touched for solving the same fluid system. Therefore, the system size should be increased in proportional to the square of velocity change, to maintain the same statistical accuracy.
+
+Considering that the increase of MD domain size is technically bound by the computing capacity, a different approach is necessary for simulating the low-speed flow field. For this purpose, we design a framework which samples multiple independent hybrid simulations. The initial velocity component at individual problem set is differently determined from a Maxwell-Boltzmann distribution and results from individual simulation are averaged to produce the final solution. The labour of managing these multiple problem sets are resolved by using a BigJob framework, which is to be discussed in the Section (Refer to Section 3!!!!!).
 
 
 \subsection{Temporal Coupling Schemes}
-For time-accurate unsteady solution by a hybrid method, temporal coupling scheme is another important issue. Temporal coupling scheme denotes the scheduling of data exchange routine in time domain between CFD and MD solvers, to synchronize both solutions at the same physical time. Two coupling parameters shall be addressed to set up coupling mechanism in time space, i.e., how often data exchange will take place (called 'sampling interval') and how long the averaging will be conducted in particle domain (called 'sampling duration'). Spatially averaged particle velocity at an instance tends to be very noisy due to the natural physics of molecular vibration, thus molecular dynamic solution should be averaged over enough sampling duration to reduce this statistical error. Following the stable condition for sampling duration in steady~\cite{Hadjicon2} and unsteady~\cite{Time_Mechanism} flowfield or suppressing the noise by virtual damping terms~\cite{Cui} or dynamic parameter for coupling intensity~\cite{Wang} can be referenced. Sampling interval is usually set up to be longer than sampling duration.
+Two conventionally used coupling approaches of synchronized coupling and sequential coupling strategy are depicted in Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes exchange the information in the overlapping region at the data exchange point (denoted by $t$) and independently advance by the sampling interval (${\Delta}t$). On the other hand, one domain advances to the next exchange point and leads its counterpart to approach this point in sequential coupling. Comparing these two mechanisms, synchronized coupling clearly have a far better parallel efficiency compared to sequential coupling.~\cite{Time_Mechanism} Parallel performance in synchronized coupling can ideally reach the single code running in case an appropriate load balancing between two domains is applied, while large overhead on waiting is inevitable in sequential way. On the other hand, sequential approach is expected to produce more time-accurate solution because the boundary condition on following domain (CFD domain in the figure) is implicit. 
 
-
-Two conventionally used coupling approaches of synchronized coupling and sequential coupling strategy are depicted in Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes exchange the information in the overlapping region at the data exchange point (denoted by $t$) and independently advance by their sampling interval (${\Delta}t$). On the other hand, one domain advances to the next exchange point and leads its counterpart to approach this point in sequential coupling. Comparing these two mechanisms, synchronized coupling clearly have a far better parallel efficiency compared to sequential coupling.~\cite{Time_Mechanism} Parallel performance in synchronized coupling can ideally reach the single code running in case an appropriate load balancing between two domains is applied, while large overhead on waiting is inevitable in sequential way. On the other hand, sequential approach is expected to produce more time-accurate solution because the boundary condition on following domain (CFD domain in the figure) is implicit. Time-lagging phenomenon in CFD boundary region is observed in both strategies, because averaged molecular dynamic properties over backward sampling duration (from $t-{\Delta}t_S$ to $t$) are representing the solution at that instance ($t$). As was pointed out by Wang and He~\cite{Wang}, additional numerical treatment is required to eliminate this time-lagging, either extrapolating the boundary condition from previous solutions or setting the sampling interval far longer than sampling duration (assuming quasi-steady).
-
+Time-lagging phenomenon in CFD boundary region is observed in both strategies, because averaged molecular dynamic properties over backward sampling duration (from $t-{\Delta}t_S$ to $t$) are used to impose the CFD boundary condition at that instance ($t$). Thus,  the extrapolation from previous MD solutions is necessary to eliminate the time-lagging by half of sampling duration (${\Delta}t_{S}/{2}$) in the CFD boundary zone.~\cite{Wang} However, the accuracy of extrapolated solution is still an issue worth to debate. From Fig.~\ref{Hybrid_Timescale1}-a), an MD solution at $t-{\Delta}t_{S}/{2}$ and the former one are extrapolated to impose CFD boundary conditions from $t$ to $t+\Delta{t}$. Except the case of constant acceleration, extrapolated value fails to predict the correct velocity at time of $t$ and this error increases as $\Delta{t}_S$ increases. This requires the reduction of sampling duration, which is contradictory to the condition for reducing the statistical error.
 
 % The basic pattern of our approach is the same as the synchronized coupling. Main difference is, CFD code loads the previous solution at $t-{\Delta}t_{S}/{2}$ after communicating with MD code at $t$ and restarts the computation to the next communication point of $t+{\Delta}t$. Thus, time interval between $t - {\Delta}t_{S}/{2}$ and $t$ gets to be solved twice: first in prediction step and second in correction step. Clear benefit of current approach is that time-lagging problem is resolved without numerical treatments and additional computational overhead is acceptable because usually computational cost in MD simulation is dominant for a coupled simulation.
 
-% Additionally, in any algorithm, codes experience the time lagging due to the impose of explicit BC in the hybrid domain.
 
-\begin{figure}[ht]
+%\begin{figure}[htbp]
+\begin{figure}
 \centering
 \includegraphics[width=1.0\linewidth]{Synchro_Coupling.pdf}
 %\vskip-0.2cm
@@ -526,31 +533,27 @@ Two conventionally used coupling approaches of synchronized coupling and sequent
 
 
 
-% As we described earlier, we aim to administrate "Blackbox" CFD and MD solvers for efficient coupled simulation on parallel architectures. Thus, we only cover the coarse-grained parallelism between coupled untouchable components. Detailed consideration on efficient CFD and MD component design for coupled simulation can be found by Steijl and Barakos~\cite{Steijl}.
+A new approach named `prediction-correction strategy' is depicted in Fig.~\ref{Hybrid_Timescale2}. This approach is basically based on the synchronized coupling strategy and the MD code keeps the same flowchart. On the other hand, CFD code rolls back to the previous flow profile at $t-{\Delta}t_{S}/{2}$ after communicating with MD code at $t$, and evolves to the next communication point at $t+{\Delta}t$. In this approach, time interval between $t - {\Delta}t_{S}/{2}$ and $t$ is scheduled to be solved twice: first in prediction step and second in correction step. Clear benefit of current approach is that both solvers are provided with the "exact" boundary condition at every communication point, regardless of the size of sampling duration. Thus, sampling duration can be increased as long as sampling interval, which will reduce statistical error. Furthermore, more accurate boundary condition can be imposed with longer prediction time scale, as seen at Fig.~\ref{Hybrid_Timescale2}-b) and c). In case of Fig.~\ref{Hybrid_Timescale2}-b), the prediction time scale is increased by one sampling interval. While MD solver evolves from $t-{\Delta}t$ to $t$, CFD advances to the next communication point ($t+{\Delta}t$) and this predicted profile from $t$ to $t+{\Delta}t$ is interpolated to impose the MD boundary condition at the same interval. After the communication, CFD code rolls back to the previous profile at $t-{\Delta}t/2$ and evolves by extrapolating an MD solution at $t-{\Delta}t/2$ and a former one. Additionally increasing the prediction time scale by one sampling interval and shifting the CFD evolution procedure by one former sampling interval enables both CFD and MD boundary conditions to be implicitly imposed by the interpolation.
 
+%A new approach named `prediction-correction strategy' is depicted in Fig.~\ref{Hybrid_Timescale2}. After the data exchange at $t$, MD advances to the next communication point by extrapolating two previous boundary conditions at $t-\Delta t$ and $t$. On the other hand, CFD code loads the previous solution at $t-{\Delta}t_{S}/{2}$ after communicating with MD code at $t$ and evolves to $t+{\Delta}t$ by imposing extrapolated boundary condition from data at $t-\Delta t - {\Delta}t_{S}/{2}$ and $t-{\Delta}t_{S}/{2}$, which makes the difference from the original strategy. In this approach, time interval between $t - {\Delta}t_{S}/{2}$ and $t$ gets to be solved twice: first in prediction step and second in correction step. Clear benefit of current approach is that both solvers are provided with the ``exact" boundary condition once in every sampling interval, compared to the original formulation in which boundary condition had to be extrapolated ``everytime" or the quasi-steady assumption had to be satisfied. As the exact boundary condition is provided at every sampling interval, sampling duration can be increased as long as sampling interval, which will reduce statistical error. Furthermore, with longer prediction setting as seen at Fig.~\ref{Hybrid_Timescale2}-b) and c), more accurate boundary condition can be imposed by simulating over longer prediction time.
 
-
-
-
-The last thing to implement is the scheduling of data exchange routine in time domain, to synchronize both solutions at the same physical time. By default, two solvers open their send and receive channels on every sampling time step and independently advances to the next sampling time step, which is the design of synchronized coupling strategy in Fig.~\ref{Hybrid_Timescale1}-a). However, the time-lagging phenomenon of this strategy requires the modification for unsteady flow simulation.
-
-A new approach named `prediction-correction strategy' is depicted in Fig.~\ref{Hybrid_Timescale2}. After the data exchange at $t$, MD advances to the next communication point by extrapolating two previous boundary conditions at $t-\Delta t$ and $t$. On the other hand, CFD code loads the previous solution at $t-{\Delta}t_{S}/{2}$ after communicating with MD code at $t$ and evolves to $t+{\Delta}t$ by imposing extrapolated boundary condition from data at $t-\Delta t - {\Delta}t_{S}/{2}$ and $t-{\Delta}t_{S}/{2}$, which makes the difference from the original strategy. In this approach, time interval between $t - {\Delta}t_{S}/{2}$ and $t$ gets to be solved twice: first in prediction step and second in correction step. Clear benefit of current approach is that both solvers are provided with the ``exact" boundary condition once in every sampling interval, compared to the original formulation in which boundary condition had to be extrapolated ``everytime" or the quasi-steady assumption had to be satisfied. As the exact boundary condition is provided at every sampling interval, sampling duration can be increased as long as sampling interval, which will reduce statistical error. Furthermore, with longer prediction setting as seen at Fig.~\ref{Hybrid_Timescale2}-b) and c), more accurate boundary condition can be imposed by simulating over longer prediction time.
-
-Though the current numerical approach looks a possible way to eliminate the time-lag of existing approaches, it is based on two assumptions: (i) computational cost on CFD is quite smaller than that of MD, and (ii) driving force which determine the flow characteristics is generated on CFD side. Without condition (i), additional computational overhead for prediction process will harm the simulation performance. If (ii) is not satisfied, the accuracy of the predicted solution is not guaranteed.
+Though the current numerical approach is expected to be a possible way to impose more accurate boundary condition on both solvers, it can be useful if two conditions are satisfied: (i) computational cost on CFD is quite smaller than that of MD, and (ii) the driving force which causes the flow variation is provided by the CFD domain. Without condition (i), additional computational overhead for prediction process will harm the simulation performance. If (ii) is not satisfied, the accuracy of the predicted solution is not guaranteed.
 
 % Additionally, in any algorithm, codes experience the time lagging due to the impose of explicit BC in the hybrid domain.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
 %\includegraphics[width=1.0\linewidth]{Synchro_Coupling.pdf}
 %\vskip-0.2cm
 %\includegraphics[width=1.0\linewidth]{Sequential_Coupling.pdf}
 %\vskip-0.2cm
-\includegraphics[width=1.0\linewidth]{Prediction_Correction_Full.pdf}
+\includegraphics[width=0.7\linewidth]{Prediction_Correction_Full.pdf}
 \vskip-0.2cm
 \caption{\small A Prediction-Correction Approach; CFD evolves over longer time than the communication point and supports MD domain with predictive boundary condition. a) Default Formulation; CFD solver evolves $\Delta t_S / 2$ time longer, which satisfies the explicit boundary condition of CFD and MD site at communication point. b) Implicit MD Boundary Condition; On exchange point, CFD provides predicted solutions until the next data exchange point by a predictive simulation of $3/2 \Delta t$ time. c) Implicit CFD and MD Boundary Condition; In principle, both solvers are expected to get implicit boundary conditions with the predictive simulation of $5/2 \Delta t$ time.}
 \label{Hybrid_Timescale2}
 \end{figure}
+
+\skonote{I'll be erasing the third figure of Figure 3; Also, Interpolated BC and Extrapolated BC instead of Implicit and Explicit BC!!!!!}
 
 
 
@@ -567,17 +570,7 @@ Though the current numerical approach looks a possible way to eliminate the time
 
 
 
-
-
-
-
 \section{Construction of a Coupled Multi-physics Simulation Framework}
-
-
-\skonote{This Section is moved from introduction: needs rewriting to match this section.}
-Conceptually, the adoption of a Pilot-Job can be an answer to resolve above co-scheduling and load balancing issues of running a coupled multi-task simulation. The Pilot-Job is just a container task where a number of sub-tasks can run in a pre-defined schedule with the specified number of processors whether or not they are coupled. We basically devise this solution to overcome the concurrent scheduling requirement/constraints of coupled jobs; interestingly, the dynamic resource allocation capabilities of the Pilot-Job prove useful for the effective load-balancing of two independent but concurrently running codes. In contrast, if simulations were submitted as independent jobs, changing resource (CPU) allocation to address these changes is challenging -- as the change in resource assigned to one is correlated with a change in resource assigned to the other component.
-
-
 \subsection{SAGA and SAGA-based Frameworks - An Efficient Runtime Environment for Coupled Multi-component Computations}
 
 \skonote{Introduction to SAGA: All details and amount dedicated to Prof. Jha :) }
@@ -604,6 +597,12 @@ The Simple API for Grid Applications (SAGA) is an API standardization effort wit
 %\skonote{Introduction to BigJob and related researches from other researchers: show their limitation as well - i.e., LB issue, etc.. Include REMD, co-scheduling of multiple tasks via SGE in Ranger. 2 paragraphs. I'd like to include "SAGA enables creation of higher levels of abstraction, such as a container-job or a Pilot-Job (which, as we will discuss, is referred to as the BigJob~\cite{saga_royalsoc}). The SAGA-based Pilot-Job is infrastructure neutral, unlike {\it all} other Pilot-Jobs."}
 
 %\skonote{Exclude the mention about the multiple BigJobs. Also, focus on explaining BigJob's advert service module in detail, including referring to Andre's paper}
+
+The BigJob~\cite{saga_royalsoc} is a SAGA-based Pilot-Job, where a number of sub-tasks can run in a pre-defined schedule with the specified number of processors whether or not they are coupled. We basically devise this solution to overcome the concurrent scheduling requirement of coupled CFD and MD jobs and to dynamically allocate resources for load-balancing of these codes. The advantage of a BigJob over other Pilot-Job implementations is that this is infrastructure-neutral, thanks to various adaptors in SAGA.
+
+
+%We basically devise this solution to overcome the concurrent scheduling requirement/constraints of coupled CFD and MD jobs; interestingly, the dynamic resource allocation capabilities of the Pilot-Job prove useful for the effective load-balancing of two independent but concurrently running codes. In contrast, if simulations were submitted as independent jobs, changing resource (CPU) allocation to address these changes is challenging -- as the change in resource assigned to one is correlated with a change in resource assigned to the other component.
+
 
 Fig.~\ref{Fig:BigJob_Structure} shows the structure of BigJob and its operation flow. When a BigJob is submitted to the remote resource, the application manager monitors the status of this pilot-job through the advert service. When resources are allocated to the BigJob, the application manager allots the obtained resources to its sub-jobs and a coupled simulation starts under the control of a multi-physics agent in the remote resource. Advert service keeps on getting the status of a pilot-job from the queuing system and the status of sub-jobs from multi-physics agent and also delivers this information to the application manager by a push-pull mechanism. The application manager watches the status of sub-jobs and decides the next event when the coupled simulation is finished. When one default BigJob is launched, sub-jobs keeps running until final solution is achieved and the manager quits the Pilot-Job at that time. In case multiple BigJobs are submitted for the same simulation or if a load balancing function is included, sub-jobs experience several restarts from their checkpointing data, reflecting changed processor allocation to each application. In the former case, resource allocation to each sub-job follows a pre-defined map according to the number of BigJobs allotted to the simulation; in the latter case, resource allocation to each sub-job becomes dynamic according to its performance, as discussed in the next section.
 
