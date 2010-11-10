@@ -165,6 +165,9 @@ Hybrid computational fluid dynamcis - particle dynamics approach \sep Constraine
 \section{Introduction and Motivation}
 %\label{}
 
+\skonote{need to mention that 'we use a constrained Lagrangian dynamics model' in relevant paragraph... could anybody..?}
+
+
 These days, with the emphasis on accurately solving the multi-physics fluid systems, a group of hybrid methods which couple the continuum dynamics and particle dynamics are getting paid more attention to. A hybrid continuum dynamics - particle dynamics approach is defined as expressing macroscopic flow physics by the continuum hypothesis while capturing the complex flow characteristics around obstacles by solving finer-resolution particle dynamics. The hybrid method is more accurate than the traditional Computational Fluid Dynamics (CFD) technique, since it does not require empirical boundary condition modeling in describing intermolecular effect near the solid-fluid interface. Also, the hybrid approach provides a better computational efficiency than particle dynamics simulation, whose computational cost is roughly proportional to the square of the number of particles~\cite{Allen}, by replacing numerous particles in moderate flow regime with sparser continuum mesh system.
 
 Hybrid simulation approaches can be grouped into two according to the microscopic solution method coupled into macroscopic continuum domain.~\cite{Koumoutsakos} One is the coarse-grained particle simulations by using Direct Simulation Monte Carlo (DSMC) for dilute gas~\cite{Garcia,Sun} or Dissipative Particle Dynamics (DPD) for liquid~\cite{Fedosov1,Fedosov2}, where the simulation molecule represents a number of atoms/molecules. The coarse-grained simulation can provide better computational cost, while the state-of-the-art modeling is required to correctly impose the wall boundary condition. The other is the use of traditional Molecular Dynamics (MD) solvers that describe the motion of individual molecules based on Newtonian dynamics. The hybrid CFD-MD model is preferred in solving dense liquid systems where the accurate description of strong inter-molecular interaction near the solid obstacle is very important.
@@ -209,8 +212,10 @@ In addition to above numerical issues, there also exist computational challenges
 However, confined to parallel execution on conventional production system with batch queue, it cannot be guaranteed that two separate jobs will execute concurrently. Considering the computational characteristics of current application, where CFD and MD codes conduct frequent information exchange, the first job to run will inevitably experience the idle waiting for its counterpart without the explicit support for co-scheduling. Another important challenge is the need for efficient load-balancing which takes into account the individual application's performance. Even if the two simulations could run concurrently, without explicit load-management/balancing support, there is likely to be inefficient utilization of compute resources due to load imbalance. As the performance of each simulation component changes with computing resource and problem size, re-adjustment of allocated resources to each task according to their performance is required during the simulation.
 
 
-Collectively, we are focusing on investigating numerical issues of applying the hybrid CFD-MD scheme to a nano-fluidic system, as well as designing and developing an efficient runtime framework for a coupled multi-component simulation. We consider the implementation of a 'generic' hybrid interface which can be easily attached to various kinds of incompressible CFD codes and MD packages, and the building of a 'portable' framework which is acceptable for most computer architectures. Regarding numerical simulations, we value our idea to determine coupling parameters is reasonable and easy to follow. Also we argue that our numerical experiments cover broader range of system length scale and flow velocity, say O(10)-O(100) nm system with O(10)-O(100) m/s velocity. For physically unsteady flow simulation, our design of temporal coupling scheme can be one possible challenge to overcome the time-lagging in hybrid boundary.
-In view of computational science, we believe our trial is the first documented coupled multi-physics simulation utilizing a virtually unified simulation package, called ``Pilot-Job". We claim that there are several distinct advantages of using Pilot-Job: (i) obviates the need for a co-scheduler while preserving performance, (ii) enables dynamic resource allocation, which in turn is important for load-balancing across coupled simulations. %But given the lack of system or service-level support to address the challenges outlined above, there is a need to address the solution at the application level. This paper aims to provide novel solutions to the above problem using frameworks that are in user (application) space.
+Collectively, we are focusing on investigating numerical issues of applying the hybrid CFD-MD scheme to a nano-fluidic system, as well as designing and developing an efficient runtime framework for a coupled multi-component simulation. 
+%In the current work, we adopt a constrained Lagrangian dynamics proposed by Nie {\it{et al.}}~\cite{Nie}, considering our numerical interest. We aim to have an efficient coupled simulation framework with a generic interface implemented on individual ``blackbox" solver, which has been verified by other applicaitons. Thus, getting abundant communication cost on convergence check is not preferred and the minimal change on each code is a plus.
+We consider the implementation of a 'generic' hybrid interface which can be easily attached to various kinds of incompressible CFD codes and MD packages, and the building of a 'portable' framework which is acceptable for most computer architectures. Regarding numerical simulations, we value our idea to determine coupling parameters is reasonable and easy to follow. Also we argue that our numerical experiments cover broader range of system length scale and flow velocity, say O(10)-O(100) nm system with O(10)-O(100) m/s velocity. For physically unsteady flow simulation, our design of temporal coupling scheme can be one possible challenge to overcome the time-lagging in hybrid boundary.
+In view of computational science, we believe our trial is the first documented coupled multi-physics simulation utilizing a virtually unified simulation package, called "Pilot-Job". We claim that there are several distinct advantages of using Pilot-Job: (i) obviates the need for a co-scheduler while preserving performance, (ii) enables dynamic resource allocation, which in turn is important for load-balancing across coupled simulations. %But given the lack of system or service-level support to address the challenges outlined above, there is a need to address the solution at the application level. This paper aims to provide novel solutions to the above problem using frameworks that are in user (application) space.
 
 We begin the next section with the numerical details of individual CFD and MD code and implementation of hybrid interface. The construction of an efficient CFD-MD simulation framework will be discussed in Section 3. In Section 4, we will demonstrate our numerical results of a famous time-accurate validation problem (Couette flow simulation) and the physically unsteady flow simulation (oscillating boundary problem), as well as the performance of this coupled simulation, which will prove the accuracy and efficiency of our hybrid simulation framework. Finally, our next plan and the summary of current work are expressed in Section 5 and 6.
 
@@ -256,9 +261,12 @@ We begin the next section with the numerical details of individual CFD and MD co
 \subsection{The Hybrid CFD-MD Approach}
 The hybrid CFD-MD approach stands on the assumption that the molecular dynamic simulation produces more accurate solution than the continuum model and a more efficient continuum solver provides the boundary condition to particle domain without restricting the high degree-of-freedom of atomistic motion. So, the region which contains a strong flow gradient is resolved by a molecular dynamic simulation and moderate flow in macroscopic scale is captured by the continuum dynamics. Also, these problem domains overlap each other in the middle to exchange the individual information.
 
-A detailed structure of the fluid domain for constrained Lagrangian dynamics model is described in Fig.~\ref{Fig:Couette}. CFD approach solves the external zones with the moderate flow velocity and MD analyzes the complex microscopic flow feature near the stationary obstacle or in the low-speed region. Hybrid region is placed sufficiently far from the solid obstacle to prevent the direct influence of strong fluctuation due to the intermolecular collision between solid and fluid particles. Also, this region is set up sufficiently large to contain five layers with enough spacing.
+A detailed structure of the fluid domain for constrained Lagrangian dynamics models is described in Fig.~\ref{Fig:Couette}. CFD approach solves the external zones with the moderate flow velocity and MD analyzes the complex microscopic flow feature near the stationary obstacle or in the low-speed region. Hybrid region is placed sufficiently far from the solid obstacle to prevent the direct influence of strong fluctuation due to the intermolecular collision between solid and fluid particles. Also, this region is set up sufficiently large to contain five layers with enough spacing.
 
-From the bottom, we have the boundary zone for CFD and MD simulations and have additional zone to exert external force. These three interesting zones are isolated by the buffer in between. In the boundary zone of continuum dynamics, particles' properties are averaged over time and this is directly used as the CFD boundary condition. The height of each layer is the same as the CFD cell height and averaged conservative properties in two consecutive layers are passed to continuum domain to impose viscous boundary condition on the Navier-Stokes solver with collocated data structure. Next, the hybrid MD boundary zone is placed in the middle. In this region, the continuum solution is transferred to MD code and particles are guided to eventually follow this macroscopic flow velocity, by solving a constrained Lagrangian dynamics equation. The strong point of this equation is that, molecules are led to follow the macroscopic flow property, while preserving their degree-of-freedom of translational motion. In the uppermost layer, the external force is exerted on particles to conserve system's statistical ensembles. This force function is designed not too strong to influence the motion of particles in the domain of interest nor not too weak to have particles drifting away. \skonote{Preferably, the effective force needs to correspond to the mean virial pressure of the MD system~\cite{Werder}}. Finally, buffer layer is positioned in between each layer. This layer is set up to be bigger than the length scale of interacting particles (cutoff radius), not to have a solution in one layer being directly interfered by another solution.
+From the bottom, we have the {\it{particle-to-continuum}} and {\it{continuum-to-particle}} (denoted as 'MDtoCFD' and 'CFDtoMD', respectively) boundary zones for CFD and MD simulations, and have additional zone to exert external force. These three interesting zones are isolated by the buffer in between.
+Particles' properties spatially located in the MDtoCFD boundary layer are averaged over a finite time (called 'sampling duration') and they are transferred to continuum solver at constant period (called 'sampling interval'). The height of each layer is the same as the CFD cell height and averaged conservative properties in two consecutive layers are passed to continuum domain to be directly imposed as the viscous boundary condition on the Navier-Stokes solver with collocated data structure.
+Next, the hybrid MD boundary zone is placed in the middle. In this region, the instantaneous continuum solution is transferred to MD code. Particles in this layer are guided to eventually follow this macroscopic flow velocity, by solving a constrained Lagrangian dynamics equation. The strong point of this equation is that, molecules are led to follow the macroscopic flow property, while preserving their degree-of-freedom of translational motion.
+In the uppermost layer, the external force is exerted on particles to conserve system's statistical ensembles. This force function is designed not too strong to influence the motion of particles in the domain of interest nor not too weak to have particles drifting away. \skonote{Preferably, the effective force needs to correspond to the mean pressure of the MD system~\cite{Werder}}. Finally, buffer layer is positioned in between each layer. This layer is set up to be bigger than the length scale of interacting particles (cutoff radius), not to have a solution in one layer being directly interfered by another solution.
 
 
 \skonote{It would be better to explain a little more detail on last sentence. Let's say the buffer between CFDtoMD and MDtoCFD boundary is smaller than cutoff length. Then, a solution at CFDtoMD (constrained MD) directly affects the motion of particles at MDtoCFD. And this is used for CFD boundary condition. This results that, CFD solution at CFDtoMD is the result of flow variation in MDtoCFD boundary, which in turn is directly affected by the CFDtoMD solution. Thus, solution at CFDtoMD becomes the boundary condition of CFD domain.}
@@ -281,22 +289,219 @@ From the bottom, we have the boundary zone for CFD and MD simulations and have a
 
 
 
-CFD and MD codes conduct frequent information exchange via their file interfaces
+\subsection{Numerical Schemes in the Baseline CFD and MD Codes}
+The current in-house continuum hydrodynamics code solves the unsteady incompressible Navier-Stokes equations to demonstrate the isothermal nano-scale flow field:
 
-we basically used an in-house CFD code and famous LAMMPS MD package and modified both codes for coupled multi-physics simulation. We focus more on building an efficient coupled multi-task environment for hybrid CFD-MD simulation.
+\vspace{-.2em}
+%\vskip-.6cm
+\begin{eqnarray}
+\frac{\partial {u}_{i}}{\partial {x}_{i}} = 0
+\end{eqnarray}
+%\vspace{-.2em}
+\vskip-.6cm
+\begin{eqnarray}
+\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {\partial p} {\partial {x}_{j}} + \nu \frac {{\partial} {u}_{i}} {\partial {x}_{j} \partial {x}_{j}} \nonumber
+\end{eqnarray}
+where $\nu$ is the kinematic viscosity.
+
+%The primary difficulty in solving the incompressible Navier-Stokes equations in primitive variables stems from the lack of a time derivative in the continuity equation. There is no straightforward way to iteratively march these equations in time and ensure a divergence-free velocity field.
+
+In this work, we adopted the pseudo-compressibility method~\cite{PseudoCompressibility} to form a hyperbolic system of equations which can be marched in pseudo-time.
+%The method is extended to solve time-dependent problems by using sub-iterations in pseudo-time at each physical time step.
+A time derivative of pressure is added to the continuity equation resulting in
+
+%\vskip-.6cm
+\vspace{-.2em}
+\begin{eqnarray}
+\frac{\partial (p/\rho)}{\partial \tau} = - \beta \frac{\partial {u}_{i}}{\partial {x}_{i}}
+\end{eqnarray}
+where $\beta$ denotes a pseudo-compressibility parameter, currently set up as 2.5.
+
+For time-accurate unsteady simulation, dual time stepping method is adopted and it is combined with the LU-SGS (Lower-Upper Symmetric Gauss-Seidel) scheme~\cite{LU-SGS} for the implicit time integration. The inviscid fluxes are upwind-differenced using Osher's flux-difference splitting scheme~\cite{Osher}. For higher-order spatial accuracy, the MUSCL (Monotone Upstream-centered Schemes for Conservation Laws)~\cite{MUSCL} approach is used on inviscid flux calculation. Viscous fluxes are calculated using the conventional second-order central differencing.
+
+%Molecular dynamics computer simulation technique is a specified computer simulation method for molecular systems, including microscopic details of a system and macroscopic statistical properties, which are the properties of the atoms, the interactions between particles, molecular characteristics, structure of molecules, transport phenomena etc.~\cite{Allen},\cite{Haile},\cite{Rapaport} 
+In MD, an initial velocity is assigned to each atom, and Newton's laws are employed at the atomic level to propagate the system's motion through time evolution:
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+F_{i} = m_{i}a_{i}
+\label{eq:Newton}
+\end{equation}
+\normalsize
+here each atom $\it i $ in a system constituted by N atoms, mi is the mass of i$^{th}$ atom, ai is the acceleration and denote by $\it {d^2r_{i}} / {dt^2}$, and $\it F_{i}$ is the force on i$^{th}$ atom, due to the atomic interaction which is calculated based on the potential energy between individual particles.
+
+The simplest choice for the potential energy $\it U(r)$  can be written as the sum of pairwise interactions of particles:
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+U(r_{1}, ...  ,r_{N}) =  \displaystyle\sum_{i} \displaystyle\sum_{j>i}  u(|r_{i} - r_{j}|)
+\label{eq:PEnergy}
+\end{equation}
+\normalsize
+where $\it i$ and $\it j$ particles are located at $r_{i}$ and $r_{j}$, and only $\it j>i$ cases have been considering for each particles pair once.
+
+The most commonly used two-body interaction model is the Lennard-Jones (12-6) potential is applied to calculate pairwise interaction and is define as:
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ u(|r_{i} - r_{j}|) = 4\epsilon_{ij}[(\frac{\sigma_{ij}}{r_{ij}})^{12}-(\frac{\sigma_{ij}}{r_{ij}})^{6}]
+ \label{eq:LJ12}
+\end{equation}
+\normalsize
+where $\epsilon_{ij}$ and $\sigma_{ij}$ denote the pairwise potential well depth and the atom size parameter respectively, and $\it r_{ij}$ is the distance between the particle $\it i$ and $\it j$. The term $\it 1/r_{ij}^{12}$ dominating at short range distance repulsive behavior based on the Pauli principle to avoid overlapping the electronic clouds when particles are  brought very close to each other. The term $\it 1/r_{ij}^6$ dominates at long range attractive forces by van der Waals dispersion forces. The cut-off distance $\sigma_{c}$ is introduced here to reduce the computational cost and is set to be 2.2$\sigma$~\cite{Travis}.
+
+The time integration algorithm is required to integrate the equation of motion of the interacting particles and computing molecular trajectories, one of most common velocity Verlet algorithm is employed to compute the simulation.
+
+In this work,  the MD simulations were performed by using the modified version of Large Atomic Molecular Massively Parallel Simulator(LAMMPS). It is the classical molecular dynamics open-source code written in C++ and developed by Sandia National Labs.~\cite{LAMMPS}
 
 
 
-In the current work, we adopt a constrained Lagrangian dynamics proposed by Nie {\it{et al.}}~\cite{Nie}, considering our numerical interest. We aim to have an efficient coupled simulation framework with a generic interface implemented on individual ``blackbox" solver. Thus, getting abundant communication cost on convergence check is not preferred and the minimal change on each code is a plus.
+\subsection{Implementation of Hybrid Interface}
+The hybrid simulation requires additional numerical treatments to be implemented on individual code. They include the implementation of hybrid schemes, information exchange interface, and the change of data structure. In the current study, a constrained Lagrangian dynamics model is implemented for hybrid simulation and the file interface is designed to schedule the information exchange between continuum and discrete particle descriptions. The changes on individual code are demonstrated in this section.
+
+Major changes on standalone CFD and MD codes are summarized in table~\ref{table:interface_implementation}. With regard to the CFD code, it experiences the change of data structure to be the same as that of overset mesh technique~\cite{Chimera}. That is, the CFD mesh system is generated to store the whole fluid domain with its geometric information and the CFD code treats the pure MD region in Fig.~\ref{Fig:Couette} as `Hole' in the terminology of overset technique. Likewise, MDtoCFD and CFDtoMD boundary cells are declared as `Fringe' and `Donor' cells, respectively. This change is "optional" but we encourage because the implementation of overset data structure will ease the handling of the hybrid conditions (position and depth of hybrid layers) without mesh regeneration.
+
+Regarding the information exchange, the CFD code has one file sending and one receiving interface, the former sending the instantaneous properties on Donor cells to MD site and the latter imposing the averaged properties of particles as boundary conditions on Fringe cells. These file interfaces are scheduled to turn on every sampling interval. All exchanged data are written in MD unit: thus, CFD code is equipped with velocity unit conversion function and equation of state which changes the pressure solution from CFD site to equivalent density property in MD domain.
+
+
+%CFD-MD hybrid method has numerical strategy for file-based information exchange between continuum description for macroscopic scale and discrete particle description for microscopic scale. For this information exchange, both codes have the file interface, where each writes the velocity profile of overlapping region, waits for its counterpart's velocity data and receive the data as a boundary condition in the overlap region.
+
+% Table formats; h,t,b,p - here,top,bottom,page of floats
+\begin{table}[t]
+  \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of whole fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
+  \label{table:interface_implementation}
+  \centering
+  \begin{tabular}{>{\centering}p{0.15\linewidth} || p{0.35\linewidth} | p{0.35\linewidth} }
+%\multicolumn{3}{c}{\phantom{\tiny 100}}\\
+\hline
+  & \centering CFD & \multicolumn{1}{c}{MD} \\
+\hline
+ Global Change & Overset Data Structure (\it{optional}) & \multicolumn{1}{c}{-} \\
+\hline
+ \centering External Force & \centering - & External Force Equation (Eqn.~\ref{eq:External_Force}) \\
+\hline
+% CFDtoMD &  - File Interface: Sender & {- File Interface: Receiver \\ - Constrained MD Equation (Eqn.~\ref{eq:Con3})} \\
+ \multirow{2}{*}{CFDtoMD} &  \multirow{2}{*}{File Interface: Sender} & {File Interface: Receiver} \\
+ & & Constrained MD Equation (Eqn.~\ref{eq:Con3}) \\
+\hline
+ MDtoCFD & File Interface: Receiver & File Interface: Sender \\
+\hline
+\end{tabular}
+\vspace{-1em}
+\end{table}
+
+
+The same format of data exchange interface is also implemented on MD code. The file reader stores the continuum solution in CFDtoMD boundary cells and calls these values when applying the MD boundary condition. In MDtoCFD layer, particles' properties are averaged over sampling duration and written on file interface. This suffices to impose microscopic profile on macroscopic domain.
+
+Along with the file interface, additional equations of motion need to be employed on MD code to accurately describe the influence of macroscopic flow variation on particle domain. First, the external force should be imposed to prevent leaving particles from the control domain and the force is applied to the normal direction of uppermost MD layer, as was seen in Fig.~\ref{Fig:Couette}. A cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} is employed as,
+
+\skonote{Or, shall we replace the last sentence to the follow? \\
+The design of external force is very important to exert the correct mean pressure on MD domain without local disturbance in the density field, as is expressed by Werder {\it{et al.}}~\cite{Werder}. Compared to other hybrid models, the external force design in constrained Lagrangian dynamics approach is less sensitive to the solution since particles in the buffer layer between external force layer and molecular dynamic boundary layer act as decreasing the influence of non-uniform density distribution. Thus, a cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} looks still valid for acquiring the accurate solution.}
+
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ F_{ext, i} = -p_{a}\sigma\frac{y_{i}-Y_{n-1}}{1-(y_{i}-Y_{n-1})/(Y_{n}-Y_{n-1})}
+ \label{eq:External_Force}
+\end{equation}
+\normalsize
+where $\it p_{a}$ denote the average pressure in the MD region, $\it Y_{n}-Y_{n-1}$ is the thickness of the uppermost layer which is applied the force and $\it F_{ext}$ is the external force acting on $\it i^{th}$ particle located on position $\it y_{i}$.
+
+
+Next, on CFDtoMD layer, the macroscopic flow properties at specific time shall be introduced to lead the motion of multiple particles in that layer. To satisfy mass conservation, a certain number of particles are inserted into or removed from this layer according to the mass flux by CFD solution,
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+n = -A \rho u_y \Delta t / m
+ \label{eq:Mass_Flux}
+\end{equation}
+\normalsize
+where $A$ is the horizontal area, $u_y$ is the vertical velocity component by CFD solution and $\Delta t$ is the sampling interval.
+
+A very complicated numerical intervention is required to maintain momentum conservation. The average velocities of particles in $\it J_{th}$ cell is equal to the velocity $\it u_{J}$ in continuum cell.
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ u_{J}(t) = \frac{1}{N_{J}} \displaystyle\sum_{i} v_{i}
+ \label{eq:Con_vel}
+\end{equation}
+\normalsize
+where $\it v_{i}$ is velocity of $\it i^{th}$ particle and $\it N_{J}$ is the number of particles in the cell. With taking Lagrangian derivative of Eq.~\ref{eq:Con_vel},
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ \frac{Du_{J}(t)}{Dt} =  \displaystyle\sum_{i} \frac{\ddot{x_{i}}}{N_{J}}
+ \label{eq:Lagrangian}
+\end{equation}
+\normalsize
+The Classical MD equation of motion can be generalized to obtain constraint by adopting the fluctuation in acceleration of each particles, $\zeta_{i}$
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ \frac{F_{i}}{m_{i}} = \ddot{x_{i}}(t)  =   \frac{Du_{J}(t)}{Dt} + \zeta_{i} = \frac{\displaystyle\sum_{i}F_{i}(t)} {\displaystyle\sum_{i}m_{i}} +   \zeta_{i}
+ \label{eq:Con2}
+\end{equation}
+\normalsize
+where $\it F_{i}$ is the force on $\it i^{th}$ particle based on the interactions between particles,  $\it m_{i}$ is mass of each atom and  Eqn.~\ref{eq:Con2} satisfies,
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+\displaystyle\sum_{i}\zeta_{i}m_{i} = 0
+ \label{eq:Con2}
+\end{equation}
+\normalsize
+The constrained particle dynamics with conventional equation of motion can be written as:
+
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ \ddot{x_{i}}(t) = \frac{F_{i}}{m_{i}} -  \frac{\displaystyle\sum_{i}F_{i}(t)} {\displaystyle\sum_{i}m_{i}} - \frac{1}{\Delta t_{MD}} \{  \frac{\displaystyle\sum_{i}m_{i}\dot{x_{i}}} {\displaystyle\sum_{i}m_{i}} - u_{J}(t + \Delta t_{MD})\}
+ \label{eq:Con3}
+\end{equation}
+\normalsize
+The continuum velocity and the mean microscopic velocity from MD over control domain provide the synchronization of the mass and momentum consistent with Eqn.~\ref{eq:Con3}.
 
 
 
-The composition of layers in hybrid region changes to unify the external force layer and MD boundary layer in alternating Schwarz method or direct flux exchange. Therefore, the design of external force is very important to exert the correct mean pressure on MD domain without local disturbance in the density field, as is expressed by Werder {\it{et al.}}~\cite{Werder}. On the other hand, in the domain composition of constrained Lagrangian dynamics, particles in the buffer layer between external force layer and molecular dynamic boundary layer act as decreasing the influence of non-uniform density distribution. Thus, a cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} looks still valid for acquiring the accurate solution.
-
-% though large computational cost is expected to detect and handle individual particle's position.
-
+\subsection{Determining Coupling Conditions}
+%How to apply a continuum solution in the CFDtoMD layer to particle domain without harming the degree-of-freedom of molecular motion is the essence of acquiring the accurate molecular dynamic solution: how to avoid the excessive statistical error~\cite{Hadjicon3,Time_Mechanism} of averaged MD profile determines the accuracy of CFD solution. 
 
 
+Molecular dynamics inherently describes the fluctuating pattern of particles, which becomes a noise in CFD solution. How to reduce this statistical error~\cite{Hadjicon3,Time_Mechanism} of averaged MD profile determines the accuracy of CFD solution. Sampling duration with interval, the size of sampling layer and its position are coupling parameters which define the scale and pattern of this noise. The layer size and sampling duration collectively work for reducing the noise, by increasing the number of spatially averaged particles for a long time. Sampling interval is a factor which restricts the sampling duration.  For unsteady simulation, a short sampling interval is preferred to frequently update temporal variation of flow field in hybrid boundary layers. This interval acts as the upper bound of sampling duration. The position of sampling layer is a secondary factor which can locally increase the strength of fluctuation. Conventionally, sampling layer is placed far from the solid obstacle, e.g., at least 10 $\sigma$ above the bottom wall in solving the flow of the liquid argon~\cite{Yen}.
+
+We sense that the statistical noise is a function of the characteristics of fluid and surrounding solid elements, and geometric configurations, as well as the flow condition. Thus, coupling parameters can be determined after the look-up of the system characteristics. Our intuitive idea of numerically detecting the strength of statistical noise is to solve the stationary flow in the full-scale fluid domain by pure MD method. The procedure is as follows. 
+\newline
+
+1) Empirically design the sampling interval and the location of sampling layer. Sampling interval was designed to be $1/100^{th}$ of hydrodynamic characteristic time and the layer position was set to be 0.2 times the system's height.
+
+2) Construct a full-scale particle domain. Size in periodic direction can be reduced by applying the relation between the noise strength number of particles, i.e., $V_{noise} \propto N^2$.
+
+3) Run the simulation. After the relaxation (or minimization???) process is completed, collect the temporal history of averaged velocity in smallest layer size and shortest sampling interval. 
+
+4) Post-process the dataset to gather the strength of noise around the location of sampling layer in various layer size and sampling duration. Compare the noise with the velocity at that position, considering the linear velocity gradient from the wall to the far field. Choose the appropriate coupling condition and reduce the sampling interval according to the sampling duration.
+
+5) If no condition is satisfactory, change the position of sampling layer and conduct 4) again. In case no condition is acceptable, find an acceptable condition by applying the relation in 2).
+%\newline
+
+%We argue that our idea is very simple (or intuitive???) and computationally not so expensive since the stationary flow profile can be immediately collected. 
+
+
+
+\subsection{Simulation of Moderate Velocity Flow}
+
+
+- 1 sentence, change random parameters and run individually (schedule multiple jobs by a BigJob)
+
+
+\subsection{Temporal Coupling Schemes}
 For time-accurate unsteady solution by a hybrid method, temporal coupling scheme is another important issue. Temporal coupling scheme denotes the scheduling of data exchange routine in time domain between CFD and MD solvers, to synchronize both solutions at the same physical time. Two coupling parameters shall be addressed to set up coupling mechanism in time space, i.e., how often data exchange will take place (called 'sampling interval') and how long the averaging will be conducted in particle domain (called 'sampling duration'). Spatially averaged particle velocity at an instance tends to be very noisy due to the natural physics of molecular vibration, thus molecular dynamic solution should be averaged over enough sampling duration to reduce this statistical error. Following the stable condition for sampling duration in steady~\cite{Hadjicon2} and unsteady~\cite{Time_Mechanism} flowfield or suppressing the noise by virtual damping terms~\cite{Cui} or dynamic parameter for coupling intensity~\cite{Wang} can be referenced. Sampling interval is usually set up to be longer than sampling duration.
 
 
@@ -325,185 +530,6 @@ Two conventionally used coupling approaches of synchronized coupling and sequent
 
 
 
-\subsection{Numerical Schemes in the Baseline CFD and MD Codes}
-The current in-house continuum hydrodynamics code solves the unsteady incompressible Navier-Stokes equations to demonstrate the isothermal nano-scale flow field:
-
-\vspace{-.2em}
-%\vskip-.6cm
-\begin{eqnarray}
-\frac{\partial {u}_{i}}{\partial {x}_{i}} = 0
-\end{eqnarray}
-%\vspace{-.2em}
-\vskip-.6cm
-\begin{eqnarray}
-\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {\partial p} {\partial {x}_{j}} + \nu \frac {{\partial} {u}_{i}} {\partial {x}_{j} \partial {x}_{j}} \nonumber
-\end{eqnarray}
-where $\nu$ is the kinematic viscosity.
-
-%The primary difficulty in solving the incompressible Navier-Stokes equations in primitive variables stems from the lack of a time derivative in the continuity equation. There is no straightforward way to iteratively march these equations in time and ensure a divergence-free velocity field.
-%In this work, we adopted the pseudo-compressibility method$^{\cite{PseudoCompressibility}}$ to form a hyperbolic system of equations which can be marched in pseudo-time to a steady-state solution. The method can also be extended to solve time-dependent problems by using sub-iterations in pseudo-time at each physical time step. A time derivative of pressure is added to the continuity equation resulting in
-
-In this work, we adopted the pseudo-compressibility method~\cite{PseudoCompressibility} to form a hyperbolic system of equations which can be marched in pseudo-time. A time derivative of pressure is added to the continuity equation resulting in
-
-%\vskip-.6cm
-\vspace{-.2em}
-\begin{eqnarray}
-\frac{\partial (p/\rho)}{\partial \tau} = - \beta \frac{\partial {u}_{i}}{\partial {x}_{i}}
-\end{eqnarray}
-where $\beta$ denotes a pseudo-compressibility parameter, currently set up as 2.5.
-
-For time-accurate unsteady simulation, dual time stepping method is adopted and it is combined with the LU-SGS (Lower-Upper Symmetric Gauss-Seidel) scheme~\cite{LU-SGS} for the implicit time integration. The inviscid fluxes are upwind-differenced using Osher's flux-difference splitting scheme~\cite{Osher}. For higher-order spatial accuracy, the MUSCL (Monotone Upstream-centered Schemes for Conservation Laws)~\cite{MUSCL} approach is used on inviscid flux calculation. Viscous fluxes are calculated using the conventional second-order central differencing.
-
-Molecular dynamics computer simulation technique is a specified computer simulation method for molecular systems, including microscopic details of a system and macroscopic statistical properties, which are the properties of the atoms, the interactions between particles, molecular characteristics, structure of molecules, transport phenomena etc.~\cite{Allen},\cite{Haile},\cite{Rapaport} In MD, an initial velocity is assigned to each atom, and Newton's laws are employed at the atomic level to propagate the system's motion through time evolution:
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
-F_{i} = m_{i}a_{i}
-\label{eq:Newton}
-\end{equation}
-\normalsize
-here each atom $\it i $ in a system constituted by N atoms, mi is the mass of i$^{th}$ atom, ai is the acceleration and denote by $\it {d^2r_{i}} / {dt^2}$, and $\it F_{i}$ is the force on i$^{th}$ atom, due to the atomic interaction which is calculated based on the potential energy between individual particles.
-The simplest choice for the potential energy $\it U(r)$  can be written as the sum of pairwise interactions of particles:
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
-U(r_{1}, ...  ,r_{N}) =  \displaystyle\sum_{i} \displaystyle\sum_{j>i}  u(|r_{i} - r_{j}|)
-\label{eq:PEnergy}
-\end{equation}
-\normalsize
-where $\it i$ and $\it j$ particles are located at $r_{i}$ and $r_{j}$, and only $\it j>i$ cases have been considering for each particles pair once.
-The most commonly used two-body interaction model is the Lennard-Jones (12-6) potential is applied to calculate pairwise interaction and is define as:
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- u(|r_{i} - r_{j}|) = 4\epsilon_{ij}[(\frac{\sigma_{ij}}{r_{ij}})^{12}-(\frac{\sigma_{ij}}{r_{ij}})^{6}]
- \label{eq:LJ12}
-\end{equation}
-\normalsize
-where $\epsilon_{ij}$ and $\sigma_{ij}$ denote the pairwise potential well depth and the atom size parameter respectively, and $\it r_{ij}$ is the distance between the particle $\it i$ and $\it j$.
-The term $\it 1/r_{ij}^{12}$ dominating at short range distance repulsive behavior based on the Pauli principle to avoid overlapping the electronic clouds when particles are  brought very close to each other. The term $\it 1/r_{ij}^6$ dominates at long range attractive forces by van der Waals dispersion forces.
-\Nkimnote{cut-off}
-The cut-off distance $\sigma_{c}$ is introduced here to reduce the computational cost and is set to be 2.2$\sigma$~\cite{Travis}.
-\newline
-
-The time integration algorithm is required to integrate the equation of motion of the interacting particles and computing molecular trajectories, one of most common velocity Verlet algorithm is employed to compute the simulation.
-In this work,  the MD simulations were performed by using the modified version of Large Atomic Molecular Massively Parallel Simulator(LAMMPS). It is the classical molecular dynamics open software written in C++ and developed by Sandia National Labs.~\cite{LAMMPS}
-
-
-\subsection{Implementation of Hybrid Interface}
-%\skonote{Numerical modeling and implementation on each solver. 3 paragraphs. Start with external force layer: specify the equation, mention that 'this artificial force modeling is implemented on MD package, to trap escaping particles within the computational domain'. Next paragraph about CFDtoMD: Discuss the meaning of constrained MD equation and specify how the code is changed, mention that 'this constrained MD equation specifies that particles in this layer eventually follow the averaged flow speed from the continuum approach.' Last paragraph about MDtoCFD: express that the average of particle velocity in this layer is applied to CFD's boundary condition, changing the CFD code. Nayong: Can you state that 'external force is numerical treatment, while CFDtoMD is physical term to follow the averaged velocity from macroscopic profile'?}
-
-For hybrid simulation, additional numerical treatments need to be implemented on each individual code. They include hybrid schemes, information exchange, and global change of data structure.
-
-Major changes on standalone CFD and MD codes are summarized in table~\ref{table:interface_implementation}. With regard to the CFD code, it experiences the global change of data structure to be the same as that of overset mesh technique~\cite{Chimera}. That is, CFD code stores the whole fluid domain with its geometric information and treat the pure MD region in Fig.~\ref{Fig:Couette} as `Hole' in the terminology of overset technique. Likewise, MDtoCFD and CFDtoMD boundary cells are declared as `Fringe' and `Donor' cells, respectively. This change is ``optional" but we strongly encourage because the implementation of overset technique will enable easy change of the hybrid condition (position and depth of hybrid layers) without mesh regeneration .
-
-
-Information exchange between continuum and discrete particle descriptions takes place through the file interface. The CFD code has one file sending and one receiving interface, the former sending conserved properties on `Donor' cells to MD site and the latter imposing the MD solution as boundary conditions on `Fringe' cells. All exchanged data are written in MD unit: thus, CFD code is equipped with velocity unit conversion function and equation of state which changes the pressure solution from CFD site to equivalent density property in MD domain.
-
-
-%CFD-MD hybrid method has numerical strategy for file-based information exchange between continuum description for macroscopic scale and discrete particle description for microscopic scale. For this information exchange, both codes have the file interface, where each writes the velocity profile of overlapping region, waits for its counterpart's velocity data and receive the data as a boundary condition in the overlap region.
-
-% Table formats; h,t,b,p - here,top,bottom,page of floats
-\begin{table}[t]
-  \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of whole fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
-  \label{table:interface_implementation}
-  \centering
-  \begin{tabular}{>{\centering}p{0.15\linewidth} || p{0.35\linewidth} | p{0.35\linewidth} }
-%\multicolumn{3}{c}{\phantom{\tiny 100}}\\
-\hline
-  & \centering CFD & \multicolumn{1}{c}{MD} \\
-\hline
- Global Change & Overset Data Structure (\it{optional}) & \multicolumn{1}{c}{-} \\
-\hline
- \centering External Force & \centering - & External Force Equation (eqn.~\ref{eq:External_Force}) \\
-\hline
-% CFDtoMD &  - File Interface: Sender & {- File Interface: Receiver \\ - Constrained MD Equation (eqn.~\ref{eq:Con3})} \\
- \multirow{2}{*}{CFDtoMD} &  \multirow{2}{*}{File Interface: Sender} & {File Interface: Receiver} \\
- & & Constrained MD Equation (eqn.~\ref{eq:Con3}) \\
-\hline
- MDtoCFD & File Interface: Receiver & File Interface: Sender \\
-\hline
-\end{tabular}
-\vspace{-1em}
-\end{table}
-
-
-Besides the data exchange interface with CFD code, additional equations of motion need to be employed on MD code to accurately describe the influence of macroscopic flow variation on particle domain.
-% On the other hands, MD code experiences a lot of change to implement hybrid scheme.
-First, the external force should be imposed to prevent leaving particles from the control domain and the force is applied its perpendicular relative position of uppermost MD layer, as was seen in Fig.~\ref{Fig:Couette}.
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- F_{ext, i} = -p_{a}\sigma\frac{y_{i}-Y_{n-1}}{1-(y_{i}-Y_{n-1})/(Y_{n}-Y_{n-1})}
- \label{eq:External_Force}
-\end{equation}
-\normalsize
-where $\it p_{a}$ denote the average pressure in the MD region, $\it Y_{n}-Y_{n-1}$ is the thickness of the uppermost layer which is applied the force and $\it F_{ext}$ is the external force acting on $\it i^{th}$ particle located on position $\it y_{i}$.
-
-
-Next, on CFDtoMD layer, the macroscopic flow properties at specific time shall be introduced to lead the motion of multiple particles in that layer. To satisfy mass conservation, a certain number of particles are inserted into or removed from this layer according to the mass flux by CFD solution,
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
-n = -A \rho u_y \Delta t / m
- \label{eq:Mass_Flux}
-\end{equation}
-\normalsize
-
-where $A$ is the horizontal area, $u_y$ is the vertical velocity component by CFD solution and $\Delta t$ is sampling interval.
-
-Next, a very complicated numerical intervention is required to maintain momentum conservation. The average velocities of particles in $\it J_{th}$ cell is equal to the velocity $\it u_{J}$ in continuum cell.
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- u_{J}(t) = \frac{1}{N_{J}} \displaystyle\sum_{i} v_{i}
- \label{eq:Con_vel}
-\end{equation}
-\normalsize
-where $\it v_{i}$ is velocity of $\it i^{th}$ particle and $\it N_{J}$ is the number of particles in the cell. With taking Lagrangian derivative of eq.~\ref{eq:Con_vel},
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- \frac{Du_{J}(t)}{Dt} =  \displaystyle\sum_{i} \frac{\ddot{x_{i}}}{N_{J}}
- \label{eq:Lagrangian}
-\end{equation}
-\normalsize
-The Classical MD equation of motion can be generalized to obtain constraint by adopting the fluctuation in acceleration of each particles, $\zeta_{i}$
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- \frac{F_{i}}{m_{i}} = \ddot{x_{i}}(t)  =   \frac{Du_{J}(t)}{Dt} + \zeta_{i} = \frac{\displaystyle\sum_{i}F_{i}(t)} {\displaystyle\sum_{i}m_{i}} +   \zeta_{i}
- \label{eq:Con2}
-\end{equation}
-\normalsize
-where $\it F_{i}$ is the force on $\it i^{th}$ particle based on the interactions between particles,  $\it m_{i}$ is mass of each atom and  eq.~\ref{eq:Con2} satisfies,
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
-\displaystyle\sum_{i}\zeta_{i}m_{i} = 0
- \label{eq:Con2}
-\end{equation}
-\normalsize
-The constrained particle dynamics with conventional equation of motion can be written as:
-
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- \ddot{x_{i}}(t) = \frac{F_{i}}{m_{i}} -  \frac{\displaystyle\sum_{i}F_{i}(t)} {\displaystyle\sum_{i}m_{i}} - \frac{1}{\Delta t_{MD}} \{  \frac{\displaystyle\sum_{i}m_{i}\dot{x_{i}}} {\displaystyle\sum_{i}m_{i}} - u_{J}(t + \Delta t_{MD})\}
- \label{eq:Con3}
-\end{equation}
-\normalsize
-The continuum velocity and the mean microscopic velocity from MD over control domain provide the synchronization of the mass and momentum consistent with eq.~\ref{eq:Con3}.
-
-In MDtoCFD layer, particles' properties are averaged over prescribed sampling duration and written on file interface at every sampling interval. This suffices to impose microscopic profile on macroscopic domain.
 
 
 The last thing to implement is the scheduling of data exchange routine in time domain, to synchronize both solutions at the same physical time. By default, two solvers open their send and receive channels on every sampling time step and independently advances to the next sampling time step, which is the design of synchronized coupling strategy in Fig.~\ref{Hybrid_Timescale1}-a). However, the time-lagging phenomenon of this strategy requires the modification for unsteady flow simulation.
@@ -541,18 +567,6 @@ Though the current numerical approach looks a possible way to eliminate the time
 
 
 
-\subsection{Determining Coupling Conditions}
-- 1 or 2 sentences (define coupling parameters / problem design - stationary flow)
-> Two coupling parameters shall be addressed to set up coupling mechanism in time space, i.e., how often data exchange will take place (called 'sampling interval') and how long the averaging will be conducted in particle domain (called 'sampling duration').
-> We sense that the statistical noise in the steady-state flow is a function of the fluid and surrounding solid elements, and geometric configurations. Thus, coupling parameters can be determined after the look-up of the system characteristics.
-
-
-\subsection{Simulation of Moderate Velocity Flow}
-- 1 sentence, change random parameters and run individually (schedule multiple jobs by a BigJob)
-
-
-\subsection{Temporal Coupling Schemes}
-- start from Coveney's graphs
 
 
 
@@ -723,9 +737,6 @@ Section 4.4, performance evaluation
 
 The first problem is the Couette flow simulation, which have been in wide use for the validation of a hybrid CFD-MD solver.~\cite{Nie},\cite{Yen} We start from the validation case, which has 52$\sigma$ distance between two parallel plates and upper wall velocity is ${\sigma}/{\tau}$. We assume liquid argon particles are filled in the domain and both walls have artificial properties which is the same as those of liquid argon. Characteristic length of liquid argon is ${\sigma}=3.405{\times}10^{-10}$ and time scale is $\tau=2.2{\times}10^{-12}$. Density is $0.81m{\sigma}^{-3}$, which means 0.81 atoms are included in the characteristic volume.
 
-As we have argued earlier, MD solution inherently describes the fluctuating pattern of particles, which becomes a noise in CFD solution. Thus, the first thing to do for coupled simulation is to determine coupling conditions including layer size (layer width and height), sampling duration, sampling interval and MD timescale, which defines the scale and pattern of noise. For continuum approach, averaging more particles on bigger layers for a long time would be preferred to eliminate the systematic noise of molecular vibration. However, in view of MD, smaller layer is preferred to accurately apply the velocity gradient from CFD solution. Also, shorter sampling interval who updates boundary condition more frequently is required for the time-accurate solution. Thus, optimal coupling condition will be to set the smallest sampling interval (it is noteworthy that our new temporal coupling approach enables the sampling duration to be as long as the sampling interval.) whose statistical error is within the range of acceptable error.
-
-Our idea of numerically detecting the strength of statistical noise is to solve the stationary flow in the full-scale fluid domain by pure MD method. According to statistical error analyses on periodic MD system by Hadjiconstantinou {\it{et al.}}~\cite{Hadjicon2} and Delgado-Buscalioni and Coveney~\cite{Time_Mechanism}, the statistical error is inversely proportional to ${u_{max}}^2$. This implies that the statistical error in stationary flow is going to be the upper bound of the fluctuation strength as long as this relation remains valid on our wall-bounded flows. Also, solving a stationary flow is quite acceptable in view of computational cost as we can start gathering the data right after the minimization process is done.
 
 Table \ref{table:MD_Vel0} shows the averaged velocity on different layer size and sampling duration. Experiments were conducted with different system width changing from 35 $\sigma$ to 70 and 140 $\sigma$. From the individual test, we can find that increasing sampling duration or height of averaged layer does not linearly decrease the statistical error. At the first test, increasing the height of averaged layer from 0.1 $\sigma$ to 6.4 $\sigma$ reduces the statistical error by 4 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration. Next, by comparing the first and third experiments, we find that the statistical error in general becomes half when the system size is 4 times bigger. This does not support the conclusion of statistical error analyses~\cite{Hadjicon2},\cite{Time_Mechanism} where the strength of error is inversely proportional to the system size. We assume that the upper and lower walls hinder the noise from being damped out. Nevertheless, increasing the system domain is more effective than numerically increasing the size of averaged layer in reducing the statistical error. Lastly, though not included in this table, we also conducted numbers of experiments by changing time step in MD simulation, $\Delta t_{MD}$. We could not find much difference in the strength of statistical noise with different time step and this concludes us that this fluctuation and its scale is physically natural phenomenon. So, time step for MD simulation is fixed as $\Delta t_{MD}=5 \times 10^3 \tau$ on all simulations.
 
