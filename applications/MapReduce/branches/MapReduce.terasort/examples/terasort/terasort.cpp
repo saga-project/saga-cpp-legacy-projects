@@ -50,7 +50,6 @@ std::vector<std::string> partitions;
 void InitPart() {
 //    saga::url partition_list = FileOutputFormat::GetUrl(*job, PARTITION_LIST);
       saga::url partition_list = "file://localhost//work/smaddi2/workerop/_partitions.lst";
-
      partitions = TeraKeyPartitionGenerator::ReadPartitions(
         &partition_list);
 }
@@ -102,11 +101,116 @@ class TeraSortReduce : public Reducer<string, string, string, string> {
         val += values.Current();
    }
  
-    context->Emit(key, val );
+    context->Emit(key," "+ val );
  
 }
 };
 REGISTER_REDUCER_CLASS(TeraSortReduce, 1);
+
+#define PARTITION_LIST  "_partition.lst"
+class TeraPartitioner : public Partitioner {
+ public:
+
+  class TrieNode {
+   public:
+    TrieNode(int level) : level_(level) {}
+    virtual int FindPartition(const std::string& key) = 0;
+    int level() { return level_; }
+   protected:
+    int level_;
+  };
+
+  // Inner trie node holding 256 children for each possible next character.
+  class InnerTrieNode : public TrieNode {
+   public:
+    InnerTrieNode(int level) : TrieNode(level) {}
+    int FindPartition(const std::string& key) {
+      if (key.length() <= level_) {
+        return child[0]->FindPartition(key);
+      } else {
+        return child[(uint8_t)key.at(level_)]->FindPartition(key);
+      }
+    }
+   friend class TeraPartitioner;
+   boost::scoped_ptr<TrieNode> child[256];
+  };
+
+  // Leaf trie node holding all strings between lower and upper split key.
+  class LeafTrieNode : public TrieNode {
+   public:
+    LeafTrieNode(int level, const std::vector<std::string>& splits, int lower, int upper) : TrieNode(level), splits_(splits), lower_(lower),
+          upper_(upper) {}
+    int FindPartition(const std::string& key) {
+      for (int i = lower_; i < upper_; ++i) {
+
+		if (splits_[i] > key) {
+          return i;
+        }
+      }
+      return upper_;
+    }
+   private:
+    const std::vector<std::string>& splits_;
+    int lower_;
+    int upper_;
+  };
+
+  // Recursive function for building the trie for distributing keys evenly
+  // across partitions.
+  TrieNode* BuildTrie(const std::vector<std::string>& splits, int lower,
+
+	int upper, const std::string& prefix, int max_depth) {
+    int depth = prefix.size();
+    if (depth >= max_depth || upper == lower) {
+      return new LeafTrieNode(depth, splits, lower, upper);
+    }
+    // Create an inner trie node.
+    InnerTrieNode* node = new InnerTrieNode(depth);
+    std::string new_prefix(prefix);
+    // Expand the prefix with one byte.
+    new_prefix.push_back(1);
+    int current_limit = lower;
+    // Add a node for each possible next character.
+    for (int c = 0; c < 255; ++c) {
+      new_prefix[new_prefix.size()-1] = (char)(c + 1);
+      // Find split right after currently tried prefix.
+      lower = current_limit;
+      while (splits[current_limit] < new_prefix && current_limit < upper) {
+        ++current_limit;
+      }
+      new_prefix[new_prefix.size()-1] = (char)c;
+      // Add new child.
+      node->child[c].reset(BuildTrie(splits, lower, current_limit, new_prefix,
+          max_depth));
+    }
+    // Assign rest of keys to last child.
+    new_prefix[new_prefix.size()-1] = (char)127;
+    node->child[255].reset(BuildTrie(splits, current_limit, upper, new_prefix,
+        max_depth));
+  }
+
+  void InitPart() {
+  //    saga::url partition_list = FileOutputFormat::GetUrl(*job, PARTITION_LIST);
+        saga::url partition_list = "file://localhost//work/smaddi2/workerop/_partitions.lst";
+        std::vector<std::string> partitions;
+        partitions = TeraKeyPartitionGenerator::ReadPartitions(&partition_list);
+        trie_root.reset(BuildTrie(partitions, 0, partitions.size(),std::string(""), 2));
+  }
+  // Partitioner implementation.
+  int GetPartition(const std::string& key, int num_partitions) {
+               std::string deserialized_key;
+        ArrayInputStream input_stream(mapreduce::string_as_array(&(const_cast<std::string&>(key))), key.size());
+        mapreduce::SerializationHandler<std::string>::Deserialize(&input_stream, &deserialized_key);
+       return trie_root->FindPartition(deserialized_key.substr(1));
+  }
+       friend class TeraPartitioner;
+
+boost::scoped_ptr<TrieNode> trie_root;
+
+};
+
+
+REGISTER_PARTITIONER(TeraPartitioner, 5);
 
 
 int main(int argc, char** argv) {
@@ -149,7 +253,7 @@ int main(int argc, char** argv) {
     FileInputFormat::AddInputPath(job, input_loc);
     job.set_mapper_class("TeraSortMap");
     job.set_reducer_class("TeraSortReduce");
-    job.set_partitioner_class("TeraPart");
+    job.set_partitioner_class("TeraPartitioner");
     job.set_output_format("TeraOutput");
     job.set_num_reduce_tasks(2);
     TeraKeyPartitionGenerator partitioner;
