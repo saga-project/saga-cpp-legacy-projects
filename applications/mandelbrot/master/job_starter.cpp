@@ -91,7 +91,6 @@ job_starter::job_starter (unsigned int njobs,
       saga::ini::section backend_config = config.get_section (key);
 
       std::cout << "using backend " << key << std::endl;
-      backend_config.dump ();
 
       endpoints_.push_back (endpoint_ (key,       
                                        backend_config.get_entry ("url"  ),
