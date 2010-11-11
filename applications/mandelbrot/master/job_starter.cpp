@@ -2,30 +2,9 @@
 #include <sstream>
 #include <iostream>
 
+#include <saga/saga/adaptors/utils.hpp>
+
 #include "job_starter.hpp"
-
-
-#ifdef SAGA_APPLE
-# define HOME "/Users/merzky"
-#else
-# define HOME "/home/merzky"
-#endif
-
-   #define FORK                //  OK
-// #define BESPP               //  OK ?
-// #define SSH                 //  OK
-// #define GRAM                //  OK 
-// #define SMOA1               //  OK
-// #define SMOA2               //  OK
-// #define ARC                 //  OK ?
-// #define GENESIS             //  OK 
-// #define UNICORE             //  OK
-// #define UNICORE_FG_INDIA    //  OK ?
-// #define GRIDSAM             // NOK      sec
-// #define EC2                 // NOK      sec deploy
-// #define OCCI                // NOK impl sec deploy
-// #define gLite               // NOK will not work
-
 
 job_starter::endpoint_::endpoint_ (std::string  name,
                                    std::string  url,
@@ -84,235 +63,49 @@ job_starter::endpoint_::endpoint_ (std::string  name,
 job_starter::job_starter (unsigned int njobs, 
                           std::string  a_dir)
 {
-  // first, initialize all endpoint info.  There is likely a more elegant way to
-  // do that, but for now, hardcoding may suffice
+  // first, initialize all endpoints according to the ini file
 
-#ifdef FORK
-  // local endpoint (fork) ok
-  endpoints_.push_back (endpoint_ (
-   "local-fork"                                        , // name
-   "fork://localhost/"                                 , // url
-   "UserPass"                                          , // ctype
-   ""                                                  , // user
-   ""                                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   ""                                                  , // proxy
-   ""                                                  , // cadir
-   HOME "/projects/saga/install/bin/saga-run.sh"       , // exe
-   "/tmp"                                                // pwd
-   ));
-#endif
-  
-#ifdef BESPP
-  // local endpoint (bes) ok
-  endpoints_.push_back (endpoint_ (
-   "local-bes"                                         , // name
-   "https://localhost:1235/"                           , // url
-   "UserPass"                                          , // ctype
-   "merzky"                                            , // user
-   "aaa"                                               , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   ""                                                  , // proxy
-   ""                                                  , // cadir
-   HOME "/install/bin/saga-run.sh"                     , // exe
-   "/tmp"                                                // pwd
-   ));
-#endif
-  
-#ifdef SSH
-  // ssh endpoint (cyder) ok
-  endpoints_.push_back (endpoint_ (
-   "cct-ssh"                                           , // name
-   "ssh://cyder.cct.lsu.edu/"                          , // url
-   "ssh"                                               , // ctype
-   "amerzky"                                           , // user
-   ""                                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   ""                                                  , // proxy
-   ""                                                  , // cadir
-   "/home/amerzky/install/bin/saga-run.sh"             , // exe
-   "/tmp"                                                // pwd
-   ));
-#endif
+  std::string ini_file ("mandelbrot.ini");
+  char * ini_env = ::getenv ("SAGA_MANDELBROT_INI");
 
-#ifdef SMOA1
-  // SMOA endpoint (BES) ok
-  endpoints_.push_back (endpoint_ (
-   "smoa-bes"                                          , // name
-   "https://grass1.man.poznan.pl:19021"                , // url
-   "UserPass"                                          , // ctype
-   "ogf"                                               , // user
-   "smoa-project.org"                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/home/ogf/install/bin/saga-run.sh"                 , // exe
-   "/home/ogf/"                                          // pwd
-   ));
-#endif
-  
-#ifdef SMOA2
-  // SMOA endpoint (BES) ok
-  endpoints_.push_back (endpoint_ (
-   "smoa-bes"                                          , // name
-   "https://grass1.man.poznan.pl:19022"                , // url
-   "UserPass"                                          , // ctype
-   "ogf"                                               , // user
-   "smoa-project.org"                                  , // pass
-   "/tmp/x509up_u503"                                  , // cert
-   "/tmp/x509up_u503"                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/home/ogf/install/bin/saga-run.sh"                 , // exe
-   "/home/ogf/"                                          // pwd
-   ));
-#endif
-  
-#ifdef GRAM
-  // LONI endpoint (GRAM)
-  endpoints_.push_back (endpoint_ (
-   "loni-gram"                                         , // name
-   "gram://qb1.loni.org/"                              , // url
-   "x509"                                              , // ctype
-   ""                                                  , // user
-   ""                                                  , // pass
-   ""                                                  , // cert
-   ""                                                  , // key
-   "/tmp/x509up_u503"                                  , // proxy
-   HOME "/.globus/certificates/"                       , // cadir
-   "/home/merzky/install/bin/saga-run.sh"              , // exe
-   "/home/merzky/"                                       // pwd
-   ));
-#endif
-  
-#ifdef ARC
-  // ARC endpoint (BES)
-  endpoints_.push_back (endpoint_ (
-   "arc-bes"                                           , // name
-// "https://interop.grid.niif.hu:60000/arex-ut"        , // url
-   "https://localhost:10001/arex-ut"                   , // url
-   "UserPass"                                          , // ctype
-   "ogf30"                                             , // user
-   "ogf30"                                             , // pass
-   "/tmp/x509up_u503"                                  , // cert
-   "/tmp/x509up_u503"                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/usr/local/saga/bin/saga-run.sh"                   , // exe
-   "/home/arc/"                                          // pwd
-   ));
-#endif
-  
-#ifdef GENESIS
-  //  type     = "UserPass";
-  //  url      = "epr://localhost/" HOME ".saga/fg.india.short.epr";
-  //  user     = "ogf30";
-  //  pass     = "ogf30";
-  //  cert     = "/tmp/x509up_u503";
-  //  key      = "/tmp/x509up_u503";
-  //  cadir    = HOME ".saga/certificates/";
-  //  exe      = "/N/u/merzky/install/bin/saga-run.sh";
-  // Genesis-II endpoint (BES)
-  endpoints_.push_back (endpoint_ (
-   "genesis2-bes"                                      , // name
-   "epr://localhost/" HOME "/.saga/fg.india.short.epr" , // url
-   "UserPass"                                          , // ctype
-   "ogf30"                                             , // user
-   "ogf30"                                             , // pass
-   "/tmp/x509up_u503"                                  , // cert
-   "/tmp/x509up_u503"                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/N/u/merzky/install/bin/saga-run.sh"               , // exe
-   ""                                                    // pwd
-   ));
-#endif
+  if ( NULL != ini_env )
+  {
+    ini_file = ini_env;
+  }
 
-#ifdef UNICORE
-  // Unicore endpoint (BES)
-  //   type     = "UserPass";
-  //   url      = "https://zam1161v01.zam.kfa-juelich.de:8002/DEMO-SITE/services/BESFactory?res=default_bes_factory";
-  //   user     = "ogf";
-  //   pass     = "ogf";
-  //   cert     = "/tmp/x509up_u503";
-  //   key      = "/tmp/x509up_u503";
-  //   cadir    = HOME ".saga/certificates/";
-  //   exe      = "/home/unicoreinterop/install/bin/saga-run.sh";
-  endpoints_.push_back (endpoint_ (
-   "unicore-bes"                                      , // name
-   "https://zam1161v01.zam.kfa-juelich.de:8002/DEMO-SITE/services/BESFactory?res=default_bes_factory"
-                                                       , // url
-   "UserPass"                                          , // ctype
-   "ogf"                                               , // user
-   "ogf"                                               , // pass
-   "/tmp/x509up_u503"                                  , // cert
-   "/tmp/x509up_u503"                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/home/unicoreinterop/install/bin/saga-run.sh"      , // exe
-   ""                                                    // pwd
-   ));
-#endif
-
-#ifdef UNICORE_FG_INDIA
-  // Unicore endpoint on FG (BES)
-  endpoints_.push_back (endpoint_ (
-   "unicore.fg.india-bes"                              , // name
-// "https://198.202.120.85:8080/DEMO-SITE/services/BESFactory?res=default_bes_factory"
-   "https://localhost:10003/DEMO-SITE/services/BESFactory?res=default_bes_factory"
-                                                       , // url
-   "UserPass"                                          , // ctype
-   "ogf"                                               , // user
-   "ogf"                                               , // pass
-   "/tmp/x509up_u503"                                  , // cert
-   "/tmp/x509up_u503"                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/N/u/merzky/install/bin/saga-run.sh"               , // exe
-   ""                                                    // pwd
-   ));
-#endif
+  saga::ini::ini ini (ini_file);
 
 
-#ifdef GRIDSAM
-  // GridSAM endpoint (BES)
-  endpoints_.push_back (endpoint_ (
-   "gridsam-bes"                                      , // name
-   "https://gridsam-test.oerc.ox.ac.uk:18443/gridsam/services/hpcbp"
-                                                       , // url
-   "UserPass"                                          , // ctype
-   "ogf30"                                             , // user
-   "ogf30"                                             , // pass
-   "/tmp/x509up_u503"                                  , // cert
-   "/tmp/x509up_u503"                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/home/amerzky/install/bin/saga-run.sh"             , // exe
-   "/home/amerzky/"                                      // pwd
-   ));
-#endif
- 
- 
-#ifdef EC2
-  // EC2 endpoint (AWS)
-  endpoints_.push_back (endpoint_ (
-   "ec2-aws"                                           , // name
-   "ec2://"                                            , // url
-   "aws"                                               , // ctype
-   "ogf30"                                             , // user
-   "ogf30"                                             , // pass
-   "/tmp/x509up_u503"                                  , // cert
-   "/tmp/x509up_u503"                                  , // key
-   ""                                                  , // proxy
-   HOME "/.saga/certificates/"                         , // cadir
-   "/usr/local/saga/bin/saga-run.sh"                   , // exe
-   "/home/arc/"                                          // pwd
-   ));
-#endif
+  saga::ini::section config = ini.get_section ("mandelbrot").get_section ("backends");
+
+  saga::ini::entry_map backends = config.get_entries ();
+  saga::ini::entry_map :: iterator it;
+
+  for ( it = backends.begin (); it != backends.end (); it++ )
+  {
+    std::string key = (*it).first;
+    std::string val = (*it).second;
+
+    if ( val == "yes" )
+    {
+      saga::ini::section backend_config = config.get_section (key);
+
+      std::cout << "using backend " << key << std::endl;
+      backend_config.dump ();
+
+      endpoints_.push_back (endpoint_ (key,       
+                                       backend_config.get_entry ("url"  ),
+                                       backend_config.get_entry ("ctype"),
+                                       backend_config.get_entry ("user" ),
+                                       backend_config.get_entry ("pass" ),
+                                       backend_config.get_entry ("cert" ),
+                                       backend_config.get_entry ("key"  ),
+                                       backend_config.get_entry ("proxy"),
+                                       backend_config.get_entry ("cadir"),
+                                       backend_config.get_entry ("exe"  ),
+                                       backend_config.get_entry ("pwd"  )));
+    }
+  }
 
 
   for ( unsigned int n = 0; n < njobs; n++ )
