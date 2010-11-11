@@ -334,7 +334,7 @@ void mandelbrot::compute (void)
   // completed work item adverts are deleted.
   while ( ads.size () )
   {
-    std::cout << "compute: " << ads.size () << " open adverts: ";
+    // std::cout << "compute: " << ads.size () << " open adverts: ";
 
     // if no box is done at all, we sleep for a bit.  On anything else, we loop
     // again immediately.
@@ -363,7 +363,6 @@ void mandelbrot::compute (void)
 
         std::vector <std::string> words = saga::adaptors::utils::split (work, ' ');
 
-        std::cout << "work: " << work << std::endl;
         if ( words.size () != 13 )
         {
           throw "Cannot parse work attribute!";
@@ -377,7 +376,7 @@ void mandelbrot::compute (void)
 #endif // FAST_ADVERT
 
         std::cout << "compute: work item " << s_ident
-                  << " (" << s_jobid << ") done\n";
+                  << " (" << s_jobid << ") - (" << work << ") done\n";
 
         // data from client
         std::stringstream ss_data (ads[j].get_attribute ("data"));

@@ -20,7 +20,6 @@ int main (int argc, char** argv)
       m.compute    ();
 
       // done
-      std::cout << "\n done - press key to finish\n";
       system ("/bin/date");
     }
   }
