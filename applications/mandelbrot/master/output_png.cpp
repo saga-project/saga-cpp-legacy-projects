@@ -10,7 +10,7 @@ output_png::output_png (unsigned int size_x,
                         unsigned int cnum)
     : size_x_   (size_x),
       size_y_   (size_y),
-      cnum_     (cnum * 256),
+      cnum_     (cnum * 256 - 1),
       png_      (size_x_, size_y_, (int) cnum_, "mandelbrot.png")
 {
   // try to open font file
