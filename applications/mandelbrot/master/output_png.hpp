@@ -25,6 +25,9 @@ class output_png : public output_base
     unsigned int         cnum_; // number of colors
     std::vector <long>   colors_;
 
+    // font location
+    std::string          font_loc_;
+
     pngwriter            png_;
 
 

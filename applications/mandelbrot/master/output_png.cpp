@@ -13,6 +13,18 @@ output_png::output_png (unsigned int size_x,
       cnum_     (cnum * 256),
       png_      (size_x_, size_y_, (int) cnum_, "mandelbrot.png")
 {
+  // try to open font file
+  char * saga_loc = ::getenv ("SAGA_LOCATION");
+
+  if ( NULL == saga_loc )
+  {
+    font_loc_  = "./pngwriter/fonts/FreeSansBold.ttf";
+  }
+  else
+  {
+    font_loc_ = saga_loc;
+    font_loc_ += "/share/pngwriter/fonts/FreeSansBold.ttf";
+  }
 }
 
 output_png::~output_png (void)
@@ -91,7 +103,7 @@ void output_png::paint_box (unsigned int x0, unsigned int n_x,
   }
 
   char * txt = strdup (tmp.c_str ());
-  png_.plot_text( (char*)("pngwriter/FreeSansBold.ttf"), 8, x0+10, y0+10, 0, txt, 1.0, 1.0, 1.0);
+  png_.plot_text( (char*)(font_loc_.c_str ()), 8, x0+10, y0+10, 0, txt, 1.0, 1.0, 1.0);
   free (txt);
 }
 

@@ -7,8 +7,14 @@ SAGA_SRC     = $(wildcard *.cpp)
 SAGA_LIB_OBJ = $(SAGA_SRC:%.cpp=%.o)
 SAGA_ARC     = pngwriter
 
+FONTS        = $(wildcard *.ttf)
+
 include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 SAGA_CXXFLAGS += `freetype-config --cflags` 
 SAGA_LDFLAGS  += `freetype-config --libs`
+
+install::
+	@$(ECHO) "      installing   fonts"
+	@$(INSTALL) $(FONTS) share/pngwriter/fonts/
 
