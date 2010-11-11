@@ -41,7 +41,13 @@ $meph_version     = "latest";
 $meph_repository  = "http://static.saga.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
-$boost_check 	  = "boost-1.44.0";											######added########
+$boost_check 	  = "boost-1.44.0";
+$globus           = "globus-5.0.2";
+$size		  = 0;
+$name             = 0;
+$name2            = 0;
+
+######added########
 ##############################################################################
 ##
 sub print_mephisto_logo {
@@ -133,9 +139,10 @@ sub print_red_failed_and_die {
 ##
 sub pull_package {
     my (@package) = @_;
-	my @value = split("-", $boost_check);						#####added#######
-	my @no = split(/\./, $value[1]);					                  ###added##
-	
+	my @no = split(/\./, $name[1]);	  ##boost split up into individual numbers				                  ###added##
+	my @no1 = split(/\./, $name2[1]);  ##globus split up into individual numbers
+
+		
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
     
@@ -144,9 +151,20 @@ sub pull_package {
     if($package[0] eq "SVN") {
        $package_store_path .= "/SVN_$package[1]";
     }
-    elsif (($package[1] eq "BOOST") && ($boost_check)  ) {
-  $package_store_path .= "/$package[1]";
-$package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $value[1] . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
+    elsif ($package[1] eq "BOOST") {
+  	$package_store_path .= "/$package[1]";
+	$package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $name[1] . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
+    }
+	
+    elsif (($package[1] eq "GLOBUS") && ($no1[0] eq  4) && ($no1[1] eq 2) ) {
+	$package_store_path .= "/$package[1]";
+        $package_bin_path ="http://www-unix.globus.org/ftppub/gt" . $no1[0] . "/" . $name2[1] . "/installers/src/gt" . $name2[1] . "-all-source-installer.tar.bz2";
+    } 
+    
+    elsif ($package[1] eq "GLOBUS")  {
+
+	$package_store_path .= "/$package[1]";
+        $package_bin_path ="http://www.globus.org/ftppub/gt". $no1[0] . "/" . $no1[0] . "." . $no1[1] . "/" . $name2[1] . "/installers/src/gt" . $name2[1] . "-all-source-installer.tar.bz2";
     }
   
     else {
@@ -196,12 +214,21 @@ $package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $valu
     if($package[0] eq "LF") {
       my $unpack_logfile = "$meph_tmp_dir/$package[1].unpack.log";
       print "  o Extracting package \n    logfile: $unpack_logfile"; $|++; 
-
-      my @untar_cmd = ('tar', 'vxzf', $package_store_path);
+	
+      if ($package_store_path eq "$meph_tmp_dir/GLOBUS"){
+	
+      my @untar_cmd = ('tar', 'vxjf', $package_store_path);
       redirect_console($unpack_logfile);
       $retval = system(@untar_cmd);
       restore_console();
 
+      }
+      else {
+      my @untar_cmd = ('tar', 'vxzf', $package_store_path);
+      redirect_console($unpack_logfile);
+      $retval = system(@untar_cmd);
+      restore_console();
+      }
       print_red_failed_and_die() unless $retval == 0;
 
       open(TARLOG, "$meph_tmp_dir/$package[1].unpack.log"); 
@@ -236,7 +263,7 @@ $package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $valu
     my $configure_string = $package[3];
     $configure_string =
       substr( $configure_string, 1, length($configure_string) - 2 );
-
+	print "$configure_string";
     my $configure_logfile = "$meph_tmp_dir/$package[1].configure.log";
 
     my @configure_cmd = split( ' ', $configure_string );
@@ -364,6 +391,12 @@ sub print_usage () {
 	print "--target-dir=<dir> <options>\n";
     print "        Installs all or just selected packages from the repository.\n\n";
 
+    print color 'bold red';
+        print "        mephisto.pl check ";
+        print color 'reset';
+        print "--target-dir=<dir> <options>\n";
+    print "        Installs specified packages defined at the command line using options provided.\n\n";
+
     print " Options and Arguments:\n\n";
 	print "      --repository=     The repository version to use. By default,\n";
 	print "                        mephisto uses the latest version.\n\n";
@@ -377,7 +410,8 @@ sub print_usage () {
 	print "      --with-packages=  Comma-separated list of optional packages to\n";
 	print "                        install. By default, mephisto installs all\n";
 	print "                        available packages.\n";
-	print "                        any boost library used should be specified 'boost-x.yy.z'\n\n";
+	print "                        any boost library used should be specified 'boost-x.yy.z' followed by globus 'globus-x.y.z' in that order respectively or any one.\n";
+	print "                        By default, boost-1.44.0 and/or globus-5.0.2 will be installed.(globus 2 & 3 versions are not supported)\n\n";		
 }
 
 ##############################################################################
@@ -389,7 +423,9 @@ sub check_options () {
 	my $tmp_dir     = 0;
 	my $repository  = 0;
 	my $mode        = 0;
-	my $boostv   = 0;
+	my $v   = 0;
+	my $temp2 = 0;
+	my $temp = 0;		
 	
 	# The first option HAS to be the mode (list/install/etc)
 	if( @ARGV < 1)
@@ -456,35 +492,67 @@ sub check_options () {
 		$mode = "check";
 		my $retval= GetOptions('target-dir=s' => \$install_dir,
 							   'help|?' 	  => \$help,
-				         	   'tmp-dir=s'    => \$tmp_dir,
-				         	   'repository=s' => \$repository,
-							   'with-packages=s' => \$boostv) ;
+				         	  	   'tmp-dir=s'    => \$tmp_dir,
+				         	   	   'repository=s' => \$repository,
+							   'with-packages=s' => \$v) ;
+		
+		 my @words = split (",",$v);
+		 $size  = @words;   #the size of the array
+		 
 		if(!$retval)
 		{
 			print_usage();
 			exit();	
 		}
 		
+		elsif ($size eq 2) 
+		{
+			$boost_check = $words[0];  #boost only as first argument
+			$globus = $words[1];  #globus only as second argument
+			@name = split("-",$boost_check); #boost
+ 			@name2 = split("-",$globus); #globus
+		}
+		elsif ($size eq 1)
+		{
+			@temp = split("-",$v);
+			if ($temp[0] eq "boost"){
+			$boost_check = $v;
+			} 
+			else {
+			$globus = $v;
+			}
+			
+			@name = split("-",$boost_check);
+			@name2 = split("-",$globus);
+			
+		} 
+		else
+		{
+			@name = split("-",$boost_check);
+                        @name2 = split("-",$globus);		
+
+		}
+			
 		if($install_dir eq 0)
 		{
 			print "\n You have to set the '--target-dir' argument.\n";
 			print_usage();
 			exit();
 		}
-		elsif ($boostv eq 0)
+		elsif ($name2[0] eq "boost")
 		{
-			print "\n You have to set the '--with-package' argument. \n";
+			print "\n Specify boost first and then globus. \n";
 			print_usage();
 			exit();
 		}
 		else
 		{
 			$meph_install_dir = $install_dir;
-			$boost_check      = $boostv;
+		
 			#if(!(-w $meph_install_dir))
 			#{
-            #  print "\n You don't have write permission for $install_dir.\n\n";
-            #  exit();
+            		#  print "\n You don't have write permission for $install_dir.\n\n";
+            		#  exit();
 			#}
 		}
 		
@@ -496,7 +564,7 @@ sub check_options () {
 		if( !($repository eq 0))
 		{
 		    $meph_version = $repository;
-        }
+        	}
 	}
 	else
 	{
@@ -549,35 +617,43 @@ my $meph_rep_full = $meph_repository . "/repository/" . $meph_version;
 
 print "\n Source repository: $meph_rep_full\n\n";
 
-# Retrieve the repository index and get the paths to
-# mephisto's software source packages.
-#if (!boost_check) {						######added########
+
 my $content = get $meph_rep_full. "/INDEX";
 die "Couldn't get $meph_rep_full" unless defined $content;
 
-#else {
-#my $content = get $meph_rep_full. "/INDEX2";
-#die "Couldn't get $meph_rep_full" unless defined $content;
-#}
+my @midpack = ("LF","GLOBUS","$globus","./configure","make","make install");
 
+my $countp=0;
 my @index = split( "\n", $content );
 foreach my $line (@index) {
     my @packages = split( ";;", $line );
     if ($packages[1] eq "BOOST") {
-    print "  o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n\n";
+    print " o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n";
 	}
-    else {
-    print "  o $packages[1]: $packages[2]\n";
-         }  
+    elsif($countp eq 0) {
+    print "o $midpack[1]: http://www.globus.org/ftppub/$globus-all-source-installer.tar.bz2\n";
+    print " o $packages[1]: $packages[2]\n";
     }
+    else{
+    print " o $packages[1]: $packages[2]\n";
+    } 
+	$countp = $countp + 1; 
+  }
 
+
+my $count = 0;
 my @index2 = split( "\n", $content );
 foreach my $line (@index2) {
     my @packages = split( ";;", $line );
-    pull_package(@packages);
+	if ($count eq 0) {
+	pull_package(@midpack);
 	}
+     $count = $count + 1;
+     pull_package(@packages);
+	}
+#after the for loop, here packages  will store all the values as an array as was the case above
 
-	
+
 
 write_setenv();
 
