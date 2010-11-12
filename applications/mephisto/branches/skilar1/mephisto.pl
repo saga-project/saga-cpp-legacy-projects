@@ -164,7 +164,7 @@ sub pull_package {
     elsif ($package[1] eq "GLOBUS")  {
 
 	$package_store_path .= "/$package[1]";
-        $package_bin_path ="http://www.globus.org/ftppub/gt". $no1[0] . "/" . $no1[0] . "." . $no1[1] . "/" . $name2[1] . "/installers/src/gt" . $name2[1] . "-all-source-installer.tar.bz2";
+        $package_bin_path ="http://www.globus.org/ftppub/gt" . $no1[0] . "/" . $no1[0] . "." . $no1[1] . "/" . $name2[1] . "/installers/src/gt" . $name2[1] . "-all-source-installer.tar.bz2";
     }
   
     else {
@@ -457,6 +457,10 @@ sub check_options () {
 							   'help|?'		   => \$help,
 				         	   'tmp-dir=s'     => \$tmp_dir,
 				         	   'repository=s'  => \$repository) ; 
+
+		@name = split("-",$boost_check);
+                @name2 = split("-",$globus);
+
 		if(!$retval)
 		{
 			print_usage();
@@ -496,10 +500,12 @@ sub check_options () {
 				         	  	   'tmp-dir=s'    => \$tmp_dir,
 				         	   	   'repository=s' => \$repository,
 							   'with-packages=s' => \$v) ;
-		
+	         	
 		 my @words = split (",",$v);
 		 $size  = @words;   #the size of the array
-		 
+		if ($v eq 0)  {
+		$v = $globus;
+		} 
 		if(!$retval)
 		{
 			print_usage();
@@ -510,8 +516,6 @@ sub check_options () {
 		{
 			$boost_check = $words[0];  #boost only as first argument
 			$globus = $words[1];  #globus only as second argument
-			@name = split("-",$boost_check); #boost
- 			@name2 = split("-",$globus); #globus
 		}
 		elsif ($size eq 1)
 		{
@@ -523,16 +527,10 @@ sub check_options () {
 			$globus = $v;
 			}
 			
-			@name = split("-",$boost_check);
-			@name2 = split("-",$globus);
-			
 		} 
-		else
-		{
 			@name = split("-",$boost_check);
                         @name2 = split("-",$globus);		
 
-		}
 			
 		if($install_dir eq 0)
 		{
