@@ -73,12 +73,15 @@ job_starter::job_starter (unsigned int njobs,
     ini_file = ini_env;
   }
 
+  std::cout << "using configuration in " << ini_file << std::endl;
+
   saga::ini::ini ini (ini_file);
 
 
-  saga::ini::section config = ini.get_section ("mandelbrot").get_section ("backends");
+  saga::ini::section mandelbrot_config = ini.get_section ("mandelbrot");
+  saga::ini::section backends_config   = mandelbrot_config.get_section ("backends");
 
-  saga::ini::entry_map backends = config.get_entries ();
+  saga::ini::entry_map backends = backends_config.get_entries ();
   saga::ini::entry_map :: iterator it;
 
   for ( it = backends.begin (); it != backends.end (); it++ )
@@ -88,7 +91,7 @@ job_starter::job_starter (unsigned int njobs,
 
     if ( val == "yes" )
     {
-      saga::ini::section backend_config = config.get_section (key);
+      saga::ini::section backend_config = backends_config.get_section (key);
 
       std::cout << "using backend " << key << std::endl;
 
@@ -106,9 +109,9 @@ job_starter::job_starter (unsigned int njobs,
     }
   }
 
-  if ( config.has_entry ("mandelbrot.job_num") )
+  if ( mandelbrot_config.has_entry ("job_num") )
   {
-     njobs = ::atoi (config.get_entry ("mandelbrot.job_num").c_str ());
+     njobs = ::atoi (mandelbrot_config.get_entry ("job_num").c_str ());
   }
 
 
