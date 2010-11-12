@@ -261,10 +261,11 @@ sub pull_package {
     #### cd & configure
     ##
     my $configure_string = $package[3];
-    $configure_string =
+print"\n$configure_string\n";
+  $configure_string =
       substr( $configure_string, 1, length($configure_string) - 2 );
-	print "$configure_string";
-    my $configure_logfile = "$meph_tmp_dir/$package[1].configure.log";
+print"\n$configure_string\n\n";
+my $configure_logfile = "$meph_tmp_dir/$package[1].configure.log";
 
     my @configure_cmd = split( ' ', $configure_string );
     push( @configure_cmd, "--prefix=$meph_install_dir" );
@@ -621,7 +622,7 @@ print "\n Source repository: $meph_rep_full\n\n";
 my $content = get $meph_rep_full. "/INDEX";
 die "Couldn't get $meph_rep_full" unless defined $content;
 
-my @midpack = ("LF","GLOBUS","$globus","./configure","make","make install");
+my @midpack = ("LF","GLOBUS","$globus","'./configure'","'make'","'make install'");
 
 my $countp=0;
 my @index = split( "\n", $content );
