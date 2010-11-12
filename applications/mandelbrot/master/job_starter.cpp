@@ -106,6 +106,11 @@ job_starter::job_starter (unsigned int njobs,
     }
   }
 
+  if ( config.has_entry ("mandelbrot.job_num") )
+  {
+     njobs = ::atoi (config.get_entry ("mandelbrot.job_num").c_str ());
+  }
+
 
   for ( unsigned int n = 0; n < njobs; n++ )
   {
