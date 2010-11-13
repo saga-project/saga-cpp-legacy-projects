@@ -28,7 +28,7 @@ class mandelbrot
 
   public:
     mandelbrot (std::string  odev  = "x11",  // default output device
-                unsigned int njobs = 1);     // default number of client jobs
+                unsigned int njobs = -1);    // default number of client jobs (autoselect)
     ~mandelbrot (void);
 
     void compute    (void);
