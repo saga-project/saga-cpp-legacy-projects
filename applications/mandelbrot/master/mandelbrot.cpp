@@ -219,9 +219,6 @@ void mandelbrot::compute (void)
       std::stringstream advert_name;
       advert_name << jobnum << "/" << boxnum;
 
-      std::cout << "compute: assigning work item " << boxnum + 1
-                << " to job " << jobnum << "\n";
-
       // create a work item in the jobs work bucket
       saga::advert::entry ad = job_bucket_.open (advert_name.str (),
                                                  saga::advert::Create        |
@@ -376,7 +373,7 @@ void mandelbrot::compute (void)
 #endif // FAST_ADVERT
 
         std::cout << "compute: work item " << s_ident
-                  << " (" << s_jobid << ") - (" << work << ") done\n";
+                  << "done (" << work << std::endl;
 
         // data from client
         std::stringstream ss_data (ads[j].get_attribute ("data"));

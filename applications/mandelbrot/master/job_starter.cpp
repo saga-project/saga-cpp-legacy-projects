@@ -29,8 +29,6 @@ job_starter::endpoint_::endpoint_ (std::string  name,
     exe_         (exe  ),
     pwd_         (pwd  )
 {
-
-  std::cout << "adding  endpoint '" << name_ << "' (" << url_ << ")" << std::endl;
   saga::session s;
 
   saga::context c (ctype_);
@@ -95,8 +93,6 @@ job_starter::job_starter (int          njobs,
     {
       saga::ini::section backend_config = backends_config.get_section (key);
 
-      std::cout << "using backend " << key << std::endl;
-
       endpoints_.push_back (endpoint_ (key,       
                                        backend_config.get_entry ("url"  ),
                                        backend_config.get_entry ("ctype"),
@@ -153,7 +149,6 @@ job_starter::job_starter (int          njobs,
 
     if ( saga::job::Running != j.get_state () )
     {
-      std::cout << "state: " << j.get_state () << std::endl;
       throw "Could not start client\n";
     }
 

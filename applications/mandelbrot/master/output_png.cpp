@@ -31,7 +31,6 @@ output_png::~output_png (void)
 {
   // close down PNG
   png_.close ();
-  std::cout << "closed" << std::endl;
 }
 
 
