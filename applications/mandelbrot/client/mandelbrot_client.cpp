@@ -41,11 +41,29 @@ int main (int argc, char** argv)
     // avoid busy wait on idle looping
     bool should_wait = false;
 
+    // after n rounds of having nothing todo, the client finishes
+    unsigned int idle_rounds = 0;
+
     while ( busy )
     {
       if ( should_wait )
       {
-        ::sleep (5);
+        idle_rounds++;
+
+        if ( idle_rounds > 20 ) 
+        {
+          // after 20 minutes idling, we say goodbye
+          busy = false;
+          std::cout << "client: no work found - exit" << std::endl;
+          continue;
+        }
+
+        ::sleep (1);
+      }
+      else
+      {
+        // reset idle counter
+        idle_rounds = 0;
       }
 
       should_wait = true;
@@ -57,14 +75,17 @@ int main (int argc, char** argv)
       // TODO: replace with notification
       if ( 0 == work_ads.size () )
       {
-        std::cout << "client: waiting for work" << std::endl;
-        :: sleep (5);
-
         if ( work_done ) 
         {
           // if we found work items previously, we continue to work 'til they are
           // finished.  Once the work bucket is empty though, we stop.
+          std::cout << "client: ran out or work - exit" << std::endl;
           busy = false;
+        }
+        else
+        {
+          should_wait = true;
+          std::cout << "client: waiting for work" << std::endl;
         }
         continue;
       }
@@ -187,7 +208,6 @@ int main (int argc, char** argv)
       } // for all ads in job_bucket
 
     } // while true
-
   }
   catch ( saga::exception const & e )
   {
