@@ -60,7 +60,9 @@ job_starter::endpoint_::endpoint_ (std::string  name,
   service_ = js;
 }
 
-job_starter::job_starter (unsigned int njobs, 
+
+//////////////////////////////////////////////////////////////////////
+job_starter::job_starter (int          njobs, 
                           std::string  a_dir)
 {
   // first, initialize all endpoints according to the ini file
@@ -113,9 +115,13 @@ job_starter::job_starter (unsigned int njobs,
   {
      njobs = ::atoi (mandelbrot_config.get_entry ("job_num").c_str ());
   }
+  else if ( njobs <= 0 )
+  {
+     njobs = endpoints_.size ();
+  }
 
 
-  for ( unsigned int n = 0; n < njobs; n++ )
+  for ( int n = 0; n < njobs; n++ )
   {
     endpoint_ ep = endpoints_[n % endpoints_.size ()];
 

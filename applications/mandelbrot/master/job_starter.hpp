@@ -47,7 +47,7 @@ class job_starter
     std::vector <saga::job::job>      jobs_;
 
   public:
-    job_starter (unsigned int njobs,   // number of jobs to spawn
+    job_starter (int          njobs,   // number of jobs to spawn
                  std::string  a_dir);  // advert directory (== job bucket)
     ~job_starter (void);
 
