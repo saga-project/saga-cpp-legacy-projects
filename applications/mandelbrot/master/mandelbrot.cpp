@@ -373,7 +373,7 @@ void mandelbrot::compute (void)
 #endif // FAST_ADVERT
 
         std::cout << "compute: work item " << s_ident
-                  << "done (" << work << std::endl;
+                  << " done (" << work << std::endl;
 
         // data from client
         std::stringstream ss_data (ads[j].get_attribute ("data"));
