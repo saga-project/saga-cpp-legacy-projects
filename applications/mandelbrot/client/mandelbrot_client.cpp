@@ -50,7 +50,7 @@ int main (int argc, char** argv)
       {
         idle_rounds++;
 
-        if ( idle_rounds > 20 ) 
+        if ( idle_rounds > 1200 ) 
         {
           // after 20 minutes idling, we say goodbye
           busy = false;
