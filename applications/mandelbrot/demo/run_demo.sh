@@ -64,7 +64,7 @@ this="-"
     # or elsewhere in $PATH
     cp $SAGA_MANDELBROT_INI $SAGA_DEMO_HOME
     $SAGA_LOCATION/bin/saga-run.sh mandelbrot_master 2> $SAGA_DEMO_STDERR > $SAGA_DEMO_STDOUT \
-      || die "demo failed"
+      || echo "demo failed"
 
     echo "demo done "
     echo "===============================" 
