@@ -161,7 +161,7 @@ void mandelbrot::job_startup (void)
     std::stringstream ident;
     ident << n + 1;
 
-    std::cout << "waiting for job " << ident.str () << " to bootstrap\n";
+    std::cout << "waiting for job " << ident.str () << " to bootstrap" << std::endl;
 
     // make sure clients get up and running
     while ( ! job_bucket_.exists (ident.str ()) &&
@@ -170,7 +170,7 @@ void mandelbrot::job_startup (void)
       if ( saga::job::Running != jobs_[n].get_state () )
       {
         std::cout << "job state: " << jobs_[n].get_state () << std::endl;
-        throw "Could not start client\n";
+        throw "Could not start client";
       }
       ::sleep (1);
     }
@@ -187,7 +187,7 @@ void mandelbrot::job_startup (void)
 //
 void mandelbrot::compute (void)
 {
-  std::cout << "compute!\n";
+  std::cout << "compute!" << std::endl;
 
   // extent of complex plane to cover
   double plane_ext_x = PLANE_X_1 - PLANE_X_0;
@@ -320,14 +320,14 @@ void mandelbrot::compute (void)
       ads.push_back (ad);
 
       std::cout << "compute: assigned  work item " << boxnum + 1
-                << " to job " << jobnum << "\n";
+                << " to job " << jobnum << std::endl;
 
       boxes_scheduled++;
     }
   }
 
 
-  std::cout << "compute: job bucket: " << job_bucket_name_ << "\n";
+  std::cout << "compute: job bucket: " << job_bucket_name_ << std::endl;
 
 
   // all work items are assigned now.

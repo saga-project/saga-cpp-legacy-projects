@@ -12,7 +12,7 @@ int main (int argc, char** argv)
 
   if ( argc < 3 )
   {
-    std::cerr << "usage: " << argv[0] << " <advert_dir> <job_id>\n";
+    std::cerr << "usage: " << argv[0] << " <advert_dir> <job_id>" << std::endl;
     return -1;
   }
 
@@ -211,7 +211,7 @@ int main (int argc, char** argv)
   }
   catch ( saga::exception const & e )
   {
-    std::cerr << "SAGA exception: " << e.what () << "\n";
+    std::cerr << "SAGA exception: " << e.what () << std::endl;
     return -2;
   }
 

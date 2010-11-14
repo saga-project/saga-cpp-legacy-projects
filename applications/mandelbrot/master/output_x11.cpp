@@ -21,12 +21,12 @@ output_x11::output_x11 (unsigned int size_x,
   // print a message of what we *would* paint
   if ( dpy_ == NULL )
   {
-    std::cout << "init x11 output failed\n";
+    std::cout << "init x11 output failed" << std::endl;
     ::exit (-1);
   }
   else
   {
-    std::cout << "init x11 output\n";
+    std::cout << "init x11 output" << std::endl;
     
     // get default screen
     scr_ = DefaultScreen (dpy_);
