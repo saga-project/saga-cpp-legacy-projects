@@ -58,7 +58,8 @@ if __name__ == "__main__":
     try:
         resource_list = []
         resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "64", "allocation" : "<your allocation>", 
-                               "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"), "affinity" : "affinity1"})
+                               "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"), 
+                               "affinity" : "affinity1"})
 
         print "Create manyjob service "
         mjs = many_job_affinity.many_job_affinity_service(resource_list, "localhost")
