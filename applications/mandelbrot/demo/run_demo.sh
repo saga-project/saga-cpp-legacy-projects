@@ -17,6 +17,7 @@ export SAGA_DEMO_LOG=$SAGA_DEMO_ROOT/demo.log
 export SAGA_DEMO_LOCK=$SAGA_DEMO_ROOT/demo.lock
 export SAGA_DEMO_STOP=$SAGA_DEMO_ROOT/demo.stop
 export SAGA_DEMO_DELAY=$SAGA_DEMO_ROOT/demo.delay
+
 export SAGA_MANDELBROT_INI=$SAGA_DEMO_ROOT/demo.ini
 
 # have only one demo script running at any time

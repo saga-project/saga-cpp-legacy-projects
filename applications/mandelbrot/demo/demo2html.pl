@@ -81,9 +81,11 @@ EOT
   }
   print OUT "</td>\n";
   print OUT "   </tr>\n";
-
-
-
+  print OUT "   <tr>\n";
+  print OUT "    <td> <strong> stdio: </strong> </td>\n";
+  print OUT "    <td> <a href=stdout>stdout</a> \n";
+  print OUT "         <a href=stderr>stderr</a> </td>\n";
+  print OUT "   </tr>\n";
   print OUT "   <tr>\n";
   print OUT "    <td valign='top'> <strong> Result: </strong> </td>\n";
   print OUT "    <td> ";
