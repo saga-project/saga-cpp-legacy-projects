@@ -45,6 +45,7 @@ class job_starter
     std::vector <endpoint_>           endpoints_;
     std::vector <saga::job::service>  services_;
     std::vector <saga::job::job>      jobs_;
+    unsigned int                      njobs_;
 
   public:
     job_starter (int          njobs,   // number of jobs to spawn

@@ -147,12 +147,13 @@ mandelbrot::~mandelbrot (void)
 //
 void mandelbrot::job_startup (void)
 {
-  std::cout << "job_startup: starting " << njobs_ << " jobs\n";
+  std::cout << "job_startup: starting " << njobs_ << " jobs" << std::endl;
 
   job_starter js (njobs_, job_bucket_name_);
 
   jobs_ = js.get_jobs ();
 
+  std::cout << "using " << jobs_.size () << " jobs" << std::endl;
 
   for ( unsigned int n = 0; n < jobs_.size (); n++ )
   {
@@ -204,6 +205,7 @@ void mandelbrot::compute (void)
 
   // Schedule all boxes in round robin fashion over the
   // available jobs
+  unsigned int boxes_scheduled = 0;
   for ( int x = 0; x < BOX_NUM_X; x++ )
   {
     for ( int y = 0; y < BOX_NUM_Y; y++ )
@@ -319,6 +321,8 @@ void mandelbrot::compute (void)
 
       std::cout << "compute: assigned  work item " << boxnum + 1
                 << " to job " << jobnum << "\n";
+
+      boxes_scheduled++;
     }
   }
 
@@ -329,6 +333,7 @@ void mandelbrot::compute (void)
   // all work items are assigned now.
   // wait for incoming boxes, and paint them as they get available.
   // completed work item adverts are deleted.
+  unsigned int boxes_done = 0;
   while ( ads.size () )
   {
     // std::cout << "compute: " << ads.size () << " open adverts: ";
@@ -412,6 +417,9 @@ void mandelbrot::compute (void)
                          box_off_y, BOX_SIZE_Y,
                          data, id);
 
+        std::cout << "compute: work item " << s_ident
+                  << " done (" << work << std::endl;
+        boxes_done++;
 
         // remove finished ad
         ads[j].remove ();
@@ -429,5 +437,8 @@ void mandelbrot::compute (void)
       ::sleep (5);
     }
   }
+
+  std::cout << "compute: " << boxes_done
+            << " out of " << boxes_scheduled << " done" << std::endl;
 }
 

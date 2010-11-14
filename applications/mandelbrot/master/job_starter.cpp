@@ -109,17 +109,38 @@ job_starter::job_starter (int          njobs,
 
   if ( mandelbrot_config.has_entry ("job_num") )
   {
-     njobs = ::atoi (mandelbrot_config.get_entry ("job_num").c_str ());
+     njobs_ = ::atoi (mandelbrot_config.get_entry ("job_num").c_str ());
   }
-  else if ( njobs <= 0 )
+
+  if ( njobs <= 0 )
   {
-     njobs = endpoints_.size ();
+     njobs_ = endpoints_.size ();
+  }
+  else
+  {
+    njobs_ = njobs;
   }
 
 
-  for ( int n = 0; n < njobs; n++ )
+  // we use an extra index to iterate over the endpoints, to avoid deadlock if
+  // an endpoints fails repeatedly
+  // we don't try more than njobs *#endpoints time
+  bool          todo = true;
+  unsigned int  idx  = 0;
+
+  while ( todo )
   {
-    endpoint_ ep = endpoints_[n % endpoints_.size ()];
+    ::sleep (1);
+    if ( jobs_.size () >=  njobs_ ||
+         idx           >= (njobs_ * endpoints_.size ()) )
+    {
+      // either we have enough jobs, or we tried often enough
+      todo = false;
+      continue;
+    }
+
+    // try the next endpoint
+    endpoint_ ep = endpoints_[idx % endpoints_.size ()];
 
     // create a job description
     saga::job::description jd;
@@ -133,7 +154,7 @@ job_starter::job_starter (int          njobs,
     args.push_back (a_dir);
 
     std::stringstream ident;
-    ident << n + 1;
+    ident << jobs_.size () + 1;
     args.push_back (ident.str ());
 
     jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
@@ -149,7 +170,10 @@ job_starter::job_starter (int          njobs,
 
     if ( saga::job::Running != j.get_state () )
     {
-      throw "Could not start client\n";
+      std::cerr << "Could not start client on " << ep.service_.get_url () << std::endl;
+      j.cancel ();
+      // do not count this job
+      continue;
     }
 
     std::string jobid (j.get_job_id ());
@@ -159,21 +183,34 @@ job_starter::job_starter (int          njobs,
     {
       jobid.erase (55);
 
-      jobid[51] = '.';
       jobid[52] = '.';
       jobid[53] = '.';
+      jobid[54] = '.';
     }
 
+    // keep job
+    jobs_.push_back (j);
+
     std::cout << "created job number " 
-              << n + 1 << "/" << njobs 
+              << jobs_.size () << "/" << njobs_ 
               << " on " 
               << ep.url_
               << " : " 
               << jobid
               << std::endl;
 
-    // keep job
-    jobs_.push_back (j);
+    // use next endpoint
+    idx++;
+  }
+
+  if ( jobs_.size () == 0 )
+  {
+    throw "Could not start any jobs!";
+  }
+
+  if ( jobs_.size () < njobs_ )
+  {
+    std::cout << " could not start all " << njobs_ << " jobs - continue with " << jobs_.size () << std::endl;
   }
 }
 
