@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # kill old tunnels
-echo "close  stale       tunnels"
+echo "close  stale        tunnels"
 ps -Eefw | grep TUNNEL | grep TUNNEL | grep -v grep | grep ssh | cut -c 6-12 | xargs kill -9
 
 # echo "create advert       tunnel : advert.cct.lsu.edu:8080"

@@ -60,6 +60,11 @@ this="-"
     mkdir -p $SAGA_DEMO_HOME || die "cannot create demo home $SAGA_DEMO_HOME"
     cd       $SAGA_DEMO_HOME || die "cannot cd to  demo home $SAGA_DEMO_HOME"
 
+    # re-create html for last demo, to fix 'next'
+    if [ -d $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$prev ]; then
+      $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$prev $preprev $this
+    fi
+
     # this line expects mandelbrot_master to be installed in $SAGA_LOCATION/bin,
     # or elsewhere in $PATH
     cp $SAGA_MANDELBROT_INI $SAGA_DEMO_HOME
@@ -68,11 +73,6 @@ this="-"
 
     echo "demo done "
     echo "===============================" 
-
-    # re-create html for last demo, to fix 'next'
-    if [ -d $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$prev ]; then
-      $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$prev $preprev $this
-    fi
 
     # create html for the current demo - no 'next' nown yet
     $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$this $prev -
