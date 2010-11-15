@@ -10,7 +10,7 @@ BEGIN {
 my $BASE = "http://boskop-merzky.no-ip.org/demo/";
 
 {
-  my @days = `ls -d demos-*`;
+  my @days = `ls -d demo-*`;
 
   print "Content-type: text/html\n\n";
   print <<EOT;

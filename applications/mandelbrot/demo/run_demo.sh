@@ -44,7 +44,7 @@ this="-"
 
     export SAGA_DEMO_TIME=`/bin/date "+%H:%M"`
     export SAGA_DEMO_DATE=`/bin/date "+%Y-%m-%d"`
-    export SAGA_DEMO_HOME=$SAGA_DEMO_ROOT/demos-$SAGA_DEMO_DATE/$SAGA_DEMO_TIME
+    export SAGA_DEMO_HOME=$SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_TIME
     export SAGA_DEMO_STDOUT=$SAGA_DEMO_HOME/stdout
     export SAGA_DEMO_STDERR=$SAGA_DEMO_HOME/stderr
     export SAGA_DEMO_OUTPUT=$SAGA_DEMO_HOME/
@@ -70,12 +70,12 @@ this="-"
     echo "===============================" 
 
     # re-create html for last demo, to fix 'next'
-    if [ -d $SAGA_DEMO_ROOT/demos-$SAGA_DEMO_DATE/$prev ]; then
-      $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demos-$SAGA_DEMO_DATE/$prev $preprev $this
+    if [ -d $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$prev ]; then
+      $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$prev $preprev $this
     fi
 
     # create html for the current demo - no 'next' nown yet
-    $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demos-$SAGA_DEMO_DATE/$this $prev -
+    $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$this $prev -
 
     # new demo starts shortly after the last one finished (1 min sleep)
     if [ -f $SAGA_DEMO_DELAY ]; then
