@@ -233,9 +233,9 @@ void DistributedJobRunner::spawnAgents_(void) {
             std::string command(binaryListIT->URL);
             std::vector<std::string> args;
             std::vector<std::string> env;
-            env.push_back("SAGA_LOCATION=/home/smaddi2/saga152");
+            env.push_back("SAGA_LOCATION=/N/u/smaddi2/sagameph");
             env.push_back("SAGA_VERBOSE=0");
-            env.push_back("LD_LIBRARY_PATH=/home/smaddi2/fix_mapreduce/source/mapreduce/:/usr/local/lib:/home/smaddi2/saga152//lib:/opt/bioscope/bioscope/lib/local:/usr/local/lib:/share/apps/bioscope/lib/local:");
+            env.push_back("LD_LIBRARY_PATH=/N/u/smaddi2/MapReduce.terasort/source/mapreduce/:/N/u/smaddi2/sagameph/lib:/N/u/smaddi2/sagameph/lib:/lib:/usr/lib:/usr/X11R6/lib:/usr/local/lib");
             
             jd.set_vector_attribute (saga::job::attributes::description_environment, env);
 

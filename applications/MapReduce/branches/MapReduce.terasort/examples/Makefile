@@ -4,8 +4,6 @@
 #  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 #  http://www.boost.org/LICENSE_1_0.txt)
 
-SAGA_SUBDIRS     = wordcount
-SAGA_SUBDIRS     = terasort
-#SAGA_SUBDIRS     = ters
+SAGA_SUBDIRS     = terasort wordcount
 
 include $(SAGA_LOCATION)/share/saga/make/saga.mk

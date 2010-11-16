@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     // Specify input.
     job.set_input_format("Text");
     FileInputFormat::AddInputPath(job,
-      "file://localhost//work/backup/mrinput_all/mrinput10mb/");
+      "file://localhost//N/u/smaddi2/mrinput/128mb.txt");
     job.set_mapper_class("WordCountMap");
     job.set_reducer_class("WordCountReduce");
     job.set_output_format("SequenceFile");

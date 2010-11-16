@@ -16,7 +16,7 @@ while (sseq != ''):
       if not (sseq == ''):
        if (k>8):
            if (lstr == lst):
-             if (r < 1):
+             if (r < 9):
                list = list + '<Host arch="x86_64" OS="redhat"> ssh://%s/ </Host>\n' %lst
                r=r+1
                lstr=lst
@@ -33,7 +33,7 @@ while (sseq != ''):
 
 file.close()
 print list
-nfile = open("/N/u/smaddi2/fix_mapreduce/examples/wordcount/pbs_use.xml","rb")
+nfile = open("/N/u/smaddi2/fix_mapreduce/examples/terasort/pbs_use.xml","rb")
 sseq = "test"
 newxml = ""
 while (sseq != ''):
@@ -46,5 +46,5 @@ while (sseq != ''):
       else:   
           newxml = newxml + sseq 
 nfile.close()
-FILE = open("/N/u/smaddi2/fix_mapreduce/examples/wordcount/pbs.xml", "w", 0) 
+FILE = open("/N/u/smaddi2/fix_mapreduce/examples/terasort/pbs.xml", "w", 0) 
 FILE.writelines(newxml)

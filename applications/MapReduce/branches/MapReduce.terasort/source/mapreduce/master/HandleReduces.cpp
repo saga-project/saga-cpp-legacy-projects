@@ -171,7 +171,7 @@ void HandleReduces::issue_command_() {
             srand(time(0));
             int random_integer = rand();
             std::stringstream sserr,ssout,sslog;
-            sserr<< "/work/smaddi2/workerop/mr-reducer-list-" << random_integer << ".txt";
+            sserr<< "/N/u/smaddi2/workerop/mr-reducer-list-" << random_integer << ".txt";
             std::string redlist;  
             log_->write("opening file:", MR_LOGLEVEL_WARNING);
 

@@ -132,8 +132,8 @@ namespace mapreduce {
      srand(time(0));
       int random_integer = rand();
       std::stringstream sserr,ssout,sslog;
-      sserr<< "/work/smaddi2/workerop/mr-worker-stderr" <<  g_command_line_parameters["session"].as<std::string>() << "-" << random_integer << ".txt";
-      ssout<< "/work/smaddi2/workerop/mr-worker-stdout" <<  g_command_line_parameters["session"].as<std::string>() << "-" << random_integer << ".txt";
+      sserr<< "/N/u/smaddi2/workerop/mr-worker-stderr" <<  g_command_line_parameters["session"].as<std::string>() << "-" << random_integer << ".txt";
+      ssout<< "/N/u/smaddi2/workerop/mr-worker-stdout" <<  g_command_line_parameters["session"].as<std::string>() << "-" << random_integer << ".txt";
       sslog<< "/work/smaddi2/workerop/mr-worker-log" <<  g_command_line_parameters["session"].as<std::string>() << "-" << random_integer << ".txt"; 
       std::freopen(sserr.str().c_str(),"w", stderr);
       std::freopen(ssout.str().c_str(), "w", stdout);
