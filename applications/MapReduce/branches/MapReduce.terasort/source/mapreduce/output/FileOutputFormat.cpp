@@ -14,7 +14,7 @@ void FileOutputFormat::SetOutputBase(JobDescription& job,
 }
 
 std::string FileOutputFormat::GetOutputBase(const JobDescription& job) {
-  return job.get_attribute(JOB_ATTRIBUTE_FILE_OUTPUTBASE, "file://localhost//N/u/smaddi2/workerop/");
+  return job.get_attribute(JOB_ATTRIBUTE_FILE_OUTPUTBASE, "file://localhost//path/to/output/");
 }
 
 void FileOutputFormat::SetOutputPath(JobDescription& job, const std::string& path) {

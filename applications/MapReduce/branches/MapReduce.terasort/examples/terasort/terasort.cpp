@@ -49,7 +49,7 @@ std::vector<std::string> partitions;
  
 void InitPart() {
 //    saga::url partition_list = FileOutputFormat::GetUrl(*job, PARTITION_LIST);
-      saga::url partition_list = "file://localhost//N/u/smaddi2/workerop/_partitions.lst";
+      saga::url partition_list = "file://localhost//path/to/output/_partitions.lst";
 
      partitions = TeraKeyPartitionGenerator::ReadPartitions(
         &partition_list);
@@ -62,9 +62,6 @@ int GetPartition(const std::string& key, int num_partitions) {
         ArrayInputStream input_stream(mapreduce::string_as_array(&(const_cast<std::string&>(key))), key.size());
         mapreduce::SerializationHandler<std::string>::Deserialize(&input_stream, &deserialized_key);
 
-    //saga::url partition_list = "file://localhost//work/smaddi2/workerop/_partitions.lst";
-   // std::vector<std::string> partitions = TeraKeyPartitionGenerator::ReadPartitions(&partition_list);
-     
     for (int i=0; i< partitions.size() ; i++)
       {
          std::string ps = partitions[i];
