@@ -16,7 +16,8 @@ job_starter::endpoint_::endpoint_ (std::string  name,
                                    std::string  proxy,
                                    std::string  cadir,
                                    std::string  exe,
-                                   std::string  pwd)
+                                   std::string  pwd,
+                                   std::string  njobs)
   : name_        (name ),
     url_         (url  ),
     ctype_       (ctype),
@@ -27,7 +28,8 @@ job_starter::endpoint_::endpoint_ (std::string  name,
     proxy_       (proxy),
     cadir_       (cadir),
     exe_         (exe  ),
-    pwd_         (pwd  )
+    pwd_         (pwd  ),
+    njobs_       (::atoi (njobs.c_str ()))
 {
   saga::session s;
 
@@ -60,8 +62,7 @@ job_starter::endpoint_::endpoint_ (std::string  name,
 
 
 //////////////////////////////////////////////////////////////////////
-job_starter::job_starter (int          njobs, 
-                          std::string  a_dir)
+job_starter::job_starter (std::string  a_dir)
 {
   // first, initialize all endpoints according to the ini file
 
@@ -103,114 +104,84 @@ job_starter::job_starter (int          njobs,
                                        backend_config.get_entry ("proxy", ""),
                                        backend_config.get_entry ("cadir", ""),
                                        backend_config.get_entry ("exe"  , ""),
-                                       backend_config.get_entry ("pwd"  , "")));
+                                       backend_config.get_entry ("pwd"  , ""),
+                                       backend_config.get_entry ("njobs", "1")));
     }
   }
 
-  if ( mandelbrot_config.has_entry ("job_num") )
+
+  // for each endpoint, we run 'njobs' jobs.  
+  for ( unsigned int e = 0; e < endpoints_.size (); e++ )
   {
-     njobs_ = ::atoi (mandelbrot_config.get_entry ("job_num").c_str ());
-  }
-
-  if ( njobs <= 0 )
-  {
-     njobs_ = endpoints_.size ();
-  }
-  else
-  {
-    njobs_ = njobs;
-  }
-
-
-  // we use an extra index to iterate over the endpoints, to avoid deadlock if
-  // an endpoints fails repeatedly
-  // we don't try more than njobs *#endpoints time
-  bool          todo = true;
-  unsigned int  idx  = 0;
-
-  while ( todo )
-  {
-    ::sleep (1);
-    if ( jobs_.size () >=  njobs_ ||
-         idx           >= (njobs_ * endpoints_.size ()) )
-    {
-      // either we have enough jobs, or we tried often enough
-      todo = false;
-      continue;
-    }
-
     // try the next endpoint
-    endpoint_ ep = endpoints_[idx % endpoints_.size ()];
+    endpoint_ ep = endpoints_[e];
 
-    // create a job description
-    saga::job::description jd;
-    jd.set_attribute (saga::job::attributes::description_executable, ep.exe_);
-
-    // client parameters:
-    // 0: path to advert directory to be used (job bucket)
-    // 1: jobnum, == name of work bucket for that job (is that in loop later)
-    std::vector <std::string> args;
-    args.push_back ("mandelbrot_client ");
-    args.push_back (a_dir);
-
-    std::stringstream ident;
-    ident << jobs_.size () + 1;
-    args.push_back (ident.str ());
-
-    jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
-
-    if ( ! ep.pwd_.empty () )
+    std::cout << "backend: " << ep.name_ << " - work " << std::endl;
+   
+    for ( unsigned int j = 0; j < ep.njobs_; j++ )
     {
-      jd.set_attribute (saga::job::attributes::description_working_directory, ep.pwd_);
+      // create a job description
+      saga::job::description jd;
+      jd.set_attribute (saga::job::attributes::description_executable, ep.exe_);
+  
+      // client parameters:
+      // 0: path to advert directory to be used (job bucket)
+      // 1: jobnum, == name of work bucket for that job (is that in loop later)
+      std::vector <std::string> args;
+      args.push_back ("mandelbrot_client ");
+      args.push_back (a_dir);
+
+      std::stringstream ident;
+      ident << jobs_.size () + 1;
+      args.push_back (ident.str ());
+  
+      jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
+  
+      if ( ! ep.pwd_.empty () )
+      {
+        jd.set_attribute (saga::job::attributes::description_working_directory, ep.pwd_);
+      }
+  
+      saga::job::job j = ep.service_.create_job (jd);
+  
+      j.run ();
+  
+      if ( saga::job::Running != j.get_state () )
+      {
+        std::cerr << "Could not start client on " << ep.service_.get_url () << std::endl;
+        j.cancel ();
+        // do not count this job
+        continue;
+      }
+  
+      std::string jobid (j.get_job_id ());
+  
+      // trim jobid for readability
+      if ( jobid.size () > 54 )
+      {
+        jobid.erase (55);
+  
+        jobid[52] = '.';
+        jobid[53] = '.';
+        jobid[54] = '.';
+      }
+  
+      // keep job
+      jobs_.push_back (j);
+  
+      std::cout << "created job number " 
+                << jobs_.size ()
+                << " on " 
+                << ep.url_
+                << " : " 
+                << jobid
+                << std::endl;
     }
-
-    saga::job::job j = ep.service_.create_job (jd);
-
-    j.run ();
-
-    if ( saga::job::Running != j.get_state () )
-    {
-      std::cerr << "Could not start client on " << ep.service_.get_url () << std::endl;
-      j.cancel ();
-      // do not count this job
-      continue;
-    }
-
-    std::string jobid (j.get_job_id ());
-
-    // trim jobid for readability
-    if ( jobid.size () > 54 )
-    {
-      jobid.erase (55);
-
-      jobid[52] = '.';
-      jobid[53] = '.';
-      jobid[54] = '.';
-    }
-
-    // keep job
-    jobs_.push_back (j);
-
-    std::cout << "created job number " 
-              << jobs_.size () << "/" << njobs_ 
-              << " on " 
-              << ep.url_
-              << " : " 
-              << jobid
-              << std::endl;
-
-    // use next endpoint
-    idx++;
   }
 
   if ( jobs_.size () == 0 )
   {
     throw "Could not start any jobs!";
-  }
-
-  if ( jobs_.size () < njobs_ )
-  {
-    std::cout << " could not start all " << njobs_ << " jobs - continue with " << jobs_.size () << std::endl;
   }
 }
 

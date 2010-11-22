@@ -49,10 +49,8 @@
 //
 // constructor
 //
-mandelbrot::mandelbrot (std::string  odev,
-                        unsigned int njobs)
-    : odev_    (odev),  // output device to open
-      njobs_   (njobs)  // number of compute jobs
+mandelbrot::mandelbrot (std::string  odev)
+    : odev_    (odev)  // output device to open
 {
   // check if we suport the requested device
   bool have_odev = false;
@@ -165,9 +163,9 @@ mandelbrot::~mandelbrot (void)
 //
 void mandelbrot::job_startup (void)
 {
-  std::cout << "job_startup: starting " << njobs_ << " jobs" << std::endl;
+  std::cout << "job_startup" << std::endl;
 
-  job_starter js (njobs_, job_bucket_name_);
+  job_starter js (job_bucket_name_);
 
   jobs_ = js.get_jobs ();
 
