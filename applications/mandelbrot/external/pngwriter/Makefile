@@ -9,10 +9,9 @@ SAGA_ARC     = pngwriter
 
 FONTS        = $(wildcard *.ttf)
 
+-include ../../config/make.cfg
 include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
-SAGA_CXXFLAGS += `freetype-config --cflags` 
-SAGA_LDFLAGS  += `freetype-config --libs`
 
 install::
 	@$(ECHO) "      installing   fonts"
