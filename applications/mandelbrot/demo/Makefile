@@ -2,7 +2,7 @@
 all:
 
 clean:
-	-ps -ef | grep run_demo.sh | grep -v grep | cut -c 6-12 | xargs kill
+	-ps -ef | grep run_demo.sh | grep -v grep | cut -c 7-14 | xargs kill
 	rm -f  demo.lock
 	rm -f  demo.log
 	rm -f  demo.stop
