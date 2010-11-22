@@ -31,7 +31,7 @@ namespace saga_pm
       public:
         master (unsigned int              nworker, 
                 std::string               worker_exe, 
-                std::vector <std::string> worker_args);
+                std::vector <std::string> worker_args = saga_pm::master_worker::noargs_);
         ~master (void);
 
         void shutdown (void);

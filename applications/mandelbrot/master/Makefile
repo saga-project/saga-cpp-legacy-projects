@@ -4,8 +4,9 @@
 #  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 #  http://www.boost.org/LICENSE_1_0.txt)
 
-HAVE_PNG = yes
-HAVE_X11 = no
+HAVE_PNG      = no
+HAVE_X11      = no
+HAVE_FREETYPE = no
 
 
 SAGA_SRC        += job_starter.cpp
@@ -16,6 +17,18 @@ ifeq "$(HAVE_PNG)" "yes"
  FLAGS          += -DHAVE_PNG
  SAGA_SRC       += output_png.cpp
  SAGA_SUBDIRS    = pngwriter
+else
+ FLAGS          += -DHAVE_PNG
+ SAGA_CXXFLAGS  += -I../external/libpng/
+ SAGA_LDFLAGS   += ../external/libpng/libpng.a
+ SAGA_SRC       += output_png.cpp
+ SAGA_SUBDIRS    = pngwriter
+endif
+
+ifeq "$(HAVE_FREETYPE)" "no"
+ FLAGS          += -DHAVE_FREETYPE
+ SAGA_CXXFLAGS  += -I../external/libfreetype/include/
+ SAGA_LDFLAGS   += ../external/libfreetype/libfreetype.a
 endif
 
 ifeq "$(HAVE_X11)" "yes"
@@ -35,9 +48,7 @@ run:: $(SAGA_BIN)
   
 SAGA_CXXFLAGS += $(FLAGS)
 
-ifeq "$(HAVE_PNG)" "yes"
- include pngwriter/pngwriter.mk
-endif
+include pngwriter/pngwriter.mk
 
 ifeq "$(HAVE_X11)" "yes"
  SAGA_CXXFLAGS += -I/usr/X11/include

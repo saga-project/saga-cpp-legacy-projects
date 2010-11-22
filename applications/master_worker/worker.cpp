@@ -7,24 +7,17 @@ namespace saga_pm
   {
 
     ////////////////////////////////////////////////////////////////////
-    worker::worker (void)
+    worker::worker (call_map_t call_map)
+      : work_ (true)
     {
-      std::cout << "worker started" << std::endl;
-    }
+      saga::session s;
 
+      LOG << "worker started: " << ::getpid ();
 
-    ////////////////////////////////////////////////////////////////////
-    worker::~worker (void)
-    {
-    }
-
-
-    ////////////////////////////////////////////////////////////////////
-    void worker::init (call_map_t call_map)
-    {
-      std::cout << " worker: init " << std::endl;
       call_map_ = call_map;
 
+      // make sure that the call map has a quit entry
+      // NOTE: not sure if a custom quite would make sense anyway...
       if ( call_map_.find ("quit") == call_map_.end () )
       {
         call_map_["quit"] = &worker::call_quit;
@@ -34,24 +27,30 @@ namespace saga_pm
       char* adurl_env = ::getenv ("SAGA_WORKER_AD");
       if ( NULL == adurl_env )
       {
+        std::cout << "Could not get advert address from environment" << std::endl;
+        LOG << "Could not get advert address from environment" << std::flush;
         exit (-1);
       }
 
-      saga::url adurl = std::string (adurl_env);
+      LOG << "worker advert address: " << adurl_env;
 
-      std::cout << "adurl: " << adurl << std::endl;
-
-      // create that advert URL
-      ad_ = advert  (adurl);
-
+      // create the worker advert
+      ad_ = advert  (saga::url (adurl_env));
       ad_.set_state (Started);
     }
 
 
     ////////////////////////////////////////////////////////////////////
+    worker::~worker (void)
+    {
+    }
+
+
+
+    ////////////////////////////////////////////////////////////////////
     void worker::run (void)
     {
-      while ( true )
+      while ( work_ )
       {
         bool busy = false;
 
@@ -87,7 +86,10 @@ namespace saga_pm
       ad_.set_state (Quit);
       std::cout << "Quit" << std::endl;
 
-      ::exit (0);
+      work_ = false;
+
+      argvec_t ret;
+      return ret;
     }
     ////////////////////////////////////////////////////////////////////
 

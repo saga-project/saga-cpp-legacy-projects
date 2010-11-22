@@ -1311,7 +1311,8 @@ void pngwriter::readfromfile(char * name)
    if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth<8) 
      { 
 	// png_set_expand(png_ptr); 
-	png_set_gray_1_2_4_to_8(png_ptr);  // Just an alias of the above.
+	png_set_palette_to_rgb(png_ptr);  // Just an alias of png_set_expand()
+	// png_set_gray_1_2_4_to_8(png_ptr);  // Just an alias of the above.
 	transformation_ = 1; 
      } 
    

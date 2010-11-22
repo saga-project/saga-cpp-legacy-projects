@@ -23,12 +23,22 @@ namespace saga_pm
       : ok_     (false)
       , create_ (true) // client creates the advert
       , s_      (Unknown)
-      , url_    (url_)
+      , url_    (url)
     {
       // we touch the advert object here. to ensure its early construction.
       // That way, the object should stay alive to be used in the
       // destructor.
       ad_.get_id ();
+
+      // we create the advert immediately - the client does not need a delayed
+      // init
+      init ();
+
+      if ( ! ok_ )
+      {
+        LOG << "worker advert init failed!";
+        ::exit (-1);
+      }
     }
 
 
@@ -39,9 +49,9 @@ namespace saga_pm
       : ok_     (false)
       , create_ (false) // master does not create the adverts
       , s_      (Unknown)
-      , js_     (js_)
-      , job_    (job_)
-      , url_    (url_)
+      , js_     (js)
+      , job_    (job)
+      , url_    (url)
     {
       // we touch the advert object here. to ensure its early construction.
       // That way, the object should stay alive to be used in the
@@ -73,6 +83,7 @@ namespace saga_pm
 
             // create the advert, initialize all attributes, set id and 
             // state (Started)
+            LOG << "creating parent at " << url_;
             ad_ = saga::advert::entry (url_, saga::advert::Read     | 
                                              saga::advert::Create   );
 
@@ -181,7 +192,7 @@ namespace saga_pm
         throw saga::no_success ("worker in incorrect state");
       }
 
-      ad_.remove ();
+      // ad_.remove ();
     }
     
 

@@ -30,7 +30,7 @@ namespace saga_pm
 
       std::vector <std::string> env;
 
-      std::string env_verbose   ("SAGA_VERBOSE=4");
+      std::string env_verbose   ("SAGA_VERBOSE=1");
       std::string env_logdest   ("SAGA_LOGDESTINATION=cout");
       std::string env_master    ("SAGA_MASTER_ID=0");
       std::string env_worker    ("SAGA_WORKER_ID=");
@@ -42,6 +42,8 @@ namespace saga_pm
       // FIXME: handle existing dir as error, or pick up workers in there...
       master_ad_ += "0/";
       ad_ = saga::advert::directory (master_ad_, saga::advert::Create | saga::advert::CreateParents);
+
+      LOG << "created advert dir at " << ad_.get_url ();
 
       // worker ads live in the master advert directory
       std::string worker_advert (master_ad_);
@@ -164,7 +166,7 @@ namespace saga_pm
         // worker_ads_[i].purge ();  // this is take care of below!
       }
 
-      ad_.remove (saga::advert::Recursive);
+      // ad_.remove (saga::advert::Recursive);
     }
 
     ////////////////////////////////////////////////////////////////////

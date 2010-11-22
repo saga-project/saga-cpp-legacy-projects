@@ -8,17 +8,32 @@
 
 #include <saga/saga.hpp>
 
+#define LOG SAGA_LOG(SAGA_VERBOSE_LEVEL_CRITICAL)
+
 namespace saga_pm
 {
   namespace master_worker
   {
-    std::string get_master_id (void);
-    std::string get_worker_id (void);
+    ////////////////////////////////////////////////////////////////////
+    
+    class worker;
+    typedef std::string                                arg_t;
+    typedef std::vector <arg_t>                        argvec_t;
+    typedef argvec_t (saga_pm::master_worker::worker::*call_t)(argvec_t);
+    typedef std::map <std::string, call_t>             call_map_t;
 
-    bool        is_master     (void);
-    bool        is_worker     (void);
 
-    std::string itoa          (unsigned long int i);
+    ////////////////////////////////////////////////////////////////////
+    
+    std::string     get_master_id (void);
+    std::string     get_worker_id (void);
+
+    bool            is_master     (void);
+    bool            is_worker     (void);
+
+    std::string     itoa          (unsigned long int i);
+
+    static argvec_t noargs_;
 
     // worker state enum
     //
@@ -50,18 +65,8 @@ namespace saga_pm
       Quit     = 7
     };
 
-
     std::string state_to_string (state       s);
     state       string_to_state (std::string s);
-
-
-    ////////////////////////////////////////////////////////////////////
-    class worker;
-    typedef std::string                                arg_t;
-    typedef std::vector <arg_t>                        argvec_t;
-    typedef argvec_t (saga_pm::master_worker::worker::*call_t)(argvec_t);
-    typedef std::map <std::string, call_t>             call_map_t;
-    ////////////////////////////////////////////////////////////////////
 
   } // namespace master_worker
 

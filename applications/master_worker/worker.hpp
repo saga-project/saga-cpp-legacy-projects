@@ -15,19 +15,17 @@ namespace saga_pm
     {
       private:
         call_map_t call_map_;
-        advert          ad_;
+        advert     ad_;
+        bool       work_;
 
       protected:
-        void init (call_map_t call_map);
-
         saga_pm::master_worker::argvec_t call_quit (saga_pm::master_worker::argvec_t av);
 
       public:
-        worker (void);
+        worker (call_map_t call_map);
         virtual ~worker (void);
 
         void run (void);
-
     };
     ////////////////////////////////////////////////////////////////////
 
