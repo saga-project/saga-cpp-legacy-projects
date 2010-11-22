@@ -8,7 +8,7 @@
 
 SAGA_SUBDIRS = pngwriter
 
-ifneq "$(HAVE_PNG)"
+ifneq "$(HAVE_PNG)" "yes"
  SAGA_SUBDIRS += libpng libfreetype
 endif
 

@@ -7,5 +7,5 @@
 -include ./make.cfg
 
 -include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
--include $(SAGA_LOCATION)/saga.mk
+-include $(SAGA_LOCATION)/share/saga/make/saga.mk
 

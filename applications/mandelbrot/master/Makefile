@@ -16,7 +16,7 @@ SAGA_SRC        += output_png.cpp
 
 ifeq "$(HAVE_X11)" "yes"
  SAGA_SRC       += output_x1.cpp
-enduf
+endif
 
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 SAGA_BIN         = mandelbrot_master
