@@ -16,13 +16,11 @@ SAGA_SRC        += mandelbrot_master.cpp
 ifeq "$(HAVE_PNG)" "yes"
  FLAGS          += -DHAVE_PNG
  SAGA_SRC       += output_png.cpp
- SAGA_SUBDIRS    = pngwriter
 else
  FLAGS          += -DHAVE_PNG
  SAGA_CXXFLAGS  += -I../external/libpng/
  SAGA_LDFLAGS   += ../external/libpng/libpng.a
  SAGA_SRC       += output_png.cpp
- SAGA_SUBDIRS    = pngwriter
 endif
 
 ifeq "$(HAVE_FREETYPE)" "no"
@@ -48,7 +46,9 @@ run:: $(SAGA_BIN)
   
 SAGA_CXXFLAGS += $(FLAGS)
 
-include pngwriter/pngwriter.mk
+ifeq "$(HAVE_PNG)" "yes"
+ include ../config/pngwriter/pngwriter.mk
+endif
 
 ifeq "$(HAVE_X11)" "yes"
  SAGA_CXXFLAGS += -I/usr/X11/include
