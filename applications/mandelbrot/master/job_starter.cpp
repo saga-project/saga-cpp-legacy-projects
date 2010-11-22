@@ -94,16 +94,16 @@ job_starter::job_starter (int          njobs,
       saga::ini::section backend_config = backends_config.get_section (key);
 
       endpoints_.push_back (endpoint_ (key,       
-                                       backend_config.get_entry ("url"  ),
-                                       backend_config.get_entry ("ctype"),
-                                       backend_config.get_entry ("user" ),
-                                       backend_config.get_entry ("pass" ),
-                                       backend_config.get_entry ("cert" ),
-                                       backend_config.get_entry ("key"  ),
-                                       backend_config.get_entry ("proxy"),
-                                       backend_config.get_entry ("cadir"),
-                                       backend_config.get_entry ("exe"  ),
-                                       backend_config.get_entry ("pwd"  )));
+                                       backend_config.get_entry ("url"  , ""),
+                                       backend_config.get_entry ("ctype", ""),
+                                       backend_config.get_entry ("user" , ""),
+                                       backend_config.get_entry ("pass" , ""),
+                                       backend_config.get_entry ("cert" , ""),
+                                       backend_config.get_entry ("key"  , ""),
+                                       backend_config.get_entry ("proxy", ""),
+                                       backend_config.get_entry ("cadir", ""),
+                                       backend_config.get_entry ("exe"  , ""),
+                                       backend_config.get_entry ("pwd"  , "")));
     }
   }
 

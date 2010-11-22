@@ -12,6 +12,14 @@
 #include "mandelbrot.hpp"
 #include "job_starter.hpp"
 
+#ifdef HAVE_X11
+# include "output_x11.hpp"
+#endif
+
+#ifdef HAVE_PNG
+# include "output_png.hpp"
+#endif
+
 
 // well, we could be fancy and create a GUI to allow to set
 // the user these parameters.  Or we could use a control file.
@@ -47,24 +55,34 @@ mandelbrot::mandelbrot (std::string  odev,
       njobs_   (njobs)  // number of compute jobs
 {
   // check if we suport the requested device
+  bool have_odev = false;
+
+#ifdef HAVE_X11
   if ( odev_ == "x11" )
   {
     // initialize output device
     dev_  = new output_x11 (BOX_SIZE_X * BOX_NUM_X, // window size, x
                             BOX_SIZE_Y * BOX_NUM_Y, // window size, y
                             LIMIT);                 // number of colors
+    have_odev = true;
   }
-  else if ( odev_ == "png" )
+#endif
+
+#ifdef HAVE_PNG
+  if ( odev_ == "png" )
   {
     // initialize output device
     dev_  = new output_png (BOX_SIZE_X * BOX_NUM_X, // window size, x
                             BOX_SIZE_Y * BOX_NUM_Y, // window size, y
                             LIMIT);                 // number of colors
+    have_odev = true;
   }
-  else
+#endif
+
+
+  if ( ! have_odev )
   {
-    // device unsupported
-    throw "only x11 output device supported at the moment";
+    throw "Could not find valid output device";
   }
 
 
