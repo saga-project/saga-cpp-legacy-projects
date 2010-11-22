@@ -34,7 +34,7 @@
 #endif
 
 /***************************** EXCEPTION HANDLING *****************************/
-#include "contrib/visupng/cexcept.h"
+#include "cexcept.h"
 struct png_store;
 define_exception_type(struct png_store*);
 
