@@ -6,7 +6,11 @@
 
 -include ../config/make.cfg
 
-SAGA_SUBDIRS = libpng libfreetype pngwriter
+SAGA_SUBDIRS = pngwriter
+
+ifneq "$(HAVE_PNG)"
+ SAGA_SUBDIRS += libpng libfreetype
+endif
 
 -include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
 
