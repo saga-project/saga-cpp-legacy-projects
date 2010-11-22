@@ -52,7 +52,7 @@ SAGA_SRC         += psnames/psmodule.c
 SAGA_ADD_LIB_OBJC = $(SAGA_SRC:%.c=%.o)
 SAGA_ARC          = freetype
 
-include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
+include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 SAGA_CCFLAGS     += -DFT_CONFIG_OPTION_SYSTEM_ZLIB -DFT_CONFIG_CONFIG_H="<freetype/config/ftconfig.h>" -DFT2_BUILD_LIBRARY -DFT_CONFIG_MODULES_H="<freetype/config/ftmodule.h>" -Iinclude/
 

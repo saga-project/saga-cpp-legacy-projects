@@ -998,7 +998,7 @@ void pngwriter::close()
    text_ptr[2].text = textdescription_;
    text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
    text_ptr[3].key = (char *) ("Creation Time");
-   text_ptr[3].text = png_convert_to_rfc1123(png_ptr, &mod_time);
+   text_ptr[3].text = (char*) png_convert_to_rfc1123(png_ptr, &mod_time);
    text_ptr[3].compression = PNG_TEXT_COMPRESSION_NONE;
    text_ptr[4].key = (char *) ("Software");
    text_ptr[4].text = textsoftware_;
@@ -1205,7 +1205,7 @@ void pngwriter::readfromfile(char * name)
    png_structp     png_ptr;
    png_infop       info_ptr;
    unsigned char   **image;
-   unsigned long   width, height;
+   png_uint_32     width, height;
    int bit_depth, color_type, interlace_type;
    //   png_uint_32     i;
    //
@@ -1531,7 +1531,9 @@ int pngwriter::read_png_info(FILE *fp, png_structp *png_ptr, png_infop *info_ptr
 	fclose(fp);
 	return 0;
      }
-   if (setjmp((*png_ptr)->jmpbuf)) /*(setjmp(png_jmpbuf(*png_ptr)) )*//////////////////////////////////////
+   // (setjmp((*png_ptr)->jmpbuf)) 
+  //  (setjmp(png_jmpbuf(*png_ptr))
+   if (setjmp(png_jmpbuf(*png_ptr)))
      {
 	png_destroy_read_struct(png_ptr, info_ptr, (png_infopp)NULL);
 	std::cerr << " PNGwriter::read_png_info - ERROR **: This file may be a corrupted PNG file. (setjmp(*png_ptr)->jmpbf) failed)." << std::endl;

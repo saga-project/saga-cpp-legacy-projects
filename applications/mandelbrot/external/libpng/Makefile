@@ -12,5 +12,5 @@ SAGA_SRC         += $(wildcard *.c)
 SAGA_ADD_LIB_OBJC = $(SAGA_SRC:%.c=%.o)
 SAGA_ARC          = png
 
-include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
+include $(SAGA_LOCATION)/share/saga/make/saga.mk
 

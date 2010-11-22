@@ -10,7 +10,7 @@ include $(SAGA_MB_ROOT)/config/make.cfg.base
 
 SAGA_SUBDIRS     = config external master client
 
-include $(SAGA_MAKE_INCLUDE_ROOT)/saga.application.mk
+include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 external: config
 client:   config

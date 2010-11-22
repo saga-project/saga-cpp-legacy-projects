@@ -13,7 +13,7 @@ SAGA_ARC     = pngwriter
 
 FONTS        = $(wildcard *.ttf)
 
-include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
+include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 
 install::

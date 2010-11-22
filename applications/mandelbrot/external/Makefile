@@ -18,7 +18,7 @@ ifneq "$(HAVE_FREETYPE)" "yes"
  SAGA_SUBDIRS += libfreetype
 endif
 
--include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
+-include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 pngwriter: libfreetype
 pngwriter: libpng

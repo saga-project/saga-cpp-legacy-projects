@@ -21,8 +21,7 @@ SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 SAGA_BIN         = mandelbrot_master
 
 
-include $(SAGA_MAKE_INCLUDE_ROOT)/saga.application.mk
-
+include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
 run:: $(SAGA_BIN)
 	$(SAGA_PWD)/$(SAGA_BIN)

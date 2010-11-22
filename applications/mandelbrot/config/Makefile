@@ -8,5 +8,8 @@ SAGA_MB_ROOT  = ../
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
--include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
+include $(SAGA_LOCATION)/share/saga/make/saga.mk
+
+distclean::
+	@$(RM) make.cfg
 
