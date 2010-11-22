@@ -12,27 +12,11 @@ HAVE_FREETYPE = no
 SAGA_SRC        += job_starter.cpp
 SAGA_SRC        += mandelbrot.cpp
 SAGA_SRC        += mandelbrot_master.cpp
-
-ifeq "$(HAVE_PNG)" "yes"
- FLAGS          += -DHAVE_PNG
- SAGA_SRC       += output_png.cpp
-else
- FLAGS          += -DHAVE_PNG
- SAGA_CXXFLAGS  += -I../external/libpng/
- SAGA_LDFLAGS   += ../external/libpng/libpng.a
- SAGA_SRC       += output_png.cpp
-endif
-
-ifeq "$(HAVE_FREETYPE)" "no"
- FLAGS          += -DHAVE_FREETYPE
- SAGA_CXXFLAGS  += -I../external/libfreetype/include/
- SAGA_LDFLAGS   += ../external/libfreetype/libfreetype.a
-endif
+SAGA_SRC        += output_png.cpp
 
 ifeq "$(HAVE_X11)" "yes"
- FLAGS          += -DHAVE_X11
- SAGA_SRC       += output_x11.cpp
-endif
+ SAGA_SRC       += output_x1.cpp
+enduf
 
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 SAGA_BIN         = mandelbrot_master
@@ -44,15 +28,3 @@ include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 run:: $(SAGA_BIN)
 	$(SAGA_PWD)/$(SAGA_BIN)
   
-SAGA_CXXFLAGS += $(FLAGS)
-
-ifeq "$(HAVE_PNG)" "yes"
- include ../config/pngwriter/pngwriter.mk
-endif
-
-ifeq "$(HAVE_X11)" "yes"
- SAGA_CXXFLAGS += -I/usr/X11/include
- SAGA_LDFLAGS  += -L/usr/X11/lib   -lX11
-endif
-
-
