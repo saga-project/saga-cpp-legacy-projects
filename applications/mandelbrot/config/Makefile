@@ -4,8 +4,9 @@
 #  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 #  http://www.boost.org/LICENSE_1_0.txt)
 
--include ./make.cfg
+SAGA_MB_ROOT  = ../
+
+include $(SAGA_MB_ROOT)/config/make.cfg.base
 
 -include $(SAGA_MAKE_INCLUDE_ROOT)/saga.mk
--include $(SAGA_LOCATION)/share/saga/make/saga.mk
 

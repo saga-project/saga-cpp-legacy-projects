@@ -6,6 +6,10 @@
 
 # vim: ft=make
 
+ifndef SAGA_MB_ROOT
+	$(error need SAGA_MB_ROOT defined!)
+endif
+
 ifndef MAKE_CFG_IN
        MAKE_CFG_IN=yes
 
@@ -13,6 +17,7 @@ TMP_SAGA_LOCATION = @TMP_SAGA_LOCATION@
 TMP_SAGA_INSTTYPE = @TMP_SAGA_INSTTYPE@
 HAVE_PNG          = @HAVE_LIBPNG@
 HAVE_X11          = @HAVE_LIBX11@
+HAVE_FREETYPE     = @HAVE_LIBFREETYPE@
 
 ifeq "$(TMP_SAGA_INSTTYPE)" "source"
   SAGA_ROOT              = $(TMP_SAGA_LOCATION)
@@ -25,18 +30,25 @@ endif
 
 ifeq "$(HAVE_PNG)" "yes"
  SAGA_CXXFLAGS  += -D_HAVE_PNG
+ SAGA_LDFLAGS   +=  -lpng
 else
- SAGA_CXXFLAGS  += -D_HAVE_PNG -I../external/libpng/
- SAGA_LDFLAGS   += ../external/libpng/libpng.a
+ SAGA_CXXFLAGS  += -D_HAVE_PNG
+ SAGA_CXXFLAGS  += -I$(SAGA_MB_ROOT)/external/libpng/
+ SAGA_LDFLAGS   +=  $(SAGA_MB_ROOT)/external/libpng/libpng.a
 endif
 
--include ../config/pngwriter/pngwriter.mk
+ SAGA_CXXFLAGS  += -I$(SAGA_MB_ROOT)/external/pngwriter/
+ SAGA_LDFLAGS   +=  $(SAGA_MB_ROOT)/external/pngwriter/libpngwriter.a
+
+-include $(SAGA_MB_ROOT)/config/pngwriter/pngwriter.mk
 
 
-ifeq "$(HAVE_FREETYPE)" "no"
+ifeq "$(HAVE_FREETYPE)" "yes"
  FLAGS          += -DHAVE_FREETYPE
- SAGA_CXXFLAGS  += -I../external/libfreetype/include/
- SAGA_LDFLAGS   += ../external/libfreetype/libfreetype.a
+else
+ FLAGS          += -DHAVE_FREETYPE
+ SAGA_CXXFLAGS  += -I$(SAGA_MB_ROOT)/external/libfreetype/include/
+ SAGA_LDFLAGS   += $(SAGA_MB_ROOT)/external/libfreetype/libfreetype.a
 endif
 
 ifeq "$(HAVE_X11)" "yes"

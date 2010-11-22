@@ -2,7 +2,7 @@
 #ifndef OUTPUT_PNG_HPP
 #define OUTPUT_PNG_HPP
 
-#include "pngwriter/pngwriter.h"
+#include "pngwriter.h"
 
 #include "output_base.hpp"
 

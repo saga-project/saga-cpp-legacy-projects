@@ -1,4 +1,8 @@
 
+SAGA_MB_ROOT  = ../
+
+include $(SAGA_MB_ROOT)/config/make.cfg.base
+
 all:
 
 clean:
