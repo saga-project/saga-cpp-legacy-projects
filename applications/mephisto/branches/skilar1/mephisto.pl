@@ -46,7 +46,7 @@ $globus           = "globus-5.0.2";
 $size		  = 0;
 $name             = 0;
 $name2            = 0;
-
+$enab		  = 0;
 ######added########
 ##############################################################################
 ##
@@ -142,7 +142,6 @@ sub pull_package {
 	my @no = split(/\./, $name[1]);	  ##boost split up into individual numbers				                  ###added##
 	my @no1 = split(/\./, $name2[1]);  ##globus split up into individual numbers
 
-		
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
     
@@ -231,15 +230,27 @@ sub pull_package {
       }
       print_red_failed_and_die() unless $retval == 0;
 
-      open(TARLOG, "$meph_tmp_dir/$package[1].unpack.log"); 
-      my $package_dir_name = readline(TARLOG); # This should be the base directory
-      chomp($package_dir_name);
+      	open(TARLOG, "$meph_tmp_dir/$package[1].unpack.log"); 
+
+	 while (<TARLOG>) {
+		if ($. == 2){
+			$package_dir_name = $_;
+		            }
+	}
+	my @dir = split('/',$package_dir_name);
+    
+#my $package_dir_name = readline(TARLOG); # This should be the base directory
+#print "\n\n @dir"; 
+	$package_dir_name = $dir[0] . '/';     
+#   chomp($package_dir_name);
+#print "$package_dir_name ";
       my $result = index($package_dir_name, "x ");
+#print "$result \n";
       if($result != -1) {       
         $package_dir_name = substr $package_dir_name, $result+2;
       }
       close(TARLOG);
-     
+#     print"\n\n $package_dir_name\n\n"; 
       chdir "$meph_tmp_dir/$package_dir_name";
 
       print_green_ok(); print "\n";
@@ -261,10 +272,11 @@ sub pull_package {
     #### cd & configure
     ##
     my $configure_string = $package[3];
-print"\n$configure_string\n";
+#print"\n$configure_string\n";
+
   $configure_string =
       substr( $configure_string, 1, length($configure_string) - 2 );
-print"\n$configure_string\n\n";
+#print"\n$configure_string\n\n";
 my $configure_logfile = "$meph_tmp_dir/$package[1].configure.log";
 
     my @configure_cmd = split( ' ', $configure_string );
@@ -500,7 +512,7 @@ sub check_options () {
 				         	  	   'tmp-dir=s'    => \$tmp_dir,
 				         	   	   'repository=s' => \$repository,
 							   'with-packages=s' => \$v) ;
-	         	
+	         $enab = 1; 	
 		 my @words = split (",",$v);
 		 $size  = @words;   #the size of the array
 		if ($v eq 0)  {
@@ -564,6 +576,7 @@ sub check_options () {
 		{
 		    $meph_version = $repository;
         	}
+
 	}
 	else
 	{
@@ -629,8 +642,9 @@ foreach my $line (@index) {
     if ($packages[1] eq "BOOST") {
     print " o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n";
 	}
-    elsif($countp eq 0) {
-    print "o $midpack[1]: http://www.globus.org/ftppub/$globus-all-source-installer.tar.bz2\n";
+#change $countp = 4 if you want  globus to be displayed after sqlite and before saga 
+    elsif($countp eq 0  && $enab eq 1) {
+    print " o $midpack[1]: http://www.globus.org/ftppub/$globus-all-source-installer.tar.bz2\n";
     print " o $packages[1]: $packages[2]\n";
     }
     else{
@@ -639,12 +653,12 @@ foreach my $line (@index) {
 	$countp = $countp + 1; 
   }
 
-
+#change $countp = 4 if you want  globus to be installed after sqlite and before saga
 my $count = 0;
 my @index2 = split( "\n", $content );
 foreach my $line (@index2) {
     my @packages = split( ";;", $line );
-	if ($count eq 0) {
+	if ($count eq 0 && $enab eq 1) {
 	pull_package(@midpack);
 	}
      $count = $count + 1;
