@@ -1,11 +1,11 @@
 #
 # SYNOPSIS
 #
-#   AX_SAGA_CHECK_LIBFREETYPE([MINIMUM-VERSION])
+#   AX_SAGA_CHECK_LIBFT([MINIMUM-VERSION])
 #
 # DESCRIPTION
 #
-#   Test for the FREETYPE library of a particular version (or newer)
+#   Test for the FT library of a particular version (or newer)
 #
 #   If no path to the installed libfreetype library is given,
 #   the macro searchs under /usr, /usr/local, /opt and
@@ -13,17 +13,17 @@
 #
 #   This macro calls:
 #
-#     AC_SUBST(HAVE_LIBFREETYPE)
-#     AC_SUBST(LIBFREETYPE_LOCATION)
-#     AC_SUBST(LIBFREETYPE_CPPFLAGS) 
-#     AC_SUBST(LIBFREETYPE_LDFLAGS)
-#     AC_SUBST(LIBFREETYPE_S_LIBS)
+#     AC_SUBST(HAVE_LIBFT)
+#     AC_SUBST(LIBFT_LOCATION)
+#     AC_SUBST(LIBFT_CPPFLAGS) 
+#     AC_SUBST(LIBFT_LDFLAGS)
+#     AC_SUBST(LIBFT_S_LIBS)
 #
 # LAST MODIFICATION
 #
 #   2010-11-22
 #
-# COPYLEFREETYPE
+# COPYLEFT
 #
 #   Copyright (c) 2007 Andre Merzky      <andre@merzky.net>
 #
@@ -33,58 +33,65 @@
 
 AC_DEFUN([AX_SAGA_CHECK_LIBFT],
 [
-  AC_ARG_VAR([LIBFREETYPE_LOCATION],[LIBFREETYPE installation directory])
+  AC_ARG_VAR([LIBFT_LOCATION],[LIBFT installation directory])
 
-  #AC_MSG_NOTICE([LIBFREETYPE_LOCATION: $LIBFREETYPE_LOCATION])
+  HAVE_LIBFT="no"
+  tmp_location="external"
 
-  HAVE_LIBFREETYPE=no
-
-  tmp_location=""
-  AC_ARG_WITH([libfreetype],
-              AS_HELP_STRING([--with-libfreetype=DIR],
-              [use libfreetype (default is YES) at DIR (optional)]),
+  AC_ARG_WITH([libfreetype-location],
+              AS_HELP_STRING([--with-libfreetype-location=DIR],
+              [use libfreetype (default is 'external') at DIR (optional)]),
               [
               if test "$withval" = "no"; then
-                want_libfreetype="no"
+                tmp_location="external"
               elif test "$withval" = "yes"; then
-                want_libfreetype="yes"
                 tmp_location=""
               else
-                want_libfreetype="yes"
                 tmp_location="$withval"
               fi
               ],
-              [want_libfreetype="yes"])
+              [tmp_location="external"])
 
-  # use LIBFREETYPE_LOCATION if avaialble, and if not 
+  # use LIBFT_LOCATION if avaialble, and if not 
   # overwritten by --with-libfreetype=<dir>
 
-  if test "x$want_libfreetype" = "xyes"; then
+  echo "tmp: $tmp_location"
+
+  if test "x$tmp_location" = "xexternal"; then
+
+    HAVE_LIBFT=yes
+    LIBFT_SOURCE="external"
+    LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
+    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION"
+    LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
+    LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
+
+  else
     
     packages=`ls /usr/local/package/libfreetype-* 2>>/dev/null`
     
-    for tmp_path in $tmp_location $LIBFREETYPE_LOCATION /usr /usr/local /opt /opt/local $packages; do
+    for tmp_path in $tmp_location $LIBFT_LOCATION /usr /usr/local /opt /opt/local $packages; do
       
       AC_MSG_CHECKING(for libfreetype in $tmp_path)
 
-      have_something=`ls $tmp_path/lib/liblibfreetype.*   2>/dev/null`
+      have_something=`ls $tmp_path/lib/libfreetype.* 2>/dev/null`
 
       saved_cppflags=$CPPFLAGS
       saved_ldflags=$LDFLAGS
 
-      LIBFREETYPE_PATH=$tmp_path
-      LIBFREETYPE_LDFLAGS="-L$tmp_path/lib/ -lfreetype"
-      LIBFREETYPE_CPPFLAGS="-I$tmp_path/include/"
+      LIBFT_PATH=$tmp_path
+      LIBFT_LDFLAGS="-L$tmp_path/lib/ -lfreetype"
+      LIBFT_CPPFLAGS="-I$tmp_path/include/"
 
-      CPPFLAGS="$CPPFLAGS $LIBFREETYPE_CPPFLAGS"
+      CPPFLAGS="$CPPFLAGS $LIBFT_CPPFLAGS"
       export CPPFLAGS
 
-      LDFLAGS="$LDFLAGS $LIBFREETYPE_LDFLAGS"
+      LDFLAGS="$LDFLAGS $LIBFT_LDFLAGS"
       export LDFLAGS
 
       AC_LINK_IFELSE([AC_LANG_PROGRAM([[@%:@include <freetype/freetype.h>]],
                                       [[
-                                        FREETYPE_Library  library;
+                                        FT_Library  library;
                                         (void) Init_FreeType( &library );
                                         return (0);
                                       ]])],
@@ -97,35 +104,49 @@ AC_DEFUN([AX_SAGA_CHECK_LIBFT],
 
         AC_MSG_CHECKING(for static lib libfreetype)
         if test -e "$tmp_path/lib/libfreetype.a"; then
-          LIBFREETYPE_S_LIBS="$tmp_path/lib/libfreetype.a"
-          AC_MSG_RESULT([$LIBFREETYPE_S_LIBS])
+          LIBFT_S_LIBS="$tmp_path/lib/libfreetype.a"
+          AC_MSG_RESULT([$LIBFT_S_LIBS])
         else
           AC_MSG_RESULT([no])
         fi
 
-        LIBFREETYPE_LOCATION=$tmp_path
-        HAVE_LIBFREETYPE=yes
+        LIBFT_LOCATION=$tmp_path
+        LIBFT_SOURCE="system"
+        HAVE_LIBFT=yes
 
-        export HAVE_LIBFREETYPE
-
-        AC_SUBST(HAVE_LIBFREETYPE)
-        AC_SUBST(LIBFREETYPE_LOCATION)
-        AC_SUBST(LIBFREETYPE_CPPFLAGS)
-        AC_SUBST(LIBFREETYPE_LDFLAGS)
-        AC_SUBST(LIBFREETYPE_S_LIBS)
-        AC_SUBST(LIBFREETYPE_NEEDS_BOOL)
+        export HAVE_LIBFT
 
         break;
         
       else # link ok
 
         AC_MSG_RESULT(no)
+        LIBFT_LDFLAGS=""
+        LIBFT_CPPFLAGS=""
 
       fi # link ok
 
     done # foreach path
 
-  fi # want_libfreetype
+  fi # tmp_location == 'external
+
+  # fall back to external again
+  if test "x$HAVE_LIBFT" = "xno"; then
+    HAVE_LIBFT=yes
+    LIBFT_SOURCE="external"
+    LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
+    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION"
+    LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
+    LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
+  fi
+
+  AC_SUBST(HAVE_LIBFT)
+  AC_SUBST(LIBFT_LOCATION)
+  AC_SUBST(LIBFT_SOURCE)
+  AC_SUBST(LIBFT_CPPFLAGS)
+  AC_SUBST(LIBFT_LDFLAGS)
+  AC_SUBST(LIBFT_S_LIBS)
+  AC_SUBST(LIBFT_NEEDS_BOOL)
 
 ])
 

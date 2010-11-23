@@ -35,31 +35,38 @@ AC_DEFUN([AX_SAGA_CHECK_LIBPNG],
 [
   AC_ARG_VAR([LIBPNG_LOCATION],[LIBPNG installation directory])
 
-  #AC_MSG_NOTICE([LIBPNG_LOCATION: $LIBPNG_LOCATION])
+  HAVE_LIBPNG="no"
+  tmp_location="external"
 
-  HAVE_LIBPNG=no
-
-  tmp_location=""
-  AC_ARG_WITH([libpng],
-              AS_HELP_STRING([--with-libpng=DIR],
-              [use libpng (default is YES) at DIR (optional)]),
+  AC_ARG_WITH([libpng-location],
+              AS_HELP_STRING([--with-libpng-location=DIR],
+              [use libpng (default is 'external') at DIR (optional)]),
               [
               if test "$withval" = "no"; then
-                want_libpng="no"
+                tmp_location="external"
               elif test "$withval" = "yes"; then
-                want_libpng="yes"
                 tmp_location=""
               else
-                want_libpng="yes"
                 tmp_location="$withval"
               fi
               ],
-              [want_libpng="yes"])
+              [tmp_location="external"])
 
   # use LIBPNG_LOCATION if avaialble, and if not 
   # overwritten by --with-libpng=<dir>
 
-  if test "x$want_libpng" = "xyes"; then
+  echo "tmp: $tmp_location"
+
+  if test "x$tmp_location" = "xexternal"; then
+
+    HAVE_LIBPNG=yes
+    LIBPNG_SOURCE="external"
+    LIBPNG_LOCATION="\$(SAGA_MB_ROOT)/external/libpng/"
+    LIBPNG_CPPFLAGS="-I$LIBPNG_LOCATION"
+    LIBPNG_LDFLAGS="$LIBPNG_LOCATION/libpng.a"
+    LIBPNG_S_LIBS="$LIBPNG_LOCATION/libpng.a"
+
+  else
     
     packages=`ls /usr/local/package/libpng-* 2>>/dev/null`
     
@@ -67,13 +74,13 @@ AC_DEFUN([AX_SAGA_CHECK_LIBPNG],
       
       AC_MSG_CHECKING(for libpng in $tmp_path)
 
-      have_something=`ls $tmp_path/lib/liblibpng.*   2>/dev/null`
+      have_something=`ls $tmp_path/lib/libpng.*   2>/dev/null`
 
       saved_cppflags=$CPPFLAGS
       saved_ldflags=$LDFLAGS
 
       LIBPNG_PATH=$tmp_path
-      LIBPNG_LDFLAGS="-L$tmp_path/lib/ -lpng"
+      LIBPNG_LDFLAGS="-L$tmp_path/lib/ -lpng -lz"
       LIBPNG_CPPFLAGS="-I$tmp_path/include/"
 
       CPPFLAGS="$CPPFLAGS $LIBPNG_CPPFLAGS"
@@ -103,28 +110,44 @@ AC_DEFUN([AX_SAGA_CHECK_LIBPNG],
         fi
 
         LIBPNG_LOCATION=$tmp_path
+        LIBPNG_SOURCE="system"
         HAVE_LIBPNG=yes
 
         export HAVE_LIBPNG
-
-        AC_SUBST(HAVE_LIBPNG)
-        AC_SUBST(LIBPNG_LOCATION)
-        AC_SUBST(LIBPNG_CPPFLAGS)
-        AC_SUBST(LIBPNG_LDFLAGS)
-        AC_SUBST(LIBPNG_S_LIBS)
-        AC_SUBST(LIBPNG_NEEDS_BOOL)
 
         break;
         
       else # link ok
 
         AC_MSG_RESULT(no)
+        LIBPNG_LDFLAGS=""
+        LIBPNG_CPPFLAGS=""
 
       fi # link ok
 
     done # foreach path
 
-  fi # want_libpng
+  fi # tmp_location == 'external
+
+
+  # fall back to external again
+  if test "x$HAVE_LIBPNG" = "xno"; then
+    HAVE_LIBPNG=yes
+    LIBPNG_SOURCE="external"
+    LIBPNG_LOCATION="\$(SAGA_MB_ROOT)/external/libpng/"
+    LIBPNG_CPPFLAGS="-I$LIBPNG_LOCATION"
+    LIBPNG_LDFLAGS="$LIBPNG_LOCATION/libpng.a"
+    LIBPNG_S_LIBS="$LIBPNG_LOCATION/libpng.a"
+  fi
+
+
+  AC_SUBST(HAVE_LIBPNG)
+  AC_SUBST(LIBPNG_LOCATION)
+  AC_SUBST(LIBPNG_SOURCE)
+  AC_SUBST(LIBPNG_CPPFLAGS)
+  AC_SUBST(LIBPNG_LDFLAGS)
+  AC_SUBST(LIBPNG_S_LIBS)
+  AC_SUBST(LIBPNG_NEEDS_BOOL)
 
 ])
 

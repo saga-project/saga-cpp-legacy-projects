@@ -8,7 +8,9 @@ SAGA_MB_ROOT  = ../
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
-SAGA_SUBDIRS = pngwriter
+ifneq "$(HAVE_PNGWRITER)" "yes"
+ SAGA_SUBDIRS = libpngwriter
+endif
 
 ifneq "$(HAVE_PNG)" "yes"
  SAGA_SUBDIRS += libpng
@@ -18,8 +20,17 @@ ifneq "$(HAVE_FREETYPE)" "yes"
  SAGA_SUBDIRS += libfreetype
 endif
 
+
 -include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
-pngwriter: libfreetype
+# dir dependencies
+ifneq "$(HAVE_PNGWRITER)" "yes"
+ ifneq "$(HAVE_PNG)" "yes"
 pngwriter: libpng
+ endif
+
+ ifneq "$(HAVE_FREETYPE)" "yes"
+pngwriter: libfreetype
+ endif
+endif
 

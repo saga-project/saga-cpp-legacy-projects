@@ -555,22 +555,25 @@ PACKAGE_URL=
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-LIBFREETYPE_NEEDS_BOOL
-LIBFREETYPE_S_LIBS
-LIBFREETYPE_LDFLAGS
-LIBFREETYPE_CPPFLAGS
-HAVE_LIBFREETYPE
-LIBFREETYPE_LOCATION
+LIBFT_NEEDS_BOOL
+LIBFT_S_LIBS
+LIBFT_LDFLAGS
+LIBFT_CPPFLAGS
+LIBFT_SOURCE
+HAVE_LIBFT
+LIBFT_LOCATION
 LIBX11_NEEDS_BOOL
 LIBX11_S_LIBS
 LIBX11_LDFLAGS
 LIBX11_CPPFLAGS
+LIBX11_SOURCE
 HAVE_LIBX11
 LIBX11_LOCATION
 LIBPNG_NEEDS_BOOL
 LIBPNG_S_LIBS
 LIBPNG_LDFLAGS
 LIBPNG_CPPFLAGS
+LIBPNG_SOURCE
 HAVE_LIBPNG
 OBJEXT
 EXEEXT
@@ -627,9 +630,9 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-with_libpng
-with_libx11
-with_libfreetype
+with_libpng_location
+with_libx11_location
+with_libfreetype_location
 '
       ac_precious_vars='build_alias
 host_alias
@@ -643,7 +646,7 @@ LIBS
 CPPFLAGS
 CCC
 LIBX11_LOCATION
-LIBFREETYPE_LOCATION'
+LIBFT_LOCATION'
 
 
 # Initialize some variables set by options.
@@ -1251,9 +1254,14 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-libpng=DIR       use libpng (default is YES) at DIR (optional)
-  --with-libx11=DIR       use libx11 (default is YES) at DIR (optional)
-  --with-libfreetype=DIR  use libfreetype (default is YES) at DIR (optional)
+  --with-libpng-location=DIR
+                          use libpng (default is 'external') at DIR (optional)
+  --with-libx11-location=DIR
+                          use libx11 (default is 'autodetect') at DIR
+                          (optional)
+  --with-libfreetype-location=DIR
+                          use libfreetype (default is 'external') at DIR
+                          (optional)
 
 Some influential environment variables:
   SAGA_LOCATION
@@ -1269,8 +1277,8 @@ Some influential environment variables:
               you have headers in a nonstandard directory <include dir>
   LIBX11_LOCATION
               LIBX11 installation directory
-  LIBFREETYPE_LOCATION
-              LIBFREETYPE installation directory
+  LIBFT_LOCATION
+              LIBFT installation directory
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2428,34 +2436,41 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
-  #AC_MSG_NOTICE([LIBPNG_LOCATION: $LIBPNG_LOCATION])
+  HAVE_LIBPNG="no"
+  tmp_location="external"
 
-  HAVE_LIBPNG=no
 
-  tmp_location=""
-
-# Check whether --with-libpng was given.
-if test "${with_libpng+set}" = set; then :
-  withval=$with_libpng;
+# Check whether --with-libpng-location was given.
+if test "${with_libpng_location+set}" = set; then :
+  withval=$with_libpng_location;
               if test "$withval" = "no"; then
-                want_libpng="no"
+                tmp_location="external"
               elif test "$withval" = "yes"; then
-                want_libpng="yes"
                 tmp_location=""
               else
-                want_libpng="yes"
                 tmp_location="$withval"
               fi
 
 else
-  want_libpng="yes"
+  tmp_location="external"
 fi
 
 
   # use LIBPNG_LOCATION if avaialble, and if not
   # overwritten by --with-libpng=<dir>
 
-  if test "x$want_libpng" = "xyes"; then
+  echo "tmp: $tmp_location"
+
+  if test "x$tmp_location" = "xexternal"; then
+
+    HAVE_LIBPNG=yes
+    LIBPNG_SOURCE="external"
+    LIBPNG_LOCATION="\$(SAGA_MB_ROOT)/external/libpng/"
+    LIBPNG_CPPFLAGS="-I$LIBPNG_LOCATION"
+    LIBPNG_LDFLAGS="$LIBPNG_LOCATION/libpng.a"
+    LIBPNG_S_LIBS="$LIBPNG_LOCATION/libpng.a"
+
+  else
 
     packages=`ls /usr/local/package/libpng-* 2>>/dev/null`
 
@@ -2464,13 +2479,13 @@ fi
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpng in $tmp_path" >&5
 $as_echo_n "checking for libpng in $tmp_path... " >&6; }
 
-      have_something=`ls $tmp_path/lib/liblibpng.*   2>/dev/null`
+      have_something=`ls $tmp_path/lib/libpng.*   2>/dev/null`
 
       saved_cppflags=$CPPFLAGS
       saved_ldflags=$LDFLAGS
 
       LIBPNG_PATH=$tmp_path
-      LIBPNG_LDFLAGS="-L$tmp_path/lib/ -lpng"
+      LIBPNG_LDFLAGS="-L$tmp_path/lib/ -lpng -lz"
       LIBPNG_CPPFLAGS="-I$tmp_path/include/"
 
       CPPFLAGS="$CPPFLAGS $LIBPNG_CPPFLAGS"
@@ -2518,16 +2533,10 @@ $as_echo "no" >&6; }
         fi
 
         LIBPNG_LOCATION=$tmp_path
+        LIBPNG_SOURCE="system"
         HAVE_LIBPNG=yes
 
         export HAVE_LIBPNG
-
-
-
-
-
-
-
 
         break;
 
@@ -2535,77 +2544,95 @@ $as_echo "no" >&6; }
 
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+        LIBPNG_LDFLAGS=""
+        LIBPNG_CPPFLAGS=""
 
       fi # link ok
 
     done # foreach path
 
-  fi # want_libpng
+  fi # tmp_location == 'external
+
+
+  # fall back to external again
+  if test "x$HAVE_LIBPNG" = "xno"; then
+    HAVE_LIBPNG=yes
+    LIBPNG_SOURCE="external"
+    LIBPNG_LOCATION="\$(SAGA_MB_ROOT)/external/libpng/"
+    LIBPNG_CPPFLAGS="-I$LIBPNG_LOCATION"
+    LIBPNG_LDFLAGS="$LIBPNG_LOCATION/libpng.a"
+    LIBPNG_S_LIBS="$LIBPNG_LOCATION/libpng.a"
+  fi
 
 
 
 
 
-  #AC_MSG_NOTICE([LIBX11_LOCATION: $LIBX11_LOCATION])
 
-  HAVE_LIBX11=no
 
+
+
+
+
+
+
+
+  HAVE_LIBX11="no"
   tmp_location=""
 
-# Check whether --with-libx11 was given.
-if test "${with_libx11+set}" = set; then :
-  withval=$with_libx11;
+
+# Check whether --with-libx11-location was given.
+if test "${with_libx11_location+set}" = set; then :
+  withval=$with_libx11_location;
               if test "$withval" = "no"; then
-                want_libx11="no"
+                tmp_location=""
               elif test "$withval" = "yes"; then
-                want_libx11="yes"
                 tmp_location=""
               else
-                want_libx11="yes"
                 tmp_location="$withval"
               fi
 
 else
-  want_libx11="yes"
+  tmp_location=""
 fi
 
 
   # use LIBX11_LOCATION if avaialble, and if not
   # overwritten by --with-libx11=<dir>
 
-  if test "x$want_libx11" = "xyes"; then
+  echo tmp_location: $tmp_location
 
-    packages=`ls /usr/local/package/libx11-* 2>>/dev/null`
+  packages=`ls /usr/local/package/X11-* 2>>/dev/null`
 
-    for tmp_path in $tmp_location $LIBX11_LOCATION /usr /usr/local /opt /opt/local $packages; do
+  for tmp_path in $tmp_location $LIBX11_LOCATION /usr /usr/local /opt /opt/local $packages; do
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libx11 in $tmp_path" >&5
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libx11 in $tmp_path" >&5
 $as_echo_n "checking for libx11 in $tmp_path... " >&6; }
 
-      have_something=`ls $tmp_path/lib/liblibx11.*   2>/dev/null`
+    have_something=`ls $tmp_path/lib/libX11.*   2>/dev/null`
 
-      saved_cppflags=$CPPFLAGS
-      saved_ldflags=$LDFLAGS
+    saved_cppflags=$CPPFLAGS
+    saved_ldflags=$LDFLAGS
 
-      LIBX11_PATH=$tmp_path
-      LIBX11_LDFLAGS="-L$tmp_path/lib/ -lX11"
-      LIBX11_CPPFLAGS="-I$tmp_path/include/"
+    LIBX11_PATH=$tmp_path
+    LIBX11_LDFLAGS="-L$tmp_path/lib/ -lX11"
+    LIBX11_CPPFLAGS="-I$tmp_path/include/"
 
-      CPPFLAGS="$CPPFLAGS $LIBX11_CPPFLAGS"
-      export CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $LIBX11_CPPFLAGS"
+    export CPPFLAGS
 
-      LDFLAGS="$LDFLAGS $LIBX11_LDFLAGS"
-      export LDFLAGS
+    LDFLAGS="$LDFLAGS $LIBX11_LDFLAGS"
+    export LDFLAGS
 
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <X11/Xlib.h>
 int
 main ()
 {
 
-                                        (void) XOpenDisplay (NULL);
-                                        return (0);
+                                      (void) XOpenDisplay (NULL);
+                                      return (0);
 
   ;
   return 0;
@@ -2619,100 +2646,109 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-      if test "x$link_libx11" = "xyes"; then
+    if test "x$link_libx11" = "xyes"; then
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for static lib libx11" >&5
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for static lib libx11" >&5
 $as_echo_n "checking for static lib libx11... " >&6; }
-        if test -e "$tmp_path/lib/libx11.a"; then
-          LIBX11_S_LIBS="$tmp_path/lib/libx11.a"
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBX11_S_LIBS" >&5
+      if test -e "$tmp_path/lib/libX11.a"; then
+        LIBX11_S_LIBS="$tmp_path/lib/libX11.a"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBX11_S_LIBS" >&5
 $as_echo "$LIBX11_S_LIBS" >&6; }
-        else
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        fi
-
-        LIBX11_LOCATION=$tmp_path
-        HAVE_LIBX11=yes
-
-        export HAVE_LIBX11
-
-
-
-
-
-
-
-
-        break;
-
-      else # link ok
-
+      else
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+      fi
 
-      fi # link ok
+      LIBX11_LOCATION=$tmp_path
+      LIBX11_SOURCE="system"
+      HAVE_LIBX11=yes
 
-    done # foreach path
+      export HAVE_LIBX11
 
-  fi # want_libx11
+      break;
+
+    else # link ok
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      LIBX11_LDFLAGS=""
+      LIBX11_CPPFLAGS=""
+
+    fi # link ok
+
+  done # foreach path
 
 
 
 
 
-  #AC_MSG_NOTICE([LIBFREETYPE_LOCATION: $LIBFREETYPE_LOCATION])
 
-  HAVE_LIBFREETYPE=no
 
-  tmp_location=""
 
-# Check whether --with-libfreetype was given.
-if test "${with_libfreetype+set}" = set; then :
-  withval=$with_libfreetype;
+
+
+
+
+
+  HAVE_LIBFT="no"
+  tmp_location="external"
+
+
+# Check whether --with-libfreetype-location was given.
+if test "${with_libfreetype_location+set}" = set; then :
+  withval=$with_libfreetype_location;
               if test "$withval" = "no"; then
-                want_libfreetype="no"
+                tmp_location="external"
               elif test "$withval" = "yes"; then
-                want_libfreetype="yes"
                 tmp_location=""
               else
-                want_libfreetype="yes"
                 tmp_location="$withval"
               fi
 
 else
-  want_libfreetype="yes"
+  tmp_location="external"
 fi
 
 
-  # use LIBFREETYPE_LOCATION if avaialble, and if not
+  # use LIBFT_LOCATION if avaialble, and if not
   # overwritten by --with-libfreetype=<dir>
 
-  if test "x$want_libfreetype" = "xyes"; then
+  echo "tmp: $tmp_location"
+
+  if test "x$tmp_location" = "xexternal"; then
+
+    HAVE_LIBFT=yes
+    LIBFT_SOURCE="external"
+    LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
+    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION"
+    LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
+    LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
+
+  else
 
     packages=`ls /usr/local/package/libfreetype-* 2>>/dev/null`
 
-    for tmp_path in $tmp_location $LIBFREETYPE_LOCATION /usr /usr/local /opt /opt/local $packages; do
+    for tmp_path in $tmp_location $LIBFT_LOCATION /usr /usr/local /opt /opt/local $packages; do
 
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libfreetype in $tmp_path" >&5
 $as_echo_n "checking for libfreetype in $tmp_path... " >&6; }
 
-      have_something=`ls $tmp_path/lib/liblibfreetype.*   2>/dev/null`
+      have_something=`ls $tmp_path/lib/libfreetype.* 2>/dev/null`
 
       saved_cppflags=$CPPFLAGS
       saved_ldflags=$LDFLAGS
 
-      LIBFREETYPE_PATH=$tmp_path
-      LIBFREETYPE_LDFLAGS="-L$tmp_path/lib/ -lfreetype"
-      LIBFREETYPE_CPPFLAGS="-I$tmp_path/include/"
+      LIBFT_PATH=$tmp_path
+      LIBFT_LDFLAGS="-L$tmp_path/lib/ -lfreetype"
+      LIBFT_CPPFLAGS="-I$tmp_path/include/"
 
-      CPPFLAGS="$CPPFLAGS $LIBFREETYPE_CPPFLAGS"
+      CPPFLAGS="$CPPFLAGS $LIBFT_CPPFLAGS"
       export CPPFLAGS
 
-      LDFLAGS="$LDFLAGS $LIBFREETYPE_LDFLAGS"
+      LDFLAGS="$LDFLAGS $LIBFT_LDFLAGS"
       export LDFLAGS
 
       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -2722,7 +2758,7 @@ int
 main ()
 {
 
-                                        FREETYPE_Library  library;
+                                        FT_Library  library;
                                         (void) Init_FreeType( &library );
                                         return (0);
 
@@ -2746,25 +2782,19 @@ $as_echo "yes" >&6; }
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for static lib libfreetype" >&5
 $as_echo_n "checking for static lib libfreetype... " >&6; }
         if test -e "$tmp_path/lib/libfreetype.a"; then
-          LIBFREETYPE_S_LIBS="$tmp_path/lib/libfreetype.a"
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBFREETYPE_S_LIBS" >&5
-$as_echo "$LIBFREETYPE_S_LIBS" >&6; }
+          LIBFT_S_LIBS="$tmp_path/lib/libfreetype.a"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBFT_S_LIBS" >&5
+$as_echo "$LIBFT_S_LIBS" >&6; }
         else
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
         fi
 
-        LIBFREETYPE_LOCATION=$tmp_path
-        HAVE_LIBFREETYPE=yes
+        LIBFT_LOCATION=$tmp_path
+        LIBFT_SOURCE="system"
+        HAVE_LIBFT=yes
 
-        export HAVE_LIBFREETYPE
-
-
-
-
-
-
-
+        export HAVE_LIBFT
 
         break;
 
@@ -2772,12 +2802,32 @@ $as_echo "no" >&6; }
 
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+        LIBFT_LDFLAGS=""
+        LIBFT_CPPFLAGS=""
 
       fi # link ok
 
     done # foreach path
 
-  fi # want_libfreetype
+  fi # tmp_location == 'external
+
+  # fall back to external again
+  if test "x$HAVE_LIBFT" = "xno"; then
+    HAVE_LIBFT=yes
+    LIBFT_SOURCE="external"
+    LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
+    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION"
+    LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
+    LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
+  fi
+
+
+
+
+
+
+
+
 
 
 
@@ -3927,19 +3977,34 @@ OUT=config.summary
 rm -f $OUT
 touch $OUT
 
-echo "                                                                 " >> $OUT
-echo " ========================================================        " >> $OUT
-echo " SAGA OGF ADAPTORS - Configuration Summary                       " >> $OUT
-echo " ========================================================        " >> $OUT
-echo "                                                                 " >> $OUT
-echo " Using SAGA from       : $TMP_SAGA_LOCATION ($TMP_SAGA_INSTTYPE) " >> $OUT
-echo "                                                                 " >> $OUT
-echo " PNG                   : $HAVE_LIBPNG                            " >> $OUT
-echo " X11                   : $HAVE_LIBX11                            " >> $OUT
-echo " FREETYPE              : $HAVE_LIBFREETYPE                       " >> $OUT
-echo "                                                                 " >> $OUT
-echo " ========================================================        " >> $OUT
-echo "                                                                 " >> $OUT
+echo "                                                                  " >> $OUT
+echo " ========================================================         " >> $OUT
+echo " SAGA OGF ADAPTORS - Configuration Summary                        " >> $OUT
+echo " ========================================================         " >> $OUT
+echo "                                                                  " >> $OUT
+echo " Using SAGA from        : $TMP_SAGA_LOCATION ($TMP_SAGA_INSTTYPE) " >> $OUT
+echo "                                                                  " >> $OUT
+echo " PNG                    :                                         " >> $OUT
+echo "   LIBPNG_SOURCE        : $LIBPNG_SOURCE                          " >> $OUT
+echo "   LIBPNG_LOCATION      : $LIBPNG_LOCATION                        " >> $OUT
+echo "   LIBPNG_CPPFLAGS      : $LIBPNG_CPPFLAGS                        " >> $OUT
+echo "   LIBPNG_LDFLAGS       : $LIBPNG_LDFLAGS                         " >> $OUT
+echo "                                                                  " >> $OUT
+echo " X11                    :                                         " >> $OUT
+echo "   LIBX11_SOURCE        : $LIBX11_SOURCE                          " >> $OUT
+echo "   LIBX11_LOCATION      : $LIBX11_LOCATION                        " >> $OUT
+echo "   LIBX11_CPPFLAGS      : $LIBX11_CPPFLAGS                        " >> $OUT
+echo "   LIBX11_LDFLAGS       : $LIBX11_LDFLAGS                         " >> $OUT
+echo "                                                                  " >> $OUT
+echo " FREETYPE               :                                         " >> $OUT
+echo "   LIBFT_SOURCE         : $LIBFT_SOURCE                           " >> $OUT
+echo "   LIBFT_LOCATION       : $LIBFT_LOCATION                         " >> $OUT
+echo "   LIBFT_CPPFLAGS       : $LIBFT_CPPFLAGS                         " >> $OUT
+echo "   LIBFT_LDFLAGS        : $LIBFT_LDFLAGS                          " >> $OUT
+echo "                                                                  " >> $OUT
+echo "                                                                  " >> $OUT
+echo " ========================================================         " >> $OUT
+echo "                                                                  " >> $OUT
 
 cat $OUT
 

@@ -35,96 +35,94 @@ AC_DEFUN([AX_SAGA_CHECK_LIBX11],
 [
   AC_ARG_VAR([LIBX11_LOCATION],[LIBX11 installation directory])
 
-  #AC_MSG_NOTICE([LIBX11_LOCATION: $LIBX11_LOCATION])
-
-  HAVE_LIBX11=no
-
+  HAVE_LIBX11="no"
   tmp_location=""
-  AC_ARG_WITH([libx11],
-              AS_HELP_STRING([--with-libx11=DIR],
-              [use libx11 (default is YES) at DIR (optional)]),
+
+  AC_ARG_WITH([libx11-location],
+              AS_HELP_STRING([--with-libx11-location=DIR],
+              [use libx11 (default is 'autodetect') at DIR (optional)]),
               [
               if test "$withval" = "no"; then
-                want_libx11="no"
+                tmp_location=""
               elif test "$withval" = "yes"; then
-                want_libx11="yes"
                 tmp_location=""
               else
-                want_libx11="yes"
                 tmp_location="$withval"
               fi
               ],
-              [want_libx11="yes"])
+              [tmp_location=""])
 
   # use LIBX11_LOCATION if avaialble, and if not 
   # overwritten by --with-libx11=<dir>
 
-  if test "x$want_libx11" = "xyes"; then
+  echo tmp_location: $tmp_location
+
+  packages=`ls /usr/local/package/X11-* 2>>/dev/null`
+  
+  for tmp_path in $tmp_location $LIBX11_LOCATION /usr /usr/local /opt /opt/local $packages; do
     
-    packages=`ls /usr/local/package/libx11-* 2>>/dev/null`
-    
-    for tmp_path in $tmp_location $LIBX11_LOCATION /usr /usr/local /opt /opt/local $packages; do
+    AC_MSG_CHECKING(for libx11 in $tmp_path)
+
+    have_something=`ls $tmp_path/lib/libX11.*   2>/dev/null`
+
+    saved_cppflags=$CPPFLAGS
+    saved_ldflags=$LDFLAGS
+
+    LIBX11_PATH=$tmp_path
+    LIBX11_LDFLAGS="-L$tmp_path/lib/ -lX11"
+    LIBX11_CPPFLAGS="-I$tmp_path/include/"
+
+    CPPFLAGS="$CPPFLAGS $LIBX11_CPPFLAGS"
+    export CPPFLAGS
+
+    LDFLAGS="$LDFLAGS $LIBX11_LDFLAGS"
+    export LDFLAGS
+
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[@%:@include <X11/Xlib.h>]],
+                                    [[
+                                      (void) XOpenDisplay (NULL);
+                                      return (0);
+                                    ]])],
+                                    link_libx11="yes",
+                                    link_libx11="no")
+          
+    if test "x$link_libx11" = "xyes"; then
+
+      AC_MSG_RESULT(yes)
+
+      AC_MSG_CHECKING(for static lib libx11)
+      if test -e "$tmp_path/lib/libX11.a"; then
+        LIBX11_S_LIBS="$tmp_path/lib/libX11.a"
+        AC_MSG_RESULT([$LIBX11_S_LIBS])
+      else
+        AC_MSG_RESULT([no])
+      fi
+
+      LIBX11_LOCATION=$tmp_path
+      LIBX11_SOURCE="system"
+      HAVE_LIBX11=yes
+
+      export HAVE_LIBX11
+
+      break;
       
-      AC_MSG_CHECKING(for libx11 in $tmp_path)
+    else # link ok
 
-      have_something=`ls $tmp_path/lib/liblibx11.*   2>/dev/null`
+      AC_MSG_RESULT(no)
+      LIBX11_LDFLAGS=""
+      LIBX11_CPPFLAGS=""
 
-      saved_cppflags=$CPPFLAGS
-      saved_ldflags=$LDFLAGS
+    fi # link ok
 
-      LIBX11_PATH=$tmp_path
-      LIBX11_LDFLAGS="-L$tmp_path/lib/ -lX11"
-      LIBX11_CPPFLAGS="-I$tmp_path/include/"
+  done # foreach path
 
-      CPPFLAGS="$CPPFLAGS $LIBX11_CPPFLAGS"
-      export CPPFLAGS
-
-      LDFLAGS="$LDFLAGS $LIBX11_LDFLAGS"
-      export LDFLAGS
-
-      AC_LINK_IFELSE([AC_LANG_PROGRAM([[@%:@include <X11/Xlib.h>]],
-                                      [[
-                                        (void) XOpenDisplay (NULL);
-                                        return (0);
-                                      ]])],
-                                      link_libx11="yes",
-                                      link_libx11="no")
-            
-      if test "x$link_libx11" = "xyes"; then
-
-        AC_MSG_RESULT(yes)
-
-        AC_MSG_CHECKING(for static lib libx11)
-        if test -e "$tmp_path/lib/libx11.a"; then
-          LIBX11_S_LIBS="$tmp_path/lib/libx11.a"
-          AC_MSG_RESULT([$LIBX11_S_LIBS])
-        else
-          AC_MSG_RESULT([no])
-        fi
-
-        LIBX11_LOCATION=$tmp_path
-        HAVE_LIBX11=yes
-
-        export HAVE_LIBX11
-
-        AC_SUBST(HAVE_LIBX11)
-        AC_SUBST(LIBX11_LOCATION)
-        AC_SUBST(LIBX11_CPPFLAGS)
-        AC_SUBST(LIBX11_LDFLAGS)
-        AC_SUBST(LIBX11_S_LIBS)
-        AC_SUBST(LIBX11_NEEDS_BOOL)
-
-        break;
-        
-      else # link ok
-
-        AC_MSG_RESULT(no)
-
-      fi # link ok
-
-    done # foreach path
-
-  fi # want_libx11
+  AC_SUBST(HAVE_LIBX11)
+  AC_SUBST(LIBX11_LOCATION)
+  AC_SUBST(LIBX11_SOURCE)
+  AC_SUBST(LIBX11_CPPFLAGS)
+  AC_SUBST(LIBX11_LDFLAGS)
+  AC_SUBST(LIBX11_S_LIBS)
+  AC_SUBST(LIBX11_NEEDS_BOOL)
 
 ])
 
