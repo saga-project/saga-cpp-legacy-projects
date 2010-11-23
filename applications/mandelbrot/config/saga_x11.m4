@@ -55,8 +55,6 @@ AC_DEFUN([AX_SAGA_CHECK_LIBX11],
   # use LIBX11_LOCATION if avaialble, and if not 
   # overwritten by --with-libx11=<dir>
 
-  echo tmp_location: $tmp_location
-
   packages=`ls /usr/local/package/X11-* 2>>/dev/null`
   
   for tmp_path in $tmp_location $LIBX11_LOCATION /usr /usr/local /opt /opt/local $packages; do

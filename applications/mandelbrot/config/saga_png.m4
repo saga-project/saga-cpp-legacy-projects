@@ -55,8 +55,6 @@ AC_DEFUN([AX_SAGA_CHECK_LIBPNG],
   # use LIBPNG_LOCATION if avaialble, and if not 
   # overwritten by --with-libpng=<dir>
 
-  echo "tmp: $tmp_location"
-
   if test "x$tmp_location" = "xexternal"; then
 
     HAVE_LIBPNG=yes
