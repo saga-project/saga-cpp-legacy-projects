@@ -5,13 +5,16 @@
 
 SAGA_MB_ROOT  = ../../
 
+USE_PNG       = yes
+USE_FT        = yes
+
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
-SAGA_SRC     = $(wildcard *.cpp)
-SAGA_LIB_OBJ = $(SAGA_SRC:%.cpp=%.o)
-SAGA_ARC     = pngwriter
+SAGA_SRC      = $(wildcard *.cpp)
+SAGA_LIB_OBJ  = $(SAGA_SRC:%.cpp=%.o)
+SAGA_ARC      = pngwriter
 
-FONTS        = $(wildcard *.ttf)
+FONTS         = $(wildcard *.ttf)
 
 include $(SAGA_LOCATION)/share/saga/make/saga.mk
 

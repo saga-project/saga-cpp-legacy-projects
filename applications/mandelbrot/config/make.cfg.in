@@ -13,11 +13,16 @@ endif
 ifndef MAKE_CFG_IN
        MAKE_CFG_IN=yes
 
-TMP_SAGA_LOCATION = @TMP_SAGA_LOCATION@
-TMP_SAGA_INSTTYPE = @TMP_SAGA_INSTTYPE@
-HAVE_PNG          = @HAVE_LIBPNG@
-HAVE_X11          = @HAVE_LIBX11@
-HAVE_FREETYPE     = @HAVE_LIBFREETYPE@
+TMP_SAGA_LOCATION  = @TMP_SAGA_LOCATION@
+TMP_SAGA_INSTTYPE  = @TMP_SAGA_INSTTYPE@
+HAVE_PNG           = @HAVE_LIBPNG@
+HAVE_PNGWRITER     = @HAVE_LIBPNGWRITER@
+HAVE_X11           = @HAVE_LIBX11@
+HAVE_FT            = @HAVE_LIBFT@
+
+PNG_SOURCE         = @LIBPNG_SOURCE@
+PNGWRITER_SOURCE   = @LIBPNGWRITER_SOURCE@
+FREETYPE_SOURCE    = @LIBFT_SOURCE@
 
 ifeq "$(TMP_SAGA_INSTTYPE)" "source"
   SAGA_ROOT              = $(TMP_SAGA_LOCATION)
@@ -31,32 +36,32 @@ endif
 include $(SAGA_MAKE_INCLUDE_ROOT)/saga.util.mk
 
 
-SAGA_CXXFLAGS   += -I$(SAGA_MB_ROOT)/external/pngwriter/
-SAGA_LDFLAGS    +=  $(SAGA_MB_ROOT)/external/pngwriter/libpngwriter.a
+ifeq "$(HAVE_PNGWRITER)-$(USE_PNGWRITER)" "yes-yes"
+ SAGA_CXXFLAGS  += -DHAVE_PNGWRITER
+ SAGA_CXXFLAGS  += @LIBPNGWRITER_CPPFLAGS@
+ SAGA_LDFLAGS   += @LIBPNGWRITER_LDFLAGS@
+endif
 
-ifeq "$(HAVE_PNG)" "yes"
+
+ifeq "$(HAVE_PNG)-$(USE_PNG)" "yes-yes"
  SAGA_CXXFLAGS  += -DHAVE_PNG
  SAGA_CXXFLAGS  += @LIBPNG_CPPFLAGS@
  SAGA_LDFLAGS   += @LIBPNG_LDFLAGS@
 endif
 
 
-
-
-ifeq "$(HAVE_FREETYPE)" "yes"
+ifeq "$(HAVE_FT)-$(USE_FT)" "yes-yes"
  FLAGS          += -DHAVE_FREETYPE
-else
- FLAGS          += -DHAVE_FREETYPE
- SAGA_CXXFLAGS  += -I$(SAGA_MB_ROOT)/external/libfreetype/include/
- SAGA_LDFLAGS   += $(SAGA_MB_ROOT)/external/libfreetype/libfreetype.a
-endif
-
-ifeq "$(HAVE_X11)" "yes"
- SAGA_CXXFLAGS  += -DHAVE_X11 -I/usr/X11/include
- SAGA_LDFLAGS   += -L/usr/X11/lib   -lX11
+ SAGA_CXXFLAGS  += @LIBFT_CPPFLAGS@
+ SAGA_LDFLAGS   += @LIBFT_LDFLAGS@
 endif
 
 
+ifeq "$(HAVE_X11)-$(USE_X11)" "yes-yes"
+ FLAGS          += -DHAVE_X11
+ SAGA_CXXFLAGS  += @LIBX11_CPPFLAGS@
+ SAGA_LDFLAGS   += @LIBX11_LDFLAGS@
+endif
 
 
 endif # guard

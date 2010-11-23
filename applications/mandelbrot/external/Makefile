@@ -8,15 +8,15 @@ SAGA_MB_ROOT  = ../
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
-ifneq "$(HAVE_PNGWRITER)" "yes"
- SAGA_SUBDIRS = libpngwriter
+ifeq "$(PNGWRITER_SOURCE)" "external"
+ SAGA_SUBDIRS += libpngwriter
 endif
 
-ifneq "$(HAVE_PNG)" "yes"
+ifeq "$(PNG_SOURCE)" "external"
  SAGA_SUBDIRS += libpng
 endif
 
-ifneq "$(HAVE_FREETYPE)" "yes"
+ifeq "$(FREETYPE_SOURCE)" "external"
  SAGA_SUBDIRS += libfreetype
 endif
 
@@ -24,13 +24,13 @@ endif
 -include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 # dir dependencies
-ifneq "$(HAVE_PNGWRITER)" "yes"
- ifneq "$(HAVE_PNG)" "yes"
-pngwriter: libpng
+ifeq "$(PNGWRITER_SOURCE)" "external"
+ ifeq "$(PNG_SOURCE)" "external"
+libpngwriter: libpng
  endif
 
- ifneq "$(HAVE_FREETYPE)" "yes"
-pngwriter: libfreetype
+ ifeq "$(FREETYPE_SOURCE)" "external"
+libpngwriter: libfreetype
  endif
 endif
 

@@ -4,7 +4,12 @@
 #  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 #  http://www.boost.org/LICENSE_1_0.txt)
 
-SAGA_MB_ROOT  = ../
+SAGA_MB_ROOT     = ../
+
+USE_X11          = yes
+USE_PNG          = yes
+USE_PNGWRITER    = yes
+USE_FT           = yes
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 

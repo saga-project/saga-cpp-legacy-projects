@@ -62,7 +62,7 @@ AC_DEFUN([AX_SAGA_CHECK_LIBFT],
     HAVE_LIBFT=yes
     LIBFT_SOURCE="external"
     LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
-    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION"
+    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION/include"
     LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
     LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
 
@@ -135,7 +135,7 @@ AC_DEFUN([AX_SAGA_CHECK_LIBFT],
     HAVE_LIBFT=yes
     LIBFT_SOURCE="external"
     LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
-    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION"
+    LIBFT_CPPFLAGS="-I$LIBFT_LOCATION/include"
     LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
     LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
   fi
