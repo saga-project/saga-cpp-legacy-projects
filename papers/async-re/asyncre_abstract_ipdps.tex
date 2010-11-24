@@ -59,8 +59,6 @@
 \begin{document}
 \title{\LARGE Efficient Replica-Exchange Simulations on
   Large-Scale Production Infrastructure}
-
-%Running Asynchronous Replica-Exchange Simulations Across Heterogeneous Distributed Infrastructures}
  
 \author{Abhinav Thota$^{1,2}$, Andre Luckow$^{1}$, Shantenu Jha$^{1,2,3}$\\
    \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
@@ -244,7 +242,7 @@ The process is repeated until the required number of exchanges are made.
 
 The decentralized implementation differs from the Cases I and II. We introduce a 'replica-agent' for each replica. Each replica-agent manages a single replica. Here, the master is limited to the submitting a BigJob request to the queue, staging the files. In place of the replica(NAMD executable), the replica-agent is launched. The replica-agent is nothing but a wrapper script for the replica. At this point, the replica-agent agent starts the replica. The replica-agent monitors the replica and posts the state to the advert server. When one of the replicas are ready to exchange, they search for another replica which is available and negotiate the exchange. There is no need to stage the configuration file in this case. The data is exchanged over via the advert server and the replica agent modifies the configuration file locally.
 
-Although both Case II and Case III implement the asynchronous RE algorithm, they differ in the way they are implemented. The replicas are either managed by a master (Case II) or each replica is managed individually (Case III). We propose Case III so as to not let the centralized master become a bottleneck, which can happen very quickly with a large number of replicas.
+Although both Case II and Case III implement the asynchronous RE algorithm, they differ in the way they are implemented. The replicas are either managed by a master (Case II) or each replica is managed individually (Case III). We propose Case III so as to not let the master in Case II to become a bottleneck, which can happen very quickly with a large number of replicas.
 
 \begin{figure}
 \centering
@@ -270,12 +268,12 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 %  is the conceptual difference between Case 3 and Case 2?}
 
 
-\section{Comparison of different algorithms}
+\section{Scale up and scale out performance analysis}
 %
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.30]{data/1BJ_comparison.pdf}
+\includegraphics[scale=0.50]{data/scale_up.pdf}
 \caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized and decentralized RE simulations. Each experiment has been repeated at least 10 times.}
 \label{fig:graph}
 \vspace{-1em}
@@ -287,55 +285,51 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 %To evaluate the performance of the various models of RE we have discussed in the abstract, we conducted several experiments on Teragrid and LONI resources. 
 %In the following sentences we will analyze the performance of synchronous RE(Case I) with centralized asynchronous RE(Case II). 
 
-\subsection{One machine/one BigJob}
-We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K. One BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases.  %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
+\subsection{Scale up performance}
 
-%The experiments could be potentially run across an infinite number of dissimilar machines.  
+\subsubsection{Experiments}
+We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K. One BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases.  %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
 %The initial results suggest that the performance has improved at two levels: (i) the time to completion of Case II is reduced by over 200\% compared to Case I and (ii) there is considerable reduction in the time to completion when running across four machines instead of only 1 machine, by as much as 65\%.
 
 The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph(Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in Case I and the least in Case III.
 
 \subsubsection{Analysis}
-
-When going deeper into the reasons for the different performance of the three cases, we need to separate the algorithm from the implementation to accurately understand the performance. Let us first analyze each case and understand the reason for change in time to completion.
-
-\subsubsubsection{
-
+From the graph(Figure~\ref{fig:graph}), we see that Case I does not scale up very well when we increase the number of replicas. This is because of the inability to start and end all the replicas at the same time. With more and more replicas, the synchronization cost increases. 
+In Case II, the exchanges happen in an asynchronous manner, but they are still conducted by the master alone. As the number of replicas increases, the master quickly becomes a bottleneck. But in Case III, the exchanges are all carried out in a decentralized manner. Many exchanges can occur between different pairs of replicas at the same time. Hence, Case III scales up best.
 
 %
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.30]{data/2BJ_comparison.pdf}
-\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized and decentralized RE simulations. Each experiment has been repeated at least 10 times.}
-\label{fig:graph2}
+\includegraphics[scale=0.80]{data/sync.pdf}
+\caption{\small The graph shows the mean run times of synchronous RE simulations across one, two and four machines.}
+\label{fig:sync}
 \vspace{-1em}
 \end{figure}
 
-\subsection{Two machines/two BigJobs}
+\begin{figure}
+\centering
+\includegraphics[scale=0.80]{data/cent.pdf}
+\caption{\small The graph shows the mean run times of asynchronous - centralized RE simulations across one, two and four machines.}
+\label{fig:cent}
+\vspace{-1em}
+\end{figure}
 
-We chose two Teragrid machines - Ranger and QueenBee to run Cases I, II \& III. In each case, 2 BigJobs are launched on each machine. And, 4 replicas are assigned to each BigJob, and 32 exchanges are attempted. In the distributed runs, the run time starts when any one of the BigJobs becomes active. The second BigJob may or may not become active before the simulation ends. 
+\begin{figure}
+\centering
+\includegraphics[scale=0.80]{data/decent.pdf}
+\caption{\small The graph shows the mean run times of asynchronous - decentralized RE simulations across one, two and four machines.}
+\label{fig:decent}
+\vspace{-1em}
+\end{figure}
 
-From the graph, it can be seen from the graph that the distributed runs take longer than the local run. There are two reasons:
-(i) The co-ordination and communication across two machines takes longer
-(ii) The waiting time of the second machine.
+\subsection{Scale out performance}
+\subsubsection{Experiments}
+We chose LONI and Teragrid machines to run Cases I, II \& III. We did experiments distributed across two and four machines. We did these experiments with 8, 16 and 32 replicas distributed equally across two and four machines. 
 
-Comparing 1B and 2 in graph, it also should be observed that it is beneficial to request more cores for more machines and use more replicas to make more exchanges.
-\athotanote{do we need a graph showing performance in the best case scenario?}In the best case scenario, where both the BigJobs on 2 different machines start instantaneously upon submission, Cases II and III almost equal their respective performances on a single machine. But Case I underperforms and one of the reasons is the heterogeneous infrastructure (QueenBee and Ranger have different processing powers). At each exchange step, all the replicas will have to wait for the replicas running on the slower machine. Also, since all the exchanges are carried out after the synchronization, the time to stage the configuration files to all the replicas (across two machines) keeps going up with more replicas.
+Figure~\ref{fig:sync}, Figure~\ref{fig:cent} and Figure~\ref{fig:decent} show the behavior of Cases I, II and III across one, two and four machines, respectively.
 
-In Case II, as the exchanges are done in an asynchronous manner, the slower machine does not noticeably effect the overall performance. Due to the same reason, the effect of  the additional time it takes to stage configuration files across two machines is not readily noticeable. 
-
-In Case III, again, the exchanges are done in an asynchronous manner and effect of the slower replicas is negligible. And, there is no staging of configuration files, as the temperatures are exchanged via the advert service. Hence, Case III is most suited for distributed experiments. 
-
-\subsection{More than two machines}
-
-After conducting the experiments over one and two machines, we are in a position to predict the performance of the different RE algorithms over more than two machines. 
-There is no question as to whether the performance of Case I degrades or not. It certainly does across two machines and certainly will across three or four machines due to the same reasons specified above. The question is whether Case II and more importantly Case III perform at the same level across more than two machines. 
-
-In Case II, when the two BigJobs start at different times, the replicas running under particular BigJob start and end at the same time and thus make exchanges - making the exchanges with replicas on the same machine. When the BigJobs start almost simultaneously, all the replicas become available to make exchanges about the same time. In this case, there is greater chance of exchanges happening across different machines. Therefor, the performance of Case II, when running across more than two machines, might fluctuate. But, its performance is going to be close the performance of Case II over two machines. 
-
-In Case III, there is no staging of configuration files involved and hence the performance is going to be similar to Case III over two machines. 
-
+\athotanote{I dont think I will keep the sync, cent and decent graphs(not able to show anything). But I will definitely add graphs for 2 machines and 4 machines. 1M/4BJ, 2M/4BJ, 4M/4BJ is what I am thinking.}
 
 %In Case I, the pair-wise replica exchange can occur only between replicas of the same generation. Therefore, each exchange step is attempted only after all the replicas have finished running. After the exchange, all the replicas are restarted sequentially. This inserts a delay between the start time of the first replica, the last replica and the replicas in between. %As more resources become available at different times, the replicas already running or done are forced to wait for the newly running replicas to finish before moving on to the next exchange step. %Each exchange step is counted as an exchange.
 %In Case II, the pair-wise replica exchange can take place between any two replicas in the ensemble irrespective of generation. As more resources become available, the new replicas join the ensemble immediately and the replicas already running are not restrained from attempting exchanges or restarting. This gives the asynchronous or synchronous RE a slight advantage. But with a large number of replicas we could easily see large difference.
