@@ -274,7 +274,7 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 \begin{figure}
 \centering
 \includegraphics[scale=0.50]{data/scale_up.pdf}
-\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized and decentralized RE simulations. Each experiment has been repeated at least 10 times.}
+\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations on one machine.}
 \label{fig:graph}
 \vspace{-1em}
 \end{figure}
@@ -294,42 +294,35 @@ We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8,
 The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph(Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in Case I and the least in Case III.
 
 \subsubsection{Analysis}
-From the graph(Figure~\ref{fig:graph}), we see that Case I does not scale up very well when we increase the number of replicas. This is because of the inability to start and end all the replicas at the same time. With more and more replicas, the synchronization cost increases. 
-In Case II, the exchanges happen in an asynchronous manner, but they are still conducted by the master alone. As the number of replicas increases, the master quickly becomes a bottleneck. But in Case III, the exchanges are all carried out in a decentralized manner. Many exchanges can occur between different pairs of replicas at the same time. Hence, Case III scales up best.
+From the graph(Figure~\ref{fig:graph}), we see that Case I does not scale very well when we increase the number of replicas. This is because of an inability to start and end all the replicas at the same time. With more and more replicas, the synchronization cost increases. 
+In Case II, the exchanges happen in an asynchronous manner, but they are still conducted by the master alone. As the number of replicas increases, the master quickly becomes a bottleneck. But in Case III, the exchanges are all carried out in a decentralized manner. Many exchanges can occur between different pairs of replicas at the same time. Therefore, we say that the asynchronous RE algorithm scales better and that the decentralized implementation is better than the centralized implementation.
 
 %
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.80]{data/sync.pdf}
-\caption{\small The graph shows the mean run times of synchronous RE simulations across one, two and four machines.}
-\label{fig:sync}
+\includegraphics[scale=0.80]{data/2Machines.pdf}
+\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations across two machines.}
+\label{fig:2machines}
 \vspace{-1em}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.80]{data/cent.pdf}
-\caption{\small The graph shows the mean run times of asynchronous - centralized RE simulations across one, two and four machines.}
-\label{fig:cent}
-\vspace{-1em}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[scale=0.80]{data/decent.pdf}
-\caption{\small The graph shows the mean run times of asynchronous - decentralized RE simulations across one, two and four machines.}
-\label{fig:decent}
+\includegraphics[scale=0.80]{data/4Machines.pdf}
+\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations across four machines.}
+\label{fig:4machines}
 \vspace{-1em}
 \end{figure}
 
 \subsection{Scale out performance}
 \subsubsection{Experiments}
 We chose LONI and Teragrid machines to run Cases I, II \& III. We did experiments distributed across two and four machines. We did these experiments with 8, 16 and 32 replicas distributed equally across two and four machines. 
+Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the behavior of Cases I, II and III across one, two and four machines, respectively.
 
-Figure~\ref{fig:sync}, Figure~\ref{fig:cent} and Figure~\ref{fig:decent} show the behavior of Cases I, II and III across one, two and four machines, respectively.
+\subsubsection{Analysis}
+In Figure~\ref{fig:2machines}, we see the performance of all three cases when run in a distributed manner across two machines. As the data that is exchanged between replicas is very small, the Cases I, II and III behave in a similar manner to the way they behave on a single machine. Again, asynchronous RE is better suited for distributed runs and the decentralized implementation scales best. The reason is, since each replica has its own replica agent, there is no need to transfer any files between machines. The required configuration files are created locally by the replica agent.
 
-\athotanote{I dont think I will keep the sync, cent and decent graphs(not able to show anything). But I will definitely add graphs for 2 machines and 4 machines. 1M/4BJ, 2M/4BJ, 4M/4BJ is what I am thinking.}
 
 %In Case I, the pair-wise replica exchange can occur only between replicas of the same generation. Therefore, each exchange step is attempted only after all the replicas have finished running. After the exchange, all the replicas are restarted sequentially. This inserts a delay between the start time of the first replica, the last replica and the replicas in between. %As more resources become available at different times, the replicas already running or done are forced to wait for the newly running replicas to finish before moving on to the next exchange step. %Each exchange step is counted as an exchange.
 %In Case II, the pair-wise replica exchange can take place between any two replicas in the ensemble irrespective of generation. As more resources become available, the new replicas join the ensemble immediately and the replicas already running are not restrained from attempting exchanges or restarting. This gives the asynchronous or synchronous RE a slight advantage. But with a large number of replicas we could easily see large difference.
