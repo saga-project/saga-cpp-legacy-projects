@@ -21,7 +21,6 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
   // Get input files for this partition.
      std::vector<std::string> input_files;
 
-  LOG_DEBUG << "Reading input files from " << input_dir.get_url().get_string();
   try {
     std::vector<saga::url> entries = input_dir.list("*");
     std::vector<saga::url>::const_iterator entries_it = entries.begin();
@@ -33,14 +32,18 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
       //input_files.push_back(adv.retrieve_string());
       ++entries_it;
     }
-  
-   std::ifstream in;
-     in.open(redlist.c_str());
+    std::string listfile ;
+     listfile =  "/path/to/output/mr-list.txt";
+     std::ifstream in;
+     in.open(listfile.c_str());
+     LOG_DEBUG << "Reading input "+ listfile+ "\n";
      std::string line;
      while(getline(in, line))
 {          LOG_DEBUG << "line " << line;
+          line += "-"+redlist;
           input_files.push_back(line);
-          LOG_DEBUG << "Added reduce input " << input_files.back();
+          LOG_DEBUG << "Added reduce input " << input_files.back()<<"\n";
+          line.clear();
 }
  
 
