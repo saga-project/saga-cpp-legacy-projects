@@ -592,6 +592,11 @@ CXX
 LIBPNG_LOCATION
 TMP_SAGA_INSTTYPE
 TMP_SAGA_LOCATION
+SAGA_LIB_VERSION
+SAGA_VERSION_SUBMINOR
+SAGA_VERSION_MINOR
+SAGA_VERSION_MAJOR
+SAGA_VERSION
 SAGA_CONFIG
 SAGA_LOCATION
 CONFDIR
@@ -1843,17 +1848,27 @@ $as_echo "not found" >&6; }
 
   # check SAGA_LOCATION - prefer over saga-config
   if test "x$TMP_SAGA_LOCATION" = "x"; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking SAGA installation" >&5
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking SAGA installation" >&5
 $as_echo_n "checking SAGA installation... " >&6; }
-   if test "x$SAGA_LOCATION"    != "x"; then
-     TMP_SAGA_LOCATION=$SAGA_LOCATION
-     TMP_SAGA_INSTTYPE="install"
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: $TMP_SAGA_LOCATION" >&5
+    if test "x$SAGA_LOCATION"    != "x"; then
+      TMP_SAGA_LOCATION=$SAGA_LOCATION
+      TMP_SAGA_INSTTYPE="install"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $TMP_SAGA_LOCATION" >&5
 $as_echo "$TMP_SAGA_LOCATION" >&6; }
-   else
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking saga-config" >&5
+$as_echo_n "checking saga-config... " >&6; }
+      if test -x $TMP_SAGA_LOCATION/bin/saga-config; then
+        SAGA_CONFIG=$TMP_SAGA_LOCATION/bin/saga-config
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SAGA_CONFIG" >&5
+$as_echo "$SAGA_CONFIG" >&6; }
+      else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: invalid" >&5
+$as_echo "invalid" >&6; }
+      fi
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-   fi
+    fi
   fi
 
   if test "x$TMP_SAGA_LOCATION" = "x"; then
@@ -1909,6 +1924,44 @@ $as_echo "$TMP_SAGA_LOCATION" >&6; }
 $as_echo "invalid" >&6; }
    fi
   fi
+
+  if test "x$SAGA_CONFIG" != "x"; then
+    SAGA_VERSION=`$SAGA_CONFIG --version`
+
+    SAGA_VERSION_MAJOR=`echo $SAGA_VERSION    | cut -f 1 -d .`
+    SAGA_VERSION_MINOR=`echo $SAGA_VERSION    | cut -f 2 -d .`
+    SAGA_VERSION_SUBMINOR=`echo $SAGA_VERSION | cut -f 3 -d .`
+
+    if test "$SAGA_VERSION_SUBMINOR" == ""; then
+      SAGA_VERSION_SUBMINOR=0
+    fi
+
+
+
+
+
+
+    export SAGA_VERSION
+    export SAGA_VERSION_MAJOR
+    export SAGA_VERSION_MINOR
+    export SAGA_VERSION_SUBMINOR
+  else
+    echo "no saga-config found"
+  fi
+
+
+  # We set SAGA_LIB_VERSION to SAGA_VERSION by default.  If a PACKAGE file is
+  # present though. for example for an adaptor, we use its version info instead.
+  # A configure is of course still able to overrule that,
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking saga lib version" >&5
+$as_echo_n "checking saga lib version... " >&6; }
+  SAGA_LIB_VERSION=#SAGA_VERSION
+  test -f PACKAGE && SAGA_LIB_VERSION=`grep -e '^VERSION:' PACKAGE | cut -f 2 -d ' '`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SAGA_LIB_VERSION" >&5
+$as_echo "$SAGA_LIB_VERSION" >&6; }
+
+  export  SAGA_LIB_VERSION
 
 
 
@@ -2454,6 +2507,8 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
   tmp_location="external"
 
 
+
+
 # Check whether --with-libpng-location was given.
 if test "${with_libpng_location+set}" = set; then :
   withval=$with_libpng_location;
@@ -2470,19 +2525,22 @@ else
 fi
 
 
-  # use LIBPNG_LOCATION if avaialble, and if not
-  # overwritten by --with-libpng=<dir>
-
-  echo "tmp: $tmp_location"
+  if ! test "x$LIBPNG_LOCATION" = "x"; then
+    tmp_location=$LIBPNG_LOCATION
+  fi
 
   if test "x$tmp_location" = "xexternal"; then
 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpng" >&5
+$as_echo_n "checking for libpng... " >&6; }
     HAVE_LIBPNG=yes
     LIBPNG_SOURCE="external"
     LIBPNG_LOCATION="\$(SAGA_MB_ROOT)/external/libpng/"
     LIBPNG_CPPFLAGS="-I$LIBPNG_LOCATION"
     LIBPNG_LDFLAGS="$LIBPNG_LOCATION/libpng.a"
     LIBPNG_S_LIBS="$LIBPNG_LOCATION/libpng.a"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no location specified, using external" >&5
+$as_echo "no location specified, using external" >&6; }
 
   else
 
@@ -2611,19 +2669,23 @@ else
 fi
 
 
-  # use LIBPNGWRITER_LOCATION if avaialble, and if not
-  # overwritten by --with-libpngwriter=<dir>
 
-  echo "tmp: $tmp_location"
+  if ! test "x$LIBPNGWRITER_LOCATION" = "x"; then
+    tmp_location=$LIBPNGWRITER_LOCATION
+  fi
 
   if test "x$tmp_location" = "xexternal"; then
 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpngwriter" >&5
+$as_echo_n "checking for libpngwriter... " >&6; }
     HAVE_LIBPNGWRITER=yes
     LIBPNGWRITER_SOURCE="external"
     LIBPNGWRITER_LOCATION="\$(SAGA_MB_ROOT)/external/libpngwriter/"
     LIBPNGWRITER_CPPFLAGS="-I$LIBPNGWRITER_LOCATION"
     LIBPNGWRITER_LDFLAGS="$LIBPNGWRITER_LOCATION/libpngwriter.a"
     LIBPNGWRITER_S_LIBS="$LIBPNGWRITER_LOCATION/libpngwriter.a"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no location specified, using external" >&5
+$as_echo "no location specified, using external" >&6; }
 
   else
 
@@ -2752,19 +2814,22 @@ else
 fi
 
 
-  # use LIBFT_LOCATION if avaialble, and if not
-  # overwritten by --with-libfreetype=<dir>
-
-  echo "tmp: $tmp_location"
+  if ! test "x$LIBFT_LOCATION" = "x"; then
+    tmp_location=$LIBFT_LOCATION
+  fi
 
   if test "x$tmp_location" = "xexternal"; then
 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libfreetype" >&5
+$as_echo_n "checking for libfreetype... " >&6; }
     HAVE_LIBFT=yes
     LIBFT_SOURCE="external"
     LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
     LIBFT_CPPFLAGS="-I$LIBFT_LOCATION/include"
     LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
     LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no location specified, using external" >&5
+$as_echo "no location specified, using external" >&6; }
 
   else
 
@@ -2894,8 +2959,6 @@ fi
 
   # use LIBX11_LOCATION if avaialble, and if not
   # overwritten by --with-libx11=<dir>
-
-  echo tmp_location: $tmp_location
 
   packages=`ls /usr/local/package/X11-* 2>>/dev/null`
 

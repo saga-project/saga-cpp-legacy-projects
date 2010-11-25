@@ -52,17 +52,20 @@ AC_DEFUN([AX_SAGA_CHECK_LIBFT],
               ],
               [tmp_location="external"])
 
-  # use LIBFT_LOCATION if avaialble, and if not 
-  # overwritten by --with-libfreetype=<dir>
+  if ! test "x$LIBFT_LOCATION" = "x"; then
+    tmp_location=$LIBFT_LOCATION
+  fi
 
   if test "x$tmp_location" = "xexternal"; then
 
+    AC_MSG_CHECKING([for libfreetype])
     HAVE_LIBFT=yes
     LIBFT_SOURCE="external"
     LIBFT_LOCATION="\$(SAGA_MB_ROOT)/external/libfreetype/"
     LIBFT_CPPFLAGS="-I$LIBFT_LOCATION/include"
     LIBFT_LDFLAGS="$LIBFT_LOCATION/libfreetype.a"
     LIBFT_S_LIBS="$LIBFT_LOCATION/libfreetype.a"
+    AC_MSG_RESULT([no location specified, using external])
 
   else
     

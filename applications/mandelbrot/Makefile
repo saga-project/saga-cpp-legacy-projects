@@ -12,7 +12,9 @@ SAGA_SUBDIRS     = config external master client
 
 include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
-# external: config
-# client:   config
-# master:   external
+ifndef SAGA_IS_CLEANING
+external: config
+client:   config
+master:   external
+endif
 

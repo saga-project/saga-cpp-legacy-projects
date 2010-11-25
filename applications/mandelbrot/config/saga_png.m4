@@ -38,6 +38,8 @@ AC_DEFUN([AX_SAGA_CHECK_LIBPNG],
   HAVE_LIBPNG="no"
   tmp_location="external"
 
+
+
   AC_ARG_WITH([libpng-location],
               AS_HELP_STRING([--with-libpng-location=DIR],
               [use libpng (default is 'external') at DIR (optional)]),
@@ -52,17 +54,20 @@ AC_DEFUN([AX_SAGA_CHECK_LIBPNG],
               ],
               [tmp_location="external"])
 
-  # use LIBPNG_LOCATION if avaialble, and if not 
-  # overwritten by --with-libpng=<dir>
+  if ! test "x$LIBPNG_LOCATION" = "x"; then
+    tmp_location=$LIBPNG_LOCATION
+  fi
 
   if test "x$tmp_location" = "xexternal"; then
 
+    AC_MSG_CHECKING([for libpng])
     HAVE_LIBPNG=yes
     LIBPNG_SOURCE="external"
     LIBPNG_LOCATION="\$(SAGA_MB_ROOT)/external/libpng/"
     LIBPNG_CPPFLAGS="-I$LIBPNG_LOCATION"
     LIBPNG_LDFLAGS="$LIBPNG_LOCATION/libpng.a"
     LIBPNG_S_LIBS="$LIBPNG_LOCATION/libpng.a"
+    AC_MSG_RESULT([no location specified, using external])
 
   else
     

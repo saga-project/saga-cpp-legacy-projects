@@ -52,17 +52,21 @@ AC_DEFUN([AX_SAGA_CHECK_LIBPNGWRITER],
               ],
               [tmp_location="external"])
 
-  # use LIBPNGWRITER_LOCATION if avaialble, and if not 
-  # overwritten by --with-libpngwriter=<dir>
+
+  if ! test "x$LIBPNGWRITER_LOCATION" = "x"; then
+    tmp_location=$LIBPNGWRITER_LOCATION
+  fi
 
   if test "x$tmp_location" = "xexternal"; then
 
+    AC_MSG_CHECKING([for libpngwriter])
     HAVE_LIBPNGWRITER=yes
     LIBPNGWRITER_SOURCE="external"
     LIBPNGWRITER_LOCATION="\$(SAGA_MB_ROOT)/external/libpngwriter/"
     LIBPNGWRITER_CPPFLAGS="-I$LIBPNGWRITER_LOCATION"
     LIBPNGWRITER_LDFLAGS="$LIBPNGWRITER_LOCATION/libpngwriter.a"
     LIBPNGWRITER_S_LIBS="$LIBPNGWRITER_LOCATION/libpngwriter.a"
+    AC_MSG_RESULT([no location specified, using external])
 
   else
     
