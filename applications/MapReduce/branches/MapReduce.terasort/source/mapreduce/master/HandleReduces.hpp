@@ -30,7 +30,7 @@ class HandleReduces {
   bool assignReduces();
  private:
   void issue_command_();
-  std::vector<std::string> groupFiles_(int counter);
+  std::vector<std::string> groupFiles_();
   void wait_for_results_();
 
   const JobDescription&    job_;

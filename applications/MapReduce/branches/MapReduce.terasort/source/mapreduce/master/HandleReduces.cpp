@@ -25,7 +25,25 @@ HandleReduces::HandleReduces(const JobDescription& job,
     : job_(job), committed_chunks_(committed_chunks), workerDir_(workerDir),
       serverURL_(serverURL), log_(log)
  {
-    fileCount_ = committed_chunks_.size();
+	 	 	std::vector<std::string> reduceInput(groupFiles_());
+			std::stringstream sserr;
+			std::string redlist;
+			log_->write("reduce input size:" + reduceInput.size(), MR_LOGLEVEL_WARNING);
+			log_->write("opening file:", MR_LOGLEVEL_WARNING);
+			std::ofstream myfile;
+			sserr<< "/path/to/output/mr-list.txt";
+			myfile.open(sserr.str().c_str());
+			for(unsigned int counter = 0; counter < reduceInput.size(); counter++) {
+				redlist += reduceInput[counter]  + "\n";
+			}
+			myfile << redlist;
+			myfile.close();
+			log_->write("closing file:", MR_LOGLEVEL_WARNING);
+			redlist.clear();
+
+
+
+	fileCount_ = committed_chunks_.size();
     try
     {
        service_ = new saga::stream::server(serverURL_);
@@ -57,6 +75,8 @@ bool HandleReduces::assignReduces() {
         + " out of " + boost::lexical_cast<std::string>(numPartitions_)
         + " partitions",
         MR_LOGLEVEL_INFO);
+       // Group all files that were mapped
+
     issue_command_();
   }
   return true;
@@ -124,8 +144,7 @@ void HandleReduces::issue_command_() {
               log_->write("Requested worker to idle", MR_LOGLEVEL_INFO);
               break;
             }
-            // Group all files that were mapped to this partition.
-            std::vector<std::string> reduceInput(groupFiles_(currentPartition_));
+
 
             message.clear();
             std::string message("Issuing worker ");
@@ -166,30 +185,10 @@ void HandleReduces::issue_command_() {
             // Put reduce input files into worker's advert.
             saga::advert::directory workerAdvert(advert, mode);
             saga::advert::directory workerChunkDir(workerAdvert.open_dir(saga::url(ADVERT_DIR_REDUCE_INPUT), mode));
-            
-            std::ofstream myfile;
-            srand(time(0));
-            int random_integer = rand();
-            std::stringstream sserr,ssout,sslog;
-            sserr<< "/N/u/smaddi2/workerop/mr-reducer-list-" << random_integer << ".txt";
-            std::string redlist;  
-            log_->write("opening file:", MR_LOGLEVEL_WARNING);
 
-            myfile.open(sserr.str().c_str());
-            
             saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(0)), mode));
-            adv.store_object<std::string>(sserr.str().c_str());
-            for(unsigned int counter = 0; counter < reduceInput.size(); counter++) {
-              //saga::advert::entry adv(workerChunkDir.open(saga::url("./input-"+boost::lexical_cast<std::string>(counter)), mode));
-              //adv.store_object<std::string>(reduceInput[counter]);
-              redlist +=reduceInput[counter]; 
-              redlist +="\n";
-            }
-            myfile << redlist; 
-            myfile.close();
-            log_->write("closing file:", MR_LOGLEVEL_WARNING);
-            //std::freopen(sserr.str().c_str(),"w", redlist);
-            redlist.clear();
+            adv.store_object<std::string>(boost::lexical_cast<std::string>(currentPartition_));
+
             // Serialize JobDescription.
             std::string command;
             StringOutputStream output_stream(&command);
@@ -256,41 +255,18 @@ void HandleReduces::issue_command_() {
  * in a vector that will eventually be passed to a worker*
  * to reduce the files into one output                   *
  * ******************************************************/
-std::vector<std::string> HandleReduces::groupFiles_(int partition) {
+std::vector<std::string> HandleReduces::groupFiles_() {
   std::vector<std::string> intermediate_files;
-  int mode = saga::advert::ReadWrite;
-  std::map<std::string, saga::url>::const_iterator chunk_it =
-    committed_chunks_.begin();
-    std::string output_base(FileOutputFormat::GetOutputBase(job_) +
-    FileOutputFormat::GetOutputPath(job_));  
-
+  std::map<std::string, saga::url>::const_iterator chunk_it = committed_chunks_.begin();
+  std::string output_base(FileOutputFormat::GetOutputBase(job_) + FileOutputFormat::GetOutputPath(job_));
 while (chunk_it != committed_chunks_.end()) {
     try {
       // Get worker who processed this chunk.
-      log_->write("Chunk " + chunk_it->second.get_string() + " from " +
-      chunk_it->first, MR_LOGLEVEL_INFO);
-     //saga::advert::directory worker(chunk_it->second);
-      std::string path = output_base + //chunk_it->second.get_string() +
-      FileOutputFormat::GetOutputPartitionName(&job_, "map", chunk_it->first, partition);
+     // log_->write("Chunk " + chunk_it->second.get_string() + " from " + chunk_it->first, MR_LOGLEVEL_INFO);
+      std::string path = output_base + "map-"+ chunk_it->first;
       intermediate_files.push_back(path);
       log_->write(("Added file " + path + " to input list"), MR_LOGLEVEL_INFO);
-
-/*     // Problem: we don't know the UID of the worker since it does not communicate it to us.
-      saga::advert::directory data(worker.open_dir(
-        saga::url(ADVERT_DIR_INTERMEDIATE), mode));
-      // Get output for this partition.
-      saga::url fileurl(("./" + FileOutputFormat::GetOutputPartitionName(&job_,
-        "map", chunk_it->first, partition)));
-      if (data.exists(fileurl)) {
-        saga::advert::entry adv(data.open(fileurl, mode));
-        std::string path = adv.retrieve_string();//object<std::string>();
-
-	intermediate_files.push_back(path);
-        log_->write(("Added file " + path + " to input list"), MR_LOGLEVEL_INFO);
-      } else {
-        log_->write(("Skipped chunk " + chunk_it->first + " missing partition "
-          + boost::lexical_cast<std::string>(partition)), MR_LOGLEVEL_ERROR);
-      }*/
+     // log_->write((chunk_it->first), MR_LOGLEVEL_INFO);
       ++chunk_it;
     } catch (saga::exception const& e) {
         throw;
