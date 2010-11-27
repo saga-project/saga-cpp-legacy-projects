@@ -263,7 +263,7 @@ while (chunk_it != committed_chunks_.end()) {
     try {
       // Get worker who processed this chunk.
      // log_->write("Chunk " + chunk_it->second.get_string() + " from " + chunk_it->first, MR_LOGLEVEL_INFO);
-      std::string path = output_base + "map-"+ chunk_it->first;
+      std::string path = output_base + "replasce/map-"+ chunk_it->first;
       intermediate_files.push_back(path);
       log_->write(("Added file " + path + " to input list"), MR_LOGLEVEL_INFO);
      // log_->write((chunk_it->first), MR_LOGLEVEL_INFO);

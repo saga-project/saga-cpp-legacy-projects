@@ -87,7 +87,7 @@ void HandleMaps::issue_command_() {
           //worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
           size_t written = worker.write(saga::buffer(MASTER_QUESTION_STATE, 6));
           char buff[MSG_BUFFER_SIZE];
-          log_->write("qu " + boost::lexical_cast<std::string>(written), MR_LOGLEVEL_INFO);
+         // log_->write("qu " + boost::lexical_cast<std::string>(written), MR_LOGLEVEL_INFO);
           if (!TimedWaitForRead(worker, 10)) {
             LOG_DEBUG << "Worker didn't respond -- retrying.";
             delete service_;

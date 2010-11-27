@@ -236,6 +236,7 @@ void DistributedJobRunner::spawnAgents_(void) {
             env.push_back("SAGA_LOCATION=/path/to/saga");
             env.push_back("SAGA_VERBOSE=0");
             env.push_back("LD_LIBRARY_PATH=/path/to/source/mapreduce/:/path/to/saga/lib:/path/to/boost/lib:/lib:$LD_LIBRARY_PATH");
+
             
             jd.set_vector_attribute (saga::job::attributes::description_environment, env);
 
