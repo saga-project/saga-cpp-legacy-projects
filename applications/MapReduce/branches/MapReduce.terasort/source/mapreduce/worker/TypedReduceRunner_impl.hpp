@@ -40,13 +40,16 @@ void TypedReduceRunner<ReducerT>::RunTask(TaskDescription* task,
      std::string line;
      while(getline(in, line))
 {          LOG_DEBUG << "line " << line;
+			std::string searchString( "replace" );
+			std::string replaceString( "partition-" + redlist );
+			std::string::size_type pos = 0;
+			pos = line.find(searchString);
+			line.replace( pos, searchString.size(), replaceString );
           line += "-"+redlist;
           input_files.push_back(line);
           LOG_DEBUG << "Added reduce input " << input_files.back()<<"\n";
           line.clear();
 }
- 
-
 } catch(saga::exception const & e) {
       throw;
   }
