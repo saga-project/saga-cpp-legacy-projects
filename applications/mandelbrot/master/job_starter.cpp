@@ -142,6 +142,12 @@ job_starter::job_starter (std::string  a_dir)
         jd.set_attribute (saga::job::attributes::description_working_directory, ep.pwd_);
       }
   
+    std::cout << "creating job number " 
+              << jobs.size ()
+              << " on " 
+              << ep.url_
+              << " : " << std::flush;
+
       saga::job::job j = ep.service_.create_job (jd);
   
       j.run ();
@@ -169,12 +175,7 @@ job_starter::job_starter (std::string  a_dir)
       // keep job
       jobs_.push_back (j);
   
-      std::cout << "created job number " 
-                << jobs_.size ()
-                << " on " 
-                << ep.url_
-                << " : " 
-                << jobid
+      std::cout << jobid
                 << std::endl;
     }
   }
