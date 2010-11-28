@@ -132,7 +132,7 @@ discuss at: \\
 
 int main(int argc, char * argv[]) 
 {
-  saga::url source("ssh://issgc12@issgc-ui//etc/passwd"); 
+  saga::url source("ssh://hostname//etc/passwd"); 
   saga::url target(".");
   
   saga::filesystem::file file (source, saga::filesystem::Read);
@@ -172,11 +172,11 @@ SAGA_CPPFLAGS    += -I/opt/super/include
 SAGA_LDFLAGS     += -L/opt/super/lib -lsuper 
 \end{verbatim}
 
-Of course it's also possible to compile and link a SAGA application manually:
+Of course it is also possible to compile and link a SAGA application manually:
 
 \begin{verbatim}
-g++ -Wall -I/opt/saga-1.3.1-issgc/include -pthread \ 
-    -L/opt/saga-1.3.1-issgc/lib \
+g++ -Wall -I$SAGA_LOCATION/include -pthread \ 
+    -L$SAGA_LOCATION/lib \
     -lsaga_engine -lsaga_package_job -lsaga_package_XYZ \
     <FILENAME>.cpp
 
@@ -184,22 +184,23 @@ g++ -Wall -I/opt/saga-1.3.1-issgc/include -pthread \
 
 \subsubsection*{Unit III: Running a SAGA application.} 
 
+SAGA needs to know where its configuration files are located and
+where to find its middleware adaptors. This is done via the
+\texttt{SAGA\_LOCATION} environment variable, e.g.: 
+
+\begin{verbatim}
+export SAGA_LOCATION=/opt/saga-1.5.3-pre/
+\end{verbatim}
+
 In order to run a SAGA application, you have to make sure that all
-required libraries can be found by the loader. The easiest way to do
-that is to set the LD\_LIBRARY\_PATH (DYLD\_LIBRARY\_PATH on Mac OS)
-if it isn't already set. E.g.:
+required libraries can be found by the loader in case SAGA is not 
+installed within the default system path. The easiest way to do
+that is to set the LD\_LIBRARY\_PATH (DYLD\_LIBRARY\_PATH on Mac OS), e.g.:
 
 %\jhanote{Fix the LD\_LIBRARY\_PATH below. Make Generic}
 
 \begin{verbatim}
-export LD_LIBRARY_PATH=/opt/saga-1.5.3-pre/lib:$LD_LIBRARY_PATH
-\end{verbatim}
-
-Furthermore, SAGA needs to know where its configuration files are and
-where to find its middleware adaptors. E.g.: 
-
-\begin{verbatim}
-export SAGA_LOCATION=/opt/saga-1.5.3-issgc/
+export LD_LIBRARY_PATH=$SAGA_LOCATION/lib:$LD_LIBRARY_PATH
 \end{verbatim}
 
 %\jhanote{Need to fix here too..}
@@ -211,9 +212,9 @@ export SAGA_LOCATION=/opt/saga-1.5.3-issgc/
 %source /opt/saga-1.3.1-issgc/share/saga/saga-env.sh
 %\end{verbatim}
 
-Another environment variable that might come in handy is
+Another (optional) environment variable that might come in handy is
 \texttt{SAGA\_VERBOSE} in case something goes wrong. If set, SAGA will
-print detailed debug information. E.g.:
+print detailed debug information to a log-file in the working directory, e.g.:
 
 \begin{verbatim}
 export SAGA_VERBOSE=100
@@ -246,6 +247,7 @@ after doing so increments a ``global counter''. Finally, we will leave
 you with a programming exercise that will build upon your
 understanding of application examples 2 and 3.
 
+\pagebreak
 \subsection*{Example 1: Hello distributed world!} Submit three jobs to
 three machines. One returns “Hello”, one returns “Distributed” and one
 returns “World”. They may or may not return in the right order. This
@@ -329,16 +331,7 @@ int main(int argc, char* argv[])
 
 \end{verbatim}
 
-This application is executed using the following command in the
-sub-directory student-package/sourcecode from where you checked out
-the code from SVN.
-
-\jhanote{Please fix}
-
-\begin{verbatim}
-user@issgc-client-10:/tmp/student-package/sourcecode$./hello_world
-\end{verbatim}
-
+\pagebreak
 \subsection*{Example 2: Multiple Sequential Jobs}
 \textbf{Applications} The aim of this section is to see how SAGA is
 used to implement common {\it higher-level} functionality that is used
@@ -451,19 +444,19 @@ tasks/jobs, but the idea of a centralized data-store is arguably the
 simplest, even if not the most robust (fault-tolerant) or tuned for
 performance. Also, of interest is the \texttt{respawn} method.
 
-This application is executed using the following command in the sub-directory 
-student-package/sourcecode from where you checked out the code from SVN.
+%This application is executed using the following command in the sub-directory 
+%student-package/sourcecode from where you checked out the code from SVN.
 
-\jhanote{This URL needs updating}
+%\jhanote{This URL needs updating}
 
-{\footnotesize
-\begin{verbatim}
-user@issgc-client-10:/tmp/student-package/sourcecode$
+%{\footnotesize
+%\begin{verbatim}
+%user@issgc-client-10:/tmp/student-package/sourcecode$
 
-saga-advert remove_entry advert://issgc-ui//issgcXX/result_ex_2
-./depending_job ssh://user@134.59.140.163 ssh://user@134.59.140.164
-saga-advert retrieve_string advert://issgc-ui//issgcXX/result_ex_2
-\end{verbatim}}
+%saga-advert remove_entry advert://issgc-ui//issgcXX/result_ex_2
+%./depending_job ssh://user@134.59.140.163 ssh://user@134.59.140.164
+%saga-advert retrieve_string advert://issgc-ui//issgcXX/result_ex_2
+%\end{verbatim}}
 
 \begin{verbatim}
 ///////////////////////////////////////////////////////////////////////
@@ -552,7 +545,8 @@ int main(int argc, char* argv[])
 
 \noindent {\it Q: Can you think of an a usage-mode that can be supported by the general functionality to respawn a job? Long-running Simulations? What else?}
 
-\subsubsection*{Additional Real World Example} 
+\pagebreak
+\subsection*{Additional Real World Example} 
 \noindent % The requirement of coordination of distributed, often
 % heterogeneous units is a fundamental {\it vector} of distributed
 % applications. (See Lecture Notes).
@@ -563,14 +557,13 @@ distribution of work to a large number of Workers, and manages the
 merging of the output of the computation that the Workers produce. In
 addition to performance, a fundamental challenge is the need to be
 able to coordinate Master-Workers across a wide range of distributed
-systems. For more details, see the code at the following:
-
-\jhanote{Sharath: Please update and provide a link to the MapReduce
-  documentationa here (ideally in PDF)}
+systems. For more details, check out the code at:
 
 \begin{verbatim}
-svn co  https://svn.cct.lsu.edu/repos/saga-projects/applications/MapReduce/
+https://svn.cct.lsu.edu/repos/saga-projects/applications/MapReduce/
 \end{verbatim}
+
+\pagebreak
 
 \subsection{Programming Exercise:} 
 
@@ -633,12 +626,12 @@ essentially the following:
   is your source of information for all things SAGA. And this document
   can be found at:
 
-\jhanote{Fix URLs}
+%\jhanote{Fix URLs}
 
-{\footnotesize
-\begin{verbatim}
- https://svn.cct.lsu.edu/repos/saga-projects/tutorial/ISSGC-2009/
-\end{verbatim}}
+%{\footnotesize
+%\begin{verbatim}
+% https://svn.cct.lsu.edu/repos/saga-projects/tutorial/ISSGC-2009/
+%\end{verbatim}}
 
 \end{itemize}
 \end{document}
