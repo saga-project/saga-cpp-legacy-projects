@@ -128,6 +128,7 @@ discuss at: \\
 %\jhanote{Both the location above and the URL below needs updating}
 
 \begin{verbatim}
+///////////////////////////////////////////////////////////////////////////////
 #include <saga/saga.hpp>
 
 int main(int argc, char * argv[]) 
@@ -140,6 +141,7 @@ int main(int argc, char * argv[])
 
   return 0;
 }
+///////////////////////////////////////////////////////////////////////////////
 \end{verbatim}
 
 % \jhanote{Ole: I guess this is where we take a diversion into ``clutils'' and ``shell''. I have put the slide into tutorial/ISSGC-2009/student-package/slides
@@ -257,53 +259,65 @@ several times. Do you notice any difference in the outputs? Are they
 same?
 
 \begin{verbatim}
+///////////////////////////////////////////////////////////////////////////////
+#include <iostream>
+#include <saga/saga.hpp>
+#include <boost/thread.hpp>
 
-// The hello_world example is meant to be a very simple and 
-// first example to try when it comes to SAGA. It's purpose 
-// is to spawn 3 (possibly remote) identical jobs (/bin/echo) 
-// while passing the 3 words "Hello", distributed", and "world!" 
-// on their command lines. 
+///////////////////////////////////////////////////////////////////////////////
+// The hello_world example is meant to be a very simple and first example to 
+// try when it comes to SAGA. It's purpose is to spawn 3 (possibly remote) 
+// identical jobs (/bin/echo) while passing the 3 words "Hello", "distributed", 
+// and "world!" on their command lines. The result is that the jobs will print
+// the respective command line arguments (hey, it's /bin/echo we're 
+// launching...). The master job (this one) waits for the 3 child jobs to 
+// finish. It intercepts the generated output and prints it to the user.
 //
-// The result  is that the jobs will print the respective command 
-// line arguments (it's /bin/echo after all). The master job (this one)
-// waits for the 3 child jobs to  finish. It intercepts the generated
-// output and prints it to the user. Depending on which child jobs 
-// finish first the overall printed message might be some combination 
-// of the 3 arguments we passed. But most of the time you
-// will see "Hello distributed world!", which is our way of saying 
-// hello and welcome to the world of SAGA.
+// Depending on which child jobs finish first the overall printed message might
+// be some combination of the 3 arguments we passed. But most of the time you
+// will see "Hello distributed world!", which is our way of saying hello and
+// welcome to the world of SAGA.
+///////////////////////////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////////
+// The URLs to spawn jobs to.  Please change the 3 macros below to the URLs 
+// you want the 3 childs to be spawned to.
+///////////////////////////////////////////////////////////////////////////////
+#define URL1 "fork://localhost"
+#define URL2 "fork://localhost"
+#define URL3 "fork://localhost"
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
-void run_a_job(std::string host, std::string argument)
+void run_a_job(saga::url url, std::string argument)
 {
     try {
-        saga::job::service js (host);
+        saga::job::service js (url);
         saga::job::ostream in;
         saga::job::istream out;
         saga::job::istream err;
 
         // run the job
-        saga::job::job j = js.run_job("/bin/echo " + \\
-                                     argument, host, in, out, err);
+        saga::job::job j = js.run_job("/bin/echo " + argument, "", in, out, err);
 
         // wait for the job to finish
-        saga::job::state s = j.get_state();
-        while (s != saga::job::Done && s != saga::job::Failed)
-            s = j.get_state();
+        j.wait ();
 
         // if the job finished successfully, print the generated output
-        if (s == saga::job::Done) {
+        if (j.get_state () == saga::job::Done) 
+        {
             std::string line;
             while (!std::getline(out, line).eof())
                 std::cout << line << '\n';
         }
         else {
-            std::cerr << "SAGA job: " << j.get_job_id() << " failed (state: " 
-                      << saga::job::detail::get_state_name(s) << ")\n";
+            std::cerr << "SAGA job: " << j.get_job_id() << " failed\n";
         }
     }
-
-   catch (saga::exception const& e) {
+    catch (saga::exception const& e) {
         std::cerr << "saga::exception caught: " << e.what () << std::endl;
     }
     catch (std::exception const& e) {
@@ -318,17 +332,18 @@ void run_a_job(std::string host, std::string argument)
 int main(int argc, char* argv[])
 {
     // run 3 separate threads executing the saga calls
-    boost::thread t1 (run_a_job, HOST1, "Hello");
-    boost::thread t2 (run_a_job, HOST2, "distributed");
-    boost::thread t3 (run_a_job, HOST3, "world!");
+    boost::thread t1 (run_a_job, URL1, "Hello");
+    boost::thread t2 (run_a_job, URL2, "distributed");
+    boost::thread t3 (run_a_job, URL3, "world!");
 
     // wait for all spawned threads to finish
     t1.join();
     t2.join();
     t3.join();
+
     return 0;
 }
-
+///////////////////////////////////////////////////////////////////////////////
 \end{verbatim}
 
 \pagebreak
@@ -349,54 +364,54 @@ launching three jobs on three machines, we will launch one job on one
 machine, which will then launch itself on another machine, which in
 turn will do so onto yet another machine.
 
-%\jhanote{Andre: This needs updating...}
 
 \begin{verbatim}
-////////////////////////////////////////////////////////////////
-// The chaining_jobs example tries to overcome one of the limitations 
-// of the   hello_world example: it introduces dependencies between 3
-// (possibly remotely) spawned childs. In this example the next child
-// will be spawned only after the previous one has finished its execution.
-// Here we use an "addition" hack to do some calculations,
-// where the result of the previous calculation is used as
-// the input for the next one.
-//
-// Try to make more complex calculations if you like/can
-////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+#include <iostream>
+#include <saga/saga.hpp>
 
-/////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// The chaining_jobs example tries to overcome one of the limitations of the 
+// hello_world example: it introduces dependencies between 3 (possibly remotely)
+// spawned childs. In this example the next child will be spawned only after 
+// the previous one has finished its execution. To make it more interesting we 
+// now use /usr/bin/bc to do some calculations, where the result of the previous
+// calculation is used as the input for the next one.
+//
+// Try to make more complex calculations if you like!
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// The URLs names to spawn jobs to.  Please change the 3 macros below to the 
+// urls you want the 3 childs to be spawned to.
+///////////////////////////////////////////////////////////////////////////////
+#define URL1 "fork://localhost"
+#define URL2 "fork://localhost"
+#define URL3 "fork://localhost"
+
+///////////////////////////////////////////////////////////////////////////////
 // the routine spawning the SAGA jobs and waiting for their results
-std::string increment(std::string host, std::string argument)
+std::string increment (saga::url url, std::string argument)
 {
     try {
-        saga::job::service js (host);
+        saga::job::service js (url);
         saga::job::ostream in;
-        saga::job::istream out;
-        saga::job::istream err;
+        saga::job::istream out, err;
 
         // run the job
-        saga::job::job j = js.run_job("/usr/bin/bc -q", host, in, out, err);
-
-        // wait for the job to finish
-        saga::job::state s = j.get_state();
-        while (s != saga::job::Running && s != saga::job::Failed)
-            s = j.get_state();
+        saga::job::job j = js.run_job("/usr/bin/bc -q", "", in, out, err);
 
         // if the job didn't start successfully, print error message
-        if (s == saga::job::Failed) {
-            std::cerr << "SAGA job: " << j.get_job_id() << " failed (state: " 
-                      << saga::job::detail::get_state_name(s) << ")\n";
+        if ( j.get_state () != saga::job::Running ) {
+            std::cerr << "SAGA job: " << j.get_job_id() << " failed" << std::endl;
             return argument;
         }
 
-        // feed the remote process some input
-        in << "1 + " + argument + "\n";
-
-        // receive result
+        // feed the remote process some input, receive result, 
+        // and quit remote process
+        in << "1 + " << argument << std::endl;
         std::string line;
-        std::getline(out, line);
-
-        // quit remote process
+        std::getline (out, line);
         in << "quit\n";
 
         return line;
@@ -413,19 +428,21 @@ std::string increment(std::string host, std::string argument)
     return argument;    // by default just return argument
 }
 
-///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-    // run 3 separate threads executing the saga calls
-    std::string result = increment(HOST1, "1");
-    result = increment(HOST2, result);
-    result = increment(HOST3, result);
+    std::string result;
+
+    // run the incrementor 3 times (i.e. spawn 3 jobs to increment the counter)
+    result = increment (URL1, "1");
+    result = increment (URL2, result);
+    result = increment (URL3, result);
 
     std::cout << "The overall result is: " << result << std::endl;
 
     return 0;
 }
-
+///////////////////////////////////////////////////////////////////////////////
 \end{verbatim}
 
 Once developed, this capability can be utilized by a wide range of
@@ -461,20 +478,110 @@ performance. Also, of interest is the \texttt{respawn} method.
 %\end{verbatim}}
 
 \begin{verbatim}
-///////////////////////////////////////////////////////////////////////
-// Start this example by providing an arbitrary number of hosts on the 
-// command line. It will re-spawn itself on each of the hosts. Each 
-// instance will increment a number stored in a central result store.
-///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+#include <iostream>
+#include <cassert>
+#include <saga/saga.hpp>
+#include <boost/lexical_cast.hpp>
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Start this example by providing an arbitrary number of URLs on the command 
+// line. It will re-spawn itself to each of the URLs. Each instance will 
+// increment a number stored in a central counter store, using the advert service.
+//
+//
+// example usage (slightly shortened):
+//
+//   # saga-advert remove_entry /tutorial/depending_jobs/counter
+//
+//   # saga-advert dump_directory /tutorial/depending_jobs/
+//     /tutorial/depending_jobs/
+//
+//   # make && ./depending_jobs fork://localhost fork://localhost
+//   advert entry does not yet exist - initialize counter to 0
+//
+//   # saga-advert dump_directory /tutorial/depending_jobs/
+//     /tutorial/depending_jobs/
+//         /tutorial/depending_jobs/counter
+//           value     	: 2
+//
+//   # make && ./depending_jobs fork://localhost fork://localhost
+//
+//   # saga-advert dump_directory /tutorial/depending_jobs/
+//     /tutorial/depending_jobs/
+//         /tutorial/depending_jobs/counter
+//           value     	: 4
+//
+///////////////////////////////////////////////////////////////////////////////
+#define RESULT_STORE  "/tutorial/depending_jobs/counter"  // advert to store counter to
+#define JOB_PATH      "./depending_jobs"                  // put the correct path here
 
-///////////////////////////////////////////////////////////////////////
-// the routine spawning the SAGA jobs and waiting for their results
+///////////////////////////////////////////////////////////////////////////////
+// retrieve the current value from the advert (counter store)
+bool get_counter(int& counter)
+{
+    counter = 0;
+    try {
+        saga::advert::entry e (RESULT_STORE, saga::advert::Read);
+        counter = boost::lexical_cast <int> (e.get_attribute ("value"));
+    }
+    catch (saga::does_not_exist const& e) {
+        std::cout << "advert not existing - init counter to 0" << std::endl;
+        counter = 0;
+        return true;
+    }
+    catch (saga::exception const& e) {
+        std::cerr << "saga::exception caught: " << e.what () << std::endl;
+        return false;
+    }
+    catch (std::exception const& e) {
+        std::cerr << "std::exception caught: " << e.what () << std::endl;
+        return false;
+    }
+    catch (...) {
+        std::cerr << "unexpected exception caught" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// store the current value into the advert (counter store)
+bool set_counter(int counter)
+{
+    try {
+        saga::advert::entry e(RESULT_STORE, 
+                              saga::advert::CreateParents | 
+                              saga::advert::Create        | 
+                              saga::advert::ReadWrite     );
+        e.set_attribute ("value", boost::lexical_cast <std::string> (counter));
+    }
+    catch (saga::exception const& e) {
+        std::cerr << "saga::exception caught: " << e.what () << std::endl;
+        return false;
+    }
+    catch (std::exception const& e) {
+        std::cerr << "std::exception caught: " << e.what () << std::endl;
+        return false;
+    }
+    catch (...) {
+        std::cerr << "unexpected exception caught" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// the routine spawning the SAGA jobs and waiting for their counter
 void respawn(int argc, char *argv[])
 {
-    assert(argc > 1);     // we shouldn't end up here without any given hosts
-    try {
-        saga::job::service js (argv[1]);
+    assert(argc > 1);     // we shouldn't end up here without any given URL
+    try 
+    {
+        // start the johb server on the given URL   
+        saga::url url (argv[1]);
+        saga::job::service js (url);
 
         // compose the command line, skip first argument
         std::string commandline (JOB_PATH);
@@ -483,8 +590,8 @@ void respawn(int argc, char *argv[])
             commandline += argv[i];
         }
 
-        // run the job on host given by first argument
-        saga::job::job j = js.run_job(commandline, argv[1]);
+        // run the job 
+        saga::job::job j = js.run_job(commandline);
 
         // wait for the job to start
         saga::job::state s = j.get_state();
@@ -502,7 +609,6 @@ void respawn(int argc, char *argv[])
         while (s == saga::job::Running)
             s = j.get_state();
     }
-
     catch (saga::exception const& e) {
         std::cerr << "saga::exception caught: " << e.what () << std::endl;
     }
@@ -513,6 +619,7 @@ void respawn(int argc, char *argv[])
         std::cerr << "unexpected exception caught" << std::endl;
     }
 }
+///////////////////////////////////////////////////////////////////////////////
 \end{verbatim}
 
   \noindent Not surprisingly the code snippet above is independent of
@@ -522,27 +629,29 @@ void respawn(int argc, char *argv[])
   Service.
 
 \begin{verbatim}
-
-/////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
     if (argc == 1) {
-    // no more hosts are given, we're done!
-        int result = 0;
-        if (get_result(result))
-            std::cout << "The overall result is: " << result << std::endl;
+        // no more URLs are given, we're done!
+        int counter = 0;
+        if (get_counter(counter))
+            std::cout << "The overall counter is: " << counter << std::endl;
     }
     else {
     // otherwise get current value, increment it, and store new value
-        int result = 0;
-        get_result(result);   // ignore errors, will set result to zero
+        int counter = 0;
+        get_counter (counter);   // will set counter to zero initially
 
-        // re-spawn this job, increment result
-        if (set_result(result + 1)) 
+        // re-spawn this job, increment counter
+        // if set_counter fails, don't bother to respawn
+        if (set_counter(counter + 1)) 
             respawn(argc, argv);
     }
+
     return 0;
 }
+///////////////////////////////////////////////////////////////////////////////
 \end{verbatim}
 
 \noindent {\it Q: Can you think of an a usage-mode that can be supported by the general functionality to respawn a job? Long-running Simulations? What else?}
