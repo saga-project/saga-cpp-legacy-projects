@@ -143,7 +143,7 @@ job_starter::job_starter (std::string  a_dir)
       }
   
     std::cout << "creating job number " 
-              << jobs.size ()
+              << jobs_.size ()
               << " on " 
               << ep.url_
               << " : " << std::flush;
