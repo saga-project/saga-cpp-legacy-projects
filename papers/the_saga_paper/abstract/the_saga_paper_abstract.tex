@@ -64,7 +64,7 @@
 
  \title{ \large \vspace{-3.5em} SAGA: Towards a Comprehensive Programming System for Distributed Scientific Applications }
  
- \author{\normalsize Ole Weidner$^{1}$, Shantenu Jha$^{1,2,3}$, Andre Merzky$^{1}$, Hartmut Kaiser$^{1}$ \\
+ \author{\normalsize Ole Weidner$^{1}$, Andre Merzky$^{1}$, Hartmut Kaiser$^{1}$, Shantenu Jha$^{1,2,3}$\\
    \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
    \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
    \small{\emph{$^{3}$e-Science Institute, University of Edinburgh, UK}}
@@ -94,20 +94,24 @@ applications that can exploit the full potential of these
 systems. There are multiple reasons at many levels of the distributed
 computing stack that make it challenging to develop distributed
 applications that are interoperable, scalable, extensible, adaptive
-and yet simple to deploy an execute.  In this article we will address
-challenges at one specific level, namely that of the development of
-distributed applications. \jhanote{We should elaborate and make the
-  previous sentence more tight/rigorous} We motivate, introduce and
-provide an in-depth discussion to the Simple API for Grid Applications
-(SAGA), both as an emerging interface \jhanote{interface for what?}
-standards as well as a comprehensive programming system and as an
+and yet simple to deploy an execute and design distributed
+cyberinfrastructure that can support them.  The Simple API for Grid
+Applications (SAGA) is a community effort that aims to address this
+missing capability.  In this article we will (i) provide an overview
+of SAGA the API -- its design, its functionality and the different
+compute and data models it supports, (ii) provide a comprehensive
+account of the SAGA C++ Reference implementation, (iii) discuss
+software architecture and development process and how it is designed
+to encourage and facilitate community contribution.  Finally we
+document how SAGA is both a standard interface that can be used to
+{\it harmonize} distributed cyberinfrastructure, as well as an
 effective way to develop distributed scientific applications, tools
 and frameworks.  We discuss how SAGA's standardized interface, modular
 runtime architecture and growing list of supported distributed systems
-middleware have been used to develop real-life systems that are
-capable of overcoming current infrastructure barriers and that give us
-valuable insights on how to architect next-generation distributed
-applications.
+middleware have been used to develop applications, tools and
+environments that are capable of overcoming current infrastructure
+barriers and that give us valuable insights on how to architect
+next-generation distributed systems and applications.
 
 \jhanote{Ole: This would be sufficient if this were just an
   abstract. Remember for the purposes at hand, an ``abstract'' is
@@ -122,52 +126,72 @@ applications.
   big fallacy of most papers: ``we can write it so we are writing it''
   and disregarding ``what is the contribution of this paper''.}
 
- 
+\jhanote{Ole: Admittedly we're just going to go for a paper now and
+  not go to an editor for input -- we might still but we'll not put
+  that on the critical path. However, please do comment on what
+  makes/doesn't make sense, what you agree with and/or don't agree
+  with.}
+
+
 \subsection*{Introduction}
 %\vspace{-0.6em}
 
- Originally rooted in the 1960s operating system research, distributed computing 
- quickly became a popular and diverse area of research in both, theoretical and applied 
- computer science. Based on the fundamental principle of communicating autonomous processes, 
- the study of distributed systems and applications systematically explored and extended the 
- fields of algorithms, programming models and languages and rapidly grew to a full stack of 
- patterns, concepts and methodologies (see e.g. \cite{519301}) which fostered the development 
- of more and more complex systems and applications. This development arguably climaxed in the  
- conceptualization and implementation of the Internet and World Wide Web~\cite{Berners-lee92world-wideweb} 
- in the early 1990s as the foundation and prototype for all modern large-scale, globally-distributed 
- systems. Quickly adopted by the scientific community, large-scale distributed systems have 
- been the primary workhorse for the computational sciences for more than two decades now 
- with many of today's systems consisting of a vast sets of globally interconnected resources 
- and services, forged to provide researchers with dedicated high-bandwidth communication 
- channels, hundreds of thousands of CPU cores and petabytes of storage.
+ Originally rooted in the 1960s operating system research, distributed
+ computing quickly became a popular and diverse area of research in
+ both, theoretical and applied computer science. Based on the
+ fundamental principle of communicating autonomous processes, the
+ study of distributed systems and applications systematically explored
+ and extended the fields of algorithms, programming models and
+ languages and rapidly grew to a full stack of patterns, concepts and
+ methodologies (see e.g. \cite{519301}) which fostered the development
+ of more and more complex systems and applications. This development
+ arguably climaxed in the conceptualization and implementation of the
+ Internet and World Wide Web~\cite{Berners-lee92world-wideweb} in the
+ early 1990s as the foundation and prototype for all modern
+ large-scale, globally-distributed systems. Quickly adopted by the
+ scientific community, large-scale distributed systems have been the
+ primary workhorse for the computational sciences for more than two
+ decades now with many of today's systems consisting of a vast sets of
+ globally interconnected resources and services, forged to provide
+ researchers with dedicated high-bandwidth communication channels,
+ hundreds of thousands of CPU cores and petabytes of storage.
  
- Yet there is a noticeable non-equilibrium between the progress that is made in providing
- even larger distributed systems and the distributed applications that are capable of
- using the full potential of these systems. Although the fundamental concepts of how to 
- compose portable, reliable, scalable distributed applications are very well understood and an 
- important part of any modern computer science and informatics curriculum, 
- the scientific community still struggles to develop and deploy large-scale distributed applications.
- In order to better understand the current dilemma, it is important to highlight an emerging paradigm 
- shift that affects they way large-scale distributed systems are being used: while in the the past 
- systems were distributed, but mostly self-contained, like for example campus grids or \textit{@Home}   
- infrastructures, todays system landscape emphasizes on global distributed \textit{meta-systems}. 
- National and international efforts and collaborations are trying to bring together these formerly
- self-contained distributed systems to provide a global scientific community with an unprecedented 
- network of resources. Administrative and technical borders are torn down to allow applications 
- to tap into this pool and application scientists are studying the characteristics of these new 
- meta-systems with the goal to apply already known as well as to develop novel concepts and 
- patterns that can support a new generation of \textit{embarrassingly-distributed} applications.
+ Yet there is a noticeable non-equilibrium between the progress that
+ is made in providing even larger distributed systems and the
+ distributed applications that are capable of using the full potential
+ of these systems. Although the fundamental concepts of how to compose
+ portable, reliable, scalable distributed applications are very well
+ understood and an important part of any modern computer science and
+ informatics curriculum, the scientific community still struggles to
+ develop and deploy large-scale distributed applications.  In order to
+ better understand the current dilemma, it is important to highlight
+ an emerging paradigm shift that affects they way large-scale
+ distributed systems are being used: while in the the past systems
+ were distributed, but mostly self-contained, like for example campus
+ grids or \textit{@Home} infrastructures, todays system landscape
+ emphasizes on global distributed \textit{meta-systems}.  National and
+ international efforts and collaborations are trying to bring together
+ these formerly self-contained distributed systems to provide a global
+ scientific community with an unprecedented network of
+ resources. Administrative and technical borders are torn down to
+ allow applications to tap into this pool and application scientists
+ are studying the characteristics of these new meta-systems with the
+ goal to apply already known as well as to develop novel concepts and
+ patterns that can support a new generation of
+ \textit{embarrassingly-distributed} applications.
  
- But what appears to be simple or at least as a straight-forward research agenda at a first glance, 
- quickly turns into a Herculean Challenge on the technical level. A look at the recent history of 
- large-scale distributed computing and the status quo of the technologies provides one possible
- explanation: although
- the majority of the community has been agreeing on what a large-scale distributed system should
- be early on, the implementation landscape couldn't look more diverse. Traditionally 
- driven by strong political and personal agendas, system implementations in the 1990s and 2000s 
- quickly diverged into a plethora of massive, more and more sophisticated middleware stacks.
- And although the ... which lead to zero cross-site-portability of application code.
- 
+ But what appears to be simple or at least as a straight-forward
+ research agenda at a first glance, quickly turns into a Herculean
+ Challenge on the technical level. A look at the recent history of
+ large-scale distributed computing and the status quo of the
+ technologies provides one possible explanation: although the majority
+ of the community has been agreeing on what a large-scale distributed
+ system should be early on, the implementation landscape couldn't look
+ more diverse. Traditionally driven by strong political and personal
+ agendas, system implementations in the 1990s and 2000s quickly
+ diverged into a plethora of massive, more and more sophisticated
+ middleware stacks.  And although the ... which lead to zero
+ cross-site-portability of application code.
  
 {\bf [...] }
  
