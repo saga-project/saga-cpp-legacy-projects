@@ -6,28 +6,18 @@
 
 SAGA_MB_ROOT     = ../
 
-USE_X11          = yes
-USE_PNG          = yes
-USE_PNGWRITER    = yes
-USE_FT           = yes
-
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
 SAGA_SRC        += job_starter.cpp
 SAGA_SRC        += mandelbrot.cpp
 SAGA_SRC        += mandelbrot_master.cpp
+SAGA_SRC        += output_x11.cpp
 SAGA_SRC        += output_png.cpp
 
-ifeq "$(HAVE_X11)" "yes"
- SAGA_SRC       += output_x11.cpp
-endif
 
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 SAGA_BIN         = mandelbrot_master
 
-
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
-run:: $(SAGA_BIN)
-	$(SAGA_PWD)/$(SAGA_BIN)
-  
+

@@ -1,4 +1,6 @@
 
+#ifdef HAVE_X11
+
 #ifndef OUTPUT_X11_HPP
 #define OUTPUT_X11_HPP
 
@@ -54,4 +56,6 @@ class output_x11 : public output_base
 };
 
 #endif // OUTPUT_X11_HPP
+
+#endif // HAVE_X11
 

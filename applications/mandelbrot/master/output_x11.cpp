@@ -1,4 +1,6 @@
 
+#ifdef HAVE_X11
+
 #include <sstream>
 #include <iostream>
 
@@ -21,99 +23,96 @@ output_x11::output_x11 (unsigned int size_x,
   // print a message of what we *would* paint
   if ( dpy_ == NULL )
   {
-    std::cout << "init x11 output failed" << std::endl;
-    ::exit (-1);
+    throw "init x11 output failed";
   }
-  else
+  
+  // get default screen
+  scr_ = DefaultScreen (dpy_);
+
+  // get root window
+  root_ = DefaultRootWindow (dpy_);
+
+  // Create the window
+  win_ = XCreateSimpleWindow (dpy_, root_, 
+                              0, 0,                     // offset for NW corner
+                              size_x_, size_y_,         // window size
+                              0,                        // borderwidth
+                              BlackPixel (dpy_, scr_),  // bordercolor
+                              BlackPixel (dpy_, scr_)); // backgroundcolor
+
+  // get MapNotify events
+  XSelectInput (dpy_, win_, StructureNotifyMask);
+
+  // "map" the window (that is, make it appear on the screen)
+  XMapWindow (dpy_, win_);
+
+  // create a "graphics context"
+  gc_ = XCreateGC (dpy_, win_, 0, NULL);
+
+  // wait for the MapNotify event
+  XEvent event;
+  while ( event.type != MapNotify )
   {
-    std::cout << "init x11 output" << std::endl;
-    
-    // get default screen
-    scr_ = DefaultScreen (dpy_);
-
-    // get root window
-    root_ = DefaultRootWindow (dpy_);
-
-    // Create the window
-    win_ = XCreateSimpleWindow (dpy_, root_, 
-                                0, 0,                     // offset for NW corner
-                                size_x_, size_y_,         // window size
-                                0,                        // borderwidth
-                                BlackPixel (dpy_, scr_),  // bordercolor
-                                BlackPixel (dpy_, scr_)); // backgroundcolor
-
-    // get MapNotify events
-    XSelectInput (dpy_, win_, StructureNotifyMask);
-
-    // "map" the window (that is, make it appear on the screen)
-    XMapWindow (dpy_, win_);
-
-    // create a "graphics context"
-    gc_ = XCreateGC (dpy_, win_, 0, NULL);
-
-    // wait for the MapNotify event
-    XEvent event;
-    while ( event.type != MapNotify )
-    {
-      XNextEvent (dpy_, &event);
-    }
-
-    // get default colormap
-    cmap_ = DefaultColormap (dpy_, scr_);
-
-    // get black and white, to determine the color range in RGB
-    
-    XcmsCCC ccc = XcmsCCCOfColormap (dpy_, cmap_);
-
-    XcmsColor black;
-    XcmsColor white;
-
-    XcmsQueryBlack (ccc, XcmsRGBFormat, &black);
-    XcmsQueryWhite (ccc, XcmsRGBFormat, &white);
-
-    // colormap range vars.  This should be obtained form the cmap, but well...
-    int    min   = black.spec.RGB.red;
-    int    max   = white.spec.RGB.red;
-    double delta = (max - min) / (cnum_ - 1);
-
-    // fill colormap with nice colors
-    //
-    // TODO: colormap should actually be filled logarithmic or so, as the
-    // mandelbrotset values raise later, but fairly steep, so the image is rather
-    // dark when drawn with a linear color map
-    for ( unsigned int c = 0; c < cnum_; c++ )
-    {
-      XcmsColor color;
-
-      color.format         = XcmsRGBFormat;
-      color.spec.RGB.red   = min;
-      color.spec.RGB.green = min + delta * c;
-      color.spec.RGB.blue  = min + delta * c;
-
-      if ( XcmsAllocColor (dpy_, cmap_, &color, XcmsRGBFormat) == XcmsFailure )
-      {
-        throw "Oops";
-      }
-
-      // remember the color index for later use
-      colors_.push_back (color.pixel);
-    }
-
-    // store balck and white at end of vector, used for box boundaries
-    colors_.push_back (BlackPixel (dpy_, scr_));
-    colors_.push_back (WhitePixel (dpy_, scr_));
-
-    // allow exposure events to be catched
-    XSelectInput (dpy_, win_, ExposureMask);
-
-    // map window to the screen
-    XMapWindow   (dpy_, win_);
+    XNextEvent (dpy_, &event);
   }
+
+  // get default colormap
+  cmap_ = DefaultColormap (dpy_, scr_);
+
+  // get black and white, to determine the color range in RGB
+  
+  XcmsCCC ccc = XcmsCCCOfColormap (dpy_, cmap_);
+
+  XcmsColor black;
+  XcmsColor white;
+
+  XcmsQueryBlack (ccc, XcmsRGBFormat, &black);
+  XcmsQueryWhite (ccc, XcmsRGBFormat, &white);
+
+  // colormap range vars.  This should be obtained form the cmap, but well...
+  int    min   = black.spec.RGB.red;
+  int    max   = white.spec.RGB.red;
+  double delta = (max - min) / (cnum_ - 1);
+
+  // fill colormap with nice colors
+  //
+  // TODO: colormap should actually be filled logarithmic or so, as the
+  // mandelbrotset values raise later, but fairly steep, so the image is rather
+  // dark when drawn with a linear color map
+  for ( unsigned int c = 0; c < cnum_; c++ )
+  {
+    XcmsColor color;
+
+    color.format         = XcmsRGBFormat;
+    color.spec.RGB.red   = min;
+    color.spec.RGB.green = min + delta * c;
+    color.spec.RGB.blue  = min + delta * c;
+
+    if ( XcmsAllocColor (dpy_, cmap_, &color, XcmsRGBFormat) == XcmsFailure )
+    {
+      throw "Oops";
+    }
+
+    // remember the color index for later use
+    colors_.push_back (color.pixel);
+  }
+
+  // store balck and white at end of vector, used for box boundaries
+  colors_.push_back (BlackPixel (dpy_, scr_));
+  colors_.push_back (WhitePixel (dpy_, scr_));
+
+  // allow exposure events to be catched
+  XSelectInput (dpy_, win_, ExposureMask);
+
+  // map window to the screen
+  XMapWindow   (dpy_, win_);
 }
 
 output_x11::~output_x11 (void)
 {
+  std::cout << "press key to close x11 output" << std::flush << std::endl;
   ::getchar ();
+
   // shut down X11
   XFreeGC        (dpy_, gc_);
   XDestroyWindow (dpy_, win_);
@@ -199,4 +198,6 @@ void output_x11::paint_box (unsigned int x0, unsigned int n_x,
   // flush window contents to make sure everything gets drawn
   XFlush (dpy_);
 }
+
+#endif // HAVE_X11
 

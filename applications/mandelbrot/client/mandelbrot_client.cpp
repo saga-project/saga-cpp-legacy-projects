@@ -7,6 +7,19 @@
 #include <saga/saga.hpp>
 #include <saga/saga/adaptors/utils.hpp>
 
+namespace util 
+{
+  std::string itoa (int i)
+  {
+    std::stringstream ss;
+
+    ss << i;
+
+    return ss.str ();
+  }
+}
+
+
 int main (int argc, char** argv)
 {
 
@@ -18,8 +31,36 @@ int main (int argc, char** argv)
 
   try
   {
-    std::string advert_root (argv[1]);
-    std::string job_id      (argv[2]);
+    bool joke  = false;
+    bool bomb  = false;
+    bool sleep = false;
+
+    std::string advert_root (argv[1]); // work bucket container
+    std::string job_id      (argv[2]); // my job id == id of work bucket
+
+    if ( argc > 3 )
+    {
+      std::string cmd (argv[3]); // additional command - optional
+
+      if ( cmd == "sleep" )
+      {
+        // just sleep for 10 minutes after registering, then quit.
+        sleep = true;
+      }
+
+      if ( cmd == "joke" )
+      {
+        // create bogus results if that command is given.
+        joke = true;
+      }
+
+      if ( cmd == "bomb" )
+      {
+        // try to remove an job bucket next to us (id +/- 1)
+        bomb = true;
+      }
+    }
+
 
     // open application job bucket.  Fail if that does not exist, as it means
     // that the master did not yet run
@@ -33,6 +74,42 @@ int main (int argc, char** argv)
                                                         saga::advert::Create    | 
                                                         saga::advert::Exclusive | 
                                                         saga::advert::ReadWrite );
+
+    // we registered, now we can sleep if that was requested
+    if ( sleep )
+    {
+      ::sleep (600);
+      ::exit (0);
+    }
+
+    // also now is a good time to bomb our neighbor, if master so wishes.
+    if ( bomb )
+    {
+      // search a sensible (== small but non-negative) neighbor
+      int me  = ::atoi (job_id.c_str ());
+      int you = ( me == 0 ? me+1 : me-1 );
+
+      std::string victim_id = util::itoa (you);
+      std::cout << "bombing victim " << victim_id << std::endl;
+
+      try 
+      {
+        // sleep some seconds to increase our chance for a hit.  
+        // Advert is slooooow...
+        ::sleep (30);
+        saga::advert::directory victim = app_dir.open_dir (victim_id, 
+                                                           saga::advert::ReadWrite);
+
+        // kaboom!
+        victim.remove (saga::advert::Recursive);
+        std::cout << " bomb hit target >:-)" << std::endl;
+      }
+      catch ( ... )
+      {
+        // ignore errors
+        std::cout << " bomb missed target :-(" << std::endl;
+      }
+    }
 
     // work as long as there is work
     bool busy      = true;
@@ -160,10 +237,22 @@ int main (int argc, char** argv)
               // x coordinate of pixel in complex plane (real part)
               double c0 = off_x + x * res_x;
 
+              if ( joke )
+              {
+                // mirror box :-P
+                c0 = off_x + (num_x - x) * res_x;
+              }
+
               for ( int y = 0; y < num_y; y++ )
               {
                 // y coordinate of pixel in complex plane (imaginary part)
                 double c1 = off_y + y * res_y;
+
+                if ( joke )
+                {
+                  // mirror box :-P
+                  c1 = off_y + (num_y - y) * res_y;
+                }
 
                 std::complex <double> C (c0, c1);
                 std::complex <double> Z (.0, .0); // initial value for iteration Z

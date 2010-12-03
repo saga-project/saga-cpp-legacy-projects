@@ -24,6 +24,7 @@ class job_starter
                    std::string  proxy,
                    std::string  cadir,
                    std::string  exe,
+                   std::string  args,
                    std::string  pwd, 
                    std::string  njobs);
 
@@ -38,18 +39,21 @@ class job_starter
         std::string        proxy_;
         std::string        cadir_;
         std::string        exe_;
+        std::string        args_;
         std::string        pwd_;
         unsigned int       njobs_;
     };
 
 
 
+    std::string                       ini_file_;
     std::vector <endpoint_>           endpoints_;
     std::vector <saga::job::service>  services_;
     std::vector <saga::job::job>      jobs_;
 
   public:
-    job_starter  (std::string  a_dir);  // advert directory (== job bucket)
+    job_starter  (std::string  a_dir,  // advert directory (== job bucket)
+                  std::string  ini);   // control file
     ~job_starter (void);
 
     std::vector <saga::job::job> get_jobs (void)

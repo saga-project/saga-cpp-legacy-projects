@@ -1,4 +1,6 @@
 
+#ifdef HAVE_PNG
+
 #include <sstream>
 #include <iostream>
 
@@ -7,11 +9,13 @@
 
 output_png::output_png (unsigned int size_x, 
                         unsigned int size_y, 
-                        unsigned int cnum)
+                        unsigned int cnum, 
+                        std::string  file)
     : size_x_   (size_x),
       size_y_   (size_y),
       cnum_     (cnum * 256 - 1),
-      png_      (size_x_, size_y_, (int) cnum_, "mandelbrot.png")
+      png_      (size_x_, size_y_, (int) cnum_, file.c_str ()),
+      file_     (file)
 {
   // try to open font file
   char * saga_loc = ::getenv ("SAGA_LOCATION");
@@ -31,6 +35,7 @@ output_png::~output_png (void)
 {
   // close down PNG
   png_.close ();
+  std::cout << "storing result in " << file_ << std::endl;
 }
 
 
@@ -105,4 +110,6 @@ void output_png::paint_box (unsigned int x0, unsigned int n_x,
   png_.plot_text( (char*)(font_loc_.c_str ()), 8, x0+10, y0+10, 0, txt, 1.0, 1.0, 1.0);
   free (txt);
 }
+
+#endif // HAVE_PNG
 

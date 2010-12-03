@@ -1,4 +1,6 @@
 
+#ifdef HAVE_PNG
+
 #ifndef OUTPUT_PNG_HPP
 #define OUTPUT_PNG_HPP
 
@@ -30,13 +32,16 @@ class output_png : public output_base
 
     pngwriter            png_;
 
+    std::string          file_;
+
 
   public:
     // the c'tor takes the size the window.  The user of the device needs to
     // ensure that all drawinf requests lie inside that window.
      output_png  (unsigned int size_x, 
                   unsigned int size_y, 
-                  unsigned int cnum);
+                  unsigned int cnum, 
+                  std::string  file);
     ~output_png (void);
 
     // paint a rectangular box
@@ -47,4 +52,6 @@ class output_png : public output_base
 };
 
 #endif // OUTPUT_PNG_HPP
+
+#endif // HAVE_PNG
 

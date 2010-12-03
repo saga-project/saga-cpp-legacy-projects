@@ -4,7 +4,10 @@
 #  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 #  http://www.boost.org/LICENSE_1_0.txt)
 
-SAGA_MB_ROOT  = ../
+SAGA_MB_ROOT     = ../
+
+# the client does not need to be linked against X11, PNG etc.
+NO_EXTERNALS     = yes
 
 -include $(SAGA_MB_ROOT)/config/make.cfg
 
