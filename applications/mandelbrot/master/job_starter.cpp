@@ -1,51 +1,42 @@
 
 #include <sstream>
 #include <iostream>
+#include <fstream>
 
 #include <saga/saga/adaptors/utils.hpp>
 
 #include "job_starter.hpp"
 
-job_starter::endpoint_::endpoint_ (std::string  name,
-                                   std::string  url,
-                                   std::string  ctype,
-                                   std::string  user,
-                                   std::string  pass,
-                                   std::string  cert,
-                                   std::string  key,
-                                   std::string  proxy,
-                                   std::string  cadir,
-                                   std::string  exe,
-                                   std::string  args,
-                                   std::string  pwd,
-                                   std::string  njobs)
-  : name_        (name ),
-    url_         (url  ),
-    ctype_       (ctype),
-    user_        (user ),
-    pass_        (pass ),
-    cert_        (cert ),
-    key_         (key  ),
-    proxy_       (proxy),
-    cadir_       (cadir),
-    exe_         (exe  ),
-    args_        (args ),
-    pwd_         (pwd  ),
-    njobs_       (::atoi (njobs.c_str ()))
+job_starter::endpoint_::endpoint_ (std::string           name,
+                                   mb_util::ini::section ini)
+  : name_ (name),
+    ini_  (ini )
 {
+  ctype_  =         ini_.get_entry ("ctype", "" );
+  user_   =         ini_.get_entry ("user" , "" );
+  pass_   =         ini_.get_entry ("pass" , "" );
+  cert_   =         ini_.get_entry ("cert" , "" );
+  key_    =         ini_.get_entry ("key"  , "" );
+  proxy_  =         ini_.get_entry ("proxy", "" );
+  cadir_  =         ini_.get_entry ("cadir", "" );
+  exe_    =         ini_.get_entry ("exe"  , "" );
+  args_   =         ini_.get_entry ("args" , "" );
+  pwd_    =         ini_.get_entry ("pwd"  , "" );
+  njobs_  = ::atoi (ini_.get_entry ("njobs", "1").c_str ());
+
   saga::session s;
 
   saga::context c (ctype_);
 
-  c.set_attribute (saga::attributes::context_certrepository, cadir);
-  c.set_attribute (saga::attributes::context_usercert      , cert);
-  c.set_attribute (saga::attributes::context_userkey       , key);
-  c.set_attribute (saga::attributes::context_userid        , user);
-  c.set_attribute (saga::attributes::context_userpass      , pass);
+  c.set_attribute (saga::attributes::context_certrepository, cadir_);
+  c.set_attribute (saga::attributes::context_usercert      , cert_);
+  c.set_attribute (saga::attributes::context_userkey       , key_);
+  c.set_attribute (saga::attributes::context_userid        , user_);
+  c.set_attribute (saga::attributes::context_userpass      , pass_);
 
-  if ( ! proxy.empty () )
+  if ( ! proxy_.empty () )
   {
-    c.set_attribute (saga::attributes::context_userproxy     , proxy);
+    c.set_attribute (saga::attributes::context_userproxy   , proxy_);
   }
   // c.set_attribute (saga::attributes::context_uservo        , "");
   // c.set_attribute (saga::attributes::context_lifetime      , "");
@@ -58,22 +49,24 @@ job_starter::endpoint_::endpoint_ (std::string  name,
   saga::job::service js (s, url_);
 
   service_ = js;
+
+  // dump ini section for this endpoint
+  std::ofstream fout ((std::string ("endpoint.") + name + ".ini").c_str ());
+  ini_.dump (0, fout);
+  fout.close ();
 }
 
 
 //////////////////////////////////////////////////////////////////////
-job_starter::job_starter (std::string  a_dir, 
-                          std::string  ini_file)
-  : ini_file_ (ini_file)
+job_starter::job_starter (std::string       a_dir, 
+                          mb_util::ini::ini ini)
+  : ini_ (ini)
 {
   // first, initialize all endpoints according to the ini file
-  saga::ini::ini ini (ini_file_);
-
-  saga::ini::section cfg    = ini.get_section ("mandelbrot");
-  saga::ini::section ep_cfg = cfg.get_section ("backends");
-
-  saga::ini::entry_map backends = ep_cfg.get_entries ();
-  saga::ini::entry_map :: iterator it;
+  mb_util::ini::section   cfg      = ini_.get_section ("mandelbrot");
+  mb_util::ini::section   ep_cfg   = cfg.get_section  ("backends");
+  mb_util::ini::entry_map backends = ep_cfg.get_entries ();
+  mb_util::ini::entry_map :: iterator it;
 
   for ( it = backends.begin (); it != backends.end (); it++ )
   {
@@ -82,26 +75,15 @@ job_starter::job_starter (std::string  a_dir,
 
     if ( val == "yes" )
     {
-      saga::ini::section backend_config = ep_cfg.get_section (key);
+      mb_util::ini::section backend_config = ep_cfg.get_section (key);
 
       try 
       {
         std::string url = backend_config.get_entry ("url"  , "");
-        std::cout << "creating endpoint '" << key << "' \t (" << url << ") \t ..." << std::flush;
+        std::cout << "creating  endpoint '" << key << "' \t ..." << std::flush;
 
-        endpoints_.push_back (endpoint_ (key, url,
-                                         backend_config.get_entry ("ctype", ""),
-                                         backend_config.get_entry ("user" , ""),
-                                         backend_config.get_entry ("pass" , ""),
-                                         backend_config.get_entry ("cert" , ""),
-                                         backend_config.get_entry ("key"  , ""),
-                                         backend_config.get_entry ("proxy", ""),
-                                         backend_config.get_entry ("cadir", ""),
-                                         backend_config.get_entry ("exe"  , ""),
-                                         backend_config.get_entry ("args" , ""),
-                                         backend_config.get_entry ("pwd"  , ""),
-                                         backend_config.get_entry ("njobs", "1")));
-        std::cout << " ok" << std::endl;
+        endpoints_.push_back (endpoint_ (key, backend_config));
+        std::cout << " ok  (" << url << ")" << std::endl;
       }
       catch ( const saga::exception & e )
       {
@@ -153,7 +135,30 @@ job_starter::job_starter (std::string  a_dir,
           jd.set_attribute (saga::job::attributes::description_working_directory, ep.pwd_);
         }
 
-        std::cout << "running  job "
+        // let the clients store stdout/stderr to /tmp/mandelbrot_client.[id].out/err
+        // FIXME: this should get enabled once the bes adaptor supports it, and
+        // is able to stage the output files back into the pwd
+        # if 0
+        {
+          int id = jobs_.size ();
+
+          std::string out;
+          std::string err;
+
+          out += ("/tmp/mandelbrot_client.");
+          out += boost::lexical_cast <std::string> (id);
+          out += ".out";
+
+          err += ("/tmp/mandelbrot_client.");
+          err += boost::lexical_cast <std::string> (id);
+          err += ".err";
+
+          jd.set_attribute (saga::job::attributes::description_output, out);
+          jd.set_attribute (saga::job::attributes::description_error,  err);
+        }
+        # endif
+
+        std::cout << "starting  job "
                   << jobs_.size ()
                   << " on "
                   << ep.name_ 
@@ -188,7 +193,7 @@ job_starter::job_starter (std::string  a_dir,
           // keep job
           jobs_.push_back (j);
 
-          std::cout << "ok " 
+          std::cout << "ok  " 
                     << jobid 
                     << " " << ep.args_
                     << std::endl;

@@ -11,41 +11,20 @@ int main (int argc, char** argv)
   try
   {
     ////////////////////////////////////////////////////////////////////
-    std::string ini_file ("./mandelbrot.ini");
-
-    if ( argc > 1 )
-    {
-      ini_file = argv[1];
-      std::cout << "using ini_file from argv: " << ini_file << std::endl;
-    }
-    else
-    {
-      // get mandelbrot ini_file from env
-      char* env = ::getenv ("SAGA_MANDELBROT_INI");
-      if ( NULL != env )
-      {
-        ini_file = ::strdup (env);
-        std::cout << "using ini file from $SAGA_MANDELBROT_INI: " << ini_file << std::endl;
-      }
-      else
-      {
-        std::cout << "using default ini file: " << ini_file << std::endl;
-      }
-    }
-
-    ////////////////////////////////////////////////////////////////////
 
     // timestamp
+    std::cout << "start : " << std::flush;
     system ("/bin/date");
 
     // create our mandelbrot master
-    mandelbrot m (ini_file); 
+    mandelbrot m;
 
     // compute() distributes the work, gathers the
     // results, and displays the mandelbrot set
     ret = m.compute    ();
 
     // timestamp
+    std::cout << "stop  : " << std::flush;
     system ("/bin/date");
 
     ////////////////////////////////////////////////////////////////////

@@ -3,6 +3,7 @@
 #define MANDELBROT_HPP
 
 #include <saga/saga.hpp>
+#include "ini.hpp"
 
 #include "output_base.hpp"
 
@@ -15,7 +16,9 @@ class mandelbrot
 
     std::vector <output_base *>      odevs_;           // output devices
 
+    std::string                      pwd_;             // working directory
     std::string                      ini_file_;        // control file
+    mb_util::ini::ini                ini_;             // control data
     std::vector <saga::job::job>     jobs_;            // list of saga jobs
     std::string                      job_bucket_name_; // name of job directory
     saga::advert::directory          job_bucket_;      // advert container for new jobs 
@@ -30,14 +33,16 @@ class mandelbrot
     std::string advert_dir_;
 
     // mandelbrot algorithm parameters
-    int plane_x_0_;
-    int plane_y_0_;
-    int plane_x_1_;
-    int plane_y_1_;
+    double plane_x_0_;
+    double plane_y_0_;
+    double plane_x_1_;
+    double plane_y_1_;
     int limit_;
     int escape_;
 
     // work item definitions (box == work item)
+    int img_size_x_;
+    int img_size_y_;
     int box_size_x_;
     int box_size_y_;
     int box_num_x_;
@@ -47,7 +52,7 @@ class mandelbrot
 
 
   public:
-    mandelbrot   (std::string ini_file); // control file
+    mandelbrot   (void);
     ~mandelbrot  (void);
 
     int compute  (void);

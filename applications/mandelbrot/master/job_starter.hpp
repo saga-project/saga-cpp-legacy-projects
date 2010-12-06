@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <saga/saga.hpp>
+#include "ini.hpp"
 
 class job_starter 
 {
@@ -14,22 +15,13 @@ class job_starter
     class endpoint_
     {
       public:
-        endpoint_ (std::string  name,
-                   std::string  url,
-                   std::string  ctype,
-                   std::string  user,
-                   std::string  pass,
-                   std::string  cert,
-                   std::string  key,
-                   std::string  proxy,
-                   std::string  cadir,
-                   std::string  exe,
-                   std::string  args,
-                   std::string  pwd, 
-                   std::string  njobs);
+        endpoint_ (std::string           name,
+                   mb_util::ini::section ini);
 
         saga::job::service service_;
-        std::string        name_;
+        std::string             name_;
+        mb_util::ini::section   ini_;
+
         std::string        url_;
         std::string        ctype_;
         std::string        user_;
@@ -46,14 +38,14 @@ class job_starter
 
 
 
-    std::string                       ini_file_;
+    mb_util::ini::section             ini_;
     std::vector <endpoint_>           endpoints_;
     std::vector <saga::job::service>  services_;
     std::vector <saga::job::job>      jobs_;
 
   public:
-    job_starter  (std::string  a_dir,  // advert directory (== job bucket)
-                  std::string  ini);   // control file
+    job_starter  (std::string       a_dir,  // advert directory (== job bucket)
+                  mb_util::ini::ini ini);   // control data
     ~job_starter (void);
 
     std::vector <saga::job::job> get_jobs (void)

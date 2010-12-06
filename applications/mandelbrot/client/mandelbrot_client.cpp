@@ -111,6 +111,58 @@ int main (int argc, char** argv)
       }
     }
 
+
+    // so, we found the job dir, and can pull the static work item data
+    double plane_x_0  = ::atof (app_dir.get_attribute ("plane_x_0" ).c_str ());
+    double plane_y_0  = ::atof (app_dir.get_attribute ("plane_y_0" ).c_str ());
+    double plane_x_1  = ::atof (app_dir.get_attribute ("plane_x_1" ).c_str ());
+    double plane_y_1  = ::atof (app_dir.get_attribute ("plane_y_1" ).c_str ());
+    int    img_size_x = ::atoi (app_dir.get_attribute ("img_size_x").c_str ());
+    int    img_size_y = ::atoi (app_dir.get_attribute ("img_size_y").c_str ());
+    int    box_num_x  = ::atoi (app_dir.get_attribute ("box_num_x" ).c_str ());
+    int    box_num_y  = ::atoi (app_dir.get_attribute ("box_num_y" ).c_str ());
+    int    limit      = ::atoi (app_dir.get_attribute ("limit"     ).c_str ());
+    int    escap      = ::atoi (app_dir.get_attribute ("escape"    ).c_str ());
+
+    std::cout << " plane_x_0        : " << plane_x_0  << std::endl;
+    std::cout << " plane_y_0        : " << plane_y_0  << std::endl;
+    std::cout << " plane_x_1        : " << plane_x_1  << std::endl;
+    std::cout << " plane_y_1        : " << plane_y_1  << std::endl;
+    std::cout << " img_size_x       : " << img_size_x << std::endl;
+    std::cout << " img_size_y       : " << img_size_y << std::endl;
+    std::cout << " box_num_x        : " << box_num_x  << std::endl;
+    std::cout << " box_num_y        : " << box_num_y  << std::endl;
+    std::cout << " limit            : " << limit      << std::endl;
+    std::cout << " escap            : " << escap      << std::endl;
+
+
+    int box_size_x = floor (img_size_x / box_num_x);
+    int box_size_y = floor (img_size_y / box_num_y);
+
+    std::cout << " box_size_x       : " << box_size_x  << std::endl;
+    std::cout << " box_size_y       : " << box_size_y  << std::endl;
+
+    // extent of complex plane to cover
+    double plane_ext_x = plane_x_1 - plane_x_0;
+    double plane_ext_y = plane_y_1 - plane_y_0;
+
+    std::cout << " plane_ext_x      : " << plane_ext_x  << std::endl;
+    std::cout << " plane_ext_y      : " << plane_ext_y  << std::endl;
+
+    // extent of one box in complex plane
+    double plane_box_ext_x = plane_ext_x / box_num_x;
+    double plane_box_ext_y = plane_ext_y / box_num_y;
+
+    std::cout << " plane_box_ext_x  : " << plane_box_ext_x  << std::endl;
+    std::cout << " plane_box_ext_y  : " << plane_box_ext_y  << std::endl;
+
+    // step size for one box in complex plane (resolution)
+    double plane_box_step_x = plane_box_ext_x / box_size_x;
+    double plane_box_step_y = plane_box_ext_y / box_size_y;
+
+    std::cout << " plane_box_step_x : " << plane_box_step_x  << std::endl;
+    std::cout << " plane_box_step_y : " << plane_box_step_y  << std::endl;
+
     // work as long as there is work
     bool busy      = true;
     bool work_done = false;
@@ -143,6 +195,8 @@ int main (int argc, char** argv)
         idle_rounds = 0;
       }
 
+
+      // by default we wait, unless there is work to do
       should_wait = true;
 
       // find work ads for this job
@@ -173,13 +227,18 @@ int main (int argc, char** argv)
       // them
       for ( unsigned int i = 0; i < work_ads.size (); i++ )
       {
-        // TODO: this loop circles over 'done' items forever, until the master
+        // FIXME: this loop circles over 'done' items forever, until the master
         // deletes those.  Better move them somewhere else, and let the master
-        // open them there?
+        // open them there?  But hey, move doesn't work wither in the current
+        // advert service *sigh*
 
         // we have to try/catch a rase condition: completed work items may get
         // deleted by the master, and we will throw when accessing them.  We
         // catch, and simply continue with the next item.
+        //
+        // FIXME: the current advert service impl seems to be lazy in state
+        // updates though, so we may get incorrect state results (dir lingers
+        // but stays empty).
         try 
         {
           saga::advert::entry ad = job_dir.open (work_ads[i], saga::advert::ReadWrite);
@@ -187,44 +246,20 @@ int main (int argc, char** argv)
           // still an active item?
           if ( ad.get_attribute ("state") == "work" )
           {
-            std::cout << "client: found work in " << work_ads[i].get_path () << std::endl;
-            
-#ifdef FAST_ADVERT
-            double off_x = ::atof (ad.get_attribute ("off_x").c_str ());
-            double off_y = ::atof (ad.get_attribute ("off_y").c_str ());
-            double res_x = ::atof (ad.get_attribute ("res_x").c_str ());
-            double res_y = ::atof (ad.get_attribute ("res_y").c_str ());
-            double num_x = ::atof (ad.get_attribute ("num_x").c_str ());
-            double num_y = ::atof (ad.get_attribute ("num_y").c_str ());
-            int    limit = ::atoi (ad.get_attribute ("limit").c_str ());
-            int    escap = ::atoi (ad.get_attribute ("escap").c_str ());
-#else // FAST_ADVERT
-            std::string work = ad.get_attribute ("work");
-            std::vector <std::string> words = saga::adaptors::utils::split (work, ' ');
+            // get box id to work on
+            int boxnum = boost::lexical_cast <int> (ad.get_attribute ("boxnum"));
 
-            if ( words.size () != 13 )
-            {
-              std::cout << "client: " << work.c_str () << std::endl;
-              std::cout << "client: " << words.size () << std::endl;
-              std::cout << "client: Cannot parse work attribute!" << std::endl;
-              for ( unsigned int u = 0; u < words.size (); u++ )
-              {
-                std::cout << u << " : " << words[u] << std::endl;
-              }
-              exit  (-1);
-            }
+            // box indicee coordinates
+            int box_x  =        boxnum % box_num_y ;
+            int box_y  = floor (boxnum / box_num_y);
 
-            double off_x = ::atof (words[ 5].c_str ());
-            double off_y = ::atof (words[ 6].c_str ());
-            double res_x = ::atof (words[ 7].c_str ());
-            double res_y = ::atof (words[ 8].c_str ());
-            double num_x = ::atof (words[ 9].c_str ());
-            double num_y = ::atof (words[10].c_str ());
-            int    limit = ::atoi (words[11].c_str ());
-            int    escap = ::atoi (words[12].c_str ());
-#endif // FAST_ADVERT
+            std::cout << " boxnum           : " << boxnum 
+                      << " (" << box_x << ", "  << box_y << ")" << std::endl;
 
-            std::cout << "client: handling request" << std::endl;
+            // we use boxnum to compute the box offsets in the complex plane
+            double plane_box_off_x = plane_x_0 + box_y * plane_box_ext_x;
+            double plane_box_off_y = plane_y_0 + box_x * plane_box_ext_y;
+
 
             // point in complex plane to iterate over is (c0, c1)
 
@@ -232,26 +267,26 @@ int main (int argc, char** argv)
             std::stringstream data;
 
             // iterate over all pixels in complex plane
-            for ( int x = 0; x < num_x; x++ )
+            for ( int x = 0; x < box_size_x; x++ )
             {
               // x coordinate of pixel in complex plane (real part)
-              double c0 = off_x + x * res_x;
+              double c0 = plane_box_off_x + x * plane_box_step_x;
 
               if ( joke )
               {
                 // mirror box :-P
-                c0 = off_x + (num_x - x) * res_x;
+                c0 = plane_box_off_x + (box_size_x - x) * plane_box_step_x;
               }
 
-              for ( int y = 0; y < num_y; y++ )
+              for ( int y = 0; y < box_size_y; y++ )
               {
                 // y coordinate of pixel in complex plane (imaginary part)
-                double c1 = off_y + y * res_y;
+                double c1 = plane_box_off_y + y * plane_box_step_y;
 
                 if ( joke )
                 {
                   // mirror box :-P
-                  c1 = off_y + (num_y - y) * res_y;
+                  c1 = plane_box_off_y + (box_size_y - y) * plane_box_step_y;
                 }
 
                 std::complex <double> C (c0, c1);

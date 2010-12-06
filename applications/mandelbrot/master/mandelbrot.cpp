@@ -39,37 +39,101 @@ namespace util
 //
 // constructor
 //
-mandelbrot::mandelbrot (std::string  ini_file)
-    : ini_file_ (ini_file)   // control file
+mandelbrot::mandelbrot (void)
 {
-  // first, set all parameters from the ini file
-  saga::ini::ini     ini (ini_file_);
-  saga::ini::section cfg = ini.get_section ("mandelbrot");
+  ////////////////////////////////////////////////////////////////////
+  // mandelbrot assumes it runs in some working directory.  
+  // That is where all output will be stored.  
+  //
+  // Output files are:
+  //
+  //   stdout
+  //   stderr
+  //   backend.<backend_name>.log  (conmtains ini and status info)
+  //   mandelbrot.png              (result)
+  //   mandelbrot.ini              (copy of ini file)
+  //
+  // output dir defaults to pwd, but can be overwritten by the env
+  // SAGA_MANDELBROT_PWD
+  char * pwd_env = ::getenv ("SAGA_MANDELBROT_PWD");
+
+  if ( pwd_env != NULL )
+  {
+    pwd_ = pwd_env;
+  }
+  else
+  {
+    pwd_ = "./";
+  }
+  std::cout << "pwd   : " << pwd_ << std::endl;
+
+  ////////////////////////////////////////////////////////////////////
+  //
+  // the second evaluated environment is SAGA_MANDELBROT_INI, which is 
+  // is interpreted as path to the configuration file.  It defaults to 
+  // pwd/mandelbrot.ini, where pwd is taken from above.
+  //
+  char * ini_env = ::getenv ("SAGA_MANDELBROT_INI");
+
+  if ( ini_env != NULL )
+  {
+    ini_file_ = ini_env;
+  }
+  else
+  {
+    ini_file_ = pwd_ + "/mandelbrot.ini";
+  }
+
+  std::cout << "ini   : " << ini_file_ << std::endl;
+
+
+  ////////////////////////////////////////////////////////////////////
+  //
+  // all other parameters are set from the ini file
+  //
+  //
+  ini_ = mb_util::ini::ini (ini_file_);
+  mb_util::ini::section cfg = ini_.get_section ("mandelbrot");
 
   // job bucket container
   advert_dir_         =         cfg.get_entry ("advert_dir" , "/tmp/");
 
   // mandelbrot algorithm parameters
-  plane_x_0_          = ::atoi (cfg.get_entry ("plane_x_0" , " -2").c_str ());
-  plane_y_0_          = ::atoi (cfg.get_entry ("plane_y_0" , " -1").c_str ());
-  plane_x_1_          = ::atoi (cfg.get_entry ("plane_x_1" , " +1").c_str ());
-  plane_y_1_          = ::atoi (cfg.get_entry ("plane_y_1" , " +1").c_str ());
-  limit_              = ::atoi (cfg.get_entry ("limit"     , "256").c_str ());
-  escape_             = ::atoi (cfg.get_entry ("escape"    , "  4").c_str ());
+  plane_x_0_          = ::atof (cfg.get_entry ("plane_x_0" , "-2.0").c_str ());
+  plane_y_0_          = ::atof (cfg.get_entry ("plane_y_0" , "-1.0").c_str ());
+  plane_x_1_          = ::atof (cfg.get_entry ("plane_x_1" , "+1.0").c_str ());
+  plane_y_1_          = ::atof (cfg.get_entry ("plane_y_1" , "+1.0").c_str ());
+  limit_              = ::atoi (cfg.get_entry ("limit"     , " 256").c_str ());
+  escape_             = ::atoi (cfg.get_entry ("escape"    , "   4").c_str ());
 
   // work item definitions (box == work item)
-  box_size_x_         = ::atoi (cfg.get_entry ("box_size_x", "600").c_str ());
-  box_size_y_         = ::atoi (cfg.get_entry ("box_size_y", " 80").c_str ());
-  box_num_x_          = ::atoi (cfg.get_entry ("box_num_x" , "  2").c_str ());
-  box_num_y_          = ::atoi (cfg.get_entry ("box_num_y" , " 10").c_str ());
+  img_size_x_         = ::atoi (cfg.get_entry ("img_size_x", "1200").c_str ());
+  img_size_y_         = ::atoi (cfg.get_entry ("img_size_y", " 800").c_str ());
+  box_num_x_          = ::atoi (cfg.get_entry ("box_num_x" , "   2").c_str ());
+  box_num_y_          = ::atoi (cfg.get_entry ("box_num_y" , "  10").c_str ());
 
+  box_size_x_         = floor (img_size_x_ / box_num_x_);
+  box_size_y_         = floor (img_size_y_ / box_num_y_);
 
   // check if we suport the requested device
   std::string use_out_dev_x11 = cfg.get_entry ("output_device_x11" , "no");
   std::string use_out_dev_png = cfg.get_entry ("output_device_png" , "no");
 
 
-  //////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////
+  //
+  // create the working directory, if it does not exist, and change there.
+  // we only do that *after* reading the ini file though, as 
+  // ini_file_ could contain a relative path.
+  //
+  {
+    saga::filesystem::directory d (pwd_, saga::filesystem::CreateParents);
+  }
+
+  ::chdir (pwd_.c_str ());
+
+
+  ////////////////////////////////////////////////////////////////////
   //
   // init X11 device
   //
@@ -124,29 +188,49 @@ mandelbrot::mandelbrot (std::string  ini_file)
 
 
 
-  // to keep the job bucket name uniq, we append the POSIX job
+  //////////////////////////////////////////////////////////////////////
+  //
+  // create the application job bucket.  
+  //
+  // To keep the job bucket name uniq, we append the session uuid
   // id to the root advert dir.
-
-
+  //
   job_bucket_name_  = advert_dir_;
   job_bucket_name_ += "/";
   job_bucket_name_ += saga::get_default_session ().get_id ().string ();
 
-  std::cout << "job bucket: " << job_bucket_name_ << std::endl;
+  std::cout << "advert: " << job_bucket_name_ << std::endl;
 
 
-  // create the application job bucket.  Fail if it exists
-  // (Exclusive), as we don't want to spoil the buckets of other
-  // running instances
+  // Fail if the bucke exists (Exclusive), as we don't want to 
+  // spoil the buckets of other running instances
   job_bucket_ = saga::advert::directory (job_bucket_name_,
                                          saga::advert::Create        |
                                          saga::advert::Exclusive     |
                                          saga::advert::CreateParents |
                                          saga::advert::ReadWrite     );
 
-  // once the job bucket exists, we can start the jobs, and
-  // create the individual work buckets
+  // we attach the global parameters to the job bucket container
+  job_bucket_.set_attribute ("plane_x_0" , boost::lexical_cast <std::string> (plane_x_0_ ));
+  job_bucket_.set_attribute ("plane_y_0" , boost::lexical_cast <std::string> (plane_y_0_ ));
+  job_bucket_.set_attribute ("plane_x_1" , boost::lexical_cast <std::string> (plane_x_1_ ));
+  job_bucket_.set_attribute ("plane_y_1" , boost::lexical_cast <std::string> (plane_y_1_ ));
+  job_bucket_.set_attribute ("limit"     , boost::lexical_cast <std::string> (limit_     ));
+  job_bucket_.set_attribute ("escape"    , boost::lexical_cast <std::string> (escape_    ));
+  job_bucket_.set_attribute ("img_size_x", boost::lexical_cast <std::string> (img_size_x_));
+  job_bucket_.set_attribute ("img_size_y", boost::lexical_cast <std::string> (img_size_y_));
+  job_bucket_.set_attribute ("box_num_x" , boost::lexical_cast <std::string> (box_num_x_ ));
+  job_bucket_.set_attribute ("box_num_y" , boost::lexical_cast <std::string> (box_num_y_ ));
+
+
+  //////////////////////////////////////////////////////////////////////
+  //
+  // once the job bucket exists, we can start the jobs, which will
+  // create their individual client buckets.
+  //
   job_startup ();
+
+  //////////////////////////////////////////////////////////////////////
 }
 
 
@@ -159,7 +243,7 @@ mandelbrot::mandelbrot (std::string  ini_file)
 //
 mandelbrot::~mandelbrot (void)
 {
-  // close output device
+  // close output devices
   for ( unsigned int d = 0; d < odevs_.size (); d++ )
   {
     delete odevs_[d];
@@ -198,7 +282,7 @@ mandelbrot::~mandelbrot (void)
 //
 void mandelbrot::job_startup (void)
 {
-  job_starter js (job_bucket_name_, ini_file_);
+  job_starter js (job_bucket_name_, ini_);
 
   jobs_ = js.get_jobs ();
 
@@ -213,7 +297,7 @@ void mandelbrot::job_startup (void)
 
   for ( unsigned int n = 0; n < jobs_.size (); n++ )
   {
-    std::cout << "waiting  for job " << n << " to bootstrap... " << std::flush;
+    std::cout << "checking  job " << n << " for bootstrap \t ... " << std::flush;
 
     int  time   = 0;
     bool check  = true;
@@ -273,18 +357,7 @@ void mandelbrot::job_startup (void)
 //
 int mandelbrot::compute (void)
 {
-  // extent of complex plane to cover
-  double plane_ext_x = plane_x_1_ - plane_x_0_;
-  double plane_ext_y = plane_y_1_ - plane_y_0_;
-
-  // extent of one box in complex plane
-  double plane_box_ext_x = plane_ext_x / box_num_x_;
-  double plane_box_ext_y = plane_ext_y / box_num_y_;
-
-  // step size for one box in complex plane (resolution)
-  double plane_box_step_x = plane_box_ext_x / box_size_x_;
-  double plane_box_step_y = plane_box_ext_y / box_size_y_;
-
+  // the worker adverts
   std::vector <saga::advert::entry> ads;
 
   // Schedule all boxes in round robin fashion over the
@@ -304,11 +377,21 @@ int mandelbrot::compute (void)
       jobnum++;
       jobnum %= jobs_.size ();
 
+      unsigned int rollover = 0;
       while ( jobs_[jobnum].get_state () != saga::job::Running )
       {
         jobnum++;
         jobnum %= jobs_.size ();
+
+        rollover++;
+        if ( rollover > jobs_.size () )
+        {
+          throw "Can't find any job to assign boxes to.";
+        }
       }
+
+      std::cout << "assigning box " << boxnum
+                << " to job "       << jobnum << std::endl;
 
       // the jobs work bucket is its jobnum, the work item advert
       // is simply numbered by its serial number, i
@@ -321,155 +404,49 @@ int mandelbrot::compute (void)
                                                  saga::advert::CreateParents |
                                                  saga::advert::ReadWrite     );
 
-#ifdef FAST_ADVERT
-      // determine the work item parameters...
-      std::stringstream j_id ;  j_id << jobs_[jobnum].get_job_id ();       // job id
-      std::stringstream j_num;  j_num << jobnum;                           // job identifier
-      std::stringstream ident;  ident << boxnum;                           // box identifier
-      std::stringstream box_x;  box_x << x;                                // box location     in x
-      std::stringstream box_y;  box_y << y;                                //                     y
-      std::stringstream off_x;  off_x << plane_x_0_ + x * plane_box_ext_x; // pixel offset     in x
-      std::stringstream off_y;  off_y << plane_y_0_ + y * plane_box_ext_y; //                     y
-      std::stringstream res_x;  res_x << plane_box_step_x;                 // pixel resolution in x
-      std::stringstream res_y;  res_y << plane_box_step_y;                 //                     y
-      std::stringstream num_x;  num_x << box_size_x_;                      // number of pixels in x
-      std::stringstream num_y;  num_y << box_size_y_;                      //                     y
-      std::stringstream limit;  limit << limit_;                           // iteration limit for algorithm
-      std::stringstream escap;  escap << escape_;                          // escape boundary for algorithm
+      std::string boxnum_s = boost::lexical_cast <std::string> (boxnum);
 
-      // trim jobid for readability
-      std::string j_id_s (j_id.str ());
-
-      if ( j_id_s.size () > 54 )
-      {
-        j_id_s.erase (55);
-
-        j_id_s[51] = '.';
-        j_id_s[52] = '.';
-        j_id_s[53] = '.';
-      }
-
-
-      // ...and store them in the work item advert.
-      ad.set_attribute ("jobid", j_id_s);
-      ad.set_attribute ("j_num", j_num.str ());
-      ad.set_attribute ("ident", ident.str ());
-      ad.set_attribute ("box_x", box_x.str ());
-      ad.set_attribute ("box_y", box_y.str ());
-      ad.set_attribute ("off_x", off_x.str ());
-      ad.set_attribute ("off_y", off_y.str ());
-      ad.set_attribute ("res_x", res_x.str ());
-      ad.set_attribute ("res_y", res_y.str ());
-      ad.set_attribute ("num_x", num_x.str ());
-      ad.set_attribute ("num_y", num_y.str ());
-      ad.set_attribute ("limit", limit.str ());
-      ad.set_attribute ("escap", escap.str ());
-
-#else // FAST_ADVERT
-
-      // trim jobid for readability
-      std::string j_id_s = jobs_[jobnum].get_job_id ();
-
-      if ( j_id_s.size () > 54 )
-      {
-        j_id_s.erase (55);
-
-        j_id_s[51] = '.';
-        j_id_s[52] = '.';
-        j_id_s[53] = '.';
-      }
-
-      // make sure that jobid has no spaces!
-      for ( unsigned int n = 0; n < j_id_s.size (); n++ )
-        if ( j_id_s[n] == ' ' )
-          j_id_s[n] = '_';
-
-
-      std::stringstream work;  
-
-      work << j_id_s                            << " "; // job identifier
-      work << jobnum                            << " "; // job number
-      work << boxnum                            << " "; // box identifier
-      work << x                                 << " "; // box offset       in x
-      work << y                                 << " "; //                     y
-      work << plane_x_0_ + x * plane_box_ext_x   << " "; // pixel offset     in x
-      work << plane_y_0_ + y * plane_box_ext_y   << " "; //                     y
-      work << plane_box_step_x                  << " "; // pixel resolution in x
-      work << plane_box_step_y                  << " "; //                     y
-      work << box_size_x_                        << " "; // number of pixels in x
-      work << box_size_y_                        << " "; //                     y
-      work << limit_                             << " "; // iteration limit for algorithm
-      work << escape_                                  ; // escape boundary for algorithm
-
-      // ...and store them in the work item advert.
-      ad.set_attribute ("work", work.str ());
-#endif // FAST_ADVERT
-
-
-      // signal for work to do
+      // signal for work to do: set boxnum to work on, and state to 'work'
+      ad.set_attribute ("boxnum", boxnum_s);
+      ad.set_attribute ("jobid", jobs_[jobnum].get_job_id ());
       ad.set_attribute ("state", "work");
 
       // keep a list of active work items
       ads.push_back (ad);
-
-      std::cout << "assigning box " << boxnum
-                << " to job " << jobnum << std::endl;
-
       boxes_scheduled++;
     }
   }
 
 
-
   // all work items are assigned now.
   // wait for incoming boxes, and paint them as they get available.
   // completed work item adverts are deleted.
-  unsigned int waited     = 0;
-  unsigned int timeout    = 2;
+  unsigned int waited     = 0;  // FIXME: make ini para
+  unsigned int max_wait   = 2;  // FIXME: make ini para
+  unsigned int timeout    = 5;  // FIXME: make ini para
   unsigned int boxes_done = 0;
+
   while ( ads.size () )
   {
     // if no box is done at all, we sleep for a bit.  On anything else, we loop
     // again immediately.
     bool should_wait = true;
 
-    for ( int j = ads.size () - 1; j >= 0; j-- )
+    for ( unsigned int j = 0;  j < ads.size (); j++ )
     {
       if ( ads[j].get_attribute ("state") == "work" )
       {
         // nothing to do, go to sleep if that is true for all items:
         // should_sleep remains true
         //
-        // FIXME: polling is bad!
+        // FIXME: polling is bad!  But notifications are not yet supported :-(
       }
       else if ( ads[j].get_attribute ("state") == "done" )
       {
-#ifdef FAST_ADVERT
-        // get data, and paint
-        std::string s_box_x (ads[j].get_attribute ("box_x"));
-        std::string s_box_y (ads[j].get_attribute ("box_y"));
-        std::string s_ident (ads[j].get_attribute ("ident"));
-     // std::string s_j_num (ads[j].get_attribute ("j_num"));
-        std::string s_jobid (ads[j].get_attribute ("jobid"));
-#else // FAST_ADVERT
-        std::string work (ads[j].get_attribute ("work"));
-
-        std::vector <std::string> words = saga::adaptors::utils::split (work, ' ');
-
-        if ( words.size () != 13 )
-        {
-          throw "Cannot parse work attribute!";
-        }
-
-        std::string s_jobid (words[0]);
-        std::string s_j_num (words[1]);
-        std::string s_ident (words[2]);
-        std::string s_box_x (words[3]);
-        std::string s_box_y (words[4]);
-#endif // FAST_ADVERT
-
-        // data from client
-        std::stringstream ss_data (ads[j].get_attribute ("data"));
+        // get data from client
+        std::string       boxnum_s (ads[j].get_attribute ("boxnum"));
+        std::string       jobid_s  (ads[j].get_attribute ("jobid"));
+        std::stringstream data_ss  (ads[j].get_attribute ("data"));
 
         // data to paint
         std::vector <std::vector <int> > data;
@@ -483,23 +460,25 @@ int mandelbrot::compute (void)
           for ( int l = 0; l < box_size_y_; l++ )
           {
             std::string num;
-            ss_data >> num;
+            data_ss >> num;
             line.push_back (::atoi (num.c_str ()));
           }
 
           data.push_back (line);
         }
 
+        // calculate box coordinates from box_num
+        int boxnum = ::atoi (boxnum_s.c_str ());
 
-        // print results via the output device
-        int box_x     = ::atoi (s_box_x.c_str ());
-        int box_y     = ::atoi (s_box_y.c_str ());
+        // box indicee coordinates
+        int box_x  =        boxnum % box_num_y_ ;
+        int box_y  = floor (boxnum / box_num_y_);
 
-        int box_off_x = box_x * box_size_x_;
-        int box_off_y = box_y * box_size_y_;
+        // box pixel coordinates
+        int box_off_x = box_y * box_size_x_;
+        int box_off_y = box_x * box_size_y_;
 
-
-        std::string id = s_ident + " (" + s_jobid + ")";
+        std::string id = boxnum_s + " (" + jobid_s + ")";
 
         for ( unsigned int d = 0; d < odevs_.size (); d++ )
         {
@@ -508,13 +487,15 @@ int mandelbrot::compute (void)
                                 data, id);
         }
 
-        std::cout << "painting  box " << s_ident
-                  << " done (" << work << std::endl;
+        std::cout << "painting  box " << boxnum_s  << std::endl;
         boxes_done++;
 
         // remove finished ad
         ads[j].remove ();
         ads.erase (ads.begin () + j);
+
+        // make sure we don't skip the next ad
+        j--; 
 
         // may have more to do
         should_wait = false;
@@ -525,18 +506,18 @@ int mandelbrot::compute (void)
     // well idle for a bit...
     if ( should_wait )
     {
-      if ( waited > timeout )
+      if ( waited > max_wait )
       {
         std::cout << "waiting too long for more results - abort" << std::endl;
         return -1;
       }
 
       waited++;
-      ::sleep (5);
+      ::sleep (timeout);
     }
   }
 
-  std::cout << boxes_done << " out of " << boxes_scheduled << " done" << std::endl;
+  // std::cout << boxes_done << " out of " << boxes_scheduled << " done" << std::endl;
 
   return 0;
 }
