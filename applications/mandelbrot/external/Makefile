@@ -8,6 +8,8 @@ SAGA_MB_ROOT  = ../
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
+SAGA_SUBDIRS  += ini
+
 ifeq "$(PNGWRITER_SOURCE)" "external"
  SAGA_SUBDIRS += libpngwriter
 endif
