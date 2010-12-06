@@ -5,15 +5,12 @@
 #  http://www.boost.org/LICENSE_1_0.txt)
 
 
-SAGA_MB_ROOT  = ../../
-
-SAGA_SUBDIRS      = impl
+SAGA_MB_ROOT  = ../../../
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
-SAGA_SRC         += ini.cpp
-SAGA_ADD_LIB_OBJ  = ini.o impl/ini.o
-SAGA_ARC          = ini
+SAGA_SRC     += $(wildcard *.cpp)
+SAGA_OBJ      = $(SAGA_SRC:%.cpp=%.o)
 
 include $(SAGA_LOCATION)/share/saga/make/saga.mk
 

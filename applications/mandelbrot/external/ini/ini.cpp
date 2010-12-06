@@ -1,483 +1,246 @@
 //  Copyright (c) 2005-2007 Andre Merzky (andre@merzky.net)
-//  Copyright (c) 2008, 2009 João Abecasis
-//
-//  Distributed under the Boost Software License, Version 1.0. (See accompanying
-//  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//  Copyright (c) 2009 João Abecasis
+// 
+//  Use, modification and distribution is subject to the Boost Software
+//  License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
 
-// System Header Files
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
+// System Header Files 
 
-#include <list>
-#include <vector>
 #include <iostream>
-#include <fstream>
+#include <boost/version.hpp>
 
 #include "ini.hpp"
+#include "impl/ini.hpp"
 
-#include <boost/assert.hpp>
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section::section (shared_sec  impl)
+    : impl_ (impl)
+{
+}
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section::section (std::string filename)
+    : impl_ (new impl_sec (filename))
+{
+}
 
-#include <saga/saga/exception.hpp>
-#include <saga/impl/exception.hpp>
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section::section (const section & in)
+    : impl_ (in.get_impl())
+{
+}
 
-#ifdef SAGA_APPLE
-#include <crt_externs.h>
-#define environ (*_NSGetEnviron())
-#elif !defined(BOOST_WINDOWS)
-extern char **environ;
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section::section (impl_sec   * in)
+#if BOOST_VERSION >= 103900
+    : impl_ (in)
+#else
+    : impl_ (in->_internal_weak_this.use_count() ?
+        in->shared_from_this() : shared_sec(in))
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// example ini line: line # comment
-const char pattern_comment[] =  "^([^#]*)(#.*)$";
-
-// example uses ini line: [sec.ssec]
-const char pattern_section[] = "^\\[([^\\]]+)\\]$";
-
-// example uses ini line: key = val
-const char pattern_entry[] = "^([^\\s=]+)\\s*=\\s*(.*[^\\s])?\\s*$";
-
-///////////////////////////////////////////////////////////////////////////////
-
-namespace
 {
-  /////////////////////////////////////////////////////////////////////////////
-  inline std::string
-  trim_whitespace (std::string const &s)
-  {
-    typedef std::string::size_type size_type;
-
-    size_type first = s.find_first_not_of (" \t\r\n");
-
-    if ( std::string::npos == first )
-      return (std::string ());
-
-    size_type last = s.find_last_not_of (" \t\r\n");
-    return s.substr (first, last - first + 1);
-  }
-
-} // namespace
-///////////////////////////////////////////////////////////////////////////////
-
-mb_util::section::section (std::string filename, section* root)
-  : name  ("")
-  , fname (filename)
-  , root  (root ? root : this_())
-{
-  if (!filename.empty())
-    read (filename);
 }
 
-void mb_util::section::read (std::string filename)
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section::~section ()
 {
-#if defined(__AIX__) && defined(__GNUC__)
-  // NEVER ask why... seems to be some weird stdlib initialization problem
-  // If you don't call getline() here the while(getline...) loop below will
-  // crash with a bad_cast excetion. Stupid AIX...
-  std::string l1;
-  std::ifstream i1;
-  i1.open(filename.c_str(), std::ios::in);
-  std::getline(i1, l1);
-  i1.close();
-#endif
-
-  std::ifstream input;
-
-  // build ini - open file and parse each line
-  input.open (filename.c_str (), std::ios::in);
-
-  if ( ! input.is_open () )
-  {
-    saga_ini_line_msg ("Cannot open file ", filename);
-  }
-
-  // parse file
-  std::string                line;
-  std::vector <std::string>  lines;
-
-  while ( std::getline (input, line) )
-  {
-    lines.push_back (line);
-  }
-
-  parse (filename, lines);
-
-  input.close ();
 }
 
-void mb_util::section::parse (std::string sourcename,
-        std::vector <std::string> lines)
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::read (std::string filename)
 {
-  int linenum = 0;
-
-  // NOTE: Can't use shared_ptr here, because we're called from the constructor!
-  section * current = this;
-
-  for ( unsigned int i = 0; i < lines.size (); i++ )
-  {
-    std::string line = lines[i];
-
-    ++linenum;
-
-    // remove trailing new lines and white spaces
-    line = trim_whitespace (line);
-
-    // skip if empty line
-    if ( line.empty () )
-      continue;
-
-    // weep out comments
-    TR1::smatch what_comment;
-    TR1::regex regex_comment (pattern_comment,
-            TR1::regex::ECMAScript | TR1::regex::icase);
-    if ( TR1::regex_match (line, what_comment, regex_comment) )
-    {
-      BOOST_ASSERT (3 == what_comment.size ());
-
-      line = trim_whitespace (what_comment[1]);
-
-      if ( line.empty () )
-        continue;
-    }
-
-    // no comments anymore: line is either section, key=val,
-    // or garbage/empty
-    TR1::smatch what;
-    TR1::regex regex_section (pattern_section,
-            TR1::regex::ECMAScript | TR1::regex::icase);
-    TR1::regex regex_entry   (pattern_entry,
-            TR1::regex::ECMAScript | TR1::regex::icase);
-
-    if ( TR1::regex_match (line, what, regex_section) )
-    {
-      // found a section line
-      if ( 2 != what.size () )
-      {
-        saga_ini_line_msg ("Cannot parse sec in ", sourcename, linenum);
-      }
-
-      current = get_section (what[1]).get ();
-    }
-
-    // did not match section, so might be key/val entry
-    else if ( TR1::regex_match (line, what, regex_entry) )
-    {
-      // found a entry line
-      if ( 3 != what.size () )
-      {
-        saga_ini_line_msg ("Cannot parse key/value in ", sourcename, linenum);
-      }
-
-      // add key/val to current section
-      current->add_entry (what[1], what[2]);
-    }
-    else
-    {
-      // Hmm, is not a section, is not an entry, is not empty - must be an
-      // error!
-      saga_ini_line_msg ("Cannot parse line at ", sourcename, linenum);
-    }
-  } // loop over lines
+    impl_->read (filename);
 }
 
-bool mb_util::section::has_section (std::string sec_name) const
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::parse (std::string sourcename, 
+                                std::vector <std::string> lines)
 {
-  if ( sections.find (sec_name) == sections.end () )
-  {
-    return false;
-  }
-
-  return (true);
+    impl_->parse (sourcename, lines);
 }
 
-bool mb_util::section::has_section_full (std::string sec_name) const
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::merge (std::string second)
 {
-  std::string::size_type i  = sec_name.find (".");
-
-  if ( i != std::string::npos )
-  {
-    std::string cor_sec_name = sec_name.substr (0,  i);
-    std::string sub_sec_name = sec_name.substr (1 + i);
-
-    section_map::const_iterator it = sections.find (cor_sec_name);
-
-    if ( it != sections.end () )
-    {
-      return (*it).second->has_section_full (sub_sec_name);
-    }
-
-    return false;
-  }
-
-  return has_section (sec_name);
+    impl_->merge (second);
 }
 
-TR1::shared_ptr<mb_util::section>
-mb_util::section::get_section (std::string sec_name)
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::merge (const mb_util::ini::section & second)
 {
-    std::string sub_sec_name;
-
-    std::string::size_type i = sec_name.find (".");
-    if ( i != std::string::npos )
-    {
-        sub_sec_name = sec_name.substr (i + 1);
-        sec_name.erase(i);
-    }
-
-    TR1::shared_ptr<section> & cor_sec = sections [sec_name];
-    if ( !cor_sec )
-    {
-        TR1::shared_ptr<section> newsec (new section());
-        newsec->name  = sec_name;
-        newsec->fname = get_fname ();
-        newsec->root  = root;
-
-        cor_sec = newsec;
-    }
-
-    if (sub_sec_name.empty())
-        return cor_sec;
-    else
-        return cor_sec->get_section (sub_sec_name);
+    impl_->merge (second.impl_);
 }
 
-void mb_util::section::add_entry (std::string key,
-                                          std::string val)
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::dump (int            ind, 
+                               std::ostream & strm) const
 {
-  entries[key] = val;
+    impl_->dump (ind, strm);
 }
 
-#define INVALID "-this-value-is-never-valid-"
-bool mb_util::section::has_entry (std::string key) const
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::add_section (std::string   sec_name, 
+                                const section     & sec)
 {
-    std::string result = get_entry(key, INVALID);
-
-    return (result != INVALID);
+    impl_->get_section (sec_name)->merge (sec.impl_);
 }
 
-std::string mb_util::section::get_entry (std::string key) const
+// --------------------------------------------------------
+//
+//
+//
+bool mb_util::ini::section::has_section (std::string sec_name) const
 {
-    std::string result = get_entry(key, INVALID);
-
-    if (result == INVALID)
-        SAGA_THROW("No such key (" + key + ") in section " + get_name (),
-            saga::DoesNotExist);
-
-    return result;
+    return impl_->has_section (sec_name);
 }
 
-std::string mb_util::section::get_entry (std::string key,
-                                                 std::string default_val) const
+// --------------------------------------------------------
+//
+//
+//
+bool mb_util::ini::section::has_section_full (std::string sec_name) const
 {
-  typedef std::vector<std::string> string_vector;
-
-  string_vector split_key;
-
-  boost::split(split_key, key, boost::bind<bool>(boost::is_equal(), '.', _1));
-  key = split_key.back();
-  split_key.pop_back();
-
-  section const * cur_section = this;
-  string_vector::const_iterator end = split_key.end();
-  for (string_vector::const_iterator it = split_key.begin(); it!= end; ++it)
-  {
-    section_map::const_iterator next = cur_section->sections.find (*it);
-    if (cur_section->sections.end () == next)
-      return default_val;
-
-    cur_section = next->second.get ();
-  }
-
-  entry_map::const_iterator entry = cur_section->entries.find (key);
-  if (cur_section->entries.end () == entry)
-    return default_val;
-
-  std::string result = expand_entry (entry->second);
-  if (result.empty ())
-    return default_val;
-
-  return result;
+    return impl_->has_section_full (sec_name);
 }
 
-void mb_util::section::dump (int ind, std::ostream& strm, std::string parent) const
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section mb_util::ini::section::get_section (std::string sec_name) const
 {
-  // ind is ignored, and should be deprcated
-  dump (strm, parent);
+    return mb_util::ini::section (impl_->get_section (sec_name));
 }
 
-
-void mb_util::section::dump (std::ostream& strm, std::string parent) const
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section_map mb_util::ini::section::get_sections () const
 {
-  std::string parent_dot = parent;
+    typedef mb_util::impl::ini::section_map::reference section_impl;
+    typedef mb_util::impl::ini::section_map::const_iterator iterator;
 
-  if ( ! parent.empty () )
-  {
-    parent_dot += ".";
-  }
+    mb_util::ini::section_map out;
+    iterator end = impl_->get_sections().end();
+    for (iterator it = impl_->get_sections().begin(); it != end; ++it)
+        out[(*it).first] = mb_util::ini::section((*it).second);
 
-  std::string full_name = parent_dot + get_name ();
-
-  if ( ! full_name.empty () )
-  {
-    strm << "[" << full_name << "]\n";
-  }
-
-  for (entry_map::const_iterator it = entries.begin(); it != entries.end(); ++it)
-  {
-    std::string key = (*it).first;
-    std::string raw = (*it).second;
-    std::string exp = expand_entry (raw);
-
-    // try to align the '=' at position tab stops
-    std::string key_s = key;
-    while ( ((key_s.size () - 1) % 8) != 0 ) { key_s += " "; }
-    key_s += " = ";
-
-    strm << "  " << key_s << raw << std::endl;
-
-    if ( raw != exp )
-    {
-      strm << "# " << key_s << exp << std::endl;
-    }
-  }
-
-  for (section_map::const_iterator it = sections.begin(); it != sections.end(); ++it)
-  {
-    (*it).second->dump (strm, full_name);
-  }
-
+    return out;
 }
 
-void mb_util::section::merge (std::string filename)
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::add_entry (std::string key,                 
+                                    std::string val)
 {
-    TR1::shared_ptr<section> sec (new section(filename, root));
-    merge (sec);
+    impl_->add_entry (key, val);
 }
 
-void mb_util::section::merge (TR1::shared_ptr<section> other)
+// --------------------------------------------------------
+//
+//
+//
+bool mb_util::ini::section::has_entry (std::string key) const
 {
-    // merge entries: keep own entries, and add other entries
-    entry_map::const_iterator end = other->entries.end();
-    for (entry_map::const_iterator it = other->entries.begin(); it != end; ++it)
-    {
-        entries[(*it).first] = (*it).second;
-    }
-
-    // merge subsections
-    section_map::const_iterator ends = other->sections.end();
-    for (section_map::const_iterator it = other->sections.begin(); it != ends; ++it)
-    {
-        TR1::shared_ptr<section> sec = get_section ((*it).first);
-        sec->merge ((*it).second);
-    }
+    return impl_->has_entry (key);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
-void
-mb_util::section::saga_ini_line_msg (std::string msg, std::string file, int lnum)
+// --------------------------------------------------------
+//
+//
+//
+std::string mb_util::ini::section::get_entry (std::string key) const
 {
-  if ( lnum > 0 )
-  {
-    SAGA_THROW_VERBATIM(saga::object(), msg + " " + file + ":"
-      + boost::lexical_cast<std::string>(lnum), saga::NoSuccess);
-  }
-
-  SAGA_THROW_VERBATIM(saga::object(), msg + " " + file,
-      saga::NoSuccess);
+    return impl_->get_entry (key);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-void mb_util::section::expand_entry(std::string& value,
-        std::string::size_type begin) const
+// --------------------------------------------------------
+//
+//
+//
+std::string mb_util::ini::section::get_entry (std::string key,
+                                           std::string dflt_val) const
 {
-    std::string::size_type p = value.find_first_of("$", begin+1);
-    while (p != std::string::npos && value.size()-1 != p) {
-        if ('[' == value[p+1])
-            expand_bracket(value, p);
-        else if ('{' == value[p+1])
-            expand_brace(value, p);
-        p = value.find_first_of("$", p+1);
-    }
+    return impl_->get_entry (key, dflt_val);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// find the matching closing brace starting from 'begin', escaped braces will 
-// be un-escaped
-inline std::string::size_type 
-find_next(char const* ch, std::string& value, 
-    std::string::size_type begin = (std::string::size_type)(-1))
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::entry_map mb_util::ini::section::get_entries (void) const
 {
-    std::string::size_type end = value.find_first_of(ch, begin+1);
-    while (end != std::string::npos) {
-        if (end != 0 && value[end-1] != '\\')
-            break;
-        value.replace(end-1, 2, ch);
-        end = value.find_first_of(ch, end);
-    } 
-    return end;
+    return impl_->get_entries ();
 }
 
-///////////////////////////////////////////////////////////////////////////////
-void mb_util::section::expand_bracket(std::string& value,
-        std::string::size_type begin) const
+// --------------------------------------------------------
+//
+//
+//
+mb_util::ini::section mb_util::ini::section::get_root (void) const  
 {
-    // expand all keys embedded inside this key
-    expand_entry(value, begin);
-
-    // now expand the key itself
-    std::string::size_type end = find_next("]", value, begin+1);
-    if (end != std::string::npos) 
-    {
-        std::string to_expand = value.substr(begin+2, end-begin-2);
-        std::string::size_type colon = find_next(":", to_expand);
-
-        std::string deflt;
-        if (colon != std::string::npos)
-        {
-            deflt = to_expand.substr(colon + 1);
-            to_expand.erase(colon);
-        }
-
-        value.replace(begin, end-begin+1, root->get_entry(to_expand, deflt));
-    }
+    return mb_util::ini::section (impl_->get_root ());
 }
 
-void mb_util::section::expand_brace(std::string& value,
-        std::string::size_type begin) const
+// --------------------------------------------------------
+//
+//
+//
+std::string mb_util::ini::section::get_name (void) const  
 {
-    // expand all keys embedded inside this key
-    expand_entry(value, begin);
-
-    // now expand the key itself
-    std::string::size_type end = find_next("}", value, begin+1);
-    if (end != std::string::npos) 
-    {
-        std::string to_expand = value.substr(begin+2, end-begin-2);
-        std::string::size_type colon = find_next(":", to_expand);
-        if (colon == std::string::npos) {
-            char* env = saga::detail::safe_getenv(to_expand.c_str());
-            value.replace(begin, end-begin+1, 0 != env ? env : "");
-        }
-        else {
-            char* env = saga::detail::safe_getenv(to_expand.substr(0, colon).c_str());
-            value.replace(begin, end-begin+1, 
-                0 != env ? std::string(env) : to_expand.substr(colon+1));
-        }
-    }
+    return impl_->get_name ();
 }
 
-std::string mb_util::section::expand_entry (std::string value) const
+// --------------------------------------------------------
+//
+//
+//
+void mb_util::ini::section::debug (std::string msg) const
 {
-    expand_entry(value, (std::string::size_type)(-1));
-    return value;
+  std::cout << "debuggin [" 
+            << impl_.use_count ()
+            << "] ======= " 
+            << impl_->get_name ()
+            << "\" -- \"" 
+            << msg 
+            << "\""
+            << std::endl;
 }
 
