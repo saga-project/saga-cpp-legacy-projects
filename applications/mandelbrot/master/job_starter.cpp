@@ -29,20 +29,18 @@ job_starter::job_starter (std::string       a_dir,
       mb_util::ini::section backend_config = ep_cfg.get_section (key);
 
       std::string url = backend_config.get_entry ("url"  , "");
-      std::cout << "creating  endpoint " << key << " \t ..." << std::flush;
+      std::cout << "creating  endpoint " << key << " \t ... " << std::flush;
 
       boost::shared_ptr <endpoint> ep (new endpoint (key, backend_config));
 
       if ( ep->valid_ )
       {
         endpoints_.push_back (ep);
-        std::cout << " ok  (" << url << ")" << std::endl;
-        ep->log_  << "startup ok\n";
+        std::cout << "ok (" << url << ")" << std::endl;
       }
       else
       {
-        std::cerr << " failed (" << url << ")" << std::endl;
-        ep->log_  << "startup failed\n";
+        std::cerr << "failed (" << url << ")" << std::endl;
       }
     }
   }
@@ -54,108 +52,100 @@ job_starter::job_starter (std::string       a_dir,
     // try the next endpoint
     boost::shared_ptr <endpoint> ep = endpoints_[e];
 
-    for ( unsigned int j = 0; j < ep->njobs_; j++ )
+    if ( ep->valid_ )
     {
-      try
+      for ( unsigned int j = 0; j < ep->njobs_; j++ )
       {
-        int         jobnum = clients_.size ();
-        std::string ident  = boost::lexical_cast <std::string> (jobnum);
-
-        // create a job description
-        saga::job::description jd;
-        jd.set_attribute (saga::job::attributes::description_executable, ep->exe_);
-
-        // client parameters:
-        // 0: path to advert directory to be used (job bucket)
-        // 1: jobnum, == name of work bucket for that job (is that in loop later)
-        std::vector <std::string> args;
-        args.push_back ("mandelbrot_client ");
-        args.push_back (a_dir);
-        args.push_back (ident);
-
-        // append ep args
-        std::vector <std::string> epargs = saga::adaptors::utils::split (ep->args_, ' ');
-        for ( unsigned int a = 0; a < epargs.size (); a++ )
+        try
         {
-          args.push_back (epargs[a]);
-        }
+          int         jobnum = clients_.size ();
+          std::string ident  = boost::lexical_cast <std::string> (jobnum);
 
+          // create a job description
+          saga::job::description jd;
+          jd.set_attribute (saga::job::attributes::description_executable, ep->exe_);
 
-        jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
+          // client parameters:
+          // 0: path to advert directory to be used (job bucket)
+          // 1: jobnum, == name of work bucket for that job (is that in loop later)
+          std::vector <std::string> args;
+          args.push_back ("mandelbrot_client ");
+          args.push_back (a_dir);
+          args.push_back (ident);
 
-        if ( ! ep->pwd_.empty () )
-        {
-          jd.set_attribute (saga::job::attributes::description_working_directory, ep->pwd_);
-        }
-
-        // let the clients store stdout/stderr to /tmp/mandelbrot_client.[id].out/err
-        // FIXME: this should get enabled once the bes adaptor supports it, and
-        // is able to stage the output files back into the pwd
-        # if 0
-        {
-          std::string out;
-          std::string err;
-
-          out += "/tmp/mandelbrot_client." + ident + ".out";
-          err += "/tmp/mandelbrot_client." + ident + ".err";
-
-          jd.set_attribute (saga::job::attributes::description_output, out);
-          jd.set_attribute (saga::job::attributes::description_error,  err);
-        }
-        # endif
-
-        std::cout << "starting  job "
-                  << ident
-                  << " on "
-                  << ep->name_ 
-                  << " \t ... " << std::flush;
-
-        saga::job::job j = ep->service_.create_job (jd);
-
-        j.run ();
-
-        if ( saga::job::Running != j.get_state () )
-        {
-          std::cout << "failure - could not run " 
-                    << ep->exe_ << " " << ep->args_ 
-                    << std::endl;
-          j.cancel (); // clean up resources
-
-          ep->log_ << "job failed: " << ep->exe_ << " " << ep->args_ << "\n";
-
-          // do not use this job
-        }
-        else
-        {
-          std::string jobid (j.get_job_id ());
-
-          // trim jobid for readability
-          if ( jobid.size () > 54 )
+          // append ep args
+          std::vector <std::string> epargs = saga::adaptors::utils::split (ep->args_, ' ');
+          for ( unsigned int a = 0; a < epargs.size (); a++ )
           {
-            jobid.erase (55);
-
-            jobid[52] = '.';
-            jobid[53] = '.';
-            jobid[54] = '.';
+            args.push_back (epargs[a]);
           }
 
-          // keep job (wrapped in client)
-          boost::shared_ptr <client> c (new client (ident, j, ep)); 
-          clients_.push_back (c);
 
-          // store full jobid in ep log
-          std::cout << "ok  "             << jobid    << std::endl;
-          ep->log_  << "spawned client "  << jobnum 
-                    << " on "             << ep->name_ 
-                    << ": "               << c->id_
-                    << "\n";
+          jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
+
+          if ( ! ep->pwd_.empty () )
+          {
+            jd.set_attribute (saga::job::attributes::description_working_directory, ep->pwd_);
+          }
+
+          // let the clients store stdout/stderr to /tmp/mandelbrot_client.[id].out/err
+          // FIXME: this should get enabled once the bes adaptor supports it, and
+          // is able to stage the output files back into the pwd
+          # if 0
+          {
+            std::string out;
+            std::string err;
+
+            out += "/tmp/mandelbrot_client." + ident + ".out";
+            err += "/tmp/mandelbrot_client." + ident + ".err";
+
+            jd.set_attribute (saga::job::attributes::description_output, out);
+            jd.set_attribute (saga::job::attributes::description_error,  err);
+          }
+          # endif
+
+          std::cout << "starting  job "
+                    << ident
+                    << " on "
+                    << ep->name_ 
+                    << " \t ... " << std::flush;
+
+          saga::job::job j = ep->service_.create_job (jd);
+
+          j.run ();
+
+          if ( saga::job::Running != j.get_state () )
+          {
+            std::cout << "failure - could not run " 
+                      << ep->exe_ << " " << ep->args_ 
+                      << std::endl;
+            j.cancel (); // clean up resources
+
+            ep->log_ << "spawning failed [1]: " << ep->exe_ << " " << ep->args_ << "\n";
+
+            // do not use this job
+          }
+          else
+          {
+            // keep job (wrapped in client)
+            boost::shared_ptr <client> c (new client (ident, j, ep)); 
+            clients_.push_back (c);
+            client_map_[c->id_] = c;
+
+            // store full jobid in ep log
+            std::cout << "ok "              << c->id_short_ << std::endl;
+            ep->log_  << "spawned client "  << jobnum 
+                      << " on "             << ep->name_ 
+                      << ": "               << c->id_short_
+                      << "\n";
+          }
         }
-      }
-      catch ( const saga::exception & e )
-      {
-        std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
-                  << std::endl;
-        ep->log_ << "could not spawn: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n";
+        catch ( const saga::exception & e )
+        {
+          std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
+                    << std::endl;
+          ep->log_ << "spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n\n";
+        }
       }
     }
   }

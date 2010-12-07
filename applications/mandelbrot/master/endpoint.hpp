@@ -1,6 +1,6 @@
 
-#ifndef ENDPOINT_HPP
-#define ENDPOINT_HPP
+#ifndef SAGA_MANDELBROT_ENDPOINT_HPP
+#define SAGA_MANDELBROT_ENDPOINT_HPP
 
 #include <string>
 #include <iostream>
@@ -39,5 +39,5 @@ class endpoint
     unsigned int            njobs_;
 };
 
-#endif // ENDPOINT_HPP
+#endif // SAGA_MANDELBROT_ENDPOINT_HPP
 

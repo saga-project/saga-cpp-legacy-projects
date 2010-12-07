@@ -8,6 +8,7 @@ endpoint::endpoint (std::string           name,
   , valid_ (true)
 {
   ctype_  =         ini_.get_entry ("ctype", "" );
+  url_    =         ini_.get_entry ("url"  , "" );
   user_   =         ini_.get_entry ("user" , "" );
   pass_   =         ini_.get_entry ("pass" , "" );
   cert_   =         ini_.get_entry ("cert" , "" );
@@ -48,11 +49,11 @@ endpoint::endpoint (std::string           name,
     service_ = js;
     valid_   = true;
 
-    log_ << "endpoint creation ok\n";
+    log_ << "startup ok\n";
   }
   catch ( const saga::exception & e )
   {
-    log_ << "endpoint creation failed:\n";
+    log_ << "startup failed:\n";
     log_ << e.what ();
 
     valid_ = false;

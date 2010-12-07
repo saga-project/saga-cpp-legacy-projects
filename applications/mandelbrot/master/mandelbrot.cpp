@@ -10,7 +10,6 @@
 #include <saga/saga/adaptors/utils.hpp>
 
 #include "mandelbrot.hpp"
-#include "job_starter.hpp"
 
 #ifdef HAVE_X11
 # include "output_x11.hpp"
@@ -65,7 +64,7 @@ mandelbrot::mandelbrot (void)
   {
     pwd_ = "./";
   }
-  std::cout << "pwd   : " << pwd_ << std::endl;
+  std::cout << "pwd     : " << pwd_ << std::endl;
 
   ////////////////////////////////////////////////////////////////////
   //
@@ -84,7 +83,7 @@ mandelbrot::mandelbrot (void)
     ini_file_ = pwd_ + "/mandelbrot.ini";
   }
 
-  std::cout << "ini   : " << ini_file_ << std::endl;
+  std::cout << "ini     : " << ini_file_ << std::endl;
 
 
   ////////////////////////////////////////////////////////////////////
@@ -135,6 +134,12 @@ mandelbrot::mandelbrot (void)
 
   ////////////////////////////////////////////////////////////////////
   //
+  // init output devices
+  //
+  std::cout << "output  : ";
+
+  ////////////////////////////////////////////////////////////////////
+  //
   // init X11 device
   //
   if ( use_out_dev_x11 == "yes" )
@@ -150,6 +155,7 @@ mandelbrot::mandelbrot (void)
     }
 
     odevs_.push_back (dev);
+    std::cout << "x11 ";
 #else
     std::cerr << "warning: output device x11 is not supported" << std::endl;
 #endif
@@ -174,10 +180,14 @@ mandelbrot::mandelbrot (void)
     }
 
     odevs_.push_back (dev);
+    std::cout << "png ";
 #else
     std::cerr << "warning: output device x11 is not supported" << std::endl;
 #endif
   }
+
+  // out devices
+  std::cout << std::endl;
 
 
   if ( 0 == odevs_.size () )
@@ -199,7 +209,7 @@ mandelbrot::mandelbrot (void)
   job_bucket_name_ += "/";
   job_bucket_name_ += saga::get_default_session ().get_id ().string ();
 
-  std::cout << "advert: " << job_bucket_name_ << std::endl;
+  std::cout << "advert  : " << job_bucket_name_ << std::endl;
 
 
   // Fail if the bucke exists (Exclusive), as we don't want to 
@@ -209,6 +219,11 @@ mandelbrot::mandelbrot (void)
                                          saga::advert::Exclusive     |
                                          saga::advert::CreateParents |
                                          saga::advert::ReadWrite     );
+
+  // we note the MB version on the job bucket, so that only compatible clients
+  // register
+  job_bucket_.set_attribute ("version", SAGA_MANDELBROT_VERSION);
+  std::cout << "version : " << SAGA_MANDELBROT_VERSION << std::endl;
 
   // we attach the global parameters to the job bucket container
   job_bucket_.set_attribute ("plane_x_0" , boost::lexical_cast <std::string> (plane_x_0_ ));
@@ -243,34 +258,20 @@ mandelbrot::mandelbrot (void)
 //
 mandelbrot::~mandelbrot (void)
 {
-  // close output devices
-  for ( unsigned int d = 0; d < odevs_.size (); d++ )
-  {
-    delete odevs_[d];
-    odevs_[d] = NULL;
-  }
-
-
   // Usually, we don't need to cancel clients, as they'll terminate
   // when running out of work.  But in case we finish
   // prematurely, we take care of termination
   for ( unsigned int i = 0; i < clients_.size (); i++)
   {
-    std::cout << "killing   job " << i           << "(" 
-              << clients_[i]->job_.get_state  () << ") " 
-              << clients_[i]->id_                << std::endl;
+    clients_[i]->cancel ();
+  }
 
-    if ( saga::job::Running == clients_[i]->job_.get_state () )
-    {
-      try
-      {
-        clients_[i]->job_.cancel ();
-      }
-      catch ( const saga::exception & e )
-      {
-        // so what? ;-)
-      }
-    }
+
+  // close output devices
+  for ( unsigned int d = 0; d < odevs_.size (); d++ )
+  {
+    delete odevs_[d];
+    odevs_[d] = NULL;
   }
 }
 
@@ -282,9 +283,9 @@ mandelbrot::~mandelbrot (void)
 //
 void mandelbrot::job_startup (void)
 {
-  job_starter js (job_bucket_name_, ini_);
+  js_ = job_starter (job_bucket_name_, ini_);
 
-  clients_ = js.get_clients ();
+  clients_ = js_.get_clients ();
 
 
   // make sure clients get up and running: 
@@ -297,49 +298,109 @@ void mandelbrot::job_startup (void)
 
   for ( unsigned int n = 0; n < clients_.size (); n++ )
   {
-    std::cout << "checking  job " << n << " for bootstrap \t ... " << std::flush;
-
-    int  time   = 0;
-    bool check  = true;
-
-    while ( check )
+    if ( clients_[n]->valid_ )
     {
-      if ( ! job_bucket_.exists (util::itoa (n)) &&
-           ! job_bucket_.is_dir (util::itoa (n)) )
+      std::cout << "asking    job " << n << " to bootstrap \t ... " << std::flush;
+
+      int  time   = 0;
+      bool check  = true;
+
+      boost::shared_ptr <endpoint> ep = clients_[n]->ep_;
+
+      while ( check )
       {
-        saga::job::state s = clients_[n]->job_.get_state ();
-
-        if ( saga::job::Running != s )
+        if ( ! job_bucket_.exists (util::itoa (n)) &&
+             ! job_bucket_.is_dir (util::itoa (n)) )
         {
-          std::cout << "failed (" << s << ")" << std::endl;
-          clients_[n]->job_.cancel ();
-          check  = false;
-        }
+          saga::job::state s = clients_[n]->get_state ();
 
-        if ( time > timeout )
-        {
-          std::cout << "timed out" << std::endl;
-          clients_[n]->job_.cancel ();
-          check = false;
+          if ( saga::job::Running != s )
+          {
+            std::cout << "failed ("  << s << ")" << std::endl;
+            ep->log_  << "client "               << clients_[n]->name_ 
+                      << "failed ("  << s << ")" << std::endl;
+            clients_[n]->cancel ();
+            check  = false;
+          }
+
+          if ( time > timeout )
+          {
+            std::cout << "timeout (bootstrap)" << std::endl;
+            ep->log_  << "client "             << clients_[n]->name_ 
+                      << "timeout (bootstrap)" << std::endl;
+            clients_[n]->cancel ();
+            check = false;
+          }
+          else
+          {
+            ::sleep (1);
+            time++;
+          }
         }
         else
         {
-          ::sleep (1);
-          time++;
-        }
-      }
-      else
-      {
-        std::cout << "ok" << std::endl;
-        check = false;
-        clients_ok++;
+          // bootstrap test done 
+          check = false;
 
-        // FIXME: we should somehow mark these clients as usable, to simplify the
-        // assignment later (where we right now have to pull for job state
-        // repeatedly)
+          // we also check the client's version.  Alas, we meet a race condition
+          // here, as adverts don't support locks, yet.  So we allow again for
+          // a timeout for the version tag to appear
+          saga::advert::directory job_dir = job_bucket_.open_dir (util::itoa (n),
+                                                                  saga::advert::Read);
+          bool version_check = true;
+
+          time = 0;
+
+          while ( version_check )
+          {
+            if ( ! job_dir.attribute_exists ("version") )
+            {
+              if ( time > timeout )
+              {
+                std::cout << "timeout (version check)" << std::endl;
+                ep->log_  << "client "                 << clients_[n]->name_ 
+                          << "timeout (version check)" << std::endl;
+                clients_[n]->cancel ();
+                version_check = false;
+              }
+              else
+              {
+                ::sleep (1);
+                time++;
+              }
+            }
+            else
+            {
+              // found version - stop checking altogether
+              version_check = false;
+
+              std::string c_version = job_dir.get_attribute ("version");
+
+              if ( SAGA_MANDELBROT_VERSION == c_version )
+              {
+                clients_ok++;
+                std::cout << "ok (version " << SAGA_MANDELBROT_VERSION << ")" << std::endl;
+                ep->log_  << "client "      << clients_[n]->name_      << " registered "
+                          << "(version "    << SAGA_MANDELBROT_VERSION << ")\n"; 
+              }
+              else
+              {
+                std::cout << " failed (version mismatch - "
+                          << c_version << " != " << SAGA_MANDELBROT_VERSION << ")" << std::endl;
+                ep->log_  << "client " << clients_[n]->name_ 
+                          << " failed (version mismatch - "
+                          << c_version << " != " << SAGA_MANDELBROT_VERSION << ")" << std::endl;
+                clients_[n]->cancel ();
+              }
+            }
+          }
+        }
       }
     }
   }
+
+  // note that clients, which did not pass the above tests, are marked as
+  // invalid by client->cancel.  That avoids repeated state checks later on
 
   if ( 0 == clients_ok )
   {
@@ -364,6 +425,7 @@ int mandelbrot::compute (void)
   // available clients
   unsigned int boxes_scheduled = 0;
   unsigned int jobnum = 0;
+
   for ( int x = 0; x < box_num_x_; x++ )
   {
     for ( int y = 0; y < box_num_y_; y++ )
@@ -378,7 +440,7 @@ int mandelbrot::compute (void)
       jobnum %= clients_.size ();
 
       unsigned int rollover = 0;
-      while ( clients_[jobnum]->job_.get_state () != saga::job::Running )
+      while ( ! clients_[jobnum]->valid_ )
       {
         jobnum++;
         jobnum %= clients_.size ();
@@ -414,6 +476,8 @@ int mandelbrot::compute (void)
       // keep a list of active work items
       ads.push_back (ad);
       boxes_scheduled++;
+
+      clients_[jobnum]->cnt_a_++;
     }
   }
 
@@ -448,6 +512,9 @@ int mandelbrot::compute (void)
         std::string       jobid_s  (ads[j].get_attribute ("jobid"));
         std::stringstream data_ss  (ads[j].get_attribute ("data"));
 
+        // log work item on client
+        js_.get_client (jobid_s)->cnt_d_++;
+
         // data to paint
         std::vector <std::vector <int> > data;
 
@@ -478,7 +545,7 @@ int mandelbrot::compute (void)
         int box_off_x = box_y * box_size_x_;
         int box_off_y = box_x * box_size_y_;
 
-        std::string id = boxnum_s + " (" + jobid_s + ")";
+        std::string id = boxnum_s + " (" + js_.get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
 
         for ( unsigned int d = 0; d < odevs_.size (); d++ )
         {

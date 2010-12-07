@@ -7,6 +7,8 @@
 #include <saga/saga.hpp>
 #include <saga/saga/adaptors/utils.hpp>
 
+#include "../version.hpp"
+
 namespace util 
 {
   std::string itoa (int i)
@@ -67,6 +69,28 @@ int main (int argc, char** argv)
     saga::advert::directory app_dir (advert_root, 
                                      saga::advert::ReadWrite );
 
+    // we check the version number against what the master registered, and
+    // discontinue on mismatch
+    if ( app_dir.attribute_exists ("version") )
+    {
+      std::string version = app_dir.get_attribute ("version");
+
+      if ( version != SAGA_MANDELBROT_VERSION )
+      {
+        std::cerr << "Version mismatch: " 
+                  << SAGA_MANDELBROT_VERSION << " != " << version 
+                  << " - exit" << std::endl;
+        return -2;
+      }
+    }
+    else
+    {
+      // bail out - thats obviously an ancient version w/o version support
+      std::cerr << "Version mismatch: " 
+                << SAGA_MANDELBROT_VERSION << " != ??? - exit" << std::endl;
+      return -3;
+    }
+
     // create this job's work item bucket.  
     // That signals the master that we are up and running.  Thus, if it already
     // exists, we fail.
@@ -75,11 +99,16 @@ int main (int argc, char** argv)
                                                         saga::advert::Exclusive | 
                                                         saga::advert::ReadWrite );
 
+    // add a version tag, so that a master can ensure version matching. 
+    // FIXME: Alas, that leads to a race condition, as long as the advert 
+    // service does not support locking (or atomic move).
+    job_dir.set_attribute ("version", SAGA_MANDELBROT_VERSION);
+
     // we registered, now we can sleep if that was requested
     if ( sleep )
     {
       ::sleep (600);
-      ::exit (0);
+      return  (0);
     }
 
     // also now is a good time to bomb our neighbor, if master so wishes.
@@ -336,7 +365,7 @@ int main (int argc, char** argv)
   catch ( saga::exception const & e )
   {
     std::cerr << "SAGA exception: " << e.what () << std::endl;
-    return -2;
+    return -4;
   }
 
   return 0;

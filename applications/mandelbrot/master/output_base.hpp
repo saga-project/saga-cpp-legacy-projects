@@ -1,6 +1,6 @@
 
-#ifndef OUTPUT_BASE_HPP
-#define OUTPUT_BASE_HPP
+#ifndef SAGA_MANDELBROT_OUTPUT_BASE_HPP
+#define SAGA_MANDELBROT_OUTPUT_BASE_HPP
 
 #include <vector>
 
@@ -25,5 +25,5 @@ class output_base
     virtual ~output_base (void) {};
 };
 
-#endif // OUTPUT_BASE_HPP
+#endif // SAGA_MANDELBROT_OUTPUT_BASE_HPP
 

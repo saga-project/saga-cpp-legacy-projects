@@ -1,12 +1,15 @@
 
-#ifndef MANDELBROT_HPP
-#define MANDELBROT_HPP
+#ifndef SAGA_MANDELBROT_HPP
+#define SAGA_MANDELBROT_HPP
 
 #include <saga/saga.hpp>
 
 #include "ini.hpp"
 #include "client.hpp"
 #include "output_base.hpp"
+#include "job_starter.hpp"
+#include "../version.hpp"
+
 
 // this class encapsulates a master/worker paradigm.  We start
 // the jobs, and distribute work items to them.
@@ -15,14 +18,15 @@ class mandelbrot
 {
   private:
 
-    std::vector <output_base *>      odevs_;           // output devices
+    std::vector <output_base *>      odevs_;            // output devices
 
-    std::string                      pwd_;             // working directory
-    std::string                      ini_file_;        // control file
-    mb_util::ini::ini                ini_;             // control data
-    std::string                      job_bucket_name_; // name of job directory
-    saga::advert::directory          job_bucket_;      // advert container for new jobs 
-    saga::advert::directory          done_bucket_;     // advert container for finished jobs 
+    std::string                      pwd_;              // working directory
+    std::string                      ini_file_;         // control file
+    mb_util::ini::ini                ini_;              // control data
+    std::string                      job_bucket_name_;  // name of job directory
+    saga::advert::directory          job_bucket_;       // advert container for new jobs 
+    saga::advert::directory          done_bucket_;      // advert container for finished jobs 
+    job_starter                      js_;               // client manager
 
     std::vector <boost::shared_ptr <client> > clients_; // saga jobs
 
@@ -58,5 +62,5 @@ class mandelbrot
     int compute  (void);
 };
 
-#endif // MANDELBROT_HPP
+#endif // SAGA_MANDELBROT_MANDELBROT_HPP
 

@@ -6,28 +6,23 @@
 
 int main (int argc, char** argv)
 {
+  ////////////////////////////////////////////////////////////////////
+  // timestamp
+  std::cout << "start   : " << std::flush;
+  system ("/bin/date");
+
   int ret = 0;
 
   try
   {
     ////////////////////////////////////////////////////////////////////
-
-    // timestamp
-    std::cout << "start : " << std::flush;
-    system ("/bin/date");
-
     // create our mandelbrot master
     mandelbrot m;
 
+    ////////////////////////////////////////////////////////////////////
     // compute() distributes the work, gathers the
     // results, and displays the mandelbrot set
     ret = m.compute    ();
-
-    // timestamp
-    std::cout << "stop  : " << std::flush;
-    system ("/bin/date");
-
-    ////////////////////////////////////////////////////////////////////
   }
 
   // catch exceptions from SAGA
@@ -51,6 +46,19 @@ int main (int argc, char** argv)
     return -3;
   }
 
+  // catch anythin exceptions
+  catch ( ... )
+  {
+    std::cerr << "some exception" << std::endl;
+    return -3;
+  }
+
+  ////////////////////////////////////////////////////////////////////
+  // timestamp
+  std::cout << "stop    : " << std::flush;
+  system ("/bin/date");
+
+  ////////////////////////////////////////////////////////////////////
   // nothing to catch - report compute's result :-)
   return ret;
 }

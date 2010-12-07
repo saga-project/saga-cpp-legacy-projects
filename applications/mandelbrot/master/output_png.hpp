@@ -1,8 +1,8 @@
 
 #ifdef HAVE_PNG
 
-#ifndef OUTPUT_PNG_HPP
-#define OUTPUT_PNG_HPP
+#ifndef SAGA_MANDELBROT_OUTPUT_PNG_HPP
+#define SAGA_MANDELBROT_OUTPUT_PNG_HPP
 
 #include "pngwriter.h"
 
@@ -51,7 +51,7 @@ class output_png : public output_base
                     std::string ident = "");
 };
 
-#endif // OUTPUT_PNG_HPP
+#endif // SAGA_MANDELBROT_OUTPUT_PNG_HPP
 
 #endif // HAVE_PNG
 

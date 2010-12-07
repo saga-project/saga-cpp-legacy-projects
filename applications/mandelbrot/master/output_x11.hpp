@@ -1,8 +1,8 @@
 
 #ifdef HAVE_X11
 
-#ifndef OUTPUT_X11_HPP
-#define OUTPUT_X11_HPP
+#ifndef SAGA_MANDELBROT_OUTPUT_X11_HPP
+#define SAGA_MANDELBROT_OUTPUT_X11_HPP
 
 #include <X11/Xlib.h>
 #include <X11/Xcms.h>
@@ -55,7 +55,7 @@ class output_x11 : public output_base
                     std::string ident = "");
 };
 
-#endif // OUTPUT_X11_HPP
+#endif // SAGA_MANDELBROT_OUTPUT_X11_HPP
 
 #endif // HAVE_X11
 
