@@ -102,6 +102,7 @@ class MapPartitionedOutput : public RecordWriter<KeyT, ValueT> {
       //output_path = FileOutputFormat::GetUniqueWorkFile(task);
       // Later this will be done by a Committer which will atomically rename the final output
       // to the filename below (possibly after mergesorting spills of intermediate data).
+      
       output_path.append(FileOutputFormat::GetOutputPartitionName(job_,"map", job_->get_attribute("runner.chunk_id"), partition));
       LOG_DEBUG << "\nOutput path for partition " << partition << ": "
                << output_path;
