@@ -102,19 +102,9 @@ class MapPartitionedOutput : public RecordWriter<KeyT, ValueT> {
       //output_path = FileOutputFormat::GetUniqueWorkFile(task);
       // Later this will be done by a Committer which will atomically rename the final output
       // to the filename below (possibly after mergesorting spills of intermediate data).
-      std::string output_path(FileOutputFormat::GetOutputPath(*job_));
-      std::stringstream ss;
-      ss << partition;
-      std::string kk("partition-" + ss.str() + "/" );
-      output_path.append(FileOutputFormat::GetOutputPartitionName(job_,kk + "map", job_->get_attribute("runner.chunk_id"), partition));
-
-      std::string output_base(FileOutputFormat::GetOutputBase(*job_) + FileOutputFormat::GetOutputPath(*job_) );
-      LOG_DEBUG << "\nOutput path for partition " << partition << ": "  << output_base<< "dir create "<< kk << "\n";
-      //output_base.append(kk);
-      saga::url url(output_base);
-      saga::filesystem::directory dir (url);
-      int mode = saga::filesystem::Create;
-      saga::filesystem::directory tmp = dir.open_dir (kk, mode);
+      output_path.append(FileOutputFormat::GetOutputPartitionName(job_,"map", job_->get_attribute("runner.chunk_id"), partition));
+      LOG_DEBUG << "\nOutput path for partition " << partition << ": "
+               << output_path;
       try {
         saga::url output_url(FileOutputFormat::GetUrl(*job_, output_path));
         writers_[partition] = new SequenceFileRecordWriter(output_url);
