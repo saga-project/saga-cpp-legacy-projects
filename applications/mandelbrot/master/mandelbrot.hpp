@@ -3,8 +3,9 @@
 #define MANDELBROT_HPP
 
 #include <saga/saga.hpp>
-#include "ini.hpp"
 
+#include "ini.hpp"
+#include "client.hpp"
 #include "output_base.hpp"
 
 // this class encapsulates a master/worker paradigm.  We start
@@ -19,10 +20,11 @@ class mandelbrot
     std::string                      pwd_;             // working directory
     std::string                      ini_file_;        // control file
     mb_util::ini::ini                ini_;             // control data
-    std::vector <saga::job::job>     jobs_;            // list of saga jobs
     std::string                      job_bucket_name_; // name of job directory
     saga::advert::directory          job_bucket_;      // advert container for new jobs 
     saga::advert::directory          done_bucket_;     // advert container for finished jobs 
+
+    std::vector <boost::shared_ptr <client> > clients_; // saga jobs
 
     // jobs startup
     void job_startup (void);
@@ -47,8 +49,6 @@ class mandelbrot
     int box_size_y_;
     int box_num_x_;
     int box_num_y_;
-
-
 
 
   public:

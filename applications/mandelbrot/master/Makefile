@@ -8,13 +8,7 @@ SAGA_MB_ROOT     = ../
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
-SAGA_SRC        += job_starter.cpp
-SAGA_SRC        += mandelbrot.cpp
-SAGA_SRC        += mandelbrot_master.cpp
-SAGA_SRC        += output_x11.cpp
-SAGA_SRC        += output_png.cpp
-
-
+SAGA_SRC         = $(wildcard *.cpp)
 SAGA_ADD_BIN_OBJ = $(SAGA_SRC:%.cpp=%.o)
 SAGA_BIN         = mandelbrot_master
 

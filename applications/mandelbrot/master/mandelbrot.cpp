@@ -225,7 +225,7 @@ mandelbrot::mandelbrot (void)
 
   //////////////////////////////////////////////////////////////////////
   //
-  // once the job bucket exists, we can start the jobs, which will
+  // once the job bucket exists, we can start the clients, which will
   // create their individual client buckets.
   //
   job_startup ();
@@ -238,7 +238,7 @@ mandelbrot::mandelbrot (void)
 ///////////////////////////////////////////////////////////////////////
 //
 // on destruction, we close the output device and terminate all
-// jobs which did not end by themself.  Also, remove the job
+// clients which did not end by themself.  Also, remove the job
 // bucket, to keep the advert service free of trash.
 //
 mandelbrot::~mandelbrot (void)
@@ -251,20 +251,20 @@ mandelbrot::~mandelbrot (void)
   }
 
 
-  // Usually, we don't need to cancel jobs, as they'll terminate
+  // Usually, we don't need to cancel clients, as they'll terminate
   // when running out of work.  But in case we finish
   // prematurely, we take care of termination
-  for ( unsigned int i = 0; i < jobs_.size (); i++)
+  for ( unsigned int i = 0; i < clients_.size (); i++)
   {
-    std::cout << "killing   job " << i    << "(" 
-              << jobs_[i].get_state  () << ") " 
-              << jobs_[i].get_job_id () << std::endl;
+    std::cout << "killing   job " << i           << "(" 
+              << clients_[i]->job_.get_state  () << ") " 
+              << clients_[i]->id_                << std::endl;
 
-    if ( saga::job::Running == jobs_[i].get_state () )
+    if ( saga::job::Running == clients_[i]->job_.get_state () )
     {
       try
       {
-        jobs_[i].cancel ();
+        clients_[i]->job_.cancel ();
       }
       catch ( const saga::exception & e )
       {
@@ -278,13 +278,13 @@ mandelbrot::~mandelbrot (void)
 
 ///////////////////////////////////////////////////////////////////////
 //
-// start the client jobs, and setup the work buckets
+// start the client clients, and setup the work buckets
 //
 void mandelbrot::job_startup (void)
 {
   job_starter js (job_bucket_name_, ini_);
 
-  jobs_ = js.get_jobs ();
+  clients_ = js.get_clients ();
 
 
   // make sure clients get up and running: 
@@ -292,10 +292,10 @@ void mandelbrot::job_startup (void)
   //
   // FIXME: make timeoutini parameter
   //
-  int timeout = 2;
-  int jobs_ok = 0;
+  int timeout    = 2;
+  int clients_ok = 0;
 
-  for ( unsigned int n = 0; n < jobs_.size (); n++ )
+  for ( unsigned int n = 0; n < clients_.size (); n++ )
   {
     std::cout << "checking  job " << n << " for bootstrap \t ... " << std::flush;
 
@@ -307,19 +307,19 @@ void mandelbrot::job_startup (void)
       if ( ! job_bucket_.exists (util::itoa (n)) &&
            ! job_bucket_.is_dir (util::itoa (n)) )
       {
-        saga::job::state s = jobs_[n].get_state ();
+        saga::job::state s = clients_[n]->job_.get_state ();
 
         if ( saga::job::Running != s )
         {
           std::cout << "failed (" << s << ")" << std::endl;
-          jobs_[n].cancel ();
+          clients_[n]->job_.cancel ();
           check  = false;
         }
 
         if ( time > timeout )
         {
           std::cout << "timed out" << std::endl;
-          jobs_[n].cancel ();
+          clients_[n]->job_.cancel ();
           check = false;
         }
         else
@@ -332,18 +332,18 @@ void mandelbrot::job_startup (void)
       {
         std::cout << "ok" << std::endl;
         check = false;
-        jobs_ok++;
+        clients_ok++;
 
-        // FIXME: we should somehow mark these jobs as usable, to simplify the
+        // FIXME: we should somehow mark these clients as usable, to simplify the
         // assignment later (where we right now have to pull for job state
         // repeatedly)
       }
     }
   }
 
-  if ( 0 == jobs_ok )
+  if ( 0 == clients_ok )
   {
-    throw "Could create no usable jobs";
+    throw "Could create no usable clients";
   }
 }
 
@@ -353,7 +353,7 @@ void mandelbrot::job_startup (void)
 //
 // compute the mandelbrot set in the known boundaries.
 //
-// TODO: start njob_ client jobs, and gather results.
+// TODO: start njob_ client clients, and gather results.
 //
 int mandelbrot::compute (void)
 {
@@ -361,7 +361,7 @@ int mandelbrot::compute (void)
   std::vector <saga::advert::entry> ads;
 
   // Schedule all boxes in round robin fashion over the
-  // available jobs
+  // available clients
   unsigned int boxes_scheduled = 0;
   unsigned int jobnum = 0;
   for ( int x = 0; x < box_num_x_; x++ )
@@ -371,20 +371,20 @@ int mandelbrot::compute (void)
       // serial number of box
       int boxnum = x * box_num_y_ + y;
 
-      // this boxed is assigned to jobs in round robin fashion
+      // this boxed is assigned to clients in round robin fashion
       // so find next usable job (running state), and roll over 
-      // at jobs_.size ();
+      // at clients_.size ();
       jobnum++;
-      jobnum %= jobs_.size ();
+      jobnum %= clients_.size ();
 
       unsigned int rollover = 0;
-      while ( jobs_[jobnum].get_state () != saga::job::Running )
+      while ( clients_[jobnum]->job_.get_state () != saga::job::Running )
       {
         jobnum++;
-        jobnum %= jobs_.size ();
+        jobnum %= clients_.size ();
 
         rollover++;
-        if ( rollover > jobs_.size () )
+        if ( rollover > clients_.size () )
         {
           throw "Can't find any job to assign boxes to.";
         }
@@ -393,12 +393,12 @@ int mandelbrot::compute (void)
       std::cout << "assigning box " << boxnum
                 << " to job "       << jobnum << std::endl;
 
-      // the jobs work bucket is its jobnum, the work item advert
+      // the clients work bucket is its jobnum, the work item advert
       // is simply numbered by its serial number, i
       std::stringstream advert_name;
       advert_name << jobnum << "/" << boxnum;
 
-      // create a work item in the jobs work bucket
+      // create a work item in the clients work bucket
       saga::advert::entry ad = job_bucket_.open (advert_name.str (),
                                                  saga::advert::Create        |
                                                  saga::advert::CreateParents |
@@ -408,7 +408,7 @@ int mandelbrot::compute (void)
 
       // signal for work to do: set boxnum to work on, and state to 'work'
       ad.set_attribute ("boxnum", boxnum_s);
-      ad.set_attribute ("jobid", jobs_[jobnum].get_job_id ());
+      ad.set_attribute ("jobid", clients_[jobnum]->id_);
       ad.set_attribute ("state", "work");
 
       // keep a list of active work items

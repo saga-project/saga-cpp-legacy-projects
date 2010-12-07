@@ -7,55 +7,6 @@
 
 #include "job_starter.hpp"
 
-job_starter::endpoint_::endpoint_ (std::string           name,
-                                   mb_util::ini::section ini)
-  : name_ (name),
-    ini_  (ini )
-{
-  ctype_  =         ini_.get_entry ("ctype", "" );
-  user_   =         ini_.get_entry ("user" , "" );
-  pass_   =         ini_.get_entry ("pass" , "" );
-  cert_   =         ini_.get_entry ("cert" , "" );
-  key_    =         ini_.get_entry ("key"  , "" );
-  proxy_  =         ini_.get_entry ("proxy", "" );
-  cadir_  =         ini_.get_entry ("cadir", "" );
-  exe_    =         ini_.get_entry ("exe"  , "" );
-  args_   =         ini_.get_entry ("args" , "" );
-  pwd_    =         ini_.get_entry ("pwd"  , "" );
-  njobs_  = ::atoi (ini_.get_entry ("njobs", "1").c_str ());
-
-  saga::session s;
-
-  saga::context c (ctype_);
-
-  c.set_attribute (saga::attributes::context_certrepository, cadir_);
-  c.set_attribute (saga::attributes::context_usercert      , cert_);
-  c.set_attribute (saga::attributes::context_userkey       , key_);
-  c.set_attribute (saga::attributes::context_userid        , user_);
-  c.set_attribute (saga::attributes::context_userpass      , pass_);
-
-  if ( ! proxy_.empty () )
-  {
-    c.set_attribute (saga::attributes::context_userproxy   , proxy_);
-  }
-  // c.set_attribute (saga::attributes::context_uservo        , "");
-  // c.set_attribute (saga::attributes::context_lifetime      , "");
-  // c.set_attribute (saga::attributes::context_remoteid      , "");
-  // c.set_attribute (saga::attributes::context_remotehost    , "");
-  // c.set_attribute (saga::attributes::context_remoteport    , "");
-
-  s.add_context (c);
-
-  saga::job::service js (s, url_);
-
-  service_ = js;
-
-  // dump ini section for this endpoint
-  std::ofstream fout ((std::string ("endpoint.") + name + ".ini").c_str ());
-  ini_.dump (0, fout);
-  fout.close ();
-}
-
 
 //////////////////////////////////////////////////////////////////////
 job_starter::job_starter (std::string       a_dir, 
@@ -77,19 +28,21 @@ job_starter::job_starter (std::string       a_dir,
     {
       mb_util::ini::section backend_config = ep_cfg.get_section (key);
 
-      try 
-      {
-        std::string url = backend_config.get_entry ("url"  , "");
-        std::cout << "creating  endpoint '" << key << "' \t ..." << std::flush;
+      std::string url = backend_config.get_entry ("url"  , "");
+      std::cout << "creating  endpoint " << key << " \t ..." << std::flush;
 
-        endpoints_.push_back (endpoint_ (key, backend_config));
-        std::cout << " ok  (" << url << ")" << std::endl;
-      }
-      catch ( const saga::exception & e )
+      boost::shared_ptr <endpoint> ep (new endpoint (key, backend_config));
+
+      if ( ep->valid_ )
       {
-        std::cerr << " failed "
-               // << ": " << e.what () 
-                  << std::endl;
+        endpoints_.push_back (ep);
+        std::cout << " ok  (" << url << ")" << std::endl;
+        ep->log_  << "startup ok\n";
+      }
+      else
+      {
+        std::cerr << " failed (" << url << ")" << std::endl;
+        ep->log_  << "startup failed\n";
       }
     }
   }
@@ -99,15 +52,18 @@ job_starter::job_starter (std::string       a_dir,
   for ( unsigned int e = 0; e < endpoints_.size (); e++ )
   {
     // try the next endpoint
-    endpoint_ ep = endpoints_[e];
+    boost::shared_ptr <endpoint> ep = endpoints_[e];
 
-    for ( unsigned int j = 0; j < ep.njobs_; j++ )
+    for ( unsigned int j = 0; j < ep->njobs_; j++ )
     {
       try
       {
+        int         jobnum = clients_.size ();
+        std::string ident  = boost::lexical_cast <std::string> (jobnum);
+
         // create a job description
         saga::job::description jd;
-        jd.set_attribute (saga::job::attributes::description_executable, ep.exe_);
+        jd.set_attribute (saga::job::attributes::description_executable, ep->exe_);
 
         // client parameters:
         // 0: path to advert directory to be used (job bucket)
@@ -115,13 +71,10 @@ job_starter::job_starter (std::string       a_dir,
         std::vector <std::string> args;
         args.push_back ("mandelbrot_client ");
         args.push_back (a_dir);
-
-        std::stringstream ident;
-        ident << jobs_.size ();
-        args.push_back (ident.str ());
+        args.push_back (ident);
 
         // append ep args
-        std::vector <std::string> epargs = saga::adaptors::utils::split (ep.args_, ' ');
+        std::vector <std::string> epargs = saga::adaptors::utils::split (ep->args_, ' ');
         for ( unsigned int a = 0; a < epargs.size (); a++ )
         {
           args.push_back (epargs[a]);
@@ -130,9 +83,9 @@ job_starter::job_starter (std::string       a_dir,
 
         jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
 
-        if ( ! ep.pwd_.empty () )
+        if ( ! ep->pwd_.empty () )
         {
-          jd.set_attribute (saga::job::attributes::description_working_directory, ep.pwd_);
+          jd.set_attribute (saga::job::attributes::description_working_directory, ep->pwd_);
         }
 
         // let the clients store stdout/stderr to /tmp/mandelbrot_client.[id].out/err
@@ -140,18 +93,11 @@ job_starter::job_starter (std::string       a_dir,
         // is able to stage the output files back into the pwd
         # if 0
         {
-          int id = jobs_.size ();
-
           std::string out;
           std::string err;
 
-          out += ("/tmp/mandelbrot_client.");
-          out += boost::lexical_cast <std::string> (id);
-          out += ".out";
-
-          err += ("/tmp/mandelbrot_client.");
-          err += boost::lexical_cast <std::string> (id);
-          err += ".err";
+          out += "/tmp/mandelbrot_client." + ident + ".out";
+          err += "/tmp/mandelbrot_client." + ident + ".err";
 
           jd.set_attribute (saga::job::attributes::description_output, out);
           jd.set_attribute (saga::job::attributes::description_error,  err);
@@ -159,21 +105,24 @@ job_starter::job_starter (std::string       a_dir,
         # endif
 
         std::cout << "starting  job "
-                  << jobs_.size ()
+                  << ident
                   << " on "
-                  << ep.name_ 
+                  << ep->name_ 
                   << " \t ... " << std::flush;
 
-        saga::job::job j = ep.service_.create_job (jd);
+        saga::job::job j = ep->service_.create_job (jd);
 
         j.run ();
 
         if ( saga::job::Running != j.get_state () )
         {
           std::cout << "failure - could not run " 
-                    << ep.exe_ << " " << ep.args_ 
+                    << ep->exe_ << " " << ep->args_ 
                     << std::endl;
           j.cancel (); // clean up resources
+
+          ep->log_ << "job failed: " << ep->exe_ << " " << ep->args_ << "\n";
+
           // do not use this job
         }
         else
@@ -190,25 +139,25 @@ job_starter::job_starter (std::string       a_dir,
             jobid[54] = '.';
           }
 
-          // keep job
-          jobs_.push_back (j);
+          // keep job (wrapped in client)
+          boost::shared_ptr <client> c (new client (ident, j, ep)); 
+          clients_.push_back (c);
 
-          std::cout << "ok  " 
-                    << jobid 
-                    << " " << ep.args_
-                    << std::endl;
+          // store full jobid in ep log
+          std::cout << "ok  "     << jobid  << std::endl;
+          ep->log_  << "spawned " << c->id_ << "\n";
         }
       }
       catch ( const saga::exception & e )
       {
-        std::cout << "failure - could not start exe " << ep.exe_ << " " << ep.args_ 
-              //  << ": "                    << e.what ()
+        std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
                   << std::endl;
+        ep->log_ << "could not spawn: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n";
       }
     }
   }
 
-  if ( jobs_.size () == 0 )
+  if ( clients_.size () == 0 )
   {
     throw "Could not start any jobs!";
   }
