@@ -10,11 +10,10 @@ client::client (std::string                  name,
 {
   id_ = job_.get_job_id ();
 
-  log_ << "================================\n";
   log_ << "endpoint : " << ep_->name_        << "\n";
   log_ << "id       : " << id_               << "\n";
+  log_ << "number   : " << name_             << "\n";
   log_ << "state    : " << job_.get_state () << "\n";
-  log_ << "================================\n";
 }
 
 

@@ -144,8 +144,11 @@ job_starter::job_starter (std::string       a_dir,
           clients_.push_back (c);
 
           // store full jobid in ep log
-          std::cout << "ok  "     << jobid  << std::endl;
-          ep->log_  << "spawned " << c->id_ << "\n";
+          std::cout << "ok  "             << jobid    << std::endl;
+          ep->log_  << "spawned client "  << jobnum 
+                    << " on "             << ep->name_ 
+                    << ": "               << c->id_
+                    << "\n";
         }
       }
       catch ( const saga::exception & e )

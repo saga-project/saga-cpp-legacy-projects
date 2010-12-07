@@ -46,13 +46,14 @@ endpoint::endpoint (std::string           name,
     saga::job::service js (s, url_);
 
     service_ = js;
+    valid_   = true;
+
+    log_ << "endpoint creation ok\n";
   }
   catch ( const saga::exception & e )
   {
-    log_ << "================================\n";
     log_ << "endpoint creation failed:\n";
     log_ << e.what ();
-    log_ << "================================\n";
 
     valid_ = false;
   }
