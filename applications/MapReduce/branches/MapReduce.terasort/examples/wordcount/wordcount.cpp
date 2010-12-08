@@ -15,6 +15,40 @@ using mapreduce::JobDescription;
  * Word count example mapper and reducer.
  *
  */
+
+class WordOutputRecordWriter : public RawRecordWriter {
+ public:
+  WordOutputRecordWriter(saga::url& path) {
+    writer_.reset(new SagaFileOutputStream(saga::filesystem::file(
+        path, saga::filesystem::Write)));
+  }
+  ~WordOutputRecordWriter() {}
+  // RawRecordWriter implementation. Extracts original strings from
+  // serialized data directly (assumes their length is stored on 1 byte).
+  void Write(const std::string& key, const std::string& value) {
+    writer_->Write((key.c_str()+1), key.size()-1);
+    writer_->Write((value.c_str()+1), value.size()-1);
+    writer_->Write(static_cast<const void*>("\r\n"), 2);
+  }
+  void Close() {
+    writer_.reset();
+  }
+ private:
+  boost::scoped_ptr<SagaFileOutputStream> writer_;
+};
+
+// Output format for writing key/value pairs for WordSort.
+class WordOutputFormat : public FileOutputFormat {
+ public:
+  RawRecordWriter* GetRecordWriter(TaskDescription* task) {
+    // Default work path for task.
+    saga::url default_url = FileOutputFormat::GetUrl(*task,
+      FileOutputFormat::GetUniqueWorkFile(task));
+    return new WordOutputRecordWriter(default_url);
+  }
+};
+REGISTER_OUTPUTFORMAT(WordOutput, WordOutputFormat);
+
 class WordCountMap : public Mapper<int, string, string, int> {
  public:
   void Map(const int& key, const string& value, Context* context) {
@@ -58,12 +92,25 @@ int main(int argc, char** argv) {
     JobDescription job;
     // Specify input.
     job.set_input_format("Text");
+    unsigned long int chunksize, tmpv;
+    tmpv=256;
+    char* env_chunksize = ::getenv ("MR_CHUNK_SIZE");
+    if ( NULL != env_chunksize )
+    {
+      tmpv = ::atoi (env_chunksize);
+    }
+    chunksize = 1024 * 1024 * tmpv;
+    std::stringstream ss;
+    ss << chunksize;
+    job.set_attribute("file.input.max_chunk_size", ss.str ());
+    std::cout << "setting chunksize to " << ss.str () << std::endl;
+
     FileInputFormat::AddInputPath(job,
-      "file://localhost//N/u/smaddi2/mrinput/128mb.txt");
+      "file://localhost//path/to/input");
     job.set_mapper_class("WordCountMap");
     job.set_reducer_class("WordCountReduce");
-    job.set_output_format("SequenceFile");
-    job.set_num_reduce_tasks(10);
+    job.set_output_format("WordOutput");
+    job.set_num_reduce_tasks(2);
     mapreduce::master::DistributedJobRunner job_runner(job);
     job_runner.Initialize(
       mapreduce::g_command_line_parameters["config"].as<std::string>());
