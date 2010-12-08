@@ -229,7 +229,7 @@ We present the implementation details of the Synchronous RE and the two differen
 
 \subsection{Synchronous RE}
 
-In synchronous RE, the master has the overall control of the replicas. The first step is to submit a request to the queue for a sufficient number of cores for all the replicas(BigJob). A connection to the advert server is opened to store job data. The second step is to stage the necessary files to the individual working directories. In the same step, the job descriptions of each of the replicas are posted to the advert server. When the BigJob becomes active, a 'bigjob agent' is is launched for each BigJob. The purpose of the bigjob agent is to look in the advert server for new replicas and to start those replicas. The bigjob agent also monitors the replicas under it and posts the status of the replicas to the advert server. The master queries the advert server for the latest job states and when it find that all the replicas are 'Done', it start making the exchanges. The configuration files are staged to the respective working directories. After all the exchanges are done in a particular generation, the replica job descriptions are posted to the advert server and the bigjob agent restarts the replicas. This process is repeated until the required number of exchanges are made. 
+In synchronous RE, the master has the overall control of the replicas. The first step is to submit a request to the queue for a sufficient number of cores for all the replicas(BigJob). A connection to the advert server is opened to store job data. The second step is to stage the necessary files to the individual working directories. In the same step, the job descriptions of each of the replicas are posted to the advert server. When the BigJob becomes active, a 'bigjob agent' is is launched for each BigJob. The purpose of the bigjob agent is to look in the advert server for new replicas and to start those replicas. The bigjob agent also monitors the replicas under it and posts the status of the replicas to the advert server. The master queries the advert server for the latest job states and when it find that all the replicas are 'Done', it starts making the exchanges. The configuration files are staged to the respective working directories. After all the exchanges are done in a particular generation, the replica job descriptions are posted to the advert server and the bigjob agent restarts the replicas. This process is repeated until the required number of exchanges are made. 
 
 
 \subsection{Centralized Asynchronous RE}
@@ -286,7 +286,7 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 \begin{figure}
 \centering
 \includegraphics[scale=0.50]{data/scale_up.pdf}
-\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations on one machine.}
+\caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations on one machine. We repeated the experiments with up to 256 replicas. Up to 128 replicas, the experiments were conducted on QB and 256 replicas experiments were conducted on Ranger.}
 \label{fig:graph}
 \vspace{-1em}
 \end{figure}
@@ -330,7 +330,7 @@ In Case II, the exchanges happen in an asynchronous manner, but they are still c
 \subsection{Scale out performance}
 \subsubsection{Experiments}
 We chose LONI and Teragrid machines to run Cases I, II \& III. We did experiments distributed across two and four machines. We did these experiments with 8, 16 and 32 replicas distributed equally across two and four machines. 
-Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the behavior of Cases I, II and III across one, two and four machines, respectively.
+Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the behavior of Cases I, II and III across one, two and four machines, respectively. On the whole, there is not much difference between the local and distributed runs in any case. The reason being that there is very little interaction between the replicas. A very small configuration file is staged to the remote machines after an exchange, which will not add more than a couple of seconds per exchange. The rest of the co-ordination is done via the advert service, which is usually located on a remote machine in any case. Each query to the advert server is in the order of milli seconds and does not produce a noticeable effect on the performance. 
 
 \subsubsection{Analysis}
 In Figure~\ref{fig:2machines}, we see the performance of all three cases when run in a distributed manner across two machines. As the data that is exchanged between replicas is very small, the Cases I, II and III behave in a similar manner to the way they behave on a single machine. Again, asynchronous RE is better suited for distributed runs and the decentralized implementation scales best. The reason is, since each replica has its own replica agent, there is no need to transfer any files between machines. The required configuration files are created locally by the replica agent.
