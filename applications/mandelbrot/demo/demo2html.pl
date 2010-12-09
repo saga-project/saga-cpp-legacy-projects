@@ -38,7 +38,8 @@ open OUT, (">$home/index.html") || die "Cannot open output file: $!\n";
   print OUT <<EOT;
 
 <html>
- <body>
+ <body> 
+  <basefont face="mono, courier" size="4">
   <table border="0">
    <tr>
     <td> <strong> navigation </strong> </td> 
@@ -59,7 +60,11 @@ print OUT "     <a href='../$next/'>next</a>\n" if $next;
    <tr>
     <td valign='top'> <strong> endpoints </strong> </td> 
     <td> 
-     <table border=1>
+     <table border=1
+            rules=all 
+            frame=box 
+            cellpadding=3 
+            cellspacing=0>
       <tr>
        <td bgcolor="$col_yellow"> <strong> name (ini link) </strong> </td>
        <td bgcolor="$col_yellow"> <strong> status          </strong> </td>
@@ -71,6 +76,12 @@ print OUT "     <a href='../$next/'>next</a>\n" if $next;
        <td bgcolor="$col_yellow"> <strong> url             </strong> </td>
       </tr>
 EOT
+
+  my $tot_jobreq  = 0;
+  my $tot_jobok   = 0;
+  my $tot_jobreg  = 0;
+  my $tot_itemreq = 0;
+  my $tot_itemok  = 0;
 
   foreach my $ep ( @ep_logs )
   {
@@ -128,6 +139,12 @@ EOT
 
       if ( $fail ) { $col_url = $col_red; } else { $col_url = $col_green; } 
 
+      $tot_jobreq  += $jobreq ;
+      $tot_jobok   += $jobok  ;
+      $tot_jobreg  += $jobreg ;
+      $tot_itemreq += $itemreq;
+      $tot_itemok  += $itemok ;
+
       print OUT <<EOT;
       <tr>
        <td align="left"  bgcolor="$col_url"   > <a href='$fname'>$epname<a> </td>
@@ -144,6 +161,16 @@ EOT
   }
 
   print OUT <<EOT;
+      <tr>
+       <td align="left"  bgcolor="$col_yellow"> <strong> total        </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> -            </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobreq  </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobok   </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobreg  </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_itemreq </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_itemok  </strong> </td>
+       <td align="left"  bgcolor="$col_yellow"> <strong> -            </strong> </td>
+      </tr>
      </table>
     </td>
    </tr>
