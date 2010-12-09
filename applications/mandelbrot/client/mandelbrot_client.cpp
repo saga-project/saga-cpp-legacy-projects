@@ -33,34 +33,17 @@ int main (int argc, char** argv)
 
   try
   {
-    bool joke  = false;
-    bool bomb  = false;
-    bool sleep = false;
-
     std::string advert_root (argv[1]); // work bucket container
     std::string job_id      (argv[2]); // my job id == id of work bucket
+    std::string cmd;                   // any special mission command
 
     if ( argc > 3 )
+      cmd = argv[3];
+
+    if ( cmd == "awol" )
     {
-      std::string cmd (argv[3]); // additional command - optional
-
-      if ( cmd == "sleep" )
-      {
-        // just sleep for 10 minutes after registering, then quit.
-        sleep = true;
-      }
-
-      if ( cmd == "joke" )
-      {
-        // create bogus results if that command is given.
-        joke = true;
-      }
-
-      if ( cmd == "bomb" )
-      {
-        // try to remove an job bucket next to us (id +/- 1)
-        bomb = true;
-      }
+      while ( true )
+        ::sleep (600);
     }
 
 
@@ -105,14 +88,14 @@ int main (int argc, char** argv)
     job_dir.set_attribute ("version", SAGA_MANDELBROT_VERSION);
 
     // we registered, now we can sleep if that was requested
-    if ( sleep )
+    if ( cmd == "lazy" )
     {
-      ::sleep (600);
-      return  (0);
+      while ( true )
+        :: sleep (600);
     }
 
     // also now is a good time to bomb our neighbor, if master so wishes.
-    if ( bomb )
+    if ( cmd == "bomb" )
     {
       // search a sensible (== small but non-negative) neighbor
       int me  = ::atoi (job_id.c_str ());
@@ -301,7 +284,7 @@ int main (int argc, char** argv)
               // x coordinate of pixel in complex plane (real part)
               double c0 = plane_box_off_x + x * plane_box_step_x;
 
-              if ( joke )
+              if ( cmd == "joke" )
               {
                 // mirror box :-P
                 c0 = plane_box_off_x + (box_size_x - x) * plane_box_step_x;
@@ -312,7 +295,7 @@ int main (int argc, char** argv)
                 // y coordinate of pixel in complex plane (imaginary part)
                 double c1 = plane_box_off_y + y * plane_box_step_y;
 
-                if ( joke )
+                if ( cmd == "joke" )
                 {
                   // mirror box :-P
                   c1 = plane_box_off_y + (box_size_y - y) * plane_box_step_y;

@@ -110,7 +110,7 @@ output_x11::output_x11 (unsigned int size_x,
 
 output_x11::~output_x11 (void)
 {
-  std::cout << "press key to close x11 output" << std::flush << std::endl;
+  std::cout << "press enter to close x11 output" << std::flush << std::endl;
   ::getchar ();
 
   // shut down X11

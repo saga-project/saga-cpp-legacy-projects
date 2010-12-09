@@ -49,6 +49,8 @@ this="-"
     export SAGA_DEMO_STDERR=$SAGA_DEMO_HOME/stderr
     export SAGA_DEMO_OUTPUT=$SAGA_DEMO_HOME/
 
+    export SAGA_MANDELBROT_PWD=$SAGA_DEMO_HOME
+
     preprev=$prev
     prev=$this
     this=$SAGA_DEMO_TIME

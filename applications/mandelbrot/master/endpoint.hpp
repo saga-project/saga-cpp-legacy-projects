@@ -37,6 +37,11 @@ class endpoint
     std::string             args_;
     std::string             pwd_;
     unsigned int            njobs_;
+    unsigned int            cnt_j1_; // #jobs requested
+    unsigned int            cnt_j2_; // #jobs run
+    unsigned int            cnt_j3_; // #jobs registered
+    unsigned int            cnt_i1_; // #jobs assigned
+    unsigned int            cnt_i2_; // #jobs run
 };
 
 #endif // SAGA_MANDELBROT_ENDPOINT_HPP

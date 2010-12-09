@@ -4,12 +4,12 @@
 client::client (std::string                  name, 
                 saga::job::job               job, 
                 boost::shared_ptr <endpoint> ep)
-  : name_  (name)
-  , job_   (job)
-  , ep_    (ep)
-  , cnt_a_ (0)
-  , cnt_d_ (0)
-  , valid_ (true)
+  : name_   (name)
+  , job_    (job)
+  , ep_     (ep)
+  , cnt_i1_ (0)
+  , cnt_i2_ (0)
+  , valid_  (true)
 {
   id_ = job_.get_job_id ();
 
@@ -34,12 +34,12 @@ client::~client (void)
   log_ << "id        : " << id_               << "\n";
   log_ << "short id  : " << id_short_         << "\n";
   log_ << "endpoint  : " << ep_->name_        << "\n";
-  log_ << "#assigned : " << cnt_a_            << "\n";
-  log_ << "#done     : " << cnt_d_            << "\n";
+  log_ << "#assigned : " << cnt_i1_           << "\n";
+  log_ << "#done     : " << cnt_i2_           << "\n";
   log_ << "last state: " << job_.get_state () << "\n";
 
   // write log of events
-  std::ofstream fout ((std::string ("client.") + name_ + ".info").c_str ());
+  std::ofstream fout ((std::string ("client.") + name_ + ".txt").c_str ());
 
   fout << "================================" << std::endl;
   fout << log_.str ();
@@ -60,7 +60,7 @@ saga::job::state client::get_state (void)
   }
   catch ( const saga::incorrect_state )
   {
-    std::cerr << "inconsistent client state!\n";
+    std::cout << "inconsistent client state!\n";
     return saga::job::Unknown;
   }
 }

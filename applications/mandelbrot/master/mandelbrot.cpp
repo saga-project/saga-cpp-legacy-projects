@@ -316,18 +316,18 @@ void mandelbrot::job_startup (void)
 
           if ( saga::job::Running != s )
           {
-            std::cout << "failed ("  << s << ")" << std::endl;
+            std::cout << " failed ("  << s << ")" << std::endl;
             ep->log_  << "client "               << clients_[n]->name_ 
-                      << "failed ("  << s << ")" << std::endl;
+                      << " failed ("  << s << ")" << std::endl;
             clients_[n]->cancel ();
             check  = false;
           }
 
           if ( time > timeout )
           {
-            std::cout << "timeout (bootstrap)" << std::endl;
+            std::cout << " timeout (bootstrap)" << std::endl;
             ep->log_  << "client "             << clients_[n]->name_ 
-                      << "timeout (bootstrap)" << std::endl;
+                      << " timeout (bootstrap)" << std::endl;
             clients_[n]->cancel ();
             check = false;
           }
@@ -357,9 +357,9 @@ void mandelbrot::job_startup (void)
             {
               if ( time > timeout )
               {
-                std::cout << "timeout (version check)" << std::endl;
+                std::cout << " timeout (version check)" << std::endl;
                 ep->log_  << "client "                 << clients_[n]->name_ 
-                          << "timeout (version check)" << std::endl;
+                          << " timeout (version check)" << std::endl;
                 clients_[n]->cancel ();
                 version_check = false;
               }
@@ -379,9 +379,10 @@ void mandelbrot::job_startup (void)
               if ( SAGA_MANDELBROT_VERSION == c_version )
               {
                 clients_ok++;
-                std::cout << "ok (version " << SAGA_MANDELBROT_VERSION << ")" << std::endl;
-                ep->log_  << "client "      << clients_[n]->name_      << " registered "
-                          << "(version "    << SAGA_MANDELBROT_VERSION << ")\n"; 
+                ep->cnt_j3_++;
+                std::cout << " ok (version " << SAGA_MANDELBROT_VERSION << ")" << std::endl;
+                ep->log_  << "client "      << clients_[n]->name_      << " registered"
+                          << " (version "    << SAGA_MANDELBROT_VERSION << ")\n"; 
               }
               else
               {
@@ -453,7 +454,9 @@ int mandelbrot::compute (void)
       }
 
       std::cout << "assigning box " << boxnum
-                << " to job "       << jobnum << std::endl;
+                << " to job "       << jobnum 
+                << " ("             << clients_[jobnum]->ep_->name_ << ")"
+                << std::endl;
 
       // the clients work bucket is its jobnum, the work item advert
       // is simply numbered by its serial number, i
@@ -477,7 +480,8 @@ int mandelbrot::compute (void)
       ads.push_back (ad);
       boxes_scheduled++;
 
-      clients_[jobnum]->cnt_a_++;
+      clients_[jobnum]->cnt_i1_++;
+      clients_[jobnum]->ep_->cnt_i1_++;
     }
   }
 
@@ -513,7 +517,8 @@ int mandelbrot::compute (void)
         std::stringstream data_ss  (ads[j].get_attribute ("data"));
 
         // log work item on client
-        js_.get_client (jobid_s)->cnt_d_++;
+        js_.get_client (jobid_s)->cnt_i2_++;
+        js_.get_client (jobid_s)->ep_->cnt_i2_++;
 
         // data to paint
         std::vector <std::vector <int> > data;

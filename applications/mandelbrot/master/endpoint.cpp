@@ -3,9 +3,14 @@
 
 endpoint::endpoint (std::string           name,
                       mb_util::ini::section ini)
-  : name_  (name)
-  , ini_   (ini )
-  , valid_ (true)
+  : name_   (name)
+  , ini_    (ini)
+  , valid_  (true)
+  , cnt_j1_ (0)
+  , cnt_j2_ (0)
+  , cnt_j3_ (0)
+  , cnt_i1_ (0)
+  , cnt_i2_ (0)
 {
   ctype_  =         ini_.get_entry ("ctype", "" );
   url_    =         ini_.get_entry ("url"  , "" );
@@ -48,8 +53,6 @@ endpoint::endpoint (std::string           name,
 
     service_ = js;
     valid_   = true;
-
-    log_ << "startup ok\n";
   }
   catch ( const saga::exception & e )
   {
@@ -64,7 +67,7 @@ endpoint::endpoint (std::string           name,
 endpoint::~endpoint (void)
 {
   // write log of events
-  std::ofstream fout ((std::string ("endpoint.") + name_ + ".info").c_str ());
+  std::ofstream fout ((std::string ("endpoint.") + name_ + ".txt").c_str ());
 
   fout << "================================" << std::endl;
   fout << "endpoint ini section"             << std::endl;
@@ -74,6 +77,17 @@ endpoint::~endpoint (void)
   
   fout << "================================" << std::endl;
   fout << log_.str ();
+  fout << "================================" << std::endl;
+  if ( valid_ ) {
+    fout << "  status    : ok"                 << std::endl;
+  } else {
+    fout << "  status    : failed"             << std::endl;
+  }
+  fout << "  #jobreq   : " << cnt_j1_          << std::endl;
+  fout << "  #jobok    : " << cnt_j2_          << std::endl;
+  fout << "  #jobreg   : " << cnt_j3_          << std::endl;
+  fout << "  #itemreq  : " << cnt_i1_          << std::endl;
+  fout << "  #itemok   : " << cnt_i2_          << std::endl;
   fout << "================================" << std::endl;
   fout.close ();
 }

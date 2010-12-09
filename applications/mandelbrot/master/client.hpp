@@ -28,8 +28,8 @@ class client
     saga::job::job               job_;      // client job instance
     boost::shared_ptr <endpoint> ep_;       // spawning endpoint
     std::stringstream            log_;      // logger
-    unsigned int                 cnt_a_;    // #items assigned
-    unsigned int                 cnt_d_;    // #items done
+    unsigned int                 cnt_i1_;   // #items requested
+    unsigned int                 cnt_i2_;   // #items done
     bool                         valid_;    // client is usable
 };
 

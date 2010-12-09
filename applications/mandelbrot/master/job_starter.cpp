@@ -40,7 +40,7 @@ job_starter::job_starter (std::string       a_dir,
       }
       else
       {
-        std::cerr << "failed (" << url << ")" << std::endl;
+        std::cout << "failed (" << url << ")" << std::endl;
       }
     }
   }
@@ -104,6 +104,7 @@ job_starter::job_starter (std::string       a_dir,
           }
           # endif
 
+          ep->cnt_j1_++;
           std::cout << "starting  job "
                     << ident
                     << " on "
@@ -133,6 +134,7 @@ job_starter::job_starter (std::string       a_dir,
             client_map_[c->id_] = c;
 
             // store full jobid in ep log
+            ep->cnt_j2_++;
             std::cout << "ok "              << c->id_short_ << std::endl;
             ep->log_  << "spawned client "  << jobnum 
                       << " on "             << ep->name_ 
