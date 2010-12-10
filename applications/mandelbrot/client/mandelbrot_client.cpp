@@ -38,7 +38,18 @@ int main (int argc, char** argv)
     std::string cmd;                   // any special mission command
 
     if ( argc > 3 )
+    {
       cmd = argv[3];
+
+      if ( cmd != "awol" &&
+           cmd != "lazy" &&
+           cmd != "joke" &&
+           cmd != "bomb" )
+      {
+        std::cerr << "unknown command " << cmd << " given - exit" << std::endl;
+        return -2;
+      }
+    }
 
     if ( cmd == "awol" )
     {
@@ -60,10 +71,10 @@ int main (int argc, char** argv)
 
       if ( version != SAGA_MANDELBROT_VERSION )
       {
-        std::cerr << "Version mismatch: " 
+        std::cerr << "version mismatch: " 
                   << SAGA_MANDELBROT_VERSION << " != " << version 
                   << " - exit" << std::endl;
-        return -2;
+        return -3;
       }
     }
     else
@@ -71,7 +82,7 @@ int main (int argc, char** argv)
       // bail out - thats obviously an ancient version w/o version support
       std::cerr << "Version mismatch: " 
                 << SAGA_MANDELBROT_VERSION << " != ??? - exit" << std::endl;
-      return -3;
+      return -4;
     }
 
     // create this job's work item bucket.  
@@ -348,7 +359,7 @@ int main (int argc, char** argv)
   catch ( saga::exception const & e )
   {
     std::cerr << "SAGA exception: " << e.what () << std::endl;
-    return -4;
+    return -5;
   }
 
   return 0;
