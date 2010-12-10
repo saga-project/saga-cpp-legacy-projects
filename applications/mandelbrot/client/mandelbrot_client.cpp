@@ -90,7 +90,7 @@ int main (int argc, char** argv)
     // exists, we fail.
     saga::advert::directory job_dir = app_dir.open_dir (job_id, 
                                                         saga::advert::Create    | 
-                                                        saga::advert::Exclusive | 
+                                                     // saga::advert::Exclusive | 
                                                         saga::advert::ReadWrite );
 
     // add a version tag, so that a master can ensure version matching. 
@@ -105,32 +105,49 @@ int main (int argc, char** argv)
         :: sleep (600);
     }
 
-    // also now is a good time to bomb our neighbor, if master so wishes.
+    std::cout << "cmd: " << cmd << std::endl;
+
+    // so now is a good time to bomb our job item directory - randomly remove
+    // some adverts
     if ( cmd == "bomb" )
     {
-      // search a sensible (== small but non-negative) neighbor
-      int me  = ::atoi (job_id.c_str ());
-      int you = ( me == 0 ? me+1 : me-1 );
 
-      std::string victim_id = util::itoa (you);
-      std::cout << "bombing victim " << victim_id << std::endl;
-
+      std::cout << "bombing" << std::endl;
       try 
       {
-        // sleep some seconds to increase our chance for a hit.  
-        // the advert service can be slow, so the exact sleeptime is guesswork...
-        ::sleep (1);
-        saga::advert::directory victim = app_dir.open_dir (victim_id, 
-                                                           saga::advert::ReadWrite);
+        // sleep a little to increase chances for a hit (i.e. wait for adverts)  
+        // the advert assignment can be slow, so the exact sleeptime is guesswork...
+ //     ::sleep (10);
 
-        // kaboom!
-        victim.remove (saga::advert::Recursive);
-        std::cout << " bomb hit target >:-)" << std::endl;
+        // seed random number generator
+        struct timeval tv;
+        ::gettimeofday (&tv, NULL);
+        ::srand (tv.tv_sec + tv.tv_usec);
+
+        std::vector <saga::url> victims = job_dir.list ();
+
+        std::cout << "victims: " << victims.size () << std::endl;
+
+        for ( unsigned int i = 0; i < victims.size (); i++ )
+        {
+          std::cout << "bombing victim : " << i << std::endl;
+          if ( ::rand () % 2 )  // ~50% chance
+          {
+            // kaboom!
+            std::cout << " bomb hit    target " << i << " >:-)" << std::endl;
+            saga::advert::entry victim = job_dir.open (victims[i], saga::advert::ReadWrite);
+            victim.remove ();
+          }
+          else
+          {
+            std::cout << " bomb missed target " << i << " >:-(" << std::endl;
+          }
+        }
       }
-      catch ( ... )
+      catch ( const saga::exception & e )
       {
         // ignore errors
-        std::cout << " bomb missed target :-(" << std::endl;
+        std::cout << " bomb mailfunction - mision aborted :-((\n" << e.what () << std::endl;
       }
     }
 
