@@ -136,7 +136,7 @@ int main (int argc, char** argv)
             // kaboom!
             std::cout << " bomb hit    target " << i << " >:-)" << std::endl;
             saga::advert::entry victim = job_dir.open (victims[i], saga::advert::ReadWrite);
-            victim.remove ();
+            victim.set_attribute ("state", "bombed");
           }
           else
           {

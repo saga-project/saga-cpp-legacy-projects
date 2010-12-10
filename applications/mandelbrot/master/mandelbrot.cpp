@@ -575,6 +575,13 @@ int mandelbrot::compute (void)
           // may have more to do
           should_wait = false;
         }
+        else 
+        {
+          std::cout << "invalid state " << state << " - remove\n" << std::endl;
+          ads[j].remove ();
+          ads.erase (ads.begin () + j);
+          j--; // make sure we don't skip the next ad
+        }
       }
       catch (const saga::exception & e )
       {
