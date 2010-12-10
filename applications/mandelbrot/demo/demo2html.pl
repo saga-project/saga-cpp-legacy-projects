@@ -72,7 +72,7 @@ print OUT "     <a href='../$next/'>next</a>\n" if $next;
        <td bgcolor="$col_yellow"> <strong> jobs started    </strong> </td>
        <td bgcolor="$col_yellow"> <strong> jobs registered </strong> </td>
        <td bgcolor="$col_yellow"> <strong> items requested </strong> </td>
-       <td bgcolor="$col_yellow"> <strong> items started   </strong> </td>
+       <td bgcolor="$col_yellow"> <strong> items completed </strong> </td>
        <td bgcolor="$col_yellow"> <strong> url             </strong> </td>
       </tr>
 EOT
