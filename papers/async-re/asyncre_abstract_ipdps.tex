@@ -103,7 +103,10 @@ The rest of the paper is organized as follows. Section II presents the different
 The RE algorithm involves the concurrent execution of multiple similar
 simulations, the \emph{replicas}.  There is a loose-coupling between
 the replicas in form of periodic exchange attempts between paired
-replicas. %Previously, we demonstrated the usage of the SAGA Pilot-Job framework~\cite{saga_bigjob_condor_cloud} -- called the BigJob, to run RE simulations across multiple, heterogeneous distributed Grid and Cloud infrastructures~\cite{Luckow:2008fp}.
+replicas. %Previously, we demonstrated the usage of the SAGA Pilot-Job
+framework~\cite{saga_bigjob_condor_cloud} -- called the BigJob, to run
+RE simulations across multiple, heterogeneous distributed Grid and
+Cloud infrastructures~\cite{Luckow:2008fp}.
 %\alnote{maybe we should also intro SAGA at some point} \jhanote{Yes} The Simple API for Grid Applications (SAGA)~\cite{saga_gfd90} is an API standardization effort within the Open Grid Forum (OGF)~\cite{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. The various tasks that are carried out using the SAGA APIs include file staging, job spawning and the conduction of the exchange attempts.
 %Further, we introduced several adaptivity modes, e.\,g.\ adaptive
 %sampling that are able to react to dynamic changes in resource
@@ -118,6 +121,7 @@ replicas. %Previously, we demonstrated the usage of the SAGA Pilot-Job framework
 %this purpose, the SAGA File API and the GridFTP adaptor are used. The
 %replica jobs are then submitted to the resource using the SAGA CPR
 %API and the MIGOL/GRAM middleware.
+
 \subsection{Traditional Replica Exchange}
 For the vanilla implementation of RE (Case I), depending
 on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
@@ -280,10 +284,8 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 %  be made more clear. The following is ``implementation detail''. What
 %  is the conceptual difference between Case 3 and Case 2?}
 
-\section{Scale-Up and Scale-Out Experiments}
+\section{Scale-Up and Scale-Out: Experiments and Results}
 
-
-\section{Results?}
 %
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -300,7 +302,7 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 %To evaluate the performance of the various models of RE we have discussed in the abstract, we conducted several experiments on Teragrid and LONI resources. 
 %In the following sentences we will analyze the performance of synchronous RE(Case I) with centralized asynchronous RE(Case II). 
 
-\subsection{Scale up performance}
+\subsection{Scale-Up}
 
 \subsubsection{Experiments}
 We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K. One BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases.  %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
@@ -308,9 +310,22 @@ We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8,
 
 The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph(Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in Case I and the least in Case III.
 
-\subsubsection{Analysis}
-From the graph(Figure~\ref{fig:graph}), we see that Case I does not scale very well when we increase the number of replicas. This is because of an inability to start and end all the replicas at the same time. With more and more replicas, the synchronization cost increases. 
-In Case II, the exchanges happen in an asynchronous manner, but they are still conducted by the master alone. As the number of replicas increases, the master quickly becomes a bottleneck. But in Case III, the exchanges are all carried out in a decentralized manner. Many exchanges can occur between different pairs of replicas at the same time. Therefore, we say that the asynchronous RE algorithm scales better and that the decentralized implementation is better than the centralized implementation.
+\subsubsection{Scale up performance: Results and Analysis}
+
+{\it Results:}\\
+
+{\it Analysis: } From the graph(Figure~\ref{fig:graph}), we see that
+Case I does not scale very well when we increase the number of
+replicas. This is because of an inability to start and end all the
+replicas at the same time. With more and more replicas, the
+synchronization cost increases.  In Case II, the exchanges happen in
+an asynchronous manner, but they are still conducted by the master
+alone. As the number of replicas increases, the master quickly becomes
+a bottleneck. But in Case III, the exchanges are all carried out in a
+decentralized manner. Many exchanges can occur between different pairs
+of replicas at the same time. Therefore, we say that the asynchronous
+RE algorithm scales better and that the decentralized implementation
+is better than the centralized implementation.
 
 %
 %%%%% FIGURE %%%%%
