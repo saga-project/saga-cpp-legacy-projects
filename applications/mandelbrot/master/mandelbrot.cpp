@@ -577,7 +577,7 @@ int mandelbrot::compute (void)
         }
         else 
         {
-          std::cout << "invalid state " << state << " - remove\n" << std::endl;
+          std::cout << "invalid state " << state << " - remove" << std::endl;
           ads[j].remove ();
           ads.erase (ads.begin () + j);
           j--; // make sure we don't skip the next ad
