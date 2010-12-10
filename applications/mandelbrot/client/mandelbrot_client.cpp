@@ -117,7 +117,7 @@ int main (int argc, char** argv)
       {
         // sleep a little to increase chances for a hit (i.e. wait for adverts)  
         // the advert assignment can be slow, so the exact sleeptime is guesswork...
- //     ::sleep (10);
+        ::sleep (10);
 
         // seed random number generator
         struct timeval tv;
