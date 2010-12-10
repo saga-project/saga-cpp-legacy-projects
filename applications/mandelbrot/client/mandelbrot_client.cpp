@@ -118,8 +118,8 @@ int main (int argc, char** argv)
       try 
       {
         // sleep some seconds to increase our chance for a hit.  
-        // Advert is slooooow...
-        ::sleep (30);
+        // the advert service can be slow, so the exact sleeptime is guesswork...
+        ::sleep (1);
         saga::advert::directory victim = app_dir.open_dir (victim_id, 
                                                            saga::advert::ReadWrite);
 
