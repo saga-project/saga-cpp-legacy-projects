@@ -502,75 +502,95 @@ int mandelbrot::compute (void)
 
     for ( unsigned int j = 0;  j < ads.size (); j++ )
     {
-      if ( ads[j].get_attribute ("state") == "work" )
+      try 
       {
-        // nothing to do, go to sleep if that is true for all items:
-        // should_sleep remains true
-        //
-        // FIXME: polling is bad!  But notifications are not yet supported :-(
-      }
-      else if ( ads[j].get_attribute ("state") == "done" )
-      {
-        // get data from client
-        std::string       boxnum_s (ads[j].get_attribute ("boxnum"));
-        std::string       jobid_s  (ads[j].get_attribute ("jobid"));
-        std::stringstream data_ss  (ads[j].get_attribute ("data"));
+        std::string state = ads[j].get_attribute ("state");
 
-        // log work item on client
-        js_.get_client (jobid_s)->cnt_i2_++;
-        js_.get_client (jobid_s)->ep_->cnt_i2_++;
-
-        // data to paint
-        std::vector <std::vector <int> > data;
-
-        // iterate over all lines in data set
-        for ( int k = 0; k < box_size_x_; k++ )
+        if ( state == "work" )
         {
-          std::vector <int> line;
+          // nothing to do, go to sleep if that is true for all items:
+          // should_sleep remains true
+          //
+          // FIXME: polling is bad!  But notifications are not yet supported :-(
+        }
+        else if ( state == "done" )
+        {
+          // get data from client
+          std::string       boxnum_s (ads[j].get_attribute ("boxnum"));
+          std::string       jobid_s  (ads[j].get_attribute ("jobid"));
+          std::stringstream data_ss  (ads[j].get_attribute ("data"));
 
-          // iterate over all pixels in line
-          for ( int l = 0; l < box_size_y_; l++ )
+          // log work item on client
+          js_.get_client (jobid_s)->cnt_i2_++;
+          js_.get_client (jobid_s)->ep_->cnt_i2_++;
+
+          // data to paint
+          std::vector <std::vector <int> > data;
+
+          // iterate over all lines in data set
+          for ( int k = 0; k < box_size_x_; k++ )
           {
-            std::string num;
-            data_ss >> num;
-            line.push_back (::atoi (num.c_str ()));
+            std::vector <int> line;
+
+            // iterate over all pixels in line
+            for ( int l = 0; l < box_size_y_; l++ )
+            {
+              std::string num;
+              data_ss >> num;
+              line.push_back (::atoi (num.c_str ()));
+            }
+
+            data.push_back (line);
           }
 
-          data.push_back (line);
+          // calculate box coordinates from box_num
+          int boxnum = ::atoi (boxnum_s.c_str ());
+
+          // box indicee coordinates
+          int box_x  =        boxnum % box_num_y_ ;
+          int box_y  = floor (boxnum / box_num_y_);
+
+          // box pixel coordinates
+          int box_off_x = box_y * box_size_x_;
+          int box_off_y = box_x * box_size_y_;
+
+          std::string id = boxnum_s + " (" + js_.get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
+
+          for ( unsigned int d = 0; d < odevs_.size (); d++ )
+          {
+            odevs_[d]->paint_box (box_off_x, box_size_x_,
+                                  box_off_y, box_size_y_,
+                                  data, id);
+          }
+
+          std::cout << "painting  box " << boxnum_s  << std::endl;
+          boxes_done++;
+
+          // remove finished ad
+          ads[j].remove ();
+          ads.erase (ads.begin () + j);
+
+          j--; // make sure we don't skip the next ad
+
+          // may have more to do
+          should_wait = false;
         }
+      }
+      catch (const saga::exception & e )
+      {
+        std::cout << "bogus advert " << j << " - remove\n" << e.what () << std::endl;
 
-        // calculate box coordinates from box_num
-        int boxnum = ::atoi (boxnum_s.c_str ());
-
-        // box indicee coordinates
-        int box_x  =        boxnum % box_num_y_ ;
-        int box_y  = floor (boxnum / box_num_y_);
-
-        // box pixel coordinates
-        int box_off_x = box_y * box_size_x_;
-        int box_off_y = box_x * box_size_y_;
-
-        std::string id = boxnum_s + " (" + js_.get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
-
-        for ( unsigned int d = 0; d < odevs_.size (); d++ )
+        try
         {
-          odevs_[d]->paint_box (box_off_x, box_size_x_,
-                                box_off_y, box_size_y_,
-                                data, id);
+          ads[j].remove ();
+        }
+        catch ( ... )
+        {
+          // ignore errors
         }
 
-        std::cout << "painting  box " << boxnum_s  << std::endl;
-        boxes_done++;
-
-        // remove finished ad
-        ads[j].remove ();
         ads.erase (ads.begin () + j);
-
-        // make sure we don't skip the next ad
-        j--; 
-
-        // may have more to do
-        should_wait = false;
+        j--; // make sure we don't skip the next ad
       }
     }
 
