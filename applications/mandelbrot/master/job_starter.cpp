@@ -122,7 +122,7 @@ job_starter::job_starter (std::string       a_dir,
                       << std::endl;
             j.cancel (); // clean up resources
 
-            ep->log_ << "spawning failed [1]: " << ep->exe_ << " " << ep->args_ << "\n";
+            ep->log_ << "job spawning failed [1]: " << ep->exe_ << " " << ep->args_ << "\n";
 
             // do not use this job
           }
@@ -146,7 +146,7 @@ job_starter::job_starter (std::string       a_dir,
         {
           std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
                     << std::endl;
-          ep->log_ << "spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n\n";
+          ep->log_ << "job spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n\n";
         }
       }
     }

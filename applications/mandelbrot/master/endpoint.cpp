@@ -56,7 +56,7 @@ endpoint::endpoint (std::string           name,
   }
   catch ( const saga::exception & e )
   {
-    log_ << "startup failed:\n";
+    log_ << "endpoint startup failed:\n";
     log_ << e.what ();
 
     valid_ = false;
