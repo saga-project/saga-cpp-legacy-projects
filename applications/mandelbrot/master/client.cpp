@@ -74,14 +74,15 @@ void client::cancel (void)
 
     try 
     {
-      std::cout << "killing   job " << name_ << std::endl;
+      std::cout << "killing   job " << name_ << " \t ... " << std::flush;
       job_.cancel ();
+      std::cout << "ok " << job_.get_state () << std::endl;
     }
     catch ( const saga::exception & e ) 
     {
+      std::cout << "failed " << job_.get_state () << std::endl;
       // so what? ;-)
     }
   }
-
 }
 
