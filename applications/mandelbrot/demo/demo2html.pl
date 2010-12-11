@@ -11,8 +11,8 @@ my $col_green  = "#99FF99";
 my $col_yellow = "#FFFF99";
 
 my $home = shift  || die "\n\tusage: $0 <demo_dir> <prev> <next>\n\n";
-my $prev = shift  || die "\n\tusage: $0 <demo_dir> <prev> <next>\n\n";
-my $next = shift  || die "\n\tusage: $0 <demo_dir> <prev> <next>\n\n";
+my $prev = shift  || "";
+my $next = shift  || "";
 
 -d "$home"        || die "invalid demo home dir $home\n";
 -f "$home/stdout" || die "Cannot find demo's stdout\n";
@@ -44,8 +44,10 @@ open OUT, (">$home/index.html") || die "Cannot open output file: $!\n";
    <tr>
     <td> <strong> navigation </strong> </td> 
     <td> 
-     <a href='../'>today</a>
      <a href='../../'>home</a>
+     <a href='../../today/'>today</a>
+     <a href='../../today/last/'>last</a>
+     <a href='../../today/current/'>current</a>
 EOT
 print OUT "     <a href='../$prev/'>prev</a>\n" if $prev;
 print OUT "     <a href='../$next/'>next</a>\n" if $next;
@@ -195,13 +197,17 @@ EOT
   {
     print OUT "Unknown\n";
   }
- print OUT <<EOT;
+
+  my $outsize = (stat ("$home/stdout"))[7];
+  my $errsize = (stat ("$home/stderr"))[7];
+
+  print OUT <<EOT;
     </td>
    </tr>
    <tr>
     <td> <strong> stdio: </strong> </td>
-    <td> <a href=stdout>stdout</a> 
-         <a href=stderr>stderr</a> </td>
+    <td> <a href=stdout>stdout</a> ($outsize bytes)<br>
+         <a href=stderr>stderr</a> ($errsize bytes)</td>
    </tr>
    <tr>
     <td valign='top'> <strong> result: </strong> </td>
@@ -215,5 +221,4 @@ EOT
 }
 
 close (OUT);
-
 
