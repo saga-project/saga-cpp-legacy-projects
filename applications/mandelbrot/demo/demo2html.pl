@@ -43,9 +43,10 @@ open OUT, (">$home/index.html") || die "Cannot open output file: $!\n";
 <html>
  <body> 
   <basefont face="mono, courier" size="4">
-  <table border="0">
+  <table border="1" rules="rows" frame="hsides">
    <tr>
-    <td valign='top'> <strong> navigation </strong> </td> 
+    <td> <strong> navigation </strong> </td> 
+    <td> &nbsp; </td>
     <td> 
      <a href='../../'>home</a>
      <a href='../../today/'>today</a>
@@ -58,12 +59,14 @@ print OUT "     <a href='../$next/'>next</a>\n" if $next;
     </td> 
    </tr>
    <tr>
-    <td valign='top'> <strong> configuration </strong> </td> 
+    <td> <strong> configuration </strong> </td> 
+    <td> &nbsp; </td>
     <td> 
      <a href='demo.ini'>demo.ini</a>
    </tr>
    <tr>
-    <td valign='top'> <strong> endpoints </strong> </td> 
+    <td> <strong> endpoints </strong> </td> 
+    <td> &nbsp; </td>
     <td> 
      <table border=1
             rules=all 
@@ -180,11 +183,18 @@ EOT
     </td>
    </tr>
    <tr>
-    <td valign='top'> <strong> start: </strong> </td>
+    <td> <strong> start </strong> </td>
+    <td> &nbsp; </td>
     <td> $dates[0] </td>
    </tr>
    <tr>
-    <td valign='top'> <strong> runtime: </strong> </td>
+    <td> <strong> stop </strong> </td>
+    <td> &nbsp; </td>
+    <td> $dates[1] </td>
+   </tr>
+   <tr>
+    <td> <strong> runtime </strong> </td>
+    <td> &nbsp; </td>
     <td>
 EOT
 
@@ -194,7 +204,13 @@ EOT
     my $end   = ParseDate ($dates[1]);
     my $delta = DateCalc  ($begin, $end);
 
-    print OUT Delta_Format ($delta, "%mv:%sv min");
+    my $min = Delta_Format ($delta, "%mv"); 
+    my $sec = Delta_Format ($delta, "%sv"); 
+
+    if ( $min =~ /^\d$/io ) { $min = "0$min"; }
+    if ( $sec =~ /^\d$/io ) { $sec = "0$sec"; }
+
+    print OUT "$min:$sec min";
   }
   else
   {
@@ -208,12 +224,14 @@ EOT
     </td>
    </tr>
    <tr>
-    <td valign='top'> <strong> stdio: </strong> </td>
+    <td> <strong> stdio </strong> </td>
+    <td> &nbsp; </td>
     <td> <a href=stdout>stdout</a> ($outsize bytes)<br>
          <a href=stderr>stderr</a> ($errsize bytes)</td>
    </tr>
    <tr>
-    <td valign='top'> <strong> result: </strong> </td>
+    <td> <strong> result </strong> </td>
+    <td> &nbsp; </td>
     <td> <img scale='0.5' src='./mandelbrot.png'/> </td>
    </tr>
   </table>
