@@ -37,12 +37,15 @@ open OUT, (">$home/index.html") || die "Cannot open output file: $!\n";
 
   print OUT <<EOT;
 
+<head>
+ <link rel="stylesheet" type="text/css" href="../../demo.css" />
+</head>
 <html>
  <body> 
   <basefont face="mono, courier" size="4">
   <table border="0">
    <tr>
-    <td> <strong> navigation </strong> </td> 
+    <td valign='top'> <strong> navigation </strong> </td> 
     <td> 
      <a href='../../'>home</a>
      <a href='../../today/'>today</a>
@@ -55,7 +58,7 @@ print OUT "     <a href='../$next/'>next</a>\n" if $next;
     </td> 
    </tr>
    <tr>
-    <td> <strong> configuration </strong> </td> 
+    <td valign='top'> <strong> configuration </strong> </td> 
     <td> 
      <a href='demo.ini'>demo.ini</a>
    </tr>
@@ -177,11 +180,11 @@ EOT
     </td>
    </tr>
    <tr>
-    <td> <strong> start: </strong> </td>
+    <td valign='top'> <strong> start: </strong> </td>
     <td> $dates[0] </td>
    </tr>
    <tr>
-    <td> <strong> runtime: </strong> </td>
+    <td valign='top'> <strong> runtime: </strong> </td>
     <td>
 EOT
 
@@ -205,7 +208,7 @@ EOT
     </td>
    </tr>
    <tr>
-    <td> <strong> stdio: </strong> </td>
+    <td valign='top'> <strong> stdio: </strong> </td>
     <td> <a href=stdout>stdout</a> ($outsize bytes)<br>
          <a href=stderr>stderr</a> ($errsize bytes)</td>
    </tr>
