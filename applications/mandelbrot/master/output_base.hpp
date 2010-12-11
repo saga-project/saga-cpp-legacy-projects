@@ -21,7 +21,8 @@ class output_base
     virtual void paint_box (unsigned int x0, unsigned int n_x, 
                             unsigned int y0, unsigned int n_y,
                             std::vector <std::vector <int> > & data,
-                            std::string ident = "") = 0;
+                            std::string ident,
+                            std::string msg = "") = 0;
     virtual ~output_base (void) {};
 };
 

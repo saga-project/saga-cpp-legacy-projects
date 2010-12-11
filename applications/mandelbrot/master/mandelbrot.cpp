@@ -493,8 +493,9 @@ int mandelbrot::compute (void)
   unsigned int max_wait   = 20;  // FIXME: make ini para
   unsigned int timeout    =  5;  // FIXME: make ini para
   unsigned int boxes_done =  0;
+  bool         todo       = true;
 
-  while ( ads.size () )
+  while ( todo && ads.size () )
   {
     // if no box is done at all, we sleep for a bit.  On anything else, we loop
     // again immediately.
@@ -577,6 +578,8 @@ int mandelbrot::compute (void)
         }
         else 
         {
+          paint_it_black (ads[j], "invalid");
+
           std::cout << "invalid state " << state << " - remove" << std::endl;
           ads[j].remove ();
           ads.erase (ads.begin () + j);
@@ -587,6 +590,8 @@ int mandelbrot::compute (void)
       {
         std::cout << "bogus advert " << j << " - remove\n" << e.what () << std::endl;
 
+        paint_it_black (ads[j], "corrupted");
+
         try
         {
           ads[j].remove ();
@@ -595,6 +600,7 @@ int mandelbrot::compute (void)
         {
           // ignore errors
         }
+
 
         ads.erase (ads.begin () + j);
         j--; // make sure we don't skip the next ad
@@ -608,7 +614,7 @@ int mandelbrot::compute (void)
       if ( waited > max_wait )
       {
         std::cout << "waiting too long for more results - abort" << std::endl;
-        return -1;
+        todo = false;
       }
 
       waited++;
@@ -618,6 +624,71 @@ int mandelbrot::compute (void)
 
   // std::cout << boxes_done << " out of " << boxes_scheduled << " done" << std::endl;
 
+  // there may be adverts remaining which did not get ready in time - we paint those simply black.
+
+  for ( unsigned int j = 0;  j < ads.size (); j++ )
+  {
+    paint_it_black (ads[j], "missing");
+  }
+
   return 0;
+}
+
+void mandelbrot::paint_it_black (saga::advert::entry ad,
+                                 std::string         msg)
+{
+  // try to get meta-data from client
+  std::string boxnum_s ("");
+  std::string jobid_s  ("[?]-[?]");
+
+  try { boxnum_s = (ad.get_attribute ("boxnum")); } catch ( ... ) {  }
+  try { jobid_s  = (ad.get_attribute ("jobid" )); } catch ( ... ) {  }
+
+  // we simply do now know *where* to paint w/o boxnum...
+  if ( ! boxnum_s.empty () )
+  {
+    // data to paint
+    std::vector <std::vector <int> > data;
+
+    // iterate over all lines in data set
+    for ( int k = 0; k < box_size_x_; k++ )
+    {
+      std::vector <int> line;
+
+      // iterate over all pixels in line
+      for ( int l = 0; l < box_size_y_; l++ )
+      {
+        line.push_back (0);
+      }
+
+      data.push_back (line);
+    }
+
+    // calculate box coordinates from box_num
+    int boxnum = ::atoi (boxnum_s.c_str ());
+
+    // box indicee coordinates
+    int box_x  =        boxnum % box_num_y_ ;
+    int box_y  = floor (boxnum / box_num_y_);
+
+    // box pixel coordinates
+    int box_off_x = box_y * box_size_x_;
+    int box_off_y = box_x * box_size_y_;
+
+    std::string id = boxnum_s + " (" + js_.get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
+
+    for ( unsigned int d = 0; d < odevs_.size (); d++ )
+    {
+      odevs_[d]->paint_box (box_off_x, box_size_x_,
+                            box_off_y, box_size_y_,
+                            data, id, msg);
+    }
+
+    std::cout << "painting  box " << boxnum_s  << " (" << msg << ")" << std::endl;
+  }
+  else
+  {
+    std::cout << "painting  box impossible - unknown boxnum (" << msg << ")" << std::endl;
+  }
 }
 

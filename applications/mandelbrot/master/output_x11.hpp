@@ -52,7 +52,8 @@ class output_x11 : public output_base
     void paint_box (unsigned int x0, unsigned int n_x, 
                     unsigned int y0, unsigned int n_y,
                     std::vector <std::vector <int> > & data, 
-                    std::string ident = "");
+                    std::string ident,
+                    std::string msg = "");
 };
 
 #endif // SAGA_MANDELBROT_OUTPUT_X11_HPP

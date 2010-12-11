@@ -125,7 +125,8 @@ output_x11::~output_x11 (void)
 void output_x11::paint_box (unsigned int x0, unsigned int n_x, 
                             unsigned int y0, unsigned int n_y,
                             std::vector <std::vector <int> > & data, 
-                            std::string ident)
+                            std::string ident,
+                            std::string msg)
 {
   // sanity check.  
   if ( data.size () != n_x )
@@ -194,6 +195,13 @@ void output_x11::paint_box (unsigned int x0, unsigned int n_x,
   XSetForeground (dpy_, gc_, WhitePixel (dpy_, scr_));
   XDrawString    (dpy_, win_, gc_, x0 + 10, y0 + 20, 
                   tmp.c_str (), len);
+
+  if ( ! msg.empty () )
+  {
+    int x_off = msg.size () * 10;
+    XDrawString  (dpy_, win_, gc_, x0 + n_x - 20 - x_off, y0 + n_y - 20, 
+                  msg.c_str (), msg.size ());
+  }
 
   // flush window contents to make sure everything gets drawn
   XFlush (dpy_);

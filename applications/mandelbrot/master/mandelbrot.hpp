@@ -31,7 +31,9 @@ class mandelbrot
     std::vector <boost::shared_ptr <client> > clients_; // saga jobs
 
     // jobs startup
-    void job_startup (void);
+    void job_startup    (void);
+    void paint_it_black (saga::advert::entry ad,
+                         std::string         msg);
 
     // all job buckets are created under that advert directory, by
     // appending the session uid and the client jobnum:

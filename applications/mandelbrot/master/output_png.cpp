@@ -44,7 +44,8 @@ output_png::~output_png (void)
 void output_png::paint_box (unsigned int x0, unsigned int n_x, 
                             unsigned int y0, unsigned int n_y,
                             std::vector <std::vector <int> > & data, 
-                            std::string ident)
+                            std::string ident,
+                            std::string msg)
 {
   // sanity check.  
   if ( data.size () != n_x )
@@ -109,6 +110,15 @@ void output_png::paint_box (unsigned int x0, unsigned int n_x,
   char * txt = strdup (tmp.c_str ());
   png_.plot_text( (char*)(font_loc_.c_str ()), 8, x0+10, y0+10, 0, txt, 1.0, 1.0, 1.0);
   free (txt);
+
+  if ( ! msg.empty () )
+  {
+    int xoff  = png_.get_text_width ((char*)(font_loc_.c_str ()), 8, 
+                                     (char*)(msg.c_str ()));
+
+    png_.plot_text ((char*)(font_loc_.c_str ()), 8, x0+n_x-20-xoff, y0+n_y-20, 0, 
+                    (char*)(msg.c_str ()), 1.0, 1.0, 1.0);
+  }
 }
 
 #endif // HAVE_PNG
