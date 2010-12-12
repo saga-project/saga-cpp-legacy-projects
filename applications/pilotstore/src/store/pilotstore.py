@@ -92,10 +92,10 @@ class pilot_store:
         """ creates a new pilot_data object at the passed URL
             copy files to new base dir
         """
-        new_pilot_data = pilot_data(new_pilot_data_name, new_pilot_data_url)
+        new_pilot_store = pilot_store(new_pilot_data_name, new_pilot_data_url)
         new_file_locations = self.copy_files_to_location(new_pilot_data_url)
         for i in new_file_locations:
-            new_pilot_data.add_file(i)
+            new_pilot_store.add_file(i)
         
         
     def delete_files_at_location(self, file_list):
