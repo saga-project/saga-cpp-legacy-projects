@@ -98,6 +98,7 @@ demonstrate how a flexible and robust implementation enables the
 efficient use of a broad range of infrastructure. We compare and analyze the performance of the different RE models when we scale-up to 256 replicas and scale-out to 4 machines. 
 We present results using which the reader can understand which model of RE is most suited for a particular set of resources(distributed, local etc.,)
 
+\alnote{Should we add a section with some scientific background: HIV, Hepatitis...?}
 The rest of the paper is organized as follows. Section II presents the different algorithms of RE. Section III  presents the SAGA BigJob architecture which we use to conduct the simulations. In Section IV, we present how each of the RE algorithms are implemented. We also present different implementations of the asynchronous RE algorithm. In Section V, we describe the experiments that we conducted on local and distributed resources. In Section VI, we present the results and analysis. Section VII concludes the paper and discusses future work.
 
 \section{Replica-Exchange Approach}
@@ -164,8 +165,8 @@ This, while limiting the number of replicas which are available for an exchange,
 %sometimes waiting for them to complete while there are possibly other replicas available which are paired to their partners.
 %This also reduces the number of exchanges that can take place within a given time.
 Replica pairing works well in an ideal scenario but with heterogeneous systems, 
-where the resource availability fluctuates, it is far from ideal. It is 
-important to have a scheme that does not depend on a static, well defined 
+where the resource availability and performance fluctuates, it is far from ideal. It is 
+important to have a scheme that does not depend on a static, well defined \alnote{I think we should explain what well-defined resource model means.}
 model of resource availability. This forms the motivation for coming up 
 with a formulation that makes it possible to run RE simulations on a range of infrastructures.
  %\jhanote{The point is really the following: Paired-replicas are Ok if
@@ -190,11 +191,14 @@ where a replica can perform exchanges asynchronously with any other replica in t
 Since this is an asynchronous implementation, it is not easy to separate the total simulation time into smaller components. The reason is that many events can occur in parallel at the same time. Distinguishing between serial and parallel events, while (i) the time to launch the BigJobs and (ii) the queue wait time are serial events, (iii) the runtime of NAMD, (iv) the time to make the exchanges at the end of the run of each replica, and (v) the time required to restart the NAMD jobs after each exchange are not. %But we also know that, even in the asynchronous RE model, for particular number of exchanges, each replica needs to restart and run a particular number of times. For example, consider 4 replicas and 16 exchanges. That would mean that, on an average, each replica has to restart 8 times. In this manner, we can calculate the absolute replica runtime. We can also calculate (iv) and (v) 
 Here too, we exclude (i) and (ii). Further details depend on the implementation, but we can already see some efficiencies with the asynchronous approach. A tentative equation for total time would be:
 \athotanote{how to write the equation with overlapping components?}
+\alnote{I would propose to separate the total time-to-solution and the time for a generation. 
+In a homogeneous environment we could easily add the times for a generation. In a heterogeneous 
+environment we will need something like a speed factor to model this precisely. We should discuss this.}
   \begin{eqnarray}
 T_{TOT} &=& [T_{MD} + T_{ME} + T_{R}]
 \label{eq:equation 1}
 \end{eqnarray}
-We implement the asynchronous RE algorithm in two ways: (i) centralized(Case II) and (ii) decentralized(Case III).
+We implement the asynchronous RE algorithm in two ways: (i) centralized (case II) and (ii) decentralized (case III).
 
 %\athotanote{how do the control flow diagrams
 %  look? }
@@ -220,14 +224,14 @@ The Simple API for Grid Applications (SAGA)~\cite{saga_gfd90} is an API that pro
  \begin{figure}
 \centering
  \subfigure[SAGA BigJob]{
- \includegraphics[width=0.5\textwidth]{figures/Bigjob_arch.pdf}
+ \includegraphics[width=0.45\textwidth]{figures/Bigjob_arch.pdf}
 % \caption{\small SAGA/BigJob Architecture}
  \label{fig:bigjob}
  \vspace{-1em}
-}
- 
+}%
+%
 \subfigure[Control Flow: Synchronous Replica Exchange]{
-\includegraphics[width=0.5\textwidth]{figures/synchronous.pdf}
+\includegraphics[width=0.45\textwidth]{figures/synchronous.pdf}
 \label{fig:sync}
 \vspace{-1em}
 }
@@ -247,7 +251,25 @@ We present the implementation details of the Synchronous RE and the two differen
 
 \subsection{Synchronous RE}
 
-In synchronous RE, the master has the overall control of the replicas. The first step is to submit a request to the queue for a sufficient number of cores for all the replicas(BigJob). A connection to the advert server is opened to store job data. The second step is to stage the necessary files to the individual working directories. In the same step, the job descriptions of each of the replicas are posted to the advert server. When the BigJob becomes active, a 'bigjob agent' is is launched for each BigJob. The purpose of the bigjob agent is to look in the advert server for new replicas and to start those replicas. The bigjob agent also monitors the replicas under it and posts the status of the replicas to the advert server. The master queries the advert server for the latest job states and when it find that all the replicas are 'Done', it starts making the exchanges. The configuration files are staged to the respective working directories. After all the exchanges are done in a particular generation, the replica job descriptions are posted to the advert server and the bigjob agent restarts the replicas. This process is repeated until the required number of exchanges are made. 
+In synchronous RE, the master has the overall control of the replicas. 
+The first step is to submit a request to the queue for a sufficient 
+number of cores for all the replicas (BigJob). A connection to the 
+advert server is opened to store job data. The second step is to 
+stage the necessary files to the individual working directories. 
+In the same step, the job descriptions of each of the replicas are 
+posted to the advert server. When the BigJob becomes active, 
+a 'bigjob agent' is is launched for each BigJob. The purpose of 
+the bigjob agent is to look in the advert server for new replicas 
+and to start those replicas. The bigjob agent also monitors the 
+replicas under it and posts the status of the replicas to the advert 
+server. The master queries the advert server for the latest job 
+states and when it find that all the replicas are 'Done', it 
+starts making the exchanges. The configuration files are staged 
+to the respective working directories. After all the exchanges 
+are done in a particular generation, the replica job descriptions 
+are posted to the advert server and the bigjob agent restarts the 
+replicas. This process is repeated until the required number of 
+exchanges are made. 
 
 
 \subsection{Centralized Asynchronous RE}
@@ -258,19 +280,30 @@ In synchronous RE, the master has the overall control of the replicas. The first
 %\subfigure[Control Flow: Centralized Replica Exchange]{
 \includegraphics[width=1\textwidth]{figures/centralized.pdf}
 %\label{fig:async:b}
-\caption{\small In the centralized asynchronous RE (Figure 1(a))all the replicas are managed by the master, where as in the decentralized asynchronous RE version(Figure 1(b)), for each replica there is a replica agent which individually manages the replica.}
+\caption{\small In the centralized asynchronous RE (Figure 1(a)) all the replicas are managed by the master, where as in the decentralized asynchronous RE version(Figure 1(b)), for each replica there is a replica agent which individually manages the replica.}
 \label{fig:cent}
 %\vspace{-1em}
 \end{figure}
 
-In the centralized version (Figure~\ref{fig:async}(a)) of the asynchronous replica exchange (Case II), the master launches and monitors the replicas. The implementation is very similar to that of the synchronous RE, except that the exchanges are done in a asynchronous manner. 
+In the centralized version (Figure~\ref{fig:cent}(a)) of the asynchronous replica exchange (Case II), the master launches and monitors the replicas. The implementation is very similar to that of the synchronous RE, except that the exchanges are done in a asynchronous manner. 
 
-After the initial steps are carried out and the BigJob becomes active, the master searches for replicas in 'Done' state and makes exchanges. Again, the configuration files are staged and the job descriptions posted to the advert server for the bigjob agent to restart the replicas.%The decision as to make the exchange or not is made using the Metropolis scheme.  
+After the initial steps are carried out and the BigJob becomes active, the master searches for replicas in 'Done' state and makes exchanges. \alnote{some more details explaining steps 1-6 would be good.} Again, the configuration files are staged and the job descriptions posted to the advert server for the bigjob agent to restart the replicas.%The decision as to make the exchange or not is made using the Metropolis scheme.  
 The process is repeated until the required number of exchanges are made.
 
 \subsection{Decentralized Asynchronous RE}
 
-The decentralized implementation differs from the Cases I and II. We introduce a 'replica-agent' for each replica. Each replica-agent manages a single replica. Here, the master is limited to the submitting a BigJob request to the queue, staging the files. In place of the replica(NAMD executable), the replica-agent is launched. The replica-agent is nothing but a wrapper script for the replica. At this point, the replica-agent agent starts the replica. The replica-agent monitors the replica and posts the state to the advert server. When one of the replicas are ready to exchange, they search for another replica which is available and negotiate the exchange. There is no need to stage the configuration file in this case. The data is exchanged over via the advert server and the replica agent modifies the configuration file locally.
+The decentralized implementation differs from the Cases I and II. We introduce 
+a 'replica-agent' for each replica. Each replica-agent manages a single replica. 
+Here, the master is limited to the submitting a BigJob request to the queue, 
+staging the files. In place of the replica (NAMD executable), the replica-agent 
+is launched. The replica-agent is nothing but a wrapper script for the replica. 
+At this point, the replica-agent agent starts the replica. The replica-agent 
+monitors the replica and posts the state to the advert server. When one of the 
+replicas are ready to exchange, they search for another replica which is 
+available and negotiate the exchange. There is no need to stage the 
+configuration file in this case. \alnote {one could ask why is the 
+config file staged in case I and II then?} The data is exchanged over via the 
+advert server and the replica agent modifies the configuration file locally.
 
 Although both Case II and Case III implement the asynchronous RE algorithm, they differ in the way they are implemented. The replicas are either managed by a master (Case II) or each replica is managed individually (Case III). We propose Case III so as to not let the master in Case II to become a bottleneck, which can happen very quickly with a large number of replicas.
 
@@ -318,16 +351,16 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 \subsection{Scale-Up}
 
 \subsubsection{Experiments}
-We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K. One BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases.  %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
+We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K. \alnote{What resource?} One BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases.  %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
 %The initial results suggest that the performance has improved at two levels: (i) the time to completion of Case II is reduced by over 200\% compared to Case I and (ii) there is considerable reduction in the time to completion when running across four machines instead of only 1 machine, by as much as 65\%.
 
-The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph(Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in Case I and the least in Case III.
+The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph (Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in Case I and the least in Case III.
 
 \subsubsection{Scale up performance: Results and Analysis}
 
 {\it Results:}\\
 
-{\it Analysis: } From the graph(Figure~\ref{fig:graph}), we see that
+{\it Analysis: } From the graph (Figure~\ref{fig:graph}), we see that
 Case I does not scale very well when we increase the number of
 replicas. This is because of an inability to start and end all the
 replicas at the same time. With more and more replicas, the
@@ -354,6 +387,7 @@ is better than the centralized implementation.
 \centering
 \includegraphics[scale=0.80]{data/4Machines.pdf}
 \caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations across four machines.}
+\alnote{maybe it would be good to present both 2m/4m scenario in one graph. Makes the comparison a little easier.}
 \label{fig:4machines}
 \vspace{-1em}
 \end{figure}
@@ -364,7 +398,7 @@ We chose LONI and Teragrid machines to run Cases I, II \& III. We did experiment
 Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the behavior of Cases I, II and III across one, two and four machines, respectively. On the whole, there is not much difference between the local and distributed runs in any case. The reason being that there is very little interaction between the replicas. A very small configuration file is staged to the remote machines after an exchange, which will not add more than a couple of seconds per exchange. The rest of the co-ordination is done via the advert service, which is usually located on a remote machine in any case. Each query to the advert server is in the order of milli seconds and does not produce a noticeable effect on the performance. 
 
 \subsubsection{Analysis}
-In Figure~\ref{fig:2machines}, we see the performance of all three cases when run in a distributed manner across two machines. As the data that is exchanged between replicas is very small, the Cases I, II and III behave in a similar manner to the way they behave on a single machine. Again, asynchronous RE is better suited for distributed runs and the decentralized implementation scales best. The reason is, since each replica has its own replica agent, there is no need to transfer any files between machines. The required configuration files are created locally by the replica agent.
+In Figure~\ref{fig:2machines}, we see the performance of all three cases when run in a distributed manner across two machines. As the data that is exchanged between replicas is very small, the Cases I, II and III behave in a similar manner to the way they behave on a single machine. \alnote{we should add some numbers and maybe a graph for an example scenario: x: #machines y: time-to-solution} Again, asynchronous RE is better suited for distributed runs and the decentralized implementation scales best. The reason is, since each replica has its own replica agent, there is no need to transfer any files between machines. The required configuration files are created locally by the replica agent.
 
 
 %In Case I, the pair-wise replica exchange can occur only between replicas of the same generation. Therefore, each exchange step is attempted only after all the replicas have finished running. After the exchange, all the replicas are restarted sequentially. This inserts a delay between the start time of the first replica, the last replica and the replicas in between. %As more resources become available at different times, the replicas already running or done are forced to wait for the newly running replicas to finish before moving on to the next exchange step. %Each exchange step is counted as an exchange.
@@ -414,7 +448,7 @@ An important motivation for this work is to implement a scheme that does not dep
 static, well defined model of resource availability. %We test and scale
 %our implementation on production level grids such as Teragrid and
 %LONI~\cite{LONI_web}.
-Preliminary results, shown in Figure~\ref{fig:graph}, indicate the most important advantages of asynchronous RE and SAGA/BigJob over traditional RE: (a) allows for exchanges to occur between replicas with non-nearest temperatures, which in turn allows crosswalks to happen (b) a reduced time to completion when running on more than one machine due to improved resource availabilities, (c) the advantage of using a pilot-job mechanism, which eliminates the waiting times at the local resource manager, and (d) the ability to scale out across different production level infrastructure, such as, the Teragrid and LONI.
+Preliminary results, shown in Figure~\ref{fig:graph}, indicate the most important advantages of asynchronous RE and SAGA/BigJob over traditional RE: (a) allows for exchanges to occur between replicas with non-nearest temperatures, which in turn allows crosswalks to happen (b) a reduced time to completion when running on more than one machine due to improved resource availabilities, (c) the advantage of using a pilot-job mechanism, which eliminates the waiting times at the local resource manager, \alnote{have shown this in prev. papers, but we don't really have data in this one} and (d) the ability to scale out across different production level infrastructure, such as, the Teragrid and LONI.
 % It performs well even after doubling and quadrupling the number of
 % exchanges required to complete the simulation. The time to
 % completion only increases by 35\% after doubling and 117\% after
@@ -427,7 +461,7 @@ Preliminary results, shown in Figure~\ref{fig:graph}, indicate the most importan
 %In summary, we have established the ability to scale-out across different
 %infrastructure and compared the performance of the asynchronous
 %RE with the synchronous RE at large scales. 
-Further, we compare the traditional RE model (Case I) and the centralized(Case II) and decentralized(Case III) models of the asynchronous replica exchange by modeling and repeating the experiments a reasonable number of times, so as to accurately quantify the scientific and performance gains. %We also propose to measure the frequency with which crosswalks occur with increasing number of replicas and measure the advantages due to a decentralized implementation in the full paper.
+Further, we compare the traditional RE model (Case I) and the centralized (Case II) and decentralized (Case III) models of the asynchronous replica exchange by modeling and repeating the experiments a reasonable number of times, so as to accurately quantify the scientific and performance gains. %We also propose to measure the frequency with which crosswalks occur with increasing number of replicas and measure the advantages due to a decentralized implementation in the full paper.
 
 
 %With this asynchronous replica exchange mechanism we can improve the
