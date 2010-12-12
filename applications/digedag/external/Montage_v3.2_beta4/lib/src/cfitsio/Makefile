@@ -19,23 +19,23 @@
 # testprog targets. See also changes and comments in configure.in
 #
 
-CFITSIO_PREFIX	= /Users/merzky/Downloads/Montage_v3.2_beta4/lib/src/cfitsio
+CFITSIO_PREFIX	= /N/u/merzky/digedag/external/Montage_v3.2_beta4/lib/src/cfitsio
 CFITSIO_LIB	= ${CFITSIO_PREFIX}/lib
 CFITSIO_INCLUDE	= ${CFITSIO_PREFIX}/include
 
 SHELL =		/bin/sh
 RANLIB =	ranlib
 CC =		cc
-CFLAGS =	-O -O2 -fPIC -fno-common
-FC =		
+CFLAGS =	-O -O2 -Dg77Fortran -fPIC
+FC =		f77
 LDFLAGS =	$(CFLAGS)
-DEFS =		 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MATH_H=1 -DHAVE_LIMITS_H=1 -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DHAVE_FTRUNCATE=1 -DHAVE_LONGLONG=1 -DHAVE_SHMEM_SERVICES=1 -DHAVE_UNION_SEMUN=1 -DHAVE_NET_SERVICES=1 
+DEFS =		 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MATH_H=1 -DHAVE_LIMITS_H=1 -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DHAVE_FTRUNCATE=1 -DHAVE_LONGLONG=1 -DHAVE_SHMEM_SERVICES=1 -DHAVE_NET_SERVICES=1 
 LIBS =		
 FLEX =		flex
 BISON =		bison
 
-SHLIB_LD =	cc -dynamiclib
-SHLIB_SUFFIX =	.dylib
+SHLIB_LD =	cc -shared
+SHLIB_SUFFIX =	.so
 
 .c.o:
 		$(CC) -c $(CFLAGS) $(DEFS) $<
@@ -53,7 +53,7 @@ CORE_SOURCES = 	buffers.c cfileio.c checksum.c compress.c drvrfile.c drvrmem.c \
 		swapproc.c wcssub.c wcsutil.c imcompress.c quantize.c ricecomp.c \
 		pliocomp.c
 
-SOURCES = ${CORE_SOURCES} 
+SOURCES = ${CORE_SOURCES} ${FITSIO_SRC}
 
 OBJECTS = 	${SOURCES:.c=.o}
 

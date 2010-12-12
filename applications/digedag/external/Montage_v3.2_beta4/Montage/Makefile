@@ -1,4 +1,4 @@
-# Filename: Makefile.Darwin
+# Filename: Makefile.LINUX
 
 # Version  Developer        Date     Change
 # -------  ---------------  -------  -----------------------
@@ -40,7 +40,7 @@
 #       			     wcsCheck to checkWCS for consistency
 # 1.1      John Good        13Mar03  Added mCoverageCheck, mHdrCheck, mGetHdr
 #                                    as well as several checking functions
-# 1.0      John Good        29Jan03  Original Darwin Makefile
+# 1.0      John Good        29Jan03  Original LINUX Makefile
 
 .SUFFIXES:
 .SUFFIXES: .c .o
@@ -49,7 +49,7 @@ CC     =	gcc
 MPICC  =
 CFLAGS =	-g -I. -I../lib/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 LIBS   =	-L../lib -lwcs -lcfitsio -lcoord -lmtbl -lsvc \
-		-lboundaries -lpixbounds -ltwoplane -lm
+		-lboundaries -lpixbounds -ltwoplane -lnsl -lm
 
 SBINS  =	mAdd mAddExec mBackground mBgExec mBgModel mConvert                   \
 		mCoverageCheck mDiff mDiffExec mDiffFitExec mFitExec mFitplane        \

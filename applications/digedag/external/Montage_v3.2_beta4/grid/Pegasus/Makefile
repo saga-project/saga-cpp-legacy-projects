@@ -1,4 +1,4 @@
-# Filename: Makefile.Darwin
+# Filename: Makefile.LINUX
 
 # Version  Developer        Date     Change
 # -------  ---------------  -------  -----------------------
@@ -16,7 +16,7 @@
 CC     =	gcc -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 CFLAGS =	-g -I. -I../../Montage -I../../lib/include
 LIBS   =	-L../../lib -lwcs -lcfitsio -lcoord -lmtbl -lsvc \
-		-lboundaries -lm
+		-lboundaries -lnsl -lm
 
 .c.o:
 		$(CC) $(CFLAGS)  -c  $*.c

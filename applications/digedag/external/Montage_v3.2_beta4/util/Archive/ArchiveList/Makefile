@@ -1,8 +1,8 @@
-# Filename: Makefile.Darwin
+# Filename: Makefile.LINUX
 
 # Version  Developer        Date     Change
 # -------  ---------------  -------  -----------------------
-# 1.0      John Good        14Dec04  Original Darwin Makefile
+# 1.0      John Good        14Dec04  Original Linux Makefile
 
 .SUFFIXES:
 .SUFFIXES: .c .o
@@ -10,7 +10,7 @@
 CC     =	cc -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 CFLAGS =	-g -I. -I../../../lib/include
 LIBS   =	-L../../../lib -lwcs -lcfitsio -lcoord -lmtbl -lsvc \
-		-lboundaries -lm
+		-lboundaries -lnsl -lm
 
 .c.o:
 		$(CC) $(CFLAGS)  -c  $*.c
