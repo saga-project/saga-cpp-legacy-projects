@@ -1,48 +1,60 @@
-%\documentclass{rspublic_}
-\documentclass[a4paper,10pt]{article}
-\usepackage[utf8]{inputenc}
+\documentclass{rspublic}   
+
+%------------------------------------------------------------------------- 
+% take the % away on next line to produce the final camera-ready version 
+%\pagestyle{empty}
+
+%\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
 \usepackage{url}
 \usepackage{float}
-\usepackage{times}
+\usepackage{times}    
+\usepackage{multirow}    
+\usepackage{listings}   
+\usepackage{times}     
+\usepackage{paralist}    
+\usepackage{wrapfig}    
+\usepackage[small,it]{caption}
 \usepackage{multirow}
+\usepackage{ifpdf}    
+
+                    
+%Bibliography                     
+\usepackage{natbib}   
+
 \usepackage{listings}
-\usepackage{paralist}
-%\usepackage{epsfig}
-\usepackage[figtopcap]{subfigure}
-\usepackage[hypertex]{hyperref}
-
-
-
-\usepackage{ifpdf}
-
-
-\newcommand{\I}[1]{\textit{#1}}
-\newcommand{\B}[1]{\textbf{#1}}
-\newcommand{\BI}[1]{\textbf{\textit{#1}}}
-\newcommand{\T}[1]{\texttt{#1}}
-
-\setlength\topmargin{0in}
-\setlength\headheight{0in}
-\setlength\headsep{0in}
-\setlength\textheight{9in}
-\setlength\textwidth{6.5in}
-\setlength\oddsidemargin{0in}
-\setlength\evensidemargin{0in}
-\setlength\parindent{0.1in}
-\setlength\parskip{0.25em}
-
-
-%\ifpdf
-%  \DeclareGraphicsExtensions{.pdf, .jpg}
-% \else
-%  \DeclareGraphicsExtensions{.eps, .ps}
-%\fi
-
-
-\usepackage{graphicx}
-\usepackage{subfigure}
+\usepackage{keyval}  
 \usepackage{color}
-\newcommand{\note}[1]{ {\textcolor{red} { ***NOTE: #1 }}}
+\definecolor{listinggray}{gray}{0.95}
+\definecolor{darkgray}{gray}{0.7}
+\definecolor{commentgreen}{rgb}{0, 0.4, 0}
+\definecolor{darkblue}{rgb}{0, 0, 0.4}
+\definecolor{middleblue}{rgb}{0, 0, 0.7}
+\definecolor{darkred}{rgb}{0.4, 0, 0}
+\definecolor{brown}{rgb}{0.5, 0.5, 0}
+
+
+
+\title[Efficient Replica-Exchange Simulations on
+  Large-Scale Production Infrastructure]{Efficient Replica-Exchange Simulations on
+  Large-Scale Production Infrastructure}
+
+\author[Thota, Luckow, Jha]{
+  Abhinav Thota$^{1,2}$, Andr\'e Luckow$^{1}$, Shantenu Jha$^{1,2,3}$,\\
+  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
+  \small{\emph{$^{2}$Department of Computer Science, Louisiana State
+      University, USA}}\\
+  \small{\emph{$^{3}$e-Science Institute, Edinburgh, UK}}\\
+}
+
+%\date{}
+
+\def\acknowledgementname{Acknowledgements}
+\newenvironment{acknowledgement}%
+{\section*{\acknowledgementname}%
+\parindent=0pt%
+}
+
 \newif\ifdraft
 \drafttrue
 \ifdraft
@@ -51,24 +63,42 @@
 \newcommand{\athotanote}[1]{ {\textcolor{green} { ***athota: #1 }}}
 \else
 \newcommand{\alnote}[1]{}
-\newcommand{\jhanote}[1]{}
 \newcommand{\athotanote}[1]{}
+\newcommand{\jhanote}[1]{}
 \fi
 
-\begin{document}
-\title{\LARGE Efficient Replica-Exchange Simulations on
-  Large-Scale Production Infrastructure}
- 
-\author{Abhinav Thota$^{1,2}$, Andre Luckow$^{1}$, Shantenu Jha$^{1,2,3}$\\
-   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
-   \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
-   \small{\emph{$^{3}$e-Science Institute, University of Edinburgh, UK}}
-   }
- 
-\maketitle
+\newcommand{\I}[1]{\textit{#1}}
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\T}[1]{\texttt{#1}}
+
+\newcommand{\glidein}[1]{Glide-In }  
+\newcommand{\replicaagent}[1]{Replica-Agent }         
+\newcommand{\remanager}[1]{RE-Manager }
+
+\begin{document} 
+
+
+\maketitle    
+
+\begin{abstract}{Replica-Exchange, SAGA, Large-Scale, Production}  
+
+Developing applications that are able to orchestrate heterogeneous resources across distributed resources is a complex
+task. Inevitably, the design and development of an application is influenced and constrained by the programming systems
+and the infrastructure it is developed against. Breaking this coupling between the development and the underlying
+infrastructure, to enable applications to be flexible (across infrastructure), extensible (to new methods of communication
+and coordination) and scalable is an important design objective of distributed applications Ð both logically
+distributed and physically distributed.
+In this work, we focus on the Replica-Exchange (RE) Methods Ð which represent a class of algorithms that
+involve a large number of loosely-coupled ensembles. RE simulations are used to understand physical phenomena Ð
+ranging from protein folding dynamics to binding affinity calculations.
+In this work, we develop a flexible, extensible and scalable implementation of RE that can utilise a range of infrastructure
+concurrently (and autonomically/adaptively), that supports different coordination mechanisms (publishsubscribe,
+centralised notification), different replica pairing mechanisms (synchronous versus asynchronous) and
+thereby different variants of the RE algorithm. We implement and demonstrate how a flexible and robust implementation
+enables the efficient use of a broad range of infrastructure.
+\end{abstract}
 
 \section{Introduction}
- 
 Developing applications that are able to orchestrate heterogeneous
 resources across distributed resources is a complex task.  Inevitably,
 the design and development of an application is influenced and
@@ -138,21 +168,21 @@ replicas can belong to different generations. If the exchange attempt
 is successful, parameters such as the temperature are swapped. Both
 jobs are then relaunched~\cite{Luckow:2008fp}.
 
-The simulation time for an exchange step can be divided into the following components 
-- (i) the time to launch the BigJobs, (ii) the queue wait time (first exchange step only) 
-($T_{W}$), (iii) the actual runtime of NAMD at each generation ($T_{MD}$), (iv) time spent waiting 
-for all replicas to be done ($T_{??}$), (v) the time to make the exchanges at the end of each 
-generation, and (vi) the time required to restart the NAMD jobs after each exchange 
-step. Steps (iii) to (vi) repeat at after each exchange. We only include steps (i) 
-and (ii) for completeness. They only occur at the beginning of the experiment and 
-we don't include them in our calculations. We consider the start time as the time 
+The total time to completion($T_{C}$) of the simulation is the sum of the following components:
+ (i) the time to launch the BigJobs($T_{L)}$, (ii) the queue wait time
+($T_{QW}$), and the product of the following components and the number of exchange steps($N_{E}$): (iii) the actual runtime of NAMD at each generation ($T_{MD}$), (iv) time spent waiting 
+for all replicas to be done ($T_{W}$), (v) the time to make the exchanges at the end of each 
+generation($T_{ME}$), and (vi) the time required to restart the NAMD jobs after each exchange 
+step($T_{R}$). Steps (iii) to (vi) repeat after each exchange. We only include steps (i) 
+and (ii) for completeness, which occur only at the beginning of the simulation.
+They are not necessary for our calculations. We consider the start time as the time 
 at which the replicas are launched for the first time. We also think that it is 
 safe to say that, irrespective of the implementation details, steps (iii) to 
 (vi) are inevitable. \alnote{we should put  behind each step which $T_{x}$ we refer to} 
 Putting everything in an equation:
 
 \begin{eqnarray}
-T_{TOT} &=& T_{MD} + T_{W} + T_{ME} + T_{R}
+T_{C} &=& [T_{MD} + T_{W} + T_{ME} + T_{R}] \times N_{E}
 \label{eq:equation 1}
 \end{eqnarray}
 
@@ -221,22 +251,20 @@ The Simple API for Grid Applications (SAGA)~\cite{saga_gfd90} is an API that pro
 
 
 %%%%% FIGURE %%%%%
- \begin{figure}
-\centering
- \subfigure[SAGA BigJob]{
- \includegraphics[width=0.45\textwidth]{figures/Bigjob_arch.pdf}
-% \caption{\small SAGA/BigJob Architecture}
- \label{fig:bigjob}
- \vspace{-1em}
-}%
-%
-\subfigure[Control Flow: Synchronous Replica Exchange]{
-\includegraphics[width=0.45\textwidth]{figures/synchronous.pdf}
-\label{fig:sync}
-\vspace{-1em}
-}
-\label{fig:sync}
-\caption{\small Caption}
+\begin{figure}[t]
+      \centering
+          \includegraphics[width=0.8\textwidth]{Bigjob_arch.pdf}
+          \caption{\footnotesize \bf SAGA/BigJob Architecture
+              }
+      \label{fig:bigjob}
+\end{figure}
+ 
+\begin{figure}[t]
+      \centering
+          \includegraphics[width=0.8\textwidth]{synchronous.pdf}
+          \caption{\footnotesize \bf Control Flow: Synchronous Replica Exchange
+              }
+      \label{fig:sync}
 \end{figure}
 
 
@@ -278,7 +306,7 @@ exchanges are made.
 \begin{figure}
 \centering
 %\subfigure[Control Flow: Centralized Replica Exchange]{
-\includegraphics[width=1\textwidth]{figures/centralized.pdf}
+\includegraphics[width=1\textwidth]{centralized.pdf}
 %\label{fig:async:b}
 \caption{\small In the centralized asynchronous RE (Figure 1(a)) all the replicas are managed by the master, where as in the decentralized asynchronous RE version(Figure 1(b)), for each replica there is a replica agent which individually manages the replica.}
 \label{fig:cent}
@@ -310,7 +338,7 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 \begin{figure}
 \centering
 %\subfigure[Control Flow: Decentralized Replica Exchange]{
-\includegraphics[width=1\textwidth]{figures/asyncre.pdf}
+\includegraphics[width=1\textwidth]{asyncre.pdf}
 %\label{fig:async:b}
 \caption{\small Decentralized control fow.}
 \label{fig:decent}
@@ -336,7 +364,7 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.50]{data/scale_up.pdf}
+\includegraphics[scale=0.50]{scale_up.pdf}
 \caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations on one machine. We repeated the experiments with up to 256 replicas. Up to 128 replicas, the experiments were conducted on QB and 256 replicas experiments were conducted on Ranger.}
 \label{fig:graph}
 \vspace{-1em}
@@ -351,8 +379,7 @@ Although both Case II and Case III implement the asynchronous RE algorithm, they
 \subsection{Scale-Up}
 
 \subsubsection{Experiments}
-We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K. \alnote{What resource?} One BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. The metric used is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases.  %Both cases were run over 1, 2 and 4 machines, where the BigJobs are distributed equally across the resources. 
-%The initial results suggest that the performance has improved at two levels: (i) the time to completion of Case II is reduced by over 200\% compared to Case I and (ii) there is considerable reduction in the time to completion when running across four machines instead of only 1 machine, by as much as 65\%.
+We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K on Teragrid machines QueenBee and Ranger. \alnote{What resource?} In each simulation, one BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. Up to 128 replicas, all simulations were conducted on QueenBee, but the 256 replica simulations were conducted on Ranger as QueenBee allocates a maximum of 2048 cores per job. The metric used for comparison of 4, 8, 16, 32, 64, 128 and 256 replicas is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases. It means that we are keeping the number of times each replica restarts, approximately, a constant. 
 
 The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph (Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in Case I and the least in Case III.
 
@@ -377,7 +404,7 @@ is better than the centralized implementation.
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[scale=0.80]{data/2Machines.pdf}
+\includegraphics[scale=0.80]{2Machines.pdf}
 \caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations across two machines.}
 \label{fig:2machines}
 \vspace{-1em}
@@ -385,7 +412,7 @@ is better than the centralized implementation.
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.80]{data/4Machines.pdf}
+\includegraphics[scale=0.80]{4Machines.pdf}
 \caption{\small The graph shows the mean run times of synchronous and asynchronous - centralized/decentralized RE simulations across four machines.}
 \alnote{maybe it would be good to present both 2m/4m scenario in one graph. Makes the comparison a little easier.}
 \label{fig:4machines}
@@ -478,9 +505,12 @@ Further, we compare the traditional RE model (Case I) and the centralized (Case 
 %  outline what infrastructure we / you are planning to use?} (iii)
 %compare different implementations of the Async version
  
- \bibliographystyle{IEEEtran} 
- \bibliography{literature,saga}
 
+\begin{acknowledgement}
+  ACK
+\end{acknowledgement}
 
+\bibliographystyle{kluwer}
+\bibliography{saga,literature}    
 \end{document}
 
