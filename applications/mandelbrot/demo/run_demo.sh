@@ -61,6 +61,10 @@ function main
     echo "demo done "
     echo "===============================" 
 
+
+    # Alas, if globus adaptor are loaded, we can't  kill mandelbrot_client  Argh.
+    killall -s 9 -v -w  mandelbrot_client
+
     # create html for the current demo - no 'next' nown yet
     echo "creating html: demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -"
     $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -
