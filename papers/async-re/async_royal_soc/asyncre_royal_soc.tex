@@ -128,8 +128,17 @@ demonstrate how a flexible and robust implementation enables the
 efficient use of a broad range of infrastructure. We compare and analyze the performance of the different RE models(synchronous and asynchronous) when we scale-up to 256 replicas and scale-out to 4 machines. 
 We present results using which the reader can understand which model of RE is most suited for a particular set of resources(distributed, local etc.,)
 
-\alnote{Should we add a section with some scientific background: HIV, Hepatitis...?}
-The rest of the paper is organized as follows. Section II presents the different algorithms of RE. Section III  presents the SAGA BigJob architecture which we use to conduct the simulations. In Section IV, we present how each of the RE algorithms are implemented. We also present different implementations of the asynchronous RE algorithm. In Section V, we describe the experiments that we conducted on local and distributed resources. In Section VI, we present the results and analysis. Section VII concludes the paper and discusses future work.
+\alnote{Should we add a section with some scientific background: HIV,
+  Hepatitis...?}  \jhanote{given the tightness of space, I think we
+  should try to avoid it. OK?} The rest of the paper is organized as
+follows. Section II presents the different algorithms of RE. Section
+III presents the SAGA BigJob architecture which we use to conduct the
+simulations. In Section IV, we present how each of the RE algorithms
+are implemented. We also present different implementations of the
+asynchronous RE algorithm. In Section V, we describe the experiments
+that we conducted on local and distributed resources. In Section VI,
+we present the results and analysis. Section VII concludes the paper
+and discusses future work.
 
 \section{Replica-Exchange Approach}
 \label{sec:repex-approach}
@@ -170,18 +179,27 @@ replicas can belong to different generations. If the exchange attempt
 is successful, parameters such as the temperature are swapped. Both
 jobs are then relaunched~\cite{Luckow:2008fp}.
 
-The total time to completion ($T_{C}$) of the simulation is the sum of the following components:
- (i) the time to launch the BigJobs ($T_{L)}$, (ii) the queue wait time
-($T_{QW}$), \alnote{do we really need to split up into launch time and wait time? They can't be added up: launch time $\subset$ queue wait time} and the product of the following components and the number of exchange steps ($N_{E}$): (iii) the actual runtime of NAMD at each generation ($T_{MD}$), (iv) time spent waiting 
-for all replicas to be done ($T_{W}$), (v) the time to make the exchanges at the end of each 
-generation ($T_{ME}$), and (vi) the time required to restart the NAMD jobs after each exchange 
-step ($T_{R}$). We only include steps (i) 
-and (ii) for completeness, which occur only at the beginning of the simulation. Steps (iii) to (vi) repeat after each exchange. We consider the start time as the time 
-at which the replicas are launched for the first time. We also think that it is 
-safe to say that, irrespective of the implementation details, steps (iii) to 
-(vi) are inevitable. \alnote{we should put  behind each step which $T_{x}$ we refer to} 
-Therefore, the actual time to solution is the sum of (iii), (iv), (v) and (vi) multiplied by the number of exchange steps ($N_{E}$). Putting everything in an equation:
+The total time to completion ($T_{C}$) of the simulation is the sum of
+the following components: (i) the time to launch the BigJobs
+($T_{L)}$, (ii) the queue wait time ($T_{QW}$), and the product of the
+following components and the number of exchange steps ($N_{E}$): (iii)
+the actual runtime of NAMD at each generation ($T_{MD}$), (iv) time
+spent waiting for all replicas to be done ($T_{W}$), (v) the time to
+make the exchanges at the end of each generation ($T_{ME}$), and (vi)
+the time required to restart the NAMD jobs after each exchange step
+($T_{R}$). We only include steps (i) and (ii) for completeness, which
+occur only at the beginning of the simulation. Steps (iii) to (vi)
+repeat after each exchange. We consider the start time as the time at
+which the replicas are launched for the first time. We also think that
+it is safe to say that, irrespective of the implementation details,
+steps (iii) to (vi) are common to all replica-exchange
+simulations. \alnote{we should put behind each step which $T_{x}$ we
+  refer to} \jhanote{not sure if you are referring to here (in text)
+  or in the equation?} Therefore, the actual time to solution is the
+sum of (iii), (iv), (v) and (vi) multiplied by the number of exchange
+steps ($N_{E}$). Putting everything in an equation:
 \alnote{Why don't we include $T_{L}$ and $T_{QW}$?}
+
 \begin{eqnarray}
 T_{C} &=& [T_{MD} + T_{W} + T_{ME} + T_{R}] \times N_{E}
 \label{eq:equation 1}
@@ -195,11 +213,17 @@ Exchanges can only take place between these paired replicas.
 This, while limiting the number of replicas which are available for an exchange, also inhibits exchanges between replicas with non-nearest temperatures. This also negates the possibility of crosswalks. A crosswalk is said to occur when a replica originally with a low temperature reaches the upper temperature range and then returns to the lower temperature range. %Moreover, the replicas are attached to their partners, 
 %sometimes waiting for them to complete while there are possibly other replicas available which are paired to their partners.
 %This also reduces the number of exchanges that can take place within a given time.
-Replica pairing works well in an ideal scenario but with heterogeneous systems, 
-where the resource availability and performance fluctuates, it is far from ideal. It is 
-important to have a scheme that does not depend on a static, well defined \alnote{I think we should explain what well-defined resource model means.}
-model of resource availability, where the resources and the resource availability are well defined. This forms the motivation for coming up 
-with a formulation that makes it possible to run RE simulations on a range of infrastructures.
+Replica pairing works well in an ideal scenario but with heterogeneous
+systems, where the resource availability and performance fluctuates,
+it is far from ideal. It is important to have a scheme that does not
+depend on a static \alnote{I think we should explain what well-defined
+  resource model means.} \jhanote{fixed. Please check} set of
+resources that are pre-defined at the time of workload submission.
+% availability, where the resources and the resource availability are
+% well defined. 
+This forms the motivation for coming up with a formulation that makes
+it possible to run RE simulations that can dynamically utilise a range
+of infrastructures.
  %\jhanote{The point is really the following: Paired-replicas are Ok if
   %it can be guaranteed that equal resources will be available, or the
   %resource availabilty can be predicted in advance. However, in
