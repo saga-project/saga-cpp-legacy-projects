@@ -86,9 +86,9 @@ Developing applications that are able to orchestrate heterogeneous resources acr
 task. Inevitably, the design and development of an application is influenced and constrained by the programming systems
 and the infrastructure it is developed against. Breaking this coupling between the development and the underlying
 infrastructure, to enable applications to be flexible (across infrastructure), extensible (to new methods of communication
-and coordination) and scalable is an important design objective of distributed applications Ð both logically
+and coordination) and scalable is an important design objective of distributed applications both logically
 distributed and physically distributed.
-In this work, we focus on the Replica-Exchange (RE) Methods Ð which represent a class of algorithms that
+In this work, we focus on the Replica-Exchange (RE) Methods which represent a class of algorithms that
 involve a large number of loosely-coupled ensembles. RE simulations are used to understand physical phenomena Ð
 ranging from protein folding dynamics to binding affinity calculations.
 In this work, we develop a flexible, extensible and scalable implementation of RE that can utilise a range of infrastructure
@@ -125,8 +125,8 @@ coordination mechanisms (publish-subscribe, centralised notification),
 different replica pairing mechanisms (synchronous versus asynchronous)
 and thereby different variants of the RE algorithm. We implement and
 demonstrate how a flexible and robust implementation enables the
-efficient use of a broad range of infrastructure. We compare and analyze the performance of the different RE models(synchronous and asynchronous) when we scale-up to 256 replicas and scale-out to 4 machines. 
-We present results using which the reader can understand which model of RE is most suited for a particular set of resources(distributed, local etc.,)
+efficient use of a broad range of infrastructure. We compare and analyze the performance of the different RE models (synchronous and asynchronous) when we scale-up to 256 replicas and scale-out to 4 machines. 
+We present results using which the reader can understand which model of RE is most suited for a particular set of resources (distributed, local etc.,)
 
 \alnote{Should we add a section with some scientific background: HIV,
   Hepatitis...?}  \jhanote{given the tightness of space, I think we
@@ -182,12 +182,12 @@ jobs are then relaunched~\cite{Luckow:2008fp}.
 The total time to completion ($T_{C}$) of the simulation is the sum of
 the following components: (i) the time to launch the BigJobs
 ($T_{L)}$, (ii) the queue wait time ($T_{QW}$), and the product of the
-following components and the number of exchange steps ($N_{E}$): (iii)
+following components and the number of exchange steps ($N_{X}$): (iii)
 the actual runtime of NAMD at each generation ($T_{MD}$), (iv) time
 spent waiting for all replicas to be done ($T_{W}$), (v) the time to
-make the exchanges at the end of each generation ($T_{ME}$), and (vi)
+make the exchanges at the end of each generation ($T_{X}$), and (vi)
 the time required to restart the NAMD jobs after each exchange step
-($T_{R}$). We only include steps (i) and (ii) for completeness, which
+($T_{r}$). We only include steps (i) and (ii) for completeness, which
 occur only at the beginning of the simulation. Steps (iii) to (vi)
 repeat after each exchange. We consider the start time as the time at
 which the replicas are launched for the first time. We also think that
@@ -197,13 +197,13 @@ simulations. \alnote{we should put behind each step which $T_{x}$ we
   refer to} \jhanote{not sure if you are referring to here (in text)
   or in the equation?} Therefore, the actual time to solution is the
 sum of (iii), (iv), (v) and (vi) multiplied by the number of exchange
-steps ($N_{E}$). Putting everything in an equation:
+steps ($N_{X}$). So, the time to completion, without (i) and (ii) would be:
 \alnote{Why don't we include $T_{L}$ and $T_{QW}$?} \jhanote{Maybe because
 they dont help understand the scaling behaviour and the fact none
 of these are a function of the replica-exchange algorithms..}
 
 \begin{eqnarray}
-T_{C} &=& [T_{MD} + T_{W} + T_{ME} + T_{R}] \times N_{E}
+T_{C} &=& [T_{MD} + T_{W} + T_{X} + T_{r}] \times N_{X}
 \label{eq:equation 1}
 \end{eqnarray}
 
@@ -245,15 +245,16 @@ of infrastructures.
 We propose an asynchronous RE algorithm similar to~\cite{parashar_arepex},
 where a replica can perform exchanges asynchronously with any other replica in the ensemble. This eliminates the need to pair the replicas and limit exchanges to fixed pairs of replicas. We differ from the model described in Parashar et al. in some important ways. The asynchronous RE model we developed runs on production level grids such as the Teragrid and LONI~\cite{LONI_web}, unlike a specialized infrastructure such as CometG. Also, we run the replicas as MPI jobs. 
 
-Since this is an asynchronous implementation, it is not easy to separate the total simulation time into smaller components. The reason is that many events can occur in parallel at the same time. There is a need to distinguish between serial and parallel events. While (i) the time to launch the BigJobs($T_{L}$) and (ii) the queue wait time($T_{QW}$) are serial events, (iii) the runtime of NAMD($T_{MD}$), (iv) the time to make the exchanges at the end of the run of a pair of replicas($T_{ME}$), and (v) the time required to restart the replicas($T_{R}$) after each exchange are not. But we know that, even in the asynchronous RE model, for a particular number of exchanges, each replica needs to restart and run a particular number of times. For example, consider simulation with 4 replicas conducting 16 exchanges. That would mean that, on an average, each replica has to restart 8 times. In this manner, we can calculate the absolute replica runtime as product of the runtime of a replica and the number of restarts($N_{R}$). We can also calculate (iv) and (v) for each exchange. In a homogeneous environment this would be true. 
+Since this is an asynchronous implementation, it is not easy to separate the total simulation time into smaller components. The reason is that many events can occur concurrently. %There is a need to distinguish between serial and parallel events. 
+While (i) the time to launch the BigJobs ($T_{L}$) and (ii) the queue wait time ($T_{QW}$) are sequential events, (iii) the runtime of NAMD ($T_{MD}$), (iv) the time to make the exchanges at the end of the run of a pair of replicas ($T_{X}$), and (v) the time required to restart the replicas ($T_{r}$) after each exchange are not. But we know that, even in the asynchronous RE model, for a particular number of exchanges, each replica needs to restart and run a particular number of times. For example, consider simulation with 4 replicas conducting 16 exchanges. That would mean that, on an average, each replica has to restart 8 times. In this manner, we can calculate the absolute replica runtime as product of the runtime of a replica and the number of restarts ($N_{R}$). We can also calculate (iv) and (v) for each exchange. In a homogeneous environment this would be true. 
 %Further details depend on the implementation, but we can already see some advantages over the traditional model. with the asynchronous approach. There are also some scientific advantages - making exchanges with non-nearest partners, crosswalks etc. 
-If ($N_{E}$) is the total number of exchanges, an equation for total time, excluding (i) and (ii), would be:
+If $N_{X}$ is the total number of exchanges, an equation for total time, excluding (i) and (ii), would be:
 \athotanote{how to write the equation with overlapping components?}
 \alnote{I would propose to separate the total time-to-solution and the time for a generation. 
 In a homogeneous environment we could easily add the times for a generation. In a heterogeneous 
 environment we will need something like a speed factor to model this precisely. We should discuss this.}
   \begin{eqnarray}
-T_{C} &=& T_{MD} \times N_{R} + [T_{ME} + T_{R}] \times N_{E}
+T_{C} &=& T_{MD} \times N_{R} + [T_{X} + T_{r}] \times N_{X}
 \label{eq:equation 1}
 \end{eqnarray}
 
@@ -278,10 +279,8 @@ We implement the asynchronous RE algorithm in two ways: (i) centralized (case II
 
 \section{SAGA BigJob - A Pilot-job Framework}
 
-\subsection{SAGA}
 The Simple API for Grid Applications (SAGA)(~\cite{saga_gfd90}) is an API that provides the basic functionality required to build distributed applications, tools and frameworks so as to be independent of the details of the underlying infrastructure. SAGA is an API standardization effort within the Open Grid Forum (OGF)~\cite{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. The various tasks that are carried out using the SAGA APIs include file staging, job spawning and the conduction of the exchange attempts.
 
-\subsection{SAGA BigJob Architecture}
 Previously, we demonstrated the usage of the SAGA Pilot-Job framework(~\cite{saga_bigjob_condor_cloud}) -- called the BigJob, to run RE simulations across multiple, heterogeneous, distributed grid and cloud infrastructure(~\cite{Luckow:2008fp}). Here we are using the SAGA BigJob to efficiently request and manage computational resources. 
 
 %%%%% FIGURE %%%%%
@@ -305,7 +304,7 @@ We present the implementation details of the Synchronous RE and the two differen
 In synchronous RE, the master controls all the replicas and the simulation. 
 First, the master submits a request to the resource manager for a  
 number of cores sufficient for all the replicas (BigJob). A connection to the 
-advert server is opened to store the job data. Second, 
+advert server is opened to store the job descriptions. Second, 
 the necessary files are staged to the individual working directories and 
 the job descriptions of each of the replicas are 
 posted to the advert server. When the BigJob becomes active, 
@@ -348,7 +347,7 @@ In the centralized version (Figure~\ref{fig:cent}) of the asynchronous RE, the m
 
 First, the master submits a request to the resource manager for a  
 number of cores sufficient for all the replicas (BigJob). A connection to the 
-advert server is opened to store the job data. Second, 
+advert server is opened to store the job descriptions. Second, 
 the necessary files are staged to the individual working directories and 
 the job descriptions of each of the replicas are 
 posted to the advert server. When the BigJob becomes active, 
@@ -367,16 +366,16 @@ exchanges are made.
 
 \subsection{Decentralized Asynchronous RE}
 
-The decentralized implementation is complete different from the cases I and II. We introduce
+The decentralized implementation is very different from the implementation of cases I and II. We introduce
 a 'replica-agent' for each replica. Each replica-agent manages a single replica. 
-Here, the master is limited to the submitting a BigJob request to the resource manager, 
-staging the files initially and keeping the track of the number of exchanges made. Previously, we had the replica as a sub-job. But now, instead of the NAMD executable, we launch a replica-agent.
+Here, the master work is limited to submitting a BigJob request to the resource manager, 
+staging the files and keeping the track of the number of exchanges made. Previously, we had the replica as a sub-job. But now, instead of the NAMD executable, we launch a replica-agent.
 The replica-agent is nothing but a wrapper script for the replica. 
 Once BigJobs become active and the BigJob agent starts the replica agents, the replica agents in turn start the replicas. The work of BigJob agent monitoring and restarting the replicas is now done by the replica agent. The replica-agents 
 monitor the replicas and post the state to the advert server. When one of the 
 replicas is ready to exchange, the replica agent searches for another replica which is 
-available and negotiates the exchange. The temperatures are exchanged over the advert server and the replica agent writes a new configuration file locally. This also removes the need of staging the 
-configuration file to different machines by the master. \alnote {one could ask why is the 
+available and negotiates the exchange. The temperatures are exchanged over the advert server and the replica agent writes a new configuration file locally. This removes the need to stage the 
+configuration files to different machines, which is much more inefficient. \alnote {one could ask why is the 
 config file staged in case I and II then?} 
 
 Although both case II and case III implement the asynchronous RE algorithm, they differ in the way they are implemented. The replicas are either managed by a master (case II) or each replica is managed individually (case III). We propose case III so as to not let the master in case II to become a bottleneck, which can happen very quickly with a large number of replicas. We do see in our experiments that the decentralized implementation scales up and scales out better than the other two implementations.
