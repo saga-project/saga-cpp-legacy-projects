@@ -252,7 +252,7 @@ std::string mb_util::impl::ini::section::get_entry (std::string key,
 {
   typedef std::vector<std::string> string_vector;
 
-  string_vector split_key = saga::adaptors::utils::split (key, ' ');
+  string_vector split_key = saga::adaptors::utils::split (key, '.');
 
   key = split_key.back();
   split_key.pop_back();

@@ -9,8 +9,6 @@ SAGA_MB_ROOT  = ../../
 
 SAGA_SUBDIRS      = impl
 
-include $(SAGA_MB_ROOT)/config/make.cfg.base
-
 SAGA_SRC         += ini.cpp
 SAGA_ADD_LIB_OBJ  = ini.o impl/ini.o
 SAGA_ARC          = ini
