@@ -176,8 +176,8 @@ int main (int argc, char** argv)
     std::cout << " escap            : " << escap      << std::endl;
 
 
-    int box_size_x = floor (img_size_x / box_num_x);
-    int box_size_y = floor (img_size_y / box_num_y);
+    int box_size_x = (int) floor (img_size_x / box_num_x);
+    int box_size_y = (int) floor (img_size_y / box_num_y);
 
     std::cout << " box_size_x       : " << box_size_x  << std::endl;
     std::cout << " box_size_y       : " << box_size_y  << std::endl;
@@ -290,8 +290,8 @@ int main (int argc, char** argv)
             int boxnum = boost::lexical_cast <int> (ad.get_attribute ("boxnum"));
 
             // box indicee coordinates
-            int box_x  =        boxnum % box_num_y ;
-            int box_y  = floor (boxnum / box_num_y);
+            int box_x  =              boxnum % box_num_y ;
+            int box_y  = (int) floor (boxnum / box_num_y);
 
             std::cout << " boxnum           : " << boxnum 
                       << " (" << box_x << ", "  << box_y << ")" << std::endl;
