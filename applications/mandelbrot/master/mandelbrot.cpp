@@ -293,7 +293,7 @@ void mandelbrot::job_startup (void)
   //
   // FIXME: make timeoutini parameter
   //
-  int timeout    = 5;
+  int timeout    = 10;
   int clients_ok = 0;
 
   for ( unsigned int n = 0; n < clients_.size (); n++ )
