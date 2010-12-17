@@ -185,9 +185,10 @@ void output_x11::paint_box (unsigned int x0, unsigned int n_x,
 
   if ( tmp.size () > 53 )
   {
+    tmp[50] = '.';
     tmp[51] = '.';
     tmp[52] = '.';
-    tmp[53] = '.';
+    tmp.resize (53);
     len     = 53;
   }
 

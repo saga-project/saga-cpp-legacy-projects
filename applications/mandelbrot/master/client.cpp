@@ -16,12 +16,13 @@ client::client (std::string                  name,
   id_short_ = id_;
 
   // trim jobid for readability
-  if ( id_short_.size () > 54 )
+  if ( id_short_.size () > 53 )
   {
 
+    id_short_[50] = '.';
+    id_short_[51] = '.';
     id_short_[52] = '.';
-    id_short_[53] = '.';
-    id_short_[54] = '.';
+    id_short_.resize (53);
   }
 }
 
