@@ -49,6 +49,14 @@ endpoint::endpoint (std::string           name,
 
     s.add_context (c);
 
+    // std::cout << " contexttype   : " << ctype_     << std::endl;
+    // std::cout << " usercert      : " << cert_      << std::endl;
+    // std::cout << " userkey       : " << key_       << std::endl;
+    // std::cout << " userid        : " << user_      << std::endl;
+    // std::cout << " userpass      : " << pass_      << std::endl;
+    // std::cout << " certrepository: " << cadir_     << std::endl;
+    // std::cout << " proxy         : " << proxy_     << std::endl;
+
     saga::job::service js (s, url_);
 
     service_ = js;

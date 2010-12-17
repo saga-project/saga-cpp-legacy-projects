@@ -88,6 +88,14 @@ job_starter::job_starter (std::string       a_dir,
             jd.set_attribute (saga::job::attributes::description_working_directory, ep->pwd_);
           }
 
+          // std::cout << " command       : " << ep->exe_;
+          // for ( unsigned int i = 0; i < args.size (); i++ )
+          // {
+          //   std::cout << " " << args[i];
+          // }
+          // std::cout << std::endl;
+
+
           // let the clients store stdout/stderr to /tmp/mandelbrot_client.[id].out/err
           // FIXME: this should get enabled once the bes adaptor supports it, and
           // is able to stage the output files back into the pwd
