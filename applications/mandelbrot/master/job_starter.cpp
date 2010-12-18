@@ -156,6 +156,24 @@ job_starter::job_starter (std::string       a_dir,
                     << std::endl;
           ep->log_ << "job spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n\n";
         }
+        catch ( const std::exception & e )
+        {
+          std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
+                    << std::endl;
+          ep->log_ << "job spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n\n";
+        }
+        catch ( char const * s )
+        {
+          std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
+                    << std::endl;
+          ep->log_ << "job spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << s << "\n\n";
+        }
+        catch ( ... )
+        {
+          std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
+                    << std::endl;
+          ep->log_ << "job spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n";
+        }
       }
     }
   }
