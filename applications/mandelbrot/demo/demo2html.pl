@@ -36,10 +36,10 @@ open OUT, (">$home/index.html") || die "Cannot open output file: $!\n";
   my @dates = ($start_line, $stop_line);
 
   print OUT <<EOT;
-
 <head>
  <link rel="stylesheet" type="text/css" href="../../demo.css" />
 </head>
+
 <html>
  <body> 
   <basefont face="mono, courier" size="4">
