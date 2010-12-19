@@ -220,6 +220,7 @@ effectively used to conduct simulations.
 
 \jhanote{Mention that these are SAGA-based implementations. Something
   else would be implemented differently}
+ \athotanote{so do we make section 2 independent of implementation or not?}
 
 \subsection{Traditional Replica Exchange}
 In the traditional model of RE (Case I), depending upon
@@ -242,7 +243,7 @@ The total time to completion ($T_{C}$) of the simulation
 component is the simple sum of the following terms(?) (i) the time to
 launch the BigJobs \jhanote{BigJob has not been defined or explained
   in the paper yet?!}  ($T_{L)}$, (ii) the queue wait time
-($T_{QW}$). These terms not dependent on the the specific case
+($T_{QW}$). \athotanote{i removed references to the BigJob here, but lost in conflict-resolution}These terms not dependent on the the specific case
 employed, or the the number of replicas and thus as a whole neither is
 the first component. In contrast, the second component contains terms,
 which in general are dependent on specific case and number of
@@ -637,9 +638,9 @@ Although both case II and case III implement the asynchronous RE algorithm, they
 \subsection{Scale-Up}
 
 \subsubsection{Experiments}
-We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K on Teragrid machines QueenBee and Ranger. \alnote{What resource?} In each simulation, one BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. Up to 128 replicas, all simulations were conducted on QueenBee, but the 256 replica simulations were conducted on Ranger as QueenBee allocates a maximum of 2048 cores per job. The metric used for comparison of 4, 8, 16, 32, 64, 128 and 256 replicas is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases. It means that we are keeping the number of times each replica restarts, approximately, a constant. 
+In this section we describe the experiments we did increasing the number of replicas on a single machine. We configured the Cases I, II \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and 256 replicas sampling a temperature between 300 and 3000 K on Teragrid machines QueenBee and Ranger. \alnote{What resource?} In each simulation, one BigJob is launched with sufficient cores while each replica uses 16 MPI processes and runs 500 time steps between exchange attempts. Up to 128 replicas, all simulations were conducted on QueenBee, but the 256 replica simulations were conducted on Ranger as QueenBee allocates a maximum of 2048 cores per job. The metric used for comparison of 4, 8, 16, 32, 64, 128 and 256 replicas is the time to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges, respectively. It should be noted that the ratio between the number of replicas and the number of attempted exchanges is kept constant, for the purpose of comparison between each of these cases. It means that we are keeping the number of times each replica restarts, approximately, a constant. 
 
-The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph (Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in Case I and the least in Case III.
+The mean run time is obtained by subtracting the queue wait time of the BigJob from the total time. As the ratio between the number of replicas and number of exchanges is kept constant, ideally, the runtime must remain constant too. In the graph (Figure~\ref{fig:graph}), we see an increase in the time to completion as the number of replicas increases. The increase in the completion time is not uniform across the three cases. We see the most slow down in case I and the least in case III.
 
 \subsubsection{Scale up performance: Results and Analysis}
 
@@ -647,9 +648,9 @@ The mean run time is obtained by subtracting the queue wait time of the BigJob f
 
 {\it Analysis: } From the graph (Figure~\ref{fig:graph}), we see that
 Case I does not scale very well when we increase the number of
-replicas. This is because of an inability to start and end all the
-replicas at the same time. With more and more replicas, the
-synchronization cost increases.  In Case II, the exchanges happen in
+replicas. This is due to an inability to start and end all the
+replicas at the same time and also due to the centralized control of the workflow. With more and more replicas, the time to start the replicas increases  and 
+synchronization cost tends to increase too.  In Case II, the exchanges happen in
 an asynchronous manner, but they are still conducted by the master
 alone. As the number of replicas increases, the master quickly becomes
 a bottleneck. But in Case III, the exchanges are all carried out in a
@@ -673,8 +674,8 @@ is better than the centralised implementation.
 
 \subsection{Scale out}
 \subsubsection{Experiments}
-We chose LONI and Teragrid machines to run Cases I, II \& III. We did experiments distributed across two and four machines. We did these experiments with 8, 16 and 32 replicas distributed equally across two and four machines. 
-Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the behavior of Cases I, II and III across one, two and four machines, respectively. On the whole, there is not much difference between the local and distributed runs in any case. The reason being that there is very little interaction between the replicas. A very small configuration file is staged to the remote machines after an exchange, which will not add more than a couple of seconds per exchange. The rest of the co-ordination is done via the advert service, which is usually located on a remote machine in any case. Each query to the advert server is in the order of milli seconds and does not produce a noticeable effect on the performance. 
+In this section, we describe the experiments we did while increasing the number of machines across which the experiments were done. We chose LONI and Teragrid machines to run the experiments. We did experiments distributed across two and four machines with 8, 16 and 32 replicas distributed equally across the machines. 
+Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the behavior of Cases I, II and III across one, two and four machines, respectively. Overall, there is not much difference between the local and distributed runs in any case. The reason being that there is very little interaction between the replicas. A very small configuration file is staged to the remote machines after an exchange, which will not add more than a couple of seconds per exchange. The rest of the co-ordination is done via the advert service, which is usually located on a remote machine in any case. Each query to the advert server is in the order of milli seconds and does not produce a noticeable effect on the performance. 
 
 \subsubsection{Scale out performance: Results and Analysis}
 
