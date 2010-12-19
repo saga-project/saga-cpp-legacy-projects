@@ -1,0 +1,266 @@
+\documentclass[3p,twocolumn]{article}
+
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{url}
+\usepackage{ifpdf}
+\usepackage{hyperref}
+\usepackage{xspace}
+
+\setlength\parskip{-0.015em}
+\setlength\parsep{-0.15em}
+
+\newenvironment{shortlist}{
+	\vspace*{-0.85em}
+  \begin{itemize}
+ \setlength{\itemsep}{-0.3em}
+}{
+  \end{itemize}
+	\vspace*{-0.6em}
+}
+
+\begin{document}
+
+\title{Whitepaper: A Case for SAGA as Access Layer for Production Level Distributed Infrastructures}
+
+\author{Shantenu Jha$^{*1,2}$, Ole Weidner$^{1}$, Andre Merzky$^{1}$\\
+  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
+  \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
+  \small{\emph{$^{*}$Contact Author \texttt{sjha@cct.lsu.edu}}}
+  }
+
+\newif\ifdraft
+\drafttrue
+\ifdraft
+ \newcommand{\amnote}[1]{  {\textcolor{magenta} { ***AM: #1 }}}
+ \newcommand{\jhanote}[1]{ {\textcolor{red}     { ***SJ: #1 }}}
+ \newcommand{\olenote}[1]{ {\textcolor{blue}    { ***OW: #1 }}}
+\else
+ \newcommand{\amnote}[1]{}
+ \newcommand{\jhanote}[1]{}
+ \newcommand{\olenote}[1]{}
+\fi
+
+\newcommand{\dn}{\vspace*{0.33em}}
+\newcommand{\dnn}{\vspace*{0.66em}}
+\newcommand{\dnnn}{\vspace*{1em}}
+\newcommand{\uppp}{\vspace*{-1em}}
+\newcommand{\upp}{\vspace*{-0.66em}}
+\newcommand{\up}{\vspace*{-0.33em}}
+\newcommand{\shift}{\hspace*{1.00em}}
+
+\newcommand{\T}[1]{\texttt{#1}}
+\newcommand{\I}[1]{\textit{#1}}
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\BI}[1]{\B{\I{#1}}}
+\newcommand{\F}[1]{\B{[FIXME: #1]}}
+\newcommand{\TODO}[1]{\textcolor{red}{\B{TODO: #1}}}
+
+
+\begin{abstract}
+abstract
+\end{abstract}
+\maketitle
+
+
+
+\section{Aim of this document}
+
+ The aim of this document is to inform designers, architects and users
+ of production level distributed Computing infrastructures of the role
+ the SAGA API can play as an end user access layer.
+
+\section{Introduction?}
+
+ \subsection{SAGA at 10.000 Feet}
+
+  The "Simple API for Grid Applications"  is, as the name suggests, a
+  simple API which allows to implement distributed applications.  It
+  originally focused on Grid applications (i.e. applications running
+  in Grid environments), but in fact maps well to all kinds of
+  distributed infrastructures.
+
+  SAGA was designed with 3 main goals:
+
+  \begin{enumerate}
+
+   \item provide a stable programming interface to application
+   programmers
+ 
+   \item allow to simply express distributed application properties,
+   by providing high level abstraction of distributed and remote
+   operations
+   
+   \item shield the application developer from heterogeneous and
+   evolving infrastructures and middlewares
+
+  \end{enumerate}
+ 
+
+
+  The fact that SAGA is an OGF standard ensures the stability of the
+  API.   SAGA's scope is defined top-down, i.e. is determined by the
+  high-level (i,e, application level) requirements.  And SAGA's main
+  design principle is the 80:20 rule: 80% of functionality at 20% of
+  the complexity.
+
+ \subsection{SAGA API Specification}
+
+  The SAGA API specification process is hosted by the Open Grid Forum
+  (http://www.ogf.org/).  The SAGA Working group within OGFs
+  application area first collected a set of ca. 20 use cases,
+  considered representative for a wide range of distributed scientific
+  applications.  Based on these use cases, the group defined a set if
+  high level abstractions commonly required by those use cases.  Those
+  abstractions were then mapped into different SAGA API packages,
+  while ensuring that (a) the overall usability (e.g. the API
+  look-and-feel) was consistent over the whole scope of the API, (b)
+  the API functionality maps relatively well (but not necessarily
+  simply) onto existing middleware features, and (c) the API stayed
+  simple to use.
+
+  The fact that the resulting SAGA API specification is a rather hefty
+  document is not a token of the complexity of the resulting API, but
+  rather a token for the level of detail the API semantics is
+  specified.  Also, it must be noted while the resulting API is indeed
+  rather simple to use, it is, to most parts, rather difficult to
+  *implement* - ease of implementation has *not* been a design goal
+  for SAGA.  Modern distributed computing environments are very
+  complex infrastructures, and allowing applications to make use of
+  these complex systems is not trivial.  By defining a simple API, one
+  requires those complexities to be dealt with on a different layer,
+  i.e. within the SAGA API implementation. This is on purpose, as it
+  allows to keep those complexities out of the application code, which
+  is a declared goal of SAGA.
+
+  The SAGA API specification is object oriented, and language
+  independent (the API is defined in IDL).  The API is structured into
+  various packages (e.g. jobs, replicas, streams, etc.).  Those
+  packages have limited dependencies amongst each other - not all SAGA
+  implementations implement all packages.  All API packages share
+  certain properties: how are synchronous methods expressed, how are
+  notifications realized, how are security tokens expressed, what
+  types of exceptions are defined, etc.  Those properties are
+  specified in the SAGA-Core, the API's look and feel.  
+
+  That design of the SAGA API allows to specify additional API
+  packages, which adhere to the same look-and-feel.  In fact, several
+  such API packages have already been defined, and are standardized as
+  well, or are in the process of being standardized.
+
+\section{How is SAGA Used?}
+
+ \subsection{SAGA Development Efforts}
+
+  The language independent SAGA API specification has been mapped to
+  multiple programming languages, in particular to C++, Java and
+  Python.  Multiple implementations exists, the  most notable ones are
+  SAGA-C++, JSAGA and JavaSAGA.
+
+  SAGA-C++ is...
+
+  JSAGA and JavaSAGA are …
+
+  All three implementations provide python bindings - the Java
+  implementations realize those via Jython, the C++-implementation via
+  boost-python.  The two python bindings are at the moment being
+  unified, and have already been shown to be interoperable.
+
+  Interestingly, all three discussed SAGA implementations are adaptor
+  based: they implement a relatively small library which provides the
+  SAGA API, and a set of adaptors which translate the SAGA API calls
+  into the respective middleware operations.  It is those adaptors
+  which encapsulate most of the complexity which was formerly present
+  in the applications layer.  While SAGA adaptors are relatively easy
+  to implement, at least as a prototype, they require significant
+  maintainance effort to keep up with the middleare intricacies and
+  evolution.
+
+
+ \subsection{SAGA usage modes}
+
+ \subsection{Important SAGA Deployments}
+
+  The different SAGA implementations, and in particular SAGA-C++, have
+  by now been in use in different user communities for a number of
+  years, and thus have matured enough to enter the  field of
+  production cyber infrastructures.  At the same time, the number of
+  supported backends has grown to a level that basically all current
+  production infrastructures are supported (e.g. for jobs we support
+  ARC, gLite, Globus, Condor, PBS, Torque, DRMAA, EC2, Eucalyptus,
+  BES,  Naregi, Unicore, SMOA, Genesis-II, fork, and ssh).  
+
+  SAGA has so far been successfully and routinely used on the
+  TeraGrid, Loni, FutureGrid, DEISA, DGrid, and a number of smaller,
+  more localized cyber infrastructures.  While SAGA is relatively easy to deploy
+  in applications space (i.e. user space), its overall goal of improving the end
+  user experience of distributed systems benefits greatly from system level
+  installations.
+
+
+ \subsection{User Uptake}
+
+\section{Active SAGA Use Cases and Projects}
+
+ \subsection{ExTENCI}
+
+ ExTENCI: TeraGrid-OSG (2010-12)
+
+ Cactus Application Scenarios
+ 
+ \begin{itemize}
+  \item  Problem size varies – determinant of Infrastructure used
+   \begin{itemize}
+    \item TG, OSG or either..
+   \end{itemize}
+  \item  MPI-based applications have a very complex SW
+         environment that they need to worry about
+  \item  Application Scenarios/Usage Modes
+   \begin{itemize}
+    \item Ensemble of Cactus Simulations
+          (NumRel, EnKF (Petroleum Eng))
+    \item Multiphysics Code
+          (GR-MHD, CFD-MD)
+    \item Spawning Simulations
+          (Realtime ‘outsourcing’ from BlueWaters/Ranger to 
+           specialised architectures or less powerful resources)
+   \end{itemize}
+  \end{itemize}
+
+ \subsection{Bigjob}
+
+ \subsection{DEISA/TG/interop VPH (under virt phys human), pilotjob
+ (mult ensembles of 16/32 way par jobs)}
+
+ \subsection{gLite / Ganga}
+
+  Yakooub -> glite+globus/CERN/HEP /
+
+
+ \subsection{NewGrid / UWE}
+
+  medical imaging, workflow
+
+
+ \subsection{Mapper: multiphysics,}
+
+
+ \subsection{Tooling: SD, Sylvain}
+
+
+ \subsection{UC BioInformatics}
+
+  ? TODO ANDRE, bioinfo UC
+
+
+\section{Analysis of Use Cases}
+
+
+\section{Relation to EMI}
+
+
+\bibliographystyle{plain}
+\bibliography{egi-white-paper}
+
+\end{document}
+
