@@ -204,8 +204,8 @@ EOT
     my $end   = ParseDate ($dates[1]);
     my $delta = DateCalc  ($begin, $end);
 
-    my $min = Delta_Format ($delta, "%mv"); 
-    my $sec = Delta_Format ($delta, "%sv"); 
+    my $min = Delta_Format ($delta, "%mv") || "";
+    my $sec = Delta_Format ($delta, "%sv") || "";
 
     if ( $min =~ /^\d$/io ) { $min = "0$min"; }
     if ( $sec =~ /^\d$/io ) { $sec = "0$sec"; }
