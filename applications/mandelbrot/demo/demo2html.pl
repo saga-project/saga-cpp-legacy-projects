@@ -155,14 +155,14 @@ EOT
 
       print OUT <<EOT;
       <tr>
-       <td align="left"  bgcolor="$col_url"   > <a href='$fname'>$epname<a> </td>
-       <td align="right" bgcolor="$col_status"> $status  </td>
-       <td align="right" bgcolor="$col_job"   > $jobreq  </td>
-       <td align="right" bgcolor="$col_job"   > $jobok   </td>
-       <td align="right" bgcolor="$col_jobreg"> $jobreg  </td>
-       <td align="right" bgcolor="$col_item"  > $itemreq </td>
-       <td align="right" bgcolor="$col_item"  > $itemok  </td>
-       <td align="left"  bgcolor="$col_url"   > $url     </td>
+       <td align="left"  bgcolor="$col_url"> <a href='$fname'>$epname<a> </td>
+       <td align="right" bgcolor="$col_status"> $status </td>
+       <td align="right" bgcolor="$col_job"> $jobreq </td>
+       <td align="right" bgcolor="$col_job"> $jobok </td>
+       <td align="right" bgcolor="$col_jobreg"> $jobreg </td>
+       <td align="right" bgcolor="$col_item"> $itemreq </td>
+       <td align="right" bgcolor="$col_item"> $itemok </td>
+       <td align="left"  bgcolor="$col_url"> $url </td>
       </tr>
 EOT
     }
@@ -170,14 +170,14 @@ EOT
 
   print OUT <<EOT;
       <tr>
-       <td align="left"  bgcolor="$col_yellow"> <strong> total        </strong> </td>
-       <td align="right" bgcolor="$col_yellow"> <strong> -            </strong> </td>
-       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobreq  </strong> </td>
-       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobok   </strong> </td>
-       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobreg  </strong> </td>
+       <td align="left"  bgcolor="$col_yellow"> <strong> total </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> - </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobreq </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobok </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_jobreg </strong> </td>
        <td align="right" bgcolor="$col_yellow"> <strong> $tot_itemreq </strong> </td>
-       <td align="right" bgcolor="$col_yellow"> <strong> $tot_itemok  </strong> </td>
-       <td align="left"  bgcolor="$col_yellow"> <strong> -            </strong> </td>
+       <td align="right" bgcolor="$col_yellow"> <strong> $tot_itemok </strong> </td>
+       <td align="left"  bgcolor="$col_yellow"> <strong> - </strong> </td>
       </tr>
      </table>
     </td>
@@ -195,7 +195,6 @@ EOT
    <tr>
     <td> <strong> runtime </strong> </td>
     <td> &nbsp; </td>
-    <td>
 EOT
 
   if ( 2 == scalar (@dates) )
@@ -210,18 +209,17 @@ EOT
     if ( $min =~ /^\d$/io ) { $min = "0$min"; }
     if ( $sec =~ /^\d$/io ) { $sec = "0$sec"; }
 
-    print OUT "$min:$sec min";
+    print OUT "    <td> $min:$sec min </td>";
   }
   else
   {
-    print OUT "Unknown\n";
+    print OUT "    <td> Unknown </td>\n";
   }
 
   my $outsize = (stat ("$home/stdout"))[7];
   my $errsize = (stat ("$home/stderr"))[7];
 
   print OUT <<EOT;
-    </td>
    </tr>
    <tr>
     <td> <strong> stdio </strong> </td>
