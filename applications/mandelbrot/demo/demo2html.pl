@@ -34,6 +34,7 @@ open OUT, (">$home/index.html") || die "Cannot open output file: $!\n";
   $stop_line  =~ s/^\s*stop \s*:\s*//;
 
   my @dates = ($start_line, $stop_line);
+  chomp (@dates);
 
   print OUT <<EOT;
 <head>
