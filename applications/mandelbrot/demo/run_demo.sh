@@ -52,6 +52,11 @@ function main
       $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV $SAGA_DEMO_PREPREV $SAGA_DEMO_THIS
     fi
 
+    # some debug info
+    date
+    id
+    grid-proxy-info
+
     # this line expects mandelbrot_master to be installed in $SAGA_LOCATION/bin,
     # or elsewhere in $PATH
     cp $SAGA_MANDELBROT_INI $SAGA_DEMO_HOME
