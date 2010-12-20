@@ -156,7 +156,7 @@ EOT
 
       print OUT <<EOT;
       <tr>
-       <td align="left"  bgcolor="$col_url"> <a href='$fname'>$epname<a> </td>
+       <td align="left"  bgcolor="$col_url"> <a href='$fname'>$epname</a> </td>
        <td align="right" bgcolor="$col_status"> $status </td>
        <td align="right" bgcolor="$col_job"> $jobreq </td>
        <td align="right" bgcolor="$col_job"> $jobok </td>
@@ -225,8 +225,8 @@ EOT
    <tr>
     <td> <strong> stdio </strong> </td>
     <td> &nbsp; </td>
-    <td> <a href=stdout>stdout</a> ($outsize bytes)<br>
-         <a href=stderr>stderr</a> ($errsize bytes)</td>
+    <td> <a href=stdout>stdout</a> ($outsize bytes) <br>
+         <a href=stderr>stderr</a> ($errsize bytes) </td>
    </tr>
    <tr>
     <td> <strong> result </strong> </td>
