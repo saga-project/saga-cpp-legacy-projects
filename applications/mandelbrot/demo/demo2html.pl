@@ -210,7 +210,7 @@ EOT
     if ( $min =~ /^\d$/io ) { $min = "0$min"; }
     if ( $sec =~ /^\d$/io ) { $sec = "0$sec"; }
 
-    print OUT "    <td> $min:$sec min </td>";
+    print OUT "    <td> $min:$sec min </td>\n";
   }
   else
   {
