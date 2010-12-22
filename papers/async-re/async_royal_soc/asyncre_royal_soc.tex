@@ -220,9 +220,12 @@ effectively used to conduct simulations.
 
 \jhanote{Mention that these are SAGA-based implementations. Something
   else would be implemented differently}
+\alnote{Proposed structure: a) math. model b) sync c) async. We should give the reader some orientation in this section.}
 
 \subsection{Traditional Replica Exchange}
-In the traditional model of RE (Case I), depending upon
+
+\alnote{Are we already introducing cases in this sec?}
+In the traditional model of RE (case I), depending upon
 on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
 of replicas. When the replicas reach a
 pre-determined state (e.g. the NAMD job finishes after a fixed number
@@ -236,17 +239,21 @@ jobs are then relaunched~\citep{Luckow:2008fp}.
 
 We now list the possible steps that a typical RE run might involve. If $t$ is the average time between successful exchanges and $p$ the probability of a successful exchange, then:
 
-$t =  {1 \over p} \times {[T_s+T_{MD} + T_{X} + T_{W}]} $
+$t =  {1 \over p} \times {[T_s+T_{MD} + T_{X} + T_{W}]}$
 
-where $T_{s}$ is the time required to start a replica, $T_{MD}$ is the time it takes one replica to complete a particular number of time steps,
+\alnote{Do we need $T_{s}$ or can we subsume it into $T_{x}$?}
+\alnote{We should point out that we are discussing averages.}
+where $T_{s}$ is the time required to start a replica, $T_{MD}$ is the time 
+it takes one replica to complete a particular number of time steps,
 and $T_{X}$ is comprised of (i) finding a partner, (ii) exchanging
 states including file transfer, and (iii) book-keeping, status update
-etc.: ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
+etc.: ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ \alnote{We should either name it
+book keeping or coordination.} $T_{W}$ is the time spent waiting for the completion
+of all other replicas at the end of each generation.
 
-$T_{W}$ is the possible time that some of the replicas might spend in the synchronization step.
-The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
+The time-to-completion $T_{c}$ for N$_{X}$ exchanges is therefore: $N_{X} \times t$.
 If there are $\eta$ independent exchange events then the time $T$ for 
-N$_x$ exchanges is $T \over \eta$.
+N$_x$ exchanges is $T \over \eta$. \alnote{We should give a number for $\eta$ for sync RE}
 %Note $\eta_{sync}$ = $N_R \over 2$ and $\eta_{async}$ = $N_R $. \\
 
 
@@ -310,8 +317,7 @@ This, while limiting the number of replicas which are available for an exchange,
 Replica pairing works well in an ideal scenario but with heterogeneous
 systems, where the resource availability and performance fluctuates,
 it is far from ideal. It is important to have a scheme that does not
-depend on a static \alnote{I think we should explain what well-defined
-  resource model means.} \jhanote{fixed. Please check} set of
+depend on a static  set of
 resources that are pre-defined at the time of workload submission.
 % availability, where the resources and the resource availability are
 % well defined. 
@@ -330,6 +336,7 @@ of infrastructures.
   
 
 \subsection{Mathematical Model}
+\alnote{I think we should discuss the mathematical model before going into the specifics of sync/async RE.}
 
 Define $t$ to be the average time between successful exchanges
 
@@ -374,7 +381,9 @@ We propose an asynchronous RE algorithm similar
 to~\citep{parashar_arepex}, where a replica can perform exchanges
 asynchronously with any other replica in the ensemble. Here by asynchronously, we mean that no replica has to wait for all the replicas to finish running. Whenever a pair of replicas are available for exchange, the exchange is made. %This eliminates the need to pair the replicas and limit exchanges to fixed pairs of replicas. 
 We differ from the model described in \citep{parashar_arepex}
-in some important ways. The asynchronous RE model we developed runs on
+in some important ways. \alnote{Are we talking about a model here or 
+more about implementation aspects? Sounds more like impl.}
+The asynchronous RE model we developed runs on
 production level grids such as the Teragrid and LONI~\citep{LONI_web},
 unlike a specialized infrastructure such as CometG.
 \jhanote{Careful. Comet is only a coordination infrastructure which
@@ -385,7 +394,11 @@ MPI jobs. \jhanote{have not defined asynchronous implementation yet!} \athotanot
 % where a replica can perform exchanges asynchronously with any other replica in the ensemble. This eliminates the need to pair the replicas and limit exchanges to fixed pairs of replicas. We differ from the model described in 
 % ~\cite{parashar_arepex} in some important ways. The asynchronous RE model we developed runs on production level grids such as the Teragrid and LONI~\cite{LONI_web}, unlike a specialized infrastructure such as CometG. Also, we run the replicas as MPI jobs. 
 
-The different components which make up the total time to completion of an asynchronous RE run would be similar to the traditional RE run, except that there would not be a $T_W$.
+The different components which make up the total time to completion of 
+an asynchronous RE run would be similar to the traditional RE run, 
+except that there would not be a $T_W$. \alnote{This is too general. 
+We should drop the redundancy of explaining every component and rather 
+analyze the differences.}
 Therefore,  $t=  {1 \over p} \times {[T_s+T_{MD} + T_{X}]} $
 where $T_{s}$ is the time required to start a replica, $T_{MD}$ is the time it takes one replica to complete a particular number of time steps,
 and $T_{X}$ is comprised of (i) finding a partner, (ii) exchanging
@@ -393,7 +406,7 @@ states including file transfer, and (iii) book-keeping, status update
 etc.: ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
 The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
 If there are $\eta$ independent exchange events then the time $T$ for 
-N$_x$ exchanges is $T \over \eta$.
+N$_x$ exchanges is $T \over \eta$. \alnote{What is the value of $\eta$ for async RE?}
 
 
   
