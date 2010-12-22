@@ -463,19 +463,37 @@ It consists of three components: (i) the SAGA-BigJob Manager, (ii) the BigJob Ag
 
 
 \section{Implementation of Synchronous and Asynchronous RE}
-We present the implementation details of the Synchronous RE and the two different implementations of the Asynchronous RE algorithm here. Synchronous RE is only implemented in a centralised manner, where simulation and all the replicas are managed by a master. Due to the synchronization involved and the pairing mechanism, it is not beneficial to have each replica managed independently. But, in the case of asynchronous RE, we implement it in both centralised and decentralised  fashions. And, we do see that the decentralised implementation is much more efficient than the centralised implementation.
-The synchronous and asynchronous RE have been successfully deployed on production level infrastructure such as the Teragrid and LONI. 
+We present the implementation details of the synchronous RE and the two 
+implementations of the asynchronous RE algorithm here. Synchronous RE is 
+only implemented in a centralised manner, where simulation and all the 
+replicas are managed by a master. \alnote{The following needs refinement}
+Due to the synchronization involved and 
+the pairing mechanism, it is not beneficial to have each replica managed 
+independently. But, in the case of asynchronous RE, we implement it in both 
+centralised and decentralised  fashions. And, we do see that the decentralised 
+implementation is much more efficient than the centralised implementation.
+The synchronous and asynchronous RE have been successfully deployed on production 
+level infrastructure such as the Teragrid and LONI. 
 
 \subsection{Synchronous RE}
 
-The synchronous RE is implemented in a centralised manner where a master (RE Manager) process controls all the replicas and the simulation (see Figure~\ref{fig:coordination}a). First, the RE Manager launches the BigJobs and the job request is submitted to the resource manager ($T_{L}$). A connection to the advert server is opened to store the job descriptions. %Second, the necessary files are staged to the individual working directories and the job descriptions of each of the replicas are posted to the advert server. 
+The synchronous RE is implemented in a centralised manner where a master, the RE-Manager
+controls all the replicas and the simulation (see Figure~\ref{fig:coordination}a). 
+First, the RE Manager launches the BigJobs and the job request is submitted to the 
+resource manager ($T_{L}$). A connection to the advert server is opened to store the 
+job descriptions. %Second, the necessary files are staged to the individual working 
+directories and the job descriptions of each of the replicas are posted to the advert server. 
 After a certain amount of time waiting in the queue ($T_{QW}$), when the BigJob becomes active, 
 the BigJob agent polls the advert server for new sub-jobs 
-and starts ($T_{s}$) them (replicas). (We don't consider  $T_{L}$ and $T_{QW}$ in our equations as they do not have any bearing on the performance.) The BigJob agent also monitors the 
+and starts ($T_{s}$) them (replicas). (We don't consider  $T_{L}$ and $T_{QW}$ in our 
+model as they do not have any bearing on the performance.) The BigJob agent also monitors the 
 replicas it launched and posts the statuses of the replicas to the advert 
 server. The master queries the advert server for the latest job 
-states and when it finds that \emph{all} the replicas in the generation are 'Done' ($T_{MD}+T_{W}$), it 
-starts making the exchanges ($T_{X}$). Here, $T_{X}$ is comprised of the time to find a partner ($T_{F}$), exchanging states/file-staging ($T_{ex}$ and status updates ($T_{coord}$). 
+states and when it finds that \emph{all} the replicas in the generation are 'Done' 
+($T_{MD}+T_{W}$), it starts making the exchanges ($T_{X}$). 
+\alnote{We should clearly differ between describing the coordination pattern and analyzing the time}
+$T_{X}$ is comprised of the time to find a partner $T_{F}$, exchanging states/file-staging $T_{ex}$ 
+and status updates $T_{coord}$. \alnote{repetition with sec 2}
 After all the exchanges are done in a particular generation, the replica job descriptions 
 are posted to the advert server and the BigJob agent restarts the 
 replicas. This process is repeated until the required number of 
@@ -492,10 +510,20 @@ T_{C} &=& N_{X} \times t
 \label{eq:synch}
 \end{eqnarray}
 If there are $\eta$ independent exchange events then the time $T$ for 
-N$_x$ exchanges is $T \over \eta$. For this synchronous RE model, $\eta$ is 1, as all the exchanges are carried out in a serial manner. Also, assuming $p$ is 1, $T =  [T_s+T_{MD} + T_{X} + T_{W}] \times N_{X}$
-Quantifying each of the terms above with experimental values observed on QueenBee, we have:
-$T_s = 1.5 s; T_MD=90 s; T_X=T_F+T_ex+T_coord=0.3+1+0.6=1.9 s; T_W=varies.$ 
-The value of $T_W$ increases with the number of replicas, because the gap between the time the first and last replicas are started increases. 
+N$_x$ exchanges is $T \over \eta$. For this synchronous RE model, 
+$\eta$ is 1\alnote{1 or 2?}, as all the exchanges are carried out 
+in a serial manner. Also, assuming $p$ is 1,\alnote{unrealistic} 
+$T =  [T_s+T_{MD} + T_{X} + T_{W}] \times N_{X}$.
+Quantifying each of the terms above with experimental values observed 
+on QueenBee, we have:
+\alnote{$T_{MD}$ is for what scenario?}
+$T_s = 1.5\,sec; T_{MD}=90\,sec; T_{X}=T_{F}+T_{ex}+T_{coord}=0.3+1+0.6=1.9\,sec; T_W=varies.$ 
+\alnote{$T_{F}$ == 0.3\,sec? independent of number replicas? 
+Do we have an average value of $T_{W}$ with respect to different
+number of replicas maybe incl. stddev? table?}
+The value of $T_W$ increases with the number of replicas, because 
+the gap between the time the first and last replicas are 
+started increases. 
 
 
 % \begin{figure}[t]
@@ -519,7 +547,7 @@ for initially setting up all replicas. The later coordination is done peer-to-pe
 
 
 \subsection{Centralised Asynchronous RE}
-
+\alnote{please don't just copy&paste. Only focus on the differences}
 
 %%%%% FIGURE %%%%%
 % \begin{figure}
@@ -560,19 +588,26 @@ If there are $\eta$ independent exchange events then the time $T$ for
 N$_x$ exchanges is $T \over \eta$. For this asynchronous centralized RE model, $\eta$ is 1, as all the exchanges are carried out in a serial manner. Also, assuming $p$ is 1, $T =  [T_s+T_{MD} + T_{X} ] \times N_{X}$
 Quantifying each of the terms above with experimental values observed on QueenBee, we have:
 $T_s = 1.5 s, T_MD=90 s, T_X=T_F+T_ex+T_coord=0.3+1+0.6=1.9 s; $ 
-Here, $T_F$ varies with the number of replicas.
+Here, $T_F$ varies with the number of replicas. \alnote{these are exactly the same 
+numbers as in the sync RE scenario. Won't help us in the analysis of our experiments}
 
  \alnote{some more details explaining steps 1-6 would be good.}%The decision as to make the exchange or not is made using the Metropolis scheme.  
 
 \subsection{Decentralised Asynchronous RE}
 
 The decentralised implementation is very different from the implementation 
-of cases I and II. Although the RE Manager starts the simulation and launches 
-the BigJobs, the replicas are managed in a decentralised manner (see Figure~\ref{fig:coordination}b)). We launch
+of cases I and II. Although the RE-Manager starts the simulation and launches 
+the BigJobs, the replicas are managed in a decentralised manner 
+(see Figure~\ref{fig:coordination}b)). We launch
 a 'replica-agent' in place of each replica which manages the replicas in turn.
-Here, the RE Manager's work is limited to submitting a BigJob request to the resource manager ($T_{L}$), and keeping the track of the number of exchanges made. Previously, we had the replica as a sub-job. But now, instead of the NAMD executable, we launch a replica-agent.
+Here, the RE Manager's work is limited to submitting a BigJob request to the 
+resource manager ($T_{L}$), and keeping the track of the number of exchanges made. 
+Previously, we had the replica as a sub-job. But now, instead of the NAMD executable, 
+we launch a replica-agent.
 The replica-agent is nothing but a wrapper script for the replica. 
-Once BigJobs become active, the BigJob agent starts the replica agents ($T_{s}$), the replica agents in turn start the replicas ($T_{r}$). The work of BigJob agent monitoring and restarting the replicas is now done by the replica agent. The replica-agents 
+Once BigJobs become active, the BigJob agent starts the replica agents ($T_{s}$), 
+the replica agents in turn start the replicas ($T_{r}$). The work of BigJob agent 
+monitoring and restarting the replicas is now done by the replica agent. The replica-agents 
 monitor the replicas and post the state to the advert server. When one of the 
 replicas is ready to exchange ($T_{MD}$), the replica agent searches for another replica which is 
 available and negotiates the exchange ($T_{X}$). Here, $T_{X}$ is comprised of the time to find a partner ($T_{F}$), exchanging states/file-staging ($T_{ex}$) and status updates ($T_{coord}$). 
@@ -594,10 +629,10 @@ T &=& N_{X} \times t
 \label{eq:decentr}
 \end{eqnarray}
 If there are $\eta$ independent exchange events then the time $T$ for 
-N$_X$ exchanges is $T \over \eta$. For this asynchronous centralized RE model, $\eta$ is $N_R \over 2$, as at any time there could be a maximum of $N_R \over 2$ pairs of replicas negotiating. 
+N$_X$ exchanges is $T \over \eta$. For this asynchronous centralized RE model, $\eta$ is $N_R \over 2$, as at any time there could be a maximum of $N_R \over 2$ pairs of replicas negotiating.  \alnote{We really need to discuss $\eta$ tomorrow on the call!}
 Also, assuming $p$ is 1, $T = [T_r+T_{MD} + T_{X} ] \times N_{X} \over \eta$
 Quantifying each of the terms above with experimental values observed on QueenBee, we have:
-$T_r = 0.3 s, T_MD=90 s, T_X=T_F+T_ex+T_coord=1+0.5+0.3=1.8 s; $ 
+$T_r = 0.3 s, T_MD=90 s, T_X=T_F+T_ex+T_coord=1+0.5+0.3=1.8 s; $ \alnote{Why is $T_{coord}$ shorter than for central version?}
 Here, $T_F$ varies with the number of replicas. 
 %$T &=& 
 
