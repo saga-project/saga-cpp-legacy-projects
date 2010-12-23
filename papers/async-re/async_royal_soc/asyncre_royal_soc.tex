@@ -309,9 +309,15 @@ N$_x$ exchanges is $T \over \eta$. \alnote{We should give a number for $\eta$ fo
 %Here, the steps (v) and (vi) occur in a serial manner.
  
 % 1 para limitation on traditional replica exchange
-A major limitation of this model is that the replicas are paired in fixed groups. 
-Exchanges can only take place between these paired replicas.
-This, while limiting the number of replicas which are available for an exchange, also inhibits exchanges between replicas with non-nearest temperatures. This also negates the possibility of crosswalks. A crosswalk is said to occur when a replica originally with a low temperature reaches the upper temperature range and then returns to the lower temperature range. %Moreover, the replicas are attached to their partners, 
+A major limitation of this model is that the replicas are paired in
+fixed groups.  Exchanges can only take place between these paired
+replicas.  This, while limiting the number of replicas which are
+available for an exchange, also inhibits exchanges between replicas
+with non-nearest temperatures. This also negates the possibility of
+crosswalks. A crosswalk is said to occur when a replica originally
+with a low temperature reaches the upper temperature range and then
+returns to the lower temperature
+range. %Moreover, the replicas are attached to their partners,
 %sometimes waiting for them to complete while there are possibly other replicas available which are paired to their partners.
 %This also reduces the number of exchanges that can take place within a given time.
 Replica pairing works well in an ideal scenario but with heterogeneous
@@ -478,27 +484,33 @@ level infrastructure such as the Teragrid and LONI.
 
 \subsection{Synchronous RE}
 
-The synchronous RE is implemented in a centralised manner where a master, the RE-Manager
-controls all the replicas and the simulation (see Figure~\ref{fig:coordination}a). 
-First, the RE Manager launches the BigJobs and the job request is submitted to the 
-resource manager ($T_{L}$). A connection to the advert server is opened to store the 
-job descriptions. %Second, the necessary files are staged to the individual working 
-directories and the job descriptions of each of the replicas are posted to the advert server. 
-After a certain amount of time waiting in the queue ($T_{QW}$), when the BigJob becomes active, 
-the BigJob agent polls the advert server for new sub-jobs 
-and starts ($T_{s}$) them (replicas). (We don't consider  $T_{L}$ and $T_{QW}$ in our 
-model as they do not have any bearing on the performance.) The BigJob agent also monitors the 
-replicas it launched and posts the statuses of the replicas to the advert 
-server. The master queries the advert server for the latest job 
-states and when it finds that \emph{all} the replicas in the generation are 'Done' 
-($T_{MD}+T_{W}$), it starts making the exchanges ($T_{X}$). 
-\alnote{We should clearly differ between describing the coordination pattern and analyzing the time}
-$T_{X}$ is comprised of the time to find a partner $T_{F}$, exchanging states/file-staging $T_{ex}$ 
-and status updates $T_{coord}$. \alnote{repetition with sec 2}
-After all the exchanges are done in a particular generation, the replica job descriptions 
-are posted to the advert server and the BigJob agent restarts the 
-replicas. This process is repeated until the required number of 
-exchanges are made. The time to make one exchange would be:
+The synchronous RE is implemented in a centralised manner where a
+master, the RE-Manager controls all the replicas and the simulation
+(see Figure~\ref{fig:coordination}a).  First, the RE Manager launches
+the BigJobs and the job request is submitted to the resource manager
+($T_{L}$). \jhanote{Do we really need to introduce $T_{L}$?} A
+connection to the advert server is opened to store the job
+descriptions. Second, the necessary files are staged to the individual
+working directories and the job descriptions of each of the replicas
+are posted to the advert server.  After a certain amount of time
+waiting in the queue ($T_{QW}$), when the BigJob becomes active, the
+BigJob agent polls the advert server for new sub-jobs and starts
+($T_{s}$) them (replicas). (We don't consider $T_{L}$ and $T_{QW}$ in
+our model as they do not have any bearing on the
+performance. \jhanote{It does have bearing on the performance but NOT
+  on the scaling}) The BigJob agent also monitors the replicas it
+launched and posts the statuses of the replicas to the advert
+server. The master queries the advert server for the latest job states
+and when it finds that \emph{all} the replicas in the generation are
+'Done' ($T_{MD}+T_{W}$), it starts making the exchanges ($T_{X}$).
+\alnote{We should clearly differ between describing the coordination
+  pattern and analyzing the time} $T_{X}$ is comprised of the time to
+find a partner $T_{F}$, exchanging states/file-staging $T_{ex}$ and
+status updates $T_{coord}$. \alnote{repetition with sec 2} After all
+the exchanges are done in a particular generation, the replica job
+descriptions are posted to the advert server and the BigJob agent
+restarts the replicas. This process is repeated until the required
+number of exchanges are made. The time to make one exchange would be:
 \begin{eqnarray}
 t &=&  {1 \over p} \times {[T_s+T_{MD} + T_{X} + T_{W}]} 
 \label{eq:sy}
@@ -585,12 +597,16 @@ If the number of exchanges is ($N_{X}$), the total time to completion ($T_{C}$) 
 T_{C} &=& N_{X} \times t 
 \label{eq:centr}
 \end{eqnarray}
-If there are $\eta$ independent exchange events then the time $T$ for 
-N$_x$ exchanges is $T \over \eta$. For this asynchronous centralized RE model, $\eta$ is 1, as all the exchanges are carried out in a serial manner. Also, assuming $p$ is 1, $T =  [T_s+T_{MD} + T_{X} ] \times N_{X}$
-Quantifying each of the terms above with experimental values observed on QueenBee, we have:
-$T_s = 1.5 s, T_MD=90 s, T_X=T_F+T_ex+T_coord=0.3+1+0.6=1.9 s; $ 
-Here, $T_F$ varies with the number of replicas. \alnote{these are exactly the same 
-numbers as in the sync RE scenario. Won't help us in the analysis of our experiments}
+If there are $\eta$ independent exchange events then the time $T$ for
+N$_x$ exchanges is $T \over \eta$. For this asynchronous centralized
+RE model, $\eta$ is 1, as all the exchanges are carried out in a
+serial manner. Also, assuming $p$ is 1, $T = [T_s+T_{MD} + T_{X} ]
+\times N_{X}$ Quantifying each of the terms above with experimental
+values observed on QueenBee, we have: $T_s = 1.5 s, T_MD=90 s,
+T_X=T_F+T_ex+T_coord=0.3+1+0.6=1.9 s; $ Here, $T_F$ varies with the
+number of replicas. \alnote{these are exactly the same numbers as in
+  the sync RE scenario. Won't help us in the analysis of our
+  experiments}
 
  \alnote{some more details explaining steps 1-6 would be good.}%The decision as to make the exchange or not is made using the Metropolis scheme.  
 
@@ -653,7 +669,16 @@ Here, $T_F$ varies with the number of replicas.
 
 The decentralised implementation depends on the advert server much more than the other two implementations. Where as, in the other two implementations there are only a handful of connections to the advert server (one connection from each of the machines). But in the decentralised implementation, each replica agent has an open connection to the advert server. If the number of replicas is 256, then there would be approximately that many connections open with the advert server. This does not seriously impact the communication times with the advert server, and the overhead is unnoticeable.
 
-Although both case II and case III implement the asynchronous RE algorithm, they differ in the way they are implemented. The replicas are either managed by a master (case II) or each replica is managed individually (case III). We propose case III so as to not let the master in case II to become a bottleneck, which can happen very quickly with a large number of replicas. We do see in our experiments that the decentralised implementation scales up and scales out better than the other two implementations.
+Although both case II and case III implement the asynchronous RE
+algorithm, they differ in the way they are implemented. The replicas
+are either managed by a master (case II) or each replica is managed
+individually (case III). We propose case III so as to not let the
+master in case II to become a bottleneck, which can happen very
+quickly with a large number of replicas. \jhanote{If we believe this
+  is the case then we need to document and show how/much the slow down
+  with increasing replica is.} We do see in our experiments that the
+decentralised implementation scales up and scales out better than the
+other two implementations.
 
 % \begin{figure}
 % \centering
@@ -752,9 +777,29 @@ is better than the centralised implementation.
 \end{figure}
 
 \subsection{Scale out}
+
 \subsubsection{Experiments}
-In this section, we describe the experiments we did while increasing the number of machines across which the experiments were done. We chose LONI and Teragrid machines to run the experiments. We did experiments distributed across two and four machines with 8, 16 and 32 replicas distributed equally across the machines. 
-Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the behavior of Cases I, II and III across one, two and four machines, respectively. Overall, there is not much difference between the local and distributed runs in any case. The reason being that there is very little interaction between the replicas. A very small configuration file is staged to the remote machines after an exchange, which will not add more than a couple of seconds per exchange. The rest of the co-ordination is done via the advert service, which is usually located on a remote machine in any case. Each query to the advert server is in the order of milli seconds and does not produce a noticeable effect on the performance. 
+In this section, we describe the experiments we did while increasing
+the number of machines across which the experiments were done. We
+chose LONI and Teragrid machines to run the experiments. We did
+experiments distributed across two and four machines with 8, 16 and 32
+replicas distributed equally across the machines.
+Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the
+behavior of Cases I, II and III across one, two and four machines,
+respectively. Overall, there is not much difference between the local
+and distributed runs in any case. The reason being that there is very
+little interaction between the replicas. A very small configuration
+file is staged to the remote machines after an exchange, which will
+not add more than a couple of seconds per exchange. The rest of the
+co-ordination is done via the advert service, which is usually located
+on a remote machine in any case. Each query to the advert server is in
+the order of milli seconds and does not produce a noticeable effect on
+the performance.
+
+\jhanote{There are several parts of the above paragraph that should be
+  in the results sub-section. Similarly, there are parts in the
+  experiments section for 'scale-up' that should be in the results
+  section}
 
 \subsubsection{Scale out performance: Results and Analysis}
 
