@@ -6,10 +6,15 @@ import saga
 import traceback
 import sys
 import os
+import uuid
+import pdb
 
 # for logging
 import logging
 logging.basicConfig(level=logging.DEBUG)
+
+APPLICATION_NAME="pilot-data"
+DATABASE_HOST="localhost"
 
 class pilot_store:  
     """ abstractions for managing a group of files 
@@ -25,6 +30,7 @@ class pilot_store:
         self.base_dir=saga.url(str(base_dir)) # make sure base_dir is a SAGA URL!!
         self.weight=weight
         self.file_registry=[]
+        self.uuid = uuid.uuid1()
             
     ##############################################################################
     def register_file(self, file_url):
@@ -135,8 +141,29 @@ class pilot_store:
         if str(self.base_dir.host) != "":
             return self.base_dir.host
         return "localhost"
-
     
+    ##############################################################################
+    # serialization to/from advert service
+    @staticmethod
+    def to_advert(ps, pd_url):
+        ps_dir = saga.advert.directory(saga.url(pd_url.get_string()+"/"+str(ps.uuid)), saga.advert.Create | 
+                                          saga.advert.CreateParents | 
+                                          saga.advert.ReadWrite)
+        ps_dir.set_attribute("name", ps.name)
+        ps_dir.set_attribute("base_dir", ps.base_dir.get_string())
+        ps_dir.set_attribute("weight", str(ps.weight))
+        #pdb.set_trace()
+        ps_dir.set_vector_attribute("file_registry", [x.get_string() for x in ps.file_registry])
+            
+    @staticmethod
+    def from_advert(pd_dir):
+        ps = pilot_store()
+        ps.base_dir=pd_dir.get_attribute("base_dir")
+        ps.name=pd_dir.get_attribute("name")
+        ps.weight=pd_dir.get_attribute("weight")
+        ps.file_registry=pd_dir.get_vector_attribute("file_registry")
+        return ps
+        
     ##############################################################################
     def __del__(self): #deletes all files
         pass
@@ -151,6 +178,7 @@ class pilot_data:
     """
     def __init__(self):
         self.pilot_store={}
+        self.uuid = uuid.uuid1()
     
     ##############################################################################
     def create_pilot_store(self, name, base_dir):
@@ -174,6 +202,20 @@ class pilot_data:
     def __iter__(self):
         return self.pilot_store.itervalues()
 
+    @staticmethod
+    def to_advert(pilot_data):
+        pilot_data.app_url = saga.url("advert://" + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(pilot_data.uuid) + "/")
+        pilot_data.app_dir = saga.advert.directory(pilot_data.app_url, saga.advert.Create | 
+                                                           saga.advert.CreateParents | 
+                                                           saga.advert.ReadWrite)
+        
+        for i in pilot_data:
+            pilot_store.to_advert(i, pilot_data.app_url)
+            
+    @staticmethod
+    def from_advert():
+        pd = pilot_data()
+        return pd
     
     ##############################################################################
     def __del__(self):

@@ -38,6 +38,7 @@ if __name__ == "__main__":
     ps1.register_file(saga.url("pg5000.txt")) 
     
     pd.add_pilot_store(ps1)
+    pilot_data.to_advert(pd)
     
     ##########################################################################################
     print "Start some BigJob w/ affinity"
