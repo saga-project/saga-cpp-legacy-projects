@@ -573,18 +573,24 @@ master, the RE-Manager controls all the replicas and the simulation
 
 As we have already explained how the the BigJob works in section (~\ref{sec:BigJob}), we will only explain the additional functionality that is in place to make the RE simulations. We will now call the extended SAGA-BigJob Manager the \emph{RE Manager}. The RE Manager now receives various data about each replica, such as the state (running, done, etc.,), temeperature and energy from the BigJob agent after each run and based on that makes the exchanges. This is in addition to the typical management tasks carried out by the SAGA-BigJob Manager.
 
-The RE Manager first submits the BigJob to resource manager. While the BigJob may wait in the queue at the resource manager, the RE Manager submits each of the replica job descriptions to the advert server. This action almost always is completed before the BigJob becomes active in the queue. Therefore, we are not bothered by the time it takes to complete. But once the BigJob is active, the BigJob agent starts each of the jobs and the the average time it takes to retrieve the job-description and start one replica ($T_s$) is 0.3 seconds. For 32 replicas, it is 9.6 seconds. The replicas are now running, and the RE Manager periodically queries the advert server for the latest replica states and marks the replicas which finish running as done. The replicas typically don't finish running exactly at the same time. This is because of two reasons: (i) even though we are using  a homogenous infrastructure, we observed that replica run time varies by 1 or 2 seconds ($\delta$), and (ii) the replicas are started in a serial manner and if there are 32 replicas in the ensemble, there is a gap of 10 seconds between the time the first and last replicas are started. And we see this gap again between the time the first and last replica completion. We are calling this $T_W$ and for 32 replicas it is: $T_s \times N_R+\delta$ = 11.6 seconds. 
+The RE Manager first submits the BigJob to resource manager. While the BigJob may wait in the queue at the resource manager, the RE Manager submits each of the replica job descriptions to the advert server. This action almost always is completed before the BigJob becomes active in the queue. Therefore, we are not bothered by the time it takes to complete. But once the BigJob is active, the BigJob agent writes a node file for each replica and starts the jobs. And the average time it takes to start one replica is 0.3 seconds. For 32 replicas, it is 9.6 seconds. 
+
+While it is the case that the BigJob agent is ready to start the new replicas at the start of the first run of the simulation, it is not always the case. Once the BigJob agent starts the replicas, it also monitors them and updates the states in the advert server.   It also keeps a list of free and busy nodes. It takes 0.92 seconds to find that a replica is done, update the state and free the nodes. Therefore, while there is a gap of 9.6 seconds between the start times of the first and last replica, there is a difference of 29.44 seconds between the end time of the first replica and the last replica. This should be included in $T_W$. This also overlaps the startup time. So we need not count the startup time.
+
+The replicas are now running, and the RE Manager periodically queries the advert server for the latest replica states and marks the replicas which finish running as done. The RE Manager typically doesn't find the all the replicas done exactly at the same time. This is because of two reasons: (i) even though we are using  a homogenous infrastructure, we observed that replica run time varies by 1 or 2 seconds ($\delta$), (ii) the additional time the BigJob takes at the end of the each replica's run updating the data. And also, the RE Manager, once it finds that a replica is done, retrieves the current energies and temperatures by reading the output files. This takes 0.4 seconds per replica and for 32 replicas, it is 12.8 seconds. Again, this 12.8 seconds overlaps with the BigJob agent's processing of the replica's data, but not completely. 
+
+We are calling all this time between end of runtime and start of exchange making $T_W$ and for 32 replicas it is approximately: 40 seconds.
 
 Since this is a synchronous RE, all the replicas finish running before the exchanges are started. Hence, the RE manager won't spend any time searching for partners and $T_F$ is 0 seconds. $T_{ex}$ includes updating configuration files and transferring the them to their respective directories, in this case, locally. It takes 0.2 seconds to write and copy a file locally. $T_{ex} = 0.2 \times 2=0.4$ seconds. $T_{coord}$ is the time it takes to update the states of the pair of replicas in the advert server, which is $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is $0+0.4+0.22=0.62$ seconds. Since at each exchange step, there will be 16 pairwise exchanges, for 32 replicas, $T_X=0.62 \times 16 = 9.92$ seconds.
 
 If $t$ is the average time between successful exchanges, and $p$ is the probability of a successful exchange, 
 Quantifying equation ~\ref{eq:timebtw}, we get
 \begin{eqnarray}
-t=  {1 \over p} \times {[72 + 9.92 + 11.6]} = {1 \over p} \times 91.52
+t=  {1 \over p} \times {[72 + 9.92 + 40]} = {1 \over p} \times 122
 \label{eq:timebt}
 \end{eqnarray}
 
-The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t = 91.52 \times 8 = 732 seconds$
+The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t = 122 \times 8 = 976 seconds$
 
 
 %The BigJob agent also monitors the replicas it
