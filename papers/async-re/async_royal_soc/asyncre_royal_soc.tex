@@ -83,30 +83,38 @@
 
 \begin{abstract}{Replica-Exchange, SAGA, Large-Scale, Production}  
 
-  Developing applications that are able to orchestrate heterogeneous
-  resources across distributed resources is a complex
-  task. Inevitably, the design and development of an application is
-  influenced and constrained by the programming systems and the
-  infrastructure it is developed against. Breaking this coupling
-  between the development and the underlying infrastructure, to enable
-  applications to be flexible (across infrastructure), extensible (to
-  new methods of communication and coordination) and scalable is an
-  important design objective of both logically and physically
-  distributed applications.  In this work, we focus on the
-  Replica-Exchange (RE) Methods which represent a class of algorithms
-  that involve a large number of loosely-coupled ensembles. RE
-  simulations are used to understand physical phenomena Ð ranging from
-  protein folding dynamics to binding affinity calculations.  In this
-  work, we develop a flexible, extensible and scalable implementation
-  of RE that can utilise a range of infrastructure concurrently
-  \jhanote{(and autonomically/adaptively): Do we?}, that supports
-  different coordination mechanisms (publish-subscribe \jhanote{do
-    we?}, centralised notification), different replica pairing
-  mechanisms (synchronous versus asynchronous) and thereby different
-  variants of the RE algorithm. We implement and demonstrate how a
-  flexible and robust implementation enables the efficient use of a
-  broad range of infrastructure.
 
+  The development, deployment and execution of most scientific
+  applications are influenced and constrained by the programming
+  systems and the infrastructure they developed against.  It is an
+  important design objective of both logically and physically
+  distributed applications, to breaking this coupling between the
+  scientific application and the underlying infrastructure, to enable
+  applications to be flexible (across infrastructure), extensible (to
+  new methods of communication and coordination) and scalable.
+  Additionally, developing applications that are able to orchestrate
+  heterogeneous resources across distributed resources is a complex
+  task. We focus on the Replica-Exchange (RE) Methods -- which
+  represent a class of algorithms that involve a large number of
+  loosely-coupled ensembles, and are used to understand physical
+  phenomena ranging from protein folding dynamics to binding affinity
+  calculations.  In this work, we develop a flexible, extensible and
+  scalable implementation of RE that can utilise a range of
+  infrastructure concurrently that supports different coordination
+  mechanisms (publish-subscribe centralised notification), different
+  replica pairing mechanisms (synchronous versus asynchronous) and
+  thereby different variants of the RE algorithm. We implement and
+  demonstrate how the right programming system and design approaches
+  enable a flexible and robust implementation as well as an efficient
+  use of a broad range of infrastructure.  We compare and analyze the
+  performance of the different RE models (synchronous and
+  asynchronous) when scaling-up to 256 replicas and scaling-out to 4
+  machines.
+
+\jhanote{If indeed we have implemented different coordination systems
+  we should revisit them in the discussion section}
+
+%  \jhanote{(and autonomically/adaptively): Do we?},
 % Developing applications that are able to orchestrate heterogeneous
 % resources across distributed resources is a complex task. Inevitably,
 % the design and development of an application is influenced and
@@ -132,19 +140,18 @@
 
 \end{abstract}
 
-\jhanote{please use \citep{} and not \cite{}}
-
 \section{Introduction}
-Developing applications that are able to orchestrate heterogeneous
-resources across distributed resources is a complex task.  Inevitably,
-the design and development of an application is influenced and
-constrained by the programming systems and the infrastructure it is
-developed against. Breaking this coupling between the development and
-the underlying infrastructure, to enable applications to be flexible
-(across infrastructure), extensible (to new methods of communication
-and coordination) and scalable is an important design objective of
-distributed applications -- both logically distributed and physically
-distributed.
+Developing applications that are able to orchestrate tasks over
+heterogeneous distributed resources is a complex task.  Inevitably,
+the design and development of a scientific application is influenced,
+if not constrained by the programming systems and the infrastructure
+it is developed against. \jhanote{elaborate what we mean by the
+  previous sentence}.  Breaking this coupling between the development
+and the underlying infrastructure, to enable applications to be
+flexible (across infrastructure), extensible (to new methods of
+communication and coordination) and scalable is an important design
+objective of applications, that are either logically distributed and
+physically distributed.
 
 In this work, we focus on the Replica-Exchange
 (RE)~\citep{hansmann,Sugita:1999rm} methods -- which represent a class
@@ -154,24 +161,28 @@ ensembles.  RE simulations are used to understand physical phenomena
 calculations. Most RE implementations are either infrastructure
 specific (Woods et al. 2005) or, if using multiple distributed
 resources, they require prior co-scheduling (Manos et
-al. 2008). ~\citep{Luckow:2008fp} takes it to the next level and is an
-example of adaptive RE simulations on production-level grid resources,
-while ~\citep{parashar_arepex} is an example of \emph{asynchronous} RE
-simulations, which is based on
+al. 2008). Ref.~\citep{Luckow:2008fp} takes it to the next level and
+is an example of adaptive RE simulations on production-level grid
+resources, while ~\citep{parashar_arepex} is an example of
+\emph{asynchronous} RE simulations, which is based on
 CometG~\citep{Li:2005:CSC:1090948.1091381}, a decentralised
 computational infrastructure for Desktop Grid environments.
+\jhanote{Abhinav please check that Comet is ``exclusively'' used for
+  desktop grid environments. I think it is used for clusters too..}
 
 We develop a flexible, extensible and scalable implementation of RE
 that can utilize a range of infrastructure concurrently \jhanote{same
   Q: (and autonomically/adaptively)}, that supports different
 coordination mechanisms (publish-subscribe, centralised notification),
 different replica pairing mechanisms (synchronous versus asynchronous)
-and thereby different variants of the RE algorithm. All this is integrated with the SAGA BigJob(a pilot-job implementation), so that there is no need to repeatedly wait in queue. We implement and
+and thereby different variants of the RE algorithm. All this is
+integrated with the SAGA BigJob(a pilot-job implementation), so that
+there is no need to repeatedly wait in queue. We implement and
 demonstrate how a flexible and robust implementation enables the
 efficient use of a broad range of infrastructure. We compare and
 analyze the performance of the different RE models (synchronous and
 asynchronous) when we scale-up to 256 replicas and scale-out to 4
-machines.  We present results using which the reader can understand
+machines. We present results using which the reader can understand
 which model of RE is most suited for a particular set of resources
 (distributed, local etc.,)
 
@@ -667,7 +678,15 @@ Here, $T_F$ varies with the number of replicas.
 %\label{eq:equation}
 %\end{eqnarray}
 
-The decentralised implementation depends on the advert server much more than the other two implementations. Where as, in the other two implementations there are only a handful of connections to the advert server (one connection from each of the machines). But in the decentralised implementation, each replica agent has an open connection to the advert server. If the number of replicas is 256, then there would be approximately that many connections open with the advert server. This does not seriously impact the communication times with the advert server, and the overhead is unnoticeable.
+The decentralised implementation depends on the advert server much
+more than the other two implementations. Where as, in the other two
+implementations there are only a handful of connections to the advert
+server (one connection from each of the machines). But in the
+decentralised implementation, each replica agent has an open
+connection to the advert server. If the number of replicas is 256,
+then there would be approximately that many connections open with the
+advert server. This does not seriously impact the communication times
+with the advert server, and the overhead is unnoticeable.
 
 Although both case II and case III implement the asynchronous RE
 algorithm, they differ in the way they are implemented. The replicas
