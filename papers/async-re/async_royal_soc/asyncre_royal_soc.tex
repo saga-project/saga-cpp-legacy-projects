@@ -257,65 +257,6 @@ the operating data-set size).
   else would be implemented differently}
 \alnote{Proposed structure: a) math. model b) sync c) async. We should give the reader some orientation in this section.}
 
-\subsection{Mathematical Model}
-\alnote{I think we should discuss the mathematical model before going into the specifics of sync/async RE.}
-
-Here we first provide a basic mathematical model for different RE
-models which explains the terms involved. In this section, we aim to
-develop an equation for total time to run any RE simulation. If $t$ is
-the average time between successful exchanges, and $p$ is the
-probability of a successful exchange,
-\begin{eqnarray}
-t=  {1 \over p} \times {[T_{MD} + T_{X} + T_{W}]} 
-\label{eq:timebtw}
-\end{eqnarray}
-
-where $T_{X}$ is the time to make a pairwise exchange, which is comprised of (i) finding a partner, (ii) exchanging
-states including file transfer, (iii) book-keeping and $T_{W}$ is the time spent waiting for all replicas to complete running (synchronous model), and (iv) (re)starting the replica.
-
-Therefore, ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
-
-and for ${T_{X}}^{async}, T_W = 0$
-
-The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
-
-If there are $\eta$ independent exchange events occurring concurrently, then the time $T$ for 
-N$_x$ exchanges is $T \over \eta$.
-
-%Note $\eta_{sync}$ = 1 and $\eta_{async}$ = $N_R \over 2 $. \\
-
-
-%Define $t$ to be the average time between successful exchanges
-
-%Define $p$ to be the probability of an successful exchange
-
-%$t=  {1 \over p} \times {[T_s+T_{MD} + T_{X} + T_{W}]} $
-
-%where $T_{X}$ is comprised of (i) Finding a partner, (ii) exchanging
-%states including file transfer, and (iii) book-keeping, status update
-%et c. 
-
-%Therefore ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
-
-
-%and for ${T_{X}}^{async}, T_W = 0$
-
-
-%The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
-
-%If there are $\eta$ independent exchange events then the time $T$ for 
-%N$_x$ exchanges is $T \over \eta$.
-
-%Note $\eta_{sync}$ = $N_R \over 2$ and $\eta_{async}$ = $N_R $. \\
-\athotanote{I think $\eta_{sync,async-cent}$ should be 1 as only one exchange is done at a time(single master process) and $\eta_{async-decent}$ should be $N_R \over 2$, as each pair is involved in negotiating an exchange. since this depends on implementation, i am not including the $\eta$ values here.}
-%\athotanote{I propose that we add  $T_{s}$ (time to start a replica) to $t$. would you agree?}
-%\athotanote{one more thing: sync RE is slower because all the replicas are started one after the other at each exchange step. where as in cent RE, pairs of replicas are started after each exchange. how do we show this difference?}
-
-%Note: $t_{sync} = {1 \over p} \times {[T_{MD} + {T_{X}}^{sync}]} $
-
-%Note: $t = {1 \over p} \times {[T_{MD} + {T_{X}}]} $  \\
-
-
 \subsection{Synchronous Replica Exchange}
 
 \alnote{Are we already introducing cases in this sec?} \athotanote{nope, i don't think so!}
@@ -331,84 +272,19 @@ replicas can belong to different generations. If the exchange attempt
 is successful, parameters such as the temperature are swapped. Both
 jobs are then relaunched~\citep{Luckow:2008fp}.
 
-As mentioned in the equation (~\ref{eq:timebtw}), if $t$ is the average time between successful exchanges and $p$ the probability of a successful exchange, then:
+%As mentioned in the equation (~\ref{eq:totaltime}), if $T$ is the total time to complete RE experiment and $p$ the probability of a successful pairwise exchange, then:
 
-$t =  {1 \over p} \times {[T_{MD} + T_{X} + T_{W}]}$
+%$T = {1\over p} \times [T_{MD}+ [T_{X} + T_{W}] \times N_X]$
 
-It should be noted that we are discussing the average values of each of the term in the equation above.
-The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
-If there are $\eta$ independent exchange events occurring concurrently, then the time $T$ for 
+%It should be noted that we are discussing the average values of each of the term in the equation above.
+%If there are $\eta$ independent exchange events occurring concurrently, then the time $T$ for 
 %N$_x$ exchanges is $T \over \eta$.
 
-%Note $\eta_{sync}$ = 1.
 
 
-%\alnote{Do we need $T_{s}$ or can we subsume it into $T_{x}$?}
-%\athotanote{i think it matters when we vary the number of replicas. also, the exchange is done by the master, while the replica is started by the agent.}
-%\alnote{We should point out that we are discussing averages.}%\athotanote{i am not sure, because we are only introducing the terms; we quantify the terms in section 4..?}
-%where $T_{s}$ is the time required to start a replica, $T_{MD}$ is the time 
-%it takes one replica to complete a particular number of time steps,
-%and $T_{X}$ is comprised of (i) finding a partner, (ii) exchanging
-%states including file transfer, and (iii) book-keeping: ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ \alnote{We should either name itbook keeping or coordination.}\athotanote{done} $T_{W}$ is the time spent waiting for the completion
-%of all other replicas at the end of each generation.
 
-%The time-to-completion $T_{c}$ for N$_{X}$ exchanges is therefore: $N_{X} \times t$.
-%If there are $\eta$ independent exchange events then the time $T$ for 
-%N$_x$ exchanges is $T \over \eta$. 
-\alnote{We should give a number for $\eta$ for sync RE}\athotanote{wouldn't that be implementation dependent?}
-%Note $\eta_{sync}$ = $N_R \over 2$ and $\eta_{async}$ = $N_R $. \\
+\jhanote{let us be consistent. Is the entire RE process/workflow a  simulation or is an invidivual replica/task a simulation? I prefer  the latter, in which case the T$_C$ is not of a simulation but that  of a RE run/work/process?}  
 
-
-%The total time to completion ($T_{C}$) of the simulation
-\jhanote{let us be consistent. Is the entire RE process/workflow a  simulation or is an invidivual replica/task a simulation? I prefer  the latter, in which case the T$_C$ is not of a simulation but that  of a RE run/work/process?}  %is the sum of two components; the first
-%component is the simple sum of the following terms(?) (i) the time to
-%launch the BigJobs \jhanote{BigJob has not been defined or explained
- % in the paper yet?!}  ($T_{L)}$, (ii) the queue wait time
-%($T_{QW}$). \athotanote{i removed references to the BigJob here, but lost in conflict-resolution}These terms not dependent on the the specific case
-%employed, or the the number of replicas and thus as a whole neither is
-%the first component. In contrast, the second component contains terms,
-%which in general are dependent on specific case and number of
-%replicas.  The second component can be defined as
-% the following components: (i) the time to launch the BigJobs
-% \jhanote{BigJob has not been defined or explained in the paper
-%   yet?!}  ($T_{L)}$, (ii) the queue wait time ($T_{QW}$), and
-%the product of the following terms and the number of exchange steps
-%($N_{X}$): (iii) the actual runtime of NAMD \jhanote{Why are we making
-  %it NAMD specific. We really want to say simulation -- which could be
- % MD or MC, or NAMD or any other code} at each generation ($T_{MD}$),
-%(iv) time spent waiting for all replicas to be done ($T_{W}$), (v) the
-%time to carry out the exchanges at the end of each generation($T_{X}$), and (vi) the time required to restart the simulations after each exchange step ($T_{r}$). We only include steps (i) and (ii) for completeness, which occur only at the beginning of the simulation. Steps (iii) to (vi) repeat after each exchange. We consider the start time as the time at which the replicas are launched for the first time. We also think that it is safe to say that, irrespective of the implementation details, steps (iii) to (vi) are common to all replica-exchange simulations. \alnote{we should put  behind each step which $T_{x}$ we refer to} \jhanote{not sure if you  are referring to here (in text) or in the equation?} Therefore, the actual time to solution is the sum of (iii), (iv), (v) and (vi) multiplied by the number of exchange steps ($N_{X}$). So, the time to completion, without (i) and (ii) would be: \alnote{Why don't we  include $T_{L}$ and $T_{QW}$?}  \jhanote{Maybe because they dont  help understand the scaling behaviour and the fact none of these are  a function of the replica-exchange algorithms..}
-
-
-% The total time to completion ($T_{C}$) of the simulation can be said
-% to be the sum of the following components: \athotanote{(i) the time to
-%   launch the BigJobs ($T_{L)}$, (ii) the queue wait time ($T_{QW}$) I
-%   don't think I should include BJ/QW time here, as they depend on the
-%   implementation. we were only supposed to talk about the algos here?}
-% (i) the time to start the replicas ($T_{s}$), (ii) the actual runtime
-% of NAMD at each generation ($T_{MD}$), (iii) time spent waiting for
-% all replicas to be done ($T_{W}$), (iv) the time to make the exchanges
-% at the end of each generation ($T_{X}$) and its product with the
-% number of exchange steps ($N_{X}$).  As steps (i) to (iv) repeat after
-% each exchange, we take the product of the sum of those steps with the
-% number of exchange steps as the total time to completion. We consider
-% the start time as the time at which the replicas are launched for the
-% first time. We also think that it is safe to say that, irrespective of
-% the implementation details, steps (i) to (iv) are present in a typical
-% replica-exchange simulation. The equation for $T_{C}$ would then be:
-% \alnote{we should put behind each step which $T_{x}$ we refer to}
-% \jhanote{not sure if you are referring to here (in text) or in the
-%   equation?}  \alnote{Why don't we include $T_{L}$ and $T_{QW}$?}
-% \jhanote{Maybe because they dont help understand the scaling behaviour
-%   and the fact none of these are a function of the replica-exchange
-%   algorithms..}  
-
-%\begin{eqnarray}
-%T_{C} &=& [T_{s}+T_{MD} + T_{W} + T_{X}] \times N_{X}
-%\label{eq:equation 1}
-%\end{eqnarray}
-
-%Here, the steps (v) and (vi) occur in a serial manner.
  
 % 1 para limitation on traditional replica exchange
 A major limitation of this model is that the replicas are paired in
@@ -473,55 +349,16 @@ except that there would not be a $T_W$. \alnote{This is too general.
 We should drop the redundancy of explaining every component and rather 
 analyze the differences.} \athotanote{you are right; i am adding a couple of lines here. does it help?}But also, an asynchronous RE algorithm has the potential to perform better than the traditional RE: (i) when we scale-up the number of replicas and (ii) when we scale-out across many machines.
 
-Again, as mentioned in the equation (~\ref{eq:timebtw}), if $t$ is the average time between successful exchanges and $p$ the probability of a successful exchange, then:
+%Again, as mentioned in the equation (~\ref{eq:totaltime}), if $T$ is the total time to complete RE experiment and $p$ the probability of a successful pairwise exchange, then:
 
-$t =  {1 \over p} \times {[T_{MD} + T_{X} + T_{W}]}$
+%$T = {1\over p} \times [T_{MD}+ [T_{X} + T_{W}] \times N_X]$
 
-It should be noted that we are discussing the average values of each of the term in the equation above.
-The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
-%Therefore,  $t=  {1 \over p} \times {[T_s+T_{MD} + T_{X}]} $
-%where $T_{s}$ is the time required to start a replica, $T_{MD}$ is the time it takes one replica to complete a particular number of time steps,
-%and $T_{X}$ is comprised of (i) finding a partner, (ii) exchanging
-%states including file transfer, and (iii) book-keeping, status update
-%etc.: ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
-%The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
-If there are $\eta$ independent exchange events then the time $T$ for 
-N$_x$ exchanges is $T \over \eta$. \alnote{What is the value of $\eta$ for async RE?} \athotanote{as mentioned earlier, i the value depends on the implementation; centralised=1, decentralised= $N_R\over2$}
-\athotanote{do we need the equation here again?}
+%It should be noted that we are discussing the average values of each of the term in the equation above.
+%If there are $\eta$ independent exchange events occurring concurrently, then the time $T$ for 
+%N$_x$ exchanges is $T \over \eta$.
 
-Also, we implement the asynchronous RE algorithm in two ways: (i) centralised and (ii) decentralised.
 
 \athotanote{i think it would be better if we just describe sync and async verbally in 2.1 and 2.2 and then introduce the math model in 2.3. just a reordering of the current sections.}
-
-  
-%While (i) the time to launch the BigJobs ($T_{L}$) and (ii) the queue wait time ($T_{QW}$) are sequential events, (iii) the runtime of NAMD ($T_{MD}$), (iv) the time to make the exchanges at the end of the run of a pair of replicas ($T_{X}$), and (v) the time required to restart the replicas ($T_{r}$) after each exchange are not. But we know that, even in the asynchronous RE model, for a particular number of exchanges, each replica needs to restart and run a particular number of times. For example, consider simulation with 4 replicas conducting 16 exchanges. That would mean that, on an average, each replica has to restart 8 times. \jhanote{I don't see this. Is it 16 exchanges on   average per replica? Or 16 exchange in total?} In this manner, we can calculate the absolute replica runtime as product of the runtime of a replica and the number of restarts ($N_{R}$). We can also calculate (iv) and (v) for each exchange. In a homogeneous environment this would be true.
-
-
-% Since this is an asynchronous implementation, it is not easy to
-% separate the total simulation time into smaller components. The reason
-% is that many events can occur
-% concurrently. %There is a need to distinguish between serial and parallel events.
-% %While (i) the time to launch the BigJobs ($T_{L}$) and (ii) the queue wait time ($T_{QW}$) are sequential events,
-% The following processes, (i) the time to start the replicas ($T_{s}$), (ii) the runtime of NAMD ($T_{MD}$) and (iii) the time to make the exchanges at the end of the run of a pair of replicas ($T_{X}$) after each exchange might occur concurrently. But we know that, even in the asynchronous RE model, for a particular number of exchanges, each replica needs to restart and run a particular number of times. For example, consider simulation with 4 replicas conducting 16 exchanges. That would mean that, on an average, each replica has to restart 8 times. In this manner, we can calculate the absolute replica runtime as product of the runtime of a replica and the number of NAMD restarts ($N_{R}$). %We can also calculate (ii) and (iii) for each exchange. 
-% In a homogeneous environment this would be true. 
-
-%Further details depend on the implementation, but we can already see some advantages over the traditional model. with the asynchronous approach. There are also some scientific advantages - making exchanges with non-nearest partners, crosswalks etc. 
-%If $N_{X}$ is the total number of exchanges, the total time to completion($T_{C}$) would be: \athotanote{how to write the equation with overlapping components?} \alnote{I would propose to separate the total time-to-solution and the time for a generation.  In a homogeneous environment we could easily add the times for a generation. In a heterogeneous  environment we will need something like a speed factor to model this precisely. We should discuss this.}   \begin{eqnarray} T_{C} &=& T_{MD} \times N_{R} + [T_{s} + T_{X}] \times N_{X} \label{eq:equation 1} \end{eqnarray}
-
-%In a heterogeneous environment, $T_{MD}$ might not be a constant. In that case, we could estimate the number of times the replicas on different machines might restart and calculate the total number of restarts required to complete the exchanges. \athotanote{we can have an equation for the heterogeneous situation too, but it would depend on the number of dissimilar machines.}
-
-%\athotanote{how do the control flow diagrams
-%  look? }
-%\alnote{We need to highlight how we particularly differ from Parashar
-  %et al: no comet, no MPI jobs, production Grids, understand
-  %performance sentence...}
-%The asynchronous replica exchange framework builds upon the SAGA BigJob and RE frameworks discussed previously.
-%The architecture is shown in Figure 1.
-%We present two variants of the Asynchronous RE algorithm. The first is a centralized 
-%mechanism where all the replicas are managed by a master. %The master closely monitors the replicas and makes the exchanges when appropriate. 
-%The second is a decentralized mechanism where each replica is managed independently, in a decoupled manner.% An agent is launched in place of the replica and will perform the the required actions on behalf of the replica.
-%Describe how we implement Case II and Case III (you can use figures)
-%using SAGA and the advantages
 
 \jhanote{I've moved this from the subsection before the mathematical
   model. It did not fit there..} The traditional approach to RE is the
@@ -529,6 +366,95 @@ synchronous model, which works well in an ideal scenario with a well
 defined model of resource availability. But with heterogenous systems
 and fluctuating resource availability, the asynchronous RE model could
 be more effectively used to conduct simulations.
+
+\subsection{Mathematical Model}
+\alnote{I think we should discuss the mathematical model before going into the specifics of sync/async RE.}
+
+Here we first provide a basic mathematical model for different RE
+models which explains the terms involved. In this section, we aim to
+develop an equation for total time to run any RE simulation. If $t$ is
+the average time between successful exchanges, and $p$ is the
+probability of a successful exchange,
+\begin{eqnarray}
+t=  {1 \over p} \times {[T_{MD} + T_{X} + T_{W}]} 
+\label{eq:timebtw}
+\end{eqnarray}
+
+where $T_{X}$ is the time to make a pairwise exchange, which is comprised of (i) finding a partner, (ii) exchanging
+states including file transfer, (iii) book-keeping and $T_{W}$ is the time spent waiting for all replicas to complete running (synchronous model), and (iv) (re)starting the replica.
+
+Therefore, ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
+
+and for ${T_{X}}^{async}, T_W = 0$
+
+The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
+
+If there are $\eta$ independent exchange events occurring concurrently, then the time $T$ for 
+N$_x$ exchanges is $T \over \eta$.
+
+\alnote{We should give a number for $\eta$ for sync RE}\athotanote{wouldn't that be implementation dependent?}
+\alnote{What is the value of $\eta$ for async RE?} \athotanote{as mentioned earlier, i the value depends on the implementation; centralised=1, decentralised= $N_R\over2$}
+\athotanote{do we need the equation here again?}
+
+
+%Note $\eta_{sync}$ = 1 and $\eta_{async}$ = $N_R \over 2 $. \\
+
+
+%Define $t$ to be the average time between successful exchanges
+
+%Define $p$ to be the probability of an successful exchange
+
+%$t=  {1 \over p} \times {[T_s+T_{MD} + T_{X} + T_{W}]} $
+
+%where $T_{X}$ is comprised of (i) Finding a partner, (ii) exchanging
+%states including file transfer, and (iii) book-keeping, status update
+%et c. 
+
+%Therefore ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
+
+
+%and for ${T_{X}}^{async}, T_W = 0$
+
+
+%The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
+
+%If there are $\eta$ independent exchange events then the time $T$ for 
+%N$_x$ exchanges is $T \over \eta$.
+
+%Note $\eta_{sync}$ = $N_R \over 2$ and $\eta_{async}$ = $N_R $. \\
+\athotanote{I think $\eta_{sync,async-cent}$ should be 1 as only one exchange is done at a time(single master process) and $\eta_{async-decent}$ should be $N_R \over 2$, as each pair is involved in negotiating an exchange. since this depends on implementation, i am not including the $\eta$ values here.}
+%\athotanote{I propose that we add  $T_{s}$ (time to start a replica) to $t$. would you agree?}
+%\athotanote{one more thing: sync RE is slower because all the replicas are started one after the other at each exchange step. where as in cent RE, pairs of replicas are started after each exchange. how do we show this difference?}
+
+%Note: $t_{sync} = {1 \over p} \times {[T_{MD} + {T_{X}}^{sync}]} $
+
+%Note: $t = {1 \over p} \times {[T_{MD} + {T_{X}}]} $  \\
+
+\subsection{Alternate Math Model}
+\athotanote{i am not able to fit the sync, cent, decent implementations into the math model. the problem is: $t$. in theory $t$ may be possible, but if you look at the implementation, there isn't a corresponding value. the exchanges don't happen in a way where you could define $t$ in the way we define it in the original math model. $T_{MD}$ of a single replica can't be considered for $t$ because replicas run in parallel, we don't have a distinct $T_{MD}$ for every $t$. }
+
+Here we provide a basic mathematical model for different RE
+models which explains the terms involved. In this section, we aim to
+develop an equation for total time to run any RE simulation. If $T$ is
+the total time to complete the RE experiment and $p$ is the
+probability of a successful exchange,
+
+\begin{eqnarray}
+T = {1\over p} \times [T_{MD}+ (T_{X} + T_{W}) \times N_X]
+\label{eq:totaltime}
+\end{eqnarray}
+
+where $T$ is the total time to complete RE experiment, $p$ is the probability of a successful pairwise exchange, $T_{MD}$ is the total run time of the ensemble of replicas, $T_{X}$ is the time to make a pairwise exchange, which is comprised of (i) finding a partner, (ii) exchanging
+states including file transfer, (iii) book-keeping and $T_{W}$ includes miscellaneous components like the time spent waiting for all replicas to complete running (synchronous model), time to mark replicas as done when they finish running, time to restart the replicas at the end of every exchange and $N_X$ is the number of pairwise exchanges.
+
+Therefore, ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
+
+If there are $\eta$ independent exchange events occurring concurrently, then the time $T$ for 
+N$_X$ exchanges is:
+\begin{eqnarray}
+T = {1\over p} \times T_{MD}+ {(T_{X} + T_{W}) \times N_X\over \eta}
+\label{eq:totaltime}
+\end{eqnarray}
 
 
 \section{SAGA BigJob - A Pilot-job Framework}
@@ -564,7 +490,7 @@ implementation is much more efficient than the centralised implementation.
 The synchronous and asynchronous RE have been successfully deployed on production 
 level infrastructure such as the Teragrid and LONI. 
 
-We are primarily interested in learning the scale-up and scale-out properties of synchronous and asynchronous RE and hence are not bothered by the queue wait time. In the following sentences, we will explain how we implement the synchronous RE simulations. To be able to quantify the various terms involved, let us consider the following configuration. Let the total number of replicas ($N_R$) be 32 and the total number of pairwise exchnges ($N_X$) be 128. We did the experiments on LONI and Teragrid shared resource \emph{QueenBee}. Each replica is configured to run 500 time-steps and allocated 16 processors. It should be noted that we are talking about the average values whenever we mention quantities. Each replica $T_{MD}$ takes 90 seconds to complete the 500 time-steps from a fresh start and 70 seconds every time it is restarted. Thus, if each replica is restarted 7 times, the average $T_{MD}$ is 72 seconds. Also in this section, when we say replica, we mean NAMD.
+We are primarily interested in learning the scale-up and scale-out properties of synchronous and asynchronous RE and hence are not bothered by the queue wait time. In the following sentences, we will explain how we implement the synchronous RE simulations. To be able to quantify the various terms involved, let us consider the following configuration. The total number of replicas ($N_R$) in the ensemble are 32 and the total number of pairwise exchnges ($N_X$) is 128. That would mean 8 generations or 8 on a homogeneous infrastructure 8 restart per replica. The ensemble of replicas are run concurrently. We did the experiments on LONI and Teragrid shared resource \emph{QueenBee}. Each replica is configured to run 500 time-steps and allocated 16 processors. It should be noted that we are talking about the average values whenever we mention quantities. Each replica takes 91 seconds to complete the 500 time-steps from a fresh start and 68 seconds every time it is restarted. Thus, if each replica is restarted 7 times, the average time per generation is 71 seconds. The total runtime of the ensemble of replicas concurrently run would depend on the total number of times each the replica was restarted. And in this case it is 8 and the total run time is $71 \times 8 = 568 seconds.$ Also in this section, when we say replica, we mean NAMD.
 
 \subsection{Synchronous RE}
 
@@ -574,24 +500,21 @@ master, the RE-Manager controls all the replicas and the simulation
 
 As we have already explained how the the BigJob works in section (~\ref{sec:BigJob}), we will only explain the additional functionality that is in place to make the RE simulations. We will now call the extended SAGA-BigJob Manager the \emph{RE Manager}. The RE Manager now receives various data about each replica, such as the state (running, done, etc.,), temeperature and energy from the BigJob agent after each run and based on that makes the exchanges. This is in addition to the typical management tasks carried out by the SAGA-BigJob Manager.
 
-The RE Manager first submits the BigJob to resource manager. While the BigJob may wait in the queue at the resource manager, the RE Manager submits each of the replica job descriptions to the advert server. This action almost always is completed before the BigJob becomes active in the queue. Therefore, we are not bothered by the time it takes to complete. But once the BigJob is active, the BigJob agent writes a node file for each replica and starts the jobs. And the average time it takes to start one replica is 0.3 seconds. For 32 replicas, it is 9.6 seconds. 
+The RE Manager first submits the BigJob to resource manager. While the BigJob may wait in the queue at the resource manager, the RE Manager submits each of the replica job descriptions to the advert server. This action almost always is completed before the BigJob becomes active in the queue. Therefore, we are not bothered by the time it takes to complete. But once the BigJob is active, the BigJob agent writes a node file for each replica and starts the jobs. And the average time it takes to start one replica is 0.3 seconds. For 32 replicas, it is 9.6 seconds. For each pair of replicas, it is 9.6/16=0.6 seconds.
 
 While it is the case that the BigJob agent is ready to start the new replicas at the start of the first run of the simulation, it is not always the case. Once the BigJob agent starts the replicas, it also monitors them and updates the states in the advert server.   It also keeps a list of free and busy nodes. It takes 0.92 seconds to find that a replica is done, update the state and free the nodes. Therefore, while there is a gap of 9.6 seconds between the start times of the first and last replica, there is a difference of 29.44 seconds between the end time of the first replica and the last replica. This should be included in $T_W$. This also overlaps the startup time. So we need not count the startup time.
 
-The replicas are now running, and the RE Manager periodically queries the advert server for the latest replica states and marks the replicas which finish running as done. The RE Manager typically doesn't find the all the replicas done exactly at the same time. This is because of two reasons: (i) even though we are using  a homogenous infrastructure, we observed that replica run time varies by 1 or 2 seconds ($\delta$), (ii) the additional time the BigJob takes at the end of the each replica's run updating the data. And also, the RE Manager, once it finds that a replica is done, retrieves the current energies and temperatures by reading the output files. This takes 0.4 seconds per replica and for 32 replicas, it is 12.8 seconds. Again, this 12.8 seconds overlaps with the BigJob agent's processing of the replica's data, but not completely. 
+The replicas are now running, and the RE Manager periodically queries the advert server for the latest replica states and marks the replicas which finish running as done. The RE Manager typically doesn't find the all the replicas done exactly at the same time. This is because of two reasons: (i) even though we are using  a homogenous infrastructure, we observed that replica run time varies by 1 or 2 seconds ($\delta$), (ii) the additional time the BigJob takes at the end of the each replica's run updating the data. And also, the RE Manager, once it finds that a replica is done, retrieves the current energies and temperatures by reading the output files. This takes 0.4 seconds per replica and for 32 replicas, it is 12.8 seconds. 
+We are calling all this time between end of runtime and start of exchange making $T_W$ and for 32 replicas it is approximately: 29.44+12.8=42.24 seconds. Since exchanges are done in pairs, for each pair it would be 42.24/16 = 2.64 seconds.
 
-We are calling all this time between end of runtime and start of exchange making $T_W$ and for 32 replicas it is approximately: 40 seconds.
-
-Since this is a synchronous RE, all the replicas finish running before the exchanges are started. Hence, the RE manager won't spend any time searching for partners and $T_F$ is 0 seconds. $T_{ex}$ includes updating configuration files and transferring the them to their respective directories, in this case, locally. It takes 0.2 seconds to write and copy a file locally. $T_{ex} = 0.2 \times 2=0.4$ seconds. $T_{coord}$ is the time it takes to update the states of the pair of replicas in the advert server, which is $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is $0+0.4+0.22=0.62$ seconds. Since at each exchange step, there will be 16 pairwise exchanges, for 32 replicas, $T_X=0.62 \times 16 = 9.92$ seconds.
+Since this is a synchronous RE, all the replicas finish running before the exchanges are started. Hence, the RE manager won't spend any time searching for partners and $T_F$ is 0 seconds. $T_{ex}$ includes updating configuration files and transferring the them to their respective directories, in this case, locally. It takes 0.2 seconds to write and copy a file locally. $T_{ex} = 0.2 \times 2=0.4$ seconds. $T_{coord}$ is the time it takes to resubmit the pair of replicas to the advert server, which is $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is $0+0.4+0.22=0.62$ seconds. Since at each exchange step, there will be 16 pairwise exchanges, for 32 replicas, $T_X=0.62 \times 16 = 9.92$ seconds.
 
 If $t$ is the average time between successful exchanges, and $p$ is the probability of a successful exchange, 
-Quantifying equation ~\ref{eq:timebtw}, we get
+Quantifying equation ~\ref{eq:totaltime}, we get
 \begin{eqnarray}
-t=  {1 \over p} \times {[72 + 9.92 + 40]} = {1 \over p} \times 122
+T=  {1 \over p} \times {[ 568+ (0.6 + 2.64)\times 128]} = {1 \over p} \times (983)
 \label{eq:timebt}
 \end{eqnarray}
-
-The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t = 122 \times 8 = 976 seconds$
 
 
 %The BigJob agent also monitors the replicas it
@@ -646,53 +569,29 @@ for initially setting up all replicas. The later coordination is done peer-to-pe
 \subsection{Centralised Asynchronous RE}
 \alnote{please don't just copy paste. Only focus on the differences}
 
-%%%%% FIGURE %%%%%
-% \begin{figure}
-% \centering
-% %\subfigure[Control Flow: Centralized Replica Exchange]{
-% \includegraphics[width=1\textwidth]{centralized.pdf}
-% %\label{fig:async:b}
-% \caption{\small  In the centralized asynchronous RE, all the replicas are managed by the master.} \athotanote{Do we need this figure? control-flow is quite} 
-% \label{fig:cent}
-% %\vspace{-1em}
-% \end{figure}
-
 We implemented asynchronous RE in centralised and decentralised models 
 (cmp. Figure~\ref{fig:coordination}). Here we describe the centralised 
 implementation. The implementation is very similar to that of the 
 synchronous RE, except that the exchanges are done in an asynchronous manner. 
 
-After the RE Manager launches the BigJob and BigJob becomes active, the BigJob agent polls the advert server for sub-jobs and starts the replicas. As before, we do not consider the time to launch the BigJobs and the queue wait-time when calculating the total time.  The BigJob agent also monitors the 
-replicas it launched and posts the statuses of the replicas to the advert 
-server. The master queries the advert server for the latest job 
-states and when it finds that \emph{a pair} of replicas are 'Done' ($T_{MD}$), it 
-makes the exchange ($T_{X}$). Here, $T_{X}$ is comprised of the time to find a partner ($T_{F}$), exchanging states/file-staging ($T_{ex}$ and status updates ($T_{coord}$). 
-After each exchange is done, the replica job descriptions 
-are posted to the advert server and the BigJob agent restarts the pair of
-replicas. This process is repeated until the required number of 
-exchanges are made. The time to make one exchange would be:
+The RE Manager first submits the BigJob to resource manager. While the BigJob may wait in the queue at the resource manager, the RE Manager submits each of the replica job descriptions to the advert server. This action almost always is completed before the BigJob becomes active in the queue. Therefore, we are not bothered by the time it takes to complete. But once the BigJob is active, the BigJob agent writes a node file for each replica and starts the jobs. And the average time it takes to start one replica is 0.3 seconds. For 32 replicas, it is 9.6 seconds. Since $T_{MD}$ on a fresh run is 91 seconds, the BigJob agent would be ready to restart the replicas by the time the RE Manager submits to the advert server. 
+
+While it is the case that the BigJob agent is ready to start the new replicas at the start of the first run of the simulation, it may not always be the case. Once the BigJob agent starts the replicas, it also monitors them and updates the states in the advert server. The replicas are now running, and the RE Manager constantly queries the advert server for the latest replica states. Whenever the RE Manager finds a replica in done state, it tries to find a partner for the replica. This is done by looping over all the other replicas to find another replica in done state. The first replica that the RE Manager finds is chosen as the partner. The time to find the partner depends on $N_R$ and also on the number of replicas the RE Manager had to sift through to finds an available replica. On average, RE Manager will sift through $N_R/2$ replicas before it finds a partner. It should be noted that we also implemented a special case for very large number of replica ensemble where the RE Manager tries to find a partner randomly. We observed that this only improves the performance when the ensemble contains more than 128 replicas. It takes 0.01 seconds per query. Thus for 32 replicas, on average, $T_F$ is $16\times 0.01=0.16 seconds. T_{ex}$ is the time it takes to update the configuration files and copy them locally. That would be $0.2\times 2=0.4 seconds.$  $T_{coord}$ is the time it takes to resubmit the pair of replicas to the advert server, which is $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is $0.16+0.4+0.22=0.78$ seconds. Therefore, on average, it takes 0.78 seconds for the RE Manager to make an exchange. For 16 exchanges, it is 12.48 seconds.
+
+As mentioned earlier, the BigJob agent takes 0.92 seconds to find that a replica is done (1.84 for a pair), update the state and free the nodes. Therefore it takes 29.44 seconds for 32 replicas. But even as the first pair of replicas are marked as done by the BigJob agent, the RE Manager concurrently makes the exchange between that pair of replicas. The point we are trying to make is that the timelines of the RE Manager and the BigJob agent run parallel to each other and there also is a lot of overlap. 
+As the simulation progresses, instead of all the replicas starting and ending together, groups or pairs of replicas start and end at the same time. 
+Since the BigJob agent takes longer to process the replicas, the RE Manager by then makes the exchanges and resubmits the replicas to the advert server. The pairs of replicas belonging to the first few exchanges might have waited the 29.44 seconds at the BigJob agent. But we observed that groups of replicas belonging to the later exchanges wait for only half that amount of time. That is 29.44/2 = 14.72. That would be 14.72/16 =0.92 for a pair of replicas.
+%The point we are trying to make is that the BigJob agent might not be free while the RE Manager submits the replicas to be restarted. But as the experiment progresses, instead of all the replicas in the ensemble running in synchronization, pairs of replicas would start and end together. 
+% By the time the BigJob agent finishes processing the last of the replicas that finished running, the RE Manager would have re-submitted 15 pairs of replicas to the advert server for restarting by the BigJob agent. In the next couple of seconds the rest of the replicas would have been exchanged and submitted to the advert server.
+Thus, all the replicas together wait  29.44+4.8 seconds. And per replica it is 1.07 seconds.  So, on average it would be something between half and three-quarters of that value. It would be safe to assume that $T_W$ is 0.66. 
+
+If $T$ is the average time between successful exchanges, and $p$ is the probability of a successful exchange, 
+Quantifying equation ~\ref{eq:totaltime}, we get
 \begin{eqnarray}
-t &=&  {1 \over p} \times {[T_s+T_{MD} + T_{X}]} 
-\label{eq:cent}
+T=  {1 \over p} \times {[568 + (0.78 + 0.46)\times 128]} = {1 \over p} \times 793.28
+\label{eq:timebt}
 \end{eqnarray}
 
-If the number of exchanges is ($N_{X}$), the total time to completion ($T_{C}$) would be:
-\begin{eqnarray}
-T_{C} &=& N_{X} \times t 
-\label{eq:centr}
-\end{eqnarray}
-If there are $\eta$ independent exchange events then the time $T$ for
-N$_x$ exchanges is $T \over \eta$. For this asynchronous centralized
-RE model, $\eta$ is 1, as all the exchanges are carried out in a
-serial manner. Also, assuming $p$ is 1, $T = [T_s+T_{MD} + T_{X} ]
-\times N_{X}$ Quantifying each of the terms above with experimental
-values observed on QueenBee, we have: $T_s = 1.5 s, T_MD=90 s,
-T_X=T_F+T_ex+T_coord=0.3+1+0.6=1.9 s; $ Here, $T_F$ varies with the
-number of replicas. \alnote{these are exactly the same numbers as in
-  the sync RE scenario. Won't help us in the analysis of our
-  experiments} \athotanote{i think we are not able to show here the speed-up due to making the exchanges asynchronously. the bigjob agent will only have pairs of replicas to start rather than all the replicas every time.}
-
- \alnote{some more details explaining steps 1-6 would be good.}%The decision as to make the exchange or not is made using the Metropolis scheme.  
 
 \subsection{Decentralised Asynchronous RE}
 
@@ -702,54 +601,41 @@ the BigJobs, the replicas are managed in a decentralised manner
 (see Figure~\ref{fig:coordination}b)). We launch
 a 'replica-agent' in place of each replica which manages the replicas in turn.
 Here, the RE Manager's work is limited to submitting a BigJob request to the 
-resource manager ($T_{L}$), and keeping the track of the number of exchanges made. 
-Previously, we had the replica as a sub-job. But now, instead of the NAMD executable, 
+resource manager, and keeping the track of the number of exchanges made. 
+Previously, we had the replica as a sub-job. But now, instead of the replica itself, 
 we launch a replica-agent.
 The replica-agent is nothing but a wrapper script for the replica. 
-Once BigJobs become active, the BigJob agent starts the replica agents ($T_{s}$), 
-the replica agents in turn start the replicas ($T_{r}$). The work of BigJob agent 
+
+Once BigJob become active, the BigJob agent starts the replica agents, 
+the replica agents in turn start the replicas. It takes 0.3 seconds to start a replica-agent and 9.6 seconds to start 32 replica agents. %But since the fist replica-agent is started within 0.3 seconds and the last replica-agent is started after 9.6 seconds, on average time the replicas waited before starting is 4.8 seconds. But this is a non-recurring component and quite small.
+
+ The BigJob agent's work of
 monitoring and restarting the replicas is now done by the replica agent. The replica-agents 
-monitor the replicas and post the state to the advert server. When one of the 
-replicas is ready to exchange ($T_{MD}$), the replica agent searches for another replica which is 
-available and negotiates the exchange ($T_{X}$). Here, $T_{X}$ is comprised of the time to find a partner ($T_{F}$), exchanging states/file-staging ($T_{ex}$) and status updates ($T_{coord}$). 
-After each exchange is done, the replica agents restart their replicas. This process is repeated until the required number of 
-exchanges are made. The temperatures are exchanged over the advert server and the replica agent writes a new configuration file locally. This removes the need to stage the 
-configuration files to different machines, which is much more inefficient. \alnote {one could ask why is the 
-config file staged in case I and II then?} Where as, in the other two implementations the exchanges happen sequentially. But in the decentralised implementation, there would be many pairs of replica agents negotiating the exchanges. It should be noted that while this causes the time taken per unit exchange to go up, more exchanges occur in unit time. 
+monitor the replicas and post the state to the advert server.
+The replica agents are now running, each of them start their replica. The replica agents receive the replica configuration via a configuration file set at the beginning of the experiment. The replica agent then creates the output and error files, reads the configuration and starts the replica. All these actions, which are repeated after every exchange, take 1.3 seconds.
+
+The replica agent constantly monitors the replica and when it finds that the replica finished running, it updates its state in the advert server, which takes 0.11 seconds and also retrieves the energy and temperature from the output files, each of which actions takes 0.025 seconds. It then posts both these values to the advert server. Thus $T_W$ is 1.3+0.4=1.7 seconds.
+
+Then it tries to find a another replica to make an exchange. Each replica agent tries to find a partner in a completely random manner. This was necessitated by the fact that if all of the replica agents tried to find a partner by going through the list of replicas serially, there would be a lot of contention and even grid-lock. We observed that on average, the replica agent makes 15 queries before it finds a partner. Each query is 0.11 seconds, thus $T_F$ is 1.65 seconds. It should be noted here that in the centralized version of asynchronous RE, where only 2 connections to the advert server existed (RE Manager, BigJob agent), each query took only 0.01 seconds. But in the decentralized version, since each replica agent maintains an open connection to the advert server, there are 32+2=34 connections open. This effects the performance of the advert server. Once the replica agent finds another replica agent available, it re-verifies it's own state and the other replica agent's state. If the replicas are still available, the replica agent sets both the replica states as "Pending". This is done to make sure that duplicate exchanges don't take place. Now, the replica agent which initiated the exchange set's the temperatures of both replicas in the advert server. The the master replica agent sets both the states as ready, which means that the control flow can move forward to updating the configuration files and restarting the replicas. All this process takes on average 15 more queries to the advert server. Thus, $T_{ex}$ is 1.65 seconds. It should be noted here that the temperatures are exchanged over the advert server and the replica agent writes a new configuration file locally. This removes the need to stage the configuration files to different machines. This is possible because there is a replica agent for each replica locally. Where as earlier, the RE Manager and the replica might be located on different machines. $T_{coord}$ is the time it takes to update the state in the advert server, which is 0.11 seconds. Thus, $T_X$ is 1.65+1.65+0.11= 3.41seconds. 
 
 
-The time to make one exchange would be:
+If $T$ is the average time between successful exchanges, and $p$ is the probability of a successful exchange, 
+Quantifying equation ~\ref{eq:totaltime}, we get
 \begin{eqnarray}
-t &=&  {1 \over p} \times {[T_s+T_{MD} + T_{X}]} 
-\label{eq:decent}
+T=  {1 \over p} \times {568 + {(3.41+1.7)\times 128\over 16}} = {1 \over p} \times 609
+\label{eq:timebt}
 \end{eqnarray}
 
-If the number of exchanges is ($N_{X}$), the total time to completion ($T_{C}$) would be:
-\begin{eqnarray}
-T &=& N_{X} \times t 
-\label{eq:decentr}
-\end{eqnarray}
+
+
+
+\alnote {one could ask why is the 
+config file staged in case I and II then?} 
+Where as, in the other two implementations the exchanges happen sequentially. But in the decentralised implementation, there would be many pairs of replica agents negotiating the exchanges. It should be noted that while this causes the time taken per unit exchange to go up, more exchanges occur in unit time. 
+
 If there are $\eta$ independent exchange events then the time $T$ for 
 N$_X$ exchanges is $T \over \eta$. For this asynchronous centralized RE model, $\eta$ is $N_R \over 2$, as at any time there could be a maximum of $N_R \over 2$ pairs of replicas negotiating.  \alnote{We really need to discuss $\eta$ tomorrow on the call!}
-Also, assuming $p$ is 1, $T = [T_r+T_{MD} + T_{X} ] \times N_{X} \over \eta$
-Quantifying each of the terms above with experimental values observed on QueenBee, we have:
-$T_r = 0.3 s, T_MD=90 s, T_X=T_F+T_ex+T_coord=1+0.5+0.3=1.8 s; $ \alnote{Why is $T_{coord}$ shorter than for central version?}
-Here, $T_F$ varies with the number of replicas. 
-%$T &=& 
 
-
-%If $N_{r}$ is the number of replicas, the total time to completion ($T_{C}$) would then be: 
-
-  %\begin{eqnarray}
-%T_{C} &=& T_{L}+T_{QW}+T_{r}+T_{MD} \times N_{R} + [(T_{s} + T_{X}) \times N_{X}+T_{w}]/N_{r}/2
-%\label{eq:equation}
-%\end{eqnarray}
-%We can remove $T_{L}$ and $T_{QW}$ from the equation and neglecting $T_{w}$ and $T_{s}$, we get:
-
- % \begin{eqnarray}
-%T_{C} &=&T_{r}+T_{MD} \times N_{R} + (T_{X} \times N_{X})/N_{r}/2
-%\label{eq:equation}
-%\end{eqnarray}
 
 The decentralised implementation depends on the advert server much more than the other two implementations. Where as, in the other two implementations there are only a handful of connections to the advert server (one connection from each of the machines). But in the decentralised implementation, each replica agent has an open connection to the advert server. If the number of replicas is 256, then there would be approximately that many connections open with the advert server. This does not seriously impact the communication times with the advert server, and the overhead is unnoticeable.
 
