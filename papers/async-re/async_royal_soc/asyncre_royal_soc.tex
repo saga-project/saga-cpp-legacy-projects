@@ -468,9 +468,16 @@ T = {1\over p} \times [T_{MD}+ {(T_{X} + T_{W}) \times N_X]\over \eta}
 \subsection{SAGA BigJob - A Pilot-job Framework}
 \label{sec:BigJob}
 
-The Simple API for Grid Applications (SAGA)(~\citep{saga_gfd90}) is an API that provides the basic functionality required to build distributed applications, tools and frameworks so as to be independent of the details of the underlying infrastructure. SAGA is an API standardization effort within the Open Grid Forum (OGF)~\citep{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. The various tasks that are carried out using the SAGA APIs include file staging, job spawning and the conduction of the exchange attempts.
+The Simple API for Grid Applications (SAGA)(~\citep{saga_gfd90}) is an
+API that provides the basic functionality required to build
+distributed applications, tools and frameworks so as to be independent
+of the details of the underlying infrastructure. SAGA is an API
+standardization effort within the Open Grid Forum
+(OGF)~\citep{ogf_web}, an international standards development body
+concerned primarily with standards for distributed computing. The
+various tasks that are carried out using the SAGA APIs include file
+staging, job spawning and the conduction of the exchange attempts.
 
-Previously, we demonstrated the usage of the SAGA Pilot-Job framework~\citep{saga_bigjob_condor_cloud} -- called the BigJob, to run RE simulations across multiple, heterogeneous, distributed grid and cloud infrastructure~\citep{Luckow:2008fp}. Here we are using the SAGA BigJob to efficiently request and manage computational resources. 
 
 %%%%% FIGURE %%%%%
 \begin{figure}[t]
@@ -481,60 +488,100 @@ Previously, we demonstrated the usage of the SAGA Pilot-Job framework~\citep{sag
       \label{fig:bigjob}
 \end{figure}
 
-Figure ~\ref{fig:bigjob} shows the architecture of SAGA BigJob.
-It consists of three components: (i) the SAGA-BigJob Manager, (ii) the BigJob Agent and (iii) the advert service. The SAGA-BigJob manager submits the BigJobs to the resource manager and the sub-job descriptions to the \emph{advert server}. The advert server can be on any machine and is a central key/value store which is used for communication between the SAGA-BigJob Manager and the BigJob agent. There is a separate BigJob agent for each BigJob. Thus, every BigJob on every machine has a local BigJob agent. Once the BigJobs become active, the BigJob agent retrieves the job descriptions from the advert server, allocates the required number of nodes and launches the sub-jobs on each resource. The BigJob agent continuously monitors the running sub-jobs and updates the sub-job states in the advert server. Once a sub-job finishes running, the nodes are freed and marked as available. The BigJob agent periodically polls the advert server for new jobs.
-\subsection{Replica-Exchange Manager}\label{repexmanager} 
+Previously, we demonstrated the usage of the SAGA Pilot-Job
+framework~\citep{saga_bigjob_condor_cloud} -- called the BigJob, to
+run RE simulations across multiple, heterogeneous, distributed grid
+and cloud infrastructure~\citep{Luckow:2008fp}. Here we use the BigJob
+framework to efficiently request and manage computational resources
+for multiple replicas.  Figure ~\ref{fig:bigjob} shows the
+architecture of SAGA BigJob.  It consists of three components: (i) the
+SAGA-BigJob Manager, (ii) the BigJob Agent and (iii) the advert
+service. The SAGA-BigJob manager submits the BigJobs to the resource
+manager and the sub-job descriptions to the \emph{advert server}. The
+advert server can be on any machine and is a central key/value store
+which is used for communication between the SAGA-BigJob Manager and
+the BigJob agent. There is a separate BigJob agent for each
+BigJob. Thus, every BigJob on every machine has a local BigJob
+agent. Once the BigJobs become active, the BigJob agent retrieves the
+job descriptions from the advert server, allocates the required number
+of nodes and launches the sub-jobs on each resource. The BigJob agent
+continuously monitors the running sub-jobs and updates the sub-job
+states in the advert server. Once a sub-job finishes running, the
+nodes are freed and marked as available. The BigJob agent periodically
+polls the advert server for new jobs.
 
-\jhanote{Just a suggestion for the title}
+\subsection{Replica-Exchange Manager}\label{repexmanager} 
 
 \jhanote{Abhinav: This subsection should help the reader understand
   the basic and common elements of the RE Framework -- job submission,
   role of bigjob-agent, replica agent, replica-exchange manager etc
   etc}
   
-\alnote{the following paragraph should probably go into the next subsection}
-Synchronous RE is only implemented in a centralised manner, where the
-simulation and all the replicas are managed by a master. 
-Because there is a synchronization step at the end of each exchange
-step, we believe it will not help even if the replicas are managed in
-a decentralized manner. By decentralized, we mean a case where each of the replicas are are managed individually. But, in the case of asynchronous RE, we
-implement it in both centralised and decentralised manner. %And, we see that the decentralised implementation is much more efficient than the centralised implementation.  The synchronous and asynchronous RE have been successfully deployed on production level infrastructure such as the Teragrid and LONI.
+\alnote{the following paragraph should probably go into the next
+  subsection} Synchronous RE is only implemented in a centralised
+manner, where the simulation and all the replicas are managed by a
+master.  Because there is a synchronization step at the end of each
+exchange step, we believe it will not help even if the replicas are
+managed in a decentralized manner. By decentralized, we mean a case
+where each of the replicas are are managed individually. But, in the
+case of asynchronous RE, we implement it in both centralised and
+decentralised manner.
 
+\jhanote{ABHINAV: DEFINE THE ROLE OF RE-MANAGER HERE.  Possibly BIGJOB
+  AGENT here if not in previous subsection.}  The RE-Manager receives
+data about each replica, such as the state (running or done),
+temperature and energy from the BigJob agent after each run and based
+on that makes the exchanges. This is in addition to the typical
+management tasks carried out by the SAGA-BigJob Manager.  First, the
+RE-Manager starts the BigJob. This is done by when the SAGA BigJob
+Manager submits a job request to the resource manager.  While the job
+request is in the queue, the RE-Manager posts the job descriptions of
+each of the replicas to the advert server. The RE-Manager also creates
+directories, configuration files and stages them to the respective
+directories.  \alnote{We should focus on the RE part here. The BigJob
+  stuff move to subsec a). This should also remove the redundancy with
+  a)} Once the resource manager allocates the resources, the BigJob
+becomes active. Then the SAGA BigJob Manager launches the BigJob
+agent.  The BigJob agent obtains the list of nodes allocated by the
+resource manager.  The BigJob agent retrieves the job descriptions
+from the advert server and writes nodefiles for each of the replicas
+and runs them. The BigJob agent also monitors the replicas and posts
+their current state the advert server.
 
 \subsubsection{Synchronous and Asynchronous (centralized) RE-Manager}
-The reason for grouping synchronous and asynchronous (centralized) RE-Managers is that they are very similar in operation. They are both centralized implementations, where a master process has complete control over the replicas and the whole experiment. We first explain the synchronous RE-Manager and then the asynchronous (centralized) RE-Manager.
 
-The RE-Manager receives various data about each
-replica, such as the state (running, done, etc.,), temperature and
-energy from the BigJob agent after each run and based on that makes
-the exchanges. This is in addition to the typical management tasks
-carried out by the SAGA-BigJob Manager.  \jhanote{This should be 
-moved to the subsection\ref{repexmanager}.}
-The control flow of the synchronous RE-Manager can be seen in 
-Figure~\ref{fig:coordination}a). While the figure actually shows 
-the control-flow in the case of centralized asynchronous RE, since 
-both the implementations are centralized, there is only a slight 
-difference. First, the RE-Manager starts the BigJob. This is done 
-by making the SAGA BigJob Manager submit a job request to the 
-resource manager. While the job request may be in the queue, the 
-RE-Manager posts the job descriptions of each of the replicas 
-to the advert server. The RE-Manager also creates directories, 
-configuration files and stages them to the respective directories. 
-\alnote{We should focus on the RE part here. The BigJob stuff move to subsec a). This
-should also remove the redundancy with a)}
-Once the resource manager allocates the resources, the BigJob becomes 
-active. Then the SAGA BigJob Manager launches the BigJob agent. 
-The BigJob agent obtains the list of nodes allocated by the resource manager. 
-The BigJob agent retrieves the job descriptions from the advert server and 
-writes nodefiles for each of the replicas and runs them. The BigJob agent 
-also monitors the replicas and posts their current state the advert server. 
-The RE-Manager constantly queries the advert server for the latest replica 
-states. \alnote{The RE-Manager queries BigJob. We should hide the BJ impl details in this section.} 
-When the RE-Manager finds a replica that has finished running, it collects the energy and temperature of that replica by reading the output file. Once \emph{all} the replicas have finished running, the RE-Manager makes the exchanges. The exchange is done by exchanging the temperatures and writing new configuration files. With the new configuration files in place, the RE-Manager posts the job descriptions to the advert server. \alnote{The RE-Manager spawns a new sub-job. BJ uses the advert service to dispatch this subjob. See comments above}
-The BigJob agent finds the replicas and restarts them. The RE-Manager counts the successful exchanges. This process is repeated until the required number of exchanges are done. 
+% The reason for grouping synchronous and asynchronous (centralized)
+% RE-Managers is that they are very similar in operation. They are
+% both centralized implementations, We first explain the synchronous
+% RE-Manager and then the asynchronous (centralized) RE-Manager.
+
+
+The control flow of the synchronous RE case can be seen in
+Figure~\ref{fig:coordination}a).  In both the synchronous and
+asynchronous (centralized) a master process has complete control over
+the replicas and the whole experiment.  So although the figure shows
+the control-flow in the case of centralized asynchronous RE, as both
+the implementations are centralized, it is applicable for the
+synchronous implementation too. \jhanote{Abhinav, please check that
+  this is correct?}
+
+The RE-Manager constantly queries the advert server for the latest
+replica states. \alnote{The RE-Manager queries BigJob. We should hide
+  the BJ impl details in this section.}  When the RE-Manager finds a
+replica that has finished running, it collects the energy and
+temperature of that replica by reading the output file. Once
+\emph{all} the replicas have finished running, the RE-Manager makes
+the exchanges. The exchange is done by exchanging the temperatures and
+writing new configuration files. With the new configuration files in
+place, the RE-Manager posts the job descriptions to the advert
+server. \alnote{The RE-Manager spawns a new sub-job. BJ uses the
+  advert service to dispatch this subjob. See comments above} The
+BigJob agent finds the replicas and restarts them. The RE-Manager
+counts the successful exchanges. This process is repeated until the
+required number of exchanges are done.
 
 The asynchronous (centralized) RE-Manager is similar, if not identical to 
-the synchronous RE-Manager. The only difference is that instead waiting 
+the synchronous RE-Manager. The only difference is that instead of waiting 
 for \emph{all} replicas to finish running before making exchanges, the 
 asynchronous (centralized) RE-Manager, whenever it finds a replica that 
 has finished running, it tries to find a partner to make and exchange 
@@ -550,15 +597,66 @@ to find that replica a partner. The RE-Manager counts the successful
 exchanges. This process is repeated till all the exchanges are made. 
 
 \alnote{Not sure what we should do with the following paragraph}
-Where as in the synchronous RE, all the exchanges happen at a time, when all the replicas are finished running. This could be counted as one exchange step or a generation. At each exchange step, the number of pairwise exchanges taking place is half the total number of replicas. In asynchronous RE, we count the number of pairwise exchanges. 
+\jhanote{Does not belong here} Where as in the synchronous RE, all the
+exchanges happen at a time, when all the replicas are finished
+running. This could be counted as one exchange step or a
+generation. At each exchange step, the number of pairwise exchanges
+taking place is half the total number of replicas. In asynchronous RE,
+we count the number of pairwise exchanges.
 
 \subsubsection{Asynchronous (decentralized) RE-Manager and the replica agent}
 
-The asynchronous (decentralized) RE-Manager is just the SAGA BigJob framework, almost without any added functionality. By decentralized, we mean a case where each of the replicas are managed individually instead of a master managing all the replicas. The only additional thing that the RE-Manager does is that it queries the advert server for the current exchange count and when all exchanges are done, kills the experiment. It does the basic things such as starting the BigJob, submitting the job descriptions of the replicas,\alnote{sub-jobs!} staging files initially and starting the BigJob agent. Once the BigJob becomes active, the BigJob agent runs a \emph{replica agent} instead of a replica. The replica agent is just a wrapper script for the replica, which runs and manages the replica. The BigJob agent has nothing else to do after it launches the replica agent, because for the length of the experiment, the replica agent would be running and managing the replica. The replicas are restarted, when needed by the replica agent itself. 
+% The asynchronous (decentralized) RE-Manager is just the SAGA BigJob
+% framework, almost without any added functionality.
+A decentralized,
+implemenation implies the replicas are managed individually
+instead of a master managing all the replicas. 
+The RE-Manager queries the advert server
+for the current exchange count and when all exchanges are done, kills
+the experiment. It does the basic things such as starting the BigJob,
+submitting the job descriptions of the replicas,\alnote{sub-jobs!}
+staging files initially and starting the BigJob agent. Once the BigJob
+becomes active, the BigJob agent runs a \emph{replica agent} instead
+of a replica. The replica agent is just a wrapper script for the
+replica, which runs and manages the replica. The BigJob agent has
+nothing else to do after it launches the replica agent, because for
+the length of the experiment, the replica agent would be running and
+managing the replica. The replicas are restarted, when needed by the
+replica agent itself.
 
-Figure~\ref{fig:coordination}b) shows the decentralized control-flow. Each replica is managed by a unique replica agent. The replica agent upon launch runs the replica. It receives the nodefile from the BigJob agent. It then constantly monitors the replica and when the replica finishes its run, it updates the advert server with the current state of the replica. It also reads the temperature and energy from the output files and posts the values to the advert server. It then goes through the list of replicas and tries to find an exchange partner. If it finds another replica available, it re-verifies the states of both itself and the other replica and if it finds both still available, marks their states as "Pending". The replica that initiates the exchange is the replica in-charge of the exchange. It then exchanges their temperatures via the advert server. \alnote{We should detail the exchange protocol. How do we ensure that the exchange is atomic? figure?}
-It then modifies its configuration files locally, sets its state as running and runs the replica. On the other hand, the other replica's state is not set as "Ready" and that makes the other replica's replica agent to retrieve its own temperature from the advert server, modify its configuration file locally and run the replica. \alnote{Why does it need to modify its own config if it uses its own temperature?} If at all the negotiation fails or the exchange is unsuccessful, the process is repeated. \alnote{How often is the process repeated until the replica is started with the old temperature?} The replica agent that initiated the exchange increments the exchange count by one. 
+\jhanote{ISNT THE NEXT PARAGRAPH ESSENTIALLY THE SAME AS THE PREVIOUS
+  PARAGRAHGP? WHY DONT YOU REFER TO THE FIGURE AND THE BASIC StePS
+  OUTLINED IN THE FIGURE?}
 
+Figure~\ref{fig:coordination}b) shows the decentralized
+control-flow. Each replica is managed by a unique replica agent. The
+replica agent upon launch runs the replica. It receives the nodefile
+from the BigJob agent. It then constantly monitors the replica and
+when the replica finishes its run, it updates the advert server with
+the current state of the replica. It also reads the temperature and
+energy from the output files and posts the values to the advert
+server. It then goes through the list of replicas and tries to find an
+exchange partner. If it finds another replica available, it
+re-verifies the states of both itself and the other replica and if it
+finds both still available, marks their states as "Pending".
+The replica that
+initiates the exchange is the replica in-charge of the exchange. It
+then exchanges their temperatures via the advert server. \alnote{We
+  should detail the exchange protocol. How do we ensure that the
+  exchange is atomic? figure?}  It then modifies its configuration
+files locally, sets its state as running and runs the replica. On the
+other hand, the other replica's state is not set as "Ready" and that
+makes the other replica's replica agent to retrieve its own
+temperature from the advert server, modify its configuration file
+locally and run the replica. \alnote{Why does it need to modify its
+  own config if it uses its own temperature?} If at all the
+negotiation fails or the exchange is unsuccessful, the process is
+repeated. \alnote{How often is the process repeated until the replica
+  is started with the old temperature?} The replica agent that
+initiated the exchange increments the exchange count by one.
+
+\jhanote{Do we have a pending state? Accoridng to Abhinav there is
+  only a two-state model -- run and done?!} 
 
 \section{Implementation of Synchronous and Asynchronous RE}
 
@@ -568,72 +666,56 @@ It then modifies its configuration files locally, sets its state as running and 
 
 \alnote{General remark: What do you guys think of summarizing the data into 
 a table? This way the reader can track the numbers at one central place.}
+\jhanote{YES. I have suggested the same too}
 
 We present the implementation details of the synchronous RE and the
 two implementations of the asynchronous RE algorithm here.
-\jhanote{Explain centralized and decentralized}
-We are primarily interested in learning the scale-up and scale-out
-properties of synchronous and asynchronous RE and hence are not
-concerned by the queue wait time. % In the following, we will
-% explain how we implement the synchronous RE simulations.
+\jhanote{Explain centralized and decentralized} We are primarily
+interested in learning the scale-up and scale-out properties of
+synchronous and asynchronous RE and hence are not concerned by the
+queue wait time. 
 
-To be able to quantify the various terms involved, we will consider the
-following configuration for a RE experiment. The total number of replicas ($N_R$) in the
-ensemble are 32 and the total number of pairwise exchanges ($N_X$) is
-128. That would mean 8 generations or 8 on a homogeneous
-infrastructure 8 restarts per replica. The ensemble of replicas are run
-concurrently. Our experiments are performed on LONI and Teragrid
-shared resource \emph{QueenBee}. Each replica is configured to run 500
-time-steps and is allocated 16 processors. It should be noted that we are
-talking about the average values whenever we mention quantities. Each
-replica takes 91 seconds to complete the 500 time-steps from a fresh
-start and 68 seconds every time it is restarted. Thus, if each replica
-is restarted 7 times, the average time per generation is 71
-seconds. \alnote{How do you get 71s? (91*1+68*7)/8? Tx? 
-Also, we should explain why the first run takes longer.} 
-The total runtime of the ensemble of replicas concurrently
+To be able to quantify the various terms involved, we will consider
+the following configuration for a RE experiment. The total number of
+replicas ($N_R$) in the ensemble are 32 and the total number of
+pairwise exchanges ($N_X$) is 128. That would mean 8 generations or 8
+on a homogeneous infrastructure 8 restarts per replica. The ensemble
+of replicas are run concurrently. Our experiments are performed on
+LONI and Teragrid shared resource \emph{QueenBee}. Each replica is
+configured to run 500 time-steps and is allocated 16 processors. It
+should be noted that we are talking about the average values whenever
+we mention quantities. Each replica takes 91 seconds to complete the
+500 time-steps from a fresh start and 68 seconds every time it is
+restarted. Thus, if each replica is restarted 7 times, the average
+time per generation is 71 seconds. \alnote{How do you get 71s?
+  (91*1+68*7)/8? Tx?  Also, we should explain why the first run takes
+  longer.}  The total runtime of the ensemble of replicas concurrently
 run would depend on the total number of times each the replica was
 restarted. And in this case it is 8 and the total run time is $71
-\times 8 = 568$ seconds. \alnote{We should mention NAMD before going into runtime details of NAMD.}
-Nanoscale molecular dynamics (NAMD) (Phillips et al.
-2005), a highly scalable, parallel MD code, is used to carry out the MD simulation
-corresponding to each replica run. It is important to mention that any other MD or
-Monte Carlo code could be used just as simply and effectively.
-% \jhanote{this should go} Also in this section, when we say replica, we
-% mean NAMD. \jhanote{NAMD is just a piece of software!}
+\times 8 = 568$ seconds. \alnote{We should mention NAMD before going
+  into runtime details of NAMD.}  Nanoscale molecular dynamics (NAMD)
+(Phillips et al.  2005), a highly scalable, parallel MD code, is used
+to carry out the MD simulation corresponding to each replica run. It
+is important to mention that any other MD or Monte Carlo code could be
+used just as simply and effectively.
 
 \subsection{Synchronous RE}
+Once the BigJob is active, the BigJob agent writes a nodefile for each
+replica and starts the jobs. And the average time it takes to start
+one replica is 0.3 seconds.  \alnote{Is this the time agent only? Or
+  does it include the submission time on the master?}  For 32
+replicas, it is 9.6 seconds. For each pair of replicas, it is
+9.6/16=0.6 seconds.
 
-
-%The RE-Manager first submits the BigJob to resource manager. \jhanote{
-  %is this true of all 3 cases? if so, this should be in
-  %subsection~\ref{repexmanager}} 
-Once the BigJob is active, the BigJob agent writes a
-nodefile for each replica and starts the jobs. And the average time
-it takes to start one replica is 0.3 seconds. 
-\alnote{Is this the time agent only? Or does it include the submission time on the master?}
-For 32 replicas, it is
-9.6 seconds. For each pair of replicas, it is 9.6/16=0.6 seconds.
-
-\jhanote{Remember: if the reader has not understood the control flow
-  already, all this will not make sense!}
-
-%While it is the case that the BigJob agent is ready to start the new
-%replicas at the start of the first run of the simulation, it is not
-%always the case. \jhanote{previous sentence is difficult to
-  %understand} Once the BigJob agent starts the replicas, it also
-%monitors them and updates the states in the advert server.  It also
-%keeps a list of free and busy nodes. 
-The BigJob agent takes 0.92 seconds to process a replica that is 
-found to be done running. That is the time it takes to update the 
-state and mark the nodes as free. Therefore, while there is a gap of 
-9.6 seconds between the
-start times of the first and last replica, there is a difference of
-29.44 seconds between the end time of the first replica and the last
-replica. \alnote{I don't understand where the 29.4 sec come from? The next
-2 sentences don't make sense to me.} 
-This should be included in $T_W$. This also overlaps the
-startup time. So we need not count the startup time.
+The BigJob agent takes 0.92 seconds to process a replica that is found
+to be done running. That is the time it takes to update the state and
+mark the nodes as free. Therefore, while there is a gap of 9.6 seconds
+between the start times of the first and last replica, there is a
+difference of 29.44 seconds between the end time of the first replica
+and the last replica. \alnote{I don't understand where the 29.4 sec
+  come from? The next 2 sentences don't make sense to me.}  This
+should be included in $T_W$. This also overlaps the startup time. So
+we need not count the startup time.
 
 The replicas are now running, and the RE-Manager periodically queries
 the advert server for the latest replica states and marks the replicas
@@ -652,62 +734,24 @@ seconds. Since exchanges are done in pairs, for each pair it would be
 42.24/16 = 2.64 seconds.
 
 Since this is a synchronous RE, all the replicas finish running before
-the exchanges are started. \jhanote{The previous sentence is an
-  example of what needs to be already explained!}  Hence, the RE
-manager won't spend any time searching for partners and $T_F$ is 0
-seconds. $T_{ex}$ includes updating configuration files and
-transferring the them to their respective directories, in this case,
-locally. It takes 0.2 seconds to write and copy a file
-locally. $T_{ex} = 0.2 \times 2=0.4$ seconds. $T_{coord}$ is the time
-it takes to resubmit the pair of replicas to the advert server, which
-is $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is
-$0+0.4+0.22=0.62$ seconds. 
+the exchanges are started.  Hence, the RE manager won't spend any time
+searching for partners and $T_F$ is 0 seconds. $T_{ex}$ includes
+updating configuration files and transferring the them to their
+respective directories, in this case, locally. It takes 0.2 seconds to
+write and copy a file locally. $T_{ex} = 0.2 \times 2=0.4$
+seconds. $T_{coord}$ is the time it takes to resubmit the pair of
+replicas to the advert server, which is $0.11\times 2 = 0.22$
+seconds. Therefore, $T_X$ is $0+0.4+0.22=0.62$ seconds.
 
-If $T$ is the total to complete the RE experiment, and $p$ is
-the probability of a successful exchange, quantifying equation
-~\ref{eq:totaltime}, we get 
+If $T$ is the total to complete the RE experiment, and $p$ is the
+probability of a successful exchange, quantifying equation
+~\ref{eq:totaltime}, we get
 \begin{eqnarray}
 T=  {1 \over p} \times {[ 568+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
 \label{eq:timebt}
 \end{eqnarray}
 \alnote{$T_{MD}$ should be also x Nx?}
 
-%The BigJob agent also monitors the replicas it
-%launched and posts the statuses of the replicas to the advert
-%server. The master queries the advert server for the latest job states
-%and when it finds that \emph{all} the replicas in the generation are
-%'Done' ($T_{MD}+T_{W}$), it starts making the exchanges ($T_{X}$).
-%\alnote{We should clearly differ between describing the coordination pattern and analyzing the time} $T_{X}$ is comprised of the time to find a partner $T_{F}$, exchanging states/file-staging $T_{ex}$ and status updates $T_{coord}$. \alnote{repetition with sec 2} After all the exchanges are done in a particular generation, the replica job descriptions are posted to the advert server and the BigJob agent restarts the replicas. This process is repeated until the required number of exchanges are made. The time to make one exchange would be: \begin{eqnarray} t &=&  {1 \over p} \times {[T_s+T_{MD} + T_{X} + T_{W}]}  \label{eq:sy} \end{eqnarray} where $p$ is the probability of a successful exchange.
-
-%If the number of exchanges is ($N_{X}$), the total time to completion ($T_{C}$) would be:
-%\begin{eqnarray}
-%T_{C} &=& N_{X} \times t 
-%\label{eq:synch}
-%\end{eqnarray}
-%If there are $\eta$ independent exchange events then the time $T$ for 
-%N$_x$ exchanges is $T \over \eta$. For this synchronous RE model, 
-%$\eta$ is 1\alnote{1 or 2?}, as all the exchanges are carried out 
-%in a serial manner. Also, assuming $p$ is 1,\alnote{unrealistic} 
-%$T =  [T_s+T_{MD} + T_{X} + T_{W}] \times N_{X}$.
-%Quantifying each of the terms above with experimental values observed 
-%on QueenBee, we have:
-%\alnote{$T_{MD}$ is for what scenario?}
-%$T_s = 1.5\,sec; T_{MD}=90\,sec; T_{X}=T_{F}+T_{ex}+T_{coord}=0.3+1+0.6=1.9\,sec; T_W=varies.$ 
-%\alnote{$T_{F}$ == 0.3\,sec? independent of number replicas? 
-%Do we have an average value of $T_{W}$ with respect to different
-%number of replicas maybe incl. stddev? table?}
-%The value of $T_W$ increases with the number of replicas, because 
-%the gap between the time the first and last replicas are 
-%started increases. 
-
-
-% \begin{figure}[t]
-%       \centering
-%           \includegraphics[width=0.8\textwidth]{synchronous.pdf}
-%           \caption{\footnotesize Control Flow: Synchronous Replica Exchange
-%               }
-%       \label{fig:sync}
-% \end{figure}
 
 \begin{figure}%
 \centering
