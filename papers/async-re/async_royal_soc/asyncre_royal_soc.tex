@@ -564,10 +564,12 @@ It then modifies its configuration files locally, sets its state as running and 
   flow - which is YOUR IMPLEMENTATION of the RE algorithm. Need to
   make reference to Figures 2a and 2b}
 
+\alnote{General remark: What do you guys think of summarizing the data into 
+a table? This way the reader can track the numbers at one central place.}
+
 We present the implementation details of the synchronous RE and the
 two implementations of the asynchronous RE algorithm here.
 \jhanote{Explain centralized and decentralized}
-
 We are primarily interested in learning the scale-up and scale-out
 properties of synchronous and asynchronous RE and hence are not
 concerned by the queue wait time. % In the following, we will
@@ -585,10 +587,12 @@ talking about the average values whenever we mention quantities. Each
 replica takes 91 seconds to complete the 500 time-steps from a fresh
 start and 68 seconds every time it is restarted. Thus, if each replica
 is restarted 7 times, the average time per generation is 71
-seconds. The total runtime of the ensemble of replicas concurrently
+seconds. \alnote{How do you get 71s? (91*1+68*7)/8? Tx? 
+Also, we should explain why the first run takes longer.} 
+The total runtime of the ensemble of replicas concurrently
 run would depend on the total number of times each the replica was
 restarted. And in this case it is 8 and the total run time is $71
-\times 8 = 568$ seconds.
+\times 8 = 568$ seconds. \alnote{We should mention NAMD before going into runtime details of NAMD.}
 Nanoscale molecular dynamics (NAMD) (Phillips et al.
 2005), a highly scalable, parallel MD code, is used to carry out the MD simulation
 corresponding to each replica run. It is important to mention that any other MD or
@@ -604,7 +608,9 @@ Monte Carlo code could be used just as simply and effectively.
   %subsection~\ref{repexmanager}} 
 Once the BigJob is active, the BigJob agent writes a
 nodefile for each replica and starts the jobs. And the average time
-it takes to start one replica is 0.3 seconds. For 32 replicas, it is
+it takes to start one replica is 0.3 seconds. 
+\alnote{Is this the time agent only? Or does it include the submission time on the master?}
+For 32 replicas, it is
 9.6 seconds. For each pair of replicas, it is 9.6/16=0.6 seconds.
 
 \jhanote{Remember: if the reader has not understood the control flow
@@ -616,11 +622,15 @@ it takes to start one replica is 0.3 seconds. For 32 replicas, it is
   %understand} Once the BigJob agent starts the replicas, it also
 %monitors them and updates the states in the advert server.  It also
 %keeps a list of free and busy nodes. 
-The BigJob agent takes 0.92 seconds to process a replica that is found to be done running.
-That is the time it takes to update the state and mark the nodes as free. Therefore, while there is a gap of 9.6 seconds between the
+The BigJob agent takes 0.92 seconds to process a replica that is 
+found to be done running. That is the time it takes to update the 
+state and mark the nodes as free. Therefore, while there is a gap of 
+9.6 seconds between the
 start times of the first and last replica, there is a difference of
 29.44 seconds between the end time of the first replica and the last
-replica. This should be included in $T_W$. This also overlaps the
+replica. \alnote{I don't understand where the 29.4 sec come from? The next
+2 sentences don't make sense to me.} 
+This should be included in $T_W$. This also overlaps the
 startup time. So we need not count the startup time.
 
 The replicas are now running, and the RE-Manager periodically queries
@@ -651,14 +661,14 @@ it takes to resubmit the pair of replicas to the advert server, which
 is $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is
 $0+0.4+0.22=0.62$ seconds. 
 
-If $T$ is the total to complete the RE experiement, and $p$ is
+If $T$ is the total to complete the RE experiment, and $p$ is
 the probability of a successful exchange, quantifying equation
-~\ref{eq:totaltime}, we get
+~\ref{eq:totaltime}, we get 
 \begin{eqnarray}
 T=  {1 \over p} \times {[ 568+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
 \label{eq:timebt}
 \end{eqnarray}
-
+\alnote{$T_{MD}$ should be also x Nx?}
 
 %The BigJob agent also monitors the replicas it
 %launched and posts the statuses of the replicas to the advert
@@ -716,14 +726,14 @@ T=  {1 \over p} \times {[ 568+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (9
 \alnote{please don't just copy paste. Only focus on the differences}
 
 
-Here we describe the centralised
-implementation.
- Once the BigJob is active, the BigJob agent writes a nodefile for
-each replica and starts the repplicas. The average time it takes to
+First, we analyze the centralised implementation.  Once the BigJob is active, 
+the BigJob agent writes a nodefile for
+each replica and starts the replicas. The average time it takes to
 start one replica is 0.3 seconds. For 32 replicas, it is 9.6
 seconds. Since $T_{MD}$ on a fresh run is 91 seconds, the BigJob agent
 would be ready to restart the replicas by the time the RE-Manager
-submits to the advert server.
+submits to the advert server. \alnote{Not consistent with a) 
+Where is the 71s number?}
 
 The replicas are now running, and the RE-Manager constantly
 queries the advert server for the latest replica states. Whenever the
@@ -737,9 +747,9 @@ number of replicas, where the RE-Manager tries to find a
 partner randomly. We observed that this only improves the performance
 when the ensemble contains more than 128 replicas. It takes 0.01
 seconds per query. Thus for 32 replicas, on average, $T_F$ is
-$16\times 0.01=0.16 seconds. T_{ex}$ is the time it takes to update
+$16\times 0.01=0.16\,sec. T_{ex}$ is the time it takes to update
 the configuration files and copy them locally. That would be
-$0.2\times 2=0.4 seconds.$ $T_{coord}$ is the time it takes to
+$0.2\times 2=0.4\,sec.$ $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
 $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is
 $0.16+0.4+0.22=0.78$ seconds. Therefore, on average, it takes 0.78
