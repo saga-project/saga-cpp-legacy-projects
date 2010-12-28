@@ -262,16 +262,13 @@ We begin the next section with the numerical details of individual CFD and MD co
 
 
 % -------------------------------------------------------------------------
-\section{Development of A Hybrid CFD-MD Simulation Toolkit: Numerical Techniques for Multi-physics Flow Simulation
-\\
-\Nkimnote{Proposed title : Fundamentals of Hybrid Coupled Continuum-Molecular Simulation Toolkit}}
+%\section{Development of A Hybrid CFD-MD Simulation Toolkit: Numerical Techniques for Multi-physics Flow Simulation}
+\section{Fundamentals of Hybrid Coupled Continuum-Molecular Simulation Toolkit}
 
 The accuracy of a hybrid CFD-MD solution is governed by the underlying numerical schemes in individual solver as well as hybrid schemes implemented. We explain the features of baseline solvers and the structure of hybrid interface in this section. We also investigate additional numerical treatments to improve the accuracy of hybrid CFD-MD simulations in various flow conditions.
 
-\subsection{The Hybrid CFD-MD Approach
-\\
-\Nkimnote{Proposed title : Overview of the Continuum-Molecular Coupled Approach } 
-}
+%\subsection{The Hybrid CFD-MD Approach}
+\subsection{Overview of the Continuum-Molecular Coupled Approach}
 The hybrid CFD-MD approach stands on the assumption that the molecular dynamic simulation produces more accurate solution than the continuum model and a more efficient continuum solver provides the boundary condition to particle domain without restricting the high degree-of-freedom of atomistic motion. So, the region which contains a strong flow gradient is resolved by a molecular dynamic simulation and moderate flow in macroscopic scale is captured by the continuum dynamics. Also, these problem domains overlap each other in the middle to exchange the individual information.
 
 A detailed structure of the fluid domain for constrained Lagrangian dynamics models is described in Fig.~\ref{Fig:Couette}. CFD approach solves the external zones with the moderate flow velocity and MD analyzes the complex microscopic flow feature near the stationary obstacle or in the low-speed region. Hybrid region is placed sufficiently far from the solid obstacle to prevent the direct influence of strong fluctuation due to the intermolecular collision between solid and fluid particles. Also, this region is set up sufficiently large to contain five layers with enough spacing.
@@ -303,13 +300,10 @@ In the uppermost layer, the external force is exerted on particles to conserve s
 
 
 
-\subsection{Numerical Schemes in the Baseline CFD and MD Codes
-\\
-\Nkimnote{Proposed title : Governing Equation} 
-}
-\subsubsection{
-\Nkimnote{Proposed title : Continuum Incompressible Flow Formulation(CFD)}
-}
+%\subsection{Numerical Schemes in the Baseline CFD and MD Codes}
+\subsection{Governing Equations and Numerical Schemes} 
+
+\subsubsection{Continuum Incompressible Flow Formulation(CFD)}
 
 The current in-house continuum hydrodynamics code solves the unsteady incompressible Navier-Stokes equations to demonstrate the isothermal nano-scale flow field:
 
@@ -341,9 +335,7 @@ where $\beta$ denotes a pseudo-compressibility parameter, currently set up as 2.
 For time-accurate unsteady simulation, dual time stepping method is adopted and it is combined with the LU-SGS (Lower-Upper Symmetric Gauss-Seidel) scheme~\cite{LU-SGS} for the implicit time integration. The inviscid fluxes are upwind-differenced using Osher's flux-difference splitting scheme~\cite{Osher}. For higher-order spatial accuracy, the MUSCL (Monotone Upstream-centered Schemes for Conservation Laws)~\cite{MUSCL} approach is used on inviscid flux calculation. Viscous fluxes are calculated using the conventional second-order central differencing.
 
 
-\subsubsection{
-\Nkimnote{Proposed title : Molecular-Level Formulation(MD)}
-}
+\subsubsection{Molecular-Level Formulation(MD)}
 
 %Molecular dynamics computer simulation technique is a specified computer simulation method for molecular systems, including microscopic details of a system and macroscopic statistical properties, which are the properties of the atoms, the interactions between particles, molecular characteristics, structure of molecules, transport phenomena etc.~\cite{Allen},\cite{Haile},\cite{Rapaport} 
 In MD, an initial velocity is assigned to each atom, and Newton's laws are employed at the atomic level to propagate the system's motion through time evolution:
@@ -451,10 +443,8 @@ The continuum velocity and the mean microscopic velocity from MD over control do
 
 
 
-
-\subsection{Implementation of Hybrid Interface
-\\
-\Nkimnote{Proposed title : Information Exchange Scheme Between Continuum and Molecular Domains}}
+%\subsection{Implementation of Hybrid Interface}
+\subsection{Hybrid Schemes and Interfaces between Continuum and Molecular Domains}
 The hybrid simulation requires additional numerical treatments to be implemented on individual code. They include the implementation of hybrid schemes, information exchange interface, and the change of data structure. In the current study, a constrained Lagrangian dynamics model is implemented for hybrid simulation and the file interface is designed to schedule the information exchange between continuum and discrete particle descriptions. The changes on individual code are demonstrated in this section.
 
 Major changes on standalone CFD and MD codes are summarized in table~\ref{table:interface_implementation}. With regard to the CFD code, it experiences the change of data structure to be the same as that of overset mesh technique~\cite{Chimera}. That is, the CFD mesh system is generated to store the whole fluid domain with its geometric information and the CFD code treats the pure MD region in Fig.~\ref{Fig:Couette} as `Hole' in the terminology of overset technique. Likewise, MDtoCFD and CFDtoMD boundary cells are declared as `Fringe' and `Donor' cells, respectively. This change is "optional" but we encourage because the implementation of overset data structure will ease the handling of the hybrid conditions (position and depth of hybrid layers) without mesh regeneration.
@@ -841,10 +831,7 @@ The generation of an application manager and the changes in application codes ra
 
 
 
-\section{Multi-physics Flow Simulations in Various Flow Conditions
-\\
-\Nkimnote{Proposed title : Implementation and Performance}}
-
+\section{Multi-physics Flow Simulations in Various Flow Conditions}
 A hybrid CFD-MD framework is employed to solve the multi-physics flow in nano-scale. Experimented problems are a sudden-start Couette flow and the oscillating boundary problem. We start from a novel approach of easily determining coupling conditions to the validation and verification of the hybrid simulation framework, then to the exploration of the moderate flow conditions in view of flow velocity and system scale.
 
 \subsection{Problem Description and Coupling Conditions}
@@ -1029,7 +1016,7 @@ The strength of the noise in this large system is globally milder than the resul
 
 %Table \ref{table:MD_Vel0} shows the averaged velocity on different layer size and sampling duration. Experiments were conducted with different system width changing from 35 $\sigma$ to 70 and 140 $\sigma$. From the individual test, we can find that increasing sampling duration or height of averaged layer does not linearly decrease the statistical error. At the first test, increasing the height of averaged layer from 0.1 $\sigma$ to 6.4 $\sigma$ reduces the statistical error by 4 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration. Next, by comparing the first and third experiments, we find that the statistical error in general becomes half when the system size is 4 times bigger. This does not support the conclusion of statistical error analyses~\cite{Hadjicon2},\cite{Time_Mechanism} where the strength of error is inversely proportional to the system size. We assume that the upper and lower walls hinder the noise from being damped out. Nevertheless, increasing the system domain is more effective than numerically increasing the size of averaged layer in reducing the statistical error. Lastly, though not included in this table, we also conducted numbers of experiments by changing time step in MD simulation, $\Delta t_{MD}$. We could not find much difference in the strength of statistical noise with different time step and this concludes us that this fluctuation and its scale is physically natural phenomenon. So, time step for MD simulation is fixed as $\Delta t_{MD}=5 \times 10^3 \tau$ on all simulations.
 
-A sudden-start Couette flow simulation has been in wide use for the validation of a hybrid CFD-MD solver.~\cite{Nie,Yen} The flow is initially set stationary and the upper wall starts moving by a constant velocity (1 $\sigma$/$\tau$). This physical boundary condition of the continuum domain governs the evolution of the whole flow field. Figure~\ref{Flat_Plate_Sol} presents a sudden-start Couette flow profile by CFD, MD and hybrid simulations in 10$^{-8}$ meter system. Pure CFD produces identically the same result as analytic solution and MD simulations also describes the same flow physics though the slight fluctuation of the solution is observed. This verifies the accuracy of the individual solver. The hybrid solution also shows the slight deviation from the analytic solution, which is the fluctuation of the sampled MD solution. Nevertheless, the hybrid simulation succeeds in demonstrating the same flow physics as the analytic solution. % This variation can even be diminished if the solution is visualized over a longer temporal range, which is observed in many articles.
+A sudden-start Couette flow is simulated to verify the accuracy of the current framework with multiple sampling approach for the moderate-speed flow simulation. This application has been in wide use for the validation of a hybrid CFD-MD solver.~\cite{Nie,Yen} The flow is initially set stationary and the upper wall starts moving by a constant velocity (1 $\sigma$/$\tau$). This physical boundary condition of the continuum domain governs the evolution of the whole flow field. Figure~\ref{Flat_Plate_Sol} presents a sudden-start Couette flow profile by CFD, MD and hybrid simulations in 10$^{-8}$ meter system. Pure CFD produces identically the same result as analytic solution and MD simulations also describes the same flow physics though the slight fluctuation of the solution is observed. This verifies the accuracy of the individual solver. The hybrid solution also shows the slight deviation from the analytic solution, which is the fluctuation of the sampled MD solution. Nevertheless, the hybrid simulation succeeds in demonstrating the same flow physics as the analytic solution. % This variation can even be diminished if the solution is visualized over a longer temporal range, which is observed in many articles.
 This proves that the hybrid approach can accurately analyze the steady flow profile in micro-scaled systems.
 
 
@@ -1040,14 +1027,14 @@ This proves that the hybrid approach can accurately analyze the steady flow prof
 \hskip 1cm
 \includegraphics[width=0.6\linewidth]{Flat_Plate_Sol2_New.pdf}
 \vskip-0.2cm
-\caption{\small Unsteady Couette Flow Profile; The evolution of velocity field along the vertical direction is presented. CFD solution is the instantaneous profile at specified time and MD solution is spatially averaged over 2 $\sigma$ in height and temporally averaged for 2 sampling durations (=20$\tau$). (Left) Pure CFD solution is exactly the same as analytic solution. MD solution shows the same flow pattern as analytic solution, though some fluctuation is observed. This verifies that CFD and MD represents the same flow physics. (Right) The steady result by hybrid approach produces the same numerical result as analytic solution, though the slight time-lagging in the hybrid boundary is observed during the evolution.}
+\caption{\small Unsteady Couette Flow Profile; The evolution of velocity field along the vertical direction is presented. CFD solution is the instantaneous profile at specified time and MD solution is spatially averaged over 2 $\sigma$ in height and temporally averaged for 1 sampling durations (=10$\tau$). (Left) Pure CFD solution is exactly the same as analytic solution. MD solution shows the same flow pattern as analytic solution, though some fluctuation is observed. This verifies that CFD and MD represents the same flow physics. (Right) The steady result by hybrid approach produces the same numerical result as analytic solution, though the slight time-lagging in the hybrid boundary is observed during the evolution.}
 \label{Flat_Plate_Sol}
 \end{figure}
 
 
 We now apply our framework on solving the flow field with 10$^{-7}$ meter scale. In this simulation, all conditions are identical to above simulation, except the height of the system becomes 10 times bigger (520$\sigma$) in height. As has been argued by Yen {\it{et al.}}~\cite{Yen}, the influence of thermal fluctuation becomes quite stronger in the simulation of the low shear rate flow, which can cause the unfavorable convergence characteristics. We believe that this numerical analysis at low shear rate condition evaluates the accuracy of our framework.
 
-Figure~\ref{Flat_Plate_Sol_L} shows the velocity profile of the Couette flow by a hybrid simulation compared with the analytic solution. Hybrid zone is composed of two layers for MDtoCFD boundary, one for buffer, two for CFDtoMD solution, another one buffer and one external force layer, starting from the bottom. The result by hybrid simulation is in good agreement with the analytic solution throughout the time domain, which evaluates the accuracy of our numerical implementation. Plotted results are instantaneous CFD solutions (MD solutions averaged over two sampling durations) without the filtering over a long physical time: this explains that the slight variation in steady-state solution is caused by the local fluctuation at that instance.
+Figure~\ref{Flat_Plate_Sol_L} shows the velocity profile of the Couette flow by a hybrid simulation compared with the analytic solution. Hybrid zone is composed of two layers for MDtoCFD boundary, one for buffer, two for CFDtoMD solution, another one buffer and one external force layer, starting from the bottom. The result by hybrid simulation is in good agreement with the analytic solution throughout the time domain, which evaluates the accuracy of our numerical implementation. Plotted results are instantaneous CFD solutions (MD solutions averaged over one sampling duration) without the filtering over a long physical time: this explains that the slight variation in steady-state solution is caused by the local fluctuation at that instance.
 
 
 %\begin{figure}[ht]
@@ -1055,7 +1042,7 @@ Figure~\ref{Flat_Plate_Sol_L} shows the velocity profile of the Couette flow by 
 \centering
 \includegraphics[width=0.6\linewidth]{Couette_Large.pdf}
 \vskip-0.2cm
-\caption{\small Couette Flow Profile in O(100) Nanometer Domain; The variation of non-dimensionalized horizontal velocity along the vertical direction is plotted . CFD solutions at each specified time and MD solutions averaged over 200 $\tau$ are compared with the analytic solution. Overall solutions match quite well with analytic solution.}
+\caption{\small Couette Flow Profile in O(100) Nanometer Domain; The variation of non-dimensionalized horizontal velocity along the vertical direction is plotted . CFD solutions at each specified time and MD solutions averaged over 100 $\tau$ are compared with the analytic solution. Overall solutions match quite well with analytic solution.}
 \label{Flat_Plate_Sol_L}
 \end{figure}
 
@@ -1105,15 +1092,14 @@ The solution by multiple sampling is compared with the solution in increased sys
 Collectively, results by multiple samples show the same order of accuracy compared to the increase of the system size. Especially in cases the physical system is large, multiple sampling is more effective than directly increasing the system size, because excessively large-scaled jobs (in view of wall-time limit or number of resources requested) are very hard to get allocated. In addition, the labor of manually submitting multiple independent runs and managing data sets can be relieved by adopting a BigJob framework.
 
 
-\subsection{Numerical Simulation of a Physically Unsteady Problem: Oscillating Boundary Problem
-\\
-\Nkimnote{Proposed title : Coupled Concurrent Multi-Scale (Continuum-Molecular) Simulation Framework}}
+\subsection{A Physically Unsteady Flow Field: Oscillating Boundary Example}
 
-The same domain with coupling condition is applied to solve the oscillating boundary problem. In this case, the upper wall boundary condition changes from the fixed velocity to oscillatory wall, which is $u_{wall}(t)=({\sigma}/{\tau}){\times}sin(2{\pi}t/T)$. Period $T$ is set to be 200$\tau$ in 10$^{-8}$ meter system and 20000 $\tau$ in 10$^{-7}$ meter system. 
+The accuracy of designed temporal coupling scheme is verified by solving an unsteady oscillating boundary problem. In Couette flow simulation, which converges to a steady-state flow profile, the minor inaccuracy during the flow evolution can be eventually recovered. On the other hand, the inaccurate solution at an one instance harms the flow field afterwards in this physically unsteady problem. Therefore, the accuracy of temporal coupling scheme becomes more important. Also, velocity in the hybrid region becomes far slower than the Couette flow profile, so that the influence of noise from MD side is concerned to be more critical in the current flow simulation. The computational domain and coupling conditions are the same as the above Couette flow simulation. In this case, the upper wall boundary condition changes from the fixed velocity to oscillatory wall, which is $u_{wall}(t)=({\sigma}/{\tau}){\times}sin(2{\pi}t/T)$. Period $T$ is set to be 200$\tau$ in 10$^{-8}$ meter system. 
 
-In the Couette flow simulation, which converges to a steady-state flow profile, the minor inaccuracy during the flow evolution can be eventually recovered. On the other hand, the inaccurate solution at an one instance harms the flow field afterwards in this physically unsteady problem. Therefore, the accuracy of temporal coupling scheme becomes more important. Also, velocity in the hybrid region becomes far slower than the Couette flow profile, so the influence of noise from MD side is concerned to be more critical in the current flow simulation.
 
-Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and hybrid simulations. Unsteady profile in both simulations are globally the same, proving that the current approach can be directly applied to unsteady problems. In detail, fluctuation in MD domain is not so strong in hybrid region. Though minor time-lagging profile is seen from MD solution, this does not change the global flow profile dominantly because the driving force in this simulation is the oscillating velocity from CFD domain.
+Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and hybrid simulations. From the left figure, velocity profiles at each time instance are roughly the same between the pure CFD and hybrid simulations in magnitude. This provides that the hybrid simulation approach is also applicable to time-varying flow simulations. On the other hand, the temporal variation of the horizontal velocity in the middle of hybrid region expresses that the noise in hybrid solution is not negligible considering the ratio between continuum and hybrid velocities. We claim that this noisy solution is caused by the combination of sampling error and inaccurate temporal coupling scheme. To clearly examine the effect of temporal coupling scheme, we sampled multiple independent experiments and compared solutions by different temporal coupling schemes.
+
+%In detail, fluctuation in MD domain is not so strong in hybrid region. Though minor time-lagging profile is seen from MD solution, this does not change the global flow profile dominantly because the driving force in this simulation is the oscillating velocity from CFD domain.
 
 %\begin{figure}[ht]
 \begin{figure}
@@ -1136,8 +1122,7 @@ Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and h
 \newline
 \newline
 
-\subsection{
-\Nkimnote{Proposed title : Performance Analysis of the Simulation Framework - instead of chapter 5}}
+
 \section{Performance Analysis of a Multi-physics Simulation Framework}
 
 The benefit of a BigJob as a way of reducing the waiting time on the local queueing system can be discussed from our preliminary test of the relationship between the requested number of processors and the waiting time.
