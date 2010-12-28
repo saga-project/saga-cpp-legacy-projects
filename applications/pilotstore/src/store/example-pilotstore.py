@@ -30,7 +30,7 @@ if __name__ == "__main__":
     ##########################################################################################
     # Variant 1
     base_dir = saga.url("file://localhost" + os.getcwd()+"/test/data1/")
-    ps1 = pilot_store("affinity1", base_dir)
+    ps1 = pilot_store("affinity1", base_dir, pd)
     # files can be added either relative to base_dir
     ps1.register_file(saga.url("test1.txt")) 
     # files can be added as absolute URL

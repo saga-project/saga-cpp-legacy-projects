@@ -23,13 +23,15 @@ class pilot_store:
         is changed or file is deleted on request  
     """
       
-    def __init__(self, name="", base_dir="", weight=0):
+    def __init__(self, name="", base_dir="", pd=None, weight=0):
         """ name: string, base_dir: saga.url, weight: int"""
         #self.pilot_store=pilot_store
         self.name=name
         self.base_dir=saga.url(str(base_dir)) # make sure base_dir is a SAGA URL!!
         self.weight=weight
         self.file_registry=[]
+        if pd!=None: 
+            self.pd_url=pd.app_url
         self.uuid = uuid.uuid1()
             
     ##############################################################################
@@ -51,11 +53,12 @@ class pilot_store:
                 raise IOError("File not found")
         else:
             self.file_registry.append(file_url)
+        pilot_store.to_advert(self, self.pd_url)
 
     def deregister_file(self, file_url):
         """ removes file_url reference to pilot_data container """
         self.file_registry.remove(file_url)
-    
+        pilot_store.to_advert(self, self.pd_url)
 
     ##############################################################################
     def add_file(self, file_url):
@@ -63,12 +66,14 @@ class pilot_store:
             TODO: file will be copied to base dir
         """
         self.register_file(file_url);
+        pilot_store.to_advert(self, self.pd_url)
 
     def remove_file(self, file_url):
         """ removes file_url from pilot_data container 
             TODO: file will be deleted from disk
         """
         self.file_registry.remove(file_url)
+        pilot_store.to_advert(self, self.pd_url)
 
     
     ##############################################################################
@@ -84,6 +89,7 @@ class pilot_store:
         """
         for i in pilot_data.list_files():
             self.add_file(i)
+        pilot_store.to_advert(self, self.pd_url)
     
     def move(self, new_pilot_data_url):
         """ move files in pilot data container to new location
@@ -93,6 +99,7 @@ class pilot_store:
         new_file_locations = self.copy_files_to_location(new_pilot_data_url)
         self.delete_files_at_location(self.file_registry)
         self.file_registry=new_file_locations
+        pilot_store.to_advert(self, self.pd_url)
     
     def copy(self, new_pilot_data_name, new_pilot_data_url):
         """ creates a new pilot_data object at the passed URL
@@ -102,13 +109,14 @@ class pilot_store:
         new_file_locations = self.copy_files_to_location(new_pilot_data_url)
         for i in new_file_locations:
             new_pilot_store.add_file(i)
-        
+        pilot_store.to_advert(self, self.pd_url)
         
     def delete_files_at_location(self, file_list):
         """ deletes files in file list """
         for i in file_list:
             file = saga.filesystem.file(i)    
             file.remove()
+        
         
     def copy_files_to_location(self, new_pilot_data_url):    
         new_file_locations = []
@@ -146,22 +154,35 @@ class pilot_store:
     # serialization to/from advert service
     @staticmethod
     def to_advert(ps, pd_url):
-        ps_dir = saga.advert.directory(saga.url(pd_url.get_string()+"/"+str(ps.uuid)), saga.advert.Create | 
+        ps.url=saga.url(pd_url.get_string()+"/pilot-store-"+str(ps.uuid))
+        ps_dir = saga.advert.directory(ps.url, saga.advert.Create | 
                                           saga.advert.CreateParents | 
                                           saga.advert.ReadWrite)
         ps_dir.set_attribute("name", ps.name)
+        ps_dir.set_attribute("uuid", str(ps.uuid))
         ps_dir.set_attribute("base_dir", ps.base_dir.get_string())
         ps_dir.set_attribute("weight", str(ps.weight))
+        ps_dir.set_attribute("pd_url", str(ps.pd_url))
         #pdb.set_trace()
-        ps_dir.set_vector_attribute("file_registry", [x.get_string() for x in ps.file_registry])
+        if (len(ps.file_registry)>0):
+            ps_dir.set_vector_attribute("file_registry", [x.get_string() for x in ps.file_registry])
             
     @staticmethod
-    def from_advert(pd_dir):
-        ps = pilot_store()
-        ps.base_dir=pd_dir.get_attribute("base_dir")
-        ps.name=pd_dir.get_attribute("name")
-        ps.weight=pd_dir.get_attribute("weight")
-        ps.file_registry=pd_dir.get_vector_attribute("file_registry")
+    def from_advert(ps_url):
+        logging.debug("Open pilot store at: " + ps_url.get_string())     
+        ps_dir = saga.advert.directory(ps_url, saga.advert.Create | 
+                                               saga.advert.CreateParents | 
+                                               saga.advert.ReadWrite)
+        ps = pilot_store()        
+        ps.base_dir=saga.url(ps_dir.get_attribute("base_dir"))
+        ps.name=ps_dir.get_attribute("name")
+        ps.uuid=ps_dir.get_attribute("uuid")
+        ps.weight=ps_dir.get_attribute("weight")
+        ps.pd_url=ps_dir.get_attribute("pd_url")
+        if (ps_dir.attribute_exists("file_registry") == True):
+            ps.file_registry = [saga.url(x) for x in ps_dir.get_vector_attribute("file_registry")]
+        else:
+            ps.file_registry=[]
         return ps
         
     ##############################################################################
@@ -179,21 +200,27 @@ class pilot_data:
     def __init__(self):
         self.pilot_store={}
         self.uuid = uuid.uuid1()
+        self.app_url = saga.url("advert://" + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
+        pilot_data.to_advert(self)
     
     ##############################################################################
     def create_pilot_store(self, name, base_dir):
-        new_pilot_store = pilot_store(name, base_dir)
+        new_pilot_store = pilot_store(name, base_dir, self)
         self.add_pilot_store(new_pilot_store)
+        pilot_data.to_advert(self)
         return new_pilot_store
     
     def add_pilot_store(self, pilot_store):
         self.pilot_store[pilot_store.name] = pilot_store
+        pilot_data.to_advert(self)
     
     def remove_pilot_store(self, pilot_data):
         self.pilot_store.remove(pilot_store)
+        pilot_data.to_advert(self)
     
     def list_pilot_store(self):
-        return self.pilot_data.values()
+        self=pilot_data.from_advert(self.app_url)
+        return self.pilot_store.values()
 
     # helper methods for convinient access to pilot_data elements of the pilot store  
     def __getitem__(self, name):
@@ -204,17 +231,34 @@ class pilot_data:
 
     @staticmethod
     def to_advert(pilot_data):
-        pilot_data.app_url = saga.url("advert://" + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(pilot_data.uuid) + "/")
         pilot_data.app_dir = saga.advert.directory(pilot_data.app_url, saga.advert.Create | 
                                                            saga.advert.CreateParents | 
                                                            saga.advert.ReadWrite)
         
-        for i in pilot_data:
+        pilot_data.app_dir.set_attribute("uuid", str(pilot_data.uuid))
+        
+        for i in pilot_data.pilot_store.values():
             pilot_store.to_advert(i, pilot_data.app_url)
             
     @staticmethod
-    def from_advert():
-        pd = pilot_data()
+    def from_advert(pd_url):
+        logging.debug("Open pilot data at: " + str(pd_url.get_string()))     
+        pd_dir = saga.advert.directory(pd_url, saga.advert.Create | 
+                                       saga.advert.CreateParents | 
+                                       saga.advert.ReadWrite)
+        
+        pd = pilot_data()        
+        pd.uuid=pd_dir.get_attribute("uuid")
+        pd.app_url = saga.url("advert://" + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(pd.uuid) + "/")
+        #logging.debug("Open directory")
+        pilot_stores = pd_dir.list()
+        for i in pilot_stores:
+            ps_url = pd_url.get_string()+"/" + i.get_string()
+            logging.debug("Open Pilot Store: " + ps_url)
+            #job_entry = self.new_job_dir.open_dir(i)
+            #ps_dir = pd_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
+            ps = pilot_store.from_advert(saga.url(ps_url))
+            pd.add_pilot_store(ps)
         return pd
     
     ##############################################################################
@@ -222,4 +266,4 @@ class pilot_data:
         pass
     
     def __repr__(self): 
-        pass
+        return self.app_url
