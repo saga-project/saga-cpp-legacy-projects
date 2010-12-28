@@ -41,11 +41,9 @@ $meph_version     = "latest";
 $meph_repository  = "http://static.saga.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
-$boost_check 	  = "boost-1.44.0";
-$globus           = "globus-5.0.2";
-$size		  = 0;
-$name             = 0;
-$name2            = 0;
+$boost_check 	  = "1.44.0";
+$globus           = 0;
+$saga_v		  = 0;
 $enab		  = 0;
 ######added########
 ##############################################################################
@@ -139,8 +137,8 @@ sub print_red_failed_and_die {
 ##
 sub pull_package {
     my (@package) = @_;
-	my @no = split(/\./, $name[1]);	  ##boost split up into individual numbers				                  ###added##
-	my @no1 = split(/\./, $name2[1]);  ##globus split up into individual numbers
+	my @no = split(/\./, $boost_check);	  ##boost split up into individual numbers				                  ###added##
+	my @no1 = split(/\./, $globus);  ##globus split up into individual numbers
 
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
@@ -152,18 +150,18 @@ sub pull_package {
     }
     elsif ($package[1] eq "BOOST") {
   	$package_store_path .= "/$package[1]";
-	$package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $name[1] . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
+	$package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $boost_check . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
     }
 	
     elsif (($package[1] eq "GLOBUS") && ($no1[0] eq  4) && ($no1[1] eq 2) ) {
 	$package_store_path .= "/$package[1]";
-        $package_bin_path ="http://www-unix.globus.org/ftppub/gt" . $no1[0] . "/" . $name2[1] . "/installers/src/gt" . $name2[1] . "-all-source-installer.tar.bz2";
+        $package_bin_path ="http://www-unix.globus.org/ftppub/gt" . $no1[0] . "/" . $globus . "/installers/src/gt" . $globus . "-all-source-installer.tar.bz2";
     } 
     
     elsif ($package[1] eq "GLOBUS")  {
 
 	$package_store_path .= "/$package[1]";
-        $package_bin_path ="http://www.globus.org/ftppub/gt" . $no1[0] . "/" . $no1[0] . "." . $no1[1] . "/" . $name2[1] . "/installers/src/gt" . $name2[1] . "-all-source-installer.tar.bz2";
+        $package_bin_path ="http://www.globus.org/ftppub/gt" . $no1[0] . "/" . $no1[0] . "." . $no1[1] . "/" . $globus . "/installers/src/gt" . $globus . "-all-source-installer.tar.bz2";
     }
   
     else {
@@ -402,13 +400,13 @@ sub print_usage () {
 	print "        mephisto.pl install ";
 	print color 'reset';
 	print "--target-dir=<dir> <options>\n";
-    print "        Installs all or just selected packages from the repository.\n\n";
+    print "        Installs all packages with default version from the repository or selected packages with specified versions at the command prompt.\n\n";
 
     print color 'bold red';
         print "        mephisto.pl check ";
         print color 'reset';
         print "--target-dir=<dir> <options>\n";
-    print "        Installs specified packages defined at the command line using options provided.\n\n";
+    print "        Used for testing SAGA with different packages.\n\n";
 
     print " Options and Arguments:\n\n";
 	print "      --repository=     The repository version to use. By default,\n";
@@ -422,9 +420,10 @@ sub print_usage () {
 	
 	print "      --with-packages=  Comma-separated list of optional packages to\n";
 	print "                        install. By default, mephisto installs all\n";
-	print "                        available packages.\n";
-	print "                        any boost library used should be specified 'boost-x.yy.z' followed by globus 'globus-x.y.z' in that order respectively or any one.\n";
-	print "                        By default, boost-1.44.0 and/or globus-5.0.2 will be installed.(globus 2 & 3 versions are not supported)\n\n";		
+	print "                        available packages.\n\n";
+	print "      --with-boost=     any boost library used should be specified with version number 'x.yy.z'.\n\n";
+	print "      --with-globus=    any globus installation should be specified with version number 'x.y.z'.(globus 2 & 3 versions are not supported)\n\n";		
+	print "      --with-saga=      saga version should be specified with version number\n\n";
 }
 
 ##############################################################################
@@ -436,9 +435,6 @@ sub check_options () {
 	my $tmp_dir     = 0;
 	my $repository  = 0;
 	my $mode        = 0;
-	my $v   = 0;
-	my $temp2 = 0;
-	my $temp = 0;		
 	
 	# The first option HAS to be the mode (list/install/etc)
 	if( @ARGV < 1)
@@ -465,19 +461,35 @@ sub check_options () {
 	elsif( $ARGV[0] eq "install")
 	{
 		$mode = "install";
-		my $retval= GetOptions('target-dir=s'  => \$install_dir, 
-							   'help|?'		   => \$help,
+		my $retval= GetOptions(            'target-dir=s'  => \$install_dir, 
+							  'help|?' => \$help,
 				         	   'tmp-dir=s'     => \$tmp_dir,
-				         	   'repository=s'  => \$repository) ; 
+				         	   'repository=s'  => \$repository,
+						   'with-boost=s'  => \$boost_check,
+						   'with-globus=s' => \$globus,
+						   'with-saga=s'   => \$saga_v) ; 
 
-		@name = split("-",$boost_check);
-                @name2 = split("-",$globus);
+#		@name = split("-",$boost_check);
+#               @name2 = split("-",$globus);
+		
+		
 
 		if(!$retval)
 		{
 			print_usage();
 			exit();	
 		}
+
+		if ($globus ne 0)
+		{
+			$enab= 1;
+		}
+
+		if ($saga_v eq "1.5.3")
+		{
+			$meph_version = "svn_trunk";
+		}
+
 		if($install_dir eq 0)
 		{
 			print "\n You have to set the '--target-dir' argument.\n";
@@ -489,95 +501,22 @@ sub check_options () {
 			$meph_install_dir = $install_dir;
 			#if(!(-w $meph_install_dir))
 			#{
-            #  print "\n You don't have write permission for $install_dir.\n\n";
-            #  exit();
+                        #  print "\n You don't have write permission for $install_dir.\n\n";
+                        #  exit();
 			#}
 		}
 		
 		if( !($tmp_dir eq 0))
 		{
-			$meph_tmp_dir = $tmp_dir;
-		}
-		
-		if( !($repository eq 0))
-		{
-		    $meph_version = $repository;
-        }
-	}
-	elsif( $ARGV[0] eq "check")				#code for checking boost version ######added########
-	{	
-		$mode = "check";
-		my $retval= GetOptions('target-dir=s' => \$install_dir,
-							   'help|?' 	  => \$help,
-				         	  	   'tmp-dir=s'    => \$tmp_dir,
-				         	   	   'repository=s' => \$repository,
-							   'with-packages=s' => \$v) ;
-	         $enab = 1; 	
-		 my @words = split (",",$v);
-		 $size  = @words;   #the size of the array
-		if ($v eq 0)  {
-		$v = $globus;
-		} 
-		if(!$retval)
-		{
-			print_usage();
-			exit();	
-		}
-		
-		elsif ($size eq 2) 
-		{
-			$boost_check = $words[0];  #boost only as first argument
-			$globus = $words[1];  #globus only as second argument
-		}
-		elsif ($size eq 1)
-		{
-			@temp = split("-",$v);
-			if ($temp[0] eq "boost"){
-			$boost_check = $v;
-			} 
-			else {
-			$globus = $v;
-			}
-			
-		} 
-			@name = split("-",$boost_check);
-                        @name2 = split("-",$globus);		
-
-			
-		if($install_dir eq 0)
-		{
-			print "\n You have to set the '--target-dir' argument.\n";
-			print_usage();
-			exit();
-		}
-		elsif ($name2[0] eq "boost")
-		{
-			print "\n Specify boost first and then globus. \n";
-			print_usage();
-			exit();
-		}
-		else
-		{
-			$meph_install_dir = $install_dir;
-		
-			#if(!(-w $meph_install_dir))
-			#{
-            		#  print "\n You don't have write permission for $install_dir.\n\n";
-            		#  exit();
-			#}
-		}
-		
-		if( !($tmp_dir eq 0))
-		{
-			$meph_tmp_dir = $tmp_dir;
+		    $meph_tmp_dir = $tmp_dir;
 		}
 		
 		if( !($repository eq 0))
 		{
 		    $meph_version = $repository;
         	}
-
 	}
+
 	else
 	{
 		print_usage();
@@ -626,7 +565,6 @@ if(!(-w $meph_install_dir) ) {
 
 my $meph_rep_full = $meph_repository . "/repository/" . $meph_version;
 
-
 print "\n Source repository: $meph_rep_full\n\n";
 
 
@@ -653,7 +591,7 @@ foreach my $line (@index) {
 	$countp = $countp + 1; 
   }
 
-#change $countp = 4 if you want  globus to be installed after sqlite and before saga
+#change $count = 4 if you want  globus to be installed after sqlite and before saga
 my $count = 0;
 my @index2 = split( "\n", $content );
 foreach my $line (@index2) {
