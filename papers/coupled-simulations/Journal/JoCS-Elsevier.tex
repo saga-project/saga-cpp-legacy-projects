@@ -1092,35 +1092,65 @@ The solution by multiple sampling is compared with the solution in increased sys
 Collectively, results by multiple samples show the same order of accuracy compared to the increase of the system size. Especially in cases the physical system is large, multiple sampling is more effective than directly increasing the system size, because excessively large-scaled jobs (in view of wall-time limit or number of resources requested) are very hard to get allocated. In addition, the labor of manually submitting multiple independent runs and managing data sets can be relieved by adopting a BigJob framework.
 
 
-\subsection{A Physically Unsteady Flow Field: Oscillating Boundary Example}
+\subsection{A Physically Unsteady Flow Field: Oscillating Boundary Problem}
 
 The accuracy of designed temporal coupling scheme is verified by solving an unsteady oscillating boundary problem. In Couette flow simulation, which converges to a steady-state flow profile, the minor inaccuracy during the flow evolution can be eventually recovered. On the other hand, the inaccurate solution at an one instance harms the flow field afterwards in this physically unsteady problem. Therefore, the accuracy of temporal coupling scheme becomes more important. Also, velocity in the hybrid region becomes far slower than the Couette flow profile, so that the influence of noise from MD side is concerned to be more critical in the current flow simulation. The computational domain and coupling conditions are the same as the above Couette flow simulation. In this case, the upper wall boundary condition changes from the fixed velocity to oscillatory wall, which is $u_{wall}(t)=({\sigma}/{\tau}){\times}sin(2{\pi}t/T)$. Period $T$ is set to be 200$\tau$ in 10$^{-8}$ meter system. 
 
 
-Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and hybrid simulations. From the left figure, velocity profiles at each time instance are roughly the same between the pure CFD and hybrid simulations in magnitude. This provides that the hybrid simulation approach is also applicable to time-varying flow simulations. On the other hand, the temporal variation of the horizontal velocity in the middle of hybrid region expresses that the noise in hybrid solution is not negligible considering the ratio between continuum and hybrid velocities. We claim that this noisy solution is caused by the combination of sampling error and inaccurate temporal coupling scheme. To clearly examine the effect of temporal coupling scheme, we sampled multiple independent experiments and compared solutions by different temporal coupling schemes.
+Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and hybrid simulations. From the left figure, velocity profiles at each time instance are roughly the same between the pure CFD and hybrid simulations in magnitude. This provides that the hybrid simulation approach is also applicable to time-varying flow simulations. Meanwhile, the temporal variation of the horizontal velocity in the middle of hybrid region expresses that the noise in hybrid solution is not negligible considering the ratio between continuum and hybrid velocities. We claim that this noisy solution is caused by the combination of sampling error and inaccurate temporal coupling scheme. To clearly examine the effect of temporal coupling scheme, we sampled multiple independent experiments and compared solutions by different temporal coupling schemes.
 
 %In detail, fluctuation in MD domain is not so strong in hybrid region. Though minor time-lagging profile is seen from MD solution, this does not change the global flow profile dominantly because the driving force in this simulation is the oscillating velocity from CFD domain.
 
 %\begin{figure}[ht]
 \begin{figure}
 \centering
-\includegraphics[width=0.6\linewidth]{Stokes_Sol_1_New.pdf}
+\includegraphics[width=0.6\linewidth]{Stokes_Sol_Profile.pdf}
 \hskip 1cm
-\includegraphics[width=0.6\linewidth]{Stokes_Sol_2_New.pdf}
+\includegraphics[width=0.6\linewidth]{Stokes_Temporal_Profile.pdf}
 \vskip-0.2cm
-\caption{\small Unsteady Flow Profile of Stokes Boundary Layer Problem; Solution by pure CFD simulation is denoted by a solid line and solution by hybrid simulation is presented by symbols. Hybrid flow profile globally matches well with CFD solution, though slight time-lagging in the MD side is observed. This evaluates that current hybrid approach can be applied to purely unsteady problem.}
+\caption{\small Unsteady Flow Profile of Stokes Boundary Layer Problem; (Left) Velocity profiles by pure CFD and hybrid simulations at specified time instances. Difference between hybrid and pure CFD solutions in hybrid region shrinks in the continuum domain. Noise from the MD simulation does not affect the global velocity profile a lot, because the driving force in this simulation is the oscillating velocity from CFD domain. (Right) Temporal variation of the velocity in the middle of hybrid layer. History of the velocity field reveals that the hybrid solution contains much noise in this experiment.}
 \label{Stokes_Sol}
 \end{figure}
 
-\skonote{here will be the solution in 10-7 system}
-\newline
-\newline
-\newline
 
-\skonote{in case the solution by the temporal scheme change is good, these solutions will be placed here}
-\newline
-\newline
-\newline
+\skonote{Shall we put the result of 10-7 system scale as well?}
+
+
+Comparing temporal evolutions of the velocity field by different coupling schemes in Fig.~\ref{Temporal1}, the clear difference is the resolution of the overshoot/undershoot phenomena by the prediction-correction approach. Sufficient numbers of independent experiments are sampled to reduce the statistical error and prediction time scale of 2.5 sampling intervals is chosen on prediction-correction approach to impose the interpolated boundary condition on both domains. On conventional model, the maximal error is seen at peak points. This is a natural characteristics of the linear extrapolation that it fails to predict the correct values around the strong variation. This inaccuracy is resolved by using a prediction-correction approach and applying interpolated boundary condition from predicted flow properties. However, another numerical inaccuracy of time-lagging pattern in conventional model is also seen in the prediction-correction model. This necessitates the implementation of higher-order interpolation schemes.
+
+
+%\begin{figure}[ht]
+\begin{figure}
+\centering
+\includegraphics[width=0.6\linewidth]{Stokes_Org_Multi.pdf}
+\hskip 1cm
+\includegraphics[width=0.6\linewidth]{Stokes_Both_Multi.pdf}
+\vskip-0.2cm
+\caption{\small Temporal Variation of the Velocity in the Middle of Hybrid Layer; (Left) With conventional model, large overshoot/undershoot phenomena up to 1 $\%$ of maximum velocity are observed on the peak points. The time-lagging effect is also captured. (Right) Overshoot/undershoot phenomena in the conventional approach is almost resolved by applying the prediction-correction approach. The interpolated hybrid boundary conditions are imposed on CFD and MD domains.}
+\label{Temporal1}
+\end{figure}
+
+
+Plots in Fig.~\ref{Temporal2} quantifies the scale of inaccuracy according to the hybrid boundary condition imposition. In the conventional model, the velocity difference ranges from -0.017 to 0.015 $\sigma/\tau$. The magnitude of this error reduces as we apply the prediction-correction approach and increase the prediction time scale from 0.5 (corrected extrapolation) to 1.5 (MD interpolation) and 2.5 (both interpolation) sampling intervals. The clear difference between the conventional extrapolation model and corrected extrapolation in prediction-correction approach demonstrates that the extrapolation from two ''previous'' properties contains a lot more error compared to extrapolating from the current value. The similar variation between extrapolation and MD interpolation in prediction-correction approach emphasizes that the accuracy of boundary condition in CFD domain is as important as the boundary condition in MD domain. Lastly, the solution error form the conventional model is reduced by half with the imposition of interpolated boundary conditions on both domains.
+
+
+%\begin{figure}[ht]
+\begin{figure}
+\centering
+\includegraphics[width=0.45\linewidth]{Stokes_Org_Diff.pdf}
+\hskip 1cm
+\includegraphics[width=0.45\linewidth]{Stokes_Exp_Diff.pdf}
+\vskip-0.2cm
+\includegraphics[width=0.45\linewidth]{Stokes_Imp_Diff.pdf}
+\hskip 1cm
+\includegraphics[width=0.45\linewidth]{Stokes_Both_Diff.pdf}
+\caption{\small Reduction of Unsteady Error by Prediction-Correction Approach; Figures show the velocity difference between pure CFD and hybrid solutions in the middle of hybrid layer. Plotted data include the conventional extrapolation model and 3 different types of prediction-correction approaches, which are corrected extrapolation model, interpolated boundary model on MD domain and interpolated boundary condition on both domains. The velocity difference in the conventional model ranges from -0.017 to 0.015. This error reduces to be within -0.007 and 0.009 in refined model.}
+\label{Temporal2}
+\end{figure}
+
+\skonote{to be placed in ''future works'' or ''conclusion''
+Summarizing the accuracy of unsteady solution, the unfavorable overshoot/undershoot phenomena is resolved and the scale of error is reduced by the prediction-correction approach. Meanwhile, increasing the accuracy also requires additional computation for flow prediction in CFD domain. Also, additional numerical experiments must be accompanied if the driving force is generated from the MD domain.}
+
 
 
 \section{Performance Analysis of a Multi-physics Simulation Framework}
