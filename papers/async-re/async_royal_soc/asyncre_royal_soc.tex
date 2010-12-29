@@ -574,101 +574,89 @@ initiated the exchange increments the exchange count by one.
 If an exchange fails due to contention, the replica agent tries to find a new partner. If an exchange is deemed unsuccessful after comparison of energies or temperatures, the replicas are restarted with their old configurations. 
 
 \jhanote{Do we have a pending state? Accoridng to Abhinav there is
-  only a two-state model -- run and done?!} 
+  only a two-state model -- run and done?!} \athotanote{should i keep the state diagram? do you suggest any corrections to the state diagram? i also think that instead of having the current control flows, we should have figures showing how the exchanges are made or instead hae state diagrams. the control flows right now show a lot of stuff already shown in the bigjob architecture figure. }
+  
 
 \section{Implementation of Synchronous and Asynchronous RE}
 
 \jhanote{This section should help the reader understand the control
   flow - which is YOUR IMPLEMENTATION of the RE algorithm. Need to
-  make reference to Figures 2a and 2b}
+  make reference to Figures 2a and 2b} \athotanote{i think we are doing this in section 3?}
 
 \alnote{General remark: What do you guys think of summarizing the data into 
 a table? This way the reader can track the numbers at one central place.}
 \jhanote{YES. I have suggested the same too}
 
-We present the implementation details of the synchronous RE and the
-two implementations of the asynchronous RE algorithm here.
-\jhanote{Explain centralized and decentralized} We are primarily
-interested in learning the scale-up and scale-out properties of
-synchronous and asynchronous RE and hence are not concerned by the
-queue wait time. 
+We present the implementation costs of the synchronous RE and the
+asynchronous (centralized and decentralized) RE implementations here.
+\jhanote{Explain centralized and decentralized} 
 
-To be able to quantify the various terms involved, we will consider
-the following configuration for a RE experiment. The total number of
+In order to be able to discuss the various costs involved, which will depend on the configuration for the RE experiment, the configuration we set for synchronous and asynchronous RE is explained below.
+
+Nanoscale molecular dynamics (NAMD)
+(Phillips et al.  2005), a highly scalable, parallel MD code, is used
+to carry out the MD simulation corresponding to each replica run. It
+is important to mention that any other MD or Monte Carlo code could be
+used just as simply and effectively. The total number of
 replicas ($N_R$) in the ensemble are 32 and the total number of
-pairwise exchanges ($N_X$) is 128. That would mean 8 generations or 8
-on a homogeneous infrastructure 8 restarts per replica. The ensemble
-of replicas are run concurrently. Our experiments are performed on
+pairwise exchanges ($N_X$) is 128. As the ensemble of replicas are run concurrently, 16 pairwise exchanges are possible after each concurrent run. Thus, each replica on average is restarted 7 times.
+Our experiments are performed on
 LONI and Teragrid shared resource \emph{QueenBee}. Each replica is
 configured to run 500 time-steps and is allocated 16 processors. It
 should be noted that we are talking about the average values whenever
 we mention quantities. Each replica takes 91 seconds to complete the
 500 time-steps from a fresh start and 68 seconds every time it is
 restarted. Thus, if each replica is restarted 7 times, the average
-time per generation is 71 seconds. \alnote{How do you get 71s?
+time to complete 500 time-steps ($T_{MD}$) is ${(91+68\times 7) \over8} = 71$ seconds. 
+\alnote{How do you get 71s?
   (91*1+68*7)/8? Tx?  Also, we should explain why the first run takes
-  longer.}  The total runtime of the ensemble of replicas concurrently
-run would depend on the total number of times each the replica was
-restarted. And in this case it is 8 and the total run time is $71
-\times 8 = 568$ seconds. \alnote{We should mention NAMD before going
-  into runtime details of NAMD.}  Nanoscale molecular dynamics (NAMD)
-(Phillips et al.  2005), a highly scalable, parallel MD code, is used
-to carry out the MD simulation corresponding to each replica run. It
-is important to mention that any other MD or Monte Carlo code could be
-used just as simply and effectively.
+  longer.} \athotanote{fixed, please check}  It should be noted that the replicas take longer (91 seconds) to complete their 500 time-steps from a fresh start. But when they are restarted, they finish the run slightly faster (68 seconds).   And the total time the ensemble of replicas spend running is $71 \times 8 = 568$ seconds. \alnote{We should mention NAMD before going
+  into runtime details of NAMD.} \athotanote{fixed} 
+  
+Also, we are primarily
+interested in learning the scale-up and scale-out properties of
+synchronous and asynchronous RE and hence are not concerned by the
+queue wait time. Therefore, we only start measuring when the BigJob agent starts running the replicas. Because, almost every time, the RE Manager completes submitting the replicas before the BigJob becomes active.
 
 \subsection{Synchronous RE}
 Once the BigJob is active, the BigJob agent writes a nodefile for each
 replica and starts the jobs. And the average time it takes to start
 one replica is 0.3 seconds.  \alnote{Is this the time agent only? Or
-  does it include the submission time on the master?}  For 32
-replicas, it is 9.6 seconds. For each pair of replicas, it is
-9.6/16=0.6 seconds.
+  does it include the submission time on the master?} \athotanote{fixed in last lines of the previous section. the time the master takes to submit the replicas is being included in $T_X$. The time spent at BigJob agent is included in $T_W$. }  For a pair of replicas, it is
+0.6 seconds.
 
-The BigJob agent takes 0.92 seconds to process a replica that is found
-to be done running. That is the time it takes to update the state and
-mark the nodes as free. Therefore, while there is a gap of 9.6 seconds
-between the start times of the first and last replica, there is a
-difference of 29.44 seconds between the end time of the first replica
-and the last replica. \alnote{I don't understand where the 29.4 sec
-  come from? The next 2 sentences don't make sense to me.}  This
-should be included in $T_W$. This also overlaps the startup time. So
-we need not count the startup time.
+The BigJob agent takes 0.92 seconds to process a replica that completes running. That is the time it takes to update the state and
+mark the nodes as free. For a pair of replicas it is 1.84 seconds. Because 0.92 seconds overlaps 0.3 seconds, we only count the 0.92 seconds. %Therefore, while there is a gap of 9.6 seconds between the start times of the first and last replica, there is a difference of 29.44 seconds between the end time of the first replica and the last replica. 
+%\alnote{I don't understand where the 29.4 sec  come from? The next 2 sentences don't make sense to me.}  
 
-The replicas are now running, and the RE-Manager periodically queries
+The RE-Manager periodically queries
 the advert server for the latest replica states and marks the replicas
 which finish running as done. The RE-Manager typically doesn't find
-all the replicas as done exactly at the same time. This is because of
-two reasons: (i) even though we are using a homogenous infrastructure,
-we observed that replica run time varies by 1 or 2 seconds ($\delta$),
-(ii) the additional time the BigJob agent takes at the end of the each
+all the replicas as done exactly at the same time. This is because of the additional time the BigJob agent takes at the end of the each
 replica's run updating the data. And also, the RE-Manager, once it
 finds that a replica is done, retrieves the current energies and
 temperatures by reading the output files. This takes 0.4 seconds per
-replica and for 32 replicas, it is 12.8 seconds.  We are calling all
-this time between end of runtime and start of exchange making $T_W$
-and for 32 replicas it is approximately: 29.44+12.8=42.24
-seconds. Since exchanges are done in pairs, for each pair it would be
-42.24/16 = 2.64 seconds.
+replica and for a pair of replicas, it is 0.8 seconds. 
 
-Since this is a synchronous RE, all the replicas finish running before
-the exchanges are started.  Hence, the RE manager won't spend any time
+ We are calling all this time the replicas spend waiting for all the replicas to complete running and become available to the RE Manager for exchanges as $T_W$. And for a pair of replicas, it is 1.84+0.8=2.64 seconds.
+
+Since all the replicas finish running before
+the exchanges are started, the RE manager won't spend any time
 searching for partners and $T_F$ is 0 seconds. $T_{ex}$ includes
 updating configuration files and transferring the them to their
 respective directories, in this case, locally. It takes 0.2 seconds to
 write and copy a file locally. $T_{ex} = 0.2 \times 2=0.4$
 seconds. $T_{coord}$ is the time it takes to resubmit the pair of
 replicas to the advert server, which is $0.11\times 2 = 0.22$
-seconds. Therefore, $T_X$ is $0+0.4+0.22=0.62$ seconds.
+seconds. Therefore, $T_{EX}$ is $0+0.4+0.22=0.62$ seconds.
 
-If $T$ is the total to complete the RE experiment, and $p$ is the
-probability of a successful exchange, quantifying equation
+Substituting the above values in equation
 ~\ref{eq:totaltime}, we get
 \begin{eqnarray}
-T=  {1 \over p} \times {[ 568+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
-\label{eq:timebt}
+T=  {1 \over p} \times {[ {(71\times {32\over 16}})+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
+\label{eq:sync}
 \end{eqnarray}
-\alnote{$T_{MD}$ should be also x Nx?}
+%\alnote{$T_{MD}$ should be also x Nx?}
 
 
 \begin{figure}%
@@ -689,17 +677,15 @@ T=  {1 \over p} \times {[ 568+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (9
 \subsection{Asynchronous (centralized) RE}
 \alnote{please don't just copy paste. Only focus on the differences}
 
-
-First, we analyze the centralised implementation.  Once the BigJob is active, 
-the BigJob agent writes a nodefile for
-each replica and starts the replicas. The average time it takes to
+As mentioned earlier, the average time the BigJob agent takes to
 start one replica is 0.3 seconds. For 32 replicas, it is 9.6
-seconds. Since $T_{MD}$ on a fresh run is 91 seconds, the BigJob agent
-would be ready to restart the replicas by the time the RE-Manager
-submits to the advert server. \alnote{Not consistent with a) 
-Where is the 71s number?}
+seconds. Thus, the BigJob agent finishes starting the last replica before the a replica completes its run. 
 
-The replicas are now running, and the RE-Manager constantly
+The BigJob agent
+would be ready to restart the replicas by the time the RE-Manager
+submits to the advert server. %\alnote{Not consistent with a) Where is the 71s number?}
+
+The RE-Manager constantly
 queries the advert server for the latest replica states. Whenever the
 RE-Manager finds a replica in done state, it tries to find a partner
 for the replica. The time to find the partner ($T_F$)
@@ -719,35 +705,31 @@ $0.2\times 2=0.4\,sec.$ $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
 $0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is
 $0.16+0.4+0.22=0.78$ seconds. Therefore, on average, it takes 0.78
-seconds for the RE-Manager to make an exchange. For 16 exchanges, it
-is 12.48 seconds.
+seconds for the RE-Manager to make an exchange. 
 
 As mentioned earlier, the BigJob agent takes 0.92 seconds to find that
 a replica is done (1.84 for a pair), update the state and free the
 nodes. Therefore it takes 29.44 seconds for 32 replicas. But even as
 the first pair of replicas are marked as done by the BigJob agent, the
-RE-Manager concurrently makes the exchange between that pair of
+RE-Manager concurrently make exchanges between other pairs of
 replicas. The point we are trying to make is that the timelines of the
-RE-Manager and the BigJob agent run parallel to each other and there
-also is a lot of overlap.  As the simulation progresses, instead of
+RE-Manager and the BigJob agent run concurrently to each other and there
+also is overlap.  As the simulation progresses, because pairs of replicas are restarted instead of
 all the replicas starting and ending together, groups or pairs of
-replicas start and end at the same time.  Since the BigJob agent takes
-longer to process the replicas, the RE-Manager by then makes the
-exchanges and resubmits the replicas to the advert server. The pairs
+replicas start and end at the same time. The BigJob agent takes
+longer to process the replicas, longer than the RE-Manager takes to make the
+exchanges. The pairs
 of replicas belonging to the first few exchanges might have waited the
 29.44 seconds at the BigJob agent. But we observed that groups of
 replicas belonging to the later exchanges wait for only half that
-amount of time. That is 29.44/2 = 14.72. That would be 14.72/16 =0.92
-for a pair of replicas. $T_W$ = 0.92 seconds.
+amount of time. That is 29.44/2 = 14.72. For a pair of replicas, $T_W$ is 14.72/16 =0.92 seconds.
 
 %The point we are trying to make is that the BigJob agent might not be free while the RE-Manager submits the replicas to be restarted. But as the experiment progresses, instead of all the replicas in the ensemble running in synchronization, pairs of replicas would start and end together. 
 % By the time the BigJob agent finishes processing the last of the replicas that finished running, the RE-Manager would have re-submitted 15 pairs of replicas to the advert server for restarting by the BigJob agent. In the next couple of seconds the rest of the replicas would have been exchanged and submitted to the advert server.
 
-If $T$ is the average time between successful exchanges, and $p$ is
-the probability of a successful exchange, Quantifying equation
-~\ref{eq:totaltime}, we get
+Substituting the above values in equation ~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {[568 + (0.78 + 0.92)\times 128]} = {1 \over p} \times 786 
+T=  {1 \over p} \times {[({71 \times {128 \over 16}}) + (0.78 + 0.92)\times 128]} = {1 \over p} \times 786 seconds
 \label{eq:timebt}
 \end{eqnarray}
 
