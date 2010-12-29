@@ -280,13 +280,13 @@ operating data-set size). In the next subsection we develop a mathematical model
 
 Let us begin by considering an ideal scenario where there is no overhead involved in running an RE experiment. Then, the total time to complete an experiment would be equal to the concurrent runtime of the ensemble of replicas. In an RE experiment, the probability of a successful exchange is not 1. The decision to make the exchange or not is made using the Metropolis scheme (~\citep). In case of an unsuccessful exchange, the replicas are restarted without exchanging the configuration. Let the probability of a successful exchange be $p$. If the ensemble contains $N_R$ replicas, the total number of pairwise exchanges is $N_X$ and the runtime of a replica to complete a defined number of time steps is $T_{MD}$, then the total time to complete the RE experiment, $T$ would be: ${1 \over p} \times T_{MD} \times {N_X \over {N_R \over 2}}$. %At this point, let us define the term \emph{generation} as one concurrent run of the ensemble of replicas. Thus, after each generation, exchangs are made and the replicas restarted. 
 But it is not actually possible to implement an RE experiment without overhead. A more practical equation for total time would look like this.
-
+\alnote{Why is the second $N_X$ not divided by $\eta$}
 \begin{eqnarray}
 T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + (T_{EX} + T_{W}) \times N_X]
 \label{eq:totaltime}
 \end{eqnarray}
 
-Where $T_{EX}$ is the time to make a pairwise exchange and would include components like time to find a partner ($T_F$), time to exchange files or to write and transfer files ($T_{ex}$) and book-keeping ($T_{coord}$). $T_W$ is the time spent by a replica waiting for other replicas to become avaialble ($T_W$), the time spent waiting till it is restarted after each exchange ($T_r$) and any other miscellaneous costs. Thus $T_{EX} = T_{F} + T_{ex}+T_{coord}$ and $T_w=T_w+T_r$.
+Where $T_{EX}$ is the time to make a pairwise exchange and would include components like time to find a partner ($T_F$), time to exchange files or to write and transfer files ($T_{ex}$) and book-keeping ($T_{coord}$). $T_W$ is the time spent by a replica waiting for other replicas to become available ($T_W$), the time spent waiting till it is restarted after each exchange ($T_r$) and any other miscellaneous costs. Thus $T_{EX} = T_{F} + T_{ex}+T_{coord}$ and $T_w=T_w+T_r$.
 
 Equation \ref{eq:totaltime} gives the total time to complete an RE experiment. The next equation aims to calculate the time to complete particular number of exchanges ($N_z$), where $0 \geq N_z \geq N_X$. 
 
@@ -705,13 +705,15 @@ RE-Manager finds a replica in done state, it tries to find a partner
 for the replica. The time to find the partner ($T_F$)
 depends on $N_R$ and also on the number of replicas the RE-Manager had
 to sift through to finds an available replica. On average, RE-Manager
-will sift through $N_R/2$ replicas before it finds a partner. It
-should be noted that we also implemented a special case for an ensemble containing a very large
-number of replicas, where the RE-Manager tries to find a
+will sift through $N_R/2$ replicas before it finds a partner. \alnote{I think
+this conflicts with the ```deterministic'' approach we discussed yesterday} It
+should be noted that we also implemented a special case for an ensemble 
+containing a very large number of replicas, where the RE-Manager tries to find a
 partner randomly. We observed that this only improves the performance
 when the ensemble contains more than 128 replicas. It takes 0.01
 seconds per query. Thus for 32 replicas, on average, $T_F$ is
-$16\times 0.01=0.16\,sec. T_{ex}$ is the time it takes to update
+$16\times 0.01=0.16\,sec$. 
+$T_{ex}$ \alnote{This is a remote query to the advert service?}  is the time it takes to update
 the configuration files and copy them locally. That would be
 $0.2\times 2=0.4\,sec.$ $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
