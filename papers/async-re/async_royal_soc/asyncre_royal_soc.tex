@@ -494,13 +494,26 @@ polls the advert server for new jobs.
   
 The RE Manager is an abstraction over the SAGA BigJob Manager. At the most, the RE Manager is the master process controlling all the aspects of the RE experiment and exchanges. And at the least, it is the SAGA BigJob Manager. The actual tasks that the RE Manager carries out depend on the type of the implementation. In an implementation where the RE Manager manages all the replicas and makes all the exchanges, the RE Manager does a lot of work (a centralized implementation). But in an implementation where there is a \emph{replica agent} for every replica, the RE Manager has the same functionality as the SAGA BigJob Manager (a decentralized implementation). A replica agent is a wrapper script launched in place of the replica. The replica agent typically manages the replica and makes the exchanges.
 
-Synchronous RE is implemented in a centralised
-fashion. Centralized implementation suits synchronous RE because there is a synchronization step at the beginning of each
-exchange step. But we implement asynchronous RE in both centralised and
-decentralised fashions. The actual tasks that the RE Manager carries out depending on the implementation are explained in the following sections. 
+%Synchronous RE is implemented in a centralised fashion. Centralized implementation suits synchronous RE because there is a synchronization step at the beginning of each exchange step. But we implement asynchronous RE in both centralised and decentralised fashions. 
+
+The actual tasks that the RE Manager carries out depending on the implementation are explained in the following sections. 
 We explain how the synchronous and asynchronous (centralized) RE Manager works in the following section and in the section following that explain how the asynchronous (decentralized) RE Manager/replica agent combination works. We explain synchronous and asynchronous (centralized) RE Managers in the same section as they are both centralized implementations and have a lot of similarities. 
 
 % The RE-Manager also creates directories, configuration files and stages them to the respective directories.  \alnote{We should focus on the RE part here. The BigJob  stuff move to subsec a). This should also remove the redundancy with  a)} 
+
+\begin{figure}%
+\centering
+\subfigure[Central]{\includegraphics[width=0.47\textwidth]{../figures/central_AL.pdf}}\qquad
+\subfigure[Decentral]{\includegraphics[width=0.47\textwidth]{../figures/decentral_AL.pdf}}\\
+\caption{\textbf{Centralised vs. Decentralised Coordination:} Both
+  central coordination style is used both by the synchronous RE (case
+  I) and a version of the asynchronous RE (case II).  In the decentral
+  style -- used by another version of the asynchronous RE (case III)--
+  the master is only required for initially setting up all
+  replicas. The later coordination is done peer-to-peer via the Advert
+  Service.}
+\label{fig:coordination}
+\end{figure}
 
 \subsubsection{Synchronous and Asynchronous (centralized) RE-Manager}
 
@@ -555,8 +568,8 @@ Figure~\ref{fig:coordination}b shows the asynchronous (decentralized) RE
 control-flow. Figure \ref{fig:state} shows the replica state diagram. The replica agent upon launch, runs the replica. The nodefile is passed to the replica agent as an argument at startup. The replica agent constantly monitors the replica and when the replica finishes its run, it updates the advert server with
 the current state of the replica. It also reads the temperature and
 energy from the output files and posts the values to the advert
-server. It then goes through the list of replicas in the ensemble and tries to find an
-exchange partner. If it finds another replica available, it
+server. It then goes through the list of replicas in the ensemble in a random order and tries to find an
+exchange partner. The search for an exchange partner is conducted in a random manner so as to avoid having all the replicas starting at the first replica, which causes contention and failed exchanges. If it finds another replica available, it
 re-verifies the states of both itself and the other replica and if it
 finds both still available, marks their states as "Pending". Let the replica initiating the exchange be $R_a$ and the other replica be $R_b$.
 The replica $R_a$ which initiates the exchange is the replica in-charge of the exchange. $R_a$
@@ -568,7 +581,11 @@ other hand, the $R_b$'s state is set as "Ready" by $R_a$ and that
 makes the $R_b$'s replica agent to retrieve its own
 temperature (modified by the $R_a$) from the advert server, modify its configuration file
 locally and run the replica. \alnote{Why does it need to modify its
-  own config if it uses its own temperature?} \athotanote{fixed} If the state of any of the replicas negotiating the exchange changes at the time of re-verifying the replica pair's states, that would mean that one or both of the replicas' is now in the process of making an exchange with a different replica. In that case one or both of the replica agents will wait till their state is set as "Ready" and start their next run. If one of the replicas is still available, it tries to find a new partner for exchange.  \alnote{How often is the process repeated until the replica
+  own config if it uses its own temperature?} \athotanote{fixed} This removes the need to stage the configuration files to
+different machines. This is possible because there is a replica agent
+for each replica locally. Where as earlier, the RE-Manager and the
+replica might be located on different machines. 
+  If the state of any of the replicas negotiating the exchange changes at the time of re-verifying the replica pair's states, that would mean that one or both of the replicas' is now in the process of making an exchange with a different replica. In that case one or both of the replica agents will wait till their state is set as "Ready" and start their next run. If one of the replicas is still available, it tries to find a new partner for exchange.  \alnote{How often is the process repeated until the replica
   is started with the old temperature?} \athotanote{fixed}The replica agent that
 initiated the exchange increments the exchange count by one.
 If an exchange fails due to contention, the replica agent tries to find a new partner. If an exchange is deemed unsuccessful after comparison of energies or temperatures, the replicas are restarted with their old configurations. 
@@ -622,7 +639,7 @@ queue wait time. Therefore, we only start measuring when the BigJob agent starts
 Once the BigJob is active, the BigJob agent writes a nodefile for each
 replica and starts the jobs. And the average time it takes to start
 one replica is 0.3 seconds.  \alnote{Is this the time agent only? Or
-  does it include the submission time on the master?} \athotanote{fixed in last lines of the previous section. the time the master takes to submit the replicas is being included in $T_X$. The time spent at BigJob agent is included in $T_W$. }  For a pair of replicas, it is
+  does it include the submission time on the master?} \athotanote{fixed in last lines of the previous section. the time the master takes to submit the replicas is being included in $T_EX$. The time spent at BigJob agent is included in $T_W$. }  For a pair of replicas, it is
 0.6 seconds.
 
 The BigJob agent takes 0.92 seconds to process a replica that completes running. That is the time it takes to update the state and
@@ -659,21 +676,6 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.62 + 2.64)\times 128]} 
 %\alnote{$T_{MD}$ should be also x Nx?}
 
 
-\begin{figure}%
-\centering
-\subfigure[Central]{\includegraphics[width=0.47\textwidth]{../figures/central_AL.pdf}}\qquad
-\subfigure[Decentral]{\includegraphics[width=0.47\textwidth]{../figures/decentral_AL.pdf}}\\
-\caption{\textbf{Centralised vs. Decentralised Coordination:} Both
-  central coordination style is used both by the synchronous RE (case
-  I) and a version of the asynchronous RE (case II).  In the decentral
-  style -- used by another version of the asynchronous RE (case III)--
-  the master is only required for initially setting up all
-  replicas. The later coordination is done peer-to-peer via the Advert
-  Service.}
-\label{fig:coordination}
-\end{figure}
-
-
 \subsection{Asynchronous (centralized) RE}
 \alnote{please don't just copy paste. Only focus on the differences}
 
@@ -703,13 +705,13 @@ $T_{ex}$ \alnote{This is a remote query to the advert service?}  is the time it 
 the configuration files and copy them locally. That would be
 $0.2\times 2=0.4\,sec.$ $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
-$0.11\times 2 = 0.22$ seconds. Therefore, $T_X$ is
+$0.11\times 2 = 0.22$ seconds. Therefore, $T_EX$ is
 $0.16+0.4+0.22=0.78$ seconds. Therefore, on average, it takes 0.78
 seconds for the RE-Manager to make an exchange. 
 
 As mentioned earlier, the BigJob agent takes 0.92 seconds to find that
-a replica is done (1.84 for a pair), update the state and free the
-nodes. Therefore it takes 29.44 seconds for 32 replicas. But even as
+a replica is done, update the state and free the
+nodes. In this implementation, we also make the BigJob agent retrieve the energy and temperature from the output files, which adds 0.2 seconds per replica. Therefore it takes 1.12*32=35.84 seconds for 32 replicas. But even as
 the first pair of replicas are marked as done by the BigJob agent, the
 RE-Manager concurrently make exchanges between other pairs of
 replicas. The point we are trying to make is that the timelines of the
@@ -720,26 +722,25 @@ replicas start and end at the same time. The BigJob agent takes
 longer to process the replicas, longer than the RE-Manager takes to make the
 exchanges. The pairs
 of replicas belonging to the first few exchanges might have waited the
-29.44 seconds at the BigJob agent. But we observed that groups of
+35.84 seconds at the BigJob agent. But we observed that groups of
 replicas belonging to the later exchanges wait for only half that
-amount of time. That is 29.44/2 = 14.72. For a pair of replicas, $T_W$ is 14.72/16 =0.92 seconds.
+amount of time. That is 35.84/2 = 17.92. For a pair of replicas, $T_W$ is 17.92/16 =1.12 seconds.
 
 %The point we are trying to make is that the BigJob agent might not be free while the RE-Manager submits the replicas to be restarted. But as the experiment progresses, instead of all the replicas in the ensemble running in synchronization, pairs of replicas would start and end together. 
 % By the time the BigJob agent finishes processing the last of the replicas that finished running, the RE-Manager would have re-submitted 15 pairs of replicas to the advert server for restarting by the BigJob agent. In the next couple of seconds the rest of the replicas would have been exchanged and submitted to the advert server.
 
 Substituting the above values in equation ~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {[({71 \times {128 \over 16}}) + (0.78 + 0.92)\times 128]} = {1 \over p} \times 786 seconds
+T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.78 + 1.12)\times 128]} = {1 \over p} \times 811 seconds
 \label{eq:timebt}
 \end{eqnarray}
 
 
 \subsection{Asynchronous (decentralized) RE}
 
-When BigJob become active, the BigJob agent starts the replica agents and
+When the BigJob becomes active, the BigJob agent starts the replica agents and
 the replica agents in turn start the replicas. It takes 0.3 seconds to start a replica-agent.
-The replica agents are now
-running and each of them start their replica. The replica agent creates the output
+The replica agent creates the output
 and error files, reads the configuration and starts the replica. All
 these actions, which are repeated after every exchange, take 1.3
 seconds.
@@ -747,64 +748,41 @@ seconds.
 The replica agent constantly monitors the replica and when it finds
 that the replica finished running, it updates its state in the advert
 server, which takes 0.11 seconds and also retrieves the energy and
-temperature from the output files, each of which actions takes 0.2
+temperature from the output files, each of which actions take 0.2
 seconds. It then posts both these values to the advert server. Thus,
 $T_W$ is 1.3+0.7=2 seconds.
 
-Each replica agent tries to find a partner in a completely random
-manner. This was necessitated by the fact that if all of the replica
-agents tried to find a partner by going through the list of replicas
-serially, there would be a lot of contention and even grid-lock. We
-observed that on average, the replica agent makes 15 queries before it
+We observed that on average, the replica agent makes 15 queries before it
 finds a partner. Each query is 0.11 seconds, thus $T_F$ is 1.65
-seconds. It should be noted here that in the centralized version of
+seconds. The process of re-verifying the states, changing the states and temperatures in the advert server and finally writing new configuration files and restarting the replica takes on average 15 queries to the advert server. Thus $T_{ex}$ is 1.65 seconds. And even in the other scenario, where the replica in question is not the initiator of the exchange, on average, a similar amount of time is spent negotiating an exchange.
+$T_{coord}$ is the
+time it takes to update the state in the advert server, which is 0.11
+seconds. Thus, $T_{EX}$ is $1.65+1.65+0.11= 3.41$ seconds.
+
+It should be noted here that in the centralized version of
 asynchronous RE, where only 2 connections to the advert server existed
 (RE-Manager, BigJob agent), each query took only 0.01 seconds. But in
 the decentralized version, since each replica agent maintains an open
 connection to the advert server, there are 32+2=34 connections
-open. This effects the performance of the advert server. Once the
-replica agent finds another replica agent available, it re-verifies
-it's own state and the other replica agent's state. If the replicas
-are still available, the replica agent sets both the replica states as
-"Pending". This is done to make sure that duplicate exchanges don't
-take place. Now, the replica agent which initiated the exchange set's
-the temperatures of both replicas in the advert server. The the master
-replica agent sets both the states as ready, which means that the
-control flow can move forward to updating the configuration files and
-restarting the replicas. All this process takes on average 15 more
-queries to the advert server. Thus, $T_{ex}$ is 1.65 seconds. It
-should be noted here that the temperatures are exchanged over the
-advert server and the replica agent writes a new configuration file
-locally. This removes the need to stage the configuration files to
-different machines. This is possible because there is a replica agent
-for each replica locally. Where as earlier, the RE-Manager and the
-replica might be located on different machines. $T_{coord}$ is the
-time it takes to update the state in the advert server, which is 0.11
-seconds. Thus, $T_X$ is 1.65+1.65+0.11= 3.41seconds.
+open. This effects the performance of the advert server.
 
 If $T$ is the average time between successful exchanges, and $p$ is
 the probability of a successful exchange, quantifying equation
 ~\ref{eq:totaltime}, we get
 \begin{eqnarray}
-T=  {1 \over p} \times {568 + {(3.41+2)\times 128\over 16}} = {1 \over p} \times 611
+T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16}} = {1 \over p} \times 611
 \label{eq:timebt}
 \end{eqnarray}
 
 
-\alnote {one could ask why is the config file staged in case I and II
-  then?}  Where as, in the other two implementations the exchanges
+%\alnote {one could ask why is the config file staged in case I and II then?} 
+In the other two implementations the exchanges
 happen sequentially. But in the decentralised implementation, there
 would be many pairs of replica agents negotiating the exchanges. It
 should be noted that while this causes the time taken per unit
 exchange to go up, more exchanges occur in unit time.
 
-If there are $\eta$ independent exchange events then the time $T$ for
-N$_X$ exchanges is $T \over \eta$. For this asynchronous centralized
-RE model, $\eta$ is $N_R \over 2$, as at any time there could be a
-maximum of $N_R \over 2$ pairs of replicas negotiating.  \alnote{We
-  really need to discuss $\eta$ tomorrow on the call!}
-
-
+\athotanote{must think about the following two paragraphs. don't exactly fit here.}
 The decentralised implementation depends on the advert server much
 more than the other two implementations. Where as, in the other two
 implementations there are only a handful of connections to the advert
