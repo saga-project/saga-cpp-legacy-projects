@@ -669,13 +669,13 @@ asynchronous (centralized and decentralized) RE implementations here.
 	\hline
 	$T_{MD\_run}$   &68\,sec &68\,sec &68\,sec\\
 	\hline
-	$T_{F}$           &0\,sec &&\\
+	$T_{F}$           &0\,sec   &0.2\,sec &\\
 	\hline
-	$T_{W}$           &&&\\
-	\hline
-	$T_{EX}$          &&&\\
+	$T_{W}$           &2.6\,sec &1\,sec &\\
 	\hline
 	$T_{COORD}$       &&&\\
+	\hline
+	$T_{EX}$          &&0.8\,sec &\\
 	\hline
 	\end{tabular}
 	\caption{Replica-Exchange Performance}
@@ -773,17 +773,24 @@ As mentioned earlier, the BigJob agent takes 0.92 seconds to find that
 a replica is done, update the state and free the
 nodes. But in this implementation, we also make the BigJob agent also 
 retrieve the energy and temperature from the output files, which 
-adds 0.2 seconds per replica. Therefore it takes 1.12*32=35.84 seconds 
+adds 0.2 seconds per replica. In summary it takes 1.12*32=35.84 seconds 
 for 32 replicas. But even as a pair of replicas are marked as done 
 by the BigJob agent, the
 RE-Manager concurrently makes exchanges between other pairs of
-replicas - and that pair of replicas would wait approximately 32 seconds before the BigJob agent is able to them. It should be noted that the timelines of the RE-Manager and the BigJob agent run partly concurrent and partly serial to each other.  As the simulation progresses, as pairs of replicas are restarted instead of
+replicas - and that pair of replicas would wait approximately 32 seconds 
+before the BigJob agent is able to them. \alnote{I don't understand the notion
+of pair in this context. Is 32 sec == $T_W$?} It should be noted that the 
+timelines of the RE-Manager and the BigJob agent run concurrently.  
+As the simulation progresses, as pairs of replicas are restarted instead of
 all the replicas starting and ending together, groups or pairs of
 replicas start and end at the same time. The pairs
 of replicas belonging to the first few exchanges might have waited the
 32 seconds at the BigJob agent, but we observed that groups of
 replicas belonging to the later exchanges wait for only half that
-amount of time. This is because the BigJob agent would move between ending and starting replicas more frequently. That is 32/2 = 16. For a pair of replicas, $T_W$ is 16/16 =1 second is the waiting cost.
+amount of time. This is because the BigJob agent would move 
+between ending and starting replicas more frequently. That is 32/2 = 16. 
+For a pair of replicas, $T_W$ is 16/16 = 1\,second is the waiting cost.
+\alnote{Don't understand the formula above. This explanation needs to be improved}
 
 The time the RE Manager takes to find a partner ($T_F$)
 depends on $N_R$ and also on the number of replicas the RE-Manager has
@@ -794,13 +801,15 @@ should be noted that we also implemented a special case for an ensemble
 containing a very large number of replicas, where the RE-Manager tries to find a
 partner randomly. We observed that this only improves the performance
 when the ensemble contains more than 128 replicas. It takes 0.01
-seconds per query. Thus for 32 replicas, on average, $T_F$ is
-$16\times 0.01=0.16\,sec$. 
-$T_{ex}$ \alnote{This is a remote query to the advert service?} is the time it takes to update
+seconds per query. \alnote{Is this a remote query to the advert service?} 
+Thus for 32 replicas, on average, $T_F$ is
+$16\times 0.01=0.16\,sec$. \alnote{i.e. per average 16 queries are necessary in order 
+to find a partner? Why 16?}
+$T_{ex}$  is the time it takes to update
 the configuration files and copy them locally. That would be
 $({0.2+0.01})\times 2=0.42\,sec.$ $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
-$0.11\times 2 = 0.22$ seconds. Therefore, $T_EX$ is
+$0.11\times 2 = 0.22$ seconds. Therefore, $T_{EX}$ is
 $0.16+0.42+0.22=0.8$ seconds. Therefore, on average, it takes 0.78
 seconds for the RE-Manager to make an exchange. 
 
@@ -809,6 +818,8 @@ seconds for the RE-Manager to make an exchange.
 %The point we are trying to make is that the BigJob agent might not be free while the RE-Manager submits the replicas to be restarted. But as the experiment progresses, instead of all the replicas in the ensemble running in synchronization, pairs of replicas would start and end together. 
 % By the time the BigJob agent finishes processing the last of the replicas that finished running, the RE-Manager would have re-submitted 15 pairs of replicas to the advert server for restarting by the BigJob agent. In the next couple of seconds the rest of the replicas would have been exchanged and submitted to the advert server.
 
+\alnote{Not sure how helpful it is to throw everything in this formula. At least, I can't
+remember what the original terms were.}
 Substituting the above values in equation ~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
 T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.78 + 1)\times 128]} = {1 \over p} \times 796 seconds
