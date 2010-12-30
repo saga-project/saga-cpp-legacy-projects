@@ -419,7 +419,7 @@ Let us look at how the coordination and waiting costs introduced in equation \re
 \section{Replica-Exchange Framework}
 
 The RE Framework we present is independent of the underlying infrastructure and provides the capability to implement a variety of RE algorithms. 
-An important motivation for us to come up with an RE Framework is to present an infrastructure independent solution that makes it possible to run a variety of RE experiments, that also can dynamically utilise a range of infrastructures.
+An important motivation for us to come up with an RE Framework is to present an infrastructure independent solution that makes it possible to implement a variety of RE algorithms, such as synchronous and asynchronous, that can dynamically utilise a range of infrastructures.
  It is also important to have a scheme
 that does not depend on a static set of resources that are pre-defined
 at the time of workload submission.  
@@ -492,7 +492,7 @@ polls the advert server for new jobs.
   \jhanote{ABHINAV: DEFINE THE ROLE OF RE-MANAGER HERE.  Possibly BIGJOB
   AGENT here if not in previous subsection.}  \athotanote{please check if it's ok now}
   
-The RE Manager is an abstraction over the SAGA BigJob Manager. At the most, the RE Manager is the master process controlling all the aspects of the RE experiment and exchanges. And at the least, it is the SAGA BigJob Manager. The actual tasks that the RE Manager carries out depend on the type of the implementation. In an implementation where the RE Manager manages all the replicas and makes all the exchanges, the RE Manager does a lot of work (a centralized implementation). But in an implementation where there is a \emph{replica agent} for every replica, the RE Manager has the same functionality as the SAGA BigJob Manager (a decentralized implementation). A replica agent is a wrapper script launched in place of the replica. The replica agent typically manages the replica and makes the exchanges.
+The RE Manager is an abstraction over the SAGA BigJob Manager. At the most, the RE Manager is the master process controlling all the aspects of the RE experiment and exchanges. And at the least, it is the SAGA BigJob Manager. The actual tasks that the RE Manager carries out depend on the type of the implementation. In an implementation where the RE Manager manages all the replicas and makes all the exchanges, the RE Manager does a lot of work (a centralized implementation). But in an implementation where there is a \emph{replica agent} for every replica, the RE Manager has the same functionality as the SAGA BigJob Manager (a decentralized implementation). A replica agent is a wrapper script launched in place of the replica. The replica agent typically manages the replica and makes the exchanges. It should be noted that synchronous and asynchronous RE are the different algorithms and the implementation of an same algorithm could be centralized and decentralized.
 
 %Synchronous RE is implemented in a centralised fashion. Centralized implementation suits synchronous RE because there is a synchronization step at the beginning of each exchange step. But we implement asynchronous RE in both centralised and decentralised fashions. 
 
@@ -769,29 +769,6 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16
 
 
 %\alnote {one could ask why is the config file staged in case I and II then?} 
-
-\athotanote{must think about the following two paragraphs. don't exactly fit here.}
-The decentralised implementation depends on the advert server much
-more than the other two implementations. Where as, in the other two
-implementations there are only a handful of connections to the advert
-server (one connection from each of the machines), in the
-decentralised implementation, each replica agent has an open
-connection to the advert server. If the number of replicas is 256,
-then there would be approximately \jhanote{approximately or exactly
-  256?} that many connections open with the advert server. This does
-not seriously impact the communication times with the advert server,
-and the overhead is unnoticeable.
-
-Although both case II and case III implement the asynchronous RE
-algorithm, they differ in the way they are implemented. The replicas
-are either managed by a master (case II) or each replica is managed
-individually (case III). We propose case III so as to not let the
-master in case II become a bottleneck, which can happen very quickly
-with a large number of replicas. \jhanote{If we believe this is the
-  case then we need to document and show how/much the slow down with
-  increasing replica is.} We do see in our experiments that the
-decentralised implementation scales up and scales out better than the
-other two implementations.
 
 % \begin{figure}
 % \centering
