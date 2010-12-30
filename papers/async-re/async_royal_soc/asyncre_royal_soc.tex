@@ -309,18 +309,18 @@ But it is not actually possible to implement an RE experiment without
 overhead. A more practical equation for total time would look like
 this.  \alnote{Why is the second $N_X$ not divided by $\eta$}
 \begin{eqnarray}
-T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + (T_{EX} + T_{W}) \times N_X]
+T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + (T_{X} + T_{W}) \times N_X]
 \label{eq:totaltime}
 \end{eqnarray}
 
-Where $T_{EX}$ is the time to make a pairwise exchange and would
+Where $T_{X}$ is the time to make a pairwise exchange and would
 include components like time to find a partner ($T_F$), time to
 exchange files or to write and transfer files ($T_{ex}$) and
 book-keeping ($T_{coord}$). $T_W$ is the time spent by a replica
-waiting for other replicas to become available ($T_W$), the time spent
+waiting for other replicas to become available ($T_w$), the time spent
 waiting till it is restarted after each exchange ($T_r$) and any other
-miscellaneous costs. Thus $T_{EX} = T_{F} + T_{ex}+T_{coord}$ and
-$T_w=T_w+T_r$.  \alnote{Using ex and EX as subscripts is very
+miscellaneous costs. Thus $T_{X} = T_{F} + T_{ex}+T_{coord}$ and
+$T_W=T_w+T_r$.  \alnote{Using ex and EX as subscripts is very
   confusing!} \jhanote{Why not use T$_X$ in lieu of $T_{EX}$? }
 
 % Equation \ref{eq:totaltime} gives the total time to complete an RE
@@ -339,8 +339,8 @@ concurrently, then the time $T$ to complete the RE experiment where
 N$_X$ is the total number of exchanges is:
 
 \begin{eqnarray}
-T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + {(T_{EX} + T_{W}) \over \eta} \times N_X]
-\label{eq:totaltime2}
+T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + {(T_{X} + T_{W}) \over \eta} \times N_X]
+\label{eq:totaltime}
 \end{eqnarray}
 
 % \athotanote{please suggest alternative terms if you find anything
@@ -417,7 +417,7 @@ restarted~\citep{Luckow:2008fp}.
 In equation \ref{eq:totaltime2}, we introduced the various components
 that make up the total time to complete an RE experiment. Only the
 coordination and waiting costs would differ with different models of
-the RE algorithm. That would be the terms $T_{EX}$ and $T_W$. In a
+the RE algorithm. That would be the terms $T_{X}$ and $T_W$. In a
 synchronous RE experiment, since all the replicas complete running
 before the exchanges are made, $T_F = 0$. And $T_W$ would include the
 time waiting for all the replicas in an ensemble running concurrently
@@ -460,7 +460,7 @@ asynchronously with any other replica in the ensemble.
 %   production infrastructure. ?}
 
 Let us look at how the ≈ß≈ç and waiting costs introduced in
-equation \ref{eq:totaltime2} behave. That would be the terms $T_{EX}$
+equation \ref{eq:totaltime2} behave. That would be the terms $T_{X}$
 and $T_W$. In an asynchronous RE experiment, since each replica on
 completing a run has to find a partner, $T_F \neq 0$. And $T_W$ would
 only include the time spent waiting for the next replica to become
@@ -703,7 +703,7 @@ asynchronous (centralized and decentralized) RE implementations here.
 	\hline
 	$T_{COORD}$       &&&\\
 	\hline
-	$T_{EX}$          &&0.8\,sec &\\
+	$T_{X}$          &&0.8\,sec &\\
 	\hline
 	\end{tabular}
 	\caption{Replica-Exchange Performance}
@@ -847,7 +847,7 @@ for 32 replicas, on average, $T_F$ is $16\times
 update the configuration files and copy them locally. That would be
 $({0.2+0.01})\times 2=0.42\,sec.$ $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
-$0.11\times 2 = 0.22$ seconds. Therefore, $T_{EX}$ is
+$0.11\times 2 = 0.22$ seconds. Therefore, $T_{X}$ is
 $0.16+0.42+0.22=0.8$ seconds. Therefore, on average, it takes 0.78
 seconds for the RE-Manager to make an exchange.
 
@@ -896,7 +896,7 @@ in the other scenario, where the replica in question is not the
 initiator of the exchange, on average, a similar amount of time is
 spent negotiating an exchange.  $T_{coord}$ is the time it takes to
 update the state in the advert server, which is 0.11 seconds. Thus,
-$T_{EX}$ is $1.65+1.65+0.11= 3.41$ seconds.
+$T_{X}$ is $1.65+1.65+0.11= 3.41$ seconds.
 
 It should be noted here that in the centralized version of
 asynchronous RE, where only 2 connections to the advert server existed
@@ -911,9 +911,8 @@ causes the time taken per unit exchange to go up, more exchanges occur
 in unit time.
 
 
-If $T$ is the average time between successful exchanges, and $p$ is
-the probability of a successful exchange, quantifying equation
-~\ref{eq:totaltime2}, we get
+Substituting the above values in equation
+~\ref{eq:totaltime2}, we get:
 \begin{eqnarray}
 T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16}} = {1 \over p} \times 611
 \label{eq:decent}
@@ -947,6 +946,8 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16
 
 \section{Scale-Up and Scale-Out: Experiments and Results}
 
+In this section we present the experiments that we conducted on production level infrastructure. One set of experiments are modeled to analyze the performance of the algorithms and implementations when we increase the number of replicas while keeping the number of machines a constant. The other set of experiments are modeled to analyze the performance when the number of replicas is kept a constant but the number of machines is increased. We call the former "scale-up" and the latter "scale-out" experiments.
+
 %
 %%%%% FIGURE %%%%%
 \begin{figure}
@@ -960,11 +961,6 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16
 \label{fig:graph}
 \vspace{-1em}
 \end{figure}
-
-%While the traditional RE limits the exchanges to only neighboring temperatures, an asynchronous RE does not. This is not a concern when the number of replicas is small and there is little chance of an exchange between non-adjacent temperatures. However, as the number of replicas increases, the difference between the target temperatures becomes small enough to allow exchanges between non-adjacent temperatures. This also allows for 'crosswalks' to happen. The larger the number of crosswalks, the better is the performance of the simulation.
-
-%To evaluate the performance of the various models of RE we have discussed in the abstract, we conducted several experiments on Teragrid and LONI resources. 
-%In the following sentences we will analyze the performance of synchronous RE(Case I) with centralized asynchronous RE(Case II). 
 
 \subsection{Scale-Up}
 
