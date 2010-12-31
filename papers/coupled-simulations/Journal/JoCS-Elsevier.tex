@@ -521,56 +521,77 @@ Finally, the constrained particle dynamics with conventional equation of motion 
 The continuum velocity and the mean microscopic velocity from MD over control domain provide the synchronization of the mass and momentum consistent with Eqn.~\ref{eq:Con3}.
 
 
+\subsection{Statistical Error and Coupling Parameters}
 
-\subsection{Determining Coupling Conditions
-\\
-\Nkimnote{Proposed title : Coupling Considerations}}
-\subsubsection{\\
-\Nkimnote{Proposed title : Spatial - focusing spatial coupling scheme from 2.4 and 2.5}}
-\subsubsection{\\
-\Nkimnote{Proposed title : Temporal - copy chapter 2.6 here}}
+
+%Molecular dynamics inherently describes the fluctuating pattern of particles, which becomes a noise in CFD solution. How to reduce this statistical error~\cite{Hadjicon3,Time_Mechanism} of averaged MD profile determines the accuracy of CFD solution. 
+
+How to reduce the statistical error of averaged MD profile due to the Brownian motion of particles determines the accuracy of CFD solution in hybrid simulation. According to the mathematical expression in statistical error~\cite{Hadjicon3,Time_Mechanism}, the ratio of sampling noise compared to the macroscopic velocity is inversely proportional to the square root of spatial layer size and temporal sampling duration. For example, reducing the macroscopic velocity by half requires either 4 times larger system domain or 4 times longer sampling to maintain the same order of accuracy.
+%\vspace{-.2em}
+%\begin{eqnarray}
+%E \propto \frac{1}{\sqrt{M}} \times \frac{1}{\sqrt{N}} \times \frac{1}{u_{\infty}}
+ %\label{eq:noise}
+%\end{eqnarray}
+%where M is the number of independent samples, N is the number of particles spatially contained in that layer, and ${u_{\infty}}$ denotes the far field velocity.
+
+% Eqn.~\ref{eq:noise} implies that the increase of system size or sampling duration is inevitable to solve the slower velocity field. Sampling duration is determined to be less than the sampling interval, which is chosen to be far smaller than the hydrodynamic characteristic time for time-accurate simulations. Since the hydrodynamic time scale is a function of characteristic size and kinematic viscosity, the sampling interval shall be fixed in solving the slower flow field. This, in turn, results in the impossibility to handle the sampling duration. Therefore, increasing the system size is the only possible way to maintain the same statistical accuracy, to be proportional to the square of the velocity change.
+
+
+Sampling duration with interval, the size of sampling layer and its position are coupling parameters which define the scale and pattern of this noise. The layer size and sampling duration collectively work for reducing the noise, by increasing the spatial and temporal sampling scales. Sampling interval is a factor which restricts the sampling duration. On unsteady simulations, a short sampling interval is preferred to frequently update temporal variation of flow field in hybrid boundary zones. This interval acts as the upper bound of sampling duration. The location of the sampling layer is a secondary factor which can locally increase the strength of fluctuation. Conventionally, sampling layer is placed far from the solid obstacle, e.g., at least 10 $\sigma$ above the bottom wall in solving the flow of the liquid argon~\cite{Yen}.
+
+We introduce two numerical ideas to acquire the accurate hybrid solution. One is to quantitatively measure the scale of statistical noise in particular domain and the other is to numerically get the acceptable solution. The former shows the initial guideline to determine the coupling parameter and the latter refines the accuracy of the former solution.
+
+
+\subsubsection{Determining Coupling Conditions}
 \label{sec:numerical_parameters}
-
-%How to apply a continuum solution in the CFDtoMD layer to particle domain without harming the degree-of-freedom of molecular motion is the essence of acquiring the accurate molecular dynamic solution: how to avoid the excessive statistical error~\cite{Hadjicon3,Time_Mechanism} of averaged MD profile determines the accuracy of CFD solution. 
-
-
-Molecular dynamics inherently describes the fluctuating pattern of particles, which becomes a noise in CFD solution. How to reduce this statistical error~\cite{Hadjicon3,Time_Mechanism} of averaged MD profile determines the accuracy of CFD solution. Sampling duration with interval, the size of sampling layer and its position are coupling parameters which define the scale and pattern of this noise. The layer size and sampling duration collectively work for reducing the noise, by increasing the number of spatially averaged particles for a long time. Sampling interval is a factor which restricts the sampling duration.  For unsteady simulation, a short sampling interval is preferred to frequently update temporal variation of flow field in hybrid boundary layers. This interval acts as the upper bound of sampling duration. The position of sampling layer is a secondary factor which can locally increase the strength of fluctuation. Conventionally, sampling layer is placed far from the solid obstacle, e.g., at least 10 $\sigma$ above the bottom wall in solving the flow of the liquid argon~\cite{Yen}.
-
-We sense that the statistical noise is a function of the characteristics of fluid and surrounding solid elements, and geometric configurations, as well as the flow condition. Thus, coupling parameters can be determined after the look-up of the system characteristics. Our intuitive idea of numerically detecting the strength of statistical noise is to solve the stationary flow in the full-scale fluid domain by pure MD method. The procedure is as follows. 
-\newline
-
-1) Empirically design the sampling interval and the location of sampling layer. Sampling interval was designed to be $1/100^{th}$ of hydrodynamic characteristic time and the layer position was set to be 0.2 times the system's height.
-
-2) Construct a full-scale particle domain. Size in periodic direction can be reduced by applying the relation between the noise strength number of particles, i.e., $V_{noise} \propto N^2$.
-
-3) Run the simulation. After the relaxation (or minimization???) process is completed, collect the temporal history of averaged velocity in smallest layer size and shortest sampling interval. 
-
-4) Post-process the dataset to gather the strength of noise around the location of sampling layer in various layer size and sampling duration. Compare the noise with the velocity at that position, considering the linear velocity gradient from the wall to the far field. Choose the appropriate coupling condition and reduce the sampling interval according to the sampling duration.
-
-5) If no condition is satisfactory, change the position of sampling layer and conduct 4) again. In case no condition is acceptable, find an acceptable condition by applying the relation in 2).
-%\newline
-
-%We argue that our idea is very simple (or intuitive???) and computationally not so expensive since the stationary flow profile can be immediately collected. 
+The statistical noise is a function of the characteristics of fluid and surrounding solid elements, and geometric configurations, as well as the flow condition. 
+Unfortunately, previous analyses on the strength of statistical error~\cite{Hadjicon3,Time_Mechanism} fails to consider the stronger interaction near the fluid-solid interface and the shape of the domain. We sense that the clear coupling parameters can be determined after the look-up of that specific system 
 
 
+Our intuitive idea of numerically detecting the strength of statistical noise is to solve the stationary flow of the same fluid domain by pure MD method. The procedure is as follows. 
+\begin{enumerate}
+\item Empirical design of the sampling interval and the sampling layer's position\footnotemark
+\item Structure construction\footnotemark
+\item Simulation and collecting the temporal history of sampled velocity\footnotemark
+\item Data processing\footnotemark
+\item Determining the sampling layer size and the sampling duration\footnotemark$^{,}$\footnotemark
+\end{enumerate}
 
-\subsection{Simulation of Moderate Velocity Flow Field}
+
+\footnotetext[1]{Sampling interval is designed less than $1/100^{th}$ of hydrodynamic characteristic time; The location of sampling layer is placed O(10) nanometers above the solid obstacle.}
+
+\footnotetext[2]{The height of the domain can be reduced by placing a specular wall on the top, in case the system is sufficiently large; The length of the domain along the periodic direction can be arbitrarily chosen. The optimal length is further determined by the relation between the strength of noise and number of particles, i.e., $V_{noise}{\propto}1/\sqrt{N}$.}
+
+\footnotetext[3]{Data collection starts as soon as the relaxation process is finished. Temporal history of averaged velocity from the smallest layer size with shortest sampling interval is stored.}
+
+\footnotetext[4]{Produced dataset around the location of sampling layer is spatially and temporally averaged to produce the spatial and temporal variation of the sampled velocity.}
+
+\footnotetext[5]{The noise is compared with the expected macroscopic velocity at that position, considering the linear velocity gradient from the wall to the far field. A paired condition which produces sufficiently small portion of noise and whose temporal duration is less than designed sampling interval is chosen to be the layer size and sampling duration of this hybrid simulation.}
+
+\footnotetext[6]{If no condition is satisfactory, the acceptable condition can be obtained by either increasing the length of computational domain based on $V_{noise}{\propto}1/\sqrt{N}$ or changing the position of sampling layer and repeating data processing. The one condition which generates the smallest MD domain in the hybrid simulation is chosen.}
+
+%Change the position of sampling layer and conduct data processing again in case no condition is satisfactory. Or increase the length of computational domain to reduce the noise by $V_{noise}{\propto}1/\sqrt{N}$. There exists infinite number of coupling conditions which produce the same amount of statistical noise: the one which requires the smallest MD domain for hybrid simulation is chosen.
+
+We argue that our idea is very easy to follow and computationally not expensive since the solution of the stationary flow is immediately collected. 
+%The sampling noise in the specific system is quantified by this stationary flow simulation.
+This stationary flow simulation provides the amount of sampling noise in various sampling conditions. 
+%Meanwhile, this experiment does not provide the statistical error because predicting the macroscopic velocity is impossible except restricted number of flow systems whose analytic solutions are present.
+Meanwhile, this experiment does not provide the statistical error because of the impossibility to predict the macroscopic velocity expect some well-known flow systems. This necessitates us to investigate additional approach which is globally applicable.
+
+
+\subsubsection{Sampling Multiple Independent Experiments}
 \label{sec:numerical_lowspeed}
-According to the mathematical expression in statistical error~\cite{Hadjicon3,Time_Mechanism}, the ratio of sampling noise compared to the macroscopic velocity is described as,
+So far, all hybrid CFD-MD applications have been restricted to extremely fast flow field of O(100) m/s velocity. 
+The difficulty of solving moderate-speed flow field by a hybrid approach is explained as follows. The hydrodynamic time scale is expressed as a function of characteristic size and kinematic viscosity. This implies that the sampling interval is fixed regardless of the change in velocity. This, in turn, results in the impossibility to handle the sampling duration. Increasing the system size proportional to the square of the velocity change remains the only possible way to maintain the same statistical accuracy. Unfortunately, submitting excessively large-scaled simulation on public supercomputers unfavorably takes far long time to get allocated. In worse case, the simulation may exceed the capacity of the system. Thus, a different approach is necessary for efficiently simulating the low-speed flow field. 
 
-\vspace{-.2em}
-\begin{eqnarray}
-%E = c \times \frac{1}{\sqrt{M}} \times \frac{1}{\sqrt{N}} \times \frac{1}{u_{\infty}}
-E \propto \frac{1}{\sqrt{M}} \times \frac{1}{\sqrt{N}} \times \frac{1}{u_{\infty}}
- \label{eq:noise}
-\end{eqnarray}
-where M is the number of independent samples, N is the number of particles spatially contained in that layer, and ${u_{\infty}}$ denotes the far field velocity.
+%Considering that the increase of the MD domain is technically bound by the computing capacity, a different approach is necessary for simulating the low-speed flow field. 
 
-Eqn.~\ref{eq:noise} implies that the increase of system size or sampling duration is inevitable to solve the slower velocity field. Sampling duration is determined to be less than the sampling interval, which is chosen to be far smaller than the hydrodynamic characteristic time for time-accurate simulations. Since the hydrodynamic time scale is a function of characteristic size and kinematic viscosity, the sampling interval shall be fixed in solving the slower flow field. This, in turn, results in the impossibility to handle the sampling duration. Therefore, increasing the system size is the only possible way to maintain the same statistical accuracy, to be proportional to the square of the velocity change.
-
-Considering that the increase of the MD domain is technically bound by the computing capacity, a different approach is necessary for simulating the low-speed flow field. We propose sampling multiple independent hybrid simulations from a smaller domain instead of trying to run a single hybrid simulation in the large domain.
+We propose sampling multiple independent hybrid simulations from a smaller domain instead of trying to run a single hybrid simulation in the large domain.
 %For this purpose, we design a framework which samples multiple independent hybrid simulations. 
-The initial velocity component at individual problem set is differently determined from a Maxwell-Boltzmann distribution and results from individual simulation are averaged to produce the final solution. The labour of manually administrating multiple job executions are resolved by using a BigJob framework, which is to be discussed in the Section (Refer to Section 3!!!!!).
+The initial velocity component at individual problem set is differently determined from a Maxwell-Boltzmann distribution and solutions from independent simulations are averaged to produce the final solution. The labour of manually administrating multiple job executions are resolved by using a BigJob framework, which is to be discussed in the Section~\ref{sec:computational}.
+
+Along with the advantage in computing capability, sampling multiple experiments provides another advantage of less-sensitivity to coupling conditions. Even if the coupling parameters are ill-chosen, highly noisy individual solution can be refined by the enough number of independent samples. This advantage also increases the value of capturing the magnitude of statistical noise in Section~\ref{sec:numerical_parameters}, because the requirement of predicting the macroscopic velocity in the sampled layer becomes less important.
+%Clear advantages of sampling multiple experiments are that the simulation is not bound by \textit{(1) computing capacity} and \textit{(2) flow characteristics} anymore. 
 
 
 \subsection{Temporal Coupling Schemes}
@@ -1095,7 +1116,7 @@ Comparing temporal evolutions of the velocity field by different coupling scheme
 \hskip 1cm
 \includegraphics[width=0.6\linewidth]{Stokes_Both_Multi.pdf}
 \vskip-0.2cm
-\caption{\small Temporal Variation of the Velocity in the Middle of Hybrid Layer; (Left) With conventional model, large overshoot/undershoot phenomena up to 1 $\%$ of maximum velocity are observed on the peak points. The time-lagging effect is also captured. (Right) Overshoot/undershoot phenomena in the conventional approach is almost resolved by applying the prediction-correction approach. The interpolated hybrid boundary conditions are imposed on CFD and MD domains.}
+\caption{\small Temporal Variation of the Velocity in the Middle of Hybrid Layer; (Left) With conventional model, large overshoot/undershoot phenomena are observed on the peak points: the statistical noise around 0.01 $\sigma/\tau$ is nearly 20 $\%$ of continuum velocity. The time-lagging effect is also captured. (Right) Overshoot/undershoot phenomena in the conventional approach is almost resolved by applying the prediction-correction approach. The interpolated hybrid boundary conditions are imposed on CFD and MD domains.}
 \label{Temporal1}
 \end{figure}
 
