@@ -220,7 +220,7 @@ This unrealistic flow condition is unavoidable according to the mathematical ana
 %It is a natural phenomenon if we refer to the mathematical analyses on the strength of statistical error in steady~\cite{Hadjicon3} or unsteady~\cite{Time_Mechanism} flow field. According to these works, sampling duration is proportional to ${{1} / {u_inf}^2}$ and ${{1} / {N_0}}$, where ${u_inf}$ is a free stream condition and ${N_0}$ denotes the number of particles contained in sampling layer.
 So, reducing the free stream velocity by 1/10 requires 100 times more particles to be averaged to maintain the same statistical error. (Increasing the sampling duration is avoided because it can fail to describe the unsteady flow evolution.) This necessitates a different design of a hybrid simulation framework.
 
-The accuracy of temporal coupling scheme with boundary condition imposition is of another importance in solving the unsteady problems. Temporal coupling scheme denotes the scheduling of data exchange routine in time space between CFD and MD solvers, to synchronize both solutions at the same physical time. As to be discussed in Section (Refer Section 2.6!!!!!) in detail, initial models inherently contain the time-lagging phenomenon because backward-averaged molecular dynamic properties 
+The accuracy of temporal coupling scheme with boundary condition imposition is of another importance in solving the unsteady problems. Temporal coupling scheme denotes the scheduling of data exchange routine in time space between CFD and MD solvers, to synchronize both solutions at the same physical time. As to be discussed in Section~\ref{sec:numerical_temporal} in detail, initial models inherently contain the time-lagging phenomenon because backward-averaged molecular dynamic properties 
 %over a finite sampling interval 
 is adopted as the instantaneous solution at continuum domain. As the remedy, Liu {\it{et al.}}~\cite{Liu} proposed a multi-timescale algorithm by considering quasi-steadiness and Wang and He~\cite{Wang} proposed passing the extrapolated continuum solution to the MD solver. However, a multi-timescale algorithm is only valid if the period of unsteady phenomenon is sufficiently longer than sampling duration and particles lose their history during the re-initialization process in between sampling interval: Approach by Wang and He is a possible approach to mitigate the time-lagging effect though not in perfection.
 
@@ -234,11 +234,11 @@ However, confined to parallel execution on conventional production system with b
 
 We are focusing on investigating numerical issues of applying the hybrid CFD-MD scheme to a nano-fluidic system, as well as designing and developing an efficient runtime framework for a coupled multi-component simulation. We consider the implementation of a 'generic' hybrid interface which can be easily attached to various kinds of incompressible CFD codes and MD packages, and the building of a 'portable' framework which is acceptable for most computer architectures. 
 
-Regarding numerical simulation, we propose the determination of coupling parameters based on the strength of statistical noise in stationary flow. Also we explore to the moderate-speed flow simulation in O(10) m/s velocity, which is the first successful analysis by a hybrid approach. Excessive statistical noise in this flow condition is shrunk by sampling multiple individual experiments. For physically unsteady flow simulation, we design a temporal coupling scheme, named 'prediction-correction approach'. Compared to conventional scheme, our approach provides better accuracy by eliminating the overshoot/undershoot phenomena and diminishing the time-lagging pattern.
+Regarding numerical simulation, we develop the hybrid simulation framework based on the constrained Lagrangian dynamics and apply it to prototype examples. We propose the determination of coupling parameters based on the strength of statistical noise in stationary flow. Also we explore to the moderate-speed flow simulation in O(10) m/s velocity, which is the first successful analysis by a hybrid approach. Excessive statistical noise in this flow condition is shrunk by sampling multiple individual experiments. For physically unsteady flow simulation, we design a temporal coupling scheme, named 'prediction-correction approach'. Compared to conventional scheme, our approach provides better accuracy by eliminating the overshoot/undershoot phenomena and diminishing the time-lagging pattern.
 
 In view of computational science, we believe our trial is the first documented coupled multi-physics simulation utilizing a virtually unified simulation package, called "Pilot-Job". We claim that there are several distinct advantages of using Pilot-Job: (i) obviates the need for a co-scheduler while preserving performance, (ii) enables dynamic resource allocation, which in turn is important for load-balancing across coupled simulations. %But given the lack of system or service-level support to address the challenges outlined above, there is a need to address the solution at the application level. This paper aims to provide novel solutions to the above problem using frameworks that are in user (application) space.
 
-We begin the next section with the numerical details of individual CFD and MD code and implementation of hybrid interface. The construction of an efficient CFD-MD simulation framework will be discussed in Section 3. In Section 4, we will demonstrate our numerical results of a famous validation problem (a sudden-start Couette flow) and the physically unsteady flow simulation (oscillating boundary problem). The performance of this coupled simulation is described in Section 5. Finally, our next plan and the summary of current work are expressed in Section 5 and 6.
+We begin the next section with the numerical details of individual CFD and MD code and implementation of hybrid interface. The construction of an efficient CFD-MD simulation framework will be discussed in Section~\ref{sec:computational}. In Section~\ref{sec:accuracy}, we will demonstrate our numerical results of a famous validation problem (a sudden-start Couette flow) and the physically unsteady flow simulation (oscillating boundary problem). The performance of this coupled simulation is described in Section~\ref{sec:performance}. Finally, our next plan and the summary of current work are expressed in Sections~\ref{sec:futureworks} and~\ref{sec:conclusion}.
 
 
 % ===== Former Version =====
@@ -279,19 +279,22 @@ We begin the next section with the numerical details of individual CFD and MD co
 % -------------------------------------------------------------------------
 %\section{Development of A Hybrid CFD-MD Simulation Toolkit: Numerical Techniques for Multi-physics Flow Simulation}
 \section{Fundamentals of Hybrid Coupled Continuum-Molecular Simulation Toolkit}
+\label{sec:numerical}
 
-The accuracy of a hybrid CFD-MD solution is governed by the underlying numerical schemes in individual solver as well as hybrid schemes implemented. We explain the features of baseline solvers and the structure of hybrid interface in this section. We also investigate additional numerical treatments to improve the accuracy of hybrid CFD-MD simulations in various flow conditions.
+The accuracy of a hybrid CFD-MD solution is governed by the underlying numerical schemes in individual solver as well as hybrid schemes implemented. We explain the features of baseline solvers and the structure of hybrid interface in this section. We also investigate additional numerical treatments to improve the accuracy of hybrid CFD-MD simulations in various types of fluid systems.
 
 %\subsection{The Hybrid CFD-MD Approach}
 \subsection{Overview of the Continuum-Molecular Coupled Approach}
-The hybrid CFD-MD approach stands on the assumption that the molecular dynamic simulation produces more accurate solution than the continuum model and a more efficient continuum solver provides the boundary condition to particle domain without restricting the high degree-of-freedom of atomistic motion. So, the region which contains a strong flow gradient is resolved by a molecular dynamic simulation and moderate flow in macroscopic scale is captured by the continuum dynamics. Also, these problem domains overlap each other in the middle to exchange the individual information.
+The hybrid CFD-MD approach stands on the proposition that the molecular dynamic simulation produces more accurate solution than the continuum model and a more efficient continuum solver provides the boundary condition to particle domain without restricting the high degree-of-freedom of atomistic motion. So, the region which contains a strong flow gradient is resolved by a molecular dynamic simulation and moderate flow in macroscopic scale is captured by the continuum dynamics. Also, these problem domains overlap each other in the middle to exchange the individual information.
 
-A detailed structure of the fluid domain for constrained Lagrangian dynamics models is described in Fig.~\ref{Fig:Couette}. CFD approach solves the external zones with the moderate flow velocity and MD analyzes the complex microscopic flow feature near the stationary obstacle or in the low-speed region. Hybrid region is placed sufficiently far from the solid obstacle to prevent the direct influence of strong fluctuation due to the intermolecular collision between solid and fluid particles. Also, this region is set up sufficiently large to contain five layers with enough spacing.
+A detailed structure of the fluid domain for constrained Lagrangian dynamics models is described in Fig.~\ref{Fig:Couette}. CFD approach solves the external zones with the moderate flow velocity and MD analyzes the complex microscopic flow feature near the stationary obstacle or in the low-speed region. Hybrid region is placed sufficiently far from the solid obstacle to prevent the direct influence of strong fluctuation near the solid-fluid interface. Also, this region is designed sufficiently large to contain five layers with enough spacing.
 
+Roles of these layers in hybrid region are as follows.
 From the bottom, we have the {\it{particle-to-continuum}} and {\it{continuum-to-particle}} (denoted as 'MDtoCFD' and 'CFDtoMD', respectively) boundary zones for CFD and MD simulations, and have additional zone to exert external force. These three interesting zones are isolated by the buffer in between.
 Particles' properties spatially located in the MDtoCFD boundary layer are averaged over a finite time (called 'sampling duration') and they are transferred to continuum solver at constant period (called 'sampling interval'). The height of each layer is the same as the CFD cell height and averaged conservative properties in two consecutive layers are passed to continuum domain to be directly imposed as the viscous boundary condition on the Navier-Stokes solver with collocated data structure.
 Next, the hybrid MD boundary zone is placed in the middle. In this region, the instantaneous continuum solution is transferred to MD code. Particles in this layer are guided to eventually follow this macroscopic flow velocity, by solving a constrained Lagrangian dynamics equation. The strong point of this equation is that, molecules are led to follow the macroscopic flow property, while preserving their degree-of-freedom of translational motion.
-In the uppermost layer, the external force is exerted on particles to conserve system's statistical ensembles. This force function is designed not too strong to influence the motion of particles in the domain of interest nor not too weak to have particles drifting away. \skonote{Preferably, the effective force needs to correspond to the mean pressure of the MD system~\cite{Werder}}. Finally, buffer layer is positioned in between each layer. This layer is set up to be bigger than the length scale of interacting particles (cutoff radius), not to have a solution in one layer being directly interfered by another solution.
+In the uppermost layer, the external force is exerted on particles to conserve system's statistical ensembles. This force function is designed not too strong to influence the motion of particles in the domain of interest nor not too weak to have particles drifting away. %Preferably, the effective force needs to correspond to the mean pressure of the MD system~\cite{Werder}. 
+Finally, buffer layer is positioned in between each layer. This layer is set up to be bigger than the length scale of interacting particles (cutoff radius), not to have a solution in one layer being directly interfered by another solution.
 
 
 \skonote{It would be better to explain a little more detail on last sentence. Let's say the buffer between CFDtoMD and MDtoCFD boundary is smaller than cutoff length. Then, a solution at CFDtoMD (constrained MD) directly affects the motion of particles at MDtoCFD. And this is used for CFD boundary condition. This results that, CFD solution at CFDtoMD is the result of flow variation in MDtoCFD boundary, which in turn is directly affected by the CFDtoMD solution. Thus, solution at CFDtoMD becomes the boundary condition of CFD domain.}
@@ -318,7 +321,7 @@ In the uppermost layer, the external force is exerted on particles to conserve s
 %\subsection{Numerical Schemes in the Baseline CFD and MD Codes}
 \subsection{Governing Equations and Numerical Schemes} 
 
-\subsubsection{Continuum Incompressible Flow Formulation(CFD)}
+\subsubsection{Continuum Incompressible Flow Formulation (CFD)}
 
 The current in-house continuum hydrodynamics code solves the unsteady incompressible Navier-Stokes equations to demonstrate the isothermal nano-scale flow field:
 
@@ -350,7 +353,7 @@ where $\beta$ denotes a pseudo-compressibility parameter, currently set up as 2.
 For time-accurate unsteady simulation, dual time stepping method is adopted and it is combined with the LU-SGS (Lower-Upper Symmetric Gauss-Seidel) scheme~\cite{LU-SGS} for the implicit time integration. The inviscid fluxes are upwind-differenced using Osher's flux-difference splitting scheme~\cite{Osher}. For higher-order spatial accuracy, the MUSCL (Monotone Upstream-centered Schemes for Conservation Laws)~\cite{MUSCL} approach is used on inviscid flux calculation. Viscous fluxes are calculated using the conventional second-order central differencing.
 
 
-\subsubsection{Molecular-Level Formulation(MD)}
+\subsubsection{Molecular-Level Formulation (MD)}
 
 %Molecular dynamics computer simulation technique is a specified computer simulation method for molecular systems, including microscopic details of a system and macroscopic statistical properties, which are the properties of the atoms, the interactions between particles, molecular characteristics, structure of molecules, transport phenomena etc.~\cite{Allen},\cite{Haile},\cite{Rapaport} 
 
@@ -405,89 +408,16 @@ The time integration algorithm is required to integrate the equation of motion o
 
 In this work,  the MD simulations were performed by using the modified version of Large Atomic Molecular Massively Parallel Simulator(LAMMPS). It is the classical molecular dynamics open-source code written in C++ and developed by Sandia National Labs.~\cite{LAMMPS}
 
-\subsubsection{
-\Nkimnote{Proposed title : Constrained Dynamics Coupling Formulation}
-}
-
-\Nkimnote{Can be added following part from Chapter 2.3\\
-Along with the file interface, additional equations of motion need to be employed on MD code to accurately describe the influence of macroscopic flow variation on particle domain. First, the external force should be imposed to prevent leaving particles from the control domain and the force is applied to the normal direction of uppermost MD layer, as was seen in Fig.~\ref{Fig:Couette}. A cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} is employed as,
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- F_{ext, i} = -p_{a}\sigma\frac{y_{i}-Y_{n-1}}{1-(y_{i}-Y_{n-1})/(Y_{n}-Y_{n-1})}
- \label{eq:External_Force}
-\end{equation}
-\normalsize
-where $\it p_{a}$ denote the average pressure in the MD region, $\it Y_{n}-Y_{n-1}$ is the thickness of the uppermost layer which is applied the force and $\it F_{ext}$ is the external force acting on $\it i^{th}$ particle located on position $\it y_{i}$.
-Next, on CFDtoMD layer, the macroscopic flow properties at specific time shall be introduced to lead the motion of multiple particles in that layer. To satisfy mass conservation, a certain number of particles are inserted into or removed from this layer according to the mass flux by CFD solution,
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
-n = -A \rho u_y \Delta t / m
- \label{eq:Mass_Flux}
-\end{equation}
-\normalsize
-where $A$ is the horizontal area, $u_y$ is the vertical velocity component by CFD solution and $\Delta t$ is the sampling interval.
-A very complicated numerical intervention is required to maintain momentum conservation. The average velocities of particles in $\it J_{th}$ cell is equal to the velocity $\it u_{J}$ in continuum cell.
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- u_{J}(t) = \frac{1}{N_{J}} \displaystyle\sum_{i} v_{i}
- \label{eq:Con_vel}
-\end{equation}
-\normalsize
-where $\it v_{i}$ is velocity of $\it i^{th}$ particle and $\it N_{J}$ is the number of particles in the cell. With taking Lagrangian derivative of Eq.~\ref{eq:Con_vel},
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- \frac{Du_{J}(t)}{Dt} =  \displaystyle\sum_{i} \frac{\ddot{x_{i}}}{N_{J}}
- \label{eq:Lagrangian}
-\end{equation}
-\normalsize
-The Classical MD equation of motion can be generalized to obtain constraint by adopting the fluctuation in acceleration of each particles, $\zeta_{i}$
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- \frac{F_{i}}{m_{i}} = \ddot{x_{i}}(t)  =   \frac{Du_{J}(t)}{Dt} + \zeta_{i} = \frac{\displaystyle\sum_{i}F_{i}(t)} {\displaystyle\sum_{i}m_{i}} +   \zeta_{i}
- \label{eq:Con2}
-\end{equation}
-\normalsize
-where $\it F_{i}$ is the force on $\it i^{th}$ particle based on the interactions between particles,  $\it m_{i}$ is mass of each atom and  Eqn.~\ref{eq:Con2} satisfies,
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
-\displaystyle\sum_{i}\zeta_{i}m_{i} = 0
- \label{eq:Con2}
-\end{equation}
-\normalsize
-The constrained particle dynamics with conventional equation of motion can be written as:
-\vspace{-.2em}
-%\footnotesize
-\begin{equation}
- \ddot{x_{i}}(t) = \frac{F_{i}}{m_{i}} -  \frac{\displaystyle\sum_{i}F_{i}(t)} {\displaystyle\sum_{i}m_{i}} - \frac{1}{\Delta t_{MD}} \{  \frac{\displaystyle\sum_{i}m_{i}\dot{x_{i}}} {\displaystyle\sum_{i}m_{i}} - u_{J}(t + \Delta t_{MD})\}
- \label{eq:Con3}
-\end{equation}
-\normalsize
-The continuum velocity and the mean microscopic velocity from MD over control domain provide the synchronization of the mass and momentum consistent with Eqn.~\ref{eq:Con3}.
-}
-
-
 
 %\subsection{Implementation of Hybrid Interface}
-\subsection{Hybrid Schemes and Interfaces between Continuum and Molecular Domains}
-The hybrid simulation requires additional numerical treatments to be implemented on individual code. They include the implementation of hybrid schemes, information exchange interface, and the change of data structure. In the current study, a constrained Lagrangian dynamics model is implemented for hybrid simulation and the file interface is designed to schedule the information exchange between continuum and discrete particle descriptions. The changes on individual code are demonstrated in this section.
+\subsection{Hybrid Interfaces and Schemes}
+The hybrid simulation requires the implementation of hybrid interfaces and schemes on individual code. In the current study, the file interface is designed to schedule the information exchange between continuum and discrete particle descriptions.  A constrained Lagrangian dynamics model is implemented for hybrid simulation. Unit conversion routine is also implemented in the application code. These changes are summarized in table~\ref{table:interface_implementation}. 
 
-Major changes on standalone CFD and MD codes are summarized in table~\ref{table:interface_implementation}. With regard to the CFD code, it experiences the change of data structure to be the same as that of overset mesh technique~\cite{Chimera}. That is, the CFD mesh system is generated to store the whole fluid domain with its geometric information and the CFD code treats the pure MD region in Fig.~\ref{Fig:Couette} as `Hole' in the terminology of overset technique. Likewise, MDtoCFD and CFDtoMD boundary cells are declared as `Fringe' and `Donor' cells, respectively. This change is "optional" but we encourage because the implementation of overset data structure will ease the handling of the hybrid conditions (position and depth of hybrid layers) without mesh regeneration.
-
-Regarding the information exchange, the CFD code has one file sending and one receiving interface, the former sending the instantaneous properties on Donor cells to MD site and the latter imposing the averaged properties of particles as boundary conditions on Fringe cells. These file interfaces are scheduled to turn on every sampling interval. All exchanged data are written in MD unit: thus, CFD code is equipped with velocity unit conversion function and equation of state which changes the pressure solution from CFD site to equivalent density property in MD domain.
-
-
-%CFD-MD hybrid method has numerical strategy for file-based information exchange between continuum description for macroscopic scale and discrete particle description for microscopic scale. For this information exchange, both codes have the file interface, where each writes the velocity profile of overlapping region, waits for its counterpart's velocity data and receive the data as a boundary condition in the overlap region.
 
 % Table formats; h,t,b,p - here,top,bottom,page of floats
 %\begin{table}[t]
 \begin{table}
-  \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of whole fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
+  \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of the entire fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
   \label{table:interface_implementation}
   \centering
   \resizebox{0.8\linewidth}{!} {
@@ -511,13 +441,14 @@ Regarding the information exchange, the CFD code has one file sending and one re
 \end{table}
 
 
-The same format of data exchange interface is also implemented on MD code. The file reader stores the continuum solution in CFDtoMD boundary cells and calls these values when applying the MD boundary condition. In MDtoCFD layer, particles' properties are averaged over sampling duration and written on file interface. This suffices to impose microscopic profile on macroscopic domain.
+The CFD code employs the data structure of overset mesh technique~\cite{Chimera} to ease the handling of coupling parameters. In other words, the entire fluid domain is generated as the CFD mesh system and pure MD region is turned off as the `Hole' cell in the terminology of overset technique. Likewise, MDtoCFD and CFDtoMD boundary cells are declared as `Fringe' and `Donor' cells, respectively. The labor of mesh regeneration according to the change of coupling parameters (position and depth of hybrid layers) disappears with the overset data structure.
 
-Along with the file interface, additional equations of motion need to be employed on MD code to accurately describe the influence of macroscopic flow variation on particle domain. First, the external force should be imposed to prevent leaving particles from the control domain and the force is applied to the normal direction of uppermost MD layer, as was seen in Fig.~\ref{Fig:Couette}. A cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} is employed as,
+Both codes are equipped with the information exchange routine which consists of one file sender and one file receiver. These file interfaces are scheduled to turn on every sampling interval. The instantaneous properties in the Donor cells of continuum domain are transferred to MD site and referenced when applying constrained Lagrangian dynamics equation. Averaged molecular properties are sent to CFD domain and they are used as the boundary conditions of Fringe cells. All exchanged properties are written in MD unit: thus, CFD code is equipped with velocity unit conversion function and equation of state which changes the pressure solution from CFD site to equivalent density property in MD domain.
 
-\skonote{Or, shall we replace the last sentence to the follow? \\
-The design of external force is very important to exert the correct mean pressure on MD domain without local disturbance in the density field, as is expressed by Werder {\it{et al.}}~\cite{Werder}. Compared to other hybrid models, the external force design in constrained Lagrangian dynamics approach is less sensitive to the solution since particles in the buffer layer between external force layer and molecular dynamic boundary layer act as decreasing the influence of non-uniform density distribution. Thus, a cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} looks still valid for acquiring the accurate solution.}
+Along with the file interface, additional equations of motion are employed on MD code to accurately describe the influence of macroscopic flow variation on particle domain. First, the external force should be imposed to prevent leaving particles from the control domain and the force is applied to the normal direction of uppermost MD layer. A cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} is employed as,
 
+%\skonote{Or, shall we replace the last sentence to the follow? \\
+%The design of external force is very important to exert the correct mean pressure on MD domain without local disturbance in the density field, as is expressed by Werder {\it{et al.}}~\cite{Werder}. Compared to other hybrid models, the external force design in constrained Lagrangian dynamics approach is less sensitive to the solution since particles in the buffer layer between external force layer and molecular dynamic boundary layer act as decreasing the influence of non-uniform density distribution. Thus, a cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} looks still valid for acquiring the accurate solution.}
 
 \vspace{-.2em}
 %\footnotesize
@@ -558,6 +489,7 @@ where $\it v_{i}$ is velocity of $\it i^{th}$ particle and $\it N_{J}$ is the nu
  \label{eq:Lagrangian}
 \end{equation}
 \normalsize
+
 The Classical MD equation of motion can be generalized to obtain constraint by adopting the fluctuation in acceleration of each particles, $\zeta_{i}$
 
 \vspace{-.2em}
@@ -575,7 +507,8 @@ where $\it F_{i}$ is the force on $\it i^{th}$ particle based on the interaction
  \label{eq:Con2}
 \end{equation}
 \normalsize
-The constrained particle dynamics with conventional equation of motion can be written as:
+
+Finally, the constrained particle dynamics with conventional equation of motion can be written as:
 
 \vspace{-.2em}
 %\footnotesize
@@ -584,6 +517,7 @@ The constrained particle dynamics with conventional equation of motion can be wr
  \label{eq:Con3}
 \end{equation}
 \normalsize
+
 The continuum velocity and the mean microscopic velocity from MD over control domain provide the synchronization of the mass and momentum consistent with Eqn.~\ref{eq:Con3}.
 
 
@@ -595,6 +529,7 @@ The continuum velocity and the mean microscopic velocity from MD over control do
 \Nkimnote{Proposed title : Spatial - focusing spatial coupling scheme from 2.4 and 2.5}}
 \subsubsection{\\
 \Nkimnote{Proposed title : Temporal - copy chapter 2.6 here}}
+\label{sec:numerical_parameters}
 
 %How to apply a continuum solution in the CFDtoMD layer to particle domain without harming the degree-of-freedom of molecular motion is the essence of acquiring the accurate molecular dynamic solution: how to avoid the excessive statistical error~\cite{Hadjicon3,Time_Mechanism} of averaged MD profile determines the accuracy of CFD solution. 
 
@@ -620,6 +555,7 @@ We sense that the statistical noise is a function of the characteristics of flui
 
 
 \subsection{Simulation of Moderate Velocity Flow Field}
+\label{sec:numerical_lowspeed}
 According to the mathematical expression in statistical error~\cite{Hadjicon3,Time_Mechanism}, the ratio of sampling noise compared to the macroscopic velocity is described as,
 
 \vspace{-.2em}
@@ -638,7 +574,7 @@ The initial velocity component at individual problem set is differently determin
 
 
 \subsection{Temporal Coupling Schemes}
-
+\label{sec:numerical_temporal}
 
 \skonote{This subsection needs to be corrected after Section 4 is completed: if solution does not clearly show the benefit, most context shall be erased.}
 
@@ -704,6 +640,7 @@ Though the current numerical approach is expected to be a possible way to impose
 \section{Construction of a Coupled Multi-physics Simulation Framework
 \\
 \Nkimnote{Proposed title : Coupled Concurrent Multi-Scale (Continuum-Molecular) Simulation Framework}}
+\label{sec:computational}
 
 Two important issues on the performance of hybrid simulations are co-scheduling and load-balancing. Both can be resolved by adopting a Pilot-job concept. We explain the design of a multi-physics simulation framework which operates in the form of a single Pilot-job and contains a load-balancing function between distinct tasks.
 
@@ -862,9 +799,12 @@ The generation of an application manager and the changes in application codes ra
 
 
 \section{Multi-physics Flow Simulations in Various Flow Conditions}
+\label{sec:accuracy}
 A hybrid CFD-MD framework is employed to solve the multi-physics flow in nano-scale. Experimented problems are a sudden-start Couette flow and the oscillating boundary problem. We start from a novel approach of easily determining coupling conditions to the validation and verification of the hybrid simulation framework, then to the exploration of the moderate flow conditions in view of flow velocity and system scale.
 
 \subsection{Problem Description and Coupling Conditions}
+\label{sec:accuracy_conditions}
+
 All applications we examine are internal flow fields filled with the liquid argon. Characteristic length of liquid argon is ${\sigma}=3.405{\times}10^{-10}$ and time scale is $\tau=2.2{\times}10^{-12}$. Density is $0.81m{\sigma}^{-3}$, which means 0.81 atoms are included in the characteristic volume.
 The fluid domain is a channel system which consists of two parallel plates in vertical direction. Liquid argon particles are filled in the domain and both walls have artificial properties which is the same as those of liquid argon. The slip ratio between fluid and solid particles are set 0.6.\skonote{check and include why people set the slip ratio as 0.6} Channel height is set to In view of system size, two fluid systems are solved in our experiments, i.e., 10$^{-8}$ (52 $\sigma$) and 10$^{-7}$ (520 $\sigma$) meters in the height of channel. Applications covered in this work are periodic systems in the perpendicular direction and the flow variation is derived by the horizontal motion of an upper plate.
 
@@ -1041,6 +981,7 @@ The strength of the noise in this large system is globally milder than the resul
 
 
 \subsection{A Sudden-start Couette Flow}
+\label{sec:accuracy_couette}
 
 %The first problem is the Couette flow simulation, which have been in wide use for the validation of a hybrid CFD-MD solver.~\cite{Nie},\cite{Yen} We start from the validation case, which has 52$\sigma$ distance between two parallel plates and upper wall velocity is ${\sigma}/{\tau}$. We assume liquid argon particles are filled in the domain and both walls have artificial properties which is the same as those of liquid argon. Characteristic length of liquid argon is ${\sigma}=3.405{\times}10^{-10}$ and time scale is $\tau=2.2{\times}10^{-12}$. Density is $0.81m{\sigma}^{-3}$, which means 0.81 atoms are included in the characteristic volume.
 
@@ -1123,6 +1064,7 @@ Collectively, results by multiple samples show the same order of accuracy compar
 
 
 \subsection{A Physically Unsteady Flow Field: Oscillating Boundary Problem}
+\label{sec:accuracy_oscillation}
 
 The accuracy of designed temporal coupling scheme is verified by solving an unsteady oscillating boundary problem. In Couette flow simulation, which converges to a steady-state flow profile, the minor inaccuracy during the flow evolution can be eventually recovered. On the other hand, the inaccurate solution at an one instance harms the flow field afterwards in this physically unsteady problem. Therefore, the accuracy of temporal coupling scheme becomes more important. Also, velocity in the hybrid region becomes far slower than the Couette flow profile, so that the influence of noise from MD side is concerned to be more critical in the current flow simulation. The computational domain and coupling conditions are the same as the above Couette flow simulation. In this case, the upper wall boundary condition changes from the fixed velocity to oscillatory wall, which is $u_{wall}(t)=({\sigma}/{\tau}){\times}sin(2{\pi}t/T)$. Period $T$ is set to be 200$\tau$ in 10$^{-8}$ meter system. 
 
@@ -1141,9 +1083,6 @@ Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and h
 \caption{\small Unsteady Flow Profile of Stokes Boundary Layer Problem; (Left) Velocity profiles by pure CFD and hybrid simulations at specified time instances. Difference between hybrid and pure CFD solutions in hybrid region shrinks in the continuum domain. Noise from the MD simulation does not affect the global velocity profile a lot, because the driving force in this simulation is the oscillating velocity from CFD domain. (Right) Temporal variation of the velocity in the middle of hybrid layer. History of the velocity field reveals that the hybrid solution contains much noise in this experiment.}
 \label{Stokes_Sol}
 \end{figure}
-
-
-\skonote{Shall we put the result of 10-7 system scale as well?}
 
 
 Comparing temporal evolutions of the velocity field by different coupling schemes in Fig.~\ref{Temporal1}, the clear difference is the resolution of the overshoot/undershoot phenomena by the prediction-correction approach. Sufficient numbers of independent experiments are sampled to reduce the statistical error and prediction time scale of 2.5 sampling intervals is chosen on prediction-correction approach to impose the interpolated boundary condition on both domains. On conventional model, the maximal error is seen at peak points. This is a natural characteristics of the linear extrapolation that it fails to predict the correct values around the strong variation. This inaccuracy is resolved by using a prediction-correction approach and applying interpolated boundary condition from predicted flow properties. However, another numerical inaccuracy of time-lagging pattern in conventional model is also seen in the prediction-correction model. This necessitates the implementation of higher-order interpolation schemes.
@@ -1184,6 +1123,7 @@ Summarizing the accuracy of unsteady solution, the unfavorable overshoot/undersh
 
 
 \section{Performance Analysis of a Multi-physics Simulation Framework}
+\label{sec:performance}
 
 The benefit of a BigJob as a way of reducing the waiting time on the local queueing system can be discussed from our preliminary test of the relationship between the requested number of processors and the waiting time.
 \newline
@@ -1453,6 +1393,7 @@ Plots on the right side of Fig.~\ref{Fig:LBLarge} show a non-monotonically chang
 
 %-------------------------------------------------------------------------
 \section{Next Step: Further Refinement}
+\label{sec:futureworks}
 
 The unstable solution at Fig.~\ref{Couette_Noisy} represents the result of Couette flow simulation with 0.1 $\sigma / \tau$ upper plate velocity in O(100) nanometer system. The diverging solution is intuitively natural, according to the statistical noise measurement in Table~\ref{table:MD_Vel0_L}: the amount of statistical error is 25 percent of the steady-state velocity in MDtoCFD layer. For the worse, the signal-to-noise ratio is even larger at early stage. Thus the strong initial instability makes it harder for the solver to reach the steady-state solution. Increasing the sampling duration to 1000 $\tau$ did not help; increasing the height of layers implies the abandonment of hybrid method's merit over pure MD method.
 
@@ -1472,6 +1413,8 @@ Clearly, this is one of the most important issues to make the family of hybrid m
 
 %-------------------------------------------------------------------------
 \section{Conclusions}
+\label{sec:conclusion}
+
 To be included
 
 \section*{Acknowledgements}
