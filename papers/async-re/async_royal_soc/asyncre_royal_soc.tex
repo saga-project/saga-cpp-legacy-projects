@@ -159,9 +159,9 @@ ensembles.  RE simulations are used to understand physical phenomena
 calculations. Most RE implementations are either infrastructure
 specific (Woods et al. 2005) or, if using multiple distributed
 resources, they require prior co-scheduling (Manos et
-al. 2008). ~\citep{Luckow:2008fp} takes it to the next level and is an
+al. 2008). ~\cite{Luckow:2008fp} takes it to the next level and is an
 example of adaptive RE simulations on production-level grid resources,
-while ~\citep{parashar_arepex} is an example of \emph{asynchronous} RE
+while ~\cite{parashar_arepex} is an example of \emph{asynchronous} RE
 simulations, which is based on
 CometG~\citep{Li:2005:CSC:1090948.1091381}, a decentralised
 computational infrastructure for Desktop Grid environments.
@@ -190,25 +190,25 @@ machines. % \jhanote{Last sentence is unclear} We present results using
 % which the reader can understand which model of RE is most suited for a
 % particular set of resources (distributed, local etc.,)
 
-The paper is organized as follows. Section II sketches out the three
-different RE algorithms that are investigated; we also present an
-approximate mathematical model for the different algorithms.  Section
-III outlines the architecture of the RE Framework -- the SAGA BigJob
+The paper is organized as follows. Section~\ref{sec:repex-approach}
+sketches out the three different RE algorithms that are investigated; 
+we also present an approximate mathematical model for the different algorithms.  
+Section~\ref{repexfw} outlines the architecture of the RE Framework -- the SAGA BigJob
 (how it supports the dynamic execution of multiple replicas) and other
 important elements that make the framework flexible and extensible.
-In Section IV, we present our implementation of the RE algorithms and
+In section~\ref{sec:re_impl}, we present our implementation of the RE algorithms and
 understand the primary determinants of performance and relate it to
-the mathematical model of \S~\ref{sec:repex-approach}.  In Section V,
-we describe the experiments performed to assess and understand
-performance when scaling-up (on a single machine) as the number of
-replicas increases. Section V also investigates the scaling-out
+the mathematical model of section~\ref{sec:repex-approach}.  
+In section~\ref{sec:performance}, we describe the experiments performed 
+to assess and understand performance when scaling-up (on a single machine) 
+as the number of replicas increases. We also investigate the scaling-out
 characteristics, namely performance as the number of replicas are
 increased while the (distributed) resources employed
 increases. % while keeping the number of replicas on local and
 % distributed resources.  \jhanote{Currently we have only Section 6
 %   and no 7}.
-We present the results and analysis, in Section VI and Section VII
-concludes the paper and discusses future work.
+% We present the results and analysis, in Section VI and 
+Section~\ref{sec:conclusion} concludes the paper and discusses future work.
 
 % \alnote{Should we add a section with some scientific background: HIV,
 %   Hepatitis...?}  \jhanote{given the tightness of space, I think we
@@ -263,6 +263,7 @@ Metropolis scheme.  However, any RE experiment will entail an overhead
 of coordination, job-submission \& termination etc. Thus, the time $T$
 to complete the RE experiment where N$_X$ is the total number of
 exchanges is:
+\alnote{I would propose to write $\frac{N_X}{\eta}$ to have both terms consistent}
 \begin{eqnarray}
   T = {1\over p} \times [(T_{MD} \times  {N_X \over {\eta}}) +
   {(T_{X} + T_{W}) \over \eta} \times N_X]
@@ -272,7 +273,8 @@ where, $T_{X}$ is the time to perform a pairwise exchange and includes
 the following components, (i) time to find a partner ($T_F$), (ii)
 time to exchange/write/transfer files ($T_{ex}$) as well as (iii)
 book-keeping associated with replica pairing/exchanging ($T_{coord}$)
-(thus $T_{X} = T_{F} + T_{ex}+T_{coord}$); $T_W$ is comprised of (i)
+(thus $T_{X} = T_{F} + T_{ex}+T_{coord}$); \alnote{Do we need to split up
+$T_{W}$? I don't see a (ii).}$T_W$ is comprised of (i)
 the time spent by a replica waiting for other replicas to become
 available, the time spent waiting to be restarted after each exchange
 ($T_r$) and any other associated costs, and $\eta$ is the number of
@@ -327,10 +329,9 @@ overcome in the asynchronous (exchange) formulations of RE.
 % case III (algorithmically) To overcome these limitations and
 % implement çit on distributed grid resources.
 
-In asynchronous formulations of the RE algorithms
-(References~\citep{parashar_arepex}, ~\citep{??}  \jhanote{Also please
+In asynchronous formulations of the RE algorithms~\citep{parashar_arepex,DBLP:journals/jcc/GallicchioLP08},  \jhanote{Also please
   cite the JCC paper of Gallichio, Levy and Parashar. See references/
-  directory please} a replica does not have to wait for {\it all}
+  directory please}\alnote{done} a replica does not have to wait for {\it all}
 other replicas to reach a pre-determined state. An exchange occurs
 whenever a replica reaches a pre-determined state and perform an
 exchange with another suitable replica in the ensemble.  The reduction
@@ -571,7 +572,7 @@ If an exchange fails due to contention, the replica agent tries to find a new pa
   
 
 \section{Implementation of Synchronous and Asynchronous RE}
-
+\label{sec:re_impl}
 % \jhanote{This section should help the reader understand the control
 %   flow - which is YOUR IMPLEMENTATION of the RE algorithm. Need to
 %   make reference to Figures 2a and 2b} \athotanote{i think we are doing this in section 3?}\jhanote{Yes}
@@ -592,10 +593,12 @@ asynchronous (centralized and decentralized) RE implementations here.
 	\begin{tabular}{|l|c|c|c|}
 	\hline
 	                        &sync. RE &async central. RE &async decent. RE\\
+	% \hline
+	%  $T_{MD\_init}$  &23\,sec &23\,sec &23\,sec\\
+	%  \hline
+	%  $T_{MD\_run}$   &68\,sec &68\,sec &68\,sec\\
 	\hline
-	$T_{MD\_init}$  &23\,sec &23\,sec &23\,sec\\
-	\hline
-	$T_{MD\_run}$   &68\,sec &68\,sec &68\,sec\\
+	$T_{MD}$   &71\,sec &71\,sec &71\,sec\\
 	\hline
 	$T_{W}$        &2.6\,sec &1\,sec &\\
 	\hline
@@ -858,7 +861,7 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16
 %  is the conceptual difference between Case 3 and Case 2?}
 
 \section{Scale-Up and Scale-Out: Experiments and Results}
-
+\label{sec:performance}
 In this section we present the experiments that we conducted on 
 production level infrastructure. One set of experiments are modeled to 
 analyze the performance of the algorithms and implementations when we 
@@ -998,7 +1001,7 @@ configuration files are created locally by the replica agent.
 %slightly over 2 machines, but again increases over 4 machines. This is due to the fact that the experiments have been run only a handful of times but, over time, it can be assumed that it will result in reduced queue wait times.
 
 \section{Conclusion}
-
+\label{sec:conclusion}
 
 
 %\athotanote{is this right? }
