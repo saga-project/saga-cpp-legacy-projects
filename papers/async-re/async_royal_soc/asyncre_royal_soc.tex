@@ -367,44 +367,40 @@ and any other miscellaneous costs.
 
 \section{Replica-Exchange Framework}\label{repexfw}
 
-The RE Framework we present is independent of the underlying
-infrastructure and provides the capability to implement a variety of
-RE algorithms.  An important motivation for us to come up with an RE
-Framework is to present an infrastructure independent solution that
-makes it possible to implement a variety of RE algorithms, such as
-synchronous and asynchronous, that can dynamically utilise a range of
-infrastructures.  It is also important to have a scheme that does not
-depend on a static set of resources that are pre-defined at the time
-of workload submission.
-% \jhanote{If we are talking about differences in the impelementation,
-%   then that does not belong here. If we are talking about the
-%   algorithm, then it belongs here} \athotanote{moved this from section 2 to here}
-   We differ from the implementation described
-in \citep{parashar_arepex} in some important ways.  The asynchronous
-RE model we developed runs on production level grids such as the
-Teragrid and LONI~\citep{LONI_web}, unlike specialized
-infrastructures. % \jhanote{Careful. Comet is only a
-% coordination infrastructure which can be overlayed over production
-% CI} \athotanote{removed cometg. is it accurate now - specialized
-% infrastructure?}
-Also, we run the replicas as MPI jobs. In following subsections we introduce the different components in the RE Framework. 
-  
-  
-  %\jhanote{have not defined  asynchronous implementation yet!}  \alnote{Also, I think we should  focus more on the algorithm than on the deployment  aspects}\jhanote{I echo Luckow's remark. And my remarks reflect that  too}
+An important motivation for this work is to design and implement a
+framework that provides the capability to implement and compare the
+performance of the different RE algorithms formulations at
+large-scales.  In addition, it is important that framework be
+independent of the underlying infrastructure.  It is useful to
+highlight that we differ from other RE implementations (e.g.,
+\citep{parashar_arepex}) in that we use {\it production grade}
+national and regional cyberinfrastructure, such as the US TeraGrid and
+LONI~\citep{LONI_web}, using general purpose and standard
+capabilities.  Additionally, our framework {\it natively} supports
+individiual replicas that are MPI jobs. In this section we outline the
+architecture, implementation and the basic performance of the RE
+framework when used to implement the different formulations.
+
+% In following subsections we
+% introduce the different components in the RE Framework.
+
+% is to present an infrastructure independent solution that makes it
+% possible to implement a variety of RE algorithms, such as synchronous
+% and asynchronous, that can
+% asynchronous RE model we developed runs on production level grids such
+% as the Teragrid, unlike specialized
+% infrastructures.
 
 \subsection{SAGA BigJob - A Pilot-job Framework}
 \label{sec:BigJob}
 
-The Simple API for Grid Applications (SAGA)(~\citep{saga_gfd90}) is an
-API that provides the basic functionality required to build
-distributed applications, tools and frameworks so as to be independent
-of the details of the underlying infrastructure. SAGA is an API
-standardization effort within the Open Grid Forum
-(OGF)~\citep{ogf_web}, an international standards development body
-concerned primarily with standards for distributed computing. The
-various tasks that are carried out using the SAGA APIs include file
-staging, job spawning and the conduction of the exchange attempts.
-
+% The Simple API for Grid Applications (SAGA)(~\citep{saga_gfd90}) is an
+% API that provides the basic functionality required to build
+% distributed applications, tools and frameworks so as to be independent
+% of the details of the underlying infrastructure. SAGA is an API
+% standardization effort within the Open Grid Forum
+% (OGF)~\citep{ogf_web}, an international standards development body
+% concerned primarily with standards for distributed computing. 
 
 %%%%% FIGURE %%%%%
 \begin{figure}[t]
@@ -415,27 +411,38 @@ staging, job spawning and the conduction of the exchange attempts.
       \label{fig:bigjob}
 \end{figure}
 
-Previously, we demonstrated the usage of the SAGA Pilot-Job
+We have demonstrated the usage of the SAGA-based Pilot-Job
 framework~\citep{saga_bigjob_condor_cloud} -- called the BigJob, to
 run RE simulations across multiple, heterogeneous, distributed grid
-and cloud infrastructure~\citep{Luckow:2008fp}. Here we use the BigJob
-framework to efficiently request and manage computational resources
-for multiple replicas.  Figure ~\ref{fig:bigjob} shows the
-architecture of SAGA BigJob.  It consists of three components: (i) the
-SAGA-BigJob Manager, (ii) the BigJob Agent and (iii) the advert
-service. The SAGA-BigJob manager submits the BigJobs to the resource
-manager and the sub-job descriptions to the \emph{advert server}. The
-advert server can be on any machine and is a central key/value store
-which is used for communication between the SAGA-BigJob Manager and
-the BigJob agent. There is a separate BigJob agent for each
-BigJob. Thus, every BigJob on every machine has a local BigJob
-agent. Once the BigJobs become active, the BigJob agent retrieves the
-job descriptions from the advert server, allocates the required number
-of nodes and launches the sub-jobs on each resource. The BigJob agent
-continuously monitors the running sub-jobs and updates the sub-job
-states in the advert server. Once a sub-job finishes running, the
-nodes are freed and marked as available. The BigJob agent periodically
-polls the advert server for new jobs.
+and cloud infrastructure~\citep{Luckow:2008fp}.  SAGA~\citep{saga-url}
+is an API to the basic functionality required to build distributed
+applications, tools and frameworks so as to be independent of the
+details of the underlying infrastructure.  The various tasks that are
+carried out using the SAGA APIs include file staging, job spawning and
+the conduction of the exchange attempts.
+
+Here we use the BigJob framework to efficiently request and manage
+computational resources for multiple replicas.  Specifically, it
+enables the dynamical utilisation a range of infrastructures, i.e., it
+supports a scheme that does not depend on a static set of resources
+that are pre-defined at the time of workload submission.
+
+Figure ~\ref{fig:bigjob} shows the architecture of SAGA BigJob.  It
+consists of three components: (i) the SAGA-BigJob Manager, (ii) the
+BigJob Agent and (iii) the advert service.  The SAGA-BigJob manager
+submits the BigJobs to the resource manager and the sub-job
+descriptions to the \emph{advert server}. The advert server can be on
+any machine and is a central key/value store which is used for
+communication between the SAGA-BigJob Manager and the BigJob
+agent. There is a separate BigJob agent for each BigJob. Thus, every
+BigJob on every machine has a local BigJob agent. Once the BigJobs
+become active, the BigJob agent retrieves the job descriptions from
+the advert server, allocates the required number of nodes and launches
+the sub-jobs on each resource. The BigJob agent continuously monitors
+the running sub-jobs and updates the sub-job states in the advert
+server. Once a sub-job finishes running, the nodes are freed and
+marked as available. The BigJob agent periodically polls the advert
+server for new jobs.
 
 \subsection{Replica-Exchange Manager}\label{repexmanager} 
 
@@ -479,8 +486,12 @@ exchanging the configuration.
 
 \subsubsection{Synchronous and Asynchronous (centralized) RE-Manager}
 
-Here we first explain how the synchronous RE Manager works and then explain asynchronous (centralized) RE Manager. The control flow of the asynchronous (centralized) RE case is shown in
-Figure~\ref{fig:coordination}a). But as synchronous RE is also a centralized implementation, we use it to describe both. %\jhanote{Abhinav, please check that  this is correct?}
+Here we first explain how the synchronous RE Manager works and then
+explain asynchronous (centralized) RE Manager. The control flow of the
+asynchronous (centralized) RE case is shown in
+Figure~\ref{fig:coordination}a). But as synchronous RE is also a
+centralized implementation, we use it to describe
+both. %\jhanote{Abhinav, please check that this is correct?}
 
 Once the BigJobs are running and the replicas are running, the RE Manager constantly queries the SAGA BigJob Manager for the latest replica states. % \alnote{The RE-Manager queries BigJob. We should hide
 % the BJ impl details in this section.}
